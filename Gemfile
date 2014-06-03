@@ -1,10 +1,10 @@
 source 'https://rubygems.org'
 
 # Bundle edge Rails instead: gem 'rails', github: 'rails/rails'
-gem 'rails', '4.0.0.rc1'
+gem 'rails', '4.0.5'
 
 # Use SCSS for stylesheets
-gem 'sass-rails', '~> 4.0.0.rc1'
+gem 'sass-rails', '~> 4.0.3'
 
 # Use Uglifier as compressor for JavaScript assets
 gem 'uglifier', '>= 1.3.0'
@@ -30,7 +30,8 @@ group :doc do
 end
 
 gem 'mongoid', github: 'mongoid/mongoid'
-gem 'bson_ext', '~> 1.8.6'
+gem 'bson_ext'  #, '~> 1.8.6'
+gem 'rails_admin'
 
 # Use ActiveModel has_secure_password
 # gem 'bcrypt-ruby', '~> 3.0.0'
@@ -43,3 +44,6 @@ gem 'bson_ext', '~> 1.8.6'
 
 # Use debugger
 # gem 'debugger', group: [:development, :test]
+
+gem 'httparty'
+gem 'bunny', '~> 0.9.1'

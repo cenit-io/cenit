@@ -18,7 +18,7 @@ development:
         # Change the default consistency model to :eventual or :strong.
         # :eventual will send reads to secondaries, :strong sends everything
         # to master. (default: :eventual)
-        # consistency: :strong
+        consistency: :strong
 
         # How many times Moped should attempt to retry an operation after
         # failure. (default: 30)

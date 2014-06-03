@@ -1,11 +1,8 @@
 Cenit::Application.routes.draw do
 
-  namespace :hub do
-    post '*path', to: 'webhook#consume', as: 'webhook'
-  end
-
-  resources :posts do
-    resources :comments
+  mount RailsAdmin::Engine => '/data', as: 'rails_admin'
+  namespace :cenit do
+    post '/', to: 'webhook#consume', as: 'webhook'
   end
 
 end

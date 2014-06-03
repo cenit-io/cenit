@@ -3,4 +3,4 @@
 
 require File.expand_path('../config/application', __FILE__)
 
-Rails4Mongoid::Application.load_tasks
+Cenit::Application.load_tasks

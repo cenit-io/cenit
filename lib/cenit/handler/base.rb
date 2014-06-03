@@ -1,6 +1,6 @@
 require 'json'
 
-  module Hub
+  module Cenit
     module Handler
       class Base
 
@@ -9,7 +9,6 @@ require 'json'
         def initialize(message)
           self.payload = ::JSON.parse(message).with_indifferent_access
           self.request_id = payload.delete(:request_id)
-
           if payload.key? :parameters
             if payload[:parameters].is_a? Hash
               self.parameters = payload.delete(:parameters).with_indifferent_access
@@ -19,13 +18,13 @@ require 'json'
 
         end
 
-        def self.build_handler(path, message)
-          klass = ("Hub::Handler::" + path.camelize + "Handler").constantize
+        def self.build_handler(object, message)
+          klass = ("Cenit::Handler::" + object.capitalize + "Handler").constantize
           klass.new(message)
         end
 
         def response(message, code = 200)
-          Hub::Responder.new(@request_id, message, code)
+          Cenit::Responder.new(@request_id, message, code)
         end
 
         def process

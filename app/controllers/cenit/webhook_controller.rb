@@ -1,10 +1,11 @@
-  module Hub
+  module Cenit
     class WebhookController < ActionController::Base
-      before_filter :save_request_data#, :authorize
+      before_filter :save_request_data   #, :authorize
       rescue_from Exception, :with => :exception_handler
 
+      # TODO: consider attribute called_objects
       def consume
-        handler = Handler::Base.build_handler(@called_hook, @webhook_body)
+        handler = Handler::Base.build_handler(@called_object, @webhook_body)
         responder = handler.process
         render json: responder, root: false, status: responder.code
       end
@@ -27,9 +28,10 @@
         return false
       end
 
+      # TODO: change called_object to called_objects
       def save_request_data
-        @called_hook = params[:path]
-        @webhook_body = request.body.read
+        @called_object = params[:webhook].keys.first.singularize
+        @webhook_body = params[:webhook].to_json
       end
 
     end

@@ -1,5 +1,5 @@
 
-  module Hub
+  module Cenit
     class Responder
       attr_accessor :request_id, :summary, :code, :backtrace, :objects
 

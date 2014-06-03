@@ -1,10 +1,13 @@
-class Property
+module
+class Dimension
   include Mongoid::Document
   include Mongoid::Attributes::Dynamic
   include Mongoid::Timestamps
 
-  has_and_belongs_to_many :products
-  field :name, type: String
-  field :presentation, type: String
+  embedded_in :images
+
+  field :height, type: Integer
+  field :width, type: Integer
   index({ starred: 1 })
+end
 end
