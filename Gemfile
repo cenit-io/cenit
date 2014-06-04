@@ -30,7 +30,7 @@ group :doc do
 end
 
 gem 'mongoid', github: 'mongoid/mongoid'
-gem 'bson_ext'  #, '~> 1.8.6'
+gem 'bson_ext' 
 gem 'rails_admin'
 
 # Use ActiveModel has_secure_password
