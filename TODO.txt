@@ -1,7 +1,0 @@
-# openjaf/cenit open issues
-  6  Add Order object
-  5  Add to Readme a guide for run Cenit Hub with sample endpoints.
-  4  Add OpenERP Push API like an addon in OpenERP.
-  3  Allow comunication for multiples endpoint in all directions
-  2  Config RSpec like testing tool
-  1  Add devise gem for authentication managment.
