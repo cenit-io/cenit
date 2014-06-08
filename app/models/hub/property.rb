@@ -9,6 +9,8 @@ module Hub
 	  field :name, type: String
 	  field :presentation, type: String
 
+    validates_presence_of :name, :presentation
+
 	  index({ starred: 1 })
 	end
 end

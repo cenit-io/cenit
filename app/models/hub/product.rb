@@ -27,6 +27,11 @@ module Hub
 	  field :shipping_category, type: String
 	  field :options, type: Array
 
+    validates_presence_of :id, :name, :sku, :price, :available_on 
+    validates_uniqueness_of :sku
+
+    validates_numericality_of :price, { greater_than: 0 }
+
 	  index({ starred: 1 })
 
 	  # TODO: pass these methods to an external module and later use it as include

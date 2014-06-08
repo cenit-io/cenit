@@ -16,6 +16,9 @@ module Hub
 	  field :cost_price, type: Float	  
 	  field :quantity, type: Integer
 
+    validates_presence_of :sku
+    validates_uniqueness_of :sku
+
 	  index({ starred: 1 })
 	end
 end

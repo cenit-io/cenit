@@ -82,6 +82,26 @@ describe Hub::Product do
              :available_on, :permalink, :meta_description, :meta_keywords,
              :shipping_category, :options ) }
 
+  it { should embed_many :variants }
+  it { should embed_many :images }
+  it { should embed_many :taxons }
+  it { should embed_many :properties }
+
+  it { should accept_nested_attributes_for(:variants) }
+  it { should accept_nested_attributes_for(:images) }
+  it { should accept_nested_attributes_for(:properties) }
+  it { should accept_nested_attributes_for(:taxons) }
+
+  it { should validate_presence_of(:id) }
+  it { should validate_presence_of(:name) }
+  it { should validate_presence_of(:sku) }
+  it { should validate_presence_of(:price) }
+  it { should validate_presence_of(:available_on) }
+
+  it { should validate_uniqueness_of(:sku)  }
+
+  it { should validate_numericality_of(:price).greater_than(0) }
+
   it "should create a new instance given a valid attribute" do
     Hub::Product.create!(@attr)
   end
