@@ -33,10 +33,16 @@ end
 group :development, :test do
   gem 'factory_girl_rails'
   gem 'rspec-rails'
+end
+
+group :test do
+  gem 'factory_girl_rails'
+  gem 'rspec-rails'
   gem 'mongoid-rspec'
   #gem 'hub_samples', github: "spree/hub_samples", branch: "master"
   gem 'database_cleaner'
 end
+
 
 gem 'mongoid', github: 'mongoid/mongoid'
 gem 'bson_ext' 

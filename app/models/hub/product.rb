@@ -1,22 +1,26 @@
 module Hub
 	class Product
 	  include Mongoid::Document
-	  include Mongoid::Attributes::Dynamic
+	  #include Mongoid::Attributes::Dynamic
 	  include Mongoid::Timestamps
 
-	  #embeds_many :variants
-	  #embeds_many :images
+	  embeds_many :variants, class_name: 'Hub::Variant'
+	  embeds_many :images, class_name: 'Hub::Image'
+    embeds_many :taxons, class_name: 'Hub::Taxon'
+    embeds_many :properties, class_name: 'Hub::Property'
 	  
-	  #accepts_nested_attributes_for :variants,  :autosave => true
-	  #accepts_nested_attributes_for :images,  :autosave => true
+	  accepts_nested_attributes_for :variants
+	  accepts_nested_attributes_for :images
+    accepts_nested_attributes_for :properties
+    accepts_nested_attributes_for :taxons    
 
 	  field :_id, type: String
-	  field :name, type: String #, require: true
-	  field :sku, type: String #, require: true
-	  field :description, type: String #, require: true
-	  field :price, type: Float #, require: true
+	  field :name, type: String
+	  field :sku, type: String
+	  field :description, type: String 
+	  field :price, type: Float
 	  field :cost_price, type: Float
-	  field :available_on, type: Date #, require: true
+	  field :available_on, type: Date 
 	  field :permalink, type: String
 	  field :meta_description, type: String
 	  field :meta_keywords, type: String

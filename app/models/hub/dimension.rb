@@ -4,7 +4,7 @@ module Hub
 	  include Mongoid::Attributes::Dynamic
 	  include Mongoid::Timestamps
 
-	  embedded_in :images
+	  embedded_in :image
 
 	  field :height, type: Integer
 	  field :width, type: Integer
