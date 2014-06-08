@@ -8,11 +8,6 @@ require 'rspec/autorun'
 # in spec/support/ and its subdirectories.
 Dir[Rails.root.join("spec/support/**/*.rb")].each { |f| require f }
 
-#Dir["#{File.dirname(__FILE__)}/factories/**/*.rb"].each do |f|
-#  fp =  File.expand_path(f)
-#  require fp
-#end
-
 # Checks for pending migrations before tests are run.
 # If you are not using ActiveRecord, you can remove this line.
 ##ActiveRecord::Migration.check_pending! if defined?(ActiveRecord::Migration)
@@ -45,27 +40,14 @@ RSpec.configure do |config|
   #     --seed 1234
   #config.order = "random"
 
-
-  require 'database_cleaner'
-#  config.before(:suite) do
-#    DatabaseCleaner.strategy = :truncation
-#    DatabaseCleaner.orm = "mongoid"
-#  end
-
-#  config.before(:each) do
-#    DatabaseCleaner.clean
-#  end
-
-# Cleanup the DB in between test runs
+  #config.order = "random"
+  
   config.before(:suite) do
-    DatabaseCleaner[:mongoid].strategy = :truncation
-    DatabaseCleaner[:mongoid].clean_with(:truncation)
+    DatabaseCleaner.strategy = :truncation
   end
-
   config.before(:each) do
     DatabaseCleaner.start
   end
-
   config.after(:each) do
     DatabaseCleaner.clean
   end
