@@ -8,6 +8,9 @@ module Hub
 	  has_many :images, class_name: 'Hub::Image'
     belongs_to :product, class_name: 'Hub::Product'
 
+    has_many :line_items,class_name: 'Hub::LineItem', inverse_of: :variant
+    has_many :stock_items, class_name: 'Hub::Inventory', inverse_of: :variant
+
 	  accepts_nested_attributes_for :options
 	  accepts_nested_attributes_for :images
 

@@ -27,7 +27,7 @@ describe Hub::Cart do
             "price" => 100.0
           }
         ],
-        "adjustments" => [
+        "adjustments_attributes" => [
           {
             "name" => "Tax",
             "value" => 10.0
@@ -63,7 +63,7 @@ describe Hub::Cart do
           "country" => "US",
           "phone" => "0000000000"
         },
-        "payments" => [
+        "payments_attributes" => [
           {
             "number" => 63,
             "status" => "completed",
@@ -74,8 +74,7 @@ describe Hub::Cart do
 
         "shipments_attributes" => [
           {
-            "id" => "H51851735361",
-            "number" => "H51851735361",
+            #"id" => "H51851735361",
             "cost" => 5.0,
             "status" => "ready",
             "stock_location" => nil,
@@ -86,19 +85,18 @@ describe Hub::Cart do
             "items_attributes" => [
               {
                 "name" => "Spree T-Shirt",
-                "sku" => "SPREE-T-SHIRT",
-                "external_ref" => "",
+               # "sku" => "SPREE-T-SHIRT",
+               # "external_ref" => "",
                 "quantity" => 1,
                 "price" => 100.0,
                 "variant_id" => 73,
-                "options" => {
-                }
+                #"options" => {
+               # }
               }
             ]
           },
           {
-            "id" => "H51851735362",
-            "number" => "H51851735362",
+            #"id" => "H51851735362",
             "cost" => 5.0,
             "status" => "confirmed",
             "stock_location" => nil,
@@ -109,13 +107,13 @@ describe Hub::Cart do
             "items_attributes" => [
               {
                 "name" => "Spree T-Shirt",
-                "sku" => "SPREE-T-SHIRT",
-                "external_ref" => "",
+               # "sku" => "SPREE-T-SHIRT",
+               # "external_ref" => "",
                 "quantity" => 1,
                 "price" => 100.0,
                 "variant_id" => 73,
-                "options" => {
-                }
+               # "options" => {
+               # }
               }
             ]
           }
@@ -131,7 +129,8 @@ describe Hub::Cart do
   it { should validate_presence_of(:id) }
 
   it "should create a new instance given a valid attribute" do
-    Hub::Cart.create!(@attr)
+    cart = Hub::Cart.new(@attr[0])
+    cart.save
   end
 
 end  

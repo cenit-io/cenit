@@ -27,7 +27,7 @@ describe Hub::Order do
             "price" => 100.0
           }
         ],
-        "adjustments" => [
+        "adjustments_attributes" => [
           {
             "name" => "Tax",
             "value" => 10.0

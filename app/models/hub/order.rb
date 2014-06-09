@@ -11,7 +11,7 @@ module Hub
     field :currency, type: String
     field :placed_on, type: Date
 
-	  has_one :totals, class_name: 'Hub::OrderTotal'
+	  belongs_to :totals, class_name: 'Hub::OrderTotal'
 
     has_many :line_items, class_name: 'Hub::LineItem'
     embeds_many :adjustments, class_name: 'Hub::Adjustment'

@@ -4,8 +4,6 @@ module Hub
 	  #include Mongoid::Attributes::Dynamic
 	  include Mongoid::Timestamps
 
-    belongs_to :customer, class_name: 'Hub::Customer'
-
 	  field :firstname, type: String
 	  field :lastname, type: String
 	  field :address1, type: String
@@ -16,7 +14,7 @@ module Hub
 	  field :phone, type: String
     field :zipcode, type: String
 
-    validates_presence_of :firstname, :lastname, :address1, :address2,
+    validates_presence_of :firstname, :lastname, :address1,:zipcode,
           :city,:state,:country
 
 	end
