@@ -4,8 +4,8 @@ module Hub
 	  #include Mongoid::Attributes::Dynamic
 	  include Mongoid::Timestamps
 
-    belongs_to :variant, class_name: "Hub::Variant", inverse_of: :stock_items
-    belongs_to :product, class_name: "Hub::Product", inverse_of: :stock_items
+    belongs_to :variant, class_name: "Hub::Variant"
+    belongs_to :product, class_name: "Hub::Product"
 
 	  field :_id, type: String
 	  field :location, type: String

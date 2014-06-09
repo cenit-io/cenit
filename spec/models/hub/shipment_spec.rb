@@ -31,18 +31,43 @@ describe Hub::Shipment do
             "product_id" => "SPREE-T-SHIRT",
             "quantity" => 1,
             "price" => 30.0,
+ #           "options_attributes" => {
+ #           }
+          }
+        ]
+      },
+
+
+      {
+
+        "cost" => 5.0,
+        "order_id" => "R154085348",
+        "status" => "ready",
+        "stock_location" => '',
+        "shipping_method" => "UPS Ground (USD)",
+        "tracking" => '',
+        "updated_at" => '',
+        "shipped_at" => '',
+        "items_attributes" => [
+          {
+            "name" => "Spree T-Shirt",
+           # "sku" => "SPREE-T-SHIRT",
+           # "external_ref" => "",
+            "quantity" => 1,
+            "price" => 100.0,
+            "variant_id" => 73,
             "options" => {
             }
           }
         ]
       }
 
-    ]
+  ]
 
   end
 
-
-  it { should validate_presence_of(:id) }
+  it { should have_fields( :email, :cost, :status, :stock_location,
+        :shipping_method,:tracking,:updated_at,:shipped_at) }
 
   it "should create a new instance given a valid attribute" do
     Hub::Shipment.create!(@attr)

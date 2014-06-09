@@ -6,10 +6,6 @@ module Hub
 
 	  has_many :variants, class_name: 'Hub::Variant'
 	  has_many :images, class_name: 'Hub::Image'
-    has_many :inventory, class_name: 'Hub::Inventory'
-
-    has_many :line_items, class_name: 'Hub::LineItem', inverse_of: :product
-    has_many :stock_items, class_name: 'Hub::Inventory', inverse_of: :product
 
     embeds_many :taxons, class_name: 'Hub::Taxon'
     embeds_many :properties, class_name: 'Hub::Property'

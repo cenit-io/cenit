@@ -49,7 +49,7 @@ describe Hub::Product do
             "price" => 39.99,
             "cost_price" => 22.33,
             "quantity" => 1,
-            "options" => [
+            "options_attributes" => [
               {
                 "option_type" => "color",
                 "option_value" => "GREY",

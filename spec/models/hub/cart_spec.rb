@@ -77,11 +77,11 @@ describe Hub::Cart do
             #"id" => "H51851735361",
             "cost" => 5.0,
             "status" => "ready",
-            "stock_location" => nil,
+            "stock_location" => '',
             "shipping_method" => "UPS Ground (USD)",
-            "tracking" => nil,
-            "updated_at" => nil,
-            "shipped_at" => nil,
+            "tracking" => '',
+            "updated_at" => '',
+            "shipped_at" => '',
             "items_attributes" => [
               {
                 "name" => "Spree T-Shirt",
@@ -90,8 +90,8 @@ describe Hub::Cart do
                 "quantity" => 1,
                 "price" => 100.0,
                 "variant_id" => 73,
-                #"options" => {
-               # }
+                "options" => {
+                }
               }
             ]
           },
@@ -99,21 +99,21 @@ describe Hub::Cart do
             #"id" => "H51851735362",
             "cost" => 5.0,
             "status" => "confirmed",
-            "stock_location" => nil,
+            "stock_location" => '',
             "shipping_method" => "UPS Ground (USD)",
-            "tracking" => nil,
-            "updated_at" => nil,
-            "shipped_at" => nil,
+            "tracking" => '',
+            "updated_at" => '',
+            "shipped_at" => '',
             "items_attributes" => [
               {
                 "name" => "Spree T-Shirt",
-               # "sku" => "SPREE-T-SHIRT",
-               # "external_ref" => "",
+                #"sku" => "SPREE-T-SHIRT",
+                #"external_ref" => "",
                 "quantity" => 1,
                 "price" => 100.0,
                 "variant_id" => 73,
-               # "options" => {
-               # }
+                "options" => {
+                }
               }
             ]
           }
