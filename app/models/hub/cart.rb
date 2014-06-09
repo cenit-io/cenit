@@ -33,6 +33,5 @@ module Hub
     validates_presence_of :id, :status, :channel, :email, :currency, 
       :placed_on, :shipping_address, :billing_address
 
-	  index({ starred: 1 })
 	end
 end

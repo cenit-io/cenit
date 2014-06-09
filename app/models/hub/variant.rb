@@ -19,6 +19,5 @@ module Hub
     validates_presence_of :sku
     validates_uniqueness_of :sku
 
-	  index({ starred: 1 })
 	end
 end

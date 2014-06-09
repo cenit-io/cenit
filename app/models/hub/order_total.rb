@@ -13,6 +13,10 @@ module Hub
     field :order, type: Float
     field :item, type: Float
 
-	  index({ starred: 1 })
+    validates :adjustment,:tax,:shipping,
+              :payment,:order,:item, numericality: {
+      greater_than_or_equal_to: 0
+    }
+
 	end
 end

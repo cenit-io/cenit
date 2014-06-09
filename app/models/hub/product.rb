@@ -34,8 +34,6 @@ module Hub
 
     validates_numericality_of :price, { greater_than: 0 }
 
-	  index({ starred: 1 })
-
 	  # TODO: pass these methods to an external module and later use it as include
 	  after_create do |object|
 		path = 'add_' + object.class.to_s.downcase.split('::').last

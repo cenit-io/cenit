@@ -17,6 +17,5 @@ module Hub
 
     validates_presence_of :id, :firstname, :lastname
 
-	  index({ starred: 1 })
 	end
 end

@@ -22,6 +22,5 @@ module Hub
     validates_presence_of :order_id, :status, :email, :cost, 
       :stock_location, :shipping_address    
 
-	  index({ starred: 1 })
 	end
 end

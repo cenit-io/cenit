@@ -14,6 +14,5 @@ module Hub
 
     validates_presence_of :product_id, :name, :quantity, :price
 
-	  index({ starred: 1 })
 	end
 end
