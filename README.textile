@@ -105,9 +105,7 @@ Mongoid provides access to the MongoDB database from Rails.
 
 You can use the default configuration found in the file *config/mongoid.yml*.
 
-If you want to see what's in your MongoDB databases, I recommend using the "MongoHub":http://mongohub.todayclose.com/ app (for Mac OS X).
-
-
+If you want to see what's in your MongoDB databases, I recommend using the "MongoHub":http://mongohub.todayclose.com/ app (for Mac OS X).S
 
 h3. Configuration File
 
