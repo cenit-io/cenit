@@ -3,10 +3,11 @@ module Hub
 	  include Mongoid::Document
 	  #include Mongoid::Attributes::Dynamic
 	  include Mongoid::Timestamps
+       
+    belongs_to :variant, class_name: 'Hub::Variant'
+    belongs_to :product, class_name: 'Hub::Product'
 
 	  embeds_one :dimension, class_name: 'Hub::Dimension'
-    embedded_in :variant, class_name: 'Hub::Variant'
-    embedded_in :product, class_name: 'Hub::Product'
 
 	  accepts_nested_attributes_for :dimension
 

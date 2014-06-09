@@ -4,8 +4,10 @@ module Hub
 	  #include Mongoid::Attributes::Dynamic
 	  include Mongoid::Timestamps
 
-	  embeds_many :variants, class_name: 'Hub::Variant'
-	  embeds_many :images, class_name: 'Hub::Image'
+	  has_many :variants, class_name: 'Hub::Variant'
+	  has_many :images, class_name: 'Hub::Image'
+    has_many :inventory, class_name: 'Hub::Inventory'
+
     embeds_many :taxons, class_name: 'Hub::Taxon'
     embeds_many :properties, class_name: 'Hub::Property'
 	  
