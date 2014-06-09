@@ -4,7 +4,6 @@ module Hub
 	  #include Mongoid::Attributes::Dynamic
 	  include Mongoid::Timestamps
 
-    belongs_to :cart, class_name: 'Hub::Cart'
     belongs_to :customer, class_name: 'Hub::Customer'
 
 	  field :firstname, type: String
