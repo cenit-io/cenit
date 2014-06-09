@@ -107,15 +107,7 @@ You can use the default configuration found in the file *config/mongoid.yml*.
 
 If you want to see what's in your MongoDB databases, I recommend using the "MongoHub":http://mongohub.todayclose.com/ app (for Mac OS X).
 
-h3. Configure Email
 
-This example application doesn't send email messages. However, if you want your application to send email messages (for example, if you plan to install the Devise @:confirmable@ module) you must configure the application for your email account. See the article "Send Email with Rails":http://railsapps.github.io/rails-send-email.html.
-
-h3. Configure Devise
-
-You can modify the configuration file for Devise if you want to use something other than the defaults:
-
-* *config/initializers/devise.rb*
 
 h3. Configuration File
 
