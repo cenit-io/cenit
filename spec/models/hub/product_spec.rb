@@ -82,8 +82,8 @@ describe Hub::Product do
              :available_on, :permalink, :meta_description, :meta_keywords,
              :shipping_category, :options ) }
 
-  it { should has_many :variants }
-  it { should has_many :images }
+  it { should have_many :variants }
+  it { should have_many :images }
   it { should embed_many :taxons }
   it { should embed_many :properties }
 

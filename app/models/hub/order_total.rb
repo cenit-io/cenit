@@ -11,6 +11,7 @@ module Hub
 	  field :shipping, type: Float
     field :payment, type: Float
     field :order, type: Float
+    field :item, type: Float
 
 	  index({ starred: 1 })
 	end

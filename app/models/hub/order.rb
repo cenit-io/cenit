@@ -18,8 +18,8 @@ module Hub
     
     embeds_many :payments, class_name: 'Hub::Payment'
 
-    has_one :shipping_address, class_name: 'Hub::Address'
-    has_one :billing_address, class_name: 'Hub::Address'
+    belongs_to :shipping_address, class_name: 'Hub::Address'
+    belongs_to :billing_address, class_name: 'Hub::Address'
 
 	  accepts_nested_attributes_for :totals
 	  accepts_nested_attributes_for :line_items

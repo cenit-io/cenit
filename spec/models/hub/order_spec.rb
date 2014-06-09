@@ -77,22 +77,8 @@ describe Hub::Order do
 
   end
 
-  it { should have_fields( :name, :sku, :description, :price, :cost_price,
-             :available_on, :permalink, :meta_description, :meta_keywords,
-             :shipping_category, :options ) }
-
-  it { should embed_many :variants }
-
-
-
-  it { should accept_nested_attributes_for(:variants) }
-
 
   it { should validate_presence_of(:id) }
-
-  it { should validate_uniqueness_of(:sku)  }
-
-  it { should validate_numericality_of(:price).greater_than(0) }
 
   it "should create a new instance given a valid attribute" do
     Hub::Order.create!(@attr)
