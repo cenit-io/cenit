@@ -12,6 +12,7 @@ This is a demonstration application that allows you integrate commerce solution 
 
 h2. How to Use
 
+<pre>
 # ==== Cenit Hub ===
 # download the cenit repo if you don't have yet. 
 $ git clone https://github.com/openjaf/cenit
@@ -39,6 +40,7 @@ Spree::Wombat::Config.configure do |config|
   }
   config.push_url = "http://localhost:3002/wombat"
 end
+</pre>
 
 <pre>
 # ==== Hub Demo Store 1 === 
