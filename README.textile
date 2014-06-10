@@ -26,7 +26,9 @@ $ git pull origin develop
 > Already up-to-date.
 #run cenit by port 3000 
 $ rails s 
+</pre>
 
+<pre>
 # edit file cenit/config/initializers/wonbat.rb 
 Spree::Wombat::Config.configure do |config|
 #  config.connection_token = ENV["HUB_TOKEN"]
