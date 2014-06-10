@@ -3,9 +3,10 @@
       class ProductHandler < Base
         attr_reader :params, :options, :taxon_ids, :parent_id
 
-        def initialize(message)
+        def initialize(message, endpoint)
           super message
           @params = @payload[:products]
+          @params[:connection] = endpoint
         end
 
         # TODO: process all products, no just the first one

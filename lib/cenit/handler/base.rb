@@ -6,7 +6,7 @@ module Cenit
 
       attr_accessor :payload, :parameters, :request_id
 
-      def initialize(message)
+      def initialize(message, store)
         self.payload = ::JSON.parse(message).with_indifferent_access
         self.request_id = payload.delete(:request_id)
         if payload.key? :parameters
@@ -17,9 +17,9 @@ module Cenit
         self.parameters ||= {}
       end
 
-      def self.build_handler(object, message)
+      def self.build_handler(object, message, store)
         klass = ("Cenit::Handler::" + object.capitalize + "Handler").constantize
-        klass.new(message)
+        klass.new(message, store)
       end
 
       def response(message, code = 200)
