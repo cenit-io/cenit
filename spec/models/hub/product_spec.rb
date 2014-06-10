@@ -49,7 +49,7 @@ describe Hub::Product do
             "price" => 39.99,
             "cost_price" => 22.33,
             "quantity" => 1,
-            "options" => [
+            "options_attributes" => [
               {
                 "option_type" => "color",
                 "option_value" => "GREY",
@@ -82,8 +82,8 @@ describe Hub::Product do
              :available_on, :permalink, :meta_description, :meta_keywords,
              :shipping_category, :options ) }
 
-  it { should has_many :variants }
-  it { should has_many :images }
+  it { should have_many :variants }
+  it { should have_many :images }
   it { should embed_many :taxons }
   it { should embed_many :properties }
 

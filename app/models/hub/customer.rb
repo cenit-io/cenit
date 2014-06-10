@@ -9,14 +9,13 @@ module Hub
     field :firstname, type: String
     field :lastname, type: String
 
-    has_one :shipping_address, class_name: 'Hub::Address'
-    has_one :billing_address, class_name: 'Hub::Address'
+    belongs_to :shipping_address, class_name: 'Hub::Address'
+    belongs_to :billing_address, class_name: 'Hub::Address'
 
     accepts_nested_attributes_for :shipping_address 
     accepts_nested_attributes_for :billing_address   
 
     validates_presence_of :id, :firstname, :lastname
 
-	  index({ starred: 1 })
 	end
 end

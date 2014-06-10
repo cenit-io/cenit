@@ -11,15 +11,15 @@ module Hub
     field :currency, type: String
     field :placed_on, type: Date
 
-	  has_one :totals, class_name: 'Hub::OrderTotal'
+	  belongs_to :totals, class_name: 'Hub::OrderTotal'
 
     has_many :line_items, class_name: 'Hub::LineItem'
     embeds_many :adjustments, class_name: 'Hub::Adjustment'
     
     embeds_many :payments, class_name: 'Hub::Payment'
 
-    has_one :shipping_address, class_name: 'Hub::Address'
-    has_one :billing_address, class_name: 'Hub::Address'
+    belongs_to :shipping_address, class_name: 'Hub::Address'
+    belongs_to :billing_address, class_name: 'Hub::Address'
 
 	  accepts_nested_attributes_for :totals
 	  accepts_nested_attributes_for :line_items
@@ -31,6 +31,5 @@ module Hub
     validates_presence_of :id, :status, :channel, :email, :currency, 
       :placed_on, :shipping_address, :billing_address
 
-	  index({ starred: 1 })
 	end
 end

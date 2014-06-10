@@ -13,6 +13,5 @@ module Hub
 
     validates_presence_of :number, :status, :amount, :payment_method
 
-	  index({ starred: 1 })
 	end
 end

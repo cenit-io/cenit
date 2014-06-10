@@ -4,7 +4,7 @@ module Hub
 	  #include Mongoid::Attributes::Dynamic
 	  include Mongoid::Timestamps
 	  
-    embeds_many :options, class_name: 'Hub::Option'
+    has_many :options, class_name: 'Hub::Option'
 	  has_many :images, class_name: 'Hub::Image'
     belongs_to :product, class_name: 'Hub::Product'
 
@@ -19,6 +19,5 @@ module Hub
     validates_presence_of :sku
     validates_uniqueness_of :sku
 
-	  index({ starred: 1 })
 	end
 end

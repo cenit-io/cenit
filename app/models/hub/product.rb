@@ -6,7 +6,6 @@ module Hub
 
 	  has_many :variants, class_name: 'Hub::Variant'
 	  has_many :images, class_name: 'Hub::Image'
-    has_many :inventory, class_name: 'Hub::Inventory'
 
     embeds_many :taxons, class_name: 'Hub::Taxon'
     embeds_many :properties, class_name: 'Hub::Property'
@@ -33,8 +32,6 @@ module Hub
     validates_uniqueness_of :sku
 
     validates_numericality_of :price, { greater_than: 0 }
-
-	  index({ starred: 1 })
 
 	  # TODO: pass these methods to an external module and later use it as include
 	  after_create do |object|

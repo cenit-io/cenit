@@ -4,7 +4,8 @@ module Hub
 	  #include Mongoid::Attributes::Dynamic
 	  include Mongoid::Timestamps
 
-	  embedded_in :variant, class_name: 'Hub::Variant'
+	  belongs_to :variant, class_name: 'Hub::Variant'
+    belongs_to :line_item, class_name: 'Hub::LineItem'
 
     field :option_type, type: String
 	  field :option_value, type: String

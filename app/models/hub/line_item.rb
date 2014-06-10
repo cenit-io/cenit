@@ -4,16 +4,23 @@ module Hub
 	  #include Mongoid::Attributes::Dynamic
 	  include Mongoid::Timestamps
 
-	  belongs_to :order, class_name: 'Hub::Order'
-	  belongs_to :cart, class_name: 'Hub::Cart'
-
-	  field :product_id, type: String
 	  field :name, type: String
     field :quantity, type: Integer
     field :price, type: Float
 
-    validates_presence_of :product_id, :name, :quantity, :price
+	  belongs_to :order, class_name: 'Hub::Order'
+	  belongs_to :cart, class_name: 'Hub::Cart'
+    belongs_to :shipment, class_name: 'Hub::Shipment'
 
-	  index({ starred: 1 })
+    belongs_to :variant, class_name: 'Hub::Variant'
+    belongs_to :product, class_name: 'Hub::Product'
+
+    has_many :options, class_name: "Hub::Option"
+    accepts_nested_attributes_for :options
+
+
+
+    validates_presence_of  :name, :quantity, :price
+
 	end
 end

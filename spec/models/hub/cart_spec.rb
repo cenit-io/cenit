@@ -1,6 +1,6 @@
 require 'spec_helper'
 
-describe Hub::Order do
+describe Hub::Cart do
 
   before(:each) do
     @attr = [ 
@@ -63,14 +63,62 @@ describe Hub::Order do
           "country" => "US",
           "phone" => "0000000000"
         },
-        "payments" => [
+        "payments_attributes" => [
           {
             "number" => 63,
             "status" => "completed",
             "amount" => 220.0,
             "payment_method" => "Credit Card"
           }
+        ],
+
+        "shipments_attributes" => [
+          {
+            #"id" => "H51851735361",
+            "cost" => 5.0,
+            "status" => "ready",
+            "stock_location" => '',
+            "shipping_method" => "UPS Ground (USD)",
+            "tracking" => '',
+            "updated_at" => '',
+            "shipped_at" => '',
+            "items_attributes" => [
+              {
+                "name" => "Spree T-Shirt",
+               # "sku" => "SPREE-T-SHIRT",
+               # "external_ref" => "",
+                "quantity" => 1,
+                "price" => 100.0,
+                "variant_id" => 73,
+                "options" => {
+                }
+              }
+            ]
+          },
+          {
+            #"id" => "H51851735362",
+            "cost" => 5.0,
+            "status" => "confirmed",
+            "stock_location" => '',
+            "shipping_method" => "UPS Ground (USD)",
+            "tracking" => '',
+            "updated_at" => '',
+            "shipped_at" => '',
+            "items_attributes" => [
+              {
+                "name" => "Spree T-Shirt",
+                #"sku" => "SPREE-T-SHIRT",
+                #"external_ref" => "",
+                "quantity" => 1,
+                "price" => 100.0,
+                "variant_id" => 73,
+                "options" => {
+                }
+              }
+            ]
+          }
         ]
+
       }
 
     ]
@@ -81,7 +129,8 @@ describe Hub::Order do
   it { should validate_presence_of(:id) }
 
   it "should create a new instance given a valid attribute" do
-    Hub::Order.create!(@attr)
+    cart = Hub::Cart.new(@attr[0])
+    cart.save
   end
 
 end  
