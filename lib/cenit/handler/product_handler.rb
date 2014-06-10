@@ -13,17 +13,17 @@
           p = params.first
           @product = Hub::Product.where(id: p['id']).first
           if @product
-			p.delete 'id'
-			@product.update_attributes(p)
+            p.delete 'id'
+            @product.update_attributes(p)
           else
-			@product = Hub::Product.new(p)
+            @product = Hub::Product.new(p)
           end
 
           if @product.save
             response "Product #{@product.id} saved"
           else
             response "Could not save the Product #{@product.errors.messages.inspect}", 500
-           end
+          end
         end
 
       end
