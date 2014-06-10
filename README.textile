@@ -8,7 +8,88 @@ Rails 4.0.x with Mongoid.
 
 h2. What Is Implemented -- and What Is Not
 
-This is a demonstration application that allows you integrate commerce solution inspire in Spree Hub (Wombat). You can configure the endpoint, see all the data through the data viewer.
+This is a demonstration application that allows you integrate commerce solution inspire in Spree Hub (Wombat). You can configure the endpoint and see all the data through the data viewer.
+
+h2. How to Use
+
+# ==== Cenit Hub ===
+# download the cenit repo if you don't have yet. 
+$ git clone https://github.com/openjaf/cenit
+$ cd cenit
+$ git checkout -b develop origin/develop
+# ensure stay in develop branch 
+$ git branch
+> *develop
+# ensure that 'develop' branch is updated
+$ git pull origin develop
+> Already up-to-date.
+#run cenit by port 3000 
+$ rails s 
+
+# edit file cenit/config/initializers/wonbat.rb 
+Spree::Wombat::Config.configure do |config|
+#  config.connection_token = ENV["HUB_TOKEN"]
+  config.connection_token = "123"
+#  config.connection_id = ENV["HUB_STORE_ID"]
+  config.connection_id = "456"
+  config.push_objects = ["Spree::Order", "Spree::Product"]
+  config.payload_builder = {
+     "Spree::Order" => {:serializer => "Spree::Wombat::OrderSerializer", :root => "orders"},
+     "Spree::Product" => {:serializer => "Spree::Wombat::ProductSerializer", :root => "products"},
+  }
+  config.push_url = "http://localhost:3002/wombat"
+end
+
+<pre>
+# ==== Hub Demo Store 1 === 
+# download the repo hub-demo-store if you don't have yet. 
+$ git clone https://github.com/openjaf/hub-demo-store
+# change name to hub-demo-store-1
+$ mv hub-demo-store hub-demo-store-1
+$ cd hub-demo-store-1
+$ git checkout -b cenit origin/cenit
+# ensure stay in 'cenit' branch 
+$ git branch
+> *cenit
+$ git pull origin cenit
+> Already up-to-date.
+#run hub-demo-store-1 by port 3000
+$ rails s -p 3001
+</pre>
+
+<pre>
+# edit file hub-demo-store-1/config/initializers/wonbat.rb 
+Spree::Wombat::Config.configure do |config|
+#  config.connection_token = ENV["HUB_TOKEN"]
+  config.connection_token = "123"
+#  config.connection_id = ENV["HUB_STORE_ID"]
+  config.connection_id = "456"
+  config.push_objects = ["Spree::Order", "Spree::Product"]
+  config.payload_builder = {
+     "Spree::Order" => {:serializer => "Spree::Wombat::OrderSerializer", :root => "orders"},
+     "Spree::Product" => {:serializer => "Spree::Wombat::ProductSerializer", :root => "products"},
+  }
+  config.push_url = "http://localhost:3000/cenit"
+end
+</pre>
+
+
+<pre>
+# ==== Hub Demo Store 2 === 
+# download the repo hub-demo-store if you don't have yet. 
+$ git clone https://github.com/openjaf/hub-demo-store
+# change name to hub-demo-store-2
+$ mv hub-demo-store hub-demo-store-2
+$ cd hub-demo-store-2
+$ git checkout -b cenit origin/cenit
+# ensure stay in 'cenit' branch 
+$ git branch
+> *cenit
+$ git pull origin cenit
+> Already up-to-date.
+#run hub-demo-store-2 by port 3000
+$ rails s -p 3002
+</pre>
 
 h2. Dependencies
 
