@@ -44,7 +44,7 @@ $ git pull origin cenit
 > Already up-to-date.
 # run migration and seed data
 $ rake db:migrate; rake db:seed
-#run hub-demo-store-1 by port 3000
+#run hub-demo-store-1 by port 3001
 $ rails s -p 3001
 </pre>
 
@@ -80,7 +80,7 @@ $ git pull origin cenit
 > Already up-to-date.
 # run migration and seed data
 $ rake db:migrate; rake db:seed
-#run hub-demo-store-2 by port 3000
+#run hub-demo-store-2 by port 3002
 $ rails s -p 3002
 </pre>
 
