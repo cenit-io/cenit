@@ -64,6 +64,7 @@ Spree::Wombat::Config.configure do |config|
 end
 </pre>
 
+<p><img src="openwindow1.gif" title="Bunny." alt="Bunny." /></p>
 
 <pre>
 # ==== Hub Demo Store 2 === 
