@@ -59,8 +59,6 @@ Spree::Wombat::Config.configure do |config|
 end
 </pre>
 
-<!-- p><img src="openwindow1.gif" title="Bunny." alt="Bunny." /></p -->
-
 <pre>
 # ==== Hub Demo Store 2 ===
 # download the repo hub-demo-store if you don't have yet.
@@ -77,6 +75,13 @@ $ git pull origin cenit
 # run hub-demo-store-2 by port 3002
 $ rails s -p 3002
 </pre>
+
+
+# go to http://localhost:3001/admin and enter
+# user: spree@example.com
+# pass: spree123
+
+<%= image_tag("icon") %>
 
 h2. Dependencies
 
