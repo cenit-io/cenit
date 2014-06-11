@@ -81,7 +81,7 @@ $ rails s -p 3002
 # user: spree@example.com
 # pass: spree123
 
-<img src="app/assets/images/icon.png" alt="store 1" />
+<img src="app/assets/images/store1.png" alt="store 1" />
 
 h2. Dependencies
 
