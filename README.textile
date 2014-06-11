@@ -41,7 +41,7 @@ $ git branch
 > *cenit
 $ git pull origin cenit
 > Already up-to-date.
-# run hub-demo-store-1 by port 3000
+# run hub-demo-store-1 by port 3001
 $ rails s -p 3001
 </pre>
 
@@ -59,7 +59,7 @@ Spree::Wombat::Config.configure do |config|
 end
 </pre>
 
-<p><img src="openwindow1.gif" title="Bunny." alt="Bunny." /></p>
+<!-- p><img src="openwindow1.gif" title="Bunny." alt="Bunny." /></p -->
 
 <pre>
 # ==== Hub Demo Store 2 ===
@@ -74,7 +74,7 @@ $ git branch
 > *cenit
 $ git pull origin cenit
 > Already up-to-date.
-# run hub-demo-store-2 by port 3000
+# run hub-demo-store-2 by port 3002
 $ rails s -p 3002
 </pre>
 
