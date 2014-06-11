@@ -28,6 +28,15 @@ $ git pull origin develop
 $ rails s
 </pre>
 
+# Add configuration to Store II and add the webhook for 'Add product'.
+
+<pre>
+$ c = Setup::Connection.create!({:name => 'Store II', :url => 'http://localhost:3002'})
+$ w = Setup::Webhook.create!({:name => 'Add Product', :path => 'add_product'})
+$ c.webhooks << w
+$ c.save
+</pre>
+
 <pre>
 # ==== Hub Demo Store 1 ===
 # download the repo hub-demo-store if you don't have yet.
@@ -75,6 +84,7 @@ $ git pull origin cenit
 # run hub-demo-store-2 by port 3002
 $ rails s -p 3002
 </pre>
+
 
 
 # go to http://localhost:3001/admin and enter
