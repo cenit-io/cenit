@@ -8,7 +8,18 @@ Rails 4.0.x with Mongoid.
 
 h2. What Is Implemented -- and What Is Not
 
-This is a demonstration application that allows you integrate commerce solution inspire in Spree Hub (Wombat). You can configure the endpoint and see all the data through the data viewer.
+This is a demonstration application that allows you integrate commerce solution inspire in Spree Hub (Wombat). You can configure the endpoint and see all the data through the data viewer. 
+
+For the moment: 
+* Only connect Spree Store endpoints.
+* Only one direction, Store I >> Hub >> Store II
+* Only is ready the flow for Product object.
+
+Next Steps:
+* Add Order object flow.
+* Bidirectional comunication, Store I << >> Hub << >> Store II
+* Add OpenERP like EndPoint
+
 
 h2. How to Use
 
@@ -50,6 +61,8 @@ $ git branch
 > *cenit
 $ git pull origin cenit
 > Already up-to-date.
+# run migrate and seed
+$ rake db:migrate; rake db:seed
 # run hub-demo-store-1 by port 3001
 $ rails s -p 3001
 </pre>
@@ -57,7 +70,9 @@ $ rails s -p 3001
 <pre>
 # edit file hub-demo-store-1/config/initializers/wombat.rb
 Spree::Wombat::Config.configure do |config|
+   #config.connection_token = ENV["HUB_TOKEN"]
    config.connection_token = "123"
+   #config.connection_id = ENV["HUB_STORE_ID"]
    config.connection_id = "456"
    config.push_objects = ["Spree::Order", "Spree::Product"]
    config.payload_builder = {
@@ -81,6 +96,8 @@ $ git branch
 > *cenit
 $ git pull origin cenit
 > Already up-to-date.
+# run migrate and seed
+$ rake db:migrate; rake db:seed
 # run hub-demo-store-2 by port 3002
 $ rails s -p 3002
 </pre>
