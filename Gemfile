@@ -26,7 +26,7 @@ group :test do
   gem 'database_cleaner'
 end
 group :production do
- gem 'pg'
+ #gem 'pg'
  gem 'thin'
  gem 'rails_12factor'
 end

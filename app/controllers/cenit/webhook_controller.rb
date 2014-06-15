@@ -3,7 +3,7 @@
       before_filter :save_request_data   #, :authorize
       rescue_from Exception, :with => :exception_handler
 
-      # TODO: consider attribute called_objects
+      # TODO: consider attribute objects
       def consume
         handler = Handler::Base.build_handler(@object, @message, @endpoint)
         responder = handler.process
@@ -31,7 +31,7 @@
         return false
       end
 
-      # TODO: change called_object to called_objects
+      # TODO: change object to called_objects
       def save_request_data
         @object = params[:webhook].keys.first.singularize
         @message = params[:webhook].to_json
