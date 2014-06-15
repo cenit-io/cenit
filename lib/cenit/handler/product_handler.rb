@@ -4,9 +4,9 @@
         attr_reader :params, :options, :taxon_ids, :parent_id
 
         def initialize(message, endpoint)
-          super message
+          super(message, endpoint)
           @params = @payload[:products]
-          @params[:connection] = endpoint
+          #@params[0][:connection] = endpoint
         end
 
         # TODO: process all products, no just the first one
@@ -23,7 +23,8 @@
           if @product.save
             response "Product #{@product.id} saved"
           else
-            response "Could not save the Product #{@product.errors.messages.inspect}", 500
+            response( "Could not save the Product 
+                #{@product.errors.messages.inspect}", 500)
           end
         end
 

@@ -1,7 +1,7 @@
   module Cenit
     class WebhookController < ActionController::Base
       before_filter :save_request_data   #, :authorize
-      rescue_from Exception, :with => :exception_handler
+      #rescue_from Exception, :with => :exception_handler
 
       # TODO: consider attribute called_objects
       def consume
@@ -24,7 +24,7 @@
       end
 
       def exception_handler(exception)
-        base_handler = Handler::Base.new(@webhook_body)
+        base_handler = Handler::Base.new(@webhook_body, @endpoint)
         responder = base_handler.response(exception.message, 500)
         responder.backtrace = exception.backtrace.to_s
         render json: responder, root: false, status: responder.code
