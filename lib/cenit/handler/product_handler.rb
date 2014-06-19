@@ -6,7 +6,9 @@
         def initialize(message, endpoint)
           super message
           @params = @payload[:products]
-          @params[:connection] = endpoint if endpoint
+          if endpoint
+            @params.each {|p| p['connection_id'] = endpoint.id}
+          end
         end
 
         # TODO: process all products, no just the first one

@@ -1,6 +1,6 @@
   module Cenit
     class WebhookController < ActionController::Base
-      before_filter :save_request_data   #, :authorize
+      before_filter :save_request_data, :authorize
       rescue_from Exception, :with => :exception_handler
 
       # TODO: consider attribute objects
@@ -12,8 +12,8 @@
 
       protected
       def authorize
-        store = request.headers['HTTP_X_HUB_STORE']
-        token = request.headers['HTTP_X_HUB_TOKEN']
+        store = request.headers['X-Hub-Store']
+        token = request.headers['X-Hub-Access-Token']
         @endpoint = Setup::Connection.where(store: store, token: token).first
         unless @endpoint
           base_handler = Handler::Base.new(@message)
@@ -35,7 +35,6 @@
       def save_request_data
         @object = params[:webhook].keys.first.singularize
         @message = params[:webhook].to_json
-        @endpoint = nil
       end
 
     end

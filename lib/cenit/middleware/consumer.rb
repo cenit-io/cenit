@@ -11,16 +11,15 @@ module Cenit
       def self.process(message)
         message = JSON.parse(message)
         response = HTTParty.post(message['url'],
-                                 {
-                                   body: message['object'].to_json,
-                                   headers: {
-                                     'Content-Type'       => 'application/json',
-                                     'X-Hub-Store'        => '123',
-                                     'X-Hub-Access-Token' => '456',
-                                     'X-Hub-Timestamp'    => Time.now.utc.to_i.to_s
-                                   }
-                                 }
-                                 )
+                   {
+                      body: message['object'].to_json,
+                      headers: {
+                         'Content-Type'         => 'application/json',
+                         'X_HUB_STORE'     => message['store'],
+                         'X_HUB_TOKEN'     => message['token'],
+                         'X_HUB_TIMESTAMP' => Time.now.utc.to_i.to_s
+                      }
+                   })
       end
 
     end

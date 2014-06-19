@@ -8,9 +8,9 @@ Rails 4.0.x with Mongoid.
 
 h2. What Is Implemented -- and What Is Not
 
-This is a demonstration application that allows you integrate commerce solution inspire in Spree Hub (Wombat). You can configure the endpoint and see all the data through the data viewer. 
+This is a demonstration application that allows you integrate commerce solution inspire in Spree Hub (Wombat). You can configure the endpoint and see all the data through the data viewer.
 
-For the moment: 
+For the moment:
 * Only connect Spree Store endpoints.
 * Only one direction, Store I >> Hub >> Store II
 * Only is ready the flow for Product object.
@@ -42,10 +42,12 @@ $ rails s
 # Add configuration to Store II and add the webhook for 'Add product'.
 
 <pre>
-$ c = Setup::Connection.create!({:name => 'Store II', :url => 'http://localhost:3002'})
-$ w = Setup::Webhook.create!({:name => 'Add Product', :path => 'add_product'})
-$ c.webhooks << w
-$ c.save
+$ c_one = Setup::Connection.create!({:name => 'Store I', :url => 'http://localhost:3001/wombat', :store => '3001', :token => 'tresmiluno'})
+$ c_one.save
+$ c_two = Setup::Connection.create!({:name => 'Store II', :url => 'http://localhost:3002/wombat', :store => '3002', :token => 'tresmildos'})
+$ c_two.webhooks << Setup::Webhook.create!({:name => 'Add Product', :path => 'add_product'})
+$ c_two.webhooks << Setup::Webhook.create!({:name => 'Update Product', :path => 'update_product'})
+$ c_two.save
 </pre>
 
 <pre>
@@ -70,10 +72,8 @@ $ rails s -p 3001
 <pre>
 # edit file hub-demo-store-1/config/initializers/wombat.rb
 Spree::Wombat::Config.configure do |config|
-   #config.connection_token = ENV["HUB_TOKEN"]
-   config.connection_token = "123"
-   #config.connection_id = ENV["HUB_STORE_ID"]
-   config.connection_id = "456"
+   config.connection_id = "3001"
+   config.connection_token = "tresmiluno"
    config.push_objects = ["Spree::Order", "Spree::Product"]
    config.payload_builder = {
      "Spree::Order" => {:serializer => "Spree::Wombat::OrderSerializer", :root => "orders"},
@@ -103,7 +103,13 @@ $ rake db:migrate; rake db:seed
 $ rails s -p 3002
 </pre>
 
-
+<pre>
+# edit file hub-demo-store-2/config/initializers/wombat.rb
+Spree::Wombat::Config.configure do |config|
+   config.connection_id = "3002"
+   config.connection_token = "tresmildos"
+end
+</pre>
 
 # go to http://localhost:3001/admin and enter
 # user: spree@example.com
