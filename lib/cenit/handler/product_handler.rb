@@ -6,7 +6,7 @@
         def initialize(message, endpoint)
           super message
           @params = @payload[:products]
-          @params[:connection] = endpoint
+          @params[:connection] = endpoint if endpoint
         end
 
         # TODO: process all products, no just the first one

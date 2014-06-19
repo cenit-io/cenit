@@ -56,6 +56,7 @@ Spree::Wombat::Config.configure do |config|
      "Spree::Product" => {:serializer => "Spree::Wombat::ProductSerializer", :root => "products"},
    }
    config.push_url = "http://localhost:3000/cenit"
+   config.enable_auto_push = true
 end
 </pre>
 

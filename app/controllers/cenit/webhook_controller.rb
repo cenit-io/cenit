@@ -24,7 +24,7 @@
       end
 
       def exception_handler(exception)
-        base_handler = Handler::Base.new(@webhook_body)
+        base_handler = Handler::Base.new(@message)
         responder = base_handler.response(exception.message, 500)
         responder.backtrace = exception.backtrace.to_s
         render json: responder, root: false, status: responder.code
@@ -35,6 +35,7 @@
       def save_request_data
         @object = params[:webhook].keys.first.singularize
         @message = params[:webhook].to_json
+        @endpoint = nil
       end
 
     end
