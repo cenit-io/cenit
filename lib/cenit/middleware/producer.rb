@@ -12,7 +12,7 @@ module Cenit
         if webhook
           endpoints = webhook.connections.select{|c| c.id != object.connection_id}
           endpoints.each do |conn|
-            url = "#{conn.url}/#{webhook.path}"
+            url = "#{conn.url}/wombat/#{webhook.path}"
             message = {:object => object_hash, :url => url}.to_json
             send_to_rabbitmq(message)
           end
