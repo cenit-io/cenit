@@ -4,15 +4,17 @@
         attr_reader :params, :options, :taxon_ids, :parent_id
 
         def initialize(message, endpoint)
-          super(message, endpoint)
+          super message
           @params = @payload[:products]
-          #@params[0][:connection] = endpoint
+          if endpoint
+            @params.each {|p| p['connection_id'] = endpoint.id}
+          end
         end
 
         # TODO: process all products, no just the first one
         def process
           p = params.first
-          @product = Hub::Product.where(id: p['id']).first
+          @product = Hub::Product.where(sku: p['sku']).first
           if @product
             p.delete 'id'
             @product.update_attributes(p)
@@ -23,8 +25,7 @@
           if @product.save
             response "Product #{@product.id} saved"
           else
-            response( "Could not save the Product 
-                #{@product.errors.messages.inspect}", 500)
+            response "Could not save the Product #{@product.errors.messages.inspect}", 500
           end
         end
 
