@@ -56,7 +56,27 @@ Run cenit hub by port: 3000
 $ rails s -p 3000
 </pre>
 
- 
+if you have some throuble with secret_key_base running 'rails s'. First generate a random secret key value:
+
+<pre>
+$ rake secret
+</pre>	
+
+Then take that value and put it in config/initializers/secret_token.rb:
+
+<pre>
+Cenit::Application.config.secret_key_base = 'bla' # replace this
+</pre>
+
+Now visit data, for enter in data you need sing in before. if you don't have user yet click in sing up. 
+
+If you want unavailable 'sing up' change user model.
+
+<pre>
+go to http://localhost:3000/data
+</pre>
+
+If you have some throuble for enter in /data check that mondodb is running.
 
 h3. Create Hub Demo Store 1
 
@@ -294,9 +314,17 @@ Create a new product in the product form.
 
 <img src="app/assets/images/store1.png" alt="store 1" />
 
-You can visit http://localhost:3000/data and check that the product was saved.
+You can visit data in Cenit Hub and check that the product was saved.
+
+<pre>
+go to http://localhost:3000/data 
+</pre>	
 
 You can visit the other Storefront and check that the product was saved too.
+
+<pre>
+go to http://localhost:3002
+</pre>
 
 h2. Dependencies
 
