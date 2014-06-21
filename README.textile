@@ -50,13 +50,45 @@ $ git pull origin develop
 > Already up-to-date.
 </pre>
 
+With mongodb you don't need run migrations
+
+Run db/seed
+
+<pre>
+$ rake db:seed	
+</pre>	
+
 Run cenit hub by port: 3000
 
 <pre>
 $ rails s -p 3000
-</pre> 
+</pre>
 
-h3. Create Hub Demo Store 1
+If you have some throuble with secret_key_base running 'rails s', you can generate a random secret key value:
+
+<pre>
+$ rake secret
+</pre>	
+
+Then take that value and put it in config/initializers/secret_token.rb:
+
+<pre>
+Cenit::Application.config.secret_key_base = 'bla' # replace this
+</pre>
+
+Now visit data, for enter in data you need sing in before. if you don't have user yet click in sing up. 
+
+If you want unavailable 'sing up' change user model.
+
+<pre>
+go to http://localhost:3000/data
+</pre>
+
+If you have some throuble for enter in /data check that mondodb is running.
+
+h3. Create two Spree Store Endpoints.
+
+h4. Create Hub Demo Store 1
 
 Clone the github openjaf/hub-demo-store repo.
 
@@ -91,10 +123,36 @@ $ git pull origin cenit
 > Already up-to-date.
 </pre>
 
-Run migrations and seed data.
+Run the bundle install command to install the required gems on your computer:
 
 <pre>
-$ rake db:migrate; rake db:seed
+$ bundle install
+</pre>
+
+Add database.yml file to config/ 
+
+<pre>
+development:
+  adapter: sqlite3
+  database: db/development.sqlite3
+  pool: 5
+  timeout: 5000
+test:
+  adapter: sqlite3
+  database: db/test.sqlite3
+  pool: 5
+  timeout: 5000
+production:
+  adapter: sqlite3
+  database: db/production.sqlite3
+  pool: 5
+  timeout: 5000
+</pre>	
+
+Create db, run migrations and load seed data.
+
+<pre>
+$ rake db:create; rake db:migrate; rake db:seed
 </pre>
 
 Run hub-demo-store-1 by port 3001
@@ -104,7 +162,7 @@ $ rails s -p 3001
 </pre>
 
 
-h3. Create Hub Demo Store 2
+h4. Create Hub Demo Store 2
 
 Clone the github openjaf/hub-demo-store repo.
 
@@ -139,10 +197,36 @@ $ git pull origin cenit
 > Already up-to-date.
 </pre>
 
-Run migrations and seed data.
+Run the bundle install command to install the required gems on your computer:
 
 <pre>
-$ rake db:migrate; rake db:seed
+$ bundle install
+</pre>
+
+Add database.yml file to config/ 
+
+<pre>
+development:
+  adapter: sqlite3
+  database: db/development.sqlite3
+  pool: 5
+  timeout: 5000
+test:
+  adapter: sqlite3
+  database: db/test.sqlite3
+  pool: 5
+  timeout: 5000
+production:
+  adapter: sqlite3
+  database: db/production.sqlite3
+  pool: 5
+  timeout: 5000
+</pre>	
+
+Create db, run migrations and load seed data.
+
+<pre>
+$ rake db:create; rake db:migrate; rake db:seed
 </pre>
 
 <pre>
@@ -201,7 +285,9 @@ Run cenit hub by port: 3000
 $ rails s -p 3000
 </pre> 
 
-h3. Add configurations to Hub Demo Store 1
+h3. Add configurations to Endpoints
+
+h4. Add configurations to Hub Demo Store 1
 
 Move to hub-demo-store-1
 
@@ -237,7 +323,7 @@ Run hub-demo-store-1 by port 3001
 $ rails s -p 3001
 </pre>
 
-h3. Add configurations to Hub Demo Store 2
+h4. Add configurations to Hub Demo Store 2
 
 Move to hub-demo-store-2
 
@@ -291,6 +377,18 @@ Enter the credentials
 Create a new product in the product form.
 
 <img src="app/assets/images/store1.png" alt="store 1" />
+
+You can visit data in Cenit Hub and check that the product was saved.
+
+<pre>
+go to http://localhost:3000/data 
+</pre>	
+
+You can visit the other Storefront and check that the product was saved too.
+
+<pre>
+go to http://localhost:3002
+</pre>
 
 h2. Dependencies
 
