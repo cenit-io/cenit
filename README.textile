@@ -54,7 +54,9 @@ Run cenit hub by port: 3000
 
 <pre>
 $ rails s -p 3000
-</pre> 
+</pre>
+
+ 
 
 h3. Create Hub Demo Store 1
 
@@ -291,6 +293,10 @@ Enter the credentials
 Create a new product in the product form.
 
 <img src="app/assets/images/store1.png" alt="store 1" />
+
+You can visit http://localhost:3000/data and check that the product was saved.
+
+You can visit the other Storefront and check that the product was saved too.
 
 h2. Dependencies
 
