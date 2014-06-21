@@ -150,7 +150,6 @@ $ rake db:migrate; rake db:seed
 $ rails s -p 3002
 </pre>
 
-
 Add configurations and conections to Cenit Hub
 
 Move to cenit hub folder
@@ -162,7 +161,7 @@ $ cd ../cenit
 Stop the web server by port 3000
 
 <pre>
-Ctr + 'c'
+Ctrl + c
 </pre>	
 
 Run rails console
@@ -171,7 +170,7 @@ Run rails console
 $ rails console
 </pre>	
 
-Add webhook for Product Object at this moment only 'add_product' and 'update_product'.
+Add webhooks for Product Object at this moment only 'add_product' and 'update_product'.
 
 <pre>
 $ w_add = Setup::Webhook.create!({:name => 'Add Product', :path => 'add_product'})
@@ -180,7 +179,7 @@ $ w_upd = Setup::Webhook.create!({:name => 'Update Product', :path => 'update_pr
 
 Add conection configurations to Store I and Store II   
 
-<pree>
+<pre>
 $ c_one = Setup::Connection.create!({:name => 'Store I', :url => 'http://localhost:3001/wombat', :store => '3001', :token => 'tresmiluno'})
 $ c_one.webhooks = [w_add, w_upd]
 $ c_one.save
@@ -193,7 +192,7 @@ $ c_two.save
 Stop rails console
 
 <pre>
-Ctr + 'c'
+Ctrl + c
 </pre>	
 
 Run cenit hub by port: 3000
@@ -213,7 +212,7 @@ $ cd ../hub-demo-store-1
 Stop the web server by port 3001
 
 <pre>
-Ctr + 'c'
+Ctrl + c
 </pre>
 
 Edit file hub-demo-store-1/config/initializers/wombat.rb
@@ -249,7 +248,7 @@ $ cd ../hub-demo-store-2
 Stop the web server by port 3002
 
 <pre>
-Ctr + 'c'
+Ctrl + c
 </pre>
 
 Edit file hub-demo-store-2/config/initializers/wombat.rb
