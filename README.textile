@@ -147,7 +147,6 @@ production:
   database: db/production.sqlite3
   pool: 5
   timeout: 5000
-
 </pre>	
 
 Create db, run migrations and load seed data.
@@ -203,6 +202,26 @@ Run the bundle install command to install the required gems on your computer:
 <pre>
 $ bundle install
 </pre>
+
+Add database.yml file to config/ 
+
+<pre>
+development:
+  adapter: sqlite3
+  database: db/development.sqlite3
+  pool: 5
+  timeout: 5000
+test:
+  adapter: sqlite3
+  database: db/test.sqlite3
+  pool: 5
+  timeout: 5000
+production:
+  adapter: sqlite3
+  database: db/production.sqlite3
+  pool: 5
+  timeout: 5000
+</pre>	
 
 Create db, run migrations and load seed data.
 
