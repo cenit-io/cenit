@@ -23,34 +23,34 @@ h2. How to Use
 
 h3. Create Cenit Hub application.
 
-h4. Clone the github openjaf/cenit repo and move to cenit folder.
+Clone the github openjaf/cenit repo and move to cenit folder.
 
 <pre>
 $ git clone https://github.com/openjaf/cenit
 $ cd cenit
 </pre>
 
-h4. Change branch to develop.
+Change branch to develop.
 
 <pre>
 $ git checkout -b develop origin/develop
 </pre>
 
-h4. Ensure stay in develop branch.
+Ensure stay in develop branch.
 
 <pre>
 $ git branch
 > *develop
 </pre>
 
-h4. Ensure that 'develop' branch is updated.
+Ensure that 'develop' branch is updated.
 
 <pre>
 $ git pull origin develop
 > Already up-to-date.
 </pre>
 
-h4. Run cenit hub by port: 3000
+Run cenit hub by port: 3000
 
 <pre>
 $ rails s -p 3000
@@ -58,46 +58,46 @@ $ rails s -p 3000
 
 h3. Create Hub Demo Store 1
 
-h4. Clone the github openjaf/hub-demo-store repo.
+Clone the github openjaf/hub-demo-store repo.
 
 <pre>
 $ git clone https://github.com/openjaf/hub-demo-store
 </pre>
 
-h4. Change folder name to hub-demo-store-1 and move to folder.
+Change folder name to hub-demo-store-1 and move to folder.
 
 <pre>
 $ mv hub-demo-store hub-demo-store-1
 $ cd hub-demo-store-1
 </pre>
 
-h4. Change branch to cenit.
+Change branch to cenit.
 
 <pre>
 $ git checkout -b cenit origin/cenit
 </pre>
 
-h4. ensure stay in 'cenit' branch
+Ensure stay in 'cenit' branch
 
 <pre>
 $ git branch
 > *cenit
 </pre>
 
-h4. Ensure that 'cenit' branch is updated.
+Ensure that 'cenit' branch is updated.
 
 <pre>
 $ git pull origin cenit
 > Already up-to-date.
 </pre>
 
-h4. Run migrations and seed data.
+Run migrations and seed data.
 
 <pre>
 $ rake db:migrate; rake db:seed
 </pre>
 
-h4. Run hub-demo-store-1 by port 3001
+Run hub-demo-store-1 by port 3001
 
 <pre>
 $ rails s -p 3001
@@ -106,40 +106,40 @@ $ rails s -p 3001
 
 h3. Create Hub Demo Store 2
 
-h4. Clone the github openjaf/hub-demo-store repo.
+Clone the github openjaf/hub-demo-store repo.
 
 <pre>
 $ git clone https://github.com/openjaf/hub-demo-store
 </pre>
 
-h4. Change folder name to hub-demo-store-2 and move to folder.
+Change folder name to hub-demo-store-2 and move to folder.
 
 <pre>
 $ mv hub-demo-store hub-demo-store-2
 $ cd hub-demo-store-2
 </pre>
 
-h4. Change branch to cenit.
+Change branch to cenit.
 
 <pre>
 $ git checkout -b cenit origin/cenit
 </pre>
 
-h4. Ensure stay in 'cenit' branch
+Ensure stay in 'cenit' branch
 
 <pre>
 $ git branch
 > *cenit
 </pre>
 
-h4. Ensure that 'cenit' branch is updated.
+Ensure that 'cenit' branch is updated.
 
 <pre>
 $ git pull origin cenit
 > Already up-to-date.
 </pre>
 
-h4. Run migrations and seed data.
+Run migrations and seed data.
 
 <pre>
 $ rake db:migrate; rake db:seed
@@ -151,34 +151,34 @@ $ rails s -p 3002
 </pre>
 
 
-h3. Add configurations and conections to Cenit Hub
+Add configurations and conections to Cenit Hub
 
-h4. move to cenit hub folder
+Move to cenit hub folder
 
 <pre>
 $ cd ../cenit
 </pre>
 
-h4. Stop the web server by port 3000
+Stop the web server by port 3000
 
 <pre>
-	Ctr + 'c'
+Ctr + 'c'
 </pre>	
 
-h4. Run rails console
+Run rails console
 
 <pre>
 $ rails console
 </pre>	
 
-h4. Add webhook for Product Object at this moment only 'add_product' and 'update_product'.
+Add webhook for Product Object at this moment only 'add_product' and 'update_product'.
 
 <pre>
 $ w_add = Setup::Webhook.create!({:name => 'Add Product', :path => 'add_product'})
 $ w_upd = Setup::Webhook.create!({:name => 'Update Product', :path => 'update_product'})
 </pre>
 
-h4. Add conection configurations to Store I and Store II   
+Add conection configurations to Store I and Store II   
 
 <pree>
 $ c_one = Setup::Connection.create!({:name => 'Store I', :url => 'http://localhost:3001/wombat', :store => '3001', :token => 'tresmiluno'})
@@ -190,13 +190,13 @@ $ c_two.webhooks = [w_add, w_upd]
 $ c_two.save
 </pre>
 
-h4. Stop rails console
+Stop rails console
 
 <pre>
-	Ctr + 'c'
+Ctr + 'c'
 </pre>	
 
-h4. Run cenit hub by port: 3000
+Run cenit hub by port: 3000
 
 <pre>
 $ rails s -p 3000
@@ -204,19 +204,19 @@ $ rails s -p 3000
 
 h3. Add configurations to Hub Demo Store 1
 
-h4. move to hub-demo-store-1
+Move to hub-demo-store-1
 
 <pre>
 $ cd ../hub-demo-store-1	
 </pre>	
 
-h4. Stop the web server by port 3001
+Stop the web server by port 3001
 
 <pre>
-	Ctr + 'c'
+Ctr + 'c'
 </pre>
 
-h4. Edit file hub-demo-store-1/config/initializers/wombat.rb
+Edit file hub-demo-store-1/config/initializers/wombat.rb
 
 <pre>
 Spree::Wombat::Config.configure do |config|
@@ -232,7 +232,7 @@ Spree::Wombat::Config.configure do |config|
 end
 </pre>
 
-h4. Run hub-demo-store-1 by port 3001
+Run hub-demo-store-1 by port 3001
 
 <pre>
 $ rails s -p 3001
@@ -240,19 +240,19 @@ $ rails s -p 3001
 
 h3. Add configurations to Hub Demo Store 2
 
-h4. move to hub-demo-store-2
+Move to hub-demo-store-2
 
 <pre>
 $ cd ../hub-demo-store-2	
 </pre>	
 
-h4. Stop the web server by port 3002
+Stop the web server by port 3002
 
 <pre>
-	Ctr + 'c'
+Ctr + 'c'
 </pre>
 
-h4. Edit file hub-demo-store-2/config/initializers/wombat.rb
+Edit file hub-demo-store-2/config/initializers/wombat.rb
 
 <pre>
 Spree::Wombat::Config.configure do |config|
@@ -268,7 +268,7 @@ Spree::Wombat::Config.configure do |config|
 end
 </pre>	
 
-h4. Run hub-demo-store-2 by port 3002
+Run hub-demo-store-2 by port 3002
 
 <pre>
 $ rails s -p 3002
@@ -276,20 +276,20 @@ $ rails s -p 3002
 
 h3. Running the first example
 
-h4. Go to browser and visit the admin panel of Hub Demo Store 1.
+Go to browser and visit the admin panel of Hub Demo Store 1.
 
 <pre>
 # go to http://localhost:3001/admin
 </pre>
 
-h4. enter the credentials
+Enter the credentials
 
 <pre>
 # user: spree@example.com
 # pass: spree123
 </pre>
 
-h4. create a new product in the product form.
+Create a new product in the product form.
 
 <img src="app/assets/images/store1.png" alt="store 1" />
 
