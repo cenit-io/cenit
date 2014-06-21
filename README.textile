@@ -23,7 +23,7 @@ h2. How to Use
 
 h3. Create Cenit Hub application.
 
-h4. Clone the github openjaf/cenit repo.
+h4. Clone the github openjaf/cenit repo and move to cenit folder.
 
 <pre>
 $ git clone https://github.com/openjaf/cenit
@@ -89,8 +89,8 @@ h4. Ensure that 'cenit' branch is updated.
 <pre>
 $ git pull origin cenit
 > Already up-to-date.
-<pre>
-	
+</pre>
+
 h4. Run migrations and seed data.
 
 <pre>
@@ -137,8 +137,8 @@ h4. Ensure that 'cenit' branch is updated.
 <pre>
 $ git pull origin cenit
 > Already up-to-date.
-<pre>
-	
+</pre>
+
 h4. Run migrations and seed data.
 
 <pre>
@@ -160,6 +160,7 @@ $ cd ../cenit
 </pre>
 
 h4. Stop the web server by port 3000
+
 <pre>
 	Ctr + 'c'
 </pre>	
@@ -190,6 +191,7 @@ $ c_two.save
 </pre>
 
 h4. Stop rails console
+
 <pre>
 	Ctr + 'c'
 </pre>	
@@ -213,8 +215,7 @@ h4. Stop the web server by port 3001
 <pre>
 	Ctr + 'c'
 </pre>
-	
-	
+
 h4. Edit file hub-demo-store-1/config/initializers/wombat.rb
 
 <pre>
@@ -250,9 +251,9 @@ h4. Stop the web server by port 3002
 <pre>
 	Ctr + 'c'
 </pre>
-	
+
 h4. Edit file hub-demo-store-2/config/initializers/wombat.rb
-	
+
 <pre>
 Spree::Wombat::Config.configure do |config|
    config.connection_id = "3002"
@@ -266,7 +267,7 @@ Spree::Wombat::Config.configure do |config|
    config.enable_auto_push = true
 end
 </pre>	
-	
+
 h4. Run hub-demo-store-2 by port 3002
 
 <pre>
