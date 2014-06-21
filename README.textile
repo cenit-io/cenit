@@ -50,6 +50,14 @@ $ git pull origin develop
 > Already up-to-date.
 </pre>
 
+With mongodb you don't need run migrations
+
+Run db/seed
+
+<pre>
+$ rake db:seed	
+</pre>	
+
 Run cenit hub by port: 3000
 
 <pre>
@@ -115,10 +123,16 @@ $ git pull origin cenit
 > Already up-to-date.
 </pre>
 
-Run migrations and seed data.
+Run the bundle install command to install the required gems on your computer:
 
 <pre>
-$ rake db:migrate; rake db:seed
+$ bundle install
+</pre>
+
+Create db, run migrations and load seed data.
+
+<pre>
+$ rake db:create; rake db:migrate; rake db:seed
 </pre>
 
 Run hub-demo-store-1 by port 3001
@@ -163,10 +177,16 @@ $ git pull origin cenit
 > Already up-to-date.
 </pre>
 
-Run migrations and seed data.
+Run the bundle install command to install the required gems on your computer:
 
 <pre>
-$ rake db:migrate; rake db:seed
+$ bundle install
+</pre>
+
+Create db, run migrations and load seed data.
+
+<pre>
+$ rake db:create; rake db:migrate; rake db:seed
 </pre>
 
 <pre>
