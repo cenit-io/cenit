@@ -12,12 +12,10 @@ This is a demonstration application that allows you integrate commerce solution 
 
 For the moment:
 * Only connect Spree Store endpoints.
-* Only one direction, Store I >> Hub >> Store II
-* Only is ready the flow for Product object.
+* Only is ready that Product objects flow throught the hub.
 
 Next Steps:
 * Add Order object flow.
-* Bidirectional comunication, Store I << >> Hub << >> Store II
 * Add OpenERP like EndPoint
 
 
