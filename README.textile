@@ -21,58 +21,203 @@ Next Steps:
 
 h2. How to Use
 
+h3. Create Cenit Hub application.
+
+h4. Clone the github openjaf/cenit repo.
+
 <pre>
-# ==== Cenit Hub ===
-# download the cenit repo if you don't have yet.
 $ git clone https://github.com/openjaf/cenit
 $ cd cenit
+</pre>
+
+h4. Change branch to develop.
+
+<pre>
 $ git checkout -b develop origin/develop
-# ensure stay in develop branch
+</pre>
+
+h4. Ensure stay in develop branch.
+
+<pre>
 $ git branch
 > *develop
-# ensure that 'develop' branch is updated
+</pre>
+
+h4. Ensure that 'develop' branch is updated.
+
+<pre>
 $ git pull origin develop
 > Already up-to-date.
 </pre>
 
-# Add configuration to Store II and add the webhook for 'Add product'.
+h4. Run cenit hub by port: 3000
+
+<pre>
+$ rails s -p 3000
+</pre> 
+
+h3. Create Hub Demo Store 1
+
+h4. Clone the github openjaf/hub-demo-store repo.
+
+<pre>
+$ git clone https://github.com/openjaf/hub-demo-store
+</pre>
+
+h4. Change folder name to hub-demo-store-1 and move to folder.
+
+<pre>
+$ mv hub-demo-store hub-demo-store-1
+$ cd hub-demo-store-1
+</pre>
+
+h4. Change branch to cenit.
+
+<pre>
+$ git checkout -b cenit origin/cenit
+</pre>
+
+h4. ensure stay in 'cenit' branch
+
+<pre>
+$ git branch
+> *cenit
+</pre>
+
+h4. Ensure that 'cenit' branch is updated.
+
+<pre>
+$ git pull origin cenit
+> Already up-to-date.
+<pre>
+	
+h4. Run migrations and seed data.
+
+<pre>
+$ rake db:migrate; rake db:seed
+</pre>
+
+h4. Run hub-demo-store-1 by port 3001
+
+<pre>
+$ rails s -p 3001
+</pre>
+
+
+h3. Create Hub Demo Store 2
+
+h4. Clone the github openjaf/hub-demo-store repo.
+
+<pre>
+$ git clone https://github.com/openjaf/hub-demo-store
+</pre>
+
+h4. Change folder name to hub-demo-store-2 and move to folder.
+
+<pre>
+$ mv hub-demo-store hub-demo-store-2
+$ cd hub-demo-store-2
+</pre>
+
+h4. Change branch to cenit.
+
+<pre>
+$ git checkout -b cenit origin/cenit
+</pre>
+
+h4. Ensure stay in 'cenit' branch
+
+<pre>
+$ git branch
+> *cenit
+</pre>
+
+h4. Ensure that 'cenit' branch is updated.
+
+<pre>
+$ git pull origin cenit
+> Already up-to-date.
+<pre>
+	
+h4. Run migrations and seed data.
+
+<pre>
+$ rake db:migrate; rake db:seed
+</pre>
+
+<pre>
+# run hub-demo-store-2 by port 3002
+$ rails s -p 3002
+</pre>
+
+
+h3. Add configurations and conections to Cenit Hub
+
+h4. move to cenit hub folder
+
+<pre>
+$ cd ../cenit
+</pre>
+
+h4. Stop the web server by port 3000
+<pre>
+	Ctr + 'c'
+</pre>	
+
+h4. Run rails console
+
+<pre>
+$ rails console
+</pre>	
+
+h4. Add webhook for Product Object at this moment only 'add_product' and 'update_product'.
 
 <pre>
 $ w_add = Setup::Webhook.create!({:name => 'Add Product', :path => 'add_product'})
 $ w_upd = Setup::Webhook.create!({:name => 'Update Product', :path => 'update_product'})
+</pre>
+
+h4. Add conection configurations to Store I and Store II   
+
+<pree>
 $ c_one = Setup::Connection.create!({:name => 'Store I', :url => 'http://localhost:3001/wombat', :store => '3001', :token => 'tresmiluno'})
 $ c_one.webhooks = [w_add, w_upd]
 $ c_one.save
+
 $ c_two = Setup::Connection.create!({:name => 'Store II', :url => 'http://localhost:3002/wombat', :store => '3002', :token => 'tresmildos'})
 $ c_two.webhooks = [w_add, w_upd]
 $ c_two.save
 </pre>
 
+h4. Stop rails console
 <pre>
-# run cenit by port 3000
-$ rails s
+	Ctr + 'c'
+</pre>	
+
+h4. Run cenit hub by port: 3000
+
+<pre>
+$ rails s -p 3000
+</pre> 
+
+h3. Add configurations to Hub Demo Store 1
+
+h4. move to hub-demo-store-1
+
+<pre>
+$ cd ../hub-demo-store-1	
+</pre>	
+
+h4. Stop the web server by port 3001
+
+<pre>
+	Ctr + 'c'
 </pre>
-
-
-<pre>
-# ==== Hub Demo Store 1 ===
-# download the repo hub-demo-store if you don't have yet.
-$ git clone https://github.com/openjaf/hub-demo-store
-# change name to hub-demo-store-1
-$ mv hub-demo-store hub-demo-store-1
-$ cd hub-demo-store-1
-$ git checkout -b cenit origin/cenit
-# ensure stay in 'cenit' branch
-$ git branch
-> *cenit
-$ git pull origin cenit
-> Already up-to-date.
-# run migrate and seed
-$ rake db:migrate; rake db:seed
-</pre>
+	
+	
+h4. Edit file hub-demo-store-1/config/initializers/wombat.rb
 
 <pre>
-# edit file hub-demo-store-1/config/initializers/wombat.rb
 Spree::Wombat::Config.configure do |config|
    config.connection_id = "3001"
    config.connection_token = "tresmiluno"
@@ -86,30 +231,29 @@ Spree::Wombat::Config.configure do |config|
 end
 </pre>
 
+h4. Run hub-demo-store-1 by port 3001
+
 <pre>
-# run hub-demo-store-1 by port 3001
 $ rails s -p 3001
 </pre>
 
-<pre>
-# ==== Hub Demo Store 2 ===
-# download the repo hub-demo-store if you don't have yet.
-$ git clone https://github.com/openjaf/hub-demo-store
-# change name to hub-demo-store-2
-$ mv hub-demo-store hub-demo-store-2
-$ cd hub-demo-store-2
-$ git checkout -b cenit origin/cenit
-# ensure stay in 'cenit' branch
-$ git branch
-> *cenit
-$ git pull origin cenit
-> Already up-to-date.
-# run migrate and seed
-$ rake db:migrate; rake db:seed
-</pre>
+h3. Add configurations to Hub Demo Store 2
+
+h4. move to hub-demo-store-2
 
 <pre>
-# edit file hub-demo-store-2/config/initializers/wombat.rb
+$ cd ../hub-demo-store-2	
+</pre>	
+
+h4. Stop the web server by port 3002
+
+<pre>
+	Ctr + 'c'
+</pre>
+	
+h4. Edit file hub-demo-store-2/config/initializers/wombat.rb
+	
+<pre>
 Spree::Wombat::Config.configure do |config|
    config.connection_id = "3002"
    config.connection_token = "tresmildos"
@@ -121,16 +265,30 @@ Spree::Wombat::Config.configure do |config|
    config.push_url = "http://localhost:3000/cenit"
    config.enable_auto_push = true
 end
-</pre>
+</pre>	
+	
+h4. Run hub-demo-store-2 by port 3002
 
 <pre>
-# run hub-demo-store-2 by port 3002
 $ rails s -p 3002
 </pre>
 
-# go to http://localhost:3001/admin and enter
+h3. Running the first example
+
+h4. Go to browser and visit the admin panel of Hub Demo Store 1.
+
+<pre>
+# go to http://localhost:3001/admin
+</pre>
+
+h4. enter the credentials
+
+<pre>
 # user: spree@example.com
 # pass: spree123
+</pre>
+
+h4. create a new product in the product form.
 
 <img src="app/assets/images/store1.png" alt="store 1" />
 
