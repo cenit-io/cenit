@@ -35,8 +35,6 @@ $ git branch
 # ensure that 'develop' branch is updated
 $ git pull origin develop
 > Already up-to-date.
-# run cenit by port 3000
-$ rails s
 </pre>
 
 # Add configuration to Store II and add the webhook for 'Add product'.
@@ -53,6 +51,12 @@ $ c_two.save
 </pre>
 
 <pre>
+# run cenit by port 3000
+$ rails s
+</pre>
+
+
+<pre>
 # ==== Hub Demo Store 1 ===
 # download the repo hub-demo-store if you don't have yet.
 $ git clone https://github.com/openjaf/hub-demo-store
@@ -67,8 +71,6 @@ $ git pull origin cenit
 > Already up-to-date.
 # run migrate and seed
 $ rake db:migrate; rake db:seed
-# run hub-demo-store-1 by port 3001
-$ rails s -p 3001
 </pre>
 
 <pre>
@@ -87,6 +89,11 @@ end
 </pre>
 
 <pre>
+# run hub-demo-store-1 by port 3001
+$ rails s -p 3001
+</pre>
+
+<pre>
 # ==== Hub Demo Store 2 ===
 # download the repo hub-demo-store if you don't have yet.
 $ git clone https://github.com/openjaf/hub-demo-store
@@ -101,8 +108,6 @@ $ git pull origin cenit
 > Already up-to-date.
 # run migrate and seed
 $ rake db:migrate; rake db:seed
-# run hub-demo-store-2 by port 3002
-$ rails s -p 3002
 </pre>
 
 <pre>
@@ -118,6 +123,11 @@ Spree::Wombat::Config.configure do |config|
    config.push_url = "http://localhost:3000/cenit"
    config.enable_auto_push = true
 end
+</pre>
+
+<pre>
+# run hub-demo-store-2 by port 3002
+$ rails s -p 3002
 </pre>
 
 # go to http://localhost:3001/admin and enter
@@ -175,9 +185,6 @@ h4. Web Servers
 
 Use the default WEBrick server for convenience. If you plan to deploy to Heroku, select "thin" as your production webserver.
 
-h4. Template Engine
-
-The example application uses the default "ERB" Rails template engine. Optionally, you can use another template engine, such as Haml or Slim. See instructions for "Haml and Rails":http://railsapps.github.io/rails-haml.html.
 
 h4. Other Choices
 
@@ -193,7 +200,7 @@ Other problems? Check the "issues"https://github.com/openjaf/cenit.
 
 h3. Edit the README
 
-If you're storing the app in a GitHub repository, please edit the README files to add a description of the app and your contact info. If you don't change the README, people will think I am the author of your version of the application.
+If you're storing the app in a GitHub repository, please edit the README files to add a description of the app and your contact info. If you don't change the README, people will think we are the author of your version of the application.
 
 h2. Getting Started
 
@@ -318,10 +325,6 @@ h2. Troubleshooting
 
 Problems? Check the "issues":https://github.com/RailsApps/rails3-mongoid-devise/issues.
 
-h4. Problems with  "Certificate Verify Failed"
-
-Are you getting an error "OpenSSL certificate verify failed" when you try to generate a new Rails app from an application template? See suggestions to resolve the error "Certificate Verify Failed":http://railsapps.github.io/openssl-certificate-verify-failed.html.
-
 h2. Documentation and Support
 
 For a Mongoid introduction, Ryan Bates offers a "Railscast on Mongoid":http://railscasts.com/episodes/238-mongoid. You can find documentation for "Mongoid":http://mongoid.org/ at "http://mongoid.org/":http://mongoid.org/ There is an active "Mongoid mailing list":http://groups.google.com/group/mongoid and you can submit "Mongoid issues":http://github.com/durran/mongoid/issues at GitHub.
@@ -344,13 +347,11 @@ If you make improvements to this application, please share with others.
 
 Send the author a message, create an "issue":https://github.com/openjaf/cenit/issues, or fork the project and submit a pull request.
 
-
-
 If you add functionality to this application, create an alternative implementation, or build an application that is similar, please contact me and I'll add a note to the README so that others can find your work.
 
 h2. Credits
 
-Spree Commerce Team.
+Many of the concepts here develop was inspired by Spree Commerce.
 
 Cesar Lage & Miguel Sancho implemented the application.
 
