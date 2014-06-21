@@ -150,7 +150,7 @@ $ rake db:migrate; rake db:seed
 $ rails s -p 3002
 </pre>
 
-Add configurations and conections to Cenit Hub
+h3. Add configurations and conections to Cenit Hub
 
 Move to cenit hub folder
 
