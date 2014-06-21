@@ -56,7 +56,7 @@ Run cenit hub by port: 3000
 $ rails s -p 3000
 </pre>
 
-if you have some throuble with secret_key_base running 'rails s'. First generate a random secret key value:
+If you have some throuble with secret_key_base running 'rails s', you can generate a random secret key value:
 
 <pre>
 $ rake secret
@@ -78,7 +78,9 @@ go to http://localhost:3000/data
 
 If you have some throuble for enter in /data check that mondodb is running.
 
-h3. Create Hub Demo Store 1
+h3. Create two Spree Store Endpoints.
+
+h4. Create Hub Demo Store 1
 
 Clone the github openjaf/hub-demo-store repo.
 
@@ -126,7 +128,7 @@ $ rails s -p 3001
 </pre>
 
 
-h3. Create Hub Demo Store 2
+h4. Create Hub Demo Store 2
 
 Clone the github openjaf/hub-demo-store repo.
 
@@ -223,7 +225,9 @@ Run cenit hub by port: 3000
 $ rails s -p 3000
 </pre> 
 
-h3. Add configurations to Hub Demo Store 1
+h3. Add configurations to Endpoints
+
+h4. Add configurations to Hub Demo Store 1
 
 Move to hub-demo-store-1
 
@@ -259,7 +263,7 @@ Run hub-demo-store-1 by port 3001
 $ rails s -p 3001
 </pre>
 
-h3. Add configurations to Hub Demo Store 2
+h4. Add configurations to Hub Demo Store 2
 
 Move to hub-demo-store-2
 
