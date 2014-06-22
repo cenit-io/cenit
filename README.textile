@@ -1,3 +1,5 @@
+<<<<<<< Local Changes
+<<<<<<< Local Changes
 h1. Demo Integrator for commerce solution.
 
 Rails 4.0.x with Mongoid.
@@ -203,7 +205,13 @@ Run the bundle install command to install the required gems on your computer:
 $ bundle install
 </pre>
 
-Add database.yml file to config/ 
+Create database.yml.
+
+<pre>
+vim config/database.yml	
+</pre>	 
+
+Copy here you config
 
 <pre>
 development:
@@ -229,8 +237,9 @@ Create db, run migrations and load seed data.
 $ rake db:create; rake db:migrate; rake db:seed
 </pre>
 
+Run hub-demo-store-1 by port 3002
+
 <pre>
-# run hub-demo-store-2 by port 3002
 $ rails s -p 3002
 </pre>
 
@@ -361,10 +370,10 @@ $ rails s -p 3002
 
 h3. Running the first example
 
-Go to browser and visit the admin panel of Hub Demo Store 1.
+Go to browser and visit products in the admin panel of Hub Demo Store 1.
 
 <pre>
-# go to http://localhost:3001/admin
+# go to http://localhost:3001/admin/products
 </pre>
 
 Enter the credentials
@@ -484,6 +493,24 @@ You can use the default configuration found in the file *config/mongoid.yml*.
 
 If you want to see what's in your MongoDB databases, I recommend using the "MongoHub":http://mongohub.todayclose.com/ app (for Mac OS X).S
 
+
+h3. Installing RabbitMQ
+
+The "RabbitMQ":http://www.rabbitmq.com site has a good "installation guide":http://www.rabbitmq.com/download.html that addresses many operating systems. On Mac OS X, the fastest way to install RabbitMQ is with "Homebrew":http://brew.sh :
+
+<pre>
+brew install rabbitmq
+</pre>
+
+then run it:
+<pre>
+rabbitmq-server
+</pre>
+
+On Debian and Ubuntu, you can either "download the RabbitMQ .deb package":http://www.rabbitmq.com/download.html and install it with "dpkg":http://www.debian.org/doc/manuals/debian-faq/ch-pkgtools.en.html or make use of the "apt repository":http://www.rabbitmq.com/install-debian.html that the RabbitMQ team provides.
+
+For RPM-based distributions like RedHat or CentOS, the RabbitMQ team provides an "RPM package":http://www.rabbitmq.com/download.html.
+
 h3. Configuration File
 
 The application uses the "figaro gem":https://github.com/laserlemon/figaro to set environment variables. Credentials for your administrator account and email account are set in the *config/application.yml* file. The *.gitignore* file prevents the *config/application.yml* file from being saved in the git repository so your credentials are kept private. See the article "Rails Environment Variables":http://railsapps.github.io/rails-environment-variables.html for more information.
@@ -496,7 +523,6 @@ Modify the file *config/application.yml*:
 # This file should be listed in .gitignore to keep your settings secret!
 # Each entry sets a local environment variable and overrides ENV variables in the Unix shell.
 # Add application configuration variables here, as shown below.
-#
 </pre>
 
 If you wish, set your name, email address, and password for the first user's account. If you prefer, you can use the default to sign in to the application and edit the account after deployment. It is always a good idea to change the password after the application is deployed.
@@ -622,3 +648,7 @@ h2. MIT License
 
 
 h2. Useful Links
+=======
+>>>>>>> External Changes
+=======
+>>>>>>> External Changes
