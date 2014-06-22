@@ -88,6 +88,8 @@ go to http://localhost:3000/data
 
 If you have some throuble for enter in /data check that mondodb is running.
 
+Check that you have a working installation of "RabbitMQ":http://www.rabbitmq.com, see below the guide for install RabbitMQ.
+
 h3. Create two Spree Store Endpoints.
 
 h4. Create Hub Demo Store 1
@@ -350,15 +352,15 @@ Edit file hub-demo-store-2/config/initializers/wombat.rb
 
 <pre>
 Spree::Wombat::Config.configure do |config|
-   config.connection_id = "3002"
-   config.connection_token = "tresmildos"
-   config.push_objects = ["Spree::Order", "Spree::Product"]
-   config.payload_builder = {
-     "Spree::Order" => {:serializer => "Spree::Wombat::OrderSerializer", :root => "orders"},
-     "Spree::Product" => {:serializer => "Spree::Wombat::ProductSerializer", :root => "products"},
-   }
-   config.push_url = "http://localhost:3000/cenit"
-   config.enable_auto_push = true
+	config.connection_id = "3002"
+	config.connection_token = "tresmildos"
+	config.push_objects = ["Spree::Order", "Spree::Product"]
+	config.payload_builder = {
+	 "Spree::Order" => {:serializer => "Spree::Wombat::OrderSerializer", :root => "orders"},
+	 "Spree::Product" => {:serializer => "Spree::Wombat::ProductSerializer", :root => "products"},
+	}
+	config.push_url = "http://localhost:3000/cenit"
+	config.enable_auto_push = true
 end
 </pre>	
 
@@ -406,9 +408,10 @@ Before generating your application, you will need:
 * The Ruby language (version 1.9.3 or 2.0.0)
 * The Rails gem (version 4.0.5)
 * A working installation of "MongoDB":http://www.mongodb.org/
+* A working installation of "RabbitMQ":http://www.rabbitmq.com
 
 
-h4. Installing MongoDB
+h3. Installing MongoDB
 
 If you don't have MongoDB installed on your computer, you'll need to install it and set it up to be always running on your computer (run at launch).
 
@@ -425,6 +428,28 @@ On the Debian GNU/Linux operating system, as of March 2013, the latest stable ve
 <pre>
 gem 'mongoid', github: 'mongoid/mongoid'
 gem 'bson_ext', '~> 1.8.6'
+</pre>
+
+h3. Installing RabbitMQ
+
+The "RabbitMQ":http://www.rabbitmq.com site has a good "installation guide":http://www.rabbitmq.com/download.html that addresses many operating systems. On Mac OS X, the fastest way to install RabbitMQ is with "Homebrew":http://brew.sh:
+
+<pre>
+brew install rabbitmq
+</pre>
+
+then run it:
+
+<pre>
+rabbitmq-server
+</pre>
+
+On Debian and Ubuntu, you can either "download the RabbitMQ .deb package":http://www.rabbitmq.com/download.html and install it with "dpkg":http://www.debian.org/doc/manuals/debian-faq/ch-pkgtools.en.html or make use of the "apt repository":http://www.rabbitmq.com/install-debian.html that the RabbitMQ team provides.
+
+For RPM-based distributions like RedHat or CentOS, the RabbitMQ team provides an "RPM package":http://www.rabbitmq.com/download.html.
+
+<pre>
+Note: The RabbitMQ packages that ship with Ubuntu versions earlier than 11.10 are outdated and will not work with Bunny 0.9.0 and later versions (you will need at least RabbitMQ v2.0 for use with this guide).
 </pre>
 
 h2. Getting the Application
@@ -492,24 +517,6 @@ Mongoid provides access to the MongoDB database from Rails.
 You can use the default configuration found in the file *config/mongoid.yml*.
 
 If you want to see what's in your MongoDB databases, I recommend using the "MongoHub":http://mongohub.todayclose.com/ app (for Mac OS X).S
-
-
-h3. Installing RabbitMQ
-
-The "RabbitMQ":http://www.rabbitmq.com site has a good "installation guide":http://www.rabbitmq.com/download.html that addresses many operating systems. On Mac OS X, the fastest way to install RabbitMQ is with "Homebrew":http://brew.sh :
-
-<pre>
-brew install rabbitmq
-</pre>
-
-then run it:
-<pre>
-rabbitmq-server
-</pre>
-
-On Debian and Ubuntu, you can either "download the RabbitMQ .deb package":http://www.rabbitmq.com/download.html and install it with "dpkg":http://www.debian.org/doc/manuals/debian-faq/ch-pkgtools.en.html or make use of the "apt repository":http://www.rabbitmq.com/install-debian.html that the RabbitMQ team provides.
-
-For RPM-based distributions like RedHat or CentOS, the RabbitMQ team provides an "RPM package":http://www.rabbitmq.com/download.html.
 
 h3. Configuration File
 
