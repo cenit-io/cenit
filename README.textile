@@ -447,6 +447,7 @@ When you click the button 'update', after save in the databse the product will b
 
 Now you can visit data in Cenit Hub and check that the product modification was saved.
 
+
 <pre>
 go to http://localhost:3000/data 
 </pre>	
@@ -462,6 +463,15 @@ The Store I will process the HTTP Post request, and it will create a new product
 You can visit the other Storefront and check that the product was saved too.
 
 <img src="app/assets/images/cenit_demo_integration_7.png" alt="Cenit Demo Integration image 7" />
+
+Then like a last prove, go to Cenit Hub and modified a product in data.
+
+<img src="app/assets/images/cenit_demo_integration_8.png" alt="Cenit Demo Integration image 8" />
+
+How you spec  and both endpoint will be updated too.
+
+<img src="app/assets/images/cenit_demo_integration_9.png" alt="Cenit Demo Integration image 9" />
+<img src="app/assets/images/cenit_demo_integration_10.png" alt="Cenit Demo Integration image 10" />
 
 h2. Dependencies
 
