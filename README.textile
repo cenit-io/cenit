@@ -1,5 +1,3 @@
-<<<<<<< Local Changes
-<<<<<<< Local Changes
 h1. Demo Integrator for commerce solution.
 
 Rails 4.0.x with Mongoid.
@@ -89,6 +87,13 @@ go to http://localhost:3000/data
 If you have some throuble for enter in /data check that mondodb is running.
 
 Check that you have a working installation of "RabbitMQ":http://www.rabbitmq.com, see below the guide for install RabbitMQ.
+
+If RabbitMQ is well instaled when you run rails s then you can see:
+
+<pre>
+ [*] Waiting for messages. To exit press CTRL+C	
+</pre>	
+ 
 
 h3. Create two Spree Store Endpoints.
 
@@ -655,7 +660,4 @@ h2. MIT License
 
 
 h2. Useful Links
-=======
->>>>>>> External Changes
-=======
->>>>>>> External Changes
+
