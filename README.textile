@@ -439,7 +439,7 @@ Now goes to the admin in Hub Demo Store II, and modified the product name.
 
 <pre>
 Product name: 'Product 111'
-<pre>	
+</pre>	
 	
 <img src="app/assets/images/cenit_demo_integration_6.png" alt="Cenit Demo Integration image 6" />	
 
@@ -466,12 +466,16 @@ You can visit the other Storefront and check that the product was saved too.
 
 Then like a last prove, go to Cenit Hub and modified a product in data.
 
-<img src="app/assets/images/cenit_demo_integration_8.png" alt="Cenit Demo Integration image 8" />
+<pre>
+Product name: 'Product 111 111'
+</pre>	
+
+<img src="app/assets/images/cenit_demo_integration_9.png" alt="Cenit Demo Integration image 9" />
 
 How you spec  and both endpoint will be updated too.
 
-<img src="app/assets/images/cenit_demo_integration_9.png" alt="Cenit Demo Integration image 9" />
 <img src="app/assets/images/cenit_demo_integration_10.png" alt="Cenit Demo Integration image 10" />
+<img src="app/assets/images/cenit_demo_integration_11.png" alt="Cenit Demo Integration image 11" />
 
 h2. Dependencies
 
