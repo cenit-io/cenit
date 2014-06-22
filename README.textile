@@ -93,7 +93,10 @@ If RabbitMQ is well instaled when you run rails s then you can see:
 <pre>
  [*] Waiting for messages. To exit press CTRL+C	
 </pre>	
- 
+
+You should see something like 
+
+<img src="app/assets/images/cenit_demo_integration_1.png" alt="Cenit Demo Integration image 1" />
 
 h3. Create two Spree Store Endpoints.
 
@@ -377,6 +380,9 @@ $ rails s -p 3002
 
 h3. Running the first example
 
+At the bigining you don't have any product in the Cenit Hub
+<img src="app/assets/images/cenit_demo_integration_1.png" alt="Cenit Demo Integration image 1" />
+
 Go to browser and visit products in the admin panel of Hub Demo Store 1.
 
 <pre>
@@ -390,21 +396,72 @@ Enter the credentials
 # pass: spree123
 </pre>
 
-Create a new product in the product form.
+Create a new product in the product form with the next values.
 
-<img src="app/assets/images/store1.png" alt="store 1" />
+<pre>
+Product name: 'Product 1'
+Sku: '111'
+Price: 100
+Shipping Category: Default	
+<pre>	
 
-You can visit data in Cenit Hub and check that the product was saved.
+<img src="app/assets/images/cenit_demo_integration_2.png" alt="Cenit Demo Integration image 2" />
+
+When you click the button 'create', after save in the databse the product will be send to Cenit Hub, throgth a Push API /add_product that is a HTTP Post request.
+
+The Cenit Hub will process the HTTP Post request, and it will create a new product in the MongoDB. 
+
+Now you can visit data in Cenit Hub and check that the product was saved.
 
 <pre>
 go to http://localhost:3000/data 
 </pre>	
+
+<img src="app/assets/images/cenit_demo_integration_3.png" alt="Cenit Demo Integration image 3" />
+
+<img src="app/assets/images/cenit_demo_integration_4.png" alt="Cenit Demo Integration image 4" />
+
+After save the new product, then will be sent a internal message using RabbitMQ because a new product was created and is required notified the rest of endpoint(s).
+ 
+When the rabbitMQ message had been processed, the Cenit call the webhook /add_product for each conection, in this case will be send a request HTTP Post /add_product to Hub Demo Store II.
+
+The Store II will process the HTTP Post request, and it will create a new product in your DB.
 
 You can visit the other Storefront and check that the product was saved too.
 
 <pre>
 go to http://localhost:3002
 </pre>
+
+<img src="app/assets/images/cenit_demo_integration_5.png" alt="Cenit Demo Integration image 5" />
+
+Now goes to the admin in Hub Demo Store II, and modified the product name.
+
+<pre>
+Product name: 'Product 111'
+<pre>	
+	
+<img src="app/assets/images/cenit_demo_integration_6.png" alt="Cenit Demo Integration image 6" />	
+
+When you click the button 'update', after save in the databse the product will be send to Cenit Hub, throgth a Push API /add_product that is a HTTP Post request.
+
+Now you can visit data in Cenit Hub and check that the product modification was saved.
+
+<pre>
+go to http://localhost:3000/data 
+</pre>	
+
+<img src="app/assets/images/cenit_demo_integration_6.png" alt="Cenit Demo Integration image 6" />	
+
+After save the new product, then will be sent a internal message using RabbitMQ because a product was updated and is required notified the rest of endpoint(s).
+ 
+When the rabbitMQ message had been processed, the Cenit call the webhook /update_product for each conection, in this case will be send a request HTTP Post /update_product to Hub Demo Store I.
+
+The Store I will process the HTTP Post request, and it will create a new product in your DB.
+
+You can visit the other Storefront and check that the product was saved too.
+
+<img src="app/assets/images/cenit_demo_integration_7.png" alt="Cenit Demo Integration image 7" />
 
 h2. Dependencies
 
