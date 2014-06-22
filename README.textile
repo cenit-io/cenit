@@ -12,67 +12,314 @@ This is a demonstration application that allows you integrate commerce solution 
 
 For the moment:
 * Only connect Spree Store endpoints.
-* Only one direction, Store I >> Hub >> Store II
-* Only is ready the flow for Product object.
+* Only is ready that Product objects flow throught the hub.
 
 Next Steps:
 * Add Order object flow.
-* Bidirectional comunication, Store I << >> Hub << >> Store II
 * Add OpenERP like EndPoint
 
 
 h2. How to Use
 
+h3. Create Cenit Hub application.
+
+Clone the github openjaf/cenit repo and move to cenit folder.
+
 <pre>
-# ==== Cenit Hub ===
-# download the cenit repo if you don't have yet.
 $ git clone https://github.com/openjaf/cenit
 $ cd cenit
-$ git checkout -b develop origin/develop
-# ensure stay in develop branch
-$ git branch
-> *develop
-# ensure that 'develop' branch is updated
-$ git pull origin develop
-> Already up-to-date.
-# run cenit by port 3000
-$ rails s
 </pre>
 
-# Add configuration to Store II and add the webhook for 'Add product'.
+Change branch to develop.
+
+<pre>
+$ git checkout -b develop origin/develop
+</pre>
+
+Ensure stay in develop branch.
+
+<pre>
+$ git branch
+> *develop
+</pre>
+
+Ensure that 'develop' branch is updated.
+
+<pre>
+$ git pull origin develop
+> Already up-to-date.
+</pre>
+
+With mongodb you don't need run migrations
+
+Run db/seed
+
+<pre>
+$ rake db:seed	
+</pre>	
+
+Run cenit hub by port: 3000
+
+<pre>
+$ rails s -p 3000
+</pre>
+
+If you have some throuble with secret_key_base running 'rails s', you can generate a random secret key value:
+
+<pre>
+$ rake secret
+</pre>	
+
+Then take that value and put it in config/initializers/secret_token.rb:
+
+<pre>
+Cenit::Application.config.secret_key_base = 'bla' # replace this
+</pre>
+
+Now visit data, for enter in data you need sing in before. if you don't have user yet click in sing up. 
+
+If you want unavailable 'sing up' change user model.
+
+<pre>
+go to http://localhost:3000/data
+</pre>
+
+If you have some throuble for enter in /data check that mondodb is running.
+
+Check that you have a working installation of "RabbitMQ":http://www.rabbitmq.com, see below the guide for install RabbitMQ.
+
+If RabbitMQ is well instaled when you run rails s then you can see:
+
+<pre>
+ [*] Waiting for messages. To exit press CTRL+C	
+</pre>	
+ 
+
+h3. Create two Spree Store Endpoints.
+
+h4. Create Hub Demo Store 1
+
+Clone the github openjaf/hub-demo-store repo.
+
+<pre>
+$ git clone https://github.com/openjaf/hub-demo-store
+</pre>
+
+Change folder name to hub-demo-store-1 and move to folder.
+
+<pre>
+$ mv hub-demo-store hub-demo-store-1
+$ cd hub-demo-store-1
+</pre>
+
+Change branch to cenit.
+
+<pre>
+$ git checkout -b cenit origin/cenit
+</pre>
+
+Ensure stay in 'cenit' branch
+
+<pre>
+$ git branch
+> *cenit
+</pre>
+
+Ensure that 'cenit' branch is updated.
+
+<pre>
+$ git pull origin cenit
+> Already up-to-date.
+</pre>
+
+Run the bundle install command to install the required gems on your computer:
+
+<pre>
+$ bundle install
+</pre>
+
+Add database.yml file to config/ 
+
+<pre>
+development:
+  adapter: sqlite3
+  database: db/development.sqlite3
+  pool: 5
+  timeout: 5000
+test:
+  adapter: sqlite3
+  database: db/test.sqlite3
+  pool: 5
+  timeout: 5000
+production:
+  adapter: sqlite3
+  database: db/production.sqlite3
+  pool: 5
+  timeout: 5000
+</pre>	
+
+Create db, run migrations and load seed data.
+
+<pre>
+$ rake db:create; rake db:migrate; rake db:seed
+</pre>
+
+Run hub-demo-store-1 by port 3001
+
+<pre>
+$ rails s -p 3001
+</pre>
+
+
+h4. Create Hub Demo Store 2
+
+Clone the github openjaf/hub-demo-store repo.
+
+<pre>
+$ git clone https://github.com/openjaf/hub-demo-store
+</pre>
+
+Change folder name to hub-demo-store-2 and move to folder.
+
+<pre>
+$ mv hub-demo-store hub-demo-store-2
+$ cd hub-demo-store-2
+</pre>
+
+Change branch to cenit.
+
+<pre>
+$ git checkout -b cenit origin/cenit
+</pre>
+
+Ensure stay in 'cenit' branch
+
+<pre>
+$ git branch
+> *cenit
+</pre>
+
+Ensure that 'cenit' branch is updated.
+
+<pre>
+$ git pull origin cenit
+> Already up-to-date.
+</pre>
+
+Run the bundle install command to install the required gems on your computer:
+
+<pre>
+$ bundle install
+</pre>
+
+Create database.yml.
+
+<pre>
+vim config/database.yml	
+</pre>	 
+
+Copy here you config
+
+<pre>
+development:
+  adapter: sqlite3
+  database: db/development.sqlite3
+  pool: 5
+  timeout: 5000
+test:
+  adapter: sqlite3
+  database: db/test.sqlite3
+  pool: 5
+  timeout: 5000
+production:
+  adapter: sqlite3
+  database: db/production.sqlite3
+  pool: 5
+  timeout: 5000
+</pre>	
+
+Create db, run migrations and load seed data.
+
+<pre>
+$ rake db:create; rake db:migrate; rake db:seed
+</pre>
+
+Run hub-demo-store-1 by port 3002
+
+<pre>
+$ rails s -p 3002
+</pre>
+
+h3. Add configurations and conections to Cenit Hub
+
+Move to cenit hub folder
+
+<pre>
+$ cd ../cenit
+</pre>
+
+Stop the web server by port 3000
+
+<pre>
+Ctrl + c
+</pre>	
+
+Run rails console
+
+<pre>
+$ rails console
+</pre>	
+
+Add webhooks for Product Object at this moment only 'add_product' and 'update_product'.
 
 <pre>
 $ w_add = Setup::Webhook.create!({:name => 'Add Product', :path => 'add_product'})
 $ w_upd = Setup::Webhook.create!({:name => 'Update Product', :path => 'update_product'})
+</pre>
+
+Add conection configurations to Store I and Store II   
+
+<pre>
 $ c_one = Setup::Connection.create!({:name => 'Store I', :url => 'http://localhost:3001/wombat', :store => '3001', :token => 'tresmiluno'})
 $ c_one.webhooks = [w_add, w_upd]
 $ c_one.save
+
 $ c_two = Setup::Connection.create!({:name => 'Store II', :url => 'http://localhost:3002/wombat', :store => '3002', :token => 'tresmildos'})
 $ c_two.webhooks = [w_add, w_upd]
 $ c_two.save
 </pre>
 
-<pre>
-# ==== Hub Demo Store 1 ===
-# download the repo hub-demo-store if you don't have yet.
-$ git clone https://github.com/openjaf/hub-demo-store
-# change name to hub-demo-store-1
-$ mv hub-demo-store hub-demo-store-1
-$ cd hub-demo-store-1
-$ git checkout -b cenit origin/cenit
-# ensure stay in 'cenit' branch
-$ git branch
-> *cenit
-$ git pull origin cenit
-> Already up-to-date.
-# run migrate and seed
-$ rake db:migrate; rake db:seed
-# run hub-demo-store-1 by port 3001
-$ rails s -p 3001
-</pre>
+Stop rails console
 
 <pre>
-# edit file hub-demo-store-1/config/initializers/wombat.rb
+Ctrl + c
+</pre>	
+
+Run cenit hub by port: 3000
+
+<pre>
+$ rails s -p 3000
+</pre> 
+
+h3. Add configurations to Endpoints
+
+h4. Add configurations to Hub Demo Store 1
+
+Move to hub-demo-store-1
+
+<pre>
+$ cd ../hub-demo-store-1	
+</pre>	
+
+Stop the web server by port 3001
+
+<pre>
+Ctrl + c
+</pre>
+
+Edit file hub-demo-store-1/config/initializers/wombat.rb
+
+<pre>
 Spree::Wombat::Config.configure do |config|
    config.connection_id = "3001"
    config.connection_token = "tresmiluno"
@@ -86,45 +333,78 @@ Spree::Wombat::Config.configure do |config|
 end
 </pre>
 
+Run hub-demo-store-1 by port 3001
+
 <pre>
-# ==== Hub Demo Store 2 ===
-# download the repo hub-demo-store if you don't have yet.
-$ git clone https://github.com/openjaf/hub-demo-store
-# change name to hub-demo-store-2
-$ mv hub-demo-store hub-demo-store-2
-$ cd hub-demo-store-2
-$ git checkout -b cenit origin/cenit
-# ensure stay in 'cenit' branch
-$ git branch
-> *cenit
-$ git pull origin cenit
-> Already up-to-date.
-# run migrate and seed
-$ rake db:migrate; rake db:seed
-# run hub-demo-store-2 by port 3002
+$ rails s -p 3001
+</pre>
+
+h4. Add configurations to Hub Demo Store 2
+
+Move to hub-demo-store-2
+
+<pre>
+$ cd ../hub-demo-store-2	
+</pre>	
+
+Stop the web server by port 3002
+
+<pre>
+Ctrl + c
+</pre>
+
+Edit file hub-demo-store-2/config/initializers/wombat.rb
+
+<pre>
+Spree::Wombat::Config.configure do |config|
+	config.connection_id = "3002"
+	config.connection_token = "tresmildos"
+	config.push_objects = ["Spree::Order", "Spree::Product"]
+	config.payload_builder = {
+	 "Spree::Order" => {:serializer => "Spree::Wombat::OrderSerializer", :root => "orders"},
+	 "Spree::Product" => {:serializer => "Spree::Wombat::ProductSerializer", :root => "products"},
+	}
+	config.push_url = "http://localhost:3000/cenit"
+	config.enable_auto_push = true
+end
+</pre>	
+
+Run hub-demo-store-2 by port 3002
+
+<pre>
 $ rails s -p 3002
 </pre>
 
+h3. Running the first example
+
+Go to browser and visit products in the admin panel of Hub Demo Store 1.
+
 <pre>
-# edit file hub-demo-store-2/config/initializers/wombat.rb
-Spree::Wombat::Config.configure do |config|
-   config.connection_id = "3002"
-   config.connection_token = "tresmildos"
-   config.push_objects = ["Spree::Order", "Spree::Product"]
-   config.payload_builder = {
-     "Spree::Order" => {:serializer => "Spree::Wombat::OrderSerializer", :root => "orders"},
-     "Spree::Product" => {:serializer => "Spree::Wombat::ProductSerializer", :root => "products"},
-   }
-   config.push_url = "http://localhost:3000/cenit"
-   config.enable_auto_push = true
-end
+# go to http://localhost:3001/admin/products
 </pre>
 
-# go to http://localhost:3001/admin and enter
+Enter the credentials
+
+<pre>
 # user: spree@example.com
 # pass: spree123
+</pre>
+
+Create a new product in the product form.
 
 <img src="app/assets/images/store1.png" alt="store 1" />
+
+You can visit data in Cenit Hub and check that the product was saved.
+
+<pre>
+go to http://localhost:3000/data 
+</pre>	
+
+You can visit the other Storefront and check that the product was saved too.
+
+<pre>
+go to http://localhost:3002
+</pre>
 
 h2. Dependencies
 
@@ -133,9 +413,10 @@ Before generating your application, you will need:
 * The Ruby language (version 1.9.3 or 2.0.0)
 * The Rails gem (version 4.0.5)
 * A working installation of "MongoDB":http://www.mongodb.org/
+* A working installation of "RabbitMQ":http://www.rabbitmq.com
 
 
-h4. Installing MongoDB
+h3. Installing MongoDB
 
 If you don't have MongoDB installed on your computer, you'll need to install it and set it up to be always running on your computer (run at launch).
 
@@ -152,6 +433,28 @@ On the Debian GNU/Linux operating system, as of March 2013, the latest stable ve
 <pre>
 gem 'mongoid', github: 'mongoid/mongoid'
 gem 'bson_ext', '~> 1.8.6'
+</pre>
+
+h3. Installing RabbitMQ
+
+The "RabbitMQ":http://www.rabbitmq.com site has a good "installation guide":http://www.rabbitmq.com/download.html that addresses many operating systems. On Mac OS X, the fastest way to install RabbitMQ is with "Homebrew":http://brew.sh:
+
+<pre>
+brew install rabbitmq
+</pre>
+
+then run it:
+
+<pre>
+rabbitmq-server
+</pre>
+
+On Debian and Ubuntu, you can either "download the RabbitMQ .deb package":http://www.rabbitmq.com/download.html and install it with "dpkg":http://www.debian.org/doc/manuals/debian-faq/ch-pkgtools.en.html or make use of the "apt repository":http://www.rabbitmq.com/install-debian.html that the RabbitMQ team provides.
+
+For RPM-based distributions like RedHat or CentOS, the RabbitMQ team provides an "RPM package":http://www.rabbitmq.com/download.html.
+
+<pre>
+Note: The RabbitMQ packages that ship with Ubuntu versions earlier than 11.10 are outdated and will not work with Bunny 0.9.0 and later versions (you will need at least RabbitMQ v2.0 for use with this guide).
 </pre>
 
 h2. Getting the Application
@@ -175,9 +478,6 @@ h4. Web Servers
 
 Use the default WEBrick server for convenience. If you plan to deploy to Heroku, select "thin" as your production webserver.
 
-h4. Template Engine
-
-The example application uses the default "ERB" Rails template engine. Optionally, you can use another template engine, such as Haml or Slim. See instructions for "Haml and Rails":http://railsapps.github.io/rails-haml.html.
 
 h4. Other Choices
 
@@ -193,7 +493,7 @@ Other problems? Check the "issues"https://github.com/openjaf/cenit.
 
 h3. Edit the README
 
-If you're storing the app in a GitHub repository, please edit the README files to add a description of the app and your contact info. If you don't change the README, people will think I am the author of your version of the application.
+If you're storing the app in a GitHub repository, please edit the README files to add a description of the app and your contact info. If you don't change the README, people will think we are the author of your version of the application.
 
 h2. Getting Started
 
@@ -235,7 +535,6 @@ Modify the file *config/application.yml*:
 # This file should be listed in .gitignore to keep your settings secret!
 # Each entry sets a local environment variable and overrides ENV variables in the Unix shell.
 # Add application configuration variables here, as shown below.
-#
 </pre>
 
 If you wish, set your name, email address, and password for the first user's account. If you prefer, you can use the default to sign in to the application and edit the account after deployment. It is always a good idea to change the password after the application is deployed.
@@ -318,10 +617,6 @@ h2. Troubleshooting
 
 Problems? Check the "issues":https://github.com/RailsApps/rails3-mongoid-devise/issues.
 
-h4. Problems with  "Certificate Verify Failed"
-
-Are you getting an error "OpenSSL certificate verify failed" when you try to generate a new Rails app from an application template? See suggestions to resolve the error "Certificate Verify Failed":http://railsapps.github.io/openssl-certificate-verify-failed.html.
-
 h2. Documentation and Support
 
 For a Mongoid introduction, Ryan Bates offers a "Railscast on Mongoid":http://railscasts.com/episodes/238-mongoid. You can find documentation for "Mongoid":http://mongoid.org/ at "http://mongoid.org/":http://mongoid.org/ There is an active "Mongoid mailing list":http://groups.google.com/group/mongoid and you can submit "Mongoid issues":http://github.com/durran/mongoid/issues at GitHub.
@@ -344,13 +639,11 @@ If you make improvements to this application, please share with others.
 
 Send the author a message, create an "issue":https://github.com/openjaf/cenit/issues, or fork the project and submit a pull request.
 
-
-
 If you add functionality to this application, create an alternative implementation, or build an application that is similar, please contact me and I'll add a note to the README so that others can find your work.
 
 h2. Credits
 
-Spree Commerce Team.
+Many of the concepts here develop was inspired by Spree Commerce.
 
 Cesar Lage & Miguel Sancho implemented the application.
 
@@ -367,3 +660,4 @@ h2. MIT License
 
 
 h2. Useful Links
+
