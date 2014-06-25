@@ -55,8 +55,8 @@ With mongodb you don't need run migrations
 Run db/seed
 
 <pre>
-$ rake db:seed	
-</pre>	
+$ rake db:seed
+</pre>
 
 Run cenit hub by port: 3000
 
@@ -68,7 +68,7 @@ If you have some throuble with secret_key_base running 'rails s', you can genera
 
 <pre>
 $ rake secret
-</pre>	
+</pre>
 
 Then take that value and put it in config/initializers/secret_token.rb:
 
@@ -76,7 +76,7 @@ Then take that value and put it in config/initializers/secret_token.rb:
 Cenit::Application.config.secret_key_base = 'bla' # replace this
 </pre>
 
-Now visit data, for enter in data you need sing in before. if you don't have user yet click in sing up. 
+Now visit data, for enter in data you need sing in before. if you don't have user yet click in sing up.
 
 If you want unavailable 'sing up' change user model.
 
@@ -129,7 +129,7 @@ Run the bundle install command to install the required gems on your computer:
 $ bundle install
 </pre>
 
-Add database.yml file to config/ 
+Add database.yml file to config/
 
 <pre>
 development:
@@ -147,7 +147,7 @@ production:
   database: db/production.sqlite3
   pool: 5
   timeout: 5000
-</pre>	
+</pre>
 
 Create db, run migrations and load seed data.
 
@@ -203,7 +203,7 @@ Run the bundle install command to install the required gems on your computer:
 $ bundle install
 </pre>
 
-Add database.yml file to config/ 
+Add database.yml file to config/
 
 <pre>
 development:
@@ -221,7 +221,7 @@ production:
   database: db/production.sqlite3
   pool: 5
   timeout: 5000
-</pre>	
+</pre>
 
 Create db, run migrations and load seed data.
 
@@ -246,13 +246,13 @@ Stop the web server by port 3000
 
 <pre>
 Ctrl + c
-</pre>	
+</pre>
 
 Run rails console
 
 <pre>
 $ rails console
-</pre>	
+</pre>
 
 Add webhooks for Product Object at this moment only 'add_product' and 'update_product'.
 
@@ -261,7 +261,7 @@ $ w_add = Setup::Webhook.create!({:name => 'Add Product', :path => 'add_product'
 $ w_upd = Setup::Webhook.create!({:name => 'Update Product', :path => 'update_product'})
 </pre>
 
-Add conection configurations to Store I and Store II   
+Add connection configurations to Store I and Store II
 
 <pre>
 $ c_one = Setup::Connection.create!({:name => 'Store I', :url => 'http://localhost:3001/wombat', :store => '3001', :token => 'tresmiluno'})
@@ -277,13 +277,13 @@ Stop rails console
 
 <pre>
 Ctrl + c
-</pre>	
+</pre>
 
 Run cenit hub by port: 3000
 
 <pre>
 $ rails s -p 3000
-</pre> 
+</pre>
 
 h3. Add configurations to Endpoints
 
@@ -292,8 +292,8 @@ h4. Add configurations to Hub Demo Store 1
 Move to hub-demo-store-1
 
 <pre>
-$ cd ../hub-demo-store-1	
-</pre>	
+$ cd ../hub-demo-store-1
+</pre>
 
 Stop the web server by port 3001
 
@@ -328,8 +328,8 @@ h4. Add configurations to Hub Demo Store 2
 Move to hub-demo-store-2
 
 <pre>
-$ cd ../hub-demo-store-2	
-</pre>	
+$ cd ../hub-demo-store-2
+</pre>
 
 Stop the web server by port 3002
 
@@ -351,7 +351,7 @@ Spree::Wombat::Config.configure do |config|
    config.push_url = "http://localhost:3000/cenit"
    config.enable_auto_push = true
 end
-</pre>	
+</pre>
 
 Run hub-demo-store-2 by port 3002
 
@@ -381,8 +381,8 @@ Create a new product in the product form.
 You can visit data in Cenit Hub and check that the product was saved.
 
 <pre>
-go to http://localhost:3000/data 
-</pre>	
+go to http://localhost:3000/data
+</pre>
 
 You can visit the other Storefront and check that the product was saved too.
 
