@@ -50,13 +50,19 @@ $ git pull origin develop
 > Already up-to-date.
 </pre>
 
+Run the bundle install command to install the required gems on your computer:
+
+<pre>
+$ bundle install
+</pre>
+
 With mongodb you don't need run migrations
 
 Run db/seed
 
 <pre>
-$ rake db:seed
-</pre>
+$ rake db:seed	
+</pre>	
 
 Run cenit hub by port: 3000
 
@@ -64,19 +70,19 @@ Run cenit hub by port: 3000
 $ rails s -p 3000
 </pre>
 
-If you have some throuble with secret_key_base running 'rails s', you can generate a random secret key value:
+If you have some trouble with secret_key_base running 'rails s', you can generate a random secret key value:
 
 <pre>
 $ rake secret
-</pre>
+</pre>	
 
-Then take that value and put it in config/initializers/secret_token.rb:
+Then take this value and put it in config/initializers/secret_token.rb:
 
 <pre>
 Cenit::Application.config.secret_key_base = 'bla' # replace this
 </pre>
 
-Now visit data, for enter in data you need sing in before. if you don't have user yet click in sing up.
+Now visit /data, for enter in data you need sing in before. If you don't have user yet, clic in sing up. 
 
 If you want unavailable 'sing up' change user model.
 
@@ -84,7 +90,19 @@ If you want unavailable 'sing up' change user model.
 go to http://localhost:3000/data
 </pre>
 
-If you have some throuble for enter in /data check that mondodb is running.
+If you have some trouble for enter in /data check that mondodb is running.
+
+Check that you have a working installation of "RabbitMQ":http://www.rabbitmq.com, see below the guide for install RabbitMQ.
+
+If RabbitMQ is well installed when you run rails server then you can see:
+
+<pre>
+ [*] Waiting for messages. To exit press CTRL+C	
+</pre>	
+
+You should see something like 
+
+<img src="app/assets/images/cenit_demo_integration_1.png" alt="Cenit Demo Integration image 1" />
 
 h3. Create two Spree Store Endpoints.
 
@@ -129,7 +147,7 @@ Run the bundle install command to install the required gems on your computer:
 $ bundle install
 </pre>
 
-Add database.yml file to config/
+Add database.yml file to config/ 
 
 <pre>
 development:
@@ -147,7 +165,7 @@ production:
   database: db/production.sqlite3
   pool: 5
   timeout: 5000
-</pre>
+</pre>	
 
 Create db, run migrations and load seed data.
 
@@ -203,7 +221,13 @@ Run the bundle install command to install the required gems on your computer:
 $ bundle install
 </pre>
 
-Add database.yml file to config/
+Create database.yml.
+
+<pre>
+vim config/database.yml	
+</pre>	 
+
+Copy here you config
 
 <pre>
 development:
@@ -221,7 +245,7 @@ production:
   database: db/production.sqlite3
   pool: 5
   timeout: 5000
-</pre>
+</pre>	
 
 Create db, run migrations and load seed data.
 
@@ -229,8 +253,9 @@ Create db, run migrations and load seed data.
 $ rake db:create; rake db:migrate; rake db:seed
 </pre>
 
+Run hub-demo-store-1 by port 3002
+
 <pre>
-# run hub-demo-store-2 by port 3002
 $ rails s -p 3002
 </pre>
 
@@ -246,13 +271,13 @@ Stop the web server by port 3000
 
 <pre>
 Ctrl + c
-</pre>
+</pre>	
 
 Run rails console
 
 <pre>
 $ rails console
-</pre>
+</pre>	
 
 Add webhooks for Product Object at this moment only 'add_product' and 'update_product'.
 
@@ -261,7 +286,7 @@ $ w_add = Setup::Webhook.create!({:name => 'Add Product', :path => 'add_product'
 $ w_upd = Setup::Webhook.create!({:name => 'Update Product', :path => 'update_product'})
 </pre>
 
-Add connection configurations to Store I and Store II
+Add conection configurations to Store I and Store II   
 
 <pre>
 $ c_one = Setup::Connection.create!({:name => 'Store I', :url => 'http://localhost:3001/wombat', :store => '3001', :token => 'tresmiluno'})
@@ -277,13 +302,13 @@ Stop rails console
 
 <pre>
 Ctrl + c
-</pre>
+</pre>	
 
 Run cenit hub by port: 3000
 
 <pre>
 $ rails s -p 3000
-</pre>
+</pre> 
 
 h3. Add configurations to Endpoints
 
@@ -292,8 +317,8 @@ h4. Add configurations to Hub Demo Store 1
 Move to hub-demo-store-1
 
 <pre>
-$ cd ../hub-demo-store-1
-</pre>
+$ cd ../hub-demo-store-1	
+</pre>	
 
 Stop the web server by port 3001
 
@@ -328,8 +353,8 @@ h4. Add configurations to Hub Demo Store 2
 Move to hub-demo-store-2
 
 <pre>
-$ cd ../hub-demo-store-2
-</pre>
+$ cd ../hub-demo-store-2	
+</pre>	
 
 Stop the web server by port 3002
 
@@ -341,17 +366,17 @@ Edit file hub-demo-store-2/config/initializers/wombat.rb
 
 <pre>
 Spree::Wombat::Config.configure do |config|
-   config.connection_id = "3002"
-   config.connection_token = "tresmildos"
-   config.push_objects = ["Spree::Order", "Spree::Product"]
-   config.payload_builder = {
-     "Spree::Order" => {:serializer => "Spree::Wombat::OrderSerializer", :root => "orders"},
-     "Spree::Product" => {:serializer => "Spree::Wombat::ProductSerializer", :root => "products"},
-   }
-   config.push_url = "http://localhost:3000/cenit"
-   config.enable_auto_push = true
+	config.connection_id = "3002"
+	config.connection_token = "tresmildos"
+	config.push_objects = ["Spree::Order", "Spree::Product"]
+	config.payload_builder = {
+	 "Spree::Order" => {:serializer => "Spree::Wombat::OrderSerializer", :root => "orders"},
+	 "Spree::Product" => {:serializer => "Spree::Wombat::ProductSerializer", :root => "products"},
+	}
+	config.push_url = "http://localhost:3000/cenit"
+	config.enable_auto_push = true
 end
-</pre>
+</pre>	
 
 Run hub-demo-store-2 by port 3002
 
@@ -361,10 +386,13 @@ $ rails s -p 3002
 
 h3. Running the first example
 
-Go to browser and visit the admin panel of Hub Demo Store 1.
+At the bigining you don't have any product in the Cenit Hub
+<img src="app/assets/images/cenit_demo_integration_1.png" alt="Cenit Demo Integration image 1" />
+
+Go to browser and visit products in the admin panel of Hub Demo Store 1.
 
 <pre>
-# go to http://localhost:3001/admin
+# go to http://localhost:3001/admin/products
 </pre>
 
 Enter the credentials
@@ -374,21 +402,86 @@ Enter the credentials
 # pass: spree123
 </pre>
 
-Create a new product in the product form.
-
-<img src="app/assets/images/store1.png" alt="store 1" />
-
-You can visit data in Cenit Hub and check that the product was saved.
+Create a new product in the product form with the next values.
 
 <pre>
-go to http://localhost:3000/data
-</pre>
+Product name: 'Product 1'
+Sku: '111'
+Price: 100
+Shipping Category: Default	
+<pre>	
+
+<img src="app/assets/images/cenit_demo_integration_2.png" alt="Cenit Demo Integration image 2" />
+
+When you make clic in the button 'create', after save in the database the product,  this will be send it to Cenit Hub,, through a Push API /add_product that is a HTTP Post request.
+
+The Cenit Hub will process the HTTP Post request, and it will create a new product in the MongoDB. 
+
+Now you can visit /data in Cenit Hub and check that the product was saved.
+
+<pre>
+go to http://localhost:3000/data 
+</pre>	
+
+<img src="app/assets/images/cenit_demo_integration_3.png" alt="Cenit Demo Integration image 3" />
+
+<img src="app/assets/images/cenit_demo_integration_4.png" alt="Cenit Demo Integration image 4" />
+
+After save the new product, then will be sent a internal message using RabbitMQ because a new product was created and is required notify the rest of endpoint(s).
+ 
+When the rabbitMQ message had been processed, the Cenit call the webhook /add_product for each conection, in this case will be send a request HTTP Post /add_product to Hub Demo Store II.
+
+The Store II will process the HTTP Post request, and it will create a new product in your DB.
 
 You can visit the other Storefront and check that the product was saved too.
 
 <pre>
 go to http://localhost:3002
 </pre>
+
+<img src="app/assets/images/cenit_demo_integration_5.png" alt="Cenit Demo Integration image 5" />
+
+Now goes to the admin in Hub Demo Store II, and modified the product name.
+
+<pre>
+Product name: 'Product 111'
+</pre>	
+	
+<img src="app/assets/images/cenit_demo_integration_6.png" alt="Cenit Demo Integration image 6" />	
+
+When you click the button 'update', after save in the databse the product will be send to Cenit Hub, throgth a Push API /add_product that is a HTTP Post request.
+
+Now you can visit /data in Cenit Hub and check that the product modification was saved.
+
+
+<pre>
+go to http://localhost:3000/data 
+</pre>	
+
+<img src="app/assets/images/cenit_demo_integration_6.png" alt="Cenit Demo Integration image 6" />	
+
+After save the new product, then will be sent a internal message using RabbitMQ because a product was updated and is required notify the rest of endpoint(s).
+ 
+When the rabbitMQ message had been processed, the Cenit call the webhook /update_product for each conection, in this case will be send a request HTTP Post /update_product to Hub Demo Store I.
+
+The Store I will process the HTTP Post request, and it will create a new product in your DB.
+
+You can visit the other Storefront and check that the product was saved too.
+
+<img src="app/assets/images/cenit_demo_integration_7.png" alt="Cenit Demo Integration image 7" />
+
+Then like a last prove, go to Cenit Hub and modified a product in data.
+
+<pre>
+Product name: 'Product 111 111'
+</pre>	
+
+<img src="app/assets/images/cenit_demo_integration_9.png" alt="Cenit Demo Integration image 9" />
+
+How you spec  and both endpoint will be updated too.
+
+<img src="app/assets/images/cenit_demo_integration_10.png" alt="Cenit Demo Integration image 10" />
+<img src="app/assets/images/cenit_demo_integration_11.png" alt="Cenit Demo Integration image 11" />
 
 h2. Dependencies
 
@@ -397,9 +490,10 @@ Before generating your application, you will need:
 * The Ruby language (version 1.9.3 or 2.0.0)
 * The Rails gem (version 4.0.5)
 * A working installation of "MongoDB":http://www.mongodb.org/
+* A working installation of "RabbitMQ":http://www.rabbitmq.com
 
 
-h4. Installing MongoDB
+h3. Installing MongoDB
 
 If you don't have MongoDB installed on your computer, you'll need to install it and set it up to be always running on your computer (run at launch).
 
@@ -416,6 +510,28 @@ On the Debian GNU/Linux operating system, as of March 2013, the latest stable ve
 <pre>
 gem 'mongoid', github: 'mongoid/mongoid'
 gem 'bson_ext', '~> 1.8.6'
+</pre>
+
+h3. Installing RabbitMQ
+
+The "RabbitMQ":http://www.rabbitmq.com site has a good "installation guide":http://www.rabbitmq.com/download.html that addresses many operating systems. On Mac OS X, the fastest way to install RabbitMQ is with "Homebrew":http://brew.sh:
+
+<pre>
+brew install rabbitmq
+</pre>
+
+then run it:
+
+<pre>
+rabbitmq-server
+</pre>
+
+On Debian and Ubuntu, you can either "download the RabbitMQ .deb package":http://www.rabbitmq.com/download.html and install it with "dpkg":http://www.debian.org/doc/manuals/debian-faq/ch-pkgtools.en.html or make use of the "apt repository":http://www.rabbitmq.com/install-debian.html that the RabbitMQ team provides.
+
+For RPM-based distributions like RedHat or CentOS, the RabbitMQ team provides an "RPM package":http://www.rabbitmq.com/download.html.
+
+<pre>
+Note: The RabbitMQ packages that ship with Ubuntu versions earlier than 11.10 are outdated and will not work with Bunny 0.9.0 and later versions (you will need at least RabbitMQ v2.0 for use with this guide).
 </pre>
 
 h2. Getting the Application
@@ -496,7 +612,6 @@ Modify the file *config/application.yml*:
 # This file should be listed in .gitignore to keep your settings secret!
 # Each entry sets a local environment variable and overrides ENV variables in the Unix shell.
 # Add application configuration variables here, as shown below.
-#
 </pre>
 
 If you wish, set your name, email address, and password for the first user's account. If you prefer, you can use the default to sign in to the application and edit the account after deployment. It is always a good idea to change the password after the application is deployed.
@@ -622,3 +737,4 @@ h2. MIT License
 
 
 h2. Useful Links
+
