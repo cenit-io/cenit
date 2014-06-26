@@ -14,8 +14,22 @@
         # TODO: process all products, no just the first one
         def process
           p = params.first
+
+          #"taxons": [
+          #  [ "Categories",  "Clothes", "T-Shirts" ],
+          #  [ "Brands", "Spree" ],
+          #  [ "Brands", "Open Source" ]
+          #],
+
+          # require transform in 
+
+          #"taxons_attributes" => [
+          #  { "breadcrumb" => ["Categories","Clothes", "T-Shirts"] },
+          #  { "breadcrumb" => ["Brands","Spree"] },
+          #  { "breadcrumb" => ["Brands","Open Source"] }
+          #],        
           
-          if p[:taxons]
+          if p[:taxons].present?
             taxons = []
             taxon_breadcrumb = p.delete :taxons
             taxon_breadcrumb.each do |breadcrumb|
@@ -23,6 +37,56 @@
             end
             p["taxons_attributes"] = taxons
           end  
+          
+          if p[:variants].present?
+            variants = []
+            variants_attributes = p.delete :variants
+            variants_attributes.each do |variant|
+                           
+              # "options": {
+              #   "color": "GREY",
+              #   "size": "S"
+              # },
+        
+              # require transform in 
+        
+              #"options_attributes" => [
+              #  { "option_type" => "color","option_value" => "GREY" },
+              #  { "option_type" => "size", "option_value" => "S" },
+              #]    
+              
+              if variant[:options].present?
+                options = []
+                options_attributes = variant.delete :options
+                options_attributes.each do |option_type, option_value|
+                  options << {"option_type" => option_type ,"option_value" => option_value}
+                end  
+                variant["options_attributes"] = options
+              end  
+              
+              if variant[:images].present?
+                images = []
+                images_attributes = variant.delete :images
+                images_attributes.each do |image|
+                  
+                  if image[:dimensions].present?
+                    dimensions_attributes = images.delete :dimensions
+                    image["dimensions_attributes"] = dimensions_attributes
+                  end                  
+                  
+                  images << images
+                end  
+                variant["images_attributes"] = images
+              end 
+              
+              
+              variants << variant
+            end
+            p["variants_attributes"] = variants
+          end  
+          
+          
+          
           
           @product = Hub::Product.where(id: p['id']).first
           if @product

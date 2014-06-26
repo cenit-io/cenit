@@ -11,10 +11,25 @@ module Cenit
       def self.process(message)
         message = JSON.parse(message)
 
+
         
         if message["object"]["product"].present?
           p = message["object"]["product"]
+
+          #"taxons" => [
+          #  { "breadcrumb" => ["Categories","Clothes", "T-Shirts"] },
+          #  { "breadcrumb" => ["Brands","Spree"] },
+          #  { "breadcrumb" => ["Brands","Open Source"] }
+          #],  
           
+          # require transform in 
+          
+          #"taxons": [
+          #  [ "Categories",  "Clothes", "T-Shirts" ],
+          #  [ "Brands", "Spree" ],
+          #  [ "Brands", "Open Source" ]
+          #],
+     
           if p["taxons"].present?
             unless (p["taxons"].nil? || p["taxons"] == [])
               taxon_breadcrumb = p["taxons"]
@@ -22,10 +37,36 @@ module Cenit
               taxon_breadcrumb.each do |dic|
                 p["taxons"] << dic["breadcrumb"]
               end
-              message["object"]["product"] = p
+              
             end
           end
-                     
+
+          #"options" => [
+          #  { "option_type" => "color","option_value" => "GREY" },
+          #  { "option_type" => "size", "option_value" => "S" },
+          #]    
+
+          # require transform in 
+
+          # "options": {
+          #   "color": "GREY",
+          #   "size": "S"
+          # },
+          
+          if p["variants"].present? and p["variants"]["options"].present?
+            v = p["variants"]
+            unless (v["options"].nil? || v["options"] == [])
+              variants_attributes = p["options"]
+              variants = []
+              variants_attributes.each do |dic|
+                variants << {"#{dic["option_type"]}" => "#{dic["option_value"]}"}
+              end
+  
+            end            
+            p["variants"]["options"] = variants
+          end
+          
+          message["object"]["product"] = p           
         end  
         
         response = HTTParty.post(message['url'],
