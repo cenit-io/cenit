@@ -26,7 +26,7 @@ group :test do
   gem 'database_cleaner'
 end
 group :production do
- gem 'pg'
+ #gem 'pg'
  gem 'thin'
  gem 'rails_12factor'
 end
@@ -34,7 +34,7 @@ gem 'mongoid', github: 'mongoid/mongoid'
 gem 'bson_ext' 
 gem 'rails_admin'
 gem 'httparty'
-gem "bunny", "~> 1.3.1"
+gem "bunny", "~> 0.9.1"
 
 # Use ActiveModel has_secure_password
 # gem 'bcrypt-ruby', '~> 3.0.0'

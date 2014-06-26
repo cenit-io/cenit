@@ -13,7 +13,6 @@
 
         # TODO: process all products, no just the first one
         def process
-          puts "**************** params #{params.inspect}"
           p = params.first
           @product = Hub::Product.where(id: p['id']).first
           if @product
