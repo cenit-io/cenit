@@ -31,8 +31,8 @@ module Hub
     field :shipping_category, type: String
     field :options, type: Array
 
-    validates_presence_of :id, :name, :price, :available_on
-    validates_uniqueness_of :sku
+    validates_presence_of :id, :name, :price, :available_on #, :sku
+    #validates_uniqueness_of :sku
 
     validates_numericality_of :price, { greater_than: 0 }
 
