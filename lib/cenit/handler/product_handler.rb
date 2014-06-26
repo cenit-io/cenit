@@ -38,6 +38,31 @@
             p["taxons_attributes"] = taxons
           end  
           
+          
+          #"properties": {
+          #  "material": "cotton",
+          #  "fit": "smart fit"
+          #},
+          
+          # require transform in
+          
+          #"properties_attributes" => [
+          #  { "name" => "material", 
+          #    "presentation" => "cotton" },
+          #  { "name" => "fit", 
+          #    "presentation" => "smart fit" },
+          #],
+          
+          if p[:properties].present?
+            properties = []
+            properties_attributes = p.delete :properties
+            properties_attributes.each do |name, presentation|
+              properties << {"name" => name, "presentation", presentacion}
+            end
+            p["properties_attributes"] = properties
+          end    
+                           
+          
           if p[:variants].present?
             variants = []
             variants_attributes = p.delete :variants

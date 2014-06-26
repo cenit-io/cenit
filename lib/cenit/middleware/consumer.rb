@@ -40,6 +40,34 @@ module Cenit
             end
           end
 
+          #"properties_attributes" => [
+          #  { "name" => "material", 
+          #    "presentation" => "cotton" },
+          #  { "name" => "fit", 
+          #    "presentation" => "smart fit" },
+          #],
+
+          # require transform in
+          
+          #"properties": {
+          #  "material": "cotton",
+          #  "fit": "smart fit"
+          #},
+          
+          
+          if p["properties"].present? 
+            unless (p["properties"].nil? || p["properties"] == [])
+              properties_attributes = v["properties"]
+              properties = []
+              properties_attributes.each do |dic|
+                properties << {"#{dic["name"]}" => "#{dic["presentation"]}"}
+              end
+  
+            end            
+            p["properties"] = properties
+          end         
+  
+
           #"options" => [
           #  { "option_type" => "color","option_value" => "GREY" },
           #  { "option_type" => "size", "option_value" => "S" },
