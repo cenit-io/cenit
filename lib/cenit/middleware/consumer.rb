@@ -36,8 +36,7 @@ module Cenit
               p["taxons"] = []
               taxon_breadcrumb.each do |dic|
                 p["taxons"] << dic["breadcrumb"]
-              end
-              
+              end              
             end
           end
 
@@ -56,14 +55,14 @@ module Cenit
           if p["variants"].present? and p["variants"]["options"].present?
             v = p["variants"]
             unless (v["options"].nil? || v["options"] == [])
-              variants_attributes = p["options"]
-              variants = []
-              variants_attributes.each do |dic|
-                variants << {"#{dic["option_type"]}" => "#{dic["option_value"]}"}
+              options_attributes = v["options"]
+              options = []
+              options_attributes.each do |dic|
+                options << {"#{dic["option_type"]}" => "#{dic["option_value"]}"}
               end
   
             end            
-            p["variants"]["options"] = variants
+            p["variants"]["options"] = options
           end
           
           message["object"]["product"] = p           
