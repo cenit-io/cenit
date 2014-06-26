@@ -13,18 +13,15 @@
 
         # TODO: process all products, no just the first one
         def process
-          
           p = params.first
-          puts "**************** p #{p.inspect}"
           
           if p[:taxons]
             taxons = []
-            breadcrumbs = p.delete :taxons
-            breadcrumbs.each do |breadcrumb|
+            taxon_breadcrumb = p.delete :taxons
+            taxon_breadcrumb.each do |breadcrumb|
               taxons << { "breadcrumb" => breadcrumb }
             end
             p["taxons_attributes"] = taxons
-            puts "**************** p['taxons_attributes'] #{p["taxons_attributes"]}"
           end  
           
           @product = Hub::Product.where(id: p['id']).first
