@@ -58,9 +58,9 @@ module Cenit
           if p["properties"].present? 
             unless (p["properties"].nil? || p["properties"] == [])
               properties_attributes = v["properties"]
-              properties = []
+              properties = {}
               properties_attributes.each do |dic|
-                properties << {"#{dic["name"]}" => "#{dic["presentation"]}"}
+                properties["#{dic["name"]}"] = "#{dic["presentation"]}"
               end
   
             end            
@@ -84,9 +84,9 @@ module Cenit
             v = p["variants"]
             unless (v["options"].nil? || v["options"] == [])
               options_attributes = v["options"]
-              options = []
+              options = {}
               options_attributes.each do |dic|
-                options << {"#{dic["option_type"]}" => "#{dic["option_value"]}"}
+                options["#{dic["option_type"]}"] = "#{dic["option_value"]}"
               end
   
             end            

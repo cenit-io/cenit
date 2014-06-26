@@ -57,7 +57,7 @@
             properties = []
             properties_attributes = p.delete :properties
             properties_attributes.each do |name, presentation|
-              properties << {"name" => name, "presentation", presentacion}
+              properties << {"name" => name, "presentation" => presentation }
             end
             p["properties_attributes"] = properties
           end    
@@ -95,11 +95,11 @@
                 images_attributes.each do |image|
                   
                   if image[:dimensions].present?
-                    dimensions_attributes = images.delete :dimensions
+                    dimensions_attributes = image.delete :dimensions
                     image["dimensions_attributes"] = dimensions_attributes
                   end                  
                   
-                  images << images
+                  images << image
                 end  
                 variant["images_attributes"] = images
               end 
