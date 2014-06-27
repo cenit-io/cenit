@@ -7,8 +7,8 @@ module Hub
 
     belongs_to :connection, class_name: 'Setup::Connection'
 
-    has_many :variants, class_name: 'Hub::Variant'
-    has_many :images, class_name: 'Hub::Image'
+    embeds_many :variants, class_name: 'Hub::Variant'
+    embeds_many :images, class_name: 'Hub::Image'
 
     embeds_many :taxons, class_name: 'Hub::Taxon'
     embeds_many :properties, class_name: 'Hub::Property'
