@@ -7,124 +7,56 @@
           super message
           @params = @payload[:products]
           if endpoint
-            @params.each {|p| p['connection_id'] = endpoint.id}
+            @params.each {|p| p[:connection_id] = endpoint.id}
           end
         end
 
-        # TODO: process all products, no just the first one
         def process
-          p = params.first
+          params.each do |p|
+            p[:id] = p[:name].downcase.gsub(' ', '_') if p[:id].empty?
+            p[:variants_attributes] = process_variants(p.delete :variants) if p[:variants].present?
+            p[:taxons_attributes] = process_taxons(p.delete :taxons) if p[:taxons].present?
+            p[:properties_attributes] = process_properties(p.delete :properties) if p[:properties].present?
+            p.delete :options
+            p.delete :images
 
-          #"taxons": [
-          #  [ "Categories",  "Clothes", "T-Shirts" ],
-          #  [ "Brands", "Spree" ],
-          #  [ "Brands", "Open Source" ]
-          #],
-
-          # require transform in 
-
-          #"taxons_attributes" => [
-          #  { "breadcrumb" => ["Categories","Clothes", "T-Shirts"] },
-          #  { "breadcrumb" => ["Brands","Spree"] },
-          #  { "breadcrumb" => ["Brands","Open Source"] }
-          #],        
-          
-          if p[:taxons].present?
-            taxons = []
-            taxon_breadcrumb = p.delete :taxons
-            taxon_breadcrumb.each do |breadcrumb|
-              taxons << { "breadcrumb" => breadcrumb }
+            @product = Hub::Product.where(id: p[:id]).first
+            if @product
+              @product.update_attributes(p)
+            else
+              @product = Hub::Product.new(p)
             end
-            p["taxons_attributes"] = taxons
-          end  
-          
-          
-          #"properties": {
-          #  "material": "cotton",
-          #  "fit": "smart fit"
-          #},
-          
-          # require transform in
-          
-          #"properties_attributes" => [
-          #  { "name" => "material", 
-          #    "presentation" => "cotton" },
-          #  { "name" => "fit", 
-          #    "presentation" => "smart fit" },
-          #],
-          
-          if p[:properties].present?
-            properties = []
-            properties_attributes = p.delete :properties
-            properties_attributes.each do |name, presentation|
-              properties << {"name" => name, "presentation" => presentation }
-            end
-            p["properties_attributes"] = properties
-          end    
-                           
-          
-          if p[:variants].present?
-            variants = []
-            variants_attributes = p.delete :variants
-            variants_attributes.each do |variant|
-                           
-              # "options": {
-              #   "color": "GREY",
-              #   "size": "S"
-              # },
-        
-              # require transform in 
-        
-              #"options_attributes" => [
-              #  { "option_type" => "color","option_value" => "GREY" },
-              #  { "option_type" => "size", "option_value" => "S" },
-              #]    
-              
-              if variant[:options].present?
-                options = []
-                options_attributes = variant.delete :options
-                options_attributes.each do |option_type, option_value|
-                  options << {"option_type" => option_type ,"option_value" => option_value}
-                end  
-                variant["options_attributes"] = options
-              end  
-              
-              if variant[:images].present?
-                images = []
-                images_attributes = variant.delete :images
-                images_attributes.each do |image|
-                  
-                  if image[:dimensions].present?
-                    dimensions_attributes = image.delete :dimensions
-                    image["dimensions_attributes"] = dimensions_attributes
-                  end                  
-                  
-                  images << image
-                end  
-                variant["images_attributes"] = images
-              end 
-              
-              
-              variants << variant
-            end
-            p["variants_attributes"] = variants
-          end  
-          
-          
-          
-          
-          @product = Hub::Product.where(id: p['id']).first
-          if @product
-            @product.update_attributes(p)
-          else
-            @product = Hub::Product.new(p)
+            @product.save
           end
+        end
 
-          if @product.save
-            response "Product #{@product.id} saved"
-          else
-            response "Could not save the Product #{@product.errors.messages.inspect}", 500
+        def process_variants(variants_params)
+          variants = []
+          variants_params.each do |variant|
+            if variant[:options].present?
+              options = variant.delete :options
+              variant[:options_attributes] = options.map {|k, v| {:option_type => k, :option_value => v}}
+            end
+            if variant[:images].present?
+              images = []
+              images_attributes = variant.delete :images
+              images_attributes.each do |image|
+                image[:dimensions_attributes] = image.delete :dimensions if image[:dimensions].present?
+                images << image
+              end
+              variant[:images_attributes] = images
+            end
+            variants << variant
           end
+          variants
+        end
+
+        def process_taxons(taxons_params)
+          taxons_params.map {|x| {:breadcrumb => x}}
+        end
+
+        def process_properties(properties_params)
+          properties_params.map {|k, v| {:name => k, :presentation => v}}
         end
 
       end
