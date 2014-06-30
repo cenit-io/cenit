@@ -42,9 +42,6 @@ module Cenit
 
       def self.process_variants(variants_params)
         variants = []
-        puts "###############################################################"
-        puts "VARIANTS -> #{variant_params.inspect} #########################"
-        puts "###############################################################"
         variants_params.each do |x|
           if x['options'].present?
             options = x.delete 'options'

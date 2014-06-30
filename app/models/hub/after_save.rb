@@ -7,7 +7,6 @@ module Hub
     included do
 
       after_create do |object|
-        puts "ESTOY EN EL AFTER CREATE ###################################"
         object_name = object.class.to_s.split('::').last
         path = 'add_' + object_name.downcase
         producer = "Cenit::Middleware::#{object_name}Producer".constantize

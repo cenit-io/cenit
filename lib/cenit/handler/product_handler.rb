@@ -12,6 +12,7 @@
         end
 
         def process
+          product_ids = []
           params.each do |p|
             p[:id] = p[:name].downcase.gsub(' ', '_') if p[:id].empty?
             p[:variants_attributes] = process_variants(p.delete :variants) if p[:variants].present?
@@ -26,8 +27,9 @@
             else
               @product = Hub::Product.new(p)
             end
-            @product.save
+            product_ids << @product.save ? @product.id : 0
           end
+          response "Products saved: #{product_ids.to_s}"
         end
 
         def process_variants(variants_params)
