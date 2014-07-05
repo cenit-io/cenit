@@ -14,7 +14,9 @@ module Cenit
         p.delete 'connection_id'
         p.delete '_id'
         
+        puts "**************************************** antes de variant"
         p['variants'] = process_variants(p.delete 'variants') if p['variants'].present?
+
         p['taxons'] = process_taxons(p.delete 'taxons')  if p['taxons'].present?
         p['properties'] = process_properties(p.delete 'properties') if p['properties'].present?
         p['images'] = process_properties(p.delete 'images') if p['images'].present?
@@ -25,8 +27,6 @@ module Cenit
       def self.process_taxons(taxons_params)
         taxons_params.map { |t| t['breadcrumb'] }
       end  
-
-      end
 
       def self.process_properties(properties_params)
         properties = {}
@@ -47,7 +47,7 @@ module Cenit
       
       def self.process_options(options_params)
         options = {}
-        options.each {|o| options[o['option_type']] = o['option_value']} 
+        options_params.each {|o| options[o['option_type']] = o['option_value']} 
         options
       end  
       
@@ -61,7 +61,7 @@ module Cenit
         images
       end
       
-      def self.process_images(dimension_params)
+      def self.process_dimension(dimension_params)
         dimension_params.delete '_id' if dimension_params.has_key? '_id'
         dimension_params
       end
