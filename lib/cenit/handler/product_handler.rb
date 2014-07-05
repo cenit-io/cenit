@@ -6,21 +6,20 @@ module Cenit
       def initialize(message, endpoint)
         super message
         @params = @payload[:products]
-        if endpoint
-          @params.each {|p| p[:connection_id] = endpoint.id}
-        end
+        @params.each {|p| p[:connection_id] = endpoint.id} if endpoint
       end
 
       def process
         product_ids = []
         params.each do |p|
+          
           next if p[:id].empty?
-          p[:variants_attributes] = process_variants(p.delete :variants) if p[:variants].present?
-          p[:taxons_attributes] = process_taxons(p.delete :taxons) if p[:taxons].present?
-          p[:properties_attributes] = process_properties(p.delete :properties) if p[:properties].present?
-          p.delete :options
-          p.delete :images
-
+          
+          p[:variants_attributes] = process_variants(p.delete :variants) if p.has_key?(:variants)
+          p[:taxons_attributes] = process_taxons(p.delete :taxons) if p.has_key?(:taxons)
+          p[:properties_attributes] = process_properties(p.delete :properties) if p.has_key?(:properties) 
+          p[:images_attributes] = process_images(p.delete :images) if p.has_key?(:images)
+          
           @product = Hub::Product.where(id: p[:id]).first
           if @product
             @product.update_attributes(p)
@@ -33,32 +32,44 @@ module Cenit
       end
 
       def process_variants(variants_params)
+        return [] if variants_params.nil?
         variants = []
-        variants_params.each do |variant|
-          if variant[:options].present?
-            options = variant.delete :options
-            variant[:options_attributes] = options.map {|k, v| {:option_type => k, :option_value => v}}
-          end
-          if variant[:images].present?
-            images = []
-            images_attributes = variant.delete :images
-            images_attributes.each do |image|
-              image[:dimension_attributes] = image.delete :dimension if image[:dimension].present?
-              images << image
-            end
-            variant[:images_attributes] = images
-          end
-          variants << variant
+        variants_params.each do |v|
+          v[:options_attributes] = process_options(v.delete :options) if v.has_key?(:options) 
+          v[:images_attributes] = process_images(v.delete :images) if v.has_key?(:images)
+          variants << v
         end
         variants
       end
+      
+      def process_images(images_params)
+        return [] if images_params.nil?
+        images = []
+        images_params.each do |i| 
+          i[:dimension_attributes] = process_dimension(i.delete :dimension) if i[:dimension].present?
+          images << i 
+        end  
+        images
+      end      
 
+      def process_dimension(dimension_params)
+        return {} if dimension_params.nil?
+        dimension_params
+      end   
+      
       def process_taxons(taxons_params)
+        return [] if taxons_params.nil?
         taxons_params.map {|x| {:breadcrumb => x}}
       end
 
       def process_properties(properties_params)
+        return [] if properties_params.nil?
         properties_params.map {|k, v| {:name => k, :presentation => v}}
+      end
+      
+      def process_options(options_params)
+        return [] if options_params.nil?
+        options_params.map {|k, v| {:option_type => k, :option_value => v}}
       end
 
     end

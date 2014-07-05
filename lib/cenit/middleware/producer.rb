@@ -7,6 +7,7 @@ module Cenit
     class Producer
 
       def self.process(object, path, conn_id)
+        puts "*************** object #{object.inspect}"
         webhook = Setup::Webhook.where(path: path).first
         if webhook
           endpoints = webhook.connections.select{|c| c.id != conn_id}

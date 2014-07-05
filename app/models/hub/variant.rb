@@ -4,9 +4,9 @@ module Hub
     include Mongoid::Attributes::Dynamic
     include Mongoid::Timestamps
 
-    has_many :options, class_name: 'Hub::Option'
-    has_many :images, class_name: 'Hub::Image'
-    belongs_to :product, class_name: 'Hub::Product'
+    embeds_many :options, class_name: 'Hub::Option'
+    embeds_many :images, class_name: 'Hub::Image'
+    embedded_in :product, class_name: 'Hub::Product'
 
     accepts_nested_attributes_for :options
     accepts_nested_attributes_for :images
