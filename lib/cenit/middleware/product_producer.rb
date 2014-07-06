@@ -15,15 +15,9 @@ module Cenit
         product.delete 'connection_id'
         product.delete '_id'
 
-        if product['variants'].present?
-          product['variants'] = process_variants(product.delete 'variants')
-        end
-        if product['taxons'].present?
-          product['taxons'] = process_taxons(product.delete 'taxons')
-        end
-        if product['properties'].present?
-          product['properties'] = process_properties(product.delete 'properties')
-        end
+        product['variants'] = process_variants(product.delete 'variants') if product['variants'].present?
+        product['taxons'] = process_taxons(product.delete 'taxons') if product['taxons'].present?
+        product['properties'] = process_properties(product.delete 'properties') if product['properties'].present?
 
         {'product' => product}
       end
