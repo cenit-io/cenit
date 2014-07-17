@@ -17,7 +17,6 @@ module Cenit
         p['variants'] = process_variants(p.delete 'variants') if p['variants'].present?
         p['taxons'] = process_taxons(p.delete 'taxons')  if p['taxons'].present?
         p['properties'] = process_properties(p.delete 'properties') if p['properties'].present?
-        puts "IMAGES -> #{p['images'].inspect} ###############################"
         p['images'] = process_images(p.delete 'images') if p['images'].present?
 
         {'product' => p}
@@ -39,7 +38,7 @@ module Cenit
           v.delete '_id' if v.has_key? '_id'
           v.delete 'created_at' if v.has_key? 'created_at'
           v['options'] = process_options(v.delete 'options') if v['options'].present?
-          v.delete 'images'  #v['images'] = process_images(v.delete 'images') if v['images'].present?
+          v['images'] = process_images(v.delete 'images') if v['images'].present?
           variants << v
         end
         variants
