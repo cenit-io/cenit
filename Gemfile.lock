@@ -9,7 +9,7 @@ GIT
       tzinfo (>= 0.3.37)
 
 GEM
-  remote: https://rubygems.org/
+  remote: file:/home/cesar/workspace/rubygems/gems/
   specs:
     actionmailer (4.0.5)
       actionpack (= 4.0.5)
