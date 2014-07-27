@@ -71,6 +71,7 @@ GEM
     factory_girl_rails (4.4.1)
       factory_girl (~> 4.4.0)
       railties (>= 3.0.0)
+    ffaker (1.24.0)
     font-awesome-rails (4.1.0.0)
       railties (>= 3.2, < 5.0)
     groupdate (2.2.1)
@@ -230,6 +231,7 @@ DEPENDENCIES
   database_cleaner
   devise
   factory_girl_rails
+  ffaker
   groupdate
   httparty
   jbuilder (~> 1.0.1)
