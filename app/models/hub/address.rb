@@ -1,7 +1,7 @@
 module Hub
   class Address
     include Mongoid::Document
-    #include Mongoid::Attributes::Dynamic
+    include Mongoid::Attributes::Dynamic
     include Mongoid::Timestamps
 
     field :firstname, type: String
@@ -14,8 +14,7 @@ module Hub
     field :phone, type: String
     field :zipcode, type: String
 
-    validates_presence_of :firstname, :lastname, :address1,:zipcode,
-    :city,:state,:country
+    validates_presence_of :firstname, :lastname, :address1, :zipcode, :city, :state, :country
 
   end
 end
