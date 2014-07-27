@@ -10,6 +10,10 @@ gem 'turbolinks'
 gem 'therubyracer', platforms: :ruby
 gem 'jbuilder', '~> 1.0.1'
 gem 'devise'
+
+gem 'chartkick'
+gem 'groupdate'
+
 group :doc do
   gem 'sdoc', require: false
 end

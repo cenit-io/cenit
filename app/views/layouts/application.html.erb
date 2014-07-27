@@ -2,19 +2,35 @@
 <html>
   <head>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><%= content_for?(:title) ? yield(:title) : "Myapp" %></title>
-    <meta name="description" content="<%= content_for?(:description) ? yield(:description) : "Myapp" %>">
+    <title><%= content_for?(:title) ? yield(:title) : "Cenit" %></title>
+    <meta name="description" content="<%= content_for?(:description) ? yield(:description) : "Cenit" %>">
     <%= stylesheet_link_tag 'application', media: 'all', 'data-turbolinks-track' => true %>
-    <%= javascript_include_tag 'application', 'data-turbolinks-track' => true %>
+    <%= javascript_include_tag 'highcharts', 'data-turbolinks-track' => true %>
+    <%= javascript_include_tag 'chartkick', 'data-turbolinks-track' => true %>
     <%= csrf_meta_tags %>
   </head>
   <body>
-    <header>
-      <%= render 'layouts/navigation' %>
-    </header>
-    <main role="main">
-       <%= render 'layouts/messages' %>
-       <%= yield %>
-    </main>
+
+    <%= render 'layouts/messages'%>
+    <%= render 'layouts/navigation' %>
+
+    <div class="container-fluid">
+      <div class="row">
+	<br/>
+	<% if params[:controller] =~ /^dashboard/ %>  
+          <div class="col-sm-3 col-md-2 sidebar">
+             <br/><br/>
+            <%= render 'layouts/sidebar_links' %>
+          </div>
+        <% end %>
+        <div class="col-sm-9 col-md-10 main">
+          <br/>
+          <%= yield %>
+        </div>
+      </div>
+    </div>
+
+    <%= yield :charts_js %>
+    <%= javascript_include_tag 'application', 'data-turbolinks-track' => true %>
   </body>
 </html>
