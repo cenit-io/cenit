@@ -3,7 +3,8 @@ module Hub
     include Mongoid::Document
     include Mongoid::Attributes::Dynamic
     include Mongoid::Timestamps
-    include Hub::AfterSave
+    #TODO: lunch error when include AfterSave when use rake sample:load
+    #include Hub::AfterSave
 
     belongs_to :connection, class_name: 'Setup::Connection'
 
