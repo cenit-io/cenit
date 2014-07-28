@@ -15,8 +15,8 @@ module Hub
     belongs_to :variant, class_name: 'Hub::Variant'
     belongs_to :product, class_name: 'Hub::Product'
 
-    has_many :options, class_name: "Hub::Option"
-    accepts_nested_attributes_for :options
+    #has_many :options, class_name: "Hub::Option"
+    #accepts_nested_attributes_for :options
 
     validates_presence_of  :name, :quantity, :price
 
