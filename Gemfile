@@ -21,6 +21,7 @@ group :development, :test do
   gem 'factory_girl_rails'
   gem 'rspec-rails'
   gem 'rails_layout'
+  gem 'ffaker'
 end
 group :test do
   gem 'factory_girl_rails'
