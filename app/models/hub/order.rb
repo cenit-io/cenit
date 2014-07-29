@@ -13,7 +13,7 @@ module Hub
     field :channel, type: String
     field :email, type: String
     field :currency, type: String
-    field :placed_on, type: Date
+    field :placed_on, type: DateTime
 
     belongs_to :totals, class_name: 'Hub::OrderTotal'
 
