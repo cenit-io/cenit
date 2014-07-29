@@ -20,5 +20,11 @@ module Dashboard
       @revenues_by_day = revenues.find_all{|r| r.status == 'complete'}.group_by{|o| o.placed_on.wday}.sort{|a,b| a[0]<=>b[0]}.collect{|c| [days[c[0]],c[1].count] }
       @revenues_by_hour = revenues.find_all{|r| r.status == 'complete'}.group_by{|o| o.placed_on.hour}.sort{|a,b| a[0]<=>b[0]}.collect{|c| [hours[c[0]],c[1].count] }
     end
+
+    def overview_statistics
+      @revenues = Hub::Order.where(:status => 'complete').count
+      @orders = Hub::Order.count
+    end
+
   end
 end
