@@ -1,4 +1,5 @@
 source 'https://rubygems.org'
+
 ruby '2.1.2'
 gem 'rails', '4.0.5'
 gem 'sass-rails', '~> 4.0.3'
@@ -35,7 +36,7 @@ group :production do
  gem 'thin'
  gem 'rails_12factor'
 end
-gem 'mongoid', github: 'mongoid/mongoid'
+gem 'mongoid'#, github: 'mongoid/mongoid'
 gem 'bson_ext'
 gem 'rails_admin'
 gem 'httparty'

@@ -5,7 +5,15 @@ namespace :sample do
   task :load => :environment do
     
     Hub::Product.delete_all
+    puts 'All Products Deleted.'
     Hub::Order.delete_all
+    puts 'All Orders Deleted.'
+    Hub::Address.delete_all
+    puts 'All Address Deleted.'
+    Hub::LineItem.delete_all
+    puts 'All Line Item Deleted.'
+    Hub::OrderTotal.delete_all
+    puts 'All Orders Total Deleted.'
     
     all_taxons = [
       { "breadcrumb" => ["Categories","Bags"] },
@@ -22,6 +30,7 @@ namespace :sample do
     sizes = ["Small","Medium","Large","Extra Large"]
     colors = ["white", "Red","Green","Blue", "Black", "Yelow", "Lilac"]
     all_options = sizes.product colors
+    states = ['complete','processing','incomplete']
     
  all_properties =  [
           {"Manufacturer" => ["Wilson","Jerseys"]},
@@ -121,15 +130,15 @@ namespace :sample do
         adjustment = rand 20
         quantity = 1 + rand(5)
         item_price = total - ( tax + shipping)
-      
+
         order = [ 
          {
             "id" => Faker::Product.letters(7),
-            "status" => "complete",
+            "status" => states[rand(3)],
             "channel" => "spree",
             "email" => "spree@example.com",
             "currency" => "USD",
-            "placed_on" => DateTime.now - rand(20).months - rand(31).days,
+            "placed_on" => DateTime.now - rand(20).months - rand(31).days-rand(24).hours-rand(60).minutes-rand(60).seconds,
             "totals_attributes" => {
               "item" => item_price,
               "adjustment" => adjustment,
