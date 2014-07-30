@@ -28,7 +28,7 @@ GEM
     amq-protocol (1.9.2)
     arel (4.0.2)
     bcrypt (3.1.7)
-    bootstrap-sass (3.1.1.1)
+    bootstrap-sass (3.2.0.0)
       sass (~> 3.2)
     bson (2.3.0)
     bson_ext (1.5.1)

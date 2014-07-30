@@ -15,6 +15,9 @@ gem 'devise'
 
 gem 'chartkick'
 gem 'groupdate'
+#gem 'will_paginate'
+#gem 'bootstrap-will_paginate'
+
 
 group :doc do
   gem 'sdoc', require: false

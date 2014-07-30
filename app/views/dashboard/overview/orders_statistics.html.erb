@@ -7,6 +7,36 @@
 <p>Orders by hour</p>
 <%= column_chart @orders_by_hour%>
 
+<hr>
+<p>Orders Time Line</p>
+<%= line_chart @orders_time_line,:colors=>['#7cb5ec','orange'] %>
 
+<hr>
+<h2 class="sub-header">Orders</h2>
 
-
+<div class="table-responsive" >
+  <table class="table table-striped">
+    <thead>
+    <tr>
+      <th>Id</th>
+      <th>Channel</th>
+      <th>Placed On</th>
+      <th>Email</th>
+      <th>Status</th>
+      <th>Currency</th>
+    </tr>
+    </thead>
+    <tbody id="us">
+    <% @orders.each do |order| %>
+        <tr>
+          <td><%= order.id %></td>
+          <td><%= order.channel %></td>
+          <td><%= order.placed_on %></td>
+          <td><%= order.email %></td>
+          <td><%= order.status %></td>
+          <td><%= order.currency %></td>
+        </tr>
+    <% end %>
+    </tbody>
+  </table>
+</div>
