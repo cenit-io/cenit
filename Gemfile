@@ -1,6 +1,4 @@
 source 'https://rubygems.org'
-#source 'file:///home/jt/mygems/'
-
 ruby '2.1.2'
 gem 'rails', '4.0.5'
 gem 'sass-rails', '~> 4.0.3'
