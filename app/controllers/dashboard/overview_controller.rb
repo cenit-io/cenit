@@ -33,7 +33,7 @@ module Dashboard
       hours = %w(0h 1h 2h 3h 4h 5h 6h 7h 8h 9h 10h 11h 12h 13h 14h 15h 16h 17h 18h 19h 20h 21h 22h 23h)
       orders = orders_by_date
       @revenues_by_day = orders.find_all {|r| r.status == 'complete' } .group_by { |o| o.placed_on.wday } .sort { |a,b| a[0]<=>b[0] } .collect { |c| [days[c[0]],c[1].sum { |x| x.totals.nil? ? 0 : x.totals.order }.round(2)] }
-      @revenues_by_hour = orders.find_all{|r| r.status == 'complete'} .group_by { |o| o.placed_on.hour } .sort { |a,b| a[0]<=>b[0] } .collect { |c| [hours[c[0]],c[1].sum{ |x| x.totals.nil? ? 0 : x.totals.order }.round(2)] }
+      @revenues_by_hour = orders.find_all{|r| r.status == 'complete'} .group_by { |o| o.placed_on.hour } .sort { |a,b| a[0]<=>b[0] } .collect { |c| [hours[c[0]],c[1].sum { |x| x.totals.nil? ? 0 : x.totals.order }.round(2)] }
     end
 
     def overview_statistics
