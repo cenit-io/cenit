@@ -4,8 +4,6 @@ module Hub
     include Mongoid::Attributes::Dynamic
     include Mongoid::Timestamps
 
-    embedded_in :order, class_name: 'Hub::Order'
-
     field :adjustment, type: Float
     field :tax, type: Float
     field :shipping, type: Float

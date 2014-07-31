@@ -9,7 +9,9 @@ module Cenit
         super product, path, object.connection_id
       end
 
-      def self.process_product(object)
+      def self.process_product(object=nil)
+        return {} if object.nil?
+
         p = JSON.parse(object.to_json)
         p.delete 'connection_id'
         p.delete '_id'
