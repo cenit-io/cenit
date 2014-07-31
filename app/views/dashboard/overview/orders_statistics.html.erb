@@ -9,7 +9,7 @@
 
 <hr>
 <p>Orders Time Line</p>
-<%= line_chart @orders_time_line,:colors=>['#7cb5ec','orange'] %>
+<%= line_chart @orders_time_line,:colors=>['#7cb5ec','orange'], library: {tooltip:{enabled:false },chart:{zoomType:'x'} } %>
 
 <hr>
 <h2 class="sub-header">Orders</h2>

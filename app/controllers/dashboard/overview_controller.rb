@@ -17,13 +17,27 @@ module Dashboard
 
       @orders_by_hour = @orders.group_by{|o| o.placed_on.to_datetime.hour}.sort{|a,b| a[0]<=>b[0]}.collect{|c| [hours[c[0]],c[1].count] }
 
-      #Orders Time Line
+      #Orders Time
+      month_back = 3
+
+      orders_time = @orders.select{|x| x.placed_on > (Time.now - month_back.months) }.sort{|a,b| a.placed_on<=>b.placed_on}
+      orders_time_compare = @orders.select{|x| x.placed_on < Time.now - month_back.months && x.placed_on > Time.now - (2*month_back).months }.sort{|a,b| a.placed_on<=>b.placed_on}
+
       orders_time_line = {}
       orders_time_line_comparison = {}
-      @orders.each do |order|
+
+      orders_time.each do |order|
         orders_time_line[order.placed_on.to_time.to_s] = order.totals.order unless order.totals.nil?
-        orders_time_line_comparison[(order.placed_on + rand(15).days).to_time.to_s] = order.totals.order + rand(10) unless order.totals.nil?
       end
+
+      calc=  orders_time[0].placed_on.yday - (orders_time_compare[0].placed_on + month_back.months).yday
+      orders_time_compare.each do |order|
+        month = (order.placed_on + month_back.months)
+        date = month + calc.days
+        orders_time_line_comparison[date.to_time.to_s] = order.totals.order unless order.totals.nil?
+      end
+
+
       @orders_time_line = [{:name => "Order's Revenue" ,:data => orders_time_line },
                            {:name => 'Random Compare To', :data => orders_time_line_comparison }]
     end
