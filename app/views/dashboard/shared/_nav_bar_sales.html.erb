@@ -1,0 +1,7 @@
+<% model = params[:controller].split('dashboard/')[1] %>
+
+<ul class="nav nav-tabs" role="tablist">
+	<li class="active"><%=link_to "Time line", "/dashboard/#{model}" %></li>
+	<li><%=link_to "By hours", "/dashboard/#{model}/by-hours" %></li>
+	<li><%=link_to "By week days", "/dashboard/#{model}/by-week-days" %></li>
+</ul>

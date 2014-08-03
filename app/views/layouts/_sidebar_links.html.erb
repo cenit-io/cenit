@@ -14,8 +14,9 @@
     <span class="glyphicon glyphicon-stats"></span>
     Data
   </li>
-  <li role="data_header"><%=link_to 'Overview',dashboard_overview_statistics_path %></li>
-  <li role="data_header"><%=link_to 'Revenues',dashboard_revenues_statistics_path %></li>
-  <li role="data_header"><%=link_to 'Orders',dashboard_orders_statistics_path %></li>
+  <li role="data_header"><%= # link_to 'Overview',dashboard_overview_statistics_path 
+	  %></li>
+  <li role="data_header"><%=link_to 'Revenues', dashboard_revenues_path %></li>
+  <li role="data_header"><%=link_to 'Orders', dashboard_orders_path %></li>
 </ul>
 

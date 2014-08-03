@@ -5,6 +5,14 @@ module Hub
     include Mongoid::Timestamps
     #TODO: lunch error when include AfterSave when use rake sample:load
     #include Hub::AfterSave
+    
+    # always include the lower boundary for semi open intervals
+    scope :placed_on_gte, -> (reference_time) { where('students.placed_on >= ?', reference_time) }
+
+    # always exclude the upper boundary for semi open intervals
+    scope :placed_on_lt, -> (reference_time) { where('students.placed_on < ?', reference_time) }
+
+    scope :placed_on_between, ->(start_date, end_date) { where(placed_on: start_date..end_date) }
 
     belongs_to :connection, class_name: 'Setup::Connection'
 
