@@ -1,8 +1,8 @@
 module Dashboard
-  class OverviewController < ApplicationController
+  class OverviewController < BaseController
     def index
       @users = User.all
-      @orders=Hub::Order.all
+      @orders = Hub::Order.all
     end
 
     def orders_statistics

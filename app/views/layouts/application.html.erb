@@ -18,13 +18,17 @@
       <div class="row">
 	<br/>
 	<% if params[:controller] =~ /^dashboard/ %>  
-          <div class="col-sm-3 col-md-2 sidebar">
-             <br/><br/>
-            <%= render 'layouts/sidebar_links' %>
-          </div>
-        <% end %>
+		<div class="col-sm-3 col-md-2 sidebar">
+		 <br/><br/>
+		<%= render 'layouts/sidebar_links' %>
+		</div>
+    <% end %>
+	    
+         
+		 
         <div class="col-sm-9 col-md-10 main">
           <br/>
+		  <%= render :partial => 'dashboard/shared/nav_bar' if content_for? :nav_bar %>
           <%= yield %>
         </div>
       </div>
