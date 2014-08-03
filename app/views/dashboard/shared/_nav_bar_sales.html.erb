@@ -1,7 +1,7 @@
 <% model = params[:controller].split('dashboard/')[1] %>
-
+<% action = params[:action] %>
 <ul class="nav nav-tabs" role="tablist">
-	<li class="active"><%=link_to "Time line", "/dashboard/#{model}" %></li>
-	<li><%=link_to "By hours", "/dashboard/#{model}/by-hours" %></li>
-	<li><%=link_to "By week days", "/dashboard/#{model}/by-week-days" %></li>
+	<li class= <%= "active" if action == 'index' %> > <%=link_to "Time line", "/dashboard/#{model}" %> </li>
+	<li class= <%= "active" if action == "by_hours" %> > <%=link_to "By hours", "/dashboard/#{model}/by-hours" %> </li>
+	<li class= <%= "active" if action == "by_week_days" %> > <%=link_to "By week days", "/dashboard/#{model}/by-week-days" %> </li>
 </ul>
