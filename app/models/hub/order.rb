@@ -46,5 +46,16 @@ module Hub
     
     scope :by_hour, -> (collection) { collection.group_by{|o| o.placed_on.hour}.sort{|a,b| a[0]<=>b[0]} }
     
+    scope :complete, -> { where(:status => 'complete') } 
+    scope :incomplete, -> { where.not(:status => 'complete') } 
+    
+    def completed?
+      status == 'complete'
+    end
+    
+    def items
+      line_items.sum(&:quantity)
+    end
+    
   end
 end
