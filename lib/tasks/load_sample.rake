@@ -49,7 +49,7 @@ namespace :sample do
         ]
         
           
-    1.upto 20 do 
+    1.upto 50 do 
       name = "#{Faker::Product.product }"
       sku = name.underscore.gsub(' ', '-')
       cost_price = rand(10.5...100.5).round(2)
@@ -122,7 +122,8 @@ namespace :sample do
       Hub::Product.create!(product)
  
       # orders 
-      1.upto 5 do
+      num_orders = 1 + rand(20)
+      1.upto num_orders do
         total = rand(10.5...400.5).round(2)
 
         tax = rand 20
