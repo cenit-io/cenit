@@ -1,58 +1,66 @@
 module Dashboard
   class SalesController < BaseController
-    before_action :get_orders, only: [:index, :by_week_days, :by_hours]
-    before_action :get_comparison_orders, only: [:index, :by_week_days, :by_hours]
+    before_action :get_params
+    before_action :get_orders
+    before_action :get_compare_orders
     
     def index
       @main_data = {}
-      @orders.each {|o| @main_data[o.placed_on.to_time.to_s] = o.totals.order if o.totals } 
+      @orders.each {|o| @main_data[o.placed_on] = o.totals.order if o.totals } 
       
       @compare_data = {}
-      @comparison_orders.each {|o| @compare_data[ o.placed_on + @diff] = o.totals.order if o.totals }     
+      @compare_orders.each {|o| @compare_data[ o.placed_on + @diff] = o.totals.order if o.totals }     
       set_data
     end  
     
-    def by_week_days
-      @main_data = collect_by_wday @comparison_orders
-      @compare_data = collect_by_wday @comparison_orders     
-      set_data
+    def by_week_days  
+      set_data_by(:wday)
     end
      
-    def by_hours
-      @main_data = collect_by_hour @comparison_orders
-      @compare_data = collect_by_hour @comparison_orders      
-      set_data
-    end
-    
-    def compute
-      # Define in each class
-    end   
+    def by_hours  
+      set_data_by(:hour)
+    end 
     
     private
+    
+      def compute
+        # Define in each class
+      end  
+    
+      def set_data_by(fun)
+        @main_data = collect_by(@orders, fun)
+        @compare_data = collect_by(@compare_orders, fun)
+        set_data 
+      end 
+       
       def set_data
-        @data = [{:name => "#{@start_date} / #{@end_date}" ,:data => @main_data },
-                 {:name => "#{@comparison_start_date} / #{@comparison_end_date}", :data => @compare_data }]
+        @data = [{:name => "#{@start_date} / #{@end_date}", :data => @main_data },
+                 {:name => "#{@compare_start_date} / #{@compare_end_date}", :data => @compare_data }]
       end
          
-      def collect_by_hour (collection)
-        collection.group_by{|o| o.placed_on.wday}.sort{|a,b| a[0]<=>b[0]}.collect{|c| [hours[c[0]],compute(c[1])] }
+      def collect_by(collection, fun )
+        collection.group_by{|o| o.placed_on.send(fun)}.sort{|a,b| a[0]<=>b[0]}.collect do |c|
+          case fun
+          when :hour then [hours[c[0]], compute(c[1])]
+          when :wday then [days[c[0]], compute(c[1])] 
+          end
+        end  
       end
       
-      def collect_by_wday (collection)
-        collection.group_by{|o| o.placed_on.wday}.sort{|a,b| a[0]<=>b[0]}.collect{|c| [days[c[0]],compute(c[1])] }    
+      def get_params()
+        @start_date =  Date.today - 3.months
+        @end_date = Date.today 
+        @compare_start_date = Date.today - 6.months
+        @compare_end_date = Date.today - 3.months
+        @diff = (@start_date - @compare_start_date).to_i.days
+      end
+        
+      def get_orders
+        @orders = Hub::Order.placed_on_between(@start_date, @end_date)
       end
       
-      def get_orders(options = {})
-        @start_date = options[:start_date] ||= Date.today - 3.months
-        @end_date = options[:end_date] ||= Date.today 
-        @orders = Hub::Order.placed_on_between(options[:start_date], options[:end_date])
-      end
-      
-      def get_comparison_orders(options = {})
-        @comparison_start_date = options[:start_date] ||= Date.today - 6.months
-        @comparison_end_date = options[:end_date] ||= Date.today - 3.months
-        @diff =  (@start_date - @comparison_start_date).to_i.days
-        @comparison_orders = Hub::Order.placed_on_between(options[:start_date], options[:end_date])
+      def get_compare_orders
+        @compare_orders = Hub::Order.placed_on_between(@compare_start_date, @compare_end_date)
       end
       
   end
