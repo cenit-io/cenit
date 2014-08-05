@@ -46,7 +46,5 @@ module Hub
     
     scope :by_hour, -> (collection) { collection.group_by{|o| o.placed_on.hour}.sort{|a,b| a[0]<=>b[0]} }
     
-    
-    
   end
 end
