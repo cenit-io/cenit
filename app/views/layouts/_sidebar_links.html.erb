@@ -1,7 +1,10 @@
 <ul class="nav nav-sidebar">
   <li role="data_header"><%= link_to 'Overview', dashboard_overview_path %></li>
+  <li role="data_header"><%= link_to 'Sales', "#" %></li>
+  <ul>
   <% ['revenues','transactions','items','adjustments','taxes','shipments'].each do |resource| %>
     <li role="data_header"><%=link_to resource.camelize, "/dashboard/sales/#{resource}" %> </li>
-  <% end %> 
+  <% end %>
+  </ul>   
 </ul>
 
