@@ -1,8 +1,7 @@
 <% controller = params[:controller].split('dashboard/sales/')[1].camelize %>
 <% action = params[:action].gsub('_',' ') %>
 <h1 class="page-header"><%= controller %></h1>
-<p> <%= "#{controller} #{action}" %>  </p>
-
+<p> <%= "#{controller} " %> <%= if action == 'index' then 'time line' else action end %>  </p>
 <% content_for :nav_bar do %>
  <%= render 'dashboard/shared/nav_bar_sales' %>
 <% end %>
