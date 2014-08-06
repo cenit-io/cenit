@@ -44,7 +44,7 @@ module Hub
     
     scope :by_wday, -> (collection) { collection.group_by{|o| o.placed_on.wday}.sort{|a,b| a[0]<=>b[0]} }
     
-    scope :by_hour, -> (collection) { collection.group_by{|o| o.placed_on.hour}.sort{|a,b| a[0]<=>b[0]} }
+    scope :by_hour, -> (collection) { collection.group_by{|o| o.placed_on.to_time.hour}.sort{|a,b| a[0]<=>b[0]} }
     
     scope :complete, -> { where(:status => 'complete') } 
     scope :incomplete, -> { where.not(:status => 'complete') } 
