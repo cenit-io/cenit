@@ -9,28 +9,23 @@
         <span class="icon-bar"></span>
         <span class="icon-bar"></span>
       </button>
-	  <%= link_to 'Dashboard', dashboard_overview_path, class: 'navbar-brand' %>
-
+	  <%= link_to 'Home', dashboard_overview_path, class: 'navbar-brand' %>
     </div>
 	
+	<ul class="nav navbar-nav navbar-right">
+		<li class="dropdown">
+			<a data-toggle="dropdown" class="dropdown-toggle" href="#">Dashboard <b class="caret"></b></a>
+			<ul class="dropdown-menu">
+				<%= render 'layouts/dashboard_navigation_links' %>
+			</ul>
+		</li>
 
-  
-	<!-- Split button -->
-	<div class="btn-group nav navbar-nav navbar-right">
-	  <button type="button" class="btn btn-default">Action</button>
-	  <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown">
-	    <span class="caret"></span>
-	    <span class="sr-only">Toggle Dropdown</span>
-	  </button>
-	  <ul class="dropdown-menu" role="menu">
-        <%= render 'layouts/navigation_links' %>
-	  </ul>
-	</div>
-		
-      <!-- ul class="nav navbar-nav navbar-right" -->
-        <%=# render 'layouts/navigation_links' 
-		%>
-   
-    </div>
+		<li class="dropdown"><a data-toggle="dropdown" class="dropdown-toggle" href="#">Company Name<b
+					class="caret"></b></a>
+			<ul class="dropdown-menu">
+				<%= render 'layouts/company_navigation_links' %>
+			</ul>
+		</li>
+	</ul>
   </div>
 </nav>
