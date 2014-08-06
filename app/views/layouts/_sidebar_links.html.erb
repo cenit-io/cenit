@@ -1,10 +1,49 @@
-<ul class="nav nav-sidebar">
-  <li role="data_header"><%= link_to 'Overview', dashboard_overview_path %></li>
-  <li role="data_header"><%= link_to 'Sales', "#" %></li>
-  <ul>
-  <% ['revenues','transactions','items','adjustments','taxes','shipments'].each do |resource| %>
-    <li role="data_header"><%=link_to resource.camelize, "/dashboard/sales/#{resource}" %> </li>
-  <% end %>
-  </ul>   
+<ul class="nav nav-pills nav-stacked">
+	<div id="accordion" class="panel-group">
+	    <div class="panel panel-default">
+	        <div class="panel-heading">
+	            <h4 class="panel-title">
+	                <%= link_to 'Overview', dashboard_overview_path %>
+	            </h4>
+	        </div>
+	    </div>
+
+	    <div class="panel panel-default">
+	        <div class="panel-heading">
+	            <h4 class="panel-title">
+	                <a data-toggle="collapse" data-parent="#accordion" href="#collapseTwo">Sales</a>
+	            </h4>
+	        </div>
+
+	        <div id="collapseTwo" class="panel-collapse collapse">
+	            <div class="panel-body">
+	              <ul class="list-unstyled">
+					   <% ['revenues','transactions','items','adjustments','taxes','shipments'].each do |resource| %>
+					     <li role="data_header"><%=link_to resource.camelize, "/dashboard/sales/#{resource}" %> </li>
+					   <% end %>
+				  </ul>
+	            </div>
+	        </div>
+	    </div>	
+		
+	    <div class="panel panel-default">
+	        <div class="panel-heading">
+	            <h4 class="panel-title">
+	                <a data-toggle="collapse" data-parent="#accordion" href="#collapseThree">Inventory</a>
+	            </h4>
+	        </div>
+
+	        <div id="collapseThree" class="panel-collapse collapse">
+	            <div class="panel-body">
+	              <ul class="list-unstyled">
+					   <% ['inventory I','inventory II'].each do |resource| %>
+					     <li role="data_header"><%=link_to resource.camelize, "#" %> </li>
+					   <% end %>
+				  </ul>
+	            </div>
+	        </div>
+	    </div>		
+		
+	</div>
 </ul>
 

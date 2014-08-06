@@ -1,10 +1,34 @@
 <%# add navigation links to this file %>
-<li>
-	<a href="#">Date Range</a>
-	
-</li>
-<li><a href="#">Compare to</a></li>
-<li><a href="#">Product Filter</a></li>
-<li class="divider"></li>
-<li><%= link_to 'Data', "/data" %></li>
+<ul class="nav navbar-nav navbar-right">
+	<li class="dropdown">
+		<a data-toggle="dropdown" class="dropdown-toggle" href="#">Dashboard <b class="caret"></b></a>
+		<ul class="dropdown-menu">
+		    <li role="presentation" class="dropdown-header">Date Range</li>
+		    <li><a href="#">Today</a></li>
+		    <li><a href="#">Yesterday</a></li>
+		    <li><a href="#">Last Week</a></li>
+			<li><a href="#">Last Month</a></li>
+		    <li><a href="#">Year to Date</a></li>
+			<li data-toggle="modal" data-target="#myModal"><a href="#">Custom Range</a></li>
+	 
+		    <li role="presentation" class="divider"></li>
+		    <li role="presentation" class="dropdown-header">Compare To</li>
+		    <li><a href="#">Previous Period</a></li>
+		    <li><a href="#">Previous Year</a></li>
+		    <li><a href="#">Custom Range</a></li>
+		</ul>
+	</li>
 
+	<li class="dropdown"><a data-toggle="dropdown" class="dropdown-toggle" href="#">Company Name<b
+				class="caret"></b></a>
+		<ul class="dropdown-menu">
+			<li><%= link_to 'Company Setting', "#" %></li>
+			<li><%= link_to 'User Profile', "#" %></li>
+			<li><%= link_to 'Data', "/data" %></li>
+			<li class="divider"></li>
+			<li><%= link_to 'Contact Us', "#" %></li>
+			<li><%= link_to 'About Us', "/data" %></li>
+		</ul>
+	</li>
+
+</ul>
