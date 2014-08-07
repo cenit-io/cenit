@@ -55,7 +55,7 @@ module Dashboard
           @end_date = Date.today 
           @compare_start_date = Date.today - 6.months
           @compare_end_date = Date.today - 3.months
-          @diff = (@start_date - @compare_start_date).to_i.days
+          #@diff = first_order.placed_on.to_time - first_order_compare.placed_on.to_time
         end
         
         def get_data
