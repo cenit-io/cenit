@@ -10,7 +10,7 @@ Cenit::Application.routes.draw do
     get '/overview', to: 'overview#index', as: 'overview'
     
     namespace :sales do
-      ['revenues','transactions','items','adjustments','taxes','shipments'].each do |resource|
+      ['sources','revenues','transactions','items','adjustments','taxes','shipments'].each do |resource|
         get "/#{resource}", to: "#{resource}#index", as: "#{resource}"   
         get "/#{resource}/by-week-days", to: "#{resource}#by_week_days", as: "#{resource}_by_week_days"
         get "/#{resource}/by-hours", to: "#{resource}#by_hours", as: "#{resource}_by_hours"    

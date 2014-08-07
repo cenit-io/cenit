@@ -18,7 +18,7 @@
 	        <div id="collapseTwo" class="panel-collapse collapse">
 	            <div class="panel-body">
 	              <ul class="list-unstyled">
-					   <% ['revenues','transactions','items','adjustments','taxes','shipments'].each do |resource| %>
+					   <% ['revenues','transactions','items','adjustments','taxes','shipments','sources'].each do |resource| %>
 					     <li role="data_header"><%=link_to resource.camelize, "/dashboard/sales/#{resource}" %> </li>
 					   <% end %>
 				  </ul>
