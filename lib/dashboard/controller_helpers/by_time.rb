@@ -8,6 +8,10 @@ module Dashboard
         before_action :get_data
         before_action :get_compare_data
       end  
+      
+      def klass_to_call
+        # denifine where will be included
+      end  
     
       def index
         #TODO build generic
@@ -59,13 +63,11 @@ module Dashboard
         end
         
         def get_data
-          #TODO change Hub::Order for class where will be include
-          @data = Hub::Order.placed_on_between(@start_date, @end_date)
+          @data = klass_to_call.placed_on_between(@start_date, @end_date)
         end
       
         def get_compare_data
-          #TODO change Hub::Order for class where will be include
-          @compare_data = Hub::Order.placed_on_between(@compare_start_date, @compare_end_date)
+          @compare_data = klass_to_call.placed_on_between(@compare_start_date, @compare_end_date)
         end
      end 
   end
