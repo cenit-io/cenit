@@ -1,6 +1,8 @@
 module Dashboard
   module Sales
-    class ItemsController < SalesController
+    class ItemsController < BaseController
+      include Dashboard::ControllerHelpers::ByTime
+      
       def compute(orders)
         orders.sum(&:items)
       end  
