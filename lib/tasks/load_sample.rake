@@ -197,7 +197,14 @@ namespace :sample do
                 "number" => rand(1000),
                 "status" => "completed",
                 "amount" => item_price,
-                "payment_method" => "Credit Card"
+                "payment_method" => "Credit Card",
+                "source_attributes" => {
+                    "name" => "#{Faker::Name.first_name} #{Faker::Name.last_name}",
+                    "cc_type" => ['visa', 'american_express', 'master', 'discover'].shuffle.first,
+                    "month" => 1 + rand(12),
+                    "year" => rand(2015..2030),
+                    "last_digits" => rand(10000),
+                  }
               }
             ]
           }
