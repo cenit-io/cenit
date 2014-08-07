@@ -6,11 +6,15 @@ module Dashboard
       before_action :get_compare_orders
     
       def index
+        first_order = @orders.sort{|a,b| a.placed_on <=> b.placed_on }.first
+        first_order_compare = @compare_orders.sort{|a,b| a.placed_on <=> b.placed_on }.first
+        diff = first_order.placed_on.to_time - first_order_compare.placed_on.to_time
+
         @main_data = {}
-        @orders.each {|o| @main_data[o.placed_on] = o.totals.order if o.totals } 
-      
+        @orders.each {|o| @main_data[o.placed_on] = o.totals.order if o.totals }
+
         @compare_data = {}
-        @compare_orders.each {|o| @compare_data[ o.placed_on + @diff] = o.totals.order if o.totals }     
+        @compare_orders.each {|o| @compare_data[ o.placed_on.to_time + diff] = o.totals.order if o.totals }
         set_data
       end  
     
@@ -53,7 +57,7 @@ module Dashboard
           @end_date = Date.today 
           @compare_start_date = Date.today - 6.months
           @compare_end_date = Date.today - 3.months
-          @diff = (@start_date - @compare_start_date).to_i.days
+          #@diff = first_order.placed_on.to_time - first_order_compare.placed_on.to_time
         end
         
         def get_orders
