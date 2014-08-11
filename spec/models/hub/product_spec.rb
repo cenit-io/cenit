@@ -17,7 +17,7 @@ describe Hub::Product do
         "meta_keywords" => nil,
         "shipping_category" => "Default",
         "taxons_attributes" => [
-          { "breadcrumb" => [ "Categories","Clothes", "T-Shirts" ] },
+          { "breadcrumb" => ["Categories","Clothes", "T-Shirts" ] },
           { "breadcrumb" => ["Brands","Spree"] },
           { "breadcrumb" => ["Brands","Open Source"] }
         ],

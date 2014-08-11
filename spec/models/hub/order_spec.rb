@@ -63,12 +63,19 @@ describe Hub::Order do
           "country" => "US",
           "phone" => "0000000000"
         },
-        "payments" => [
+        "payments_attributes" => [
           {
             "number" => 63,
             "status" => "completed",
             "amount" => 220.0,
-            "payment_method" => "Credit Card"
+            "payment_method" => "Credit Card",
+            "source_attributes" => {
+                "name" => 'Jose',
+                "cc_type" => "visa",
+                "month" => 5,
+                "year" => 2018,
+                "last_digits" => 5443,
+              }
           }
         ]
       }

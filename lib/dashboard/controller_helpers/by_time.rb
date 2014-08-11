@@ -1,16 +1,22 @@
 module Dashboard
-  module Sales
-    class SalesController < BaseController
-      before_action :get_params
-      before_action :get_orders
-      before_action :get_compare_orders
+  module ControllerHelpers
+    module ByTime
+      extend ActiveSupport::Concern
+      
+      included do
+        before_action :get_params
+        before_action :get_data
+        before_action :get_compare_data
+      end  
+      
+      def klass_to_call
+        # denifine where will be included
+      end  
     
       def index
+        #TODO build generic
         @main_data = {}
-        @orders.each {|o| @main_data[o.placed_on] = o.totals.order if o.totals } 
-      
-        @compare_data = {}
-        @compare_orders.each {|o| @compare_data[ o.placed_on + @diff] = o.totals.order if o.totals }     
+        @compare_data = {}  
         set_data
       end  
     
@@ -21,7 +27,7 @@ module Dashboard
       def by_hours  
         set_data_by(:hour)
       end 
-    
+      
       private
     
         def compute
@@ -29,14 +35,14 @@ module Dashboard
         end  
     
         def set_data_by(fun)
-          @main_data = collect_by(@orders, fun)
-          @compare_data = collect_by(@compare_orders, fun)
+          @main_set = collect_by(@data, fun)
+          @compare_set = collect_by(@compare_data, fun)
           set_data 
         end 
        
         def set_data
-          @data = [{:name => "#{@start_date} / #{@end_date}", :data => @main_data },
-                   {:name => "#{@compare_start_date} / #{@compare_end_date}", :data => @compare_data }]
+          @data = [{:name => "#{@start_date} / #{@end_date}", :data => @main_set },
+                   {:name => "#{@compare_start_date} / #{@compare_end_date}", :data => @compare_set }]
         end
          
         def collect_by(collection, fun )
@@ -53,15 +59,15 @@ module Dashboard
           @end_date = Date.today 
           @compare_start_date = Date.today - 6.months
           @compare_end_date = Date.today - 3.months
-          @diff = (@start_date - @compare_start_date).to_i.days
+          #@diff = first_order.placed_on.to_time - first_order_compare.placed_on.to_time
         end
         
-        def get_orders
-          @orders = Hub::Order.placed_on_between(@start_date, @end_date)
+        def get_data
+          @data = klass_to_call.placed_on_between(@start_date, @end_date)
         end
       
-        def get_compare_orders
-          @compare_orders = Hub::Order.placed_on_between(@compare_start_date, @compare_end_date)
+        def get_compare_data
+          @compare_data = klass_to_call.placed_on_between(@compare_start_date, @compare_end_date)
         end
      end 
   end
