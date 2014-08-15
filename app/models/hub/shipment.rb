@@ -23,13 +23,13 @@ module Hub
 
     has_many :items, class_name: 'Hub::LineItem'
     belongs_to :shipping_address, class_name: 'Hub::Address'
-      
+
     accepts_nested_attributes_for :items
     accepts_nested_attributes_for :shipping_address
 
 
-    #validates_presence_of :order_id, :status, #:email, 
-    #  :cost, :stock_location, :shipping_address, :shipping_method 
+    #validates_presence_of :order_id, :status, #:email,
+    #  :cost, :stock_location, :shipping_address, :shipping_method
 
 	end
 end
