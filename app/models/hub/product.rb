@@ -5,8 +5,6 @@ module Hub
     include Mongoid::Timestamps
     include Hub::AfterSave
 
-    belongs_to :connection, class_name: 'Setup::Connection'
-
     embeds_many :variants, class_name: 'Hub::Variant'
     embeds_many :images, class_name: 'Hub::Image'
 

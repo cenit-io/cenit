@@ -6,14 +6,13 @@ module Cenit
 
       def self.process(object, path)
         product = process_product(object)
-        super product, path, object.connection_id
+        super product, path
       end
 
       def self.process_product(object=nil)
         return {} if object.nil?
 
         p = JSON.parse(object.to_json)
-        p.delete 'connection_id'
         p.delete '_id'
 
         p['variants'] = process_variants(p.delete 'variants') if p['variants'].present?

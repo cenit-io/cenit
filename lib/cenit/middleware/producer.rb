@@ -6,7 +6,7 @@ module Cenit
   module Middleware
     class Producer
 
-      def self.process(object, path, conn_id)
+      def self.process(object, path)
         webhook = Setup::Webhook.where(path: path).first
         if webhook
           webhook.connections.each do |endpoint|

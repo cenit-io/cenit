@@ -6,7 +6,6 @@ module Cenit
       def initialize(message, endpoint)
         super message
         @params = @payload[:products]
-        @params.each {|p| p[:connection_id] = endpoint.id} if endpoint
         @url = endpoint.url.gsub('/wombat', '')
       end
 

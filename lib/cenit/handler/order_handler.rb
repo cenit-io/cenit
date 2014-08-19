@@ -6,14 +6,12 @@
         def initialize(message, endpoint)
           super message
           @params = @payload[:orders]
-          @params.each {|p| p['connection_id'] = endpoint.id} if endpoint
         end
 
         def process
           order_ids = []
           params.each do |o|
 
-            puts "ORDER -> #{o.inspect} #######################################"
             next if o[:id].empty?
 
             o[:totals_attributes] = process_totals(o.delete :totals) if o.has_key?(:totals)
