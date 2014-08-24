@@ -26,17 +26,10 @@ module Cenit
         variants_params.each do |v|
           v.delete '_id' if v.has_key? '_id'
           v.delete 'created_at' if v.has_key? 'created_at'
-          v['options'] = process_options(v.delete 'options') if v['options'].present?
           v['images'] = process_images(v.delete 'images') if v['images'].present?
           variants << v
         end
         variants
-      end
-
-      def self.process_options(options_params)
-        options = {}
-        options_params.each {|o| options[o['option_type']] = o['option_value']}
-        options
       end
 
       def self.process_images(images_params)
