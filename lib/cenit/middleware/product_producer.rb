@@ -16,21 +16,9 @@ module Cenit
         p.delete '_id'
 
         p['variants'] = process_variants(p.delete 'variants') if p['variants'].present?
-        p['taxons'] = process_taxons(p.delete 'taxons')  if p['taxons'].present?
-        p['properties'] = process_properties(p.delete 'properties') if p['properties'].present?
         p['images'] = process_images(p.delete 'images') if p['images'].present?
 
         {'product' => p}
-      end
-
-      def self.process_taxons(taxons_params)
-        taxons_params.map { |t| t['breadcrumb'] }
-      end
-
-      def self.process_properties(properties_params)
-        properties = {}
-        properties_params.each { |p| properties[p['name']] = p['presentation'] }
-        properties
       end
 
       def self.process_variants(variants_params)

@@ -4,11 +4,14 @@
       rescue_from Exception, :with => :exception_handler
 
       def consume
+        response = {}
         @objects.each do |obj|
           handler = Handler::Base.build_handler(obj, @message, @endpoint)
-          responder = handler.process
-          render json: responder, root: false, status: responder.code
+          response.merge(handler.process)
         end
+        base_handler = Handler::Base.new(@message)
+        responder = base_handler.response(response, 202)
+        render json: responder, root: false, status: responder.code
       end
 
       protected

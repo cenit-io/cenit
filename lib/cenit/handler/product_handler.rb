@@ -10,14 +10,12 @@ module Cenit
       end
 
       def process
-        product_ids = []
+        count = 0
         params.each do |p|
 
           next if p[:id].empty?
 
           p[:variants_attributes] = process_variants(p.delete :variants) if p.has_key?(:variants)
-          p[:taxons_attributes] = process_taxons(p.delete :taxons) if p.has_key?(:taxons)
-          p[:properties_attributes] = process_properties(p.delete :properties) if p.has_key?(:properties)
           p[:images_attributes] = process_images(p.delete :images) if p.has_key?(:images)
 
           @product = Hub::Product.where(id: p[:id]).first
@@ -26,9 +24,9 @@ module Cenit
           else
             @product = Hub::Product.new(p)
           end
-          product_ids << @product.save ? @product.id : 0
+          count += 1 if @product.save
         end
-        response "Products saved: #{product_ids.to_s}"
+        {'products' => count}
       end
 
       def process_variants(variants_params)
@@ -56,16 +54,6 @@ module Cenit
       def process_dimension(dimension_params)
         return {} if dimension_params.nil?
         dimension_params
-      end
-
-      def process_taxons(taxons_params)
-        return [] if taxons_params.nil?
-        taxons_params.map {|x| {:breadcrumb => x}}
-      end
-
-      def process_properties(properties_params)
-        return [] if properties_params.nil?
-        properties_params.map {|k, v| {:name => k, :presentation => v}}
       end
 
       def process_options(options_params)
