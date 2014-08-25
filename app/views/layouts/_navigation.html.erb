@@ -1,7 +1,6 @@
 <%# navigation styled for Bootstrap 3.0 %>
-
-<nav class="navbar navbar-default navbar-fixed-top" role="navigation">
-  <div class="container-fluid">
+<nav class="navbar navbar-inverse navbar-fixed-top">
+  <div class="container">
     <div class="navbar-header">
       <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
         <span class="sr-only">Toggle navigation</span>
@@ -9,23 +8,12 @@
         <span class="icon-bar"></span>
         <span class="icon-bar"></span>
       </button>
-	  <%= link_to 'Home', dashboard_overview_path, class: 'navbar-brand' %>
+      <%= link_to 'Home', root_path, class: 'navbar-brand' %>
     </div>
-	
-	<ul class="nav navbar-nav navbar-right">
-		<li class="dropdown">
-			<a data-toggle="dropdown" class="dropdown-toggle" href="#">Dashboard <b class="caret"></b></a>
-			<ul class="dropdown-menu">
-				<%= render 'layouts/dashboard_navigation_links' %>
-			</ul>
-		</li>
-
-		<li class="dropdown"><a data-toggle="dropdown" class="dropdown-toggle" href="#">Company Name<b
-					class="caret"></b></a>
-			<ul class="dropdown-menu">
-				<%= render 'layouts/company_navigation_links' %>
-			</ul>
-		</li>
-	</ul>
+    <div class="collapse navbar-collapse">
+      <ul class="nav navbar-nav">
+        <%= render 'layouts/navigation_links' %>
+      </ul>
+    </div>
   </div>
 </nav>
