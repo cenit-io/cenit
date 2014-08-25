@@ -1,7 +1,6 @@
 module Hub
   class Address
     include Mongoid::Document
-    include Mongoid::Attributes::Dynamic
     include Mongoid::Timestamps
 
     field :firstname, type: String

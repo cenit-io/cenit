@@ -1,11 +1,11 @@
   module Cenit
     module Handler
-      class OrderHandler < Base
+      class ShipmentHandler < Base
         attr_reader :params
 
         def initialize(message, endpoint)
           super message
-          @params = @payload[:orders]
+          @params = @payload[:shipments]
         end
 
         def process
@@ -13,15 +13,15 @@
           params.each do |p|
             next if p[:id].empty?
 
-            @order = Hub::Order.where(id: p[:id]).first
-            if @order
-              @order.update_attributes(p)
+            @shipment = Hub::Shipment.where(id: p[:id]).first
+            if @shipment
+              @shipment.update_attributes(p)
             else
-              @order = Hub::Order.new(p)
+              @shipment = Hub::Shipment.new(p)
             end
-            count += 1 if @order.save
+            count += 1 if @shipment.save
           end
-          {'orders' => count}
+          {'shipments' => count}
         end
 
       end
