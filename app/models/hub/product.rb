@@ -2,6 +2,7 @@ module Hub
   class Product
     include Mongoid::Document
     include Mongoid::Timestamps
+    include Hub::AfterSave
 
     field :id, type: String
     field :name, type: String

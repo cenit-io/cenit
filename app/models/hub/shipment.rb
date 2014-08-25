@@ -2,6 +2,7 @@ module Hub
   class Shipment
     include Mongoid::Document
     include Mongoid::Timestamps
+    include Hub::AfterSave
 
     field :id, type: String
     field :order_id, type: String
@@ -16,7 +17,7 @@ module Hub
     field :channel, type: String
 
     embeds_many :items, class_name: 'Hub::LineItem'
-    belongs_to :shipping_address, class_name: 'Hub::Address'
+    embeds_one :shipping_address, class_name: 'Hub::Address'
 
     accepts_nested_attributes_for :items
     accepts_nested_attributes_for :shipping_address

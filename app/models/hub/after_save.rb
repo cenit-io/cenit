@@ -7,17 +7,15 @@ module Hub
     included do
 
       after_create do |object|
-        object_name = object.class.to_s.split('::').last
-        path = 'add_' + object_name.downcase
-        producer = "Cenit::Middleware::#{object_name}Producer".constantize
-        producer.process(object, path)
+        model = object.class.to_s.split('::').last.downcase
+        path = 'add_' + model
+        Cenit::Middleware::Producer.process(model, object, path)
       end
 
       after_update do |object|
-        object_name = object.class.to_s.split('::').last
-        path = 'update_' + object_name.downcase
-        producer = "Cenit::Middleware::#{object_name}Producer".constantize
-        producer.process(object, path)
+        model = object.class.to_s.split('::').last.downcase
+        path = 'update_' + model
+        Cenit::Middleware::Producer.process(model, object, path)
       end
 
     end
