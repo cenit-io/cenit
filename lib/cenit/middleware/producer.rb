@@ -6,22 +6,25 @@ module Cenit
   module Middleware
     class Producer
 
-      def self.process(object, path, with_id)
-        object_hash = parse_object(object, with_id)
+      def self.process(model, object, path)
+        object = prepare_object(model, object)
         webhook = Setup::Webhook.where(path: path).first
         if webhook
-          endpoints = webhook.connections.select{|c| c.id != object.connection_id}
-          endpoints.each do |conn|
-            url = "#{conn.url}/#{webhook.path}"
+          webhook.connections.each do |endpoint|
             message = {
-              :object => object_hash,
-              :url => url,
-              :store => conn.store,
-              :token => conn.token
+              :object => object,
+              :url => "#{endpoint.url}/#{webhook.path}",
+              :store => endpoint.store,
+              :token => endpoint.token
             }.to_json
             send_to_rabbitmq(message)
           end
         end
+      end
+
+      def self.prepare_object(model, object)
+        return {} if object.nil?
+        {model => object}
       end
 
       def self.send_to_rabbitmq(message)
@@ -33,15 +36,6 @@ module Cenit
 
         ch.default_exchange.publish(message, :routing_key => q.name)
         conn.close
-      end
-
-      def self.parse_object(object, with_id)
-        object_hash = JSON.parse(object.to_json)
-        object_id = object_hash.delete '_id'
-        object_hash['id'] = object_id if with_id
-        object_hash.delete 'connection_id'
-        key = object.class.to_s.downcase.split('::').last
-        {key => object_hash}
       end
 
     end

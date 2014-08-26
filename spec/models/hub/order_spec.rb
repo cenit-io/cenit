@@ -19,7 +19,7 @@ describe Hub::Order do
           "payment" => 220.0,
           "order" => 220.0
         },
-        "line_items_attributes" => [
+        "line_items" => [
           {
             "product_id" => "SPREE-T-SHIRT",
             "name" => "Spree T-Shirt",
@@ -27,7 +27,7 @@ describe Hub::Order do
             "price" => 100.0
           }
         ],
-        "adjustments_attributes" => [
+        "adjustments" => [
           {
             "name" => "Tax",
             "value" => 10.0
@@ -41,7 +41,7 @@ describe Hub::Order do
             "value" => 5.0
           }
         ],
-        "shipping_address_attributes" => {
+        "shipping_address" => {
           "firstname" => "Joe",
           "lastname" => "Smith",
           "address1" => "1234 Awesome Street",
@@ -52,7 +52,7 @@ describe Hub::Order do
           "country" => "US",
           "phone" => "0000000000"
         },
-        "billing_address_attributes" => {
+        "billing_address" => {
           "firstname" => "Joe",
           "lastname" => "Smith",
           "address1" => "1234 Awesome Street",
@@ -68,7 +68,14 @@ describe Hub::Order do
             "number" => 63,
             "status" => "completed",
             "amount" => 220.0,
-            "payment_method" => "Credit Card"
+            "payment_method" => "Credit Card",
+            "source" => {
+                "name" => 'Jose',
+                "cc_type" => "visa",
+                "month" => 5,
+                "year" => 2018,
+                "last_digits" => 5443,
+              }
           }
         ]
       }

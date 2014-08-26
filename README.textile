@@ -50,6 +50,12 @@ $ git pull origin develop
 > Already up-to-date.
 </pre>
 
+Run the bundle install command to install the required gems on your computer:
+
+<pre>
+$ bundle install
+</pre>
+
 With mongodb you don't need run migrations
 
 Run db/seed

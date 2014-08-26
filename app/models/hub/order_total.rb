@@ -1,20 +1,18 @@
 module Hub
-	class OrderTotal
-	  include Mongoid::Document
-	  #include Mongoid::Attributes::Dynamic
-	  include Mongoid::Timestamps
+  class OrderTotal
+    include Mongoid::Document
+    include Mongoid::Timestamps
 
-	  field :adjustment, type: Float, default: 0
-    field :tax, type: Float, default: 0
-	  field :shipping, type: Float, default: 0
-    field :payment, type: Float, default: 0
-    field :order, type: Float, default: 0
-    field :item, type: Float, default: 0
+    field :adjustment, type: Float
+    field :tax, type: Float
+    field :shipping, type: Float
+    field :payment, type: Float
+    field :order, type: Float
+    field :item, type: Float
 
-    validates :adjustment,:tax,:shipping,
-              :payment,:order,:item, numericality: {
-      greater_than_or_equal_to: 0
-    }
+    embedded_in :sale_order, class_name: 'Hub::Order'
 
-	end
+    validates :adjustment, :tax, :shipping, :payment, :order, :item, numericality: {greater_than_or_equal_to: 0}
+
+  end
 end

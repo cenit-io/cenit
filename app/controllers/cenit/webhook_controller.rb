@@ -3,10 +3,14 @@
       before_filter :save_request_data, :authorize
       rescue_from Exception, :with => :exception_handler
 
-      # TODO: consider attribute objects
       def consume
-        handler = Handler::Base.build_handler(@object, @message, @endpoint)
-        responder = handler.process
+        response = {}
+        @objects.each do |obj|
+          handler = Handler::Base.build_handler(obj, @message, @endpoint)
+          response.merge(handler.process)
+        end
+        base_handler = Handler::Base.new(@message)
+        responder = base_handler.response(response, 202)
         render json: responder, root: false, status: responder.code
       end
 
@@ -31,9 +35,8 @@
         return false
       end
 
-      # TODO: change object to called_objects
       def save_request_data
-        @object = params[:webhook].keys.first.singularize
+        @objects = params[:webhook].keys.map {|k| k.singularize}
         @message = params[:webhook].to_json
       end
 

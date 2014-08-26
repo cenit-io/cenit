@@ -1,23 +1,10 @@
 module Hub
   class Product
     include Mongoid::Document
-    #include Mongoid::Attributes::Dynamic
     include Mongoid::Timestamps
+    include Hub::AfterSave
 
-    belongs_to :connection, class_name: 'Setup::Connection'
-
-    has_many :variants, class_name: 'Hub::Variant'
-    has_many :images, class_name: 'Hub::Image'
-
-    embeds_many :taxons, class_name: 'Hub::Taxon'
-    embeds_many :properties, class_name: 'Hub::Property'
-
-    accepts_nested_attributes_for :variants
-    accepts_nested_attributes_for :images
-    accepts_nested_attributes_for :properties
-    accepts_nested_attributes_for :taxons
-
-    field :_id, type: String
+    field :id, type: String
     field :name, type: String
     field :sku, type: String
     field :description, type: String
@@ -29,22 +16,17 @@ module Hub
     field :meta_keywords, type: String
     field :shipping_category, type: String
     field :options, type: Array
+    field :taxons, type: Array
+    field :properties, type: Hash
 
-    validates_presence_of :id, :name, :sku, :price, :available_on
-    validates_uniqueness_of :sku
+    embeds_many :variants, class_name: 'Hub::Variant'
+    embeds_many :images, class_name: 'Hub::Image'
 
+    accepts_nested_attributes_for :variants
+    accepts_nested_attributes_for :images
+
+    validates_presence_of :id, :name, :price, :available_on, :shipping_category
     validates_numericality_of :price, { greater_than: 0 }
-
-    # TODO: pass these methods to an external module and later use it as include
-    after_create do |object|
-      path = 'add_' + object.class.to_s.downcase.split('::').last
-      Cenit::Middleware::Producer.process(object, path, false)
-    end
-
-    after_update do |object|
-      path = 'update_' + object.class.to_s.downcase.split('::').last
-      Cenit::Middleware::Producer.process(object, path, true)
-    end
 
   end
 end
