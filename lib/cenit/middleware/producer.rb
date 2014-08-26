@@ -6,7 +6,8 @@ module Cenit
   module Middleware
     class Producer
 
-      def self.process(object, path)
+      def self.process(model, object, path)
+        object = prepare_object(model, object)
         webhook = Setup::Webhook.where(path: path).first
         if webhook
           webhook.connections.each do |endpoint|
@@ -19,6 +20,11 @@ module Cenit
             send_to_rabbitmq(message)
           end
         end
+      end
+
+      def self.prepare_object(model, object)
+        return {} if object.nil?
+        {model => object}
       end
 
       def self.send_to_rabbitmq(message)

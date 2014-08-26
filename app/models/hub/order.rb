@@ -2,6 +2,7 @@ module Hub
   class Order
     include Mongoid::Document
     include Mongoid::Timestamps
+    include Hub::AfterSave
 
     field :id, type: String
     field :status, type: String
@@ -17,8 +18,8 @@ module Hub
     embeds_many :adjustments, class_name: 'Hub::Adjustment'
     embeds_many :payments, class_name: 'Hub::Payment'
 
-    belongs_to :shipping_address, class_name: 'Hub::Address'
-    belongs_to :billing_address, class_name: 'Hub::Address'
+    embeds_one :shipping_address, class_name: 'Hub::Address'
+    embeds_one :billing_address, class_name: 'Hub::Address'
 
     accepts_nested_attributes_for :totals
     accepts_nested_attributes_for :line_items
