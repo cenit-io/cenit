@@ -14,7 +14,7 @@ describe Hub::Shipment do
         "shipping_method" => "UPS Ground (USD)",
         "tracking" => "12345678",
         "shipped_at" => "2014-02-03T17:33:55.343Z",
-        "shipping_address_attributes" => {
+        "shipping_address" => {
           "firstname" => "Joe",
           "lastname" => "Smith",
           "address1" => "1234 Awesome Street",
@@ -25,7 +25,7 @@ describe Hub::Shipment do
           "country" => "US",
           "phone" => "0000000000"
         },
-        "items_attributes" => [
+        "items" => [
           {
             "name" => "Spree T-Shirt",
             "product_id" => "SPREE-T-SHIRT",
@@ -48,7 +48,7 @@ describe Hub::Shipment do
         "tracking" => '',
         "updated_at" => '',
         "shipped_at" => '',
-        "items_attributes" => [
+        "items" => [
           {
             "name" => "Spree T-Shirt",
            # "sku" => "SPREE-T-SHIRT",
