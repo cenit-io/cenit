@@ -7,7 +7,6 @@ module Cenit
   module Middleware
     class Consumer
 
-      # TODO: create a noitfication from response
       def self.process(message)
         message = JSON.parse(message)
         response = HTTParty.post(message['url'],

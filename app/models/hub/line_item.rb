@@ -7,7 +7,6 @@ module Hub
     field :quantity, type: Integer
     field :price, type: Float
     field :product_id, type: String
-    field :variant_id, type: String
 
     embedded_in :order, class_name: 'Hub::Order'
     embedded_in :shipment, class_name: 'Hub::Shipment'

@@ -1,21 +1,15 @@
 module Hub
-	class Inventory
-	  include Mongoid::Document
-	  #include Mongoid::Attributes::Dynamic
-	  include Mongoid::Timestamps
+  class Inventory
+    include Mongoid::Document
+    include Mongoid::Timestamps
+    include Hub::AfterSave
 
-    belongs_to :variant, class_name: "Hub::Variant"
-    belongs_to :product, class_name: "Hub::Product"
+    field :id, type: String
+    field :location, type: String
+    field :quantity, type: Integer
+    field :product_id, type: String
 
-	  field :_id, type: String
-	  field :location, type: String
-	  field :quantity, type: Integer
+    validates_presence_of :location, :quantity
 
-    #TODO: create am index product_id
-    belongs_to :product, class_name: 'Hub::Product'
-
-    validates_presence_of :location, :quantity 
-
-
-	end
+  end
 end
