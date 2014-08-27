@@ -8,14 +8,14 @@ module Hub
 
       after_create do |object|
         model = object.class.to_s.split('::').last.downcase
-        path = 'add_' + model
-        Cenit::Middleware::Producer.process(model, object, path)
+        flows = Setup::Flow.where(model: model, action: 'create')
+        flows.each {|f| f.process(object)}
       end
 
       after_update do |object|
         model = object.class.to_s.split('::').last.downcase
-        path = 'update_' + model
-        Cenit::Middleware::Producer.process(model, object, path)
+        flows = Setup::Flow.where(model: model, action: 'update')
+        flows.each {|f| f.process(object)}
       end
 
     end

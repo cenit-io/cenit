@@ -10,8 +10,6 @@ module Setup
     field :store, type: String
     field :token, type: String
 
-    has_and_belongs_to_many :webhooks, :class_name => "Setup::Webhook"
-
     index({ starred: 1 })
   end
 end
