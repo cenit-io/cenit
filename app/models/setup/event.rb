@@ -2,14 +2,16 @@ module Setup
   class Event
     include Mongoid::Document
     include Mongoid::Timestamps
+    include Setup::Enum
 
     field :name, type: String
+
+    belongs_to :data_type, class_name: 'Setup::DataType'
+
     field :attr, type: String
     field :rule, type: String
     field :condition, type: String
     field :value, type: String
-
-    belongs_to :data_type, class_name: 'Setup::DataType'
 
     validates_presence_of :name
 

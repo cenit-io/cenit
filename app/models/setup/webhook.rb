@@ -2,6 +2,7 @@ module Setup
   class Webhook
     include Mongoid::Document
     include Mongoid::Timestamps
+    include Setup::Enum
 
     field :name, type: String
     field :path, type: String

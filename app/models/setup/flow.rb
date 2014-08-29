@@ -2,6 +2,7 @@ module Setup
   class Flow
     include Mongoid::Document
     include Mongoid::Timestamps
+    include Setup::Enum
 
     field :name, type: String
     field :purpose, type: String
@@ -19,7 +20,8 @@ module Setup
         :object => {self.data_type.name => object},
         :url => "#{self.connection.url}/#{self.webhook.path}",
         :store => self.connection.store,
-        :token => self.connection.token
+        :token => self.connection.token,
+        :purpose => self.purpose
       }.to_json
       Cenit::Middleware::Producer.send_to_rabbitmq(message)
     end
