@@ -1,22 +1,22 @@
 module Setup
   class Flow
     include Mongoid::Document
-    include Mongoid::Attributes::Dynamic
     include Mongoid::Timestamps
 
     field :name, type: String
-    field :send_or_receive, type: String
-    field :model, type: String
-    field :action, type: String
+    field :purpose, type: String
 
-    belongs_to :webhook, class_name: 'Setup::Webhook'
+    belongs_to :data_type, class_name: 'Setup::DataType'
     belongs_to :connection, class_name: 'Setup::Connection'
+    belongs_to :webhook, class_name: 'Setup::Webhook'
+    belongs_to :event, class_name: 'Setup::Event'
 
-    index({ starred: 1 })
+    validates_presence_of :name, :purpose, :data_type, :connection, :webhook, :event
 
     def process(object=nil)
+      return if self.data_type != object.data_type
       message = {
-        :object => {self.model => object},
+        :object => {self.data_type.name => object},
         :url => "#{self.connection.url}/#{self.webhook.path}",
         :store => self.connection.store,
         :token => self.connection.token

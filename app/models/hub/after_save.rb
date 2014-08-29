@@ -7,17 +7,24 @@ module Hub
     included do
 
       after_create do |object|
-        model = object.class.to_s.split('::').last.downcase
-        flows = Setup::Flow.where(model: model, action: 'create')
-        flows.each {|f| f.process(object)}
+        object.find_events('created')
       end
 
       after_update do |object|
-        model = object.class.to_s.split('::').last.downcase
-        flows = Setup::Flow.where(model: model, action: 'update')
-        flows.each {|f| f.process(object)}
+        object.find_events('updated')
       end
 
+    end
+
+    def data_type
+      Setup::DataType.where(klass: self.class.to_s).first
+    end
+
+    def find_events(action)
+      basic_event = Setup::Event.where(name: action).first
+      basic_event.throw(self) unless basic_event.nil?
+
+      Setup::Event.where(data_type: self.data_type).each {|e| e.throw(self)}
     end
 
   end
