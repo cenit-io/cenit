@@ -1,14 +1,16 @@
 module Setup
   class Webhook
     include Mongoid::Document
-    include Mongoid::Attributes::Dynamic
     include Mongoid::Timestamps
+    include Setup::Enum
 
     field :name, type: String
     field :path, type: String
+    field :purpose, type: String
 
-    has_and_belongs_to_many :connections, :class_name => "Setup::Connection"
+    belongs_to :data_type, class_name: 'Setup::DataType'
 
-    index({ starred: 1 })
+    validates_presence_of :name, :path, :purpose
+
   end
 end
