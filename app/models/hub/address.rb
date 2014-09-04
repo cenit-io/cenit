@@ -15,6 +15,7 @@ module Hub
 
     embedded_in :order, class_name: 'Hub::Order'
     embedded_in :shipment, class_name: 'Hub::Address'
+    embedded_in :customer, class_name: 'Hub::Address'
 
     validates_presence_of :firstname, :lastname, :address1, :zipcode, :city, :state, :country
 

@@ -23,7 +23,7 @@ module Setup
         :token => self.connection.token,
         :purpose => self.purpose
       }.to_json
-      Cenit::Middleware::Producer.send_to_rabbitmq(message)
+      Cenit::Rabbit.send_to_rabbitmq(message)
     end
 
   end
