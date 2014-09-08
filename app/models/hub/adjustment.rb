@@ -7,6 +7,7 @@ module Hub
     field :value, type: String
 
     embedded_in :order, class_name: 'Hub::Order'
+    embedded_in :cart, class_name: 'Hub::Cart'
 
     validates_presence_of :name, :value
 

@@ -8,8 +8,10 @@ module Hub
     field :amount, type: Float
     field :payment_method, type: String
 
-    embedded_in :order, class_name: 'Hub::Order'
     embeds_one :source, class_name: 'Hub::Source'
+
+    embedded_in :order, class_name: 'Hub::Order'
+    embedded_in :cart, class_name: 'Hub::Cart'
 
     accepts_nested_attributes_for :source
 

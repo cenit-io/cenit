@@ -10,9 +10,9 @@ module Hub
 
     embedded_in :variant, class_name: 'Hub::Variant'
     embedded_in :product, class_name: 'Hub::Product'
-    embeds_one :dimension, class_name: 'Hub::Dimension'
+    embeds_one :dimensions, class_name: 'Hub::Dimension'
 
-    accepts_nested_attributes_for :dimension
+    accepts_nested_attributes_for :dimensions
 
     validates_presence_of :url
 

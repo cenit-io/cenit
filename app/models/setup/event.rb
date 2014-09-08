@@ -26,7 +26,8 @@ module Setup
     end
 
     def throw(object=nil)
-      Setup::Flow.where(event: self).each {|f| f.process(object)} if apply(object)
+      puts "EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE"
+      Setup::Flow.where(event: self).each {|f| f.process(object)} #if apply(object)
     end
 
   end

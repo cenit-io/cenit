@@ -6,11 +6,11 @@
       def consume
         response = {}
         @objects.each do |obj|
-          handler = Handler::Base.build_handler(obj, @message, @endpoint)
+          handler = Handler.new(@message, obj)
           response.merge(handler.process)
         end
-        base_handler = Handler::Base.new(@message)
-        responder = base_handler.response(response, 202)
+        response_handler = Handler.new(@message)
+        responder = response_handler.response(response, 202)
         render json: responder, root: false, status: responder.code
       end
 
@@ -20,16 +20,16 @@
         token = request.headers['X-Hub-Access-Token']
         @endpoint = Setup::Connection.where(store: store, token: token).first
         unless @endpoint
-          base_handler = Handler::Base.new(@message)
-          responder = base_handler.response('Unauthorized!', 401)
+          response_handler = Handler.new(@message)
+          responder = response_handler.response('Unauthorized!', 401)
           render json: responder, root: false, status: responder.code
           return false
         end
       end
 
       def exception_handler(exception)
-        base_handler = Handler::Base.new(@message)
-        responder = base_handler.response(exception.message, 500)
+        exception_handler = Handler.new(@message)
+        responder = exception_handler.response(exception.message, 500)
         responder.backtrace = exception.backtrace.to_s
         render json: responder, root: false, status: responder.code
         return false

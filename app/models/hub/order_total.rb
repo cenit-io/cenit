@@ -11,6 +11,7 @@ module Hub
     field :item, type: Float
 
     embedded_in :sale_order, class_name: 'Hub::Order'
+    embedded_in :cart, class_name: 'Hub::Cart'
 
     validates :adjustment, :tax, :shipping, :payment, :order, :item, numericality: {greater_than_or_equal_to: 0}
 
