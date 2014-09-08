@@ -20,14 +20,13 @@ module Setup
     def apply(object=nil)
       return true if self.attr.nil?
       return true if self.rule == 'now_present' && !object.send(self.attr).nil?
-      return true if self.rule == 'no_longer_present' && object.send(self.attr).nil?
+      return true if self.rule == 'no_longer_present' && !object.send(self.attr).nil?
 
       return false
     end
 
     def throw(object=nil)
-      puts "EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE"
-      Setup::Flow.where(event: self).each {|f| f.process(object)} #if apply(object)
+      Setup::Flow.where(event: self).each {|f| f.process(object)} if apply(object)
     end
 
   end

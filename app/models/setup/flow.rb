@@ -15,9 +15,7 @@ module Setup
     validates_presence_of :name, :purpose, :data_type, :connection, :webhook, :event
 
     def process(object=nil)
-      puts "CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC"
       return if self.data_type != object.data_type
-      puts "DDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD"
       message = {
         :object => {self.data_type.name => object},
         :url => "#{self.connection.url}/#{self.webhook.path}",
