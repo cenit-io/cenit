@@ -20,7 +20,7 @@ module Cenit
       message = JSON.parse(message)
       response = HTTParty.post(message['url'],
                                {
-                                 body: message['object'].to_json,
+                                 body: message['body'].to_json,
                                  headers: {
                                    'Content-Type'    => 'application/json',
                                    'X_HUB_STORE'     => message['store'],
@@ -28,6 +28,10 @@ module Cenit
                                    'X_HUB_TIMESTAMP' => Time.now.utc.to_i.to_s
                                  }
                                })
+      if message['purpose'] == 'receive'
+        handler = Handler.new(response, message['object'])
+        handler.process
+      end
     end
 
   end

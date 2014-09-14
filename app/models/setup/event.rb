@@ -16,11 +16,16 @@ module Setup
     validates_presence_of :name
 
     # TODO: eval object value before and now
-    # TODO: eval condition
     def apply(object=nil)
-      return true if self.attr.nil?
-      return true if self.rule == 'now_present' && !object.send(self.attr).nil?
-      return true if self.rule == 'no_longer_present' && !object.send(self.attr).nil?
+      return true unless self.attr.present?
+
+      if self.rule == 'now present'
+        return true if !object.send(self.attr).nil?
+      elsif self.rule == 'no longer present'
+        return true if object.send(self.attr).nil?
+      elsif self.rule == 'has changed to a value'
+        return eval [object.send(attr), self.condition, self.value].join(' ')
+      end
 
       return false
     end

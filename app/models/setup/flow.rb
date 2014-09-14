@@ -16,8 +16,10 @@ module Setup
 
     def process(object=nil)
       return if self.data_type != object.data_type
+      body = self.purpose == 'send' ? {self.data_type.name => object} : {}
       message = {
-        :object => {self.data_type.name => object},
+        :object => self.data_type.name,
+        :body => body,
         :url => "#{self.connection.url}/#{self.webhook.path}",
         :store => self.connection.store,
         :token => self.connection.token,
