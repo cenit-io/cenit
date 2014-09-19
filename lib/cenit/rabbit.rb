@@ -10,28 +10,56 @@ module Cenit
       conn.start
 
       ch = conn.create_channel
-      q = ch.queue('send.to.website')
+      q = ch.queue('send.to.endpoint')
 
       ch.default_exchange.publish(message, :routing_key => q.name)
       conn.close
     end
 
-    def self.receive_from_rabbitmq(message)
+    def self.send_to_endpoint(message)
       message = JSON.parse(message)
-      response = HTTParty.post(message['url'],
+      connection = Setup::Connection.find(message['connection_id']['$oid'])
+      response = HTTParty.post(connection.url + '/' + message['webhook'],
                                {
                                  body: message['body'].to_json,
                                  headers: {
                                    'Content-Type'    => 'application/json',
-                                   'X_HUB_STORE'     => message['store'],
-                                   'X_HUB_TOKEN'     => message['token'],
+                                   'X_HUB_STORE'     => connection.store,
+                                   'X_HUB_TOKEN'     => connection.token,
                                    'X_HUB_TIMESTAMP' => Time.now.utc.to_i.to_s
                                  }
                                })
-      if message['purpose'] == 'receive'
-        handler = Handler.new(response, message['object'])
-        handler.process
+      notify_response_to_cenit(response, message)
+    rescue Exception => exc
+      notify_response_to_cenit(response, message, exc)
+    end
+
+    def self.notify_response_to_cenit(response, message, exception = nil)
+      # Http codes:
+      # 200...299 : OK
+      # 300...399 : Redirect
+      # 400...499 : Bad request
+      # 500...599 : Internal Server Error
+
+      notification = nil
+      if message['notification_id'].nil?
+        notification = Setup::Notification.new
+        notification.connection_id = message['connection_id']['$oid']
+        notification.webhook = message['webhook']
+        notification.message = message['body']
+        notification.count = 0
+      else
+        notification = Setup::Notification.find(message['notification_id'])
       end
+
+      if exception
+        notification.http_status_message = exception.message
+      else
+        notification.http_status_code    = response.code
+        notification.http_status_message = response.message
+      end
+      notification.count += 1
+      notification.save!
     end
 
   end
