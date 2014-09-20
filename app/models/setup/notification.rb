@@ -3,7 +3,7 @@ module Setup
     include Mongoid::Document
     include Mongoid::Timestamps
 
-    belongs_to :flow_id, :class_name => "Setup::Flow"
+    belongs_to :flow_id, :class_name => 'Setup::Flow'
 
     field :http_status_code, type: String
     field :http_status_message, type: String
@@ -17,7 +17,7 @@ module Setup
     def resend
       return unless self.must_be_resended?
       object = self.flow.data_type.model.constantize.find(self.object_id)
-      self.flow.process(object)
+      self.flow.process(object, self.id)
     end
 
   end

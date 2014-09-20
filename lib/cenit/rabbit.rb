@@ -35,7 +35,7 @@ module Cenit
       notify_response_to_cenit(response, message, exc)
     end
 
-    def self.notify_response_to_cenit(response, message, exception = nil)
+    def self.notify_response_to_cenit(response, message, exception=nil)
       # Http codes:
       # 200...299 : OK
       # 300...399 : Redirect
@@ -49,7 +49,7 @@ module Cenit
         notification.object_id = message['object_id']
         notification.count = 0
       else
-        notification = Setup::Notification.find(message['notification_id'])
+        notification = Setup::Notification.find(message['notification_id']['$oid'])
       end
 
       if exception
