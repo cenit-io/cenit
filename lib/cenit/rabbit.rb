@@ -18,14 +18,15 @@ module Cenit
 
     def self.send_to_endpoint(message)
       message = JSON.parse(message)
-      connection = Setup::Connection.find(message['connection_id']['$oid'])
-      response = HTTParty.post(connection.url + '/' + message['webhook'],
+      flow = Setup::Flow.find(message['flow_id']['$oid'])
+      object = flow.data_type.model.constantize.find(message['object_id'])
+      response = HTTParty.post(flow.connection.url + '/' + flow.webhook.path,
                                {
-                                 body: message['body'].to_json,
+                                 body: {flow.data_type.name => object}.to_json,
                                  headers: {
                                    'Content-Type'    => 'application/json',
-                                   'X_HUB_STORE'     => connection.store,
-                                   'X_HUB_TOKEN'     => connection.token,
+                                   'X_HUB_STORE'     => flow.connection.store,
+                                   'X_HUB_TOKEN'     => flow.connection.token,
                                    'X_HUB_TIMESTAMP' => Time.now.utc.to_i.to_s
                                  }
                                })
@@ -44,9 +45,8 @@ module Cenit
       notification = nil
       if message['notification_id'].nil?
         notification = Setup::Notification.new
-        notification.connection_id = message['connection_id']['$oid']
-        notification.webhook = message['webhook']
-        notification.message = message['body']
+        notification.flow_id = message['flow_id']['$oid']
+        notification.object_id = message['object_id']
         notification.count = 0
       else
         notification = Setup::Notification.find(message['notification_id'])

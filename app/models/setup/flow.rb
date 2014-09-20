@@ -16,13 +16,9 @@ module Setup
 
     def process(object)
       return if self.data_type != object.data_type
-      body = self.purpose == 'send' ? {self.data_type.name => object} : {}
       message = {
-        :object => self.data_type.name,
-        :body => body,
-        :connection_id => self.connection.id,
-        :webhook => self.webhook.path,
-        :purpose => self.purpose
+        :flow_id => self.id,
+        :object_id => object.id
       }.to_json
       Cenit::Rabbit.send_to_rabbitmq(message)
     end

@@ -4,7 +4,7 @@ module Setup
     include Mongoid::Timestamps
 
     field :name, type: String
-    field :klass, type: String
+    field :model, type: String
 
     validates_presence_of :name
 
