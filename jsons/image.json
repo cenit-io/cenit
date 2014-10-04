@@ -1,0 +1,12 @@
+{
+    "title": "Hub::Image",
+    "type": "object",
+    "properties": {
+        "url": {"type": "String"},
+        "position": {"type": "String"},
+        "title": {"type": "String"},
+        "type": {"type": "String"},
+        "dimensions": {"type": "Hub::Dimension"}
+    },
+    "required": ["url"]
+}

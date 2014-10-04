@@ -16,7 +16,7 @@ module Setup
 
     def resend
       return unless self.must_be_resended?
-      object = self.flow.data_type.model.constantize.find(self.object_id)
+      object = self.flow.model_schema.model.find(self.object_id)
       self.flow.process(object, self.id)
     end
 

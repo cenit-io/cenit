@@ -24,18 +24,20 @@ module Cenit
       def process
         return {} if self.model.nil?
 
-        klass = "Hub::#{self.model.capitalize}".constantize
+        model_schema = Setup::ModelSchema.where(name: self.model.capitalize).first
+        return {} if model_schema.nil?
+
         root = self.model.pluralize
         count = 0
         self.payload[root].each do |obj|
 
           next if obj[:id].empty? rescue obj[:id] = obj[:id].to_s
 
-          @object = klass.where(id: obj[:id]).first
+          @object = model_schema.model.where(id: obj[:id]).first
           if @object
             @object.update_attributes(obj)
           else
-            @object = klass.new(obj)
+            @object = model_schema.model.new(obj)
           end
           count += 1 if @object.save
         end

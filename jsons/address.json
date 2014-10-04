@@ -1,0 +1,16 @@
+{
+    "title": "Hub::Address",
+    "type": "object",
+    "properties": {
+        "firstname": {"type": "String"},
+        "lastname": {"type": "String"},
+        "address1": {"type": "String"},
+        "address2": {"type": "String", "default": ""},
+        "city": {"type": "String"},
+        "state": {"type": "String"},
+        "country": {"type": "String"},
+        "phone": {"type": "String"},
+        "zipcode": {"type": "String"}
+    },
+    "required": ["firstname", "lastname", "address1", "zipcode", "city", "state", "country"]
+}

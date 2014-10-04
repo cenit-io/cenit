@@ -1,0 +1,21 @@
+{
+    "title": "Hub::Order",
+    "type": "object",
+    "properties": {
+        "id": {"type": "String"},
+        "status": {"type": "String"},
+        "channel": {"type": "String"},
+        "email": {"type": "String"},
+        "currency": {"type": "String"},
+        "placed_on": {"type": "DateTime"},
+        "token": {"type": "String"},
+        "shipping_instructions": {"type": "String"},
+        "totals": {"type": "Hub::OrderTotal"},
+        "line_items": {"type": "Array", "items": {"type": "Hub::LineItem"}},
+        "adjustments": {"type": "Array", "items": {"type": "Hub::Adjustment"}},
+        "payments": {"type": "Array", "items": {"type": "Hub::Payment"}},
+        "shipping_address": {"type": "Hub::Address"},
+        "billing_address": {"type": "Hub::Address"}
+    },
+    "required": ["id", "status", "channel", "currency", "placed_on"]
+}

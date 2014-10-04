@@ -1,0 +1,12 @@
+{
+    "title": "Hub::OrderTotal",
+    "type": "object",
+    "properties": {
+        "adjustment": {"type": "Float", "minimum": 0},
+        "tax": {"type": "Float", "minimum": 0},
+        "shipping": {"type": "Float", "minimum": 0},
+        "payment": {"type": "Float", "minimum": 0},
+        "order": {"type": "Float", "minimum": 0},
+        "item": {"type": "Float", "minimum": 0}
+    }
+}

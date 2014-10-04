@@ -1,0 +1,12 @@
+{
+    "title": "Hub::Source",
+    "type": "object",
+    "properties": {
+        "name": {"type": "String"},
+        "month": {"type": "Integer"},
+        "year": {"type": "Integer"},
+        "cc_type": {"type": "String"},
+        "last_digits": {"type": "Integer"}
+    },
+    "required": ["name", "cc_type"]
+}

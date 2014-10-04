@@ -1,0 +1,19 @@
+{
+    "title": "Hub::Shipment",
+    "type": "object",
+    "properties": {
+        "id": {"type": "String"},
+        "order_id": {"type": "String"},
+        "email": {"type": "String"},
+        "cost": {"type": "Float"},
+        "status": {"type": "String"},
+        "stock_location": {"type": "String"},
+        "shipping_method": {"type": "String"},
+        "tracking": {"type": "String"},
+        "shipped_at": {"type": "Date"},
+        "updated_at": {"type": "Date"},
+        "channel": {"type": "String"},
+        "items": {"type": "Array", "items": {"type": "Hub::LineItem"}},
+        "shipping_address": {"type": "Hub::Address"}
+    }
+}

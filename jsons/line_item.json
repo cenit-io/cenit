@@ -1,0 +1,11 @@
+{
+    "title": "Hub::LineItem",
+    "type": "object",
+    "properties": {
+        "name": {"type": "String"},
+        "quantity": {"type": "Integer"},
+        "price": {"type": "Float"},
+        "product_id": {"type": "String"}
+    },
+    "required": ["name", "quantity", "price"]
+}
