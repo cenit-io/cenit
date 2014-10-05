@@ -6,11 +6,11 @@ module Setup
     end
 
     def rule_enum
-      ['is now present', 'is no longer present', 'has changed a to value']
+      ['is now present', 'is no longer present', 'has changed to a value']
     end
 
     def condition_enum
-      ['equal to', 'is not equal to', 'is greater than', 'is less than']
+      ['==', '!=', '>', '<']
     end
 
   end

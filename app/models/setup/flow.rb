@@ -14,16 +14,14 @@ module Setup
 
     validates_presence_of :name, :purpose, :data_type, :connection, :webhook, :event
 
-    def process(object=nil)
+    def process(object, notification_id=nil)
       return if self.data_type != object.data_type
       message = {
-        :object => {self.data_type.name => object},
-        :url => "#{self.connection.url}/#{self.webhook.path}",
-        :store => self.connection.store,
-        :token => self.connection.token,
-        :purpose => self.purpose
+        :flow_id => self.id,
+        :object_id => object.id,
+        :notification_id => notification_id
       }.to_json
-      Cenit::Middleware::Producer.send_to_rabbitmq(message)
+      Cenit::Rabbit.send_to_rabbitmq(message)
     end
 
   end

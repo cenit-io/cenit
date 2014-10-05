@@ -14,7 +14,9 @@ module Hub
     field :zipcode, type: String
 
     embedded_in :order, class_name: 'Hub::Order'
-    embedded_in :shipment, class_name: 'Hub::Address'
+    embedded_in :shipment, class_name: 'Hub::Shipment'
+    embedded_in :customer, class_name: 'Hub::Customer'
+    embedded_in :cart, class_name: 'Hub::Cart'
 
     validates_presence_of :firstname, :lastname, :address1, :zipcode, :city, :state, :country
 

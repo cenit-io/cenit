@@ -17,7 +17,7 @@ module Hub
     end
 
     def data_type
-      Setup::DataType.where(klass: self.class.to_s).first
+      Setup::DataType.where(model: self.class.to_s).first
     end
 
     def find_events(action)
