@@ -1,7 +1,5 @@
 module Hub
-  class Address
-    include Mongoid::Document
-    include Mongoid::Timestamps
+  class Address < Hub::Base
 
     field :firstname, type: String
     field :lastname, type: String

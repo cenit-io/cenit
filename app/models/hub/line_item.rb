@@ -1,7 +1,5 @@
 module Hub
-  class LineItem
-    include Mongoid::Document
-    include Mongoid::Timestamps
+  class LineItem < Hub::Base
 
     field :name, type: String
     field :quantity, type: Integer
