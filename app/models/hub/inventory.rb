@@ -1,7 +1,6 @@
 module Hub
-  class Inventory
-    include Mongoid::Document
-    include Mongoid::Timestamps
+  class Inventory < Hub::Base
+
     include Hub::AfterSave
 
     field :id, type: String
