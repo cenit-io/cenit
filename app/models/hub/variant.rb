@@ -1,7 +1,5 @@
 module Hub
-  class Variant
-    include Mongoid::Document
-    include Mongoid::Timestamps
+  class Variant < Hub::Base
 
     field :sku, type: String
     field :price, type: Float

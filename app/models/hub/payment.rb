@@ -1,7 +1,5 @@
 module Hub
-  class Payment
-    include Mongoid::Document
-    include Mongoid::Timestamps
+  class Payment < Hub::Base
 
     field :number, type: Integer
     field :status, type: String

@@ -1,7 +1,6 @@
 module Hub
-  class Order
-    include Mongoid::Document
-    include Mongoid::Timestamps
+  class Order < Hub::Base
+    
     include Hub::AfterSave
 
     field :id, type: String

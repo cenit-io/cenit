@@ -1,8 +1,8 @@
 module Hub
-  class Cart
-    include Mongoid::Document
-    include Mongoid::Timestamps
-
+  class Cart < Hub::Base
+    
+    include Hub::AfterSave
+    
     field :id, type: String
     field :status, type: String
     field :channel, type: String

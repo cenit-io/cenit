@@ -1,7 +1,5 @@
 module Hub
-  class Image
-    include Mongoid::Document
-    include Mongoid::Timestamps
+  class Image < Hub::Base
 
     field :url, type: String
     field :position, type: String
@@ -10,9 +8,9 @@ module Hub
 
     embedded_in :variant, class_name: 'Hub::Variant'
     embedded_in :product, class_name: 'Hub::Product'
-    embeds_one :dimensions, class_name: 'Hub::Dimension'
+    embeds_one :dimension, class_name: 'Hub::Dimension'
 
-    accepts_nested_attributes_for :dimensions
+    accepts_nested_attributes_for :dimension
 
     validates_presence_of :url
 
