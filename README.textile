@@ -722,16 +722,16 @@ If you add functionality to this application, create an alternative implementati
 
 h2. Credits
 
-Many of the concepts here develop was inspired by Spree Commerce.
-
-Cesar Lage & Miguel Sancho implemented the application.
+Many of the concepts here develop was inspired by Wombat.
 
 h4. Contributors
 
-Thank you for improvements to the tutorial by contributors:
+Thank you for improvements to the application:
 
 * "Cesar Lage":https://github.com/kaerdsar
 * "Miguel Sancho":https://github.com/sanchojaf
+* "Maykell Sanchez":https://github.com/kellsaro
+* "Maikel Arcia":https://github.com/macarci
 
 h2. MIT License
 
