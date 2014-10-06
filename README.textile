@@ -1,3 +1,5 @@
+"!https://codeclimate.com/github/openjaf/cenit/badges/gpa.svg!":https://codeclimate.com/github/openjaf/cenit
+
 h1. Demo Integrator for commerce solution.
 
 Rails 4.0.x with Mongoid.
