@@ -6,7 +6,7 @@ module Setup
 
     field :name, type: String
 
-    belongs_to :data_type, class_name: 'Setup::DataType'
+    belongs_to :model_schema, class_name: 'Setup::ModelSchema'
 
     field :attr, type: String
     field :rule, type: String

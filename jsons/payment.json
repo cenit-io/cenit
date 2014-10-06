@@ -1,0 +1,12 @@
+{
+    "title": "Hub::Payment",
+    "type": "object",
+    "properties": {
+        "number": {"type": "Integer"},
+        "status": {"type": "String"},
+        "amount": {"type": "Float"},
+        "payment_method": {"type": "String"},
+        "source": {"type": "Hub::Source"}
+    },
+    "required": ["number", "status", "amount", "payment_method"]
+}
