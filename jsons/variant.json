@@ -7,6 +7,10 @@
         "cost_price": {"type": "Float"},
         "quantity": {"type": "Integer"},
         "options": {"type": "Hash"},
+        "weight": {"type": "Float"}, 
+        "height": {"type": "Float"},
+        "width": {"type": "Float"},
+        "depth": {"type": "Float"},
         "images": {"type": "Array", "items": {"type": "Hub::Image"}}
     },
     "required": ["sku"]

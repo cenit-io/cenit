@@ -25,12 +25,20 @@ module Cenit
     # The default locale is :en and all translations from config/locales/*.rb,yml are auto loaded.
     # config.i18n.load_path += Dir[Rails.root.join('my', 'locales', '*.{rb,yml}').to_s]
     # config.i18n.default_locale = :de
-    
+
+    config.to_prepare do
+
+      Dir.glob(File.join(File.dirname(__FILE__), "../lib/cenit/*.rb")) do |c|
+      Rails.configuration.cache_classes ? require(c) : load(c)
+      end
+
+    end
+
     config.after_initialize do
       Setup::ModelSchema.all.each do |model_schema|
         RailsAdmin::AbstractModel.regist_model(model_schema.load_model)
       end
     end
-    
+
   end
 end

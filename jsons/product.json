@@ -13,8 +13,12 @@
         "meta_description": {"type": "String"},
         "meta_keywords": {"type": "String"},
         "shipping_category": {"type": "String"},
-        "options": {"type": "Array"},
         "taxons": {"type": "Array"},
+        "options": {"type": "Array"},
+        "weight": {"type": "Float"}, 
+        "height": {"type": "Float"},
+        "width": {"type": "Float"},
+        "depth": {"type": "Float"},
         "properties": {"type": "Hash"},
         "variants": {"type": "Array", "items": {"type": "Hub::Variant"}},
         "images": {"type": "Array", "items": {"type": "Hub::Image"}}
