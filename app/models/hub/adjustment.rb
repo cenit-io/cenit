@@ -1,8 +1,5 @@
 module Hub
-  class Adjustment
-    include Mongoid::Document
-    include Mongoid::Timestamps
-
+  class Adjustment < Hub::Base
     field :name, type: String
     field :value, type: String
 

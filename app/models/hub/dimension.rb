@@ -1,7 +1,5 @@
 module Hub
-  class Dimension
-    include Mongoid::Document
-    include Mongoid::Timestamps
+  class Dimension < Hub::Base
 
     field :height, type: Integer
     field :width, type: Integer

@@ -1,9 +1,8 @@
 module Hub
-  class Product
-    include Mongoid::Document
-    include Mongoid::Timestamps
+  class Product < Hub::Base
+    
     include Hub::AfterSave
-
+    
     field :id, type: String
     field :name, type: String
     field :sku, type: String

@@ -1,7 +1,7 @@
 module Hub
-  class Customer
-    include Mongoid::Document
-    include Mongoid::Timestamps
+  class Customer < Hub::Base
+    
+    include Hub::AfterSave
 
     field :id, type: String
     field :firstname, type: String

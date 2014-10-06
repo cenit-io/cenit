@@ -1,7 +1,6 @@
 module Hub
-  class Shipment
-    include Mongoid::Document
-    include Mongoid::Timestamps
+  class Shipment < Hub::Base
+    
     include Hub::AfterSave
 
     field :id, type: String

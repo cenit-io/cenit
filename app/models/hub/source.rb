@@ -1,7 +1,5 @@
 module Hub
-  class Source
-    include Mongoid::Document
-    include Mongoid::Timestamps
+  class Source < Hub::Base
 
     field :name, type: String
     field :month, type: Integer
