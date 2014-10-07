@@ -1,0 +1,19 @@
+{
+    "title": "Hub::Cart",
+    "type": "object",
+    "properties": {
+        "id": {"type": "String"},
+        "status": {"type": "String"},
+        "channel": {"type": "String"},
+        "email": {"type": "String"},
+        "currency": {"type": "String"},
+        "placed_on": {"type": "Date"},
+        "totals": {"type": "Hub::OrderTotal"},
+        "shipping_address": {"type": "Hub::Address"},
+        "billing_address": {"type": "Hub::Address"},
+        "line_items": {"type": "Array", "items": {"type": "Hub::LineItem"}},
+        "adjustments": {"type": "Array", "items": {"type": "Hub::Adjustment"}},
+        "payments": {"type": "Array", "items": {"type": "Hub::Payment"}}
+    },
+    "required": ["id", "status", "channel", "email", "currency", "placed_on", "shipping_address", "billing_address"]
+}

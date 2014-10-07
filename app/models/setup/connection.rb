@@ -1,8 +1,5 @@
 module Setup
-  class Connection
-    include Mongoid::Document
-    include Mongoid::Timestamps
-
+  class Connection < Base
     field :name, type: String
     field :url, type: String
     field :store, type: String

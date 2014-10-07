@@ -1,0 +1,13 @@
+{
+    "title": "Hub::Customer",
+    "type": "object",
+    "properties": {
+        "id": {"type": "String"},
+        "firstname": {"type": "String"},
+        "lastname": {"type": "String"},
+        "email": {"type": "String"},
+        "shipping_address": {"type": "Hub::Address"},
+        "billing_address": {"type": "Hub::Address"}
+    },
+    "required": ["id", "firstname", "lastname"]
+}

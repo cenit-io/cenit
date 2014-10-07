@@ -1,12 +1,10 @@
 module Setup
-  class Event
-    include Mongoid::Document
-    include Mongoid::Timestamps
+  class Event < Base
     include Setup::Enum
 
     field :name, type: String
 
-    belongs_to :data_type, class_name: 'Setup::DataType'
+    belongs_to :model_schema, class_name: 'Setup::ModelSchema'
 
     field :attr, type: String
     field :rule, type: String
@@ -19,15 +17,16 @@ module Setup
     def apply(object=nil)
       return true unless self.attr.present?
 
-      if self.rule == 'now present'
-        return true if !object.send(self.attr).nil?
-      elsif self.rule == 'no longer present'
-        return true if object.send(self.attr).nil?
-      elsif self.rule == 'has changed to a value'
-        return eval [object.send(attr), self.condition, self.value].join(' ')
+      result = case self.rule
+      when 'now present'
+        !object.send(self.attr).nil?
+      when 'no longer present'
+        object.send(self.attr).nil?
+      when 'has changed to a value'
+        eval [object.send(attr), self.condition, self.value].join(' ')
       end
-
-      return false
+      
+      return result
     end
 
     def throw(object=nil)

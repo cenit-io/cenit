@@ -1,0 +1,27 @@
+{
+    "title": "Hub::Product",
+    "type": "object",
+    "properties": {
+        "id": {"type": "String"},
+        "name": {"type": "String"},
+        "sku": {"type": "String"},
+        "description": {"type": "String"},
+        "price": {"type": "Float", "minimum": 0, "exclusiveMinimum": true},
+        "cost_price": {"type": "Float"},
+        "available_on": {"type": "Date"},
+        "permalink": {"type": "String"},
+        "meta_description": {"type": "String"},
+        "meta_keywords": {"type": "String"},
+        "shipping_category": {"type": "String"},
+        "taxons": {"type": "Array"},
+        "options": {"type": "Array"},
+        "weight": {"type": "Float"}, 
+        "height": {"type": "Float"},
+        "width": {"type": "Float"},
+        "depth": {"type": "Float"},
+        "properties": {"type": "Hash"},
+        "variants": {"type": "Array", "items": {"type": "Hub::Variant"}},
+        "images": {"type": "Array", "items": {"type": "Hub::Image"}}
+    },
+    "required": ["id", "name", "price", "available_on", "shipping_category"]
+}

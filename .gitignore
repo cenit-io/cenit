@@ -24,3 +24,5 @@ config/secrets.yml
 .rvmrc
 
 *~
+.ruby-gemset
+.ruby-version

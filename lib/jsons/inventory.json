@@ -1,0 +1,11 @@
+{
+    "title": "Hub::Inventory",
+    "type": "object",
+    "properties": {
+        "id": {"type": "String"},
+        "location": {"type": "String"},
+        "quantity": {"type": "Integer"},
+        "product_id": {"type": "String"}
+    },
+    "required": ["location", "quantity"]
+}
