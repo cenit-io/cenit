@@ -15,8 +15,7 @@ RailsAdmin.config do |config|
   # config.audit_with :paper_trail, 'User', 'PaperTrail::Version' # PaperTrail >= 3.0.0
 
   ### More at https://github.com/sferik/rails_admin/wiki/Base-configuration
-  config.excluded_models << "Account"
-  config.excluded_models << "Hub::Base"
+  config.excluded_models << "Account" << "Base"
   
   config.authenticate_with do
     warden.authenticate! scope: :user

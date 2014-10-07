@@ -1,7 +1,5 @@
 module Setup
-  class Flow
-    include Mongoid::Document
-    include Mongoid::Timestamps
+  class Flow < Base
     include Setup::Enum
 
     field :name, type: String

@@ -1,9 +1,6 @@
 module Setup
-  class Notification
-    include Mongoid::Document
-    include Mongoid::Timestamps
-
-    belongs_to :flow_id, :class_name => 'Setup::Flow'
+  class Notification < Base
+    belongs_to :flow, :class_name => 'Setup::Flow'
 
     field :http_status_code, type: String
     field :http_status_message, type: String

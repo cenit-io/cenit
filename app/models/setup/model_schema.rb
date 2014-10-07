@@ -1,8 +1,5 @@
 module Setup
-  class ModelSchema
-    include Mongoid::Document
-    include Mongoid::Timestamps
-
+  class ModelSchema < Base
     field :module_name, type: String, default: 'Hub'
     field :name, type: String
     field :after_save_callback, type: Boolean, default: false
@@ -24,7 +21,7 @@ module Setup
       m = nil
       if self.after_save_callback
         begin
-          m = (self.module_name + '::AfterSave').constantize
+          m = AfterSave
         rescue
         end
       end

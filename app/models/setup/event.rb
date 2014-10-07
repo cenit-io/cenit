@@ -1,7 +1,5 @@
 module Setup
-  class Event
-    include Mongoid::Document
-    include Mongoid::Timestamps
+  class Event < Base
     include Setup::Enum
 
     field :name, type: String
