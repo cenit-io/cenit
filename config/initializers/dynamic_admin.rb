@@ -1,9 +1,8 @@
-
 module RailsAdmin
   module Config
     class << self
       def new_model(model)
-        if !models_pool.include?(model.to_s)
+        unless models_pool.include?(model.to_s)
           @@system_models.insert((i = @@system_models.find_index { |e| e > model.to_s  }) ? i : @@system_models.length, model.to_s)
         end
       end
@@ -26,7 +25,7 @@ module RailsAdmin
       end
       
       def reset_config(model, excluded=[])
-        if !excluded.include?(model)
+        unless excluded.include?(model)
           begin
             model = model.constantize if model.is_a?(String)
             puts 'Resetting configuration of ' + model.to_s

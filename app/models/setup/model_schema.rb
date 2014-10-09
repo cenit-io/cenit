@@ -32,10 +32,11 @@ module Setup
 
     def validates_and_load_model
       hash = JSON.parse(self.schema)
-      required_title = self.module_name + '::' + self.name
+      required_title = "#{self.module_name}::#{self.name}"
       if title = hash['title']
-        if !title.eql?(required_title)
-          self.errors.add(:schema, 'title \'' + required_title + '\' expected, but \'' + title + '\' found.')
+        unless title.eql?(required_title)
+          self.errors.add(:schema, "title #{required_title} expected, but #{title} found.")
+          
           return false
         end
       else
@@ -47,7 +48,7 @@ module Setup
 
     class << self
 
-      MONGO_TYPES=['Array', 'BigDecimal', 'Boolean', 'Date', 'DateTime', 'Float', 'Hash', 'Integer', 'Range', 'String', 'Symbol', 'Time']
+      MONGO_TYPES= %W[ Array BigDecimal Boolean Date DateTime Float Hash Integer Range String Symbol Time ]
 
       @@has_many_to_bind = {}
       @@parsed_schemas = []
@@ -80,8 +81,8 @@ module Setup
           end
         end
 
-        if (m)
-          if !m.const_defined?(class_name)
+        if m
+          unless m.const_defined?(class_name)
             c = Class.new
             eval(name + ' = c')
           else
@@ -101,7 +102,7 @@ module Setup
           c.include Mongoid::Timestamps unless c.include? Mongoid::Timestamps
         end
         to_include && to_include.each do |m|
-          if !c.include?(m)
+          unless c.include?(m)
             puts 'Including ' + m.to_s
             c.include m
           end
@@ -132,8 +133,8 @@ module Setup
             type_model = reflect_class(property_type = property_desc['type'])
             if MONGO_TYPES.include?(property_type) && !(property_type.eql?('Array') && property_desc['items'])
               v = 'field :' + property_name + ', type: ' + property_desc['type']
-              if property_desc['default']
-                v += ', default: \'' + property_desc['default'] + '\''
+              if default_value = property_desc['default']
+                v += ", default: '#{default_value}'"
               end
               if property_type.eql?('String')
                 if property_desc['minLength'] || property_desc['minLength']
