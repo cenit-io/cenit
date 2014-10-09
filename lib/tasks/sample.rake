@@ -9,21 +9,16 @@ namespace :sample do
     
       User.delete_all
       puts 'All User Deleted.'
+      
+      Setup::Webhook.delete_all
+      puts 'All Webhook Deleted.'
     
-      Hub::Product.delete_all
-      puts 'All Products Deleted.'
+      Setup::Connection.delete_all
+      puts 'All Connection Deleted.'
       
-      Hub::Order.delete_all
-      puts 'All Orders Deleted.'
-      
-      Hub::Address.delete_all
-      puts 'All Address Deleted.'
-      
-      Hub::LineItem.delete_all
-      puts 'All Line Item Deleted.'
-      
-      Hub::OrderTotal.delete_all
-      puts 'All Orders Total Deleted.'
+      Setup::ModelSchema.delete_all
+      puts 'All ModelSchema Deleted.'
+
 
       Account.create! [ { name: "Grocer A"}, { name: "Grocer B"} ]
     
@@ -48,7 +43,54 @@ namespace :sample do
         
         user1.save(validate: false)
         user2.save(validate: false)
+        
+        #Setup
+        webhook_attributes = [
+          { 
+            name: 'Add Product', 
+            path: 'add_product',
+            purpose: 'sent'
+          },
+          { 
+            name: 'Update Product', 
+            path: 'update_product',
+            purpose: 'sent'
+          }
+        ]
 
+        webhooks = Setup::Webhook.create!(webhook_attributes)
+        
+        connection_attributes = [
+          { 
+            name: 'Store I', 
+            url: 'http://localhost:3001/wombat', 
+            store: '3001', 
+            token: 'tresmiluno', 
+            webhooks: webhooks 
+          },
+          { 
+            name: 'Store II', 
+            url: 'http://localhost:3002/wombat', 
+            store:'3002', 
+            token: 'tresmildos'
+          },
+        ]
+        
+        Setup::Connection.create!(connection_attributes)
+        
+        base_path = File.join(Rails.root, 'lib', 'jsons') 
+        schemas = Dir.entries(base_path).select {|f| !File.directory? f} 
+        
+        schemas.each do |file_schema|
+          schema = File.read("#{base_path}/#{file_schema}")
+          klass_name = file_schema.split('.json')[0].camelize
+          Setup::ModelSchema.create!(module_name: 'Hub', name: klass_name, schema: schema)
+          klass = "Hub::#{klass_name}".constantize
+          
+          klass.delete_all
+          puts "All #{klass_name.pluralize} are deleted before load sample."
+        end
+        
         all_taxons = [
           ["Categories","Bags"],
           ["Categories","Mugs"],
@@ -173,14 +215,14 @@ namespace :sample do
                 "email" => "spree@example.com",
                 "currency" => "USD",
                 "placed_on" => DateTime.now - rand(20).months - rand(31).days-rand(24).hours-rand(60).minutes-rand(60).seconds,
-                "totals_attributes" => {
-                  "item" => item_price,
-                  "adjustment" => adjustment,
-                  "tax" => tax,
-                  "shipping" => shipping,
-                  "payment" => item_price,
-                  "order" => item_price
-                },
+#                "totals_attributes" => {
+#                  "item" => item_price,
+#                  "adjustment" => adjustment,
+#                  "tax" => tax,
+#                  "shipping" => shipping,
+#                  "payment" => item_price,
+#                  "order" => item_price
+#                },
                 "line_items_attributes" => [
                   {
                     "product_id" => sku,
