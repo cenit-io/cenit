@@ -84,9 +84,17 @@ namespace :sample do
         schemas.each do |file_schema|
           schema = File.read("#{base_path}/#{file_schema}")
           klass_name = file_schema.split('.json')[0].camelize
-          Setup::ModelSchema.create!(module_name: 'Hub', name: klass_name, schema: schema)
-          klass = "Hub::#{klass_name}".constantize
           
+          model_schema_attributes = {
+            module_name: 'Hub', 
+            name: klass_name, 
+            schema: schema,
+            after_save_callback: %W[ Product Order Cart Payment Return ].include?(klass_name)
+          }
+          
+          model_schema = Setup::ModelSchema.create!( model_schema_attributes )
+        
+          klass = "Hub::#{klass_name}".constantize  
           klass.delete_all
           puts "All #{klass_name.pluralize} are deleted before load sample."
         end

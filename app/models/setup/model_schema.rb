@@ -4,12 +4,19 @@ module Setup
     field :name, type: String
     field :after_save_callback, type: Boolean, default: false
     field :schema, type: String
+    
+    scope :after_save_callback, -> { where(after_save_callback: true) }
 
     validates_presence_of :module_name, :name, :schema
     validates_length_of :module_name, :maximum => 50
     validates_format_of :module_name, :with => /^([A-Z]+[a-z]*)+(::([A-Z]+[a-z]*)+)*$/, :multiline => true
     validates_length_of :name, :maximum => 50
     validates_format_of :module_name, :with => /^([A-Z]+[a-z]*)+$/, :multiline => true
+
+    rails_admin do 
+      field :name
+      field :after_save_callback
+    end 
 
     before_save :validates_and_load_model
 
