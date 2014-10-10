@@ -21,6 +21,7 @@ RailsAdmin.config do |config|
     warden.authenticate! scope: :user
   end
   config.current_user_method { current_user} # auto-generated
+  
 
   config.actions do
     dashboard                     # mandatory

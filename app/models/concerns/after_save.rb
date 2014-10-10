@@ -13,15 +13,16 @@ module AfterSave
 
   end
 
-  def data_type
-    Setup::DataType.where(model: self.class.to_s).first
+  def model_schema
+    model_name = self.class.to_s.split('::').last
+    Setup::ModelSchema.where(name: model_name).first
   end
 
   def find_events(action)
     basic_event = Setup::Event.where(name: action).first
     basic_event.throw(self) unless basic_event.nil?
 
-    Setup::Event.where(data_type: self.data_type).each {|e| e.throw(self)}
+    Setup::Event.where(model_schema: self.model_schema).each {|e| e.throw(self)}
   end
 
 end

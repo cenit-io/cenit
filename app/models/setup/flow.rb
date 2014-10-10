@@ -21,6 +21,33 @@ module Setup
       }.to_json
       Cenit::Rabbit.send_to_rabbitmq(message)
     end
+    
+    rails_admin do 
+      
+      field :purpose
+      
+      field :model_schema do
+        label 'Object'
+      end
+      
+#      edit do
+        configure :model_schema do
+          associated_collection_scope do
+            #Setup::ModelSchema.after_save_callback
+            flow = bindings[:object]
+            proc { Setup::ModelSchema.where(after_save_callback: true) }
+          end
+        end
+        
+        
+        
+#      end
+
+      field :webhook
+      field :event
+      field :name
+
+    end  
 
   end
 end
