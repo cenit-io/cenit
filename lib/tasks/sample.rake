@@ -12,6 +12,9 @@ namespace :sample do
       
       Setup::Webhook.delete_all
       puts 'All Webhook Deleted.'
+      
+      Setup::Flow.delete_all
+      puts 'All Webhook Deleted.'
     
       Setup::Connection.delete_all
       puts 'All Connection Deleted.'
@@ -19,7 +22,9 @@ namespace :sample do
       Setup::ModelSchema.delete_all
       puts 'All ModelSchema Deleted.'
 
-
+      
+      ############  CONFIG TENANT ###############
+      
       Account.create! [ { name: "Grocer A"}, { name: "Grocer B"} ]
     
       Account.all.each_with_index do |account, index|
@@ -44,7 +49,9 @@ namespace :sample do
         user1.save(validate: false)
         user2.save(validate: false)
         
-        #Setup
+        
+        
+        ############  CONFIG SETUP ###############
         webhook_attributes = [
           { 
             name: 'Add Product', 
@@ -64,19 +71,22 @@ namespace :sample do
           { 
             name: 'Store I', 
             url: 'http://localhost:3001/wombat', 
-            store: '3001', 
-            token: 'tresmiluno', 
+            endpoint_store: '3001', 
+            endpoint_token: 'tresmiluno', 
             webhooks: webhooks 
           },
           { 
             name: 'Store II', 
             url: 'http://localhost:3002/wombat', 
-            store:'3002', 
-            token: 'tresmildos'
+            endpoint_id:'3002', 
+            endpoint_token: 'tresmildos',
+            webhooks: webhooks
           },
         ]
         
         Setup::Connection.create!(connection_attributes)
+        
+        
         
         base_path = File.join(Rails.root, 'lib', 'jsons') 
         schemas = Dir.entries(base_path).select {|f| !File.directory? f} 
