@@ -17,11 +17,9 @@
       protected
       def authorize
         
-        id = request.headers['X-Hub-Store']
+        key = request.headers['X-Hub-Store']
         token = request.headers['X-Hub-Access-Token']
-        puts "*********** id #{id} token #{token}"
-        
-        @endpoint = Setup::Connection.where(endpoint_id: id, endpoint_token: token).first
+        @endpoint = Setup::Connection.unscoped.find_by(key: key, token: token)
         unless @endpoint
           response_handler = Handler.new(@message)
           responder = response_handler.response('Unauthorized!', 401)

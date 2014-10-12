@@ -4,6 +4,7 @@ module Setup
     field :name, type: String
     field :after_save_callback, type: Boolean, default: false
     field :schema, type: String
+    field :active, type: Boolean
     
     scope :after_save_callback, -> { where(after_save_callback: true) }
 
@@ -14,13 +15,22 @@ module Setup
     validates_format_of :module_name, :with => /^([A-Z]+[a-z]*)+$/, :multiline => true
 
     rails_admin do 
-      field :name
-      field :after_save_callback
+      label "Model" 
+
+      list do 
+        fields :module_name, :name, :after_save_callback, :active
+      end
+      edit do 
+        fields :module_name, :name, :after_save_callback, :active, :schema
+      end
+      show do 
+        fields :module_name, :name, :after_save_callback, :active, :schema
+      end
     end 
 
     before_save :validates_and_load_model
 
-    def model
+    def instantiate
       [self.module_name, self.name].join('::').constantize
     end
 

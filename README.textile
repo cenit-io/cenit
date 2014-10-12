@@ -1,25 +1,19 @@
 "!https://codeclimate.com/github/openjaf/cenit/badges/gpa.svg!":https://codeclimate.com/github/openjaf/cenit
 
-h1. Demo Integrator for commerce solution.
+h1. Features.
 
 Rails 4.0.x with Mongoid.
 
 * MongoDB is used as a datastore with the "Mongoid":http://mongoid.org/  gem for quick development without schemas or migrations.
+* Dinamic load of Json Schemas
 * rails_admin, for build admin panel.
-* RabbitMQ for internal message.
+* RabbitMQ for internal pipeline messages.
+* Authentication (via Devise)
+* multi-tenantcy with shared-schema database
 
 h2. What Is Implemented -- and What Is Not
 
-This is a demonstration application that allows you integrate commerce solution inspire in Spree Hub (Wombat). You can configure the endpoint and see all the data through the data viewer.
-
-For the moment:
-* Only connect Spree Store endpoints.
-* Only is ready that Product objects flow throught the hub.
-
-Next Steps:
-* Add Order object flow.
-* Add OpenERP like EndPoint
-
+This is a demonstration application that allows you integrate commerce solutions inspire in Wombat. You can configure the endpoint and see all the data through the data viewer.
 
 h2. How to Use
 
