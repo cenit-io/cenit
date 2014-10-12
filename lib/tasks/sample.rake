@@ -10,16 +10,24 @@ namespace :sample do
       User.delete_all
       puts 'All User Deleted.'
       
-      Setup::Webhook.delete_all
+      Setup::Webhook.unscoped.delete_all
       puts 'All Webhook Deleted.'
-    
-      Setup::Connection.delete_all
+  
+      Setup::Connection.unscoped.delete_all
       puts 'All Connection Deleted.'
-      
-      Setup::ModelSchema.delete_all
+    
+      Setup::ModelSchema.unscoped.delete_all
       puts 'All ModelSchema Deleted.'
+      
+      Setup::Event.unscoped.delete_all
+      puts 'All ModelSchema Deleted.'
+      
+      Setup::Flow.unscoped.delete_all
+      puts 'All ModelSchema Deleted.'
+      
 
-
+      ############  CONFIG TENANT ###############
+      
       Account.create! [ { name: "Grocer A"}, { name: "Grocer B"} ]
     
       Account.all.each_with_index do |account, index|
@@ -30,7 +38,13 @@ namespace :sample do
         		email: "user_#{index + 1}1@mail.com",
         		password: '12345678', 
         		password_confirmation: '12345678',
+            account: account 
         	})
+          
+        user1.account = account
+        user1.save(validate: false)
+        
+        account.owner = user1
           
         user2 = User.create!({
         		email: "user_#{index + 1}2@mail.com",
@@ -38,46 +52,12 @@ namespace :sample do
         		password_confirmation: '12345678',
         	})  
           
-        user1.account = account.id
-        user2.account = account.id
+        user2.account = account
         
-        user1.save(validate: false)
         user2.save(validate: false)
         
-        #Setup
-        webhook_attributes = [
-          { 
-            name: 'Add Product', 
-            path: 'add_product',
-            purpose: 'sent'
-          },
-          { 
-            name: 'Update Product', 
-            path: 'update_product',
-            purpose: 'sent'
-          }
-        ]
+        ############  LOAD MODELS ###############
 
-        webhooks = Setup::Webhook.create!(webhook_attributes)
-        
-        connection_attributes = [
-          { 
-            name: 'Store I', 
-            url: 'http://localhost:3001/wombat', 
-            store: '3001', 
-            token: 'tresmiluno', 
-            webhooks: webhooks 
-          },
-          { 
-            name: 'Store II', 
-            url: 'http://localhost:3002/wombat', 
-            store:'3002', 
-            token: 'tresmildos'
-          },
-        ]
-        
-        Setup::Connection.create!(connection_attributes)
-        
         base_path = File.join(Rails.root, 'lib', 'jsons') 
         schemas = Dir.entries(base_path).select {|f| !File.directory? f} 
         
@@ -89,15 +69,101 @@ namespace :sample do
             module_name: 'Hub', 
             name: klass_name, 
             schema: schema,
+            active: true,
             after_save_callback: %W[ Product Order Cart Payment Return ].include?(klass_name)
           }
           
           model_schema = Setup::ModelSchema.create!( model_schema_attributes )
-        
-          klass = "Hub::#{klass_name}".constantize  
+          
+
+          
+          # Create default event 'created' and 'updated'
+          # TODO: move this code for ModelSchema class
+          
+          if model_schema.after_save_callback.present?
+            Setup::Event.create!(name: 'created', model: model_schema) 
+            Setup::Event.create!(name: 'updated', model: model_schema)
+          end
+         
+          klass = model_schema.instantiate
           klass.delete_all
           puts "All #{klass_name.pluralize} are deleted before load sample."
         end
+        
+
+        ############  CONFIG SETUP ###############
+        
+        webhook_attributes = [
+          { 
+            name: 'Add Product', 
+            path: 'add_product',
+            model: Setup::ModelSchema.find_by(name: 'Product')
+          },
+          { 
+            name: 'Update Product', 
+            path: 'update_product',
+            model: Setup::ModelSchema.find_by(name: 'Product')
+          }
+        ]
+
+        webhooks = Setup::Webhook.create!(webhook_attributes)
+        
+        connection_attributes = [
+          { 
+            name: 'Store I', 
+            url: 'http://localhost:3001/wombat', 
+            key: '3001', 
+            token: 'tresmiluno',
+          },
+          { 
+            name: 'Store II', 
+            url: 'http://localhost:3002/wombat', 
+            key:'3002', 
+            token: 'tresmildos'
+          },
+        ]
+        
+        Setup::Connection.create!(connection_attributes)
+        
+        flow_attributes = [
+          { 
+            name: 'Add Product to Store I', 
+            purpose: 'send',
+            event: Setup::Event.find_by(name: 'created', model: Setup::ModelSchema.find_by(name: 'Product')),
+            connection: Setup::Connection.find_by(name: 'Store I'),
+            webhook: Setup::Webhook.find_by(name: 'Add Product'), 
+            active: true,
+          },
+          { 
+            name: 'Update Product to Store I', 
+            purpose: 'send',
+            event: Setup::Event.find_by(name: 'created', model: Setup::ModelSchema.find_by(name: 'Product')),
+            connection: Setup::Connection.find_by(name: 'Store I'),
+            webhook: Setup::Webhook.find_by(name: 'Update Product'), 
+            active: true,
+          },
+          { 
+            name: 'Add Product to Store II', 
+            purpose: 'send',
+            event: Setup::Event.find_by(name: 'created',model: Setup::ModelSchema.find_by(name: 'Product')),
+            connection: Setup::Connection.find_by(name: 'Store II'),
+            webhook: Setup::Webhook.find_by(name: 'Add Product'), 
+            active: true,
+          },
+          { 
+            name: 'Update Product to Store II', 
+            purpose: 'send',
+            event: Setup::Event.find_by(name: 'created', model: Setup::ModelSchema.find_by(name: 'Product') ),
+            connection: Setup::Connection.find_by(name: 'Store II'),
+            webhook: Setup::Webhook.find_by(name: 'Update Product'), 
+            active: true,
+          }
+        ]
+
+        Setup::Flow.create!(flow_attributes)
+        
+        
+        ############  SAMPLE DATA ###############
         
         all_taxons = [
           ["Categories","Bags"],

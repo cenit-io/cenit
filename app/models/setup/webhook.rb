@@ -4,11 +4,26 @@ module Setup
 
     field :name, type: String
     field :path, type: String
-    field :purpose, type: String
 
-    belongs_to :model_schema, class_name: 'Setup::ModelSchema'
+    belongs_to :model, class_name: 'Setup::ModelSchema'
 
-    validates_presence_of :name, :path, :purpose
+    validates_presence_of :name, :path
+  
+    rails_admin do
+      
+      field :name
+      field :path
+      field :model
+
+      configure :model do
+        associated_collection_scope do
+          #Setup::ModelSchema.after_save_callback
+          Webhook = bindings[:object]
+          proc { Setup::ModelSchema.where(after_save_callback: true) }
+        end
+      end
+      
+    end
 
   end
 end
