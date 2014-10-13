@@ -29,9 +29,6 @@ module Setup
         fields :module_name, :name, :after_save_callback, :active, :schema
       end
       
-      show do 
-        fields :module_name, :name, :after_save_callback, :active, :schema
-      end
       export
     end 
 
