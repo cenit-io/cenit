@@ -5,13 +5,14 @@ module Setup
     field :name, type: String
 
     belongs_to :model, class_name: 'Setup::ModelSchema'
+    has_many :flows, class_name: 'Setup::Flow', inverse_of: :event
 
     field :attr, type: String
     field :rule, type: String
     field :condition, type: String
     field :value, type: String
 
-    validates_presence_of :name
+    validates_presence_of :name, :model
     
     rails_admin do
       
@@ -27,6 +28,10 @@ module Setup
           Webhook = bindings[:object]
           proc { Setup::ModelSchema.where(after_save_callback: true) }
         end
+      end
+      
+      object_label_method do
+        :full_name
       end
       
     end
@@ -59,8 +64,15 @@ module Setup
     end
 
     def throw( object = nil )
-      Setup::Flow.where(event: self).each {|f| f.process(object)} if apply(object)
+      if self.apply(object) 
+        flows = Setup::Flow.where( event: self )
+        flows.each { |f| f.process(object) } if flows.any? 
+      end
     end
+    
+    def full_name
+      "#{self.name} #{model.name.downcase} "
+    end  
 
   end
 end

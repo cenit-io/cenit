@@ -20,12 +20,19 @@ module Setup
       list do 
         fields :module_name, :name, :after_save_callback, :active
       end
+      
       edit do 
         fields :module_name, :name, :after_save_callback, :active, :schema
       end
+      
       show do 
         fields :module_name, :name, :after_save_callback, :active, :schema
       end
+      
+      show do 
+        fields :module_name, :name, :after_save_callback, :active, :schema
+      end
+      export
     end 
 
     before_save :validates_and_load_model
