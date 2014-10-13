@@ -4,8 +4,10 @@ module Setup
 
     field :name, type: String
     field :path, type: String
+    field :purpose, type: String
 
     belongs_to :model, class_name: 'Setup::ModelSchema'
+    has_many :connection_webhooks, class_name: 'Setup::ConnectionWebhook', inverse_of: :connection
 
     validates_presence_of :name, :path
   
@@ -14,6 +16,7 @@ module Setup
       field :name
       field :path
       field :model
+      field :purpose
 
       configure :model do
         associated_collection_scope do

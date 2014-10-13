@@ -15,20 +15,22 @@ namespace :sample do
   
       Setup::Connection.unscoped.delete_all
       puts 'All Connection Deleted.'
+      
+      Setup::ConnectionWebhook.unscoped.delete_all
+      puts 'All ConnectionWebhook Deleted.'
     
       Setup::ModelSchema.unscoped.delete_all
       puts 'All ModelSchema Deleted.'
       
       Setup::Event.unscoped.delete_all
-      puts 'All ModelSchema Deleted.'
+      puts 'All Event Deleted.'
       
       Setup::Flow.unscoped.delete_all
-      puts 'All ModelSchema Deleted.'
-      
+      puts 'All Flow Deleted.'
 
       ############  CONFIG TENANT ###############
       
-      Account.create! [ { name: "Grocer A"}, { name: "Grocer B"} ]
+      Account.create! [ { name: "Organization A"}, { name: "Organization B"} ]
     
       Account.all.each_with_index do |account, index|
         
@@ -59,7 +61,7 @@ namespace :sample do
         ############  LOAD MODELS ###############
 
         base_path = File.join(Rails.root, 'lib', 'jsons') 
-        schemas = Dir.entries(base_path).select {|f| !File.directory? f} 
+        schemas = Dir.entries(base_path).select {|f| !File.directory?(f) && f != '.DS_Store' } 
         
         schemas.each do |file_schema|
           schema = File.read("#{base_path}/#{file_schema}")
@@ -75,14 +77,12 @@ namespace :sample do
           
           model_schema = Setup::ModelSchema.create!( model_schema_attributes )
           
-
-          
           # Create default event 'created' and 'updated'
           # TODO: move this code for ModelSchema class
           
           if model_schema.after_save_callback.present?
-            Setup::Event.create!(name: 'created', model: model_schema) 
-            Setup::Event.create!(name: 'updated', model: model_schema)
+            Setup::Event.create!(name: "created", model: model_schema) 
+            Setup::Event.create!(name: "updated", model: model_schema)
           end
          
           klass = model_schema.instantiate
@@ -90,23 +90,25 @@ namespace :sample do
           puts "All #{klass_name.pluralize} are deleted before load sample."
         end
         
-
+        product = Setup::ModelSchema.find_by(name: 'Product')
+        
         ############  CONFIG SETUP ###############
         
         webhook_attributes = [
           { 
             name: 'Add Product', 
             path: 'add_product',
-            model: Setup::ModelSchema.find_by(name: 'Product')
+            model: product
           },
           { 
             name: 'Update Product', 
             path: 'update_product',
-            model: Setup::ModelSchema.find_by(name: 'Product')
+            model: product
           }
         ]
 
-        webhooks = Setup::Webhook.create!(webhook_attributes)
+        add_product = Setup::Webhook.create!(webhook_attributes[0])
+        update_product = Setup::Webhook.create!(webhook_attributes[1])
         
         connection_attributes = [
           { 
@@ -123,45 +125,50 @@ namespace :sample do
           },
         ]
         
-        Setup::Connection.create!(connection_attributes)
+        store_I = Setup::Connection.create!(connection_attributes[0])
+        store_II = Setup::Connection.create!(connection_attributes[1])
+        
+        add_product_store_I  = Setup::ConnectionWebhook.create!( connection: store_I, webhook: add_product )
+        update_product_store_I  = Setup::ConnectionWebhook.create!( connection: store_I, webhook: update_product ) 
+                
+        add_product_store_II = Setup::ConnectionWebhook.create!( connection: store_II, webhook: add_product )
+        update_product_store_II = Setup::ConnectionWebhook.create!( connection: store_II, webhook: update_product ) 
+        
+        product_created = Setup::Event.find_by(name: 'created', model: product)             
+        product_updated = Setup::Event.find_by(name: 'updated', model: product)
         
         flow_attributes = [
           { 
             name: 'Add Product to Store I', 
             purpose: 'send',
-            event: Setup::Event.find_by(name: 'created', model: Setup::ModelSchema.find_by(name: 'Product')),
-            connection: Setup::Connection.find_by(name: 'Store I'),
-            webhook: Setup::Webhook.find_by(name: 'Add Product'), 
+            event: product_created,
+            connection_webhook: add_product_store_I,
             active: true,
           },
           { 
             name: 'Update Product to Store I', 
             purpose: 'send',
-            event: Setup::Event.find_by(name: 'created', model: Setup::ModelSchema.find_by(name: 'Product')),
-            connection: Setup::Connection.find_by(name: 'Store I'),
-            webhook: Setup::Webhook.find_by(name: 'Update Product'), 
+            event: product_updated,
+            connection_webhook: update_product_store_I,
             active: true,
           },
           { 
             name: 'Add Product to Store II', 
             purpose: 'send',
-            event: Setup::Event.find_by(name: 'created',model: Setup::ModelSchema.find_by(name: 'Product')),
-            connection: Setup::Connection.find_by(name: 'Store II'),
-            webhook: Setup::Webhook.find_by(name: 'Add Product'), 
+            event: product_created,
+            connection_webhook: add_product_store_II,
             active: true,
           },
           { 
             name: 'Update Product to Store II', 
             purpose: 'send',
-            event: Setup::Event.find_by(name: 'created', model: Setup::ModelSchema.find_by(name: 'Product') ),
-            connection: Setup::Connection.find_by(name: 'Store II'),
-            webhook: Setup::Webhook.find_by(name: 'Update Product'), 
+            event: product_updated,
+            connection_webhook: update_product_store_II,
             active: true,
           }
         ]
 
         Setup::Flow.create!(flow_attributes)
-        
         
         ############  SAMPLE DATA ###############
         
