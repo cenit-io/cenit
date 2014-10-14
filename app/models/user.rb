@@ -4,7 +4,7 @@ class User
   extend DeviseOverrides
   
   #include AccountScoped
-   belongs_to :account, inverse_of: :users
+  belongs_to :account, inverse_of: :users
 
   #include AccountScoped
   
@@ -13,7 +13,7 @@ class User
   devise :database_authenticatable, :registerable,
          :recoverable, :rememberable, :trackable, :validatable
 
-  after_create :ensure_account
+  #after_create :ensure_account
 
   ## Database authenticatable
   field :email,              type: String, default: ""
