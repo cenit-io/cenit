@@ -19,10 +19,10 @@ module Cenit
     def self.send_to_endpoint(message)
       message = JSON.parse(message)
       flow = Setup::Flow.find(message['flow_id']['$oid'])
-      object = flow.model_schema.model.find(message['object_id'])
+      object = flow.data_type.model.constantize.find(message['object_id'])
       response = HTTParty.post(flow.connection.url + '/' + flow.webhook.path,
                                {
-                                 body: {flow.model_schema.name.downcase => object}.to_json,
+                                 body: {flow.data_type.name => object}.to_json,
                                  headers: {
                                    'Content-Type'    => 'application/json',
                                    'X_HUB_STORE'     => flow.connection.store,

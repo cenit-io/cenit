@@ -7,15 +7,15 @@ module Setup
     field :name, type: String
     field :purpose, type: String
 
-    belongs_to :model_schema, class_name: 'Setup::ModelSchema'
+    belongs_to :data_type, class_name: 'Setup::DataType'
     belongs_to :connection, class_name: 'Setup::Connection'
     belongs_to :webhook, class_name: 'Setup::Webhook'
     belongs_to :event, class_name: 'Setup::Event'
 
-    validates_presence_of :name, :purpose, :model_schema, :connection, :webhook, :event
+    validates_presence_of :name, :purpose, :data_type, :connection, :webhook, :event
 
     def process(object, notification_id=nil)
-      return if self.model_schema != object.model_schema
+      return if self.data_type != object.data_type
       message = {
         :flow_id => self.id,
         :object_id => object.id,

@@ -40,3 +40,4 @@ gem 'bson_ext'
 gem 'rails_admin'
 gem 'httparty'
 gem "bunny", "~> 0.9.1"
+gem "json-schema"

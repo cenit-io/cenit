@@ -1,0 +1,16 @@
+{
+    "title": "Mathematician",
+    "type": "object",
+    "properties": {
+        "name": {
+            "type": "string"
+        },
+       "geometry": {
+           "type": "array",
+           "items": {
+               "$ref": "Geometry"
+           }
+       }
+    },
+    "required": ["name"]
+}

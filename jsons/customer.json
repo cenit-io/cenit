@@ -1,13 +1,63 @@
 {
-    "title": "Hub::Customer",
+    "title": "Customer",
     "type": "object",
+
+    "definitions": {
+        "address": {
+            "type": "object",
+            "properties": {
+                "firstname": {
+                    "type": "string"
+                },
+                "lastname": {
+                    "type": "string"
+                },
+                "address1": {
+                    "type": "string"
+                },
+                "address2": {
+                    "type": "string",
+                    "default": ""
+                },
+                "city": {
+                    "type": "string"
+                },
+                "state": {
+                    "type": "string"
+                },
+                "country": {
+                    "type": "string"
+                },
+                "phone": {
+                    "type": "string"
+                },
+                "zipcode": {
+                    "type": "string"
+                }
+            },
+            "required": ["firstname", "lastname", "address1", "zipcode", "city", "state", "country"]
+        }
+    },
+
     "properties": {
-        "id": {"type": "String"},
-        "firstname": {"type": "String"},
-        "lastname": {"type": "String"},
-        "email": {"type": "String"},
-        "shipping_address": {"type": "Hub::Address"},
-        "billing_address": {"type": "Hub::Address"}
+        "id": {
+            "type": "string"
+        },
+        "firstname": {
+            "type": "string"
+        },
+        "lastname": {
+            "type": "string"
+        },
+        "email": {
+            "type": "string"
+        },
+        "shipping_address": {
+            "$ref": "#/definitions/address"
+        },
+        "billing_address": {
+            "$ref": "#/definitions/address"
+        }
     },
     "required": ["id", "firstname", "lastname"]
 }

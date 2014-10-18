@@ -12,8 +12,6 @@
         response_handler = Handler.new(@message)
         responder = response_handler.response(response, 202)
         render json: responder, root: false, status: responder.code
-      rescue Exception => e
-        puts "PALISIMOOOO -> #{e.inspect} /////////////////////////////////"
       end
 
       protected

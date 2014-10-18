@@ -8,7 +8,7 @@ module Setup
     field :path, type: String
     field :purpose, type: String
 
-    belongs_to :model_schema, class_name: 'Setup::ModelSchema'
+    belongs_to :data_type, class_name: 'Setup::DataType'
 
     validates_presence_of :name, :path, :purpose
 

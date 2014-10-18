@@ -25,12 +25,19 @@ module Cenit
     # The default locale is :en and all translations from config/locales/*.rb,yml are auto loaded.
     # config.i18n.load_path += Dir[Rails.root.join('my', 'locales', '*.{rb,yml}').to_s]
     # config.i18n.default_locale = :de
-    
+
     config.after_initialize do
+
+      RailsAdmin::Config.excluded_models.concat RailsAdmin::Config.models_pool.select {|m| m.eql?('Base') || m.end_with?('::Base')}
+      puts 'Excluding ' + RailsAdmin::Config.excluded_models.to_s
+
+      Setup::ModelSchema.model_listeners << RailsAdmin::AbstractModel
+
       Setup::ModelSchema.all.each do |model_schema|
-        RailsAdmin::AbstractModel.regist_model(model_schema.load_model)
+        puts "Loading model #{model_schema.name}"
+        model_schema.load_model
       end
     end
-    
+
   end
 end
