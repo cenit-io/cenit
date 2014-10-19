@@ -5,18 +5,26 @@ module Setup
     field :name, type: String
     field :path, type: String
     field :purpose, type: String
+    field :partial, type: String
+    
 
     belongs_to :model, class_name: 'Setup::ModelSchema'
-    has_many :connection_webhooks, class_name: 'Setup::ConnectionWebhook', inverse_of: :connection
+    belongs_to :connection, class_name: 'Setup::Connection', inverse_of: :webhooks
+    
+    scope :by_connection, lambda { |connection| where(connection: connection) }
 
-    validates_presence_of :name, :path
+    validates_presence_of :name, :path, :connection, :model
   
     rails_admin do
       
       field :name
-      field :path
-      field :model
       field :purpose
+      field :connection
+      field :model
+      field :path
+      field :partial do
+        help 'optional partial schema for add params, validations, etc '
+      end
 
       configure :model do
         associated_collection_scope do
@@ -26,7 +34,15 @@ module Setup
         end
       end
       
+      object_label_method do
+        :full_name
+      end
+
     end
+    
+    def full_name
+      "#{connection.name} #{name}"
+    end  
 
   end
 end

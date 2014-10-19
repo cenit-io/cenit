@@ -5,7 +5,6 @@ module Setup
     field :name, type: String
 
     belongs_to :model, class_name: 'Setup::ModelSchema'
-    has_many :flows, class_name: 'Setup::Flow', inverse_of: :event
 
     field :attr, type: String
     field :rule, type: String
@@ -71,7 +70,7 @@ module Setup
     end
     
     def full_name
-      "#{self.name} #{model.name.downcase} "
+      "#{self.name}  #{model.name.downcase if model && model.name.present? }" 
     end  
 
   end

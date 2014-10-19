@@ -21,6 +21,7 @@
         token = request.headers['X-Hub-Access-Token']
         @endpoint = Setup::Connection.unscoped.find_by(key: key, token: token)
         unless @endpoint
+          Account.current = @endpoint.account
           response_handler = Handler.new(@message)
           responder = response_handler.response('Unauthorized!', 401)
           render json: responder, root: false, status: responder.code
