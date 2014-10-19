@@ -11,14 +11,15 @@ module Setup
     belongs_to :model, class_name: 'Setup::ModelSchema'
     belongs_to :connection, class_name: 'Setup::Connection', inverse_of: :webhooks
     
-    scope :by_connection, -> { |connection| where(connection: connection) }
+    scope :by_connection, lambda { |connection| where(connection: connection) }
 
-    validates_presence_of :name, :path
+    validates_presence_of :name, :path, :connection, :model
   
     rails_admin do
       
       field :name
       field :purpose
+      field :connection
       field :model
       field :path
       field :partial do
@@ -32,8 +33,16 @@ module Setup
           proc { Setup::ModelSchema.where(after_save_callback: true) }
         end
       end
+      
+      object_label_method do
+        :full_name
+      end
 
     end
+    
+    def full_name
+      "#{connection.name} #{name}"
+    end  
 
   end
 end

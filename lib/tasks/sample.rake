@@ -10,15 +10,12 @@ namespace :sample do
       User.delete_all
       puts 'All User Deleted.'
       
-      Setup::Webhook.unscoped.delete_all
-      puts 'All Webhook Deleted.'
-  
       Setup::Connection.unscoped.delete_all
       puts 'All Connection Deleted.'
       
-      Setup::ConnectionWebhook.unscoped.delete_all
-      puts 'All ConnectionWebhook Deleted.'
-    
+      Setup::Webhook.unscoped.delete_all
+      puts 'All Webhook Deleted.'
+  
       Setup::ModelSchema.unscoped.delete_all
       puts 'All ModelSchema Deleted.'
       
@@ -94,22 +91,6 @@ namespace :sample do
         
         ############  CONFIG SETUP ###############
         
-        webhook_attributes = [
-          { 
-            name: 'Add Product', 
-            path: 'add_product',
-            model: product
-          },
-          { 
-            name: 'Update Product', 
-            path: 'update_product',
-            model: product
-          }
-        ]
-
-        add_product = Setup::Webhook.create!(webhook_attributes[0])
-        update_product = Setup::Webhook.create!(webhook_attributes[1])
-        
         connection_attributes = [
           { 
             name: 'Store I', 
@@ -125,14 +106,27 @@ namespace :sample do
           },
         ]
         
-        store_I = Setup::Connection.create!(connection_attributes[0])
+        store_I  = Setup::Connection.create!(connection_attributes[0])
         store_II = Setup::Connection.create!(connection_attributes[1])
         
-        add_product_store_I  = Setup::ConnectionWebhook.create!( connection: store_I, webhook: add_product )
-        update_product_store_I  = Setup::ConnectionWebhook.create!( connection: store_I, webhook: update_product ) 
+        webhook_attributes = [
+          { 
+            name: 'Add Product', 
+            path: 'add_product',
+            model: product,
+          },
+          { 
+            name: 'Update Product', 
+            path: 'update_product',
+            model: product,
+          }
+        ]
+        
+        add_product_store_I     = Setup::Webhook.create!( webhook_attributes[0].merge(connection: store_I) )
+        update_product_store_I  = Setup::Webhook.create!( webhook_attributes[1].merge(connection: store_I) ) 
                 
-        add_product_store_II = Setup::ConnectionWebhook.create!( connection: store_II, webhook: add_product )
-        update_product_store_II = Setup::ConnectionWebhook.create!( connection: store_II, webhook: update_product ) 
+        add_product_store_II    = Setup::Webhook.create!( webhook_attributes[0].merge(connection: store_II) )
+        update_product_store_II = Setup::Webhook.create!( webhook_attributes[1].merge(connection: store_II) ) 
         
         product_created = Setup::Event.find_by(name: 'created', model: product)             
         product_updated = Setup::Event.find_by(name: 'updated', model: product)
@@ -142,28 +136,32 @@ namespace :sample do
             name: 'Add Product to Store I', 
             purpose: 'send',
             event: product_created,
-            connection_webhook: add_product_store_I,
+            connection: store_I,
+            webhook: add_product_store_I,
             active: true,
           },
           { 
             name: 'Update Product to Store I', 
             purpose: 'send',
             event: product_updated,
-            connection_webhook: update_product_store_I,
+            connection: store_I,
+            webhook: update_product_store_I,
             active: true,
           },
           { 
             name: 'Add Product to Store II', 
             purpose: 'send',
             event: product_created,
-            connection_webhook: add_product_store_II,
+            connection: store_II,
+            webhook: add_product_store_II,
             active: true,
           },
           { 
             name: 'Update Product to Store II', 
             purpose: 'send',
             event: product_updated,
-            connection_webhook: update_product_store_II,
+            connection: store_II,
+            webhook: update_product_store_II,
             active: true,
           }
         ]

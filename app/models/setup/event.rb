@@ -70,7 +70,7 @@ module Setup
     end
     
     def full_name
-      "#{self.name} #{model.name.downcase} "
+      "#{self.name}  #{model.name.downcase if model && model.name.present? }" 
     end  
 
   end

@@ -26,7 +26,11 @@ RailsAdmin.config do |config|
   config.actions do
     dashboard                     # mandatory
     index                         # mandatory
-    new
+    
+    new do
+      except ['Setup::Webhook','Setup::Notification']
+    end
+    
     export
     bulk_delete
     show
