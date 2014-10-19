@@ -5,18 +5,25 @@ module Setup
     field :name, type: String
     field :path, type: String
     field :purpose, type: String
+    field :partial, type: String
+    
 
     belongs_to :model, class_name: 'Setup::ModelSchema'
-    has_many :connection_webhooks, class_name: 'Setup::ConnectionWebhook', inverse_of: :connection
+    belongs_to :connection, class_name: 'Setup::Connection', inverse_of: :webhooks
+    
+    scope :by_connection, -> { |connection| where(connection: connection) }
 
     validates_presence_of :name, :path
   
     rails_admin do
       
       field :name
-      field :path
-      field :model
       field :purpose
+      field :model
+      field :path
+      field :partial do
+        help 'optional partial schema for add params, validations, etc '
+      end
 
       configure :model do
         associated_collection_scope do
@@ -25,7 +32,7 @@ module Setup
           proc { Setup::ModelSchema.where(after_save_callback: true) }
         end
       end
-      
+
     end
 
   end

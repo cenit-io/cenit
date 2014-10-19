@@ -114,14 +114,14 @@ namespace :sample do
           { 
             name: 'Store I', 
             url: 'http://localhost:3001/wombat', 
-            key: '3001', 
-            token: 'tresmiluno',
+            key: "a#{index + 1}_3001", 
+            token: "a#{index + 1}_tresmiluno",
           },
           { 
             name: 'Store II', 
             url: 'http://localhost:3002/wombat', 
-            key:'3002', 
-            token: 'tresmildos'
+            key:"a#{index + 1}_3002", 
+            token: "a#{index + 1}_tresmildos",
           },
         ]
         

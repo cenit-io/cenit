@@ -6,26 +6,27 @@ module Setup
     field :purpose, type: String
     field :active, type: Boolean
 
-    belongs_to :connection_webhook, class_name: 'Setup::ConnectionWebhook', inverse_of: :flow
-    belongs_to :event, class_name: 'Setup::Event', inverse_of: :flow
+    belongs_to :connection, class_name: 'Setup::connection', inverse_of: :flow
+    belongs_to :webhook, class_name: 'Setup::Webhook'
+    belongs_to :event, class_name: 'Setup::Event'
 
     validates_presence_of :name, :purpose, :connection_webhook, :event
     
     validate do
-      connection_webhook.model == event.model
+      webhook.model == event.model
     end 
     
-    rails_admin do 
+    rails_admin do
+      field :name 
       field :purpose
-      field :connection_webhook   
-        
       field :event
-      field :name
+      field :connection
+      field :webhook
       field :active
     end  
 
     def process(object, notification_id=nil)
-      return if connection_webhook.model != object.model_schema
+      return if webhook.model != object.model_schema
       message = {
         flow_id: self.id,
         object_id: object.id,
