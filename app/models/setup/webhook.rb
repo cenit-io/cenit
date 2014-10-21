@@ -10,6 +10,9 @@ module Setup
 
     belongs_to :model, class_name: 'Setup::ModelSchema'
     belongs_to :connection, class_name: 'Setup::Connection', inverse_of: :webhooks
+    has_many :flows, class_name: 'Setup::Flow', inverse_of: :webhook
+    
+    accepts_nested_attributes_for :flows
     
     scope :by_connection, lambda { |connection| where(connection: connection) }
 
@@ -37,6 +40,8 @@ module Setup
       object_label_method do
         :full_name
       end
+      
+      field :flows
 
     end
     
