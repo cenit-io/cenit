@@ -6,11 +6,10 @@ module Setup
     field :purpose, type: String
     field :active, type: Boolean
 
-    belongs_to :connection, class_name: 'Setup::Connection', inverse_of: :flows
     belongs_to :webhook, class_name: 'Setup::Webhook'
     belongs_to :event, class_name: 'Setup::Event'
 
-    validates_presence_of :name, :purpose, :webhook, :connection, :event, :active
+    validates_presence_of :name, :purpose, :webhook, :event, :active
     
     validate do
       webhook.model == event.model
@@ -20,7 +19,6 @@ module Setup
       field :name 
       field :purpose
       field :event
-      field :connection
       field :webhook
       field :active
     end  

@@ -6,10 +6,8 @@ module Setup
     field :token, type: String
 
     has_many :webhooks, class_name: 'Setup::Webhook', inverse_of: :connection
-    has_many :flows, class_name: 'Setup::Flow', inverse_of: :connection
     
     accepts_nested_attributes_for :webhooks
-    accepts_nested_attributes_for :flows
 
     validates_presence_of :name, :url
     
@@ -19,7 +17,6 @@ module Setup
       field :key
       field :token
       field :webhooks
-      field :flows
     end  
 
   end
