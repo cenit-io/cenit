@@ -31,9 +31,9 @@ module Cenit
       RailsAdmin::Config.excluded_models.concat RailsAdmin::Config.models_pool.select {|m| m.eql?('Base') || m.end_with?('::Base')}
       puts 'Excluding ' + RailsAdmin::Config.excluded_models.to_s
 
-      Setup::ModelSchema.model_listeners << RailsAdmin::AbstractModel
+      Setup::DataType.model_listeners << RailsAdmin::AbstractModel
 
-      Setup::ModelSchema.all.each do |model_schema|
+      Setup::DataType.all.each do |model_schema|
         puts "Loading model #{model_schema.name}"
         model_schema.load_model
       end
