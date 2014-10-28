@@ -31,7 +31,8 @@ module Setup
     end
 
     def self.lookup(obj_now, obj_before=nil)
-      where(data_type: obj_now.data_type).each { |e| Setup::Flow.where(event: e).each { |f| f.process(obj_now) } if e.triggers_apply_to?(obj_now, obj_before) }
+      where(data_type: obj_now.data_type).each { |e| Setup::Flow.where(event: e).
+        each { |f| f.process(obj_now) } if e.triggers_apply_to?(obj_now, obj_before) }
     end
 
     def to_s
@@ -41,32 +42,21 @@ module Setup
     private
 
     def field_changed(obj_now, obj_before, field_name)
-      begin
-        now_v = obj_now.send(field_name)
-      rescue
-        now_v = nil
-      end
-      begin
-        before_v = obj_before.send(field_name)
-      rescue
-        before_v = nil
-      end
+      now_v = obj_now.send(field_name) rescue now_v = nil      
+      before_v = obj_before.send(field_name) rescue before_v = nil
+
       r = now_v != before_v
       puts "#{now_v} change? #{before_v} -> #{r}"
       return r
     end
 
     def condition_apply(obj, field_name, condition)
-      begin
-        obj_v = obj.send(field_name)
-      rescue
-        obj_v = nil
-      end
+      obj_v = obj.send(field_name) rescue obj_v = nil
       cond_v = valuate(condition['v'], obj_v.class)
-      if cond_v.is_a?(String) || (cond_v.is_a?(Array) && cond_v.detect { |e| e.is_a?(String) })
-        obj_values = convert_to_string_array(obj_v)
+      obj_values = if cond_v.is_a?(String) || (cond_v.is_a?(Array) && cond_v.detect { |e| e.is_a?(String) })
+         convert_to_string_array(obj_v)
       else
-        obj_values = [obj_v]
+        [obj_v]
       end
       unless op = condition['o']
         op = !(cond_v).nil? && cond_v.is_a?(Array) ? 'in' : 'is'
@@ -85,13 +75,7 @@ module Setup
 
     def convert_to_string_array(obj_v)
       return [obj_v] if obj_v.is_a?(String)
-      array = []
-      [:name, :title, :id].each do |property|
-        begin
-          array << obj_v.send(property).to_s
-        rescue
-        end
-      end
+      array = [:name, :title, :id].map { |property|  obj_v.send(property).to_s rescue next }
       array << obj_v.to_s if array.empty?
       return array
     end
@@ -100,13 +84,13 @@ module Setup
       return nil if cond_v.nil?
       return cond_v if cond_v.is_a?(klass)
       cond_v = [cond_v] unless is_array = cond_v.is_a?(Array)
-      to_obj_class = {NilClass => :to_s, Integer => :to_f, Fixnum => :to_f, Float => :to_f, String => :to_s, Date => :to_date, DateTime => :to_datetime, Time => :to_time, ActiveSupport::TimeWithZone => :to_time, FalseClass => :to_boolean, TrueClass => :to_boolean, BigDecimal => :to_d}[klass]
+      to_obj_class = { NilClass => :to_s, Integer => :to_f, Fixnum => :to_f, Float => :to_f, String => :to_s, 
+                       Date => :to_date, DateTime => :to_datetime, Time => :to_time, ActiveSupport::TimeWithZone => :to_time, 
+                       FalseClass => :to_boolean, TrueClass => :to_boolean, BigDecimal => :to_d }[klass]
       cond_v = cond_v.collect do |e|
         case
-          when e.nil? || (e.is_a?(String) && e.empty?)
-            nil
-          when to_obj_class.nil?
-            e
+          when e.nil? || (e.is_a?(String) && e.empty?) then nil
+          when to_obj_class.nil? then e
           else
             begin
               e.to_s.send(to_obj_class)
@@ -120,7 +104,7 @@ module Setup
     end
 
     def op_like(obj_v, cond_v)
-      obj_v.nil? ? (cond_v.nil? ? true : false) : cond_v.nil? ? false : !obj_v.to_s[cond_v.to_s].nil?
+      obj_v.nil? ? cond_v.nil? : (cond_v.nil? ? false : !obj_v.to_s[cond_v.to_s].nil?)
     end
 
     def op_is(obj_v, cond_v)
@@ -128,11 +112,11 @@ module Setup
     end
 
     def op_starts_with(obj_v, cond_v)
-      obj_v.nil? ? (cond_v.nil? ? true : false) : cond_v.nil? ? false : obj_v.to_s.start_with?(cond_v.to_s)
+      obj_v.nil? ? cond_v.nil? : (cond_v.nil? ? false : obj_v.to_s.start_with?(cond_v.to_s))
     end
 
     def op_ends_with(obj_v, cond_v)
-      obj_v.nil? ? (cond_v.nil? ? true : false) : cond_v.nil? ? false : obj_v.to_s.end_with?(cond_v.to_s)
+      obj_v.nil? ? cond_v.nil? : (cond_v.nil? ? false : obj_v.to_s.end_with?(cond_v.to_s))
     end
 
     def op__not_null(obj_v, cond_v)
@@ -144,11 +128,7 @@ module Setup
     end
 
     def op_in(obj_v, cond_v)
-      begin
-        cond_v.include?(obj_v)
-      rescue
-        false
-      end
+      cond_v.include?(obj_v) rescue false
     end
 
     def op_default(obj_v, cond_v)
@@ -200,7 +180,7 @@ module Setup
       hash.each do |field, conditions|
         v_to_o = []
         conditions.each do |_, condition|
-          modified = condition['o'] = condition.delete('v') if condition['o'].nil? && %w{_null _not_null _change}.include?(condition['v'])
+          modified = condition['o'] = condition.delete('v') if condition['o'].nil? && %w(_null _not_null _change).include?(condition['v'])
         end
       end
       self.triggers = hash.to_json if modified
@@ -216,6 +196,11 @@ module Setup
     end
 
     rails_admin do
+      
+      list do 
+        fields :name, :data_type
+      end
+      
       edit do
         field :name
         field :data_type do
@@ -228,12 +213,14 @@ module Setup
           help false
         end
       end
+      
     end
+    
   end
 end
 
 class String
   def to_boolean
-    self == 'true' ? true : false
+    self == 'true'
   end
 end
