@@ -1,19 +1,14 @@
 class Account
   include Mongoid::Document
   include NumberGenerator
-
-  def generate_number(options = {})
-    options[:prefix] ||= 'A'
-    super(options) 
-  end 
-    
-  belongs_to :owner, :class_name => "User"
-  accepts_nested_attributes_for :owner
-
-  has_many :users, inverse_of: :account
-  accepts_nested_attributes_for :users
   
+  belongs_to :owner, class_name: User.name
+  has_many :users, inverse_of: :account
+
   field :name, type: String
+
+  accepts_nested_attributes_for :owner
+  accepts_nested_attributes_for :users
 
   def self.create_with_owner(params={})
     account = new(params)
@@ -26,6 +21,11 @@ class Account
   def owner?(user)
     owner == user
   end
+  
+  def generate_number(options = {})
+    options[:prefix] ||= 'A'
+    super(options) 
+  end 
   
   class << self
     def current

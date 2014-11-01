@@ -2,12 +2,12 @@ module Setup
   class Flow < Base
     include Setup::Enum
 
+    belongs_to :webhook, class_name: Setup::Webhook.name
+    belongs_to :event, class_name: Setup::Event.name
+
     field :name, type: String
     field :purpose, type: String
     field :active, type: Boolean
-
-    belongs_to :webhook, class_name: 'Setup::Webhook'
-    belongs_to :event, class_name: 'Setup::Event'
 
     validates_presence_of :name, :purpose, :webhook, :event, :active
     

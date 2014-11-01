@@ -96,13 +96,13 @@ namespace :sample do
             name: 'Store I', 
             url: 'http://localhost:3001/wombat', 
             key: "a#{index + 1}_3001", 
-            token: "a#{index + 1}_tresmiluno",
+            authentication_token: "a#{index + 1}_tresmiluno",
           },
           { 
             name: 'Store II', 
             url: 'http://localhost:3002/wombat', 
-            key:"a#{index + 1}_3002", 
-            token: "a#{index + 1}_tresmildos",
+            #key:"a#{index + 1}_3002", 
+            #authentication_token: "a#{index + 1}_tresmildos",
           },
         ]
         
@@ -198,7 +198,6 @@ namespace :sample do
         				%Q{4.5" tall, 3.25" dia.}, %Q{14 1/2" x 12" x 5"} ]},
               {"Material" => ["Canvas","600 Denier Polyester"]}
             ]
-    
       
         1.upto 50 do 
           name = "#{Faker::Product.product }"

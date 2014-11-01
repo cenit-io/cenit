@@ -2,10 +2,9 @@ module Setup
   class Event < Base
     include Setup::Enum
 
+    belongs_to :model, class_name: Setup::ModelSchema.name
+
     field :name, type: String
-
-    belongs_to :model, class_name: 'Setup::ModelSchema'
-
     field :attr, type: String
     field :rule, type: String
     field :condition, type: String
@@ -14,7 +13,6 @@ module Setup
     validates_presence_of :name, :model
     
     rails_admin do
-      
       field :name
       field :model
       field :rule
@@ -32,7 +30,6 @@ module Setup
       object_label_method do
         :full_name
       end
-      
     end
 
     # The default events 'created' and 'updated' have attr nil.

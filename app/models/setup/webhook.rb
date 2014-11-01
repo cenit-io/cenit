@@ -2,15 +2,14 @@ module Setup
   class Webhook < Base
     include Setup::Enum
 
+    belongs_to :model, class_name: Setup::ModelSchema.name
+    belongs_to :connection, class_name: Setup::Connection.name, inverse_of: :webhooks
+    has_many :flows, class_name: Setup::Flow.name, inverse_of: :webhook
+
     field :name, type: String
     field :path, type: String
     field :purpose, type: String
     field :partial, type: String
-    
-
-    belongs_to :model, class_name: 'Setup::ModelSchema'
-    belongs_to :connection, class_name: 'Setup::Connection', inverse_of: :webhooks
-    has_many :flows, class_name: 'Setup::Flow', inverse_of: :webhook
     
     accepts_nested_attributes_for :flows
     
@@ -19,7 +18,6 @@ module Setup
     validates_presence_of :name, :path, :connection, :model
   
     rails_admin do
-      
       field :name
       field :purpose
       field :connection
@@ -31,7 +29,6 @@ module Setup
 
       configure :model do
         associated_collection_scope do
-          #Setup::ModelSchema.after_save_callback
           Webhook = bindings[:object]
           proc { Setup::ModelSchema.where(after_save_callback: true) }
         end
@@ -42,12 +39,12 @@ module Setup
       end
       
       field :flows
-
     end
     
-    def full_name
-      "#{connection.name} #{name}"
-    end  
+    private
+      def full_name
+        "#{connection.name} #{name}"
+      end
 
   end
 end
