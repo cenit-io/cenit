@@ -1,6 +1,6 @@
 module Setup
   class Notification < Base
-    belongs_to :flow, :class_name => 'Setup::Flow'
+    belongs_to :flow, :class_name => Setup::Flow.name
 
     field :http_status_code, type: String
     field :http_status_message, type: String
