@@ -1,3 +1,6 @@
+
+RailsAdmin::Config::Actions.register(RailsAdmin::Config::Actions::SendToFlow)
+
 RailsAdmin.config do |config|
 
   ### Popular gems integration
@@ -30,6 +33,7 @@ RailsAdmin.config do |config|
     edit
     delete
     show_in_app
+    send_to_flow
 
     ## With an audit adapter, you can add:
     # history_index

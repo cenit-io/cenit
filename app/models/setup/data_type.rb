@@ -13,6 +13,7 @@ module Setup
 
     field :name, type: String
     field :schema, type: String
+    field :sample_data, type: String
 
     validates_length_of :name, :maximum => 50
     validates_format_of :name, :with => /^([A-Z][a-z]*)(::([A-Z][a-z]*)+)*$/, :multiline => true
@@ -35,6 +36,17 @@ module Setup
           help { bindings[:object].new_record? ? 'Model name' : nil }
         end
         field :schema
+
+        group :sample_data do
+          label 'Edit sample data'
+          active do
+            !bindings[:object].errors.get(:sample_data).blank?
+          end
+        end
+
+        field :sample_data do
+          group :sample_data
+        end
       end
     end
 
@@ -57,6 +69,16 @@ module Setup
       rescue Exception => ex
         puts "ERROR: #{errors.add(:schema, ex.message).to_s}"
         return false
+      end
+      begin
+        if self.sample_data && !self.sample_data.blank?
+          puts 'Validating sample data...'
+          Cenit::JSONSchemaValidator.validate!(self.schema, self.sample_data)
+          puts 'Sample data validation successfully!'
+        end
+      rescue Exception => ex
+        puts "ERROR: #{errors.add(:sample_data, "fails schema validation: #{ex.message} (#{ex.class})").to_s}"
+        return false unless force_load
       end
       begin
         if force_load || schema_has_changed?
@@ -213,7 +235,7 @@ module Setup
 
     def validate_schema
       check_type_name(self.name)
-      JSON::Validator.validate!(JSON.parse(File.read(File.dirname(__FILE__) + '/schema.json')), self.schema)
+      JSON::Validator.validate!(File.read(File.dirname(__FILE__) + '/schema.json'), self.schema)
       json = JSON.parse(self.schema, :object_class => MultKeyHash)
       raise Exception.new('is not an object type') unless json['type'].nil? || json['type'].eql?('object')
       check_schema(json, self.name, defined_types=[], embedded_refs=[])

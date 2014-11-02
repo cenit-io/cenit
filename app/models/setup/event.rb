@@ -42,8 +42,8 @@ module Setup
     private
 
     def field_changed(obj_now, obj_before, field_name)
-      now_v = obj_now.send(field_name) rescue now_v = nil      
-      before_v = obj_before.send(field_name) rescue before_v = nil
+      now_v = obj_now.send(field_name) rescue nil
+      before_v = obj_before.send(field_name) rescue nil
 
       r = now_v != before_v
       puts "#{now_v} change? #{before_v} -> #{r}"
@@ -51,7 +51,7 @@ module Setup
     end
 
     def condition_apply(obj, field_name, condition)
-      obj_v = obj.send(field_name) rescue obj_v = nil
+      obj_v = obj.send(field_name) rescue nil
       cond_v = valuate(condition['v'], obj_v.class)
       obj_values = if cond_v.is_a?(String) || (cond_v.is_a?(Array) && cond_v.detect { |e| e.is_a?(String) })
          convert_to_string_array(obj_v)
@@ -177,8 +177,7 @@ module Setup
         return false
       end
       modified = nil
-      hash.each do |field, conditions|
-        v_to_o = []
+      hash.each do |_, conditions|
         conditions.each do |_, condition|
           modified = condition['o'] = condition.delete('v') if condition['o'].nil? && %w(_null _not_null _change).include?(condition['v'])
         end
