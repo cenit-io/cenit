@@ -18,11 +18,11 @@ module Cenit
 
     def self.send_to_endpoint(message)
       message = JSON.parse(message)
-      flow = Setup::Flow.find(message['flow_id']['$oid'])
-      object = flow.model_schema.model.find(message['object_id'])
+      flow = Setup::Flow.find(message[:flow_id.to_s]['$oid'])
+      object = message[:json_data.to_s]
       response = HTTParty.post(flow.connection.url + '/' + flow.webhook.path,
                                {
-                                 body: {flow.model_schema.name.downcase => object}.to_json,
+                                 body: object,
                                  headers: {
                                    'Content-Type'    => 'application/json',
                                    'X_HUB_STORE'     => flow.connection.store,
@@ -43,13 +43,13 @@ module Cenit
       # 500...599 : Internal Server Error
 
       notification = nil
-      if message['notification_id'].nil?
+      if message[:notification_id.to_s].nil?
         notification = Setup::Notification.new
-        notification.flow_id = message['flow_id']['$oid']
-        notification.object_id = message['object_id']
+        notification.flow_id = message[:flow_id.to_s]['$oid']
+        notification.json_data = message[:json_data.to_s]
         notification.count = 0
       else
-        notification = Setup::Notification.find(message['notification_id']['$oid'])
+        notification = Setup::Notification.find(message[:notification_id.to_s]['$oid'])
       end
 
       if exception

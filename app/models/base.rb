@@ -1,5 +1,3 @@
 class Base
-  include Mongoid::Document
-  include Mongoid::Timestamps
-  include AccountScoped
-end  
+  #include AccountScoped
+end

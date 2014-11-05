@@ -1,0 +1,40 @@
+
+
+//%script(src="/assets/triggers-box.js")
+
+:ruby
+  @model_field_map = {}
+  Setup::DataType.all.each do |data_type|
+    if (abstract_model = RailsAdmin::AbstractModel.new(data_type.name)) && !(model_config = abstract_model.config).excluded?
+      @model_field_map[data_type.name] = []
+      model_config.list.fields.select(&:filterable?).each do |field|
+        field_options = field.type.eql?(:enum) ? field.with(object: abstract_model.model.new).enum : []
+        #["data-field-label" => field.label, "data-field-name" => field.name, "data-field-options" => field_options.html_safe, "data-field-type" => field.type]
+        @model_field_map[data_type.name] << [field.label, field.name, field_options, field.type]
+      end
+    end
+  end
+  @model_field_map = @model_field_map.to_json
+  if (@triggers = field.form_value).blank?
+    @triggers = '{}'
+  end
+  puts "MODEL FIELD MAP #{@model_field_map}"
+  puts "TRIGGERS #{@triggers}"
+
+.a{style: 'float:left'}
+  %input{style: 'display: none', :'name' => 'setup_event[triggers][_]'}
+  .b
+    %span#triggers_box
+  .c
+    %li.dropdown{style: 'list-style-type: none'}
+      %a.dropdown-toggle{href: '#', :'data-toggle' => 'dropdown'}
+        .btn.btn-info.disabled{id: 'add_trigger'}
+          .i{class: 'icon-white icon-plus'}
+          = 'Add trigger'  #t('admin.misc.add_filter')
+          %b.caret
+      %ul.dropdown-menu#triggers
+
+%script
+  var fields = #{@model_field_map.html_safe}
+  var default_triggers = #{@triggers.html_safe}
+  $("#setup_event_data_type_id").trigger('change');

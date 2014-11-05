@@ -1,3 +1,6 @@
+
+RailsAdmin::Config::Actions.register(RailsAdmin::Config::Actions::SendToFlow)
+
 RailsAdmin.config do |config|
 
   ### Popular gems integration
@@ -15,33 +18,25 @@ RailsAdmin.config do |config|
   # config.audit_with :paper_trail, 'User', 'PaperTrail::Version' # PaperTrail >= 3.0.0
 
   ### More at https://github.com/sferik/rails_admin/wiki/Base-configuration
-  config.excluded_models << "Account" << "Base"
-  
-  config.authenticate_with do
+ config.authenticate_with do
     warden.authenticate! scope: :user
   end
   config.current_user_method { current_user} # auto-generated
-  
 
   config.actions do
     dashboard                     # mandatory
     index                         # mandatory
-    
-    new do
-      except ['Setup::Webhook','Setup::Notification']
-    end
-    
+    new
     export
     bulk_delete
     show
     edit
     delete
-    #show_in_app
+    show_in_app
+    send_to_flow
 
     ## With an audit adapter, you can add:
     # history_index
     # history_show
   end
-  
-
 end
