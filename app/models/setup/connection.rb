@@ -1,5 +1,7 @@
 module Setup
   class Connection < Base
+	include Mongoid::Document
+    include Mongoid::Timestamps
     include NumberGenerator
 
     has_many :webhooks, class_name: Setup::Webhook.name, inverse_of: :connection
