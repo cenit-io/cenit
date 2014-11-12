@@ -1,0 +1,19 @@
+{
+    "title": "Inventory",
+    "type": "object",
+    "properties": {
+        "id": {
+            "type": "string"
+        },
+        "location": {
+            "type": "string"
+        },
+        "quantity": {
+            "type": "integer"
+        },
+        "product_id": {
+            "type": "string"
+        }
+    },
+    "required": ["location", "quantity"]
+}

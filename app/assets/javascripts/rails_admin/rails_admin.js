@@ -21,3 +21,4 @@
 //=  require 'rails_admin/ui'
 //=  require 'rails_admin/custom/ui'
 //=  require 'rails_admin/triggers-box'
+//=  require 'rails_admin/test-flow-transformation'

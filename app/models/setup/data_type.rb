@@ -26,6 +26,10 @@ module Setup
     before_destroy :performs_destroy_model
     after_initialize :verify_schema_ok
 
+    def sample_object
+      '{"' + name.underscore + '": ' + sample_data + '}'
+    end
+
     def load_model
       (model = validates_and_load_model(true)) ? model : nil
     end
