@@ -1,0 +1,17 @@
+en:
+  admin:
+    actions:
+      send_to_flow:
+        title: "Send to flow %{model_label_plural}"
+        menu: "Send to flow"
+        breadcrumb: "Send to flow"
+        link: "Send found %{model_label_plural} to flow"
+        bulk_link: "Send selected %{model_label_plural} to flow"
+        done: "%{model_label_plural} were send to flow"
+        send_to_flow_help: "Choose the flow to send models data"
+        action_name: "Send"
+      test_transformation:
+        title: "Test transformation on %{model_label_plural}"
+        menu: "Test transformation"
+        breadcrumb: "Test transformation"
+        action_name: "Test"
