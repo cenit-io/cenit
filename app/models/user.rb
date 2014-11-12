@@ -1,14 +1,15 @@
 class User
   include Mongoid::Document
   extend DeviseOverrides
-  include AccountScoped
+  #include AccountScoped
+  belongs_to :account, inverse_of: :users, class_name: Account.name
 
   # Include default devise modules. Others available are:
   # :confirmable, :lockable, :timeoutable and :omniauthable
   devise :database_authenticatable, :registerable,
          :recoverable, :rememberable, :trackable, :validatable
 
-  #after_create :ensure_account
+  after_create :ensure_account
 
   ## Database authenticatable
   field :email,              type: String, default: ""
@@ -33,7 +34,7 @@ class User
   private
 
     def ensure_account
-      self.account = Account.new
+      self.account ||= Account.new
       self.save(validate: false)
     end
 
