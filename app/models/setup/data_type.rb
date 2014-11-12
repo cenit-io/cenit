@@ -374,7 +374,7 @@ module Setup
           parent = new_m
         end
       end
-      sc = MONGO_TYPES.include?(class_name) ? Object : ((parent ? parent : Object).const_get('Base') || Object)
+      sc = MONGO_TYPES.include?(class_name) ? Object : (((parent ? parent : Object).const_get('Base') rescue nil) || Object)
       if (parent)
         if parent.const_defined?(class_name, false)
           c = parent.const_get(class_name)
@@ -397,7 +397,7 @@ module Setup
         end
       end
       unless MONGO_TYPES.include?(c.to_s)
-        if c.superclass.eql?(Object) && base = (parent ? parent : Object).const_get('Base')
+        if c.superclass.eql?(Object) && base = ((parent ? parent : Object).const_get('Base') rescue nil)
           puts c.to_s + ' < ' + base.to_s
           c.extend(base)
         end
