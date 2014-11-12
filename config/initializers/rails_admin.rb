@@ -1,5 +1,6 @@
 
 RailsAdmin::Config::Actions.register(RailsAdmin::Config::Actions::SendToFlow)
+RailsAdmin::Config::Actions.register(RailsAdmin::Config::Actions::TestTransformation)
 
 RailsAdmin.config do |config|
 
@@ -34,6 +35,7 @@ RailsAdmin.config do |config|
     delete
     show_in_app
     send_to_flow
+    test_transformation
 
     ## With an audit adapter, you can add:
     # history_index

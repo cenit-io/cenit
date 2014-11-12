@@ -1,0 +1,182 @@
+{
+    "title": "Order",
+    "type": "object",
+
+    "definitions": {
+        "address": {
+            "type": "object",
+            "properties": {
+                "firstname": {
+                    "type": "string"
+                },
+                "lastname": {
+                    "type": "string"
+                },
+                "address1": {
+                    "type": "string"
+                },
+                "address2": {
+                    "type": "string",
+                    "default": ""
+                },
+                "city": {
+                    "type": "string"
+                },
+                "state": {
+                    "type": "string"
+                },
+                "country": {
+                    "type": "string"
+                },
+                "phone": {
+                    "type": "string"
+                },
+                "zipcode": {
+                    "type": "string"
+                }
+            },
+            "required": ["firstname", "lastname", "address1", "zipcode", "city", "state", "country"]
+        }
+    },
+
+    "properties": {
+        "id": {
+            "type": "string"
+        },
+        "status": {
+            "type": "string"
+        },
+        "channel": {
+            "type": "string"
+        },
+        "email": {
+            "type": "string"
+        },
+        "currency": {
+            "type": "string"
+        },
+        "placed_on": {
+            "$ref": "DateTime"
+        },
+        "token": {
+            "type": "string"
+        },
+        "shipping_instructions": {
+            "type": "string"
+        },
+        "totals": {
+            "type": "object",
+            "properties": {
+                "adjustment": {
+                    "type": "number",
+                    "minimum": 0
+                },
+                "tax": {
+                    "type": "number",
+                    "minimum": 0
+                },
+                "shipping": {
+                    "type": "number",
+                    "minimum": 0
+                },
+                "payment": {
+                    "type": "number",
+                    "minimum": 0
+                },
+                "order": {
+                    "type": "number",
+                    "minimum": 0
+                },
+                "item": {
+                    "type": "number",
+                    "minimum": 0
+                }
+            }
+        },
+        "line_items": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "name": {
+                        "type": "string"
+                    },
+                    "quantity": {
+                        "type": "integer"
+                    },
+                    "price": {
+                        "type": "number"
+                    },
+                    "product_id": {
+                        "type": "string"
+                    }
+                },
+                "required": ["name", "quantity", "price"]
+            }
+        },
+        "adjustments": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "name": {
+                        "type": "string"
+                    },
+                    "value": {
+                        "type": "string"
+                    }
+                },
+                "required": ["name", "value"]
+            }
+        },
+        "payments": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "number": {
+                        "type": "integer"
+                    },
+                    "status": {
+                        "type": "string"
+                    },
+                    "amount": {
+                        "type": "number"
+                    },
+                    "payment_method": {
+                        "type": "string"
+                    },
+                    "source": {
+                        "type": "object",
+                        "properties": {
+                            "name": {
+                                "type": "string"
+                            },
+                            "month": {
+                                "type": "integer"
+                            },
+                            "year": {
+                                "type": "integer"
+                            },
+                            "cc_type": {
+                                "type": "string"
+                            },
+                            "last_digits": {
+                                "type": "integer"
+                            }
+                        },
+                        "required": ["name", "cc_type"]
+                    }
+                },
+                "required": ["number", "status", "amount", "payment_method"]
+            }
+        },
+        "shipping_address": {
+            "$ref": "#/definitions/address"
+        },
+        "billing_address": {
+            "$ref": "#/definitions/address"
+        }
+    },
+    "required": ["id", "status", "channel", "currency", "placed_on"]
+}

@@ -4,7 +4,7 @@ module Setup
     include Mongoid::Timestamps
     include AccountScoped
 
-    belongs_to :flow, :class_name => Setup::Flow.name
+    belongs_to :flow_id, :class_name => 'Setup::Flow'
 
     field :http_status_code, type: String
     field :http_status_message, type: String

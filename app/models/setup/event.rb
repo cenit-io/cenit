@@ -3,7 +3,6 @@ module Setup
     include Mongoid::Document
     include Mongoid::Timestamps
     include AccountScoped
-    include Setup::Enum
 
     field :name, type: String
     belongs_to :data_type, :class_name => 'Setup::DataType'
@@ -34,7 +33,7 @@ module Setup
 
     def self.lookup(obj_now, obj_before=nil)
       where(data_type: obj_now.data_type).each { |e| Setup::Flow.where(event: e).
-        each { |f| f.process(obj_now) } if e.triggers_apply_to?(obj_now, obj_before) }
+          each { |f| f.process(obj_now) } if e.triggers_apply_to?(obj_now, obj_before) }
     end
 
     def to_s
@@ -56,10 +55,10 @@ module Setup
       obj_v = obj.send(field_name) rescue nil
       cond_v = valuate(condition['v'], obj_v.class)
       obj_values = if cond_v.is_a?(String) || (cond_v.is_a?(Array) && cond_v.detect { |e| e.is_a?(String) })
-         convert_to_string_array(obj_v)
-      else
-        [obj_v]
-      end
+                     convert_to_string_array(obj_v)
+                   else
+                     [obj_v]
+                   end
       unless op = condition['o']
         op = !(cond_v).nil? && cond_v.is_a?(Array) ? 'in' : 'is'
       end
