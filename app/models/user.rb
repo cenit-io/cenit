@@ -8,7 +8,7 @@ class User
   devise :database_authenticatable, :registerable,
          :recoverable, :rememberable, :trackable, :validatable
 
-  #after_create :ensure_account
+  after_create :ensure_account
 
   ## Database authenticatable
   field :email,              type: String, default: ""

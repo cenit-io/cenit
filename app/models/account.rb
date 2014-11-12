@@ -1,7 +1,7 @@
 class Account
   include Mongoid::Document
   include NumberGenerator
-  
+
   belongs_to :owner, class_name: User.name
   has_many :users, inverse_of: :account
 
@@ -21,20 +21,20 @@ class Account
   def owner?(user)
     owner == user
   end
-  
+
   def generate_number(options = {})
     options[:prefix] ||= 'A'
-    super(options) 
-  end 
-  
+    super(options)
+  end
+
   class << self
     def current
       Thread.current[:current_account]
     end
-  
+
     def current=(account)
       Thread.current[:current_account] = account
     end
   end
-  
+
 end
