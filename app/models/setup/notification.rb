@@ -1,5 +1,9 @@
 module Setup
-  class Notification < Base
+  class Notification
+    include Mongoid::Document
+    include Mongoid::Timestamps
+    include AccountScoped
+
     belongs_to :flow, :class_name => Setup::Flow.name
 
     field :http_status_code, type: String

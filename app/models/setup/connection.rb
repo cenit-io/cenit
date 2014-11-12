@@ -1,7 +1,8 @@
 module Setup
-  class Connection < Base
-	include Mongoid::Document
+  class Connection
+    include Mongoid::Document
     include Mongoid::Timestamps
+    include AccountScoped
     include NumberGenerator
 
     has_many :webhooks, class_name: Setup::Webhook.name, inverse_of: :connection
@@ -26,10 +27,10 @@ module Setup
 
     def generate_number(options = {})
       options[:prefix] ||= 'C'
-      super(options) 
+      super(options)
     end
 
-    rails_admin do 
+    rails_admin do
       field :name
       field :url
       field :key

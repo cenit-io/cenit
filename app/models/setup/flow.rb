@@ -4,6 +4,7 @@ module Setup
   class Flow
     include Mongoid::Document
     include Mongoid::Timestamps
+    include AccountScoped
     include Setup::Enum
 
     field :name, type: String

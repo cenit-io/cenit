@@ -1,8 +1,7 @@
 class User
   include Mongoid::Document
   extend DeviseOverrides
-  #include AccountScoped
-  belongs_to :account, inverse_of: :users
+  include AccountScoped
 
   # Include default devise modules. Others available are:
   # :confirmable, :lockable, :timeoutable and :omniauthable

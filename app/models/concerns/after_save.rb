@@ -14,4 +14,5 @@ module AfterSave
   def data_type
     Setup::DataType.find_by(name: self.class.to_s)
   end
+
 end

@@ -2,6 +2,7 @@ module Setup
   class Event
     include Mongoid::Document
     include Mongoid::Timestamps
+    include AccountScoped
     include Setup::Enum
 
     field :name, type: String
@@ -85,8 +86,8 @@ module Setup
       return nil if cond_v.nil?
       return cond_v if cond_v.is_a?(klass)
       cond_v = [cond_v] unless is_array = cond_v.is_a?(Array)
-      to_obj_class = { NilClass => :to_s, Integer => :to_f, Fixnum => :to_f, Float => :to_f, String => :to_s, 
-                       Date => :to_date, DateTime => :to_datetime, Time => :to_time, ActiveSupport::TimeWithZone => :to_time, 
+      to_obj_class = { NilClass => :to_s, Integer => :to_f, Fixnum => :to_f, Float => :to_f, String => :to_s,
+                       Date => :to_date, DateTime => :to_datetime, Time => :to_time, ActiveSupport::TimeWithZone => :to_time,
                        FalseClass => :to_boolean, TrueClass => :to_boolean, BigDecimal => :to_d }[klass]
       cond_v = cond_v.collect do |e|
         case
@@ -196,11 +197,11 @@ module Setup
     end
 
     rails_admin do
-      
-      list do 
+
+      list do
         fields :name, :data_type
       end
-      
+
       edit do
         field :name
         field :data_type do
@@ -213,9 +214,9 @@ module Setup
           help false
         end
       end
-      
+
     end
-    
+
   end
 end
 
