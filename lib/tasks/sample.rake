@@ -16,8 +16,8 @@ namespace :sample do
       Setup::Webhook.unscoped.delete_all
       puts 'All Webhook Deleted.'
   
-      Setup::ModelSchema.unscoped.delete_all
-      puts 'All ModelSchema Deleted.'
+      Setup::DataType.unscoped.delete_all
+      puts 'All DataType Deleted.'
       
       Setup::Event.unscoped.delete_all
       puts 'All Event Deleted.'
@@ -63,31 +63,30 @@ namespace :sample do
         schemas.each do |file_schema|
           schema = File.read("#{base_path}/#{file_schema}")
           klass_name = file_schema.split('.json')[0].camelize
-          
-          model_schema_attributes = {
-            module_name: 'Hub', 
+          puts "^^^^^^^^^^^^^^^^^^^^^^^^^^^ klass_name  #{klass_name.inspect}"
+          data_type_attributes = {
             name: klass_name, 
             schema: schema,
-            active: true,
-            after_save_callback: %W[ Product Order Cart Payment Return ].include?(klass_name)
+            #active: true,
+            #after_save_callback: %W[ Product Order Cart Payment Return ].include?(klass_name)
           }
           
-          model_schema = Setup::ModelSchema.create!( model_schema_attributes )
+          data_type = Setup::DataType.create!( data_type_attributes )
           
           # Create default event 'created' and 'updated'
-          # TODO: move this code for ModelSchema class
+          # TODO: move this code for DataType class
           
-          if model_schema.after_save_callback.present?
-            Setup::Event.create!(name: "created", model: model_schema) 
-            Setup::Event.create!(name: "updated", model: model_schema)
+          if data_type.after_save_callback.present?
+            Setup::Event.create!(name: "created", model: data_type) 
+            Setup::Event.create!(name: "updated", model: data_type)
           end
          
-          klass = model_schema.instantiate
+          klass = data_type.instantiate
           klass.delete_all
           puts "All #{klass_name.pluralize} are deleted before load sample."
         end
         
-        product = Setup::ModelSchema.find_by(name: 'Product')
+        product = Setup::DataType.find_by(name: 'Product')
         
         ############  CONFIG SETUP ###############
         
