@@ -14,6 +14,15 @@ module Setup
     belongs_to :connection, class_name: Setup::Connection.name, inverse_of: :webhooks
 
     validates_presence_of :name, :path, :purpose
+    
+    rails_admin do
+      edit do
+        fields :name, :purpose, :connection, :path
+      end
+      list do
+        fields :name, :purpose, :connection, :path
+      end  
+    end
 
   end
 end

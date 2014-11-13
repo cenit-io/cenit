@@ -3,13 +3,13 @@ class User
   extend DeviseOverrides
   #include AccountScoped
   belongs_to :account, inverse_of: :users, class_name: Account.name
-
+  before_validation { self.account ||= Account.new }
+  #default_scope ->{ where(account: Account.current ) } 
+  
   # Include default devise modules. Others available are:
   # :confirmable, :lockable, :timeoutable and :omniauthable
   devise :database_authenticatable, :registerable,
          :recoverable, :rememberable, :trackable, :validatable
-
-  after_create :ensure_account
 
   ## Database authenticatable
   field :email,              type: String, default: ""
@@ -30,12 +30,4 @@ class User
   field :last_sign_in_ip,    type: String
 
   accepts_nested_attributes_for :account
-
-  private
-
-    def ensure_account
-      self.account ||= Account.new
-      self.save(validate: false)
-    end
-
 end

@@ -11,10 +11,10 @@ module Setup
     field :purpose, type: String
     field :active, type: Boolean
 
-    belongs_to :data_type, class_name: 'Setup::DataType'
-    belongs_to :connection, class_name: 'Setup::Connection'
-    belongs_to :webhook, class_name: 'Setup::Webhook'
-    belongs_to :event, class_name: 'Setup::Event'
+    belongs_to :data_type, class_name: Setup::DataType.name
+    belongs_to :connection, class_name: Setup::Connection.name
+    belongs_to :webhook, class_name: Setup::Webhook.name
+    belongs_to :event, class_name: Setup::Event.name
 
     field :transformation, type: String
 
@@ -144,6 +144,9 @@ module Setup
           partial 'form_transformation'
         end
       end
+      list do
+        fields :name, :active, :purpose, :event, :connection, :webhook
+      end  
     end
 
   end
