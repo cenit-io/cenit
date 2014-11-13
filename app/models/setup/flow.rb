@@ -9,6 +9,7 @@ module Setup
 
     field :name, type: String
     field :purpose, type: String
+    field :active, type: Boolean
 
     belongs_to :data_type, class_name: 'Setup::DataType'
     belongs_to :connection, class_name: 'Setup::Connection'
