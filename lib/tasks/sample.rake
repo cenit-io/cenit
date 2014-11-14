@@ -16,8 +16,8 @@ namespace :sample do
       Setup::Webhook.unscoped.delete_all
       puts 'All Webhook Deleted.'
   
-      Setup::ModelSchema.unscoped.delete_all
-      puts 'All ModelSchema Deleted.'
+      Setup::DataType.unscoped.delete_all
+      puts 'All DataType Deleted.'
       
       Setup::Event.unscoped.delete_all
       puts 'All Event Deleted.'
@@ -63,31 +63,26 @@ namespace :sample do
         schemas.each do |file_schema|
           schema = File.read("#{base_path}/#{file_schema}")
           klass_name = file_schema.split('.json')[0].camelize
-          
-          model_schema_attributes = {
-            module_name: 'Hub', 
+          puts "^^^^^^^^^^^^^^^^^^^^^^^^^^^ klass_name  #{klass_name.inspect}"
+          data_type_attributes = {
             name: klass_name, 
             schema: schema,
-            active: true,
-            after_save_callback: %W[ Product Order Cart Payment Return ].include?(klass_name)
+            #active: true,
+            #after_save_callback: %W[ Product Order Cart Payment Return ].include?(klass_name)
           }
           
-          model_schema = Setup::ModelSchema.create!( model_schema_attributes )
+          data_type = Setup::DataType.create!( data_type_attributes ) rescue next
           
-          # Create default event 'created' and 'updated'
-          # TODO: move this code for ModelSchema class
+          klass = klass_name.constantize
+          #klass.delete_all
           
-          if model_schema.after_save_callback.present?
-            Setup::Event.create!(name: "created", model: model_schema) 
-            Setup::Event.create!(name: "updated", model: model_schema)
-          end
-         
-          klass = model_schema.instantiate
-          klass.delete_all
-          puts "All #{klass_name.pluralize} are deleted before load sample."
+          puts "All #{klass_name} are deleted before load sample."
+          #klass.delete_all
+          
         end
         
-        product = Setup::ModelSchema.find_by(name: 'Product')
+        product = Setup::DataType.where(name: 'Product').first
+        next if product.nil?
         
         ############  CONFIG SETUP ###############
         
@@ -113,12 +108,14 @@ namespace :sample do
           { 
             name: 'Add Product', 
             path: 'add_product',
-            model: product,
+            data_type: product,
+            purpose: 'send'
           },
           { 
             name: 'Update Product', 
             path: 'update_product',
-            model: product,
+            data_type: product,
+            purpose: 'send'
           }
         ]
         
@@ -128,35 +125,43 @@ namespace :sample do
         add_product_store_II    = Setup::Webhook.create!( webhook_attributes[0].merge(connection: store_II) )
         update_product_store_II = Setup::Webhook.create!( webhook_attributes[1].merge(connection: store_II) ) 
         
-        product_created = Setup::Event.find_by(name: 'created', model: product)             
-        product_updated = Setup::Event.find_by(name: 'updated', model: product)
+        product_created = Setup::Event.find_by(name: 'Product on created_at', data_type: product)             
+        product_updated = Setup::Event.find_by(name: 'Product on updated_at', data_type: product)
         
         flow_attributes = [
           { 
             name: 'Add Product to Store I', 
             purpose: 'send',
+            data_type: product,
             event: product_created,
+            connection: store_I,
             webhook: add_product_store_I,
             active: true,
           },
           { 
             name: 'Update Product to Store I', 
             purpose: 'send',
+            data_type: product,
             event: product_updated,
+            connection: store_I,
             webhook: update_product_store_I,
             active: true,
           },
           { 
             name: 'Add Product to Store II', 
             purpose: 'send',
+            data_type: product,
             event: product_created,
+            connection: store_II,
             webhook: add_product_store_II,
             active: true,
           },
           { 
             name: 'Update Product to Store II', 
             purpose: 'send',
+            data_type: product,
             event: product_updated,
+            connection: store_II,
             webhook: update_product_store_II,
             active: true,
           }
@@ -268,7 +273,7 @@ namespace :sample do
             "variants_attributes" => variants
           }
 
-          Hub::Product.create!(product)
+          Product.create!(product)
 
           # orders 
           num_orders = 1 + rand(20)
@@ -360,7 +365,7 @@ namespace :sample do
 
             ]
   
-            Hub::Order.create!(order)
+            Order.create!(order)
           end
   
         end
