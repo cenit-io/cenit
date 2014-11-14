@@ -1,6 +1,6 @@
 
-RailsAdmin::Config::Actions.register(RailsAdmin::Config::Actions::SendToFlow)
-RailsAdmin::Config::Actions.register(RailsAdmin::Config::Actions::TestTransformation)
+[RailsAdmin::Config::Actions::SendToFlow,
+ RailsAdmin::Config::Actions::TestTransformation].each { |a| RailsAdmin::Config::Actions.register(a) }
 
 RailsAdmin.config do |config|
 

@@ -11,7 +11,7 @@ en:
         send_to_flow_help: "Choose the flow to send models data"
         action_name: "Send"
       test_transformation:
-        title: "Test transformation on %{model_label_plural}"
+        title: "Test transformation"
         menu: "Test transformation"
         breadcrumb: "Test transformation"
         action_name: "Test"

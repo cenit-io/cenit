@@ -1,4 +1,7 @@
 Cenit::Application.routes.draw do
+
+  get 'schema', to: 'schema#index'
+
   devise_for :users
   #root :to => "visitors#index"
 

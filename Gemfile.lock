@@ -239,6 +239,7 @@ DEPENDENCIES
   json-schema
   mongoid
   mongoid-rspec
+  nokogiri
   rails (= 4.1.4)
   rails_12factor
   rails_admin
