@@ -53,6 +53,9 @@ module Setup
           group :sample_data
         end
       end
+      list do 
+        fields :name, :schema, :sample_data
+      end  
     end
 
     private

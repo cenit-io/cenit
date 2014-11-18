@@ -5,8 +5,9 @@ module Setup
     include AccountScoped
 
     field :name, type: String
-    belongs_to :data_type, :class_name => 'Setup::DataType'
     field :triggers, type: String
+
+    belongs_to :data_type, class_name: Setup::DataType.name
 
     validates_presence_of :data_type, :triggers
 
