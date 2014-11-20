@@ -1,7 +1,10 @@
 module Cenit
-  class ApiController < ActionController::Base
+  class ApiController < ApplicationController
     before_filter :save_request_data, :authorize
     rescue_from Exception, :with => :exception_handler
+    
+    protect_from_forgery with: :null_session,
+          if: Proc.new { |c| c.request.format =~ %r{application/json} }
 
     def consume
       response = {}
@@ -42,8 +45,8 @@ module Cenit
     end
 
     def save_request_data
-      @objects = params[:webhook].keys.map {|k| k.singularize}
-      @message = params[:webhook].to_json
+      @objects = params[:api].keys.map {|k| k.singularize}
+      @message = params[:api].to_json
     end
 
   end
