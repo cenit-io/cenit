@@ -1,19 +1,94 @@
 {
-    "title": "Hub::Shipment",
+    "title": "Shipment",
     "type": "object",
     "properties": {
-        "id": {"type": "String"},
-        "order_id": {"type": "String"},
-        "email": {"type": "String"},
-        "cost": {"type": "Float"},
-        "status": {"type": "String"},
-        "stock_location": {"type": "String"},
-        "shipping_method": {"type": "String"},
-        "tracking": {"type": "String"},
-        "shipped_at": {"type": "Date"},
-        "updated_at": {"type": "Date"},
-        "channel": {"type": "String"},
-        "items": {"type": "Array", "items": {"type": "Hub::LineItem"}},
-        "shipping_address": {"type": "Hub::Address"}
+        "id": {
+            "type": "string"
+        },
+        "order_id": {
+            "type": "string"
+        },
+        "email": {
+            "type": "string"
+        },
+        "cost": {
+            "type": "number"
+        },
+        "status": {
+            "type": "string"
+        },
+        "stock_location": {
+            "type": "string"
+        },
+        "shipping_method": {
+            "type": "string"
+        },
+        "tracking": {
+            "type": "string"
+        },
+        "shipped_at": {
+            "$ref": "Date"
+        },
+        "updated_at": {
+            "$ref": "Date"
+        },
+        "channel": {
+            "type": "string"
+        },
+        "items": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "name": {
+                        "type": "string"
+                    },
+                    "quantity": {
+                        "type": "integer"
+                    },
+                    "price": {
+                        "type": "number"
+                    },
+                    "product_id": {
+                        "type": "string"
+                    }
+                },
+                "required": ["name", "quantity", "price"]
+            }
+        },
+        "shipping_address": {
+            "type": "object",
+            "properties": {
+                "firstname": {
+                    "type": "string"
+                },
+                "lastname": {
+                    "type": "string"
+                },
+                "address1": {
+                    "type": "string"
+                },
+                "address2": {
+                    "type": "string",
+                    "default": ""
+                },
+                "city": {
+                    "type": "string"
+                },
+                "state": {
+                    "type": "string"
+                },
+                "country": {
+                    "type": "string"
+                },
+                "phone": {
+                    "type": "string"
+                },
+                "zipcode": {
+                    "type": "string"
+                }
+            },
+            "required": ["firstname", "lastname", "address1", "zipcode", "city", "state", "country"]
+        }
     }
 }

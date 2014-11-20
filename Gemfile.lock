@@ -1,3 +1,9 @@
+GIT
+  remote: git://github.com/joelvh/rails_admin_import.git
+  revision: 600ac40d3198bb13c7f8bfe50ba31a1fe3687fe7
+  specs:
+    rails_admin_import (0.2.2)
+
 GEM
   remote: https://rubygems.org/
   specs:
@@ -80,6 +86,7 @@ GEM
     jquery-ui-rails (4.2.1)
       railties (>= 3.2.16)
     json (1.8.1)
+    json-schema (2.2.5)
     kaminari (0.16.1)
       actionpack (>= 3.0.0)
       activesupport (>= 3.0.0)
@@ -235,11 +242,13 @@ DEPENDENCIES
   httparty
   jbuilder (~> 1.0.1)
   jquery-rails
+  json-schema
   mongoid
   mongoid-rspec
   rails (= 4.1.4)
   rails_12factor
   rails_admin
+  rails_admin_import!
   rails_layout
   rspec-rails
   sass-rails (~> 4.0.3)

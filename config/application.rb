@@ -13,7 +13,7 @@ Bundler.require(:default, Rails.env)
 module Cenit
   class Application < Rails::Application
 
-    config.autoload_paths += %W(#{config.root}/lib/**/*.rb)
+    config.autoload_paths += %W(#{config.root}/lib) #/**/*.rb
     # Settings in config/environments/* take precedence over those specified here.
     # Application configuration should go into files in config/initializers
     # -- all .rb files in that directory are automatically loaded.
@@ -26,17 +26,18 @@ module Cenit
     # config.i18n.load_path += Dir[Rails.root.join('my', 'locales', '*.{rb,yml}').to_s]
     # config.i18n.default_locale = :de
 
-    config.to_prepare do
-
-      Dir.glob(File.join(File.dirname(__FILE__), "../lib/cenit/*.rb")) do |c|
-      Rails.configuration.cache_classes ? require(c) : load(c)
-      end
-
-    end
-
     config.after_initialize do
-      Setup::ModelSchema.all.each do |model_schema|
-        RailsAdmin::AbstractModel.regist_model(model_schema.load_model)
+
+      JSON::Validator.register_default_validator(Cenit::LazyRefSchemaValidator.new)
+
+      RailsAdmin::Config.excluded_models.concat RailsAdmin::Config.models_pool.select {|m| m.eql?('Base') || m.end_with?('::Base')}
+      puts 'Excluding ' + RailsAdmin::Config.excluded_models.to_s
+
+      Setup::DataType.model_listeners << RailsAdmin::AbstractModel
+
+      Setup::DataType.all.each do |model_schema|
+        puts "Loading model #{model_schema.name}"
+        model_schema.load_model
       end
     end
 

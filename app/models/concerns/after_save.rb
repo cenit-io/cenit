@@ -2,26 +2,17 @@ module AfterSave
   extend ActiveSupport::Concern
 
   included do
-
-    after_create do |object|
-      object.find_events('created')
+    before_save do |object|
+      @_obj_before = object.class.find(object.id) rescue @_obj_before = nil
     end
 
-    after_update do |object|
-      object.find_events('updated')
+    after_save do |object|
+      Setup::Event.lookup(self, @_obj_before);
     end
-
   end
 
   def data_type
-    Setup::DataType.where(model: self.class.to_s).first
-  end
-
-  def find_events(action)
-    basic_event = Setup::Event.where(name: action).first
-    basic_event.throw(self) unless basic_event.nil?
-
-    Setup::Event.where(data_type: self.data_type).each {|e| e.throw(self)}
+    Setup::DataType.find_by(name: self.class.to_s)
   end
 
 end

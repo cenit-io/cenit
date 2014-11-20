@@ -1,8 +1,0 @@
-{
-    "title": "Hub::Dimension",
-    "type": "object",
-    "properties": {
-        "height": {"type": "Integer"},
-        "width": {"type": "Integer"}
-    }
-}

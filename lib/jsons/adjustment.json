@@ -1,9 +1,0 @@
-{
-    "title": "Hub::Adjustment",
-    "type": "object",
-    "properties": {
-        "name": {"type": "String"},
-        "value": {"type": "String"}
-    },
-    "required": ["name", "value"]
-}

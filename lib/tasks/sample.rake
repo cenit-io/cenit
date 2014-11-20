@@ -9,23 +9,25 @@ namespace :sample do
     
       User.delete_all
       puts 'All User Deleted.'
-    
-      Hub::Product.delete_all
-      puts 'All Products Deleted.'
       
-      Hub::Order.delete_all
-      puts 'All Orders Deleted.'
+      Setup::Connection.unscoped.delete_all
+      puts 'All Connection Deleted.'
       
-      Hub::Address.delete_all
-      puts 'All Address Deleted.'
+      Setup::Webhook.unscoped.delete_all
+      puts 'All Webhook Deleted.'
+  
+      Setup::DataType.unscoped.delete_all
+      puts 'All DataType Deleted.'
       
-      Hub::LineItem.delete_all
-      puts 'All Line Item Deleted.'
+      Setup::Event.unscoped.delete_all
+      puts 'All Event Deleted.'
       
-      Hub::OrderTotal.delete_all
-      puts 'All Orders Total Deleted.'
+      Setup::Flow.unscoped.delete_all
+      puts 'All Flow Deleted.'
 
-      Account.create! [ { name: "Grocer A"}, { name: "Grocer B"} ]
+      ############  CONFIG TENANT ###############
+      
+      Account.create! [ { name: "Organization A"}, { name: "Organization B"} ]
     
       Account.all.each_with_index do |account, index|
         
@@ -35,7 +37,13 @@ namespace :sample do
         		email: "user_#{index + 1}1@mail.com",
         		password: '12345678', 
         		password_confirmation: '12345678',
+            account: account 
         	})
+          
+        user1.account = account
+        user1.save(validate: false)
+        
+        account.owner = user1
           
         user2 = User.create!({
         		email: "user_#{index + 1}2@mail.com",
@@ -43,12 +51,126 @@ namespace :sample do
         		password_confirmation: '12345678',
         	})  
           
-        user1.account = account.id
-        user2.account = account.id
+        user2.account = account
         
-        user1.save(validate: false)
         user2.save(validate: false)
+        
+        ############  LOAD MODELS ###############
 
+        base_path = File.join(Rails.root, 'lib', 'jsons') 
+        schemas = Dir.entries(base_path).select {|f| !File.directory?(f) && f != '.DS_Store' } 
+        
+        schemas.each do |file_schema|
+          schema = File.read("#{base_path}/#{file_schema}")
+          klass_name = file_schema.split('.json')[0].camelize
+          puts "^^^^^^^^^^^^^^^^^^^^^^^^^^^ klass_name  #{klass_name.inspect}"
+          data_type_attributes = {
+            name: klass_name, 
+            schema: schema,
+            #active: true,
+            #after_save_callback: %W[ Product Order Cart Payment Return ].include?(klass_name)
+          }
+          
+          data_type = Setup::DataType.create!( data_type_attributes ) rescue next
+          
+          klass = klass_name.constantize
+          #klass.delete_all
+          
+          puts "All #{klass_name} are deleted before load sample."
+          #klass.delete_all
+          
+        end
+        
+        product = Setup::DataType.where(name: 'Product').first
+        next if product.nil?
+        
+        ############  CONFIG SETUP ###############
+        
+        connection_attributes = [
+          { 
+            name: 'Store I', 
+            url: 'http://localhost:3001/wombat', 
+            key: "a#{index + 1}_3001", 
+            authentication_token: "a#{index + 1}_tresmiluno",
+          },
+          { 
+            name: 'Store II', 
+            url: 'http://localhost:3002/wombat', 
+            #key:"a#{index + 1}_3002", 
+            #authentication_token: "a#{index + 1}_tresmildos",
+          },
+        ]
+        
+        store_I  = Setup::Connection.create!(connection_attributes[0])
+        store_II = Setup::Connection.create!(connection_attributes[1])
+        
+        webhook_attributes = [
+          { 
+            name: 'Add Product', 
+            path: 'add_product',
+            data_type: product,
+            purpose: 'send'
+          },
+          { 
+            name: 'Update Product', 
+            path: 'update_product',
+            data_type: product,
+            purpose: 'send'
+          }
+        ]
+        
+        add_product_store_I     = Setup::Webhook.create!( webhook_attributes[0].merge(connection: store_I) )
+        update_product_store_I  = Setup::Webhook.create!( webhook_attributes[1].merge(connection: store_I) ) 
+                
+        add_product_store_II    = Setup::Webhook.create!( webhook_attributes[0].merge(connection: store_II) )
+        update_product_store_II = Setup::Webhook.create!( webhook_attributes[1].merge(connection: store_II) ) 
+        
+        product_created = Setup::Event.find_by(name: 'Product on created_at', data_type: product)             
+        product_updated = Setup::Event.find_by(name: 'Product on updated_at', data_type: product)
+        
+        flow_attributes = [
+          { 
+            name: 'Add Product to Store I', 
+            purpose: 'send',
+            data_type: product,
+            event: product_created,
+            connection: store_I,
+            webhook: add_product_store_I,
+            active: true,
+          },
+          { 
+            name: 'Update Product to Store I', 
+            purpose: 'send',
+            data_type: product,
+            event: product_updated,
+            connection: store_I,
+            webhook: update_product_store_I,
+            active: true,
+          },
+          { 
+            name: 'Add Product to Store II', 
+            purpose: 'send',
+            data_type: product,
+            event: product_created,
+            connection: store_II,
+            webhook: add_product_store_II,
+            active: true,
+          },
+          { 
+            name: 'Update Product to Store II', 
+            purpose: 'send',
+            data_type: product,
+            event: product_updated,
+            connection: store_II,
+            webhook: update_product_store_II,
+            active: true,
+          }
+        ]
+
+        Setup::Flow.create!(flow_attributes)
+        
+        ############  SAMPLE DATA ###############
+        
         all_taxons = [
           ["Categories","Bags"],
           ["Categories","Mugs"],
@@ -81,7 +203,6 @@ namespace :sample do
         				%Q{4.5" tall, 3.25" dia.}, %Q{14 1/2" x 12" x 5"} ]},
               {"Material" => ["Canvas","600 Denier Polyester"]}
             ]
-    
       
         1.upto 50 do 
           name = "#{Faker::Product.product }"
@@ -152,7 +273,7 @@ namespace :sample do
             "variants_attributes" => variants
           }
 
-          Hub::Product.create!(product)
+          Product.create!(product)
 
           # orders 
           num_orders = 1 + rand(20)
@@ -173,14 +294,14 @@ namespace :sample do
                 "email" => "spree@example.com",
                 "currency" => "USD",
                 "placed_on" => DateTime.now - rand(20).months - rand(31).days-rand(24).hours-rand(60).minutes-rand(60).seconds,
-                "totals_attributes" => {
-                  "item" => item_price,
-                  "adjustment" => adjustment,
-                  "tax" => tax,
-                  "shipping" => shipping,
-                  "payment" => item_price,
-                  "order" => item_price
-                },
+#                "totals_attributes" => {
+#                  "item" => item_price,
+#                  "adjustment" => adjustment,
+#                  "tax" => tax,
+#                  "shipping" => shipping,
+#                  "payment" => item_price,
+#                  "order" => item_price
+#                },
                 "line_items_attributes" => [
                   {
                     "product_id" => sku,
@@ -244,7 +365,7 @@ namespace :sample do
 
             ]
   
-            Hub::Order.create!(order)
+            Order.create!(order)
           end
   
         end
