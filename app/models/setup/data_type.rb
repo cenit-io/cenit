@@ -4,7 +4,7 @@ module Setup
   class DataType
     include Mongoid::Document
     include Mongoid::Timestamps
-    #include AccountScoped
+    include AccountScoped
 
     class << self
       def model_listeners
