@@ -4,7 +4,7 @@ module Setup
   class DataType
     include Mongoid::Document
     include Mongoid::Timestamps
-    include AccountScoped
+    #include AccountScoped
 
     class << self
       def model_listeners
@@ -53,9 +53,9 @@ module Setup
           group :sample_data
         end
       end
-      list do 
+      list do
         fields :name, :schema, :sample_data
-      end  
+      end
     end
 
     private
