@@ -2,7 +2,7 @@ module Cenit
   class ApiController < ApplicationController
     before_filter :save_request_data, :authorize
     rescue_from Exception, :with => :exception_handler
-    
+
     protect_from_forgery with: :null_session,
           if: Proc.new { |c| c.request.format =~ %r{application/json} }
 
