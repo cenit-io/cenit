@@ -11,6 +11,7 @@ gem 'turbolinks'
 gem 'therubyracer', platforms: :ruby
 gem 'jbuilder', '~> 1.0.1'
 gem 'devise'
+gem 'rabl'
 
 group :doc do
   gem 'sdoc', require: false

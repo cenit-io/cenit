@@ -16,7 +16,7 @@ module NumberGenerator
   end
   
   def to_param
-    number.to_s.to_url.upcase
+    number.to_s #.to_url.upcase
   end
 
   def generate_number(options = {})
