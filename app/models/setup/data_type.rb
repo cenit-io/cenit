@@ -35,6 +35,17 @@ module Setup
     end
 
     rails_admin do
+      list do
+        fields :name, :schema, :sample_data
+      end
+      show do
+        field :_id
+        field :created_at
+        field :updated_at
+        field :name
+        field :schema
+        field :sample_data
+      end 
       edit do
         field :name do
           read_only { !bindings[:object].new_record? }
@@ -52,9 +63,6 @@ module Setup
         field :sample_data do
           group :sample_data
         end
-      end
-      list do
-        fields :name, :schema, :sample_data
       end
     end
 
