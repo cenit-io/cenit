@@ -1,86 +1,54 @@
 module Setup
-  class FlowsController < ApplicationController
-    # GET /connections
-    # GET /connections.json
+  class FlowsController < Setup::BaseController
+    # GET /flows.json
     def index
-      @connection = Setup::Connection.all
-
-      respond_to do |format|
-        format.html # index.html.erb
-        format.json { render json: @connections }
-      end
+      @flows = Setup::Flow.all
+      render json: @flows
     end
 
-    # GET /connections/1
-    # GET /connections/1.json
+    # GET /flows/1.json
     def show
-      @connection = Setup::Connection.find(params[:id])
-
-      respond_to do |format|
-        format.html # show.html.erb
-        format.json { render json: @connection }
-      end
+      @flow = Setup::Flow.find(params[:id])
+      render json: @flow
     end
 
-    # GET /connections/new
-    # GET /connections/new.json
+    # GET /flows/new.json
     def new
-      @connection = Setup::Connection.new
-
-      respond_to do |format|
-        format.html # new.html.erb
-        format.json { render json: @connection }
-      end
+      @flow = Setup::Flow.new
+      render json: @flow
     end
 
-    # GET /connections/1/edit
-    def edit
-      @connection = Setup::Connection.find(params[:id])
-    end
-
-    # POST /connections
-    # POST /connections.json
+    # POST /flows.json
     def create
-      @connection = Setup::Connection.new(params[:author])
-
-      respond_to do |format|
-        if @connection.save
-          format.html { redirect_to @connection, notice: 'Setup::Connection was successfully created.' }
-          format.json { render json: @connection, status: :created, location: @connection }
-        else
-          format.html { render action: "new" }
-          format.json { render json: @connection.errors, status: :unprocessable_entity }
-        end
+      @flow = Setup::Flow.new(permited_attributes)
+      if @flow.save
+        render json: @flow, status: :created, location: @flow
+      else
+        render json: @flow.errors, status: :unprocessable_entity
       end
     end
 
-    # PUT /connections/1
-    # PUT /connections/1.json
+    # PUT /flows/1.json
     def update
-      @connection = Setup::Connection.find(params[:id])
-
-      respond_to do |format|
-        if @connection.update_attributes(params[:author])
-          format.html { redirect_to @connection, notice: 'Connection was successfully updated.' }
-          format.json { head :no_content }
-        else
-          format.html { render action: "edit" }
-          format.json { render json: @connection.errors, status: :unprocessable_entity }
-        end
+      @flow = Setup::Flow.find(params[:id])
+      if @flow.update_attributes(params[:flow])
+        head :no_content
+      else
+        render json: @flow.errors, status: :unprocessable_entity
       end
     end
 
-    # DELETE /connections/1
-    # DELETE /connections/1.json
+    # DELETE /flows/1.json
     def destroy
-      @connection = Setup::Connection.find(params[:id])
-      @connection.destroy
-
-      respond_to do |format|
-        format.html { redirect_to connections_url }
-        format.json { head :no_content }
-      end
+      @flow = Setup::Flow.find(params[:id])
+      @flow.destroy
+      head :no_content
     end
+    
+    protected
+    def permited_attributes 
+      params[:flow].permit(:name, :purpose, :active, :data_type_id, :connection_id, :webhook_id, :event_id)
+    end  
     
   end
 end

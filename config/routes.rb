@@ -14,6 +14,7 @@ Cenit::Application.routes.draw do
     resources :connections
     resources :flows
     resources :webhooks
+    resources :data_types
   end  
 
 end

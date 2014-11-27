@@ -201,7 +201,13 @@ module Setup
       list do
         fields :name, :data_type
       end
-
+      show do
+        field :_id
+        field :created_at
+        field :updated_at
+        field :name
+        field :data_type
+      end
       edit do
         field :name
         field :data_type do
