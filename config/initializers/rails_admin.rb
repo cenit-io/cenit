@@ -37,9 +37,9 @@ RailsAdmin.config do |config|
     dashboard # mandatory
     index # mandatory
     new
-    import do
-      only 'Setup::DataType'
-    end
+    #import do
+    #  only 'Setup::DataType'
+    #end
     export
     bulk_delete
     show

@@ -83,7 +83,7 @@ module Setup
         field :name
         field :schema
         field :sample_data
-      end 
+      end
       edit do
 
         group :model_definition do
@@ -123,11 +123,6 @@ module Setup
           group :sample_data
         end
       end
-<<<<<<< HEAD
-=======
-    end
->>>>>>> e342d9050fd0006c02f7434498813f6983407428
-
       list do
         fields :uri, :name, :schema, :sample_data
       end
