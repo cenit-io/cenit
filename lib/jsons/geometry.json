@@ -7,7 +7,8 @@
             "maxLength": 25
         },
         "author": {
-            "$ref": "Mathematician"
+            "$ref": "Mathematician",
+            "referenced": true
         },
         "date": {
             "$ref": "Date"

@@ -8,7 +8,8 @@
        "geometry": {
            "type": "array",
            "items": {
-               "$ref": "Geometry"
+               "$ref": "Geometry",
+               "referenced": true
            }
        }
     },

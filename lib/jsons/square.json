@@ -22,7 +22,8 @@
             }
         },
         "geometry": {
-            "$ref": "Geometry"
+            "$ref": "Geometry",
+            "referenced": true
         }
     },
     "required": ["name", "dimension"]

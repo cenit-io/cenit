@@ -20,58 +20,78 @@ module RailsAdmin
   class AbstractModel
     class << self
 
-      def remove_model(model)
-        Config.remove_model(model)
-        if m = all.detect { |m| m.model_name.eql?(model.to_s) }
-          all.delete(m)
-          puts "#{self.to_s}: model #{model.to_s} removed!"
-        else
-          puts "#{self.to_s}: model #{model.to_s} is not present to be removed!"
+      def remove_model(models)
+        models = [models] unless models.is_a?(Enumerable)
+        models.each do |model|
+          Config.remove_model(model)
+          if m = all.detect { |m| m.model_name.eql?(model.to_s) }
+            all.delete(m)
+            puts "#{self.to_s}: model #{model.to_s} removed!"
+          else
+            puts "#{self.to_s}: model #{model.to_s} is not present to be removed!"
+          end
         end
-
       end
 
-      def model_loaded(model, exclude_reset=[])
-        return if model.nil?
-        begin
-          model = model.constantize if model.is_a?(String)
-        rescue
-          return
-        end
-        Config.new_model(model)
-        if !all.detect { |e| e.model_name.eql?(model.to_s) } && m = new(model)
-          all << m
-        end
-        reset_config(model, exclude_reset)
-        return m
-      end
-
-      def reset_config(model, exclude_reset=[])
-        unless exclude_reset.include?(model)
-          begin
-            model = model.constantize if model.is_a?(String)
-            puts "#{self.to_s}: resetting configuration of #{model.to_s}"
-            RailsAdmin::Config.reset_model(model)
-            exclude_reset << model
-            [:embeds_one, :embeds_many, :embedded_in].each do |rk|
-              model.reflect_on_all_associations(rk).each { |r| model_loaded(r.klass, exclude_reset) }
+      def model_loaded(models)
+        collect_models(models, to_reset = [])
+        to_reset.each do |model|
+          unless model.is_a?(Hash)
+            Config.new_model(model)
+            if !all.detect { |e| e.model_name.eql?(model.to_s) } && m = new(model)
+              all << m
             end
-            # referenced relations only affects if a referenced relation reflects back
-            {[:belongs_to] => [:has_one, :has_many], [:has_one, :has_many] => [:belongs_to], [:has_and_belongs_to_many] => [:has_and_belongs_to_many]}.each do |rks, rkbacks|
-              rks.each do |rk|
-                model.reflect_on_all_associations(rk).each do |r|
-                  rkbacks.each do |rkback|
-                    model_loaded(r.klass, exclude_reset) if r.klass.reflect_on_all_associations(rkback).detect { |r| r.klass.eql?(model) }
+          end
+        end
+        to_reset = to_reset.sort_by do |model|
+          parent = model.parent
+          index = 0
+          while !parent.eql?(Object)
+            index = index - 1
+            parent = parent.parent
+          end
+          index
+        end
+        to_reset.each do |model|
+          puts "#{self.to_s}: resetting configuration of #{model.to_s}"
+          RailsAdmin::Config.reset_model(model)
+        end
+      end
+
+      def collect_models(models, to_reset)
+        models = [models] unless models.is_a?(Enumerable)
+        models.each do |model|
+          unless to_reset.include?(model)
+            begin
+              if (model.is_a?(Hash))
+                affected_models = model[:affected] || []
+              else
+                to_reset << model
+                [:embeds_one, :embeds_many, :embedded_in].each do |rk|
+                  model.reflect_on_all_associations(rk).each { |r| collect_models(r.klass, to_reset) }
+                end
+                # referenced relations only affects if a referenced relation reflects back
+                {[:belongs_to] => [:has_one, :has_many],
+                 [:has_one, :has_many] => [:belongs_to],
+                 [:has_and_belongs_to_many] => [:has_and_belongs_to_many]}.each do |rks, rkbacks|
+                  rks.each do |rk|
+                    model.reflect_on_all_associations(rk).each do |r|
+                      rkbacks.each do |rkback|
+                        collect_models(r.klass, to_reset) if r.klass.reflect_on_all_associations(rkback).detect { |r| r.klass.eql?(model) }
+                      end
+                    end
                   end
                 end
+                affected_models = model.affected_models
               end
+              begin
+                affected_models.each { |m| collect_models(m, to_reset) }
+              rescue
+              end
+            rescue Exception => ex
+              puts "#{self.to_s}: error loading configuration of model #{model.to_s} -> #{ex.message}"
+              raise ex
             end
-            begin
-              model.affected_models.each { |m| model_loaded(m, exclude_reset) }
-            rescue
-            end
-          rescue
-            puts "#{self.to_s}: could not reset model #{model.to_s}"
           end
         end
       end

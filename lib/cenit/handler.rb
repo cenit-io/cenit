@@ -5,6 +5,8 @@ module Cenit
 
       attr_accessor :payload, :parameters, :request_id, :model
 
+      String
+
       def initialize(message, model=nil)
         self.payload = ::JSON.parse(message).with_indifferent_access
         self.request_id = payload.delete(:request_id)
