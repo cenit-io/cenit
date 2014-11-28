@@ -46,6 +46,7 @@ module Cenit
       if message[:notification_id.to_s].nil?
         notification = Setup::Notification.new
         notification.flow_id = message[:flow_id.to_s]['$oid']
+        notification.account_id = message[:account_id.to_s]['$oid']
         notification.json_data = message[:json_data.to_s]
         notification.count = 0
       else
