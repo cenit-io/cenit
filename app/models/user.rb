@@ -3,7 +3,7 @@ class User
   extend DeviseOverrides
   #include AccountScoped
   belongs_to :account, inverse_of: :users, class_name: Account.name
-  before_validation { self.account ||= Account.new }
+  before_validation { self.account ||= Account.current }
   #default_scope ->{ where(account: Account.current ) } 
   
   # Include default devise modules. Others available are:
@@ -29,5 +29,5 @@ class User
   field :current_sign_in_ip, type: String
   field :last_sign_in_ip,    type: String
 
-  accepts_nested_attributes_for :account
+  # accepts_nested_attributes_for :account
 end

@@ -12,6 +12,10 @@ class ApplicationController < ActionController::Base
   private
   
     def scope_current_account
+      if current_user && current_user.account.nil?
+         current_user.account = Account.create_with_owner(owner: current_user)
+         current_user.save(validate: false)
+       end 
       Account.current = current_user.account if signed_in?
       yield
     ensure
