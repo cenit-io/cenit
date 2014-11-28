@@ -4,6 +4,7 @@ class User
   #include AccountScoped
   belongs_to :account, inverse_of: :users, class_name: Account.name
   before_validation { self.account ||= Account.current }
+  scope :by_account, -> { where(account: Account.current ) }
   #default_scope ->{ where(account: Account.current ) } 
   
   # Include default devise modules. Others available are:
@@ -28,6 +29,12 @@ class User
   field :last_sign_in_at,    type: Time
   field :current_sign_in_ip, type: String
   field :last_sign_in_ip,    type: String
+  
+  rails_admin do
+    list do
+      scopes [:by_account]
+    end
+  end  
 
   # accepts_nested_attributes_for :account
 end
