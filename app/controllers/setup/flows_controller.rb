@@ -1,5 +1,7 @@
 module Setup
   class FlowsController < Setup::BaseController
+    before_action :find_flow, only: [:show, :update, :destroy]
+
     # GET /flows.json
     def index
       @flows = Setup::Flow.all
@@ -8,7 +10,6 @@ module Setup
 
     # GET /flows/1.json
     def show
-      @flow = Setup::Flow.find(params[:id])
       render json: @flow
     end
 
@@ -30,7 +31,6 @@ module Setup
 
     # PUT /flows/1.json
     def update
-      @flow = Setup::Flow.find(params[:id])
       if @flow.update_attributes(params[:flow])
         head :no_content
       else
@@ -40,7 +40,6 @@ module Setup
 
     # DELETE /flows/1.json
     def destroy
-      @flow = Setup::Flow.find(params[:id])
       @flow.destroy
       head :no_content
     end
@@ -48,7 +47,11 @@ module Setup
     protected
     def permited_attributes 
       params[:flow].permit(:name, :purpose, :active, :data_type_id, :connection_id, :webhook_id, :event_id)
-    end  
+    end
+    
+    def find_flow
+      @flow = Setup::Flow.find(params[:id])
+    end
     
   end
 end

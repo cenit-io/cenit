@@ -1,5 +1,7 @@
 module Setup
   class EventsController < Setup::BaseController
+    before_action :find_event, only: [:show, :update, :destroy]
+
     # GET /events.json
     def index
       @events = Setup::Event.all
@@ -8,7 +10,6 @@ module Setup
 
     # GET /events/1.json
     def show
-      @event = Setup::Event.find(params[:id])
       render json: @event
     end
 
@@ -30,7 +31,6 @@ module Setup
 
     # PUT /events/1.json
     def update
-      @event = Setup::Event.find(params[:id])
       if @event.update_attributes(params[:event])
         head :no_content
       else
@@ -40,7 +40,6 @@ module Setup
 
     # DELETE /events/1.json
     def destroy
-      @event = Setup::Event.find(params[:id])
       @event.destroy
       head :no_content
     end
@@ -48,6 +47,10 @@ module Setup
     protected
     def permited_attributes 
       params[:event].permit(:name, :triggers, :data_type_id)
+    end
+    
+    def find_event
+      @event = Setup::Event.find(params[:id])
     end  
     
   end

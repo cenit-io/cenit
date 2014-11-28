@@ -1,5 +1,7 @@
 module Setup
   class WebhooksController < Setup::BaseController
+    before_action :find_webhook, only: [:show, :update, :destroy]
+
     # GET /webhooks.json
     def index
       @webhooks = Setup::Webhook.all
@@ -8,7 +10,6 @@ module Setup
 
     # GET /webhooks/1.json
     def show
-      @webhook = Setup::Webhook.find(params[:id])
       render json: @webhook
     end
 
@@ -30,7 +31,6 @@ module Setup
 
     # PUT /webhooks/1.json
     def update
-      @webhook = Setup::Webhook.find(params[:id])
       if @webhook.update_attributes(params[:webhook])
         head :no_content
       else
@@ -40,15 +40,18 @@ module Setup
 
     # DELETE /webhooks/1.json
     def destroy
-      @webhook = Setup::Webhook.find(params[:id])
       @webhook.destroy
       head :no_content
     end
-    
+
     protected
     def permited_attributes 
       params[:webhook].permit(:name, :path, :purpose, :data_type_id, :connection_id)
-    end  
-    
+    end
+
+    def find_webhook
+      @webhook = Setup::Webhook.find(params[:id])
+    end
+
   end
 end

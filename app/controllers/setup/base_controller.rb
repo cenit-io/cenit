@@ -1,7 +1,7 @@
 module Setup
   class BaseController < ApplicationController
     respond_to :json
-    before_filter :authorize
+    before_action :authorize
     
     protected
     def authorize
