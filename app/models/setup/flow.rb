@@ -49,7 +49,8 @@ module Setup
       message = {
           :flow_id => self.id,
           :json_data => json,
-          :notification_id => notification_id
+          :notification_id => notification_id,
+          :account_id => self.account.id
       }.to_json
       begin
         Cenit::Rabbit.send_to_rabbitmq(message)
@@ -130,6 +131,7 @@ module Setup
     rails_admin do
       edit do
         field :name
+        field :active
         field :purpose
         field :data_type
         field :connection
@@ -146,7 +148,7 @@ module Setup
       end
       list do
         fields :name, :active, :purpose, :event, :connection, :webhook
-      end  
+      end
       show do
         field :_id
         field :created_at
@@ -157,7 +159,7 @@ module Setup
         field :connection
         field :webhook
         field :event
-      end 
+      end
     end
 
   end
