@@ -131,6 +131,7 @@ module Setup
     rails_admin do
       edit do
         field :name
+        field :active
         field :purpose
         field :data_type
         field :connection
@@ -147,7 +148,7 @@ module Setup
       end
       list do
         fields :name, :active, :purpose, :event, :connection, :webhook
-      end  
+      end
       show do
         field :_id
         field :created_at
@@ -158,7 +159,7 @@ module Setup
         field :connection
         field :webhook
         field :event
-      end 
+      end
     end
 
   end
