@@ -1,5 +1,5 @@
 module Cenit
-  class ApiController < ActionController::Base
+  class ApiController < ApplicationController
     before_filter :save_request_data, :authorize
     rescue_from Exception, :with => :exception_handler
 
@@ -23,9 +23,9 @@ module Cenit
 
       if connection && Devise.secure_compare(connection.authentication_token, token)
         #TODO: Check if 'X-Hub-Timestamp' belong to a small time window around Time.now
+        Account.current = connection.account
         return true
       else
-        Account.current = connection.account
         response_handler = Handler.new(@message)
         responder = response_handler.response('Unauthorized!', 401)
         render json: responder, root: false, status: responder.code
@@ -42,8 +42,8 @@ module Cenit
     end
 
     def save_request_data
-      @objects = params[:webhook].keys.map {|k| k.singularize}
-      @message = params[:webhook].to_json
+      @objects = params[:api].keys.map(&:singularize)
+      @message = params[:api].to_json
     end
 
   end

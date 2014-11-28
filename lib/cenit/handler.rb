@@ -26,7 +26,7 @@ module Cenit
       def process
         return {} if self.model.nil?
 
-        klass = self.model.capitalize.constantize
+        klass = self.model.camelize.constantize
         root = self.model.pluralize
         count = 0
         self.payload[root].each do |obj|

@@ -30,12 +30,31 @@ module Setup
       super(options)
     end
 
-    rails_admin do
-      field :name
-      field :url
-      field :key
-      field :authentication_token
-      field :webhooks
+    rails_admin do      
+      edit do
+        field :name 
+        field :url
+        field :key
+        field :authentication_token
+        field :webhooks
+      end
+      list do
+        field :name 
+        field :url
+        field :key
+        field :authentication_token
+        field :webhooks
+      end
+      show do
+        field :_id
+        field :created_at
+        field :updated_at
+        field :name 
+        field :url
+        field :key
+        field :authentication_token
+        field :webhooks
+      end  
     end
 
     private

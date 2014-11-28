@@ -73,6 +73,17 @@ module Setup
     end
 
     rails_admin do
+      list do
+        fields :name, :schema, :sample_data
+      end
+      show do
+        field :_id
+        field :created_at
+        field :updated_at
+        field :name
+        field :schema
+        field :sample_data
+      end 
       edit do
 
         group :model_definition do
@@ -112,6 +123,10 @@ module Setup
           group :sample_data
         end
       end
+<<<<<<< HEAD
+=======
+    end
+>>>>>>> e342d9050fd0006c02f7434498813f6983407428
 
       list do
         fields :uri, :name, :schema, :sample_data

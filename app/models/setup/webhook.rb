@@ -22,6 +22,15 @@ module Setup
       list do
         fields :name, :purpose, :connection, :path
       end  
+      show do
+        field :_id
+        field :created_at
+        field :updated_at
+        field :name
+        field :purpose
+        field :connection
+        field :path
+      end 
     end
 
   end

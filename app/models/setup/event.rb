@@ -33,7 +33,7 @@ module Setup
     end
 
     def self.lookup(obj_now, obj_before=nil)
-      where(data_type: obj_now.data_type).each { |e| Setup::Flow.where(event: e).
+      where(data_type: obj_now.data_type).each { |e| Setup::Flow.where(active: true, event: e).
           each { |f| f.process(obj_now) } if e.triggers_apply_to?(obj_now, obj_before) }
     end
 
@@ -201,7 +201,13 @@ module Setup
       list do
         fields :name, :data_type
       end
-
+      show do
+        field :_id
+        field :created_at
+        field :updated_at
+        field :name
+        field :data_type
+      end
       edit do
         field :name
         field :data_type do

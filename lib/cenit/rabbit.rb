@@ -22,11 +22,11 @@ module Cenit
       object = message[:json_data.to_s]
       response = HTTParty.post(flow.connection.url + '/' + flow.webhook.path,
                                {
-                                 body: object,
+                                 body: object.to_json,
                                  headers: {
                                    'Content-Type'    => 'application/json',
-                                   'X_HUB_STORE'     => flow.connection.store,
-                                   'X_HUB_TOKEN'     => flow.connection.token,
+                                   'X_HUB_STORE'     => flow.connection.number,
+                                   'X_HUB_TOKEN'     => flow.connection.authentication_token,
                                    'X_HUB_TIMESTAMP' => Time.now.utc.to_i.to_s
                                  }
                                })
@@ -46,6 +46,7 @@ module Cenit
       if message[:notification_id.to_s].nil?
         notification = Setup::Notification.new
         notification.flow_id = message[:flow_id.to_s]['$oid']
+        notification.account_id = message[:account_id.to_s]['$oid']
         notification.json_data = message[:json_data.to_s]
         notification.count = 0
       else
