@@ -147,7 +147,18 @@ module Setup
       end
       list do
         fields :name, :active, :purpose, :event, :connection, :webhook
-      end
+      end  
+      show do
+        field :_id
+        field :created_at
+        field :updated_at
+        field :name
+        field :purpose
+        field :data_type
+        field :connection
+        field :webhook
+        field :event
+      end 
     end
 
   end

@@ -9,5 +9,12 @@ Cenit::Application.routes.draw do
   namespace :cenit do
     post '/', to: 'api#consume', as: 'api'
   end
+  
+  namespace :setup do
+    resources :connections
+    resources :flows
+    resources :webhooks
+    resources :data_types
+  end  
 
 end
