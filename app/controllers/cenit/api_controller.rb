@@ -12,6 +12,8 @@ module Cenit
       response_handler = Handler.new(@message)
       responder = response_handler.response(response, 202)
       render json: responder, root: false, status: responder.code
+    rescue Exception => e
+      puts "ERROR: #{e.inspect}"
     end
 
     protected
