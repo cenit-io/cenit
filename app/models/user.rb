@@ -34,6 +34,7 @@ class User
     list do
       scopes [:by_account]
     end
+    navigation_label 'Account'
   end  
 
   # accepts_nested_attributes_for :account
