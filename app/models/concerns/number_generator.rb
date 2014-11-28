@@ -14,10 +14,6 @@ module NumberGenerator
   def self.by_number(number)
     where(number: number)
   end
-  
-  def to_param
-    number.to_s.to_url.upcase
-  end
 
   def generate_number(options = {})
     options[:length]  ||= NUMBER_LENGTH
