@@ -35,14 +35,22 @@ module Setup
         field :name 
         field :url
         field :key
-        field :authentication_token
+        field :authentication_token do
+          visible do
+            bindings[:view]._current_user.has_role? :admin
+          end
+        end
         field :webhooks
       end
       list do
         field :name 
         field :url
         field :key
-        field :authentication_token
+        field :authentication_token do
+          visible do
+            bindings[:view]._current_user.has_role? :admin
+          end
+        end
         field :webhooks
       end
       show do
@@ -52,7 +60,11 @@ module Setup
         field :name 
         field :url
         field :key
-        field :authentication_token
+        field :authentication_token do
+          visible do
+            bindings[:view]._current_user.has_role? :admin
+          end
+        end
         field :webhooks
       end  
     end
