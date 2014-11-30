@@ -25,8 +25,6 @@ group :development, :test do
 end
 
 group :test do
-  gem 'factory_girl_rails'
-  gem 'rspec-rails'
   gem 'mongoid-rspec'
   gem 'database_cleaner'
 end
@@ -44,3 +42,5 @@ gem 'httparty'
 gem "bunny", "~> 0.9.1"
 gem "json-schema"
 gem "nokogiri"
+gem 'cancan'
+gem 'rolify'

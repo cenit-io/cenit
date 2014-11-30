@@ -1,7 +1,9 @@
 class User
   include Mongoid::Document
+  rolify
   extend DeviseOverrides
   #include AccountScoped
+  
   belongs_to :account, inverse_of: :users, class_name: Account.name
   before_validation { self.account ||= Account.current }
   scope :by_account, -> { where(account: Account.current ) }
@@ -45,6 +47,7 @@ class User
       field :created_at
       field :updated_at
       field :email
+      field :roles
       field :sign_in_count
       field :current_sign_in_at
       field :last_sign_in_at
@@ -56,6 +59,12 @@ class User
       field :email 
       field :password
       field :password_confirmation
+      field :roles, :enum do
+        enum do
+          ['admin','reviewer']
+        end
+        default_value 'admin'
+      end 
       #field :reset_password_token
     end
     navigation_label 'Account'

@@ -4,9 +4,9 @@
 [RailsAdmin::Config::Actions::New,
 RailsAdmin::Config::Actions::Delete,
 RailsAdmin::Config::Actions::BulkDelete].each do |action|
-action.register_instance_option :visible? do
-   !bindings[:abstract_model].model_name.eql?(Setup::DataType.to_s)
-end
+  action.register_instance_option :visible? do
+     !bindings[:abstract_model].model_name.eql?(Setup::DataType.to_s)
+  end
 end
 
 RailsAdmin.config do |config|
@@ -31,7 +31,10 @@ RailsAdmin.config do |config|
   config.authenticate_with do
     warden.authenticate! scope: :user
   end
-  config.current_user_method { current_user } # auto-generated
+# config.current_user_method { current_user } # auto-generated
+  
+  config.authorize_with :cancan
+  config.current_user_method &:current_user
 
   config.actions do
     dashboard # mandatory
