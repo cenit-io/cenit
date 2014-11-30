@@ -1,13 +1,11 @@
 class User
   include Mongoid::Document
-  rolify
   extend DeviseOverrides
-  #include AccountScoped
+  rolify
   
   belongs_to :account, inverse_of: :users, class_name: Account.name
   before_validation { self.account ||= Account.current }
   scope :by_account, -> { where(account: Account.current ) }
-  #default_scope ->{ where(account: Account.current ) } 
   
   # Include default devise modules. Others available are:
   # :confirmable, :lockable, :timeoutable and :omniauthable
@@ -37,7 +35,8 @@ class User
       scopes [:by_account]
     end        
     list do
-      field :email 
+      field :email
+      field :roles
       field :sign_in_count
       field :last_sign_in_at
       field :last_sign_in_ip
@@ -59,12 +58,7 @@ class User
       field :email 
       field :password
       field :password_confirmation
-      field :roles, :enum do
-        enum do
-          ['admin','reviewer']
-        end
-        default_value 'admin'
-      end 
+      field :roles
       #field :reset_password_token
     end
     navigation_label 'Account'
