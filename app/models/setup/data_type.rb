@@ -5,7 +5,7 @@ module Setup
     include AccountScoped
 
     def self.to_include_in_models
-      @to_include_in_models ||= [Mongoid::Document, Mongoid::Timestamps, AccountScoped]
+      @to_include_in_models ||= [Mongoid::Document, Mongoid::Timestamps, AfterSave, AccountScoped]
     end
 
     def self.to_include_in_model_classes
