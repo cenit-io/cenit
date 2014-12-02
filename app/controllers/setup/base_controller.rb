@@ -4,20 +4,22 @@ module Setup
     before_action :authorize
     
     protected
+    
     def authorize
       # we are using token authentication via header.
-      key = request.headers['X-Hub-Store']
-      token = request.headers['X-Hub-Access-Token']
-      connection = Setup::Connection.unscoped.find_by(key: key) if key && token
+      key = request.headers['X-User-Key']
+      token = request.headers['X-User-Access-Token']
+      user = User.find_by(key: key) if key && token
       
-      if connection && Devise.secure_compare(connection.authentication_token, token)
+      if user && Devise.secure_compare(user.authentication_token, token) && user.has_role?(:admin)
         #TODO: Check if 'X-Hub-Timestamp' belong to a small time window around Time.now
-        Account.current = connection.account
+        Account.current = user.account
         return true
-      else
-        render json: 'Unauthorized!', status: :unprocessable_entity 
-        return false
       end
+
+      render json: 'Unauthorized!', status: :unprocessable_entity 
+      return false
     end
+    
   end
 end

@@ -46,7 +46,6 @@ module Setup
     
     protected
     def permited_attributes
-      puts "^^^^^^^^^^^^^^^^^^^^ params #{params}"
       params[:connection].permit(:name,:key,:url)
     end  
     
