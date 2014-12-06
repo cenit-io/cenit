@@ -4,7 +4,7 @@ class Ability
   def initialize(user)
     if user                   # allow access to dashboard
       can :read, :all
-      can :update, User, id: user.id  # allows you to edit your own user
+      can :update, User, id: user.id  # allows you to edit your own user account
       
       can :access, :rails_admin       # only allow admin users to access Rails Admin
       can :dashboard
