@@ -11,7 +11,7 @@ module Setup
     field :uri, type: String
     field :schema, type: String
 
-    has_many :data_types, class_name: 'Setup::DataType'
+    has_many :data_types, class_name: Setup::DataType.name
 
     validates_length_of :uri, :maximum => 255
     validates_uniqueness_of :uri

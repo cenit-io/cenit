@@ -38,6 +38,12 @@ gem 'mongoid'
 gem 'bson_ext'
 gem 'rails_admin'
 #gem "rails_admin_import"
+
+# charts
+gem 'rails_admin_dynamic_charts', github: 'openjaf/rails_admin_dynamic_charts'
+gem 'chartkick'
+gem 'descriptive_statistics'
+
 gem 'httparty'
 gem "bunny", "~> 0.9.1"
 gem "json-schema"
