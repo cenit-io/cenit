@@ -210,7 +210,7 @@ namespace :sample do
               {"Material" => ["Canvas","600 Denier Polyester"]}
             ]
       
-        1.upto 50 do 
+        1.upto 150 do 
           name = "#{Faker::Product.product }"
           sku = name.underscore.gsub(' ', '-')
           cost_price = rand(10.5...100.5).round(2)
