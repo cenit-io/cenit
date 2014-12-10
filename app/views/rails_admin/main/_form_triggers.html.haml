@@ -5,7 +5,7 @@
 :ruby
   @model_field_map = {}
   Setup::DataType.all.each do |data_type|
-    if (abstract_model = RailsAdmin::AbstractModel.new(data_type.name)) && !(model_config = abstract_model.config).excluded?
+    if data_type.loaded? && (abstract_model = RailsAdmin::AbstractModel.new(data_type.model)) && !(model_config = abstract_model.config).excluded?
       @model_field_map[data_type.name] = []
       model_config.list.fields.select(&:filterable?).each do |field|
         field_options = field.type.eql?(:enum) ? field.with(object: abstract_model.model.new).enum : []

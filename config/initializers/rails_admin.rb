@@ -1,13 +1,8 @@
 [RailsAdmin::Config::Actions::SendToFlow,
- RailsAdmin::Config::Actions::TestTransformation].each { |a| RailsAdmin::Config::Actions.register(a) }
-
-[RailsAdmin::Config::Actions::New,
-RailsAdmin::Config::Actions::Delete,
-RailsAdmin::Config::Actions::BulkDelete].each do |action|
-action.register_instance_option :visible? do
-   !bindings[:abstract_model].model_name.eql?(Setup::DataType.to_s)
-end
-end
+ RailsAdmin::Config::Actions::TestTransformation,
+ RailsAdmin::Config::Actions::LoadModel,
+ RailsAdmin::Config::Actions::ShutdownModel,
+ RailsAdmin::Config::Actions::SwitchNavigation].each { |a| RailsAdmin::Config::Actions.register(a) }
 
 RailsAdmin.config do |config|
 
@@ -24,7 +19,7 @@ RailsAdmin.config do |config|
 
   ## == PaperTrail ==
   # config.audit_with :paper_trail, 'User', 'PaperTrail::Version' # PaperTrail >= 3.0.0
-  
+
   config.excluded_models << "Account"
 
   ### More at https://github.com/sferik/rails_admin/wiki/Base-configuration
@@ -36,18 +31,21 @@ RailsAdmin.config do |config|
   config.actions do
     dashboard # mandatory
     index # mandatory
-    new
+    new { except Setup::DataType }
     #import do
     #  only 'Setup::DataType'
     #end
     export
-    bulk_delete
+    bulk_delete { except Setup::DataType }
     show
-    edit
-    delete
-    show_in_app
+    edit { except Setup::Library }
+    delete { except Setup::DataType }
+    #show_in_app
     send_to_flow
     test_transformation
+    load_model
+    shutdown_model
+    switch_navigation
 
     ## With an audit adapters, you can add:
     # history_index

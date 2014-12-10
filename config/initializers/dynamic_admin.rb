@@ -20,9 +20,12 @@ module RailsAdmin
   class AbstractModel
     class << self
 
-      def remove_model(models)
-        models = [models] unless models.is_a?(Enumerable)
-        models.each do |model|
+      def update_model_config(loaded_models, removed_models=[], models_to_reset=[])
+        models_to_reset = [models_to_reset] unless models_to_reset.is_a?(Enumerable)
+        collect_models(models_to_reset, models_to_reset)
+        collect_models(loaded_models, models_to_reset)
+        collect_models(removed_models, models_to_reset)
+        removed_models.each do |model|
           Config.remove_model(model)
           if m = all.detect { |m| m.model_name.eql?(model.to_s) }
             all.delete(m)
@@ -30,12 +33,9 @@ module RailsAdmin
           else
             puts "#{self.to_s}: model #{model.to_s} is not present to be removed!"
           end
+          models_to_reset.delete(model)
         end
-      end
-
-      def model_loaded(models)
-        collect_models(models, to_reset = [])
-        to_reset.each do |model|
+        models_to_reset.each do |model|
           unless model.is_a?(Hash)
             Config.new_model(model)
             if !all.detect { |e| e.model_name.eql?(model.to_s) } && m = new(model)
@@ -43,7 +43,20 @@ module RailsAdmin
             end
           end
         end
-        to_reset = to_reset.sort_by do |model|
+        reset_models(models_to_reset)
+      end
+
+      def remove_model(models)
+        update_model_config([], models)
+      end
+
+      def model_loaded(models)
+        update_model_config(models, [])
+      end
+
+      def reset_models(models)
+        models = [models] unless models.is_a?(Enumerable)
+        models = models.sort_by do |model|
           parent = model.parent
           index = 0
           while !parent.eql?(Object)
@@ -52,9 +65,18 @@ module RailsAdmin
           end
           index
         end
-        to_reset.each do |model|
+        models.each do |model|
           puts "#{self.to_s}: resetting configuration of #{model.to_s}"
-          RailsAdmin::Config.reset_model(model)
+          Config.reset_model(model)
+          data_type = Setup::DataType.find_by(id: model.data_type_id) rescue nil
+          {navigation_label: nil,
+           visible: false,
+           label: model.to_s.split('::').last}.each do |option, default_value|
+            rails_admin_model = Config.model(model).target
+            rails_admin_model.register_instance_option option do
+              data_type && data_type.respond_to?(option) ? data_type.send(option) : default_value
+            end
+          end
         end
       end
 
@@ -70,7 +92,7 @@ module RailsAdmin
                 [:embeds_one, :embeds_many, :embedded_in].each do |rk|
                   model.reflect_on_all_associations(rk).each { |r| collect_models(r.klass, to_reset) }
                 end
-                # referenced relations only affects if a referenced relation reflects back
+                # referenced relations muts be reset if a referenced relation reflects back
                 {[:belongs_to] => [:has_one, :has_many],
                  [:has_one, :has_many] => [:belongs_to],
                  [:has_and_belongs_to_many] => [:has_and_belongs_to_many]}.each do |rks, rkbacks|

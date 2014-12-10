@@ -5,7 +5,7 @@ module Setup
     include AccountScoped
 
     def self.to_include_in_models
-      @to_include_in_models ||= [Mongoid::Document, Mongoid::Timestamps, AccountScoped]
+      @to_include_in_models ||= [Mongoid::Document, Mongoid::Timestamps, AccountScoped, AfterSave]
     end
 
     def self.to_include_in_model_classes
@@ -31,21 +31,37 @@ module Setup
     field :is_object, type: Boolean
     field :schema_ok, type: Boolean
     field :previous_schema, type: String
+    field :activated, type: Boolean
+    field :auto_load_model, type: Boolean
+    field :show_navigation_link, type: Boolean
 
     def sample_object
       '{"' + name.underscore + '": ' + sample_data + '}'
     end
 
     def destroy_model
-      return deconstantize(self.name)
+      return deconstantize(model.to_s)
     end
 
-    def load_model(reload=true)
+    def model
+      self.uri.library.module.const_get(data_type_name) rescue nil
+    end
+
+    def loaded?
+      model ? true : false
+    end
+
+    def data_type_name
+      "Dt#{self.id.to_s}"
+    end
+
+    def load_model(reload=true, navigation_label=nil)
+      @navigation_label = navigation_label
       model = nil
       begin
         if reload || schema_has_changed?
           destroy_model
-          model = parse_str_schema(self.name, self.schema)
+          model = parse_str_schema(self.schema)
         else
           puts "No changes detected on '#{self.name}' schema!"
         end
@@ -56,7 +72,7 @@ module Setup
         begin
           if previous_schema
             puts "Reloading previous schema for '#{self.name}'..."
-            parse_str_schema(self.name, previous_schema)
+            parse_str_schema(previous_schema)
             puts "Previous schema for '#{self.name}' reloaded!"
           else
             puts "ERROR: schema '#{self.name}' not loaded!"
@@ -69,6 +85,9 @@ module Setup
       end
       set_schema_ok
       self[:previous_schema] = nil
+      reflect(model, "def self.data_type_id
+        '#{self.id}'
+      end")
       return model
     end
 
@@ -130,6 +149,18 @@ module Setup
       show do
         fields :uri, :name, :schema, :sample_data
       end
+    end
+
+    def visible
+      Account.current == self.account && self.show_navigation_link
+    end
+
+    def navigation_label
+      self.uri ? self.uri.library.name : @navigation_label
+    end
+
+    def label
+      self.name
     end
 
     private
@@ -222,7 +253,8 @@ module Setup
           deconstantize_class(const, report, affected) if const.is_a?(Class)
         end
       end
-      [:embeds_one, :embeds_many, :embedded_in].each do |rk|
+      #[:embeds_one, :embeds_many, :embedded_in].each do |rk|
+      [:embedded_in].each do |rk|
         begin
           klass.reflect_on_all_associations(rk).each do |r|
             deconstantize_class(r.klass, report, :affected)
@@ -230,8 +262,9 @@ module Setup
         rescue
         end
       end
-      # referenced relations only affects if a referenced relation reflects back
-      {[:belongs_to] => [:has_one, :has_many],
+      # relations affects if their are reflected back
+      {[:embeds_one, :embeds_many] => [:embedded_in],
+       [:belongs_to] => [:has_one, :has_many],
        [:has_one, :has_many] => [:belongs_to],
        [:has_and_belongs_to_many] => [:has_and_belongs_to_many]}.each do |rks, rkbacks|
         rks.each do |rk|
@@ -383,21 +416,23 @@ module Setup
 
       constant_name = tokens.pop
 
-      unless parent || tokens.empty?
-        begin
-          raise "uses illegal constant #{tokens[0]}" unless (@@parsing_schemas.include?(parent = tokens[0].constantize) || @@parsed_schemas.include?(parent.to_s)) && parent.is_a?(Module)
-        rescue
-          return nil if do_not_create
-          parent = Class.new
-          Object.const_set(tokens[0], parent)
-        end
-        tokens.shift
-      end
+      # unless parent || tokens.empty?
+      #   begin
+      #     raise "uses illegal constant #{tokens[0]}" unless (@@parsing_schemas.include?(parent = tokens[0].constantize) || @@parsed_schemas.include?(parent.to_s)) && parent.is_a?(Module)
+      #   rescue
+      #     return nil if do_not_create
+      #     parent = Class.new
+      #     Object.const_set(tokens[0], parent)
+      #   end
+      #   tokens.shift
+      # end
+
+      parent ||= Object
 
       tokens.each do |token|
         if parent.const_defined?(token, false)
           parent = parent.const_get(token)
-          raise "uses illegal constant #{parent.to_s}" unless (@@parsing_schemas.include?(parent) || @@parsed_schemas.include?(parent.to_s)) && parent.is_a?(Module)
+          raise "uses illegal constant #{parent.to_s}" unless parent == self.uri.library.module || @@parsing_schemas.include?(parent) || @@parsed_schemas.include?(parent.to_s)
         else
           return nil if do_not_create
           new_m = Class.new
@@ -405,8 +440,9 @@ module Setup
           parent = new_m
         end
       end
-      parent ||= Object
+
       sc = MONGO_TYPES.include?(constant_name) ? Object : parent.const_get('Base') rescue Object
+
       if parent.const_defined?(constant_name, false)
         c = parent.const_get(constant_name)
         raise "uses illegal constant #{c.to_s}" unless @@parsed_schemas.include?(model_name) || (c.is_a?(Class) && @@parsing_schemas.include?(c))
@@ -438,13 +474,15 @@ module Setup
       return c
     end
 
-    def parse_str_schema(model_name, str_schema)
-      parse_schema(model_name, JSON.parse(str_schema))
+    def parse_str_schema(str_schema)
+      parse_schema(data_type_name, JSON.parse(str_schema), nil, self.uri.library.module)
     end
 
     def parse_schema(model_name, schema, root = nil, parent=nil, embedded=nil)
 
       #model_name = pick_model_name(parent) unless model_name || (model_name = schema['title'])
+
+      schema = conforms_schema(schema)
 
       klass = reflect_constant(model_name, schema['type'] == 'object' ? nil : schema, parent)
 
@@ -464,6 +502,8 @@ module Setup
 
       begin
 
+        root ||= klass
+
         @@parsing_schemas << klass
 
         if @@parsed_schemas.include?(klass.to_s)
@@ -472,8 +512,6 @@ module Setup
         end
 
         reflect(klass, "embedded_in :#{relation_name(parent)}, class_name: \'#{parent.to_s}\'") if parent && embedded
-
-        root ||= klass;
 
         puts "Parsing #{model_name}"
 
@@ -502,13 +540,14 @@ module Setup
                 if @@parsed_schemas.detect { |m| m.eql?(property_type) }
                   if type_model = reflect_constant(property_type, :do_not_create)
                     v = "embeds_one :#{property_name}, class_name: \'#{type_model.to_s}\'"
-                    reflect(type_model, "embedded_in :#{relation_name(model_name)}, class_name: \'#{model_name}\'")
+                    #reflect(type_model, "embedded_in :#{relation_name(model_name)}, class_name: \'#{model_name}\'")
+                    type_model.affects_to(klass)
                     nested << property_name
                   else
                     raise Exception.new("refers to an invalid JSON reference '#{ref}'")
                   end
                 else
-                  puts "#{klass.to_s}  Waiting for parsing #{property_type} to bind property #{property_name}"
+                  puts "#{klass.to_s}  Waiting3 for parsing #{property_type} to bind property #{property_name}"
                   @@embeds_one_to_bind[model_name] << [property_type, property_name]
                 end
               else # external reference
@@ -516,7 +555,7 @@ module Setup
                   v = "field :#{property_name}, type: #{ref}"
                 else
                   ref = check_type_name(ref)
-                  if type_model = reflect_constant(ref, :do_not_create)
+                  if type_model = (find_or_load_model(ref) || reflect_constant(ref, :do_not_create))
                     if type_model.is_a?(Hash)
                       property_desc.delete('$ref')
                       property_desc = property_desc.merge(type_model)
@@ -528,12 +567,13 @@ module Setup
                         type_model.affects_to(klass)
                       else
                         v = "embeds_one :#{property_name}, class_name: \'#{type_model.to_s}\'"
-                        reflect(type_model, "embedded_in :#{relation_name(model_name)}, class_name: \'#{model_name}\'")
+                        #reflect(type_model, "embedded_in :#{relation_name(model_name)}, class_name: \'#{model_name}\'")
+                        type_model.affects_to(klass)
                         nested << property_name
                       end
                     end
                   else
-                    puts "#{klass.to_s}  Waiting for parsing #{ref} to bind property #{property_name}"
+                    puts "#{klass.to_s}  Waiting4 for parsing #{ref} to bind property #{property_name}"
                     (referenced ? @@has_one_to_bind : @@embeds_one_to_bind)[model_name] << [ref, property_name]
                   end
                 end
@@ -594,6 +634,39 @@ module Setup
       end
     end
 
+    def conforms_schema(schema)
+      return schema unless allOf = schema.delete('allOf')
+      allOf.each do |sch|
+        if ref = sch['$ref']
+          sch = find_ref_schema(ref)
+        end
+        schema = schema.deep_merge(sch)
+      end
+      return schema
+    end
+
+    def find_data_type(ref)
+      DataType.find_by(name: ref) rescue nil
+    end
+
+    def find_or_load_model(ref)
+      if (data_type = find_data_type(ref)) && data_type.auto_load_model
+        puts "Autoload reference #{ref} found!"
+        data_type.loaded? ? data_type.model : data_type.load_model
+      else
+        puts "Autoload reference #{ref} NOT FOUND!"
+        nil
+      end
+    end
+
+    def find_ref_schema(ref)
+      if data_type = find_data_type(ref)
+        return JSON.parse(data_type.schema)
+      else
+        raise Exception.new("Can not find referenced schema #{ref}")
+      end
+    end
+
     def bind_affect_to_relation(json_schema, model)
       puts "#{json_schema['title']} affects #{model.to_s}"
       json_schema[:affected] ||= []
@@ -613,13 +686,14 @@ module Setup
           r = nil
           if referenced = ((ref = items_desc['$ref']) && (!ref.start_with?('#') && items_desc['referenced']))
             ref = check_type_name(ref)
-            if (type_model = reflect_constant(property_type = ref, :do_not_create)) &&
+            if (type_model = (find_or_load_model(property_type = ref) || reflect_constant(ref, :do_not_create))) &&
                 @@parsed_schemas.include?(type_model.to_s)
               puts "#{klass.to_s}  Binding property #{property_name}"
               if (a = @@has_many_to_bind[property_type]) && i = a.find_index { |x| x[0].eql?(model_name) }
                 a = a.delete_at(i)
                 reflect(klass, "has_and_belongs_to_many :#{property_name}, class_name: \'#{property_type}\'")
                 reflect(type_model, "has_and_belongs_to_many :#{a[1]}, class_name: \'#{model_name}\'")
+                reflect(type_model, "validates_presence_of :#{a[1]}") if a[2]
               else
                 if type_model.reflect_on_all_associations(:belongs_to).detect { |r| r.klass.eql?(klass) }
                   r = 'has_many'
@@ -629,7 +703,7 @@ module Setup
                 end
               end
             else
-              puts "#{klass.to_s}  Waiting for parsing #{property_type} to bind property #{property_name}"
+              puts "#{klass.to_s}  Waiting1 for parsing #{property_type} to bind property #{property_name}"
               @@has_many_to_bind[model_name] << [property_type, property_name]
             end
           else
@@ -637,15 +711,17 @@ module Setup
             if ref
               raise Exception.new("referencing embedded reference #{ref}") if items_desc['referenced']
               property_type = ref.start_with?('#') ? check_embedded_ref(ref, root.to_s).singularize : check_type_name(ref)
+              type_model = find_or_load_model(property_type) || reflect_constant(property_type, :do_not_create)
               if @@parsed_schemas.detect { |m| m.eql?(property_type) }
-                if type_model = reflect_constant(property_type, :do_not_create)
-                  reflect(type_model, "embedded_in :#{relation_name(model_name)}, class_name: \'#{type_model.to_s}\'")
+                if type_model
+                  #reflect(type_model, "embedded_in :#{relation_name(model_name)}, class_name: \'#{model_name}\'")
+                  type_model.affects_to(klass)
                 else
                   raise Exception.new("refers to an invalid JSON reference '#{ref}'")
                 end
               else
                 r = nil
-                puts "#{klass.to_s}  Waiting for parsing #{property_type} to bind property #{property_name}"
+                puts "#{klass.to_s}  Waiting2 for parsing #{property_type} to bind property #{property_name}"
                 @@embeds_many_to_bind[model_name] << [property_type, property_name]
               end
             else
@@ -666,6 +742,7 @@ module Setup
               property_type = (type_model = parse_schema(property_name.camelize, property_desc, root, klass, :embedded)).to_s
               v = "embeds_one :#{property_name}, class_name: \'#{type_model.to_s}\'"
               #reflect(type_model, "embedded_in :#{relation_name(model_name)}, class_name: \'#{model_name}\'")
+              type_model.affects_to(klass)
               nested << property_name
             else
               property_type = 'Hash'
@@ -756,7 +833,8 @@ module Setup
             if klass.is_a?(Class)
               reflect(type_model, "#{r.to_s} :#{a[1]}, class_name: \'#{model_name}\'")
               reflect(type_model, "accepts_nested_attributes_for :#{a[1]}")
-              reflect(klass, "embedded_in :#{property_type.underscore.split('/').join('_')}, class_name: '#{property_type}'")
+              #reflect(klass, "embedded_in :#{property_type.underscore.split('/').join('_')}, class_name: '#{property_type}'")
+              klass.affects_to(type_model)
             else #must be a json schema
               reflect(type_model, process_non_ref(a[1], klass, type_model, root))
               bind_affect_to_relation(klass, type_model)
@@ -821,6 +899,8 @@ module Setup
     end
 
     module AffectRelation
+
+      attr_accessor :rails_admin_config
 
       def affected_models
         @affected_models ||= Set.new

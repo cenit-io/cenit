@@ -8,14 +8,16 @@ module Setup
       @model_listeners ||= []
     end
 
+    belongs_to :library, class_name: Setup::Library.to_s
+
     field :uri, type: String
     field :schema, type: String
 
-    has_many :data_types, class_name: 'Setup::DataType'
+    has_many :data_types, class_name: Setup::DataType.to_s
 
     validates_length_of :uri, :maximum => 255
     validates_uniqueness_of :uri
-    validates_presence_of :uri, :schema
+    validates_presence_of :library, :uri, :schema
 
     before_save :create_data_types
     after_save :bind_data_types
@@ -23,8 +25,8 @@ module Setup
 
     def load_models(force_load=true)
       models = []
-      data_types.each { |data_type| models << data_type.load_model(force_load) }
-      notify(:model_loaded, models)
+      data_types.each { |data_type| (models << data_type.load_model(force_load)) if data_type.activated }
+      RailsAdmin::AbstractModel.update_model_config(models)
     end
 
     rails_admin do
@@ -34,6 +36,11 @@ module Setup
       end
 
       edit do
+        field :library do
+          read_only { !bindings[:object].new_record? }
+          inline_edit false
+        end
+
         field :uri do
           read_only { !bindings[:object].new_record? }
         end
@@ -41,30 +48,18 @@ module Setup
         field :schema
       end
       list do
-        fields :uri, :schema, :data_types
+        fields :library, :uri, :schema, :data_types
       end
     end
 
     private
-
-    def notify(call_sym, model=self.name)
-      return unless model
-      Schema.model_listeners.each do |listener|
-        begin
-          puts "Notifying #{listener.to_s}.#{call_sym.to_s}(#{model.to_s})"
-          listener.send(call_sym, model)
-        rescue Exception => ex
-          puts "'ERROR: invoking \'#{call_sym}\' on #{listener.to_s}: #{ex.message}"
-        end
-      end
-    end
 
     def create_data_types
       @created_data_types = []
       begin
         (schemas = parse_schemas).each do |name, schema|
           name = name.underscore.camelize
-          data_type = Setup::DataType.create(name: name, schema: schema.to_json)
+          data_type = Setup::DataType.create(name: name, schema: schema.to_json, auto_load_model: true)
           if data_type.errors.blank?
             @created_data_types << data_type
           else
@@ -75,12 +70,12 @@ module Setup
             return false
           end
         end
-        models = []
-        @created_data_types.each do|data_type|
-          models << data_type.load_model
-          create_default_events(data_type)
-        end
-        notify(:model_loaded, models)
+          # models = []
+          # @created_data_types.each do |data_type|
+          #   models << data_type.load_model(:reload, self.library.name)
+          #   create_default_events(data_type)
+          # end
+          # notify(:model_loaded, models)
       rescue Exception => ex
         puts "ERROR: #{errors.add(:schema, ex.message).to_s}"
         destroy_data_types
@@ -97,46 +92,49 @@ module Setup
     end
 
     def destroy_data_types
-      if @created_data_types ||= self.data_types
-        report={destroyed: Set.new, affected: Set.new}
-        @created_data_types.each do |data_type|
-          begin
-            r = data_type.destroy_model
-            report[:destroyed] = report[:destroyed] + r[:destroyed]
-            report[:affected] = report[:affected] + r[:affected]
-            data_type.destroy
-          rescue Exception => ex
-            #raise ex
-            puts "Error destroying model #{data_type.name}: #{ex.message}"
-          end
-        end
-        puts "Report: #{report.to_s}"
-        post_process_report(report)
-        puts "Post processed report #{report}"
-        report[:affected].each do |model|
-          begin
-            data_type = DataType.find_by(:name => model.to_s)
-            puts "Reloading #{model.to_s}"
-            data_type.load_model
-          rescue
-            report[:destroyed] << model
-            report[:affected].delete(model)
-          end
-          puts "Model #{model.to_s} reloaded!"
-        end
-        puts "Final report #{report}"
-        notify(:remove_model, report[:destroyed])
-        notify(:model_loaded, report[:affected])
-      end
+      Schema.shutdown_data_type_model(@created_data_types || self.data_types, true)
     end
 
-    def post_process_report(report)
+    def self.shutdown_data_type_model(data_types, destroy_data_type=false)
+      return unless data_types
+      data_types = [data_types] unless data_types.is_a?(Enumerable)
+      report={destroyed: Set.new, affected: Set.new}
+      data_types.each do |data_type|
+        begin
+          r = data_type.destroy_model
+          report[:destroyed] = report[:destroyed] + r[:destroyed]
+          report[:affected] = report[:affected] + r[:affected]
+          data_type.destroy if destroy_data_type
+        rescue Exception => ex
+          #raise ex
+          puts "Error destroying model #{data_type.name}: #{ex.message}"
+        end
+      end
+      puts "Report: #{report.to_s}"
+      post_process_report(report)
+      puts "Post processed report #{report}"
+      report[:affected].each do |model|
+        begin
+          data_type = DataType.find_by(:name => model.to_s)
+          puts "Reloading #{model.to_s}"
+          data_type.load_model
+        rescue
+          report[:destroyed] << model
+          report[:affected].delete(model)
+        end
+        puts "Model #{model.to_s} reloaded!"
+      end
+      puts "Final report #{report}"
+      RailsAdmin::AbstractModel.update_model_config([], report[:destroyed], report[:affected])
+    end
+
+    def self.post_process_report(report)
       affected_children =[]
       report[:affected].each { |model| affected_children << model if ancestor_included(model, report[:affected]) }
       report[:affected].delete_if { |model| affected_children.include?(model) }
     end
 
-    def ancestor_included(model, container)
+    def self.ancestor_included(model, container)
       parent = model.parent
       while !parent.eql?(Object)
         return true if container.include?(parent)
@@ -156,14 +154,18 @@ module Setup
 
     def parse_json_schema
       json = JSON.parse(self.schema)
-      name = self.uri
-      if (index = name.rindex('/')) || index = name.rindex('#')
-        name = name[index+1, name.length-1]
+      if json['type'] || json['allOf']
+        name = self.uri
+        if (index = name.rindex('/')) || index = name.rindex('#')
+          name = name[index+1, name.length-1]
+        end
+        if index = name.rindex('.')
+          name = name[0..index-1]
+        end
+        {name => json}
+      else
+        json
       end
-      if index = name.rindex('.')
-        name = name[0..index-1]
-      end
-      {name => json}
     end
 
     def parse_xml_schema

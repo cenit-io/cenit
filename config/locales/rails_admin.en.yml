@@ -15,3 +15,15 @@ en:
         menu: "Test transformation"
         breadcrumb: "Test transformation"
         action_name: "Test"
+      load_model:
+        title: "Load model"
+        menu: "Load model"
+        breadcrumb: "Load model"
+      shutdown_model:
+        title: "Shutdown model"
+        menu: "Shutdown model"
+        breadcrumb: "Shutdown model"
+      switch_navigation:
+        title: "Show/Hide navigation link"
+        menu: "Show/Hide navigation link"
+        breadcrumb: "Show/Hide navigation link"

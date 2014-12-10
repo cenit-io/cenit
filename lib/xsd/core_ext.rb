@@ -1,7 +1,7 @@
 [String, Integer, Float, Boolean, Date, DateTime, Time].each do |klass|
   klass.class_eval("
     def self.to_json_schema
-      {type: #{klass.name}}
+      {'$ref' => #{klass.name}}
     end
   ")
 end
