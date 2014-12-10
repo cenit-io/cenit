@@ -5,7 +5,7 @@ module Setup
     include AccountScoped
 
     def self.to_include_in_models
-      @to_include_in_models ||= [Mongoid::Document, Mongoid::Timestamps, AccountScoped, AfterSave]
+      @to_include_in_models ||= [Mongoid::Document, Mongoid::Timestamps, AfterSave, AccountScoped, RailsAdminDynamicCharts::Datetime]
     end
 
     def self.to_include_in_model_classes
@@ -712,17 +712,18 @@ module Setup
               raise Exception.new("referencing embedded reference #{ref}") if items_desc['referenced']
               property_type = ref.start_with?('#') ? check_embedded_ref(ref, root.to_s).singularize : check_type_name(ref)
               type_model = find_or_load_model(property_type) || reflect_constant(property_type, :do_not_create)
-              if @@parsed_schemas.detect { |m| m.eql?(property_type) }
-                if type_model
+              if type_model
+                property_type = type_model.to_s
+                if @@parsed_schemas.detect { |m| m.eql?(property_type) }
                   #reflect(type_model, "embedded_in :#{relation_name(model_name)}, class_name: \'#{model_name}\'")
                   type_model.affects_to(klass)
                 else
-                  raise Exception.new("refers to an invalid JSON reference '#{ref}'")
+                  r = nil
+                  puts "#{klass.to_s}  Waiting2 for parsing #{property_type} to bind property #{property_name}"
+                  @@embeds_many_to_bind[model_name] << [property_type, property_name]
                 end
               else
-                r = nil
-                puts "#{klass.to_s}  Waiting2 for parsing #{property_type} to bind property #{property_name}"
-                @@embeds_many_to_bind[model_name] << [property_type, property_name]
+                raise Exception.new("refers to an invalid JSON reference '#{ref}'")
               end
             else
               property_type = (type_model = parse_schema(property_name.camelize.singularize, property_desc['items'], root, klass, :embedded)).to_s
