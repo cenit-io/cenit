@@ -22,10 +22,12 @@ module Setup
 
     def process(object, notification_id=nil)
       puts "Flow processing '#{object}' on '#{self.name}'..."
+
       unless !object.nil? && object.respond_to?(:data_type) && self.data_type == object.data_type && object.respond_to?(:to_xml)
         puts "Flow processing on '#{self.name}' aborted!"
         return
       end
+
       xml_document = Nokogiri::XML(object.to_xml)
       hash = Hash.from_xml(xml_document.to_s)
       if self.transformation && !self.transformation.empty?

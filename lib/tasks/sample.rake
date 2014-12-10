@@ -19,6 +19,9 @@ namespace :sample do
       Setup::DataType.unscoped.delete_all
       puts 'All DataType Deleted.'
       
+      Setup::Schema.unscoped.delete_all
+      puts 'All DataType Deleted.'
+      
       Setup::Event.unscoped.delete_all
       puts 'All Event Deleted.'
       
@@ -41,7 +44,9 @@ namespace :sample do
         	})
           
         user1.account = account
+        user1.add_role :admin
         user1.save(validate: false)
+        
         
         account.owner = user1
           
@@ -52,7 +57,6 @@ namespace :sample do
         	})  
           
         user2.account = account
-        
         user2.save(validate: false)
         
         ############  LOAD MODELS ###############
@@ -64,14 +68,16 @@ namespace :sample do
           schema = File.read("#{base_path}/#{file_schema}")
           klass_name = file_schema.split('.json')[0].camelize
           puts "^^^^^^^^^^^^^^^^^^^^^^^^^^^ klass_name  #{klass_name.inspect}"
-          data_type_attributes = {
-            name: klass_name, 
+          schema_attributes = {
+            uri: klass_name, 
             schema: schema,
             #active: true,
             #after_save_callback: %W[ Product Order Cart Payment Return ].include?(klass_name)
           }
           
-          data_type = Setup::DataType.create!( data_type_attributes ) rescue next
+          schema_model = Setup::Schema.create!( schema_attributes ) rescue next
+          
+          #data_type = Setup::DataType.find_by_name klass_name
           
           klass = klass_name.constantize
           #klass.delete_all
@@ -204,7 +210,7 @@ namespace :sample do
               {"Material" => ["Canvas","600 Denier Polyester"]}
             ]
       
-        1.upto 50 do 
+        1.upto 150 do 
           name = "#{Faker::Product.product }"
           sku = name.underscore.gsub(' ', '-')
           cost_price = rand(10.5...100.5).round(2)
@@ -250,10 +256,11 @@ namespace :sample do
             "id" => sku,
             "name" => name,
             "sku" => sku,
+            "created_at" => DateTime.now - rand(100),
             "description" => Faker::Lorem.paragraphs(paragraph_count = 3),
             "price" => cost_price + rand(30),
             "cost_price" => cost_price,
-            "available_on" => DateTime.now,
+            "available_on" => DateTime.now + rand(100),
             "permalink" =>  sku,
             "meta_description" => nil,
             "meta_keywords" => nil,
@@ -267,7 +274,7 @@ namespace :sample do
                 "position" => 1,
                 "title" => sku,
                 "type" => "thumbnail",
-                "dimension_attributes" => { "height" => height,"width" => height }
+ #               "dimension_attributes" => { "height" => height,"width" => height }
               }
             ],
             "variants_attributes" => variants
@@ -293,7 +300,7 @@ namespace :sample do
                 "channel" => "spree",
                 "email" => "spree@example.com",
                 "currency" => "USD",
-                "placed_on" => DateTime.now - rand(20).months - rand(31).days-rand(24).hours-rand(60).minutes-rand(60).seconds,
+                "placed_on" => DateTime.now - rand(100),
 #                "totals_attributes" => {
 #                  "item" => item_price,
 #                  "adjustment" => adjustment,

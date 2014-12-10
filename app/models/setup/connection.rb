@@ -34,15 +34,31 @@ module Setup
       edit do
         field :name 
         field :url
-        field :key
-        field :authentication_token
+        field :key do
+          visible do
+            bindings[:view]._current_user.has_role? :admin
+          end
+        end
+        field :authentication_token do
+          visible do
+            bindings[:view]._current_user.has_role? :admin
+          end
+        end
         field :webhooks
       end
       list do
         field :name 
         field :url
-        field :key
-        field :authentication_token
+        field :key do
+          visible do
+            bindings[:view]._current_user.has_role? :admin
+          end
+        end
+        field :authentication_token do
+          visible do
+            bindings[:view]._current_user.has_role? :admin
+          end
+        end
         field :webhooks
       end
       show do
@@ -51,8 +67,16 @@ module Setup
         field :updated_at
         field :name 
         field :url
-        field :key
-        field :authentication_token
+        field :key do
+          visible do
+            bindings[:view]._current_user.has_role? :admin
+          end
+        end
+        field :authentication_token do
+          visible do
+            bindings[:view]._current_user.has_role? :admin
+          end
+        end
         field :webhooks
       end  
     end

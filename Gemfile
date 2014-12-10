@@ -25,8 +25,6 @@ group :development, :test do
 end
 
 group :test do
-  gem 'factory_girl_rails'
-  gem 'rspec-rails'
   gem 'mongoid-rspec'
   gem 'database_cleaner'
 end
@@ -40,7 +38,15 @@ gem 'mongoid'
 gem 'bson_ext'
 gem 'rails_admin'
 #gem "rails_admin_import"
+
+# charts
+gem 'rails_admin_dynamic_charts', github: 'openjaf/rails_admin_dynamic_charts'
+gem 'chartkick'
+gem 'descriptive_statistics'
+
 gem 'httparty'
 gem "bunny", "~> 0.9.1"
 gem "json-schema"
 gem "nokogiri"
+gem 'cancan'
+gem 'rolify'
