@@ -92,14 +92,14 @@ namespace :sample do
 
       end
 
-      product = Setup::DataType.where(name: 'Product').first
-      next if product.nil?
-      product_model = product.model
+      product_data_type = Setup::DataType.where(name: 'Product').first
+      next if product_data_type.nil?
+      product_model = product_data_type.model
       next if product_model.nil?
 
-      order = Setup::DataType.where(name: 'Order').first
-      next if order.nil?
-      order_model = order.model
+      order_data_type = Setup::DataType.where(name: 'Order').first
+      next if order_data_type.nil?
+      order_model = order_data_type.model
       next if order_model.nil?
 
       ############  SAMPLE DATA ###############
@@ -306,6 +306,7 @@ namespace :sample do
 
       end
 
+
       ############  CONFIG SETUP ###############
 
       connection_attributes = [
@@ -330,13 +331,13 @@ namespace :sample do
           {
               name: 'Add Product',
               path: 'add_product',
-              data_type: product,
+              data_type: product_data_type,
               purpose: 'send'
           },
           {
               name: 'Update Product',
               path: 'update_product',
-              data_type: product,
+              data_type: product_data_type,
               purpose: 'send'
           }
       ]
@@ -347,14 +348,14 @@ namespace :sample do
       add_product_store_II = Setup::Webhook.create!(webhook_attributes[0].merge(connection: store_II))
       update_product_store_II = Setup::Webhook.create!(webhook_attributes[1].merge(connection: store_II))
 
-      product_created = Setup::Event.find_by(name: 'Product on created_at', data_type: product)
-      product_updated = Setup::Event.find_by(name: 'Product on updated_at', data_type: product)
+      product_created = Setup::Event.find_by(name: 'Product on created_at', data_type: product_data_type)
+      product_updated = Setup::Event.find_by(name: 'Product on updated_at', data_type: product_data_type)
 
       flow_attributes = [
           {
               name: 'Add Product to Store I',
               purpose: 'send',
-              data_type: product,
+              data_type: product_data_type,
               event: product_created,
               connection: store_I,
               webhook: add_product_store_I,
@@ -363,7 +364,7 @@ namespace :sample do
           {
               name: 'Update Product to Store I',
               purpose: 'send',
-              data_type: product,
+              data_type: product_data_type,
               event: product_updated,
               connection: store_I,
               webhook: update_product_store_I,
@@ -372,7 +373,7 @@ namespace :sample do
           {
               name: 'Add Product to Store II',
               purpose: 'send',
-              data_type: product,
+              data_type: product_data_type,
               event: product_created,
               connection: store_II,
               webhook: add_product_store_II,
@@ -381,7 +382,7 @@ namespace :sample do
           {
               name: 'Update Product to Store II',
               purpose: 'send',
-              data_type: product,
+              data_type: product_data_type,
               event: product_updated,
               connection: store_II,
               webhook: update_product_store_II,
