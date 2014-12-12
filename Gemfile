@@ -40,7 +40,7 @@ gem 'rails_admin'
 #gem "rails_admin_import"
 
 # charts
-#gem 'rails_admin_dynamic_charts', github: 'openjaf/rails_admin_dynamic_charts'
+gem 'rails_admin_dynamic_charts', github: 'openjaf/rails_admin_dynamic_charts'
 gem 'chartkick'
 gem 'descriptive_statistics'
 
