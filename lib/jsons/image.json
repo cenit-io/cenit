@@ -1,0 +1,25 @@
+{
+    "title": "Image",
+
+    "type": "object",
+
+    "properties": {
+        "url": {
+            "type": "string"
+        },
+        "position": {
+            "type": "string"
+        },
+        "title": {
+            "type": "string"
+        },
+        "type": {
+            "type": "string"
+        },
+        "dimension": {
+            "$ref": "Dimension"
+        }
+
+    },
+    "required": ["url"]
+}

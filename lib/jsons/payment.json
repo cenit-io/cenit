@@ -1,0 +1,24 @@
+{
+    "title": "Payment",
+
+    "type": "object",
+
+    "properties": {
+        "number": {
+            "type": "integer"
+        },
+        "status": {
+            "type": "string"
+        },
+        "amount": {
+            "type": "number"
+        },
+        "payment_method": {
+            "type": "string"
+        },
+        "source": {
+            "$ref": "Source"
+        }
+    },
+    "required": ["number", "status", "amount", "payment_method"]
+}

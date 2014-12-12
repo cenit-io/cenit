@@ -1,0 +1,32 @@
+{
+    "title": "OrderTotal",
+
+    "type": "object",
+
+    "properties": {
+        "adjustment": {
+            "type": "number",
+            "minimum": 0
+        },
+        "tax": {
+            "type": "number",
+            "minimum": 0
+        },
+        "shipping": {
+            "type": "number",
+            "minimum": 0
+        },
+        "payment": {
+            "type": "number",
+            "minimum": 0
+        },
+        "order": {
+            "type": "number",
+            "minimum": 0
+        },
+        "item": {
+            "type": "number",
+            "minimum": 0
+        }
+    }
+}
