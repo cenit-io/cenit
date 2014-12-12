@@ -77,7 +77,7 @@ module Setup
 
     def convert_to_string_array(obj_v)
       return [obj_v] if obj_v.is_a?(String)
-      array = [:name, :title, :id].map { |property|  obj_v.send(property).to_s rescue next }
+      array = [:name, :title, :id].map { |property| obj_v.send(property).to_s rescue next }
       array << obj_v.to_s if array.empty?
       return array
     end
@@ -86,13 +86,15 @@ module Setup
       return nil if cond_v.nil?
       return cond_v if cond_v.is_a?(klass)
       cond_v = [cond_v] unless is_array = cond_v.is_a?(Array)
-      to_obj_class = { NilClass => :to_s, Integer => :to_f, Fixnum => :to_f, Float => :to_f, String => :to_s,
-                       Date => :to_date, DateTime => :to_datetime, Time => :to_time, ActiveSupport::TimeWithZone => :to_time,
-                       FalseClass => :to_boolean, TrueClass => :to_boolean, BigDecimal => :to_d }[klass]
+      to_obj_class = {NilClass => :to_s, Integer => :to_f, Fixnum => :to_f, Float => :to_f, String => :to_s,
+                      Date => :to_date, DateTime => :to_datetime, Time => :to_time, ActiveSupport::TimeWithZone => :to_time,
+                      FalseClass => :to_boolean, TrueClass => :to_boolean, BigDecimal => :to_d}[klass]
       cond_v = cond_v.collect do |e|
         case
-          when e.nil? || (e.is_a?(String) && e.empty?) then nil
-          when to_obj_class.nil? then e
+          when e.nil? || (e.is_a?(String) && e.empty?) then
+            nil
+          when to_obj_class.nil? then
+            e
           else
             begin
               e.to_s.send(to_obj_class)
@@ -214,12 +216,12 @@ module Setup
           help false
           inline_add false
           inline_edit false
-          # associated_collection_cache_all false
-          # associated_collection_scope do
-          #   Proc.new { |scope|
-          #     scope = scope.where(is_object: true)
-          #   }
-          # end
+          associated_collection_cache_all false
+          associated_collection_scope do
+            Proc.new { |scope|
+              scope = scope.where(activated: true)
+            }
+          end
         end
         field :triggers do
           partial 'form_triggers'

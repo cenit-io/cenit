@@ -12,7 +12,7 @@ module AfterSave
   end
 
   def data_type
-    Setup::DataType.find_by(name: self.class.to_s)
+    Setup::DataType.find_by(id: self.class.lookup_data_type_id)
   end
 
 end

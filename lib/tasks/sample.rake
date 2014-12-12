@@ -82,103 +82,25 @@ namespace :sample do
         }
 
         schema_model = Setup::Schema.create!(schema_attributes) rescue next
-        schema_model.load_models
         schema_model.data_types.each do |data_type|
-          if model = data_type.model
+          if model = data_type.load_model
             model.delete_all
             puts "All #{data_type.name} are deleted before load sample."
           end
+          data_type.create_default_events
         end
 
       end
 
       product = Setup::DataType.where(name: 'Product').first
       next if product.nil?
+      product_model = product.model
+      next if product_model.nil?
 
-      ############  CONFIG SETUP ###############
-
-      connection_attributes = [
-          {
-              name: 'Store I',
-              url: 'http://localhost:3001/wombat',
-              key: "a#{index + 1}_3001",
-              authentication_token: "a#{index + 1}_tresmiluno",
-          },
-          {
-              name: 'Store II',
-              url: 'http://localhost:3002/wombat',
-              #key:"a#{index + 1}_3002",
-              #authentication_token: "a#{index + 1}_tresmildos",
-          },
-      ]
-
-      store_I = Setup::Connection.create!(connection_attributes[0])
-      store_II = Setup::Connection.create!(connection_attributes[1])
-
-      webhook_attributes = [
-          {
-              name: 'Add Product',
-              path: 'add_product',
-              data_type: product,
-              purpose: 'send'
-          },
-          {
-              name: 'Update Product',
-              path: 'update_product',
-              data_type: product,
-              purpose: 'send'
-          }
-      ]
-
-      add_product_store_I = Setup::Webhook.create!(webhook_attributes[0].merge(connection: store_I))
-      update_product_store_I = Setup::Webhook.create!(webhook_attributes[1].merge(connection: store_I))
-
-      add_product_store_II = Setup::Webhook.create!(webhook_attributes[0].merge(connection: store_II))
-      update_product_store_II = Setup::Webhook.create!(webhook_attributes[1].merge(connection: store_II))
-
-      product_created = Setup::Event.find_by(name: 'Product on created_at', data_type: product)
-      product_updated = Setup::Event.find_by(name: 'Product on updated_at', data_type: product)
-
-      flow_attributes = [
-          {
-              name: 'Add Product to Store I',
-              purpose: 'send',
-              data_type: product,
-              event: product_created,
-              connection: store_I,
-              webhook: add_product_store_I,
-              active: true,
-          },
-          {
-              name: 'Update Product to Store I',
-              purpose: 'send',
-              data_type: product,
-              event: product_updated,
-              connection: store_I,
-              webhook: update_product_store_I,
-              active: true,
-          },
-          {
-              name: 'Add Product to Store II',
-              purpose: 'send',
-              data_type: product,
-              event: product_created,
-              connection: store_II,
-              webhook: add_product_store_II,
-              active: true,
-          },
-          {
-              name: 'Update Product to Store II',
-              purpose: 'send',
-              data_type: product,
-              event: product_updated,
-              connection: store_II,
-              webhook: update_product_store_II,
-              active: true,
-          }
-      ]
-
-      Setup::Flow.create!(flow_attributes)
+      order = Setup::DataType.where(name: 'Order').first
+      next if order.nil?
+      order_model = order.model
+      next if order_model.nil?
 
       ############  SAMPLE DATA ###############
 
@@ -285,7 +207,7 @@ namespace :sample do
             "variants_attributes" => variants
         }
 
-        Product.create!(product)
+        product_model.create!(product)
 
         # orders
         num_orders = 1 + rand(20)
@@ -297,6 +219,8 @@ namespace :sample do
           adjustment = rand 20
           quantity = 1 + rand(5)
           item_price = total - (tax + shipping)
+
+          puts "Order model #{order_model.to_s}"
 
           order = [
               {
@@ -377,10 +301,95 @@ namespace :sample do
 
           ]
 
-          Order.create!(order)
+          order_model.create!(order)
         end
 
       end
+
+      ############  CONFIG SETUP ###############
+
+      connection_attributes = [
+          {
+              name: 'Store I',
+              url: 'http://localhost:3001/wombat',
+              key: "a#{index + 1}_3001",
+              authentication_token: "a#{index + 1}_tresmiluno",
+          },
+          {
+              name: 'Store II',
+              url: 'http://localhost:3002/wombat',
+              #key:"a#{index + 1}_3002",
+              #authentication_token: "a#{index + 1}_tresmildos",
+          },
+      ]
+
+      store_I = Setup::Connection.create!(connection_attributes[0])
+      store_II = Setup::Connection.create!(connection_attributes[1])
+
+      webhook_attributes = [
+          {
+              name: 'Add Product',
+              path: 'add_product',
+              data_type: product,
+              purpose: 'send'
+          },
+          {
+              name: 'Update Product',
+              path: 'update_product',
+              data_type: product,
+              purpose: 'send'
+          }
+      ]
+
+      add_product_store_I = Setup::Webhook.create!(webhook_attributes[0].merge(connection: store_I))
+      update_product_store_I = Setup::Webhook.create!(webhook_attributes[1].merge(connection: store_I))
+
+      add_product_store_II = Setup::Webhook.create!(webhook_attributes[0].merge(connection: store_II))
+      update_product_store_II = Setup::Webhook.create!(webhook_attributes[1].merge(connection: store_II))
+
+      product_created = Setup::Event.find_by(name: 'Product on created_at', data_type: product)
+      product_updated = Setup::Event.find_by(name: 'Product on updated_at', data_type: product)
+
+      flow_attributes = [
+          {
+              name: 'Add Product to Store I',
+              purpose: 'send',
+              data_type: product,
+              event: product_created,
+              connection: store_I,
+              webhook: add_product_store_I,
+              active: true,
+          },
+          {
+              name: 'Update Product to Store I',
+              purpose: 'send',
+              data_type: product,
+              event: product_updated,
+              connection: store_I,
+              webhook: update_product_store_I,
+              active: true,
+          },
+          {
+              name: 'Add Product to Store II',
+              purpose: 'send',
+              data_type: product,
+              event: product_created,
+              connection: store_II,
+              webhook: add_product_store_II,
+              active: true,
+          },
+          {
+              name: 'Update Product to Store II',
+              purpose: 'send',
+              data_type: product,
+              event: product_updated,
+              connection: store_II,
+              webhook: update_product_store_II,
+              active: true,
+          }
+      ]
+
+      Setup::Flow.create!(flow_attributes)
 
     end
   end

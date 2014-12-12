@@ -4,10 +4,6 @@ module Setup
     include Mongoid::Timestamps
     include AccountScoped
 
-    def self.model_listeners
-      @model_listeners ||= []
-    end
-
     belongs_to :library, class_name: Setup::Library.to_s
 
     field :uri, type: String
@@ -74,12 +70,6 @@ module Setup
             return false
           end
         end
-          # models = []
-          # @created_data_types.each do |data_type|
-          #   models << data_type.load_model(:reload, self.library.name)
-          #   create_default_events(data_type)
-          # end
-          # notify(:model_loaded, models)
       rescue Exception => ex
         puts "ERROR: #{errors.add(:schema, ex.message).to_s}"
         destroy_data_types
@@ -178,14 +168,6 @@ module Setup
 
     def parse_xml_schema
       Xsd::Document.new(uri, self.schema).schema.json_schemas
-    end
-
-    def create_default_events(data_type)
-      if data_type.is_object
-        puts "Creating default events for #{data_type.name}"
-        Setup::Event.create(data_type: data_type, triggers: '{"created_at":{"0":{"o":"_not_null","v":["","",""]}}} ').save
-        Setup::Event.create(data_type: data_type, triggers: '{"updated_at":{"0":{"o":"_change","v":["","",""]}}} ').save
-      end
     end
   end
 end

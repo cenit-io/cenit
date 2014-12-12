@@ -5,7 +5,7 @@ module Setup
     include AccountScoped
 
     def self.to_include_in_models
-      @to_include_in_models ||= [Mongoid::Document, Mongoid::Timestamps, AfterSave, AccountScoped, RailsAdminDynamicCharts::Datetime]
+      @to_include_in_models ||= [Mongoid::Document, Mongoid::Timestamps, AfterSave, AccountScoped] #, RailsAdminDynamicCharts::Datetime]
     end
 
     def self.to_include_in_model_classes
@@ -103,6 +103,7 @@ module Setup
       reflect(model, "def self.data_type_id
         '#{self.id}'
       end")
+      create_default_events
       return model
     end
 
@@ -174,6 +175,14 @@ module Setup
 
     def label
       self.name
+    end
+
+    def create_default_events
+      if self.is_object && Setup::Event.where(data_type: self).empty?
+        puts "Creating default events for #{self.name}"
+        Setup::Event.create(data_type: self, triggers: '{"created_at":{"0":{"o":"_not_null","v":["","",""]}}} ').save
+        Setup::Event.create(data_type: self, triggers: '{"updated_at":{"0":{"o":"_change","v":["","",""]}}} ').save
+      end
     end
 
     private
@@ -499,8 +508,6 @@ module Setup
       #model_name = pick_model_name(parent) unless model_name || (model_name = schema['title'])
 
       schema = conforms_schema(schema)
-
-      puts "Conformed schema #{schema.to_json}"
 
       klass = reflect_constant(model_name, schema['type'] == 'object' ? nil : schema, parent)
 
@@ -947,7 +954,7 @@ module Setup
 
       def affected_models
         @affected_models ||= Set.new
-        @affected_models.delete_if { |model| no_constant(model)}
+        @affected_models.delete_if { |model| no_constant(model) }
         return @affected_models
       end
 
