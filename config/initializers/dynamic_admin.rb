@@ -20,8 +20,11 @@ module RailsAdmin
   class AbstractModel
     class << self
 
-      def update_model_config(loaded_models, removed_models=[], models_to_reset=[])
+      def update_model_config(loaded_models, removed_models=[], models_to_reset=Set.new)
+        loaded_models = [loaded_models] unless loaded_models.is_a?(Enumerable)
+        removed_models = [removed_models] unless removed_models.is_a?(Enumerable)
         models_to_reset = [models_to_reset] unless models_to_reset.is_a?(Enumerable)
+        models_to_reset = Set.new(models_to_reset) unless models_to_reset.is_a?(Set)
         collect_models(models_to_reset, models_to_reset)
         collect_models(loaded_models, models_to_reset)
         collect_models(removed_models, models_to_reset)
@@ -51,7 +54,7 @@ module RailsAdmin
       end
 
       def model_loaded(models)
-        update_model_config(models, [])
+        update_model_config(models)
       end
 
       def reset_models(models)
@@ -69,19 +72,23 @@ module RailsAdmin
           puts "#{self.to_s}: resetting configuration of #{model.to_s}"
           Config.reset_model(model)
           data_type = Setup::DataType.find_by(id: model.data_type_id) rescue nil
+          rails_admin_model = Config.model(model).target
           {navigation_label: nil,
            visible: false,
-           label: model.to_s.split('::').last}.each do |option, default_value|
-            rails_admin_model = Config.model(model).target
+           label: model.to_s.split('::').last}.each do |option, value|
+            if data_type && data_type.respond_to?(option)
+              value = data_type.send(option)
+            end
             rails_admin_model.register_instance_option option do
-              data_type && data_type.respond_to?(option) ? data_type.send(option) : default_value
+              value
             end
           end
         end
       end
 
+      private
+
       def collect_models(models, to_reset)
-        models = [models] unless models.is_a?(Enumerable)
         models.each do |model|
           unless to_reset.include?(model)
             begin
@@ -90,26 +97,25 @@ module RailsAdmin
               else
                 to_reset << model
                 [:embeds_one, :embeds_many, :embedded_in].each do |rk|
-                  model.reflect_on_all_associations(rk).each { |r| collect_models(r.klass, to_reset) }
+                  collect_models(model.reflect_on_all_associations(rk).collect { |r| r.klass }, to_reset)
                 end
-                # referenced relations muts be reset if a referenced relation reflects back
+                # referenced relations must be reset if a referenced relation reflects back
+                referenced_to_reset = []
                 {[:belongs_to] => [:has_one, :has_many],
                  [:has_one, :has_many] => [:belongs_to],
                  [:has_and_belongs_to_many] => [:has_and_belongs_to_many]}.each do |rks, rkbacks|
                   rks.each do |rk|
                     model.reflect_on_all_associations(rk).each do |r|
                       rkbacks.each do |rkback|
-                        collect_models(r.klass, to_reset) if r.klass.reflect_on_all_associations(rkback).detect { |r| r.klass.eql?(model) }
+                        referenced_to_reset << r.klass if r.klass.reflect_on_all_associations(rkback).detect { |r| r.klass.eql?(model) }
                       end
                     end
                   end
                 end
+                collect_models(referenced_to_reset, to_reset)
                 affected_models = model.affected_models
               end
-              begin
-                affected_models.each { |m| collect_models(m, to_reset) }
-              rescue
-              end
+              collect_models(affected_models, to_reset)
             rescue Exception => ex
               puts "#{self.to_s}: error loading configuration of model #{model.to_s} -> #{ex.message}"
               raise ex

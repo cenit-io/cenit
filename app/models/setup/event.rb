@@ -214,12 +214,12 @@ module Setup
           help false
           inline_add false
           inline_edit false
-          associated_collection_cache_all false
-          associated_collection_scope do
-            Proc.new { |scope|
-              scope = scope.where(is_object: true)
-            }
-          end
+          # associated_collection_cache_all false
+          # associated_collection_scope do
+          #   Proc.new { |scope|
+          #     scope = scope.where(is_object: true)
+          #   }
+          # end
         end
         field :triggers do
           partial 'form_triggers'

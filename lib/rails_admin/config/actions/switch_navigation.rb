@@ -37,6 +37,10 @@ module RailsAdmin
           end
         end
 
+        register_instance_option :i18n_key do
+          "#{key.to_s}.#{bindings[:object].show_navigation_link ? 'hide' : 'show'}"
+        end
+
         register_instance_option :link_icon do
           bindings[:object].show_navigation_link ? 'icon-eye-close' : 'icon-eye-open'
         end

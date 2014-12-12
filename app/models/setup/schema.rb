@@ -25,7 +25,11 @@ module Setup
 
     def load_models(force_load=true)
       models = []
-      data_types.each { |data_type| (models << data_type.load_model(force_load)) if data_type.activated }
+      data_types.each do |data_type|
+        if data_type.activated && model = data_type.load_model(force_load)
+          models << model
+        end
+      end
       RailsAdmin::AbstractModel.update_model_config(models)
     end
 
@@ -113,11 +117,15 @@ module Setup
       puts "Report: #{report.to_s}"
       post_process_report(report)
       puts "Post processed report #{report}"
+      puts 'Reloading affected models...' unless report[:affected].empty?
       report[:affected].each do |model|
         begin
-          data_type = DataType.find_by(:name => model.to_s)
-          puts "Reloading #{model.to_s}"
-          data_type.load_model
+          if data_type = DataType.find_by(:id => model.data_type_id) rescue nil
+            puts "Reloading #{model.to_s}"
+            data_type.load_model
+          else
+            puts "Model #{model.to_s} reload on parent reload!"
+          end
         rescue
           report[:destroyed] << model
           report[:affected].delete(model)

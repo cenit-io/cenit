@@ -24,6 +24,11 @@ en:
         menu: "Shutdown model"
         breadcrumb: "Shutdown model"
       switch_navigation:
-        title: "Show/Hide navigation link"
-        menu: "Show/Hide navigation link"
-        breadcrumb: "Show/Hide navigation link"
+        show:
+          title: "Show navigation link"
+          menu: "Show navigation link"
+          breadcrumb: "Show navigation link"
+        hide:
+          title: "Hide navigation link"
+          menu: "Hide navigation link"
+          breadcrumb: "Hide navigation link"

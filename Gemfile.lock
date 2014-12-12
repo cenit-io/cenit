@@ -1,12 +1,3 @@
-GIT
-  remote: git://github.com/openjaf/rails_admin_dynamic_charts.git
-  revision: 5f873236a05091d17950e9cb351c14ce525d6b1b
-  specs:
-    rails_admin_dynamic_charts (0.0.1)
-      chartkick (> 0)
-      rails (>= 3.2)
-      rails_admin (> 0)
-
 GEM
   remote: https://rubygems.org/
   specs:
@@ -267,7 +258,6 @@ DEPENDENCIES
   rails (= 4.1.4)
   rails_12factor
   rails_admin
-  rails_admin_dynamic_charts!
   rails_layout
   rolify
   rspec-rails

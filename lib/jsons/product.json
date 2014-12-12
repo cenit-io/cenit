@@ -1,39 +1,7 @@
 {
     "title": "Product",
-    "type": "object",
 
-    "definitions": {
-        "image": {
-            "type": "object",
-            "properties": {
-                "url": {
-                    "type": "string"
-                },
-                "position": {
-                    "type": "string"
-                },
-                "title": {
-                    "type": "string"
-                },
-                "type": {
-                    "type": "string"
-                },
-                "dimensions": {
-                    "type": "object",
-                    "title": "Dimension",
-                    "properties": {
-                        "height": {
-                            "type": "integer"
-                        },
-                        "width": {
-                            "type": "integer"
-                        }
-                    }
-                }
-            },
-            "required": ["url"]
-        }
-    },
+    "type": "object",
 
     "properties": {
         "id": {
@@ -83,38 +51,13 @@
         "variants": {
             "type": "array",
             "items": {
-                "type": "object",
-                "properties": {
-                    "sku": {
-                        "type": "string",
-                        "unique": true
-                    },
-                    "price": {
-                        "type": "number"
-                    },
-                    "cost_price": {
-                        "type": "number"
-                    },
-                    "quantity": {
-                        "type": "integer"
-                    },
-                    "options": {
-                        "type": "object"
-                    },
-                    "images": {
-                        "type": "array",
-                        "items": {
-                            "$ref": "#/definitions/image"
-                        }
-                    }
-                },
-                "required": ["sku"]
+                "$ref": "Variant"
             }
         },
         "images": {
             "type": "array",
             "items": {
-                "$ref": "#/definitions/image"
+                "$ref": "Image"
             }
         }
     },

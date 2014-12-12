@@ -5,7 +5,7 @@ module Setup
     include AccountScoped
 
     def self.to_include_in_models
-      @to_include_in_models ||= [Mongoid::Document, Mongoid::Timestamps, AfterSave, AccountScoped, RailsAdminDynamicCharts::Datetime]
+      @to_include_in_models ||= [Mongoid::Document, Mongoid::Timestamps, AfterSave, AccountScoped]#, RailsAdminDynamicCharts::Datetime]
     end
 
     def self.to_include_in_model_classes
@@ -35,16 +35,31 @@ module Setup
     field :auto_load_model, type: Boolean
     field :show_navigation_link, type: Boolean
 
+    scope :activated, -> { where(activated: true) }
+
     def sample_object
       '{"' + name.underscore + '": ' + sample_data + '}'
     end
 
     def destroy_model
-      return deconstantize(model.to_s)
+      models = (report = deconstantize(model.to_s))[:destroyed].sort_by do |model|
+        parent = model.parent
+        index = 0
+        while !parent.eql?(Object)
+          index = index - 1
+          parent = parent.parent
+        end
+        index
+      end
+      models.each do |model|
+        puts "Decontantizing #{constant_name = model.to_s}"
+        model.parent.send(:remove_const, constant_name.split('::').last)
+      end
+      return report
     end
 
     def model
-      self.uri.library.module.const_get(data_type_name) rescue nil
+      data_type_name.constantize rescue nil
     end
 
     def loaded?
@@ -92,14 +107,12 @@ module Setup
     end
 
     rails_admin do
-      list do
-        fields :name, :schema, :sample_data
-      end
       show do
         field :_id
         field :created_at
         field :updated_at
         field :name
+        field :activated
         field :schema
         field :sample_data
       end
@@ -143,16 +156,16 @@ module Setup
         end
       end
       list do
-        fields :uri, :name, :schema, :sample_data
+        fields :uri, :name, :activated
       end
 
       show do
-        fields :uri, :name, :schema, :sample_data
+        fields :uri, :name, :activated, :schema, :sample_data
       end
     end
 
     def visible
-      Account.current == self.account && self.show_navigation_link
+      (Account.current ? Account.current.id : nil) == self.account.id && self.show_navigation_link
     end
 
     def navigation_label
@@ -209,20 +222,17 @@ module Setup
         if constant.is_a?(Class)
           deconstantize_class(constant, report)
         else
-          puts "Deconstantizing constant #{constant_name}"
+          puts "Destroying constant #{constant_name}"
           if affected_models = constant[:affected]
             affected_models.each { |model| deconstantize_class(model, report, :affected) }
           end
-          tokens = constant_name.split('::')
-          constant_name = tokens.pop
-          parent = tokens.join('::').constantize rescue Object
-          parent.send(:remove_const, constant_name)
         end
       end
       return report
     end
 
     def deconstantize_class(klass, report={:destroyed => Set.new, :affected => Set.new}, affected=nil)
+      return report unless klass.is_a?(Module) || klass == Object
       if !affected && report[:affected].include?(klass)
         report[:affected].delete(klass)
         report[:destroyed] << klass
@@ -231,7 +241,7 @@ module Setup
       return report unless @@parsed_schemas.include?(klass.to_s) || @@parsing_schemas.include?(klass)
       parent = klass.parent
       affected = nil if report[:destroyed].include?(parent)
-      puts "#{affected ? 'Affecting' : 'Deconstantizing'} class #{klass.to_s}" #" is #{affected ? 'affected' : 'in tree'} -> #{report.to_s}"
+      puts "#{affected ? 'Affecting' : 'Destroying'} class #{klass.to_s}" #" is #{affected ? 'affected' : 'in tree'} -> #{report.to_s}"
       if (affected)
         report[:affected] << klass
       else
@@ -257,7 +267,9 @@ module Setup
       [:embedded_in].each do |rk|
         begin
           klass.reflect_on_all_associations(rk).each do |r|
-            deconstantize_class(r.klass, report, :affected)
+            unless report[:destroyed].include?(r.klass) || report[:affected].include?(r.klass)
+              deconstantize_class(r.klass, report, :affected)
+            end
           end
         rescue
         end
@@ -270,13 +282,14 @@ module Setup
         rks.each do |rk|
           klass.reflect_on_all_associations(rk).each do |r|
             rkbacks.each do |rkback|
-              deconstantize_class(r.klass, report, :affected) if r.klass.reflect_on_all_associations(rkback).detect { |r| r.klass.eql?(klass) }
+              unless report[:destroyed].include?(r.klass) || report[:affected].include?(r.klass)
+                deconstantize_class(r.klass, report, :affected) if r.klass.reflect_on_all_associations(rkback).detect { |r| r.klass.eql?(klass) }
+              end
             end
           end
         end
       end
       klass.affected_models.each { |m| deconstantize_class(m, report, :affected) }
-      parent.send(:remove_const, klass.to_s.split('::').last) unless affected
       deconstantize_class(parent, report, affected) if affected
       return report
     end
@@ -432,7 +445,7 @@ module Setup
       tokens.each do |token|
         if parent.const_defined?(token, false)
           parent = parent.const_get(token)
-          raise "uses illegal constant #{parent.to_s}" unless parent == self.uri.library.module || @@parsing_schemas.include?(parent) || @@parsed_schemas.include?(parent.to_s)
+          raise "uses illegal constant #{parent.to_s}" unless @@parsing_schemas.include?(parent) || @@parsed_schemas.include?(parent.to_s) #|| parent == self.uri.library.module
         else
           return nil if do_not_create
           new_m = Class.new
@@ -466,6 +479,9 @@ module Setup
               c.class.include(module_to_include)
             end
           end
+          reflect(c, "def self.lookup_data_type_id
+            '#{self.id}'
+          end")
         else
           @@parsed_schemas << name
           puts "Created constant #{constant_name}"
@@ -475,7 +491,7 @@ module Setup
     end
 
     def parse_str_schema(str_schema)
-      parse_schema(data_type_name, JSON.parse(str_schema), nil, self.uri.library.module)
+      parse_schema(data_type_name, JSON.parse(str_schema), nil)
     end
 
     def parse_schema(model_name, schema, root = nil, parent=nil, embedded=nil)
@@ -483,6 +499,8 @@ module Setup
       #model_name = pick_model_name(parent) unless model_name || (model_name = schema['title'])
 
       schema = conforms_schema(schema)
+
+      puts "Conformed schema #{schema.to_json}"
 
       klass = reflect_constant(model_name, schema['type'] == 'object' ? nil : schema, parent)
 
@@ -511,7 +529,8 @@ module Setup
           return klass
         end
 
-        reflect(klass, "embedded_in :#{relation_name(parent)}, class_name: \'#{parent.to_s}\'") if parent && embedded
+        #reflect(klass, "embedded_in :#{relation_name(parent)}, class_name: \'#{parent.to_s}\'") if parent && embedded
+        klass.affects_to(parent) unless parent.is_a?(Module) || parent == Object
 
         puts "Parsing #{model_name}"
 
@@ -674,6 +693,7 @@ module Setup
     end
 
     def process_non_ref(property_name, property_desc, klass, root, nested=[], enums={}, validations=[])
+      property_desc = conforms_schema(property_desc)
       model_name = klass.to_s
       still_trying = true
       while still_trying
@@ -788,60 +808,84 @@ module Setup
 
     def check_pending_binds(model_name, klass, root)
 
-      @@has_many_to_bind.each do |property_type, a|
-        if i = a.find_index { |x| x[0].eql?(model_name) }
-          a = a.delete_at(i)
-          puts "#{(type_model = reflect_constant(property_type, :do_not_create)).to_s}  Binding property #{a[1]}"
-          if klass.is_a?(Class)
-            if klass.reflect_on_all_associations(:belongs_to).detect { |r| r.klass.eql?(type_model) }
-              reflect(type_model, "has_many :#{a[1]}, class_name: \'#{model_name}\'")
-            else
-              reflect(type_model, "has_and_belongs_to_many :#{a[1]}, class_name: \'#{model_name}\'")
-              klass.affects_to(type_model)
+      @@has_many_to_bind.each do |waiting_type, pending_binds|
+        waiting_model = waiting_type.constantize rescue nil
+        raise Exception.new("Waiting type #{waiting_type} not yet loaded!") unless waiting_model
+        waiting_data_type = DataType.find_by(id: waiting_model.lookup_data_type_id) rescue nil
+        raise Exception.new("Waiting type #{waiting_type} without data type!") unless waiting_data_type
+        if i = pending_binds.find_index { |x| waiting_data_type.send(:find_data_type, x[0]) == self }
+          waiting_ref = pending_binds[i][0]
+          bindings = pending_binds.select { |x| x[0] == waiting_ref }
+          pending_binds.delete_if { |x| x[0] == waiting_ref }
+          bindings.each do |a|
+            puts "#{waiting_model.to_s}  Binding property #{a[1]}"
+            if klass.is_a?(Class)
+              if klass.reflect_on_all_associations(:belongs_to).detect { |r| r.klass.eql?(waiting_model) }
+                reflect(waiting_model, "has_many :#{a[1]}, class_name: \'#{model_name}\'")
+              else
+                reflect(waiting_model, "has_and_belongs_to_many :#{a[1]}, class_name: \'#{model_name}\'")
+                klass.affects_to(waiting_model)
+              end
+            else #must be a json schema
+              reflect(waiting_model, process_non_ref(a[1], klass, waiting_model, root))
+              bind_affect_to_relation(klass, waiting_model)
             end
-          else #must be a json schema
-            reflect(type_model, process_non_ref(a[1], klass, type_model, root))
-            bind_affect_to_relation(klass, type_model)
-          end
-          if a[2]
-            reflect(type_model, "validates_presence_of :#{a[1]}")
+            if a[2]
+              reflect(waiting_model, "validates_presence_of :#{a[1]}")
+            end
           end
         end
       end
 
-      @@has_one_to_bind.each do |property_type, pending_binds|
-        if i = pending_binds.find_index { |x| x[0].eql?(model_name) }
-          a = pending_binds.delete_at(i)
-          puts (type_model = reflect_constant(property_type, :do_not_create)).to_s + '  Binding property ' + a[1]
-          if klass.is_a?(Class)
-            reflect(type_model, "belongs_to :#{a[1]}, class_name: \'#{model_name}\'")
-            klass.affects_to(type_model)
-          else #must be a json schema
-            reflect(type_model, process_non_ref(a[1], klass, type_model, root))
-            bind_affect_to_relation(klass, type_model)
-          end
-          if a[2]
-            reflect(type_model, "validates_presence_of :#{a[1]}")
+      @@has_one_to_bind.each do |waiting_type, pending_binds|
+        waiting_model = waiting_type.constantize rescue nil
+        raise Exception.new("Waiting type #{waiting_type} not yet loaded!") unless waiting_model
+        waiting_data_type = DataType.find_by(id: waiting_model.lookup_data_type_id) rescue nil
+        raise Exception.new("Waiting type #{waiting_type} without data type!") unless waiting_data_type
+        if i = a.find_index { |x| waiting_data_type.(:find_data_type, x[0]) == self }
+          waiting_ref = pending_binds[i][0]
+          bindings = pending_binds.select { |x| x[0] == waiting_ref }
+          pending_binds.delete_if { |x| x[0] == waiting_ref }
+          bindings.each do |a|
+            puts waiting_model.to_s + '  Binding property ' + a[1]
+            if klass.is_a?(Class)
+              reflect(waiting_model, "belongs_to :#{a[1]}, class_name: \'#{model_name}\'")
+              klass.affects_to(waiting_model)
+            else #must be a json schema
+              reflect(waiting_model, process_non_ref(a[1], klass, waiting_model, root))
+              bind_affect_to_relation(klass, waiting_model)
+            end
+            if a[2]
+              reflect(waiting_model, "validates_presence_of :#{a[1]}")
+            end
           end
         end
       end
 
       {:embeds_many => @@embeds_many_to_bind, :embeds_one => @@embeds_one_to_bind}.each do |r, to_bind|
-        to_bind.each do |property_type, pending_binds|
-          if i = pending_binds.find_index { |x| x[0].eql?(model_name) }
-            a = pending_binds.delete_at(i)
-            puts (type_model = reflect_constant(property_type, :do_not_create)).to_s + '  Binding property ' + a[1]
-            if klass.is_a?(Class)
-              reflect(type_model, "#{r.to_s} :#{a[1]}, class_name: \'#{model_name}\'")
-              reflect(type_model, "accepts_nested_attributes_for :#{a[1]}")
-              #reflect(klass, "embedded_in :#{property_type.underscore.split('/').join('_')}, class_name: '#{property_type}'")
-              klass.affects_to(type_model)
-            else #must be a json schema
-              reflect(type_model, process_non_ref(a[1], klass, type_model, root))
-              bind_affect_to_relation(klass, type_model)
-            end
-            if a[2]
-              reflect(type_model, "validates_presence_of :#{a[1]}")
+        to_bind.each do |waiting_type, pending_binds|
+          waiting_model = waiting_type.constantize rescue nil
+          raise Exception.new("Waiting type #{waiting_type} not yet loaded!") unless waiting_model
+          waiting_data_type = DataType.find_by(id: waiting_model.lookup_data_type_id) rescue nil
+          raise Exception.new("Waiting type #{waiting_type} without data type!") unless waiting_data_type
+          if i = pending_binds.find_index { |x| waiting_data_type.send(:find_data_type, x[0]) == self }
+            waiting_ref = pending_binds[i][0]
+            bindings = pending_binds.select { |x| x[0] == waiting_ref }
+            pending_binds.delete_if { |x| x[0] == waiting_ref }
+            bindings.each do |a|
+              puts waiting_model.to_s + '  Binding property ' + a[1]
+              if klass.is_a?(Class)
+                reflect(waiting_model, "#{r.to_s} :#{a[1]}, class_name: \'#{model_name}\'")
+                reflect(waiting_model, "accepts_nested_attributes_for :#{a[1]}")
+                #reflect(klass, "embedded_in :#{property_type.underscore.split('/').join('_')}, class_name: '#{property_type}'")
+                klass.affects_to(waiting_model)
+              else #must be a json schema
+                reflect(waiting_model, process_non_ref(a[1], klass, waiting_model, root))
+                bind_affect_to_relation(klass, waiting_model)
+              end
+              if a[2]
+                reflect(waiting_model, "validates_presence_of :#{a[1]}")
+              end
             end
           end
         end
@@ -901,15 +945,22 @@ module Setup
 
     module AffectRelation
 
-      attr_accessor :rails_admin_config
-
       def affected_models
         @affected_models ||= Set.new
+        @affected_models.delete_if { |model| no_constant(model)}
+        return @affected_models
       end
 
       def affects_to(model)
         puts "#{self.to_s} affects #{model.to_s}"
         (@affected_models ||= Set.new)<< model
+      end
+
+      private
+
+      def no_constant(model)
+        model = model.to_s.constantize rescue nil
+        model ? false : true
       end
     end
   end

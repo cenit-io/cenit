@@ -1,21 +1,21 @@
 {
-    "title": "Inventory",
-
+    "title": "LineItem",
+    
     "type": "object",
     
     "properties": {
-        "id": {
-            "type": "string"
-        },
-        "location": {
+        "name": {
             "type": "string"
         },
         "quantity": {
             "type": "integer"
         },
+        "price": {
+            "type": "number"
+        },
         "product_id": {
             "type": "string"
         }
     },
-    "required": ["location", "quantity"]
+    "required": ["name", "quantity", "price"]
 }
