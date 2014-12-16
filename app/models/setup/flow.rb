@@ -50,7 +50,7 @@ module Setup
       end
       message = {
           :flow_id => self.id,
-          :json_data => json,
+          :json_data => clean_json_data(json),
           :notification_id => notification_id,
           :account_id => self.account.id
       }.to_json
@@ -62,6 +62,14 @@ module Setup
       puts "Flow processing json data on '#{self.name}' done!"
     end
 
+    def clean_json_data(json)
+      cleaned_json = {}
+      json.each do |k, v|
+        new_key = Setup::DataType.find_by(id: k.slice(2, k.size)).name.downcase
+        cleaned_json[new_key] = v
+      end
+      cleaned_json
+    end
 
     def self.json_transform(template_hash, data_hash)
       template_hash.each do |key, value|
