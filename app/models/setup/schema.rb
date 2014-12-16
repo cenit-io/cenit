@@ -58,7 +58,6 @@ module Setup
       @created_data_types = []
       begin
         (schemas = parse_schemas).each do |name, schema|
-          name = name.underscore.camelize
           data_type = Setup::DataType.create(name: name, schema: schema.to_json, auto_load_model: true)
           if data_type.errors.blank?
             @created_data_types << data_type

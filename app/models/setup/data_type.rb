@@ -5,7 +5,7 @@ module Setup
     include AccountScoped
 
     def self.to_include_in_models
-      @to_include_in_models ||= [Mongoid::Document, Mongoid::Timestamps, AfterSave, AccountScoped, RailsAdminDynamicCharts::Datetime]
+      @to_include_in_models ||= [Mongoid::Document, Mongoid::Timestamps, AfterSave, AccountScoped, RailsAdminDynamicCharts::Datetime, AssociationValidator]
     end
 
     def self.to_include_in_model_classes
@@ -104,6 +104,7 @@ module Setup
         '#{self.id}'
       end")
       create_default_events
+      puts inline_schema.to_json
       return model
     end
 
@@ -183,6 +184,10 @@ module Setup
         Setup::Event.create(data_type: self, triggers: '{"created_at":{"0":{"o":"_not_null","v":["","",""]}}} ').save
         Setup::Event.create(data_type: self, triggers: '{"updated_at":{"0":{"o":"_change","v":["","",""]}}} ').save
       end
+    end
+
+    def inline_schema
+      conforms_schema(JSON.parse(schema), true)
     end
 
     private
@@ -309,7 +314,7 @@ module Setup
     end
 
     def validate_schema
-      check_type_name(self.name)
+      # check_type_name(self.name)
       JSON::Validator.validate!(File.read(File.dirname(__FILE__) + '/schema.json'), self.schema)
       json = JSON.parse(self.schema, :object_class => MultKeyHash)
       if json['type'] == 'object'
@@ -573,14 +578,14 @@ module Setup
                     raise Exception.new("refers to an invalid JSON reference '#{ref}'")
                   end
                 else
-                  puts "#{klass.to_s}  Waiting3 for parsing #{property_type} to bind property #{property_name}"
+                  puts "#{klass.to_s}  Waiting[3] for parsing #{property_type} to bind property #{property_name}"
                   @@embeds_one_to_bind[model_name] << [property_type, property_name]
                 end
               else # external reference
                 if MONGO_TYPES.include?(ref)
                   v = "field :#{property_name}, type: #{ref}"
                 else
-                  ref = check_type_name(ref)
+                  # ref = check_type_name(ref)
                   if type_model = (find_or_load_model(ref) || reflect_constant(ref, :do_not_create))
                     if type_model.is_a?(Hash)
                       property_desc.delete('$ref')
@@ -599,7 +604,7 @@ module Setup
                       end
                     end
                   else
-                    puts "#{klass.to_s}  Waiting4 for parsing #{ref} to bind property #{property_name}"
+                    puts "#{klass.to_s}  Waiting[4]for parsing #{ref} to bind property #{property_name}"
                     (referenced ? @@has_one_to_bind : @@embeds_one_to_bind)[model_name] << [ref, property_name]
                   end
                 end
@@ -614,7 +619,7 @@ module Setup
 
         if r = schema['required']
           r.each do |p|
-            if klass.fields.keys.include?(p)
+            if klass.fields.keys.include?(p) || klass.relations.keys.include?(p)
               reflect(klass, "validates_presence_of :#{p}")
             else
               [@@has_many_to_bind,
@@ -660,14 +665,31 @@ module Setup
       end
     end
 
-    def conforms_schema(schema)
-      return schema unless allOf = schema.delete('allOf')
-      allOf.each do |sch|
-        if ref = sch['$ref']
-          sch = find_ref_schema(ref)
+    def conforms_schema(schema, recursive=false)
+      if allOf = schema.delete('allOf')
+        allOf.each do |sch|
+          if (ref = sch['$ref']) && (ref = find_ref_schema(ref))
+            sch = ref
+          end
+          schema = schema.deep_merge(sch) do |key, val1, val2|
+            val1.is_a?(Array) && val2.is_a?(Array) ? val1 + val2 : val2
+          end
         end
-        schema = schema.deep_merge(sch)
       end
+      if schema['$ref']
+        sch = {}
+        schema.each do |key, value|
+          if key == '$ref' && ref = find_ref_schema(value)
+            sch = sch.deep_merge(ref) do |key, val1, val2|
+              val1.is_a?(Array) && val2.is_a?(Array) ? val1 + val2 : val2
+            end
+          else
+            sch[key] = value
+          end
+        end
+        schema = sch
+      end
+      schema.each { |key, val| schema[key] = conforms_schema(val, true) if val.is_a?(Hash) } if recursive
       return schema
     end
 
@@ -689,7 +711,7 @@ module Setup
       if data_type = find_data_type(ref)
         return JSON.parse(data_type.schema)
       else
-        raise Exception.new("Can not find referenced schema #{ref}")
+        return nil
       end
     end
 
@@ -712,7 +734,7 @@ module Setup
         if property_type.eql?('Array') && (items_desc = property_desc['items'])
           r = nil
           if referenced = ((ref = items_desc['$ref']) && (!ref.start_with?('#') && items_desc['referenced']))
-            ref = check_type_name(ref)
+            # ref = check_type_name(ref)
             if (type_model = (find_or_load_model(property_type = ref) || reflect_constant(ref, :do_not_create))) &&
                 @@parsed_schemas.include?(type_model.to_s)
               puts "#{klass.to_s}  Binding property #{property_name}"
@@ -730,14 +752,14 @@ module Setup
                 end
               end
             else
-              puts "#{klass.to_s}  Waiting1 for parsing #{property_type} to bind property #{property_name}"
+              puts "#{klass.to_s}  Waiting[1] for parsing #{property_type} to bind property #{property_name}"
               @@has_many_to_bind[model_name] << [property_type, property_name]
             end
           else
             r = 'embeds_many'
             if ref
               raise Exception.new("referencing embedded reference #{ref}") if items_desc['referenced']
-              property_type = ref.start_with?('#') ? check_embedded_ref(ref, root.to_s).singularize : check_type_name(ref)
+              property_type = ref.start_with?('#') ? check_embedded_ref(ref, root.to_s).singularize : ref #check_type_name(ref)
               type_model = find_or_load_model(property_type) || reflect_constant(property_type, :do_not_create)
               if type_model
                 property_type = type_model.to_s
@@ -746,7 +768,7 @@ module Setup
                   type_model.affects_to(klass)
                 else
                   r = nil
-                  puts "#{klass.to_s}  Waiting2 for parsing #{property_type} to bind property #{property_name}"
+                  puts "#{klass.to_s}  Waiting[2] for parsing #{property_type} to bind property #{property_name}"
                   @@embeds_many_to_bind[model_name] << [property_type, property_name]
                 end
               else
@@ -759,6 +781,12 @@ module Setup
           end
           if r
             v = "#{r} :#{property_name}, class_name: \'#{property_type.to_s}\'"
+
+            if property_desc['maxItems'] && property_desc['maxItems'] == property_desc['minItems']
+              validations << "validates_association_length_of :#{property_name}, is: #{property_desc['maxItems'].to_s}"
+            elsif property_desc['maxItems'] || property_desc['minItems']
+              validations << "validates_association_length_of :#{property_name}#{property_desc['minItems'] ? ', minimum: ' + property_desc['minItems'].to_s : ''}#{property_desc['maxItems'] ? ', maximum: ' + property_desc['maxItems'].to_s : ''}"
+            end
             # embedded_in relation reflected before if ref or it is reflected when parsing with :embedded option
             #reflect(type_model, "#{referenced ? 'belongs_to' : 'embedded_in'} :#{relation_name(model_name)}, class_name: \'#{model_name}\'")
             #reflect(type_model, "belongs_to :#{relation_name(model_name)}, class_name: '#{model_name}'") if referenced
@@ -782,8 +810,11 @@ module Setup
               v += ", default: \'#{property_desc['default']}\'"
             end
             if property_type.eql?('String')
+              # if property_desc['minLength'] && property_desc['maxLength'] && property_desc['minLength'] == property_desc['maxLength']
+              #   validations << "validates_length_of :#{property_name}, is: #{property_desc['maxLength'].to_s}"
+              # els
               if property_desc['minLength'] || property_desc['maxLength']
-                validations << "validates_length_of :#{property_name}#{property_desc['minLength'] ? ', :minimum => ' + property_desc['minLength'].to_s : ''}#{property_desc['maxLength'] ? ', :maximum => ' + property_desc['maxLength'].to_s : ''}"
+                validations << "validates_length_of :#{property_name}#{property_desc['minLength'] ? ', minimum: ' + property_desc['minLength'].to_s : ''}#{property_desc['maxLength'] ? ', maximum: ' + property_desc['maxLength'].to_s : ''}"
               end
               if property_desc['pattern']
                 validations << "validates_format_of :#{property_name}, :with => /#{property_desc['pattern']}/i"
@@ -806,6 +837,7 @@ module Setup
             end
             if enum = property_desc['enum']
               enums[property_name] = enum
+              validations << "validates_inclusion_of :#{property_name}, in: -> (doc) { doc.#{property_name}_enum }, message: 'is not a valid value'"
             end
           end
         end
@@ -880,7 +912,7 @@ module Setup
             bindings = pending_binds.select { |x| x[0] == waiting_ref }
             pending_binds.delete_if { |x| x[0] == waiting_ref }
             bindings.each do |a|
-              puts waiting_model.to_s + '  Binding property ' + a[1]
+              puts "#{waiting_model.to_s} Binding property #{a[1]}"
               if klass.is_a?(Class)
                 reflect(waiting_model, "#{r.to_s} :#{a[1]}, class_name: \'#{model_name}\'")
                 reflect(waiting_model, "accepts_nested_attributes_for :#{a[1]}")
