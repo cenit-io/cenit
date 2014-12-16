@@ -91,14 +91,18 @@ namespace :sample do
         end
 
       end
+      
+  
 
       product_data_type = Setup::DataType.where(name: 'Product').first
       next if product_data_type.nil?
-      product_model = product_data_type.model
+      product_data_type.load_model("Product")
+      product_model = product_data_type.model  
       next if product_model.nil?
 
       order_data_type = Setup::DataType.where(name: 'Order').first
       next if order_data_type.nil?
+      order_data_type.load_model("Orders")
       order_model = order_data_type.model
       next if order_model.nil?
 
@@ -207,6 +211,7 @@ namespace :sample do
             "variants_attributes" => variants
         }
 
+                                                
         product_model.create!(product)
 
         # orders
