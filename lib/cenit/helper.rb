@@ -30,6 +30,7 @@ module Cenit
         root = self.payload[:root]
         schema = Setup::Schema.where(uri: root).first
         unless schema
+		  response "Missing Schema", 500 if self.payload[:schema].nil?
           schema_attributes = {
             library: library,
             uri: root,
