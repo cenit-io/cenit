@@ -22,14 +22,14 @@ module Cenit
 
       def process
         connection = Setup::Connection.where(name: self.payload[:connection]).first
-        return {} unless connection
+        return response "Missing Connection!", 500 unless connection
 
         library = Setup::Library.find_or_create_by(name: self.payload[:library])
 
         data_type = nil
         root = self.payload[:root]
         schema = Setup::Schema.where(uri: root).first
-        unless schema
+        if schema.nil?
 		  response "Missing Schema", 500 if self.payload[:schema].nil?
           schema_attributes = {
             library: library,
@@ -40,6 +40,8 @@ module Cenit
           data_type = schema.data_types.first
           data_type.load_model
           data_type.create_default_events
+        else
+		  data_type = schema.data_types.first	
         end
 
         set_webhook_flow(root, 'created_at', 'add', connection, data_type)
