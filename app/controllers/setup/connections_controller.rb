@@ -20,7 +20,7 @@ module Setup
     end
 
     # POST /connections.json
-    def create
+    def create	  
       @connection = Setup::Connection.new(permited_attributes)
       if @connection.save
         render json: @connection, status: :created, location: @connection
