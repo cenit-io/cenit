@@ -4,7 +4,17 @@ module RailsAdmin
       class SendToFlow < RailsAdmin::Config::Actions::Base
 
         register_instance_option :visible? do
-          authorized? && !(@flows = Setup::Flow.where(:data_type => Setup::DataType.where(:name => bindings[:abstract_model].model_name).first).collect { |f| f }).blank?
+		  if authorized?
+			model = bindings[:abstract_model].model_name.constantize rescue nil
+			if model && model.respond_to?(:data_type_id)
+				data_type = Setup::DataType.where(:id => model.data_type_id).first
+				data_type && !(Setup::Flow.where(:data_type => data_type).empty?)
+			else
+			    false
+			end
+		  else
+			false
+		  end
         end
 
         register_instance_option :collection do
