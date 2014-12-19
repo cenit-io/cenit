@@ -39,6 +39,36 @@ module Setup
       puts "Flow processing on '#{self.name}' done!"
     end
 
+    def process_all(data_type)
+      model = Setup::DataType.where(name: data_type).first.data_type_name.constantize
+      offset = 0
+      total = model.all.count
+      puts "TOTAL: #{total.to_s}"
+      while (offset < total)
+        data = []
+        model.limit(1000).offset(offset).each do |object|
+          xml_document = Nokogiri::XML(object.to_xml)
+          hash = Hash.from_xml(xml_document.to_s)
+          data << hash.map{|k, v| v}.first
+        end
+        message = {
+          :flow_id => self.id,
+          :json_data => {data_type.downcase => data},
+          :notification_id => nil,
+          :account_id => self.account.id
+        }.to_json
+        begin
+          Cenit::Rabbit.send_to_rabbitmq(message)
+        rescue Exception => ex
+          puts "ERROR sending message: #{ex.message}"
+        end
+        offset += 1000
+        puts "Flow processing json data on '#{self.name}' done!"
+      end
+    rescue Exception => e
+      puts "ERROR -> #{e.inspect}"
+    end
+
     def process_json_data(json, notification_id=nil)
       puts "Flow processing json data on '#{self.name}'..."
       begin
