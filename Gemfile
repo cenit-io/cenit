@@ -37,6 +37,8 @@ end
 gem 'mongoid'
 gem 'bson_ext'
 gem 'rails_admin'
+gem 'mongoid-history'
+gem 'mongoid-audit', '~> 1.0.0'
 #gem "rails_admin_import"
 
 # charts

@@ -6,11 +6,15 @@ module Setup
     include Mongoid::Timestamps
     include AccountScoped
     include Setup::Enum
+    include Trackable
 
     field :name, type: String
     field :purpose, type: String
     field :active, type: Boolean
 
+    has_one :schedule, class_name: Setup::Schedule.name, inverse_of: :flow
+    has_one :batch, class_name: Setup::Batch.name, inverse_of: :flow
+    
     belongs_to :data_type, class_name: Setup::DataType.name
     belongs_to :connection, class_name: Setup::Connection.name
     belongs_to :webhook, class_name: Setup::Webhook.name
@@ -19,6 +23,7 @@ module Setup
     field :transformation, type: String
 
     validates_presence_of :name, :purpose, :data_type, :connection, :webhook, :event
+    accepts_nested_attributes_for :schedule, :batch
 
     def process(object, notification_id=nil)
       puts "Flow processing '#{object}' on '#{self.name}'..."
@@ -166,40 +171,6 @@ module Setup
       end
 
       return Nokogiri::XML(document.to_xml)
-    end
-
-    rails_admin do
-      edit do
-        field :name
-        field :active
-        field :purpose
-        field :data_type
-        field :connection
-        field :webhook
-        field :event
-        group :transformation do
-          label 'Data transformation'
-          active true
-        end
-        field :transformation do
-          group :transformation
-          partial 'form_transformation'
-        end
-      end
-      list do
-        fields :name, :active, :purpose, :event, :connection, :webhook
-      end
-      show do
-        field :_id
-        field :created_at
-        field :updated_at
-        field :name
-        field :purpose
-        field :data_type
-        field :connection
-        field :webhook
-        field :event
-      end
     end
 
   end

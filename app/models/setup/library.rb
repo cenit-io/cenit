@@ -3,6 +3,7 @@ module Setup
     include Mongoid::Document
     include Mongoid::Timestamps
     include AccountScoped
+    include Trackable
 
     field :name, type: String
 
@@ -23,14 +24,5 @@ module Setup
     #   return m
     # end
 
-    rails_admin do
-
-      edit do
-        field :name do
-          read_only { !bindings[:object].new_record? }
-          help ''
-        end
-      end
-    end
   end
 end
