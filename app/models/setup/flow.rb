@@ -16,7 +16,7 @@ module Setup
 
     has_one :schedule, class_name: Setup::Schedule.name, inverse_of: :flow
     has_one :batch, class_name: Setup::Batch.name, inverse_of: :flow
-    
+
     belongs_to :data_type, class_name: Setup::DataType.name
     belongs_to :connection, class_name: Setup::Connection.name
     belongs_to :webhook, class_name: Setup::Webhook.name
@@ -50,23 +50,21 @@ module Setup
       model = data_type.model
       total = model.count
       puts "TOTAL: #{total}"
-      
+
       per_batch = flow.batch.size rescue 1000
       0.step(model.count, per_batch) do |offset|
-        model.limit(per_batch).skip(offset).each do |batch| 
-          data = batch.map { |object| prepare(object) }
-          process_batch(data) 
-        end
+        data = model.limit(per_batch).skip(offset).map {|obj| prepare(obj)}
+        process_batch(data)
       end
     rescue Exception => e
       puts "ERROR -> #{e.inspect}"
     end
-    
+
     def prepare(object)
       xml_document = Nokogiri::XML(object.to_xml)
       Hash.from_xml(xml_document.to_s).values.first
-    end  
-      
+    end
+
     def process_batch(data)
       message = {
         :flow_id => self.id,
@@ -181,6 +179,6 @@ module Setup
 
       return Nokogiri::XML(document.to_xml)
     end
-    
+
   end
 end
