@@ -13,7 +13,7 @@ module Mongoid
     def delete_fields(attrs)
       ['_id', 'created_at', 'updated_at', 'images'].each do |f|
         attrs.delete(f) if attrs.has_key?(f)
-       end
+      end
     end
 
     def delete_deep_in(attrs)

@@ -3,6 +3,7 @@ module Setup
     include Mongoid::Document
     include Mongoid::Timestamps
     include AccountScoped
+    include Trackable
 
     belongs_to :flow, :class_name => Setup::Flow.name
 
@@ -18,30 +19,6 @@ module Setup
     def resend
       return unless self.must_be_resend?
       self.flow.process_json_data(self.json_data, self.id)
-    end
-    
-    rails_admin do
-      edit do
-        field :flow
-        field :http_status_code
-        field :count
-        field :http_status_message
-        field :json_data
-      end
-      list do
-        field :flow
-        field :http_status_code
-        field :count
-        field :http_status_message
-      end  
-      show do
-        field :_id
-        field :flow
-        field :http_status_code
-        field :count
-        field :http_status_message
-        field :json_data
-      end 
     end
 
   end

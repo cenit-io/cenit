@@ -3,6 +3,7 @@ module Setup
     include Mongoid::Document
     include Mongoid::Timestamps
     include AccountScoped
+    include Trackable
 
     belongs_to :library, class_name: Setup::Library.to_s
 
@@ -22,34 +23,11 @@ module Setup
     def load_models(force_load=true)
       models = []
       data_types.each do |data_type|
-        if data_type.activated && model = data_type.load_model(force_load)
-          models << model
+        if data_type.activated && more_models = data_type.load_models(force_load)
+          models.concat(more_models)
         end
       end
       RailsAdmin::AbstractModel.update_model_config(models)
-    end
-
-    rails_admin do
-
-      object_label_method do
-        :uri
-      end
-
-      edit do
-        field :library do
-          read_only { !bindings[:object].new_record? }
-          inline_edit false
-        end
-
-        field :uri do
-          read_only { !bindings[:object].new_record? }
-        end
-
-        field :schema
-      end
-      list do
-        fields :library, :uri, :schema, :data_types
-      end
     end
 
     private
@@ -57,8 +35,11 @@ module Setup
     def create_data_types
       @created_data_types = []
       begin
-        (schemas = parse_schemas).each do |name, schema|
-          name = name.underscore.camelize
+        (schemas = parse_schemas).each_key do |name|
+          errors.add(:schema, "model name #{name} is already taken on library") if self.library.find_data_type_by_name(name)
+        end
+        return false unless errors.blank?
+        schemas.each do |name, schema|
           data_type = Setup::DataType.create(name: name, schema: schema.to_json, auto_load_model: true)
           if data_type.errors.blank?
             @created_data_types << data_type

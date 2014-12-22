@@ -2,7 +2,9 @@
  RailsAdmin::Config::Actions::TestTransformation,
  RailsAdmin::Config::Actions::LoadModel,
  RailsAdmin::Config::Actions::ShutdownModel,
- RailsAdmin::Config::Actions::SwitchNavigation].each { |a| RailsAdmin::Config::Actions.register(a) }
+ RailsAdmin::Config::Actions::SwitchNavigation,
+ RailsAdmin::Config::Actions::DataType,
+ RailsAdmin::Config::Actions::Import].each { |a| RailsAdmin::Config::Actions.register(a) }
 
 RailsAdmin.config do |config|
 
@@ -32,6 +34,7 @@ RailsAdmin.config do |config|
     dashboard # mandatory
     index # mandatory
     new { except Setup::DataType }
+    import
     #import do
     #  only 'Setup::DataType'
     #end
@@ -46,6 +49,7 @@ RailsAdmin.config do |config|
     load_model
     shutdown_model
     switch_navigation
+    data_type
 
     ## With an audit adapters, you can add:
     # history_index

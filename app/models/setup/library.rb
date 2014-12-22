@@ -3,6 +3,7 @@ module Setup
     include Mongoid::Document
     include Mongoid::Timestamps
     include AccountScoped
+    include Trackable
 
     field :name, type: String
 
@@ -10,6 +11,15 @@ module Setup
 
     validates_presence_of :name
     validates_uniqueness_of :name
+
+    def find_data_type_by_name(name)
+      self.schemas.each do |schema|
+        if data_type = schema.data_types.where(name: name).first
+          return data_type
+        end
+      end
+      nil
+    end
 
     # def module_name
     #   "Lib#{self.id.to_s}"
@@ -23,14 +33,5 @@ module Setup
     #   return m
     # end
 
-    rails_admin do
-
-      edit do
-        field :name do
-          read_only { !bindings[:object].new_record? }
-          help ''
-        end
-      end
-    end
   end
 end

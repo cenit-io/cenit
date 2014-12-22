@@ -13,4 +13,8 @@ class Role
   { :unique => true})
   
   scopify
+  
+  rails_admin do
+    navigation_label 'Account'
+  end
 end

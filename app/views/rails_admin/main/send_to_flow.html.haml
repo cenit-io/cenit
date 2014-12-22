@@ -1,13 +1,12 @@
 - flows = []
 - model = @abstract_model.model_name.constantize rescue nil
-- if model && model.respond_to?(:data_type_id)
-  - data_type = Setup::DataType.where(:id => model.data_type_id).first
-  - flows = Setup::Flow.where(:data_type => data_type)
+- if model && model.respond_to?(:data_type)
+  - flows = Setup::Flow.where(data_type: model.data_type).collect { |f| f }
 - flow_options = flows.collect { |f| [f.name, f.id] }
 
 = form_tag send_to_flow_path(params.merge(all: true)), method: 'post', class: 'form-horizontal denser' do
 
-  %label.control-label{for: 'flow_id'}= t('admin.actions.send_to_flow.menu')
+  %label.control-label{for: 'flow_id'}= t('admin.actions.send_to_flow.selector_label')
   .controls
     .a
       = select_tag 'flow_id', options_for_select(flow_options), style: 'float:left'
@@ -20,3 +19,4 @@
           %i.icon-remove
           = t('admin.form.cancel')
       %p.help-block= t('admin.actions.send_to_flow.send_to_flow_help')
+

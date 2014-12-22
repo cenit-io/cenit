@@ -1,4 +1,4 @@
-module AfterSave
+module EventLookup
   extend ActiveSupport::Concern
 
   included do
@@ -7,12 +7,8 @@ module AfterSave
     end
 
     after_save do |object|
-      Setup::Event.lookup(self, @_obj_before);
+      Setup::Event.lookup(self, @_obj_before)
     end
-  end
-
-  def data_type
-    Setup::DataType.find_by(id: self.class.lookup_data_type_id)
   end
 
 end

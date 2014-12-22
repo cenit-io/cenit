@@ -71,7 +71,8 @@ module RailsAdmin
         models.each do |model|
           puts "#{self.to_s}: resetting configuration of #{model.to_s}"
           Config.reset_model(model)
-          data_type = Setup::DataType.find_by(id: model.data_type_id) rescue nil
+          data_type = model.data_type rescue nil
+          data_type = nil unless data_type.model == model
           rails_admin_model = Config.model(model).target
           {navigation_label: nil,
            visible: false,

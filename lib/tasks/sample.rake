@@ -69,6 +69,7 @@ namespace :sample do
       base_path = File.join(Rails.root, 'lib', 'jsons')
       schemas = Dir.entries(base_path).select { |f| !File.directory?(f) && f != '.DS_Store' }
 
+      schema_models = []
       schemas.each do |file_schema|
         schema = File.read("#{base_path}/#{file_schema}")
         klass_name = file_schema.split('.json')[0].camelize
@@ -81,7 +82,10 @@ namespace :sample do
             #after_save_callback: %W[ Product Order Cart Payment Return ].include?(klass_name)
         }
 
-        schema_model = Setup::Schema.create!(schema_attributes) rescue next
+        schema_models << Setup::Schema.create!(schema_attributes) rescue next
+
+      end
+      schema_models.each do |schema_model|
         schema_model.data_types.each do |data_type|
           if model = data_type.load_model
             model.delete_all
@@ -89,21 +93,17 @@ namespace :sample do
           end
           data_type.create_default_events
         end
-
       end
-      
-  
+
 
       product_data_type = Setup::DataType.where(name: 'Product').first
       next if product_data_type.nil?
-      product_data_type.load_model("Product")
-      product_model = product_data_type.model  
+      product_model = product_data_type.load_model
       next if product_model.nil?
 
       order_data_type = Setup::DataType.where(name: 'Order').first
       next if order_data_type.nil?
-      order_data_type.load_model("Orders")
-      order_model = order_data_type.model
+      order_model = order_data_type.load_model
       next if order_model.nil?
 
       ############  SAMPLE DATA ###############
@@ -211,7 +211,7 @@ namespace :sample do
             "variants_attributes" => variants
         }
 
-                                                
+
         product_model.create!(product)
 
         # orders

@@ -8,7 +8,8 @@ module NumberGenerator
   included do
     field :number, type: String
     validates :number, uniqueness: true
-    before_validation :generate_number #, on: :create
+    validates_presence_of :number 
+    after_initialize :generate_number #, on: :create
   end
   
   def self.by_number(number)
