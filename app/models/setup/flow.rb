@@ -68,7 +68,7 @@ module Setup
     def process_batch(data)
       message = {
         :flow_id => self.id,
-        :json_data => {data_type.model.name.downcase => data},
+        :json_data => {data_type.name.downcase => data},
         :notification_id => nil,
         :account_id => self.account.id
       }.to_json
