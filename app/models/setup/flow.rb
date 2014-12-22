@@ -39,8 +39,8 @@ module Setup
       puts "Flow processing on '#{self.name}' done!"
     end
 
-    def process_all(data_type)
-      model = Setup::DataType.where(name: data_type).first.data_type_name.constantize
+    def process_all
+      model = self.data_type.data_type_name.constantize
       offset = 0
       total = model.all.count
       puts "TOTAL: #{total.to_s}"
