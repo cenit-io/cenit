@@ -1,0 +1,8 @@
+= form_tag import_path(params.merge(all: true)), method: 'post', class: 'form-horizontal denser', style: 'height:100%' do
+
+  %label{style: 'float:left'}= t('admin.actions.new_from_file.file_content_label')
+  %textarea{name: 'file_content', style: 'width:50%', rows: 15}
+  %button.btn.btn-primary{type: "submit"}
+    %i.icon-white.icon-ok
+    = t("admin.actions.import.submit")
+
