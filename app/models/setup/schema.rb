@@ -30,6 +30,29 @@ module Setup
       RailsAdmin::AbstractModel.update_model_config(models)
     end
 
+    rails_admin do
+
+      object_label_method do
+        :uri
+      end
+
+      edit do
+        field :library do
+          read_only { !bindings[:object].new_record? }
+          inline_edit false
+        end
+
+        field :uri do
+          read_only { !bindings[:object].new_record? }
+        end
+
+        field :schema
+      end
+      list do
+        fields :library, :uri, :schema, :data_types
+      end
+    end
+
     private
 
     def create_data_types

@@ -21,17 +21,15 @@ module Setup
       nil
     end
 
-    # def module_name
-    #   "Lib#{self.id.to_s}"
-    # end
-    #
-    # def module
-    #   m = module_name.constantize rescue nil
-    #   unless m
-    #     Object.const_set(module_name, m = Module.new)
-    #   end
-    #   return m
-    # end
+    rails_admin do
+
+      edit do
+        field :name do
+          read_only { !bindings[:object].new_record? }
+          help ''
+        end
+      end
+    end
 
   end
 end
