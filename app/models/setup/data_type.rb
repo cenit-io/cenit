@@ -166,6 +166,7 @@ module Setup
       show do
         fields :uri, :name, :activated, :schema, :sample_data
       end
+
     end
 
     def visible
