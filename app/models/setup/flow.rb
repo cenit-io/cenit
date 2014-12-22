@@ -27,7 +27,7 @@ module Setup
     validates_presence_of :name, :purpose, :data_type, :connection, :webhook, :event
     accepts_nested_attributes_for :schedule, :batch
 
-    def process(object, notification_id=nil) 
+    def process(object, notification_id=nil)
       puts "Flow processing '#{object}' on '#{self.name}'..."
 
       unless !object.nil? && object.respond_to?(:data_type) && self.data_type == object.data_type && object.respond_to?(:to_xml)

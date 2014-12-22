@@ -5,7 +5,7 @@ module Cenit
 
       attr_accessor :payload, :parameters, :request_id
 
-      def initialize(message)		
+      def initialize(message)
         self.payload = ::JSON.parse(message).with_indifferent_access
         self.request_id = payload.delete(:request_id)
         if payload.key? :parameters
@@ -30,7 +30,7 @@ module Cenit
         root = self.payload[:root]
         schema = Setup::Schema.where(uri: root).first
         if schema.nil?
-		  response "Missing Schema", 500 if self.payload[:schema].nil?
+          return response "Missing Schema", 500 if self.payload[:schema].nil?
           schema_attributes = {
             library: library,
             uri: root,
@@ -41,7 +41,7 @@ module Cenit
           data_type.load_model
           data_type.create_default_events
         else
-		  data_type = schema.data_types.first	
+          data_type = schema.data_types.first
         end
 
         set_webhook_flow(root, 'created_at', 'add', connection, data_type)
