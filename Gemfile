@@ -52,3 +52,4 @@ gem "json-schema"
 gem "nokogiri"
 gem 'cancan'
 gem 'rolify'
+gem 'rufus-scheduler'

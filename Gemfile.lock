@@ -212,6 +212,8 @@ GEM
       rspec-mocks (~> 3.1.0)
       rspec-support (~> 3.1.0)
     rspec-support (3.1.2)
+    rufus-scheduler (3.0.8)
+      tzinfo
     safe_yaml (1.0.4)
     sass (3.2.19)
     sass-rails (4.0.5)
@@ -286,6 +288,7 @@ DEPENDENCIES
   rails_layout
   rolify
   rspec-rails
+  rufus-scheduler
   sass-rails (~> 4.0.3)
   sdoc
   therubyracer

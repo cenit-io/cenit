@@ -375,8 +375,8 @@ RailsAdmin.config do |config|
     
     show do
       field :_id
-      field :created_at
       field :updated_at
+      field :created_at
       field :name
       field :purpose
       field :data_type
@@ -394,7 +394,20 @@ RailsAdmin.config do |config|
         read_only { !bindings[:object].new_record? }
         help ''
       end
+      field :schemas
     end
+    list do
+      field :name
+      field :schemas
+    end
+    show do
+      field :_id
+      field :created_at
+      field :updated_at
+      field :name
+      field :schemas
+    end
+    
   end
   
   config.model Setup::Notification.name do
