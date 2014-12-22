@@ -6,21 +6,28 @@ module Setup
     include Mongoid::Timestamps
     include AccountScoped
     include Setup::Enum
+    include Trackable
 
     field :name, type: String
     field :purpose, type: String
     field :active, type: Boolean
+    field :transformation, type: String
+    field :last_trigger_timestamps, type: DateTime
 
+    has_one :schedule, class_name: Setup::Schedule.name, inverse_of: :flow
+    has_one :batch, class_name: Setup::Batch.name, inverse_of: :flow
+    
     belongs_to :data_type, class_name: Setup::DataType.name
     belongs_to :connection, class_name: Setup::Connection.name
     belongs_to :webhook, class_name: Setup::Webhook.name
     belongs_to :event, class_name: Setup::Event.name
 
-    field :transformation, type: String
+
 
     validates_presence_of :name, :purpose, :data_type, :connection, :webhook, :event
+    accepts_nested_attributes_for :schedule, :batch
 
-    def process(object, notification_id=nil)
+    def process(object, notification_id=nil) 
       puts "Flow processing '#{object}' on '#{self.name}'..."
 
       unless !object.nil? && object.respond_to?(:data_type) && self.data_type == object.data_type && object.respond_to?(:to_xml)
@@ -37,6 +44,42 @@ module Setup
       end
       process_json_data(hash.to_json, notification_id)
       puts "Flow processing on '#{self.name}' done!"
+    end
+
+    def process_all
+      model = data_type.model
+      total = model.count
+      puts "TOTAL: #{total}"
+      
+      per_batch = flow.batch.size rescue 1000
+      0.step(model.count, per_batch) do |offset|
+        model.limit(per_batch).skip(offset).each do |batch| 
+          data = batch.map { |object| prepare(object) }
+          process_batch(data) 
+        end
+      end
+    rescue Exception => e
+      puts "ERROR -> #{e.inspect}"
+    end
+    
+    def prepare(object)
+      xml_document = Nokogiri::XML(object.to_xml)
+      Hash.from_xml(xml_document.to_s).values.first
+    end  
+      
+    def process_batch(data)
+      message = {
+        :flow_id => self.id,
+        :json_data => {data_type.model.name.downcase => data},
+        :notification_id => nil,
+        :account_id => self.account.id
+      }.to_json
+      begin
+        Cenit::Rabbit.send_to_rabbitmq(message)
+      rescue Exception => ex
+        puts "ERROR sending message: #{ex.message}"
+      end
+      puts "Flow processing json data on '#{self.name}' done!"
     end
 
     def process_json_data(json, notification_id=nil)
@@ -60,6 +103,7 @@ module Setup
         puts "ERROR sending message: #{ex.message}"
       end
       puts "Flow processing json data on '#{self.name}' done!"
+      last_trigger_timestamps = Time.now
     end
 
     def clean_json_data(json)
@@ -137,40 +181,6 @@ module Setup
 
       return Nokogiri::XML(document.to_xml)
     end
-
-    rails_admin do
-      edit do
-        field :name
-        field :active
-        field :purpose
-        field :data_type
-        field :connection
-        field :webhook
-        field :event
-        group :transformation do
-          label 'Data transformation'
-          active true
-        end
-        field :transformation do
-          group :transformation
-          partial 'form_transformation'
-        end
-      end
-      list do
-        fields :name, :active, :purpose, :event, :connection, :webhook
-      end
-      show do
-        field :_id
-        field :created_at
-        field :updated_at
-        field :name
-        field :purpose
-        field :data_type
-        field :connection
-        field :webhook
-        field :event
-      end
-    end
-
+    
   end
 end

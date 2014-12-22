@@ -3,6 +3,7 @@ module Setup
     include Mongoid::Document
     include Mongoid::Timestamps
     include AccountScoped
+    include Trackable
 
     def self.to_include_in_models
       @to_include_in_models ||= [Mongoid::Document, Mongoid::Timestamps, InstanceDataTypeAware, EventLookup, AccountScoped, RailsAdminDynamicCharts::Datetime, DynamicValidators]
@@ -107,64 +108,6 @@ module Setup
       create_default_events
       loaded_models << model
       return loaded_models
-    end
-
-    rails_admin do
-      show do
-        field :_id
-        field :created_at
-        field :updated_at
-        field :name
-        field :activated
-        field :schema
-        field :sample_data
-      end
-      edit do
-
-        group :model_definition do
-          label 'Model definition'
-          active true
-        end
-
-        field :uri do
-          group :model_definition
-          read_only true
-          help ''
-        end
-
-        field :name do
-          group :model_definition
-          read_only true
-          help ''
-        end
-
-        field :schema do
-          group :model_definition
-          read_only true
-          help ''
-        end
-
-        group :sample_data do
-          label 'Sample data'
-          active do
-            !bindings[:object].errors.get(:sample_data).blank?
-          end
-          visible do
-            bindings[:object].is_object
-          end
-        end
-
-        field :sample_data do
-          group :sample_data
-        end
-      end
-      list do
-        fields :uri, :name, :activated
-      end
-
-      show do
-        fields :uri, :name, :activated, :schema, :sample_data
-      end
     end
 
     def visible
