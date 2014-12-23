@@ -1,4 +1,4 @@
-module X12
+module EDI
   class Parser
 
     class << self
@@ -16,32 +16,63 @@ module X12
       def do_parse(data_type, model, content, json_schema, start, field_sep, segment_sep, report, record=nil, json=nil, fields=nil, segment=nil)
         json_schema = data_type.merge_schema(json_schema)
         unless record
-          raise Exception.new('X12 segment metadata missing in schema') unless json_schema['ascx12'] && seg_id = json_schema['ascx12']['segment']
-          return [nil, start, nil] unless start < content.length && content[start, seg_id.length] == seg_id
-          field_sep = content[start + seg_id.length] unless field_sep
-          raise Exception.new("Invalid field separator #{field_sep}") unless field_sep == content[start + seg_id.length]
-          unless segment_sep
-            next_seg_relation = model.relations.values.detect { |relation| [:has_many, :has_and_belongs_to_many, :embeds_many, :has_one, :embeds_one].include?(relation.macro) }
-            if next_seg_relation && (next_seg_schema = json_schema['properties'][next_seg_relation.name.to_s])
-              next_seg_schema = next_seg_schema['items'] if next_seg_schema['type'] == 'array'
-              next_seg_schema = data_type.merge_schema(next_seg_schema)
-              raise Exception.new('X12 segment metadata missing in sub-segment schema') unless next_seg_schema['ascx12'] && next_seg_id = next_seg_schema['ascx12']['segment']
-              puts "Inferring segment separator with field separator #{field_sep}..."
-              fields_count = json_schema['properties'].values.count { |property_schema| !%w{object array}.include?(property_schema['type']) && property_schema['$ref'].nil? }
-              cursor = start + seg_id.length + 1
-              while fields_count > 0
-                cursor = content.index(field_sep, cursor) + 1
-                fields_count -= 1
+          if json_schema['edi'] && seg_id = json_schema['edi']['segment']
+            return [nil, start, nil] unless start < content.length && content[start, seg_id.length] == seg_id
+            field_sep = content[start + seg_id.length] unless field_sep
+            raise Exception.new("Invalid field separator #{field_sep}") unless field_sep == :by_fixed_length || field_sep == content[start + seg_id.length]
+            unless segment_sep
+              next_seg_relation = model.relations.values.detect { |relation| [:has_many, :has_and_belongs_to_many, :embeds_many, :has_one, :embeds_one].include?(relation.macro) }
+              if next_seg_relation && (next_seg_schema = json_schema['properties'][next_seg_relation.name.to_s])
+                next_seg_schema = next_seg_schema['items'] if next_seg_schema['type'] == 'array'
+                next_seg_schema = data_type.merge_schema(next_seg_schema)
+                raise Exception.new('Can not infers segment separator without EDI segment metadata in next sub-segment schema') unless next_seg_schema['edi'] && next_seg_id = next_seg_schema['edi']['segment']
+                puts "Inferring segment separator with field separator #{field_sep}..."
+                if field_sep == :by_fixed_length
+                  cursor = start + seg_id.length
+                  json_schema['properties'].each do |property_name, property_schema|
+                    if !%w{object array}.include?(property_schema['type']) && property_schema['$ref'].nil?
+                      if (lenght = property_schema['length']) || ((lenght = property_schema['minLength']) && lenght == property_schema['maxLength'])
+                        cursor += lenght
+                      else
+                        raise Exception.new("property #{property_name} has no fixed length while parsing with fixed length option")
+                      end
+                    end
+                  end
+                else
+                  fields_count = json_schema['properties'].values.count { |property_schema| !%w{object array}.include?(property_schema['type']) && property_schema['$ref'].nil? }
+                  cursor = start + seg_id.length + 1
+                  while fields_count > 0
+                    cursor = content.index(field_sep, cursor) + 1
+                    fields_count -= 1
+                  end
+                end
+                raise Exception.new('Error inferring segment separator') unless next_seg_id && (content[cursor - next_seg_id.length - 1, next_seg_id.length] == next_seg_id)
+                puts "Segment separator inferred: #{segment_sep = content[cursor - next_seg_id.length - 2]}"
+              else
+                raise Exception.new('Can not infers segment separator without sub-segment schemas')
               end
-              raise Exception.new('Error inferring segment separator') unless next_seg_id && (content[cursor - next_seg_id.length - 1, next_seg_id.length] == next_seg_id)
-              puts "Segment separator inferred: #{segment_sep = content[cursor - next_seg_id.length - 2]}"
-            else
-              raise Exception.new('Can not infers segment separator without sub-segment schemas')
             end
+            if field_sep == :by_fixed_length
+              fields = []
+              start += seg_id.length
+              json_schema['properties'].each do |property_name, property_schema|
+                if !%w{object array}.include?(property_schema['type']) && property_schema['$ref'].nil?
+                  if (lenght = property_schema['length']) || ((lenght = property_schema['minLength']) && lenght == property_schema['maxLength'])
+                    fields << content[start, lenght]
+                    start += lenght
+                  else
+                    raise Exception.new("property #{property_name} has no fixed length while parsing with fixed length option")
+                  end
+                end
+              end
+            else
+              fields = (segment = content[start..(start = (content.index(segment_sep, start) || content.length)) - 1]).split(field_sep)
+              fields.shift
+            end
+            start += segment_sep.length
+          else
+            fields = []
           end
-          fields = (segment = content[start..(start = (content.index(segment_sep, start) || content.length)) - 1]).split(field_sep)
-          fields.shift
-          start += 1
         end
         json ||= {}
         record ||= model.new
@@ -65,7 +96,7 @@ module X12
               relation = model.reflect_on_association(property_name)
               next unless [:has_one, :embeds_one].include?(relation.macro)
               property_model = relation.klass
-              if property_schema['ascx12'] && property_schema['ascx12']['segment']
+              if property_schema['edi'] && property_schema['edi']['segment']
                 property_json, start, property_record = do_parse(data_type, property_model, content, property_schema, start, field_sep, segment_sep, report)
                 record.send("#{property_name}=", property_record)
               else
