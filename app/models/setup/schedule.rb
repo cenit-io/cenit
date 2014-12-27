@@ -24,13 +24,7 @@ module Setup
     
     def start_scheduler
       scheduler = Rufus::Scheduler.new
-
-      scheduler.every period_symbol do
-        puts 'Hello... Rufus'
-        
-        push_batches
-        
-      end
+      scheduler.every(period_symbol) { push_batches }
     end
     
     def push_batches(ts_offset = 5)
@@ -43,23 +37,18 @@ module Setup
       last_time = last_time - ts_offset.seconds
 
       model = flow.data_type.model
-      #scope = model.where(updated_at: (last_time...this_time).to_a)
       scope = model.where(:updated_at.gte => last_time, :updated_at.lte => this_time)
 
-      #TODO: Applay filter contitions related with the event associate with flow
-      #scope = scope.send(filter.to_sym
+      #Applay filter conditions related with the event associate with flow
+      scope = scope.select { |obj| flow.event.triggers_apply_to?(obj) } 
       
-      if flow.batch.present? && per_batch = flow.batch.size
-        per_batch = flow.batch.size rescue 1000
-        0.step(scope.count, per_batch) do |offset|
-          scope.limit(per_batch).skip(offset).each { |batch| flow.process_batch(batch) } 
-        end
-      else
-        scope.each { |obj| flow.process(obj) }
-      end
+      return scope.each { |obj| flow.process(obj) } unless flow.batch.present? 
       
+      per_batch = flow.batch.size rescue 1000
+      0.step(scope.count, per_batch) do |offset|
+        scope.limit(per_batch).skip(offset).each { |batch| flow.process_batch(batch) } 
+      end      
     end
-    
     
     def period_symbol
       result = value.to_s  

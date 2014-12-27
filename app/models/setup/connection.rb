@@ -5,8 +5,8 @@ module Setup
     include AccountScoped
     include NumberGenerator
     include Trackable
-
-    has_many :webhooks, class_name: Setup::Webhook.name, inverse_of: :connection
+    
+    has_and_belongs_to_many :connection_roles, class_name: Setup::ConnectionRole.name, inverse_of: :connections
     has_many :connection_parameters, class_name: Setup::ConnectionParameter.name, inverse_of: :connection
 
     devise :database_authenticatable
@@ -18,7 +18,7 @@ module Setup
 
     after_initialize :ensure_authentication_token
 
-    accepts_nested_attributes_for :webhooks, :connection_parameters
+    accepts_nested_attributes_for :connection_parameters
 
     validates_presence_of :name, :url, :authentication_token, :key
     validates_uniqueness_of :authentication_token
