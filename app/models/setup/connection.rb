@@ -4,8 +4,10 @@ module Setup
     include Mongoid::Timestamps
     include AccountScoped
     include NumberGenerator
-
-    has_many :webhooks, class_name: Setup::Webhook.name, inverse_of: :connection
+    include Trackable
+    
+    has_and_belongs_to_many :connection_roles, class_name: Setup::ConnectionRole.name, inverse_of: :connections
+    has_many :connection_parameters, class_name: Setup::ConnectionParameter.name, inverse_of: :connection
 
     devise :database_authenticatable
 
@@ -14,11 +16,11 @@ module Setup
     field :number, as: :key, type: String
     field :authentication_token, type: String
 
-    before_save :ensure_authentication_token
+    after_initialize :ensure_authentication_token
 
-    accepts_nested_attributes_for :webhooks
+    accepts_nested_attributes_for :connection_parameters
 
-    validates_presence_of :name, :url
+    validates_presence_of :name, :url, :authentication_token, :key
     validates_uniqueness_of :authentication_token
 
     def ensure_authentication_token
@@ -30,39 +32,12 @@ module Setup
       super(options)
     end
 
-    rails_admin do      
-      edit do
-        field :name 
-        field :url
-        field :key
-        field :authentication_token
-        field :webhooks
-      end
-      list do
-        field :name 
-        field :url
-        field :key
-        field :authentication_token
-        field :webhooks
-      end
-      show do
-        field :_id
-        field :created_at
-        field :updated_at
-        field :name 
-        field :url
-        field :key
-        field :authentication_token
-        field :webhooks
-      end  
-    end
-
     private
 
       def generate_authentication_token
         loop do
           token = Devise.friendly_token
-          break token unless User.where(authentication_token: token).first
+          break token unless Setup::Connection.where(authentication_token: token).first
         end
       end
 

@@ -17,6 +17,7 @@ config/secrets.yml
 ## Environment normalisation:
 /.bundle
 /vendor/bundle
+/vendor/cache
 .DS_Store
 # these should all be checked in to normalise the environment:
 # , .ruby-version, .ruby-gemset

@@ -1,7 +1,7 @@
 module Setup
   class ConnectionsController < Setup::BaseController
-    before_action :find_connection, only: [:show, :update]
-    
+    before_action :find_connection, only: [:show, :update, :destroy]
+
     # GET /connections.json
     def index
       @connections = Setup::Connection.all
@@ -20,7 +20,7 @@ module Setup
     end
 
     # POST /connections.json
-    def create
+    def create	  
       @connection = Setup::Connection.new(permited_attributes)
       if @connection.save
         render json: @connection, status: :created, location: @connection
@@ -31,7 +31,6 @@ module Setup
 
     # PUT /connections/1.json
     def update
-      @connection = Setup::Connection.find(params[:id])
       if @connection.update_attributes(params[:connection])
         head :no_content
       else
@@ -41,18 +40,17 @@ module Setup
 
     # DELETE /connections/1.json
     def destroy
-      @connection = Setup::Connection.find(params[:id])
       @connection.destroy
       head :no_content
     end
     
     protected
-    def permited_attributes 
-      params[:connection].permit(:name, :key, :url)
+    def permited_attributes
+      params[:connection].permit(:name, :key, :url, :connection_parameteters_attributes, :connection_roles_attributes )
     end  
     
     def find_connection
-      @connection = Setup::Connection.find_by(number: params[:id])
+      @connection = Setup::Connection.find(params[:id])
     end  
     
   end

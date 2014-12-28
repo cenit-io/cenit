@@ -3,15 +3,46 @@ en:
     actions:
       send_to_flow:
         title: "Send to flow %{model_label_plural}"
-        menu: "Send to flow"
-        breadcrumb: "Send to flow"
+        menu: "Send %{model_label_plural} to flow"
+        breadcrumb: "Send %{model_label_plural} to flow"
         link: "Send found %{model_label_plural} to flow"
         bulk_link: "Send selected %{model_label_plural} to flow"
         done: "%{model_label_plural} were send to flow"
         send_to_flow_help: "Choose the flow to send models data"
         action_name: "Send"
+        selector_label: "Send to flow"
       test_transformation:
-        title: "Test transformation on %{model_label_plural}"
+        title: "Test transformation"
         menu: "Test transformation"
         breadcrumb: "Test transformation"
         action_name: "Test"
+        sample_data: "Sample data"
+        result: "Result"
+      load_model:
+        title: "Load model"
+        menu: "Load model"
+        breadcrumb: "Load model"
+      shutdown_model:
+        title: "Shutdown model"
+        menu: "Shutdown model"
+        breadcrumb: "Shutdown model"
+      switch_navigation:
+        show:
+          title: "Show navigation link"
+          menu: "Show navigation link"
+          breadcrumb: "Show navigation link"
+        hide:
+          title: "Hide navigation link"
+          menu: "Hide navigation link"
+          breadcrumb: "Hide navigation link"
+      data_type:
+        title: "Data type"
+        menu: "Data type"
+        breadcrumb: "Data type"
+      import:
+        title: "Import"
+        menu: "Import"
+        breadcrumb: "Import"
+        file_content_label: "File content"
+        submit: "Import"
+        done: "created"

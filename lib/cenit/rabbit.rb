@@ -16,23 +16,29 @@ module Cenit
       conn.close
     end
 
-    def self.send_to_endpoint(message)
+    def self.send_to_endpoints(message)
       message = JSON.parse(message)
       flow = Setup::Flow.find(message[:flow_id.to_s]['$oid'])
       object = message[:json_data.to_s]
-      response = HTTParty.post(flow.connection.url + '/' + flow.webhook.path,
-                               {
-                                 body: object.to_json,
-                                 headers: {
-                                   'Content-Type'    => 'application/json',
-                                   'X_HUB_STORE'     => flow.connection.number,
-                                   'X_HUB_TOKEN'     => flow.connection.authentication_token,
-                                   'X_HUB_TIMESTAMP' => Time.now.utc.to_i.to_s
-                                 }
-                               })
-      notify_response_to_cenit(response, message)
-    rescue Exception => exc
-      notify_response_to_cenit(response, message, exc)
+      
+      flow.connection_role.connections.each do |connection|
+        begin  
+          response = HTTParty.post(connection.url + '/' + flow.webhook.path,
+                                   {
+                                     body: object.to_json,
+                                     headers: {
+                                       'Content-Type'    => 'application/json',
+                                       'X_HUB_STORE'     => connection.key,
+                                       'X_HUB_TOKEN'     => connection.authentication_token,
+                                       'X_HUB_TIMESTAMP' => Time.now.utc.to_i.to_s
+                                     }
+                                   })
+                               
+          notify_response_to_cenit(response, message)
+        rescue Exception => exc
+          notify_response_to_cenit(response, message, exc)
+        end
+      end  
     end
 
     def self.notify_response_to_cenit(response, message, exception=nil)
@@ -46,6 +52,7 @@ module Cenit
       if message[:notification_id.to_s].nil?
         notification = Setup::Notification.new
         notification.flow_id = message[:flow_id.to_s]['$oid']
+        notification.account_id = message[:account_id.to_s]['$oid']
         notification.json_data = message[:json_data.to_s]
         notification.count = 0
       else

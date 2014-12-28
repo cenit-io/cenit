@@ -6,35 +6,77 @@ module Setup
     include Mongoid::Timestamps
     include AccountScoped
     include Setup::Enum
+    include Trackable
 
     field :name, type: String
     field :purpose, type: String
     field :active, type: Boolean
+    field :transformation, type: String
+    field :last_trigger_timestamps, type: DateTime
 
+    has_one :schedule, class_name: Setup::Schedule.name, inverse_of: :flow
+    has_one :batch, class_name: Setup::Batch.name, inverse_of: :flow
+
+    belongs_to :connection_role, class_name: Setup::ConnectionRole.name
+    belongs_to :connection, class_name: Setup::Connection.name        
     belongs_to :data_type, class_name: Setup::DataType.name
-    belongs_to :connection, class_name: Setup::Connection.name
     belongs_to :webhook, class_name: Setup::Webhook.name
     belongs_to :event, class_name: Setup::Event.name
 
-    field :transformation, type: String
-
-    validates_presence_of :name, :purpose, :data_type, :connection, :webhook, :event
+    validates_presence_of :name, :purpose, :data_type, :webhook, :event
+    accepts_nested_attributes_for :schedule, :batch
 
     def process(object, notification_id=nil)
       puts "Flow processing '#{object}' on '#{self.name}'..."
-      unless !object.nil? && object.respond_to?(:data_type) && self.data_type == object.data_type && object.respond_to?(:to_xml)
+
+      unless object.present? && object.respond_to?(:data_type) && self.data_type == object.data_type && object.respond_to?(:to_xml)
         puts "Flow processing on '#{self.name}' aborted!"
         return
       end
+
       xml_document = Nokogiri::XML(object.to_xml)
       hash = Hash.from_xml(xml_document.to_s)
-      if self.transformation && !self.transformation.empty?
+      if self.transformation && self.transformation.any?
         hash = Flow.transform(self.transformation, hash)
       else
         puts 'No transformation applied'
       end
       process_json_data(hash.to_json, notification_id)
       puts "Flow processing on '#{self.name}' done!"
+    end
+
+    def process_all
+      model = data_type.model
+      total = model.count
+      puts "TOTAL: #{total}"
+
+      per_batch = flow.batch.size rescue 1000
+      0.step(model.count, per_batch) do |offset|
+        data = model.limit(per_batch).skip(offset).map {|obj| prepare(obj)}
+        process_batch(data)
+      end
+    rescue Exception => e
+      puts "ERROR -> #{e.inspect}"
+    end
+
+    def prepare(object)
+      xml_document = Nokogiri::XML(object.to_xml)
+      Hash.from_xml(xml_document.to_s).values.first
+    end
+
+    def process_batch(data)
+      message = {
+        :flow_id => self.id,
+        :json_data => {data_type.name.downcase => data},
+        :notification_id => nil,
+        :account_id => self.account.id
+      }.to_json
+      begin
+        Cenit::Rabbit.send_to_rabbitmq(message)
+      rescue Exception => ex
+        puts "ERROR sending message: #{ex.message}"
+      end
+      puts "Flow processing json data on '#{self.name}' done!"
     end
 
     def process_json_data(json, notification_id=nil)
@@ -48,8 +90,9 @@ module Setup
       end
       message = {
           :flow_id => self.id,
-          :json_data => json,
-          :notification_id => notification_id
+          :json_data => clean_json_data(json),
+          :notification_id => notification_id,
+          :account_id => self.account.id
       }.to_json
       begin
         Cenit::Rabbit.send_to_rabbitmq(message)
@@ -57,8 +100,17 @@ module Setup
         puts "ERROR sending message: #{ex.message}"
       end
       puts "Flow processing json data on '#{self.name}' done!"
+      last_trigger_timestamps = Time.now
     end
 
+    def clean_json_data(json)
+      cleaned_json = {}
+      json.each do |k, v|
+        new_key = Setup::DataType.find_by(id: k.slice(2, k.size)).name.downcase
+        cleaned_json[new_key] = v
+      end
+      cleaned_json
+    end
 
     def self.json_transform(template_hash, data_hash)
       template_hash.each do |key, value|
@@ -72,7 +124,7 @@ module Setup
           template_hash[key] = json_transform(value, data_hash)
         end
       end
-      return template_hash
+      template_hash
     end
 
     def self.transform(transformation, document)
@@ -96,20 +148,17 @@ module Setup
         end
       end
       puts "Transformation result: #{hash_document ? hash_document : document}"
-      return hash_document || document
+      hash_document || document
     end
 
     def self.to_hash(document)
       return document if document.is_a?(Hash)
-
-      if (document.is_a?(Nokogiri::XML::Document))
-        return Hash.from_xml(document.to_s)
-      else
-        begin
-          return JSON.parse(document.to_s)
-        rescue
-          return Hash.from_xml(document.to_s) rescue {}
-        end
+      return Hash.from_xml(document.to_s) if document.is_a?(Nokogiri::XML::Document)
+        
+      begin
+        return JSON.parse(document.to_s)
+      rescue
+        return Hash.from_xml(document.to_s) rescue {}
       end
     end
 
@@ -124,40 +173,7 @@ module Setup
         end
       end
 
-      return Nokogiri::XML(document.to_xml)
-    end
-
-    rails_admin do
-      edit do
-        field :name
-        field :purpose
-        field :data_type
-        field :connection
-        field :webhook
-        field :event
-        group :transformation do
-          label 'Data transformation'
-          active true
-        end
-        field :transformation do
-          group :transformation
-          partial 'form_transformation'
-        end
-      end
-      list do
-        fields :name, :active, :purpose, :event, :connection, :webhook
-      end  
-      show do
-        field :_id
-        field :created_at
-        field :updated_at
-        field :name
-        field :purpose
-        field :data_type
-        field :connection
-        field :webhook
-        field :event
-      end 
+      Nokogiri::XML(document.to_xml)
     end
 
   end

@@ -1,5 +1,7 @@
 module Setup
   class DataTypesController < Setup::BaseController
+    before_action :find_data_type, only: [:show, :update, :destroy]
+
     # GET /data_types.json
     def index
       @data_types = Setup::DataType.all
@@ -8,7 +10,6 @@ module Setup
 
     # GET /data_types/1.json
     def show
-      @data_type = Setup::DataType.find(params[:id])
       render json: @data_type
     end
 
@@ -30,7 +31,6 @@ module Setup
 
     # PUT /data_types/1.json
     def update
-      @data_type = Setup::DataType.find(params[:id])
       if @data_type.update_attributes(params[:data_type])
         head :no_content
       else
@@ -40,7 +40,6 @@ module Setup
 
     # DELETE /data_types/1.json
     def destroy
-      @data_type = Setup::DataType.find(params[:id])
       @data_type.destroy
       head :no_content
     end
@@ -48,7 +47,11 @@ module Setup
     protected
     def permited_attributes 
       params[:data_type].permit(:name, :schema, :sample_data)
-    end  
+    end
+    
+    def find_data_type
+      @data_type = Setup::DataType.find(params[:id])
+    end    
     
   end
 end

@@ -1,43 +1,7 @@
 {
     "title": "Customer",
-    "type": "object",
 
-    "definitions": {
-        "address": {
-            "type": "object",
-            "properties": {
-                "firstname": {
-                    "type": "string"
-                },
-                "lastname": {
-                    "type": "string"
-                },
-                "address1": {
-                    "type": "string"
-                },
-                "address2": {
-                    "type": "string",
-                    "default": ""
-                },
-                "city": {
-                    "type": "string"
-                },
-                "state": {
-                    "type": "string"
-                },
-                "country": {
-                    "type": "string"
-                },
-                "phone": {
-                    "type": "string"
-                },
-                "zipcode": {
-                    "type": "string"
-                }
-            },
-            "required": ["firstname", "lastname", "address1", "zipcode", "city", "state", "country"]
-        }
-    },
+    "type": "object",
 
     "properties": {
         "id": {
@@ -53,10 +17,10 @@
             "type": "string"
         },
         "shipping_address": {
-            "$ref": "#/definitions/address"
+            "$ref": "Address"
         },
         "billing_address": {
-            "$ref": "#/definitions/address"
+            "$ref": "Address"
         }
     },
     "required": ["id", "firstname", "lastname"]

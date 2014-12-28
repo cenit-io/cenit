@@ -28,7 +28,7 @@
                 show: true
             })
             .on('hidden', function () {
-                dialog.remove();   // We don't want to reuse closed modals
+                dialog.remove();
                 dialog = null;
             });
 

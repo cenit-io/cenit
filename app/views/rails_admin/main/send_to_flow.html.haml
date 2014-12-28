@@ -1,11 +1,11 @@
-- flow_options = Setup::Flow.where(:data_type => Setup::DataType.where(:name => @abstract_model.model_name).first).collect { |f| [f.name, f.id] }
+- @flow_options ||= []
 
-= form_tag send_to_flow_path(params.merge(all: true)), method: 'post', class: 'form-horizontal denser' do
+= form_tag send_to_flow_path(params.merge(bulk_ids: @bulk_ids)), method: 'post', class: 'form-horizontal denser' do
 
-  %label.control-label{for: 'flow_id'}= t('admin.actions.send_to_flow.menu')
+  %label.control-label{for: 'flow_id'}= t('admin.actions.send_to_flow.selector_label')
   .controls
     .a
-      = select_tag 'flow_id', options_for_select(flow_options), style: 'float:left'
+      = select_tag 'flow_id', options_for_select(@flow_options), style: 'float:left'
       .b{style: 'float:left; padding-left:20px'}
         %input{type: :hidden, name: 'send_data', value: true}
         %button.btn.btn-primary{type: 'submit'}

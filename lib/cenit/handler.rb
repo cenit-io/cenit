@@ -24,11 +24,13 @@ module Cenit
       def process
         return {} if self.model.nil?
 
-        klass = self.model.camelize.constantize
+        data_type = Setup::DataType.where(:name => self.model.camelize).first
+        return {} unless data_type
+
+        klass = data_type.model
         root = self.model.pluralize
         count = 0
         self.payload[root].each do |obj|
-
           next if obj[:id].empty? rescue obj[:id] = obj[:id].to_s
 
           @object = klass.where(id: obj[:id]).first

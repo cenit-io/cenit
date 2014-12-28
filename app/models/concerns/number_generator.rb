@@ -8,15 +8,12 @@ module NumberGenerator
   included do
     field :number, type: String
     validates :number, uniqueness: true
-    before_validation :generate_number, on: :create
+    validates_presence_of :number 
+    after_initialize :generate_number #, on: :create
   end
   
   def self.by_number(number)
     where(number: number)
-  end
-  
-  def to_param
-    number.to_s.to_url.upcase
   end
 
   def generate_number(options = {})

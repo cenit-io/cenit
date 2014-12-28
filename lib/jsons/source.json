@@ -1,0 +1,24 @@
+{
+    "title": "Source",
+    
+    "type": "object",
+    
+    "properties": {
+        "name": {
+            "type": "string"
+        },
+        "month": {
+            "type": "integer"
+        },
+        "year": {
+            "type": "integer"
+        },
+        "cc_type": {
+            "type": "string"
+        },
+        "last_digits": {
+            "type": "integer"
+        }
+    },
+    "required": ["name", "cc_type"]
+}

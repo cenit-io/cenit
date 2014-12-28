@@ -1,5 +1,4 @@
 require 'json-schema'
-require 'rxsd'
 
 module Cenit
 
