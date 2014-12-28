@@ -53,51 +53,27 @@ RailsAdmin.config do |config|
     data_type
 
     history_index do 
-      only [Setup::DataType,Setup::Webhook, Setup::Flow, Setup::Schema, Setup::Event, Setup::Connection,Setup::ConnectionRole, Setup::Notification, Setup::Library]
+      only [Setup::DataType,Setup::Webhook, Setup::Flow, Setup::Schema, Setup::Event, Setup::Connection,Setup::ConnectionRole, Setup::Library]
     end  
     history_show do 
       only [Setup::DataType,Setup::Webhook, Setup::Flow, Setup::Schema, Setup::Event, Setup::Connection,Setup::ConnectionRole, Setup::Notification, Setup::Library]
     end
   end
   
-  config.model Setup::Webhook.name  do
-    configure :path, :string do
-      help "Requiered. Path of the webhook relative to connection URL."
-      html_attributes do
-       { maxlength: 50, size: 50 }
-      end
-    end
-
+  config.model Role.name  do
+    weight -14
+    navigation_label 'Account'
     show do
       field :name
-      field :path
-      field :purpose
-      field :connection_roles
-      field :schema_validation
+      field :user
       
       field :_id
-      field :created_at
-      field :creator
-      field :updated_at
-      field :updater
     end
-    fields :name, :path, :purpose, :connection_roles, :schema_validation
-  end
-  
-  config.model Setup::Schedule.name do
-    visible false
-    field :value
-    field :period, :enum do 
-      default_value 'minutes'
-    end
-  end
-  
-  config.model Setup::Batch.name do
-    visible false
-    field :size
+    fields :name, :users
   end
   
   config.model Setup::Connection.name do
+    weight -13
     group :credentials do
       label "Token"
     end
@@ -143,10 +119,11 @@ RailsAdmin.config do |config|
     end
     field :connection_roles
     field :connection_parameters
-  end  
+  end
   
   config.model Setup::ConnectionParameter.name do
     visible false
+    parent Setup::Connection
     
     configure :name, :string do
       help 'Requiered.'
@@ -166,6 +143,7 @@ RailsAdmin.config do |config|
   end
   
   config.model Setup::ConnectionRole.name do
+    weight -12
     configure :name, :string do
       help 'Requiered.'
       html_attributes do
@@ -190,62 +168,23 @@ RailsAdmin.config do |config|
       field :updater
     end
     fields :name, :connections, :webhooks
-  end
-   
-  config.model Setup::DataType.name do
-    group :model_definition do
-      label 'Model definition'
-      active true
-    end
-    
-    group :sample_data do
-      label 'Sample data'
-      active do
-        !bindings[:object].errors.get(:sample_data).blank?
-      end
-      visible do
-        bindings[:object].is_object
-      end
-    end
-    
-    configure :uri do
-      group :model_definition
-      read_only true
-      help ''
-    end
-
-    configure :name do
-      group :model_definition
-      read_only true
-      help ''
-    end
-
-    configure :schema, :text do
-      group :model_definition
-      read_only true
-      help ''
+  end 
+  
+  config.model Setup::Webhook.name do
+    weight -11
+    configure :path, :string do
+      help "Requiered. Path of the webhook relative to connection URL."
       html_attributes do
-        { cols: '50', rows: '15' }
+       { maxlength: 50, size: 50 }
       end
     end
 
-    configure :sample_data, :text do
-      group :sample_data
-      html_attributes do
-        { cols: '70', rows: '15' }
-      end
-    end
-    
-    list do
-      fields :uri, :name, :activated
-    end    
-    
     show do
-      field :uri
       field :name
-      field :activated
-      field :schema
-      field :sample_data
+      field :path
+      field :purpose
+      field :connection_roles
+      field :schema_validation
       
       field :_id
       field :created_at
@@ -253,12 +192,12 @@ RailsAdmin.config do |config|
       field :updated_at
       field :updater
     end
-    fields :uri, :name, :activated, :schema, :sample_data
+    fields :name, :path, :purpose, :connection_roles, :schema_validation
   end
   
   
-  
   config.model Setup::Event.name do
+    weight -10
     configure :name, :string do
       help 'Requiered.'
       html_attributes do
@@ -301,8 +240,8 @@ RailsAdmin.config do |config|
     fields :name, :data_type
   end
   
-  
   config.model Setup::Flow.name do
+    weight -9
     configure :name, :string do
       help 'Requiered.'
       html_attributes do
@@ -355,27 +294,47 @@ RailsAdmin.config do |config|
     fields :name, :active, :purpose, :event, :connection, :connection_role, :webhook, :schedule
   end
   
-  config.model Setup::Library.name do
-    configure :name do
-      read_only { !bindings[:object].new_record? }
-      help ''
+  config.model Setup::Schedule.name do
+    visible false
+    parent Setup::Flow
+    configure :period, :enum do 
+      default_value 'minutes'
     end
     
     show do
-      field :name
-      field :schemas
+      field :flow
+      field :value
+      field :period
       
       field :_id
       field :created_at
       field :creator
       field :updated_at
-      field :updater 
+      field :updater
+    end
+    fields :flow, :value, :period
+  end
+  
+  config.model Setup::Batch.name do
+    visible false
+    parent Setup::Flow
+    show do
+      field :flow
+      field :size
+      
+      field :_id
+      field :created_at
+      field :creator
+      field :updated_at
+      field :updater
     end
     
-    fields :name, :schemas
+    fields :flow, :size
   end
   
   config.model Setup::Notification.name do
+    weight -8
+    navigation_label 'Notifications'
     show do
       field :flow
       field :http_status_code
@@ -391,33 +350,57 @@ RailsAdmin.config do |config|
     end
     fields :flow, :http_status_code, :count, :http_status_message, :json_data
   end
-  
-  config.model Setup::Schema.name do
-    object_label_method do
-      :uri
-    end
+
+  config.model Setup::Library.name do
+    navigation_label 'Data Definitions'
+    weight -7
     
+    configure :name do
+      read_only { !bindings[:object].new_record? }
+      help ''
+    end
+  
+    show do
+      field :name
+      field :schemas
+    
+      field :_id
+      field :created_at
+      field :creator
+      field :updated_at
+      field :updater 
+    end
+  
+    fields :name, :schemas
+  end
+
+  config.model Setup::Schema.name do
+    navigation_label 'Data Definitions'
+    weight -6
+      
+    object_label_method {:uri}
+  
     configure :library do
       read_only { !bindings[:object].new_record? }
       inline_edit false
     end
-    
+  
     configure :uri do
       read_only { !bindings[:object].new_record? }
     end
-    
+  
     configure :schema, :text do
       html_attributes do
         { cols: '74', rows: '15' }
       end
     end
-    
+  
     show do
       field :library
       field :uri
       field :schema
       field :data_types
-      
+    
       field :_id
       field :created_at
       field :creator
@@ -425,7 +408,73 @@ RailsAdmin.config do |config|
       field :updater 
     end
     fields :library, :uri, :data_types, :schema
-
   end
+
+  config.model Setup::DataType.name do
+    navigation_label 'Data Definitions'
+    weight -5
+          
+    group :model_definition do
+      label 'Model definition'
+      active true
+    end
   
+    group :sample_data do
+      label 'Sample data'
+      active do
+        !bindings[:object].errors.get(:sample_data).blank?
+      end
+      visible do
+        bindings[:object].is_object
+      end
+    end
+  
+    configure :uri do
+      group :model_definition
+      read_only true
+      help ''
+    end
+
+    configure :name do
+      group :model_definition
+      read_only true
+      help ''
+    end
+
+    configure :schema, :text do
+      group :model_definition
+      read_only true
+      help ''
+      html_attributes do
+        { cols: '50', rows: '15' }
+      end
+    end
+
+    configure :sample_data, :text do
+      group :sample_data
+      html_attributes do
+        { cols: '70', rows: '15' }
+      end
+    end
+  
+    list do
+      fields :uri, :name, :activated
+    end    
+  
+    show do
+      field :uri
+      field :name
+      field :activated
+      field :schema
+      field :sample_data
+    
+      field :_id
+      field :created_at
+      field :creator
+      field :updated_at
+      field :updater
+    end
+    fields :uri, :name, :activated, :schema, :sample_data
+  end
+
 end

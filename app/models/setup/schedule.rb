@@ -5,6 +5,7 @@ module Setup
     include Mongoid::Document
     include Mongoid::Timestamps
     include AccountScoped
+    include Trackable
 
     belongs_to :flow, class_name: Setup::Flow.name, inverse_of: :schedule
     field :value, type: Integer

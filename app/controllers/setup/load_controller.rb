@@ -1,8 +1,8 @@
 module Setup
-  class HelperController < Setup::BaseController
+  class LoadController < Setup::BaseController
 
     def consume	  
-      helper = Cenit::Helper.new(params.to_json)
+      helper = Cenit::Loader.new(params.to_json)
       responder = helper.process
       render json: responder, root: false, status: responder.code
     rescue Exception => e
