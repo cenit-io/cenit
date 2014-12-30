@@ -1,0 +1,15 @@
+= form_tag edi_export_path, method: 'post', class: 'form-horizontal denser' do
+
+  %label.control-label{for: 'field_separator'}= t('admin.actions.edi_export.field_separator_label')
+  .controls
+    .a
+      = select_tag 'field_separator', options_for_select(@field_separator_options), style: 'float:left'
+      .b{style: 'float:left; padding-left:20px'}
+        %button.btn.btn-primary{type: 'submit'}
+          %i.icon-white.icon-download
+          = t('admin.actions.edi_export.submit')
+        %button.btn{type: 'submit', name: '_continue', style: 'margin-left:10px'}
+          %i.icon-remove
+          = t('admin.form.cancel')
+      %p.help-block= t('admin.actions.edi_export.field_separator_label')
+

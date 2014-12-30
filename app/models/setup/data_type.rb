@@ -1,3 +1,6 @@
+
+require 'edi/formater'
+
 module Setup
   class DataType
     include Mongoid::Document
@@ -6,7 +9,7 @@ module Setup
     include Trackable
 
     def self.to_include_in_models
-      @to_include_in_models ||= [Mongoid::Document, Mongoid::Timestamps, InstanceDataTypeAware, EventLookup, AccountScoped, RailsAdminDynamicCharts::Datetime, DynamicValidators]
+      @to_include_in_models ||= [Mongoid::Document, Mongoid::Timestamps, InstanceDataTypeAware, EventLookup, AccountScoped, RailsAdminDynamicCharts::Datetime, DynamicValidators, EDI::Formatter]
     end
 
     def self.to_include_in_model_classes
