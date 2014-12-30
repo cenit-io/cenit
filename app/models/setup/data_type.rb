@@ -1,3 +1,6 @@
+
+require 'edi/formater'
+
 module Setup
   class DataType
     include Mongoid::Document
@@ -6,7 +9,7 @@ module Setup
     include Trackable
 
     def self.to_include_in_models
-      @to_include_in_models ||= [Mongoid::Document, Mongoid::Timestamps, InstanceDataTypeAware, EventLookup, AccountScoped, RailsAdminDynamicCharts::Datetime, DynamicValidators]
+      @to_include_in_models ||= [Mongoid::Document, Mongoid::Timestamps, InstanceDataTypeAware, EventLookup, AccountScoped, RailsAdminDynamicCharts::Datetime, DynamicValidators, EDI::Formatter]
     end
 
     def self.to_include_in_model_classes
@@ -520,6 +523,7 @@ module Setup
       nested = []
       enums = {}
       validations = []
+      required = schema['required'] || []
 
       unless klass.is_a?(Class)
         check_pending_binds(loaded_models, model_name, klass, root)
@@ -612,26 +616,24 @@ module Setup
               end
             end
 
-            v = process_non_ref(loaded_models, property_name, property_desc, klass, root, nested, enums, validations) if still_trying
+            v = process_non_ref(loaded_models, property_name, property_desc, klass, root, nested, enums, validations, required) if still_trying
 
             reflect(klass, v) if v
           end
         end
 
-        if r = schema['required']
-          r.each do |p|
-            if klass.fields.keys.include?(p) || klass.relations.keys.include?(p)
-              reflect(klass, "validates_presence_of :#{p}")
-            else
-              [@@has_many_to_bind,
-               @@has_one_to_bind,
-               @@embeds_many_to_bind,
-               @@embeds_one_to_bind].each do |to_bind|
-                to_bind.each do |property_type, pending_bindings|
-                  pending_bindings.each do |binding_info|
-                    binding_info << true if binding_info[1] == p
-                  end if property_type == klass.to_s
-                end
+        required.each do |p|
+          if klass.fields.keys.include?(p) || klass.relations.keys.include?(p)
+            reflect(klass, "validates_presence_of :#{p}")
+          else
+            [@@has_many_to_bind,
+             @@has_one_to_bind,
+             @@embeds_many_to_bind,
+             @@embeds_one_to_bind].each do |to_bind|
+              to_bind.each do |property_type, pending_bindings|
+                pending_bindings.each do |binding_info|
+                  binding_info << true if binding_info[1] == p
+                end if property_type == klass.to_s
               end
             end
           end
@@ -695,7 +697,7 @@ module Setup
       json_schema[:affected] << model
     end
 
-    def process_non_ref(loaded_models, property_name, property_desc, klass, root, nested=[], enums={}, validations=[])
+    def process_non_ref(loaded_models, property_name, property_desc, klass, root, nested=[], enums={}, validations=[], required=[])
       property_desc = merge_schema(property_desc)
       model_name = klass.to_s
       still_trying = true
@@ -784,14 +786,19 @@ module Setup
                 v += ", default: \'#{property_desc['default']}\'"
               end
             end
+            if enum = property_desc['enum']
+              enums[property_name] = enum
+              validations << "validates_inclusion_of :#{property_name}, in: -> (doc) { doc.#{property_name}_enum }, message: 'is not a valid value'"
+              required.delete(property_name)
+            elsif property_desc['pattern']
+              validations << "validates_format_of :#{property_name}, :with => /\\A#{property_desc['pattern']}\\Z/i"
+              required.delete(property_name)
+            end
             # if property_desc['minLength'] && property_desc['maxLength'] && property_desc['minLength'] == property_desc['maxLength']
             #   validations << "validates_length_of :#{property_name}, is: #{property_desc['maxLength'].to_s}"
             # els
             if property_desc['minLength'] || property_desc['maxLength']
               validations << "validates_length_in_presence_of :#{property_name}#{property_desc['minLength'] ? ', minimum: ' + property_desc['minLength'].to_s : ''}#{property_desc['maxLength'] ? ', maximum: ' + property_desc['maxLength'].to_s : ''}"
-            end
-            if property_desc['pattern']
-              validations << "validates_format_of :#{property_name}, :with => /#{property_desc['pattern']}/i"
             end
             constraints = []
             if property_desc['minimum']
@@ -805,10 +812,6 @@ module Setup
             end
             if property_desc['unique']
               validations << "validates_uniqueness_of :#{property_name}"
-            end
-            if enum = property_desc['enum']
-              enums[property_name] = enum
-              validations << "validates_inclusion_of :#{property_name}, in: -> (doc) { doc.#{property_name}_enum }, message: 'is not a valid value'"
             end
           end
         end

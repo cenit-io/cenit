@@ -46,3 +46,10 @@ en:
         file_content_label: "File content"
         submit: "Import"
         done: "created"
+      edi_export:
+        title: "EDI Export"
+        menu: "EDI Export"
+        breadcrumb: "EDI Export"
+        field_separator_label: "Field separator"
+        submit: "Export"
+        done: "exported"

@@ -4,7 +4,8 @@
  RailsAdmin::Config::Actions::ShutdownModel,
  RailsAdmin::Config::Actions::SwitchNavigation,
  RailsAdmin::Config::Actions::DataType,
- RailsAdmin::Config::Actions::Import].each { |a| RailsAdmin::Config::Actions.register(a) }
+ RailsAdmin::Config::Actions::Import,
+ RailsAdmin::Config::Actions::EdiExport].each { |a| RailsAdmin::Config::Actions.register(a) }
 
 RailsAdmin.config do |config|
 
@@ -43,6 +44,7 @@ RailsAdmin.config do |config|
     bulk_delete { except Setup::DataType,Role  }
     show
     edit { except Setup::Library,Role  }
+    edi_export
     delete { except Setup::DataType,Role  }
     #show_in_app
     send_to_flow

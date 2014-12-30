@@ -35,7 +35,7 @@ module RailsAdmin
                   flash[:error] +=ex.message
                 end
                 unless report
-                  report = EDI::Parser.parse(model.data_type, file_content, 0, :by_fixed_length, "\n")
+                  report = EDI::Parser.parse(model.data_type, file_content, 0, :by_fixed_length)
                   raise Exception.new("Unexpected input at position #{report[:scan_size]}") if report[:scan_size] < file_content.length
                   if (@object = report[:record]).valid?(:create) && Import.save(@object)
                     flash.delete(:error)
