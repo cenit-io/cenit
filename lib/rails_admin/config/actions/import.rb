@@ -25,17 +25,34 @@ module RailsAdmin
 
             if file_content = params[:file_content]
               model = @abstract_model.model_name.constantize rescue nil
-              report = X12::Parser.parse(model.data_type, file_content.gsub("\r", ''))
-              if (@object = report[:record]).valid?(:create) && Import.save(@object)
-                redirect_to_on_success
-              else
-                flash[:error] = nil
-                report[:segments].each do |segment|
-                  next if segment[1].errors.blank? || !flash[:error].nil?
-                  flash[:error] = %(#{segment[0]} <br>- #{segment[1].errors.full_messages.join('<br>- ')}).html_safe
+              begin
+                flash[:error]=''
+                begin
+                  report = EDI::Parser.parse(model.data_type, file_content = file_content.gsub("\r", ''))
+                  raise Exception.new("Unexpected input at position #{report[:scan_size]}") if report[:scan_size] < file_content.length
+                  flash.delete(:error)
+                rescue Exception => ex
+                  flash[:error] +=ex.message
                 end
-                redirect_to back_or_index
+                unless report
+                  report = EDI::Parser.parse(model.data_type, file_content, 0, :by_fixed_length)
+                  raise Exception.new("Unexpected input at position #{report[:scan_size]}") if report[:scan_size] < file_content.length
+                  if (@object = report[:record]).valid?(:create) && Import.save(@object)
+                    flash.delete(:error)
+                    redirect_to_on_success
+                    ok = true
+                  else
+                    flash.delete(:error)
+                    report[:segments].each do |segment|
+                      next if segment[1].errors.blank? || !flash[:error].nil?
+                      flash[:error] = %(#{segment[0]} <br>- #{segment[1].errors.full_messages.join('<br>- ')}).html_safe
+                    end
+                  end
+                end
+              rescue Exception => ex
+                flash[:error] += ex.message
               end
+              redirect_to back_or_index unless ok
             else
               render @action.template_name
             end
@@ -55,10 +72,10 @@ module RailsAdmin
 
         def self.save_references(record)
           record.reflect_on_all_associations(:embeds_one,
-                                              :embeds_many,
-                                              :has_one,
-                                              :has_many,
-                                              :has_and_belongs_to_many).each do |relation|
+                                             :embeds_many,
+                                             :has_one,
+                                             :has_many,
+                                             :has_and_belongs_to_many).each do |relation|
             if values = record.send(relation.name)
               values = [values] unless values.is_a?(Enumerable)
               values.each { |value| return false unless save_references(value) }
