@@ -13,6 +13,9 @@ namespace :sample do
     Setup::Connection.unscoped.delete_all
     puts 'All Connection Deleted.'
 
+    Setup::ConnectionRole.unscoped.delete_all
+    puts 'All Connection Role Deleted.'
+    
     Setup::Webhook.unscoped.delete_all
     puts 'All Webhook Deleted.'
 
@@ -24,7 +27,13 @@ namespace :sample do
 
     Setup::Library.unscoped.delete_all
     puts 'All Library Deleted.'
-
+    
+    Setup::Schedule.unscoped.delete_all
+    puts 'All Scheduler Deleted.'
+    
+    Setup::Batch.unscoped.delete_all
+    puts 'All Batch Deleted.'
+    
     Setup::Event.unscoped.delete_all
     puts 'All Event Deleted.'
 
@@ -347,52 +356,39 @@ namespace :sample do
           }
       ]
 
-      add_product_store_I = Setup::Webhook.create!(webhook_attributes[0].merge(connection: store_I))
-      update_product_store_I = Setup::Webhook.create!(webhook_attributes[1].merge(connection: store_I))
+      add_product_webhook = Setup::Webhook.create!(webhook_attributes[0])
+      update_product_webhook = Setup::Webhook.create!(webhook_attributes[1])
 
-      add_product_store_II = Setup::Webhook.create!(webhook_attributes[0].merge(connection: store_II))
-      update_product_store_II = Setup::Webhook.create!(webhook_attributes[1].merge(connection: store_II))
+      add_product_connection_role = Setup::ConnectionRole.create!(name: 'add_product')
+      add_product_connection_role.webhooks << add_product_webhook
+      add_product_connection_role.connections += [store_I, store_II ]
+      
+      update_product_connection_role = Setup::ConnectionRole.create!(name: 'update_product')
+      update_product_connection_role.webhooks << update_product_webhook
+      update_product_connection_role.connections += [store_I, store_II ]
 
       product_created = Setup::Event.find_by(name: 'Product on created_at', data_type: product_data_type)
       product_updated = Setup::Event.find_by(name: 'Product on updated_at', data_type: product_data_type)
 
       flow_attributes = [
           {
-              name: 'Add Product to Store I',
+              name: 'Add Product',
               purpose: 'send',
               data_type: product_data_type,
               event: product_created,
-              connection: store_I,
-              webhook: add_product_store_I,
+              connection_role: add_product_connection_role,
+              webhook: add_product_webhook,
               active: true,
           },
           {
-              name: 'Update Product to Store I',
+              name: 'Update Product',
               purpose: 'send',
               data_type: product_data_type,
               event: product_updated,
-              connection: store_I,
-              webhook: update_product_store_I,
+              connection_role: update_product_connection_role,
+              webhook: update_product_webhook,
               active: true,
           },
-          {
-              name: 'Add Product to Store II',
-              purpose: 'send',
-              data_type: product_data_type,
-              event: product_created,
-              connection: store_II,
-              webhook: add_product_store_II,
-              active: true,
-          },
-          {
-              name: 'Update Product to Store II',
-              purpose: 'send',
-              data_type: product_data_type,
-              event: product_updated,
-              connection: store_II,
-              webhook: update_product_store_II,
-              active: true,
-          }
       ]
 
       Setup::Flow.create!(flow_attributes)

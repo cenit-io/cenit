@@ -39,71 +39,6 @@ class User
   def ensure_authentication_token
     self.authentication_token ||= generate_authentication_token
   end
-  
-  rails_admin do
-    list do 
-      scopes [:by_account]
-    end        
-    list do
-      field :email
-      field :roles
-      field :key do
-        visible do
-          bindings[:view]._current_user.has_role? :admin
-        end
-      end
-      field :authentication_token do
-        visible do
-          bindings[:view]._current_user.has_role? :admin
-        end
-      end
-      field :sign_in_count
-      field :last_sign_in_at
-      field :last_sign_in_ip
-    end
-    show do
-      field :_id
-      field :created_at
-      field :updated_at
-      field :email
-      field :roles
-      field :key do
-        visible do
-          bindings[:view]._current_user.has_role? :admin
-        end
-      end
-      field :authentication_token do
-        visible do
-          bindings[:view]._current_user.has_role? :admin
-        end
-      end
-      field :sign_in_count
-      field :current_sign_in_at
-      field :last_sign_in_at
-      field :current_sign_in_ip
-      field :last_sign_in_ip
-      field :reset_password_sent_at
-    end
-    edit do
-      field :email 
-      field :password
-      field :password_confirmation
-      field :roles
-      field :key do
-        visible do
-          bindings[:view]._current_user.has_role? :admin
-        end
-      end
-      field :authentication_token do
-        visible do
-          bindings[:view]._current_user.has_role? :admin
-        end
-      end
-      #field :reset_password_token
-    end
-    navigation_label 'Account'
-  end  
-
   # accepts_nested_attributes_for :account
   
   def generate_authentication_token
@@ -112,5 +47,52 @@ class User
       break token unless User.where(authentication_token: token).first
     end
   end
+  
+  rails_admin do
+    weight -15
+    navigation_label 'Account'
+    
+    object_label_method do
+      :email
+    end
+    
+    configure :key do
+      visible do
+        bindings[:view]._current_user.has_role? :admin
+      end
+    end
+    
+    configure :authentication_token do
+      visible do
+        bindings[:view]._current_user.has_role? :admin
+      end
+    end
+    
+    list do 
+      scopes [:by_account]
+    end
+          
+    show do
+      field :email
+      field :roles
+      field :key
+      field :authentication_token
+      field :sign_in_count
+      field :current_sign_in_at
+      field :last_sign_in_at
+      field :current_sign_in_ip
+      field :last_sign_in_ip
+      field :reset_password_sent_at
+      
+      field :_id
+      field :created_at
+      field :updated_at
+    end
+    edit do
+      fields :email, :password, :password_confirmation, :roles, :key, :authentication_token
+      #field :reset_password_token
+    end  
+    fields :email, :roles, :key, :authentication_token, :sign_in_count, :last_sign_in_at, :last_sign_in_ip
+  end  
   
 end

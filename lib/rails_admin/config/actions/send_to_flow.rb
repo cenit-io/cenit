@@ -4,18 +4,13 @@ module RailsAdmin
       class SendToFlow < RailsAdmin::Config::Actions::Base
 
         register_instance_option :visible? do
-          if authorized?
-            model = bindings[:abstract_model].model_name.constantize rescue nil
-            if model && model.respond_to?(:data_type)
-              data_type = model.data_type
-              data_type && !(@flows = Setup::Flow.where(data_type: data_type).collect { |f| f }).blank?
-            else
-              false
-            end
-          else
-            false
-          end
-
+          return false unless authorized?
+          
+          model = bindings[:abstract_model].model_name.constantize rescue nil
+          return false  unless model && model.respond_to?(:data_type)
+         
+          data_type = model.data_type
+          data_type && @flows = Setup::Flow.where(data_type: data_type).any?
         end
 
         register_instance_option :collection do
@@ -33,11 +28,9 @@ module RailsAdmin
 
             if params[:send_data]
               if flow_id = params[:flow_id]
-                if flow = Setup::Flow.find_by(:id => flow_id) rescue nil
+                if flow = Setup::Flow.find(flow_id) rescue nil
                   if params[:bulk_ids]
-                    list_entries(@model_config, :send_to_flow).each do |model|
-                      flow.process(model)
-                      end
+                    list_entries(@model_config, :send_to_flow).each { |model| flow.process(model) }
                   else
                     flow.process_all
                   end
@@ -51,7 +44,7 @@ module RailsAdmin
               @flow_options = []
               model = @abstract_model.model_name.constantize rescue nil
               if model && model.respond_to?(:data_type)
-                flows = Setup::Flow.where(data_type: model.data_type).collect { |f| f }
+                flows = Setup::Flow.where(data_type: model.data_type)
                 @flow_options = flows.collect { |f| [f.name, f.id] }
               end
               render @action.template_name

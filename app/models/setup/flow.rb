@@ -17,27 +17,26 @@ module Setup
     has_one :schedule, class_name: Setup::Schedule.name, inverse_of: :flow
     has_one :batch, class_name: Setup::Batch.name, inverse_of: :flow
 
+    belongs_to :connection_role, class_name: Setup::ConnectionRole.name
+    belongs_to :connection, class_name: Setup::Connection.name        
     belongs_to :data_type, class_name: Setup::DataType.name
-    belongs_to :connection, class_name: Setup::Connection.name
     belongs_to :webhook, class_name: Setup::Webhook.name
     belongs_to :event, class_name: Setup::Event.name
 
-
-
-    validates_presence_of :name, :purpose, :data_type, :connection, :webhook, :event
+    validates_presence_of :name, :purpose, :data_type, :webhook, :event
     accepts_nested_attributes_for :schedule, :batch
 
     def process(object, notification_id=nil)
       puts "Flow processing '#{object}' on '#{self.name}'..."
 
-      unless !object.nil? && object.respond_to?(:data_type) && self.data_type == object.data_type && object.respond_to?(:to_xml)
+      unless object.present? && object.respond_to?(:data_type) && self.data_type == object.data_type && object.respond_to?(:to_xml)
         puts "Flow processing on '#{self.name}' aborted!"
         return
       end
 
       xml_document = Nokogiri::XML(object.to_xml)
       hash = Hash.from_xml(xml_document.to_s)
-      if self.transformation && !self.transformation.empty?
+      if self.transformation && self.transformation.any?
         hash = Flow.transform(self.transformation, hash)
       else
         puts 'No transformation applied'
@@ -125,7 +124,7 @@ module Setup
           template_hash[key] = json_transform(value, data_hash)
         end
       end
-      return template_hash
+      template_hash
     end
 
     def self.transform(transformation, document)
@@ -149,20 +148,17 @@ module Setup
         end
       end
       puts "Transformation result: #{hash_document ? hash_document : document}"
-      return hash_document || document
+      hash_document || document
     end
 
     def self.to_hash(document)
       return document if document.is_a?(Hash)
-
-      if (document.is_a?(Nokogiri::XML::Document))
-        return Hash.from_xml(document.to_s)
-      else
-        begin
-          return JSON.parse(document.to_s)
-        rescue
-          return Hash.from_xml(document.to_s) rescue {}
-        end
+      return Hash.from_xml(document.to_s) if document.is_a?(Nokogiri::XML::Document)
+        
+      begin
+        return JSON.parse(document.to_s)
+      rescue
+        return Hash.from_xml(document.to_s) rescue {}
       end
     end
 
@@ -177,7 +173,7 @@ module Setup
         end
       end
 
-      return Nokogiri::XML(document.to_xml)
+      Nokogiri::XML(document.to_xml)
     end
 
   end

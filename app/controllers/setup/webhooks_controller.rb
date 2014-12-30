@@ -46,7 +46,7 @@ module Setup
 
     protected
     def permited_attributes 
-      params[:webhook].permit(:name, :path, :purpose, :data_type_id, :connection_id)
+      params[:webhook].permit(:name, :path, :purpose, :data_type_id, :connection_roles_attributes)
     end
 
     def find_webhook

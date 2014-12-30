@@ -19,7 +19,7 @@ Cenit::Application.routes.draw do
     resources :webhooks
     resources :data_types
 
-    post '/', to: 'helper#consume', as: 'helper'
+    post '/load', to: 'load#consume', as: 'load'
   end
 
 end
