@@ -1,25 +1,28 @@
 Cenit::Application.routes.draw do
+  scope '/hub' do
+    
+    mount RailsAdmin::Engine => '/data', as: 'rails_admin'
+  
+    get 'schema', to: 'schema#index'
 
-  get 'schema', to: 'schema#index'
+    devise_for :users
+    root :to => "home#index"
 
-  devise_for :users
-  #root :to => "visitors#index"
+    #root to: 'rails_admin/main#dashboard'
 
-  mount RailsAdmin::Engine => '/data', as: 'rails_admin'
+    namespace :cenit do
+      post '/', to: 'api#consume', as: 'api'
+    end
 
-  root to: 'rails_admin/main#dashboard'
+    namespace :setup do
+      resources :connections
+      resources :flows
+      resources :webhooks
+      resources :data_types
 
-  namespace :cenit do
-    post '/', to: 'api#consume', as: 'api'
-  end
-
-  namespace :setup do
-    resources :connections
-    resources :flows
-    resources :webhooks
-    resources :data_types
-
-    post '/load', to: 'load#consume', as: 'load'
+      post '/load', to: 'load#consume', as: 'load'
+    end
+    
   end
 
 end
