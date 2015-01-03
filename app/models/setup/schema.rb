@@ -5,7 +5,7 @@ module Setup
     include AccountScoped
     include Trackable
 
-    belongs_to :library, class_name: Setup::Library.to_s
+    belongs_to :library, class_name: Setup::Library.to_s, inverse_of: :schemas
 
     field :uri, type: String
     field :schema, type: String

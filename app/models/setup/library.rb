@@ -7,7 +7,8 @@ module Setup
 
     field :name, type: String
 
-    has_many :schemas, class_name: Setup::Schema.to_s, dependent: :destroy
+    has_many :schemas, class_name: Setup::Schema.to_s, inverse_of: :library, dependent: :destroy
+    has_many :templates, class_name: Setup::Template.name, inverse_of: :library, dependent: :destroy
 
     validates_presence_of :name
     validates_uniqueness_of :name

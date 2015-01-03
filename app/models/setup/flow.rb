@@ -22,6 +22,8 @@ module Setup
     belongs_to :data_type, class_name: Setup::DataType.name
     belongs_to :webhook, class_name: Setup::Webhook.name
     belongs_to :event, class_name: Setup::Event.name
+    
+    belongs_to :template, class_name: Setup::Template.name, inverse_of: :connection_roles
 
     validates_presence_of :name, :purpose, :data_type, :webhook, :event
     accepts_nested_attributes_for :schedule, :batch
