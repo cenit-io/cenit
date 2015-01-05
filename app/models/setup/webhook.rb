@@ -9,7 +9,14 @@ module Setup
 
     field :name, type: String
     field :path, type: String
-    field :purpose, type: String
+    field :purpose, type: String, default: :send
+    field :method, type: String, default: :post
+    
+    def method_enum
+      [:get,:post, :put, :delete, :copy, :head, :options, :link, :unlink, :purge, :lock, :unlock, :propfind]
+    end
+    
+    has_and_belongs_to_many :templates, class_name: Setup::Template.name, inverse_of: :connection_roles
     
     # Associated fields with request
     belongs_to :schema_validation, class_name: Setup::Schema.name
@@ -20,10 +27,15 @@ module Setup
     belongs_to :schema_validation_response, class_name: Setup::Schema.name
     belongs_to :data_type_response, class_name: Setup::DataType.name
     field :trigger_event_response, type: Boolean 
-     
+
     has_and_belongs_to_many :connections, class_name: Setup::Connection.name
     has_and_belongs_to_many :connection_roles, class_name: Setup::ConnectionRole.name
+    
+    has_many :url_parameters, class_name: Setup::UrlParameter.name, inverse_of: :webhook
+    has_many :headers, class_name: Setup::Header.name, inverse_of: :webhook
 
     validates_presence_of :name, :path, :purpose
+    
+    accepts_nested_attributes_for :url_parameters, :headers
   end
 end

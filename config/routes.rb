@@ -1,11 +1,12 @@
 Cenit::Application.routes.draw do
   scope '/hub' do
-    
     mount RailsAdmin::Engine => '/data', as: 'rails_admin'
   
     get 'schema', to: 'schema#index'
-
-    devise_for :users
+    
+    get 'explore/:api' => 'api#explore', :as => :explore_api
+    devise_for :users, :controllers => { :omniauth_callbacks => "users/omniauth_callbacks" }
+    
     root :to => "home#index"
 
     #root to: 'rails_admin/main#dashboard'
@@ -24,5 +25,4 @@ Cenit::Application.routes.draw do
     end
     
   end
-
 end

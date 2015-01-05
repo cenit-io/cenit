@@ -197,7 +197,8 @@ RailsAdmin.config do |config|
     show do
       field :name
       field :library
-      field :connection_roles
+      field :connection_role
+      field :webhooks
       field :flows
     
       field :_id
@@ -206,7 +207,7 @@ RailsAdmin.config do |config|
       field :updated_at
       field :updater 
     end
-    fields :name, :library, :connection_roles, :flows
+    fields :name, :library, :connection_role, :webhooks, :flows
   end
   
   config.model Setup::Connection.name do
@@ -235,25 +236,43 @@ RailsAdmin.config do |config|
       html_attributes do
         { maxlength: 30, size: 30 } 
       end
+      group :credentials
     end
     configure :authentication_token, :text do
       visible { bindings[:view]._current_user.has_role? :admin }
       html_attributes do
         { cols: '50', rows: '1' }
       end
+      group :credentials
     end
-    configure :connection_parameters do
+    configure :url_parameters do
       visible { bindings[:view]._current_user.has_role? :admin }
     end
+    configure :headers do
+      visible { bindings[:view]._current_user.has_role? :admin }
+    end
+    
+    group :parameters do
+      label "Add Parameters"
+    end
+    configure :url_parameters do
+      group :parameters
+    end  
+    configure  :headers do
+      group :parameters
+    end  
     
     show do
       field :name
       field :url
+      field :connection_roles
+      field :webhooks
+
       field :key
       field :authentication_token
-      field :webhooks
-      field :connection_roles
-      field :connection_parameters
+      
+      field :url_parameters
+      field :headers
       
       field :_id
       field :created_at
@@ -262,14 +281,13 @@ RailsAdmin.config do |config|
       field :updater
     end
     
-      fields :name, :url, :key, :authentication_token, :webhooks, :connection_roles, :connection_parameters
+      fields :name, :url, :connection_roles, :webhooks, :url_parameters, :headers, :key, :authentication_token
   end
   
-  config.model Setup::ConnectionParameter.name do
+  config.model Setup::UrlParameter.name do
     visible false
-    parent Setup::Connection
     
-    configure :name, :string do
+    configure :key, :string do
       help 'Requiered.'
       html_attributes do
        { maxlength: 50,size: 50 } 
@@ -283,7 +301,27 @@ RailsAdmin.config do |config|
       end
     end  
 
-    fields :name, :value
+    fields :key, :value
+  end
+  
+  config.model Setup::Header.name do
+    visible false
+    
+    configure :key, :string do
+      help 'Requiered.'
+      html_attributes do
+       { maxlength: 50,size: 50 } 
+      end
+    end
+    
+    configure :value, :string do
+      help 'Requiered.'
+      html_attributes do
+       { maxlength: 50,size: 50 }
+      end
+    end  
+
+    fields :key, :value
   end
   
   config.model Setup::ConnectionRole.name do
@@ -357,13 +395,27 @@ RailsAdmin.config do |config|
       help "Optional. Trigger events after save the object."
       group :response
     end
+    
+    group :parameters do
+      label "Add Parameters"
+    end
+    configure :url_parameters do
+      group :parameters
+    end  
+    configure  :headers do
+      group :parameters
+    end
 
     show do
       field :name
       field :purpose
       field :path
+      field :method
       field :connections
       field :connection_roles
+      
+      field :url_parameters
+      field :headers
       
       #request
       field :schema_validation
@@ -381,7 +433,8 @@ RailsAdmin.config do |config|
       field :updated_at
       field :updater
     end
-    fields :name, :path, :purpose, :schema_validation, :data_type, :trigger_event,  :schema_validation_response, :data_type_response, :trigger_event_response
+    fields :name, :purpose, :path, :method, :url_parameters, :headers, :schema_validation, :data_type, :trigger_event,  :schema_validation_response, 
+    :data_type_response, :trigger_event_response
   end
   
   
@@ -438,18 +491,13 @@ RailsAdmin.config do |config|
       end
     end
     
+    group :batching do
+      label 'Schedule & Batch'
+    end
+    
     group :transformation do
       label 'Data transformation'
       active true
-    end
-    
-    group :batching do
-      label 'Batching'
-    end
-    
-    configure :transformation do
-      group :transformation
-      partial 'form_transformation'
     end
     
     configure :schedule do
@@ -460,8 +508,13 @@ RailsAdmin.config do |config|
       group :batching
     end
     
+    configure :transformation do
+      group :transformation
+      partial 'form_transformation'
+    end
+    
     edit do
-      fields :name, :active, :purpose, :data_type, :connection_role, :webhook, :event, :schedule, :batch
+      fields :name, :active, :purpose, :data_type, :connection_role, :webhook, :event, :schedule, :batch, :transformation
     end
     
     show do

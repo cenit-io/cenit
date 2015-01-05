@@ -2,7 +2,7 @@ module Setup
   module Enum
 
     def purpose_enum
-      ['send', 'receive']
+      [:send, :receive]
     end
 
     def rule_enum

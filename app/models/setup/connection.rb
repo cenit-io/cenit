@@ -8,7 +8,8 @@ module Setup
     
     has_and_belongs_to_many :connection_roles, class_name: Setup::ConnectionRole.name, inverse_of: :connections
     has_and_belongs_to_many :webhooks, class_name: Setup::Webhook.name, inverse_of: :connection
-    has_many :connection_parameters, class_name: Setup::ConnectionParameter.name, inverse_of: :connection
+    has_many :url_parameters, class_name: Setup::UrlParameter.name, inverse_of: :connection
+    has_many :headers, class_name: Setup::Header.name, inverse_of: :connection
     
     devise :database_authenticatable
 
@@ -19,7 +20,7 @@ module Setup
 
     after_initialize :ensure_authentication_token
 
-    accepts_nested_attributes_for :connection_parameters, :webhooks
+    accepts_nested_attributes_for :url_parameters, :headers
 
     validates_presence_of :name, :url, :authentication_token, :key
     validates_uniqueness_of :authentication_token

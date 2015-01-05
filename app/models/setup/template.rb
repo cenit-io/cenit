@@ -9,7 +9,8 @@ module Setup
     field :name, type: String
 
     belongs_to :library, class_name: Setup::Library.name
-    has_many :connection_roles, class_name: Setup::ConnectionRole.name, inverse_of: :template
-    has_many :flows, class_name: Setup::Flow.name, inverse_of: :template
+    belongs_to :connection_role, class_name: Setup::ConnectionRole.name
+    has_and_belongs_to_many :webhooks, class_name: Setup::Webhook.name
+    has_and_belongs_to_many :flows, class_name: Setup::Flow.name
   end
 end
