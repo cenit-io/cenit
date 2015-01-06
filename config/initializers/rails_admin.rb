@@ -5,7 +5,8 @@
  RailsAdmin::Config::Actions::SwitchNavigation,
  RailsAdmin::Config::Actions::DataType,
  RailsAdmin::Config::Actions::Import,
- RailsAdmin::Config::Actions::EdiExport].each { |a| RailsAdmin::Config::Actions.register(a) }
+ RailsAdmin::Config::Actions::EdiExport,
+ RailsAdmin::Config::Actions::ImportSchema].each { |a| RailsAdmin::Config::Actions.register(a) }
 
 RailsAdmin.config do |config|
 
@@ -33,6 +34,7 @@ RailsAdmin.config do |config|
     export
     bulk_delete { except Setup::DataType,Role  }
     show
+    import_schema
     edit { except Setup::Library,Role  }
     edi_export
     delete { except Setup::DataType,Role  }
