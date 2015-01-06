@@ -16,7 +16,7 @@ module RailsAdmin
         end
 
         register_instance_option :visible do
-          authorized? && bindings[:object].activated && bindings[:object].loaded?
+          authorized? && bindings[:object].is_object? &&  bindings[:object].activated && bindings[:object].loaded?
         end
 
         register_instance_option :controller do
