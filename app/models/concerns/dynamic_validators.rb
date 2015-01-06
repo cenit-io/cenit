@@ -13,5 +13,8 @@ module DynamicValidators
       validates_with(Mongoid::Validatable::NonBlankLengthValidator, _merge_attributes(args))
     end
 
+    def self.validates(*args)
+      validates_with(Mongoid::Validatable::AssertionValidator, _merge_attributes(args))
+    end
   end
 end
