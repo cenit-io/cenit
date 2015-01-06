@@ -53,3 +53,4 @@ gem "nokogiri"
 gem 'cancan'
 gem 'rolify'
 gem 'rufus-scheduler'
+gem 'rubyzip'

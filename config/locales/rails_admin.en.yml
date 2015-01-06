@@ -53,3 +53,10 @@ en:
         field_separator_label: "Field separator"
         submit: "Export"
         done: "exported"
+      import_schema:
+        title: "Import schema on %{object_label}"
+        menu: "Import schema"
+        breadcrumb: "Import schema"
+        file_content_label: "File content"
+        submit: "Import"
+        done: "updated"

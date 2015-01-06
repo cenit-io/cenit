@@ -5,7 +5,8 @@
  RailsAdmin::Config::Actions::SwitchNavigation,
  RailsAdmin::Config::Actions::DataType,
  RailsAdmin::Config::Actions::Import,
- RailsAdmin::Config::Actions::EdiExport].each { |a| RailsAdmin::Config::Actions.register(a) }
+ RailsAdmin::Config::Actions::EdiExport,
+ RailsAdmin::Config::Actions::ImportSchema].each { |a| RailsAdmin::Config::Actions.register(a) }
 
 RailsAdmin.config do |config|
 
@@ -43,6 +44,7 @@ RailsAdmin.config do |config|
     export
     bulk_delete { except Setup::DataType,Role  }
     show
+    import_schema
     edit { except Setup::Library,Role  }
     edi_export
     delete { except Setup::DataType,Role  }
@@ -413,14 +415,15 @@ RailsAdmin.config do |config|
   end
 
   config.model Setup::DataType.name do
+    object_label_method :title
     navigation_label 'Data Definitions'
     weight -5
-          
+
     group :model_definition do
       label 'Model definition'
       active true
     end
-  
+
     group :sample_data do
       label 'Sample data'
       active do
@@ -430,7 +433,7 @@ RailsAdmin.config do |config|
         bindings[:object].is_object
       end
     end
-  
+
     configure :uri do
       group :model_definition
       read_only true
@@ -458,25 +461,26 @@ RailsAdmin.config do |config|
         { cols: '70', rows: '15' }
       end
     end
-  
+
     list do
-      fields :uri, :name, :activated
-    end    
-  
+      fields :uri, :title, :name, :activated
+    end
+
     show do
       field :uri
+      field :title
       field :name
       field :activated
       field :schema
       field :sample_data
-    
+
       field :_id
       field :created_at
       field :creator
       field :updated_at
       field :updater
     end
-    fields :uri, :name, :activated, :schema, :sample_data
+    fields :uri, :title, :name, :activated, :schema, :sample_data
   end
 
 end

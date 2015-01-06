@@ -12,8 +12,6 @@ module Setup
 
     has_many :data_types, class_name: Setup::DataType.to_s
 
-    validates_length_of :uri, :maximum => 255
-    validates_uniqueness_of :uri
     validates_presence_of :library, :uri, :schema
 
     before_save :create_data_types
@@ -30,40 +28,21 @@ module Setup
       RailsAdmin::AbstractModel.update_model_config(models)
     end
 
-    rails_admin do
-
-      object_label_method do
-        :uri
-      end
-
-      edit do
-        field :library do
-          read_only { !bindings[:object].new_record? }
-          inline_edit false
-        end
-
-        field :uri do
-          read_only { !bindings[:object].new_record? }
-        end
-
-        field :schema
-      end
-      list do
-        fields :library, :uri, :schema, :data_types
-      end
-    end
-
     private
 
     def create_data_types
       @created_data_types = []
+      if self.library.schemas.where(uri: self.uri).first
+        errors.add(:uri, "is is already taken on library #{self.library.name}")
+        return false
+      end
       begin
         (schemas = parse_schemas).each_key do |name|
           errors.add(:schema, "model name #{name} is already taken on library") if self.library.find_data_type_by_name(name)
         end
         return false unless errors.blank?
         schemas.each do |name, schema|
-          data_type = Setup::DataType.create(name: name, schema: schema.to_json, auto_load_model: true)
+          data_type = Setup::DataType.create(name: name, schema: schema.to_json)
           if data_type.errors.blank?
             @created_data_types << data_type
           else
