@@ -11,6 +11,8 @@ gem 'turbolinks'
 gem 'therubyracer', platforms: :ruby
 gem 'jbuilder', '~> 1.0.1'
 gem 'devise'
+gem 'omniauth'
+gem 'omniauth-oauth2'
 gem 'rabl'
 
 group :doc do
@@ -36,7 +38,7 @@ end
 
 gem 'mongoid'
 gem 'bson_ext'
-gem 'rails_admin'
+gem 'rails_admin', '0.6.5'
 gem 'mongoid-history'
 gem 'mongoid-audit', '~> 1.0.0'
 #gem "rails_admin_import"

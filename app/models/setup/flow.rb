@@ -9,7 +9,7 @@ module Setup
     include Trackable
 
     field :name, type: String
-    field :purpose, type: String
+    field :purpose, type: String, default: :send
     field :active, type: Boolean
     field :transformation, type: String
     field :last_trigger_timestamps, type: DateTime
@@ -22,6 +22,8 @@ module Setup
     belongs_to :data_type, class_name: Setup::DataType.name
     belongs_to :webhook, class_name: Setup::Webhook.name
     belongs_to :event, class_name: Setup::Event.name
+    
+    has_and_belongs_to_many :templates, class_name: Setup::Template.name, inverse_of: :connection_roles
 
     validates_presence_of :name, :purpose, :data_type, :webhook, :event
     accepts_nested_attributes_for :schedule, :batch
