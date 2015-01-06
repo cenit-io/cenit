@@ -5,6 +5,7 @@ module EDI
 
       def parse(data_type, content, start=0, field_sep=nil, segment_sep=nil)
         json, start, record = do_parse(data_type, data_type.model, content, data_type.merged_schema, start, field_sep, segment_sep, report={segments: []})
+        raise Exception.new("Unexpected input at position #{start}: #{content[start, content.length - start <= 10 ? content.length - 1 : 10]}") if start < content.length
         report[:json] = json
         report[:scan_size] = start
         report[:record] = record
@@ -90,6 +91,7 @@ module EDI
         end
         json ||= {}
         record ||= model.new
+        required = json_schema['required'] || []
         json_schema['properties'].each do |property_name, property_schema|
           next if json[property_name]
           property_schema = data_type.merge_schema(property_schema)
@@ -135,6 +137,9 @@ module EDI
                 json[property_name] = field
                 record.send("#{property_name}=", field)
               end
+          end
+          if !json[property_name] && json.empty? && required.include?(property_name)
+            return [nil, start, nil]
           end
         end
 
