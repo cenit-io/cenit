@@ -23,11 +23,11 @@ module Xsd
     end
 
     def to_json_schema
-      json = {'title' => name, 'type' => 'object'}
+      json = {'title' => name.to_title, 'type' => 'object'}
       if @type
-        merge_json = @type.is_a?(ComplexType) ? @type.to_json_schema :  {'properties' => {'value' => @type.to_json_schema}}
+        merge_json = @type.is_a?(ComplexType) ? @type.to_json_schema : {'properties' => {'value' => @type.to_json_schema}}
       else
-        merge_json = {'properties' => {'value' => type_name.to_json_schema}}
+        merge_json = {'properties' => {'value' => qualify_type(type_name).to_json_schema}}
       end
       json.merge(merge_json)
     end

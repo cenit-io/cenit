@@ -1,10 +1,10 @@
 module Xsd
-  class NamedTag < BasicTag
+  class NamedTag < AttributedTag
 
     attr_reader :name
 
     def initialize(parent, attributes)
-      super(parent)
+      super
       _, @name = attributes.detect { |a| a[0] == 'name' }
     end
 

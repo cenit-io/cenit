@@ -26,11 +26,11 @@ module Xsd
     end
 
     def to_json_schema
-      json = base.to_json_schema
+      json = qualify_type(base).to_json_schema
       @restrictions.each do |key, value|
         restriction = case key
                         when 'xs:enumeration'
-                          {'enum' => value.collect { |v| v[0][1] }}
+                          {'enum' => value.collect { |v| v[0][1] }.uniq}
                         when 'xs:length'
                           {'minLength' => value[0][1].to_i, 'maxLength' => value[0][1].to_i}
                         when 'xs:pattern'
@@ -44,10 +44,9 @@ module Xsd
                         when 'xs:maxExclusive'
                           {'maximum' => value[0][1].to_i, 'exclusiveMaximum' => true}
                         else
-                          {(key = key.gsub('xs:', '')) => value[0][1].to_i}
+                          {(key = key.gsub('xs:', '')) => value[0][1].to_i} unless value.empty?
                       end
-
-        json = json.merge(restriction)
+        json = json.merge(restriction) if restriction
       end
       return json
     end
