@@ -47,18 +47,6 @@
         },
         "properties": {
             "type": "object"
-        },
-        "variants": {
-            "type": "array",
-            "items": {
-                "$ref": "Variant"
-            }
-        },
-        "images": {
-            "type": "array",
-            "items": {
-                "$ref": "Image"
-            }
         }
     },
     "required": ["id", "name", "price", "available_on", "shipping_category"]

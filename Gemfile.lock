@@ -231,6 +231,7 @@ GEM
       rspec-mocks (~> 3.1.0)
       rspec-support (~> 3.1.0)
     rspec-support (3.1.2)
+    rubyzip (1.1.6)
     rufus-scheduler (3.0.9)
       tzinfo
     safe_yaml (1.0.4)
@@ -309,6 +310,7 @@ DEPENDENCIES
   rails_layout
   rolify
   rspec-rails
+  rubyzip
   rufus-scheduler
   sass-rails (~> 4.0.3)
   sdoc
