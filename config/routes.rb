@@ -5,7 +5,10 @@ Cenit::Application.routes.draw do
     get 'schema', to: 'schema#index'
     
     get 'explore/:api' => 'api#explore', :as => :explore_api
-    devise_for :users, :controllers => { :omniauth_callbacks => "users/omniauth_callbacks" }
+    devise_for :users, :controllers => { :omniauth_callbacks => "users/omniauth_callbacks" } do
+      get 'sign_out', :to => 'users/sessions#destroy', :as => :destroy_user_session
+    end
+    #devise_for :users
     
     root :to => "home#index"
 

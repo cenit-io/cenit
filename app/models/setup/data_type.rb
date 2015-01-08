@@ -175,7 +175,7 @@ module Setup
     end
 
     def find_data_type(ref)
-      self.uri.library.find_data_type_by_name(ref) || DataType.find_by_ref(ref)
+      (self.uri.library && self.uri.library.find_data_type_by_name(ref)) || DataType.find_by_ref(ref)
     end
 
     def find_ref_schema(ref)
