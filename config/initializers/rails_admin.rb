@@ -29,13 +29,13 @@ RailsAdmin.config do |config|
     index # mandatory
     new { except Setup::DataType,Role  }
     import
+    import_schema
     #import do
     #  only 'Setup::DataType'
     #end
     export
     bulk_delete { except Setup::DataType,Role  }
     show
-    import_schema
     edit { except Setup::Library,Role  }
     edi_export
     delete { except Setup::DataType,Role  }
@@ -75,6 +75,10 @@ RailsAdmin.config do |config|
     configure :name do
       read_only { !bindings[:object].new_record? }
       help ''
+    end
+
+    edit do
+      field :name
     end
   
     show do
