@@ -40,7 +40,7 @@ module Xsd
         if (type = a.type).is_a?(String)
           type = qualify_type(type)
         end
-        properties[a.name] = type.to_json_schema
+        properties[a.name] = type.to_json_schema.merge('title' => a.name.to_title)
         required << a.name if a.required?
       end
       if container

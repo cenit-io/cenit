@@ -6,7 +6,7 @@ module RailsAdmin
         register_instance_option :visible? do
           if authorized?
             model = bindings[:abstract_model].model_name.constantize rescue nil
-            model.respond_to?(:data_type)
+            model.respond_to?(:data_type) && model.data_type
           else
             false
           end

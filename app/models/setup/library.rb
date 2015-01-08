@@ -14,12 +14,7 @@ module Setup
     validates_uniqueness_of :name
 
     def find_data_type_by_name(name)
-      self.schemas.each do |schema|
-        if data_type = schema.data_types.where(name: name).first
-          return data_type
-        end
-      end
-      nil
+      DataType.where(name: name).detect { |data_type| data_type.uri.library == self }
     end
 
     rails_admin do

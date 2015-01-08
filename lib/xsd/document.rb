@@ -63,6 +63,10 @@ module Xsd
       parser.parse(str_doc)
     end
 
+    def error string
+      raise Exception.new("Invalid xml schema format: #{string}")
+    end
+
     def start_element(name, attributes = [])
       unless @xsd_tag
         @xsd_tag = 'http://www.w3.org/2001/XMLSchema'

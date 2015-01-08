@@ -6,7 +6,8 @@
  RailsAdmin::Config::Actions::DataType,
  RailsAdmin::Config::Actions::Import,
  RailsAdmin::Config::Actions::EdiExport,
- RailsAdmin::Config::Actions::ImportSchema].each { |a| RailsAdmin::Config::Actions.register(a) }
+ RailsAdmin::Config::Actions::ImportSchema,
+ RailsAdmin::Config::Actions::DeleteAll].each { |a| RailsAdmin::Config::Actions.register(a) }
 
 RailsAdmin.config do |config|
 
@@ -52,6 +53,7 @@ RailsAdmin.config do |config|
     history_show do 
       only [Setup::DataType,Setup::Webhook, Setup::Flow, Setup::Schema, Setup::Event, Setup::Connection,Setup::ConnectionRole, Setup::Notification, Setup::Library]
     end
+    delete_all { except Setup::DataType,Role  }
   end
   
   config.model Role.name  do
