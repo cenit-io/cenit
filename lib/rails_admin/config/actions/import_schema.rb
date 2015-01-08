@@ -29,7 +29,7 @@ module RailsAdmin
                   schemas = []
                   begin
                     Zip::InputStream.open(StringIO.new(file.read)) do |zis|
-                      while is_ok && entry = zis.get_next_entry
+                      while @object.errors.blank? && entry = zis.get_next_entry
                         unless (schema = entry.get_input_stream.read).blank?
                           entry_uri = base_uri.blank? ? entry.name : "#{base_uri}/#{entry.name}"
                           schema = Setup::Schema.new(library: library, uri: entry_uri, schema: schema)
