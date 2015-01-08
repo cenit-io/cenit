@@ -23,32 +23,40 @@ module RailsAdmin
         register_instance_option :controller do
           proc do
 
-            if file_content = params[:file_content]
-              model = @abstract_model.model_name.constantize rescue nil
-              begin
-                flash[:error]=''
-                begin
-                  report = EDI::Parser.parse(model.data_type, file_content = file_content.gsub("\r", ''))
-                  flash.delete(:error)
-                rescue Exception => ex
-                  flash[:error] +=ex.message
-                end
-                unless report
-                  report = EDI::Parser.parse(model.data_type, file_content, 0, :by_fixed_length)
-                  ok = true
-                  if (@object = report[:record]).valid?(:create) && Import.save(@object)
-                    flash.delete(:error)
-                    redirect_to_on_success
-                  else
-                    handle_save_error
+            render_form = true
+            form_object = nil
+            if model = @abstract_model.model_name.constantize rescue nil
+              if data = params[:forms_receive_translator_selector]
+                translator = Setup::Translator.where(id: data[:translator_id]).first
+                if (@object = form_object = Forms::ReceiveTranslatorSelector.new(translator: translator, data: data[:data])).valid?
+                  begin
+                    @object = translator.run(data_type: model.data_type, data: data[:data])
+                    if @object.is_a?(model)
+                      if @object.valid?(:create) && Import.save(@object)
+                        redirect_to_on_success
+                      else
+                        handle_save_error
+                      end
+                      render_form = false
+                    else
+                      form_object.errors.add(:translator, "Translation result of type #{model.title} expected but #{@object.class} found")
+                    end
+                  rescue Exception => ex
+                    #raise ex
+                    form_object.errors.add(:data, ex.message)
                   end
                 end
-              rescue Exception => ex
-                flash[:error] += ex.message
               end
-              redirect_to back_or_index unless ok
             else
-              render @action.template_name
+              flash[:error] = 'Error loading model'
+            end
+            if render_form
+              @object = form_object || Forms::ReceiveTranslatorSelector.new
+              @model_config = RailsAdmin::Config.model(Forms::ReceiveTranslatorSelector)
+              unless @object.errors.blank?
+                flash.now[:error] = 'There are errors in the import data specification'.html_safe
+                flash.now[:error] += %(<br>- #{@object.errors.full_messages.join('<br>- ')}).html_safe
+              end
             end
 
           end

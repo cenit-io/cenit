@@ -24,13 +24,30 @@ module RailsAdmin
         register_instance_option :controller do
           proc do
 
-            if field_sep = params[:field_separator]
-              field_sep = field_sep.to_sym if field_sep == :by_fixed_length.to_s
-              render plain: @object.to_edi(field_separator: field_sep)
-            else
-              @field_separator_options = [['By fixed length', 'by_fixed_length'], ['Using separator (*)', '*']]
-              render @action.template_name
+            object = @object
+            @object = nil
+
+            if data = params[:forms_send_translator_selector]
+              translator = Setup::Translator.where(id: data[:translator_id]).first
+              if (@object = Forms::SendTranslatorSelector.new(translator: translator)).valid?
+                begin
+                  render plain: translator.run(object: object)
+                  ok = true
+                rescue Exception => ex
+                  #raise ex
+                  flash[:error] = ex.message
+                end
+              end
             end
+            unless ok
+              @object ||= Forms::SendTranslatorSelector.new
+              @model_config = RailsAdmin::Config.model(Forms::SendTranslatorSelector)
+              unless @object.errors.blank?
+                flash.now[:error] = 'There are errors in the export data specification'.html_safe
+                flash.now[:error] += %(<br>- #{@object.errors.full_messages.join('<br>- ')}).html_safe
+              end
+            end
+
           end
         end
 

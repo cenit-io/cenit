@@ -84,16 +84,17 @@ module RailsAdmin
               value
             end
           end
-          properties = schema['properties']
-          rails_admin_model.groups.each do |group|
-            group.fields.each do |field|
-              if field_schema = properties[field.name.to_s]
-                field_schema = data_type.merge_schema(field_schema)
-                {label: 'title',
-                 help: 'description'}.each do |option, key|
-                  if value = field_schema[key]
-                    field.register_instance_option option do
-                      value
+          if properties = schema['properties']
+            rails_admin_model.groups.each do |group|
+              group.fields.each do |field|
+                if field_schema = properties[field.name.to_s]
+                  field_schema = data_type.merge_schema(field_schema)
+                  {label: 'title',
+                   help: 'description'}.each do |option, key|
+                    if value = field_schema[key]
+                      field.register_instance_option option do
+                        value
+                      end
                     end
                   end
                 end
@@ -145,7 +146,7 @@ module RailsAdmin
               collect_models(affected_models, to_reset)
             rescue Exception => ex
               puts "#{self.to_s}: error loading configuration of model #{model.schema_name rescue model.to_s} -> #{ex.message}"
-              raise ex
+              #raise ex
             end
           end
         end

@@ -1,15 +1,11 @@
-= form_tag edi_export_path, method: 'post', class: 'form-horizontal denser' do
+= rails_admin_form_for @object, url: edi_export_path, html: { multipart: true, class: "form-horizontal denser", data: { title: 'Hello'} } do |form|
+  = form.generate nested_in: true
 
-  %label.control-label{for: 'field_separator'}= t('admin.actions.edi_export.field_separator_label')
-  .controls
-    .a
-      = select_tag 'field_separator', options_for_select(@field_separator_options), style: 'float:left'
-      .b{style: 'float:left; padding-left:20px'}
-        %button.btn.btn-primary{type: 'submit'}
-          %i.icon-white.icon-download
-          = t('admin.actions.edi_export.submit')
-        %button.btn{type: 'submit', name: '_continue', style: 'margin-left:10px'}
-          %i.icon-remove
-          = t('admin.form.cancel')
-      %p.help-block= t('admin.actions.edi_export.field_separator_label')
-
+  .form-actions
+    %button.btn.btn-primary{type: 'submit', name: '_save', :'data-disable-with' => t('admin.actions.edi_export.submit')}
+      %i.icon-download
+      = t('admin.actions.edi_export.submit')
+    %span.extra_buttons
+      %button.btn{type: 'submit', name: '_continue', :'data-disable-with' => t('admin.form.cancel')}
+        %i.icon-remove
+        = t('admin.form.cancel')

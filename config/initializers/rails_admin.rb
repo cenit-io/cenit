@@ -14,7 +14,7 @@ RailsAdmin.config do |config|
   ## == PaperTrail ==
   # config.audit_with :paper_trail, 'User', 'PaperTrail::Version' # PaperTrail >= 3.0.0
 
-  config.excluded_models << "Account"
+  config.excluded_models << 'Account'
 
   ### More at https://github.com/sferik/rails_admin/wiki/Base-configuration
   config.authenticate_with do
@@ -597,6 +597,22 @@ RailsAdmin.config do |config|
       field :updater 
     end
     fields :flow, :http_status_code, :count, :http_status_message, :json_data
+  end
+
+  config.model Setup::Translator.name do
+    weight -9
+    show do
+      field :name
+      field :purpose
+      field :script
+
+      field :_id
+      field :created_at
+      field :creator
+      field :updated_at
+      field :updater
+    end
+    fields :name, :purpose, :script
   end
 
 end

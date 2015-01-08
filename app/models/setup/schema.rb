@@ -62,7 +62,7 @@ module Setup
         end
         self.data_types.delete_if { |data_type| !@data_types_to_save.include?(data_type) }
       rescue Exception => ex
-        raise ex
+        #raise ex
         puts "ERROR: #{errors.add(:schema, ex.message).to_s}"
         destroy_data_types
         return false
