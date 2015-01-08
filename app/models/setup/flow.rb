@@ -38,10 +38,10 @@ module Setup
 
       xml_document = Nokogiri::XML(object.to_xml)
       hash = Hash.from_xml(xml_document.to_s)
-      if self.transformation && self.transformation.any?
-        hash = Flow.transform(self.transformation, hash)
-      else
+      if self.transformation.blank?
         puts 'No transformation applied'
+      else
+        hash = Flow.transform(self.transformation, hash)
       end
       process_json_data(hash.to_json, notification_id)
       puts "Flow processing on '#{self.name}' done!"
