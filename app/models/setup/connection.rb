@@ -4,11 +4,12 @@ module Setup
     include Mongoid::Timestamps
     include AccountScoped
     include NumberGenerator
+    include MakeSlug
     include Trackable
     
     has_and_belongs_to_many :connection_roles, class_name: Setup::ConnectionRole.name, inverse_of: :connections
-    has_many :url_parameters, class_name: Setup::UrlParameter.name, inverse_of: :connection
-    has_many :headers, class_name: Setup::Header.name, inverse_of: :connection
+    has_many :url_parameters, class_name: Setup::UrlParameter.name, as: :parameterizable
+    has_many :headers, class_name: Setup::Header.name, as: :parameterizable
     
     devise :database_authenticatable
 
@@ -16,17 +17,17 @@ module Setup
     field :name, type: String
     field :url, type: String
     field :number, as: :key, type: String
-    field :authentication_token, type: String
+    field :token, type: String
 
-    after_initialize :ensure_authentication_token
+    after_initialize :ensure_token
 
     accepts_nested_attributes_for :url_parameters, :headers
 
-    validates_presence_of :name, :url, :authentication_token, :key
-    validates_uniqueness_of :authentication_token
+    validates_presence_of :name, :url, :key, :token
+    validates_uniqueness_of :token
 
-    def ensure_authentication_token
-      self.authentication_token ||= generate_authentication_token
+    def ensure_token
+      self.token ||= generate_token
     end
 
     def generate_number(options = {})
@@ -36,10 +37,10 @@ module Setup
 
     private
 
-      def generate_authentication_token
+      def generate_token
         loop do
           token = Devise.friendly_token
-          break token unless Setup::Connection.where(authentication_token: token).first
+          break token unless Setup::Connection.where(token: token).first
         end
       end
 

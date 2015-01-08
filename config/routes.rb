@@ -23,8 +23,12 @@ Cenit::Application.routes.draw do
       resources :flows
       resources :webhooks
       resources :data_types
-      resources :connection_roles
       resources :events
+      resources :connection_roles
+      resources :libraries
+      resources :templates
+      resources :schemas
+      resources :schedules
     end
     
   end

@@ -4,40 +4,40 @@ namespace :sample do
   desc "TODO"
   task load: :environment do
 
-    Account.delete_all
+    Account.destroy_all
     puts 'All Account Deleted.'
 
-    User.delete_all
+    User.destroy_all
     puts 'All User Deleted.'
 
-    Setup::Connection.unscoped.delete_all
+    Setup::Connection.unscoped.destroy_all
     puts 'All Connection Deleted.'
 
-    Setup::ConnectionRole.unscoped.delete_all
+    Setup::ConnectionRole.unscoped.destroy_all
     puts 'All Connection Role Deleted.'
     
-    Setup::Webhook.unscoped.delete_all
+    Setup::Webhook.unscoped.destroy_all
     puts 'All Webhook Deleted.'
 
-    Setup::DataType.unscoped.delete_all
+    Setup::DataType.unscoped.destroy_all
     puts 'All DataType Deleted.'
 
-    Setup::Schema.unscoped.delete_all
+    Setup::Schema.unscoped.destroy_all
     puts 'All Schema Deleted.'
 
-    Setup::Library.unscoped.delete_all
+    Setup::Library.unscoped.destroy_all
     puts 'All Library Deleted.'
     
-    Setup::Schedule.unscoped.delete_all
+    Setup::Schedule.unscoped.destroy_all
     puts 'All Scheduler Deleted.'
     
-    Setup::Batch.unscoped.delete_all
+    Setup::Batch.unscoped.destroy_all
     puts 'All Batch Deleted.'
     
-    Setup::Event.unscoped.delete_all
+    Setup::Event.unscoped.destroy_all
     puts 'All Event Deleted.'
 
-    Setup::Flow.unscoped.delete_all
+    Setup::Flow.unscoped.destroy_all
     puts 'All Flow Deleted.'
 
     ############  CONFIG TENANT ###############
@@ -54,11 +54,9 @@ namespace :sample do
                                password_confirmation: '12345678',
                                account: account
                            })
-
       user1.account = account
       user1.add_role :admin
       user1.save(validate: false)
-
 
       account.owner = user1
 
@@ -67,7 +65,6 @@ namespace :sample do
                                password: '12345678',
                                password_confirmation: '12345678',
                            })
-
       user2.account = account
       user2.save(validate: false)
 
@@ -233,13 +230,11 @@ namespace :sample do
               name: 'Store I',
               url: 'http://localhost:3001/wombat',
               key: "a#{index + 1}_3001",
-              authentication_token: "a#{index + 1}_tresmiluno",
+              token: "a#{index + 1}_tresmiluno",
           },
           {
               name: 'Store II',
               url: 'http://localhost:3002/wombat',
-              #key:"a#{index + 1}_3002",
-              #authentication_token: "a#{index + 1}_tresmildos",
           },
       ]
 

@@ -10,6 +10,7 @@ module Setup
     belongs_to :flow, class_name: Setup::Flow.name, inverse_of: :schedule
     field :value, type: Integer
     field :period, type: String
+    field :active, type: Boolean, default: :false
     
     after_create :start_scheduler
     
@@ -20,6 +21,10 @@ module Setup
     def period_enum
       ['seconds', 'minutes', 'hours']
     end
+    
+    def frequency
+      "each #{value} #{period}"
+    end  
 
     private
     
@@ -29,6 +34,7 @@ module Setup
     end
     
     def push_batches(ts_offset = 5)
+      return unless active
       object_count = 0
 
       last_time = flow.last_trigger_timestamps || Time.at(0)
@@ -45,20 +51,19 @@ module Setup
       
       return scope.each { |obj| flow.process(obj) } unless flow.batch.present? 
       
-      per_batch = flow.batch.size rescue 1000
+      per_batch = try(flow.batch.size) || 1000
       0.step(scope.count, per_batch) do |offset|
         scope.limit(per_batch).skip(offset).each { |batch| flow.process_batch(batch) } 
       end      
     end
     
     def period_symbol
-      result = value.to_s  
-      result += case period
-                when 'seconds' then "s"
-                when 'minutes' then "m"
-                when 'hours'   then "h"
-                when 'days'    then "d"
-                end     
+      case period
+      when 'seconds' then "#{value.to_s} s"
+      when 'minutes' then "#{value.to_s} m"
+      when 'hours'   then "#{value.to_s} h"
+      when 'days'    then "#{value.to_s} d"
+      end     
     end
     
   end

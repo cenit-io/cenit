@@ -3,6 +3,7 @@ module Setup
     include Mongoid::Document
     include Mongoid::Timestamps
     include AccountScoped
+    #include MakeSlug
     include Trackable
 
     field :id, :type => String
@@ -198,39 +199,6 @@ module Setup
           self.name += " and #{last}"
         end
       end
-    end
-
-    rails_admin do
-
-      list do
-        fields :name, :data_type
-      end
-      show do
-        field :_id
-        field :created_at
-        field :updated_at
-        field :name
-        field :data_type
-      end
-      edit do
-        field :name
-        field :data_type do
-          help false
-          inline_add false
-          inline_edit false
-          associated_collection_cache_all false
-          associated_collection_scope do
-            Proc.new { |scope|
-              scope = scope.where(activated: true)
-            }
-          end
-        end
-        field :triggers do
-          partial 'form_triggers'
-          help false
-        end
-      end
-
     end
 
   end

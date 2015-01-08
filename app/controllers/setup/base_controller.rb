@@ -11,7 +11,7 @@ module Setup
       token = request.headers['X-User-Access-Token']
       user = User.find_by(key: key) if key && token
 
-      if user && Devise.secure_compare(user.authentication_token, token) && user.has_role?(:admin)
+      if user && Devise.secure_compare(user.token, token) && user.has_role?(:admin)
         #TODO: Check if 'X-Hub-Timestamp' belong to a small time window around Time.now
         Account.current = user.account
         return true
