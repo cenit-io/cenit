@@ -2,11 +2,9 @@ module EDI
   module Formatter
 
     def to_edi(options={})
-      unless options[:field_separator]
-        options[:field_separator] = '*'
-      end
+      options[:field_separator] ||= '*'
       record_to_edi(data_type = self.data_type, options, JSON.parse(data_type.schema), self, output =[])
-      output.join("\r\n")
+      output.join(options[:segment_separator] || "\r\n")
     end
 
     private
