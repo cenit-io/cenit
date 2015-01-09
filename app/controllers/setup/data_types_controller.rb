@@ -21,7 +21,7 @@ module Setup
     def create
       @data_type = Setup::DataType.new(permited_attributes)
       if @data_type.save
-        render json: @data_type, status: :created, location: @data_type
+        render :show, status: :created
       else
         render json: @data_type.errors, status: :unprocessable_entity
       end
@@ -48,7 +48,7 @@ module Setup
     end
     
     def find_data_type
-      @data_type = Setup::DataType.find_by(slug: params[:id])
+      @data_type = Setup::DataType.find(params[:id])
     end    
     
   end

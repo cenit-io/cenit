@@ -1,2 +1,4 @@
 object @data_type
-attributes :name, :slug, :schema, :activated
+
+node(:id){|e| e.id.to_s }
+attributes :name, :schema, :activated

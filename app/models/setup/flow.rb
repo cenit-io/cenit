@@ -6,10 +6,8 @@ module Setup
     include Mongoid::Timestamps
     include AccountScoped
     include Setup::Enum
-    include MakeSlug
     include Trackable
 
-    field :id, type: String
     field :name, type: String
     field :purpose, type: String, default: :send
     field :active, type: Boolean, default: :true

@@ -17,7 +17,6 @@ module Setup
 
     belongs_to :uri, class_name: Setup::Schema.to_s
 
-    field :id, type: String
     field :title, type: String
     field :name, type: String
     field :schema, type: String
