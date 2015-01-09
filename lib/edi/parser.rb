@@ -5,12 +5,12 @@ module Edi
 
       def parse_edi(data_type, content, options={}, record=nil)
         start = options[:start] || 0
-        if (segment_sep = options[:segment_sep]) == :new_line
+        if (segment_sep = options[:segment_separator]) == :new_line
           content = content.gsub("\r", '')
           segment_sep = "\n"
         end
         raise Exception.new("Record model #{record.clas} does not match data type model#{data_type.model}") unless record.nil? || record.class == data_type.model
-        json, start, record = do_parse_edi(data_type, data_type.model, content, data_type.merged_schema, start, options[:field_sep], segment_sep, report={segments: []}, nil, nil, nil, nil, record)
+        json, start, record = do_parse_edi(data_type, data_type.model, content, data_type.merged_schema, start, options[:field_separator], segment_sep, report={segments: []}, nil, nil, nil, nil, record)
         raise Exception.new("Unexpected input at position #{start}: #{content[start, content.length - start <= 10 ? content.length - 1 : 10]}") if start < content.length
         report[:json] = json
         report[:scan_size] = start
@@ -119,7 +119,7 @@ module Edi
             return [nil, start, nil] unless start < content.length && content[start, seg_id.length] == seg_id
             field_sep = content[start + seg_id.length] unless field_sep
             #raise Exception.new("Invalid field separator #{field_sep}") unless field_sep == :by_fixed_length || field_sep == content[start + seg_id.length]
-            unless segment_sep ||= report[:segment_sep]
+            unless segment_sep ||= report[:segment_separator]
               if field_sep == :by_fixed_length
                 cursor = start + seg_id.length
                 json_schema['properties'].each do |property_name, property_schema|
@@ -155,7 +155,7 @@ module Edi
                   raise Exception.new('Can not infers segment separator without sub-segment schemas')
                 end
               end
-              report[:segment_sep] = segment_sep
+              report[:segment_separator] = segment_sep
             end
             if field_sep == :by_fixed_length
               fields = []
