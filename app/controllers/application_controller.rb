@@ -5,11 +5,17 @@ class ApplicationController < ActionController::Base
   protect_from_forgery with: :null_session,
     if: Proc.new { |c| c.request.format =~ %r{application/json} }
   
-  #protect_from_forgery with: :exception
-  
   rescue_from CanCan::AccessDenied do |exception|
      redirect_to main_app.root_path, :alert => exception.message
-   end
+  end
+  
+  def doorkeeper_oauth_client
+    @client ||= OAuth2::Client.new(DOORKEEPER_APP_ID, DOORKEEPER_APP_SECRET, :site => DOORKEEPER_APP_URL)
+  end
+
+  def doorkeeper_access_token
+    @token ||= OAuth2::AccessToken.new(doorkeeper_oauth_client, current_user.doorkeeper_access_token) if current_user
+  end
   
   around_filter :scope_current_account
 

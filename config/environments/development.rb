@@ -27,5 +27,9 @@ Cenit::Application.configure do
   # number of complex assets.
   config.assets.debug = true
 
-  config.action_mailer.default_url_options = { host: 'localhost:3000' }
+  config.action_mailer.default_url_options = { host: 'localhost:4000' }
 end
+
+DOORKEEPER_APP_ID = "308a44ae8ee39641ead15785288455cc1c27e333ee4d3036152559445055d82b"
+DOORKEEPER_APP_SECRET = "601d64d130e8c33237a19f792a98b064e799dddd887b162b74703ac766ce7cb1"
+DOORKEEPER_APP_URL = "http://localhost:3000"

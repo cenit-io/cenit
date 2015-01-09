@@ -31,24 +31,6 @@
         "totals": {
             "$ref": "OrderTotal"
         },
-        "line_items": {
-            "type": "array",
-            "items": {
-                "$ref": "LineItem"
-            }
-        },
-        "adjustments": {
-            "type": "array",
-            "items": {
-                "$ref": "Adjustment"
-            }
-        },
-        "payments": {
-            "type": "array",
-            "items": {
-                "$ref": "Payment"
-            }
-        },
         "shipping_address": {
             "$ref": "Address"
         },

@@ -11,7 +11,7 @@ module Xsd
       @tag_name = tag_name
       _, max_occurs = attributes.detect { |a| a[0] == 'maxOccurs' }
       @max_occurs = if max_occurs then
-                      max_occurs == 'unbounded' ? Integer::MAX : max_occurs.to_i
+                      max_occurs == 'unbounded' ? :unbounded : max_occurs.to_i
                     else
                       1
                     end
@@ -43,7 +43,7 @@ module Xsd
 
     def do_product
       @elements.each do |e|
-        e.max_occurs = e.max_occurs * max_occurs
+        e.max_occurs = max_occurs == :unbounded ? :unbounded : max_occurs * max_occurs
         e.min_occurs = e.min_occurs * min_occurs
       end
       @max_occurs = @min_occurs = 1

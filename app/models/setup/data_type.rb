@@ -1,4 +1,3 @@
-
 require 'edi/formater'
 
 module Setup
@@ -9,7 +8,7 @@ module Setup
     include Trackable
 
     def self.to_include_in_models
-      @to_include_in_models ||= [Mongoid::Document, Mongoid::Timestamps, InstanceDataTypeAware, EventLookup, AccountScoped, RailsAdminDynamicCharts::Datetime, DynamicValidators, EDI::Formatter]
+      @to_include_in_models ||= [Mongoid::Document, Mongoid::Timestamps, InstanceDataTypeAware, EventLookup, AccountScoped, DynamicValidators, EDI::Formatter] #RailsAdminDynamicCharts::Datetime
     end
 
     def self.to_include_in_model_classes
@@ -18,11 +17,11 @@ module Setup
 
     belongs_to :uri, class_name: Setup::Schema.to_s
 
+    field :title, type: String
     field :name, type: String
     field :schema, type: String
     field :sample_data, type: String
 
-    validates_length_of :name, :maximum => 50
     validates_presence_of :name, :schema
 
     before_save :validate_model
@@ -33,7 +32,7 @@ module Setup
     field :is_object, type: Boolean
     field :schema_ok, type: Boolean
     field :previous_schema, type: String
-    field :activated, type: Boolean
+    field :activated, type: Boolean, default: false
     field :auto_load_model, type: Boolean
     field :show_navigation_link, type: Boolean
 
@@ -121,16 +120,17 @@ module Setup
       self.uri ? self.uri.library.name : nil
     end
 
-    def label
-      self.name
-    end
-
     def create_default_events
-      if self.is_object && Setup::Event.where(data_type: self).empty?
+      if self.is_object? && Setup::Event.where(data_type: self).empty?
         puts "Creating default events for #{self.name}"
         Setup::Event.create(data_type: self, triggers: '{"created_at":{"0":{"o":"_not_null","v":["","",""]}}} ').save
         Setup::Event.create(data_type: self, triggers: '{"updated_at":{"0":{"o":"_change","v":["","",""]}}} ').save
       end
+    end
+
+    def is_object?
+      self.is_object ||= merged_schema['type'] == 'object' rescue nil
+      self.is_object.nil? ? false : self.is_object
     end
 
     def merged_schema(recursive=false)
@@ -175,7 +175,7 @@ module Setup
     end
 
     def find_data_type(ref)
-      self.uri.library.find_data_type_by_name(ref) || DataType.find_by_ref(ref)
+      (self.uri.library && self.uri.library.find_data_type_by_name(ref)) || DataType.find_by_ref(ref)
     end
 
     def find_ref_schema(ref)
@@ -191,7 +191,8 @@ module Setup
     def validate_model
       begin
         puts "Validating schema '#{self.name}'"
-        json = validate_schema
+        json_schema = validate_schema
+        self.title = json_schema['title'] || self.name if self.title.blank?
         puts "Schema '#{self.name}' validation successful!"
       rescue Exception => ex
         puts "ERROR: #{errors.add(:schema, ex.message).to_s}"
@@ -439,17 +440,6 @@ module Setup
       base_class ||= Object
       raise Exception.new("illegal base class #{base_class} for build in constant #{constant_name}") if MONGO_TYPES.include?(constant_name) && base_class != Object
 
-      # unless parent || tokens.empty?
-      #   begin
-      #     raise "uses illegal constant #{tokens[0]}" unless (@@parsing_schemas.include?(parent = tokens[0].constantize) || @@parsed_schemas.include?(parent.to_s)) && parent.is_a?(Module)
-      #   rescue
-      #     return nil if do_not_create
-      #     parent = Class.new
-      #     Object.const_set(tokens[0], parent)
-      #   end
-      #   tokens.shift
-      # end
-
       parent ||= Object
 
       tokens.each do |token|
@@ -527,11 +517,8 @@ module Setup
 
       unless klass.is_a?(Class)
         check_pending_binds(loaded_models, model_name, klass, root)
-        self.is_object = false
         return klass
       end
-
-      self.is_object = true
 
       model_name = klass.to_s
 
@@ -641,6 +628,10 @@ module Setup
 
         validations.each { |v| reflect(klass, v) }
 
+        schema['assertions'].each do |assertion|
+          reflect(klass, "validates assertion: #{assertion}")
+        end if schema['assertions']
+
         enums.each do |property_name, enum|
           reflect(klass, %{
           def #{property_name}_enum
@@ -649,12 +640,22 @@ module Setup
           })
         end
 
-        if name = schema['name']
+        if (name = schema['name'] || schema['title']) && !klass.instance_methods.detect { |m| m == :name }
           reflect(klass, %{
           def name
-            #{name}
+            #{schema['name'] ? name : "\"#{name}\""}
           end
           })
+        end
+
+        %w{title description}.each do |key|
+          if value = schema[key]
+            reflect(klass, %{
+            def self.#{key}
+              "#{value}"
+            end
+            }) unless klass.respond_to? key
+          end
         end
 
         @@parsed_schemas << klass.to_s
@@ -677,8 +678,8 @@ module Setup
     end
 
     def find_or_load_model(loaded_models, ref)
-      if (data_type = find_data_type(ref)) && data_type.auto_load_model
-        puts "Autoload reference #{ref} found!"
+      if (data_type = find_data_type(ref))
+        puts "Reference #{ref} found!"
         if data_type.loaded?
           return data_type.model
         else
@@ -686,7 +687,7 @@ module Setup
           return loaded_models.last
         end
       else
-        puts "Autoload reference #{ref} NOT FOUND!"
+        puts "Reference #{ref} NOT FOUND!"
         nil
       end
     end
@@ -788,7 +789,7 @@ module Setup
             end
             if enum = property_desc['enum']
               enums[property_name] = enum
-              validations << "validates_inclusion_of :#{property_name}, in: -> (doc) { doc.#{property_name}_enum }, message: 'is not a valid value'"
+              validations << "validates_inclusion_of :#{property_name}, in: -> (record) { record.#{property_name}_enum }, message: 'is not a valid value'"
               required.delete(property_name)
             elsif property_desc['pattern']
               validations << "validates_format_of :#{property_name}, :with => /\\A#{property_desc['pattern']}\\Z/i"

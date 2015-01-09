@@ -150,7 +150,7 @@ namespace :sample do
           {"Material" => ["Canvas", "600 Denier Polyester"]}
       ]
 
-      1.upto 150 do
+      1.upto 5 do
         name = "#{Faker::Product.product }"
         sku = name.underscore.gsub(' ', '-')
         cost_price = rand(10.5...100.5).round(2)
@@ -208,115 +208,20 @@ namespace :sample do
             "taxons" => taxons,
             "options" => ["color", "size"],
             "properties" => properties,
-            "images_attributes" => [
-                {
-                    "url" => "http://lorempixel.com/#{height}/#{width}/",
-                    "position" => 1,
-                    "title" => sku,
-                    "type" => "thumbnail",
-                    #               "dimension_attributes" => { "height" => height,"width" => height }
-                }
-            ],
-            "variants_attributes" => variants
+#            "images_attributes" => [
+#                {
+#                    "url" => "http://lorempixel.com/#{height}/#{width}/",
+#                    "position" => 1,
+#                    "title" => sku,
+#                    "type" => "thumbnail",
+#                    #               "dimension_attributes" => { "height" => height,"width" => height }
+#                }
+#            ],
+#            "variants_attributes" => variants
         }
 
 
         product_model.create!(product)
-
-        # orders
-        num_orders = 1 + rand(20)
-        1.upto num_orders do
-          total = rand(100.5...400.5).round(2)
-
-          tax = rand 20
-          shipping = rand 20
-          adjustment = rand 20
-          quantity = 1 + rand(5)
-          item_price = total - (tax + shipping)
-
-          puts "Order model #{order_model.to_s}"
-
-          order = [
-              {
-                  "id" => Faker::Product.letters(7),
-                  "status" => states[rand(3)],
-                  "channel" => "spree",
-                  "email" => "spree@example.com",
-                  "currency" => "USD",
-                  "placed_on" => DateTime.now - rand(100),
-                  #                "totals_attributes" => {
-                  #                  "item" => item_price,
-                  #                  "adjustment" => adjustment,
-                  #                  "tax" => tax,
-                  #                  "shipping" => shipping,
-                  #                  "payment" => item_price,
-                  #                  "order" => item_price
-                  #                },
-                  "line_items_attributes" => [
-                      {
-                          "product_id" => sku,
-                          "name" => "Spree T-Shirt",
-                          "quantity" => quantity,
-                          "price" => item_price/quantity
-                      }
-                  ],
-                  "adjustments_attributes" => [
-                      {
-                          "name" => "Tax",
-                          "value" => 10.0
-                      },
-                      {
-                          "name" => "Shipping",
-                          "value" => 5.0
-                      },
-                      {
-                          "name" => "Shipping",
-                          "value" => 5.0
-                      }
-                  ],
-                  "shipping_address_attributes" => {
-                      "firstname" => Faker::Name.first_name,
-                      "lastname" => Faker::Name.last_name,
-                      "address1" => Faker::AddressUS.street_address,
-                      "address2" => Faker::AddressUS.secondary_address,
-                      "zipcode" => Faker::AddressUS.zip_code,
-                      "city" => Faker::AddressUS.city,
-                      "state" => Faker::AddressUS.state,
-                      "country" => "US",
-                      "phone" => "0000000000"
-                  },
-                  "billing_address_attributes" => {
-                      "firstname" => Faker::Name.first_name,
-                      "lastname" => Faker::Name.last_name,
-                      "address1" => Faker::AddressUS.street_address,
-                      "address2" => Faker::AddressUS.secondary_address,
-                      "zipcode" => Faker::AddressUS.zip_code,
-                      "city" => Faker::AddressUS.city,
-                      "state" => Faker::AddressUS.state,
-                      "country" => "US",
-                      "phone" => "0000000000"
-                  },
-                  "payments" => [
-                      {
-                          "number" => rand(1000),
-                          "status" => "completed",
-                          "amount" => item_price,
-                          "payment_method" => "Credit Card",
-                          "source_attributes" => {
-                              "name" => "#{Faker::Name.first_name} #{Faker::Name.last_name}",
-                              "cc_type" => ['visa', 'american_express', 'master', 'discover'].shuffle.first,
-                              "month" => 1 + rand(12),
-                              "year" => rand(2015..2030),
-                              "last_digits" => rand(10000),
-                          }
-                      }
-                  ]
-              }
-
-          ]
-
-          order_model.create!(order)
-        end
 
       end
 

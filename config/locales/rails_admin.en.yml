@@ -53,3 +53,17 @@ en:
         field_separator_label: "Field separator"
         submit: "Export"
         done: "exported"
+      import_schema:
+        title: "Import"
+        menu: "Import"
+        breadcrumb: "Import"
+        file_content_label: "File content"
+        submit: "Import"
+        done: "created"
+      delete_all:
+        title: "Delete all"
+        menu: "Delete all"
+        breadcrumb: "Delete all"
+        are_you_sure: "Are you sure you want to delete all the %{model_label_plural}?"
+        will_be_deleted: "objects will be deleted"
+        done: "deleted"

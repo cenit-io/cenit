@@ -1,0 +1,13 @@
+%h4
+  = t('admin.actions.delete_all.are_you_sure', model_label_plural: @abstract_model.pretty_name.downcase.pluralize)
+.p
+  = "#{@total} "+ t('admin.actions.delete_all.will_be_deleted')
+
+%form
+  .form-actions
+    %button.btn.btn-danger{type: 'submit', name: 'delete', :'data-disable-with' => t('admin.form.confirmation')}
+      %i.icon-white.icon-ok
+      = t('admin.form.confirmation')
+    %button.btn{type: 'submit', name: '_continue', :'data-disable-with' => t("admin.form.cancel")}
+      %i.icon-remove
+      = t('admin.form.cancel')

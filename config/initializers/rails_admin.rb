@@ -5,20 +5,11 @@
  RailsAdmin::Config::Actions::SwitchNavigation,
  RailsAdmin::Config::Actions::DataType,
  RailsAdmin::Config::Actions::Import,
- RailsAdmin::Config::Actions::EdiExport].each { |a| RailsAdmin::Config::Actions.register(a) }
+ RailsAdmin::Config::Actions::EdiExport,
+ RailsAdmin::Config::Actions::ImportSchema,
+ RailsAdmin::Config::Actions::DeleteAll].each { |a| RailsAdmin::Config::Actions.register(a) }
 
 RailsAdmin.config do |config|
-
-  ### Popular gems integration
-
-  ## == Devise ==
-  # config.authenticate_with do
-  #   warden.authenticate! scope: :user
-  # end
-  # config.current_user_method(&:current_user)
-
-  ## == Cancan ==
-  # config.authorize_with :cancan
 
   ## == PaperTrail ==
   # config.audit_with :paper_trail, 'User', 'PaperTrail::Version' # PaperTrail >= 3.0.0
@@ -29,14 +20,16 @@ RailsAdmin.config do |config|
   config.authenticate_with do
     warden.authenticate! scope: :user
   end
-  config.current_user_method { current_user } # auto-generated
+  config.current_user_method { current_user }
   config.audit_with :mongoid_audit
-
+  config.authorize_with :cancan
+  
   config.actions do
     dashboard # mandatory
     index # mandatory
     new { except Setup::DataType,Role  }
     import
+    import_schema
     #import do
     #  only 'Setup::DataType'
     #end
@@ -60,10 +53,11 @@ RailsAdmin.config do |config|
     history_show do 
       only [Setup::DataType,Setup::Webhook, Setup::Flow, Setup::Schema, Setup::Event, Setup::Connection,Setup::ConnectionRole, Setup::Notification, Setup::Library]
     end
+    delete_all { except Setup::DataType,Role  }
   end
   
   config.model Role.name  do
-    weight -14
+    weight -20
     navigation_label 'Account'
     show do
       field :name
@@ -74,292 +68,17 @@ RailsAdmin.config do |config|
     fields :name, :users
   end
   
-  config.model Setup::Connection.name do
-    weight -13
-    group :credentials do
-      label "Token"
-    end
-    
-    configure :connection_roles do
-      inverse_of :connections
-    end
-    configure :name, :string do
-      help 'Requiered.'
-      html_attributes do
-        { maxlength: 30, size: 30 } 
-      end
-    end 
-    configure :url, :string do
-      help 'Requiered.'
-      html_attributes do
-        { maxlength: 50, size: 50 } 
-      end
-    end
-    configure :key, :string do
-      visible { bindings[:view]._current_user.has_role? :admin }
-      html_attributes do
-        { maxlength: 30, size: 30 } 
-      end
-    end
-    configure :authentication_token, :text do
-      visible { bindings[:view]._current_user.has_role? :admin }
-      html_attributes do
-        { cols: '50', rows: '1' }
-      end
-    end
-    configure :connection_parameters do
-      visible { bindings[:view]._current_user.has_role? :admin }
-    end
-    
-    field :name
-    field :url
-    field :key do
-      group :credentials
-    end
-    field :authentication_token do
-      group :credentials
-    end
-    field :connection_roles
-    field :connection_parameters
-  end
-  
-  config.model Setup::ConnectionParameter.name do
-    visible false
-    parent Setup::Connection
-    
-    configure :name, :string do
-      help 'Requiered.'
-      html_attributes do
-       { maxlength: 50,size: 50 } 
-      end
-    end
-    
-    configure :value, :string do
-      help 'Requiered.'
-      html_attributes do
-       { maxlength: 50,size: 50 }
-      end
-    end  
-
-    fields :name, :value
-  end
-  
-  config.model Setup::ConnectionRole.name do
-    weight -12
-    configure :name, :string do
-      help 'Requiered.'
-      html_attributes do
-       { maxlength: 50,size: 50 } 
-      end
-    end
-    
-    modal do
-      field :name
-      #field :connections
-      field :webhooks
-    end
-    show do
-      field :name
-      field :connections
-      field :webhooks
-      
-      field :_id
-      field :created_at
-      field :creator
-      field :updated_at
-      field :updater
-    end
-    fields :name, :connections, :webhooks
-  end 
-  
-  config.model Setup::Webhook.name do
-    weight -11
-    configure :path, :string do
-      help "Requiered. Path of the webhook relative to connection URL."
-      html_attributes do
-       { maxlength: 50, size: 50 }
-      end
-    end
-
-    show do
-      field :name
-      field :path
-      field :purpose
-      field :connection_roles
-      field :schema_validation
-      
-      field :_id
-      field :created_at
-      field :creator
-      field :updated_at
-      field :updater
-    end
-    fields :name, :path, :purpose, :connection_roles, :schema_validation
-  end
-  
-  
-  config.model Setup::Event.name do
-    weight -10
-    configure :name, :string do
-      help 'Requiered.'
-      html_attributes do
-       { maxlength: 50,size: 50 }
-      end
-    end
-    
-    configure :data_type do
-      help false
-      inline_add false
-      inline_edit false
-      associated_collection_cache_all false
-      associated_collection_scope do
-        Proc.new { |scope|
-          scope = scope.where(activated: true)
-        }
-      end
-    end
-    
-    configure :triggers do
-      partial 'form_triggers'
-      help false
-    end
-
-    show do
-      field :name
-      field :data_type
-
-      field :_id
-      field :created_at
-      field :creator
-      field :updated_at
-      field :updater
-    end
-    
-    edit do
-      fields :name, :data_type, :triggers
-    end
-    
-    fields :name, :data_type
-  end
-  
-  config.model Setup::Flow.name do
-    weight -9
-    configure :name, :string do
-      help 'Requiered.'
-      html_attributes do
-       { maxlength: 50,size: 50 }
-      end
-    end
-    
-    group :transformation do
-      label 'Data transformation'
-      active true
-    end
-    
-    group :batching do
-      label 'Batching'
-    end
-    
-    configure :transformation do
-      group :transformation
-      partial 'form_transformation'
-    end
-    
-    configure :schedule do
-      group :batching
-    end
-    
-    configure :batch do
-      group :batching
-    end
-    
-    edit do
-      fields :name, :active, :purpose, :data_type, :connection_role, :webhook, :event, :schedule, :batch
-    end
-    
-    show do
-      field :name
-      field :purpose
-      field :data_type
-      field :connection_role
-      field :webhook
-      field :event
-      field :schedule
-      
-      field :_id
-      field :created_at
-      field :creator
-      field :updated_at
-      field :updater     
-    end
-    
-    fields :name, :active, :purpose, :event, :connection, :connection_role, :webhook, :schedule
-  end
-  
-  config.model Setup::Schedule.name do
-    visible false
-    parent Setup::Flow
-    configure :period, :enum do 
-      default_value 'minutes'
-    end
-    
-    show do
-      field :flow
-      field :value
-      field :period
-      
-      field :_id
-      field :created_at
-      field :creator
-      field :updated_at
-      field :updater
-    end
-    fields :flow, :value, :period
-  end
-  
-  config.model Setup::Batch.name do
-    visible false
-    parent Setup::Flow
-    show do
-      field :flow
-      field :size
-      
-      field :_id
-      field :created_at
-      field :creator
-      field :updated_at
-      field :updater
-    end
-    
-    fields :flow, :size
-  end
-  
-  config.model Setup::Notification.name do
-    weight -8
-    navigation_label 'Notifications'
-    show do
-      field :flow
-      field :http_status_code
-      field :count
-      field :http_status_message
-      field :json_data
-      
-      field :_id
-      field :created_at
-      field :creator
-      field :updated_at
-      field :updater 
-    end
-    fields :flow, :http_status_code, :count, :http_status_message, :json_data
-  end
-
   config.model Setup::Library.name do
     navigation_label 'Data Definitions'
-    weight -7
+    weight -19
     
     configure :name do
       read_only { !bindings[:object].new_record? }
       help ''
+    end
+
+    edit do
+      field :name
     end
   
     show do
@@ -378,7 +97,7 @@ RailsAdmin.config do |config|
 
   config.model Setup::Schema.name do
     navigation_label 'Data Definitions'
-    weight -6
+    weight -18
       
     object_label_method {:uri}
   
@@ -409,12 +128,12 @@ RailsAdmin.config do |config|
       field :updated_at
       field :updater 
     end
-    fields :library, :uri, :data_types, :schema
+    fields :library, :uri, :schema
   end
 
   config.model Setup::DataType.name do
     navigation_label 'Data Definitions'
-    weight -5
+    weight -17
           
     group :model_definition do
       label 'Model definition'
@@ -477,6 +196,409 @@ RailsAdmin.config do |config|
       field :updater
     end
     fields :uri, :name, :activated, :schema, :sample_data
+  end
+  
+  config.model Setup::Template.name do
+    navigation_label 'Setup'
+    weight -16
+  
+    show do
+      field :name
+      field :library
+      field :connection_role
+      field :webhooks
+      field :flows
+    
+      field :_id
+      field :created_at
+      field :creator
+      field :updated_at
+      field :updater 
+    end
+    fields :name, :library, :connection_role, :webhooks, :flows
+  end
+  
+  config.model Setup::Connection.name do
+    weight -15
+    group :credentials do
+      label "Token"
+    end
+    
+    configure :connection_roles do
+      inverse_of :connections
+    end
+    configure :name, :string do
+      help 'Requiered.'
+      html_attributes do
+        { maxlength: 30, size: 30 } 
+      end
+    end 
+    configure :url, :string do
+      help 'Requiered.'
+      html_attributes do
+        { maxlength: 50, size: 50 } 
+      end
+    end
+    configure :key, :string do
+      visible { bindings[:view]._current_user.has_role? :admin }
+      html_attributes do
+        { maxlength: 30, size: 30 } 
+      end
+      group :credentials
+    end
+    configure :authentication_token, :text do
+      visible { bindings[:view]._current_user.has_role? :admin }
+      html_attributes do
+        { cols: '50', rows: '1' }
+      end
+      group :credentials
+    end
+    configure :url_parameters do
+      visible { bindings[:view]._current_user.has_role? :admin }
+    end
+    configure :headers do
+      visible { bindings[:view]._current_user.has_role? :admin }
+    end
+    
+    group :parameters do
+      label "Add Parameters"
+    end
+    configure :url_parameters do
+      group :parameters
+    end  
+    configure  :headers do
+      group :parameters
+    end  
+    
+    show do
+      field :name
+      field :url
+      field :connection_roles
+      field :webhooks
+
+      field :key
+      field :authentication_token
+      
+      field :url_parameters
+      field :headers
+      
+      field :_id
+      field :created_at
+      field :creator
+      field :updated_at
+      field :updater
+    end
+    
+      fields :name, :url, :connection_roles, :webhooks, :url_parameters, :headers, :key, :authentication_token
+  end
+  
+  config.model Setup::UrlParameter.name do
+    visible false
+    
+    configure :key, :string do
+      help 'Requiered.'
+      html_attributes do
+       { maxlength: 50,size: 50 } 
+      end
+    end
+    
+    configure :value, :string do
+      help 'Requiered.'
+      html_attributes do
+       { maxlength: 50,size: 50 }
+      end
+    end  
+
+    fields :key, :value
+  end
+  
+  config.model Setup::Header.name do
+    visible false
+    
+    configure :key, :string do
+      help 'Requiered.'
+      html_attributes do
+       { maxlength: 50,size: 50 } 
+      end
+    end
+    
+    configure :value, :string do
+      help 'Requiered.'
+      html_attributes do
+       { maxlength: 50,size: 50 }
+      end
+    end  
+
+    fields :key, :value
+  end
+  
+  config.model Setup::ConnectionRole.name do
+    weight -14
+    configure :name, :string do
+      help 'Requiered.'
+      html_attributes do
+       { maxlength: 50,size: 50 } 
+      end
+    end
+    
+    modal do
+      field :name
+      #field :connections
+      field :webhooks
+    end
+    show do
+      field :name
+      field :connections
+      field :webhooks
+      
+      field :_id
+      field :created_at
+      field :creator
+      field :updated_at
+      field :updater
+    end
+    fields :name, :connections, :webhooks
+  end 
+  
+  config.model Setup::Webhook.name do
+    weight -13
+    
+    group :request do
+      label 'Resquest'
+    end
+    
+    group :response do
+      label 'Response'
+    end
+    
+    configure :path, :string do
+      help "Requiered. Path of the webhook relative to connection URL."
+      html_attributes do
+       { maxlength: 50, size: 50 }
+      end
+    end
+    
+    configure :schema_validation do
+      help "Optional. Validate transformed flow document using this schema."
+      group :request
+    end
+    configure :data_type do
+      help "Optional. Save document as an object of this 'data-type'."
+      group :request
+    end
+    configure :trigger_event do
+      help "Optional. Trigger events after save the object."
+      group :request
+    end
+    
+    configure :schema_validation_response do
+      help "Optional. Validate response document using this schema."
+      group :response
+    end
+    configure :data_type_response do
+      help "Optional. Save document as an object of this 'data-type'."
+      group :response
+    end
+    configure :trigger_event_response do
+      help "Optional. Trigger events after save the object."
+      group :response
+    end
+    
+    group :parameters do
+      label "Add Parameters"
+    end
+    configure :url_parameters do
+      group :parameters
+    end  
+    configure  :headers do
+      group :parameters
+    end
+
+    show do
+      field :name
+      field :purpose
+      field :path
+      field :method
+      field :connections
+      field :connection_roles
+      
+      field :url_parameters
+      field :headers
+      
+      #request
+      field :schema_validation
+      field :data_type
+      field :trigger_event
+      
+      #response
+      field :schema_validation_response
+      field :data_type_response
+      field :trigger_event_response
+      
+      field :_id
+      field :created_at
+      field :creator
+      field :updated_at
+      field :updater
+    end
+    fields :name, :purpose, :path, :method, :url_parameters, :headers, :schema_validation, :data_type, :trigger_event,  :schema_validation_response, 
+    :data_type_response, :trigger_event_response
+  end
+  
+  
+  config.model Setup::Event.name do
+    weight -12
+    configure :name, :string do
+      help 'Requiered.'
+      html_attributes do
+       { maxlength: 50,size: 50 }
+      end
+    end
+    
+    configure :data_type do
+      help false
+      inline_add false
+      inline_edit false
+      associated_collection_cache_all false
+      associated_collection_scope do
+        Proc.new { |scope|
+          scope = scope.where(activated: true)
+        }
+      end
+    end
+    
+    configure :triggers do
+      partial 'form_triggers'
+      help false
+    end
+
+    show do
+      field :name
+      field :data_type
+
+      field :_id
+      field :created_at
+      field :creator
+      field :updated_at
+      field :updater
+    end
+    
+    edit do
+      fields :name, :data_type, :triggers
+    end
+    
+    fields :name, :data_type
+  end
+  
+  config.model Setup::Flow.name do
+    weight -11
+    configure :name, :string do
+      help 'Requiered.'
+      html_attributes do
+       { maxlength: 50,size: 50 }
+      end
+    end
+    
+    group :batching do
+      label 'Schedule & Batch'
+    end
+    
+    group :transformation do
+      label 'Data transformation'
+      active true
+    end
+    
+    configure :schedule do
+      group :batching
+    end
+    
+    configure :batch do
+      group :batching
+    end
+    
+    configure :transformation do
+      group :transformation
+      partial 'form_transformation'
+    end
+    
+    edit do
+      fields :name, :active, :purpose, :data_type, :connection_role, :webhook, :event, :schedule, :batch, :transformation
+    end
+    
+    show do
+      field :name
+      field :purpose
+      field :data_type
+      field :connection_role
+      field :webhook
+      field :event
+      field :schedule
+      
+      field :_id
+      field :created_at
+      field :creator
+      field :updated_at
+      field :updater     
+    end
+    
+    fields :name, :active, :purpose, :event, :connection, :connection_role, :webhook, :schedule
+  end
+  
+  config.model Setup::Schedule.name do
+    visible false
+    parent Setup::Flow
+    configure :period, :enum do 
+      default_value 'minutes'
+    end
+    
+    show do
+      field :flow
+      field :value
+      field :period
+      
+      field :_id
+      field :created_at
+      field :creator
+      field :updated_at
+      field :updater
+    end
+    fields :flow, :value, :period
+  end
+  
+  config.model Setup::Batch.name do
+    visible false
+    parent Setup::Flow
+    show do
+      field :flow
+      field :size
+      
+      field :_id
+      field :created_at
+      field :creator
+      field :updated_at
+      field :updater
+    end
+    
+    fields :flow, :size
+  end
+  
+  config.model Setup::Notification.name do
+    weight -10
+    navigation_label 'Notifications'
+    show do
+      field :flow
+      field :http_status_code
+      field :count
+      field :http_status_message
+      field :json_data
+      
+      field :_id
+      field :created_at
+      field :creator
+      field :updated_at
+      field :updater 
+    end
+    fields :flow, :http_status_code, :count, :http_status_message, :json_data
   end
 
 end

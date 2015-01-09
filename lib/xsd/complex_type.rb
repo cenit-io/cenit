@@ -33,17 +33,20 @@ module Xsd
 
     def to_json_schema
       json = {'type' => 'object'}
-      json['title'] = name if name
+      json['title'] = name.to_title if name
       json['properties'] = properties = {}
       required = []
       attributes.each do |a|
-        properties[a.name] = a.type.to_json_schema
+        if (type = a.type).is_a?(String)
+          type = qualify_type(type)
+        end
+        properties[a.name] = type.to_json_schema.merge('title' => a.name.to_title)
         required << a.name if a.required?
       end
       if container
         container.do_product
         container.elements.each do |e|
-          if e.max_occurs > 0
+          if e.max_occurs == :unbounded || e.max_occurs > 0
             properties[e.name] = e.max_occurs == 1 ? e.to_json_schema : {'type' => 'array', 'items' => e.to_json_schema}
           end
         end

@@ -5,15 +5,13 @@ module Setup
     include AccountScoped
     include Trackable
 
-    belongs_to :library, class_name: Setup::Library.to_s
+    belongs_to :library, class_name: Setup::Library.to_s, inverse_of: :schemas
 
     field :uri, type: String
     field :schema, type: String
 
     has_many :data_types, class_name: Setup::DataType.to_s
 
-    validates_length_of :uri, :maximum => 255
-    validates_uniqueness_of :uri
     validates_presence_of :library, :uri, :schema
 
     before_save :create_data_types
@@ -30,42 +28,30 @@ module Setup
       RailsAdmin::AbstractModel.update_model_config(models)
     end
 
-    rails_admin do
-
-      object_label_method do
-        :uri
-      end
-
-      edit do
-        field :library do
-          read_only { !bindings[:object].new_record? }
-          inline_edit false
-        end
-
-        field :uri do
-          read_only { !bindings[:object].new_record? }
-        end
-
-        field :schema
-      end
-      list do
-        fields :library, :uri, :schema, :data_types
-      end
-    end
-
     private
 
     def create_data_types
-      @created_data_types = []
+      @data_types_to_save = []
+      if self.library.schemas.where(uri: self.uri).first
+        errors.add(:uri, "is is already taken on library #{self.library.name}")
+        return false
+      end
       begin
-        (schemas = parse_schemas).each_key do |name|
-          errors.add(:schema, "model name #{name} is already taken on library") if self.library.find_data_type_by_name(name)
+        (schemas = parse_schemas).each_key do |data_type_name|
+          # TODO
+          # if data_type = self.data_types.where(name: data_type_name).first
+          #   data_type.schema = schemas.delete(data_type_name)
+          #   @data_types_to_save << data_type
+          # else
+          #   errors.add(:schema, "model name #{data_type_name} is already taken on library") if self.library.find_data_type_by_name(data_type_name)
+          # end
+          errors.add(:schema, "model name #{data_type_name} is already taken on library") if self.library.find_data_type_by_name(data_type_name)
         end
         return false unless errors.blank?
         schemas.each do |name, schema|
-          data_type = Setup::DataType.create(name: name, schema: schema.to_json, auto_load_model: true)
+          data_type = Setup::DataType.create(name: name, schema: schema.to_json)
           if data_type.errors.blank?
-            @created_data_types << data_type
+            @data_types_to_save << data_type
           else
             data_type.errors.each do |attribute, error|
               errors.add(:schema, "when defining model #{name} on attribute '#{attribute}': #{error}")
@@ -83,14 +69,14 @@ module Setup
     end
 
     def bind_data_types
-      @created_data_types.each do |data_type|
+      @data_types_to_save.each do |data_type|
         data_type.uri = self
         data_type.save
       end
     end
 
     def destroy_data_types
-      Schema.shutdown_data_type_model(@created_data_types || self.data_types, true)
+      Schema.shutdown_data_type_model(@data_types_to_save || self.data_types, true)
     end
 
     def self.shutdown_data_type_model(data_types, destroy_data_type=false)

@@ -6,7 +6,7 @@ module RailsAdmin
         register_instance_option :visible? do
           if authorized?
             model = bindings[:abstract_model].model_name.constantize rescue nil
-            model.respond_to?(:data_type)
+            model.respond_to?(:data_type) && model.data_type
           else
             false
           end
@@ -29,24 +29,18 @@ module RailsAdmin
                 flash[:error]=''
                 begin
                   report = EDI::Parser.parse(model.data_type, file_content = file_content.gsub("\r", ''))
-                  raise Exception.new("Unexpected input at position #{report[:scan_size]}") if report[:scan_size] < file_content.length
                   flash.delete(:error)
                 rescue Exception => ex
                   flash[:error] +=ex.message
                 end
                 unless report
                   report = EDI::Parser.parse(model.data_type, file_content, 0, :by_fixed_length)
-                  raise Exception.new("Unexpected input at position #{report[:scan_size]}") if report[:scan_size] < file_content.length
+                  ok = true
                   if (@object = report[:record]).valid?(:create) && Import.save(@object)
                     flash.delete(:error)
                     redirect_to_on_success
-                    ok = true
                   else
-                    flash.delete(:error)
-                    report[:segments].each do |segment|
-                      next if segment[1].errors.blank? || !flash[:error].nil?
-                      flash[:error] = %(#{segment[0]} <br>- #{segment[1].errors.full_messages.join('<br>- ')}).html_safe
-                    end
+                    handle_save_error
                   end
                 end
               rescue Exception => ex

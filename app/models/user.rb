@@ -11,7 +11,7 @@ class User
   # Include default devise modules. Others available are:
   # :confirmable, :lockable, :timeoutable and :omniauthable
   devise :database_authenticatable, :registerable,
-         :recoverable, :rememberable, :trackable, :validatable
+         :recoverable, :rememberable, :trackable, :validatable, :omniauthable
 
   ## Database authenticatable
   field :email,              type: String, default: ""
@@ -32,9 +32,24 @@ class User
   field :last_sign_in_ip,    type: String
   field :authentication_token, type: String
   field :number, as: :key, type: String
+  
+  field :doorkeeper_uid, type: String 
+  field :doorkeeper_access_token, type: Integer 
 
   before_save :ensure_authentication_token
   validates_uniqueness_of :authentication_token
+
+  def self.find_or_create_for_doorkeeper_oauth(oauth_data)
+    user = User.find_by(doorkeeper_uid: oauth_data.uid) || User.new(doorkeeper_uid: oauth_data.uid)
+    user.email = oauth_data.info.email
+    user
+  end
+
+  def update_doorkeeper_credentials(oauth_data)
+    self.doorkeeper_access_token = oauth_data.credentials.token
+  end
+  
+  
   
   def ensure_authentication_token
     self.authentication_token ||= generate_authentication_token

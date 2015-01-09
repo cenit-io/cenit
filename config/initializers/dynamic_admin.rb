@@ -76,12 +76,30 @@ module RailsAdmin
           rails_admin_model = Config.model(model).target
           {navigation_label: nil,
            visible: false,
-           label: model.to_s.split('::').last}.each do |option, value|
+           label: model.respond_to?(:title) ? model.title : model.to_s.split('::').last}.each do |option, value|
             if data_type && data_type.respond_to?(option)
               value = data_type.send(option)
             end
             rails_admin_model.register_instance_option option do
               value
+            end
+          end
+          if data_type
+            properties = JSON.parse(data_type.schema)['properties']
+            rails_admin_model.groups.each do |group|
+              group.fields.each do |field|
+                if field_schema = properties[field.name.to_s]
+                  field_schema = data_type.merge_schema(field_schema)
+                  {label: 'title',
+                   help: 'description'}.each do |option, key|
+                    if value = field_schema[key]
+                      field.register_instance_option option do
+                        value
+                      end
+                    end
+                  end
+                end
+              end
             end
           end
         end
@@ -127,35 +145,3 @@ module RailsAdmin
     end
   end
 end
-
-#module RailsAdmin
-#  module Config
-#    class << self
-#      def new_model(model)
-#        if !models_pool.include?(model.to_s)
-#          @@system_models.insert((i = @@system_models.find_index { |e| e > model.to_s  }) ? i : @@system_models.length, model.to_s)
-#        end
-#      end
-#    end
-#  end
-#  
-#  class AbstractModel
-#    class << self
-#      def new_model(model_str_schema)
-#        regist_model(Cenit::MongoDynamic.parse_str_schema(model_str_schema))
-#      end
-#      
-#      def regist_model(model)
-#        Config.new_model(model)
-#        if m = new(model)
-#          if i = all.find_index { |e| e.to_s.eql?(m.to_s)  }
-#            @@all[i] = m
-#          else
-#            @@all << m
-#          end
-#        end
-#      end
-#    end
-#  end
-#end
-
