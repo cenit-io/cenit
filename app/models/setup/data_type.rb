@@ -8,7 +8,7 @@ module Setup
     include Trackable
 
     def self.to_include_in_models
-      @to_include_in_models ||= [Mongoid::Document, Mongoid::Timestamps, InstanceDataTypeAware, EventLookup, AccountScoped, DynamicValidators, EDI::Formatter] #RailsAdminDynamicCharts::Datetime
+      @to_include_in_models ||= [Mongoid::Document, Mongoid::Timestamps, InstanceDataTypeAware, EventLookup, AccountScoped, DynamicValidators, EDI::Formatter, RailsAdminDynamicCharts::Datetime] 
     end
 
     def self.to_include_in_model_classes
@@ -39,7 +39,7 @@ module Setup
     scope :activated, -> { where(activated: true) }
 
     def sample_object
-      '{"' + name.underscore + '": ' + sample_data + '}'
+      "{ #{name.underscore}: #{sample_data} }"
     end
 
     def destroy_model
@@ -64,7 +64,7 @@ module Setup
     end
 
     def loaded?
-      model ? true : false
+      model.present?
     end
 
     def data_type_name
@@ -72,10 +72,10 @@ module Setup
     end
 
     def load_model
-      return (models = load_models).empty? ? nil : models.last
+      load_models.last if load_models.present?
     end
 
-    def load_models(reload=true)
+    def load_models( reload = true )
       loaded_models = []
       begin
         if reload || schema_has_changed?
@@ -113,34 +113,33 @@ module Setup
     end
 
     def visible
-      ((Account.current ? Account.current.id : nil) == self.account.id) && self.show_navigation_link
+      self.account == Account.current && self.show_navigation_link
     end
 
     def navigation_label
-      self.uri ? self.uri.library.name : nil
+      self.uri.library.name rescue nil
     end
 
     def create_default_events
       if self.is_object? && Setup::Event.where(data_type: self).empty?
         puts "Creating default events for #{self.name}"
-        Setup::Event.create(data_type: self, triggers: '{"created_at":{"0":{"o":"_not_null","v":["","",""]}}} ').save
-        Setup::Event.create(data_type: self, triggers: '{"updated_at":{"0":{"o":"_change","v":["","",""]}}} ').save
+        Setup::Event.create(data_type: self, triggers: '{"created_at":{"0":{"o":"_not_null","v":["","",""]}}} ')
+        Setup::Event.create(data_type: self, triggers: '{"updated_at":{"0":{"o":"_change","v":["","",""]}}} ')
       end
     end
 
     def is_object?
       self.is_object ||= merged_schema['type'] == 'object' rescue nil
-      self.is_object.nil? ? false : self.is_object
+      self.is_object || false 
     end
 
     def merged_schema(recursive=false)
       sch = merge_schema(JSON.parse(schema), recursive)
-      if (base_sch = sch.delete('extends')) && base_sch = find_ref_schema(base_sch)
-        sch = base_sch.deep_merge(sch) do |key, val1, val2|
-          val1.is_a?(Array) && val2.is_a?(Array) ? val1 + val2 : val2
-        end
+      base_sch = sch.delete('extends')
+      if base_sch &&= find_ref_schema(base_sch)
+        sch = base_sch.deep_merge(sch) { |key, val1, val2| array_sum(val1, val2) }
       end
-      return sch
+      sch
     end
 
     def merge_schema(schema, recursive=false)
@@ -149,17 +148,12 @@ module Setup
         schema.each do |key, value|
           if key == 'allOf'
             value.each do |combined_sch|
-              if (ref = combined_sch['$ref']) && (ref = find_ref_schema(ref))
-                combined_sch = ref
-              end
-              sch = sch.deep_merge(combined_sch) do |key, val1, val2|
-                val1.is_a?(Array) && val2.is_a?(Array) ? val1 + val2 : val2
-              end
+              ref = combined_sch['$ref']
+              combined_sch = ref if ref &&= find_ref_schema(ref)
+              sch = sch.deep_merge(combined_sch) { |key, val1, val2| array_sum(val1, val2) }
             end
           elsif key == '$ref' && ref = find_ref_schema(value)
-            sch = sch.deep_merge(ref) do |key, val1, val2|
-              val1.is_a?(Array) && val2.is_a?(Array) ? val1 + val2 : val2
-            end
+            sch = sch.deep_merge(ref) { |key, val1, val2| array_sum(val1, val2) }
           else
             sch[key] = value
           end
@@ -179,14 +173,14 @@ module Setup
     end
 
     def find_ref_schema(ref)
-      if data_type = find_data_type(ref)
-        JSON.parse(data_type.schema)
-      else
-        nil
-      end
+      JSON.parse(data_type.schema) if data_type = find_data_type(ref)
     end
 
     private
+    
+    def array_sum(val1, val2)
+      val1.is_a?(Array) && val2.is_a?(Array) ? val1 + val2 : val2
+    end
 
     def validate_model
       begin
@@ -199,7 +193,7 @@ module Setup
         return false
       end
       begin
-        if self.sample_data && !self.sample_data.blank?
+        if self.sample_data && self.sample_data.present?
           puts 'Validating sample data...'
           Cenit::JSONSchemaValidator.validate!(self.schema, self.sample_data)
           puts 'Sample data validation successfully!'
@@ -253,7 +247,7 @@ module Setup
       parent = klass.parent
       affected = nil if report[:destroyed].include?(parent)
       puts "#{affected ? 'Affecting' : 'Destroying'} class #{klass.to_s}" #" is #{affected ? 'affected' : 'in tree'} -> #{report.to_s}"
-      if (affected)
+      if affected
         report[:affected] << klass
       else
         report[:destroyed] << klass
@@ -353,9 +347,9 @@ module Setup
       tokens = ref.split('/')
       tokens.shift
       type = root_name
-      while !tokens.empty?
+      while tokens.any?
         token = tokens.shift
-        raise Exception.new("use invalid embedded reference path '#{ref}'") unless %w{properties definitions}.include?(token) && !tokens.empty?
+        raise Exception.new("use invalid embedded reference path '#{ref}'") unless %w{properties definitions}.include?(token) && tokens.any?
         token = tokens.shift
         type = "#{type}::#{token.camelize}"
       end
@@ -364,33 +358,29 @@ module Setup
 
     def check_requires(json)
       properties=json['properties']
-      if required = json['required']
-        if required.is_a?(Array)
-          required.each do |property|
-            if property.is_a?(String)
-              raise Exception.new("requires undefined property '#{property.to_s}'") unless properties && properties[property]
-            else
-              raise Exception.new("required item \'#{property.to_s}\' is not a property name (string)")
-            end
-          end
+      return unless required = json['required']
+
+      raise Exception.new('required clause is not an array') unless required.is_a?(Array)
+      required.each do |property|
+        if property.is_a?(String)
+          raise Exception.new("requires undefined property '#{property.to_s}'") unless properties && properties[property]
         else
-          raise Exception.new('required clause is not an array')
+          raise Exception.new("required item \'#{property.to_s}\' is not a property name (string)")
         end
-      end
+      end  
     end
 
     def check_definitions(json, parent, defined_types, embedded_refs)
       raise Exception.new("multiples definitions with name '#{json.mult_key_def.first.to_s}'") unless json.mult_key_def.blank?
-      if defs=json['definitions']
-        raise Exception.new('definitions format is invalid') unless defs.is_a?(MultKeyHash)
-        raise Exception.new("multiples definitions with name '#{defs.mult_key_def.first.to_s}'") unless defs.mult_key_def.blank?
-        defs.each do |def_name, def_spec|
-          raise Exception.new("type definition '#{def_name}' is not an object type") unless def_spec.is_a?(Hash) && (def_spec['type'].nil? || def_spec['type'].eql?('object'))
-          check_definition_name(def_name)
-          raise Exception.new("'#{parent.underscore}/#{def_name}' definition is declared as a reference (use the reference instead)") if def_spec['$ref']
-          raise Exception.new("'#{parent.underscore}' already defines #{def_name}") if defined_types.include?(camelized_def_name = "#{parent}::#{def_name.camelize}")
-          check_schema(def_spec, camelized_def_name, defined_types, embedded_refs)
-        end
+      return unless defs=json['definitions']
+      raise Exception.new('definitions format is invalid') unless defs.is_a?(MultKeyHash)
+      raise Exception.new("multiples definitions with name '#{defs.mult_key_def.first.to_s}'") unless defs.mult_key_def.blank?
+      defs.each do |def_name, def_spec|
+        raise Exception.new("type definition '#{def_name}' is not an object type") unless def_spec.is_a?(Hash) && (def_spec['type'].nil? || def_spec['type'].eql?('object'))
+        check_definition_name(def_name)
+        raise Exception.new("'#{parent.underscore}/#{def_name}' definition is declared as a reference (use the reference instead)") if def_spec['$ref']
+        raise Exception.new("'#{parent.underscore}' already defines #{def_name}") if defined_types.include?(camelized_def_name = "#{parent}::#{def_name.camelize}")
+        check_schema(def_spec, camelized_def_name, defined_types, embedded_refs)
       end
     end
 
@@ -503,9 +493,7 @@ module Setup
 
       unless base_model.nil? || base_model.is_a?(Class)
         #Should be a schema, i.e, a Hash
-        schema = base_model.deep_merge(schema) do |key, val1, val2|
-          val1.is_a?(Array) && val2.is_a?(Array) ? val1 + val2 : val2
-        end
+        schema = base_model.deep_merge(schema) { |key, val1, val2| array_sum(val1, val2) }
       end
 
       klass = reflect_constant(model_name, (schema['type'] == 'object' || base_model.is_a?(Class)) ? nil : schema, parent, base_model)
@@ -680,12 +668,9 @@ module Setup
     def find_or_load_model(loaded_models, ref)
       if (data_type = find_data_type(ref))
         puts "Reference #{ref} found!"
-        if data_type.loaded?
-          return data_type.model
-        else
-          loaded_models.concat(data_type.load_models)
-          return loaded_models.last
-        end
+        return data_type.model if data_type.loaded?
+        loaded_models.concat(data_type.load_models)
+        return loaded_models.last
       else
         puts "Reference #{ref} NOT FOUND!"
         nil
@@ -869,9 +854,9 @@ module Setup
               reflect(waiting_model, process_non_ref(loaded_models, a[1], klass, waiting_model, root))
               bind_affect_to_relation(klass, waiting_model)
             end
-            if a[2]
-              reflect(waiting_model, "validates_presence_of :#{a[1]}")
-            end
+            
+            reflect(waiting_model, "validates_presence_of :#{a[1]}") if a[2]
+              
           end
         end
       end
@@ -897,9 +882,9 @@ module Setup
                 reflect(waiting_model, process_non_ref(loaded_models, a[1], klass, waiting_model, root))
                 bind_affect_to_relation(klass, waiting_model)
               end
-              if a[2]
-                reflect(waiting_model, "validates_presence_of :#{a[1]}")
-              end
+              
+              reflect(waiting_model, "validates_presence_of :#{a[1]}") if a[2]
+              
             end
           end
         end
@@ -966,6 +951,7 @@ module Setup
         model = model.to_s.constantize rescue nil
         model ? false : true
       end
+      
     end
   end
 end
