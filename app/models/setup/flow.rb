@@ -8,6 +8,7 @@ module Setup
     include Setup::Enum
     include Trackable
 
+    field :id, :type => String
     field :name, type: String
     field :purpose, type: String, default: :send
     field :active, type: Boolean
