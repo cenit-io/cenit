@@ -42,7 +42,7 @@ class User
   def self.find_or_create_for_doorkeeper_oauth(oauth_data)
     user = User.find_by(doorkeeper_uid: oauth_data.uid) || User.new(doorkeeper_uid: oauth_data.uid)
     user.email = oauth_data.info.email
-    user.save
+    user
   end
 
   def update_doorkeeper_credentials(oauth_data)

@@ -18,8 +18,7 @@ module Setup
     has_one :schedule, class_name: Setup::Schedule.name, inverse_of: :flow
     has_one :batch, class_name: Setup::Batch.name, inverse_of: :flow
 
-    belongs_to :connection_role, class_name: Setup::ConnectionRole.name
-    belongs_to :connection, class_name: Setup::Connection.name        
+    belongs_to :connection_role, class_name: Setup::ConnectionRole.name     
     belongs_to :data_type, class_name: Setup::DataType.name
     belongs_to :webhook, class_name: Setup::Webhook.name
     belongs_to :event, class_name: Setup::Event.name
@@ -39,10 +38,10 @@ module Setup
 
       xml_document = Nokogiri::XML(object.to_xml)
       hash = Hash.from_xml(xml_document.to_s)
-      if self.transformation && self.transformation.any?
-        hash = Flow.transform(self.transformation, hash)
-      else
+      if self.transformation.blank?
         puts 'No transformation applied'
+      else
+        hash = Flow.transform(self.transformation, hash)
       end
       process_json_data(hash.to_json, notification_id)
       puts "Flow processing on '#{self.name}' done!"
