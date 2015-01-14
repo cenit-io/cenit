@@ -37,7 +37,7 @@ module Cenit
 
       Setup::Schema.all.each do |schema|
         puts "Loading schema #{schema.uri}"
-        schema.load_models
+     #   schema.load_models
       end
     end
 
