@@ -18,7 +18,7 @@ class ImportSchemaData
 
       field :file do
         render do
-          bindings[:form].file_field(self.name, self.html_attributes.reverse_merge({ data: { fileupload: true }}))
+          bindings[:form].file_field(self.name, self.html_attributes.reverse_merge( data: { fileupload: true }))
         end
       end
 

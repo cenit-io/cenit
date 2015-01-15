@@ -1,7 +1,7 @@
 module Xsd
   class Element < TypedTag
 
-    tag 'xs:element'
+    tag 'element'
 
     attr_accessor :max_occurs
     attr_accessor :min_occurs
@@ -14,20 +14,27 @@ module Xsd
       @min_occurs = min_occurs ? min_occurs.to_i : 1
     end
 
-    def when_end_xs_simpleType(simpleType)
+    def when_simpleType_end(simpleType)
       @type = simpleType.type
     end
 
-    def when_end_xs_complexType(complexType)
+    def when_complexType_end(complexType)
       @type = complexType
     end
 
     def to_json_schema
-      json = {'title' => name.to_title, 'type' => 'object'}
+      json = {'title' => name.to_title, 'type' => 'object', 'edi' => {'segment' => name}}
       if @type
-        merge_json = @type.is_a?(ComplexType) ? @type.to_json_schema : {'properties' => {'value' => @type.to_json_schema}}
+        merge_json = if @type.is_a?(ComplexType)
+                       @type.to_json_schema
+                     else
+                       {'properties' => {'value' => @type.to_json_schema.merge('title' => 'Value')}}
+                     end
       else
-        merge_json = {'properties' => {'value' => qualify_type(type_name).to_json_schema}}
+        if (type_schema = qualify_type(type_name).to_json_schema)['$ref']
+          type_schema = type_schema['$ref']
+        end
+        merge_json = {'extends' => type_schema}
       end
       json.merge(merge_json)
     end

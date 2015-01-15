@@ -24,9 +24,18 @@ module RailsAdmin
           proc do
 
             if model = @abstract_model.model_name.constantize rescue nil
+              if data_type = model.data_type rescue nil
+                @model_label_plural = data_type.title.downcase.pluralize
+              else
+                @model_label_plural = @abstract_model.pretty_name.downcase.pluralize
+              end
               @total = model.all.size
               if params[:delete]
-                model.delete_all
+                if model.singleton_method(:before_destroy)
+                  model.all.each { |obj| obj.destroy }
+                else
+                  model.delete_all
+                end
                 flash[:success] = "#{@total} #{@abstract_model.pretty_name.downcase.pluralize} successfully deleted"
                 redirect_to back_or_index
               end

@@ -22,15 +22,16 @@ module RailsAdmin
         register_instance_option :controller do
           proc do
             if model = @object.model
-              flash[:notice] = "Model #{@object.name} is already loaded!"
+              flash[:notice] = "Model #{@object.title} is already loaded!"
             else
               begin
                 @object.auto_load_model = @object.activated =  @object.show_navigation_link = true
                 @object.save
-                RailsAdmin::AbstractModel.model_loaded( @object.load_models)
-                flash[:success] = "Model #{@object.name} loaded!"
+                RailsAdmin::AbstractModel.model_loaded(@object.load_models[:loaded])
+                flash[:success] = "Model #{@object.title} loaded!"
               rescue Exception => ex
-                flash[:error] = "Error loading model #{@object.name}: #{ex.message}"
+                raise ex
+                flash[:error] = "Error loading model #{@object.title}: #{ex.message}"
               end
             end
             redirect_to rails_admin.show_path(model_name: Setup::DataType.to_s.underscore, id: @object.id)
