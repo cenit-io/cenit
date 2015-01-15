@@ -5,7 +5,7 @@ module EDI
     def to_edi(options={})
       options[:field_separator] ||= '*'
       record_to_edi(data_type = self.data_type, options, JSON.parse(data_type.schema), self, output =[])
-      output.reverse.join(options[:segment_separator] || "\r\n")
+      output.join(options[:segment_separator] || "\r\n")
     end
 
     def to_json(include_root)

@@ -128,771 +128,715 @@ module Setup
       if (base_sch = sch.delete('extends')) && base_sch = find_ref_schema(base_sch)
         sch = base_sch.deep_merge(sch) { |key, val1, val2| array_sum(val1, val2) }
       end
+      sch
     end
 
-    return sch
-  end
-
-  def merge_schema(schema, options={})
-    if schema['allOf'] || schema['$ref']
-      sch = {}
-      schema.each do |key, value|
-        if key == 'allOf'
-          value.each do |combined_sch|
-            if (ref = combined_sch['$ref']) && (ref = find_ref_schema(ref))
-              combined_sch = ref
+    def merge_schema(schema, options={})
+      if schema['allOf'] || schema['$ref']
+        sch = {}
+        schema.each do |key, value|
+          if key == 'allOf'
+            value.each do |combined_sch|
+              if (ref = combined_sch['$ref']) && (ref = find_ref_schema(ref))
+                combined_sch = ref
+              end
+              sch = sch.deep_merge(combined_sch) { |key, val1, val2| array_sum(val1, val2) }
             end
-            sch = sch.deep_merge(combined_sch) { |key, val1, val2| array_sum(val1, val2) }
-          end
-        elsif key == '$ref' && ref = find_ref_schema(value)
-          sch = sch.deep_merge(ref) { |key, val1, val2| array_sum(val1, val2) }
-        else
-          sch[key] = value
-        end
-      end
-      schema = sch
-    end
-    schema.each { |key, val| schema[key] = merge_schema(val, options) if val.is_a?(Hash) } if options[:recursive]
-    if options[:extends] && base_model = schema['extends']
-      base_model = find_ref_schema(base_model) if base_model.is_a?(String)
-      base_model = merge_schema(base_model)
-      if schema['type'] == 'object' && base_model['type'] != 'object'
-        schema['properties'] ||= {}
-        value_schema = schema['properties']['value'] || {}
-        value_schema = base_model.deep_merge(value_schema)
-        schema['properties']['value'] = value_schema.merge('title' => 'Value')
-        base_model = nil
-      else
-        schema = base_model.deep_merge(schema) do |key, val1, val2|
-          val1.is_a?(Array) && val2.is_a?(Array) ? val1 + val2 : val2
-        end
-      end
-    end
-    schema
-  end
-
-  def self.find_by_ref(ref)
-    data_type DataType.find_by(name: ref) rescue nil
-  end
-
-  def find_data_type(ref)
-    (self.uri.library && self.uri.library.find_data_type_by_name(ref)) || DataType.find_by_ref(ref)
-  end
-
-  def find_ref_schema(ref)
-    if data_type = find_data_type(ref)
-      JSON.parse(data_type.schema)
-    else
-      nil
-    end
-  end
-
-  private
-
-  def merge_report(report, in_to)
-    in_to.deep_merge!(report) { |key, this_val, other_val| this_val + other_val }
-  end
-
-  def validate_model
-    begin
-      puts "Validating schema '#{self.name}'"
-      json_schema = validate_schema
-      self.title = json_schema['title'] || self.name if self.title.blank?
-      puts "Schema '#{self.name}' validation successful!"
-    rescue Exception => ex
-      puts "ERROR: #{errors.add(:schema, ex.message).to_s}"
-      return false
-    end
-    begin
-      if self.sample_data && !self.sample_data.blank?
-        puts 'Validating sample data...'
-        Cenit::JSONSchemaValidator.validate!(self.schema, self.sample_data)
-        puts 'Sample data validation successfully!'
-      end
-    rescue Exception => ex
-      puts "ERROR: #{errors.add(:sample_data, "fails schema validation: #{ex.message} (#{ex.class})").to_s}"
-      return false
-    end
-    return true
-  end
-
-  def schema_has_changed?
-    self.previous_schema ? JSON.parse(self.previous_schema) != JSON.parse(self.schema) : true
-  end
-
-  def previous_schema_ok?
-    self.schema_ok
-  end
-
-  def set_schema_ok
-    self.schema_ok = true
-    verify_schema_ok
-  end
-
-  def verify_schema_ok
-    self.previous_schema = self.schema if previous_schema_ok?
-  end
-
-  def deconstantize(constant_name, options={})
-    report = {:destroyed => Set.new, :affected => Set.new}.merge(options)
-    if constant = constant_name.constantize rescue nil
-      if constant.is_a?(Class)
-        deconstantize_class(constant, report)
-      else
-        if affected_models = constant[:affected]
-          affected_models.each { |model| deconstantize_class(model, report, :affected) }
-        end
-      end
-    end
-    report
-  end
-
-  def deconstantize_class(klass, report={:destroyed => Set.new, :affected => Set.new}, affected=nil)
-    return report unless klass.is_a?(Module) || klass == Object
-    affected = nil if report[:shutdown_all]
-    if !affected && report[:affected].include?(klass)
-      report[:affected].delete(klass)
-      report[:destroyed] << klass
-    end
-    return report if report[:destroyed].include?(klass) || report[:affected].include?(klass)
-    return report unless @@parsed_schemas.include?(klass.to_s) || @@parsing_schemas.include?(klass)
-    parent = klass.parent
-    affected = nil if report[:destroyed].include?(parent)
-    puts "Reporting #{affected ? 'affected' : 'destroyed'} class #{klass.to_s} -> #{klass.schema_name rescue klass.to_s}" #" is #{affected ? 'affected' : 'in tree'} -> #{report.to_s}"
-    (affected ? report[:affected] : report[:destroyed]) << klass
-
-    unless report[:report_only] || affected
-      @@parsed_schemas.delete(klass.to_s)
-      @@parsing_schemas.delete(klass)
-      [@@has_many_to_bind,
-       @@has_one_to_bind,
-       @@embeds_many_to_bind,
-       @@embeds_one_to_bind].each { |to_bind| delete_pending_bindings(to_bind, klass) }
-    end
-
-    klass.constants(false).each do |const_name|
-      if klass.const_defined?(const_name, false)
-        const = klass.const_get(const_name, false)
-        deconstantize_class(const, report, affected) if const.is_a?(Class)
-      end
-    end
-    #[:embeds_one, :embeds_many, :embedded_in].each do |rk|
-    [:embedded_in].each do |rk|
-      begin
-        klass.reflect_on_all_associations(rk).each do |r|
-          unless report[:destroyed].include?(r.klass) || report[:affected].include?(r.klass)
-            deconstantize_class(r.klass, report, :affected)
-          end
-        end
-      rescue
-      end
-    end
-    # relations affects if their are reflected back
-    {[:embeds_one, :embeds_many] => [:embedded_in],
-     [:belongs_to] => [:has_one, :has_many],
-     [:has_one, :has_many] => [:belongs_to],
-     [:has_and_belongs_to_many] => [:has_and_belongs_to_many]}.each do |rks, rkbacks|
-      rks.each do |rk|
-        klass.reflect_on_all_associations(rk).each do |r|
-          rkbacks.each do |rkback|
-            unless report[:destroyed].include?(r.klass) || report[:affected].include?(r.klass)
-              deconstantize_class(r.klass, report, :affected) if r.klass.reflect_on_all_associations(rkback).detect { |r| r.klass.eql?(klass) }
-            end
-          end
-        end
-      end
-    end
-    klass.affected_models.each { |m| deconstantize_class(m, report, :affected) }
-    deconstantize_class(parent, report, affected) if affected
-    report
-  end
-
-  def delete_pending_bindings(to_bind, model)
-    to_bind.delete_if { |property_type, _| property_type.eql?(model.to_s) }
-    #to_bind.each { |property_type, a| a.delete_if { |x| x[0].eql?(model.to_s) } }
-  end
-
-  def validate_schema
-    # check_type_name(self.name)
-    JSON::Validator.validate!(File.read(File.dirname(__FILE__) + '/schema.json'), self.schema)
-    json = JSON.parse(self.schema, :object_class => MultKeyHash)
-    if json['type'] == 'object'
-      check_schema(json, self.name, defined_types=[], embedded_refs=[])
-      embedded_refs = embedded_refs.uniq.collect { |ref| self.name + ref }
-      puts "Defined types #{defined_types.to_s}"
-      puts "Embedded references #{embedded_refs.to_s}"
-      embedded_refs.each { |ref| raise Exception.new(" embedded reference #/#{ref.underscore} is not defined") unless defined_types.include?(ref) }
-    end
-    return json
-  end
-
-  def check_schema(json, name, defined_types, embedded_refs)
-    if ref=json['$ref']
-      embedded_refs << check_embedded_ref(ref) if ref.start_with?('#')
-    elsif json['type'].nil? || json['type'].eql?('object')
-      raise Exception.new("defines multiple properties with name '#{json.mult_key_def.first.to_s}'") unless json.mult_key_def.blank?
-      defined_types << name
-      check_definitions(json, name, defined_types, embedded_refs)
-      if properties=json['properties']
-        raise Exception.new('properties specification is invalid') unless properties.is_a?(MultKeyHash)
-        raise Exception.new("defines multiple properties with name '#{properties.mult_key_def.first.to_s}'") unless properties.mult_key_def.blank?
-        properties.each do |property_name, property_spec|
-          check_property_name(property_name)
-          raise Exception.new("specification of property '#{property_name}' is not valid") unless property_spec.is_a?(Hash)
-          if defined_types.include?(camelized_property_name = "#{name}::#{property_name.camelize}") && !(property_spec['$ref'] || 'object'.eql?(property_spec['type']))
-            raise Exception.new("'#{name.underscore}' already defines #{property_name} (use #/[definitions|properties]/#{property_name} instead)")
-          end
-          check_schema(property_spec, camelized_property_name, defined_types, embedded_refs)
-        end
-      end
-      check_requires(json)
-    end
-  end
-
-  def check_embedded_ref(ref, root_name='')
-    raise Exception.new("invalid format for embedded reference #{ref}") unless ref =~ /\A#(\/[a-z]+(_|([0-9]|[a-z])+)*)*\Z/
-    raise Exception.new("embedding itself (referencing '#')") if ref.eql?('#')
-    tokens = ref.split('/')
-    tokens.shift
-    type = root_name
-    while !tokens.empty?
-      token = tokens.shift
-      raise Exception.new("use invalid embedded reference path '#{ref}'") unless %w{properties definitions}.include?(token) && !tokens.empty?
-      token = tokens.shift
-      type = "#{type}::#{token.camelize}"
-    end
-    return type
-  end
-
-  def check_requires(json)
-    properties=json['properties']
-    if required = json['required']
-      if required.is_a?(Array)
-        required.each do |property|
-          if property.is_a?(String)
-            raise Exception.new("requires undefined property '#{property.to_s}'") unless properties && properties[property]
+          elsif key == '$ref' && ref = find_ref_schema(value)
+            sch = sch.deep_merge(ref) { |key, val1, val2| array_sum(val1, val2) }
           else
-            raise Exception.new("required item \'#{property.to_s}\' is not a property name (string)")
+            sch[key] = value
           end
         end
+        schema = sch
+      end
+      schema.each { |key, val| schema[key] = merge_schema(val, options) if val.is_a?(Hash) } if options[:recursive]
+      options[:expand_extends] = true if options[:expand_extends].nil?
+      if options[:expand_extends] && base_model = schema['extends']
+        base_model = find_ref_schema(base_model) if base_model.is_a?(String)
+        base_model = merge_schema(base_model)
+        if schema['type'] == 'object' && base_model['type'] != 'object'
+          schema['properties'] ||= {}
+          value_schema = schema['properties']['value'] || {}
+          value_schema = base_model.deep_merge(value_schema)
+          schema['properties']['value'] = value_schema.merge('title' => 'Value')
+          base_model = nil
+        else
+          schema = base_model.deep_merge(schema) do |key, val1, val2|
+            val1.is_a?(Array) && val2.is_a?(Array) ? val1 + val2 : val2
+          end
+        end
+      end
+      schema
+    end
+
+    def self.find_by_ref(ref)
+      data_type DataType.find_by(name: ref) rescue nil
+    end
+
+    def find_data_type(ref)
+      (self.uri.library && self.uri.library.find_data_type_by_name(ref)) || DataType.find_by_ref(ref)
+    end
+
+    def find_ref_schema(ref)
+      if data_type = find_data_type(ref)
+        JSON.parse(data_type.schema)
       else
-        raise Exception.new('required clause is not an array')
+        nil
       end
     end
-  end
 
-  def check_definitions(json, parent, defined_types, embedded_refs)
-    raise Exception.new("multiples definitions with name '#{json.mult_key_def.first.to_s}'") unless json.mult_key_def.blank?
-    if defs=json['definitions']
-      raise Exception.new('definitions format is invalid') unless defs.is_a?(MultKeyHash)
-      raise Exception.new("multiples definitions with name '#{defs.mult_key_def.first.to_s}'") unless defs.mult_key_def.blank?
-      defs.each do |def_name, def_spec|
-        raise Exception.new("type definition '#{def_name}' is not an object type") unless def_spec.is_a?(Hash) && (def_spec['type'].nil? || def_spec['type'].eql?('object'))
-        check_definition_name(def_name)
-        raise Exception.new("'#{parent.underscore}/#{def_name}' definition is declared as a reference (use the reference instead)") if def_spec['$ref']
-        raise Exception.new("'#{parent.underscore}' already defines #{def_name}") if defined_types.include?(camelized_def_name = "#{parent}::#{def_name.camelize}")
-        check_schema(def_spec, camelized_def_name, defined_types, embedded_refs)
+    private
+
+    def merge_report(report, in_to)
+      in_to.deep_merge!(report) { |key, this_val, other_val| this_val + other_val }
+    end
+
+    def validate_model
+      begin
+        puts "Validating schema '#{self.name}'"
+        json_schema = validate_schema
+        self.title = json_schema['title'] || self.name if self.title.blank?
+        puts "Schema '#{self.name}' validation successful!"
+      rescue Exception => ex
+        puts "ERROR: #{errors.add(:schema, ex.message).to_s}"
+        return false
+      end
+      begin
+        if self.sample_data && !self.sample_data.blank?
+          puts 'Validating sample data...'
+          Cenit::JSONSchemaValidator.validate!(self.schema, self.sample_data)
+          puts 'Sample data validation successfully!'
+        end
+      rescue Exception => ex
+        puts "ERROR: #{errors.add(:sample_data, "fails schema validation: #{ex.message} (#{ex.class})").to_s}"
+        return false
+      end
+      return true
+    end
+
+    def schema_has_changed?
+      self.previous_schema ? JSON.parse(self.previous_schema) != JSON.parse(self.schema) : true
+    end
+
+    def previous_schema_ok?
+      self.schema_ok
+    end
+
+    def set_schema_ok
+      self.schema_ok = true
+      verify_schema_ok
+    end
+
+    def verify_schema_ok
+      self.previous_schema = self.schema if previous_schema_ok?
+    end
+
+    def deconstantize(constant_name, options={})
+      report = {:destroyed => Set.new, :affected => Set.new}.merge(options)
+      if constant = constant_name.constantize rescue nil
+        if constant.is_a?(Class)
+          deconstantize_class(constant, report)
+        else
+          if affected_models = constant[:affected]
+            affected_models.each { |model| deconstantize_class(model, report, :affected) }
+          end
+        end
+      end
+      report
+    end
+
+    def deconstantize_class(klass, report={:destroyed => Set.new, :affected => Set.new}, affected=nil)
+      return report unless klass.is_a?(Module) || klass == Object
+      affected = nil if report[:shutdown_all]
+      if !affected && report[:affected].include?(klass)
+        report[:affected].delete(klass)
+        report[:destroyed] << klass
+      end
+      return report if report[:destroyed].include?(klass) || report[:affected].include?(klass)
+      return report unless @@parsed_schemas.include?(klass.to_s) || @@parsing_schemas.include?(klass)
+      parent = klass.parent
+      affected = nil if report[:destroyed].include?(parent)
+      puts "Reporting #{affected ? 'affected' : 'destroyed'} class #{klass.to_s} -> #{klass.schema_name rescue klass.to_s}" #" is #{affected ? 'affected' : 'in tree'} -> #{report.to_s}"
+      (affected ? report[:affected] : report[:destroyed]) << klass
+
+      unless report[:report_only] || affected
+        @@parsed_schemas.delete(klass.to_s)
+        @@parsing_schemas.delete(klass)
+        [@@has_many_to_bind,
+         @@has_one_to_bind,
+         @@embeds_many_to_bind,
+         @@embeds_one_to_bind].each { |to_bind| delete_pending_bindings(to_bind, klass) }
+      end
+
+      klass.constants(false).each do |const_name|
+        if klass.const_defined?(const_name, false)
+          const = klass.const_get(const_name, false)
+          deconstantize_class(const, report, affected) if const.is_a?(Class)
+        end
+      end
+      #[:embeds_one, :embeds_many, :embedded_in].each do |rk|
+      [:embedded_in].each do |rk|
+        begin
+          klass.reflect_on_all_associations(rk).each do |r|
+            unless report[:destroyed].include?(r.klass) || report[:affected].include?(r.klass)
+              deconstantize_class(r.klass, report, :affected)
+            end
+          end
+        rescue
+        end
+      end
+      # relations affects if their are reflected back
+      {[:embeds_one, :embeds_many] => [:embedded_in],
+       [:belongs_to] => [:has_one, :has_many],
+       [:has_one, :has_many] => [:belongs_to],
+       [:has_and_belongs_to_many] => [:has_and_belongs_to_many]}.each do |rks, rkbacks|
+        rks.each do |rk|
+          klass.reflect_on_all_associations(rk).each do |r|
+            rkbacks.each do |rkback|
+              unless report[:destroyed].include?(r.klass) || report[:affected].include?(r.klass)
+                deconstantize_class(r.klass, report, :affected) if r.klass.reflect_on_all_associations(rkback).detect { |r| r.klass.eql?(klass) }
+              end
+            end
+          end
+        end
+      end
+      klass.affected_models.each { |m| deconstantize_class(m, report, :affected) }
+      deconstantize_class(parent, report, affected) if affected
+      report
+    end
+
+    def delete_pending_bindings(to_bind, model)
+      to_bind.delete_if { |property_type, _| property_type.eql?(model.to_s) }
+      #to_bind.each { |property_type, a| a.delete_if { |x| x[0].eql?(model.to_s) } }
+    end
+
+    def validate_schema
+      # check_type_name(self.name)
+      JSON::Validator.validate!(File.read(File.dirname(__FILE__) + '/schema.json'), self.schema)
+      json = JSON.parse(self.schema, :object_class => MultKeyHash)
+      if json['type'] == 'object'
+        check_schema(json, self.name, defined_types=[], embedded_refs=[])
+        embedded_refs = embedded_refs.uniq.collect { |ref| self.name + ref }
+        puts "Defined types #{defined_types.to_s}"
+        puts "Embedded references #{embedded_refs.to_s}"
+        embedded_refs.each { |ref| raise Exception.new(" embedded reference #/#{ref.underscore} is not defined") unless defined_types.include?(ref) }
+      end
+      return json
+    end
+
+    def check_schema(json, name, defined_types, embedded_refs)
+      if ref=json['$ref']
+        embedded_refs << check_embedded_ref(ref) if ref.start_with?('#')
+      elsif json['type'].nil? || json['type'].eql?('object')
+        raise Exception.new("defines multiple properties with name '#{json.mult_key_def.first.to_s}'") unless json.mult_key_def.blank?
+        defined_types << name
+        check_definitions(json, name, defined_types, embedded_refs)
+        if properties=json['properties']
+          raise Exception.new('properties specification is invalid') unless properties.is_a?(MultKeyHash)
+          raise Exception.new("defines multiple properties with name '#{properties.mult_key_def.first.to_s}'") unless properties.mult_key_def.blank?
+          properties.each do |property_name, property_spec|
+            check_property_name(property_name)
+            raise Exception.new("specification of property '#{property_name}' is not valid") unless property_spec.is_a?(Hash)
+            if defined_types.include?(camelized_property_name = "#{name}::#{property_name.camelize}") && !(property_spec['$ref'] || 'object'.eql?(property_spec['type']))
+              raise Exception.new("'#{name.underscore}' already defines #{property_name} (use #/[definitions|properties]/#{property_name} instead)")
+            end
+            check_schema(property_spec, camelized_property_name, defined_types, embedded_refs)
+          end
+        end
+        check_requires(json)
       end
     end
-  end
 
-  def check_type_name(type_name)
-    type_name = type_name.underscore.camelize
-    # unless @@parsed_schemas.include?(model = type_name.constantize) || @@parsing_schemas.include?(model)
-    #   raise Exception.new ("using type name '#{type_name}'is invalid")
-    # end
-  end
+    def check_embedded_ref(ref, root_name='')
+      raise Exception.new("invalid format for embedded reference #{ref}") unless ref =~ /\A#(\/[a-z]+(_|([0-9]|[a-z])+)*)*\Z/
+      raise Exception.new("embedding itself (referencing '#')") if ref.eql?('#')
+      tokens = ref.split('/')
+      tokens.shift
+      type = root_name
+      while !tokens.empty?
+        token = tokens.shift
+        raise Exception.new("use invalid embedded reference path '#{ref}'") unless %w{properties definitions}.include?(token) && !tokens.empty?
+        token = tokens.shift
+        type = "#{type}::#{token.camelize}"
+      end
+      return type
+    end
 
-  def check_definition_name(def_name)
-    #raise Exception.new("definition name '#{def_name}' is not valid") unless def_name =~ /\A([A-Z]|[a-z])+(_|([0-9]|[a-z]|[A-Z])+)*\Z/
-    raise Exception.new("definition name '#{def_name}' is not valid") unless def_name =~ /\A[a-z]+(_|([0-9]|[a-z])+)*\Z/
-  end
+    def check_requires(json)
+      properties=json['properties']
+      if required = json['required']
+        if required.is_a?(Array)
+          required.each do |property|
+            if property.is_a?(String)
+              raise Exception.new("requires undefined property '#{property.to_s}'") unless properties && properties[property]
+            else
+              raise Exception.new("required item \'#{property.to_s}\' is not a property name (string)")
+            end
+          end
+        else
+          raise Exception.new('required clause is not an array')
+        end
+      end
+    end
 
-  def check_property_name(property_name)
-    #raise Exception.new("property name '#{property_name}' is invalid") unless property_name =~ /\A[a-z]+(_|([0-9]|[a-z])+)*\Z/
-  end
+    def check_definitions(json, parent, defined_types, embedded_refs)
+      raise Exception.new("multiples definitions with name '#{json.mult_key_def.first.to_s}'") unless json.mult_key_def.blank?
+      if defs=json['definitions']
+        raise Exception.new('definitions format is invalid') unless defs.is_a?(MultKeyHash)
+        raise Exception.new("multiples definitions with name '#{defs.mult_key_def.first.to_s}'") unless defs.mult_key_def.blank?
+        defs.each do |def_name, def_spec|
+          raise Exception.new("type definition '#{def_name}' is not an object type") unless def_spec.is_a?(Hash) && (def_spec['type'].nil? || def_spec['type'].eql?('object'))
+          check_definition_name(def_name)
+          raise Exception.new("'#{parent.underscore}/#{def_name}' definition is declared as a reference (use the reference instead)") if def_spec['$ref']
+          raise Exception.new("'#{parent.underscore}' already defines #{def_name}") if defined_types.include?(camelized_def_name = "#{parent}::#{def_name.camelize}")
+          check_schema(def_spec, camelized_def_name, defined_types, embedded_refs)
+        end
+      end
+    end
 
-  RJSON_MAP={'string' => 'String',
-             'integer' => 'Integer',
-             'number' => 'Float',
-             'string' => 'String',
-             'array' => 'Array',
-             'boolean' => 'Boolean',
-             'date' => 'Date',
-             'time' => 'Time',
-             'date-time' => 'DateTime'}
+    def check_type_name(type_name)
+      type_name = type_name.underscore.camelize
+      # unless @@parsed_schemas.include?(model = type_name.constantize) || @@parsing_schemas.include?(model)
+      #   raise Exception.new ("using type name '#{type_name}'is invalid")
+      # end
+    end
 
-  MONGO_TYPES= %w{Array BigDecimal Boolean Date DateTime Float Hash Integer Range String Symbol Time}
+    def check_definition_name(def_name)
+      #raise Exception.new("definition name '#{def_name}' is not valid") unless def_name =~ /\A([A-Z]|[a-z])+(_|([0-9]|[a-z]|[A-Z])+)*\Z/
+      raise Exception.new("definition name '#{def_name}' is not valid") unless def_name =~ /\A[a-z]+(_|([0-9]|[a-z])+)*\Z/
+    end
 
-  @@pending_bindings
-  @@has_many_to_bind = Hash.new { |h, k| h[k]=[] }
-  @@has_one_to_bind = Hash.new { |h, k| h[k]=[] }
-  @@embeds_many_to_bind = Hash.new { |h, k| h[k]=[] }
-  @@embeds_one_to_bind = Hash.new { |h, k| h[k]=[] }
-  @@parsing_schemas = Set.new
-  @@parsed_schemas = Set.new
+    def check_property_name(property_name)
+      #raise Exception.new("property name '#{property_name}' is invalid") unless property_name =~ /\A[a-z]+(_|([0-9]|[a-z])+)*\Z/
+    end
 
-  def reflect_constant(name, value=nil, parent=nil, base_class=Object)
+    RJSON_MAP={'string' => 'String',
+               'integer' => 'Integer',
+               'number' => 'Float',
+               'string' => 'String',
+               'array' => 'Array',
+               'boolean' => 'Boolean',
+               'date' => 'Date',
+               'time' => 'Time',
+               'date-time' => 'DateTime'}
 
-    model_name = (parent ? "#{parent.to_s}::" : '') + name
-    do_not_create = value == :do_not_create
-    tokens = name.split('::')
-    constant_name = tokens.pop
+    MONGO_TYPES= %w{Array BigDecimal Boolean Date DateTime Float Hash Integer Range String Symbol Time}
 
-    base_class ||= Object
-    raise Exception.new("illegal base class #{base_class} for build in constant #{constant_name}") if MONGO_TYPES.include?(constant_name) && base_class != Object
+    @@pending_bindings
+    @@has_many_to_bind = Hash.new { |h, k| h[k]=[] }
+    @@has_one_to_bind = Hash.new { |h, k| h[k]=[] }
+    @@embeds_many_to_bind = Hash.new { |h, k| h[k]=[] }
+    @@embeds_one_to_bind = Hash.new { |h, k| h[k]=[] }
+    @@parsing_schemas = Set.new
+    @@parsed_schemas = Set.new
 
-    parent ||= Object
+    def reflect_constant(name, value=nil, parent=nil, base_class=Object)
 
-    tokens.each do |token|
-      if parent.const_defined?(token, false)
-        parent = parent.const_get(token)
-        raise "uses illegal constant #{parent.to_s}" unless @@parsing_schemas.include?(parent) || @@parsed_schemas.include?(parent.to_s) #|| parent == self.uri.library.module
+      model_name = (parent ? "#{parent.to_s}::" : '') + name
+      do_not_create = value == :do_not_create
+      tokens = name.split('::')
+      constant_name = tokens.pop
+
+      base_class ||= Object
+      raise Exception.new("illegal base class #{base_class} for build in constant #{constant_name}") if MONGO_TYPES.include?(constant_name) && base_class != Object
+
+      parent ||= Object
+
+      tokens.each do |token|
+        if parent.const_defined?(token, false)
+          parent = parent.const_get(token)
+          raise "uses illegal constant #{parent.to_s}" unless @@parsing_schemas.include?(parent) || @@parsed_schemas.include?(parent.to_s) #|| parent == self.uri.library.module
+        else
+          return nil if do_not_create
+          new_m = Class.new
+          parent.const_set(token, new_m)
+          parent = new_m
+        end
+      end
+
+      if parent.const_defined?(constant_name, false)
+        c = parent.const_get(constant_name)
+        raise "uses illegal constant #{c.to_s}" unless @@parsed_schemas.include?(model_name) || (c.is_a?(Class) && @@parsing_schemas.include?(c))
       else
         return nil if do_not_create
-        new_m = Class.new
-        parent.const_set(token, new_m)
-        parent = new_m
+        c = Class.new(base_class) unless c = value
+        parent.const_set(constant_name, c)
       end
-    end
-
-    if parent.const_defined?(constant_name, false)
-      c = parent.const_get(constant_name)
-      raise "uses illegal constant #{c.to_s}" unless @@parsed_schemas.include?(model_name) || (c.is_a?(Class) && @@parsing_schemas.include?(c))
-    else
-      return nil if do_not_create
-      c = Class.new(base_class) unless c = value
-      parent.const_set(constant_name, c)
-    end
-    unless do_not_create
-      if c.is_a?(Class)
-        puts "schema_name -> #{schema_name = (parent == Object ? self.name : parent.schema_name + '::' + constant_name)}"
-        c.class_eval("def self.schema_name
+      unless do_not_create
+        if c.is_a?(Class)
+          puts "schema_name -> #{schema_name = (parent == Object ? self.name : parent.schema_name + '::' + constant_name)}"
+          c.class_eval("def self.schema_name
             '#{schema_name}'
           end")
-        puts "Created model #{c.schema_name} < #{base_class.to_s}"
-        DataType.to_include_in_models.each do |module_to_include|
-          unless c.include?(module_to_include)
-            puts "#{c.to_s} including #{module_to_include.to_s}."
-            c.include(module_to_include)
+          puts "Created model #{c.schema_name} < #{base_class.to_s}"
+          DataType.to_include_in_models.each do |module_to_include|
+            unless c.include?(module_to_include)
+              puts "#{c.to_s} including #{module_to_include.to_s}."
+              c.include(module_to_include)
+            end
           end
-        end
-        DataType.to_include_in_model_classes.each do |module_to_include|
-          unless c.class.include?(module_to_include)
-            puts "#{c.to_s} class including #{module_to_include.to_s}."
-            c.class.include(module_to_include)
+          DataType.to_include_in_model_classes.each do |module_to_include|
+            unless c.class.include?(module_to_include)
+              puts "#{c.to_s} class including #{module_to_include.to_s}."
+              c.class.include(module_to_include)
+            end
           end
-        end
-        reflect(c, "def self.data_type_id
+          reflect(c, "def self.data_type_id
             '#{self.id}'
           end")
-      else
-        @@parsed_schemas << name
-        puts "Created constant #{constant_name}"
-      end
-    end
-    return c
-  end
-
-  def parse_str_schema(report, str_schema)
-    parse_schema(report, data_type_name, JSON.parse(str_schema), nil)
-  end
-
-  def parse_schema(report, model_name, schema, root = nil, parent=nil, embedded=nil, schema_path='')
-
-    schema = merge_schema(schema)
-
-    if base_model = schema['extends']
-      base_model = find_or_load_model(report, base_model) if base_model.is_a?(String)
-      raise Exception.new("requires base model #{schema['extends']} to be already loaded") unless base_model
-    end
-
-    unless base_model.nil? || base_model.is_a?(Class)
-      #Should be a schema, i.e, a Hash
-      if schema['type'] == 'object' && merge_schema(base_model)['type'] != 'object'
-        schema['properties'] ||= {}
-        value_schema = schema['properties']['value'] || {}
-        value_schema = base_model.deep_merge(value_schema)
-        schema['properties']['value'] = value_schema.merge('title' => 'Value')
-        base_model = nil
-      else
-        schema = base_model.deep_merge(schema) do |key, val1, val2|
-          val1.is_a?(Array) && val2.is_a?(Array) ? val1 + val2 : val2
+        else
+          @@parsed_schemas << name
+          puts "Created constant #{constant_name}"
         end
       end
+      return c
     end
 
-    klass = reflect_constant(model_name, (schema['type'] == 'object' || base_model.is_a?(Class)) ? nil : schema, parent, base_model)
-
-    nested = []
-    enums = {}
-    validations = []
-    required = schema['required'] || []
-
-    unless klass.is_a?(Class)
-      check_pending_binds(report, model_name, klass, root)
-      return klass
+    def parse_str_schema(report, str_schema)
+      parse_schema(report, data_type_name, JSON.parse(str_schema), nil)
     end
 
-    model_name = klass.to_s
-    reflect(klass, "def self.title
+    def parse_schema(report, model_name, schema, root = nil, parent=nil, embedded=nil, schema_path='')
+
+      schema = merge_schema(schema, expand_extends: false)
+
+      if base_model = schema['extends']
+        base_model = find_or_load_model(report, base_model) if base_model.is_a?(String)
+        raise Exception.new("requires base model #{schema['extends']} to be already loaded") unless base_model
+      end
+
+      unless base_model.nil? || base_model.is_a?(Class)
+        #Should be a schema, i.e, a Hash
+        if schema['type'] == 'object' && merge_schema(base_model)['type'] != 'object'
+          schema['properties'] ||= {}
+          value_schema = schema['properties']['value'] || {}
+          value_schema = base_model.deep_merge(value_schema)
+          schema['properties']['value'] = value_schema.merge('title' => 'Value')
+          base_model = nil
+        else
+          schema = base_model.deep_merge(schema) do |key, val1, val2|
+            val1.is_a?(Array) && val2.is_a?(Array) ? val1 + val2 : val2
+          end
+        end
+      end
+
+      klass = reflect_constant(model_name, (schema['type'] == 'object' || base_model.is_a?(Class)) ? nil : schema, parent, base_model)
+
+      nested = []
+      enums = {}
+      validations = []
+      required = schema['required'] || []
+
+      unless klass.is_a?(Class)
+        check_pending_binds(report, model_name, klass, root)
+        return klass
+      end
+
+      model_name = klass.to_s
+      reflect(klass, "def self.title
         '#{schema['title']}'
       end
       def self.schema_path
         '#{schema_path}'
       end")
 
-    begin
-      root ||= klass
-      @@parsing_schemas << klass
-      if @@parsed_schemas.include?(klass.to_s)
-        puts "Model #{klass.to_s} already parsed"
-        return klass
-      end
-
-      #reflect(klass, "embedded_in :#{relation_name(parent)}, class_name: \'#{parent.to_s}\'") if parent && embedded
-      klass.affects_to(parent) unless parent.nil? || parent.is_a?(Module) || parent == Object
-
-      puts "Parsing #{klass.schema_name}"
-
-      if definitions = schema['definitions']
-        definitions.each do |def_name, def_desc|
-          def_name = def_name.camelize
-          puts 'Defining ' + def_name
-          parse_schema(report, def_name, def_desc, root ? root : klass, klass, schema_path + "/#{definitions}/#{def_name}")
+      begin
+        root ||= klass
+        @@parsing_schemas << klass
+        if @@parsed_schemas.include?(klass.to_s)
+          puts "Model #{klass.to_s} already parsed"
+          return klass
         end
-      end
 
-      if properties=schema['properties']
-        raise Exception.new('properties definition is invalid') unless properties.is_a?(Hash)
-        schema['properties'].each do |property_name, property_desc|
-          raise Exception.new("property '#{property_name}' definition is invalid") unless property_desc.is_a?(Hash)
-          check_property_name(property_name)
-          v = nil
-          still_trying = true
-          referenced = property_desc['referenced']
+        #reflect(klass, "embedded_in :#{relation_name(parent)}, class_name: \'#{parent.to_s}\'") if parent && embedded
+        klass.affects_to(parent) unless parent.nil? || parent.is_a?(Module) || parent == Object
 
-          while still_trying && ref = property_desc['$ref'] # property type is a reference
-            still_trying = false
-            if ref.start_with?('#') # an embedded reference
-              raise Exception.new("referencing embedded reference #{ref}") if referenced
-              property_type = check_embedded_ref(ref, root.to_s)
-              if @@parsed_schemas.detect { |m| m.eql?(property_type) }
-                if type_model = reflect_constant(property_type, :do_not_create)
-                  v = "embeds_one :#{property_name}, class_name: \'#{type_model.to_s}\'"
-                  #reflect(type_model, "embedded_in :#{relation_name(model_name)}, class_name: \'#{model_name}\'")
-                  type_model.affects_to(klass)
-                  nested << property_name
-                else
-                  raise Exception.new("refers to an invalid JSON reference '#{ref}'")
-                end
-              else
-                puts "#{klass.to_s}  Waiting[3] for parsing #{property_type} to bind property #{property_name}"
-                @@embeds_one_to_bind[model_name] << [property_type, property_name]
-              end
-            else # external reference
-              if MONGO_TYPES.include?(ref)
-                v = "field :#{property_name}, type: #{ref}"
-              else
-                # ref = check_type_name(ref)
-                if type_model = (find_or_load_model(report, ref) || reflect_constant(ref, :do_not_create))
-                  if type_model.is_a?(Hash)
-                    property_desc.delete('$ref')
-                    property_desc = property_desc.merge(type_model)
-                    bind_affect_to_relation(type_model, klass)
-                    still_trying = true
+        puts "Parsing #{klass.schema_name}"
+
+        if definitions = schema['definitions']
+          definitions.each do |def_name, def_desc|
+            def_name = def_name.camelize
+            puts 'Defining ' + def_name
+            parse_schema(report, def_name, def_desc, root ? root : klass, klass, schema_path + "/#{definitions}/#{def_name}")
+          end
+        end
+
+        if properties=schema['properties']
+          raise Exception.new('properties definition is invalid') unless properties.is_a?(Hash)
+          schema['properties'].each do |property_name, property_desc|
+            raise Exception.new("property '#{property_name}' definition is invalid") unless property_desc.is_a?(Hash)
+            check_property_name(property_name)
+            v = nil
+            still_trying = true
+            referenced = property_desc['referenced']
+
+            while still_trying && ref = property_desc['$ref'] # property type is a reference
+              still_trying = false
+              if ref.start_with?('#') # an embedded reference
+                raise Exception.new("referencing embedded reference #{ref}") if referenced
+                property_type = check_embedded_ref(ref, root.to_s)
+                if @@parsed_schemas.detect { |m| m.eql?(property_type) }
+                  if type_model = reflect_constant(property_type, :do_not_create)
+                    v = "embeds_one :#{property_name}, class_name: \'#{type_model.to_s}\'"
+                    #reflect(type_model, "embedded_in :#{relation_name(model_name)}, class_name: \'#{model_name}\'")
+                    type_model.affects_to(klass)
+                    nested << property_name
                   else
-                    if referenced
-                      v = "belongs_to :#{property_name}, class_name: \'#{type_model.to_s}\'"
-                      type_model.affects_to(klass)
-                    else
-                      v = "embeds_one :#{property_name}, class_name: \'#{type_model.to_s}\'"
-                      #reflect(type_model, "embedded_in :#{relation_name(model_name)}, class_name: \'#{model_name}\'")
-                      type_model.affects_to(klass)
-                      nested << property_name
-                    end
+                    raise Exception.new("refers to an invalid JSON reference '#{ref}'")
                   end
                 else
-                  puts "#{klass.to_s}  Waiting[4]for parsing #{ref} to bind property #{property_name}"
-                  (referenced ? @@has_one_to_bind : @@embeds_one_to_bind)[model_name] << [ref, property_name]
+                  puts "#{klass.to_s}  Waiting[3] for parsing #{property_type} to bind property #{property_name}"
+                  @@embeds_one_to_bind[model_name] << [property_type, property_name]
+                end
+              else # external reference
+                if MONGO_TYPES.include?(ref)
+                  v = "field :#{property_name}, type: #{ref}"
+                else
+                  # ref = check_type_name(ref)
+                  if type_model = (find_or_load_model(report, ref) || reflect_constant(ref, :do_not_create))
+                    if type_model.is_a?(Hash)
+                      property_desc.delete('$ref')
+                      property_desc = property_desc.merge(type_model)
+                      bind_affect_to_relation(type_model, klass)
+                      still_trying = true
+                    else
+                      if referenced
+                        v = "belongs_to :#{property_name}, class_name: \'#{type_model.to_s}\'"
+                        type_model.affects_to(klass)
+                      else
+                        v = "embeds_one :#{property_name}, class_name: \'#{type_model.to_s}\'"
+                        #reflect(type_model, "embedded_in :#{relation_name(model_name)}, class_name: \'#{model_name}\'")
+                        type_model.affects_to(klass)
+                        nested << property_name
+                      end
+                    end
+                  else
+                    puts "#{klass.to_s}  Waiting[4]for parsing #{ref} to bind property #{property_name}"
+                    (referenced ? @@has_one_to_bind : @@embeds_one_to_bind)[model_name] << [ref, property_name]
+                  end
                 end
               end
             end
+
+            v = process_non_ref(report, property_name, property_desc, klass, root, nested, enums, validations, required) if still_trying
+
+            reflect(klass, v) if v
           end
-
-          v = process_non_ref(report, property_name, property_desc, klass, root, nested, enums, validations, required) if still_trying
-
-          reflect(klass, v) if v
         end
-      end
 
-      required.each do |p|
-        if klass.fields.keys.include?(p) || klass.relations.keys.include?(p)
-          reflect(klass, "validates_presence_of :#{p}")
-        else
-          [@@has_many_to_bind,
-           @@has_one_to_bind,
-           @@embeds_many_to_bind,
-           @@embeds_one_to_bind].each do |to_bind|
-            to_bind.each do |property_type, pending_bindings|
-              pending_bindings.each do |binding_info|
-                binding_info << true if binding_info[1] == p
-              end if property_type == klass.to_s
+        required.each do |p|
+          if klass.fields.keys.include?(p) || klass.relations.keys.include?(p)
+            reflect(klass, "validates_presence_of :#{p}")
+          else
+            [@@has_many_to_bind,
+             @@has_one_to_bind,
+             @@embeds_many_to_bind,
+             @@embeds_one_to_bind].each do |to_bind|
+              to_bind.each do |property_type, pending_bindings|
+                pending_bindings.each do |binding_info|
+                  binding_info << true if binding_info[1] == p
+                end if property_type == klass.to_s
+              end
             end
           end
         end
-      end
 
-      validations.each { |v| reflect(klass, v) }
+        validations.each { |v| reflect(klass, v) }
 
-      schema['assertions'].each do |assertion|
-        reflect(klass, "validates assertion: #{assertion}")
-      end if schema['assertions']
+        schema['assertions'].each do |assertion|
+          reflect(klass, "validates assertion: #{assertion}")
+        end if schema['assertions']
 
-      enums.each do |property_name, enum|
-        reflect(klass, %{
+        enums.each do |property_name, enum|
+          reflect(klass, %{
           def #{property_name}_enum
             #{enum.to_s}
           end
           })
-      end
+        end
 
-      if (name = schema['name'] || schema['title']) && !klass.instance_methods.detect { |m| m == :name }
-        reflect(klass, %{
+        if (name = schema['name'] || schema['title']) && !klass.instance_methods.detect { |m| m == :name }
+          reflect(klass, %{
           def name
             #{schema['name'] ? name : "\"#{name}\""}
           end
           })
-      end
+        end
 
-      %w{title description}.each do |key|
-        if value = schema[key]
-          reflect(klass, %{
+        %w{title description}.each do |key|
+          if value = schema[key]
+            reflect(klass, %{
             def self.#{key}
               "#{value}"
             end
             }) unless klass.respond_to? key
+          end
         end
+
+        @@parsed_schemas << klass.to_s
+
+        check_pending_binds(report, model_name, klass, root)
+
+        nested.each { |n| reflect(klass, "accepts_nested_attributes_for :#{n}") }
+
+        @@parsing_schemas.delete(klass)
+
+        puts "Parsing #{klass.schema_name} done!"
+
+        return klass
+
+      rescue Exception => ex
+        @@parsing_schemas.delete(klass)
+        @@parsed_schemas << klass.to_s
+        raise ex
       end
-
-      @@parsed_schemas << klass.to_s
-
-      check_pending_binds(report, model_name, klass, root)
-
-      nested.each { |n| reflect(klass, "accepts_nested_attributes_for :#{n}") }
-
-      @@parsing_schemas.delete(klass)
-
-      puts "Parsing #{klass.schema_name} done!"
-
-      return klass
-
-    rescue Exception => ex
-      @@parsing_schemas.delete(klass)
-      @@parsed_schemas << klass.to_s
-      raise ex
     end
-  end
 
-  def find_or_load_model(report, ref)
-    if (data_type = find_data_type(ref)) && !data_type.to_be_destroyed
-      puts "Reference #{ref} found!"
-      if data_type.loaded?
-        data_type.model
+    def find_or_load_model(report, ref)
+      if (data_type = find_data_type(ref)) && !data_type.to_be_destroyed
+        puts "Reference #{ref} found!"
+        if data_type.loaded?
+          data_type.model
+        else
+          merge_report(r = data_type.load_models, report)
+          report.delete(:model)
+        end
       else
-        merge_report(r = data_type.load_models, report)
-        report.delete(:model)
+        puts "Reference #{ref} NOT FOUND!"
+        nil
       end
-    else
-      puts "Reference #{ref} NOT FOUND!"
-      nil
     end
-  end
 
-  def bind_affect_to_relation(json_schema, model)
-    puts "#{json_schema['title']} affects #{model.to_s}"
-    json_schema[:affected] ||= []
-    json_schema[:affected] << model
-  end
+    def bind_affect_to_relation(json_schema, model)
+      puts "#{json_schema['title']} affects #{model.to_s}"
+      json_schema[:affected] ||= []
+      json_schema[:affected] << model
+    end
 
-  def process_non_ref(report, property_name, property_desc, klass, root, nested=[], enums={}, validations=[], required=[])
-    property_desc = merge_schema(property_desc)
-    model_name = klass.to_s
-    still_trying = true
-    while still_trying
-      still_trying = false
-      property_type = property_desc['type']
-      if property_type == 'string' && %w{date time date-time}.include?(property_desc['format'])
-        property_type = property_desc.delete('format')
-      end
-      property_type = RJSON_MAP[property_type] if RJSON_MAP[property_type]
-      if property_type.eql?('Array') && (items_desc = property_desc['items'])
-        r = nil
-        if referenced = ((ref = items_desc['$ref']) && (!ref.start_with?('#') && items_desc['referenced']))
-          # ref = check_type_name(ref)
-          if (type_model = (find_or_load_model(report, property_type = ref) || reflect_constant(ref, :do_not_create))) &&
-              @@parsed_schemas.include?(type_model.to_s)
-            property_type = type_model.to_s
-            if (a = @@has_many_to_bind[property_type]) && i = a.find_index { |x| x[0].eql?(model_name) }
-              a = a.delete_at(i)
-              reflect(klass, "has_and_belongs_to_many :#{property_name}, class_name: \'#{property_type}\'")
-              reflect(type_model, "has_and_belongs_to_many :#{a[1]}, class_name: \'#{model_name}\'")
-              reflect(type_model, "validates_presence_of :#{a[1]}") if a[2]
-            else
-              if type_model.reflect_on_all_associations(:belongs_to).detect { |r| r.klass.eql?(klass) }
-                r = 'has_many'
+    def process_non_ref(report, property_name, property_desc, klass, root, nested=[], enums={}, validations=[], required=[])
+      property_desc = merge_schema(property_desc, expand_extends: false)
+      model_name = klass.to_s
+      still_trying = true
+      while still_trying
+        still_trying = false
+        property_type = property_desc['type']
+        if property_type == 'string' && %w{date time date-time}.include?(property_desc['format'])
+          property_type = property_desc.delete('format')
+        end
+        property_type = RJSON_MAP[property_type] if RJSON_MAP[property_type]
+        if property_type.eql?('Array') && (items_desc = property_desc['items'])
+          r = nil
+          if referenced = ((ref = items_desc['$ref']) && (!ref.start_with?('#') && items_desc['referenced']))
+            # ref = check_type_name(ref)
+            if (type_model = (find_or_load_model(report, property_type = ref) || reflect_constant(ref, :do_not_create))) &&
+                @@parsed_schemas.include?(type_model.to_s)
+              property_type = type_model.to_s
+              if (a = @@has_many_to_bind[property_type]) && i = a.find_index { |x| x[0].eql?(model_name) }
+                a = a.delete_at(i)
+                reflect(klass, "has_and_belongs_to_many :#{property_name}, class_name: \'#{property_type}\'")
+                reflect(type_model, "has_and_belongs_to_many :#{a[1]}, class_name: \'#{model_name}\'")
+                reflect(type_model, "validates_presence_of :#{a[1]}") if a[2]
               else
-                r = 'has_and_belongs_to_many'
-                type_model.affects_to(klass)
+                if type_model.reflect_on_all_associations(:belongs_to).detect { |r| r.klass.eql?(klass) }
+                  r = 'has_many'
+                else
+                  r = 'has_and_belongs_to_many'
+                  type_model.affects_to(klass)
+                end
               end
+            else
+              puts "#{klass.to_s}  Waiting[1] for parsing #{property_type} to bind property #{property_name}"
+              @@has_many_to_bind[model_name] << [property_type, property_name]
             end
           else
-            puts "#{klass.to_s}  Waiting[1] for parsing #{property_type} to bind property #{property_name}"
-            @@has_many_to_bind[model_name] << [property_type, property_name]
+            r = 'embeds_many'
+            if ref
+              raise Exception.new("referencing embedded reference #{ref}") if items_desc['referenced']
+              property_type = ref.start_with?('#') ? check_embedded_ref(ref, root.to_s).singularize : ref #check_type_name(ref)
+              type_model = find_or_load_model(report, property_type) || reflect_constant(property_type, :do_not_create)
+              if type_model && @@parsed_schemas.detect { |m| m.eql?(property_type = type_model.to_s) }
+                #reflect(type_model, "embedded_in :#{relation_name(model_name)}, class_name: \'#{model_name}\'")
+                type_model.affects_to(klass)
+              else
+                r = nil
+                puts "#{klass.to_s}  Waiting[2] for parsing #{property_type} to bind property #{property_name}"
+                @@embeds_many_to_bind[model_name] << [property_type, property_name]
+              end
+            else
+              property_type = (type_model = parse_schema(report, property_name.camelize.singularize, property_desc['items'], root, klass, :embedded, klass.schema_path + "/properties/#{property_name}/items")).to_s
+            end
+            nested << property_name if r
+          end
+          if r
+            v = "#{r} :#{property_name}, class_name: \'#{property_type.to_s}\'"
+
+            if property_desc['maxItems'] && property_desc['maxItems'] == property_desc['minItems']
+              validations << "validates_association_length_of :#{property_name}, is: #{property_desc['maxItems'].to_s}"
+            elsif property_desc['maxItems'] || property_desc['minItems']
+              validations << "validates_association_length_of :#{property_name}#{property_desc['minItems'] ? ', minimum: ' + property_desc['minItems'].to_s : ''}#{property_desc['maxItems'] ? ', maximum: ' + property_desc['maxItems'].to_s : ''}"
+            end
+            # embedded_in relation reflected before if ref or it is reflected when parsing with :embedded option
+            #reflect(type_model, "#{referenced ? 'belongs_to' : 'embedded_in'} :#{relation_name(model_name)}, class_name: \'#{model_name}\'")
+            #reflect(type_model, "belongs_to :#{relation_name(model_name)}, class_name: '#{model_name}'") if referenced
           end
         else
-          r = 'embeds_many'
-          if ref
-            raise Exception.new("referencing embedded reference #{ref}") if items_desc['referenced']
-            property_type = ref.start_with?('#') ? check_embedded_ref(ref, root.to_s).singularize : ref #check_type_name(ref)
-            type_model = find_or_load_model(report, property_type) || reflect_constant(property_type, :do_not_create)
-            if type_model && @@parsed_schemas.detect { |m| m.eql?(property_type = type_model.to_s) }
+          v =nil
+          if property_type.eql?('object')
+            if property_desc['properties'] || property_desc['extends']
+              property_type = (type_model = parse_schema(report, property_name.camelize, property_desc, root, klass, :embedded, klass.schema_path + "/properties/#{property_name}")).to_s
+              v = "embeds_one :#{property_name}, class_name: \'#{type_model.to_s}\'"
               #reflect(type_model, "embedded_in :#{relation_name(model_name)}, class_name: \'#{model_name}\'")
               type_model.affects_to(klass)
+              nested << property_name
             else
-              r = nil
-              puts "#{klass.to_s}  Waiting[2] for parsing #{property_type} to bind property #{property_name}"
-              @@embeds_many_to_bind[model_name] << [property_type, property_name]
-            end
-          else
-            property_type = (type_model = parse_schema(report, property_name.camelize.singularize, property_desc['items'], root, klass, :embedded, klass.schema_path + "/properties/#{property_name}/items")).to_s
-          end
-          nested << property_name if r
-        end
-        if r
-          v = "#{r} :#{property_name}, class_name: \'#{property_type.to_s}\'"
-
-          if property_desc['maxItems'] && property_desc['maxItems'] == property_desc['minItems']
-            validations << "validates_association_length_of :#{property_name}, is: #{property_desc['maxItems'].to_s}"
-          elsif property_desc['maxItems'] || property_desc['minItems']
-            validations << "validates_association_length_of :#{property_name}#{property_desc['minItems'] ? ', minimum: ' + property_desc['minItems'].to_s : ''}#{property_desc['maxItems'] ? ', maximum: ' + property_desc['maxItems'].to_s : ''}"
-          end
-          # embedded_in relation reflected before if ref or it is reflected when parsing with :embedded option
-          #reflect(type_model, "#{referenced ? 'belongs_to' : 'embedded_in'} :#{relation_name(model_name)}, class_name: \'#{model_name}\'")
-          #reflect(type_model, "belongs_to :#{relation_name(model_name)}, class_name: '#{model_name}'") if referenced
-        end
-      else
-        v =nil
-        if property_type.eql?('object')
-          if property_desc['properties'] || property_desc['extends']
-            property_type = (type_model = parse_schema(report, property_name.camelize, property_desc, root, klass, :embedded, klass.schema_path + "/properties/#{property_name}")).to_s
-            v = "embeds_one :#{property_name}, class_name: \'#{type_model.to_s}\'"
-            #reflect(type_model, "embedded_in :#{relation_name(model_name)}, class_name: \'#{model_name}\'")
-            type_model.affects_to(klass)
-            nested << property_name
-          else
-            property_type = 'Hash'
-          end
-        end
-        unless v
-          if property_type
-            v = "field :#{property_name}, type: #{property_type}"
-
-            if property_desc['default']
-              v += ", default: \'#{property_desc['default']}\'"
+              property_type = 'Hash'
             end
           end
-          if enum = property_desc['enum']
-            enums[property_name] = enum
-            validations << "validates_inclusion_of :#{property_name}, in: -> (record) { record.#{property_name}_enum }, message: 'is not a valid value'"
-            required.delete(property_name)
-          elsif property_desc['pattern']
-            validations << "validates_format_of :#{property_name}, :with => /\\A#{property_desc['pattern']}\\Z/i"
-            required.delete(property_name)
-          end
-          # if property_desc['minLength'] && property_desc['maxLength'] && property_desc['minLength'] == property_desc['maxLength']
-          #   validations << "validates_length_of :#{property_name}, is: #{property_desc['maxLength'].to_s}"
-          # els
-          if property_desc['minLength'] || property_desc['maxLength']
-            validations << "validates_length_in_presence_of :#{property_name}#{property_desc['minLength'] ? ', minimum: ' + property_desc['minLength'].to_s : ''}#{property_desc['maxLength'] ? ', maximum: ' + property_desc['maxLength'].to_s : ''}"
-          end
-          constraints = []
-          if property_desc['minimum']
-            constraints << (property_desc['exclusiveMinimum'] ? 'greater_than: ' : 'greater_than_or_equal_to: ') + property_desc['minimum'].to_s
-          end
-          if property_desc['maximum']
-            constraints << (property_desc['exclusiveMaximum'] ? 'less_than: ' : 'less_than_or_equal_to: ') + property_desc['maximum'].to_s
-          end
-          if constraints.length > 0
-            validations << "validates_numericality_of :#{property_name}, {#{constraints[0] + (constraints[1] ? ', ' + constraints[1] : '')}}"
-          end
-          if property_desc['unique']
-            validations << "validates_uniqueness_of :#{property_name}"
+          unless v
+            if property_type
+              v = "field :#{property_name}, type: #{property_type}"
+
+              if property_desc['default']
+                v += ", default: \'#{property_desc['default']}\'"
+              end
+            end
+            if enum = property_desc['enum']
+              enums[property_name] = enum
+              validations << "validates_inclusion_of :#{property_name}, in: -> (record) { record.#{property_name}_enum }, message: 'is not a valid value'"
+              required.delete(property_name)
+            elsif property_desc['pattern']
+              validations << "validates_format_of :#{property_name}, :with => /\\A#{property_desc['pattern']}\\Z/i"
+              required.delete(property_name)
+            end
+            # if property_desc['minLength'] && property_desc['maxLength'] && property_desc['minLength'] == property_desc['maxLength']
+            #   validations << "validates_length_of :#{property_name}, is: #{property_desc['maxLength'].to_s}"
+            # els
+            if property_desc['minLength'] || property_desc['maxLength']
+              validations << "validates_length_in_presence_of :#{property_name}#{property_desc['minLength'] ? ', minimum: ' + property_desc['minLength'].to_s : ''}#{property_desc['maxLength'] ? ', maximum: ' + property_desc['maxLength'].to_s : ''}"
+            end
+            constraints = []
+            if property_desc['minimum']
+              constraints << (property_desc['exclusiveMinimum'] ? 'greater_than: ' : 'greater_than_or_equal_to: ') + property_desc['minimum'].to_s
+            end
+            if property_desc['maximum']
+              constraints << (property_desc['exclusiveMaximum'] ? 'less_than: ' : 'less_than_or_equal_to: ') + property_desc['maximum'].to_s
+            end
+            if constraints.length > 0
+              validations << "validates_numericality_of :#{property_name}, {#{constraints[0] + (constraints[1] ? ', ' + constraints[1] : '')}}"
+            end
+            if property_desc['unique']
+              validations << "validates_uniqueness_of :#{property_name}"
+            end
           end
         end
       end
-    end
-    return v
-  end
-
-  def check_pending_binds(report, model_name, klass, root)
-
-    @@has_many_to_bind.each do |waiting_type, pending_binds|
-      waiting_model = waiting_type.constantize rescue nil
-      raise Exception.new("Waiting type #{waiting_type} not yet loaded!") unless waiting_model
-      waiting_data_type = waiting_model.data_type
-      raise Exception.new("Waiting type #{waiting_type} without data type!") unless waiting_data_type
-      if i = pending_binds.find_index { |x| waiting_data_type.send(:find_data_type, x[0]) == self }
-        waiting_ref = pending_binds[i][0]
-        bindings = pending_binds.select { |x| x[0] == waiting_ref }
-        pending_binds.delete_if { |x| x[0] == waiting_ref }
-        bindings.each do |a|
-          puts "#{waiting_model.to_s}  Binding property #{a[1]}"
-          if klass.is_a?(Class)
-            if klass.reflect_on_all_associations(:belongs_to).detect { |r| r.klass.eql?(waiting_model) }
-              reflect(waiting_model, "has_many :#{a[1]}, class_name: \'#{model_name}\'")
-            else
-              reflect(waiting_model, "has_and_belongs_to_many :#{a[1]}, class_name: \'#{model_name}\'")
-              klass.affects_to(waiting_model)
-            end
-          else #must be a json schema
-            reflect(waiting_model, process_non_ref(report, a[1], klass, waiting_model, root))
-            bind_affect_to_relation(klass, waiting_model)
-          end
-          if a[2]
-            reflect(waiting_model, "validates_presence_of :#{a[1]}")
-          end
-        end
-      end
+      return v
     end
 
-    @@has_one_to_bind.each do |waiting_type, pending_binds|
-      waiting_model = waiting_type.constantize rescue nil
-      raise Exception.new("Waiting type #{waiting_type} not yet loaded!") unless waiting_model
-      waiting_data_type = waiting_model.data_type
-      raise Exception.new("Waiting type #{waiting_type} without data type!") unless waiting_data_type
-      if i = pending_binds.find_index { |x| waiting_data_type.send(:find_data_type, x[0]) == self }
-        waiting_ref = pending_binds[i][0]
-        bindings = pending_binds.select { |x| x[0] == waiting_ref }
-        pending_binds.delete_if { |x| x[0] == waiting_ref }
-        bindings.each do |a|
-          puts waiting_model.to_s + '  Binding property ' + a[1]
-          if klass.is_a?(Class)
-            reflect(waiting_model, "belongs_to :#{a[1]}, class_name: \'#{model_name}\'")
-            klass.affects_to(waiting_model)
-          else #must be a json schema
-            reflect(waiting_model, process_non_ref(report, a[1], klass, waiting_model, root))
-            bind_affect_to_relation(klass, waiting_model)
-          end
-          if a[2]
-            reflect(waiting_model, "validates_presence_of :#{a[1]}")
-          end
-        end
-      end
-    end
+    def check_pending_binds(report, model_name, klass, root)
 
-    {:embeds_many => @@embeds_many_to_bind, :embeds_one => @@embeds_one_to_bind}.each do |r, to_bind|
-      to_bind.each do |waiting_type, pending_binds|
+      @@has_many_to_bind.each do |waiting_type, pending_binds|
         waiting_model = waiting_type.constantize rescue nil
         raise Exception.new("Waiting type #{waiting_type} not yet loaded!") unless waiting_model
         waiting_data_type = waiting_model.data_type
@@ -902,11 +846,38 @@ module Setup
           bindings = pending_binds.select { |x| x[0] == waiting_ref }
           pending_binds.delete_if { |x| x[0] == waiting_ref }
           bindings.each do |a|
-            puts "#{waiting_model.to_s} Binding property #{a[1]}"
+            puts "#{waiting_model.to_s}  Binding property #{a[1]}"
             if klass.is_a?(Class)
-              reflect(waiting_model, "#{r.to_s} :#{a[1]}, class_name: \'#{model_name}\'")
-              reflect(waiting_model, "accepts_nested_attributes_for :#{a[1]}")
-              #reflect(klass, "embedded_in :#{property_type.underscore.split('/').join('_')}, class_name: '#{property_type}'")
+              if klass.reflect_on_all_associations(:belongs_to).detect { |r| r.klass.eql?(waiting_model) }
+                reflect(waiting_model, "has_many :#{a[1]}, class_name: \'#{model_name}\'")
+              else
+                reflect(waiting_model, "has_and_belongs_to_many :#{a[1]}, class_name: \'#{model_name}\'")
+                klass.affects_to(waiting_model)
+              end
+            else #must be a json schema
+              reflect(waiting_model, process_non_ref(report, a[1], klass, waiting_model, root))
+              bind_affect_to_relation(klass, waiting_model)
+            end
+            if a[2]
+              reflect(waiting_model, "validates_presence_of :#{a[1]}")
+            end
+          end
+        end
+      end
+
+      @@has_one_to_bind.each do |waiting_type, pending_binds|
+        waiting_model = waiting_type.constantize rescue nil
+        raise Exception.new("Waiting type #{waiting_type} not yet loaded!") unless waiting_model
+        waiting_data_type = waiting_model.data_type
+        raise Exception.new("Waiting type #{waiting_type} without data type!") unless waiting_data_type
+        if i = pending_binds.find_index { |x| waiting_data_type.send(:find_data_type, x[0]) == self }
+          waiting_ref = pending_binds[i][0]
+          bindings = pending_binds.select { |x| x[0] == waiting_ref }
+          pending_binds.delete_if { |x| x[0] == waiting_ref }
+          bindings.each do |a|
+            puts waiting_model.to_s + '  Binding property ' + a[1]
+            if klass.is_a?(Class)
+              reflect(waiting_model, "belongs_to :#{a[1]}, class_name: \'#{model_name}\'")
               klass.affects_to(waiting_model)
             else #must be a json schema
               reflect(waiting_model, process_non_ref(report, a[1], klass, waiting_model, root))
@@ -918,162 +889,191 @@ module Setup
           end
         end
       end
-    end
-  end
 
-  def relation_name(model)
-    model.to_s.underscore.split('/').join('_')
-  end
-
-  def reflect(c, code)
-    puts "#{c.schema_name rescue c.to_s}  #{code ? code : 'WARNING REFLECTING NIL CODE'}"
-    c.class_eval(code) if code
-  end
-
-  def find_embedded_ref(root, ref)
-    begin
-      ref.split('/').each do |name|
-        unless name.length == 0 || name.eql?('#') || name.eql?('definitions')
-          root = root.const_get(name.camelize)
-        end
-      end
-      return root
-    rescue
-      return nil
-    end
-  end
-
-  class << self
-    def shutdown(data_types, options={})
-      return {} unless data_types
-      options[:reset_config] = true if options[:reset_config].nil?
-      raise Exception.new("Both options 'destroy' and 'report_only' is not allowed") if options[:destroy] && options[:report_only]
-      data_types = [data_types] unless data_types.is_a?(Enumerable)
-      report={destroyed: Set.new, affected: Set.new, reloaded: Set.new}
-      data_types.each do |data_type|
-        begin
-          r = data_type.send(:deconstantize, data_type.data_type_name, options)
-          report[:destroyed] += r[:destroyed]
-          report[:affected] += r[:affected]
-          if options[:destroy]
-            data_type.to_be_destroyed = true
-            data_type.save
-          end
-        rescue Exception => ex
-          raise ex
-          puts "Error deconstantizing model #{data_type.name}: #{ex.message}"
-        end
-      end
-      puts "Report: #{report.to_s}"
-      post_process_report(report)
-      puts "Post processed report #{report}"
-      unless options[:report_only]
-        deconstantize(report[:destroyed])
-        puts 'Reloading affected models...' unless report[:affected].empty?
-        destroyed_lately = []
-        report[:affected].each do |model|
-          if reloaded_model = report[:reloaded].detect { |m| m.to_s == model.to_s }
-            puts "Model #{model.schema_name rescue model.to_s} -> #{model.to_s} already reloaded"
-          else
-            begin
-              if model.parent == Object
-                puts "Reloading #{model.schema_name rescue model.to_s} -> #{model.to_s}"
-                model_report = model.data_type.load_models(reload: true, reset_config: false)
-                report[:reloaded] += model_report[:reloaded] + model_report[:loaded]
-                report[:reloaded] << model_report[:model]
-              else
-                puts "Model #{model.schema_name rescue model.to_s} -> #{model.to_s} reload on parent reload!"
+      {:embeds_many => @@embeds_many_to_bind, :embeds_one => @@embeds_one_to_bind}.each do |r, to_bind|
+        to_bind.each do |waiting_type, pending_binds|
+          waiting_model = waiting_type.constantize rescue nil
+          raise Exception.new("Waiting type #{waiting_type} not yet loaded!") unless waiting_model
+          waiting_data_type = waiting_model.data_type
+          raise Exception.new("Waiting type #{waiting_type} without data type!") unless waiting_data_type
+          if i = pending_binds.find_index { |x| waiting_data_type.send(:find_data_type, x[0]) == self }
+            waiting_ref = pending_binds[i][0]
+            bindings = pending_binds.select { |x| x[0] == waiting_ref }
+            pending_binds.delete_if { |x| x[0] == waiting_ref }
+            bindings.each do |a|
+              puts "#{waiting_model.to_s} Binding property #{a[1]}"
+              if klass.is_a?(Class)
+                reflect(waiting_model, "#{r.to_s} :#{a[1]}, class_name: \'#{model_name}\'")
+                reflect(waiting_model, "accepts_nested_attributes_for :#{a[1]}")
+                #reflect(klass, "embedded_in :#{property_type.underscore.split('/').join('_')}, class_name: '#{property_type}'")
+                klass.affects_to(waiting_model)
+              else #must be a json schema
+                reflect(waiting_model, process_non_ref(report, a[1], klass, waiting_model, root))
+                bind_affect_to_relation(klass, waiting_model)
               end
-            rescue Exception => ex
-              puts "Error deconstantizing  #{model.schema_name rescue model.to_s}"
-              report[:destroyed] << model
-              destroyed_lately << model
-              report[:affected].delete(model)
+              if a[2]
+                reflect(waiting_model, "validates_presence_of :#{a[1]}")
+              end
             end
-            report[:affected].delete(model)
-            puts "Model #{model.schema_name rescue model.to_s} -> #{model.to_s} reloaded!"
-          end
-          unless report[:affected].empty?
-            puts 'Affected models no reloaded!'
           end
         end
-        deconstantize(destroyed_lately)
-        puts "Final report #{report}"
-        RailsAdmin::AbstractModel.update_model_config([], report[:destroyed], options[:reset_config] ? report[:affected] + report[:reloaded] : [])
       end
-      report
     end
 
-    def deconstantize(models)
-      models = models.sort_by do |model|
+    def relation_name(model)
+      model.to_s.underscore.split('/').join('_')
+    end
+
+    def reflect(c, code)
+      puts "#{c.schema_name rescue c.to_s}  #{code ? code : 'WARNING REFLECTING NIL CODE'}"
+      c.class_eval(code) if code
+    end
+
+    def find_embedded_ref(root, ref)
+      begin
+        ref.split('/').each do |name|
+          unless name.length == 0 || name.eql?('#') || name.eql?('definitions')
+            root = root.const_get(name.camelize)
+          end
+        end
+        return root
+      rescue
+        return nil
+      end
+    end
+
+    class << self
+      def shutdown(data_types, options={})
+        return {} unless data_types
+        options[:reset_config] = true if options[:reset_config].nil?
+        raise Exception.new("Both options 'destroy' and 'report_only' is not allowed") if options[:destroy] && options[:report_only]
+        data_types = [data_types] unless data_types.is_a?(Enumerable)
+        report={destroyed: Set.new, affected: Set.new, reloaded: Set.new}
+        data_types.each do |data_type|
+          begin
+            r = data_type.send(:deconstantize, data_type.data_type_name, options)
+            report[:destroyed] += r[:destroyed]
+            report[:affected] += r[:affected]
+            if options[:destroy]
+              data_type.to_be_destroyed = true
+              data_type.save
+            end
+          rescue Exception => ex
+            raise ex
+            puts "Error deconstantizing model #{data_type.name}: #{ex.message}"
+          end
+        end
+        puts "Report: #{report.to_s}"
+        post_process_report(report)
+        puts "Post processed report #{report}"
+        unless options[:report_only]
+          deconstantize(report[:destroyed])
+          puts 'Reloading affected models...' unless report[:affected].empty?
+          destroyed_lately = []
+          report[:affected].each do |model|
+            if reloaded_model = report[:reloaded].detect { |m| m.to_s == model.to_s }
+              puts "Model #{model.schema_name rescue model.to_s} -> #{model.to_s} already reloaded"
+            else
+              begin
+                if model.parent == Object
+                  puts "Reloading #{model.schema_name rescue model.to_s} -> #{model.to_s}"
+                  model_report = model.data_type.load_models(reload: true, reset_config: false)
+                  report[:reloaded] += model_report[:reloaded] + model_report[:loaded]
+                  report[:reloaded] << model_report[:model]
+                else
+                  puts "Model #{model.schema_name rescue model.to_s} -> #{model.to_s} reload on parent reload!"
+                end
+              rescue Exception => ex
+                puts "Error deconstantizing  #{model.schema_name rescue model.to_s}"
+                report[:destroyed] << model
+                destroyed_lately << model
+                report[:affected].delete(model)
+              end
+              report[:affected].delete(model)
+              puts "Model #{model.schema_name rescue model.to_s} -> #{model.to_s} reloaded!"
+            end
+            unless report[:affected].empty?
+              puts 'Affected models no reloaded!'
+            end
+          end
+          deconstantize(destroyed_lately)
+          puts "Final report #{report}"
+          RailsAdmin::AbstractModel.update_model_config([], report[:destroyed], options[:reset_config] ? report[:affected] + report[:reloaded] : [])
+        end
+        report
+      end
+
+      def deconstantize(models)
+        models = models.sort_by do |model|
+          parent = model.parent
+          index = 0
+          while !parent.eql?(Object)
+            index = index - 1
+            parent = parent.parent
+          end
+          index
+        end
+        models.each do |model|
+          puts "Decontantizing #{constant_name = model.to_s} -> #{model.schema_name rescue model.to_s}"
+          constant_name = constant_name.split('::').last
+          model.parent.send(:remove_const, constant_name) if parent.const_defined?(constant_name)
+        end
+      end
+
+      def post_process_report(report)
+        affected_children =[]
+        report[:affected].each { |model| affected_children << model if ancestor_included(model, report[:affected]) }
+        report[:affected].delete_if { |model| report[:destroyed].include?(model) || affected_children.include?(model) }
+      end
+
+      def ancestor_included(model, container)
         parent = model.parent
-        index = 0
         while !parent.eql?(Object)
-          index = index - 1
+          return true if container.include?(parent)
           parent = parent.parent
         end
-        index
-      end
-      models.each do |model|
-        puts "Decontantizing #{constant_name = model.to_s} -> #{model.schema_name rescue model.to_s}"
-        constant_name = constant_name.split('::').last
-        model.parent.send(:remove_const, constant_name) if parent.const_defined?(constant_name)
+        return false
       end
     end
 
-    def post_process_report(report)
-      affected_children =[]
-      report[:affected].each { |model| affected_children << model if ancestor_included(model, report[:affected]) }
-      report[:affected].delete_if { |model| report[:destroyed].include?(model) || affected_children.include?(model) }
-    end
+    class MultKeyHash < Hash
 
-    def ancestor_included(model, container)
-      parent = model.parent
-      while !parent.eql?(Object)
-        return true if container.include?(parent)
-        parent = parent.parent
+      attr_reader :mult_key_def
+
+      def initialize
+        @mult_key_def = []
       end
-      return false
-    end
-  end
 
-  class MultKeyHash < Hash
+      def store(key, value)
+        @mult_key_def << key if (self[key] && !@mult_key_def.include?(key))
+        super
+      end
 
-    attr_reader :mult_key_def
-
-    def initialize
-      @mult_key_def = []
-    end
-
-    def store(key, value)
-      @mult_key_def << key if (self[key] && !@mult_key_def.include?(key))
-      super
+      def []=(key, value)
+        @mult_key_def << key if (self[key] && !@mult_key_def.include?(key))
+        super
+      end
     end
 
-    def []=(key, value)
-      @mult_key_def << key if (self[key] && !@mult_key_def.include?(key))
-      super
-    end
-  end
+    module AffectRelation
 
-  module AffectRelation
+      def affected_models
+        @affected_models ||= Set.new
+        @affected_models.delete_if { |model| no_constant(model) }
+        return @affected_models
+      end
 
-    def affected_models
-      @affected_models ||= Set.new
-      @affected_models.delete_if { |model| no_constant(model) }
-      return @affected_models
-    end
+      def affects_to(model)
+        puts "#{self.schema_name} affects #{model.schema_name}"
+        (@affected_models ||= Set.new) << model
+      end
 
-    def affects_to(model)
-      puts "#{self.schema_name} affects #{model.schema_name}"
-      (@affected_models ||= Set.new) << model
-    end
+      private
 
-    private
-
-    def no_constant(model)
-      model = model.to_s.constantize rescue nil
-      model ? false : true
+      def no_constant(model)
+        model = model.to_s.constantize rescue nil
+        model ? false : true
+      end
     end
   end
 end
