@@ -17,6 +17,7 @@ module Setup
 
     belongs_to :uri, class_name: Setup::Schema.to_s
 
+    field :id, type: String
     field :title, type: String
     field :name, type: String
     field :schema, type: String
@@ -72,7 +73,7 @@ module Setup
     end
 
     def load_model(options={})
-      return load_models(options)[:model]
+      load_models(options)[:model]
     end
 
     def load_models(options={reload: false, reset_config: true})
@@ -136,9 +137,7 @@ module Setup
     def merged_schema(options={})
       sch = merge_schema(JSON.parse(schema), options)
       if (base_sch = sch.delete('extends')) && base_sch = find_ref_schema(base_sch)
-        sch = base_sch.deep_merge(sch) do |key, val1, val2|
-          val1.is_a?(Array) && val2.is_a?(Array) ? val1 + val2 : val2
-        end
+        sch = base_sch.deep_merge(sch) { |key, val1, val2| array_sum(val1, val2) }
       end
       return sch
     end
@@ -152,14 +151,10 @@ module Setup
               if (ref = combined_sch['$ref']) && (ref = find_ref_schema(ref))
                 combined_sch = ref
               end
-              sch = sch.deep_merge(combined_sch) do |key, val1, val2|
-                val1.is_a?(Array) && val2.is_a?(Array) ? val1 + val2 : val2
-              end
+              sch = sch.deep_merge(combined_sch) { |key, val1, val2| array_sum(val1, val2) }
             end
           elsif key == '$ref' && ref = find_ref_schema(value)
-            sch = sch.deep_merge(ref) do |key, val1, val2|
-              val1.is_a?(Array) && val2.is_a?(Array) ? val1 + val2 : val2
-            end
+            sch = sch.deep_merge(ref) { |key, val1, val2| array_sum(val1, val2) }
           else
             sch[key] = value
           end
@@ -187,6 +182,10 @@ module Setup
     end
 
     private
+
+    def array_sum(val1, val2)
+      val1.is_a?(Array) && val2.is_a?(Array) ? val1 + val2 : val2
+    end
 
     def validate_model
       begin
@@ -506,9 +505,7 @@ module Setup
           schema['properties']['value'] = value_schema.merge('title' => 'Value')
           base_model = nil
         else
-          schema = base_model.deep_merge(schema) do |key, val1, val2|
-            val1.is_a?(Array) && val2.is_a?(Array) ? val1 + val2 : val2
-          end
+          schema = base_model.deep_merge(schema) { |key, val1, val2| array_sum(val1, val2) }
         end
       end
 
