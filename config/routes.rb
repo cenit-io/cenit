@@ -10,9 +10,9 @@ Cenit::Application.routes.draw do
     end
     #devise_for :users
     
-    root :to => "home#index"
+    #root :to => "home#index"
 
-    #root to: 'rails_admin/main#dashboard'
+    root to: 'rails_admin/main#dashboard'
 
     namespace :cenit do
       post '/', to: 'api#consume', as: 'api'
@@ -23,8 +23,8 @@ Cenit::Application.routes.draw do
       resources :flows
       resources :webhooks
       resources :data_types
-
-      post '/load', to: 'load#consume', as: 'load'
+      resources :connection_roles
+      resources :events
     end
     
   end

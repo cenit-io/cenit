@@ -7,12 +7,12 @@ module Setup
     include Trackable
     
     has_and_belongs_to_many :connection_roles, class_name: Setup::ConnectionRole.name, inverse_of: :connections
-    has_and_belongs_to_many :webhooks, class_name: Setup::Webhook.name, inverse_of: :connection
     has_many :url_parameters, class_name: Setup::UrlParameter.name, inverse_of: :connection
     has_many :headers, class_name: Setup::Header.name, inverse_of: :connection
     
     devise :database_authenticatable
 
+    field :id, :type => String
     field :name, type: String
     field :url, type: String
     field :number, as: :key, type: String
@@ -33,10 +33,6 @@ module Setup
       options[:prefix] ||= 'C'
       super(options)
     end
-    
-    def get_webhokks
-      webhooks.map{|w| w } + connection_roles.map {|cr| cr.webhooks.map{|w| w }.flatten }
-    end  
 
     private
 

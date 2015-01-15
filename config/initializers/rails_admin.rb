@@ -274,7 +274,6 @@ RailsAdmin.config do |config|
       field :name
       field :url
       field :connection_roles
-      field :webhooks
 
       field :key
       field :authentication_token
@@ -289,7 +288,7 @@ RailsAdmin.config do |config|
       field :updater
     end
     
-      fields :name, :url, :connection_roles, :webhooks, :url_parameters, :headers, :key, :authentication_token
+      fields :name, :url, :connection_roles, :url_parameters, :headers, :key, :authentication_token
   end
   
   config.model Setup::UrlParameter.name do
@@ -419,7 +418,6 @@ RailsAdmin.config do |config|
       field :purpose
       field :path
       field :method
-      field :connections
       field :connection_roles
       
       field :url_parameters
@@ -441,7 +439,7 @@ RailsAdmin.config do |config|
       field :updated_at
       field :updater
     end
-    fields :name, :purpose, :path, :method, :url_parameters, :headers, :schema_validation, :data_type, :trigger_event,  :schema_validation_response, 
+    fields :name, :purpose, :path, :method,:connection_roles, :url_parameters, :headers, :schema_validation, :data_type, :trigger_event,  :schema_validation_response, 
     :data_type_response, :trigger_event_response
   end
   
@@ -541,7 +539,7 @@ RailsAdmin.config do |config|
       field :updater     
     end
     
-    fields :name, :active, :purpose, :event, :connection, :connection_role, :webhook, :schedule
+    fields :name, :active, :purpose, :event, :connection_role, :webhook, :schedule
   end
   
   config.model Setup::Schedule.name do

@@ -7,6 +7,7 @@ module Setup
 
     include Setup::Enum
 
+    field :id, :type => String
     field :name, type: String
     field :path, type: String
     field :purpose, type: String, default: :send
@@ -28,7 +29,6 @@ module Setup
     belongs_to :data_type_response, class_name: Setup::DataType.name
     field :trigger_event_response, type: Boolean 
 
-    has_and_belongs_to_many :connections, class_name: Setup::Connection.name
     has_and_belongs_to_many :connection_roles, class_name: Setup::ConnectionRole.name
     
     has_many :url_parameters, class_name: Setup::UrlParameter.name, inverse_of: :webhook
