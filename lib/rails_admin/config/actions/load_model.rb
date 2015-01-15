@@ -34,7 +34,7 @@ module RailsAdmin
                 flash[:error] = "Error loading model #{@object.title}: #{ex.message}"
               end
             end
-            redirect_to rails_admin.show_path(model_name: Setup::DataType.to_s.underscore, id: @object.id)
+            redirect_to rails_admin.show_path(model_name: Setup::DataType.to_s.underscore.gsub('/', '~'), id: @object.id)
           end
         end
 

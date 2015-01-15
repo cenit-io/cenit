@@ -5,7 +5,7 @@
   - @data_types.each do |data_type|
     - next if data_type == @object
     %li
-      = link_to(data_type.title, rails_admin.show_path(model_name: Setup::DataType.to_s.underscore, id: data_type.id), class: 'pjax')
+      = link_to(data_type.title, rails_admin.show_path(model_name: Setup::DataType.to_s.underscore.gsub('/', '~'), id: data_type.id), class: 'pjax')
 
 %h4
   = t('admin.actions.shutdown_model.are_you_sure')

@@ -33,7 +33,7 @@ module RailsAdmin
             else
               flash[:success] = "Model #{@object.title} is not loaded"
             end
-            redirect_to rails_admin.show_path(model_name: Setup::DataType.to_s.underscore, id: @object.id)
+            redirect_to rails_admin.show_path(model_name: Setup::DataType.to_s.underscore.gsub('/', '~'), id: @object.id)
           end
         end
 
