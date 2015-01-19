@@ -5,12 +5,10 @@ module Setup
     # GET /flows.json
     def index
       @flows = Setup::Flow.all
-      render json: @flows
     end
 
     # GET /flows/1.json
     def show
-      render json: @flow
     end
 
     # GET /flows/new.json
@@ -50,7 +48,7 @@ module Setup
     end
     
     def find_flow
-      @flow = Setup::Flow.find(params[:id])
+      @flow = Setup::Flow..find_by(slug: params[:id])
     end
     
   end

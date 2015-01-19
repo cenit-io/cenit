@@ -23,7 +23,13 @@ Cenit::Application.routes.draw do
       resources :flows
       resources :webhooks
       resources :data_types
-
+      resources :events
+      resources :connection_roles
+      resources :libraries
+      resources :templates
+      resources :schemas
+      resources :schedules
+      
       post '/load', to: 'load#consume', as: 'load'
     end
     

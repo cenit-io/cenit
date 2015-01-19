@@ -14,7 +14,7 @@ RailsAdmin.config do |config|
   ## == PaperTrail ==
   # config.audit_with :paper_trail, 'User', 'PaperTrail::Version' # PaperTrail >= 3.0.0
 
-  config.excluded_models << "Account"
+  config.excluded_models << ["Account", "Setup::Parameter"].flatten
 
   ### More at https://github.com/sferik/rails_admin/wiki/Base-configuration
   config.authenticate_with do
@@ -83,6 +83,7 @@ RailsAdmin.config do |config|
   
     show do
       field :name
+      field :slug
       field :schemas
     
       field :_id
@@ -92,7 +93,7 @@ RailsAdmin.config do |config|
       field :updater 
     end
   
-    fields :name, :schemas
+    fields :name,:slug,:schemas
   end
 
   config.model Setup::Schema.name do
@@ -221,7 +222,7 @@ RailsAdmin.config do |config|
   config.model Setup::Connection.name do
     weight -15
     group :credentials do
-      label "Token"
+      label "Credentials"
     end
     
     configure :connection_roles do
@@ -246,7 +247,7 @@ RailsAdmin.config do |config|
       end
       group :credentials
     end
-    configure :authentication_token, :text do
+    configure :token, :text do
       visible { bindings[:view]._current_user.has_role? :admin }
       html_attributes do
         { cols: '50', rows: '1' }
@@ -266,17 +267,18 @@ RailsAdmin.config do |config|
     configure :url_parameters do
       group :parameters
     end  
-    configure  :headers do
+    configure :headers do
       group :parameters
     end  
     
     show do
       field :name
+      field :slug
       field :url
       field :connection_roles
 
       field :key
-      field :authentication_token
+      field :token
       
       field :url_parameters
       field :headers
@@ -288,12 +290,17 @@ RailsAdmin.config do |config|
       field :updater
     end
     
-      fields :name, :url, :connection_roles, :url_parameters, :headers, :key, :authentication_token
+      fields :name, :slug, :url, :connection_roles, :url_parameters, :headers, :key, :token
   end
   
-  config.model Setup::UrlParameter.name do
+  config.model Setup::Parameter.name do
     visible false
-    
+  end
+
+  config.model Setup::UrlParameter.name do
+    object_label_method do
+      :to_s
+    end
     configure :key, :string do
       help 'Requiered.'
       html_attributes do
@@ -306,14 +313,31 @@ RailsAdmin.config do |config|
       html_attributes do
        { maxlength: 50,size: 50 }
       end
-    end  
+    end
+    
+    show do
+      field :key
+      field :value
+      field :parameterizable
+      
+      field :_id
+      field :created_at
+      field :updated_at
+    end
+    
+    list do
+      field :key
+      field :value
+      field :parameterizable
+    end
 
     fields :key, :value
   end
   
   config.model Setup::Header.name do
-    visible false
-    
+    object_label_method do
+      :to_s
+    end
     configure :key, :string do
       help 'Requiered.'
       html_attributes do
@@ -326,7 +350,23 @@ RailsAdmin.config do |config|
       html_attributes do
        { maxlength: 50,size: 50 }
       end
-    end  
+    end
+    
+    show do
+      field :key
+      field :value
+      field :parameterizable
+      
+      field :_id
+      field :created_at
+      field :updated_at
+    end
+    
+    list do
+      field :key
+      field :value
+      field :parameterizable
+    end
 
     fields :key, :value
   end
@@ -543,16 +583,20 @@ RailsAdmin.config do |config|
   end
   
   config.model Setup::Schedule.name do
-    visible false
     parent Setup::Flow
     configure :period, :enum do 
       default_value 'minutes'
+    end
+    
+    object_label_method do
+      :frequency
     end
     
     show do
       field :flow
       field :value
       field :period
+      field :active
       
       field :_id
       field :created_at
@@ -560,15 +604,16 @@ RailsAdmin.config do |config|
       field :updated_at
       field :updater
     end
-    fields :flow, :value, :period
+    fields :flow, :value, :period, :active
   end
   
   config.model Setup::Batch.name do
-    visible false
     parent Setup::Flow
     show do
       field :flow
       field :size
+      field :schedule
+      field :batch
       
       field :_id
       field :created_at

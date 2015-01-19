@@ -5,12 +5,10 @@ module Setup
     # GET /data_types.json
     def index
       @data_types = Setup::DataType.all
-      render json: @data_types
     end
 
     # GET /data_types/1.json
     def show
-      render json: @data_type
     end
 
     # GET /data_types/new.json
@@ -50,7 +48,7 @@ module Setup
     end
     
     def find_data_type
-      @data_type = Setup::DataType.find(params[:id])
+      @data_type = Setup::DataType.find_by(slug: params[:id])
     end    
     
   end

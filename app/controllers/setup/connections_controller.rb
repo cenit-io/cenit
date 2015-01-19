@@ -5,18 +5,16 @@ module Setup
     # GET /connections.json
     def index
       @connections = Setup::Connection.all
-      render json: @connections
     end
 
     # GET /connections/1.json
     def show
-      render json: @connection
     end
 
     # GET /connections/new.json
     def new
       @connection = Setup::Connection.new
-      render json: @connection
+      render json: @connection, only: [:name, :slug, :url]
     end
 
     # POST /connections.json
@@ -46,11 +44,11 @@ module Setup
     
     protected
     def permited_attributes
-      params[:connection].permit(:name, :key, :url, :connection_parameteters_attributes, :connection_roles_attributes )
+      params[:connection].permit(:name, :slug, :key, :url)
     end  
     
     def find_connection
-      @connection = Setup::Connection.find(params[:id])
+      @connection = Setup::Connection.find_by(slug: params[:id])
     end  
     
   end

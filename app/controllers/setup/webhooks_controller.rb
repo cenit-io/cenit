@@ -5,12 +5,10 @@ module Setup
     # GET /webhooks.json
     def index
       @webhooks = Setup::Webhook.all
-      render json: @webhooks
     end
 
     # GET /webhooks/1.json
     def show
-      render json: @webhook
     end
 
     # GET /webhooks/new.json
@@ -50,7 +48,7 @@ module Setup
     end
 
     def find_webhook
-      @webhook = Setup::Webhook.find(params[:id])
+      @webhook = Setup::Webhook.find_by(slug: params[:id])
     end
 
   end

@@ -5,22 +5,20 @@ module Setup
     # GET /connection_roles.json
     def index
       @connection_roles = Setup::ConnectionRole.all
-      render json: @connection_roles
     end
 
     # GET /connection_roles/1.json
     def show
-      render json: @connection_role
     end
 
     # GET /connection_roles/new.json
     def new
       @connection_role = Setup::ConnectionRole.new
-      render json: @connection_role
+      render json: @connection_role.except(:account_id)
     end
 
     # POST /connection_roles.json
-    def create	  
+    def create
       @connection_role = Setup::ConnectionRole.new(permited_attributes)
       if @connection_role.save
         render json: @connection_role, status: :created, location: @connection_role
@@ -46,11 +44,11 @@ module Setup
     
     protected
     def permited_attributes
-      params[:connection_role].permit(:name, :webhooks_attributes, :connection_attributes )
+      params[:connection_role].permit(:name, :slug, webhooks_attributes: [ :name, :slug, :path, :purpose], connections_attributes: [:name, :slug, :url] )
     end  
     
     def find_connection_role
-      @connection_role = Setup::ConnectionRole.find(params[:id])
+      @connection_role = Setup::ConnectionRole.find_by(slug: params[:id])
     end
 
   end

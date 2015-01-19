@@ -6,11 +6,12 @@ module Setup
     include Mongoid::Timestamps
     include AccountScoped
     include Setup::Enum
+    include MakeSlug
     include Trackable
 
     field :name, type: String
     field :purpose, type: String, default: :send
-    field :active, type: Boolean
+    field :active, type: Boolean, default: :true
     field :transformation, type: String
     field :last_trigger_timestamps, type: DateTime
 

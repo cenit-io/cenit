@@ -1,2 +1,4 @@
 object @event
-attributes :id, :created_at, :updated_at, :name, :triggers, :data_type_id
+
+attributes :name, :triggers
+child(:data_type, object_root: false) {attributes :name}

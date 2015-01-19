@@ -23,7 +23,7 @@ module Cenit
       token = request.headers['X-Hub-Access-Token']
       connection = Setup::Connection.unscoped.find_by(key: key)
 
-      if connection && Devise.secure_compare(connection.authentication_token, token)
+      if connection && Devise.secure_compare(connection.token, token)
         #TODO: Check if 'X-Hub-Timestamp' belong to a small time window around Time.now
         Account.current = connection.account
         return true
