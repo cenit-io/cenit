@@ -1,34 +1,34 @@
 module Xsd
   class SimpleType < NamedTag
 
-    tag 'xs:simpleType'
+    tag 'simpleType'
 
     attr_reader :type
 
-    def start_xs_restriction(attributes = [])
+    def restriction_start(attributes = [])
       _, base = attributes.detect { |a| a[0] == 'base' }
       SimpleTypeRestriction.new(self, base)
     end
 
-    def start_xs_list(attributes = [])
+    def list_start(attributes = [])
       _, itemType = attributes.detect { |a| a[0] == 'itemType' }
       SimpleTypeList.new(self, itemType)
     end
 
-    def start_xs_union(attributes = [])
+    def union_start(attributes = [])
       _, memberTypes = attributes.detect { |a| a[0] == 'memberTypes' }
       SimpleTypeUnion.new(self, memberTypes)
     end
 
-    def when_end_xs_restriction(restriction)
+    def when_restriction_end(restriction)
       @type = restriction
     end
 
-    def when_end_xs_list(list)
+    def when_list_end(list)
       @type = list
     end
 
-    def when_end_xs_union(union)
+    def when_union_end(union)
       @type = union
     end
 

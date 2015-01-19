@@ -16,28 +16,36 @@ module RailsAdmin
         end
 
         register_instance_option :visible do
-          authorized? && bindings[:object].is_object? &&  bindings[:object].activated && bindings[:object].loaded?
+          authorized? && bindings[:object].is_object? && bindings[:object].loaded?
         end
 
         register_instance_option :controller do
           proc do
-            if @object.activated
-              if model = @object.model
-                begin
-                  @object.auto_load_model = @object.activated = @object.show_navigation_link = false
-                  @object.save
-                  Setup::Schema.shutdown_data_type_model(@object)
-                  flash[:success] = "Shutdown model #{@object.name} success"
-                rescue Exception => ex
-                  flash[:error] = "Error shutdown model #{@object.name}: #{ex.message}"
+            done = true
+            if model = @object.model
+              begin
+                unless params[:shutdown]
+                  report = Setup::DataType.shutdown(@object, report_only: true, shutdown_all: true)
+                  @data_types = report[:destroyed].collect { |model| model.data_type }.uniq
+                  params[:shutdown] = true if @data_types.size == 1
                 end
-              else
-                flash[:error] = "Model #{@object.name} is not loaded"
+                if params[:shutdown]
+                  (report = Setup::DataType.shutdown(@object, shutdown_all: true))[:destroyed].each do |model|
+                    (data_type = model.data_type).activated = data_type.show_navigation_link = false
+                    data_type.save
+                  end
+                  flash[:success] = "Shutdown model #{@object.title} success"
+                else
+                  done = false
+                  render @action.template_name
+                end
+              rescue Exception => ex
+                flash[:error] = "Error shutdown model #{@object.title}: #{ex.message}"
               end
             else
-              flash[:notice] = "Model #{@object.name} is not activated"
+              flash[:error] = "Model #{@object.title} is not loaded"
             end
-            redirect_to rails_admin.show_path(model_name: Setup::DataType.to_s.underscore, id: @object.id)
+            redirect_to rails_admin.show_path(model_name: Setup::DataType.to_s.underscore.gsub('/', '~'), id: @object.id) if done
           end
         end
 

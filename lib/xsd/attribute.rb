@@ -1,7 +1,7 @@
 module Xsd
   class Attribute < TypedTag
 
-    tag 'xs:attribute'
+    tag 'attribute'
 
     attr_reader :use
 
@@ -14,7 +14,7 @@ module Xsd
       use == 'required'
     end
 
-    def when_end_xs_simpleType(simpleType)
+    def when_simpleType_end(simpleType)
       if type = simpleType.type rescue nil
         @type = type
       end

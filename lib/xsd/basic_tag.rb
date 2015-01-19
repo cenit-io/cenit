@@ -17,7 +17,7 @@ module Xsd
             '#{name}'
           end")
       class_eval("
-          def end_#{name.gsub(':', '_')}
+          def #{name}_end
             :pop
           end")
     end
@@ -32,6 +32,10 @@ module Xsd
 
     def xmlns(ns)
       parent ? parent.xmlns(ns) : nil
+    end
+
+    def json_schema(name)
+      parent ? parent.json_schema(ns) : nil
     end
 
     private

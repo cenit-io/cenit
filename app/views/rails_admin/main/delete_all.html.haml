@@ -1,5 +1,5 @@
 %h4
-  = t('admin.actions.delete_all.are_you_sure', model_label_plural: @abstract_model.pretty_name.downcase.pluralize)
+  = t('admin.actions.delete_all.are_you_sure', model_label_plural: @model_label_plural)
 .p
   = "#{@total} "+ t('admin.actions.delete_all.will_be_deleted')
 

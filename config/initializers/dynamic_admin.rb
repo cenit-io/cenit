@@ -32,9 +32,9 @@ module RailsAdmin
           Config.remove_model(model)
           if m = all.detect { |m| m.model_name.eql?(model.to_s) }
             all.delete(m)
-            puts "#{self.to_s}: model #{model.to_s} removed!"
+            puts "#{self.to_s}: model #{model.schema_name rescue model.to_s} removed!"
           else
-            puts "#{self.to_s}: model #{model.to_s} is not present to be removed!"
+            puts "#{self.to_s}: model #{model.schema_name rescue model.to_s} is not present to be removed!"
           end
           models_to_reset.delete(model)
         end
@@ -59,43 +59,41 @@ module RailsAdmin
 
       def reset_models(models)
         models = [models] unless models.is_a?(Enumerable)
-        models = models.sort_by do |model|
-          parent = model.parent
-          index = 0
-          while !parent.eql?(Object)
-            index = index - 1
-            parent = parent.parent
-          end
-          index
-        end
+        models = sort_by_embeds(models)
+        reset = Set.new
         models.each do |model|
-          puts "#{self.to_s}: resetting configuration of #{model.to_s}"
+          puts "#{self.to_s}: resetting configuration of #{model.schema_name rescue model.to_s}"
           Config.reset_model(model)
-          data_type = model.data_type rescue nil
-          data_type = nil unless data_type.model == model
+          data_type = model.data_type
+          schema = JSON.parse(data_type.schema)
+          model.schema_path.split('/').each do |token|
+            unless token.blank?
+              schema = data_type.merge_schema(schema[token])
+            end
+          end
+          model_data_type = data_type.model.eql?(model) ? data_type : nil
           rails_admin_model = Config.model(model).target
+          title = model_data_type ? model_data_type.title : model.title
           {navigation_label: nil,
            visible: false,
-           label: model.respond_to?(:title) ? model.title : model.to_s.split('::').last}.each do |option, value|
-            if data_type && data_type.respond_to?(option)
-              value = data_type.send(option)
+           label: title}.each do |option, value|
+            if model_data_type && model_data_type.respond_to?(option)
+              value = model_data_type.send(option)
             end
             rails_admin_model.register_instance_option option do
               value
             end
           end
-          if data_type
-            properties = JSON.parse(data_type.schema)['properties']
-            rails_admin_model.groups.each do |group|
-              group.fields.each do |field|
-                if field_schema = properties[field.name.to_s]
-                  field_schema = data_type.merge_schema(field_schema)
-                  {label: 'title',
-                   help: 'description'}.each do |option, key|
-                    if value = field_schema[key]
-                      field.register_instance_option option do
-                        value
-                      end
+          properties = schema['properties']
+          rails_admin_model.groups.each do |group|
+            group.fields.each do |field|
+              if field_schema = properties[field.name.to_s]
+                field_schema = data_type.merge_schema(field_schema)
+                {label: 'title',
+                 help: 'description'}.each do |option, key|
+                  if value = field_schema[key]
+                    field.register_instance_option option do
+                      value
                     end
                   end
                 end
@@ -106,6 +104,16 @@ module RailsAdmin
       end
 
       private
+
+      def sort_by_embeds(models, sorted=[])
+        models.each do |model|
+          [:embeds_one, :embeds_many].each do |rk|
+            sort_by_embeds(model.reflect_on_all_associations(rk).collect { |r| r.klass }, sorted)
+          end
+          sorted << model unless sorted.include?(model)
+        end
+        sorted
+      end
 
       def collect_models(models, to_reset)
         models.each do |model|
@@ -136,7 +144,7 @@ module RailsAdmin
               end
               collect_models(affected_models, to_reset)
             rescue Exception => ex
-              puts "#{self.to_s}: error loading configuration of model #{model.to_s} -> #{ex.message}"
+              puts "#{self.to_s}: error loading configuration of model #{model.schema_name rescue model.to_s} -> #{ex.message}"
               raise ex
             end
           end

@@ -5,12 +5,10 @@ module Setup
     # GET /events.json
     def index
       @events = Setup::Event.all
-      render json: @events
     end
 
     # GET /events/1.json
     def show
-      render json: @event
     end
 
     # GET /events/new.json

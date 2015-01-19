@@ -26,14 +26,14 @@ module RailsAdmin
               @object.save
               RailsAdmin::AbstractModel.reset_models(model)
               if @object.show_navigation_link
-                flash[:success] = "Model #{@object.name} added to navigation links"
+                flash[:success] = "Model #{@object.title} added to navigation links"
               else
-                flash[:success] = "Model #{@object.name} removed from navigation links"
+                flash[:success] = "Model #{@object.title} removed from navigation links"
               end
             else
-              flash[:success] = "Model #{@object.name} is not loaded"
+              flash[:success] = "Model #{@object.title} is not loaded"
             end
-            redirect_to rails_admin.show_path(model_name: Setup::DataType.to_s.underscore, id: @object.id)
+            redirect_to rails_admin.show_path(model_name: Setup::DataType.to_s.underscore.gsub('/', '~'), id: @object.id)
           end
         end
 

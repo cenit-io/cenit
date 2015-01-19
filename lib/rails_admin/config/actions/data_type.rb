@@ -24,7 +24,7 @@ module RailsAdmin
           proc do
 
             if data_type_id = abstract_model.model_name.constantize.data_type_id rescue nil
-              redirect_to rails_admin.show_path(model_name: Setup::DataType.to_s.underscore, id: data_type_id)
+              redirect_to rails_admin.show_path(model_name: Setup::DataType.to_s.underscore.gsub('/', '~'), id: data_type_id)
             else
               redirect_to back_or_index
             end

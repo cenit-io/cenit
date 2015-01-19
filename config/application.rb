@@ -30,14 +30,14 @@ module Cenit
 
       JSON::Validator.register_default_validator(Cenit::LazyRefSchemaValidator.new)
 
-      RailsAdmin::Config.excluded_models.concat RailsAdmin::Config.models_pool.select {|m| m.eql?('Base') || m.end_with?('::Base')}
+      RailsAdmin::Config.excluded_models.concat RailsAdmin::Config.models_pool.select { |m| m.eql?('Base') || m.end_with?('::Base') }
       puts 'Excluding ' + RailsAdmin::Config.excluded_models.to_s
 
       #Setup::Schema.model_listeners << RailsAdmin::AbstractModel
 
       Setup::Schema.all.each do |schema|
         puts "Loading schema #{schema.uri}"
-     #   schema.load_models
+        schema.load_models
       end
     end
 

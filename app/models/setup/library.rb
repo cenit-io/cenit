@@ -3,6 +3,7 @@ module Setup
     include Mongoid::Document
     include Mongoid::Timestamps
     include AccountScoped
+    include MakeSlug
     include Trackable
 
     field :name, type: String
@@ -15,16 +16,6 @@ module Setup
 
     def find_data_type_by_name(name)
       DataType.where(name: name).detect { |data_type| data_type.uri.library == self }
-    end
-
-    rails_admin do
-
-      edit do
-        field :name do
-          read_only { !bindings[:object].new_record? }
-          help ''
-        end
-      end
     end
 
   end

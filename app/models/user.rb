@@ -30,14 +30,14 @@ class User
   field :last_sign_in_at,    type: Time
   field :current_sign_in_ip, type: String
   field :last_sign_in_ip,    type: String
-  field :authentication_token, type: String
+  field :authentication_token, as: :token, type: String
   field :number, as: :key, type: String
   
   field :doorkeeper_uid, type: String 
   field :doorkeeper_access_token, type: Integer 
 
-  before_save :ensure_authentication_token
-  validates_uniqueness_of :authentication_token
+  before_save :ensure_token
+  validates_uniqueness_of :token
 
   def self.find_or_create_for_doorkeeper_oauth(oauth_data)
     user = User.find_by(doorkeeper_uid: oauth_data.uid) || User.new(doorkeeper_uid: oauth_data.uid)
@@ -48,18 +48,15 @@ class User
   def update_doorkeeper_credentials(oauth_data)
     self.doorkeeper_access_token = oauth_data.credentials.token
   end
-  
-  
-  
-  def ensure_authentication_token
-    self.authentication_token ||= generate_authentication_token
+
+  def ensure_token
+    self.token ||= generate_token
   end
-  # accepts_nested_attributes_for :account
   
-  def generate_authentication_token
+  def generate_token
     loop do
       token = Devise.friendly_token
-      break token unless User.where(authentication_token: token).first
+      break token unless User.where(token: token).first
     end
   end
   

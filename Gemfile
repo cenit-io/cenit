@@ -24,6 +24,7 @@ group :development, :test do
   gem 'rspec-rails'
   gem 'rails_layout'
   gem 'ffaker'
+  gem 'byebug'
 end
 
 group :test do
