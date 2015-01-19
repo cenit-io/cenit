@@ -44,7 +44,7 @@ module Setup
     
     protected
     def permited_attributes
-      params[:connection].permit(:name, :slug, :key, :url)
+      params[:connection].permit(:name, :slug, :key, :url, :connection_roles_attributes)
     end  
     
     def find_connection

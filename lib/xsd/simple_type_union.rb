@@ -1,7 +1,7 @@
 module Xsd
   class SimpleTypeUnion < BasicTag
 
-    tag 'xs:union'
+    tag 'union'
 
     attr_reader :types
 
@@ -14,7 +14,7 @@ module Xsd
       end
     end
 
-    def when_end_xs_simpleType(simpleType)
+    def when_simpleType_end(simpleType)
       types << simpleType
     end
 

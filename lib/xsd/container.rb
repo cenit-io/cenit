@@ -1,14 +1,12 @@
 module Xsd
-  class Container < NamedTag
+  class Container < AttributedTag
 
-    attr_reader :tag_name
     attr_reader :max_occurs
     attr_reader :min_occurs
     attr_reader :elements
 
-    def initialize(parent, attributes, tag_name)
-      super(parent, attributes)
-      @tag_name = tag_name
+    def initialize(parent, attributes)
+      super
       _, max_occurs = attributes.detect { |a| a[0] == 'maxOccurs' }
       @max_occurs = if max_occurs then
                       max_occurs == 'unbounded' ? :unbounded : max_occurs.to_i
@@ -24,29 +22,48 @@ module Xsd
       @elements = []
     end
 
-    def when_end_xs_element(element)
+    def when_element_end(element)
       @elements << element
     end
 
-    %w{xs:sequence xs:choice xs:all}.each do |container_tag|
-      class_eval("def start_#{container_tag.gsub(':', '_')}(attributes = [])
-          return Container.new(self, attributes, '#{container_tag}')
+    %w{sequence choice all}.each do |container_tag|
+      class_eval("def #{container_tag}_start(attributes = [])
+          return Xsd::#{container_tag.capitalize}.new(self, attributes)
         end
-      def when_end_#{container_tag.gsub(':', '_')}(container)
-          container.do_product
-          @elements.concat(container.elements)
-      end
-      def end_#{container_tag.gsub(':', '_')}
-        :pop
+      def when_#{container_tag}_end(container)
+          @elements << container
       end")
     end
 
-    def do_product
-      @elements.each do |e|
-        e.max_occurs = max_occurs == :unbounded ? :unbounded : max_occurs * max_occurs
-        e.min_occurs = e.min_occurs * min_occurs
+    def to_json_schema
+      json = {'type' => 'object', 'title' => tag_name.capitalize}
+      json['properties'] = properties = {}
+      required = []
+      if max_occurs == :unbounded || max_occurs > 0 || min_occurs > 1
+        enum = 0
+        elements.each do |element|
+          element_schema = element.to_json_schema
+          if element.max_occurs == :unbounded || element.max_occurs > 1 || element.min_occurs > 1
+            plural_title = (element_schema['title'] || element.name || element.tag_name).to_title.pluralize
+            properties[p = "property_#{enum += 1}"] = {'title' => "List of #{plural_title}",
+                                                       'type' => 'array',
+                                                       'minItems' => element.min_occurs,
+                                                       'items' => element_schema}
+            properties[p]['maxItems'] = element.max_occurs unless element.max_occurs == :unbounded
+            required << p if element.min_occurs > 0
+          elsif element.is_a?(Container)
+            container_required = element_schema['required'] || []
+            element_schema['properties'].each do |property, schema|
+              properties[p = "property_#{enum += 1}"] = schema
+              required << p if container_required.include?(property)
+            end
+          else
+            properties[p = "property_#{enum += 1}"] = element_schema
+          end
+        end
       end
-      @max_occurs = @min_occurs = 1
+      json['required'] = required unless required.empty?
+      json
     end
   end
 end

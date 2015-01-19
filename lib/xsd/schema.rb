@@ -1,7 +1,7 @@
 module Xsd
   class Schema < AttributedTag
 
-    tag 'xs:schema'
+    tag 'schema'
 
     attr_reader :json_schemas
 
@@ -13,16 +13,12 @@ module Xsd
       @json_schemas = {}
     end
 
-    def when_end_xs_element(element)
-      store_tag_schema(:qualify_element, element)
-    end
-
-    def when_end_xs_simpleType(simpleType)
-     store_tag_schema(:qualify_type, simpleType)
-    end
-
-    def when_end_xs_complexType(complexType)
-      store_tag_schema(:qualify_type, complexType)
+    {element: :qualify_element,
+     simpleType: :qualify_type,
+     complexType: :qualify_type}.each do |tag_name, qualify_method|
+      class_eval("def when_#{tag_name}_end(#{tag_name})
+          store_tag_schema(:#{qualify_method}, #{tag_name})
+        end")
     end
 
     def store_schema(name, schema)

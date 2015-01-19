@@ -1,7 +1,7 @@
 module Xsd
   class ComplexType < TypedTag
 
-    tag 'xs:complexType'
+    tag 'complexType'
 
     attr_reader :attributes
     attr_reader :container
@@ -11,22 +11,22 @@ module Xsd
       @attributes = []
     end
 
-    def start_xs_extension(attributes = [])
+    def extension_start(attributes = [])
       _, base = attributes.detect { |a| a[0] == 'base' }
       @attributes << Xsd::Attribute.new(self, [%w{name value}, ['type', base], %w{use required}])
       nil
     end
 
-    def start_xs_attribute(attributes = [])
+    def attribute_start(attributes = [])
       @attributes << (attr = Xsd::Attribute.new(self, attributes))
       return attr
     end
 
-    %w{xs:sequence xs:choice xs:all}.each do |container_tag|
-      class_eval("def start_#{container_tag.gsub(':', '_')}(attributes = [])
-          return Container.new(self, attributes, '#{container_tag}')
-      end
-      def when_end_#{container_tag.gsub(':', '_')}(container)
+    [Xsd::Sequence, Xsd::Choice, Xsd::All].each do |container_class|
+      class_eval("def #{container_class.tag_name}_start(attributes = [])
+          return #{container_class.to_s}.new(self, attributes)
+        end
+      def when_#{container_class.tag_name}_end(container)
           @container = container
       end")
     end
@@ -35,24 +35,34 @@ module Xsd
       json = {'type' => 'object'}
       json['title'] = name.to_title if name
       json['properties'] = properties = {}
+      enum = 0
       required = []
       attributes.each do |a|
         if (type = a.type).is_a?(String)
           type = qualify_type(type)
         end
-        properties[a.name] = type.to_json_schema.merge('title' => a.name.to_title)
-        required << a.name if a.required?
+        properties[p = "property_#{enum += 1}"] = type.to_json_schema.merge('title' => a.name.to_title,
+                                                                            'xml' => {'attribute' => true})
+        required << p if a.required?
       end
       if container
-        container.do_product
-        container.elements.each do |e|
-          if e.max_occurs == :unbounded || e.max_occurs > 0
-            properties[e.name] = e.max_occurs == 1 ? e.to_json_schema : {'type' => 'array', 'items' => e.to_json_schema}
+        container_schema = container.to_json_schema
+        if container.max_occurs == :unbounded || container.max_occurs > 1 || container.min_occurs > 1
+          properties[p = "property_#{enum += 1}"] = {'type' => 'array',
+                                                     'minItems' => container.min_occurs,
+                                                     'items' => properties[p]}
+          properties[p]['maxItems'] = container.max_occurs unless container.max_occurs == :unbounded
+          required << p if container.min_occurs > 0
+        else
+          container_required = container_schema['required'] || []
+          container_schema['properties'].each do |property, schema|
+            properties[p = "property_#{enum += 1}"] = schema
+            required << p if container_required.include?(property)
           end
         end
       end
       json['required'] = required unless required.empty?
-      return json
+      json
     end
   end
 end

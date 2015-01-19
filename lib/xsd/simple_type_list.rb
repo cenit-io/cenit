@@ -1,7 +1,7 @@
 module Xsd
   class SimpleTypeList < BasicTag
 
-    tag 'xs:list'
+    tag 'list'
 
     attr_reader :item_type
 
@@ -10,7 +10,7 @@ module Xsd
       @item_type = item_type
     end
 
-    def when_end_xs_simpleType(simpleType)
+    def when_simpleType_end(simpleType)
       @item_type = simpleType
     end
 

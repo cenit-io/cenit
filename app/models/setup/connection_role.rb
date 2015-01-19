@@ -11,7 +11,7 @@ module Setup
     belongs_to :template, class_name: Setup::Template.name, inverse_of: :connection_roles 
     
     accepts_nested_attributes_for :webhooks, :connections
-  
     field :name, :type => String
+
   end
 end

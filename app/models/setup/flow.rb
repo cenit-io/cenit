@@ -9,6 +9,7 @@ module Setup
     include MakeSlug
     include Trackable
 
+    field :id, type: String
     field :name, type: String
     field :purpose, type: String, default: :send
     field :active, type: Boolean, default: :true

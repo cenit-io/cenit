@@ -1,7 +1,7 @@
 module Xsd
   class SimpleTypeRestriction < BasicTag
 
-    tag 'xs:restriction'
+    tag 'restriction'
 
     attr_reader :base
     attr_reader :restrictions
@@ -13,9 +13,9 @@ module Xsd
       restrictions.each { |key, value| @restrictions[key] = value } if restrictions
     end
 
-    def start_element(name, attributes)
-      unless %w{xs:annotation xs:documentation}.include?(name)
-        if name == 'xs:enumeration'
+    def start_element_tag(name, attributes)
+      unless %w{annotation documentation}.include?(name)
+        if name == 'enumeration'
           @restrictions[name] ||= []
           @restrictions[name] << attributes
         else
@@ -29,19 +29,19 @@ module Xsd
       json = qualify_type(base).to_json_schema
       @restrictions.each do |key, value|
         restriction = case key
-                        when 'xs:enumeration'
+                        when 'enumeration'
                           {'enum' => value.collect { |v| v[0][1] }.uniq}
-                        when 'xs:length'
+                        when 'length'
                           {'minLength' => value[0][1].to_i, 'maxLength' => value[0][1].to_i}
-                        when 'xs:pattern'
+                        when 'pattern'
                           {'pattern' => value[0][1]}
-                        when 'xs:minInclusive'
+                        when 'minInclusive'
                           {'minimum' => value[0][1].to_i}
-                        when 'xs:maxInclusive'
+                        when 'maxInclusive'
                           {'maximum' => value[0][1].to_i}
-                        when 'xs:minExclusive'
+                        when 'minExclusive'
                           {'minimum' => value[0][1].to_i, 'exclusiveMinimum' => true}
-                        when 'xs:maxExclusive'
+                        when 'maxExclusive'
                           {'maximum' => value[0][1].to_i, 'exclusiveMaximum' => true}
                         else
                           {(key = key.gsub('xs:', '')) => value[0][1].to_i} unless value.empty?

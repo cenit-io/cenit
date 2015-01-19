@@ -29,8 +29,6 @@ Cenit::Application.routes.draw do
       resources :templates
       resources :schemas
       resources :schedules
-      
-      post '/load', to: 'load#consume', as: 'load'
     end
     
   end

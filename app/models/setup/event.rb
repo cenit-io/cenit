@@ -6,6 +6,7 @@ module Setup
     #include MakeSlug
     include Trackable
 
+    field :id, :type => String
     field :name, type: String
     field :triggers, type: String
 

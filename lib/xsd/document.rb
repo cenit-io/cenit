@@ -16,15 +16,15 @@ module Xsd
                     'type:http://www.w3.org/2001/XMLSchema:unsignedInt' => {'type' => 'integer', 'minimum' => 0},
                     'type:http://www.w3.org/2001/XMLSchema:unsignedShort' => {'type' => 'integer', 'minimum' => 0},
                     'type:http://www.w3.org/2001/XMLSchema:unsignedByte' => {'type' => 'integer', 'minimum' => 0},
-                    'type:http://www.w3.org/2001/XMLSchema:date' => {'$ref' => 'Date'},
-                    'type:http://www.w3.org/2001/XMLSchema:dateTime' => {'$ref' => 'DateTime'},
-                    'type:http://www.w3.org/2001/XMLSchema:gYearMonth' => {'$ref' => 'Date'},
-                    'type:http://www.w3.org/2001/XMLSchema:gYear' => {'$ref' => 'Date'},
+                    'type:http://www.w3.org/2001/XMLSchema:date' => {'type' => 'string', 'format' => 'date'},
+                    'type:http://www.w3.org/2001/XMLSchema:dateTime' => {'type' => 'string', 'format' => 'date-time'},
+                    'type:http://www.w3.org/2001/XMLSchema:gYearMonth' => {'type' => 'string', 'format' => 'date'},
+                    'type:http://www.w3.org/2001/XMLSchema:gYear' => {'type' => 'string', 'format' => 'date'},
                     'type:http://www.w3.org/2001/XMLSchema:duration' => {'type' => 'string', 'pattern' => 'P([0-9]*Y)?([0-9]*M)?([0-9]*D)?(T([0-9]*H)?([0-9]*M)?([0-9]*S)?)?'},
-                    'type:http://www.w3.org/2001/XMLSchema:time' => {'$ref' => 'Time'},
-                    'type:http://www.w3.org/2001/XMLSchema:gMonthDay' => {'$ref' => 'Date'},
-                    'type:http://www.w3.org/2001/XMLSchema:gMonth' => {'$ref' => 'Date'},
-                    'type:http://www.w3.org/2001/XMLSchema:gDay' => {'$ref' => 'Date'},
+                    'type:http://www.w3.org/2001/XMLSchema:time' => {'type' => 'string', 'format' => 'time'},
+                    'type:http://www.w3.org/2001/XMLSchema:gMonthDay' => {'type' => 'string', 'format' => 'date'},
+                    'type:http://www.w3.org/2001/XMLSchema:gMonth' => {'type' => 'string', 'format' => 'date'},
+                    'type:http://www.w3.org/2001/XMLSchema:gDay' => {'type' => 'string', 'format' => 'date'},
                     'type:http://www.w3.org/2001/XMLSchema:string' => {'type' => 'string'},
                     'type:http://www.w3.org/2001/XMLSchema:token' => {'type' => 'string'},
                     'type:http://www.w3.org/2001/XMLSchema:language' => {'type' => 'string', 'enum' => %w{en es}},
@@ -47,7 +47,7 @@ module Xsd
   class Document < Nokogiri::XML::SAX::Document
 
     [Xsd::Schema, Element, ComplexType, SimpleType].each do |tag_type|
-      class_eval("def start_#{tag_type.tag_name.gsub(':', '_')}(attributes = [])
+      class_eval("def #{tag_type.tag_name}_start(attributes = [])
           #{tag_type == Xsd::Schema ? '@schema = ' : ''}#{tag_type}.new(top_if_available, attributes)
         end")
     end
@@ -63,7 +63,7 @@ module Xsd
       parser.parse(str_doc)
     end
 
-    def error string
+    def error(string)
       raise Exception.new("Invalid xml schema format: #{string}")
     end
 
@@ -74,15 +74,15 @@ module Xsd
           @xsd_tag = attr[0].from(attr[0].index(':') + 1)
         end
       end
-      name = "xs:#{name.from(@xsd_tag.length + 1)}" if name.start_with?("#{@xsd_tag}:")
-      primary_method = "start_#{name.gsub(':', '_')}".to_sym
-      push process_element_message(primary_method, :start_element, name, attributes)
+      name = "#{name.from(@xsd_tag.length + 1)}" if name.start_with?("#{@xsd_tag}:")
+      primary_method = "#{name}_start".to_sym
+      push process_element_message(primary_method, :start_element_tag, name, attributes)
     end
 
     def end_element(name)
-      name = "xs:#{name.from(@xsd_tag.length + 1)}" if name.start_with?("#{@xsd_tag}:")
-      primary_method = "end_#{name.gsub(':', '_')}".to_sym
-      if (element = push process_element_message(primary_method, :end_element, name)) &&
+      name = "#{name.from(@xsd_tag.length + 1)}" if name.start_with?("#{@xsd_tag}:")
+      primary_method = "#{name}_end".to_sym
+      if (element = push process_element_message(primary_method, :end_element_tag, name)) &&
           top.respond_to?(parent_callback_method = "when_#{primary_method}".to_sym)
         top.send(parent_callback_method, element)
       end
@@ -101,7 +101,6 @@ module Xsd
         if attributes
           return top.send(alternative_method, name, attributes)
         end
-
         return top.send(alternative_method, name)
       elsif self.respond_to?(primary_method)
         if attributes

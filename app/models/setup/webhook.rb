@@ -8,6 +8,7 @@ module Setup
 
     include Setup::Enum
 
+    field :id, :type => String
     field :name, type: String
     field :path, type: String
     field :purpose, type: String, default: :send
