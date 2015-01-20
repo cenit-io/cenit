@@ -41,6 +41,18 @@ module Setup
 
     scope :activated, -> { where(activated: true) }
 
+    def new_from_edi(data, options={})
+      Edi::Parser.parse_edi(self, data, options)
+    end
+
+    def new_from_json(data, options={})
+      Edi::Parser.parse_json(self, data, options)
+    end
+
+    def new_from_xml(data, options={})
+      Edi::Parser.parse_xml(self, data, options)
+    end
+
     def sample_object
       '{"' + name.underscore + '": ' + sample_data + '}'
     end
@@ -76,7 +88,7 @@ module Setup
           puts "No changes detected on '#{self.name}' schema!"
         end
       rescue Exception => ex
-        raise ex
+        #raise ex
         puts "ERROR: #{errors.add(:schema, ex.message).to_s}"
         merge_report(shutdown(options), report)
         begin
@@ -98,12 +110,13 @@ module Setup
         '#{self.id}'
       end")
       create_default_events
-      report[:loaded] << (report[:model] = model)
+      report[:loaded] << (report[:model] = model) if model
       report
     end
 
     def visible
-      ((Account.current ? Account.current.id : nil) == self.account.id) && self.show_navigation_link
+      #((Account.current ? Account.current.id : nil) == self.account.id) && self.show_navigation_link
+      self.show_navigation_link
     end
 
     def navigation_label
@@ -143,7 +156,7 @@ module Setup
               sch = sch.deep_merge(combined_sch) { |key, val1, val2| array_sum(val1, val2) }
             end
           elsif key == '$ref' && ref = find_ref_schema(value)
-            sch = sch.deep_merge(ref) { |key, val1, val2| array_sum(val1, val2) }
+            sch = sch.reverse_merge(ref) { |key, val1, val2| array_sum(val1, val2) }
           else
             sch[key] = value
           end
@@ -159,12 +172,10 @@ module Setup
           schema['properties'] ||= {}
           value_schema = schema['properties']['value'] || {}
           value_schema = base_model.deep_merge(value_schema)
-          schema['properties']['value'] = value_schema.merge('title' => 'Value')
+          schema['properties']['value'] = value_schema.merge('title' => 'Value', 'xml' => {'attribute' => true})
           base_model = nil
         else
-          schema = base_model.deep_merge(schema) do |key, val1, val2|
-            val1.is_a?(Array) && val2.is_a?(Array) ? val1 + val2 : val2
-          end
+          schema = base_model.deep_merge(schema) { |key, val1, val2| array_sum(val1, val2) }
         end
       end
       schema
@@ -187,6 +198,10 @@ module Setup
     end
 
     private
+
+    def array_sum(val1, val2)
+      val1.is_a?(Array) && val2.is_a?(Array) ? val1 + val2 : val2
+    end
 
     def merge_report(report, in_to)
       in_to.deep_merge!(report) { |key, this_val, other_val| this_val + other_val }
@@ -501,7 +516,7 @@ module Setup
 
       schema = merge_schema(schema, expand_extends: false)
 
-      if base_model = schema['extends']
+      if base_model = schema.delete('extends')
         base_model = find_or_load_model(report, base_model) if base_model.is_a?(String)
         raise Exception.new("requires base model #{schema['extends']} to be already loaded") unless base_model
       end
@@ -512,7 +527,7 @@ module Setup
           schema['properties'] ||= {}
           value_schema = schema['properties']['value'] || {}
           value_schema = base_model.deep_merge(value_schema)
-          schema['properties']['value'] = value_schema.merge('title' => 'Value')
+          schema['properties']['value'] = value_schema.merge('title' => 'Value', 'xml' => {'attribute' => true})
           base_model = nil
         else
           schema = base_model.deep_merge(schema) do |key, val1, val2|
@@ -939,10 +954,10 @@ module Setup
         return root
       rescue
         return nil
-    class << self
       end
     end
 
+    class << self
       def shutdown(data_types, options={})
         return {} unless data_types
         options[:reset_config] = true if options[:reset_config].nil?
@@ -959,7 +974,7 @@ module Setup
               data_type.save
             end
           rescue Exception => ex
-            raise ex
+            #raise ex
             puts "Error deconstantizing model #{data_type.name}: #{ex.message}"
           end
         end
@@ -979,7 +994,11 @@ module Setup
                   puts "Reloading #{model.schema_name rescue model.to_s} -> #{model.to_s}"
                   model_report = model.data_type.load_models(reload: true, reset_config: false)
                   report[:reloaded] += model_report[:reloaded] + model_report[:loaded]
-                  report[:reloaded] << model_report[:model]
+                  if model = model_report[:model]
+                    report[:reloaded] << model
+                  else
+                    puts "Warning: #{model.schema_name rescue model.to_s} -> #{model.to_s} NOT LOADED!"
+                  end
                 else
                   puts "Model #{model.schema_name rescue model.to_s} -> #{model.to_s} reload on parent reload!"
                 end

@@ -20,11 +20,11 @@ module RailsAdmin
         register_instance_option :controller do
           proc do
 
-            if params[:_save] && data = params[:import_schema_data]
+            if params[:_save] && data = params[:forms_import_schema_data]
               library = library = Setup::Library.where(id: data[:library_id]).first
               file = data[:file]
               base_uri = data[:base_uri]
-              if (@object = ImportSchemaData.new(library: library, file: file, base_uri: base_uri)).valid?
+              if (@object = Forms::ImportSchemaData.new(library: library, file: file, base_uri: base_uri)).valid?
                 if (i = (name = file.original_filename).rindex('.')) && name.from(i) == '.zip'
                   schemas = []
                   begin
@@ -63,8 +63,8 @@ module RailsAdmin
               end
             end
 
-            @object ||= ImportSchemaData.new
-            @model_config = RailsAdmin::Config.model(ImportSchemaData)
+            @object ||= Forms::ImportSchemaData.new
+            @model_config = RailsAdmin::Config.model(Forms::ImportSchemaData)
             unless @object.errors.blank?
               flash.now[:error] = t('admin.flash.error', name: @model_config.label, action: t("admin.actions.#{@action.key}.done").html_safe).html_safe
               flash.now[:error] += %(<br>- #{@object.errors.full_messages.join('<br>- ')}).html_safe

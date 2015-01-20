@@ -1,8 +1,11 @@
-= form_tag import_path, method: 'post', class: 'form-horizontal denser', style: 'height:100%' do
+= rails_admin_form_for @object, url: import_path, html: { multipart: true, class: "form-horizontal denser", data: { title: 'Hello'} } do |form|
+  = form.generate nested_in: true
 
-  %label{style: 'float:left'}= t('admin.actions.new_from_file.file_content_label')
-  %textarea{name: 'file_content', style: 'width:50%', rows: 15}
-  %button.btn.btn-primary{type: "submit"}
-    %i.icon-white.icon-ok
-    = t("admin.actions.import.submit")
-
+  .form-actions
+    %button.btn.btn-primary{type: 'submit', name: '_save', :'data-disable-with' => t('admin.actions.import.submit')}
+      %i.icon-upload
+      = t('admin.actions.import.submit')
+    %span.extra_buttons
+      %button.btn{type: 'submit', name: '_continue', :'data-disable-with' => t('admin.form.cancel')}
+        %i.icon-remove
+        = t('admin.form.cancel')

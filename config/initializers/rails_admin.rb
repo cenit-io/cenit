@@ -644,4 +644,20 @@ RailsAdmin.config do |config|
     fields :flow, :http_status_code, :count, :http_status_message, :json_data
   end
 
+  config.model Setup::Translator.name do
+    weight -9
+    show do
+      field :name
+      field :purpose
+      field :script
+
+      field :_id
+      field :created_at
+      field :creator
+      field :updated_at
+      field :updater
+    end
+    fields :name, :purpose, :script
+  end
+
 end

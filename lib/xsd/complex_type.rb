@@ -41,23 +41,30 @@ module Xsd
         if (type = a.type).is_a?(String)
           type = qualify_type(type)
         end
-        properties[p = "property_#{enum += 1}"] = type.to_json_schema.merge('title' => a.name.to_title,
-                                                                            'xml' => {'attribute' => true})
+        properties[p = "attribute_#{enum += 1}"] = type.to_json_schema.merge('title' => a.name.to_title,
+                                                                             'xml' => {'attribute' => true},
+                                                                             'edi' => {'segment' => a.name})
         required << p if a.required?
       end
+      enum = 0
       if container
         container_schema = container.to_json_schema
         if container.max_occurs == :unbounded || container.max_occurs > 1 || container.min_occurs > 1
-          properties[p = "property_#{enum += 1}"] = {'type' => 'array',
-                                                     'minItems' => container.min_occurs,
-                                                     'items' => properties[p]}
+          properties[p = 'value'] = {'type' => 'array',
+                                     'minItems' => container.min_occurs,
+                                     'items' => properties[p]}
           properties[p]['maxItems'] = container.max_occurs unless container.max_occurs == :unbounded
           required << p if container.min_occurs > 0
         else
           container_required = container_schema['required'] || []
-          container_schema['properties'].each do |property, schema|
-            properties[p = "property_#{enum += 1}"] = schema
-            required << p if container_required.include?(property)
+          if (container_properties = container_schema['properties']).size == 1
+            properties[p = 'value'] = container_properties.values.first
+            required << p if container_required.include?(container_properties.keys.first)
+          else
+            container_properties.each do |property, schema|
+              properties[p = "property_#{enum += 1}"] = schema
+              required << p if container_required.include?(property)
+            end
           end
         end
       end

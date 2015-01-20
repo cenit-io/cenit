@@ -30,7 +30,7 @@ module RailsAdmin
                 RailsAdmin::AbstractModel.model_loaded(@object.load_models[:loaded])
                 flash[:success] = "Model #{@object.title} loaded!"
               rescue Exception => ex
-                raise ex
+                #raise ex
                 flash[:error] = "Error loading model #{@object.title}: #{ex.message}"
               end
             end
