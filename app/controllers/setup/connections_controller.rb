@@ -44,7 +44,8 @@ module Setup
     
     protected
     def permited_attributes
-      params[:connection].permit(:id, :name, :url, connection_roles_attributes: [:id, :name, webhooks_attributes: [:id, :name, :path, :purpose]])
+      params[:connection].permit(:id, :name, :url, 
+        connection_roles_attributes: [:id, :name, webhooks_attributes: [:id, :name, :path, :purpose]])
     end  
     
     def find_connection
