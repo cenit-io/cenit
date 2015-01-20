@@ -42,7 +42,7 @@ module Setup
     end  
     
     def find_template
-      @template = Setup::Template.find_by(slug: params[:id])
+      @template = Setup::Template.find(params[:id])
     end  
     
   end

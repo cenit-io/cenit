@@ -3,7 +3,6 @@ module Setup
     include Mongoid::Document
     include Mongoid::Timestamps
     include AccountScoped
-    include MakeSlug
     include Trackable
        
     has_and_belongs_to_many :connections, class_name: Setup::Connection.name

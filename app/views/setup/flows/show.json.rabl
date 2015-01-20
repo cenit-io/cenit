@@ -1,12 +1,39 @@
-object @flows
+object @flow
 
-attributes :name, :slug, :purpose, :active, :batch
+node(:id){|e| e.id.to_s }
+attributes :name, :purpose, :active
+
 child(:connection_role, object_root: false) do 
-  attributes :name, :slug
-  child(:connections, object_root: false){ attributes :name, :slug, :url} 
+  node(:id){|e| e.id.to_s }
+  attributes :name
+  
+  child(:connections, object_root: false) do  
+    node(:id){|e| e.id.to_s }
+    attributes :name, :url
+  end   
 end
-child(:data_type, object_root: false) {attributes :name, :slug }
-child(:webhook, object_root: false) {attributes :name, :slug, :path, :purpose}
-child(:event, object_root: false) {attributes :name}
-child(:schedule, object_root: false) {attributes :name, :period, :active} 
-child(:batch, object_root: false) {attributes :size}
+
+child(:data_type, object_root: false) do 
+  node(:id){|e| e.id.to_s }
+  attributes :name
+end  
+
+child(:webhook, object_root: false) do 
+  node(:id){|e| e.id.to_s }
+  attributes :name, :path, :purpose
+end  
+
+child(:event, object_root: false) do
+  node(:id){|e| e.id.to_s }
+  attributes :name
+end  
+
+child(:schedule, object_root: false) do 
+  node(:id){|e| e.id.to_s }
+  attributes :name, :period, :active
+end   
+
+child(:batch, object_root: false) do 
+  node(:id){|e| e.id.to_s }
+  attributes :size
+end

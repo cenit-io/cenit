@@ -48,7 +48,7 @@ module Setup
     end
     
     def find_data_type
-      @data_type = Setup::DataType.find_by(slug: params[:id])
+      @data_type = Setup::DataType.find(params[:id])
     end    
     
   end

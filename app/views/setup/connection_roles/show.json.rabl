@@ -1,4 +1,14 @@
 object @connection_role
-attributes :name, :slug
-child(:webhooks, object_root: false) {attributes :name, :slug, :path, :purpose}
-child(:connections, object_root: false) {attributes :name, :slug, :url}
+
+node(:id){|e| e.id.to_s }
+attributes :name
+
+child(:webhooks, object_root: false) do 
+  node(:id){|e| e.id.to_s }
+  attributes :name, :path, :purpose
+end  
+
+child(:connections, object_root: false) do 
+  node(:id){|e| e.id.to_s }
+  attributes :name, :url
+end  
