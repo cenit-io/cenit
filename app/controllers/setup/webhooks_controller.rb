@@ -21,7 +21,7 @@ module Setup
     def create
       @webhook = Setup::Webhook.new(permited_attributes)
       if @webhook.save
-        render json: @webhook, status: :created, location: @webhook
+        render :show, status: :created
       else
         render json: @webhook.errors, status: :unprocessable_entity
       end

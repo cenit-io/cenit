@@ -21,7 +21,7 @@ module Setup
     def create	  
       @connection = Setup::Connection.new(permited_attributes)
       if @connection.save
-        render json: @connection, status: :created, location: @connection
+        render :show, status: :created
       else
         render json: @connection.errors, status: :unprocessable_entity
       end

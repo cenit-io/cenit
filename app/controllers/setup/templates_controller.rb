@@ -17,7 +17,7 @@ module Setup
     def create	  
       @template = Setup::Template.new(permited_attributes)
       if @template.save
-        render json: @template, status: :created, location: @template
+        render :show, status: :created
       else
         render json: @template.errors, status: :unprocessable_entity
       end
