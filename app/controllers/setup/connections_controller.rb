@@ -18,7 +18,7 @@ module Setup
     end
 
     # POST /connections.json
-    def create	  
+    def create
       @connection = Setup::Connection.new(permited_attributes)
       if @connection.save
         render :show, status: :created
@@ -44,7 +44,7 @@ module Setup
     
     protected
     def permited_attributes
-      params[:connection].permit(:id, :name, :url, 
+      params[:connection].permit(:id, :name, :url, :token,
         connection_roles_attributes: [:id, :name, webhooks_attributes: [:id, :name, :path, :purpose]])
     end  
     
