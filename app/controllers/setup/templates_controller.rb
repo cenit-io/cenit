@@ -1,6 +1,6 @@
 module Setup
   class TemplatesController < Setup::BaseController
-    before_action :find_templates, only: [:show, :update, :destroy]
+    before_action :find_template, only: [:show, :update, :destroy]
 
     def index
       @tenplates = Setup::Template.all
@@ -16,15 +16,15 @@ module Setup
 
     def create	  
       @template = Setup::Template.new(permited_attributes)
-      if @connection.save
-        render json: @template, status: :created, location: @connection
+      if @template.save
+        render json: @template, status: :created, location: @template
       else
         render json: @template.errors, status: :unprocessable_entity
       end
     end
 
     def update
-      if @template.update_attributes(params[:connection])
+      if @template.update_attributes(params[:template])
         head :no_content
       else
         render json: @template.errors, status: :unprocessable_entity
@@ -42,7 +42,7 @@ module Setup
     end  
     
     def find_template
-      @template = Setup::Template.find_by(slug: params[:id])
+      @template = Setup::Template.find(params[:id])
     end  
     
   end

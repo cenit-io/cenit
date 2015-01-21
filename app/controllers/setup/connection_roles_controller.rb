@@ -44,11 +44,13 @@ module Setup
     
     protected
     def permited_attributes
-      params[:connection_role].permit(:name, :slug, webhooks_attributes: [ :name, :slug, :path, :purpose], connections_attributes: [:name, :slug, :url] )
+      params[:connection_role].permit(:id, :name, 
+        webhooks_attributes: [ :id, :name, :path, :purpose], 
+        connections_attributes: [:id, :name, :url] )
     end  
     
     def find_connection_role
-      @connection_role = Setup::ConnectionRole.find_by(slug: params[:id])
+      @connection_role = Setup::ConnectionRole.find(params[:id])
     end
 
   end

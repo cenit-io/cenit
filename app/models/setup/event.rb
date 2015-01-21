@@ -3,7 +3,6 @@ module Setup
     include Mongoid::Document
     include Mongoid::Timestamps
     include AccountScoped
-    #include MakeSlug
     include Trackable
 
     field :id, :type => String

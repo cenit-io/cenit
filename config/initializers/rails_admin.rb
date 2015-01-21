@@ -83,7 +83,6 @@ RailsAdmin.config do |config|
   
     show do
       field :name
-      field :slug
       field :schemas
     
       field :_id
@@ -93,7 +92,7 @@ RailsAdmin.config do |config|
       field :updater 
     end
   
-    fields :name,:slug,:schemas
+    fields :name,:schemas
   end
 
   config.model Setup::Schema.name do
@@ -273,7 +272,6 @@ RailsAdmin.config do |config|
     
     show do
       field :name
-      field :slug
       field :url
       field :connection_roles
 
@@ -290,7 +288,7 @@ RailsAdmin.config do |config|
       field :updater
     end
     
-      fields :name, :slug, :url, :connection_roles, :url_parameters, :headers, :key, :token
+      fields :name, :url, :connection_roles, :url_parameters, :headers, :key, :token
   end
   
   config.model Setup::Parameter.name do

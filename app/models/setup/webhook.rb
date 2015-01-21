@@ -3,7 +3,6 @@ module Setup
     include Mongoid::Document
     include Mongoid::Timestamps
     include AccountScoped
-    include MakeSlug
     include Trackable
 
     include Setup::Enum
@@ -37,7 +36,7 @@ module Setup
 
     validates_presence_of :name, :path, :purpose
     
-    accepts_nested_attributes_for :url_parameters, :headers
+    accepts_nested_attributes_for :url_parameters, :headers, :connection_roles
     
     def relative_url
       "/#{path}"
