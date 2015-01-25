@@ -12,6 +12,7 @@ module Setup
     field :purpose, type: String, default: :send
     field :active, type: Boolean, default: :true
     field :transformation, type: String
+    field :style, type: String
     field :last_trigger_timestamps, type: DateTime
 
     has_one :schedule, class_name: Setup::Schedule.name, inverse_of: :flow
@@ -26,6 +27,10 @@ module Setup
 
     validates_presence_of :name, :purpose, :data_type, :webhook, :event
     accepts_nested_attributes_for :schedule, :batch
+    
+    def style_enum
+      %W(double_curly_braces xslt json.rabl xml.builder html.erb )
+    end
 
     def process(object, notification_id=nil)
       puts "Flow processing '#{object}' on '#{self.name}'..."
@@ -113,43 +118,18 @@ module Setup
       cleaned_json
     end
 
-    def self.json_transform(template_hash, data_hash)
-      template_hash.each do |key, value|
-        if value.is_a?(String) && value =~ /\A\{\{[a-z]+(_|([0-9]|[a-z])+)*(.[a-z]+(_|([0-9]|[a-z])+)*)*\}\}\Z/
-          new_value = data_hash
-          value[2, value.length - 4].split('.').each do |k|
-            next if new_value.nil? || !(template_hash = template_hash.is_a?(Hash) ? template_hash : nil) || new_value = new_value[k]
-          end
-          template_hash[key] = new_value
-        elsif value.is_a?(Hash)
-          template_hash[key] = json_transform(value, data_hash)
-        end
-      end
-      template_hash
-    end
-
-    def self.transform(transformation, document)
+    def self.transform(transformation, document, options = {})
       document ||= {}
-      puts "Transforming: #{document}"
-      hash_document = nil
-      begin
-        template_hash = JSON.parse(transformation)
-        puts 'JSON Transformation detected...'
-        hash_document = json_transform(template_hash, hash_document = to_hash(document))
-        puts 'JSON Transformation applied successfully!'
-      rescue Exception => json_ex
-        begin
-          hash_document = Hash.from_xml(Nokogiri::XSLT(transformation).transform(to_xml_document(document)).to_s)
-          puts 'XSLT Transformation detected...'
-          puts 'XSLT Transformation applied successfully!'
-        rescue Exception => xslt_ex
-          puts 'ERROR applying transformation:'
-          puts "\tJSON parser error: #{json_ex.message}"
-          puts "\tXSLT parser error: #{xslt_ex.message}"
-        end
-      end
-      puts "Transformation result: #{hash_document ? hash_document : document}"
-      hash_document || document
+      result = Setup::Transform::ActionViewTransform.run(transformation, document, options)
+      return result if result.present?
+
+      result = Setup::Transform::JsonTransform.run(transformation, document)
+      return result if result.present?
+          
+      result = Setup::Transform::XsltTransform.run(transformation, document)
+      return result if result.present?
+      
+      document
     end
 
     def self.to_hash(document)

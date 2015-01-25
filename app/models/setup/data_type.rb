@@ -8,7 +8,7 @@ module Setup
     include Trackable
 
     def self.to_include_in_models
-      @to_include_in_models ||= [Mongoid::Document, Mongoid::Timestamps, InstanceDataTypeAware, EventLookup, AccountScoped, DynamicValidators, Edi::Formatter, Edi::Filler, MakeSlug] #RailsAdminDynamicCharts::Datetime
+      @to_include_in_models ||= [Mongoid::Document, Mongoid::Timestamps, InstanceDataTypeAware, EventLookup, AccountScoped, DynamicValidators, Edi::Formatter, Edi::Filler] #RailsAdminDynamicCharts::Datetime
     end
 
     def self.to_include_in_model_classes

@@ -16,7 +16,7 @@ module Setup
       [:get,:post, :put, :delete, :copy, :head, :options, :link, :unlink, :purge, :lock, :unlock, :propfind]
     end
     
-    has_and_belongs_to_many :templates, class_name: Setup::Template.name, inverse_of: :connection_roles
+    has_and_belongs_to_many :templates, class_name: Setup::Template.name, inverse_of: :webhooks
     
     # Associated fields with request
     belongs_to :schema_validation, class_name: Setup::Schema.name
@@ -28,14 +28,14 @@ module Setup
     belongs_to :data_type_response, class_name: Setup::DataType.name
     field :trigger_event_response, type: Boolean 
 
-    has_and_belongs_to_many :connection_roles, class_name: Setup::ConnectionRole.name
+    has_and_belongs_to_many :connection_roles, class_name: Setup::ConnectionRole.name, inverse_of: :webhooks
     
     has_many :url_parameters, class_name: Setup::UrlParameter.name, as: :parameterizable
     has_many :headers, class_name: Setup::Header.name, as: :parameterizable
 
     validates_presence_of :name, :path, :purpose
     
-    accepts_nested_attributes_for :url_parameters, :headers, :connection_roles
+    accepts_nested_attributes_for :url_parameters, :headers
     
     def relative_url
       "/#{path}"
