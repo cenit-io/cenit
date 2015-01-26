@@ -14,6 +14,7 @@ gem 'devise'
 gem 'omniauth'
 gem 'omniauth-oauth2'
 gem 'rabl'
+gem 'builder'
 
 group :doc do
   gem 'sdoc', require: false

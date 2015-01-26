@@ -12,7 +12,6 @@ module Setup
     
     devise :database_authenticatable
 
-    field :id, :type => String
     field :name, type: String
     field :url, type: String
     field :number, as: :key, type: String

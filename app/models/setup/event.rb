@@ -5,7 +5,6 @@ module Setup
     include AccountScoped
     include Trackable
 
-    field :id, :type => String
     field :name, type: String
     field :triggers, type: String
 

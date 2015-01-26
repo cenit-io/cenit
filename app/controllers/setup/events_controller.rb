@@ -21,7 +21,7 @@ module Setup
     def create
       @event = Setup::Event.new(permited_attributes)
       if @event.save
-        render json: @event, status: :created, location: @event
+        render :show, status: :created
       else
         render json: @event.errors, status: :unprocessable_entity
       end

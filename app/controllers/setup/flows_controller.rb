@@ -21,7 +21,7 @@ module Setup
     def create
       @flow = Setup::Flow.new(permited_attributes)
       if @flow.save
-        render json: @flow, status: :created, location: @flow
+        render :show, status: :created
       else
         render json: @flow.errors, status: :unprocessable_entity
       end
