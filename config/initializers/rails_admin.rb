@@ -201,7 +201,12 @@ RailsAdmin.config do |config|
   config.model Setup::Template.name do
     navigation_label 'Setup'
     weight -16
-  
+    configure :webhooks do
+      nested_form false
+    end
+    configure :flows do
+      nested_form false
+    end
     show do
       field :name
       field :library
@@ -223,9 +228,8 @@ RailsAdmin.config do |config|
     group :credentials do
       label "Credentials"
     end
-    
     configure :connection_roles do
-      inverse_of :connections
+      nested_form false
     end
     configure :name, :string do
       help 'Requiered.'
@@ -377,7 +381,12 @@ RailsAdmin.config do |config|
        { maxlength: 50,size: 50 } 
       end
     end
-    
+    configure :webhooks do
+      nested_form false
+    end
+    configure :connections do
+      nested_form false
+    end
     modal do
       field :name
       #field :connections
@@ -414,7 +423,9 @@ RailsAdmin.config do |config|
        { maxlength: 50, size: 50 }
       end
     end
-    
+    configure :connection_roles do
+      nested_form false
+    end
     configure :schema_validation do
       help "Optional. Validate transformed flow document using this schema."
       group :request
@@ -457,6 +468,7 @@ RailsAdmin.config do |config|
       field :path
       field :method
       field :connection_roles
+      field :flow
       
       field :url_parameters
       field :headers
@@ -552,13 +564,17 @@ RailsAdmin.config do |config|
       group :batching
     end
     
+    configure :style, :enum do
+      group :transformation
+    end
+    
     configure :transformation do
       group :transformation
       partial 'form_transformation'
     end
     
     edit do
-      fields :name, :active, :purpose, :data_type, :connection_role, :webhook, :event, :schedule, :batch, :transformation
+      fields :name, :active, :purpose, :data_type, :connection_role, :webhook, :event, :schedule, :batch, :style, :transformation
     end
     
     show do
@@ -569,6 +585,8 @@ RailsAdmin.config do |config|
       field :webhook
       field :event
       field :schedule
+      field :style
+      field :transformation
       
       field :_id
       field :created_at
@@ -641,9 +659,38 @@ RailsAdmin.config do |config|
     end
     fields :flow, :http_status_code, :count, :http_status_message, :json_data
   end
+  
+  config.model Setup::Transform.name do
+    weight -9
+    
+    configure :transformation do
+      group :transformation
+      partial 'form_transformation'
+    end
+    
+    configure :style, :enum do
+      group :transformation
+    end
+    
+    show do
+      field :name
+      field :data_type
+      field :schema_validation
+      field :flow
+      field :style
+      field :transformation
+
+      field :_id
+      field :created_at
+      field :creator
+      field :updated_at
+      field :updater
+    end
+    fields :name, :data_type, :schema_validation, :style, :transformation
+  end
 
   config.model Setup::Translator.name do
-    weight -9
+    weight -8
     show do
       field :name
       field :purpose

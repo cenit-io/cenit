@@ -17,19 +17,21 @@ module RailsAdmin
 
         register_instance_option :controller do
           proc do
+            data_type = Setup::DataType.find(params[:data_type_id]) #.sample_object #rescue params[:sample_data]
+            @sample_data = data_type.sample_to_hash
 
-            @sample_data = Setup::DataType.find_by(:id => params[:data_type_id]).sample_object rescue params[:sample_data]
-
-            @sample_data = JSON.parse(@sample_data) rescue {}
+            #@sample_data = JSON.parse(@sample_data) rescue {}
 
             if transformation = params[:transformation]
-              @result = Setup::Flow.transform(transformation, @sample_data)
+              options = {}
+              options[:style] = params[:style] if params[:style].present?
+              @result = Setup::Flow.transform(transformation, data_type.sample_object, options )
             else
               @result = {}
             end
 
-            @sample_data = JSON.pretty_generate(@sample_data)
-            @result = JSON.pretty_generate(@result)
+            #@sample_data = JSON.try(:pretty_generate, @sample_data) || @sample_data
+           # @result = JSON.try(:pretty_generate, @result) || @result
 
             render @action.template_name
           end

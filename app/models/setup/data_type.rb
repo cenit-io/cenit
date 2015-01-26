@@ -8,7 +8,7 @@ module Setup
     include Trackable
 
     def self.to_include_in_models
-      @to_include_in_models ||= [Mongoid::Document, Mongoid::Timestamps, InstanceDataTypeAware, EventLookup, AccountScoped, DynamicValidators, Edi::Formatter, Edi::Filler, MakeSlug] #RailsAdminDynamicCharts::Datetime
+      @to_include_in_models ||= [Mongoid::Document, Mongoid::Timestamps, InstanceDataTypeAware, EventLookup, AccountScoped, DynamicValidators, Edi::Formatter, Edi::Filler] #RailsAdminDynamicCharts::Datetime
     end
 
     def self.to_include_in_model_classes
@@ -22,7 +22,8 @@ module Setup
     field :schema, type: String
     field :sample_data, type: String
 
-    has_many :events, class_name: Setup::Event.to_s, dependent: :destroy
+    has_many :events, class_name: Setup::Event.name, dependent: :destroy, inverse_of: :data_type
+    has_many :flows, class_name: Setup::Flow.name, dependent: :destroy, inverse_of: :data_type
 
     validates_presence_of :name, :schema
 
@@ -52,10 +53,18 @@ module Setup
       Edi::Parser.parse_xml(self, data, options)
     end
 
-    def sample_object
+    def sample_to_s
       '{"' + name.underscore + '": ' + sample_data + '}'
     end
-
+    
+    def sample_object
+      model.new(JSON.parse(sample_data))
+    end
+    
+    def sample_to_hash
+      JSON.parse(sample_to_s)
+    end
+    
     def shutdown(options={})
       DataType.shutdown(self, options)
     end
