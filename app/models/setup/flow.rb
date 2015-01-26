@@ -18,10 +18,11 @@ module Setup
     has_one :schedule, class_name: Setup::Schedule.name, inverse_of: :flow
     has_one :batch, class_name: Setup::Batch.name, inverse_of: :flow
 
-    belongs_to :connection_role, class_name: Setup::ConnectionRole.name     
-    belongs_to :data_type, class_name: Setup::DataType.name
-    belongs_to :webhook, class_name: Setup::Webhook.name
-    belongs_to :event, class_name: Setup::Event.name
+    belongs_to :connection_role, class_name: Setup::ConnectionRole.name, inverse_of: :flow
+    belongs_to :data_type, class_name: Setup::DataType.name, inverse_of: :flow
+    belongs_to :webhook, class_name: Setup::Webhook.name, inverse_of: :flow
+    belongs_to :event, class_name: Setup::Event.name, inverse_of: :flow
+    belongs_to :transform, class_name: Setup::Transform.name, inverse_of: :flow
     
     has_and_belongs_to_many :templates, class_name: Setup::Template.name, inverse_of: :connection_roles
 
@@ -29,7 +30,7 @@ module Setup
     accepts_nested_attributes_for :schedule, :batch
     
     def style_enum
-      %W(double_curly_braces xslt json.rabl xml.builder html.erb )
+      %W(double_curly_braces xslt json.rabl xml.rabl xml.builder html.erb )
     end
 
     def process(object, notification_id=nil)
@@ -118,18 +119,8 @@ module Setup
       cleaned_json
     end
 
-    def self.transform(transformation, document, options = {})
-      document ||= {}
-      result = Setup::Transform::ActionViewTransform.run(transformation, document, options)
-      return result if result.present?
-
-      result = Setup::Transform::JsonTransform.run(transformation, document)
-      return result if result.present?
-          
-      result = Setup::Transform::XsltTransform.run(transformation, document)
-      return result if result.present?
-      
-      document
+    def self.transform(transformation, object, options = {})
+      Setup::Transform.new(transformation: transformation, data_type: data_type, style: options[:style]).run(object, options)
     end
 
     def self.to_hash(document)

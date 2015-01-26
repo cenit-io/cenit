@@ -468,6 +468,7 @@ RailsAdmin.config do |config|
       field :path
       field :method
       field :connection_roles
+      field :flow
       
       field :url_parameters
       field :headers
@@ -658,9 +659,38 @@ RailsAdmin.config do |config|
     end
     fields :flow, :http_status_code, :count, :http_status_message, :json_data
   end
+  
+  config.model Setup::Transform.name do
+    weight -9
+    
+    configure :transformation do
+      group :transformation
+      partial 'form_transformation'
+    end
+    
+    configure :style, :enum do
+      group :transformation
+    end
+    
+    show do
+      field :name
+      field :data_type
+      field :schema_validation
+      field :flow
+      field :style
+      field :transformation
+
+      field :_id
+      field :created_at
+      field :creator
+      field :updated_at
+      field :updater
+    end
+    fields :name, :data_type, :schema_validation, :style, :transformation
+  end
 
   config.model Setup::Translator.name do
-    weight -9
+    weight -8
     show do
       field :name
       field :purpose

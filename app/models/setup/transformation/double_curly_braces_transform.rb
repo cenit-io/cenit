@@ -1,6 +1,6 @@
 module Setup
-  module Transform
-    class DoubleCurlyBracesTransform < Setup::Transform::AbstractTransform
+  module Transformation
+    class DoubleCurlyBracesTransform < Setup::Transformation::AbstractTransform
       
       def self.run(transformation, document, options = {})
         hash_document = to_hash(document) || nil
