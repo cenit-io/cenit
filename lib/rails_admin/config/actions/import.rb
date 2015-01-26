@@ -42,7 +42,7 @@ module RailsAdmin
                       form_object.errors.add(:translator, "Translation result of type #{model.title} expected but #{@object.class} found")
                     end
                   rescue Exception => ex
-                    #raise ex
+                    raise ex
                     form_object.errors.add(:data, ex.message)
                   end
                 end

@@ -28,9 +28,16 @@ module Setup
       RailsAdmin::AbstractModel.update_model_config(models)
     end
 
+    def include_missing?
+      @include_missing
+    end
+
+    attr_reader :include_missing_message
+
     private
 
     def create_data_types
+      @include_missing = false
       @data_types_to_save = Set.new
       @data_types_to_destroy = []
       @data_types_to_reload = []
@@ -62,6 +69,9 @@ module Setup
         end
         self.data_types.delete_if { |data_type| !@data_types_to_save.include?(data_type) }
       rescue Exception => ex
+        if @include_missing = ex.is_a?(Xsd::IncludeMissingException)
+          @include_missing_message = ex.message
+        end
         #raise ex
         puts "ERROR: #{errors.add(:schema, ex.message).to_s}"
         destroy_data_types
@@ -77,7 +87,7 @@ module Setup
       end
       unless @data_types_to_reload.empty?
         DataType.shutdown(@data_types_to_reload)
-        @data_types_to_reload.each { |data_type| data_type.load_model(reload: true)}
+        @data_types_to_reload.each { |data_type| data_type.load_model(reload: true) }
       end
     end
 

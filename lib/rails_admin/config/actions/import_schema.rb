@@ -27,6 +27,7 @@ module RailsAdmin
               if (@object = Forms::ImportSchemaData.new(library: library, file: file, base_uri: base_uri)).valid?
                 if (i = (name = file.original_filename).rindex('.')) && name.from(i) == '.zip'
                   schemas = []
+                  with_missing_includes = {}
                   begin
                     Zip::InputStream.open(StringIO.new(file.read)) do |zis|
                       while @object.errors.blank? && entry = zis.get_next_entry
@@ -35,6 +36,8 @@ module RailsAdmin
                           schema = Setup::Schema.new(library: library, uri: entry_uri, schema: schema)
                           if schema.save
                             schemas << schema
+                          elsif schema.include_missing?
+                            with_missing_includes[entry.name] = schema
                           else
                             @object.errors.add(:file, "contains invalid schema in zip entry #{entry.name}: #{schema.errors.full_messages.join(', ')}")
                           end
@@ -43,6 +46,21 @@ module RailsAdmin
                     end
                   rescue Exception => ex
                     @object.errors.add(:file, "Zip file format error: #{ex.message}")
+                  end
+                  while @object.errors.blank? && !with_missing_includes.empty?
+                    with_missing_includes.each do |entry_name, schema|
+                      next unless @object.errors.blank?
+                      if schema.save
+                        schemas << schema
+                      elsif !schema.include_missing?
+                        @object.errors.add(:file, "contains invalid schema in zip entry #{entry_name}: #{schema.errors.full_messages.join(', ')}")
+                      end
+                    end
+                    unless with_missing_includes.size == with_missing_includes.delete_if { |_, schema| !schema.include_missing? }.size
+                      with_missing_includes.each do |entry_name, schema|
+                        @object.errors.add(:file, "contains invalid schema in zip entry #{entry_name}: #{schema.errors.full_messages.join(', ')}")
+                      end
+                    end
                   end
                   if @object.errors.blank?
                     dts = 0;

@@ -19,11 +19,7 @@ module Xsd
     end
 
     def xmlns(ns)
-      if xmlns = @xmlns[ns]
-        xmlns
-      else
-        super
-      end
+      @xmlns[ns] || super
     end
   end
 end

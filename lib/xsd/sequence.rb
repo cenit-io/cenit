@@ -3,6 +3,5 @@ module Xsd
 
     tag 'sequence'
 
-
   end
 end

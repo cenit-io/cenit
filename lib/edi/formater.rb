@@ -2,8 +2,9 @@ module Edi
   module Formatter
 
     def to_edi(options={})
-      options[:field_separator] ||= '*'
-      options[:segment_separator] ||= :new_line
+      options.reverse_merge!(field_separator: '*',
+                             segment_separator: :new_line,
+                             seg_sep_suppress: '<<seg. sep.>>')
       output = record_to_edi(data_type = self.data_type, options, JSON.parse(data_type.schema), self)
       seg_sep = options[:segment_separator] == :new_line ? "\r\n" : options[:segment_separator].to_s
       output.join(seg_sep)
@@ -26,10 +27,12 @@ module Edi
 
     private
 
-    def record_to_xml_element(data_type, schema, record, xml_doc)
+    def record_to_xml_element(data_type, schema, record, xml_doc, enclosed_property_name=nil)
       return unless record
       attr = {}
       elements = []
+      content = nil
+      content_property = nil
       schema['properties'].each do |property_name, property_schema|
         property_schema = data_type.merge_schema(property_schema)
         case property_schema['type']
@@ -43,7 +46,7 @@ module Edi
           when 'object'
             relation = record.reflect_on_association(property_name)
             next unless relation && [:has_one, :embeds_one].include?(relation.macro)
-            elements << record_to_xml_element(data_type, property_schema, record.send(property_name), xml_doc)
+            elements << record_to_xml_element(data_type, property_schema, record.send(property_name), xml_doc, property_name)
           else
             unless value = record.send(property_name)
               value = property_schema['default'] || ''
@@ -52,15 +55,23 @@ module Edi
             name ||= property_name
             if !property_schema['xml'] || property_schema['xml']['attribute']
               attr[name] = value
+            elsif content.nil?
+              content = value
+              content_property = property_name
             else
-              elements << xml_doc.create_element(name, value: value)
+              raise Exception.new("More than one content property found: '#{content_property}' and '#{property_name}'")
             end
         end
       end
       name = schema['edi']['segment'] if schema['edi']
-      name ||= record.class.title
+      name ||= enclosed_property_name || record.data_type.title
       element = xml_doc.create_element(name, attr)
-      elements.each { |e| element << e if e }
+      if elements.empty?
+        element << content unless content.nil?
+      else
+        raise Exception.new("Incompatible content property ('#{content_property}') in presence of complex content") if content_property
+        elements.each { |e| element << e if e }
+      end
       element
     end
 
@@ -94,13 +105,13 @@ module Edi
       json
     end
 
-    def record_to_edi(data_type, options, schema, record)
+    def record_to_edi(data_type, options, schema, record, enclosed_property_name=nil)
       output = []
       return output unless record
       if schema['edi']
         segment = schema['edi']['segment'] || ''
       else
-        header = segment = (schema['title'] || '')
+        header = segment = (enclosed_property_name || record.data_type.title)
       end
       schema['properties'].each do |property_name, property_schema|
         property_schema = data_type.merge_schema(property_schema)
@@ -115,15 +126,15 @@ module Edi
           when 'object'
             relation = record.reflect_on_association(property_name)
             next unless relation && [:has_one, :embeds_one].include?(relation.macro)
-            output.concat(record_to_edi(data_type, options, property_schema, record.send(property_name)))
+            output.concat(record_to_edi(data_type, options, property_schema, record.send(property_name), property_name))
           else
             unless value = record.send(property_name)
               value = property_schema['default'] || ''
             end
             if (segment_sep = options[:segment_separator]) == :new_line
-              value = value.to_s.gsub("\r\n", '<<seg. sep. suppressed>>').gsub("\n", '<<seg. sep. suppressed>>').gsub("\r", '<<seg. sep. suppressed>>')
+              value = value.to_s.gsub("\r\n", options[:seg_sep_suppress]).gsub("\n", options[:seg_sep_suppress]).gsub("\r", options[:seg_sep_suppress])
             else
-              value = value.to_s.gsub(segment_sep, '<<seg. sep. suppressed>>')
+              value = value.to_s.gsub(segment_sep, options[:seg_sep_suppress])
             end
             field_sep = options[:field_separator]
             case field_sep

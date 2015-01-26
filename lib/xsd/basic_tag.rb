@@ -22,12 +22,16 @@ module Xsd
           end")
     end
 
+    def included?(qualified_name)
+      parent ? parent.included?(qualified_name) : false
+    end
+
     def qualify_element(name)
-      "element:#{qualify(name)}"
+      included?(qn="element:#{name}") ? qn : "element:#{qualify(name)}"
     end
 
     def qualify_type(name)
-      "type:#{qualify(name)}"
+      included?(qn="type:#{name}") ? qn : "type:#{qualify(name)}"
     end
 
     def xmlns(ns)

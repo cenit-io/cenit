@@ -5,12 +5,12 @@ module Edi
 
       def parse_edi(data_type, content, options={}, record=nil)
         start = options[:start] || 0
-        if (segment_sep = options[:segment_sep]) == :new_line
+        if (segment_sep = options[:segment_separator]) == :new_line
           content = content.gsub("\r", '')
           segment_sep = "\n"
         end
         raise Exception.new("Record model #{record.clas} does not match data type model#{data_type.model}") unless record.nil? || record.class == data_type.model
-        json, start, record = do_parse_edi(data_type, data_type.model, content, data_type.merged_schema, start, options[:field_sep], segment_sep, report={segments: []}, nil, nil, nil, nil, record)
+        json, start, record = do_parse_edi(data_type, data_type.model, content, data_type.merged_schema, start, options[:field_separator], segment_sep, report={segments: []}, nil, nil, nil, nil, record)
         raise Exception.new("Unexpected input at position #{start}: #{content[start, content.length - start <= 10 ? content.length - 1 : 10]}") if start < content.length
         report[:json] = json
         report[:scan_size] = start
@@ -23,38 +23,68 @@ module Edi
       end
 
       def parse_xml(data_type, content, options={}, record=nil)
-        # do_parse_xml(data_type, data_type.model, Nokogiri.XML(content), options, data_type.merged_schema, nil, record)
-        raise Exception.new('XML parsing is under construction...')
+        do_parse_xml(data_type, data_type.model, Nokogiri::XML(content).root, options, data_type.merged_schema, nil, record)
       end
 
       private
 
-      def do_parse_xml(data_type, model, element, options, json_schema, record=nil, new_record=nil)
+      def do_parse_xml(data_type, model, element, options, json_schema, record=nil, new_record=nil, enclosed_property=nil)
         json_schema = data_type.merge_schema(json_schema)
+        name = json_schema['edi']['segment'] if json_schema['edi']
+        name ||= enclosed_property || model.data_type.title
+        return unless name == element.name
         record ||= new_record || model.new
-        attribute_map = {}
-        element_map = {}
+        attributes = {}
+        sub_element_schemas = {}
+        content_property = nil
         json_schema['properties'].each do |property_name, property_schema|
           property_schema = data_type.merge_schema(property_schema)
-          name = property_schema['edi']['segment'] if property_schema['edi']
-          name ||= property_name
-          map = if %w{object array}.include?(property_schema['type']) || (property_schema['xml'] && !property_schema['xml']['attribute'])
-                  element_map
-                else
-                  attribute_map
-                end
-          map[name] = {property_name: property_name, property_schema: property_schema}
+          name = property_schema['edi'] ? property_schema['edi']['segment'] : property_name
+          if %w{object array}.include?(property_schema['type'])
+            sub_element_schemas[property_name] = property_schema
+          elsif !property_schema['xml'] || property_schema['xml']['attribute']
+            attributes[name] = property_name
+          else
+            raise Exception.new("More than one content property found: '#{content_property}' and '#{property_name}'") if content_property
+            content_property = property_name
+          end
         end
         element.attribute_nodes.each do |attr|
-          raise Exception.new("Unexpected attribute '#{attr.name}'") unless property = attribute_map[attr.name]
-          record.send("#{property[:property_name]}=", attr.value)
+          #raise Exception.new("Unexpected attribute '#{attr.name}'") unless property = attributes[attr.name]
+          if property = attributes[attr.name]
+            record.send("#{property}=", attr.value)
+          end
         end
-        sub_element = element.first_element_child
-        while sub_element
-          raise Exception.new("Unexpected element '#{sub_element.name}'") unless property = element_map[sub_element.name]
-          #TODO ...
-          sub_element = sub_element.next_element
+        if sub_element_schemas.empty?
+          record.send("#{content_property}=", element.content) if content_property
+        else
+          sub_element = element.first_element_child
+          sub_element_schemas.each do |property_name, property_schema|
+            next unless sub_element
+            case property_schema['type']
+              when 'array'
+                relation = model.reflect_on_association(property_name)
+                next unless [:has_many, :has_and_belongs_to_many, :embeds_many].include?(relation.macro)
+                property_schema = data_type.merge_schema(property_schema['items'])
+                property_model = relation.klass
+                while sub_element && sub_record = do_parse_xml(data_type, property_model, sub_element, options, property_schema)
+                  record.send(property_name) << sub_record
+                  sub_element = sub_element.next_element
+                end
+              when 'object'
+                relation = model.reflect_on_association(property_name)
+                next unless [:has_one, :embeds_one].include?(relation.macro)
+                property_model = relation.klass
+                if sub_record = do_parse_xml(data_type, property_model, sub_element, options, property_schema, nil, nil, property_name)
+                  record.send("#{property_name}=", sub_record)
+                  sub_element = sub_element.next_element
+                end
+              else
+                raise Exception.new('These should not be read')
+            end
+          end
         end
+        record
       end
 
       def do_parse_json(data_type, model, json, options, json_schema, record=nil, new_record=nil)
@@ -119,7 +149,7 @@ module Edi
             return [nil, start, nil] unless start < content.length && content[start, seg_id.length] == seg_id
             field_sep = content[start + seg_id.length] unless field_sep
             #raise Exception.new("Invalid field separator #{field_sep}") unless field_sep == :by_fixed_length || field_sep == content[start + seg_id.length]
-            unless segment_sep ||= report[:segment_sep]
+            unless segment_sep ||= report[:segment_separator]
               if field_sep == :by_fixed_length
                 cursor = start + seg_id.length
                 json_schema['properties'].each do |property_name, property_schema|
@@ -155,7 +185,7 @@ module Edi
                   raise Exception.new('Can not infers segment separator without sub-segment schemas')
                 end
               end
-              report[:segment_sep] = segment_sep
+              report[:segment_separator] = segment_sep
             end
             if field_sep == :by_fixed_length
               fields = []
