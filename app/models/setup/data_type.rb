@@ -54,7 +54,6 @@ module Setup
     end
 
     def sample_to_s
-      #"{#{name.underscore}: #{sample_data} }"
       '{"' + name.underscore + '": ' + sample_data + '}'
     end
     

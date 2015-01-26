@@ -30,7 +30,7 @@ module Setup
     accepts_nested_attributes_for :schedule, :batch
     
     def style_enum
-      %W(double_curly_braces xslt json.rabl xml.rabl xml.builder html.erb )
+      %W(double_curly_braces xslt json.rabl xml.rabl xml.builder html.erb csv.erb js.erb text.erb)
     end
 
     def process(object, notification_id=nil)
