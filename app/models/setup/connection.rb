@@ -4,7 +4,6 @@ module Setup
     include Mongoid::Timestamps
     include AccountScoped
     include NumberGenerator
-    include MakeSlug
     include Trackable
     
     has_and_belongs_to_many :connection_roles, class_name: Setup::ConnectionRole.name, inverse_of: :connections
@@ -13,7 +12,6 @@ module Setup
     
     devise :database_authenticatable
 
-    field :id, :type => String
     field :name, type: String
     field :url, type: String
     field :number, as: :key, type: String
@@ -21,7 +19,7 @@ module Setup
 
     after_initialize :ensure_token
 
-    accepts_nested_attributes_for :url_parameters, :headers
+    accepts_nested_attributes_for :url_parameters, :headers, :connection_roles
 
     validates_presence_of :name, :url, :key, :token
     validates_uniqueness_of :token

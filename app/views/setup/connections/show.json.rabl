@@ -1,6 +1,14 @@
 object @connection
-attributes :name, :slug, :url, :key, :token
+
+node(:id){|e| e.id.to_s }
+attributes :name, :url, :key, :token
+
 child(:connection_roles, object_root: false) do
-  attributes :name, :slug
-  child(:webhooks, object_root: false) {attributes :name, :slug, :path, :purpose}
+  node(:id){|e| e.id.to_s }
+  attributes :name
+
+  child(:webhooks, object_root: false) do
+    node(:id){|e| e.id.to_s }
+    attributes :name, :path, :purpose
+  end  
 end

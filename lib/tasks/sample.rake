@@ -218,7 +218,7 @@ namespace :sample do
         }
 
 
-        product_model.create!(product)
+        #product_model.create!(product)
 
       end
 

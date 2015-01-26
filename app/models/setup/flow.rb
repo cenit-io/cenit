@@ -6,28 +6,32 @@ module Setup
     include Mongoid::Timestamps
     include AccountScoped
     include Setup::Enum
-    include MakeSlug
     include Trackable
 
-    field :id, type: String
     field :name, type: String
     field :purpose, type: String, default: :send
     field :active, type: Boolean, default: :true
     field :transformation, type: String
+    field :style, type: String
     field :last_trigger_timestamps, type: DateTime
 
     has_one :schedule, class_name: Setup::Schedule.name, inverse_of: :flow
     has_one :batch, class_name: Setup::Batch.name, inverse_of: :flow
 
-    belongs_to :connection_role, class_name: Setup::ConnectionRole.name     
-    belongs_to :data_type, class_name: Setup::DataType.name
-    belongs_to :webhook, class_name: Setup::Webhook.name
-    belongs_to :event, class_name: Setup::Event.name
+    belongs_to :connection_role, class_name: Setup::ConnectionRole.name, inverse_of: :flow
+    belongs_to :data_type, class_name: Setup::DataType.name, inverse_of: :flow
+    belongs_to :webhook, class_name: Setup::Webhook.name, inverse_of: :flow
+    belongs_to :event, class_name: Setup::Event.name, inverse_of: :flow
+    belongs_to :transform, class_name: Setup::Transform.name, inverse_of: :flow
     
     has_and_belongs_to_many :templates, class_name: Setup::Template.name, inverse_of: :connection_roles
 
     validates_presence_of :name, :purpose, :data_type, :webhook, :event
     accepts_nested_attributes_for :schedule, :batch
+    
+    def style_enum
+      %W(double_curly_braces xslt json.rabl xml.rabl xml.builder html.erb csv.erb js.erb text.erb)
+    end
 
     def process(object, notification_id=nil)
       puts "Flow processing '#{object}' on '#{self.name}'..."
@@ -115,43 +119,8 @@ module Setup
       cleaned_json
     end
 
-    def self.json_transform(template_hash, data_hash)
-      template_hash.each do |key, value|
-        if value.is_a?(String) && value =~ /\A\{\{[a-z]+(_|([0-9]|[a-z])+)*(.[a-z]+(_|([0-9]|[a-z])+)*)*\}\}\Z/
-          new_value = data_hash
-          value[2, value.length - 4].split('.').each do |k|
-            next if new_value.nil? || !(template_hash = template_hash.is_a?(Hash) ? template_hash : nil) || new_value = new_value[k]
-          end
-          template_hash[key] = new_value
-        elsif value.is_a?(Hash)
-          template_hash[key] = json_transform(value, data_hash)
-        end
-      end
-      template_hash
-    end
-
-    def self.transform(transformation, document)
-      document ||= {}
-      puts "Transforming: #{document}"
-      hash_document = nil
-      begin
-        template_hash = JSON.parse(transformation)
-        puts 'JSON Transformation detected...'
-        hash_document = json_transform(template_hash, hash_document = to_hash(document))
-        puts 'JSON Transformation applied successfully!'
-      rescue Exception => json_ex
-        begin
-          hash_document = Hash.from_xml(Nokogiri::XSLT(transformation).transform(to_xml_document(document)).to_s)
-          puts 'XSLT Transformation detected...'
-          puts 'XSLT Transformation applied successfully!'
-        rescue Exception => xslt_ex
-          puts 'ERROR applying transformation:'
-          puts "\tJSON parser error: #{json_ex.message}"
-          puts "\tXSLT parser error: #{xslt_ex.message}"
-        end
-      end
-      puts "Transformation result: #{hash_document ? hash_document : document}"
-      hash_document || document
+    def self.transform(transformation, object, options = {})
+      Setup::Transform.new(transformation: transformation, data_type: data_type, style: options[:style]).run(object, options)
     end
 
     def self.to_hash(document)
