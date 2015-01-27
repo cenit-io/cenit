@@ -92,6 +92,11 @@ GEM
       mongoid (~> 4.0.0.beta1)
     haml (4.0.6)
       tilt
+    haml-rails (0.5.3)
+      actionpack (>= 4.0.1)
+      activesupport (>= 4.0.1)
+      haml (>= 3.1, < 5.0)
+      railties (>= 4.0.1)
     hashie (3.3.2)
     hike (1.2.3)
     httparty (0.13.3)
@@ -300,6 +305,7 @@ DEPENDENCIES
   devise
   factory_girl_rails
   ffaker
+  haml-rails
   httparty
   jbuilder (~> 1.0.1)
   jquery-rails
