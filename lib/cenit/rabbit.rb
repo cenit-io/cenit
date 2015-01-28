@@ -22,14 +22,14 @@ module Cenit
       object = message[:json_data.to_s]
       
       flow.connection_role.connections.each do |connection|
-        begin  
+        begin
           response = HTTParty.post(connection.url + '/' + flow.webhook.path,
                                    {
                                      body: object.to_json,
                                      headers: {
                                        'Content-Type'    => 'application/json',
                                        'X_HUB_STORE'     => connection.key,
-                                       'X_HUB_TOKEN'     => connection.authentication_token,
+                                       'X_HUB_TOKEN'     => connection.token,
                                        'X_HUB_TIMESTAMP' => Time.now.utc.to_i.to_s
                                      }
                                    })
