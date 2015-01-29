@@ -41,6 +41,10 @@ module Setup
           format = options[:format] ||= :html          
           eval Haml::Engine.new(options[:transformation]).compiler.precompiled_with_ambles([])
         end
+
+        def types
+          [:Export]
+        end
         
       end
     end
