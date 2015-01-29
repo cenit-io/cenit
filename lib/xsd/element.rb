@@ -9,9 +9,17 @@ module Xsd
     def initialize(parent, attributes)
       super
       _, max_occurs = attributes.detect { |a| a[0] == 'maxOccurs' }
-      @max_occurs = max_occurs ? max_occurs.to_i : 1
+      @max_occurs = if max_occurs then
+                      max_occurs == 'unbounded' ? :unbounded : max_occurs.to_i
+                    else
+                      1
+                    end
       _, min_occurs = attributes.detect { |a| a[0] == 'minOccurs' }
-      @min_occurs = min_occurs ? min_occurs.to_i : 1
+      @min_occurs = if min_occurs then
+                      min_occurs == 'unbounded' ? 0 : min_occurs.to_i
+                    else
+                      1
+                    end
     end
 
     def when_simpleType_end(simpleType)
@@ -28,7 +36,8 @@ module Xsd
         merge_json = if @type.is_a?(ComplexType)
                        @type.to_json_schema
                      else
-                       {'properties' => {'value' => @type.to_json_schema.merge('title' => 'Value')}}
+                       {'properties' => {'value' => @type.to_json_schema.merge('title' => 'Value',
+                                                                               'xml' => {'attribute' => false})}}
                      end
       else
         if (type_schema = qualify_type(type_name).to_json_schema)['$ref']
