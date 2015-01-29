@@ -29,17 +29,17 @@ module Setup
           renderer.render
         end
         
-        def run_builder(transformation, object, options = {})
+        def run_builder(options = {})
           format = options[:format] ||= :xml          
           eval "xml = ::Builder::XmlMarkup.new(:indent => 2);" +
             #"self.output_buffer = xml.target!;" +
-            transformation +
+            options[:transformation] +
             ";xml.target!;"
         end
         
-        def run_haml(transformation, object, options = {})
+        def run_haml(options = {})
           format = options[:format] ||= :html          
-          eval Haml::Engine.new(transformation).compiler.precompiled_with_ambles([])
+          eval Haml::Engine.new(options[:transformation]).compiler.precompiled_with_ambles([])
         end
         
       end
