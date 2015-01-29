@@ -2,7 +2,9 @@ require 'builder'
 
 module Setup
   module Transformation
+    #ActionView::Template.register_template_handler(:haml, Haml::Plugin)
     class ActionViewTransform < Setup::Transformation::AbstractTransform
+      
       class << self
         
         def run(options = {})
@@ -26,14 +28,18 @@ module Setup
           renderer = Rabl::Renderer.new(options[:transformation], options[:object], { format: format, root: true })
           renderer.render
         end
-    
-        def run_builder(options = {})
-          xml = Builder::XmlMarkup.new
-          eval(options[:transformation])
+        
+        def run_builder(transformation, object, options = {})
+          format = options[:format] ||= :xml          
+          eval "xml = ::Builder::XmlMarkup.new(:indent => 2);" +
+            #"self.output_buffer = xml.target!;" +
+            transformation +
+            ";xml.target!;"
         end
-
-        def types
-          [:Export]
+        
+        def run_haml(transformation, object, options = {})
+          format = options[:format] ||= :html          
+          eval Haml::Engine.new(transformation).compiler.precompiled_with_ambles([])
         end
         
       end

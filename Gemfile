@@ -15,6 +15,7 @@ gem 'omniauth'
 gem 'omniauth-oauth2'
 gem 'rabl'
 gem 'builder'
+gem "haml-rails"
 
 group :doc do
   gem 'sdoc', require: false
