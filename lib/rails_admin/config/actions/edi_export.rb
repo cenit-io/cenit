@@ -27,9 +27,9 @@ module RailsAdmin
             object = @object
             @object = nil
 
-            if data = params[:forms_send_translator_selector]
+            if data = params[:forms_export_translator_selector]
               translator = Setup::Translator.where(id: data[:translator_id]).first
-              if (@object = Forms::SendTranslatorSelector.new(translator: translator)).valid?
+              if (@object = Forms::ExportTranslatorSelector.new(translator: translator)).valid?
                 begin
                   render plain: translator.run(object: object)
                   ok = true
@@ -40,8 +40,8 @@ module RailsAdmin
               end
             end
             unless ok
-              @object ||= Forms::SendTranslatorSelector.new
-              @model_config = RailsAdmin::Config.model(Forms::SendTranslatorSelector)
+              @object ||= Forms::ExportTranslatorSelector.new
+              @model_config = RailsAdmin::Config.model(Forms::ExportTranslatorSelector)
               unless @object.errors.blank?
                 flash.now[:error] = 'There are errors in the export data specification'.html_safe
                 flash.now[:error] += %(<br>- #{@object.errors.full_messages.join('<br>- ')}).html_safe
