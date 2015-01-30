@@ -8,7 +8,7 @@ module Setup
     include Trackable
 
     def self.to_include_in_models
-      @to_include_in_models ||= [Mongoid::Document, Mongoid::Timestamps, InstanceDataTypeAware, EventLookup, AccountScoped, DynamicValidators, Edi::Formatter, Edi::Filler] #RailsAdminDynamicCharts::Datetime
+      @to_include_in_models ||= [Mongoid::Document, Mongoid::Timestamps, InstanceDataTypeAware, EventLookup, AccountScoped, DynamicValidators, Edi::Formatter, Edi::Filler] #, MakeSlug, RailsAdminDynamicCharts::Datetime
     end
 
     def self.to_include_in_model_classes
@@ -134,8 +134,8 @@ module Setup
     def create_default_events
       if self.is_object? && self.events.empty?
         puts "Creating default events for #{self.name}"
-        Setup::Event.create(data_type: self, triggers: '{"created_at":{"0":{"o":"_not_null","v":["","",""]}}} ').save
-        Setup::Event.create(data_type: self, triggers: '{"updated_at":{"0":{"o":"_change","v":["","",""]}}} ').save
+        Setup::Event.create(data_type: self, triggers: '{"created_at":{"0":{"o":"_not_null","v":["","",""]}}}').save
+        Setup::Event.create(data_type: self, triggers: '{"updated_at":{"0":{"o":"_change","v":["","",""]}}}').save
       end
     end
 
@@ -180,7 +180,7 @@ module Setup
           schema['properties'] ||= {}
           value_schema = schema['properties']['value'] || {}
           value_schema = base_model.deep_merge(value_schema)
-          schema['properties']['value'] = value_schema.merge('title' => 'Value', 'xml' => {'attribute' => true})
+          schema['properties']['value'] = value_schema.merge('title' => 'Value', 'xml' => {'attribute' => false})
           base_model = nil
         else
           schema = base_model.deep_merge(schema) { |key, val1, val2| array_sum(val1, val2) }
@@ -418,6 +418,7 @@ module Setup
       end
     end
 
+    #TODO Check use
     def check_type_name(type_name)
       type_name = type_name.underscore.camelize
       # unless @@parsed_schemas.include?(model = type_name.constantize) || @@parsing_schemas.include?(model)
@@ -431,6 +432,7 @@ module Setup
     end
 
     def check_property_name(property_name)
+      #TODO Check for a valid ruby method name
       #raise Exception.new("property name '#{property_name}' is invalid") unless property_name =~ /\A[a-z]+(_|([0-9]|[a-z])+)*\Z/
     end
 
@@ -535,12 +537,10 @@ module Setup
           schema['properties'] ||= {}
           value_schema = schema['properties']['value'] || {}
           value_schema = base_model.deep_merge(value_schema)
-          schema['properties']['value'] = value_schema.merge('title' => 'Value', 'xml' => {'attribute' => true})
+          schema['properties']['value'] = value_schema.merge('title' => 'Value', 'xml' => {'attribute' => false})
           base_model = nil
         else
-          schema = base_model.deep_merge(schema) do |key, val1, val2|
-            val1.is_a?(Array) && val2.is_a?(Array) ? val1 + val2 : val2
-          end
+          schema = base_model.deep_merge(schema) { |key, val1, val2| array_sum(val1, val2) }
         end
       end
 
@@ -564,18 +564,19 @@ module Setup
         '#{schema_path}'
       end")
 
+      root ||= klass
+      @@parsing_schemas << klass
+      if @@parsed_schemas.include?(klass.to_s)
+        puts "Model #{klass.to_s} already parsed"
+        return klass
+      end
+
       begin
-        root ||= klass
-        @@parsing_schemas << klass
-        if @@parsed_schemas.include?(klass.to_s)
-          puts "Model #{klass.to_s} already parsed"
-          return klass
-        end
-
-        #reflect(klass, "embedded_in :#{relation_name(parent)}, class_name: \'#{parent.to_s}\'") if parent && embedded
-        klass.affects_to(parent) unless parent.nil? || parent.is_a?(Module) || parent == Object
-
         puts "Parsing #{klass.schema_name}"
+
+        #TODO
+        #reflect(klass, "embedded_in :#{relation_name(parent)}, class_name: \'#{parent.to_s}\'") if parent && embedded
+        #klass.affects_to(parent) unless parent.nil? || parent.is_a?(Module) || parent == Object
 
         if definitions = schema['definitions']
           definitions.each do |def_name, def_desc|
@@ -590,20 +591,21 @@ module Setup
           schema['properties'].each do |property_name, property_desc|
             raise Exception.new("property '#{property_name}' definition is invalid") unless property_desc.is_a?(Hash)
             check_property_name(property_name)
+
             v = nil
             still_trying = true
             referenced = property_desc['referenced']
 
-            while still_trying && ref = property_desc['$ref'] # property type is a reference
+            while still_trying && ref = property_desc['$ref'] # property type contains a reference
               still_trying = false
               if ref.start_with?('#') # an embedded reference
                 raise Exception.new("referencing embedded reference #{ref}") if referenced
                 property_type = check_embedded_ref(ref, root.to_s)
                 if @@parsed_schemas.detect { |m| m.eql?(property_type) }
                   if type_model = reflect_constant(property_type, :do_not_create)
-                    v = "embeds_one :#{property_name}, class_name: \'#{type_model.to_s}\'"
-                    #reflect(type_model, "embedded_in :#{relation_name(model_name)}, class_name: \'#{model_name}\'")
-                    type_model.affects_to(klass)
+                    v = "embeds_one :#{property_name}, class_name: '#{type_model.to_s}', inverse_of: :#{relation_name(model_name, property_name)}"
+                    reflect(type_model, "embedded_in :#{relation_name(model_name, property_name)}, class_name: '#{model_name}', inverse_of: :#{property_name}")
+                    #type_model.affects_to(klass)
                     nested << property_name
                   else
                     raise Exception.new("refers to an invalid JSON reference '#{ref}'")
@@ -612,7 +614,7 @@ module Setup
                   puts "#{klass.to_s}  Waiting[3] for parsing #{property_type} to bind property #{property_name}"
                   @@embeds_one_to_bind[model_name] << [property_type, property_name]
                 end
-              else # external reference
+              else # an external reference
                 if MONGO_TYPES.include?(ref)
                   v = "field :#{property_name}, type: #{ref}"
                 else
@@ -625,12 +627,12 @@ module Setup
                       still_trying = true
                     else
                       if referenced
-                        v = "belongs_to :#{property_name}, class_name: \'#{type_model.to_s}\'"
+                        v = "belongs_to :#{property_name}, class_name: '#{type_model.to_s}'"
                         type_model.affects_to(klass)
                       else
-                        v = "embeds_one :#{property_name}, class_name: \'#{type_model.to_s}\'"
-                        #reflect(type_model, "embedded_in :#{relation_name(model_name)}, class_name: \'#{model_name}\'")
-                        type_model.affects_to(klass)
+                        v = "embeds_one :#{property_name}, class_name: '#{type_model.to_s}', inverse_of: :#{relation_name(model_name, property_name)}"
+                        reflect(type_model, "embedded_in :#{relation_name(model_name, property_name)}, class_name: '#{model_name}', inverse_of: :#{property_name}")
+                        #type_model.affects_to(klass)
                         nested << property_name
                       end
                     end
@@ -679,12 +681,10 @@ module Setup
           })
         end
 
-        if (name = schema['name'] || schema['title']) && !klass.instance_methods.detect { |m| m == :name }
-          reflect(klass, %{
-          def name
-            #{schema['name'] ? name : "\"#{name}\""}
-          end
-          })
+        if (name = (schema['name'] || schema['title'])) && !klass.instance_methods.detect { |m| m == :name }
+          reflect(klass, "def name
+            #{"\"#{name}\""}
+          end")
         end
 
         %w{title description}.each do |key|
@@ -700,7 +700,6 @@ module Setup
         @@parsed_schemas << klass.to_s
 
         check_pending_binds(report, model_name, klass, root)
-
         nested.each { |n| reflect(klass, "accepts_nested_attributes_for :#{n}") }
 
         @@parsing_schemas.delete(klass)
@@ -738,9 +737,11 @@ module Setup
     end
 
     def process_non_ref(report, property_name, property_desc, klass, root, nested=[], enums={}, validations=[], required=[])
+
       property_desc = merge_schema(property_desc, expand_extends: false)
       model_name = klass.to_s
       still_trying = true
+
       while still_trying
         still_trying = false
         property_type = property_desc['type']
@@ -750,6 +751,7 @@ module Setup
         property_type = RJSON_MAP[property_type] if RJSON_MAP[property_type]
         if property_type.eql?('Array') && (items_desc = property_desc['items'])
           r = nil
+          ir = ''
           if referenced = ((ref = items_desc['$ref']) && (!ref.start_with?('#') && items_desc['referenced']))
             # ref = check_type_name(ref)
             if (type_model = (find_or_load_model(report, property_type = ref) || reflect_constant(ref, :do_not_create))) &&
@@ -757,14 +759,14 @@ module Setup
               property_type = type_model.to_s
               if (a = @@has_many_to_bind[property_type]) && i = a.find_index { |x| x[0].eql?(model_name) }
                 a = a.delete_at(i)
-                reflect(klass, "has_and_belongs_to_many :#{property_name}, class_name: \'#{property_type}\'")
-                reflect(type_model, "has_and_belongs_to_many :#{a[1]}, class_name: \'#{model_name}\'")
+                reflect(klass, "has_and_belongs_to_many :#{property_name}, class_name: '#{property_type}', inverse_of: #{a[1]}")
+                reflect(type_model, "has_and_belongs_to_many :#{a[1]}, class_name: '#{model_name}', inverse_of: #{property_name}")
                 reflect(type_model, "validates_presence_of :#{a[1]}") if a[2]
               else
-                if type_model.reflect_on_all_associations(:belongs_to).detect { |r| r.klass.eql?(klass) }
-                  r = 'has_many'
+                if r = type_model.reflect_on_all_associations(:belongs_to).detect { |r| r.klass.eql?(klass) }
+                  r = :has_many
                 else
-                  r = 'has_and_belongs_to_many'
+                  r = :has_and_belongs_to_many
                   type_model.affects_to(klass)
                 end
               end
@@ -773,44 +775,42 @@ module Setup
               @@has_many_to_bind[model_name] << [property_type, property_name]
             end
           else
-            r = 'embeds_many'
+            r = :embeds_many
             if ref
               raise Exception.new("referencing embedded reference #{ref}") if items_desc['referenced']
               property_type = ref.start_with?('#') ? check_embedded_ref(ref, root.to_s).singularize : ref #check_type_name(ref)
               type_model = find_or_load_model(report, property_type) || reflect_constant(property_type, :do_not_create)
-              if type_model && @@parsed_schemas.detect { |m| m.eql?(property_type = type_model.to_s) }
-                #reflect(type_model, "embedded_in :#{relation_name(model_name)}, class_name: \'#{model_name}\'")
-                type_model.affects_to(klass)
-              else
-                r = nil
-                puts "#{klass.to_s}  Waiting[2] for parsing #{property_type} to bind property #{property_name}"
-                @@embeds_many_to_bind[model_name] << [property_type, property_name]
-              end
             else
               property_type = (type_model = parse_schema(report, property_name.camelize.singularize, property_desc['items'], root, klass, :embedded, klass.schema_path + "/properties/#{property_name}/items")).to_s
             end
-            nested << property_name if r
+            if type_model && @@parsed_schemas.detect { |m| m.eql?(property_type = type_model.to_s) }
+              ir = ", inverse_of: :#{relation_name(model_name, property_name)}"
+              reflect(type_model, "embedded_in :#{relation_name(model_name, property_name)}, class_name: '#{model_name}', inverse_of: :#{property_name}")
+              #type_model.affects_to(klass)
+              nested << property_name if r
+            else
+              r = nil
+              puts "#{klass.to_s}  Waiting[2] for parsing #{property_type} to bind property #{property_name}"
+              @@embeds_many_to_bind[model_name] << [property_type, property_name]
+            end
           end
           if r
-            v = "#{r} :#{property_name}, class_name: \'#{property_type.to_s}\'"
+            v = "#{r} :#{property_name}, class_name: '#{property_type.to_s}'" + ir
 
             if property_desc['maxItems'] && property_desc['maxItems'] == property_desc['minItems']
               validations << "validates_association_length_of :#{property_name}, is: #{property_desc['maxItems'].to_s}"
             elsif property_desc['maxItems'] || property_desc['minItems']
               validations << "validates_association_length_of :#{property_name}#{property_desc['minItems'] ? ', minimum: ' + property_desc['minItems'].to_s : ''}#{property_desc['maxItems'] ? ', maximum: ' + property_desc['maxItems'].to_s : ''}"
             end
-            # embedded_in relation reflected before if ref or it is reflected when parsing with :embedded option
-            #reflect(type_model, "#{referenced ? 'belongs_to' : 'embedded_in'} :#{relation_name(model_name)}, class_name: \'#{model_name}\'")
-            #reflect(type_model, "belongs_to :#{relation_name(model_name)}, class_name: '#{model_name}'") if referenced
           end
         else
           v =nil
           if property_type.eql?('object')
             if property_desc['properties'] || property_desc['extends']
               property_type = (type_model = parse_schema(report, property_name.camelize, property_desc, root, klass, :embedded, klass.schema_path + "/properties/#{property_name}")).to_s
-              v = "embeds_one :#{property_name}, class_name: \'#{type_model.to_s}\'"
-              #reflect(type_model, "embedded_in :#{relation_name(model_name)}, class_name: \'#{model_name}\'")
-              type_model.affects_to(klass)
+              v = "embeds_one :#{property_name}, class_name: '#{type_model.to_s}', inverse_of: :#{relation_name(model_name, property_name)}"
+              reflect(type_model, "embedded_in :#{relation_name(model_name, property_name)}, class_name: '#{model_name}', inverse_of: :#{property_name}")
+              #type_model.affects_to(klass)
               nested << property_name
             else
               property_type = 'Hash'
@@ -819,22 +819,14 @@ module Setup
           unless v
             if property_type
               v = "field :#{property_name}, type: #{property_type}"
-
-              if property_desc['default']
-                v += ", default: \'#{property_desc['default']}\'"
-              end
+              v += ", default: \'#{property_desc['default']}\'" if property_desc['default']
             end
             if enum = property_desc['enum']
               enums[property_name] = enum
-              validations << "validates_inclusion_of :#{property_name}, in: -> (record) { record.#{property_name}_enum }, message: 'is not a valid value'"
-              required.delete(property_name)
+              validations << "validates_inclusion_in_presence_of :#{property_name}, in: -> (record) { record.#{property_name}_enum }, message: 'is not a valid value'"
             elsif property_desc['pattern']
-              validations << "validates_format_of :#{property_name}, :with => /\\A#{property_desc['pattern']}\\Z/i"
-              required.delete(property_name)
+              validations << "validates_format_in_presence_of :#{property_name}, :with => /\\A#{property_desc['pattern']}\\Z/i"
             end
-            # if property_desc['minLength'] && property_desc['maxLength'] && property_desc['minLength'] == property_desc['maxLength']
-            #   validations << "validates_length_of :#{property_name}, is: #{property_desc['maxLength'].to_s}"
-            # els
             if property_desc['minLength'] || property_desc['maxLength']
               validations << "validates_length_in_presence_of :#{property_name}#{property_desc['minLength'] ? ', minimum: ' + property_desc['minLength'].to_s : ''}#{property_desc['maxLength'] ? ', maximum: ' + property_desc['maxLength'].to_s : ''}"
             end
@@ -846,10 +838,10 @@ module Setup
               constraints << (property_desc['exclusiveMaximum'] ? 'less_than: ' : 'less_than_or_equal_to: ') + property_desc['maximum'].to_s
             end
             if constraints.length > 0
-              validations << "validates_numericality_of :#{property_name}, {#{constraints[0] + (constraints[1] ? ', ' + constraints[1] : '')}}"
+              validations << "validates_numericality_in_presence_of :#{property_name}, {#{constraints[0] + (constraints[1] ? ', ' + constraints[1] : '')}}"
             end
             if property_desc['unique']
-              validations << "validates_uniqueness_of :#{property_name}"
+              validations << "validates_uniqueness_in_presence_of :#{property_name}"
             end
           end
         end
@@ -926,10 +918,10 @@ module Setup
             bindings.each do |a|
               puts "#{waiting_model.to_s} Binding property #{a[1]}"
               if klass.is_a?(Class)
-                reflect(waiting_model, "#{r.to_s} :#{a[1]}, class_name: \'#{model_name}\'")
+                reflect(waiting_model, "#{r.to_s} :#{a[1]}, class_name: '#{model_name}', inverse_of: :#{relation_name(waiting_type, a[1])}")
                 reflect(waiting_model, "accepts_nested_attributes_for :#{a[1]}")
-                #reflect(klass, "embedded_in :#{property_type.underscore.split('/').join('_')}, class_name: '#{property_type}'")
-                klass.affects_to(waiting_model)
+                reflect(klass, "embedded_in :#{relation_name(waiting_type, a[1])}, class_name: '#{property_type}', inverse_of: :#{a[1]}")
+                #klass.affects_to(waiting_model)
               else #must be a json schema
                 reflect(waiting_model, process_non_ref(report, a[1], klass, waiting_model, root))
                 bind_affect_to_relation(klass, waiting_model)
@@ -943,8 +935,8 @@ module Setup
       end
     end
 
-    def relation_name(model)
-      model.to_s.underscore.split('/').join('_')
+    def relation_name(model, inverse_relation)
+      "#{inverse_relation}_on_#{model.to_s.underscore.split('/').join('_')}"
     end
 
     def reflect(c, code)

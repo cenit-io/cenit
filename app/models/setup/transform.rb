@@ -21,13 +21,14 @@ module Setup
     end
     
     def run(object, options = {})
+      options = options.merge(object: object, transformation: transformation)
       case style
       when /double_curly_braces/  
-        Setup::Transformation::JsonTransform.run(transformation, object)
+        Setup::Transformation::JsonTransform.run(options)
       when /xslt/
-        Setup::Transformation::XsltTransform.run(transformation, object)
+        Setup::Transformation::XsltTransform.run(options)
       else
-        Setup::Transformation::ActionViewTransform.run(transformation, object, style: style)
+        Setup::Transformation::ActionViewTransform.run(options.merge(style: style))
       end
     end
     

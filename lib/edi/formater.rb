@@ -21,16 +21,19 @@ module Edi
     end
 
     def to_xml(options={})
-      (xml_doc = Nokogiri::XML::Document.new) << record_to_xml_element(data_type = self.data_type, JSON.parse(data_type.schema), self, xml_doc)
+      (xml_doc = Nokogiri::XML::Document.new) << record_to_xml_element(data_type = self.data_type, JSON.parse(data_type.schema), self, xml_doc, nil, options)
       xml_doc.to_xml
     end
 
     private
 
-    def record_to_xml_element(data_type, schema, record, xml_doc, enclosed_property_name=nil)
+    def record_to_xml_element(data_type, schema, record, xml_doc, enclosed_property_name, options)
       return unless record
+      required = schema['required'] || []
       attr = {}
       elements = []
+      content = nil
+      content_property = nil
       schema['properties'].each do |property_name, property_schema|
         property_schema = data_type.merge_schema(property_schema)
         case property_schema['type']
@@ -39,29 +42,39 @@ module Edi
             next unless relation && [:has_many, :has_and_belongs_to_many, :embeds_many].include?(relation.macro)
             property_schema = data_type.merge_schema(property_schema['items'])
             record.send(property_name).each do |sub_record|
-              elements << record_to_xml_element(data_type, property_schema, sub_record, xml_doc)
+              elements << record_to_xml_element(data_type, property_schema, sub_record, xml_doc, nil, options)
             end
           when 'object'
             relation = record.reflect_on_association(property_name)
             next unless relation && [:has_one, :embeds_one].include?(relation.macro)
-            elements << record_to_xml_element(data_type, property_schema, record.send(property_name), xml_doc, property_name)
+            elements << record_to_xml_element(data_type, property_schema, record.send(property_name), xml_doc, property_name, options)
           else
             unless value = record.send(property_name)
-              value = property_schema['default'] || ''
+              value = property_schema['default']
             end
-            name = property_schema['edi']['segment'] if property_schema['edi']
-            name ||= property_name
-            if !property_schema['xml'] || property_schema['xml']['attribute']
-              attr[name] = value
-            else
-              elements << xml_doc.create_element(name, value: value)
+            if value
+              name = property_schema['edi']['segment'] if property_schema['edi']
+              name ||= property_name
+              if !property_schema['xml'] || property_schema['xml']['attribute']
+                attr[name] = value if !value.blank? || options[:with_blanks] || required.include?(property_name)
+              elsif content.nil?
+                content = value
+                content_property = property_name
+              else
+                raise Exception.new("More than one content property found: '#{content_property}' and '#{property_name}'")
+              end
             end
         end
       end
       name = schema['edi']['segment'] if schema['edi']
       name ||= enclosed_property_name || record.data_type.title
       element = xml_doc.create_element(name, attr)
-      elements.each { |e| element << e if e }
+      if elements.empty?
+        element << content unless content.nil?
+      else
+        raise Exception.new("Incompatible content property ('#{content_property}') in presence of complex content") if content_property
+        elements.each { |e| element << e if e }
+      end
       element
     end
 

@@ -7,7 +7,11 @@ module Setup
           class << self; self; end
         end
       
-        def self.run(transformation, document, options = {})
+        def self.run(options = {})
+          raise NotImplementedError
+        end
+
+        def types
           raise NotImplementedError
         end
       end

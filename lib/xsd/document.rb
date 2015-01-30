@@ -27,7 +27,7 @@ module Xsd
                     'type:http://www.w3.org/2001/XMLSchema:gDay' => {'type' => 'string', 'format' => 'date'},
                     'type:http://www.w3.org/2001/XMLSchema:string' => {'type' => 'string'},
                     'type:http://www.w3.org/2001/XMLSchema:token' => {'type' => 'string'},
-                    'type:http://www.w3.org/2001/XMLSchema:language' => {'type' => 'string', 'enum' => %w{en es}},
+                    'type:http://www.w3.org/2001/XMLSchema:language' => {'type' => 'string'},
                     'type:http://www.w3.org/2001/XMLSchema:NMTOKEN' => {'type' => 'string'},
                     'type:http://www.w3.org/2001/XMLSchema:NMTOKENS' => {'type' => 'string'},
                     'type:http://www.w3.org/2001/XMLSchema:Name' => {'type' => 'string'},

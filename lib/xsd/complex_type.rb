@@ -12,14 +12,17 @@ module Xsd
     end
 
     def extension_start(attributes = [])
-      _, base = attributes.detect { |a| a[0] == 'base' }
-      @attributes << Xsd::Attribute.new(self, [%w{name value}, ['type', base], %w{use required}])
+      _, @base = attributes.detect { |a| a[0] == 'base' }
+      if (@base = qualify_type(@base).to_json_schema)['$ref']
+        @base = @base['$ref']
+      end
+      #@attributes << Xsd::Attribute.new(self, [%w{name value}, ['type', base], %w{use required}])
       nil
     end
 
     def attribute_start(attributes = [])
       @attributes << (attr = Xsd::Attribute.new(self, attributes))
-      return attr
+      attr
     end
 
     [Xsd::Sequence, Xsd::Choice, Xsd::All].each do |container_class|
@@ -34,6 +37,7 @@ module Xsd
     def to_json_schema
       json = {'type' => 'object'}
       json['title'] = name.to_title if name
+      json['extends'] = @base if @base
       json['properties'] = properties = {}
       enum = 0
       required = []

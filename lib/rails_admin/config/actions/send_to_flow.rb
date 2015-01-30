@@ -33,7 +33,7 @@ module RailsAdmin
             if params[:send_data]
               if flow_id = params[:flow_id]
                 if flow = Setup::Flow.find(flow_id) rescue nil
-                  if params[:bulk_ids]
+                  if @bulk_ids
                     list_entries(@model_config, :send_to_flow).each { |model| flow.process(model) }
                   else
                     flow.process_all

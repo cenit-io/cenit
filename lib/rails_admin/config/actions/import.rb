@@ -26,11 +26,11 @@ module RailsAdmin
             render_form = true
             form_object = nil
             if model = @abstract_model.model_name.constantize rescue nil
-              if data = params[:forms_receive_translator_selector]
+              if data = params[:forms_import_translator_selector]
                 translator = Setup::Translator.where(id: data[:translator_id]).first
-                if (@object = form_object = Forms::ReceiveTranslatorSelector.new(translator: translator, data: data[:data])).valid?
+                if (@object = form_object = Forms::ImportTranslatorSelector.new(translator: translator, data: data[:data])).valid?
                   begin
-                    @object = translator.run(data_type: model.data_type, data: data[:data])
+                    @object = translator.run(target_data_type: model.data_type, data: data[:data])
                     if @object.is_a?(model)
                       if @object.valid?(:create) && Import.save(@object)
                         redirect_to_on_success
@@ -42,7 +42,7 @@ module RailsAdmin
                       form_object.errors.add(:translator, "Translation result of type #{model.title} expected but #{@object.class} found")
                     end
                   rescue Exception => ex
-                    #raise ex
+                    raise ex
                     form_object.errors.add(:data, ex.message)
                   end
                 end
@@ -51,8 +51,8 @@ module RailsAdmin
               flash[:error] = 'Error loading model'
             end
             if render_form
-              @object = form_object || Forms::ReceiveTranslatorSelector.new
-              @model_config = RailsAdmin::Config.model(Forms::ReceiveTranslatorSelector)
+              @object = form_object || Forms::ImportTranslatorSelector.new
+              @model_config = RailsAdmin::Config.model(Forms::ImportTranslatorSelector)
               unless @object.errors.blank?
                 flash.now[:error] = 'There are errors in the import data specification'.html_safe
                 flash.now[:error] += %(<br>- #{@object.errors.full_messages.join('<br>- ')}).html_safe

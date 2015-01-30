@@ -7,7 +7,11 @@
  RailsAdmin::Config::Actions::Import,
  RailsAdmin::Config::Actions::EdiExport,
  RailsAdmin::Config::Actions::ImportSchema,
- RailsAdmin::Config::Actions::DeleteAll].each { |a| RailsAdmin::Config::Actions.register(a) }
+ RailsAdmin::Config::Actions::DeleteAll,
+ RailsAdmin::Config::Actions::NewTranslator,
+ RailsAdmin::Config::Actions::EditTranslator,
+ RailsAdmin::Config::Actions::Update,
+ RailsAdmin::Config::Actions::Convert].each { |a| RailsAdmin::Config::Actions.register(a) }
 
 RailsAdmin.config do |config|
 
@@ -27,18 +31,22 @@ RailsAdmin.config do |config|
   config.actions do
     dashboard # mandatory
     index # mandatory
-    new { except Setup::DataType,Role  }
+    new { except [Setup::DataType, Role, Setup::Translator]  }
+    new_translator
     import
     import_schema
+    update
+    convert
     #import do
     #  only 'Setup::DataType'
     #end
     export
-    bulk_delete { except Setup::DataType,Role  }
+    bulk_delete { except [Setup::DataType, Role]  }
     show
-    edit { except Setup::Library,Role  }
+    edit { except [Setup::Library, Setup::DataType, Role, Setup::Translator]  }
+    edit_translator
     edi_export
-    delete { except Setup::DataType,Role  }
+    delete { except [Setup::DataType, Role]  }
     #show_in_app
     send_to_flow
     test_transformation
@@ -662,7 +670,17 @@ RailsAdmin.config do |config|
   
   config.model Setup::Transform.name do
     weight -9
-    
+
+    configure :data_type do
+      inline_add false
+      inline_edit false
+    end
+
+    configure :schema_validation do
+      inline_add false
+      inline_edit false
+    end
+
     configure :transformation do
       group :transformation
       partial 'form_transformation'
@@ -687,22 +705,6 @@ RailsAdmin.config do |config|
       field :updater
     end
     fields :name, :data_type, :schema_validation, :style, :transformation
-  end
-
-  config.model Setup::Translator.name do
-    weight -8
-    show do
-      field :name
-      field :purpose
-      field :script
-
-      field :_id
-      field :created_at
-      field :creator
-      field :updated_at
-      field :updater
-    end
-    fields :name, :purpose, :script
   end
 
 end

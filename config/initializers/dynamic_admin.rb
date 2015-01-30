@@ -97,6 +97,10 @@ module RailsAdmin
                       end
                     end
                   end
+                else
+                  field.register_instance_option :visible do
+                    false
+                  end
                 end
               end
             end

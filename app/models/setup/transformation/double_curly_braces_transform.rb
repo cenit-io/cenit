@@ -2,8 +2,10 @@ module Setup
   module Transformation
     class DoubleCurlyBracesTransform < Setup::Transformation::AbstractTransform
       
-      def self.run(transformation, document, options = {})
-        hash_document = to_hash(document) || nil
+      def self.run(options = {})
+        transformation = options[:transformation]
+        document = options[:object]
+        hash_document = JSON.parse(document.to_json)
         template_hash = try JSON.parse(transformation)
         template_hash.each do |key, value|
           if value.is_a?(String) && value =~ /\A\{\{[a-z]+(_|([0-9]|[a-z])+)*(.[a-z]+(_|([0-9]|[a-z])+)*)*\}\}\Z/
@@ -16,7 +18,11 @@ module Setup
             template_hash[key] = json_transform(value, data_hash)
           end
         end
-        template_hash
+        options[:target_data_type].new_from_json(template_hash.to_json)
+      end
+
+      def self.types
+        [:Conversion]
       end
 
     end
