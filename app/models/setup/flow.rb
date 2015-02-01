@@ -111,12 +111,9 @@ module Setup
     end
 
     def clean_json_data(json)
-      cleaned_json = {}
-      json.each do |k, v|
-        new_key = Setup::DataType.find_by(id: k.slice(2, k.size)).name.downcase
-        cleaned_json[new_key] = v
-      end
-      cleaned_json
+      downcase_json = {}
+      json.each {|k, v| downcase_json[k.downcase] = v}
+      downcase_json
     end
 
     def self.transform(transformation, object, options = {})
