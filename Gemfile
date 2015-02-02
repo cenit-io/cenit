@@ -16,6 +16,7 @@ gem 'omniauth-oauth2'
 gem 'rabl'
 gem 'builder'
 gem "haml-rails"
+gem 'figaro'
 
 group :doc do
   gem 'sdoc', require: false
@@ -32,6 +33,11 @@ end
 group :test do
   gem 'mongoid-rspec'
   gem 'database_cleaner'
+  gem 'capybara'
+  gem 'selenium-webdriver'
+  gem 'simplecov'
+  gem 'coveralls'
+  gem 'poltergeist', '1.5.0'
 end
 
 group :production do
