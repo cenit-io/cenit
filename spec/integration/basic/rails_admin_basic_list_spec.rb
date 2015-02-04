@@ -11,7 +11,7 @@ describe 'RailsAdmin Basic List', type: :request do
       fill_in 'user_password', with: '12345678'
       fill_in 'user_password_confirmation', with: '12345678'
       click_button 'Sign up'
-      sleep 2 
+      sleep 2
       #visit rails_admin.dashboard_path
     end
   end

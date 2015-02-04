@@ -1,10 +1,10 @@
 FactoryGirl.define do
-  factory :connection_role_seller, class: Setup::ConnectionRole do
-    connections {[FactoryGirl.create(:connection_store_i)]}
-    webhooks {[FactoryGirl.create(:webhook_add_product), FactoryGirl.create(:webhook_update_product) ]}
+  factory :role_seller_connection, class: Setup::ConnectionRole do
+    connections {[FactoryGirl.create(:store_i_connection)]}
+    webhooks {[FactoryGirl.create(:add_product_webhook), FactoryGirl.create(:update_product_webhook) ]}
   end
   
-  factory :connection_role_buyer, class: Setup::ConnectionRole do
+  factory :role_buyer_connection, class: Setup::ConnectionRole do
 
   end
 end

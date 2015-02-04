@@ -1,15 +1,21 @@
 FactoryGirl.define do
-  factory :webhook_add_product, class: Setup::Webhook do
+  factory :add_product_webhook, class: Setup::Webhook do
     name 'Add Product'
     path 'add_product'
     purpose 'send'
-    #association(:data_type, factory: :product_data_type)
+    data_type { Setup::DataType.where(name: 'Product').first }
+    
+    # ensure product_schema and product_data_type will be created
+    before(:create) { create(:product_schema) if Setup::Schema.where(uri: 'Product').count == 0 }
   end
   
-  factory :webhook_update_product, class: Setup::Webhook do
+  factory :update_product_webhook, class: Setup::Webhook do
     name 'Update Product'
     path 'update_product'
     purpose 'send'
-    #association(:data_type, factory: :product_data_type)
+    data_type { Setup::DataType.where(name: 'Product').first }
+    
+    # ensure product_schema and product_data_type will be created
+    before(:create) { create(:product_schema) if Setup::Schema.where(uri: 'Product').count == 0 }
   end
 end
