@@ -3,19 +3,21 @@ FactoryGirl.define do
     name 'Add Product'
     purpose 'send'
     active true
-    asociation{:event, factory: :product_created}
-    asociation {:webhook, factory: :webhook_add_product}
-    asociation {:connection_role, factory: :connection_role_seller}
+    
+    association(:event, factory: :product_created)
+    association(:webhook, factory: :webhook_add_product)
+    association(:connection_role, factory: :connection_role_seller)
     # asociation{ :data_type, factory: :product_data_type}
   end
   
-  factory :flow_add_product, class: Setup::Flow do
+  factory :flow_update_product, class: Setup::Flow do
     name 'Update Product'
     purpose 'send'
     active true
-    asociation{:event, factory: :product_updated}
-    asociation {:webhook, factory: :webhook_update_product}
-    asociation {:connection_role, factory: :connection_role_seller}
+
+    association(:event, factory: :product_updated)
+    association(:webhook, factory: :webhook_update_product)
+    association(:connection_role, factory: :connection_role_seller)    
     # asociation{ :data_type, factory: :product_data_type}
   end
 end
