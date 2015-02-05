@@ -13,7 +13,7 @@ FactoryGirl.define do
       schema.data_types.each do |data_type|
         data_type.load_model
         data_type.create_default_events
-      end  
+      end
     end
 
   end
