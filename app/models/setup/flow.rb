@@ -36,19 +36,12 @@ module Setup
     def process(object, notification_id=nil)
       puts "Flow processing '#{object}' on '#{self.name}'..."
 
-      unless object.present? && object.respond_to?(:data_type) && self.data_type == object.data_type && object.respond_to?(:to_xml)
+      unless object.present? && object.respond_to?(:data_type) && self.data_type == object.data_type
         puts "Flow processing on '#{self.name}' aborted!"
         return
       end
 
-      xml_document = Nokogiri::XML(object.to_xml)
-      hash = Hash.from_xml(xml_document.to_s)
-      if self.transformation.blank?
-        puts 'No transformation applied'
-      else
-        hash = Flow.transform(self.transformation, hash)
-      end
-      process_json_data(hash.to_json, notification_id)
+      process_json_data(object.to_json, notification_id)
       puts "Flow processing on '#{self.name}' done!"
     end
 
@@ -97,7 +90,7 @@ module Setup
       end
       message = {
           :flow_id => self.id,
-          :json_data => clean_json_data(json),
+          :json_data => json,
           :notification_id => notification_id,
           :account_id => self.account.id
       }.to_json
@@ -108,12 +101,6 @@ module Setup
       end
       puts "Flow processing json data on '#{self.name}' done!"
       last_trigger_timestamps = Time.now
-    end
-
-    def clean_json_data(json)
-      downcase_json = {}
-      json.each {|k, v| downcase_json[k.downcase] = v}
-      downcase_json
     end
 
     def self.transform(transformation, object, options = {})
