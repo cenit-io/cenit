@@ -41,7 +41,7 @@ module Setup
         return
       end
 
-      process_json_data(object.to_json, notification_id)
+      process_json_data(object.to_json(include_root: true), notification_id)
       puts "Flow processing on '#{self.name}' done!"
     end
 
@@ -52,22 +52,17 @@ module Setup
 
       per_batch = flow.batch.size rescue 1000
       0.step(model.count, per_batch) do |offset|
-        data = model.limit(per_batch).skip(offset).map {|obj| prepare(obj)}
+        data = model.limit(per_batch).skip(offset).map {|obj| obj.to_json(include_root: true)}
         process_batch(data)
       end
     rescue Exception => e
       puts "ERROR -> #{e.inspect}"
     end
 
-    def prepare(object)
-      xml_document = Nokogiri::XML(object.to_xml)
-      Hash.from_xml(xml_document.to_s).values.first
-    end
-
     def process_batch(data)
       message = {
         :flow_id => self.id,
-        :json_data => {data_type.name.downcase => data},
+        :json_data => data,
         :notification_id => nil,
         :account_id => self.account.id
       }.to_json
