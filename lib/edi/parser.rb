@@ -19,7 +19,8 @@ module Edi
       end
 
       def parse_json(data_type, content, options={}, record=nil)
-        do_parse_json(data_type, data_type.model, JSON.parse(content), options, data_type.merged_schema, nil, record)
+        content = JSON.parse(content) unless content.is_a?(Hash)
+        do_parse_json(data_type, data_type.model, content, options, data_type.merged_schema, nil, record)
       end
 
       def parse_xml(data_type, content, options={}, record=nil)

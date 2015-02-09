@@ -8,7 +8,9 @@ module RailsAdmin
             model = bindings[:abstract_model].model_name.constantize rescue nil
             if model && model.respond_to?(:data_type)
               data_type = model.data_type
-              data_type && !(@flows = Setup::Flow.where(data_type: data_type).collect { |f| f }).blank?
+              #TODO Set send to flow action visible only if there is a flow
+              #data_type && !(@flows = Setup::Flow.where(data_type: data_type).collect { |f| f }).blank?
+              !data_type.nil?
             else
               false
             end

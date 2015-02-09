@@ -10,6 +10,7 @@ module Forms
       visible false
 
       edit do
+
         field :translator do
           inline_edit false
           inline_add false

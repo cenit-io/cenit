@@ -49,12 +49,12 @@ en:
         submit: "Import"
         done: "created"
       edi_export:
-        title: "EDI Export"
-        menu: "EDI Export"
-        breadcrumb: "EDI Export"
-        field_separator_label: "Field separator"
+        title: "Export"
+        menu: "Export"
+        breadcrumb: "Export"
         submit: "Export"
         done: "exported"
+        bulk_link: "Export selected %{model_label_plural}"
       import_schema:
         title: "Import"
         menu: "Import"
@@ -69,7 +69,7 @@ en:
         are_you_sure: "Are you sure you want to delete all the %{model_label_plural}?"
         will_be_deleted: "objects will be deleted"
         done: "deleted"
-      new_translator:
+      new_wizard:
         title: "New"
         menu: "Add new"
         breadcrumb: "New"

@@ -34,7 +34,7 @@ module Cenit
                           when 'Date' then
                             {'type' => 'string', 'format' => 'date'}
                           when 'DateTime' then
-                            {'type' => 'string', 'format' => 'date'}
+                            {'type' => 'string', 'format' => 'date-time'}
                           when 'Time' then
                             {'type' => 'string', 'format' => 'time'}
                           else

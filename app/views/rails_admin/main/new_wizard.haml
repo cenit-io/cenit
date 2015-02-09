@@ -1,0 +1,20 @@
+= rails_admin_form_for @object, url: new_wizard_path(model_name: @abstract_model.to_param), as: @abstract_model.param_key, html: { multipart: true, class: "form-horizontal denser", data: { title: @page_name } } do |form|
+  = form.generate action: :create, nested_in: true
+
+  .form-actions
+    - if !@object.respond_to?(:ready_to_save?) || @object.ready_to_save?
+      %button.btn.btn-primary{type: 'submit', name: '_save', :'data-disable-with' => t('admin.actions.new_wizard.submit')}
+        %i.icon-ok
+        = t('admin.actions.new_wizard.submit')
+    - else
+      %button.btn.btn-info{type: 'submit', name: '_next', :'data-disable-with' => t('admin.actions.new_wizard.next')}
+        %i.icon-forward
+        = t('admin.actions.new_wizard.next')
+    %span.extra_buttons
+      - if @object.respond_to?(:can_be_restarted?) && @object.can_be_restarted?
+        %button.btn.btn-info{type: 'submit', name: '_restart', :'data-disable-with' => t('admin.actions.new_wizard.restart')}
+          %i.icon-repeat
+          = t('admin.actions.new_wizard.restart')
+      %button.btn{type: 'submit', name: '_continue', :'data-disable-with' => t('admin.form.cancel')}
+        %i.icon-remove
+        = t('admin.form.cancel')

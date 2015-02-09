@@ -1,11 +1,7 @@
 module RailsAdmin
   module Config
     module Actions
-      class NewTranslator < RailsAdmin::Config::Actions::New
-
-        register_instance_option :only do
-          Setup::Translator
-        end
+      class NewWizard < RailsAdmin::Config::Actions::New
 
         register_instance_option :controller do
 
@@ -31,14 +27,14 @@ module RailsAdmin
 
               @modified_assoc = []
               @object = @abstract_model.new
-              NewTranslator.sanitize_params_for!(request.xhr? ? :modal : :create, @model_config, params[@abstract_model.param_key], view_context)
+              NewWizard.sanitize_params_for!(request.xhr? ? :modal : :create, @model_config, params[@abstract_model.param_key], view_context)
 
               @object.set_attributes(params[@abstract_model.param_key])
               @authorization_adapter && @authorization_adapter.attributes_for(:create, @abstract_model).each do |name, value|
                 @object.send("#{name}=", value)
               end
 
-              if @object.ready_to_save? && params[:_save] && @object.save
+              if (!@object.respond_to?(:ready_to_save?) || @object.ready_to_save?) && params[:_save] && @object.save
                 @auditing_adapter && @auditing_adapter.create_object(@object, @abstract_model, _current_user)
                 respond_to do |format|
                   format.html { redirect_to_on_success }
@@ -51,8 +47,8 @@ module RailsAdmin
                 end
 
                 respond_to do |format|
-                  format.html { render :new_translator, status: :not_acceptable }
-                  format.js { render :new_translator, layout: false, status: :not_acceptable }
+                  format.html { render :new_wizard, status: :not_acceptable }
+                  format.js { render :new_wizard, layout: false, status: :not_acceptable }
                 end
               end
 

@@ -13,7 +13,7 @@ module RailsAdmin
           end
         end
 
-        register_instance_option :member do
+        register_instance_option :collection do
           true
         end
 
@@ -24,18 +24,18 @@ module RailsAdmin
         register_instance_option :controller do
           proc do
 
-            object = @object
-            @object = nil
-
-            if data = params[:forms_export_translator_selector]
-              translator = Setup::Translator.where(id: data[:translator_id]).first
-              if (@object = Forms::ExportTranslatorSelector.new(translator: translator)).valid?
-                begin
-                  render plain: translator.run(object: object)
-                  ok = true
-                rescue Exception => ex
-                  #raise ex
-                  flash[:error] = ex.message
+            @bulk_ids = params[:bulk_ids]
+            if model = @abstract_model.model_name.constantize rescue nil
+              if data = params[:forms_export_translator_selector]
+                translator = Setup::Translator.where(id: data[:translator_id]).first
+                if (@object = Forms::ExportTranslatorSelector.new(translator: translator)).valid?
+                  begin
+                    render plain: translator.run(object_ids: @bulk_ids, source_data_type: model.data_type)
+                    ok = true
+                  rescue Exception => ex
+                    #raise ex
+                    flash[:error] = ex.message
+                  end
                 end
               end
             end
@@ -46,9 +46,14 @@ module RailsAdmin
                 flash.now[:error] = 'There are errors in the export data specification'.html_safe
                 flash.now[:error] += %(<br>- #{@object.errors.full_messages.join('<br>- ')}).html_safe
               end
+              render @action.template_name
             end
 
           end
+        end
+
+        register_instance_option :bulkable? do
+          true
         end
 
         register_instance_option :link_icon do

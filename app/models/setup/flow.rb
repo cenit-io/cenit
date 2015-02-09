@@ -7,145 +7,315 @@ module Setup
     include AccountScoped
     include Setup::Enum
     include Trackable
+    include DynamicValidators
 
     field :name, type: String
-    field :purpose, type: String, default: :send
     field :active, type: Boolean, default: :true
-    field :transformation, type: String
-    field :style, type: String
+    field :discard_events, type: Boolean
+
+    belongs_to :event, class_name: Setup::Event.name, inverse_of: nil
+
+    belongs_to :translator, class_name: Setup::Translator.name, inverse_of: nil
+    belongs_to :custom_data_type, class_name: Setup::DataType.name, inverse_of: nil
+    field :data_type_scope, type: String
+    field :lot_size, type: Integer
+
+    belongs_to :connection_role, class_name: Setup::ConnectionRole.name, inverse_of: nil
+    belongs_to :webhook, class_name: Setup::Webhook.name, inverse_of: nil
+
+    belongs_to :response_translator, class_name: Setup::Translator.name, inverse_of: nil
+    belongs_to :response_data_type, class_name: Setup::DataType.name, inverse_of: nil
+
+    #has_and_belongs_to_many :templates, class_name: Setup::Template.name, inverse_of: :flows
+
     field :last_trigger_timestamps, type: DateTime
 
-    has_one :schedule, class_name: Setup::Schedule.name, inverse_of: :flow
-    has_one :batch, class_name: Setup::Batch.name, inverse_of: :flow
+    validates_presence_of :name, :event, :translator
+    validates_numericality_in_presence_of :lot_size, greater_than_or_equal_to: 1
+    before_save :validates_configuration
 
-    belongs_to :connection_role, class_name: Setup::ConnectionRole.name, inverse_of: :flow
-    belongs_to :data_type, class_name: Setup::DataType.name, inverse_of: :flow
-    belongs_to :webhook, class_name: Setup::Webhook.name, inverse_of: :flow
-    belongs_to :event, class_name: Setup::Event.name, inverse_of: :flow
-    belongs_to :transform, class_name: Setup::Transform.name, inverse_of: :flow
-    
-    has_and_belongs_to_many :templates, class_name: Setup::Template.name, inverse_of: :connection_roles
-
-    validates_presence_of :name, :purpose, :data_type, :webhook, :event
-    accepts_nested_attributes_for :schedule, :batch
-    
-    def style_enum
-      %W(double_curly_braces xslt json.rabl xml.rabl xml.builder html.erb csv.erb js.erb text.erb html.haml)
-    end
-
-    def process(object, notification_id=nil)
-      puts "Flow processing '#{object}' on '#{self.name}'..."
-
-      unless object.present? && object.respond_to?(:data_type) && self.data_type == object.data_type && object.respond_to?(:to_xml)
-        puts "Flow processing on '#{self.name}' aborted!"
-        return
-      end
-
-      xml_document = Nokogiri::XML(object.to_xml)
-      hash = Hash.from_xml(xml_document.to_s)
-      if self.transformation.blank?
-        puts 'No transformation applied'
+    def validates_configuration
+      errors.add(:event, "can't be blank") unless event
+      if translator
+        if translator.data_type.nil?
+          errors.add(:custom_data_type, "can't be blank") unless custom_data_type
+        else
+          errors.add(:custom_data_type, 'is not allowed since translator already defines a data type') if custom_data_type
+        end
+        if translator.type == :Import
+          errors.add(:data_type_scope, 'is not allowed for import translators') if data_type_scope
+        else
+          errors.add(:data_type_scope, "can't be blank") unless data_type_scope
+        end
+        [:connection_role, :webhook].each do |field|
+          if send(field)
+            errors.add(field, 'is not allowed') unless [:Import, :Export].include?(translator.type)
+          else
+            errors.add(field, "can't be blank") if [:Import, :Export].include?(translator.type)
+          end
+        end
+        if translator.type == :Export
+          if response_translator.present?
+            if response_translator.data_type
+              errors.add(:response_data_type, 'is not allowed since response translator already defines a data type')
+            else
+              errors.add(:response_data_type, "is needed for response translator #{response_translator.name}") unless response_data_type.present?
+            end
+          else
+            [:response_data_type, :discard_events].each do |field|
+              errors.add(field, "can't be defined until response translator") if send(field)
+            end
+          end
+        else
+          [:lot_size, :response_translator, :response_data_type, :discard_events].each do |field|
+            errors.add(field, 'is not allowed for non export translators') if send(field)
+          end
+        end
       else
-        hash = Flow.transform(self.transformation, hash)
+        errors.add(:translator, "can't be blank")
       end
-      process_json_data(hash.to_json, notification_id)
-      puts "Flow processing on '#{self.name}' done!"
+      errors.blank?
     end
 
-    def process_all
-      model = data_type.model
-      total = model.count
-      puts "TOTAL: #{total}"
+    def data_type
+      (translator && translator.data_type) || custom_data_type
+    end
 
-      per_batch = flow.batch.size rescue 1000
-      0.step(model.count, per_batch) do |offset|
-        data = model.limit(per_batch).skip(offset).map {|obj| prepare(obj)}
-        process_batch(data)
+    def data_type_scope_enum
+      enum = []
+      if data_type
+        enum << "Event source" if event && event.data_type == data_type
+        enum << "All #{data_type.title.downcase.pluralize}"
       end
-    rescue Exception => e
-      puts "ERROR -> #{e.inspect}"
+      enum
     end
 
-    def prepare(object)
-      xml_document = Nokogiri::XML(object.to_xml)
-      Hash.from_xml(xml_document.to_s).values.first
+    def ready_to_save?
+      event && translator && (translator.type == :Import || data_type_scope.present?)
     end
 
-    def process_batch(data)
-      message = {
-        :flow_id => self.id,
-        :json_data => {data_type.name.downcase => data},
-        :notification_id => nil,
-        :account_id => self.account.id
-      }.to_json
+    def can_be_restarted?
+      event || translator
+    end
+
+    def process(options={})
+      puts "Flow processing on '#{self.name}': #{}"
+      message = options.merge(flow_id: self.id.to_s, account_id: self.account.id.to_s).to_json
       begin
-        Cenit::Rabbit.send_to_rabbitmq(message)
+        Cenit::Rabbit.send_to_endpoints(message)
       rescue Exception => ex
         puts "ERROR sending message: #{ex.message}"
       end
-      puts "Flow processing json data on '#{self.name}' done!"
+      puts "Flow processing jon '#{self.name}' done!"
+      self.last_trigger_timestamps = DateTime.now
+      save
     end
 
-    def process_json_data(json, notification_id=nil)
-      puts "Flow processing json data on '#{self.name}'..."
+    def translate(message, &block)
+      send("translate_#{translator.type.to_s.downcase}", message, &block)
+    end
+
+    def simple_translate(message, &block)
       begin
-        json = JSON.parse(json)
-        puts json
-      rescue
-        puts "ERROR: invalid json data -> #{json}"
-        return
-      end
-      message = {
-          :flow_id => self.id,
-          :json_data => clean_json_data(json),
-          :notification_id => notification_id,
-          :account_id => self.account.id
-      }.to_json
-      begin
-        Cenit::Rabbit.send_to_rabbitmq(message)
+        if scope_symbol == :all
+          data_type.model.all.each { |obj| translator.run(object: obj) }
+        elsif obj_id = message[:source_id]
+          translator.run(object: data_type.model.find(obj_id), discard_events: discard_events)
+        end
       rescue Exception => ex
-        puts "ERROR sending message: #{ex.message}"
-      end
-      puts "Flow processing json data on '#{self.name}' done!"
-      last_trigger_timestamps = Time.now
-    end
-
-    def clean_json_data(json)
-      cleaned_json = {}
-      json.each do |k, v|
-        new_key = Setup::DataType.find_by(id: k.slice(2, k.size)).name.downcase
-        cleaned_json[new_key] = v
-      end
-      cleaned_json
-    end
-
-    def self.transform(transformation, object, options = {})
-      Setup::Transform.new(transformation: transformation, data_type: data_type, style: options[:style]).run(object, options)
-    end
-
-    def self.to_hash(document)
-      return document if document.is_a?(Hash)
-      return Hash.from_xml(document.to_s) if document.is_a?(Nokogiri::XML::Document)
-        
-      begin
-        return JSON.parse(document.to_s)
-      rescue
-        return Hash.from_xml(document.to_s) rescue {}
+        block.yield(exception: ex) if block
       end
     end
 
-    def self.to_xml_document(document)
-      return document if document.is_a?(Nokogiri::XML::Document)
+    def translate_conversion(message, &block)
+      simple_translate(message, &block)
+    end
 
-      unless document.is_a?(Hash)
+    def translate_update(message, &block)
+      simple_translate(message, &block)
+    end
+
+    def translate_import(message, &block)
+      connection_role.connections.each do |connection|
         begin
-          document = JSON.parse(document.to_s)
-        rescue
-          document = Hash.from_xml(document.to_s) rescue {}
+          response = HTTParty.send(webhook.method, connection.url + '/' + webhook.path,
+                                   {
+                                       headers: {
+                                           'X_HUB_STORE' => connection.key,
+                                           'X_HUB_TOKEN' => connection.token,
+                                           'X_HUB_TIMESTAMP' => Time.now.utc.to_i.to_s
+                                       }
+                                   })
+          translator.run(target_data_type: data_type,
+                         data: response.message,
+                         discard_events: discard_events) if response.code == 200
+          block.yield(response: response) if block
+        rescue Exception => ex
+          block.yield(response: response, exception: ex) if block
+        end
+      end
+    end
+
+    def translate_export(message, &block)
+      limit = lot_size || 1000
+      max = ((object_ids = source_ids_from(message)) ? object_ids.size : data_type.model.count) - 1
+      0.step(max, limit) do |offset|
+        result = translator.run(object_ids: object_ids,
+                                source_data_type: data_type,
+                                offset: offset,
+                                limit: limit,
+                                discard_events: discard_events)
+        connection_role.connections.each do |connection|
+          begin
+            response = HTTParty.send(webhook.method, connection.url + '/' + webhook.path,
+                                     {
+                                         body: result,
+                                         headers: {
+                                             'Content-Type' => 'application/json',
+                                             'X_HUB_STORE' => connection.key,
+                                             'X_HUB_TOKEN' => connection.token,
+                                             'X_HUB_TIMESTAMP' => Time.now.utc.to_i.to_s
+                                         }
+                                     })
+            block.yield(response: response) if block
+            if response_translator #&& response.code == 200
+              response_translator.run(target_data_type: response_translator.data_type || response_data_type, data: response.message)
+            end
+          rescue Exception => ex
+            block.yield(exception: ex) if block
+          end
+        end
+      end
+    end
+
+    def source_ids_from(message)
+      if scope_symbol == :event_source
+        (id = message[:source_id]) ? [id] : []
+      else
+        nil
+      end
+    end
+
+    def scope_symbol
+      data_type_scope.start_with?('Event') ? :event_source : :all
+    end
+
+    rails_admin do
+      edit do
+        field :name
+        field :event do
+          inline_edit false
+          inline_add false
+          associated_collection_scope do
+            event = bindings[:object].event
+            Proc.new { |scope|
+              event ? scope.where(id: event.id) : scope.all
+            }
+          end
+        end
+        field :translator do
+          inline_edit false
+          inline_add false
+          associated_collection_scope do
+            translator = bindings[:object].translator
+            Proc.new { |scope|
+              translator ? scope.where(id: translator.id) : scope.all
+            }
+          end
+        end
+        field :custom_data_type do
+          inline_edit false
+          inline_add false
+          visible do
+            if (f = bindings[:object]).event && f.translator && f.translator.data_type.nil?
+              f.instance_variable_set(:@selecting_data_type, f.custom_data_type = f.event && f.event.data_type) unless f.data_type
+              true
+            else
+              false
+            end
+          end
+          label do
+            if (translator = bindings[:object].translator)
+              if [:Export, :Conversion].include?(translator.type)
+                'Source data type'
+              else
+                'Target data type'
+              end
+            else
+              'Data type'
+            end
+          end
+          help 'Required'
+          associated_collection_scope do
+            data_type = bindings[:object].instance_variable_get(:@selecting_data_type) ? nil : bindings[:object].data_type
+            Proc.new { |scope|
+              data_type ? scope.where(id: data_type.id) : scope.all
+            }
+          end
+        end
+        field :data_type_scope do
+          visible { (f = bindings[:object]).event && f.translator && f.translator.type != :Import && f.data_type && !f.instance_variable_get(:@selecting_data_type) }
+          label do
+            if (translator = bindings[:object].translator)
+              if [:Export, :Conversion].include?(translator.type)
+                'Source scope'
+              else
+                'Target scope'
+              end
+            else
+              'Data type scope'
+            end
+          end
+          help 'Required'
+        end
+        field :lot_size do
+          visible { (f = bindings[:object]).event && f.translator && f.translator.type == :Export && f.data_type_scope && f.scope_symbol != :event_source }
+        end
+        field :connection_role do
+          visible { (translator = bindings[:object].translator) && (translator.type == :Import || (translator.type == :Export && bindings[:object].data_type_scope.present?)) }
+          help 'Required'
+        end
+        field :webhook do
+          visible { (translator = bindings[:object].translator) && (translator.type == :Import || (translator.type == :Export && bindings[:object].data_type_scope.present?)) }
+          help 'Required'
+        end
+        field :response_translator do
+          inline_edit false
+          inline_add false
+          visible { (translator = bindings[:object].translator) && translator.type == :Export && bindings[:object].ready_to_save? }
+          associated_collection_scope do
+            Proc.new { |scope|
+              scope.where(type: :Import)
+            }
+          end
+        end
+        field :response_data_type do
+          inline_edit false
+          inline_add false
+          visible { (response_translator = bindings[:object].response_translator) && response_translator.data_type.nil? }
+          help ''
+        end
+        field :active do
+          visible { bindings[:object].ready_to_save? }
+        end
+        field :discard_events do
+          visible { bindings[:object].ready_to_save? }
         end
       end
 
-      Nokogiri::XML(document.to_xml)
+      show do
+        field :name
+        field :event
+        field :translator
+
+        field :_id
+        field :created_at
+        field :creator
+        field :updated_at
+        field :updater
+      end
+
+      fields :name, :event, :translator
     end
 
   end

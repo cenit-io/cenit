@@ -25,7 +25,6 @@ module RailsAdmin
           proc do
 
             @bulk_ids = params[:bulk_ids]
-
             if model = @abstract_model.model_name.constantize rescue nil
               if data = params[:forms_update_translator_selector]
                 translator = Setup::Translator.where(id: data[:translator_id]).first
@@ -49,7 +48,7 @@ module RailsAdmin
               redirect_to back_or_index
             else
               @object ||= Forms::UpdateTranslatorSelector.new
-              @model_config = RailsAdmin::Config.model(Forms::ExportTranslatorSelector)
+              @model_config = RailsAdmin::Config.model(Forms::UpdateTranslatorSelector)
               unless @object.errors.blank?
                 flash.now[:error] = 'There are errors in the export data specification'.html_safe
                 flash.now[:error] += %(<br>- #{@object.errors.full_messages.join('<br>- ')}).html_safe

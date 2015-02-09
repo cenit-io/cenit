@@ -23,7 +23,8 @@ module Setup
     field :sample_data, type: String
 
     has_many :events, class_name: Setup::Event.name, dependent: :destroy, inverse_of: :data_type
-    has_many :flows, class_name: Setup::Flow.name, dependent: :destroy, inverse_of: :data_type
+    #TODO Check dependent behavior with flows
+    #has_many :flows, class_name: Setup::Flow.name, dependent: :destroy, inverse_of: :data_type
 
     validates_presence_of :name, :schema
 
@@ -134,8 +135,8 @@ module Setup
     def create_default_events
       if self.is_object? && self.events.empty?
         puts "Creating default events for #{self.name}"
-        Setup::Event.create(data_type: self, triggers: '{"created_at":{"0":{"o":"_not_null","v":["","",""]}}}').save
-        Setup::Event.create(data_type: self, triggers: '{"updated_at":{"0":{"o":"_change","v":["","",""]}}}').save
+        (o = Setup::Observer.create(data_type: self, triggers: '{"created_at":{"0":{"o":"_not_null","v":["","",""]}}}')).save
+        Setup::Observer.create(data_type: self, triggers: '{"updated_at":{"0":{"o":"_change","v":["","",""]}}}').save
       end
     end
 

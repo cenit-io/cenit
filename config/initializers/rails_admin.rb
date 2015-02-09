@@ -8,7 +8,7 @@
  RailsAdmin::Config::Actions::EdiExport,
  RailsAdmin::Config::Actions::ImportSchema,
  RailsAdmin::Config::Actions::DeleteAll,
- RailsAdmin::Config::Actions::NewTranslator,
+ RailsAdmin::Config::Actions::NewWizard,
  RailsAdmin::Config::Actions::EditTranslator,
  RailsAdmin::Config::Actions::Update,
  RailsAdmin::Config::Actions::Convert].each { |a| RailsAdmin::Config::Actions.register(a) }
@@ -31,8 +31,8 @@ RailsAdmin.config do |config|
   config.actions do
     dashboard # mandatory
     index # mandatory
-    new { except [Setup::DataType, Role, Setup::Translator]  }
-    new_translator
+    new { except [Setup::DataType, Role, Setup::Translator,  Setup::Flow, Setup::Scheduler, Setup::Event]  }
+    new_wizard { only [Setup::Translator, Setup::Flow, Setup::Scheduler] }
     import
     import_schema
     update
@@ -40,12 +40,11 @@ RailsAdmin.config do |config|
     #import do
     #  only 'Setup::DataType'
     #end
-    export
+    edi_export
     bulk_delete { except [Setup::DataType, Role]  }
     show
     edit { except [Setup::Library, Setup::DataType, Role, Setup::Translator]  }
     edit_translator
-    edi_export
     delete { except [Setup::DataType, Role]  }
     #show_in_app
     send_to_flow
@@ -53,6 +52,7 @@ RailsAdmin.config do |config|
     load_model
     shutdown_model
     switch_navigation
+    delete_all { except Setup::DataType,Role  }
     data_type
 
     history_index do 
@@ -61,7 +61,6 @@ RailsAdmin.config do |config|
     history_show do 
       only [Setup::DataType,Setup::Webhook, Setup::Flow, Setup::Schema, Setup::Event, Setup::Connection,Setup::ConnectionRole, Setup::Notification, Setup::Library]
     end
-    delete_all { except Setup::DataType,Role  }
   end
   
   config.model Role.name  do
@@ -416,15 +415,7 @@ RailsAdmin.config do |config|
   
   config.model Setup::Webhook.name do
     weight -13
-    
-    group :request do
-      label 'Resquest'
-    end
-    
-    group :response do
-      label 'Response'
-    end
-    
+
     configure :path, :string do
       help "Requiered. Path of the webhook relative to connection URL."
       html_attributes do
@@ -434,32 +425,6 @@ RailsAdmin.config do |config|
     configure :connection_roles do
       nested_form false
     end
-    configure :schema_validation do
-      help "Optional. Validate transformed flow document using this schema."
-      group :request
-    end
-    configure :data_type do
-      help "Optional. Save document as an object of this 'data-type'."
-      group :request
-    end
-    configure :trigger_event do
-      help "Optional. Trigger events after save the object."
-      group :request
-    end
-    
-    configure :schema_validation_response do
-      help "Optional. Validate response document using this schema."
-      group :response
-    end
-    configure :data_type_response do
-      help "Optional. Save document as an object of this 'data-type'."
-      group :response
-    end
-    configure :trigger_event_response do
-      help "Optional. Trigger events after save the object."
-      group :response
-    end
-    
     group :parameters do
       label "Add Parameters"
     end
@@ -476,179 +441,20 @@ RailsAdmin.config do |config|
       field :path
       field :method
       field :connection_roles
-      field :flow
+      field :flows
       
       field :url_parameters
       field :headers
       
-      #request
-      field :schema_validation
-      field :data_type
-      field :trigger_event
-      
-      #response
-      field :schema_validation_response
-      field :data_type_response
-      field :trigger_event_response
-      
       field :_id
       field :created_at
       field :creator
       field :updated_at
       field :updater
     end
-    fields :name, :purpose, :path, :method,:connection_roles, :url_parameters, :headers, :schema_validation, :data_type, :trigger_event,  :schema_validation_response, 
-    :data_type_response, :trigger_event_response
+    fields :name, :purpose, :path, :method,:connection_roles, :url_parameters, :headers
   end
-  
-  
-  config.model Setup::Event.name do
-    weight -12
-    configure :name, :string do
-      help 'Requiered.'
-      html_attributes do
-       { maxlength: 50,size: 50 }
-      end
-    end
-    
-    configure :data_type do
-      help false
-      inline_add false
-      inline_edit false
-      associated_collection_cache_all false
-      associated_collection_scope do
-        Proc.new { |scope|
-          scope = scope.where(activated: true)
-        }
-      end
-    end
-    
-    configure :triggers do
-      partial 'form_triggers'
-      help false
-    end
 
-    show do
-      field :name
-      field :data_type
-
-      field :_id
-      field :created_at
-      field :creator
-      field :updated_at
-      field :updater
-    end
-    
-    edit do
-      fields :name, :data_type, :triggers
-    end
-    
-    fields :name, :data_type
-  end
-  
-  config.model Setup::Flow.name do
-    weight -11
-    configure :name, :string do
-      help 'Requiered.'
-      html_attributes do
-       { maxlength: 50,size: 50 }
-      end
-    end
-    
-    group :batching do
-      label 'Schedule & Batch'
-    end
-    
-    group :transformation do
-      label 'Data transformation'
-      active true
-    end
-    
-    configure :schedule do
-      group :batching
-    end
-    
-    configure :batch do
-      group :batching
-    end
-    
-    configure :style, :enum do
-      group :transformation
-    end
-    
-    configure :transformation do
-      group :transformation
-      partial 'form_transformation'
-    end
-    
-    edit do
-      fields :name, :active, :purpose, :data_type, :connection_role, :webhook, :event, :schedule, :batch, :style, :transformation
-    end
-    
-    show do
-      field :name
-      field :purpose
-      field :data_type
-      field :connection_role
-      field :webhook
-      field :event
-      field :schedule
-      field :style
-      field :transformation
-      
-      field :_id
-      field :created_at
-      field :creator
-      field :updated_at
-      field :updater     
-    end
-    
-    fields :name, :active, :purpose, :event, :connection_role, :webhook, :schedule
-  end
-  
-  config.model Setup::Schedule.name do
-    parent Setup::Flow
-    configure :period, :enum do 
-      default_value 'minutes'
-    end
-    
-    object_label_method do
-      :frequency
-    end
-    
-    show do
-      field :flow
-      field :value
-      field :period
-      field :active
-      
-      field :_id
-      field :created_at
-      field :creator
-      field :updated_at
-      field :updater
-    end
-    fields :flow, :value, :period, :active
-  end
-  
-  config.model Setup::Batch.name do
-    parent Setup::Flow
-    show do
-      field :flow
-      field :size
-      field :schedule
-      field :batch
-      
-      field :_id
-      field :created_at
-      field :creator
-      field :updated_at
-      field :updater
-    end
-    
-    fields :flow, :size
-  end
-  
   config.model Setup::Notification.name do
     weight -10
     navigation_label 'Notifications'
@@ -667,44 +473,4 @@ RailsAdmin.config do |config|
     end
     fields :flow, :http_status_code, :count, :http_status_message, :json_data
   end
-  
-  config.model Setup::Transform.name do
-    weight -9
-
-    configure :data_type do
-      inline_add false
-      inline_edit false
-    end
-
-    configure :schema_validation do
-      inline_add false
-      inline_edit false
-    end
-
-    configure :transformation do
-      group :transformation
-      partial 'form_transformation'
-    end
-    
-    configure :style, :enum do
-      group :transformation
-    end
-    
-    show do
-      field :name
-      field :data_type
-      field :schema_validation
-      field :flow
-      field :style
-      field :transformation
-
-      field :_id
-      field :created_at
-      field :creator
-      field :updated_at
-      field :updater
-    end
-    fields :name, :data_type, :schema_validation, :style, :transformation
-  end
-
 end
