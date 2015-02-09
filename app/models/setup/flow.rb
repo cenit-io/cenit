@@ -102,7 +102,7 @@ module Setup
       puts "Flow processing on '#{self.name}': #{}"
       message = options.merge(flow_id: self.id.to_s, account_id: self.account.id.to_s).to_json
       begin
-        Cenit::Rabbit.send_to_endpoints(message)
+        Cenit::Rabbit.send_to_rabbitmq(message)
       rescue Exception => ex
         puts "ERROR sending message: #{ex.message}"
       end
