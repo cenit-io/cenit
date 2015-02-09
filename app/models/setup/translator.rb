@@ -125,7 +125,7 @@ module Setup
       offset = options[:offset] || 0
       limit = options[:limit]
       sources = if object_ids = options[:object_ids]
-                  model.all_in(id: (limit ? object_ids[offset, limit] : object_ids.from(offset)))
+                  model.any_in(id: (limit ? object_ids[offset, limit] : object_ids.from(offset))).to_enum
                 else
                   (limit ? model.limit(limit) : model.all).skip(offset).to_enum
                 end
@@ -204,7 +204,7 @@ module Setup
 
         field :discard_events do
           visible visible { [:Import, :Update, :Conversion].include?(bindings[:object].type) }
-          help "Events won't be fired for saved or updated records if checked"
+          help "Events won't be fired for created or updated records if checked"
         end
 
         field :style do

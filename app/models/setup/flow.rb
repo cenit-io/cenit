@@ -67,7 +67,7 @@ module Setup
             end
           end
         else
-          [:lot_size, :response_translator, :response_data_type, :discard_events].each do |field|
+          [:lot_size, :response_translator, :response_data_type].each do |field|
             errors.add(field, 'is not allowed for non export translators') if send(field)
           end
         end
@@ -117,7 +117,9 @@ module Setup
 
     def simple_translate(message, &block)
       begin
-        if scope_symbol == :all
+        if object_ids = message[:object_ids]
+          data_type.model.any_in(id: object_ids).each { |obj| translator.run(object: obj) }
+        elsif scope_symbol == :all
           data_type.model.all.each { |obj| translator.run(object: obj) }
         elsif obj_id = message[:source_id]
           translator.run(object: data_type.model.find(obj_id), discard_events: discard_events)
@@ -160,7 +162,7 @@ module Setup
       limit = lot_size || 1000
       max = ((object_ids = source_ids_from(message)) ? object_ids.size : data_type.model.count) - 1
       0.step(max, limit) do |offset|
-        result = translator.run(object_ids: object_ids,
+        puts result = translator.run(object_ids: object_ids,
                                 source_data_type: data_type,
                                 offset: offset,
                                 limit: limit,
@@ -189,7 +191,9 @@ module Setup
     end
 
     def source_ids_from(message)
-      if scope_symbol == :event_source
+      if object_ids = message[:object_ids]
+        object_ids
+      elsif scope_symbol == :event_source
         (id = message[:source_id]) ? [id] : []
       else
         nil
@@ -295,10 +299,11 @@ module Setup
           visible { (response_translator = bindings[:object].response_translator) && response_translator.data_type.nil? }
           help ''
         end
-        field :active do
-          visible { bindings[:object].ready_to_save? }
-        end
         field :discard_events do
+          visible { bindings[:object].ready_to_save? }
+          help "Events won't be fired for created or updated records if checked"
+        end
+        field :active do
           visible { bindings[:object].ready_to_save? }
         end
       end
