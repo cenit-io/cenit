@@ -118,9 +118,9 @@ module Setup
     def simple_translate(message, &block)
       begin
         if object_ids = message[:object_ids]
-          data_type.model.any_in(id: object_ids).each { |obj| translator.run(object: obj) }
+          data_type.model.any_in(id: object_ids).each { |obj| translator.run(object: obj, discard_events: discard_events) }
         elsif scope_symbol == :all
-          data_type.model.all.each { |obj| translator.run(object: obj) }
+          data_type.model.all.each { |obj| translator.run(object: obj, discard_events: discard_events) }
         elsif obj_id = message[:source_id]
           translator.run(object: data_type.model.find(obj_id), discard_events: discard_events)
         end
