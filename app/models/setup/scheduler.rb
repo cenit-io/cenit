@@ -110,54 +110,5 @@ module Setup
       @mutexs ||= Hash.new { |hash, key| hash[key] = Mutex.new }
       @mutexs[scheduler.id.to_s] if scheduler.is_a?(Setup::Scheduler)
     end
-
-    rails_admin do
-      edit do
-        field :name
-        field :scheduling_method
-        field :expression do
-          visible { bindings[:object].scheduling_method.present? }
-          label do
-            case bindings[:object].scheduling_method
-              when :Once
-                'Date and time'
-              when :Periodic
-                'Duration'
-              when :CRON
-                'CRON Expression'
-              else
-                'Expression'
-            end
-          end
-          help do
-            case bindings[:object].scheduling_method
-              when :Once
-                'Select a date and a time'
-              when :Periodic
-                'Type a time duration'
-              when :CRON
-                'Type a CRON Expression'
-              else
-                'Expression'
-            end
-          end
-          partial { bindings[:object].scheduling_method == :Once ? 'form_datetime_wrapper' : 'form_text' }
-        end
-      end
-
-      show do
-        field :name
-        field :expression
-        field :last_trigger_timestamps
-
-        field :_id
-        field :created_at
-        field :creator
-        field :updated_at
-        field :updater
-      end
-
-      fields :name, :scheduling_method, :expression, :last_trigger_timestamps
-    end
   end
 end

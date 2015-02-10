@@ -192,41 +192,6 @@ module Setup
         end
       end
     end
-
-    rails_admin do
-      edit do
-        field :name
-        field :data_type do
-          help false
-          inline_add false
-          inline_edit false
-          associated_collection_scope do
-            Proc.new { |scope|
-              scope = scope.where(activated: true)
-            }
-          end
-        end
-        field :triggers do
-          partial 'form_triggers'
-          help false
-        end
-      end
-
-      show do
-        field :name
-        field :data_type
-        field :triggers
-        field :last_trigger_timestamps
-
-        field :_id
-        field :created_at
-        field :creator
-        field :updated_at
-        field :updater
-      end
-
-      fields :name, :data_type, :triggers, :last_trigger_timestamps
-    end
   end
 end
 

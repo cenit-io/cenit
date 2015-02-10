@@ -11,24 +11,5 @@ module Setup
     def data_type
       nil
     end
-
-    rails_admin do
-      edit do
-        field :name
-        end
-
-      show do
-        field :name
-        field :last_trigger_timestamps
-
-        field :_id
-        field :created_at
-        field :creator
-        field :updated_at
-        field :updater
-      end
-
-      fields :name, :last_trigger_timestamps
-    end
   end
 end

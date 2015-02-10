@@ -84,7 +84,7 @@ module Setup
     def data_type_scope_enum
       enum = []
       if data_type
-        enum << "Event source" if event && event.data_type == data_type
+        enum << 'Event source' if event && event.data_type == data_type
         enum << "All #{data_type.title.downcase.pluralize}"
       end
       enum
@@ -203,125 +203,5 @@ module Setup
     def scope_symbol
       data_type_scope.start_with?('Event') ? :event_source : :all
     end
-
-    rails_admin do
-      edit do
-        field :name
-        field :event do
-          inline_edit false
-          inline_add false
-          associated_collection_scope do
-            event = bindings[:object].event
-            Proc.new { |scope|
-              event ? scope.where(id: event.id) : scope.all
-            }
-          end
-        end
-        field :translator do
-          inline_edit false
-          inline_add false
-          associated_collection_scope do
-            translator = bindings[:object].translator
-            Proc.new { |scope|
-              translator ? scope.where(id: translator.id) : scope.all
-            }
-          end
-        end
-        field :custom_data_type do
-          inline_edit false
-          inline_add false
-          visible do
-            if (f = bindings[:object]).event && f.translator && f.translator.data_type.nil?
-              f.instance_variable_set(:@selecting_data_type, f.custom_data_type = f.event && f.event.data_type) unless f.data_type
-              true
-            else
-              false
-            end
-          end
-          label do
-            if (translator = bindings[:object].translator)
-              if [:Export, :Conversion].include?(translator.type)
-                'Source data type'
-              else
-                'Target data type'
-              end
-            else
-              'Data type'
-            end
-          end
-          help 'Required'
-          associated_collection_scope do
-            data_type = bindings[:object].instance_variable_get(:@selecting_data_type) ? nil : bindings[:object].data_type
-            Proc.new { |scope|
-              data_type ? scope.where(id: data_type.id) : scope.all
-            }
-          end
-        end
-        field :data_type_scope do
-          visible { (f = bindings[:object]).event && f.translator && f.translator.type != :Import && f.data_type && !f.instance_variable_get(:@selecting_data_type) }
-          label do
-            if (translator = bindings[:object].translator)
-              if [:Export, :Conversion].include?(translator.type)
-                'Source scope'
-              else
-                'Target scope'
-              end
-            else
-              'Data type scope'
-            end
-          end
-          help 'Required'
-        end
-        field :lot_size do
-          visible { (f = bindings[:object]).event && f.translator && f.translator.type == :Export && f.data_type_scope && f.scope_symbol != :event_source }
-        end
-        field :connection_role do
-          visible { (translator = bindings[:object].translator) && (translator.type == :Import || (translator.type == :Export && bindings[:object].data_type_scope.present?)) }
-          help 'Required'
-        end
-        field :webhook do
-          visible { (translator = bindings[:object].translator) && (translator.type == :Import || (translator.type == :Export && bindings[:object].data_type_scope.present?)) }
-          help 'Required'
-        end
-        field :response_translator do
-          inline_edit false
-          inline_add false
-          visible { (translator = bindings[:object].translator) && translator.type == :Export && bindings[:object].ready_to_save? }
-          associated_collection_scope do
-            Proc.new { |scope|
-              scope.where(type: :Import)
-            }
-          end
-        end
-        field :response_data_type do
-          inline_edit false
-          inline_add false
-          visible { (response_translator = bindings[:object].response_translator) && response_translator.data_type.nil? }
-          help ''
-        end
-        field :discard_events do
-          visible { bindings[:object].ready_to_save? }
-          help "Events won't be fired for created or updated records if checked"
-        end
-        field :active do
-          visible { bindings[:object].ready_to_save? }
-        end
-      end
-
-      show do
-        field :name
-        field :event
-        field :translator
-
-        field :_id
-        field :created_at
-        field :creator
-        field :updated_at
-        field :updater
-      end
-
-      fields :name, :event, :translator
-    end
-
   end
 end
