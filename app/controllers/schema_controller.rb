@@ -2,7 +2,7 @@ class SchemaController < ApplicationController
 
   def index
     sleep 10
-    @schema = Setup::DataType.find_by(:uri => params[:uri]).schema rescue nil
+    @schema = Setup::DataType.where(uri: params[:uri]).first
 
     render plain: @schema
   end

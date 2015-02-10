@@ -190,12 +190,8 @@ module Setup
       schema
     end
 
-    def self.find_by_ref(ref)
-      data_type DataType.find_by(name: ref) rescue nil
-    end
-
     def find_data_type(ref)
-      (self.uri.library && self.uri.library.find_data_type_by_name(ref)) || DataType.find_by_ref(ref)
+      (self.uri.library && self.uri.library.find_data_type_by_name(ref)) || DataType.where(name: ref).first
     end
 
     def find_ref_schema(ref)

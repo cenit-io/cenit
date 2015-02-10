@@ -6,7 +6,7 @@ module EventLookup
     attr_accessor :discard_event_lookup
 
     before_save do |object|
-      @_obj_before = object.class.find(object.id) rescue @_obj_before = nil
+      @_obj_before = object.class.where(id: object.id).first
     end
 
     after_save do |object|

@@ -4,7 +4,7 @@ module Mongoid
     class AssociationLengthValidator < LengthValidator
 
       def validate_each(record, attribute, value)
-        if value = record.send(attribute) rescue nil
+        if value = record.try(attribute)
           super
         end
       end

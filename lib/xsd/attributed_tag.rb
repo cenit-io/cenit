@@ -15,7 +15,7 @@ module Xsd
     end
 
     def tag_name
-      self.class.tag_name rescue nil
+      self.class.try(:tag_name)
     end
 
     def xmlns(ns)

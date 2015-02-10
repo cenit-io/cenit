@@ -15,7 +15,7 @@ module Xsd
     end
 
     def when_simpleType_end(simpleType)
-      if type = simpleType.type rescue nil
+      if type = simpleType.try(:type)
         @type = type
       end
     end

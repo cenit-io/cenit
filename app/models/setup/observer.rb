@@ -39,8 +39,8 @@ module Setup
     private
 
     def field_changed(obj_now, obj_before, field_name)
-      now_v = obj_now.send(field_name) rescue nil
-      before_v = obj_before.send(field_name) rescue nil
+      now_v = obj_now.try(field_name)
+      before_v = obj_before.try(field_name)
 
       r = now_v != before_v
       puts "#{now_v} change? #{before_v} -> #{r}"
@@ -48,7 +48,7 @@ module Setup
     end
 
     def condition_apply(obj, field_name, condition)
-      obj_v = obj.send(field_name) rescue nil
+      obj_v = obj.try(field_name)
       cond_v = valuate(condition['v'], obj_v.class)
       obj_values = if cond_v.is_a?(String) || (cond_v.is_a?(Array) && cond_v.detect { |e| e.is_a?(String) })
                      convert_to_string_array(obj_v)

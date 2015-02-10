@@ -1,7 +1,7 @@
 module ModelDataTypeAware
 
   def data_type
-    Setup::DataType.find_by(id: self.data_type_id) rescue nil
+    (data_type_id = try(:data_type_id)) && Setup::DataType.where(id: data_type_id).first
   end
 
 end

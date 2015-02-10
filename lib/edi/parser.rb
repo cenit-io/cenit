@@ -127,7 +127,7 @@ module Edi
         end
 
         if (sub_model = json_schema['sub_schema']) &&
-            (sub_model = (record.send(:eval, sub_model) rescue nil)) &&
+            (sub_model = record.try(:eval, sub_model)) &&
             (data_type = data_type.find_data_type(sub_model)) &&
             (sub_model = data_type.model) &&
             sub_model != model
@@ -273,7 +273,7 @@ module Edi
         end
 
         if (sub_model = json_schema['sub_schema']) &&
-            (sub_model = (record.send(:eval, sub_model) rescue nil)) &&
+            (sub_model = record.try(:eval, sub_model)) &&
             (data_type = data_type.find_data_type(sub_model)) &&
             (sub_model = data_type.model) &&
             sub_model != model

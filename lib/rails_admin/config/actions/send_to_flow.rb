@@ -34,7 +34,7 @@ module RailsAdmin
 
             if params[:send_data]
               if flow_id = params[:flow_id]
-                if flow = Setup::Flow.find(flow_id) rescue nil
+                if flow = Setup::Flow.where(id: flow_id).first
                   flow.process(object_ids: @bulk_ids)
                   flash[:notice] = "Models were send to flow '#{flow.name}'"
                 else
