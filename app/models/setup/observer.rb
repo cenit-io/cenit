@@ -56,7 +56,7 @@ module Setup
                      [obj_v]
                    end
       unless op = condition['o']
-        op = !(cond_v).nil? && cond_v.is_a?(Array) ? 'in' : 'is'
+        op = cond_v.is_a?(Array) ? 'in' : 'is'
       end
       begin
         obj_values.each do |obj_v|
@@ -78,7 +78,7 @@ module Setup
     end
 
     def valuate(cond_v, klass)
-      return nil if cond_v.nil?
+      return unless cond_v
       return cond_v if cond_v.is_a?(klass)
       cond_v = [cond_v] unless is_array = cond_v.is_a?(Array)
       to_obj_class = {NilClass => :to_s, Integer => :to_f, Fixnum => :to_f, Float => :to_f, String => :to_s,
