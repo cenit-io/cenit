@@ -26,7 +26,7 @@ en:
         title: "Shutdown model"
         menu: "Shutdown model"
         breadcrumb: "Shutdown model"
-        the_following: "Shutting down model '%{model_name}' will also shut down the following models"
+        the_following: "Shutting down model '%{model_name}' will also shut down other models (%{shut_down_count} total)"
         are_you_sure: "Are you sure you want to proceed?"
       switch_navigation:
         show:

@@ -43,7 +43,7 @@ RailsAdmin.config do |config|
     edi_export
     bulk_delete { except [Setup::DataType, Role] }
     show
-    edit { except [Setup::Library, Setup::DataType, Role, Setup::Translator] }
+    edit { except [Setup::Library, Role, Setup::Translator] }
     edit_translator
     delete { except [Setup::DataType, Role] }
     #show_in_app

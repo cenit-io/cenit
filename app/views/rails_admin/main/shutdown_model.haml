@@ -1,16 +1,22 @@
-%h4
-  = t('admin.actions.shutdown_model.the_following', model_name: @object.title)
+%form{method: 'post', class: 'form-horizontal denser'}
+  %h3
+    = t('admin.actions.shutdown_model.the_following', model_name: @object.title, shut_down_count: @data_types.size)
 
-%ul
-  - @data_types.each do |data_type|
-    - next if data_type == @object
-    %li
-      = link_to(data_type.title, rails_admin.show_path(model_name: Setup::DataType.to_s.underscore.gsub('/', '~'), id: data_type.id), class: 'pjax')
+  %fieldset
+    %legend{style: ''}
+      %i.icon-chevron-right
+      = 'Models going down'
+    %models.control-group{style: 'display: none'}
+      %ul
+        - @data_types.each do |data_type|
+          //- next if data_type == @object
+          %li
+            = link_to(data_type.title, rails_admin.show_path(model_name: Setup::DataType.to_s.underscore.gsub('/', '~'), id: data_type.id), class: 'pjax')
 
-%h4
-  = t('admin.actions.shutdown_model.are_you_sure')
+  %h4
+    = t('admin.actions.shutdown_model.are_you_sure')
 
-%form
+
   .form-actions
     %button.btn.btn-danger{type: 'submit', name: 'shutdown', :'data-disable-with' => t('admin.form.confirmation')}
       %i.icon-white.icon-ok

@@ -12,7 +12,7 @@ module RailsAdmin
         end
 
         register_instance_option :http_methods do
-          [:get]
+          [:get, :post]
         end
 
         register_instance_option :visible do
