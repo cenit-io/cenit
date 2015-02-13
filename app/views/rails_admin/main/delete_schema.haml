@@ -1,0 +1,26 @@
+%form{method: 'delete', class: 'form-horizontal denser'}
+  %h3
+    = t('admin.actions.delete_schema.deleting_schema', schema_uri: @object.uri)
+  %fieldset
+    %legend{style: ''}
+      %i.icon-chevron-right
+      - if (records_count = @object.data_types.inject(0) { |sum, data_type| sum + data_type.count }) > 0
+        = t('admin.actions.delete_schema.delete_data_types_and_records', data_type_count: @object.data_types.count, records_count: records_count)
+      - else
+        = t('admin.actions.delete_schema.delete_data_types', data_type_count: @object.data_types.count)
+    %models.control-group{style: 'display: none'}
+      %ul
+        - @object.data_types.each do |data_type|
+          %li
+            - label = (count = data_type.count) > 0 ? "#{data_type.title} (#{count} #{t('admin.actions.delete_schema.records')})" : data_type.title
+            = link_to(label, rails_admin.show_path(model_name: Setup::DataType.to_s.underscore.gsub('/', '~'), id: data_type.id), class: 'pjax')
+  = render partial: 'shutdown_and_reload'
+  %h4
+    = t('admin.actions.delete_schema.are_you_sure')
+  .form-actions
+    %button.btn.btn-danger{type: 'submit', name: 'delete', :'data-disable-with' => t('admin.form.confirmation')}
+      %i.icon-white.icon-ok
+      = t('admin.form.confirmation')
+    %button.btn{type: 'submit', name: '_continue', :'data-disable-with' => t("admin.form.cancel")}
+      %i.icon-remove
+      = t('admin.form.cancel')

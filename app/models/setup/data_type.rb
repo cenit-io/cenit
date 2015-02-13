@@ -28,15 +28,15 @@ module Setup
 
     validates_presence_of :name, :schema
 
+    after_initialize :verify_schema_ok
     before_save :validate_model
     after_save :verify_schema_ok
-    after_initialize :verify_schema_ok
+    before_destroy :delete_all
 
     field :is_object, type: Boolean
     field :schema_ok, type: Boolean
     field :previous_schema, type: String
     field :activated, type: Boolean, default: false
-    field :auto_load_model, type: Boolean
     field :show_navigation_link, type: Boolean
     field :to_be_destroyed, type: Boolean
 
@@ -57,15 +57,15 @@ module Setup
     def sample_to_s
       '{"' + name.underscore + '": ' + sample_data + '}'
     end
-    
+
     def sample_object
       model.new(JSON.parse(sample_data))
     end
-    
+
     def sample_to_hash
       JSON.parse(sample_to_s)
     end
-    
+
     def shutdown(options={})
       DataType.shutdown(self, options)
     end
@@ -82,12 +82,33 @@ module Setup
       "Dt#{self.id.to_s}"
     end
 
+    def count
+      if is_object?
+        #TODO Count records when not loaded
+        (m = model) ? m.count : 123
+      else
+        0
+      end
+    end
+
+    def delete_all
+      if  m = model
+        m.delete_all unless m.is_a?(Hash)
+      else
+        #TODO Delete records
+      end
+    end
+
+    def to_be_destroyed?
+      to_be_destroyed
+    end
+
     def load_model(options={})
       load_models(options)[:model]
     end
 
     def load_models(options={reload: false, reset_config: true})
-      report = {loaded: Set.new}
+      report = {loaded: Set.new, errors: {}}
       begin
         if (do_shutdown = options[:reload] || schema_has_changed?) || !loaded?
           merge_report(shutdown(options), report) if do_shutdown
@@ -99,19 +120,19 @@ module Setup
       rescue Exception => ex
         #raise ex
         puts "ERROR: #{errors.add(:schema, ex.message).to_s}"
-        merge_report(shutdown(options), report)
-        begin
-          if previous_schema
+        # merge_report(shutdown(options), report)
+        shutdown(options)
+        if previous_schema
+          begin
             puts "Reloading previous schema for '#{self.name}'..."
             parse_str_schema(report, previous_schema)
             puts "Previous schema for '#{self.name}' reloaded!"
-          else
-            puts "ERROR: schema '#{self.name}' not loaded!"
+          rescue Exception => ex
+            puts "ERROR: #{errors.add(:schema, 'previous version also with error: ' + ex.message).to_s}"
           end
-        rescue Exception => ex
-          puts "ERROR: schema '#{self.name}' with permanent error (#{ex.message})"
         end
-        merge_report(shutdown(options), report)
+        # merge_report(shutdown(options), report)
+        shutdown(options)
       end
       set_schema_ok
       self[:previous_schema] = nil
@@ -119,7 +140,11 @@ module Setup
         '#{self.id}'
       end")
       create_default_events
-      report[:loaded] << (report[:model] = model) if model
+      if model
+        report[:loaded] << (report[:model] = model)
+      else
+        report[:errors][self] = errors
+      end
       report
     end
 
@@ -466,7 +491,7 @@ module Setup
       parent ||= Object
 
       tokens.each do |token|
-        if parent.const_defined?(token, false)
+        if (parent.const_defined?(token, false) rescue false)
           parent = parent.const_get(token)
           raise "uses illegal constant #{parent.to_s}" unless @@parsing_schemas.include?(parent) || @@parsed_schemas.include?(parent.to_s) #|| parent == self.uri.library.module
         else
@@ -477,7 +502,7 @@ module Setup
         end
       end
 
-      if parent.const_defined?(constant_name, false)
+      if (parent.const_defined?(constant_name, false) rescue false)
         c = parent.const_get(constant_name)
         raise "uses illegal constant #{c.to_s}" unless @@parsed_schemas.include?(model_name) || (c.is_a?(Class) && @@parsing_schemas.include?(c))
       else
@@ -512,7 +537,7 @@ module Setup
           puts "Created constant #{constant_name}"
         end
       end
-      return c
+      c
     end
 
     def parse_str_schema(report, str_schema)
@@ -524,8 +549,9 @@ module Setup
       schema = merge_schema(schema, expand_extends: false)
 
       if base_model = schema.delete('extends')
+        base_model_ref = base_model
         base_model = find_or_load_model(report, base_model) if base_model.is_a?(String)
-        raise Exception.new("requires base model #{schema['extends']} to be already loaded") unless base_model
+        raise Exception.new("requires base model #{base_model_ref} to be already loaded") unless base_model
       end
 
       unless base_model.nil? || base_model.is_a?(Class)
@@ -957,10 +983,10 @@ module Setup
     class << self
       def shutdown(data_types, options={})
         return {} unless data_types
-        options[:reset_config] = true if options[:reset_config].nil?
+        options[:reset_config] = options[:reset_config].nil? && !options[:report_only]
         raise Exception.new("Both options 'destroy' and 'report_only' is not allowed") if options[:destroy] && options[:report_only]
         data_types = [data_types] unless data_types.is_a?(Enumerable)
-        report={destroyed: Set.new, affected: Set.new, reloaded: Set.new}
+        report={destroyed: Set.new, affected: Set.new, reloaded: Set.new, errors: {}}
         data_types.each do |data_type|
           begin
             r = data_type.send(:deconstantize, data_type.data_type_name, options)
@@ -983,38 +1009,35 @@ module Setup
           puts 'Reloading affected models...' unless report[:affected].empty?
           destroyed_lately = []
           report[:affected].each do |model|
-            if reloaded_model = report[:reloaded].detect { |m| m.to_s == model.to_s }
-              puts "Model #{model.schema_name rescue model.to_s} -> #{model.to_s} already reloaded"
-            else
+            data_type = model.data_type
+            unless report[:errors][data_type] ||report[:reloaded].detect { |m| m.to_s == model.to_s }
               begin
                 if model.parent == Object
                   puts "Reloading #{model.schema_name rescue model.to_s} -> #{model.to_s}"
-                  model_report = model.data_type.load_models(reload: true, reset_config: false)
+                  model_report = data_type.load_models(reload: true, reset_config: false)
                   report[:reloaded] += model_report[:reloaded] + model_report[:loaded]
-                  if model = model_report[:model]
-                    report[:reloaded] << model
+                  report[:destroyed] += model_report[:destroyed]
+                  if loaded_model = model_report[:model]
+                    report[:reloaded] << loaded_model
                   else
-                    puts "Warning: #{model.schema_name rescue model.to_s} -> #{model.to_s} NOT LOADED!"
+                    report[:destroyed] << model
+                    report[:errors][data_type] = data_type.errors
                   end
                 else
                   puts "Model #{model.schema_name rescue model.to_s} -> #{model.to_s} reload on parent reload!"
                 end
               rescue Exception => ex
                 puts "Error deconstantizing  #{model.schema_name rescue model.to_s}"
-                report[:destroyed] << model
+
                 destroyed_lately << model
-                report[:affected].delete(model)
               end
-              report[:affected].delete(model)
               puts "Model #{model.schema_name rescue model.to_s} -> #{model.to_s} reloaded!"
             end
-            unless report[:affected].empty?
-              puts 'Affected models no reloaded!'
-            end
           end
+          report[:affected].clear
           deconstantize(destroyed_lately)
           puts "Final report #{report}"
-          RailsAdmin::AbstractModel.update_model_config([], report[:destroyed], options[:reset_config] ? report[:affected] + report[:reloaded] : [])
+          RailsAdmin::AbstractModel.update_model_config([], report[:destroyed], report[:reloaded]) if options[:reset_config]
         end
         report
       end

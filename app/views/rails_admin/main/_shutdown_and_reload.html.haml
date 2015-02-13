@@ -1,0 +1,20 @@
+- unless @shutdown.empty?
+  %fieldset
+    %legend{style: ''}
+      %i.icon-chevron-right
+      = t('admin.actions.shutdown_and_reload.shutdown_data_types', shutdown_count: @shutdown.size)
+    %models.control-group{style: 'display: none'}
+      %ul
+        - @shutdown.each do |data_type|
+          %li
+            = link_to(data_type.title, rails_admin.show_path(model_name: Setup::DataType.to_s.underscore.gsub('/', '~'), id: data_type.id), class: 'pjax')
+- unless @reload.empty?
+  %fieldset
+    %legend{style: ''}
+      %i.icon-chevron-right
+      = t('admin.actions.shutdown_and_reload.reload_data_types', reload_count: @reload.size)
+    %models.control-group{style: 'display: none'}
+      %ul
+        - @reload.each do |data_type|
+          %li
+            = link_to(data_type.title, rails_admin.show_path(model_name: Setup::DataType.to_s.underscore.gsub('/', '~'), id: data_type.id), class: 'pjax')

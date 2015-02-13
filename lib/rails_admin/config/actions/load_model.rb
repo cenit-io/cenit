@@ -25,10 +25,19 @@ module RailsAdmin
               flash[:notice] = "Model #{@object.title} is already loaded!"
             else
               begin
-                @object.auto_load_model = @object.activated =  @object.show_navigation_link = true
+                @object.activated = @object.show_navigation_link = true
                 @object.save
-                RailsAdmin::AbstractModel.model_loaded(@object.load_models[:loaded])
-                flash[:success] = "Model #{@object.title} loaded!"
+                report = @object.load_models
+                if report[:model]
+                  RailsAdmin::AbstractModel.model_loaded(report[:model])
+                  flash[:success] = "Model #{@object.title} loaded!"
+                else
+                  flash[:error] = ''.html_safe
+                  report[:errors].each do |data_type, errors|
+                    flash[:error] += "<strong>Model #{data_type.title} could not be loaded</strong>".html_safe
+                    flash[:error] += %(<br>- #{errors.full_messages.join('<br>- ')}<br>).html_safe
+                  end
+                end
               rescue Exception => ex
                 #raise ex
                 flash[:error] = "Error loading model #{@object.title}: #{ex.message}"

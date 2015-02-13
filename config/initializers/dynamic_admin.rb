@@ -28,6 +28,7 @@ module RailsAdmin
         collect_models(models_to_reset, models_to_reset)
         collect_models(loaded_models, models_to_reset)
         collect_models(removed_models, models_to_reset)
+        models_to_reset.delete_if { |model| model.data_type.to_be_destroyed }
         removed_models.each do |model|
           Config.remove_model(model)
           if m = all.detect { |m| m.model_name.eql?(model.to_s) }
@@ -122,7 +123,7 @@ module RailsAdmin
 
       def collect_models(models, to_reset)
         models.each do |model|
-          unless to_reset.include?(model)
+          unless to_reset.detect { |m| m.to_s == model.to_s }
             begin
               if (model.is_a?(Hash))
                 affected_models = model[:affected] || []

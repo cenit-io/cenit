@@ -92,7 +92,7 @@ module Setup
     end
 
     def destroy_data_types
-      DataType.shutdown(@data_types_to_destroy || self.data_types, destroy: true)
+      @shutdown_report = DataType.shutdown(@data_types_to_destroy || self.data_types, destroy: true)
     end
 
     def parse_schemas

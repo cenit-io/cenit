@@ -25,16 +25,24 @@ module RailsAdmin
             if model = @object.model
               begin
                 unless params[:shutdown]
-                  report = Setup::DataType.shutdown(@object, report_only: true, shutdown_all: true)
-                  @data_types = report[:destroyed].collect { |model| model.data_type }.uniq
-                  params[:shutdown] = true if @data_types.size == 1
+                  report = Setup::DataType.shutdown(@object, report_only: true)
+                  @shutdown = report[:destroyed].collect { |model| model.data_type }.uniq.select { |data_type| data_type != @object }
+                  @reload = report[:affected].collect { |model| model.data_type }.uniq
+                  params[:shutdown] = true if @shutdown.empty? && @reload.empty?
                 end
                 if params[:shutdown]
-                  (report = Setup::DataType.shutdown(@object, shutdown_all: true))[:destroyed].each do |model|
+                  (report = Setup::DataType.shutdown(@object))[:destroyed].each do |model|
                     (data_type = model.data_type).activated = data_type.show_navigation_link = false
                     data_type.save
                   end
-                  flash[:success] = "Shutdown model #{@object.title} success"
+                  flash[:success] = "Model #{@object.title} is now shutdown"
+                  unless report[:errors].empty?
+                    flash[:error] = ''.html_safe
+                    report[:errors].each do |data_type, errors|
+                      flash[:error] += "<strong>Model #{data_type.title} could not be loaded</strong>".html_safe
+                      flash[:error] += %(<br>- #{errors.full_messages.join('<br>- ')}<br>).html_safe
+                    end
+                  end
                 else
                   done = false
                   render @action.template_name

@@ -26,7 +26,9 @@ en:
         title: "Shutdown model"
         menu: "Shutdown model"
         breadcrumb: "Shutdown model"
-        the_following: "Shutting down model '%{model_name}' will also shut down other models (%{shut_down_count} total)"
+        shutting_down: "Shutting down model '%{model_name}' will also"
+        shutdown_data_types: "shutdown %{shutdown_count} data types"
+        reload_data_types: "reload %{reload_count} data types"
         are_you_sure: "Are you sure you want to proceed?"
       switch_navigation:
         show:
@@ -96,3 +98,17 @@ en:
         done: "converted"
         submit: "Convert"
         bulk_link: "Convert selected %{model_label_plural}"
+      delete_schema:
+        title: "Delete"
+        menu: "Delete"
+        breadcrumb: "Delete"
+        deleting_schema: "Deleting schema '%{schema_uri}' will also"
+        delete_data_types_and_records: "delete %{data_type_count} data types including %{records_count} records"
+        delete_data_types: "delete %{data_type_count} data types"
+        shutdown_data_types: "shutdown %{shutdown_count} data types"
+        reload_data_types: "reload %{reload_count} data types"
+        records: "records"
+        are_you_sure: "Are you sure you want to proceed?"
+      shutdown_and_reload:
+        shutdown_data_types: "shutdown %{shutdown_count} data types"
+        reload_data_types: "reload %{reload_count} data types"

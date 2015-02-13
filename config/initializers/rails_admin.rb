@@ -11,7 +11,8 @@
  RailsAdmin::Config::Actions::NewWizard,
  RailsAdmin::Config::Actions::EditTranslator,
  RailsAdmin::Config::Actions::Update,
- RailsAdmin::Config::Actions::Convert].each { |a| RailsAdmin::Config::Actions.register(a) }
+ RailsAdmin::Config::Actions::Convert,
+ RailsAdmin::Config::Actions::DeleteSchema].each { |a| RailsAdmin::Config::Actions.register(a) }
 
 RailsAdmin.config do |config|
 
@@ -41,11 +42,12 @@ RailsAdmin.config do |config|
     #  only 'Setup::DataType'
     #end
     edi_export
-    bulk_delete { except [Setup::DataType, Role] }
+    bulk_delete { except [Setup::Schema, Setup::DataType, Role] }
     show
     edit { except [Setup::Library, Role, Setup::Translator] }
     edit_translator
-    delete { except [Setup::DataType, Role] }
+    delete { except [Setup::Schema, Setup::DataType, Role] }
+    delete_schema
     #show_in_app
     send_to_flow
     test_transformation
