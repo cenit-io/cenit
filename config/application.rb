@@ -39,6 +39,8 @@ module Cenit
         puts "Loading schema #{schema.uri}"
         schema.load_models
       end
+
+      puts Setup::Template.data_type.schema
     end
 
   end

@@ -9,6 +9,8 @@ module Setup
     include Trackable
     include DynamicValidators
 
+    BuildInDataType.regist(self)
+
     field :name, type: String
     field :active, type: Boolean, default: :true
     field :discard_events, type: Boolean
@@ -26,9 +28,9 @@ module Setup
     belongs_to :response_translator, class_name: Setup::Translator.name, inverse_of: nil
     belongs_to :response_data_type, class_name: Setup::DataType.name, inverse_of: nil
 
-    #has_and_belongs_to_many :templates, class_name: Setup::Template.name, inverse_of: :flows
-
     field :last_trigger_timestamps, type: DateTime
+
+    belongs_to :template, class_name: Setup::Template.name, inverse_of: :flows
 
     validates_presence_of :name, :event, :translator
     validates_numericality_in_presence_of :lot_size, greater_than_or_equal_to: 1

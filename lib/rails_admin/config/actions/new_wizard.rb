@@ -3,6 +3,10 @@ module RailsAdmin
     module Actions
       class NewWizard < RailsAdmin::Config::Actions::New
 
+        register_instance_option :only do
+          [Setup::Translator, Setup::Flow, Setup::Scheduler]
+        end
+
         register_instance_option :controller do
 
           proc do

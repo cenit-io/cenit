@@ -1,6 +1,8 @@
 module Setup
   class Scheduler < Event
 
+    BuildInDataType.regist(self).referenced_by(:name)
+
     field :scheduling_method, type: Symbol
     field :expression, type: String
     field :scheduler_id, type: Integer

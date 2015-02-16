@@ -3,6 +3,10 @@ module RailsAdmin
     module Actions
       class Import < RailsAdmin::Config::Actions::Base
 
+        register_instance_option :except do
+          [Setup::Schema, Setup::DataType]
+        end
+
         register_instance_option :visible? do
           if authorized?
             model = bindings[:abstract_model].model_name.constantize rescue nil

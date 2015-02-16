@@ -4,10 +4,14 @@ module RailsAdmin
 
       class Convert < RailsAdmin::Config::Actions::Base
 
+        register_instance_option :except do
+          [Setup::Library, Setup::Schema, Setup::DataType]
+        end
+
         register_instance_option :visible? do
           if authorized?
             model = bindings[:abstract_model].model_name.constantize rescue nil
-            model.respond_to?(:data_type_id)
+            model.try(:data_type).present?
           else
             false
           end
