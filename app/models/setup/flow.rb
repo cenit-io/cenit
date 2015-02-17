@@ -169,6 +169,7 @@ module Setup
                                 discard_events: discard_events)
         connection_role.connections.each do |connection|
           begin
+			result = {data_type.name.downcase => JSON.parse(result)}.to_json
             response = HTTParty.send(webhook.method, connection.url + '/' + webhook.path,
                                      {
                                          body: result,
