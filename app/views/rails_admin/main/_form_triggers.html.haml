@@ -22,7 +22,7 @@
   puts "TRIGGERS #{@triggers}"
 
 .a{style: 'float:left'}
-  %input{style: 'display: none', :'name' => 'setup_event[triggers][_]'}
+  %input{style: 'display: none', :'name' => 'setup_observer[triggers][_]'}
   .b
     %span#triggers_box
   .c
@@ -37,4 +37,4 @@
 %script
   var fields = #{@model_field_map.html_safe}
   var default_triggers = #{@triggers.html_safe}
-  $("#setup_event_data_type_id").trigger('change');
+  $("#setup_observer_data_type_id").trigger('change');

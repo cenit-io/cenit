@@ -67,31 +67,31 @@ class User
       break token unless User.where(token: token).first
     end
   end
-  
+
   rails_admin do
     weight -15
     navigation_label 'Account'
-    
+
     object_label_method do
       :email
     end
-    
+
     configure :key do
       visible do
         bindings[:view]._current_user.has_role? :admin
       end
     end
-    
+
     configure :authentication_token do
       visible do
         bindings[:view]._current_user.has_role? :admin
       end
     end
-    
-    list do 
+
+    list do
       scopes [:by_account]
     end
-          
+
     show do
       field :email
       field :roles
@@ -103,7 +103,7 @@ class User
       field :current_sign_in_ip
       field :last_sign_in_ip
       field :reset_password_sent_at
-      
+
       field :_id
       field :created_at
       field :updated_at
@@ -111,8 +111,8 @@ class User
    # edit do
    #   fields :email, :password, :password_confirmation, :roles, :key, :authentication_token
       #field :reset_password_token
-  #  end  
+  #  end
   #  fields :email, :roles, :key, :authentication_token, :sign_in_count, :last_sign_in_at, :last_sign_in_ip
-  end  
-  
+  end
+
 end

@@ -6,20 +6,10 @@ module Setup
     include Trackable
     include Setup::Enum
     
-    # Associated fields with request
-    belongs_to :schema_validation, class_name: Setup::Schema.name
-    belongs_to :data_type, class_name: Setup::DataType.name
-    field :trigger_event, type: Boolean
-    
-    # Associated fields with response
-    belongs_to :schema_validation_response, class_name: Setup::Schema.name
-    belongs_to :data_type_response, class_name: Setup::DataType.name
-    field :trigger_event_response, type: Boolean
-    
     has_many :url_parameters, class_name: Setup::UrlParameter.name, dependent: :destroy, as: :parameterizable
     has_many :headers, class_name: Setup::Header.name, dependent: :destroy, as: :parameterizable
     
-    has_many :flows, class_name: Setup::Flow.name, dependent: :destroy, inverse_of: :transforms
+    has_many :flows, class_name: Setup::Flow.name, dependent: :destroy, inverse_of: :webhook
     has_and_belongs_to_many :templates, class_name: Setup::Template.name, inverse_of: :webhooks
     has_and_belongs_to_many :connection_roles, class_name: Setup::ConnectionRole.name, inverse_of: :webhooks
 

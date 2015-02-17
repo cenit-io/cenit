@@ -26,7 +26,9 @@ en:
         title: "Shutdown model"
         menu: "Shutdown model"
         breadcrumb: "Shutdown model"
-        the_following: "Shutting down model '%{model_name}' will also shut down the following models"
+        shutting_down: "Shutting down model '%{model_name}' will also"
+        shutdown_data_types: "shutdown %{shutdown_count} data types"
+        reload_data_types: "reload %{reload_count} data types"
         are_you_sure: "Are you sure you want to proceed?"
       switch_navigation:
         show:
@@ -49,12 +51,12 @@ en:
         submit: "Import"
         done: "created"
       edi_export:
-        title: "EDI Export"
-        menu: "EDI Export"
-        breadcrumb: "EDI Export"
-        field_separator_label: "Field separator"
+        title: "Export"
+        menu: "Export"
+        breadcrumb: "Export"
         submit: "Export"
         done: "exported"
+        bulk_link: "Export selected %{model_label_plural}"
       import_schema:
         title: "Import"
         menu: "Import"
@@ -69,7 +71,7 @@ en:
         are_you_sure: "Are you sure you want to delete all the %{model_label_plural}?"
         will_be_deleted: "objects will be deleted"
         done: "deleted"
-      new_translator:
+      new_wizard:
         title: "New"
         menu: "Add new"
         breadcrumb: "New"
@@ -96,3 +98,17 @@ en:
         done: "converted"
         submit: "Convert"
         bulk_link: "Convert selected %{model_label_plural}"
+      delete_schema:
+        title: "Delete"
+        menu: "Delete"
+        breadcrumb: "Delete"
+        deleting_schema: "Deleting schema '%{schema_uri}' will also"
+        delete_data_types_and_records: "delete %{data_type_count} data types including %{records_count} records"
+        delete_data_types: "delete %{data_type_count} data types"
+        shutdown_data_types: "shutdown %{shutdown_count} data types"
+        reload_data_types: "reload %{reload_count} data types"
+        records: "records"
+        are_you_sure: "Are you sure you want to proceed?"
+      shutdown_and_reload:
+        shutdown_data_types: "shutdown %{shutdown_count} data types"
+        reload_data_types: "reload %{reload_count} data types"

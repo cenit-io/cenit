@@ -38,8 +38,8 @@
         append: function (field_label, field_name, field_type, field_value, field_operator, field_options, index) {
 //            var value_name = 'a[triggers][' + field_name + '][v]';
 //            var operator_name = 'a[triggers][' + field_name + '][o]';
-            var value_name = 'setup_event[triggers][' + field_name + '][' + index + '][v]';
-            var operator_name = 'setup_event[triggers][' + field_name + '][' + index + '][o]';
+            var value_name = 'setup_observer[triggers][' + field_name + '][' + index + '][v]';
+            var operator_name = 'setup_observer[triggers][' + field_name + '][' + index + '][o]';
             var common_options = '<option ' + (field_operator == "_not_null" ? 'selected="selected"' : '') + ' value="_not_null">' + RailsAdmin.I18n.t("is_present") + '</option>' +
                 '<option ' + (field_operator == "_null" ? 'selected="selected"' : '') + ' value="_null" >' + RailsAdmin.I18n.t("is_blank") + '</option>' +
                 '<option ' + (field_operator == "_change" ? 'selected="selected"' : '') + ' value="_change"  >' + RailsAdmin.I18n.t("change") + '</option>';
@@ -165,9 +165,9 @@
         }
     });
 
-    $(document).on('change', "#setup_event_data_type_id", function (e) {
+    $(document).on('change', "#setup_observer_data_type_id", function (e) {
         if (typeof fields != 'undefined') {
-            var model_name = $("#setup_event_data_type_id").html();
+            var model_name = $("#setup_observer_data_type_id").html();
             var i = model_name.indexOf('option selected="selected');
             if (i < 0) i = 0;
             model_name = model_name.substring(model_name.indexOf('>', i) + 1, model_name.indexOf('</', i));
@@ -199,15 +199,15 @@
         }
     });
 
-    $(document).on('click', "#new_setup_event", function (e) {
+    $(document).on('click', "#new_setup_observer", function (e) {
         $("#triggers").hide();
     });
 
-    $(document).on('click', "#edit_setup_event", function (e) {
+    $(document).on('click', "#edit_setup_observer", function (e) {
         $("#triggers").hide();
     });
 
-    $(document).on('click', "#setup_event_triggers_field", function (e) {
+    $(document).on('click', "#setup_observer_triggers_field", function (e) {
         $("#triggers").hide();
     });
 })(jQuery);

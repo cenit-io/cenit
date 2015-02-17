@@ -11,8 +11,8 @@ module Edi
     end
 
     def to_json(options={})
-      hash = record_to_hash(data_type = self.data_type, JSON.parse(data_type.schema), self)
-      hash = {data_type.name.downcase => hash} if options[:include_root]
+      hash = record_to_hash(self)
+      hash = {self.class.data_type.name.downcase => hash} if options[:include_root]
       if options[:pretty]
         JSON.pretty_generate(hash)
       else
@@ -78,10 +78,13 @@ module Edi
       element
     end
 
-    def record_to_hash(data_type, schema, record)
+    def record_to_hash(record, referenced=false)
       return unless record
-      json = {}
+      data_type = record.class.data_type
+      schema = data_type.merged_schema
+      json = (referenced = referenced && schema['referenced_by']) ? {'$referenced' => true} : {}
       schema['properties'].each do |property_name, property_schema|
+        next if referenced && referenced != property_name
         property_schema = data_type.merge_schema(property_schema)
         name = property_schema['edi']['segment'] if property_schema['edi']
         name ||= property_name
@@ -89,13 +92,13 @@ module Edi
           when 'array'
             relation = record.reflect_on_association(property_name)
             next unless relation && [:has_many, :has_and_belongs_to_many, :embeds_many].include?(relation.macro)
-            property_schema = data_type.merge_schema(property_schema['items'])
-            value = record.send(property_name).collect { |sub_record| record_to_hash(data_type, property_schema, sub_record) }
+            referenced_items = relation.macro != :embeds_many && property_schema['referenced']
+            value = record.send(property_name).collect { |sub_record| record_to_hash(sub_record, referenced_items) }
             json[name] = value unless value.empty?
           when 'object'
             relation = record.reflect_on_association(property_name)
-            next unless relation && [:has_one, :embeds_one].include?(relation.macro)
-            if value = record_to_hash(data_type, property_schema, record.send(property_name))
+            next unless relation && ([:has_one, :embeds_one].include?(relation.macro) || (relation.macro == :belongs_to) && relation.inverse_of.nil?)
+            if value = record_to_hash(record.send(property_name), relation.macro != :embeds_one && property_schema['referenced'])
               json[name] = value
             end
           else

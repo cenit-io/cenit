@@ -8,10 +8,11 @@
  RailsAdmin::Config::Actions::EdiExport,
  RailsAdmin::Config::Actions::ImportSchema,
  RailsAdmin::Config::Actions::DeleteAll,
- RailsAdmin::Config::Actions::NewTranslator,
+ RailsAdmin::Config::Actions::NewWizard,
  RailsAdmin::Config::Actions::EditTranslator,
  RailsAdmin::Config::Actions::Update,
- RailsAdmin::Config::Actions::Convert].each { |a| RailsAdmin::Config::Actions.register(a) }
+ RailsAdmin::Config::Actions::Convert,
+ RailsAdmin::Config::Actions::DeleteSchema].each { |a| RailsAdmin::Config::Actions.register(a) }
 
 RailsAdmin.config do |config|
 
@@ -27,12 +28,12 @@ RailsAdmin.config do |config|
   config.current_user_method { current_user }
   config.audit_with :mongoid_audit
   config.authorize_with :cancan
-  
+
   config.actions do
     dashboard # mandatory
     index # mandatory
-    new { except [Setup::DataType, Role, Setup::Translator]  }
-    new_translator
+    new { except [Setup::DataType, Role, Setup::Translator, Setup::Flow, Setup::Scheduler, Setup::Event] }
+    new_wizard
     import
     import_schema
     update
@@ -40,46 +41,46 @@ RailsAdmin.config do |config|
     #import do
     #  only 'Setup::DataType'
     #end
-    export
-    bulk_delete { except [Setup::DataType, Role]  }
-    show
-    edit { except [Setup::Library, Setup::DataType, Role, Setup::Translator]  }
-    edit_translator
     edi_export
-    delete { except [Setup::DataType, Role]  }
+    bulk_delete { except [Setup::Schema, Setup::DataType, Role] }
+    show
+    edit { except [Setup::Library, Role, Setup::Translator] }
+    edit_translator
+    delete { except [Setup::Schema, Setup::DataType, Role] }
+    delete_schema
     #show_in_app
     send_to_flow
     test_transformation
     load_model
     shutdown_model
     switch_navigation
+    delete_all { except Setup::DataType, Role }
     data_type
 
-    history_index do 
-      only [Setup::DataType,Setup::Webhook, Setup::Flow, Setup::Schema, Setup::Event, Setup::Connection,Setup::ConnectionRole, Setup::Library]
-    end  
-    history_show do 
-      only [Setup::DataType,Setup::Webhook, Setup::Flow, Setup::Schema, Setup::Event, Setup::Connection,Setup::ConnectionRole, Setup::Notification, Setup::Library]
+    history_index do
+      only [Setup::DataType, Setup::Webhook, Setup::Flow, Setup::Schema, Setup::Event, Setup::Connection, Setup::ConnectionRole, Setup::Library]
     end
-    delete_all { except Setup::DataType,Role  }
+    history_show do
+      only [Setup::DataType, Setup::Webhook, Setup::Flow, Setup::Schema, Setup::Event, Setup::Connection, Setup::ConnectionRole, Setup::Notification, Setup::Library]
+    end
   end
-  
-  config.model Role.name  do
+
+  config.model Role.name do
     weight -20
     navigation_label 'Account'
     show do
       field :name
       field :user
-      
+
       field :_id
     end
     fields :name, :users
   end
-  
+
   config.model Setup::Library.name do
     navigation_label 'Data Definitions'
     weight -19
-    
+
     configure :name do
       read_only { !bindings[:object].new_record? }
       help ''
@@ -88,53 +89,53 @@ RailsAdmin.config do |config|
     edit do
       field :name
     end
-  
+
     show do
       field :name
       field :schemas
-    
+
       field :_id
       field :created_at
       field :creator
       field :updated_at
-      field :updater 
+      field :updater
     end
-  
-    fields :name,:schemas
+
+    fields :name, :schemas
   end
 
   config.model Setup::Schema.name do
     navigation_label 'Data Definitions'
     weight -18
-      
-    object_label_method {:uri}
-  
+
+    object_label_method { :uri }
+
     configure :library do
       read_only { !bindings[:object].new_record? }
       inline_edit false
     end
-  
+
     configure :uri do
       read_only { !bindings[:object].new_record? }
     end
-  
+
     configure :schema, :text do
       html_attributes do
-        { cols: '74', rows: '15' }
+        {cols: '74', rows: '15'}
       end
     end
-  
+
     show do
       field :library
       field :uri
       field :schema
       field :data_types
-    
+
       field :_id
       field :created_at
       field :creator
       field :updated_at
-      field :updater 
+      field :updater
     end
     fields :library, :uri, :schema
   end
@@ -142,12 +143,12 @@ RailsAdmin.config do |config|
   config.model Setup::DataType.name do
     navigation_label 'Data Definitions'
     weight -17
-          
+
     group :model_definition do
       label 'Model definition'
       active true
     end
-  
+
     group :sample_data do
       label 'Sample data'
       active do
@@ -157,7 +158,7 @@ RailsAdmin.config do |config|
         bindings[:object].is_object
       end
     end
-  
+
     configure :uri do
       group :model_definition
       read_only true
@@ -175,28 +176,28 @@ RailsAdmin.config do |config|
       read_only true
       help ''
       html_attributes do
-        { cols: '50', rows: '15' }
+        {cols: '50', rows: '15'}
       end
     end
 
     configure :sample_data, :text do
       group :sample_data
       html_attributes do
-        { cols: '70', rows: '15' }
+        {cols: '70', rows: '15'}
       end
     end
-  
+
     list do
       fields :uri, :name, :activated
-    end    
-  
+    end
+
     show do
       field :uri
       field :name
       field :activated
       field :schema
       field :sample_data
-    
+
       field :_id
       field :created_at
       field :creator
@@ -205,32 +206,7 @@ RailsAdmin.config do |config|
     end
     fields :uri, :name, :activated, :schema, :sample_data
   end
-  
-  config.model Setup::Template.name do
-    navigation_label 'Setup'
-    weight -16
-    configure :webhooks do
-      nested_form false
-    end
-    configure :flows do
-      nested_form false
-    end
-    show do
-      field :name
-      field :library
-      field :connection_role
-      field :webhooks
-      field :flows
-    
-      field :_id
-      field :created_at
-      field :creator
-      field :updated_at
-      field :updater 
-    end
-    fields :name, :library, :connection_role, :webhooks, :flows
-  end
-  
+
   config.model Setup::Connection.name do
     weight -15
     group :credentials do
@@ -242,26 +218,26 @@ RailsAdmin.config do |config|
     configure :name, :string do
       help 'Requiered.'
       html_attributes do
-        { maxlength: 30, size: 30 } 
+        {maxlength: 30, size: 30}
       end
-    end 
+    end
     configure :url, :string do
       help 'Requiered.'
       html_attributes do
-        { maxlength: 50, size: 50 } 
+        {maxlength: 50, size: 50}
       end
     end
     configure :key, :string do
       visible { bindings[:view]._current_user.has_role? :admin }
       html_attributes do
-        { maxlength: 30, size: 30 } 
+        {maxlength: 30, size: 30}
       end
       group :credentials
     end
     configure :token, :text do
       visible { bindings[:view]._current_user.has_role? :admin }
       html_attributes do
-        { cols: '50', rows: '1' }
+        {cols: '50', rows: '1'}
       end
       group :credentials
     end
@@ -271,17 +247,17 @@ RailsAdmin.config do |config|
     configure :headers do
       visible { bindings[:view]._current_user.has_role? :admin }
     end
-    
+
     group :parameters do
       label "Add Parameters"
     end
     configure :url_parameters do
       group :parameters
-    end  
+    end
     configure :headers do
       group :parameters
-    end  
-    
+    end
+
     show do
       field :name
       field :url
@@ -289,20 +265,20 @@ RailsAdmin.config do |config|
 
       field :key
       field :token
-      
+
       field :url_parameters
       field :headers
-      
+
       field :_id
       field :created_at
       field :creator
       field :updated_at
       field :updater
     end
-    
-      fields :name, :url, :connection_roles, :url_parameters, :headers, :key, :token
+
+    fields :name, :url, :connection_roles, :url_parameters, :headers, :key, :token
   end
-  
+
   config.model Setup::Parameter.name do
     visible false
   end
@@ -314,27 +290,27 @@ RailsAdmin.config do |config|
     configure :key, :string do
       help 'Requiered.'
       html_attributes do
-       { maxlength: 50,size: 50 } 
+        {maxlength: 50, size: 50}
       end
     end
-    
+
     configure :value, :string do
       help 'Requiered.'
       html_attributes do
-       { maxlength: 50,size: 50 }
+        {maxlength: 50, size: 50}
       end
     end
-    
+
     show do
       field :key
       field :value
       field :parameterizable
-      
+
       field :_id
       field :created_at
       field :updated_at
     end
-    
+
     list do
       field :key
       field :value
@@ -343,7 +319,7 @@ RailsAdmin.config do |config|
 
     fields :key, :value
   end
-  
+
   config.model Setup::Header.name do
     object_label_method do
       :to_s
@@ -351,27 +327,27 @@ RailsAdmin.config do |config|
     configure :key, :string do
       help 'Requiered.'
       html_attributes do
-       { maxlength: 50,size: 50 } 
+        {maxlength: 50, size: 50}
       end
     end
-    
+
     configure :value, :string do
       help 'Requiered.'
       html_attributes do
-       { maxlength: 50,size: 50 }
+        {maxlength: 50, size: 50}
       end
     end
-    
+
     show do
       field :key
       field :value
       field :parameterizable
-      
+
       field :_id
       field :created_at
       field :updated_at
     end
-    
+
     list do
       field :key
       field :value
@@ -380,13 +356,13 @@ RailsAdmin.config do |config|
 
     fields :key, :value
   end
-  
+
   config.model Setup::ConnectionRole.name do
     weight -14
     configure :name, :string do
       help 'Requiered.'
       html_attributes do
-       { maxlength: 50,size: 50 } 
+        {maxlength: 50, size: 50}
       end
     end
     configure :webhooks do
@@ -404,7 +380,7 @@ RailsAdmin.config do |config|
       field :name
       field :connections
       field :webhooks
-      
+
       field :_id
       field :created_at
       field :creator
@@ -412,61 +388,27 @@ RailsAdmin.config do |config|
       field :updater
     end
     fields :name, :connections, :webhooks
-  end 
-  
+  end
+
   config.model Setup::Webhook.name do
     weight -13
-    
-    group :request do
-      label 'Resquest'
-    end
-    
-    group :response do
-      label 'Response'
-    end
-    
+
     configure :path, :string do
       help "Requiered. Path of the webhook relative to connection URL."
       html_attributes do
-       { maxlength: 50, size: 50 }
+        {maxlength: 50, size: 50}
       end
     end
     configure :connection_roles do
       nested_form false
     end
-    configure :schema_validation do
-      help "Optional. Validate transformed flow document using this schema."
-      group :request
-    end
-    configure :data_type do
-      help "Optional. Save document as an object of this 'data-type'."
-      group :request
-    end
-    configure :trigger_event do
-      help "Optional. Trigger events after save the object."
-      group :request
-    end
-    
-    configure :schema_validation_response do
-      help "Optional. Validate response document using this schema."
-      group :response
-    end
-    configure :data_type_response do
-      help "Optional. Save document as an object of this 'data-type'."
-      group :response
-    end
-    configure :trigger_event_response do
-      help "Optional. Trigger events after save the object."
-      group :response
-    end
-    
     group :parameters do
       label "Add Parameters"
     end
     configure :url_parameters do
       group :parameters
-    end  
-    configure  :headers do
+    end
+    configure :headers do
       group :parameters
     end
 
@@ -476,61 +418,10 @@ RailsAdmin.config do |config|
       field :path
       field :method
       field :connection_roles
-      field :flow
-      
+      field :flows
+
       field :url_parameters
       field :headers
-      
-      #request
-      field :schema_validation
-      field :data_type
-      field :trigger_event
-      
-      #response
-      field :schema_validation_response
-      field :data_type_response
-      field :trigger_event_response
-      
-      field :_id
-      field :created_at
-      field :creator
-      field :updated_at
-      field :updater
-    end
-    fields :name, :purpose, :path, :method,:connection_roles, :url_parameters, :headers, :schema_validation, :data_type, :trigger_event,  :schema_validation_response, 
-    :data_type_response, :trigger_event_response
-  end
-  
-  
-  config.model Setup::Event.name do
-    weight -12
-    configure :name, :string do
-      help 'Requiered.'
-      html_attributes do
-       { maxlength: 50,size: 50 }
-      end
-    end
-    
-    configure :data_type do
-      help false
-      inline_add false
-      inline_edit false
-      associated_collection_cache_all false
-      associated_collection_scope do
-        Proc.new { |scope|
-          scope = scope.where(activated: true)
-        }
-      end
-    end
-    
-    configure :triggers do
-      partial 'form_triggers'
-      help false
-    end
-
-    show do
-      field :name
-      field :data_type
 
       field :_id
       field :created_at
@@ -538,117 +429,9 @@ RailsAdmin.config do |config|
       field :updated_at
       field :updater
     end
-    
-    edit do
-      fields :name, :data_type, :triggers
-    end
-    
-    fields :name, :data_type
+    fields :name, :purpose, :path, :method, :connection_roles, :url_parameters, :headers
   end
-  
-  config.model Setup::Flow.name do
-    weight -11
-    configure :name, :string do
-      help 'Requiered.'
-      html_attributes do
-       { maxlength: 50,size: 50 }
-      end
-    end
-    
-    group :batching do
-      label 'Schedule & Batch'
-    end
-    
-    group :transformation do
-      label 'Data transformation'
-      active true
-    end
-    
-    configure :schedule do
-      group :batching
-    end
-    
-    configure :batch do
-      group :batching
-    end
-    
-    configure :style, :enum do
-      group :transformation
-    end
-    
-    configure :transformation do
-      group :transformation
-      partial 'form_transformation'
-    end
-    
-    edit do
-      fields :name, :active, :purpose, :data_type, :connection_role, :webhook, :event, :schedule, :batch, :style, :transformation
-    end
-    
-    show do
-      field :name
-      field :purpose
-      field :data_type
-      field :connection_role
-      field :webhook
-      field :event
-      field :schedule
-      field :style
-      field :transformation
-      
-      field :_id
-      field :created_at
-      field :creator
-      field :updated_at
-      field :updater     
-    end
-    
-    fields :name, :active, :purpose, :event, :connection_role, :webhook, :schedule
-  end
-  
-  config.model Setup::Schedule.name do
-    parent Setup::Flow
-    configure :period, :enum do 
-      default_value 'minutes'
-    end
-    
-    object_label_method do
-      :frequency
-    end
-    
-    show do
-      field :flow
-      field :value
-      field :period
-      field :active
-      
-      field :_id
-      field :created_at
-      field :creator
-      field :updated_at
-      field :updater
-    end
-    fields :flow, :value, :period, :active
-  end
-  
-  config.model Setup::Batch.name do
-    parent Setup::Flow
-    show do
-      field :flow
-      field :size
-      field :schedule
-      field :batch
-      
-      field :_id
-      field :created_at
-      field :creator
-      field :updated_at
-      field :updater
-    end
-    
-    fields :flow, :size
-  end
-  
+
   config.model Setup::Notification.name do
     weight -10
     navigation_label 'Notifications'
@@ -658,43 +441,332 @@ RailsAdmin.config do |config|
       field :count
       field :http_status_message
       field :json_data
-      
+
       field :_id
       field :created_at
       field :creator
       field :updated_at
-      field :updater 
+      field :updater
     end
     fields :flow, :http_status_code, :count, :http_status_message, :json_data
   end
-  
-  config.model Setup::Transform.name do
-    weight -9
 
-    configure :data_type do
-      inline_add false
-      inline_edit false
+  config.model Setup::Flow.name do
+    edit do
+      field :name
+      field :event do
+        inline_edit false
+        inline_add false
+        associated_collection_scope do
+          event = bindings[:object].event
+          Proc.new { |scope|
+            event ? scope.where(id: event.id) : scope.all
+          }
+        end
+      end
+      field :translator do
+        inline_edit false
+        inline_add false
+        associated_collection_scope do
+          translator = bindings[:object].translator
+          Proc.new { |scope|
+            translator ? scope.where(id: translator.id) : scope.all
+          }
+        end
+      end
+      field :custom_data_type do
+        inline_edit false
+        inline_add false
+        visible do
+          if (f = bindings[:object]).event && f.translator && f.translator.data_type.nil?
+            f.instance_variable_set(:@selecting_data_type, f.custom_data_type = f.event && f.event.data_type) unless f.data_type
+            true
+          else
+            false
+          end
+        end
+        label do
+          if (translator = bindings[:object].translator)
+            if [:Export, :Conversion].include?(translator.type)
+              'Source data type'
+            else
+              'Target data type'
+            end
+          else
+            'Data type'
+          end
+        end
+        help 'Required'
+        associated_collection_scope do
+          data_type = bindings[:object].instance_variable_get(:@selecting_data_type) ? nil : bindings[:object].data_type
+          Proc.new { |scope|
+            data_type ? scope.where(id: data_type.id) : scope.all
+          }
+        end
+      end
+      field :data_type_scope do
+        visible { (f = bindings[:object]).event && f.translator && f.translator.type != :Import && f.data_type && !f.instance_variable_get(:@selecting_data_type) }
+        label do
+          if (translator = bindings[:object].translator)
+            if [:Export, :Conversion].include?(translator.type)
+              'Source scope'
+            else
+              'Target scope'
+            end
+          else
+            'Data type scope'
+          end
+        end
+        help 'Required'
+      end
+      field :lot_size do
+        visible { (f = bindings[:object]).event && f.translator && f.translator.type == :Export && f.data_type_scope && f.scope_symbol != :event_source }
+      end
+      field :connection_role do
+        visible { (translator = bindings[:object].translator) && (translator.type == :Import || (translator.type == :Export && bindings[:object].data_type_scope.present?)) }
+        help 'Required'
+      end
+      field :webhook do
+        visible { (translator = bindings[:object].translator) && (translator.type == :Import || (translator.type == :Export && bindings[:object].data_type_scope.present?)) }
+        help 'Required'
+      end
+      field :response_translator do
+        inline_edit false
+        inline_add false
+        visible { (translator = bindings[:object].translator) && translator.type == :Export && bindings[:object].ready_to_save? }
+        associated_collection_scope do
+          Proc.new { |scope|
+            scope.where(type: :Import)
+          }
+        end
+      end
+      field :response_data_type do
+        inline_edit false
+        inline_add false
+        visible { (response_translator = bindings[:object].response_translator) && response_translator.data_type.nil? }
+        help ''
+      end
+      field :discard_events do
+        visible { bindings[:object].ready_to_save? }
+        help "Events won't be fired for created or updated records if checked"
+      end
+      field :active do
+        visible { bindings[:object].ready_to_save? }
+      end
     end
 
-    configure :schema_validation do
-      inline_add false
-      inline_edit false
+    show do
+      field :name
+      field :event
+      field :translator
+
+      field :_id
+      field :created_at
+      field :creator
+      field :updated_at
+      field :updater
     end
 
-    configure :transformation do
-      group :transformation
-      partial 'form_transformation'
+    fields :name, :event, :translator
+  end
+
+  config.model Setup::Event do
+    edit do
+      field :name
     end
-    
-    configure :style, :enum do
-      group :transformation
+
+    show do
+      field :name
+      field :last_trigger_timestamps
+
+      field :_id
+      field :created_at
+      field :creator
+      field :updated_at
+      field :updater
     end
-    
+
+    fields :name, :last_trigger_timestamps
+  end
+
+  config.model Setup::Observer do
+    edit do
+      field :name
+      field :data_type do
+        help false
+        inline_add false
+        inline_edit false
+        associated_collection_scope do
+          Proc.new { |scope|
+            scope = scope.where(activated: true)
+          }
+        end
+      end
+      field :triggers do
+        partial 'form_triggers'
+        help false
+      end
+    end
+
     show do
       field :name
       field :data_type
-      field :schema_validation
-      field :flow
+      field :triggers
+      field :last_trigger_timestamps
+
+      field :_id
+      field :created_at
+      field :creator
+      field :updated_at
+      field :updater
+    end
+
+    fields :name, :data_type, :triggers, :last_trigger_timestamps
+  end
+
+  config.model Setup::Scheduler do
+    edit do
+      field :name
+      field :scheduling_method
+      field :expression do
+        visible { bindings[:object].scheduling_method.present? }
+        label do
+          case bindings[:object].scheduling_method
+            when :Once
+              'Date and time'
+            when :Periodic
+              'Duration'
+            when :CRON
+              'CRON Expression'
+            else
+              'Expression'
+          end
+        end
+        help do
+          case bindings[:object].scheduling_method
+            when :Once
+              'Select a date and a time'
+            when :Periodic
+              'Type a time duration'
+            when :CRON
+              'Type a CRON Expression'
+            else
+              'Expression'
+          end
+        end
+        partial { bindings[:object].scheduling_method == :Once ? 'form_datetime_wrapper' : 'form_text' }
+        html_attributes do
+          { rows: '1' }
+        end
+      end
+    end
+
+    show do
+      field :name
+      field :expression
+      field :last_trigger_timestamps
+
+      field :_id
+      field :created_at
+      field :creator
+      field :updated_at
+      field :updater
+    end
+
+    fields :name, :scheduling_method, :expression, :last_trigger_timestamps
+  end
+
+  config.model Setup::Translator do
+    edit do
+      field :name
+
+      field :type
+
+      field :source_data_type do
+        inline_edit false
+        inline_add false
+        visible { [:Export, :Conversion].include?(bindings[:object].type) }
+        help { bindings[:object].type == :Conversion ? 'Required' : 'Optional' }
+        associated_collection_scope do
+          data_type = bindings[:object].source_data_type
+          Proc.new { |scope|
+            data_type ? scope.where(id: data_type.id) : scope.all
+          }
+        end
+      end
+
+      field :target_data_type do
+        inline_edit false
+        inline_add false
+        visible { [:Import, :Update, :Conversion].include?(bindings[:object].type) }
+        help { bindings[:object].type == :Conversion ? 'Required' : 'Optional' }
+        associated_collection_scope do
+          data_type = bindings[:object].target_data_type
+          Proc.new { |scope|
+            data_type ? scope.where(id: data_type.id) : scope.all
+          }
+        end
+      end
+
+      field :discard_events do
+        visible visible { [:Import, :Update, :Conversion].include?(bindings[:object].type) }
+        help "Events won't be fired for created or updated records if checked"
+      end
+
+      field :style do
+        visible { bindings[:object].type.present? }
+      end
+
+      field :transformation do
+        visible { bindings[:object].style.present? && bindings[:object].style != 'chain' }
+        html_attributes do
+          {cols: '74', rows: '15'}
+        end
+      end
+
+      field :source_exporter do
+        inline_edit false
+        inline_add false
+        visible { bindings[:object].style == 'chain' && bindings[:object].source_data_type && bindings[:object].target_data_type }
+        help 'Required'
+        associated_collection_scope do
+          data_type = bindings[:object].source_data_type unless exporter = bindings[:object].source_exporter
+          Proc.new { |scope|
+            exporter ? scope.where(id: exporter.id) : scope.all(type: :Conversion, source_data_type: data_type)
+          }
+        end
+      end
+
+      field :target_importer do
+        inline_edit false
+        inline_add false
+        visible { bindings[:object].style == 'chain' && bindings[:object].source_data_type && bindings[:object].target_data_type && bindings[:object].source_exporter }
+        help 'Required'
+        associated_collection_scope do
+          translator = bindings[:object]
+          source_data_type = if translator.source_exporter
+                               translator.source_exporter.target_data_type
+                             else
+                               translator.source_data_type
+                             end
+          target_data_type = bindings[:object].target_data_type
+          Proc.new { |scope|
+            scope = scope.all(type: :Conversion,
+                              source_data_type: source_data_type,
+                              target_data_type: target_data_type)
+          }
+        end
+      end
+
+      field :discard_chained_records do
+        visible { bindings[:object].style == 'chain' && bindings[:object].source_data_type && bindings[:object].target_data_type && bindings[:object].source_exporter }
+        help "Chained records won't be saved if checked"
+      end
+    end
+
+    show do
+      field :name
+      field :type
       field :style
       field :transformation
 
@@ -704,7 +776,7 @@ RailsAdmin.config do |config|
       field :updated_at
       field :updater
     end
-    fields :name, :data_type, :schema_validation, :style, :transformation
-  end
 
+    fields :name, :type, :style, :transformation
+  end
 end

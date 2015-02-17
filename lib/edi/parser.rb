@@ -19,7 +19,8 @@ module Edi
       end
 
       def parse_json(data_type, content, options={}, record=nil)
-        do_parse_json(data_type, data_type.model, JSON.parse(content), options, data_type.merged_schema, nil, record)
+        content = JSON.parse(content) unless content.is_a?(Hash)
+        do_parse_json(data_type, data_type.model, content, options, data_type.merged_schema, nil, record)
       end
 
       def parse_xml(data_type, content, options={}, record=nil)
@@ -126,7 +127,7 @@ module Edi
         end
 
         if (sub_model = json_schema['sub_schema']) &&
-            (sub_model = (record.send(:eval, sub_model) rescue nil)) &&
+            (sub_model = record.try(:eval, sub_model)) &&
             (data_type = data_type.find_data_type(sub_model)) &&
             (sub_model = data_type.model) &&
             sub_model != model
@@ -272,7 +273,7 @@ module Edi
         end
 
         if (sub_model = json_schema['sub_schema']) &&
-            (sub_model = (record.send(:eval, sub_model) rescue nil)) &&
+            (sub_model = record.try(:eval, sub_model)) &&
             (data_type = data_type.find_data_type(sub_model)) &&
             (sub_model = data_type.model) &&
             sub_model != model

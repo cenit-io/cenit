@@ -1,4 +1,4 @@
-= rails_admin_form_for @object, url: edi_export_path, html: { multipart: true, class: "form-horizontal denser", data: { title: 'Hello'} } do |form|
+= rails_admin_form_for @object, url: edi_export_path(params.merge(bulk_ids: @bulk_ids)), html: { multipart: true, class: "form-horizontal denser", data: { title: 'Hello'} } do |form|
   = form.generate nested_in: true
 
   .form-actions

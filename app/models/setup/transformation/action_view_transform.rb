@@ -16,7 +16,7 @@ module Setup
           handler = options[:handler] ||= split_style[1].to_sym if split_style[1].present?
         
           if handler.present? && metaclass.instance_methods.include?( met = "run_#{handler}".to_sym )
-            transformation = send(met,transformation, object, options)
+            send(met,transformation, object, options)
           else
             view = ActionView::Base.new
             view.try :render, inline: transformation, formats: format, handlers: handler, locals: {object: object}

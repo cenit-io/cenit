@@ -1,18 +1,20 @@
 require 'edi/formater'
 
 module Setup
-  class DataType
+  class DataType < BaseDataType
     include Mongoid::Document
     include Mongoid::Timestamps
     include AccountScoped
     include Trackable
 
+    BuildInDataType.regist(self).referenced_by(:name)
+
     def self.to_include_in_models
-      @to_include_in_models ||= [Mongoid::Document, Mongoid::Timestamps, InstanceDataTypeAware, EventLookup, AccountScoped, DynamicValidators, Edi::Formatter, Edi::Filler] #, MakeSlug, RailsAdminDynamicCharts::Datetime
+      @to_include_in_models ||= [Mongoid::Document, Mongoid::Timestamps, EventLookup, AccountScoped, DynamicValidators, Edi::Formatter, Edi::Filler] #, MakeSlug, RailsAdminDynamicCharts::Datetime
     end
 
     def self.to_include_in_model_classes
-      @to_include_in_model_classes ||= [AffectRelation, ModelDataTypeAware]
+      @to_include_in_model_classes ||= [AffectRelation]
     end
 
     belongs_to :uri, class_name: Setup::Schema.to_s
@@ -22,20 +24,21 @@ module Setup
     field :schema, type: String
     field :sample_data, type: String
 
-    has_many :events, class_name: Setup::Event.name, dependent: :destroy, inverse_of: :data_type
-    has_many :flows, class_name: Setup::Flow.name, dependent: :destroy, inverse_of: :data_type
+    # has_many :events, class_name: Setup::Event.name, dependent: :destroy, inverse_of: :data_type
+    #TODO Check dependent behavior with flows
+    #has_many :flows, class_name: Setup::Flow.name, dependent: :destroy, inverse_of: :data_type
 
     validates_presence_of :name, :schema
 
+    after_initialize :verify_schema_ok
     before_save :validate_model
     after_save :verify_schema_ok
-    after_initialize :verify_schema_ok
+    before_destroy :delete_all
 
     field :is_object, type: Boolean
     field :schema_ok, type: Boolean
     field :previous_schema, type: String
     field :activated, type: Boolean, default: false
-    field :auto_load_model, type: Boolean
     field :show_navigation_link, type: Boolean
     field :to_be_destroyed, type: Boolean
 
@@ -56,15 +59,15 @@ module Setup
     def sample_to_s
       '{"' + name.underscore + '": ' + sample_data + '}'
     end
-    
+
     def sample_object
       model.new(JSON.parse(sample_data))
     end
-    
+
     def sample_to_hash
       JSON.parse(sample_to_s)
     end
-    
+
     def shutdown(options={})
       DataType.shutdown(self, options)
     end
@@ -81,12 +84,33 @@ module Setup
       "Dt#{self.id.to_s}"
     end
 
+    def count
+      if is_object?
+        #TODO Count records when not loaded
+        (m = model) ? m.count : 123
+      else
+        0
+      end
+    end
+
+    def delete_all
+      if  m = model
+        m.delete_all unless m.is_a?(Hash)
+      else
+        #TODO Delete records
+      end
+    end
+
+    def to_be_destroyed?
+      to_be_destroyed
+    end
+
     def load_model(options={})
       load_models(options)[:model]
     end
 
     def load_models(options={reload: false, reset_config: true})
-      report = {loaded: Set.new}
+      report = {loaded: Set.new, errors: {}}
       begin
         if (do_shutdown = options[:reload] || schema_has_changed?) || !loaded?
           merge_report(shutdown(options), report) if do_shutdown
@@ -98,27 +122,28 @@ module Setup
       rescue Exception => ex
         #raise ex
         puts "ERROR: #{errors.add(:schema, ex.message).to_s}"
-        merge_report(shutdown(options), report)
-        begin
-          if previous_schema
+        # merge_report(shutdown(options), report)
+        shutdown(options)
+        if previous_schema
+          begin
             puts "Reloading previous schema for '#{self.name}'..."
             parse_str_schema(report, previous_schema)
             puts "Previous schema for '#{self.name}' reloaded!"
-          else
-            puts "ERROR: schema '#{self.name}' not loaded!"
+          rescue Exception => ex
+            puts "ERROR: #{errors.add(:schema, 'previous version also with error: ' + ex.message).to_s}"
           end
-        rescue Exception => ex
-          puts "ERROR: schema '#{self.name}' with permanent error (#{ex.message})"
         end
-        merge_report(shutdown(options), report)
+        # merge_report(shutdown(options), report)
+        shutdown(options)
       end
       set_schema_ok
       self[:previous_schema] = nil
-      reflect(model, "def self.data_type_id
-        '#{self.id}'
-      end")
       create_default_events
-      report[:loaded] << (report[:model] = model) if model
+      if model
+        report[:loaded] << (report[:model] = model)
+      else
+        report[:errors][self] = errors
+      end
       report
     end
 
@@ -132,10 +157,10 @@ module Setup
     end
 
     def create_default_events
-      if self.is_object? && self.events.empty?
+      if self.is_object? && Setup::Observer.where(data_type: self).empty?
         puts "Creating default events for #{self.name}"
-        Setup::Event.create(data_type: self, triggers: '{"created_at":{"0":{"o":"_not_null","v":["","",""]}}}').save
-        Setup::Event.create(data_type: self, triggers: '{"updated_at":{"0":{"o":"_change","v":["","",""]}}}').save
+        Setup::Observer.create(data_type: self, triggers: '{"created_at":{"0":{"o":"_not_null","v":["","",""]}}}').save
+        Setup::Observer.create(data_type: self, triggers: '{"updated_at":{"0":{"o":"_change","v":["","",""]}}}').save
       end
     end
 
@@ -144,72 +169,11 @@ module Setup
       self.is_object.nil? ? false : self.is_object
     end
 
-    def merged_schema(options={})
-      sch = merge_schema(JSON.parse(schema), options)
-      if (base_sch = sch.delete('extends')) && base_sch = find_ref_schema(base_sch)
-        sch = base_sch.deep_merge(sch) { |key, val1, val2| array_sum(val1, val2) }
-      end
-      sch
-    end
-
-    def merge_schema(schema, options={})
-      if schema['allOf'] || schema['$ref']
-        sch = {}
-        schema.each do |key, value|
-          if key == 'allOf'
-            value.each do |combined_sch|
-              if (ref = combined_sch['$ref']) && (ref = find_ref_schema(ref))
-                combined_sch = ref
-              end
-              sch = sch.deep_merge(combined_sch) { |key, val1, val2| array_sum(val1, val2) }
-            end
-          elsif key == '$ref' && ref = find_ref_schema(value)
-            sch = sch.reverse_merge(ref) { |key, val1, val2| array_sum(val1, val2) }
-          else
-            sch[key] = value
-          end
-        end
-        schema = sch
-      end
-      schema.each { |key, val| schema[key] = merge_schema(val, options) if val.is_a?(Hash) } if options[:recursive]
-      options[:expand_extends] = true if options[:expand_extends].nil?
-      if options[:expand_extends] && base_model = schema['extends']
-        base_model = find_ref_schema(base_model) if base_model.is_a?(String)
-        base_model = merge_schema(base_model)
-        if schema['type'] == 'object' && base_model['type'] != 'object'
-          schema['properties'] ||= {}
-          value_schema = schema['properties']['value'] || {}
-          value_schema = base_model.deep_merge(value_schema)
-          schema['properties']['value'] = value_schema.merge('title' => 'Value', 'xml' => {'attribute' => false})
-          base_model = nil
-        else
-          schema = base_model.deep_merge(schema) { |key, val1, val2| array_sum(val1, val2) }
-        end
-      end
-      schema
-    end
-
-    def self.find_by_ref(ref)
-      data_type DataType.find_by(name: ref) rescue nil
-    end
-
     def find_data_type(ref)
-      (self.uri.library && self.uri.library.find_data_type_by_name(ref)) || DataType.find_by_ref(ref)
-    end
-
-    def find_ref_schema(ref)
-      if data_type = find_data_type(ref)
-        JSON.parse(data_type.schema)
-      else
-        nil
-      end
+      (self.uri.library && self.uri.library.find_data_type_by_name(ref)) || DataType.where(name: ref).first
     end
 
     private
-
-    def array_sum(val1, val2)
-      val1.is_a?(Array) && val2.is_a?(Array) ? val1 + val2 : val2
-    end
 
     def merge_report(report, in_to)
       in_to.deep_merge!(report) { |key, this_val, other_val| this_val + other_val }
@@ -469,7 +433,7 @@ module Setup
       parent ||= Object
 
       tokens.each do |token|
-        if parent.const_defined?(token, false)
+        if (parent.const_defined?(token, false) rescue false)
           parent = parent.const_get(token)
           raise "uses illegal constant #{parent.to_s}" unless @@parsing_schemas.include?(parent) || @@parsed_schemas.include?(parent.to_s) #|| parent == self.uri.library.module
         else
@@ -480,7 +444,7 @@ module Setup
         end
       end
 
-      if parent.const_defined?(constant_name, false)
+      if (parent.const_defined?(constant_name, false) rescue false)
         c = parent.const_get(constant_name)
         raise "uses illegal constant #{c.to_s}" unless @@parsed_schemas.include?(model_name) || (c.is_a?(Class) && @@parsing_schemas.include?(c))
       else
@@ -507,15 +471,15 @@ module Setup
               c.class.include(module_to_include)
             end
           end
-          reflect(c, "def self.data_type_id
-            '#{self.id}'
+          c.class_eval("def self.data_type
+            @data_type ||= Setup::DataType.where(id: '#{self.id}').first
           end")
         else
           @@parsed_schemas << name
           puts "Created constant #{constant_name}"
         end
       end
-      return c
+      c
     end
 
     def parse_str_schema(report, str_schema)
@@ -527,8 +491,9 @@ module Setup
       schema = merge_schema(schema, expand_extends: false)
 
       if base_model = schema.delete('extends')
+        base_model_ref = base_model
         base_model = find_or_load_model(report, base_model) if base_model.is_a?(String)
-        raise Exception.new("requires base model #{schema['extends']} to be already loaded") unless base_model
+        raise Exception.new("requires base model #{base_model_ref} to be already loaded") unless base_model
       end
 
       unless base_model.nil? || base_model.is_a?(Class)
@@ -960,10 +925,10 @@ module Setup
     class << self
       def shutdown(data_types, options={})
         return {} unless data_types
-        options[:reset_config] = true if options[:reset_config].nil?
+        options[:reset_config] = options[:reset_config].nil? && !options[:report_only]
         raise Exception.new("Both options 'destroy' and 'report_only' is not allowed") if options[:destroy] && options[:report_only]
         data_types = [data_types] unless data_types.is_a?(Enumerable)
-        report={destroyed: Set.new, affected: Set.new, reloaded: Set.new}
+        report={destroyed: Set.new, affected: Set.new, reloaded: Set.new, errors: {}}
         data_types.each do |data_type|
           begin
             r = data_type.send(:deconstantize, data_type.data_type_name, options)
@@ -986,38 +951,35 @@ module Setup
           puts 'Reloading affected models...' unless report[:affected].empty?
           destroyed_lately = []
           report[:affected].each do |model|
-            if reloaded_model = report[:reloaded].detect { |m| m.to_s == model.to_s }
-              puts "Model #{model.schema_name rescue model.to_s} -> #{model.to_s} already reloaded"
-            else
+            data_type = model.data_type
+            unless report[:errors][data_type] ||report[:reloaded].detect { |m| m.to_s == model.to_s }
               begin
                 if model.parent == Object
                   puts "Reloading #{model.schema_name rescue model.to_s} -> #{model.to_s}"
-                  model_report = model.data_type.load_models(reload: true, reset_config: false)
+                  model_report = data_type.load_models(reload: true, reset_config: false)
                   report[:reloaded] += model_report[:reloaded] + model_report[:loaded]
-                  if model = model_report[:model]
-                    report[:reloaded] << model
+                  report[:destroyed] += model_report[:destroyed]
+                  if loaded_model = model_report[:model]
+                    report[:reloaded] << loaded_model
                   else
-                    puts "Warning: #{model.schema_name rescue model.to_s} -> #{model.to_s} NOT LOADED!"
+                    report[:destroyed] << model
+                    report[:errors][data_type] = data_type.errors
                   end
                 else
                   puts "Model #{model.schema_name rescue model.to_s} -> #{model.to_s} reload on parent reload!"
                 end
               rescue Exception => ex
                 puts "Error deconstantizing  #{model.schema_name rescue model.to_s}"
-                report[:destroyed] << model
+
                 destroyed_lately << model
-                report[:affected].delete(model)
               end
-              report[:affected].delete(model)
               puts "Model #{model.schema_name rescue model.to_s} -> #{model.to_s} reloaded!"
             end
-            unless report[:affected].empty?
-              puts 'Affected models no reloaded!'
-            end
           end
+          report[:affected].clear
           deconstantize(destroyed_lately)
           puts "Final report #{report}"
-          RailsAdmin::AbstractModel.update_model_config([], report[:destroyed], options[:reset_config] ? report[:affected] + report[:reloaded] : [])
+          RailsAdmin::AbstractModel.update_model_config([], report[:destroyed], report[:reloaded]) if options[:reset_config]
         end
         report
       end

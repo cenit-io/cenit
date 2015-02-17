@@ -24,7 +24,7 @@ module RailsAdmin
           proc do
 
             if model = @abstract_model.model_name.constantize rescue nil
-              if data_type = model.data_type rescue nil
+              if data_type = model.try(:data_type)
                 @model_label_plural = data_type.title.downcase.pluralize
               else
                 @model_label_plural = @abstract_model.pretty_name.downcase.pluralize
