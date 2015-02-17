@@ -5,11 +5,13 @@ module Setup
     include AccountScoped
     include Trackable
 
+    BuildInDataType.regist(self).referenced_by(:name)
+
     field :name, type: String
     field :type, type: Symbol
 
-    belongs_to :source_data_type, class_name: Setup::DataType.name
-    belongs_to :target_data_type, class_name: Setup::DataType.name
+    belongs_to :source_data_type, class_name: Setup::DataType.name, inverse_of: nil
+    belongs_to :target_data_type, class_name: Setup::DataType.name, inverse_of: nil
 
     field :discard_events, type: Boolean
     field :style, type: String
@@ -20,7 +22,10 @@ module Setup
 
     field :discard_chained_records, type: Boolean
 
+    belongs_to :template, class_name: Setup::Template.name, inverse_of: :translators
+
     validates_presence_of :name, :type, :style
+    validates_uniqueness_of :name
     validates_inclusion_of :type, in: ->(t) { t.type_options }
     validates_inclusion_of :style, in: ->(t) { t.style_options }
     before_save :validates_configuration

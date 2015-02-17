@@ -5,6 +5,8 @@ module Setup
     include AccountScoped
     include Trackable
 
+    BuildInDataType.regist(self).with(:uri, :schema)
+
     belongs_to :library, class_name: Setup::Library.to_s, inverse_of: :schemas
 
     field :uri, type: String

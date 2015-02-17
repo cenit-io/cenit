@@ -1,7 +1,9 @@
 module Setup
   class Observer < Event
 
-    belongs_to :data_type, class_name: Setup::DataType.to_s
+    BuildInDataType.regist(self).referenced_by(:name)
+
+    belongs_to :data_type, class_name: Setup::DataType.to_s, inverse_of: nil
     field :triggers, type: String
 
     validates_presence_of :data_type, :triggers

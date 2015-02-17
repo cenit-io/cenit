@@ -7,7 +7,7 @@ module RailsAdmin
         register_instance_option :visible? do
           if authorized?
             model = bindings[:abstract_model].model_name.constantize rescue nil
-            model.respond_to?(:data_type_id)
+            model.try(:data_type).present?
           else
             false
           end
@@ -33,7 +33,7 @@ module RailsAdmin
                     render plain: translator.run(object_ids: @bulk_ids, source_data_type: model.data_type)
                     ok = true
                   rescue Exception => ex
-                    #raise ex
+                    raise ex
                     flash[:error] = ex.message
                   end
                 end

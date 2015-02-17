@@ -1,18 +1,20 @@
 require 'edi/formater'
 
 module Setup
-  class DataType
+  class DataType < BaseDataType
     include Mongoid::Document
     include Mongoid::Timestamps
     include AccountScoped
     include Trackable
 
+    BuildInDataType.regist(self).referenced_by(:name)
+
     def self.to_include_in_models
-      @to_include_in_models ||= [Mongoid::Document, Mongoid::Timestamps, InstanceDataTypeAware, EventLookup, AccountScoped, DynamicValidators, Edi::Formatter, Edi::Filler] #, MakeSlug, RailsAdminDynamicCharts::Datetime
+      @to_include_in_models ||= [Mongoid::Document, Mongoid::Timestamps, EventLookup, AccountScoped, DynamicValidators, Edi::Formatter, Edi::Filler] #, MakeSlug, RailsAdminDynamicCharts::Datetime
     end
 
     def self.to_include_in_model_classes
-      @to_include_in_model_classes ||= [AffectRelation, ModelDataTypeAware]
+      @to_include_in_model_classes ||= [AffectRelation]
     end
 
     belongs_to :uri, class_name: Setup::Schema.to_s
@@ -22,7 +24,7 @@ module Setup
     field :schema, type: String
     field :sample_data, type: String
 
-    has_many :events, class_name: Setup::Event.name, dependent: :destroy, inverse_of: :data_type
+    # has_many :events, class_name: Setup::Event.name, dependent: :destroy, inverse_of: :data_type
     #TODO Check dependent behavior with flows
     #has_many :flows, class_name: Setup::Flow.name, dependent: :destroy, inverse_of: :data_type
 
@@ -136,9 +138,6 @@ module Setup
       end
       set_schema_ok
       self[:previous_schema] = nil
-      reflect(model, "def self.data_type_id
-        '#{self.id}'
-      end")
       create_default_events
       if model
         report[:loaded] << (report[:model] = model)
@@ -158,9 +157,9 @@ module Setup
     end
 
     def create_default_events
-      if self.is_object? && self.events.empty?
+      if self.is_object? && Setup::Observer.where(data_type: self).empty?
         puts "Creating default events for #{self.name}"
-        (o = Setup::Observer.create(data_type: self, triggers: '{"created_at":{"0":{"o":"_not_null","v":["","",""]}}}')).save
+        Setup::Observer.create(data_type: self, triggers: '{"created_at":{"0":{"o":"_not_null","v":["","",""]}}}').save
         Setup::Observer.create(data_type: self, triggers: '{"updated_at":{"0":{"o":"_change","v":["","",""]}}}').save
       end
     end
@@ -170,68 +169,11 @@ module Setup
       self.is_object.nil? ? false : self.is_object
     end
 
-    def merged_schema(options={})
-      sch = merge_schema(JSON.parse(schema), options)
-      if (base_sch = sch.delete('extends')) && base_sch = find_ref_schema(base_sch)
-        sch = base_sch.deep_merge(sch) { |key, val1, val2| array_sum(val1, val2) }
-      end
-      sch
-    end
-
-    def merge_schema(schema, options={})
-      if schema['allOf'] || schema['$ref']
-        sch = {}
-        schema.each do |key, value|
-          if key == 'allOf'
-            value.each do |combined_sch|
-              if (ref = combined_sch['$ref']) && (ref = find_ref_schema(ref))
-                combined_sch = ref
-              end
-              sch = sch.deep_merge(combined_sch) { |key, val1, val2| array_sum(val1, val2) }
-            end
-          elsif key == '$ref' && ref = find_ref_schema(value)
-            sch = sch.reverse_merge(ref) { |key, val1, val2| array_sum(val1, val2) }
-          else
-            sch[key] = value
-          end
-        end
-        schema = sch
-      end
-      schema.each { |key, val| schema[key] = merge_schema(val, options) if val.is_a?(Hash) } if options[:recursive]
-      options[:expand_extends] = true if options[:expand_extends].nil?
-      if options[:expand_extends] && base_model = schema['extends']
-        base_model = find_ref_schema(base_model) if base_model.is_a?(String)
-        base_model = merge_schema(base_model)
-        if schema['type'] == 'object' && base_model['type'] != 'object'
-          schema['properties'] ||= {}
-          value_schema = schema['properties']['value'] || {}
-          value_schema = base_model.deep_merge(value_schema)
-          schema['properties']['value'] = value_schema.merge('title' => 'Value', 'xml' => {'attribute' => false})
-          base_model = nil
-        else
-          schema = base_model.deep_merge(schema) { |key, val1, val2| array_sum(val1, val2) }
-        end
-      end
-      schema
-    end
-
     def find_data_type(ref)
       (self.uri.library && self.uri.library.find_data_type_by_name(ref)) || DataType.where(name: ref).first
     end
 
-    def find_ref_schema(ref)
-      if data_type = find_data_type(ref)
-        JSON.parse(data_type.schema)
-      else
-        nil
-      end
-    end
-
     private
-
-    def array_sum(val1, val2)
-      val1.is_a?(Array) && val2.is_a?(Array) ? val1 + val2 : val2
-    end
 
     def merge_report(report, in_to)
       in_to.deep_merge!(report) { |key, this_val, other_val| this_val + other_val }
@@ -529,8 +471,8 @@ module Setup
               c.class.include(module_to_include)
             end
           end
-          reflect(c, "def self.data_type_id
-            '#{self.id}'
+          c.class_eval("def self.data_type
+            @data_type ||= Setup::DataType.where(id: '#{self.id}').first
           end")
         else
           @@parsed_schemas << name

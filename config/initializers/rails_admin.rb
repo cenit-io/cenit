@@ -33,7 +33,7 @@ RailsAdmin.config do |config|
     dashboard # mandatory
     index # mandatory
     new { except [Setup::DataType, Role, Setup::Translator, Setup::Flow, Setup::Scheduler, Setup::Event] }
-    new_wizard { only [Setup::Translator, Setup::Flow, Setup::Scheduler] }
+    new_wizard
     import
     import_schema
     update
@@ -205,31 +205,6 @@ RailsAdmin.config do |config|
       field :updater
     end
     fields :uri, :name, :activated, :schema, :sample_data
-  end
-
-  config.model Setup::Template.name do
-    navigation_label 'Setup'
-    weight -16
-    configure :webhooks do
-      nested_form false
-    end
-    configure :flows do
-      nested_form false
-    end
-    show do
-      field :name
-      field :library
-      field :connection_role
-      field :webhooks
-      field :flows
-
-      field :_id
-      field :created_at
-      field :creator
-      field :updated_at
-      field :updater
-    end
-    fields :name, :library, :connection_role, :webhooks, :flows
   end
 
   config.model Setup::Connection.name do
