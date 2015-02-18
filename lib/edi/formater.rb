@@ -67,7 +67,7 @@ module Edi
         end
       end
       name = schema['edi']['segment'] if schema['edi']
-      name ||= enclosed_property_name || record.data_type.title
+      name ||= enclosed_property_name || record.class.data_type.title
       element = xml_doc.create_element(name, attr)
       if elements.empty?
         element << content unless content.nil?
@@ -92,13 +92,13 @@ module Edi
           when 'array'
             relation = record.reflect_on_association(property_name)
             next unless relation && [:has_many, :has_and_belongs_to_many, :embeds_many].include?(relation.macro)
-            referenced_items = relation.macro != :embeds_many && property_schema['referenced']
+            referenced_items = relation.macro != :embeds_many && !(data_type.merge_schema(property_schema['items'])['export_embedded'])
             value = record.send(property_name).collect { |sub_record| record_to_hash(sub_record, referenced_items) }
             json[name] = value unless value.empty?
           when 'object'
             relation = record.reflect_on_association(property_name)
             next unless relation && ([:has_one, :embeds_one].include?(relation.macro) || (relation.macro == :belongs_to) && relation.inverse_of.nil?)
-            if value = record_to_hash(record.send(property_name), relation.macro != :embeds_one && property_schema['referenced'])
+            if value = record_to_hash(record.send(property_name), relation.macro != :embeds_one && !property_schema['export_embedded'])
               json[name] = value
             end
           else

@@ -120,7 +120,7 @@ module Setup
           puts "No changes detected on '#{self.name}' schema!"
         end
       rescue Exception => ex
-        #raise ex
+        raise ex
         puts "ERROR: #{errors.add(:schema, ex.message).to_s}"
         # merge_report(shutdown(options), report)
         shutdown(options)
@@ -732,6 +732,7 @@ module Setup
                   r = :has_many
                 else
                   r = :has_and_belongs_to_many
+                  ir = ', inverse_of: nil'
                   type_model.affects_to(klass)
                 end
               end
@@ -831,7 +832,7 @@ module Setup
               if klass.reflect_on_all_associations(:belongs_to).detect { |r| r.klass.eql?(waiting_model) }
                 reflect(waiting_model, "has_many :#{a[1]}, class_name: \'#{model_name}\'")
               else
-                reflect(waiting_model, "has_and_belongs_to_many :#{a[1]}, class_name: \'#{model_name}\'")
+                reflect(waiting_model, "has_and_belongs_to_many :#{a[1]}, class_name: \'#{model_name}\', inverse_of: nil")
                 klass.affects_to(waiting_model)
               end
             else #must be a json schema
@@ -885,7 +886,7 @@ module Setup
               if klass.is_a?(Class)
                 reflect(waiting_model, "#{r.to_s} :#{a[1]}, class_name: '#{model_name}', inverse_of: :#{relation_name(waiting_type, a[1])}")
                 reflect(waiting_model, "accepts_nested_attributes_for :#{a[1]}")
-                reflect(klass, "embedded_in :#{relation_name(waiting_type, a[1])}, class_name: '#{property_type}', inverse_of: :#{a[1]}")
+                reflect(klass, "embedded_in :#{relation_name(waiting_type, a[1])}, class_name: '#{waiting_type}', inverse_of: :#{a[1]}")
                 #klass.affects_to(waiting_model)
               else #must be a json schema
                 reflect(waiting_model, process_non_ref(report, a[1], klass, waiting_model, root))

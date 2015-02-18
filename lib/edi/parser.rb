@@ -105,7 +105,17 @@ module Edi
                 property_schema = data_type.merge_schema(property_schema['items'])
                 property_model = relation.klass
                 property_value.each do |sub_value|
-                  (record.send(property_name)) << do_parse_json(data_type, property_model, sub_value, options, property_schema)
+                  if sub_value['$referenced']
+                    sub_value = sub_value.reject { |k, _| k == '$referenced' }
+                    if (criteria = relation.klass.where(sub_value)).empty?
+                      record.instance_variable_set(:@_references, references = {}) unless references = record.instance_variable_get(:@_references)
+                      (references[property_name] ||= []) << {model: relation.klass, criteria: sub_value}
+                    else
+                      (record.send(property_name)) << criteria.first
+                    end
+                  else
+                    (record.send(property_name)) << do_parse_json(data_type, property_model, sub_value, options, property_schema)
+                  end
                 end
               end
             when 'object'
@@ -114,8 +124,18 @@ module Edi
                 relation = model.reflect_on_association(property_name)
                 next unless [:has_one, :embeds_one].include?(relation.macro)
                 raise Exception.new("Hash value expected for property #{property_name} but #{property_value.class} found: #{property_value}") unless property_value.is_a?(Hash)
-                property_model = relation.klass
-                record.send("#{property_name}=", do_parse_json(data_type, property_model, property_value, options, property_schema))
+                if property_value['$referenced']
+                  property_value = property_value.reject { |k, _| k == '$referenced' }
+                  if (criteria = relation.klass.where(property_value)).empty?
+                    record.instance_variable_set(:@_references, references = {}) unless references = record.instance_variable_get(:@_references)
+                    references[property_name] = {model: relation.klass, criteria: property_value}
+                  else
+                    record.send("#{property_name}=", criteria.first)
+                  end
+                else
+                  property_model = relation.klass
+                  record.send("#{property_name}=", do_parse_json(data_type, property_model, property_value, options, property_schema))
+                end
               end
             else
               next if record.send(property_name)
@@ -127,7 +147,7 @@ module Edi
         end
 
         if (sub_model = json_schema['sub_schema']) &&
-            (sub_model = record.try(:eval, sub_model)) &&
+            (sub_model = json.send(:eval, sub_model)) &&
             (data_type = data_type.find_data_type(sub_model)) &&
             (sub_model = data_type.model) &&
             sub_model != model

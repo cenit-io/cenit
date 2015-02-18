@@ -149,8 +149,8 @@ module Setup
     def after_run_import(options)
       if targets = options[:targets]
         targets.each do |target|
-          target.discard_event_lookup = options[:discard_events]
-          raise TransformingObjectException.new(target) unless target.save
+          target.try(:discard_event_lookup=, options[:discard_events])
+          raise TransformingObjectException.new(target) unless Translator.save(target)
         end
         options[:result] = targets
       end
@@ -158,8 +158,8 @@ module Setup
 
     def after_run_update(options)
       if target = options[:object]
-        target.discard_event_lookup = options[:discard_events]
-        raise TransformingObjectException.new(object) unless target.save
+        target.try(:discard_event_lookup=, options[:discard_events])
+        raise TransformingObjectException.new(target) unless Translator.save(target)
       end
       options[:result] = target
     end
@@ -167,79 +167,125 @@ module Setup
     def after_run_conversion(options)
       if target = options[:target]
         if options[:save_result].nil? || options[:save_result]
-          target.discard_event_lookup = options[:discard_events]
-          raise TransformingObjectException.new(target) unless target.save
+          target.try(:discard_event_lookup=, options[:discard_events])
+          raise TransformingObjectException.new(target) unless Translator.save(target)
         end
         options[:result] = target
       end
     end
 
-    class SourceIterator
-      include Enumerable
-
-      def initialize(object_ids, model, offset=0, limit=nil)
-        @enum = if object_ids
-                  (object_ids.is_a?(Enumerator) ? object_ids : object_ids.to_enum).skip(offset)
-                else
-                  (limit ? model.limit(limit) : model.all).skip(offset).to_enum
-                end
-        @enum.skip(offset)
-        @model = model
-      end
-
-      def next
-        if @enum
-          @current = @enum.next
-        else
-          @current_index += 1 if @current_index < @object_ids.length
-          current
-        end
-      end
-
-      def current
-        if @enum
-          @current ||= @enum.next
-        else
-          (@current_index < @object_ids.length) ? @model.find(@object_ids[@current_index]) : nil
-        end
-      end
-
-      def count
-        if @enum
-          @model.count
-        else
-          @object_ids.length
-        end
-      end
-
-      def each
-        if @enum
-          @model.all.each { |record| yield record }
-        else
-          @object_ids.each { |obj_id| yield @model.find(obj_id) }
-        end
-      end
-    end
-
     private
 
-    def self.save(record)
-      save_references(record) && record.save(validate: false)
-    end
-
-    def self.save_references(record)
-      record.reflect_on_all_associations(:embeds_one,
-                                         :embeds_many,
-                                         :has_one,
-                                         :has_many,
-                                         :has_and_belongs_to_many).each do |relation|
-        if values = record.send(relation.name)
-          values = [values] unless values.is_a?(Enumerable)
-          values.each { |value| return false unless save_references(value) }
-          values.each { |value| return false unless value.save(validate: false) } unless relation.embedded?
+    class << self
+      def save(record)
+        saved = Set.new
+        if bind_references(record)
+          if (valid = record.valid?) && save_references(record, saved) && record.save(validate: false)
+            true
+          else
+            unless valid
+              for_each_node_starting_at(record, stack=[]) do |obj|
+                obj.errors.each do |attribute, error|
+                  attr_ref = "#{obj.class.data_type.title}'s #{attribute} '#{obj.try(attribute)}'"
+                  path = ''
+                  stack.reverse_each do |node|
+                    node[:record].errors.add(node[:attribute], "with error on #{path}#{attr_ref} (#{error})") if node[:referenced]
+                    path = node[:record].class.data_type.title + ' -> '
+                  end
+                end
+              end
+            end
+            saved.each { |obj| obj.delete }
+            false
+          end
+        else
+          false
         end
       end
-      return true
+
+      def bind_references(record)
+        references = {}
+        for_each_node_starting_at(record) do |obj|
+          if record_refs = obj.instance_variable_get(:@_references)
+            references[obj] = record_refs
+          end
+        end
+        for_each_node_starting_at(record) do |obj|
+          references.each do |obj_waiting, to_bind|
+            to_bind.each do |property_name, property_binds|
+              if property_binds.is_a?(Array)
+                is_array = true
+              else
+                is_array = false
+                property_binds = [property_binds]
+              end
+              property_binds.each do |property_bind|
+                if obj.class == property_bind[:model] && match?(obj, property_bind[:criteria])
+                  if is_array
+                    (obj_waiting.send(property_name)) << obj
+                  else
+                    obj_waiting.send("#{property_name}=", obj)
+                  end
+                  property_binds.delete(property_bind)
+                end
+                to_bind.delete(property_name) if property_binds.empty?
+              end
+              references.delete(obj_waiting) if to_bind.empty?
+            end
+          end
+        end unless references.empty?
+        for_each_node_starting_at(record, stack = []) do |obj|
+          if to_bind = references[obj]
+            to_bind.each do |property_name, property_binds|
+              property_binds = [property_binds] unless property_binds.is_a?(Array)
+              property_binds.each do |property_bind|
+                message = "reference not found with criteria #{property_bind[:criteria].to_json}"
+                obj.errors.add(property_name, message)
+                stack.each { |node| node[:record].errors.add(node[:attribute], message) }
+              end
+            end
+          end
+        end unless references.empty?
+        record.errors.blank?
+      end
+
+      def match?(obj, criteria)
+        criteria.each { |property_name, value| return false unless obj.try(property_name) == value }
+      end
+
+      def for_each_node_starting_at(record, stack = nil, visited = Set.new, &block)
+        visited << record
+        block.yield(record) if block
+        record.reflect_on_all_associations(:embeds_one,
+                                           :embeds_many,
+                                           :has_one,
+                                           :has_many,
+                                           :has_and_belongs_to_many).each do |relation|
+          if values = record.send(relation.name)
+            stack << {record: record, attribute: relation.name, referenced: !relation.macro.to_s.start_with?('embeds')} if stack
+            values = [values] unless values.is_a?(Enumerable)
+            values.each do |value|
+              for_each_node_starting_at(value, stack, visited, &block) unless visited.include?(value)
+            end
+            stack.pop if stack
+          end
+        end
+      end
+
+      def save_references(record, saved)
+        record.reflect_on_all_associations(:embeds_one,
+                                           :embeds_many,
+                                           :has_one,
+                                           :has_many,
+                                           :has_and_belongs_to_many).each do |relation|
+          if values = record.send(relation.name)
+            values = [values] unless values.is_a?(Enumerable)
+            values.each { |value| return false unless save_references(value, saved) }
+            values.each { |value| return false unless value.save(validate: false) && saved << value } unless relation.embedded?
+          end
+        end
+        true
+      end
     end
   end
 
