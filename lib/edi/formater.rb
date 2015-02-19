@@ -97,7 +97,7 @@ module Edi
             json[name] = value unless value.empty?
           when 'object'
             relation = record.reflect_on_association(property_name)
-            next unless relation && ([:has_one, :embeds_one].include?(relation.macro) || (relation.macro == :belongs_to) && relation.inverse_of.nil?)
+            next unless relation && [:has_one, :embeds_one, :belongs_to].include?(relation.macro) #|| (relation.macro == :belongs_to) && relation.inverse_of.nil?)
             if value = record_to_hash(record.send(property_name), relation.macro != :embeds_one && !property_schema['export_embedded'])
               json[name] = value
             end

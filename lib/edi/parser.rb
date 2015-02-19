@@ -85,6 +85,7 @@ module Edi
             end
           end
         end
+        record.try(:run_after_initialized)
         record
       end
 
@@ -122,7 +123,7 @@ module Edi
               next if record.send(property_name)
               if property_value = json[name]
                 relation = model.reflect_on_association(property_name)
-                next unless [:has_one, :embeds_one].include?(relation.macro)
+                next unless [:has_one, :embeds_one, :belongs_to].include?(relation.macro)
                 raise Exception.new("Hash value expected for property #{property_name} but #{property_value.class} found: #{property_value}") unless property_value.is_a?(Hash)
                 if property_value['$referenced']
                   property_value = property_value.reject { |k, _| k == '$referenced' }
@@ -160,6 +161,7 @@ module Edi
           end
           record = do_parse_json(data_type, sub_model, json, options, data_type.merged_schema, sub_record)
         end
+        record.try(:run_after_initialized)
         record
       end
 
@@ -311,6 +313,7 @@ module Edi
 
         report[:segments] << [segment, record]
 
+        record.try(:run_after_initialized)
         return [json, start, record]
       end
 

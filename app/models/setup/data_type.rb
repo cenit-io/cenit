@@ -17,14 +17,14 @@ module Setup
       @to_include_in_model_classes ||= [AffectRelation]
     end
 
-    belongs_to :uri, class_name: Setup::Schema.to_s
+    belongs_to :uri, class_name: Setup::Schema.to_s, inverse_of: :data_types
 
     field :title, type: String
     field :name, type: String
     field :schema, type: String
     field :sample_data, type: String
 
-    # has_many :events, class_name: Setup::Event.name, dependent: :destroy, inverse_of: :data_type
+    has_many :events, class_name: Setup::Event.name, dependent: :destroy, inverse_of: :data_type
     #TODO Check dependent behavior with flows
     #has_many :flows, class_name: Setup::Flow.name, dependent: :destroy, inverse_of: :data_type
 
@@ -186,6 +186,7 @@ module Setup
         self.title = json_schema['title'] || self.name if self.title.blank?
         puts "Schema '#{self.name}' validation successful!"
       rescue Exception => ex
+        raise ex
         puts "ERROR: #{errors.add(:schema, ex.message).to_s}"
         return false
       end

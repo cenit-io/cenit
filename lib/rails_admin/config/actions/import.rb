@@ -41,7 +41,7 @@ module RailsAdmin
                     @object = ex.object
                     handle_save_error
                   rescue Exception => ex
-                    #raise ex
+                    # raise ex
                     form_object.errors.add(:data, ex.message)
                   end
                 end

@@ -31,7 +31,7 @@ module RailsAdmin
               end
               @total = model.all.size
               if params[:delete]
-                if model.singleton_method(:before_destroy)
+                if (model.singleton_method(:before_destroy) rescue nil)
                   model.all.each { |obj| obj.destroy }
                 else
                   model.delete_all

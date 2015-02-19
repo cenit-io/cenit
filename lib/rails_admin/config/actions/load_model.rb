@@ -39,7 +39,7 @@ module RailsAdmin
                   end
                 end
               rescue Exception => ex
-                #raise ex
+                # raise ex
                 flash[:error] = "Error loading model #{@object.title}: #{ex.message}"
               end
             end
