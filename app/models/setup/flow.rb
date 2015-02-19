@@ -171,6 +171,7 @@ module Setup
                                 discard_events: discard_events)
         connection_role.connections.each do |connection|
           begin
+			result = check_root(data_type, result)			
             response = HTTParty.send(webhook.method, connection.url + '/' + webhook.path,
                                      {
                                          body: result,
@@ -190,6 +191,15 @@ module Setup
           end
         end
       end
+    end
+    
+    def check_root(data_type, result)
+        root_key = data_type.name.downcase
+        result_hash = JSON.parse(result)
+		unless result_hash.has_key? root_key
+			result = {root_key => result_hash}.to_json
+		end
+		result
     end
 
     def source_ids_from(message)
