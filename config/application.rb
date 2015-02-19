@@ -40,7 +40,6 @@ module Cenit
         schema.load_models
       end
 
-      puts Setup::Template.data_type.schema
     end
 
   end

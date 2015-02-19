@@ -5,10 +5,11 @@ module Setup
     include AccountScoped
     include NumberGenerator
     include Trackable
-    
-    has_and_belongs_to_many :connection_roles, class_name: Setup::ConnectionRole.name, inverse_of: :connections
-    has_many :url_parameters, class_name: Setup::UrlParameter.name, as: :parameterizable
-    has_many :headers, class_name: Setup::Header.name, as: :parameterizable
+
+    BuildInDataType.regist(self)
+
+    embeds_many :url_parameters, class_name: Setup::Parameter.name, inverse_of: :connection
+    embeds_many :headers, class_name: Setup::Parameter.name, inverse_of: :connection
     
     devise :database_authenticatable
 
@@ -19,7 +20,7 @@ module Setup
 
     after_initialize :ensure_token
 
-    accepts_nested_attributes_for :url_parameters, :headers, :connection_roles
+    accepts_nested_attributes_for :url_parameters, :headers
 
     validates_presence_of :name, :url, :key, :token
     validates_uniqueness_of :token

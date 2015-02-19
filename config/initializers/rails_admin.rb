@@ -212,9 +212,6 @@ RailsAdmin.config do |config|
     group :credentials do
       label "Credentials"
     end
-    configure :connection_roles do
-      nested_form false
-    end
     configure :name, :string do
       help 'Requiered.'
       html_attributes do
@@ -243,9 +240,15 @@ RailsAdmin.config do |config|
     end
     configure :url_parameters do
       visible { bindings[:view]._current_user.has_role? :admin }
+      # pretty_value do
+      #   Setup::Parameter.pretty_value(value)
+      # end
     end
     configure :headers do
       visible { bindings[:view]._current_user.has_role? :admin }
+      # pretty_value do
+      #   Setup::Parameter.pretty_value(value)
+      # end
     end
 
     group :parameters do
@@ -261,7 +264,6 @@ RailsAdmin.config do |config|
     show do
       field :name
       field :url
-      field :connection_roles
 
       field :key
       field :token
@@ -276,85 +278,15 @@ RailsAdmin.config do |config|
       field :updater
     end
 
-    fields :name, :url, :connection_roles, :url_parameters, :headers, :key, :token
+    fields :name, :url, :url_parameters, :headers, :key, :token
   end
 
   config.model Setup::Parameter.name do
-    visible false
-  end
-
-  config.model Setup::UrlParameter.name do
-    object_label_method do
-      :to_s
-    end
-    configure :key, :string do
-      help 'Requiered.'
-      html_attributes do
-        {maxlength: 50, size: 50}
-      end
-    end
-
-    configure :value, :string do
-      help 'Requiered.'
-      html_attributes do
-        {maxlength: 50, size: 50}
-      end
-    end
-
-    show do
+    object_label_method { :to_s }
+    edit do
       field :key
       field :value
-      field :parameterizable
-
-      field :_id
-      field :created_at
-      field :updated_at
     end
-
-    list do
-      field :key
-      field :value
-      field :parameterizable
-    end
-
-    fields :key, :value
-  end
-
-  config.model Setup::Header.name do
-    object_label_method do
-      :to_s
-    end
-    configure :key, :string do
-      help 'Requiered.'
-      html_attributes do
-        {maxlength: 50, size: 50}
-      end
-    end
-
-    configure :value, :string do
-      help 'Requiered.'
-      html_attributes do
-        {maxlength: 50, size: 50}
-      end
-    end
-
-    show do
-      field :key
-      field :value
-      field :parameterizable
-
-      field :_id
-      field :created_at
-      field :updated_at
-    end
-
-    list do
-      field :key
-      field :value
-      field :parameterizable
-    end
-
-    fields :key, :value
   end
 
   config.model Setup::ConnectionRole.name do
@@ -365,21 +297,17 @@ RailsAdmin.config do |config|
         {maxlength: 50, size: 50}
       end
     end
-    configure :webhooks do
-      nested_form false
-    end
     configure :connections do
       nested_form false
     end
     modal do
       field :name
-      #field :connections
-      field :webhooks
+      field :connections
+      #field :webhooks
     end
     show do
       field :name
       field :connections
-      field :webhooks
 
       field :_id
       field :created_at
@@ -387,7 +315,7 @@ RailsAdmin.config do |config|
       field :updated_at
       field :updater
     end
-    fields :name, :connections, :webhooks
+    fields :name, :connections
   end
 
   config.model Setup::Webhook.name do
@@ -399,17 +327,20 @@ RailsAdmin.config do |config|
         {maxlength: 50, size: 50}
       end
     end
-    configure :connection_roles do
-      nested_form false
-    end
     group :parameters do
       label "Add Parameters"
     end
     configure :url_parameters do
       group :parameters
+      # pretty_value do
+      #   Setup::Parameter.pretty_value(value)
+      # end
     end
     configure :headers do
       group :parameters
+      # pretty_value do
+      #   Setup::Parameter.pretty_value(value)
+      # end
     end
 
     show do
@@ -417,8 +348,6 @@ RailsAdmin.config do |config|
       field :purpose
       field :path
       field :method
-      field :connection_roles
-      field :flows
 
       field :url_parameters
       field :headers
@@ -429,7 +358,7 @@ RailsAdmin.config do |config|
       field :updated_at
       field :updater
     end
-    fields :name, :purpose, :path, :method, :connection_roles, :url_parameters, :headers
+    fields :name, :purpose, :path, :method, :url_parameters, :headers
   end
 
   config.model Setup::Notification.name do
@@ -656,7 +585,7 @@ RailsAdmin.config do |config|
         end
         partial { bindings[:object].scheduling_method == :Once ? 'form_datetime_wrapper' : 'form_text' }
         html_attributes do
-          { rows: '1' }
+          {rows: '1'}
         end
       end
     end

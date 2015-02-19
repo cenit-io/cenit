@@ -180,7 +180,7 @@ module Setup
       def save(record)
         saved = Set.new
         if bind_references(record)
-          if (valid = record.valid?) && save_references(record, saved) && record.save(validate: false)
+          if (valid = record.valid?) && save_references(record, saved) && (saved.include?(record) || record.save(validate: false))
             true
           else
             unless valid
@@ -210,6 +210,7 @@ module Setup
             references[obj] = record_refs
           end
         end
+        puts references
         for_each_node_starting_at(record) do |obj|
           references.each do |obj_waiting, to_bind|
             to_bind.each do |property_name, property_binds|
@@ -220,7 +221,7 @@ module Setup
                 property_binds = [property_binds]
               end
               property_binds.each do |property_bind|
-                if obj.class == property_bind[:model] && match?(obj, property_bind[:criteria])
+                if obj.is_a?(property_bind[:model]) && match?(obj, property_bind[:criteria])
                   if is_array
                     (obj_waiting.send(property_name)) << obj
                   else
@@ -272,17 +273,27 @@ module Setup
         end
       end
 
-      def save_references(record, saved)
+      def save_references(record, saved, visited = Set.new)
+        return true if visited.include?(record)
+        visited << record
         record.reflect_on_all_associations(:embeds_one,
                                            :embeds_many,
                                            :has_one,
                                            :has_many,
-                                           :has_and_belongs_to_many).each do |relation|
+                                           :has_and_belongs_to_many,
+                                           :belongs_to).each do |relation|
+          next if Setup::BuildInDataType::EXCLUDED_RELATIONS.include?(relation.name.to_s)
           if values = record.send(relation.name)
             values = [values] unless values.is_a?(Enumerable)
-            values.each { |value| return false unless save_references(value, saved) }
-            values.each { |value| return false unless value.save(validate: false) && saved << value } unless relation.embedded?
-          end
+            values.each { |value| return false unless save_references(value, saved, visited) }
+            values.each do |value|
+              if value.save(validate: false)
+                saved << value
+              else
+                return false
+              end unless saved.include?(record)
+            end unless relation.embedded?
+          end if relation.macro != :belongs_to || relation.inverse_of.nil?
         end
         true
       end

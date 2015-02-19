@@ -1,7 +1,7 @@
 module Setup
   class Scheduler < Event
 
-    BuildInDataType.regist(self).referenced_by(:name)
+    BuildInDataType.regist(self).referenced_by(:name).excluding(:last_trigger_timestamps, :scheduler_id)
 
     field :scheduling_method, type: Symbol
     field :expression, type: String

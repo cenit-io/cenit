@@ -6,34 +6,28 @@ module Setup
     include Setup::Enum
     include Trackable
 
-    BuildInDataType.regist(self).embedding(:translators, :events)
+    BuildInDataType.regist(self).embedding(:translators, :events, :connection_roles, :webhooks)
 
     field :name, type: String
 
     has_many :libraries, class_name: Setup::Library.name, inverse_of: :template
     has_many :translators, class_name: Setup::Translator.name, inverse_of: :template
     has_many :events, class_name: Setup::Event.name, inverse_of: :template
-    # belongs_to :connection_role, class_name: Setup::ConnectionRole.name
-    # has_and_belongs_to_many :webhooks, class_name: Setup::Webhook.name, inverse_of: :templates
-    # has_and_belongs_to_many :flows, class_name: Setup::Flow.name, inverse_of: :templates
+    has_many :connection_roles, class_name: Setup::ConnectionRole.name, inverse_of: :template
+    has_many :webhooks, class_name: Setup::Webhook.name, inverse_of: :template
+    has_many :flows, class_name: Setup::Flow.name, inverse_of: :template
 
     rails_admin do
       navigation_label 'Setup'
       weight -16
-      # configure :webhooks do
-      #   nested_form false
-      # end
-      # configure :flows do
-      #   nested_form false
-      # end
       show do
         field :name
         field :library
         field :translators
         field :events
-        # field :connection_role
-        # field :webhooks
-        # field :flows
+        field :connection_roles
+        field :webhooks
+        field :flows
 
         field :_id
         field :created_at
@@ -41,7 +35,7 @@ module Setup
         field :updated_at
         field :updater
       end
-      fields :name, :libraries, :translators, :events#, :connection_role, :webhooks, :flows
+      fields :name, :libraries, :translators, :events, :connection_roles, :webhooks, :flows
     end
   end
 end

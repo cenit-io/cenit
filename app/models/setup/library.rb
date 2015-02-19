@@ -17,7 +17,7 @@ module Setup
     validates_uniqueness_of :name
 
     def find_data_type_by_name(name)
-      DataType.where(name: name).detect { |data_type| data_type.uri.library == self }
+      DataType.where(name: name).detect { |data_type| data_type.uri && data_type.uri.library == self }
     end
   end
 end

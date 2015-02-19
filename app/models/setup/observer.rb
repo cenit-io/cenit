@@ -1,9 +1,9 @@
 module Setup
   class Observer < Event
 
-    BuildInDataType.regist(self).referenced_by(:name)
+    BuildInDataType.regist(self).referenced_by(:name).excluding(:last_trigger_timestamps).including(:data_type)
 
-    belongs_to :data_type, class_name: Setup::DataType.to_s, inverse_of: nil
+    belongs_to :data_type, class_name: Setup::DataType.to_s, inverse_of: :events
     field :triggers, type: String
 
     validates_presence_of :data_type, :triggers
@@ -30,7 +30,7 @@ module Setup
     end
 
     def self.lookup(obj_now, obj_before=nil)
-      where(data_type: obj_now.data_type).each { |e| Setup::Flow.where(active: true, event: e).
+      where(data_type: obj_now.class.data_type).each { |e| Setup::Flow.where(active: true, event: e).
           each { |f| f.process(source_id: obj_now.id.to_s) } if e.triggers_apply_to?(obj_now, obj_before) }
     end
 

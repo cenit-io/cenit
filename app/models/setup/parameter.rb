@@ -3,17 +3,27 @@ module Setup
     include Mongoid::Document
     include Mongoid::Timestamps
     include AccountScoped
-    
-    belongs_to :parameterizable, polymorphic: true
+
+    BuildInDataType.regist(self).with(:key, :value)
 
     field :key, type: String
     field :value, type: String
+
+    embedded_in :connection, class_name: Setup::Connection.name
+    embedded_in :webhook, class_name: Setup::Webhook.name
 
     validates_presence_of :key, :value
     
     def to_s
       "#{key}: #{value}"
     end  
-      
+
+    class << self
+      def pretty_value(parameters)
+        hash = {}
+        parameters.each { |parameter| hash[parameter.key] = parameter.value }
+        hash.to_json
+      end
+    end
   end 
 end

@@ -5,13 +5,13 @@ module Setup
     include AccountScoped
     include Trackable
     include Setup::Enum
+
+    BuildInDataType.regist(self).referenced_by(:name)
     
-    has_many :url_parameters, class_name: Setup::UrlParameter.name, dependent: :destroy, as: :parameterizable
-    has_many :headers, class_name: Setup::Header.name, dependent: :destroy, as: :parameterizable
-    
-    has_many :flows, class_name: Setup::Flow.name, dependent: :destroy, inverse_of: :webhook
-    has_and_belongs_to_many :templates, class_name: Setup::Template.name, inverse_of: :webhooks
-    has_and_belongs_to_many :connection_roles, class_name: Setup::ConnectionRole.name, inverse_of: :webhooks
+    embeds_many :url_parameters, class_name: Setup::Parameter.name, inverse_of: :webhook
+    embeds_many :headers, class_name: Setup::Parameter.name, inverse_of: :webhook
+
+    belongs_to :template, class_name: Setup::Template.name, inverse_of: :webhooks
 
     field :name, type: String
     field :path, type: String

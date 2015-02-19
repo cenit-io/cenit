@@ -5,7 +5,7 @@ module Setup
     include AccountScoped
     include Trackable
 
-    BuildInDataType.regist(self).referenced_by(:name).and(sub_schema: "self['_type']")
+    BuildInDataType.regist(self).with(:name).referenced_by(:name).and(sub_schema: "self['_type']")
 
     field :name, type: String
     field :last_trigger_timestamps, type: DateTime
