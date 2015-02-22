@@ -14,5 +14,12 @@ module Setup
 
     validates_uniqueness_of :name
 
+    before_save :do_not_save
+
+    def do_not_save
+      errors.add(:base, 'An event must be of type Observer or Scheduler')
+      false
+    end
+
   end
 end
