@@ -8,7 +8,6 @@
  RailsAdmin::Config::Actions::EdiExport,
  RailsAdmin::Config::Actions::ImportSchema,
  RailsAdmin::Config::Actions::DeleteAll,
- RailsAdmin::Config::Actions::NewWizard,
  RailsAdmin::Config::Actions::EditTranslator,
  RailsAdmin::Config::Actions::Update,
  RailsAdmin::Config::Actions::Convert,
@@ -32,8 +31,7 @@ RailsAdmin.config do |config|
   config.actions do
     dashboard # mandatory
     index # mandatory
-    new { except [Setup::DataType, Role, Setup::Translator, Setup::Flow, Setup::Scheduler, Setup::Event] }
-    new_wizard
+    new { except [Setup::DataType, Role, Setup::Event] }
     import
     import_schema
     update
@@ -394,8 +392,7 @@ RailsAdmin.config do |config|
         end
       end
       field :translator do
-        inline_edit false
-        inline_add false
+        inline_add { bindings[:object].translator.nil? }
         associated_collection_scope do
           translator = bindings[:object].translator
           Proc.new { |scope|
@@ -408,7 +405,7 @@ RailsAdmin.config do |config|
         inline_add false
         visible do
           if (f = bindings[:object]).event && f.translator && f.translator.data_type.nil?
-            f.instance_variable_set(:@selecting_data_type, f.custom_data_type = f.event && f.event.data_type) unless f.data_type
+            f.instance_variable_set(:@selecting_data_type, f.custom_data_type = f.event && f.event.try(:data_type)) unless f.data_type
             true
           else
             false
@@ -460,8 +457,7 @@ RailsAdmin.config do |config|
         help 'Required'
       end
       field :response_translator do
-        inline_edit false
-        inline_add false
+        inline_add { bindings[:object].response_translator.nil? }
         visible { (translator = bindings[:object].translator) && translator.type == :Export && bindings[:object].ready_to_save? }
         associated_collection_scope do
           Proc.new { |scope|
@@ -472,7 +468,7 @@ RailsAdmin.config do |config|
       field :response_data_type do
         inline_edit false
         inline_add false
-        visible { (response_translator = bindings[:object].response_translator) && response_translator.data_type.nil? }
+        visible { (response_translator = bindings[:object].response_translator) && response_translator.type == :Import && response_translator.data_type.nil? }
         help ''
       end
       field :discard_events do
@@ -654,8 +650,7 @@ RailsAdmin.config do |config|
       end
 
       field :source_exporter do
-        inline_edit false
-        inline_add false
+        inline_add { bindings[:object].source_exporter.nil? }
         visible { bindings[:object].style == 'chain' && bindings[:object].source_data_type && bindings[:object].target_data_type }
         help 'Required'
         associated_collection_scope do
@@ -667,8 +662,7 @@ RailsAdmin.config do |config|
       end
 
       field :target_importer do
-        inline_edit false
-        inline_add false
+        inline_add { bindings[:object].target_importer.nil? }
         visible { bindings[:object].style == 'chain' && bindings[:object].source_data_type && bindings[:object].target_data_type && bindings[:object].source_exporter }
         help 'Required'
         associated_collection_scope do

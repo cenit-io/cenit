@@ -79,9 +79,6 @@ module Setup
         end
         model.include(Edi::Formatter)
         model.include(Edi::Filler)
-        model.class_eval('def data_type
-          self.class.data_type
-        end')
         build_ins[model.to_s] = BuildInDataType.new(model)
       end
     end

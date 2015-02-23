@@ -24,20 +24,18 @@ module Setup
 
     belongs_to :template, class_name: Setup::Template.name, inverse_of: :translators
 
-    validates_presence_of :name, :type, :style
     validates_uniqueness_of :name
-    validates_inclusion_of :type, in: ->(t) { t.type_options }
-    validates_inclusion_of :style, in: ->(t) { t.style_options }
     before_save :validates_configuration
 
     def validates_configuration
+      return false unless ready_to_save?
+      errors.add(:name, "can't be blank") unless name.present?
+      errors.add(:type, 'is not valid') unless type_options.include?(type)
+      errors.add(:style, 'is not valid') unless style_options.include?(style)
       if type == :Conversion
         [:source_data_type, :target_data_type].each do |field|
           errors.add(field, "can't be blank") if send(field).blank?
         end
-        # if errors.blank?
-        #   errors.add(:target_data_type, 'must defers from source') if target_data_type == source_data_type
-        # end
         if style == 'chain'
           [:source_exporter, :target_importer].each do |field|
             errors.add(field, "can't be blank") if send(field).blank?
@@ -48,6 +46,8 @@ module Setup
           end
           self.transformation = "#{source_data_type.title} -> [#{source_exporter.name} : #{target_importer.name}] -> #{target_data_type.title}" if errors.blank?
         end
+      else
+        errors.add(:transformation, "can't be blank") unless transformation.present?
       end
       errors.blank?
     end
@@ -84,7 +84,7 @@ module Setup
     end
 
     def ready_to_save?
-      type.present? && style.present? && (style != 'chain' || (source_data_type && target_data_type && source_exporter))
+      type.present? && style.present? && (style != 'chain' || (source_data_type && target_data_type && source_exporter).present?)
     end
 
     def can_be_restarted?

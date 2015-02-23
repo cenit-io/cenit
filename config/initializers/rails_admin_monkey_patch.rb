@@ -1,7 +1,10 @@
 require 'rails_admin/config'
+require 'rails_admin/main_controller'
 
 module RailsAdmin
+
   module Config
+
     class << self
 
       def remove_model(model)
@@ -12,6 +15,55 @@ module RailsAdmin
       def new_model(model)
         if !models_pool.include?(model.to_s)
           @@system_models.insert((i = @@system_models.find_index { |e| e > model.to_s }) ? i : @@system_models.length, model.to_s)
+        end
+      end
+    end
+
+    module Actions
+
+      class New
+
+        register_instance_option :controller do
+
+          proc do
+
+            if request.get? || params[:_restart] # NEW
+
+              @object = @abstract_model.new
+              @authorization_adapter && @authorization_adapter.attributes_for(:new, @abstract_model).each do |name, value|
+                @object.send("#{name}=", value)
+              end
+              if object_params = params[@abstract_model.to_param]
+                @object.set_attributes(@object.attributes.merge(object_params))
+              end
+              respond_to do |format|
+                format.html { render @action.template_name }
+                format.js { render @action.template_name, layout: false }
+              end
+
+            elsif request.post? # CREATE
+
+              @modified_assoc = []
+              @object = @abstract_model.new
+              sanitize_params_for!(request.xhr? ? :modal : :create)
+
+              @object.set_attributes(params[@abstract_model.param_key])
+              @authorization_adapter && @authorization_adapter.attributes_for(:create, @abstract_model).each do |name, value|
+                @object.send("#{name}=", value)
+              end
+
+              if params[:_next].nil? && @object.save
+                @auditing_adapter && @auditing_adapter.create_object(@object, @abstract_model, _current_user)
+                respond_to do |format|
+                  format.html { redirect_to_on_success }
+                  format.js { render json: {id: @object.id.to_s, label: @model_config.with(object: @object).object_label} }
+                end
+              else
+                handle_save_error
+              end
+
+            end
+          end
         end
       end
     end
@@ -155,6 +207,35 @@ module RailsAdmin
             end
           end
         end
+      end
+    end
+  end
+
+  class MainController
+    def sanitize_params_for!(action, model_config = @model_config, target_params = params[@abstract_model.param_key])
+      return unless target_params.present?
+      fields = model_config.send(action).with(controller: self, view: view_context, object: @object).fields
+      allowed_methods = fields.collect(&:allowed_methods).flatten.uniq.collect(&:to_s) << 'id' << '_destroy'
+      fields.each { |f| f.parse_input(target_params) }
+      target_params.slice!(*allowed_methods)
+      target_params.permit! if target_params.respond_to?(:permit!)
+      fields.select(&:nested_form).each do |association|
+        children_params = association.multiple? ? target_params[association.method_name].try(:values) : [target_params[association.method_name]].compact
+        (children_params || []).each do |children_param|
+          sanitize_params_for!(:nested, association.associated_model_config, children_param)
+        end
+      end
+    end
+
+    def handle_save_error(whereto = :new)
+      if @object && @object.errors.present?
+        flash.now[:error] = t('admin.flash.error', name: @model_config.label, action: t("admin.actions.#{@action.key}.done").html_safe).html_safe
+        flash.now[:error] += %(<br>- #{@object.errors.full_messages.join('<br>- ')}).html_safe
+      end
+
+      respond_to do |format|
+        format.html { render whereto, status: :not_acceptable }
+        format.js { render whereto, layout: false, status: :not_acceptable }
       end
     end
   end

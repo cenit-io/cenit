@@ -37,6 +37,7 @@ module Setup
     before_save :validates_configuration
 
     def validates_configuration
+      return false unless ready_to_save?
       errors.add(:event, "can't be blank") unless event
       if translator
         if translator.data_type.nil?
@@ -58,10 +59,14 @@ module Setup
         end
         if translator.type == :Export
           if response_translator.present?
-            if response_translator.data_type
-              errors.add(:response_data_type, 'is not allowed since response translator already defines a data type')
+            if response_translator.type == :Import
+              if response_translator.data_type
+                errors.add(:response_data_type, 'is not allowed since response translator already defines a data type') if response_data_type.present?
+              else
+                errors.add(:response_data_type, "is needed for response translator #{response_translator.name}") unless response_data_type.present?
+              end
             else
-              errors.add(:response_data_type, "is needed for response translator #{response_translator.name}") unless response_data_type.present?
+              errors.add(:response_translator, 'is not an import translator')
             end
           else
             [:response_data_type, :discard_events].each do |field|
@@ -86,14 +91,14 @@ module Setup
     def data_type_scope_enum
       enum = []
       if data_type
-        enum << 'Event source' if event && event.data_type == data_type
+        enum << 'Event source' if event && event.try(:data_type) == data_type
         enum << "All #{data_type.title.downcase.pluralize}"
       end
       enum
     end
 
     def ready_to_save?
-      event && translator && (translator.type == :Import || data_type_scope.present?)
+      (event && translator).present? && (translator.type == :Import || data_type_scope.present?)
     end
 
     def can_be_restarted?
@@ -165,13 +170,13 @@ module Setup
       max = ((object_ids = source_ids_from(message)) ? object_ids.size : data_type.model.count) - 1
       0.step(max, limit) do |offset|
         puts result = translator.run(object_ids: object_ids,
-                                source_data_type: data_type,
-                                offset: offset,
-                                limit: limit,
-                                discard_events: discard_events)
+                                     source_data_type: data_type,
+                                     offset: offset,
+                                     limit: limit,
+                                     discard_events: discard_events)
         connection_role.connections.each do |connection|
           begin
-			result = check_root(data_type, result)			
+            result = check_root(data_type, result)
             response = HTTParty.send(webhook.method, connection.url + '/' + webhook.path,
                                      {
                                          body: result,
@@ -192,14 +197,14 @@ module Setup
         end
       end
     end
-    
+
     def check_root(data_type, result)
-        root_key = data_type.name.downcase
-        result_hash = JSON.parse(result)
-		unless result_hash.has_key? root_key
-			result = {root_key => result_hash}.to_json
-		end
-		result
+      root_key = data_type.name.downcase
+      result_hash = JSON.parse(result)
+      unless result_hash.has_key? root_key
+        result = {root_key => result_hash}.to_json
+      end
+      result
     end
 
     def source_ids_from(message)
