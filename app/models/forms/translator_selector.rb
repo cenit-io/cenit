@@ -6,7 +6,7 @@ module Forms
     belongs_to :data_type, class_name: Setup::DataType.to_s, inverse_of: nil
     belongs_to :translator, class_name: Setup::Translator.to_s, inverse_of: nil
 
-    validates_presence_of :translator_type, :data_type, :translator
+    validates_presence_of :translator_type, :translator
 
     rails_admin do
       visible false

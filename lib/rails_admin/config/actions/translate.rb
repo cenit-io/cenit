@@ -29,10 +29,11 @@ module RailsAdmin
 
             if model = @abstract_model.model_name.constantize rescue nil
               data_type = model.data_type
+              data_type_selector = data_type.is_a?(Setup::BuildInDataType) ? nil : data_type
               if data = params[:forms_translator_selector]
                 translator = Setup::Translator.where(id: data[:translator_id]).first
                 if (@object = Forms::TranslatorSelector.new(translator_type: translator_type,
-                                                            data_type: data_type,
+                                                            data_type: data_type_selector,
                                                             translator: translator)).valid?
                   begin
                     translation = @action.class.translate(translator: translator,
@@ -53,7 +54,7 @@ module RailsAdmin
             if ok
               @action.class.done(controller: self, translation: translation, back_or_index: back_or_index)
             else
-              @object ||= Forms::TranslatorSelector.new(translator_type: translator_type, data_type: data_type)
+              @object ||= Forms::TranslatorSelector.new(translator_type: translator_type, data_type: data_type_selector)
               @model_config = RailsAdmin::Config.model(Forms::TranslatorSelector)
               unless @object.errors.blank?
                 flash.now[:error] = 'There are errors in the export data specification'.html_safe
