@@ -21,7 +21,7 @@ module Edi
     end
 
     def to_xml(options={})
-      (xml_doc = Nokogiri::XML::Document.new) << record_to_xml_element(data_type = self.data_type, JSON.parse(data_type.schema), self, xml_doc, nil, options)
+      (xml_doc = Nokogiri::XML::Document.new) << record_to_xml_element(data_type = self.class.data_type, JSON.parse(data_type.schema), self, xml_doc, nil, options)
       xml_doc.to_xml
     end
 
