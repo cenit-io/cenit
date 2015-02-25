@@ -15,10 +15,11 @@ module Setup
 
     field :discard_events, type: Boolean
     field :style, type: String
-    field :transformation, type: String
 
     field :mime_type, type: String
-    field :extension, type: String
+    field :file_extension, type: String
+
+    field :transformation, type: String
 
     belongs_to :source_exporter, class_name: Setup::Translator.name, inverse_of: nil
     belongs_to :target_importer, class_name: Setup::Translator.name, inverse_of: nil
@@ -37,14 +38,26 @@ module Setup
       errors.add(:style, 'is not valid') unless style_enum.include?(style)
       case type
         when :Import, :Update
-          rejects(:source_data_type, :mime_type, :extension, :source_exporter, :target_importer, :discard_chained_records)
+          rejects(:source_data_type, :mime_type, :file_extension, :source_exporter, :target_importer, :discard_chained_records)
           requires(:transformation)
         when :Export
           rejects(:target_data_type, :source_exporter, :target_importer, :discard_chained_records)
           requires(:transformation)
-          requires(:extension) if mime_type.present?
+          if mime_type.present?
+            if (extensions = file_extension_enum).empty?
+              self.file_extension = nil
+            elsif file_extension.blank?
+              if extensions.length == 1
+                self.file_extension = extensions[0]
+              else
+                errors.add(:file_extension, 'has multiple options')
+              end
+            else
+              errors.add(:file_extension, 'is not valid') unless extensions.include?(file_extension)
+            end
+          end
         when :Conversion
-          rejects(:mime_type, :extension)
+          rejects(:mime_type, :file_extension)
           requires(:source_data_type, :target_data_type)
           if style == 'chain'
             requires(:source_exporter, :target_importer)
@@ -88,8 +101,22 @@ module Setup
       styles.uniq
     end
 
+    def mime_type_enum
+      types = []
+      MIME::Types.each { |t| types << t.to_s }
+      types
+    end
+
+    def file_extension_enum
+      extensions = []
+      if types = MIME::Types[mime_type]
+        types.each { |type| extensions.concat(type.extensions) }
+      end
+      extensions.uniq
+    end
+
     def ready_to_save?
-      type.present? && style.present? && (style != 'chain' || (source_data_type && target_data_type && source_exporter).present?)
+      (type && style).present? && (style != 'chain' || (source_data_type && target_data_type && source_exporter).present?)
     end
 
     def can_be_restarted?

@@ -2,10 +2,10 @@
   = form.generate nested_in: true
 
   .form-actions
-    %button.btn.btn-primary{type: 'submit', name: '_save', :'data-disable-with' => wording_for(:menu, @action)}
+    %button.btn.btn-primary{type: 'submit', name: '_save'}
       %i{class: @action.try(:link_icon)}
       = wording_for(:menu, @action)
     %span.extra_buttons
-      %button.btn{type: 'submit', name: '_continue', :'data-disable-with' => t('admin.form.cancel')}
+      %button.btn{type: 'submit', name: '_continue'}
         %i.icon-remove
         = t('admin.form.cancel')

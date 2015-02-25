@@ -15,7 +15,11 @@ module RailsAdmin
           end
 
           def done(options)
-            options[:controller].render plain: options[:translation]
+            file_name = "#{options[:data_type].title.underscore}_#{DateTime.now.strftime('%Y-%m-%d_%Hh%Mm%S')}"
+            if (translator = options[:translator]).file_extension.present?
+              file_name += ".#{translator.file_extension}"
+            end
+            options[:controller].send_data(options[:translation], filename: file_name, type: translator.mime_type || 'application/octet-stream')
           end
         end
 

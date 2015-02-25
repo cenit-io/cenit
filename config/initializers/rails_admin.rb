@@ -238,7 +238,7 @@ RailsAdmin.config do |config|
     end
     configure :url_parameters do
       visible { bindings[:view]._current_user.has_role? :admin }
-      end
+    end
     configure :headers do
       visible { bindings[:view]._current_user.has_role? :admin }
     end
@@ -595,12 +595,22 @@ RailsAdmin.config do |config|
       end
 
       field :discard_events do
-        visible visible { [:Import, :Update, :Conversion].include?(bindings[:object].type) }
+        visible { [:Import, :Update, :Conversion].include?(bindings[:object].type) }
         help "Events won't be fired for created or updated records if checked"
       end
 
       field :style do
         visible { bindings[:object].type.present? }
+      end
+
+      field :mime_type do
+        label 'MIME type'
+        visible { bindings[:object].type == :Export }
+      end
+
+      field :file_extension do
+        visible { bindings[:object].type == :Export && !bindings[:object].file_extension_enum.empty? }
+        help { "Extensions for #{bindings[:object].mime_type}" }
       end
 
       field :transformation do
@@ -651,8 +661,16 @@ RailsAdmin.config do |config|
     show do
       field :name
       field :type
+      field :source_data_type
+      field :target_data_type
+      field :discard_events
       field :style
+      field :mime_type
+      field :file_extension
       field :transformation
+      field :source_exporter
+      field :target_importer
+      field :discard_chained_records
 
       field :_id
       field :created_at

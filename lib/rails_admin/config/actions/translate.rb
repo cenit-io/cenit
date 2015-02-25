@@ -52,7 +52,11 @@ module RailsAdmin
               end
             end
             if ok
-              @action.class.done(controller: self, translation: translation, back_or_index: back_or_index)
+              @action.class.done(controller: self,
+                                 translation: translation,
+                                 back_or_index: back_or_index,
+                                 data_type: data_type,
+                                 translator: translator)
             else
               @object ||= Forms::TranslatorSelector.new(translator_type: translator_type, data_type: data_type_selector)
               @model_config = RailsAdmin::Config.model(Forms::TranslatorSelector)
