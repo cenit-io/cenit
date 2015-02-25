@@ -7,14 +7,16 @@ module Forms
     belongs_to :translator, class_name: Setup::Translator.to_s, inverse_of: nil
 
     validates_presence_of :translator_type, :translator
+    validate do |selector|
+      if selector.translator && selector.translator_type
+        errors.add(:translator, "must be of type #{selector.translator_type}") unless selector.translator.type == selector.translator_type
+      end
+    end
 
     rails_admin do
       visible false
-
       edit do
         field :translator do
-          inline_edit false
-          inline_add false
           associated_collection_scope do
             data_type = bindings[:object].try(:data_type)
             data_type_criteria = case translator_type = bindings[:object].try(:translator_type)
