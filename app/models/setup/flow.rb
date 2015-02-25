@@ -1,7 +1,7 @@
 require 'nokogiri'
 
 module Setup
-  class Flow
+  class Flow < ShortcutValidator
     include Mongoid::Document
     include Mongoid::Timestamps
     include AccountScoped
@@ -38,50 +38,62 @@ module Setup
 
     def validates_configuration
       return false unless ready_to_save?
-      errors.add(:event, "can't be blank") unless event
-      if translator
+      unless requires(:event, :translator)
         if translator.data_type.nil?
-          errors.add(:custom_data_type, "can't be blank") unless custom_data_type
+          requires(:custom_data_type)
         else
-          errors.add(:custom_data_type, 'is not allowed since translator already defines a data type') if custom_data_type
+          rejects(:custom_data_type)
         end
         if translator.type == :Import
-          errors.add(:data_type_scope, 'is not allowed for import translators') if data_type_scope
+          rejects(:data_type_scope)
         else
-          errors.add(:data_type_scope, "can't be blank") unless data_type_scope
+          requires(:data_type_scope)
         end
-        [:connection_role, :webhook].each do |field|
-          if send(field)
-            errors.add(field, 'is not allowed') unless [:Import, :Export].include?(translator.type)
-          else
-            errors.add(field, "can't be blank") if [:Import, :Export].include?(translator.type)
-          end
+        if [:Import, :Export].include?(translator.type)
+          requires(:connection_role, :webhook)
+        else
+          rejects(:connection_role, :webhook)
         end
         if translator.type == :Export
           if response_translator.present?
             if response_translator.type == :Import
               if response_translator.data_type
-                errors.add(:response_data_type, 'is not allowed since response translator already defines a data type') if response_data_type.present?
+                rejects(:response_data_type)
               else
-                errors.add(:response_data_type, "is needed for response translator #{response_translator.name}") unless response_data_type.present?
+                requires(:response_data_type)
               end
             else
               errors.add(:response_translator, 'is not an import translator')
             end
           else
-            [:response_data_type, :discard_events].each do |field|
-              errors.add(field, "can't be defined until response translator") if send(field)
-            end
+            rejects(:response_data_type, :discard_events)
           end
         else
-          [:lot_size, :response_translator, :response_data_type].each do |field|
-            errors.add(field, 'is not allowed for non export translators') if send(field)
-          end
+          rejects(:lot_size, :response_translator, :response_data_type)
         end
-      else
-        errors.add(:translator, "can't be blank")
       end
       errors.blank?
+    end
+
+    def reject_message(field=nil)
+      case field
+        when :custom_data_type
+          'is not allowed since translator already defines a data type'
+        when :data_type_scope
+          'is not allowed for import translators'
+        when :response_data_type
+          if response_translator.present?
+            'is not allowed since response translator already defines a data type'
+          else
+            "can't be defined until response translator"
+          end
+        when :discard_events
+          "can't be defined until response translator"
+        when :lot_size, :response_translator
+          'is not allowed for non export translators'
+        else
+          super
+      end
     end
 
     def data_type

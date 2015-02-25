@@ -367,27 +367,16 @@ RailsAdmin.config do |config|
   end
 
   config.model Setup::Flow.name do
+    register_instance_option(:form_synchronized) do
+      [:custom_data_type, :data_type_scope, :lot_size, :connection_role, :webhook, :response_translator, :response_data_type]
+    end
     edit do
       field :name
       field :event do
         inline_edit false
         inline_add false
-        associated_collection_scope do
-          event = bindings[:object].event
-          Proc.new { |scope|
-            event ? scope.where(id: event.id) : scope.all
-          }
-        end
       end
-      field :translator do
-        inline_add { bindings[:object].translator.nil? }
-        associated_collection_scope do
-          translator = bindings[:object].translator
-          Proc.new { |scope|
-            translator ? scope.where(id: translator.id) : scope.all
-          }
-        end
-      end
+      field :translator
       field :custom_data_type do
         inline_edit false
         inline_add false
@@ -411,12 +400,6 @@ RailsAdmin.config do |config|
           end
         end
         help 'Required'
-        associated_collection_scope do
-          data_type = bindings[:object].instance_variable_get(:@selecting_data_type) ? nil : bindings[:object].data_type
-          Proc.new { |scope|
-            data_type ? scope.where(id: data_type.id) : scope.all
-          }
-        end
       end
       field :data_type_scope do
         visible { (f = bindings[:object]).event && f.translator && f.translator.type != :Import && f.data_type && !f.instance_variable_get(:@selecting_data_type) }
@@ -445,7 +428,6 @@ RailsAdmin.config do |config|
         help 'Required'
       end
       field :response_translator do
-        inline_add { bindings[:object].response_translator.nil? }
         visible { (translator = bindings[:object].translator) && translator.type == :Export && bindings[:object].ready_to_save? }
         associated_collection_scope do
           Proc.new { |scope|

@@ -1,5 +1,5 @@
 module Setup
-  class Translator
+  class Translator < ShortcutValidator
     include Mongoid::Document
     include Mongoid::Timestamps
     include AccountScoped
@@ -32,7 +32,7 @@ module Setup
 
     def validates_configuration
       return false unless ready_to_save?
-      errors.add(:name, "can't be blank") unless name.present?
+      requires(:name)
       errors.add(:type, 'is not valid') unless type_enum.include?(type)
       errors.add(:style, 'is not valid') unless style_enum.include?(style)
       case type
@@ -61,25 +61,8 @@ module Setup
       errors.blank?
     end
 
-    def reject_message
-      (style && type).present? ? "is not allowed for #{style} #{type.to_s.downcase} translators" : 'is not allowed'
-    end
-
-    def rejects(*fields)
-      fields.each do |field|
-        if send(field).present?
-          errors.add(field, reject_message)
-          send("#{field}=", nil)
-        end
-      end
-    end
-
-    def requires(*fields)
-      fields.each do |field|
-        unless send(field).present?
-          errors.add(field, "can't be blank")
-        end
-      end
+    def reject_message(field=nil)
+      (style && type).present? ? "is not allowed for #{style} #{type.to_s.downcase} translators" : super
     end
 
     def type_enum
