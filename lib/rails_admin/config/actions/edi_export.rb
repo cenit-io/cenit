@@ -21,6 +21,10 @@ module RailsAdmin
             end
             options[:controller].send_data(options[:translation], filename: file_name, type: translator.mime_type || 'application/octet-stream')
           end
+
+          def disable_buttons?
+            false
+          end
         end
 
         register_instance_option :link_icon do

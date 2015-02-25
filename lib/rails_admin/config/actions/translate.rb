@@ -58,7 +58,9 @@ module RailsAdmin
                                  data_type: data_type,
                                  translator: translator)
             else
-              @object ||= Forms::TranslatorSelector.new(translator_type: translator_type, data_type: data_type_selector)
+              @object ||= Forms::TranslatorSelector.new(translator_type: translator_type,
+                                                        data_type: data_type_selector,
+                                                        translator: translator)
               @model_config = RailsAdmin::Config.model(Forms::TranslatorSelector)
               unless @object.errors.blank?
                 flash.now[:error] = 'There are errors in the export data specification'.html_safe
@@ -86,6 +88,10 @@ module RailsAdmin
 
           def done(options)
             options[:controller].redirect_to options[:back_or_index]
+          end
+
+          def disable_buttons?
+            true
           end
         end
       end
