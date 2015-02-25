@@ -17,6 +17,9 @@ module Setup
     field :style, type: String
     field :transformation, type: String
 
+    field :mime_type, type: String
+    field :extension, type: String
+
     belongs_to :source_exporter, class_name: Setup::Translator.name, inverse_of: nil
     belongs_to :target_importer, class_name: Setup::Translator.name, inverse_of: nil
 
@@ -30,34 +33,57 @@ module Setup
     def validates_configuration
       return false unless ready_to_save?
       errors.add(:name, "can't be blank") unless name.present?
-      errors.add(:type, 'is not valid') unless type_options.include?(type)
-      errors.add(:style, 'is not valid') unless style_options.include?(style)
-      if type == :Conversion
-        [:source_data_type, :target_data_type].each do |field|
-          errors.add(field, "can't be blank") if send(field).blank?
-        end
-        if style == 'chain'
-          [:source_exporter, :target_importer].each do |field|
-            errors.add(field, "can't be blank") if send(field).blank?
+      errors.add(:type, 'is not valid') unless type_enum.include?(type)
+      errors.add(:style, 'is not valid') unless style_enum.include?(style)
+      case type
+        when :Import, :Update
+          rejects(:source_data_type, :mime_type, :extension, :source_exporter, :target_importer, :discard_chained_records)
+          requires(:transformation)
+        when :Export
+          rejects(:target_data_type, :source_exporter, :target_importer, :discard_chained_records)
+          requires(:transformation)
+          requires(:extension) if mime_type.present?
+        when :Conversion
+          rejects(:mime_type, :extension)
+          requires(:source_data_type, :target_data_type)
+          if style == 'chain'
+            requires(:source_exporter, :target_importer)
+            if errors.blank?
+              errors.add(:source_exporter, "can't be applied to #{source_data_type.title}") unless source_exporter.apply_to_source?(source_data_type)
+              errors.add(:target_importer, "can't be applied to #{target_data_type.title}") unless target_importer.apply_to_target?(target_data_type)
+            end
+            self.transformation = "#{source_data_type.title} -> [#{source_exporter.name} : #{target_importer.name}] -> #{target_data_type.title}" if errors.blank?
+          else
+            requires(:transformation)
+            rejects(:source_exporter, :target_importer)
           end
-          if errors.blank?
-            errors.add(:source_exporter, "can't be applied to #{source_data_type.title}") unless source_exporter.apply_to_source?(source_data_type)
-            errors.add(:target_importer, "can't be applied to #{target_data_type.title}") unless target_importer.apply_to_target?(target_data_type)
-          end
-          self.transformation = "#{source_data_type.title} -> [#{source_exporter.name} : #{target_importer.name}] -> #{target_data_type.title}" if errors.blank?
-        end
-      else
-        errors.add(:transformation, "can't be blank") unless transformation.present?
       end
       errors.blank?
     end
 
-    def type_options
-      [:Import, :Export, :Update, :Conversion]
+    def reject_message
+      (style && type).present? ? "is not allowed for #{style} #{type.to_s.downcase} translators" : 'is not allowed'
+    end
+
+    def rejects(*fields)
+      fields.each do |field|
+        if send(field).present?
+          errors.add(field, reject_message)
+          send("#{field}=", nil)
+        end
+      end
+    end
+
+    def requires(*fields)
+      fields.each do |field|
+        unless send(field).present?
+          errors.add(field, "can't be blank")
+        end
+      end
     end
 
     def type_enum
-      type.present? ? [type] : type_options
+      [:Import, :Export, :Update, :Conversion]
     end
 
     STYLES_MAP = {'renit' => Setup::Transformation::RenitTransform,
@@ -69,7 +95,7 @@ module Setup
                   'html.erb' => Setup::Transformation::ActionViewTransform,
                   'chain' => Setup::Transformation::ChainTransform}
 
-    def style_options
+    def style_enum
       styles = []
       unless type.blank?
         STYLES_MAP.each do |key, value|
@@ -77,10 +103,6 @@ module Setup
         end
       end
       styles.uniq
-    end
-
-    def style_enum
-      style.present? ? [style] : style_options
     end
 
     def ready_to_save?

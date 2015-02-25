@@ -238,15 +238,9 @@ RailsAdmin.config do |config|
     end
     configure :url_parameters do
       visible { bindings[:view]._current_user.has_role? :admin }
-      # pretty_value do
-      #   Setup::Parameter.pretty_value(value)
-      # end
-    end
+      end
     configure :headers do
       visible { bindings[:view]._current_user.has_role? :admin }
-      # pretty_value do
-      #   Setup::Parameter.pretty_value(value)
-      # end
     end
 
     group :parameters do
@@ -330,15 +324,9 @@ RailsAdmin.config do |config|
     end
     configure :url_parameters do
       group :parameters
-      # pretty_value do
-      #   Setup::Parameter.pretty_value(value)
-      # end
     end
     configure :headers do
       group :parameters
-      # pretty_value do
-      #   Setup::Parameter.pretty_value(value)
-      # end
     end
 
     show do
@@ -602,6 +590,9 @@ RailsAdmin.config do |config|
   end
 
   config.model Setup::Translator do
+    register_instance_option(:form_synchronized) do
+      [:source_data_type, :target_data_type, :transformation, :target_importer, :source_exporter, :discard_chained_records]
+    end
     edit do
       field :name
 
@@ -612,12 +603,6 @@ RailsAdmin.config do |config|
         inline_add false
         visible { [:Export, :Conversion].include?(bindings[:object].type) }
         help { bindings[:object].type == :Conversion ? 'Required' : 'Optional' }
-        associated_collection_scope do
-          data_type = bindings[:object].source_data_type
-          Proc.new { |scope|
-            data_type ? scope.where(id: data_type.id) : scope.all
-          }
-        end
       end
 
       field :target_data_type do
@@ -625,12 +610,6 @@ RailsAdmin.config do |config|
         inline_add false
         visible { [:Import, :Update, :Conversion].include?(bindings[:object].type) }
         help { bindings[:object].type == :Conversion ? 'Required' : 'Optional' }
-        associated_collection_scope do
-          data_type = bindings[:object].target_data_type
-          Proc.new { |scope|
-            data_type ? scope.where(id: data_type.id) : scope.all
-          }
-        end
       end
 
       field :discard_events do
@@ -654,9 +633,9 @@ RailsAdmin.config do |config|
         visible { bindings[:object].style == 'chain' && bindings[:object].source_data_type && bindings[:object].target_data_type }
         help 'Required'
         associated_collection_scope do
-          data_type = bindings[:object].source_data_type unless exporter = bindings[:object].source_exporter
+          data_type = bindings[:object].source_data_type
           Proc.new { |scope|
-            exporter ? scope.where(id: exporter.id) : scope.all(type: :Conversion, source_data_type: data_type)
+            scope.all(type: :Conversion, source_data_type: data_type)
           }
         end
       end

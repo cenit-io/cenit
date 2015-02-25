@@ -16,14 +16,6 @@ module Setup
     
     def to_s
       "#{key}: #{value}"
-    end  
-
-    class << self
-      def pretty_value(parameters)
-        hash = {}
-        parameters.each { |parameter| hash[parameter.key] = parameter.value }
-        hash.to_json
-      end
     end
   end 
 end
