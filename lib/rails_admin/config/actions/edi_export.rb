@@ -20,6 +20,7 @@ module RailsAdmin
               file_name += ".#{translator.file_extension}"
             end
             options[:controller].send_data(options[:translation], filename: file_name, type: translator.mime_type || 'application/octet-stream')
+            #options[:controller].render plain: options[:translation]
           end
 
           def disable_buttons?

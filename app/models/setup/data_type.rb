@@ -14,7 +14,7 @@ module Setup
     end
 
     def self.to_include_in_model_classes
-      @to_include_in_model_classes ||= [AffectRelation]
+      @to_include_in_model_classes ||= [AffectRelation, Mongoid::PropertyModelDiscover]
     end
 
     belongs_to :uri, class_name: Setup::Schema.to_s, inverse_of: :data_types
@@ -76,6 +76,10 @@ module Setup
       data_type_name.constantize rescue nil
     end
 
+    def records_model
+      model || @mongoff_model ||= Mongoff::Model.new(self)
+    end
+
     def loaded?
       model ? true : false
     end
@@ -85,19 +89,14 @@ module Setup
     end
 
     def count
-      if is_object?
-        #TODO Count records when not loaded
-        (m = model) ? m.count : 123
-      else
-        0
-      end
+      records_model.count
     end
 
     def delete_all
       if  m = model
         m.delete_all unless m.is_a?(Hash)
       else
-        #TODO Delete records
+        #TODO Delete records when not loaded
       end
     end
 
@@ -159,8 +158,8 @@ module Setup
     def create_default_events
       if self.is_object? && Setup::Observer.where(data_type: self).empty?
         puts "Creating default events for #{self.name}"
-        Setup::Observer.create(data_type: self, triggers: '{"created_at":{"0":{"o":"_not_null","v":["","",""]}}}').save
-        Setup::Observer.create(data_type: self, triggers: '{"updated_at":{"0":{"o":"_change","v":["","",""]}}}').save
+        Setup::Observer.create(data_type: self, triggers: '{"created_at":{"0":{"o":"_not_null","v":["","",""]}}}')
+        Setup::Observer.create(data_type: self, triggers: '{"updated_at":{"0":{"o":"_change","v":["","",""]}}}')
       end
     end
 
@@ -474,6 +473,9 @@ module Setup
           end
           c.class_eval("def self.data_type
             @data_type ||= Setup::DataType.where(id: '#{self.id}').first
+          end
+          def orm_model
+            self.class
           end")
         else
           @@parsed_schemas << name

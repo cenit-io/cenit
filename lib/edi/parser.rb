@@ -9,7 +9,7 @@ module Edi
           content = content.gsub("\r", '')
           segment_sep = "\n"
         end
-        raise Exception.new("Record model #{record.clas} does not match data type model#{data_type.model}") unless record.nil? || record.class == data_type.model
+        raise Exception.new("Record model #{record.orm_model} does not match data type model#{data_type.orm_model}") unless record.nil? || record.orm_model == data_type.records_model
         json, start, record = do_parse_edi(data_type, data_type.model, content, data_type.merged_schema, start, options[:field_separator], segment_sep, report={segments: []}, nil, nil, nil, nil, record)
         raise Exception.new("Unexpected input at position #{start}: #{content[start, content.length - start <= 10 ? content.length - 1 : 10]}") if start < content.length
         report[:json] = json
@@ -20,11 +20,11 @@ module Edi
 
       def parse_json(data_type, content, options={}, record=nil)
         content = JSON.parse(content) unless content.is_a?(Hash)
-        do_parse_json(data_type, data_type.model, content, options, data_type.merged_schema, nil, record)
+        do_parse_json(data_type, data_type.records_model, content, options, data_type.merged_schema, nil, record)
       end
 
       def parse_xml(data_type, content, options={}, record=nil)
-        do_parse_xml(data_type, data_type.model, Nokogiri::XML(content).root, options, data_type.merged_schema, nil, record)
+        do_parse_xml(data_type, data_type.records_model, Nokogiri::XML(content).root, options, data_type.merged_schema, nil, record)
       end
 
       private
@@ -96,21 +96,20 @@ module Edi
           property_schema = data_type.merge_schema(property_schema)
           name = property_schema['edi']['segment'] if property_schema['edi']
           name ||= property_name
+          property_model = model.for_property(property_name)
           case property_schema['type']
             when 'array'
-              next unless (property_value = record.send(property_name)) && property_value.empty?
+              next unless (property_value = record.send(property_name)).nil? || property_value.empty?
+              record.send("#{property_name}=", []) if property_value.nil?
               if property_value = json[name]
-                relation = model.reflect_on_association(property_name)
-                next unless [:has_many, :has_and_belongs_to_many, :embeds_many].include?(relation.macro)
                 raise Exception.new("Array value expected for property #{property_name} but #{property_value.class} found: #{property_value}") unless property_value.is_a?(Array)
                 property_schema = data_type.merge_schema(property_schema['items'])
-                property_model = relation.klass
                 property_value.each do |sub_value|
                   if sub_value['$referenced']
                     sub_value = sub_value.reject { |k, _| k == '$referenced' }
-                    if (criteria = relation.klass.where(sub_value)).empty?
+                    if (criteria = property_model.where(sub_value)).empty?
                       record.instance_variable_set(:@_references, references = {}) unless references = record.instance_variable_get(:@_references)
-                      (references[property_name] ||= []) << {model: relation.klass, criteria: sub_value}
+                      (references[property_name] ||= []) << {model: property_model, criteria: sub_value}
                     else
                       (record.send(property_name)) << criteria.first
                     end
@@ -122,19 +121,16 @@ module Edi
             when 'object'
               next if record.send(property_name)
               if property_value = json[name]
-                relation = model.reflect_on_association(property_name)
-                next unless [:has_one, :embeds_one, :belongs_to].include?(relation.macro)
                 raise Exception.new("Hash value expected for property #{property_name} but #{property_value.class} found: #{property_value}") unless property_value.is_a?(Hash)
                 if property_value['$referenced']
                   property_value = property_value.reject { |k, _| k == '$referenced' }
-                  if (criteria = relation.klass.where(property_value)).empty?
+                  if (criteria = property_model.where(property_value)).empty?
                     record.instance_variable_set(:@_references, references = {}) unless references = record.instance_variable_get(:@_references)
-                    references[property_name] = {model: relation.klass, criteria: property_value}
+                    references[property_name] = {model: property_model, criteria: property_value}
                   else
                     record.send("#{property_name}=", criteria.first)
                   end
                 else
-                  property_model = relation.klass
                   record.send("#{property_name}=", do_parse_json(data_type, property_model, property_value, options, property_schema))
                 end
               end
@@ -150,7 +146,7 @@ module Edi
         if (sub_model = json_schema['sub_schema']) &&
             (sub_model = json.send(:eval, sub_model)) &&
             (data_type = data_type.find_data_type(sub_model)) &&
-            (sub_model = data_type.model) &&
+            (sub_model = data_type.records_model) &&
             sub_model != model
           sub_record = sub_model.new
           json_schema['properties'].each do |property_name, property_schema|
@@ -297,7 +293,7 @@ module Edi
         if (sub_model = json_schema['sub_schema']) &&
             (sub_model = record.try(:eval, sub_model)) &&
             (data_type = data_type.find_data_type(sub_model)) &&
-            (sub_model = data_type.model) &&
+            (sub_model = data_type.records_model) &&
             sub_model != model
           sub_record = sub_model.new
           json_schema['properties'].each do |property_name, property_schema|

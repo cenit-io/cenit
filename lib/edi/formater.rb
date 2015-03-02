@@ -5,14 +5,14 @@ module Edi
       options.reverse_merge!(field_separator: '*',
                              segment_separator: :new_line,
                              seg_sep_suppress: '<<seg. sep.>>')
-      output = record_to_edi(data_type = self.data_type, options, JSON.parse(data_type.schema), self)
+      output = record_to_edi(data_type = self.orm_model.data_type, options, JSON.parse(data_type.schema), self)
       seg_sep = options[:segment_separator] == :new_line ? "\r\n" : options[:segment_separator].to_s
       output.join(seg_sep)
     end
 
     def to_json(options={})
-      hash = record_to_hash(self)
-      hash = {self.class.data_type.name.downcase => hash} if options[:include_root]
+      hash = record_to_json(self)
+      hash = {self.orm_model.data_type.name.downcase => hash} if options[:include_root]
       if options[:pretty]
         JSON.pretty_generate(hash)
       else
@@ -21,7 +21,7 @@ module Edi
     end
 
     def to_xml(options={})
-      (xml_doc = Nokogiri::XML::Document.new) << record_to_xml_element(data_type = self.class.data_type, JSON.parse(data_type.schema), self, xml_doc, nil, options)
+      (xml_doc = Nokogiri::XML::Document.new) << record_to_xml_element(data_type = self.orm_model.data_type, JSON.parse(data_type.schema), self, xml_doc, nil, options)
       xml_doc.to_xml
     end
 
@@ -38,15 +38,11 @@ module Edi
         property_schema = data_type.merge_schema(property_schema)
         case property_schema['type']
           when 'array'
-            relation = record.reflect_on_association(property_name)
-            next unless relation && [:has_many, :has_and_belongs_to_many, :embeds_many].include?(relation.macro)
             property_schema = data_type.merge_schema(property_schema['items'])
             record.send(property_name).each do |sub_record|
               elements << record_to_xml_element(data_type, property_schema, sub_record, xml_doc, nil, options)
             end
           when 'object'
-            relation = record.reflect_on_association(property_name)
-            next unless relation && [:has_one, :embeds_one].include?(relation.macro)
             elements << record_to_xml_element(data_type, property_schema, record.send(property_name), xml_doc, property_name, options)
           else
             unless value = record.send(property_name)
@@ -67,7 +63,7 @@ module Edi
         end
       end
       name = schema['edi']['segment'] if schema['edi']
-      name ||= enclosed_property_name || record.class.data_type.title
+      name ||= enclosed_property_name || record.orm_model.data_type.title
       element = xml_doc.create_element(name, attr)
       if elements.empty?
         element << content unless content.nil?
@@ -78,9 +74,9 @@ module Edi
       element
     end
 
-    def record_to_hash(record, referenced=false)
+    def record_to_json(record, referenced=false)
       return unless record
-      data_type = record.class.data_type
+      data_type = record.orm_model.data_type
       schema = data_type.merged_schema
       json = (referenced = referenced && schema['referenced_by']) ? {'$referenced' => true} : {}
       schema['properties'].each do |property_name, property_schema|
@@ -90,15 +86,14 @@ module Edi
         name ||= property_name
         case property_schema['type']
           when 'array'
-            relation = record.reflect_on_association(property_name)
-            next unless relation && [:has_many, :has_and_belongs_to_many, :embeds_many].include?(relation.macro)
-            referenced_items = relation.macro != :embeds_many && !(data_type.merge_schema(property_schema['items'])['export_embedded'])
-            value = record.send(property_name).collect { |sub_record| record_to_hash(sub_record, referenced_items) }
-            json[name] = value unless value.empty?
+            property_schema = data_type.merge_schema(property_schema['items'])
+            referenced_items = property_schema['referenced'] && !property_schema['export_embedded']
+            if value = record.send(property_name)
+              value = value.collect { |sub_record| record_to_json(sub_record, referenced_items) }
+              json[name] = value unless value.empty?
+            end
           when 'object'
-            relation = record.reflect_on_association(property_name)
-            next unless relation && [:has_one, :embeds_one, :belongs_to].include?(relation.macro) #|| (relation.macro == :belongs_to) && relation.inverse_of.nil?)
-            if value = record_to_hash(record.send(property_name), relation.macro != :embeds_one && !property_schema['export_embedded'])
+            if value = record_to_json(record.send(property_name), property_schema['referenced'] && !property_schema['export_embedded'])
               json[name] = value
             end
           else
@@ -117,21 +112,17 @@ module Edi
       if schema['edi']
         segment = schema['edi']['segment'] || ''
       else
-        header = segment = (enclosed_property_name || record.data_type.title)
+        header = segment = (enclosed_property_name || record.orm_model.data_type.title)
       end
       schema['properties'].each do |property_name, property_schema|
         property_schema = data_type.merge_schema(property_schema)
         case property_schema['type']
           when 'array'
-            relation = record.reflect_on_association(property_name)
-            next unless relation && [:has_many, :has_and_belongs_to_many, :embeds_many].include?(relation.macro)
             property_schema = data_type.merge_schema(property_schema['items'])
             record.send(property_name).each do |sub_record|
               output.concat(record_to_edi(data_type, options, property_schema, sub_record))
             end
           when 'object'
-            relation = record.reflect_on_association(property_name)
-            next unless relation && [:has_one, :embeds_one].include?(relation.macro)
             output.concat(record_to_edi(data_type, options, property_schema, record.send(property_name), property_name))
           else
             unless value = record.send(property_name)

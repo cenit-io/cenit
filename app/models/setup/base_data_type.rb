@@ -20,7 +20,7 @@ module Setup
               end
               sch = sch.deep_merge(combined_sch) { |key, val1, val2| array_sum(val1, val2) }
             end
-          elsif key == '$ref' && ref = find_ref_schema(value)
+          elsif key == '$ref' && (!options[:keep_ref] || sch[key]) && ref = find_ref_schema(value)
             sch = sch.reverse_merge(ref) { |key, val1, val2| array_sum(val1, val2) }
           else
             sch[key] = value

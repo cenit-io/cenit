@@ -1,5 +1,6 @@
 module Setup
   class Observer < Event
+    include AccountScoped
 
     BuildInDataType.regist(self).referenced_by(:name).excluding(:last_trigger_timestamps).including(:data_type)
 
@@ -30,7 +31,7 @@ module Setup
     end
 
     def self.lookup(obj_now, obj_before=nil)
-      where(data_type: obj_now.class.data_type).each { |e| Setup::Flow.where(active: true, event: e).
+      where(data_type: obj_now.orm_model.data_type).each { |e| Setup::Flow.where(active: true, event: e).
           each { |f| f.process(source_id: obj_now.id.to_s) } if e.triggers_apply_to?(obj_now, obj_before) }
     end
 

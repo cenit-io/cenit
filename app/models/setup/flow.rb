@@ -121,7 +121,7 @@ module Setup
       puts "Flow processing on '#{self.name}': #{}"
       message = options.merge(flow_id: self.id.to_s, account_id: self.account.id.to_s).to_json
       begin
-        Cenit::Rabbit.send_to_rabbitmq(message)
+        Cenit::Rabbit.send_to_endpoints(message)
       rescue Exception => ex
         puts "ERROR sending message: #{ex.message}"
       end
@@ -137,11 +137,11 @@ module Setup
     def simple_translate(message, &block)
       begin
         if object_ids = message[:object_ids]
-          data_type.model.any_in(id: object_ids).each { |obj| translator.run(object: obj, discard_events: discard_events) }
+          data_type.records_model.any_in(id: object_ids).each { |obj| translator.run(object: obj, discard_events: discard_events) }
         elsif scope_symbol == :all
-          data_type.model.all.each { |obj| translator.run(object: obj, discard_events: discard_events) }
+          data_type.records_model.all.each { |obj| translator.run(object: obj, discard_events: discard_events) }
         elsif obj_id = message[:source_id]
-          translator.run(object: data_type.model.find(obj_id), discard_events: discard_events)
+          translator.run(object: data_type.records_model.find(obj_id), discard_events: discard_events)
         end
       rescue Exception => ex
         block.yield(exception: ex) if block
@@ -179,7 +179,7 @@ module Setup
 
     def translate_export(message, &block)
       limit = lot_size || 1000
-      max = ((object_ids = source_ids_from(message)) ? object_ids.size : data_type.model.count) - 1
+      max = ((object_ids = source_ids_from(message)) ? object_ids.size : data_type.count) - 1
       0.step(max, limit) do |offset|
         puts result = translator.run(object_ids: object_ids,
                                      source_data_type: data_type,

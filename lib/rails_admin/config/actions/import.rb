@@ -10,7 +10,7 @@ module RailsAdmin
         register_instance_option :visible? do
           if authorized?
             model = bindings[:abstract_model].model_name.constantize rescue nil
-            model.respond_to?(:data_type) && model.data_type
+            model.try(:data_type)
           else
             false
           end
@@ -41,7 +41,7 @@ module RailsAdmin
                     @object = ex.object
                     handle_save_error
                   rescue Exception => ex
-                    # raise ex
+                    #raise ex
                     form_object.errors.add(:data, ex.message)
                   end
                 end

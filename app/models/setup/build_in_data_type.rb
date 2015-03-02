@@ -11,6 +11,10 @@ module Setup
       @model = model
     end
 
+    def records_model
+      model
+    end
+
     def schema
       @schema ||= build_schema
     end
@@ -77,8 +81,10 @@ module Setup
         model.define_singleton_method(:data_type) do
           BuildInDataType.build_ins[self.to_s]
         end
+        model.include(Setup::OrmModelAware)
         model.include(Edi::Formatter)
         model.include(Edi::Filler)
+        model.class.include(Mongoid::PropertyModelDiscover)
         build_ins[model.to_s] = BuildInDataType.new(model)
       end
     end

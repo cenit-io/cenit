@@ -136,7 +136,7 @@ module Setup
     end
 
     def run(options={})
-      context_options = respond_to?(method_name ="context_options_for_#{type.to_s.downcase}") ? send(method_name, options) : {}
+      context_options = try("context_options_for_#{type.to_s.downcase}", options) || {}
       self.class.fields.keys.each { |key| context_options[key.to_sym] = send(key) }
       self.class.relations.keys.each { |key| context_options[key.to_sym] = send(key) }
       context_options[:data_type] = data_type
@@ -144,9 +144,7 @@ module Setup
 
       context_options[:result] = STYLES_MAP[style].run(context_options)
 
-      if respond_to?(method_name ="after_run_#{type.to_s.downcase}")
-        send(method_name, context_options)
-      end
+      try("after_run_#{type.to_s.downcase}", context_options)
 
       context_options[:result]
     end
@@ -158,7 +156,7 @@ module Setup
 
     def context_options_for_export(options)
       raise Exception.new('Source data type not defined') unless data_type = source_data_type || options[:source_data_type]
-      model = data_type.model
+      model = data_type.records_model
       offset = options[:offset] || 0
       limit = options[:limit]
       sources = if object_ids = options[:object_ids]
@@ -175,7 +173,7 @@ module Setup
 
     def context_options_for_conversion(options)
       raise Exception.new("Target data type #{target_data_type.title} is not loaded") unless target_data_type.loaded?
-      {source: options[:object], target: style == 'chain' ? nil : target_data_type.model.new}
+      {source: options[:object], target: style == 'chain' ? nil : target_data_type.records_model.new}
     end
 
     def after_run_import(options)
@@ -212,22 +210,22 @@ module Setup
       def save(record)
         saved = Set.new
         if bind_references(record)
-          if (valid = record.valid?) && save_references(record, saved) && (saved.include?(record) || record.save(validate: false))
+          if save_references(record, saved) && (saved.include?(record) || record.save)
             true
           else
-            unless valid
-              for_each_node_starting_at(record, stack=[]) do |obj|
-                obj.errors.each do |attribute, error|
-                  attr_ref = "#{obj.class.data_type.title}'s #{attribute} '#{obj.try(attribute)}'"
-                  path = ''
-                  stack.reverse_each do |node|
-                    node[:record].errors.add(node[:attribute], "with error on #{path}#{attr_ref} (#{error})") if node[:referenced]
-                    path = node[:record].class.data_type.title + ' -> '
-                  end
+            for_each_node_starting_at(record, stack=[]) do |obj|
+              obj.errors.each do |attribute, error|
+                attr_ref = "#{obj.orm_model.data_type.title}" +
+                    ((name = obj.try(:name)).present? || (name = obj.try(:title)).present? ? " #{name} on attribute " : "'s '") +
+                    attribute.to_s + ((v = obj.try(attribute)).present? ? "'#{v}'" : '')
+                path = ''
+                stack.reverse_each do |node|
+                  node[:record].errors.add(node[:attribute], "with error on #{path}#{attr_ref} (#{error})") if node[:referenced]
+                  path = node[:record].orm_model.data_type.title + ' -> '
                 end
               end
             end
-            saved.each { |obj| obj.delete }
+            saved.each { |obj| obj.delete unless obj.deleted? }
             false
           end
         else
@@ -255,7 +253,10 @@ module Setup
               property_binds.each do |property_bind|
                 if obj.is_a?(property_bind[:model]) && match?(obj, property_bind[:criteria])
                   if is_array
-                    (obj_waiting.send(property_name)) << obj
+                    unless array_property = obj_waiting.send(property_name)
+                      obj_waiting.send("#{property_name}=", array_property=[])
+                    end
+                    array_property << obj
                   else
                     obj_waiting.send("#{property_name}=", obj)
                   end
@@ -289,18 +290,16 @@ module Setup
       def for_each_node_starting_at(record, stack = nil, visited = Set.new, &block)
         visited << record
         block.yield(record) if block
-        record.reflect_on_all_associations(:embeds_one,
-                                           :embeds_many,
-                                           :has_one,
-                                           :has_many,
-                                           :has_and_belongs_to_many).each do |relation|
-          if values = record.send(relation.name)
-            stack << {record: record, attribute: relation.name, referenced: !relation.macro.to_s.start_with?('embeds')} if stack
-            values = [values] unless values.is_a?(Enumerable)
-            values.each do |value|
-              for_each_node_starting_at(value, stack, visited, &block) unless visited.include?(value)
+        if orm_model = record.try(:orm_model)
+          orm_model.for_each_association do |relation|
+            if values = record.send(relation[:name])
+              stack << {record: record, attribute: relation[:name], referenced: !relation[:embedded]} if stack
+              values = [values] unless values.is_a?(Enumerable)
+              values.each do |value|
+                for_each_node_starting_at(value, stack, visited, &block) unless visited.include?(value)
+              end
+              stack.pop if stack
             end
-            stack.pop if stack
           end
         end
       end
@@ -308,24 +307,19 @@ module Setup
       def save_references(record, saved, visited = Set.new)
         return true if visited.include?(record)
         visited << record
-        record.reflect_on_all_associations(:embeds_one,
-                                           :embeds_many,
-                                           :has_one,
-                                           :has_many,
-                                           :has_and_belongs_to_many,
-                                           :belongs_to).each do |relation|
-          next if Setup::BuildInDataType::EXCLUDED_RELATIONS.include?(relation.name.to_s)
-          if values = record.send(relation.name)
+        record.orm_model.for_each_association do |relation|
+          next if Setup::BuildInDataType::EXCLUDED_RELATIONS.include?(relation[:name].to_s)
+          if values = record.send(relation[:name])
             values = [values] unless values.is_a?(Enumerable)
             values.each { |value| return false unless save_references(value, saved, visited) }
             values.each do |value|
-              if value.save(validate: false)
+              if value.save
                 saved << value
               else
                 return false
-              end unless saved.include?(record)
-            end unless relation.embedded?
-          end if relation.macro != :belongs_to || relation.inverse_of.nil?
+              end unless saved.include?(value)
+            end unless relation[:embedded]
+          end
         end
         true
       end
