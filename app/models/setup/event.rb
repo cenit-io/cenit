@@ -17,8 +17,12 @@ module Setup
     before_save :do_not_save
 
     def do_not_save
-      errors.add(:base, 'An event must be of type Observer or Scheduler')
-      false
+      if self.is_a?(Setup::Observer) || self.is_a?(Setup::Scheduler)
+        true
+      else
+        errors.add(:base, 'An event must be of type Observer or Scheduler')
+        false
+      end
     end
 
   end
