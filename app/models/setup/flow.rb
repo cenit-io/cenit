@@ -1,12 +1,8 @@
 require 'nokogiri'
 
 module Setup
-  class Flow < ShortcutValidator
-    include Mongoid::Document
-    include Mongoid::Timestamps
-    include AccountScoped
-    include Setup::Enum
-    include Trackable
+  class Flow < ReqRejValidator
+    include CenitCommon
     include DynamicValidators
 
     BuildInDataType.regist(self)

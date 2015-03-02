@@ -1,5 +1,5 @@
 module Setup
-  class ShortcutValidator
+  class ReqRejValidator
 
     def reject_message(field=nil)
       'is not allowed'

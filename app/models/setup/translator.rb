@@ -1,9 +1,6 @@
 module Setup
-  class Translator < ShortcutValidator
-    include Mongoid::Document
-    include Mongoid::Timestamps
-    include AccountScoped
-    include Trackable
+  class Translator < ReqRejValidator
+    include CenitCommon
 
     BuildInDataType.regist(self).referenced_by(:name)
 

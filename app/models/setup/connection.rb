@@ -1,10 +1,7 @@
 module Setup
   class Connection
-    include Mongoid::Document
-    include Mongoid::Timestamps
-    include AccountScoped
+    include CenitCommon
     include NumberGenerator
-    include Trackable
 
     BuildInDataType.regist(self)
 

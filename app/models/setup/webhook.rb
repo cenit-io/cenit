@@ -1,9 +1,6 @@
 module Setup
   class Webhook
-    include Mongoid::Document
-    include Mongoid::Timestamps
-    include AccountScoped
-    include Trackable
+    include CenitCommon
     include Setup::Enum
 
     BuildInDataType.regist(self).referenced_by(:name)

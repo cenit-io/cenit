@@ -2,19 +2,20 @@ require 'edi/formater'
 
 module Setup
   class DataType < BaseDataType
-    include Mongoid::Document
-    include Mongoid::Timestamps
-    include AccountScoped
-    include Trackable
+    include CenitCommon
 
     BuildInDataType.regist(self).referenced_by(:name)
 
     def self.to_include_in_models
-      @to_include_in_models ||= [Mongoid::Document, Mongoid::Timestamps, EventLookup, AccountScoped, DynamicValidators, Edi::Formatter, Edi::Filler] #, MakeSlug, RailsAdminDynamicCharts::Datetime
-    end
-
-    def self.to_include_in_model_classes
-      @to_include_in_model_classes ||= [AffectRelation, Mongoid::PropertyModelDiscover]
+      @to_include_in_models ||= [Mongoid::Document,
+                                 Mongoid::Timestamps,
+                                 AffectRelation,
+                                 Mongoid::CenitExtension,
+                                 EventLookup,
+                                 AccountScoped,
+                                 DynamicValidators,
+                                 Edi::Formatter,
+                                 Edi::Filler] #, MakeSlug, RailsAdminDynamicCharts::Datetime
     end
 
     belongs_to :uri, class_name: Setup::Schema.to_s, inverse_of: :data_types
@@ -465,12 +466,12 @@ module Setup
               c.include(module_to_include)
             end
           end
-          DataType.to_include_in_model_classes.each do |module_to_include|
-            unless c.class.include?(module_to_include)
-              puts "#{c.to_s} class including #{module_to_include.to_s}."
-              c.class.include(module_to_include)
-            end
-          end
+          # DataType.to_include_in_model_classes.each do |module_to_include|
+          #   unless c.class.include?(module_to_include)
+          #     puts "#{c.to_s} class including #{module_to_include.to_s}."
+          #     c.class.include(module_to_include)
+          #   end
+          # end
           c.class_eval("def self.data_type
             @data_type ||= Setup::DataType.where(id: '#{self.id}').first
           end
@@ -1041,23 +1042,27 @@ module Setup
     end
 
     module AffectRelation
+      extend ActiveSupport::Concern
 
-      def affected_models
-        @affected_models ||= Set.new
-        @affected_models.delete_if { |model| no_constant(model) }
-        return @affected_models
-      end
+      module ClassMethods
 
-      def affects_to(model)
-        puts "#{self.schema_name} affects #{model.schema_name}"
-        (@affected_models ||= Set.new) << model
-      end
+        def affected_models
+          @affected_models ||= Set.new
+          @affected_models.delete_if { |model| no_constant(model) }
+          return @affected_models
+        end
 
-      private
+        def affects_to(model)
+          puts "#{self.schema_name} affects #{model.schema_name}"
+          (@affected_models ||= Set.new) << model
+        end
 
-      def no_constant(model)
-        model = model.to_s.constantize rescue nil
-        model ? false : true
+        private
+
+        def no_constant(model)
+          model = model.to_s.constantize rescue nil
+          model ? false : true
+        end
       end
     end
   end

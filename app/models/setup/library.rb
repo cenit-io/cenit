@@ -1,9 +1,6 @@
 module Setup
   class Library
-    include Mongoid::Document
-    include Mongoid::Timestamps
-    include AccountScoped
-    include Trackable
+    include CenitCommon
 
     BuildInDataType.regist(self)
 

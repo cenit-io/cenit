@@ -1,9 +1,6 @@
 module Setup
   class Event
-    include Mongoid::Document
-    include Mongoid::Timestamps
-    include AccountScoped
-    include Trackable
+    include CenitCommon
 
     BuildInDataType.regist(self).with(:name).referenced_by(:name).and(sub_schema: "self['_type']")
 

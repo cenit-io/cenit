@@ -78,13 +78,10 @@ module Setup
       end
 
       def regist(model)
-        model.define_singleton_method(:data_type) do
-          BuildInDataType.build_ins[self.to_s]
-        end
         model.include(Setup::OrmModelAware)
         model.include(Edi::Formatter)
         model.include(Edi::Filler)
-        model.class.include(Mongoid::PropertyModelDiscover)
+        model.class.include(Mongoid::CenitExtension)
         build_ins[model.to_s] = BuildInDataType.new(model)
       end
     end

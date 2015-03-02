@@ -1,6 +1,5 @@
 module Setup
   class Observer < Event
-    include AccountScoped
 
     BuildInDataType.regist(self).referenced_by(:name).excluding(:last_trigger_timestamps).including(:data_type)
 

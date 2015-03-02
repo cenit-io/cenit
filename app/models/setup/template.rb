@@ -1,10 +1,6 @@
 module Setup
   class Template
-    include Mongoid::Document
-    include Mongoid::Timestamps
-    include AccountScoped
-    include Setup::Enum
-    include Trackable
+    include CenitCommon
 
     BuildInDataType.regist(self).embedding(:translators, :events, :connection_roles, :webhooks)
 

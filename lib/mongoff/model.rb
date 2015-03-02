@@ -48,6 +48,10 @@ module Mongoff
       persistable? ? Mongoid::Sessions.default[collection_name].find.count : 0
     end
 
+    def collection_size(scale=1024)
+      Mongoid::Sessions.default.command(collstats: collection_name, scale: scale)['size'] rescue 0
+    end
+
     def method_missing(symbol, *args)
       if (query = Mongoid::Sessions.default[collection_name].find.try(symbol, *args)).is_a?(Moped::Query)
         Criteria.new(self, query)

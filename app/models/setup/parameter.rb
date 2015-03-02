@@ -1,8 +1,6 @@
 module Setup
   class Parameter
-    include Mongoid::Document
-    include Mongoid::Timestamps
-    include AccountScoped
+    include CenitCommon
 
     BuildInDataType.regist(self).with(:key, :value)
 
