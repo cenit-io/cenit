@@ -1,4 +1,6 @@
-[RailsAdmin::Config::Actions::SendToFlow,
+[RailsAdmin::Config::Actions::MemoryUsage,
+ RailsAdmin::Config::Actions::DiskUsage,
+ RailsAdmin::Config::Actions::SendToFlow,
  RailsAdmin::Config::Actions::TestTransformation,
  RailsAdmin::Config::Actions::LoadModel,
  RailsAdmin::Config::Actions::ShutdownModel,
@@ -30,6 +32,8 @@ RailsAdmin.config do |config|
 
   config.actions do
     dashboard # mandatory
+    memory_usage
+    disk_usage
     index # mandatory
     new { except [Setup::DataType, Role, Setup::Event] }
     import
