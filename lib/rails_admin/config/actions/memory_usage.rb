@@ -1,3 +1,5 @@
+require 'objspace'
+
 module RailsAdmin
   module Config
     module Actions
@@ -16,7 +18,7 @@ module RailsAdmin
             @max = 0
             @count = {}
             Setup::DataType.all.each do |data_type|
-              @count[data_type.id.to_s] = count = data_type.loaded? ? data_type.records_model.collection_size(1) : 0
+              @count[data_type.id.to_s] = count = data_type.loaded? ? MemoryUsage.of(data_type.records_model) : 0
               @max = count if count > @max
             end
           end
@@ -24,6 +26,15 @@ module RailsAdmin
 
         register_instance_option :link_icon do
           'icon-fire'
+        end
+
+        class << self
+
+          def of(model)
+            size = ObjectSpace.memsize_of(model)
+            model.constants(false).each { |c| size += of(c) } if model.is_a?(Class) || model.is_a?(Module)
+            size
+          end
         end
       end
     end
