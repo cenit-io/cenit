@@ -1,13 +1,16 @@
 module Mongoff
   class Model
+    include Setup::InstanceAffectRelation
 
     EMPTY_SCHEMA = {}.freeze
 
-    attr_reader :data_type
-
     def initialize(data_type, schema=nil)
-      @data_type = data_type
+      @data_type_id = data_type.id.to_s
       @persistable = (@schema = schema).nil?
+    end
+
+    def data_type
+      Setup::DataType.where(id: @data_type_id).first
     end
 
     def new

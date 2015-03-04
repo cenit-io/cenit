@@ -27,8 +27,8 @@ module RailsAdmin
               begin
                 @object.show_navigation_link = true
                 report = @object.load_models(activated: true)
+                RailsAdmin::AbstractModel.model_loaded(report[:loaded])
                 if report[:model]
-                  RailsAdmin::AbstractModel.model_loaded(report[:model])
                   flash[:success] = "Model #{@object.title} loaded!"
                 else
                   flash[:error] = ''.html_safe
