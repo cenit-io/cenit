@@ -5,10 +5,10 @@ module Setup
 
     BuildInDataType.regist(self).referenced_by(:name)
     
-    embeds_many :url_parameters, class_name: Setup::Parameter.name, inverse_of: :webhook
-    embeds_many :headers, class_name: Setup::Parameter.name, inverse_of: :webhook
+    embeds_many :url_parameters, class_name: Setup::Parameter.to_s, inverse_of: :webhook
+    embeds_many :headers, class_name: Setup::Parameter.to_s, inverse_of: :webhook
 
-    belongs_to :template, class_name: Setup::Template.name, inverse_of: :webhooks
+    belongs_to :template, class_name: Setup::Template.to_s, inverse_of: :webhooks
 
     field :name, type: String
     field :path, type: String

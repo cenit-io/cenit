@@ -27,7 +27,7 @@ module Xsd
 
     [Xsd::Sequence, Xsd::Choice, Xsd::All].each do |container_class|
       class_eval("def #{container_class.tag_name}_start(attributes = [])
-          return #{container_class.to_s}.new(self, attributes)
+          #{container_class.to_s}.new(self, attributes)
         end
       def when_#{container_class.tag_name}_end(container)
           @container = container
@@ -72,7 +72,7 @@ module Xsd
           end
         end
       end
-      json['required'] = required unless required.empty?
+      json['required'] = required if required.present?
       json
     end
   end

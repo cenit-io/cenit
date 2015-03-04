@@ -10,28 +10,30 @@ module Setup
 
     before_save :format_triggers
 
-    def triggers_apply_to?(obj_now, obj_before=nil)
+    def triggers_apply_to?(obj_now, obj_before = nil)
       puts "Applying event '#{self}'..."
       r = true
       triggers_hash = JSON.parse(self.triggers)
       triggers_hash.each do |field_name, conditions|
         conditions.each do |_, condition|
           puts "...verifying trigger #{condition} on (#{obj_now},#{obj_before})::#{field_name}"
-          if (condition['o'] == '_change')
-            puts c = field_changed(obj_now, obj_before, field_name)
-          else
-            puts c = condition_apply(obj_now, field_name, condition) && !condition_apply(obj_before, field_name, condition)
-          end
+          puts c = if (condition['o'] == '_change')
+                     field_changed(obj_now, obj_before, field_name)
+                  else
+                     condition_apply(obj_now, field_name, condition) && !condition_apply(obj_before, field_name, condition)
+                  end
           r &&= c
         end
       end
       puts "Event '#{name ? name : self}' #{r ? '' : 'DOES NOT'} APPLIES!"
-      return r
+      r
     end
 
-    def self.lookup(obj_now, obj_before=nil)
-      where(data_type: obj_now.orm_model.data_type).each { |e| Setup::Flow.where(active: true, event: e).
-          each { |f| f.process(source_id: obj_now.id.to_s) } if e.triggers_apply_to?(obj_now, obj_before) }
+    def self.lookup(obj_now, obj_before = nil)
+      where(data_type: obj_now.orm_model.data_type).each do |e|
+        next unless e.triggers_apply_to?(obj_now, obj_before)
+        Setup::Flow.where(active: true, event: e).each { |f| f.process(source_id: obj_now.id.to_s) }
+      end
     end
 
     def to_s
@@ -43,10 +45,9 @@ module Setup
     def field_changed(obj_now, obj_before, field_name)
       now_v = obj_now.try(field_name)
       before_v = obj_before.try(field_name)
-
       r = now_v != before_v
       puts "#{now_v} change? #{before_v} -> #{r}"
-      return r
+      r
     end
 
     def condition_apply(obj, field_name, condition)
@@ -69,14 +70,14 @@ module Setup
       rescue Exception => ex
         puts "ERROR #{ex.message}"
       end
-      return false
+      false
     end
 
     def convert_to_string_array(obj_v)
       return [obj_v] if obj_v.is_a?(String)
       array = [:name, :title, :id].map { |property| obj_v.send(property).to_s rescue next }
       array << obj_v.to_s if array.empty?
-      return array
+      array
     end
 
     def valuate(cond_v, klass)
@@ -88,17 +89,17 @@ module Setup
                       FalseClass => :to_boolean, TrueClass => :to_boolean, BigDecimal => :to_d}[klass]
       cond_v = cond_v.collect do |e|
         case
-          when e.nil? || (e.is_a?(String) && e.empty?) then
-            nil
-          when to_obj_class.nil? then
+        when e.nil? || (e.is_a?(String) && e.empty?)
+          nil
+        when to_obj_class.nil?
+          e
+        else
+          begin
+            e.to_s.send(to_obj_class)
+          rescue Exception => ex
+            puts "ERROR invoking [#{klass}](#{e} of class #{e.class}).#{to_obj_class} -> #{ex.message}"
             e
-          else
-            begin
-              e.to_s.send(to_obj_class)
-            rescue Exception => ex
-              puts "ERROR invoking [#{klass}](#{e} of class #{e.class}).#{to_obj_class} -> #{ex.message}"
-              e
-            end
+          end
         end
       end
       return is_array ? cond_v : cond_v[0]
@@ -140,7 +141,7 @@ module Setup
       return false if obj_v.nil? || cond_v.nil?
       min = cond_v[1].nil? ? true : obj_v >= cond_v[1]
       max = cond_v[2].nil? ? true : obj_v <= cond_v[2]
-      return min && max
+      min && max
     end
 
     def op_today(obj_v, cond_v)

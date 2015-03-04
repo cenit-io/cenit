@@ -16,13 +16,9 @@ module Setup
     before_save :save_data_types
     before_destroy :destroy_data_types
 
-    def load_models(options={})
+    def load_models(options = {})
       models = Set.new
-      data_types.each do |data_type|
-        if data_type.activated
-          models += data_type.load_models(options)[:loaded]
-        end
-      end
+      data_types.each { |data_type| models += data_type.load_models(options)[:loaded] if data_type.activated }
       RailsAdmin::AbstractModel.update_model_config(models)
     end
 
@@ -42,7 +38,7 @@ module Setup
         return false
       end
       begin
-        return false unless errors.blank?
+        return false if errors.present?
         parse_schemas.each do |name, schema|
           if data_type = self.data_types.where(name: name).first
             data_type.schema = schema.to_json
@@ -66,7 +62,6 @@ module Setup
       rescue Exception => ex
         if @include_missing = ex.is_a?(Xsd::IncludeMissingException)
           @include_missing_message = ex.message
-
         else
           raise ex
         end
@@ -83,12 +78,8 @@ module Setup
     def save_data_types
       if run_after_initialized
         puts "Saving data types for #{uri}"
-        self.data_types.each do |data_type|
-          puts data_type.name
-        end
-        self.data_types.each do |data_type|
-          data_type.save
-        end
+        self.data_types.each { |data_type| puts data_type.name }
+        self.data_types.each(&:save)
       else
         false
       end
@@ -100,11 +91,7 @@ module Setup
 
     def parse_schemas
       self.schema = self.schema.strip
-      if self.schema.start_with?('{')
-        parse_json_schema
-      else
-        parse_xml_schema
-      end
+      self.schema.start_with?('{') ? parse_json_schema : parse_xml_schema
     end
 
     def parse_json_schema
@@ -112,11 +99,11 @@ module Setup
       if json['type'] || json['allOf']
         name = self.uri
         if (index = name.rindex('/')) || index = name.rindex('#')
-          name = name[index+1, name.length-1]
+          name = name[index + 1, name.length - 1]
         end
         if index = name.rindex('.')
-          name = name[0..index-1]
-        end
+          name = name[0..index - 1]
+        end  
         {name.camelize => json}
       else
         json

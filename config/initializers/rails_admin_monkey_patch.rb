@@ -165,11 +165,7 @@ module RailsAdmin
           Config.reset_model(model)
           data_type = model.data_type
           schema = JSON.parse(data_type.schema)
-          model.schema_path.split('/').each do |token|
-            unless token.blank?
-              schema = data_type.merge_schema(schema[token])
-            end
-          end
+          model.schema_path.split('/').each { |token| schema = data_type.merge_schema(schema[token]) if token.present? }
           model_data_type = data_type.model.eql?(model) ? data_type : nil
           rails_admin_model = Config.model(model).target
           title = model_data_type ? model_data_type.title : model.title
@@ -209,7 +205,7 @@ module RailsAdmin
 
       private
 
-      def sort_by_embeds(models, sorted=[])
+      def sort_by_embeds(models, sorted = [])
         models.each do |model|
           [:embeds_one, :embeds_many].each do |rk|
             sort_by_embeds(model.reflect_on_all_associations(rk).collect { |r| r.klass }, sorted)

@@ -19,9 +19,7 @@ module Cenit
     def self.send_to_endpoints(message)
       puts "RABBIT: #{message = JSON.parse(message).with_indifferent_access}"
       flow = Setup::Flow.find(message[:flow_id])
-      flow.translate(message) do |translation_result|
-        notify_to_cenit(translation_result.merge(message: message, flow: flow))
-      end
+      flow.translate(message) { |translation_result| notify_to_cenit(translation_result.merge(message: message, flow: flow)) }
     end
 
     def self.notify_to_cenit(translation)
@@ -31,9 +29,9 @@ module Cenit
       # 400...499 : Bad request
       # 500...599 : Internal Server Error
 
-      response= translation[:response]
-      message= translation[:message]
-      exception= translation[:exception]
+      response = translation[:response]
+      message = translation[:message]
+      exception = translation[:exception]
 
       notification = nil
       if message[:notification_id.to_s].nil?

@@ -31,14 +31,14 @@ module Cenit
         uri = URI.parse(lazy_ref)
         unless schema = JSON::Validator.schemas[uri.to_s]
           json_schema = case lazy_ref
-                          when 'Date' then
-                            {'type' => 'string', 'format' => 'date'}
-                          when 'DateTime' then
-                            {'type' => 'string', 'format' => 'date-time'}
-                          when 'Time' then
-                            {'type' => 'string', 'format' => 'time'}
-                          else
-                            {'type' => 'string'}
+                        when 'Date'
+                          {'type' => 'string', 'format' => 'date'}
+                        when 'DateTime'
+                          {'type' => 'string', 'format' => 'date-time'}
+                        when 'Time'
+                          {'type' => 'string', 'format' => 'time'}
+                        else
+                          {'type' => 'string'}
                         end
           JSON::Validator.add_schema(schema = JSON::Schema.new(json_schema, uri))
         end
