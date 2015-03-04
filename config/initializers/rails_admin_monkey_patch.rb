@@ -138,7 +138,7 @@ module RailsAdmin
           models_to_reset.delete(model)
         end
         models_to_reset.each do |model|
-          unless model.is_a?(Hash)
+          if model.is_a?(Class)
             Config.new_model(model)
             if !all.detect { |e| e.model_name.eql?(model.to_s) } && m = new(model)
               all << m
@@ -221,10 +221,10 @@ module RailsAdmin
 
       def collect_models(models, to_reset)
         models.each do |model|
-          unless to_reset.detect { |m| m.to_s == model.to_s }
+          unless to_reset.detect { |m| m.model_access_name == model.model_access_name }
             begin
-              if (model.is_a?(Hash))
-                affected_models = model[:affected] || []
+              unless model.is_a?(Class)
+                affected_models = model.affected_models
               else
                 to_reset << model
                 [:embeds_one, :embeds_many, :embedded_in].each do |rk|
@@ -260,7 +260,9 @@ module RailsAdmin
   class MainController
     def sanitize_params_for!(action, model_config = @model_config, target_params = params[@abstract_model.param_key])
       return unless target_params.present?
-      fields = model_config.send(action).with(controller: self, view: view_context, object: @object).fields
+      fields = model_config.send(action).with(controller: self, view: view_context, object: @object).fields.select do |field|
+        !(field.properties.is_a?(RailsAdmin::Adapters::Mongoid::Property) && field.properties.property.is_a?(Mongoid::Fields::ForeignKey))
+      end
       allowed_methods = fields.collect(&:allowed_methods).flatten.uniq.collect(&:to_s) << 'id' << '_destroy'
       fields.each { |f| f.parse_input(target_params) }
       target_params.slice!(*allowed_methods)
