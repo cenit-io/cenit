@@ -121,6 +121,9 @@ RailsAdmin.config do |config|
 
     configure :uri do
       read_only { !bindings[:object].new_record? }
+      html_attributes do
+        {cols: '74', rows: '1'}
+      end
     end
 
     configure :schema, :text do
@@ -203,7 +206,7 @@ RailsAdmin.config do |config|
 
     list do
       field :uri
-      field :title
+      field :name
       field :used_memory do
         pretty_value do
           unless max = bindings[:controller].instance_variable_get(:@max_used_memory)
@@ -228,7 +231,7 @@ RailsAdmin.config do |config|
       field :updated_at
       field :updater
     end
-    fields :uri, :title, :used_memory
+    fields :uri, :name, :used_memory
   end
 
   config.model Setup::Connection.name do
