@@ -88,7 +88,7 @@ module Setup
       type == :Export && !NON_BULK_SOURCE_STYLES.include?(style)
     end
 
-    NON_BULK_SOURCE_STYLES = %w(double_curly_braces xslt)
+    NON_BULK_SOURCE_STYLES = %w(double_curly_braces xslt liquid)
 
     STYLES_MAP = {
       'liquid' => {Setup::Transformation::LiquidExportTransform => [:Export]},
@@ -109,7 +109,7 @@ module Setup
 
     EXPORT_MIME_FILTER = {
       'double_curly_braces' => ['application/json'],
-      'xslt' => ['application/xml'],
+      'xslt' => %w(application/xml text/html),
       'json.rabl' => ['application/json'],
       'xml.rabl' => ['application/xml'],
       'xml.builder' => ['application/xml'],

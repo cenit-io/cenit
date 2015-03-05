@@ -513,7 +513,7 @@ RailsAdmin.config do |config|
     configure :path, :string do
       help "Requiered. Path of the webhook relative to connection URL."
       html_attributes do
-        {maxlength: 50, size: 50}
+        {maxlength: 255, size: 100}
       end
     end
     group :parameters do
@@ -581,7 +581,9 @@ RailsAdmin.config do |config|
         inline_edit false
         inline_add false
       end
-      field :translator
+      field :translator do
+        help 'Required'
+      end
       field :custom_data_type do
         inline_edit false
         inline_add false
