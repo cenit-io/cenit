@@ -193,8 +193,10 @@ RailsAdmin.config do |config|
 
     configure :collection_size, :decimal do
       pretty_value do
-        @max_collection_size ||= bindings[:controller].instance_variable_get(:@objects).collect { |data_type| data_type.records_model.collection_size }.max
-        (bindings[:view].render partial: 'used_memory_bar', locals: { max: @max_collection_size, value: bindings[:object].records_model.collection_size}).html_safe
+        unless max = bindings[:controller].instance_variable_get(:@max_collection_size)
+          bindings[:controller].instance_variable_set(:@max_collection_size, max = bindings[:controller].instance_variable_get(:@objects).collect { |data_type| data_type.records_model.collection_size }.max)
+        end
+        (bindings[:view].render partial: 'used_memory_bar', locals: { max: max, value: bindings[:object].records_model.collection_size}).html_safe
       end
       read_only true
     end
@@ -204,8 +206,10 @@ RailsAdmin.config do |config|
       field :title
       field :used_memory do
         pretty_value do
-          @max ||= Setup::DataType.fields[:used_memory.to_s].type.new(Setup::DataType.max(:used_memory))
-          (bindings[:view].render partial: 'used_memory_bar', locals: {max: @max, value: Setup::DataType.fields[:used_memory.to_s].type.new(value)}).html_safe
+          unless max = bindings[:controller].instance_variable_get(:@max_used_memory)
+            bindings[:controller].instance_variable_set(:@max_used_memory, max = Setup::DataType.fields[:used_memory.to_s].type.new(Setup::DataType.max(:used_memory)))
+          end
+          (bindings[:view].render partial: 'used_memory_bar', locals: {max: max, value: Setup::DataType.fields[:used_memory.to_s].type.new(value)}).html_safe
         end
       end
       field :collection_size
