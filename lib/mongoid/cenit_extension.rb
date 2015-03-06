@@ -4,7 +4,7 @@ module Mongoid
 
     module ClassMethods
 
-      def collection_size(scale=1024)
+      def collection_size(scale=1)
         mongo_session.command(collstats: collection_name, scale: scale)['size'] rescue 0
       end
 

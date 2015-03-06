@@ -25,9 +25,8 @@ module RailsAdmin
               flash[:notice] = "Model #{@object.title} is already loaded!"
             else
               begin
-                @object.activated = @object.show_navigation_link = true
-                @object.save
-                report = @object.load_models
+                @object.show_navigation_link = true
+                report = @object.load_models(activated: true)
                 if report[:model]
                   RailsAdmin::AbstractModel.model_loaded(report[:model])
                   flash[:success] = "Model #{@object.title} loaded!"

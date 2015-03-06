@@ -16,7 +16,7 @@ module RailsAdmin
         end
 
         register_instance_option :visible do
-          authorized? && bindings[:object] && bindings[:object].is_object? && bindings[:object].loaded?
+          authorized? && (data_type = bindings[:object]) && data_type.is_object? && data_type.activated && data_type.loaded?
         end
 
         register_instance_option :controller do
@@ -31,11 +31,17 @@ module RailsAdmin
                   params[:shutdown] = true if @shutdown.empty? && @reload.empty?
                 end
                 if params[:shutdown]
+                  @object.activated = ok = false
                   (report = Setup::DataType.shutdown(@object))[:destroyed].each do |model|
                     (data_type = model.data_type).activated = data_type.show_navigation_link = false
                     data_type.save
+                    ok = ok || data_type == @object
                   end
-                  flash[:success] = "Model #{@object.title} is now shutdown"
+                  if ok
+                    flash[:success] = "Model #{@object.title} is now shutdown"
+                  else
+                    flash[:notice] = "Model #{@object.title} was not shutdown"
+                  end
                   unless report[:errors].empty?
                     flash[:error] = ''.html_safe
                     report[:errors].each do |data_type, errors|
@@ -48,6 +54,7 @@ module RailsAdmin
                   render @action.template_name
                 end
               rescue Exception => ex
+                raise ex
                 flash[:error] = "Error shutdown model #{@object.title}: #{ex.message}"
               end
             else

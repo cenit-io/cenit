@@ -42,6 +42,7 @@ module Setup
     field :activated, type: Boolean, default: false
     field :show_navigation_link, type: Boolean
     field :to_be_destroyed, type: Boolean
+    field :used_memory, type: BigDecimal, default: 0
 
     scope :activated, -> { where(activated: true) }
 
@@ -78,7 +79,7 @@ module Setup
     end
 
     def records_model
-      model || @mongoff_model ||= Mongoff::Model.new(self)
+      (m = model) && m.is_a?(Class) ? m : @mongoff_model ||= Mongoff::Model.new(self)
     end
 
     def loaded?
@@ -87,6 +88,10 @@ module Setup
 
     def data_type_name
       "Dt#{self.id.to_s}"
+    end
+
+    def collection_size(scale=1)
+      records_model.collection_size(scale)
     end
 
     def count
@@ -101,6 +106,16 @@ module Setup
       end
     end
 
+    def shutdown_model(options={})
+      report = deconstantize(data_type_name, options)
+      unless options[:report_only]
+        self.to_be_destroyed = true if options[:destroy]
+        self.used_memory = 0
+        save
+      end
+      report
+    end
+
     def to_be_destroyed?
       to_be_destroyed
     end
@@ -110,6 +125,7 @@ module Setup
     end
 
     def load_models(options={reload: false, reset_config: true})
+      do_activate = options.delete(:activated) || activated
       report = {loaded: Set.new, errors: {}}
       begin
         if (do_shutdown = options[:reload] || schema_has_changed?) || !loaded?
@@ -141,9 +157,19 @@ module Setup
       create_default_events
       if model
         report[:loaded] << (report[:model] = model)
+        if self.used_memory != (model_used_memory = RailsAdmin::Config::Actions::MemoryUsage.of(model))
+          self.used_memory = model_used_memory
+        end
+        report[:destroyed].delete_if { |m| m.to_s == model.to_s } if report[:destroyed]
+        self.activated = do_activate if do_activate.present?
       else
         report[:errors][self] = errors
+        unless self.used_memory == 0
+          self.used_memory = 0
+        end
+        self.activated = false
       end
+      save
       report
     end
 
@@ -404,7 +430,6 @@ module Setup
     RJSON_MAP={'string' => 'String',
                'integer' => 'Integer',
                'number' => 'Float',
-               'string' => 'String',
                'array' => 'Array',
                'boolean' => 'Boolean',
                'date' => 'Date',
@@ -936,15 +961,11 @@ module Setup
         report={destroyed: Set.new, affected: Set.new, reloaded: Set.new, errors: {}}
         data_types.each do |data_type|
           begin
-            r = data_type.send(:deconstantize, data_type.data_type_name, options)
+            r = data_type.shutdown_model(options)
             report[:destroyed] += r[:destroyed]
             report[:affected] += r[:affected]
-            if options[:destroy]
-              data_type.to_be_destroyed = true
-              data_type.save
-            end
           rescue Exception => ex
-            #raise ex
+            raise ex
             puts "Error deconstantizing model #{data_type.name}: #{ex.message}"
           end
         end
@@ -952,12 +973,17 @@ module Setup
         post_process_report(report)
         puts "Post processed report #{report}"
         unless options[:report_only]
+          report[:destroyed].each do |model|
+            unless data_types.include?(data_type = model.data_type)
+              model.data_type.shutdown_model(options)
+            end
+          end
           deconstantize(report[:destroyed])
           puts 'Reloading affected models...' unless report[:affected].empty?
           destroyed_lately = []
           report[:affected].each do |model|
             data_type = model.data_type
-            unless report[:errors][data_type] ||report[:reloaded].detect { |m| m.to_s == model.to_s }
+            unless report[:errors][data_type] || report[:reloaded].detect { |m| m.to_s == model.to_s }
               begin
                 if model.parent == Object
                   puts "Reloading #{model.schema_name rescue model.to_s} -> #{model.to_s}"
@@ -974,6 +1000,7 @@ module Setup
                   puts "Model #{model.schema_name rescue model.to_s} -> #{model.to_s} reload on parent reload!"
                 end
               rescue Exception => ex
+                raise ex
                 puts "Error deconstantizing  #{model.schema_name rescue model.to_s}"
 
                 destroyed_lately << model
@@ -983,6 +1010,7 @@ module Setup
           end
           report[:affected].clear
           deconstantize(destroyed_lately)
+          report[:destroyed].delete_if { |model| report[:reloaded].detect { |m| m.to_s == model.to_s } }
           puts "Final report #{report}"
           RailsAdmin::AbstractModel.update_model_config([], report[:destroyed], report[:reloaded]) if options[:reset_config]
         end
@@ -1007,6 +1035,15 @@ module Setup
       end
 
       def post_process_report(report)
+        not_activated = report[:affected].collect { |model| model.data_type }.select { |data_type| !data_type.activated }
+        not_activated.each do |data_type|
+          r = shutdown(data_type, report_only: true)
+          unless r[:affected].detect { |m| !report[:destroyed].include?(m) }
+            report[:destroyed] << model = data_type.model
+            report[:affected].delete(model)
+          end
+        end
+
         affected_children =[]
         report[:affected].each { |model| affected_children << model if ancestor_included(model, report[:affected]) }
         report[:affected].delete_if { |model| report[:destroyed].include?(model) || affected_children.include?(model) }

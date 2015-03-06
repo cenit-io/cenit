@@ -7,13 +7,15 @@
  RailsAdmin::Config::Actions::SwitchNavigation,
  RailsAdmin::Config::Actions::DataType,
  RailsAdmin::Config::Actions::Import,
- RailsAdmin::Config::Actions::EdiExport,
+ #RailsAdmin::Config::Actions::EdiExport,
  RailsAdmin::Config::Actions::ImportSchema,
  RailsAdmin::Config::Actions::DeleteAll,
  RailsAdmin::Config::Actions::EditTranslator,
  RailsAdmin::Config::Actions::Update,
  RailsAdmin::Config::Actions::Convert,
  RailsAdmin::Config::Actions::DeleteSchema].each { |a| RailsAdmin::Config::Actions.register(a) }
+
+RailsAdmin::Config::Actions.register(:export, RailsAdmin::Config::Actions::EdiExport)
 
 RailsAdmin.config do |config|
 
@@ -43,7 +45,7 @@ RailsAdmin.config do |config|
     #import do
     #  only 'Setup::DataType'
     #end
-    edi_export
+    export
     bulk_delete { except [Setup::Schema, Setup::DataType, Role] }
     show
     edit { except [Setup::Library, Role, Setup::Translator] }
@@ -189,8 +191,24 @@ RailsAdmin.config do |config|
       end
     end
 
+    configure :collection_size, :decimal do
+      pretty_value do
+        @max_collection_size ||= bindings[:controller].instance_variable_get(:@objects).collect { |data_type| data_type.records_model.collection_size }.max
+        (bindings[:view].render partial: 'used_memory_bar', locals: { max: @max_collection_size, value: bindings[:object].records_model.collection_size}).html_safe
+      end
+      read_only true
+    end
+
     list do
-      fields :uri, :name, :activated
+      field :uri
+      field :title
+      field :used_memory do
+        pretty_value do
+          @max ||= Setup::DataType.fields[:used_memory.to_s].type.new(Setup::DataType.max(:used_memory))
+          (bindings[:view].render partial: 'used_memory_bar', locals: {max: @max, value: Setup::DataType.fields[:used_memory.to_s].type.new(value)}).html_safe
+        end
+      end
+      field :collection_size
     end
 
     show do
@@ -206,7 +224,7 @@ RailsAdmin.config do |config|
       field :updated_at
       field :updater
     end
-    fields :uri, :name, :activated, :schema, :sample_data
+    fields :uri, :title, :used_memory
   end
 
   config.model Setup::Connection.name do

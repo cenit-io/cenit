@@ -1,4 +1,4 @@
-- unless @shutdown.empty?
+- unless @shutdown.nil? || @shutdown.empty?
   %fieldset
     %legend{style: ''}
       %i.icon-chevron-right
@@ -8,7 +8,7 @@
         - @shutdown.each do |data_type|
           %li
             = link_to(data_type.title, rails_admin.show_path(model_name: Setup::DataType.to_s.underscore.gsub('/', '~'), id: data_type.id), class: 'pjax')
-- unless @reload.empty?
+- unless @reload.nil? || @reload.empty?
   %fieldset
     %legend{style: ''}
       %i.icon-chevron-right

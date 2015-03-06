@@ -15,12 +15,9 @@ module RailsAdmin
 
         register_instance_option :controller do
           proc do
-            @max = 0
-            @count = {}
-            Setup::DataType.all.each do |data_type|
-              @count[data_type.id.to_s] = count = data_type.loaded? ? MemoryUsage.of(data_type.records_model) : 0
-              @max = count if count > @max
-            end
+            @objects ||= list_entries(RailsAdmin::Config.model(Setup::DataType))
+
+            @max = Setup::DataType.fields[:used_memory.to_s].type.new(Setup::DataType.max(:used_memory))
           end
         end
 
@@ -31,6 +28,7 @@ module RailsAdmin
         class << self
 
           def of(model)
+            return 0 unless model
             size = ObjectSpace.memsize_of(model)
             model.constants(false).each { |c| size += of(c) } if model.is_a?(Class) || model.is_a?(Module)
             size
