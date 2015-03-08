@@ -269,7 +269,7 @@ module Edi
                   property_record.send("#{key}=", sub_element)
                 end
               end
-              if property_json.empty? ? property_json = nil : record.send("#{property_name}=", property_record)
+              property_json.empty? ? (property_json = nil) : record.send("#{property_name}=", property_record)
             else
               property_json, start, property_record = do_parse_edi(data_type, property_model, content, property_schema, start, field_sep, segment_sep, report)
               record.send("#{property_name}=", property_record) if property_record

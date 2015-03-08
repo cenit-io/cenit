@@ -294,7 +294,7 @@ module Setup
             values = [values] unless values.is_a?(Enumerable)
             values.each { |value| return false unless save_references(value, saved, visited) }
             values.each do |value|
-              (value.save ? saved << value : return false) unless saved.include?(value)
+              (value.save ? saved << value : (return false)) unless saved.include?(value)
             end unless relation[:embedded]
           end
         end
