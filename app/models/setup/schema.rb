@@ -98,8 +98,12 @@ module Setup
       json = JSON.parse(self.schema)
       if json['type'] || json['allOf']
         name = self.uri
-        name = name[index + 1, name.length - 1] if (index = name.rindex('/')) || index = name.rindex('#')
-        name = name[0..index - 1] if index = name.rindex('.')
+        if (index = name.rindex('/')) || index = name.rindex('#')
+          name = name[index + 1, name.length - 1]
+        end
+        if index = name.rindex('.')
+          name = name[0..index - 1]
+        end  
         {name.camelize => json}
       else
         json

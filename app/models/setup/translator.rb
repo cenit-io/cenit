@@ -96,7 +96,9 @@ module Setup
 
     def file_extension_enum
       extensions = []
-      types.each { |type| extensions.concat(type.extensions) } if types = MIME::Types[mime_type]
+      if types = MIME::Types[mime_type]
+        types.each { |type| extensions.concat(type.extensions) }
+      end
       extensions.uniq
     end
 
@@ -220,7 +222,9 @@ module Setup
       def bind_references(record)
         references = {}
         for_each_node_starting_at(record) do |obj|
-          references[obj] = record_refs if record_refs = obj.instance_variable_get(:@_references)
+          if record_refs = obj.instance_variable_get(:@_references)
+            references[obj] = record_refs
+          end
         end
         puts references
         for_each_node_starting_at(record) do |obj|
@@ -230,7 +234,9 @@ module Setup
               property_binds.each do |property_bind|
                 if obj.is_a?(property_bind[:model]) && match?(obj, property_bind[:criteria])
                   if is_array
-                    obj_waiting.send("#{property_name}=", array_property = []) unless array_property = obj_waiting.send(property_name)
+                    unless array_property = obj_waiting.send(property_name)
+                      obj_waiting.send("#{property_name}=", array_property = [])
+                    end  
                     array_property << obj
                   else
                     obj_waiting.send("#{property_name}=", obj)
