@@ -11,22 +11,22 @@ module Setup
     field :active, type: Boolean, default: :true
     field :discard_events, type: Boolean
 
-    belongs_to :event, class_name: Setup::Event.name, inverse_of: nil
+    belongs_to :event, class_name: Setup::Event.to_s, inverse_of: nil
 
-    belongs_to :translator, class_name: Setup::Translator.name, inverse_of: nil
-    belongs_to :custom_data_type, class_name: Setup::DataType.name, inverse_of: nil
+    belongs_to :translator, class_name: Setup::Translator.to_s, inverse_of: nil
+    belongs_to :custom_data_type, class_name: Setup::DataType.to_s, inverse_of: nil
     field :data_type_scope, type: String
     field :lot_size, type: Integer
 
-    belongs_to :connection_role, class_name: Setup::ConnectionRole.name, inverse_of: nil
-    belongs_to :webhook, class_name: Setup::Webhook.name, inverse_of: nil
+    belongs_to :connection_role, class_name: Setup::ConnectionRole.to_s, inverse_of: nil
+    belongs_to :webhook, class_name: Setup::Webhook.to_s, inverse_of: nil
 
-    belongs_to :response_translator, class_name: Setup::Translator.name, inverse_of: nil
-    belongs_to :response_data_type, class_name: Setup::DataType.name, inverse_of: nil
+    belongs_to :response_translator, class_name: Setup::Translator.to_s, inverse_of: nil
+    belongs_to :response_data_type, class_name: Setup::DataType.to_s, inverse_of: nil
 
     field :last_trigger_timestamps, type: DateTime
 
-    belongs_to :template, class_name: Setup::Template.name, inverse_of: :flows
+    belongs_to :template, class_name: Setup::Template.to_s, inverse_of: :flows
 
     validates_presence_of :name, :event, :translator
     validates_numericality_in_presence_of :lot_size, greater_than_or_equal_to: 1
@@ -35,29 +35,14 @@ module Setup
     def validates_configuration
       return false unless ready_to_save?
       unless requires(:event, :translator)
-        if translator.data_type.nil?
-          requires(:custom_data_type)
-        else
-          rejects(:custom_data_type)
-        end
-        if translator.type == :Import
-          rejects(:data_type_scope)
-        else
-          requires(:data_type_scope)
-        end
-        if [:Import, :Export].include?(translator.type)
-          requires(:connection_role, :webhook)
-        else
-          rejects(:connection_role, :webhook)
-        end
+        translator.data_type.nil? ? requires(:custom_data_type) : rejects(:custom_data_type)
+        translator.type == :Import ? rejects(:data_type_scope) : requires(:data_type_scope)
+        [:Import, :Export].include?(translator.type) ? requires(:connection_role, :webhook) : rejects(:connection_role, :webhook)
+  
         if translator.type == :Export
           if response_translator.present?
             if response_translator.type == :Import
-              if response_translator.data_type
-                rejects(:response_data_type)
-              else
-                requires(:response_data_type)
-              end
+              response_translator.data_type ? rejects(:response_data_type) : requires(:response_data_type)
             else
               errors.add(:response_translator, 'is not an import translator')
             end
@@ -71,24 +56,20 @@ module Setup
       errors.blank?
     end
 
-    def reject_message(field=nil)
+    def reject_message(field = nil)
       case field
-        when :custom_data_type
-          'is not allowed since translator already defines a data type'
-        when :data_type_scope
-          'is not allowed for import translators'
-        when :response_data_type
-          if response_translator.present?
-            'is not allowed since response translator already defines a data type'
-          else
-            "can't be defined until response translator"
-          end
-        when :discard_events
-          "can't be defined until response translator"
-        when :lot_size, :response_translator
-          'is not allowed for non export translators'
-        else
-          super
+      when :custom_data_type
+        'is not allowed since translator already defines a data type'
+      when :data_type_scope
+        'is not allowed for import translators'
+      when :response_data_type
+        response_translator.present? ? 'is not allowed since response translator already defines a data type' : "can't be defined until response translator"
+      when :discard_events
+        "can't be defined until response translator"
+      when :lot_size, :response_translator
+        'is not allowed for non export translators'
+      else
+        super
       end
     end
 
@@ -209,9 +190,7 @@ module Setup
     def check_root(data_type, result)
       root_key = data_type.name.downcase
       result_hash = JSON.parse(result)
-      unless result_hash.has_key? root_key
-        result = {root_key => result_hash}.to_json
-      end
+      result = {root_key => result_hash}.to_json unless result_hash.has_key?(root_key)
       result
     end
 

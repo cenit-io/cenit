@@ -63,25 +63,25 @@ module Edi
           sub_element_schemas.each do |property_name, property_schema|
             next unless sub_element
             case property_schema['type']
-              when 'array'
-                relation = model.reflect_on_association(property_name)
-                next unless [:has_many, :has_and_belongs_to_many, :embeds_many].include?(relation.macro)
-                property_schema = data_type.merge_schema(property_schema['items'])
-                property_model = relation.klass
-                while sub_element && sub_record = do_parse_xml(data_type, property_model, sub_element, options, property_schema)
-                  record.send(property_name) << sub_record
-                  sub_element = sub_element.next_element
-                end
-              when 'object'
-                relation = model.reflect_on_association(property_name)
-                next unless [:has_one, :embeds_one].include?(relation.macro)
-                property_model = relation.klass
-                if sub_record = do_parse_xml(data_type, property_model, sub_element, options, property_schema, nil, nil, property_name)
-                  record.send("#{property_name}=", sub_record)
-                  sub_element = sub_element.next_element
-                end
-              else
-                raise Exception.new('These should not be read')
+            when 'array'
+              relation = model.reflect_on_association(property_name)
+              next unless [:has_many, :has_and_belongs_to_many, :embeds_many].include?(relation.macro)
+              property_schema = data_type.merge_schema(property_schema['items'])
+              property_model = relation.klass
+              while sub_element && sub_record = do_parse_xml(data_type, property_model, sub_element, options, property_schema)
+                record.send(property_name) << sub_record
+                sub_element = sub_element.next_element
+              end
+            when 'object'
+              relation = model.reflect_on_association(property_name)
+              next unless [:has_one, :embeds_one].include?(relation.macro)
+              property_model = relation.klass
+              if sub_record = do_parse_xml(data_type, property_model, sub_element, options, property_schema, nil, nil, property_name)
+                record.send("#{property_name}=", sub_record)
+                sub_element = sub_element.next_element
+              end
+            else
+              raise Exception.new('These should not be read')
             end
           end
         end
@@ -98,48 +98,48 @@ module Edi
           name ||= property_name
           property_model = model.for_property(property_name)
           case property_schema['type']
-            when 'array'
-              next unless (property_value = record.send(property_name)).nil? || property_value.empty?
-              record.send("#{property_name}=", []) if property_value.nil?
-              if property_value = json[name]
-                raise Exception.new("Array value expected for property #{property_name} but #{property_value.class} found: #{property_value}") unless property_value.is_a?(Array)
-                property_schema = data_type.merge_schema(property_schema['items'])
-                property_value.each do |sub_value|
-                  if sub_value['$referenced']
-                    sub_value = sub_value.reject { |k, _| k == '$referenced' }
-                    if (criteria = property_model.where(sub_value)).empty?
-                      record.instance_variable_set(:@_references, references = {}) unless references = record.instance_variable_get(:@_references)
-                      (references[property_name] ||= []) << {model: property_model, criteria: sub_value}
-                    else
-                      (record.send(property_name)) << criteria.first
-                    end
-                  else
-                    (record.send(property_name)) << do_parse_json(data_type, property_model, sub_value, options, property_schema)
-                  end
-                end
-              end
-            when 'object'
-              next if record.send(property_name)
-              if property_value = json[name]
-                raise Exception.new("Hash value expected for property #{property_name} but #{property_value.class} found: #{property_value}") unless property_value.is_a?(Hash)
-                if property_value['$referenced']
-                  property_value = property_value.reject { |k, _| k == '$referenced' }
-                  if (criteria = property_model.where(property_value)).empty?
+          when 'array'
+            next unless (property_value = record.send(property_name)).nil? || property_value.empty?
+            record.send("#{property_name}=", []) if property_value.nil?
+            if property_value = json[name]
+              raise Exception.new("Array value expected for property #{property_name} but #{property_value.class} found: #{property_value}") unless property_value.is_a?(Array)
+              property_schema = data_type.merge_schema(property_schema['items'])
+              property_value.each do |sub_value|
+                if sub_value['$referenced']
+                  sub_value = sub_value.reject { |k, _| k == '$referenced' }
+                  if (criteria = property_model.where(sub_value)).empty?
                     record.instance_variable_set(:@_references, references = {}) unless references = record.instance_variable_get(:@_references)
-                    references[property_name] = {model: property_model, criteria: property_value}
+                    (references[property_name] ||= []) << {model: property_model, criteria: sub_value}
                   else
-                    record.send("#{property_name}=", criteria.first)
+                    (record.send(property_name)) << criteria.first
                   end
                 else
-                  record.send("#{property_name}=", do_parse_json(data_type, property_model, property_value, options, property_schema))
+                  (record.send(property_name)) << do_parse_json(data_type, property_model, sub_value, options, property_schema)
                 end
               end
-            else
-              next if record.send(property_name)
-              if property_value = json[name]
-                raise Exception.new("Simple value expected for property #{property_name} but #{property_value.class} found: #{property_value}") if property_value.is_a?(Hash) || property_value.is_a?(Array)
-                record.send("#{property_name}=", property_value)
+            end
+          when 'object'
+            next if record.send(property_name)
+            if property_value = json[name]
+              raise Exception.new("Hash value expected for property #{property_name} but #{property_value.class} found: #{property_value}") unless property_value.is_a?(Hash)
+              if property_value['$referenced']
+                property_value = property_value.reject { |k, _| k == '$referenced' }
+                if (criteria = property_model.where(property_value)).empty?
+                  record.instance_variable_set(:@_references, references = {}) unless references = record.instance_variable_get(:@_references)
+                  references[property_name] = {model: property_model, criteria: property_value}
+                else
+                  record.send("#{property_name}=", criteria.first)
+                end
+              else
+                record.send("#{property_name}=", do_parse_json(data_type, property_model, property_value, options, property_schema))
               end
+            end
+          else
+            next if record.send(property_name)
+            if property_value = json[name]
+              raise Exception.new("Simple value expected for property #{property_name} but #{property_value.class} found: #{property_value}") if property_value.is_a?(Hash) || property_value.is_a?(Array)
+              record.send("#{property_name}=", property_value)
+            end
           end
         end
 
@@ -243,51 +243,45 @@ module Edi
           next if json[property_name]
           property_schema = data_type.merge_schema(property_schema)
           case property_schema['type']
-            when 'array'
-              relation = model.reflect_on_association(property_name)
-              next unless [:has_many, :has_and_belongs_to_many, :embeds_many].include?(relation.macro)
-              property_schema = data_type.merge_schema(property_schema['items'])
-              property_model = relation.klass
-              property_json = []
-              while (sub_segment = do_parse_edi(data_type, property_model, content, property_schema, start, field_sep, segment_sep, report))[0]
-                property_json << sub_segment[0]
-                (record.send(property_name)) << sub_segment[2]
-                start = sub_segment[1]
-              end
-              json[property_name] = property_json unless property_json.empty?
-            when 'object'
-              relation = model.reflect_on_association(property_name)
-              next unless [:has_one, :embeds_one].include?(relation.macro)
-              property_model = relation.klass
-              if field = fields.shift #composite field
-                property_json = {}
-                property_record = property_model.new
-                sub_elements = field.split(':')
-                property_schema['properties'].each do |key, _|
-                  if (sub_element = sub_elements.shift) && !sub_element.blank?
-                    property_json[key] = sub_element
-                    property_record.send("#{key}=", sub_element)
-                  end
+          when 'array'
+            relation = model.reflect_on_association(property_name)
+            next unless [:has_many, :has_and_belongs_to_many, :embeds_many].include?(relation.macro)
+            property_schema = data_type.merge_schema(property_schema['items'])
+            property_model = relation.klass
+            property_json = []
+            while (sub_segment = do_parse_edi(data_type, property_model, content, property_schema, start, field_sep, segment_sep, report))[0]
+              property_json << sub_segment[0]
+              (record.send(property_name)) << sub_segment[2]
+              start = sub_segment[1]
+            end
+            json[property_name] = property_json unless property_json.empty?
+          when 'object'
+            relation = model.reflect_on_association(property_name)
+            next unless [:has_one, :embeds_one].include?(relation.macro)
+            property_model = relation.klass
+            if field = fields.shift #composite field
+              property_json = {}
+              property_record = property_model.new
+              sub_elements = field.split(':')
+              property_schema['properties'].each do |key, _|
+                if (sub_element = sub_elements.shift) && !sub_element.blank?
+                  property_json[key] = sub_element
+                  property_record.send("#{key}=", sub_element)
                 end
-                if property_json.empty?
-                  property_json = nil
-                else
-                  record.send("#{property_name}=", property_record)
-                end
-              else
-                property_json, start, property_record = do_parse_edi(data_type, property_model, content, property_schema, start, field_sep, segment_sep, report)
-                record.send("#{property_name}=", property_record) if property_record
               end
-              json[property_name] = property_json if property_json
+              if property_json.empty? ? property_json = nil : record.send("#{property_name}=", property_record)
             else
-              if (field = fields.shift) && field.length != 0
-                json[property_name] = field
-                record.send("#{property_name}=", field)
-              end
+              property_json, start, property_record = do_parse_edi(data_type, property_model, content, property_schema, start, field_sep, segment_sep, report)
+              record.send("#{property_name}=", property_record) if property_record
+            end
+            json[property_name] = property_json if property_json
+          else
+            if (field = fields.shift) && field.length != 0
+              json[property_name] = field
+              record.send("#{property_name}=", field)
+            end
           end
-          if !json[property_name] && json.empty? && required.include?(property_name)
-            return [nil, start, nil]
-          end
+          return [nil, start, nil] if !json[property_name] && json.empty? && required.include?(property_name)
         end
 
         if (sub_model = json_schema['sub_schema']) &&

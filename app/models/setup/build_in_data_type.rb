@@ -42,7 +42,7 @@ module Setup
       if fields.present?
         raise Exception.new('Illegal argument') if fields.empty?
         fields = [fields] unless fields.is_a?(Enumerable)
-        @with = fields.collect { |field| field.to_s }
+        @with = fields.collect(&:to_s)
       else
         @with = nil
       end
@@ -53,7 +53,7 @@ module Setup
       if fields.present?
         raise Exception.new('Illegal argument') if fields.empty?
         fields = [fields] unless fields.is_a?(Enumerable)
-        @including = fields.collect { |field| field.to_s }
+        @including = fields.collect(&:to_s)
       else
         @including = nil
       end
@@ -64,7 +64,7 @@ module Setup
       if fields.present?
         raise Exception.new('Illegal argument') if fields.empty?
         fields = [fields] unless fields.is_a?(Enumerable)
-        @excluding = fields.collect { |field| field.to_s }
+        @excluding = fields.collect(&:to_s)
       else
         @excluding = nil
       end
@@ -127,16 +127,16 @@ module Setup
                                                      :has_and_belongs_to_many)).each do |relation|
         if included?(relation.name)
           property_schema = case relation.macro
-                              when :embeds_one
-                                {'$ref' => relation.klass.to_s}
-                              when :embeds_many
-                                {'type' => 'array', 'items' => {'$ref' => relation.klass.to_s}}
-                              when :has_one
-                                {'$ref' => relation.klass.to_s, 'referenced' => true, 'export_embedded' => @embedding && @embedding.include?(relation.name)}
-                              when :belongs_to
-                                {'$ref' => relation.klass.to_s, 'referenced' => true, 'export_embedded' => @embedding && @embedding.include?(relation.name)} if (@including && @including.include?(relation.name.to_s)) || relation.inverse_of.nil?
-                              when :has_many, :has_and_belongs_to_many
-                                {'type' => 'array', 'items' => {'$ref' => relation.klass.to_s, 'referenced' => true, 'export_embedded' => @embedding && @embedding.include?(relation.name)}}
+                            when :embeds_one
+                              {'$ref' => relation.klass.to_s}
+                            when :embeds_many
+                              {'type' => 'array', 'items' => {'$ref' => relation.klass.to_s}}
+                            when :has_one
+                              {'$ref' => relation.klass.to_s, 'referenced' => true, 'export_embedded' => @embedding && @embedding.include?(relation.name)}
+                            when :belongs_to
+                              {'$ref' => relation.klass.to_s, 'referenced' => true, 'export_embedded' => @embedding && @embedding.include?(relation.name)} if (@including && @including.include?(relation.name.to_s)) || relation.inverse_of.nil?
+                            when :has_many, :has_and_belongs_to_many
+                              {'type' => 'array', 'items' => {'$ref' => relation.klass.to_s, 'referenced' => true, 'export_embedded' => @embedding && @embedding.include?(relation.name)}}
                             end
           properties[relation.name] = property_schema if property_schema
         end
