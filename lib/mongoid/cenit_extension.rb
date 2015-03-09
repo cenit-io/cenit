@@ -4,7 +4,7 @@ module Mongoid
 
     module ClassMethods
 
-      def collection_size(scale=1)
+      def collection_size(scale = 1)
         mongo_session.command(collstats: collection_name, scale: scale)['size'] rescue 0
       end
 
@@ -20,9 +20,7 @@ module Mongoid
                               :has_many,
                               :has_and_belongs_to_many,
                               :belongs_to)
-          associations.each do |relation|
-            block.yield(name: relation.name, embedded: relation.embedded?)
-          end
+          associations.each { |relation| block.yield(name: relation.name, embedded: relation.embedded?) }
         end
       end
     end

@@ -6,7 +6,7 @@ module Mongoff
     attr_reader :orm_model
     attr_reader :document
 
-    def initialize(model, document=BSON::Document.new)
+    def initialize(model, document = BSON::Document.new)
       @orm_model = model
       @document = document
       @fields = {}
@@ -33,7 +33,7 @@ module Mongoff
       errors.blank?
     end
 
-    def save(options={})
+    def save(options = {})
       if errors.blank?
         errors.add(:base, "Save operation not supported on not loaded data type #{orm_model.data_type.title}")
       end
