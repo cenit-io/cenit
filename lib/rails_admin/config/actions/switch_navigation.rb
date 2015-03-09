@@ -25,11 +25,11 @@ module RailsAdmin
               @object.show_navigation_link = !@object.show_navigation_link
               @object.save
               RailsAdmin::AbstractModel.reset_models(model)
-              if @object.show_navigation_link
-                flash[:success] = "Model #{@object.title} added to navigation links"
-              else
-                flash[:success] = "Model #{@object.title} removed from navigation links"
-              end
+              flash[:success] = if @object.show_navigation_link
+                                   "Model #{@object.title} added to navigation links"
+                                else
+                                   "Model #{@object.title} removed from navigation links"
+                                end
             else
               flash[:success] = "Model #{@object.title} is not loaded"
             end
