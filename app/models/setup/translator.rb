@@ -91,7 +91,7 @@ module Setup
     end
 
     def mime_type_enum
-      MIME::Types.inject([]) {|types, t| types << t.to_s }
+      MIME::Types.inject([]) { |types, t| types << t.to_s }
     end
 
     def file_extension_enum
@@ -127,8 +127,7 @@ module Setup
       self.class.fields.keys.each { |key| context_options[key.to_sym] = send(key) }
       self.class.relations.keys.each { |key| context_options[key.to_sym] = send(key) }
       context_options[:data_type] = data_type
-      #TODO: review the contional bellow that is wrong 
-      context_options.merge!(options) { |key, context_val, options_val| !context_val ? options_val : options_val }
+      context_options.merge!(options) { |key, context_val, options_val| !context_val ? options_val : context_val }
 
       context_options[:result] = STYLES_MAP[style].run(context_options)
 
@@ -230,13 +229,13 @@ module Setup
         for_each_node_starting_at(record) do |obj|
           references.each do |obj_waiting, to_bind|
             to_bind.each do |property_name, property_binds|
-              is_array = property_binds.is_a?(Array) ? true : (property_binds = [property_binds] ; false)
+              is_array = property_binds.is_a?(Array) ? true : (property_binds = [property_binds]; false)
               property_binds.each do |property_bind|
                 if obj.is_a?(property_bind[:model]) && match?(obj, property_bind[:criteria])
                   if is_array
                     unless array_property = obj_waiting.send(property_name)
                       obj_waiting.send("#{property_name}=", array_property = [])
-                    end  
+                    end
                     array_property << obj
                   else
                     obj_waiting.send("#{property_name}=", obj)
@@ -249,7 +248,7 @@ module Setup
             end
           end
         end if references.present?
-        
+
         for_each_node_starting_at(record, stack = []) do |obj|
           if to_bind = references[obj]
             to_bind.each do |property_name, property_binds|
