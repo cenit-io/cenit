@@ -8,13 +8,13 @@ module Xsd
     def initialize(parent, attributes)
       super
       _, max_occurs = attributes.detect { |a| a[0] == 'maxOccurs' }
-      @max_occurs = if max_occurs then
+      @max_occurs = if max_occurs
                       max_occurs == 'unbounded' ? :unbounded : max_occurs.to_i
                     else
                       1
                     end
       _, min_occurs = attributes.detect { |a| a[0] == 'minOccurs' }
-      @min_occurs = if min_occurs then
+      @min_occurs = if min_occurs
                       min_occurs == 'unbounded' ? 0 : min_occurs.to_i
                     else
                       1
@@ -28,10 +28,10 @@ module Xsd
 
     %w{sequence choice all}.each do |container_tag|
       class_eval("def #{container_tag}_start(attributes = [])
-          return Xsd::#{container_tag.capitalize}.new(self, attributes)
+          Xsd::#{container_tag.capitalize}.new(self, attributes)
         end
       def when_#{container_tag}_end(container)
-          @elements << container
+        @elements << container
       end")
     end
 
@@ -62,7 +62,7 @@ module Xsd
           end
         end
       end
-      json['required'] = required unless required.empty?
+      json['required'] = required if required.present?
       json
     end
   end

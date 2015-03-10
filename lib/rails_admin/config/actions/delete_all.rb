@@ -24,15 +24,15 @@ module RailsAdmin
           proc do
 
             if model = @abstract_model.model_name.constantize rescue nil
-              if data_type = model.try(:data_type)
-                @model_label_plural = data_type.title.downcase.pluralize
-              else
-                @model_label_plural = @abstract_model.pretty_name.downcase.pluralize
-              end
+              @model_label_plural = if data_type = model.try(:data_type)
+                                      data_type.title.downcase.pluralize
+                                    else
+                                      @abstract_model.pretty_name.downcase.pluralize
+                                    end
               @total = model.all.size
               if params[:delete]
                 if (model.singleton_method(:before_destroy) rescue nil)
-                  model.all.each { |obj| obj.destroy }
+                  model.all.each(&:destroy)
                 else
                   model.delete_all
                 end

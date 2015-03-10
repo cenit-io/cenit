@@ -4,7 +4,7 @@ module Mongoid
     class NonBlankUniquenessValidator < UniquenessValidator
 
       def validate_each(record, attribute, value)
-        super unless value.blank?
+        super if value.present?
       end
     end
 

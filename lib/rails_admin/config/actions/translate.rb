@@ -62,7 +62,7 @@ module RailsAdmin
                                                         data_type: data_type_selector,
                                                         translator: translator)
               @model_config = RailsAdmin::Config.model(Forms::TranslatorSelector)
-              unless @object.errors.blank?
+              if @object.errors.present?
                 flash.now[:error] = 'There are errors in the export data specification'.html_safe
                 flash.now[:error] += %(<br>- #{@object.errors.full_messages.join('<br>- ')}).html_safe
               end

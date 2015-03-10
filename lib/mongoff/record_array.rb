@@ -5,7 +5,7 @@ module Mongoff
     attr_reader :model
     attr_reader :array
 
-    def initialize(model, array, referenced=false)
+    def initialize(model, array, referenced = false)
       @model = model
       @array = array
       @referenced = referenced

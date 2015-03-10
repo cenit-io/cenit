@@ -12,15 +12,15 @@ module Setup
     validate do
       errors.add(:expression, "can't be blank") unless exp = expression
       case scheduling_method
-        when :Once
-          errors.add(:expression, 'is not a valid date-time') unless !(DateTime.parse(exp) rescue nil)
-        when :Periodic
-          errors.add(:expression, 'is not a valid interval') unless exp =~ /\A[1-9][0-9]*(s|m|h|d)\Z/
-        when :CRON
-          #TODO Validate CRON Expression
-          #errors.add(:expression, 'is not a valid CRON expression') unless exp =~ /\A(0|[1-5][0-9]?|[6-9]|\*) (0|1[0-9]?|2[0-3]?|[3-9]|\*) ([1-2][0-9]?|3[0-1]?|[4-9]|\*)  (1[0-2]?|[2-9]|\*) (\*)\Z/
-        else
-          errors.add(:scheduling_method, 'is not a valid scheduling method')
+      when :Once
+        errors.add(:expression, 'is not a valid date-time') unless !(DateTime.parse(exp) rescue nil)
+      when :Periodic
+        errors.add(:expression, 'is not a valid interval') unless exp =~ /\A[1-9][0-9]*(s|m|h|d)\Z/
+      when :CRON
+        #TODO Validate CRON Expression
+        #errors.add(:expression, 'is not a valid CRON expression') unless exp =~ /\A(0|[1-5][0-9]?|[6-9]|\*) (0|1[0-9]?|2[0-3]?|[3-9]|\*) ([1-2][0-9]?|3[0-1]?|[4-9]|\*)  (1[0-2]?|[2-9]|\*) (\*)\Z/
+      else
+        errors.add(:scheduling_method, 'is not a valid scheduling method')
       end
     end
 
@@ -34,14 +34,11 @@ module Setup
 
     def rufus_method
       case scheduling_method
-        when :Once
-          :at
-        when :Periodic
-          :every
-        when :CRON
-          :cron
-        else
-          nil
+      when :Once then :at
+      when :Periodic then :every
+      when :CRON then :cron
+      else
+        nil
       end
     end
 

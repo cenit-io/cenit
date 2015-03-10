@@ -22,7 +22,7 @@ RailsAdmin.config do |config|
   ## == PaperTrail ==
   # config.audit_with :paper_trail, 'User', 'PaperTrail::Version' # PaperTrail >= 3.0.0
 
-  config.excluded_models << ["Account", "Setup::Parameter"].flatten
+  config.excluded_models << "Account" << "Setup::Parameter"
 
   ### More at https://github.com/sferik/rails_admin/wiki/Base-configuration
   config.authenticate_with do
@@ -37,7 +37,7 @@ RailsAdmin.config do |config|
     memory_usage
     disk_usage
     index # mandatory
-    new { except [Setup::DataType, Role, Setup::Event] }
+    new { except [Setup::DataType, Role, Setup::Event, Setup::Notification] }
     import
     import_schema
     update
@@ -74,11 +74,9 @@ RailsAdmin.config do |config|
     navigation_label 'Account'
     show do
       field :name
-      field :user
-
       field :_id
     end
-    fields :name, :users
+    fields :name
   end
 
   config.model Setup::Library.name do
@@ -707,4 +705,26 @@ RailsAdmin.config do |config|
 
     fields :name, :type, :style, :transformation
   end
+  
+  config.model Setup::Template do
+    navigation_label 'Setup'
+    weight -16
+    show do
+      field :name
+      field :library
+      field :translators
+      field :events
+      field :connection_roles
+      field :webhooks
+      field :flows
+
+      field :_id
+      field :created_at
+      field :creator
+      field :updated_at
+      field :updater
+    end
+    fields :name, :libraries, :translators, :events, :connection_roles, :webhooks, :flows
+  end
+
 end

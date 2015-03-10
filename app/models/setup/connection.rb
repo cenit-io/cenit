@@ -5,8 +5,8 @@ module Setup
 
     BuildInDataType.regist(self)
 
-    embeds_many :url_parameters, class_name: Setup::Parameter.name, inverse_of: :connection
-    embeds_many :headers, class_name: Setup::Parameter.name, inverse_of: :connection
+    embeds_many :url_parameters, class_name: Setup::Parameter.to_s, inverse_of: :connection
+    embeds_many :headers, class_name: Setup::Parameter.to_s, inverse_of: :connection
     
     devise :database_authenticatable
 

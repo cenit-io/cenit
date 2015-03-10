@@ -51,11 +51,7 @@ module Setup
     end
 
     def find_ref_schema(ref)
-      if data_type = find_data_type(ref)
-        JSON.parse(data_type.schema)
-      else
-        nil
-      end
+      (data_type = find_data_type(ref)) ? JSON.parse(data_type.schema) : nil
     end
 
     def array_sum(val1, val2)

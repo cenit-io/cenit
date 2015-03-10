@@ -7,7 +7,7 @@ module Setup
     field :name, type: String
     field :last_trigger_timestamps, type: DateTime
 
-    belongs_to :template, class_name: Setup::Template.name, inverse_of: :events
+    belongs_to :template, class_name: Setup::Template.to_s, inverse_of: :events
 
     validates_uniqueness_of :name
 

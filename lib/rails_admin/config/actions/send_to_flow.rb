@@ -4,19 +4,13 @@ module RailsAdmin
       class SendToFlow < RailsAdmin::Config::Actions::Base
 
         register_instance_option :visible? do
-          if authorized?
-            model = bindings[:abstract_model].model_name.constantize rescue nil
-            if model && model.respond_to?(:data_type)
-              data_type = model.data_type
-              #TODO Set send to flow action visible only if there is a flow
-              #data_type && !(@flows = Setup::Flow.where(data_type: data_type).collect { |f| f }).blank?
-              !data_type.nil?
-            else
-              false
-            end
-          else
-            false
-          end
+          return false unless authorized?
+          model = bindings[:abstract_model].model_name.constantize rescue nil
+          return false unless model && model.respond_to?(:data_type)
+          data_type = model.data_type
+          #TODO Set send to flow action visible only if there is a flow
+          #data_type && !(@flows = Setup::Flow.where(data_type: data_type).collect { |f| f }).blank?
+          data_type.present?
         end
 
         register_instance_option :collection do
