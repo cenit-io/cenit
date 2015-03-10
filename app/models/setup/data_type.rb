@@ -79,7 +79,7 @@ module Setup
     end
 
     def records_model
-      model && model.is_a?(Class) ? model : @mongoff_model ||= Mongoff::Model.new(self)
+      (m = model) && m.is_a?(Class) ? m : @mongoff_model ||= Mongoff::Model.new(self)
     end
 
     def loaded?
