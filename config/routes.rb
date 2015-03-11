@@ -26,7 +26,7 @@ Cenit::Application.routes.draw do
       resources :events
       resources :connection_roles
       resources :libraries
-      resources :templates
+      resources :collections
       resources :schemas
       resources :schedules
     end

@@ -8,7 +8,7 @@ module Setup
 
     has_many :schemas, class_name: Setup::Schema.to_s, inverse_of: :library, dependent: :destroy
 
-    belongs_to :template, class_name: Setup::Template.to_s, inverse_of: :libraries
+    belongs_to :cenit_collection, class_name: Setup::Collection.to_s, inverse_of: :libraries
 
     validates_presence_of :name
     validates_uniqueness_of :name

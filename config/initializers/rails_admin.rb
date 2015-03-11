@@ -81,7 +81,7 @@ RailsAdmin.config do |config|
 
   config.model Setup::Library.name do
     navigation_label 'Data Definitions'
-    weight -19
+    weight -16
 
     configure :name do
       read_only { !bindings[:object].new_record? }
@@ -709,12 +709,28 @@ RailsAdmin.config do |config|
     fields :name, :type, :style, :transformation
   end
   
-  config.model Setup::Template do
-    navigation_label 'Setup'
-    weight -16
+  config.model Setup::SharedCollection do
+    navigation_label 'Collections'
+    weight -19
     show do
       field :name
-      field :library
+      field :description
+
+      field :_id
+      field :created_at
+      field :creator
+      field :updated_at
+      field :updater
+    end
+    fields :name, :description
+  end
+
+  config.model Setup::Collection do
+    navigation_label 'Collections'
+    weight -19
+    show do
+      field :name
+      field :libraries
       field :translators
       field :events
       field :connection_roles
