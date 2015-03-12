@@ -1,25 +1,30 @@
-[RailsAdmin::Config::Actions::SendToFlow,
+[RailsAdmin::Config::Actions::MemoryUsage,
+ RailsAdmin::Config::Actions::DiskUsage,
+ RailsAdmin::Config::Actions::SendToFlow,
  RailsAdmin::Config::Actions::TestTransformation,
  RailsAdmin::Config::Actions::LoadModel,
  RailsAdmin::Config::Actions::ShutdownModel,
  RailsAdmin::Config::Actions::SwitchNavigation,
  RailsAdmin::Config::Actions::DataType,
  RailsAdmin::Config::Actions::Import,
- RailsAdmin::Config::Actions::EdiExport,
+ #RailsAdmin::Config::Actions::EdiExport,
  RailsAdmin::Config::Actions::ImportSchema,
  RailsAdmin::Config::Actions::DeleteAll,
- RailsAdmin::Config::Actions::NewWizard,
  RailsAdmin::Config::Actions::EditTranslator,
  RailsAdmin::Config::Actions::Update,
  RailsAdmin::Config::Actions::Convert,
- RailsAdmin::Config::Actions::DeleteSchema].each { |a| RailsAdmin::Config::Actions.register(a) }
+ RailsAdmin::Config::Actions::DeleteSchema,
+ RailsAdmin::Config::Actions::ShareCollection,
+ RailsAdmin::Config::Actions::PullCollection].each { |a| RailsAdmin::Config::Actions.register(a) }
+
+RailsAdmin::Config::Actions.register(:export, RailsAdmin::Config::Actions::EdiExport)
 
 RailsAdmin.config do |config|
 
   ## == PaperTrail ==
   # config.audit_with :paper_trail, 'User', 'PaperTrail::Version' # PaperTrail >= 3.0.0
 
-  config.excluded_models << ["Account", "Setup::Parameter"].flatten
+  config.excluded_models << "Account" << "Setup::Parameter"
 
   ### More at https://github.com/sferik/rails_admin/wiki/Base-configuration
   config.authenticate_with do
@@ -31,9 +36,10 @@ RailsAdmin.config do |config|
 
   config.actions do
     dashboard # mandatory
+    memory_usage
+    disk_usage
     index # mandatory
-    new { except [Setup::DataType, Role, Setup::Translator, Setup::Flow, Setup::Scheduler, Setup::Event] }
-    new_wizard
+    new { except [Role] }
     import
     import_schema
     update
@@ -41,12 +47,14 @@ RailsAdmin.config do |config|
     #import do
     #  only 'Setup::DataType'
     #end
-    edi_export
-    bulk_delete { except [Setup::Schema, Setup::DataType, Role] }
+    export
+    bulk_delete { except [Role] }
     show
-    edit { except [Setup::Library, Role, Setup::Translator] }
+    edit { except [Role] }
     edit_translator
-    delete { except [Setup::Schema, Setup::DataType, Role] }
+    share_collection
+    pull_collection
+    delete { except [Role] }
     delete_schema
     #show_in_app
     send_to_flow
@@ -54,7 +62,7 @@ RailsAdmin.config do |config|
     load_model
     shutdown_model
     switch_navigation
-    delete_all { except Setup::DataType, Role }
+    delete_all { except [Role] }
     data_type
 
     history_index do
@@ -70,16 +78,14 @@ RailsAdmin.config do |config|
     navigation_label 'Account'
     show do
       field :name
-      field :user
-
       field :_id
     end
-    fields :name, :users
+    fields :name
   end
 
   config.model Setup::Library.name do
     navigation_label 'Data Definitions'
-    weight -19
+    weight -16
 
     configure :name do
       read_only { !bindings[:object].new_record? }
@@ -117,6 +123,9 @@ RailsAdmin.config do |config|
 
     configure :uri do
       read_only { !bindings[:object].new_record? }
+      html_attributes do
+        {cols: '74', rows: '1'}
+      end
     end
 
     configure :schema, :text do
@@ -187,8 +196,28 @@ RailsAdmin.config do |config|
       end
     end
 
+    configure :collection_size, :decimal do
+      pretty_value do
+        unless max = bindings[:controller].instance_variable_get(:@max_collection_size)
+          bindings[:controller].instance_variable_set(:@max_collection_size, max = bindings[:controller].instance_variable_get(:@objects).collect { |data_type| data_type.records_model.collection_size }.max)
+        end
+        (bindings[:view].render partial: 'used_memory_bar', locals: {max: max, value: bindings[:object].records_model.collection_size}).html_safe
+      end
+      read_only true
+    end
+
     list do
-      fields :uri, :name, :activated
+      field :uri
+      field :name
+      field :used_memory do
+        pretty_value do
+          unless max = bindings[:controller].instance_variable_get(:@max_used_memory)
+            bindings[:controller].instance_variable_set(:@max_used_memory, max = Setup::DataType.fields[:used_memory.to_s].type.new(Setup::DataType.max(:used_memory)))
+          end
+          (bindings[:view].render partial: 'used_memory_bar', locals: {max: max, value: Setup::DataType.fields[:used_memory.to_s].type.new(value)}).html_safe
+        end
+      end
+      field :collection_size
     end
 
     show do
@@ -204,16 +233,13 @@ RailsAdmin.config do |config|
       field :updated_at
       field :updater
     end
-    fields :uri, :name, :activated, :schema, :sample_data
+    fields :uri, :name, :used_memory
   end
 
   config.model Setup::Connection.name do
     weight -15
     group :credentials do
       label "Credentials"
-    end
-    configure :connection_roles do
-      nested_form false
     end
     configure :name, :string do
       help 'Requiered.'
@@ -261,7 +287,6 @@ RailsAdmin.config do |config|
     show do
       field :name
       field :url
-      field :connection_roles
 
       field :key
       field :token
@@ -276,85 +301,15 @@ RailsAdmin.config do |config|
       field :updater
     end
 
-    fields :name, :url, :connection_roles, :url_parameters, :headers, :key, :token
+    fields :name, :url, :url_parameters, :headers, :key, :token
   end
 
   config.model Setup::Parameter.name do
-    visible false
-  end
-
-  config.model Setup::UrlParameter.name do
-    object_label_method do
-      :to_s
-    end
-    configure :key, :string do
-      help 'Requiered.'
-      html_attributes do
-        {maxlength: 50, size: 50}
-      end
-    end
-
-    configure :value, :string do
-      help 'Requiered.'
-      html_attributes do
-        {maxlength: 50, size: 50}
-      end
-    end
-
-    show do
+    object_label_method { :to_s }
+    edit do
       field :key
       field :value
-      field :parameterizable
-
-      field :_id
-      field :created_at
-      field :updated_at
     end
-
-    list do
-      field :key
-      field :value
-      field :parameterizable
-    end
-
-    fields :key, :value
-  end
-
-  config.model Setup::Header.name do
-    object_label_method do
-      :to_s
-    end
-    configure :key, :string do
-      help 'Requiered.'
-      html_attributes do
-        {maxlength: 50, size: 50}
-      end
-    end
-
-    configure :value, :string do
-      help 'Requiered.'
-      html_attributes do
-        {maxlength: 50, size: 50}
-      end
-    end
-
-    show do
-      field :key
-      field :value
-      field :parameterizable
-
-      field :_id
-      field :created_at
-      field :updated_at
-    end
-
-    list do
-      field :key
-      field :value
-      field :parameterizable
-    end
-
-    fields :key, :value
   end
 
   config.model Setup::ConnectionRole.name do
@@ -365,21 +320,17 @@ RailsAdmin.config do |config|
         {maxlength: 50, size: 50}
       end
     end
-    configure :webhooks do
-      nested_form false
-    end
     configure :connections do
       nested_form false
     end
     modal do
       field :name
-      #field :connections
-      field :webhooks
+      field :connections
+      #field :webhooks
     end
     show do
       field :name
       field :connections
-      field :webhooks
 
       field :_id
       field :created_at
@@ -387,7 +338,7 @@ RailsAdmin.config do |config|
       field :updated_at
       field :updater
     end
-    fields :name, :connections, :webhooks
+    fields :name, :connections
   end
 
   config.model Setup::Webhook.name do
@@ -398,9 +349,6 @@ RailsAdmin.config do |config|
       html_attributes do
         {maxlength: 50, size: 50}
       end
-    end
-    configure :connection_roles do
-      nested_form false
     end
     group :parameters do
       label "Add Parameters"
@@ -417,8 +365,6 @@ RailsAdmin.config do |config|
       field :purpose
       field :path
       field :method
-      field :connection_roles
-      field :flows
 
       field :url_parameters
       field :headers
@@ -429,7 +375,7 @@ RailsAdmin.config do |config|
       field :updated_at
       field :updater
     end
-    fields :name, :purpose, :path, :method, :connection_roles, :url_parameters, :headers
+    fields :name, :purpose, :path, :method, :url_parameters, :headers
   end
 
   config.model Setup::Notification.name do
@@ -452,34 +398,22 @@ RailsAdmin.config do |config|
   end
 
   config.model Setup::Flow.name do
+    register_instance_option(:form_synchronized) do
+      [:custom_data_type, :data_type_scope, :lot_size, :connection_role, :webhook, :response_translator, :response_data_type]
+    end
     edit do
       field :name
       field :event do
         inline_edit false
         inline_add false
-        associated_collection_scope do
-          event = bindings[:object].event
-          Proc.new { |scope|
-            event ? scope.where(id: event.id) : scope.all
-          }
-        end
       end
-      field :translator do
-        inline_edit false
-        inline_add false
-        associated_collection_scope do
-          translator = bindings[:object].translator
-          Proc.new { |scope|
-            translator ? scope.where(id: translator.id) : scope.all
-          }
-        end
-      end
+      field :translator
       field :custom_data_type do
         inline_edit false
         inline_add false
         visible do
           if (f = bindings[:object]).event && f.translator && f.translator.data_type.nil?
-            f.instance_variable_set(:@selecting_data_type, f.custom_data_type = f.event && f.event.data_type) unless f.data_type
+            f.instance_variable_set(:@selecting_data_type, f.custom_data_type = f.event && f.event.try(:data_type)) unless f.data_type
             true
           else
             false
@@ -497,12 +431,6 @@ RailsAdmin.config do |config|
           end
         end
         help 'Required'
-        associated_collection_scope do
-          data_type = bindings[:object].instance_variable_get(:@selecting_data_type) ? nil : bindings[:object].data_type
-          Proc.new { |scope|
-            data_type ? scope.where(id: data_type.id) : scope.all
-          }
-        end
       end
       field :data_type_scope do
         visible { (f = bindings[:object]).event && f.translator && f.translator.type != :Import && f.data_type && !f.instance_variable_get(:@selecting_data_type) }
@@ -531,8 +459,6 @@ RailsAdmin.config do |config|
         help 'Required'
       end
       field :response_translator do
-        inline_edit false
-        inline_add false
         visible { (translator = bindings[:object].translator) && translator.type == :Export && bindings[:object].ready_to_save? }
         associated_collection_scope do
           Proc.new { |scope|
@@ -543,7 +469,7 @@ RailsAdmin.config do |config|
       field :response_data_type do
         inline_edit false
         inline_add false
-        visible { (response_translator = bindings[:object].response_translator) && response_translator.data_type.nil? }
+        visible { (response_translator = bindings[:object].response_translator) && response_translator.type == :Import && response_translator.data_type.nil? }
         help ''
       end
       field :discard_events do
@@ -632,31 +558,31 @@ RailsAdmin.config do |config|
         visible { bindings[:object].scheduling_method.present? }
         label do
           case bindings[:object].scheduling_method
-            when :Once
-              'Date and time'
-            when :Periodic
-              'Duration'
-            when :CRON
-              'CRON Expression'
-            else
-              'Expression'
+          when :Once
+            'Date and time'
+          when :Periodic
+            'Duration'
+          when :CRON
+            'CRON Expression'
+          else
+            'Expression'
           end
         end
         help do
           case bindings[:object].scheduling_method
-            when :Once
-              'Select a date and a time'
-            when :Periodic
-              'Type a time duration'
-            when :CRON
-              'Type a CRON Expression'
-            else
-              'Expression'
+          when :Once
+            'Select a date and a time'
+          when :Periodic
+            'Type a time duration'
+          when :CRON
+            'Type a CRON Expression'
+          else
+            'Expression'
           end
         end
         partial { bindings[:object].scheduling_method == :Once ? 'form_datetime_wrapper' : 'form_text' }
         html_attributes do
-          { rows: '1' }
+          {rows: '1'}
         end
       end
     end
@@ -677,6 +603,9 @@ RailsAdmin.config do |config|
   end
 
   config.model Setup::Translator do
+    register_instance_option(:form_synchronized) do
+      [:source_data_type, :target_data_type, :transformation, :target_importer, :source_exporter, :discard_chained_records]
+    end
     edit do
       field :name
 
@@ -687,12 +616,6 @@ RailsAdmin.config do |config|
         inline_add false
         visible { [:Export, :Conversion].include?(bindings[:object].type) }
         help { bindings[:object].type == :Conversion ? 'Required' : 'Optional' }
-        associated_collection_scope do
-          data_type = bindings[:object].source_data_type
-          Proc.new { |scope|
-            data_type ? scope.where(id: data_type.id) : scope.all
-          }
-        end
       end
 
       field :target_data_type do
@@ -700,21 +623,25 @@ RailsAdmin.config do |config|
         inline_add false
         visible { [:Import, :Update, :Conversion].include?(bindings[:object].type) }
         help { bindings[:object].type == :Conversion ? 'Required' : 'Optional' }
-        associated_collection_scope do
-          data_type = bindings[:object].target_data_type
-          Proc.new { |scope|
-            data_type ? scope.where(id: data_type.id) : scope.all
-          }
-        end
       end
 
       field :discard_events do
-        visible visible { [:Import, :Update, :Conversion].include?(bindings[:object].type) }
+        visible { [:Import, :Update, :Conversion].include?(bindings[:object].type) }
         help "Events won't be fired for created or updated records if checked"
       end
 
       field :style do
         visible { bindings[:object].type.present? }
+      end
+
+      field :mime_type do
+        label 'MIME type'
+        visible { bindings[:object].type == :Export }
+      end
+
+      field :file_extension do
+        visible { bindings[:object].type == :Export && !bindings[:object].file_extension_enum.empty? }
+        help { "Extensions for #{bindings[:object].mime_type}" }
       end
 
       field :transformation do
@@ -725,21 +652,19 @@ RailsAdmin.config do |config|
       end
 
       field :source_exporter do
-        inline_edit false
-        inline_add false
+        inline_add { bindings[:object].source_exporter.nil? }
         visible { bindings[:object].style == 'chain' && bindings[:object].source_data_type && bindings[:object].target_data_type }
         help 'Required'
         associated_collection_scope do
-          data_type = bindings[:object].source_data_type unless exporter = bindings[:object].source_exporter
+          data_type = bindings[:object].source_data_type
           Proc.new { |scope|
-            exporter ? scope.where(id: exporter.id) : scope.all(type: :Conversion, source_data_type: data_type)
+            scope.all(type: :Conversion, source_data_type: data_type)
           }
         end
       end
 
       field :target_importer do
-        inline_edit false
-        inline_add false
+        inline_add { bindings[:object].target_importer.nil? }
         visible { bindings[:object].style == 'chain' && bindings[:object].source_data_type && bindings[:object].target_data_type && bindings[:object].source_exporter }
         help 'Required'
         associated_collection_scope do
@@ -767,8 +692,16 @@ RailsAdmin.config do |config|
     show do
       field :name
       field :type
+      field :source_data_type
+      field :target_data_type
+      field :discard_events
       field :style
+      field :mime_type
+      field :file_extension
       field :transformation
+      field :source_exporter
+      field :target_importer
+      field :discard_chained_records
 
       field :_id
       field :created_at
@@ -779,4 +712,44 @@ RailsAdmin.config do |config|
 
     fields :name, :type, :style, :transformation
   end
+
+  config.model Setup::SharedCollection do
+    navigation_label 'Collections'
+    weight -19
+    edit do
+      field :name
+      field :description
+    end
+    show do
+      field :name
+      field :description
+
+      field :created_at
+      field :creator
+      field :updated_at
+    end
+    fields :name, :creator, :description
+  end
+
+  config.model Setup::Collection do
+    navigation_label 'Collections'
+    weight -19
+    show do
+      field :name
+      field :libraries
+      field :translators
+      field :events
+      field :connection_roles
+      field :webhooks
+      field :flows
+
+      field :_id
+      field :created_at
+      field :creator
+      field :updated_at
+      field :updater
+    end
+    fields :name, :libraries, :translators, :events, :connection_roles, :webhooks, :flows
+  end
+
 end

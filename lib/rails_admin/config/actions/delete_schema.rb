@@ -15,10 +15,6 @@ module RailsAdmin
           [:get, :delete]
         end
 
-        register_instance_option :authorization_key do
-          :destroy
-        end
-
         register_instance_option :controller do
           proc do
             if params[:delete] # DELETE
@@ -32,7 +28,7 @@ module RailsAdmin
               if @object.destroy
                 flash[:success] = t('admin.flash.successful', name: @model_config.label, action: t('admin.actions.delete.done'))
                 report = @object.instance_variable_get(:@shutdown_report)
-                unless report[:errors].empty?
+                if report[:errors].present?
                   flash[:error] = ''.html_safe
                   report[:errors].each do |data_type, errors|
                     flash[:error] += "<strong>Model #{data_type.title} could not be loaded</strong>".html_safe
@@ -47,8 +43,8 @@ module RailsAdmin
               redirect_to redirect_path
             else
               @report = Setup::DataType.shutdown(@object.data_types, report_only: true)
-              @shutdown = @report[:destroyed].collect { |model| model.data_type }.uniq.select { |data_type| data_type.uri != @object }
-              @reload = @report[:affected].collect { |model| model.data_type }.uniq
+              @shutdown = @report[:destroyed].collect(&:data_type).uniq.select { |data_type| data_type.uri != @object }
+              @reload = @report[:affected].collect(&:data_type).uniq
             end
           end
         end

@@ -1,12 +1,8 @@
 require 'nokogiri'
 
 module Setup
-  class Flow
-    include Mongoid::Document
-    include Mongoid::Timestamps
-    include AccountScoped
-    include Setup::Enum
-    include Trackable
+  class Flow < ReqRejValidator
+    include CenitScoped
     include DynamicValidators
 
     BuildInDataType.regist(self)
@@ -15,68 +11,66 @@ module Setup
     field :active, type: Boolean, default: :true
     field :discard_events, type: Boolean
 
-    belongs_to :event, class_name: Setup::Event.name, inverse_of: nil
+    belongs_to :event, class_name: Setup::Event.to_s, inverse_of: nil
 
-    belongs_to :translator, class_name: Setup::Translator.name, inverse_of: nil
-    belongs_to :custom_data_type, class_name: Setup::DataType.name, inverse_of: nil
+    belongs_to :translator, class_name: Setup::Translator.to_s, inverse_of: nil
+    belongs_to :custom_data_type, class_name: Setup::DataType.to_s, inverse_of: nil
     field :data_type_scope, type: String
     field :lot_size, type: Integer
 
-    belongs_to :connection_role, class_name: Setup::ConnectionRole.name, inverse_of: nil
-    belongs_to :webhook, class_name: Setup::Webhook.name, inverse_of: nil
+    belongs_to :connection_role, class_name: Setup::ConnectionRole.to_s, inverse_of: nil
+    belongs_to :webhook, class_name: Setup::Webhook.to_s, inverse_of: nil
 
-    belongs_to :response_translator, class_name: Setup::Translator.name, inverse_of: nil
-    belongs_to :response_data_type, class_name: Setup::DataType.name, inverse_of: nil
+    belongs_to :response_translator, class_name: Setup::Translator.to_s, inverse_of: nil
+    belongs_to :response_data_type, class_name: Setup::DataType.to_s, inverse_of: nil
 
     field :last_trigger_timestamps, type: DateTime
 
-    belongs_to :template, class_name: Setup::Template.name, inverse_of: :flows
+    belongs_to :cenit_collection, class_name: Setup::Collection.to_s, inverse_of: :flows
 
     validates_presence_of :name, :event, :translator
     validates_numericality_in_presence_of :lot_size, greater_than_or_equal_to: 1
     before_save :validates_configuration
 
     def validates_configuration
-      errors.add(:event, "can't be blank") unless event
-      if translator
-        if translator.data_type.nil?
-          errors.add(:custom_data_type, "can't be blank") unless custom_data_type
-        else
-          errors.add(:custom_data_type, 'is not allowed since translator already defines a data type') if custom_data_type
-        end
-        if translator.type == :Import
-          errors.add(:data_type_scope, 'is not allowed for import translators') if data_type_scope
-        else
-          errors.add(:data_type_scope, "can't be blank") unless data_type_scope
-        end
-        [:connection_role, :webhook].each do |field|
-          if send(field)
-            errors.add(field, 'is not allowed') unless [:Import, :Export].include?(translator.type)
-          else
-            errors.add(field, "can't be blank") if [:Import, :Export].include?(translator.type)
-          end
-        end
+      return false unless ready_to_save?
+      unless requires(:event, :translator)
+        translator.data_type.nil? ? requires(:custom_data_type) : rejects(:custom_data_type)
+        translator.type == :Import ? rejects(:data_type_scope) : requires(:data_type_scope)
+        [:Import, :Export].include?(translator.type) ? requires(:connection_role, :webhook) : rejects(:connection_role, :webhook)
+  
         if translator.type == :Export
           if response_translator.present?
-            if response_translator.data_type
-              errors.add(:response_data_type, 'is not allowed since response translator already defines a data type')
+            if response_translator.type == :Import
+              response_translator.data_type ? rejects(:response_data_type) : requires(:response_data_type)
             else
-              errors.add(:response_data_type, "is needed for response translator #{response_translator.name}") unless response_data_type.present?
+              errors.add(:response_translator, 'is not an import translator')
             end
           else
-            [:response_data_type, :discard_events].each do |field|
-              errors.add(field, "can't be defined until response translator") if send(field)
-            end
+            rejects(:response_data_type, :discard_events)
           end
         else
-          [:lot_size, :response_translator, :response_data_type].each do |field|
-            errors.add(field, 'is not allowed for non export translators') if send(field)
-          end
+          rejects(:lot_size, :response_translator, :response_data_type)
         end
-      else
-        errors.add(:translator, "can't be blank")
       end
       errors.blank?
+    end
+
+    def reject_message(field = nil)
+      case field
+      when :custom_data_type
+        'is not allowed since translator already defines a data type'
+      when :data_type_scope
+        'is not allowed for import translators'
+      when :response_data_type
+        response_translator.present? ? 'is not allowed since response translator already defines a data type' : "can't be defined until response translator"
+      when :discard_events
+        "can't be defined until response translator"
+      when :lot_size, :response_translator
+        'is not allowed for non export translators'
+      else
+        super
+      end
     end
 
     def data_type
@@ -86,14 +80,14 @@ module Setup
     def data_type_scope_enum
       enum = []
       if data_type
-        enum << 'Event source' if event && event.data_type == data_type
+        enum << 'Event source' if event && event.try(:data_type) == data_type
         enum << "All #{data_type.title.downcase.pluralize}"
       end
       enum
     end
 
     def ready_to_save?
-      event && translator && (translator.type == :Import || data_type_scope.present?)
+      (event && translator).present? && (translator.type == :Import || data_type_scope.present?)
     end
 
     def can_be_restarted?
@@ -104,7 +98,7 @@ module Setup
       puts "Flow processing on '#{self.name}': #{}"
       message = options.merge(flow_id: self.id.to_s, account_id: self.account.id.to_s).to_json
       begin
-        Cenit::Rabbit.send_to_rabbitmq(message)
+        Cenit::Rabbit.send_to_endpoints(message)
       rescue Exception => ex
         puts "ERROR sending message: #{ex.message}"
       end
@@ -120,11 +114,11 @@ module Setup
     def simple_translate(message, &block)
       begin
         if object_ids = message[:object_ids]
-          data_type.model.any_in(id: object_ids).each { |obj| translator.run(object: obj, discard_events: discard_events) }
+          data_type.records_model.any_in(id: object_ids).each { |obj| translator.run(object: obj, discard_events: discard_events) }
         elsif scope_symbol == :all
-          data_type.model.all.each { |obj| translator.run(object: obj, discard_events: discard_events) }
+          data_type.records_model.all.each { |obj| translator.run(object: obj, discard_events: discard_events) }
         elsif obj_id = message[:source_id]
-          translator.run(object: data_type.model.find(obj_id), discard_events: discard_events)
+          translator.run(object: data_type.records_model.find(obj_id), discard_events: discard_events)
         end
       rescue Exception => ex
         block.yield(exception: ex) if block
@@ -162,15 +156,16 @@ module Setup
 
     def translate_export(message, &block)
       limit = lot_size || 1000
-      max = ((object_ids = source_ids_from(message)) ? object_ids.size : data_type.model.count) - 1
+      max = ((object_ids = source_ids_from(message)) ? object_ids.size : data_type.count) - 1
       0.step(max, limit) do |offset|
         puts result = translator.run(object_ids: object_ids,
-                                source_data_type: data_type,
-                                offset: offset,
-                                limit: limit,
-                                discard_events: discard_events)
+                                     source_data_type: data_type,
+                                     offset: offset,
+                                     limit: limit,
+                                     discard_events: discard_events)
         connection_role.connections.each do |connection|
           begin
+            result = check_root(data_type, result)
             response = HTTParty.send(webhook.method, connection.url + '/' + webhook.path,
                                      {
                                          body: result,
@@ -190,6 +185,13 @@ module Setup
           end
         end
       end
+    end
+
+    def check_root(data_type, result)
+      root_key = data_type.name.downcase
+      result_hash = JSON.parse(result)
+      result = {root_key => result_hash}.to_json unless result_hash.has_key?(root_key)
+      result
     end
 
     def source_ids_from(message)

@@ -8,11 +8,7 @@ module Cenit
       def initialize(message, model=nil)
         self.payload = ::JSON.parse(message).with_indifferent_access
         self.request_id = payload.delete(:request_id)
-        if payload.key? :parameters
-          if payload[:parameters].is_a? Hash
-            self.parameters = payload.delete(:parameters).with_indifferent_access
-          end
-        end
+        self.parameters = payload.delete(:parameters).with_indifferent_access if payload.key?(:parameters) && payload[:parameters].is_a?( Hash)
         self.parameters ||= {}
         self.model = model
       end
@@ -32,13 +28,8 @@ module Cenit
         count = 0
         self.payload[root].each do |obj|
           next if obj[:id].empty? rescue obj[:id] = obj[:id].to_s
-
           @object = klass.where(id: obj[:id]).first
-          if @object
-            @object.update_attributes(obj)
-          else
-            @object = klass.new(obj)
-          end
+          @object ? @object.update_attributes(obj) : (@object = klass.new(obj))
           count += 1 if @object.save
         end
         {root => count}

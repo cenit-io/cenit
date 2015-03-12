@@ -2,8 +2,8 @@ class Account
   include Mongoid::Document
   include NumberGenerator
 
-  belongs_to :owner, class_name: User.name
-  has_many :users, inverse_of: :account, class_name: User.name
+  belongs_to :owner, class_name: User.to_s, inverse_of: nil
+  has_many :users, inverse_of: :account, class_name: User.to_s
 
   field :name, type: String
 

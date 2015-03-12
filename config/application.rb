@@ -35,12 +35,13 @@ module Cenit
 
       #Setup::Schema.model_listeners << RailsAdmin::AbstractModel
 
+      Setup::DataType.update_all(used_memory: 0)
+
       Setup::Schema.all.each do |schema|
         puts "Loading schema #{schema.uri}"
         schema.load_models
       end
 
-      puts Setup::Template.data_type.schema
     end
 
   end

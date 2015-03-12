@@ -37,9 +37,15 @@ module Setup
         @targets.empty? ? new_target : @targets.last
       end
 
+      def get(record)
+        raise Exception.new("Invalid target class #{record.orm_model}") unless record.is_a?(@target_model ||= target_data_type.records_model)
+        @targets.pop
+        @targets << record
+      end
+
       def new_target
         method_missing(:new_target) if @options[:target]
-        @targets << (@target_model ||= target_data_type.model).new
+        @targets << (@target_model ||= target_data_type.records_model).new
         @targets.last
       end
 

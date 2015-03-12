@@ -4,11 +4,7 @@ module Xsd
     def initialize(parent, attributes)
       super(parent)
       @xmlns = {'' => nil}
-      attributes.each do |attr|
-        if attr[0] =~ /\Axmlns:/
-          @xmlns[attr[0].from(attr[0].index(':') + 1)] = attr[1]
-        end
-      end
+      attributes.each { |attr| @xmlns[attr[0].from(attr[0].index(':') + 1)] = attr[1] if attr[0] =~ /\Axmlns:/ }
       if default = @xmlns.delete('')
         @xmls[:default] = default
       end

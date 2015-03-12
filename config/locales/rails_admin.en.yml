@@ -112,3 +112,27 @@ en:
       shutdown_and_reload:
         shutdown_data_types: "shutdown %{shutdown_count} data types"
         reload_data_types: "reload %{reload_count} data types"
+      memory_usage:
+        title: "Memory Usage"
+        menu: "Memory"
+        breadcrumb: "Memory"
+        model: "Model"
+        used_memory: "Used memory"
+      disk_usage:
+        title: "Disk Usage"
+        menu: "Disk"
+        breadcrumb: "Disk"
+        model: "Collection"
+        used_memory: "Space used"
+      share_collection:
+        title: "Share Collection"
+        menu: "Share"
+        breadcrumb: "Share"
+        submit: "Share"
+        done: "created"
+      pull_collection:
+        title: "Pull Collection"
+        menu: "Pull"
+        breadcrumb: "Pull"
+        submit: "Pull"
+        done: "pulled"

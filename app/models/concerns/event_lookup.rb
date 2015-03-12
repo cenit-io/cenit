@@ -5,6 +5,7 @@ module EventLookup
 
     attr_accessor :discard_event_lookup
 
+    #TODO Implement these logic on not loaded models
     before_save do |object|
       @_obj_before = object.class.where(id: object.id).first
     end

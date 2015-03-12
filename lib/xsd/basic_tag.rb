@@ -27,11 +27,11 @@ module Xsd
     end
 
     def qualify_element(name)
-      included?(qn="element:#{name}") ? qn : "element:#{qualify(name)}"
+      included?(qn = "element:#{name}") ? qn : "element:#{qualify(name)}"
     end
 
     def qualify_type(name)
-      included?(qn="type:#{name}") ? qn : "type:#{qualify(name)}"
+      included?(qn = "type:#{name}") ? qn : "type:#{qualify(name)}"
     end
 
     def xmlns(ns)
@@ -45,16 +45,8 @@ module Xsd
     private
 
     def qualify(name)
-      ns = if i = name.rindex(':')
-             xmlns(name[0..i-1])
-           else
-             xmlns(:default)
-           end
-      if ns.blank? then
-        name
-      else
-        "#{ns}:#{i ? name.from(i+1) : name}"
-      end
+      ns = (i = name.rindex(':')) ? xmlns(name[0..i-1]) : xmlns(:default)
+      ns.blank? ? name : "#{ns}:#{i ? name.from(i+1) : name}"
     end
   end
 end

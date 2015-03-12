@@ -16,7 +16,7 @@ module RailsAdmin
         end
 
         register_instance_option :visible do
-          authorized? && bindings[:object] && bindings[:object].is_object? && bindings[:object].loaded?
+          authorized? && (data_type = bindings[:object]) && data_type.is_object? && data_type.activated && data_type.loaded?
         end
 
         register_instance_option :controller do
@@ -26,17 +26,19 @@ module RailsAdmin
               begin
                 unless params[:shutdown]
                   report = Setup::DataType.shutdown(@object, report_only: true)
-                  @shutdown = report[:destroyed].collect { |model| model.data_type }.uniq.select { |data_type| data_type != @object }
-                  @reload = report[:affected].collect { |model| model.data_type }.uniq
+                  @shutdown = report[:destroyed].collect(&:data_type).uniq.select { |data_type| data_type != @object }
+                  @reload = report[:affected].collect(&:data_type).uniq
                   params[:shutdown] = true if @shutdown.empty? && @reload.empty?
                 end
                 if params[:shutdown]
+                  @object.activated = ok = false
                   (report = Setup::DataType.shutdown(@object))[:destroyed].each do |model|
                     (data_type = model.data_type).activated = data_type.show_navigation_link = false
                     data_type.save
+                    ok = ok || data_type == @object
                   end
-                  flash[:success] = "Model #{@object.title} is now shutdown"
-                  unless report[:errors].empty?
+                  flash[:success] = ok ? "Model #{@object.title} is now shutdown" : "Model #{@object.title} was not shutdown"
+                  if report[:errors].present?
                     flash[:error] = ''.html_safe
                     report[:errors].each do |data_type, errors|
                       flash[:error] += "<strong>Model #{data_type.title} could not be loaded</strong>".html_safe
@@ -48,6 +50,7 @@ module RailsAdmin
                   render @action.template_name
                 end
               rescue Exception => ex
+                raise ex
                 flash[:error] = "Error shutdown model #{@object.title}: #{ex.message}"
               end
             else

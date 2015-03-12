@@ -1,63 +1,79 @@
 module Setup
-  class Translator
-    include Mongoid::Document
-    include Mongoid::Timestamps
-    include AccountScoped
-    include Trackable
+  class Translator < ReqRejValidator
+    include CenitScoped
 
+    Setup::Models.exclude_actions_for self, :edit
     BuildInDataType.regist(self).referenced_by(:name)
 
     field :name, type: String
     field :type, type: Symbol
 
-    belongs_to :source_data_type, class_name: Setup::DataType.name, inverse_of: nil
-    belongs_to :target_data_type, class_name: Setup::DataType.name, inverse_of: nil
+    belongs_to :source_data_type, class_name: Setup::DataType.to_s, inverse_of: nil
+    belongs_to :target_data_type, class_name: Setup::DataType.to_s, inverse_of: nil
 
     field :discard_events, type: Boolean
     field :style, type: String
+
+    field :mime_type, type: String
+    field :file_extension, type: String
+
     field :transformation, type: String
 
-    belongs_to :source_exporter, class_name: Setup::Translator.name, inverse_of: nil
-    belongs_to :target_importer, class_name: Setup::Translator.name, inverse_of: nil
+    belongs_to :source_exporter, class_name: Setup::Translator.to_s, inverse_of: nil
+    belongs_to :target_importer, class_name: Setup::Translator.to_s, inverse_of: nil
 
     field :discard_chained_records, type: Boolean
 
-    belongs_to :template, class_name: Setup::Template.name, inverse_of: :translators
+    belongs_to :cenit_collection, class_name: Setup::Collection.to_s, inverse_of: :translators
 
-    validates_presence_of :name, :type, :style
-    validates_uniqueness_of :name
-    validates_inclusion_of :type, in: ->(t) { t.type_options }
-    validates_inclusion_of :style, in: ->(t) { t.style_options }
+    validates_account_uniqueness_of :name
     before_save :validates_configuration
 
     def validates_configuration
-      if type == :Conversion
-        [:source_data_type, :target_data_type].each do |field|
-          errors.add(field, "can't be blank") if send(field).blank?
-        end
-        # if errors.blank?
-        #   errors.add(:target_data_type, 'must defers from source') if target_data_type == source_data_type
-        # end
-        if style == 'chain'
-          [:source_exporter, :target_importer].each do |field|
-            errors.add(field, "can't be blank") if send(field).blank?
+      return false unless ready_to_save?
+      requires(:name)
+      errors.add(:type, 'is not valid') unless type_enum.include?(type)
+      errors.add(:style, 'is not valid') unless style_enum.include?(style)
+      case type
+      when :Import, :Update
+        rejects(:source_data_type, :mime_type, :file_extension, :source_exporter, :target_importer, :discard_chained_records)
+        requires(:transformation)
+      when :Export
+        rejects(:target_data_type, :source_exporter, :target_importer, :discard_chained_records)
+        requires(:transformation)
+        if mime_type.present?
+          if (extensions = file_extension_enum).empty?
+            self.file_extension = nil
+          elsif file_extension.blank?
+            extensions.length == 1 ? (self.file_extension = extensions[0]) : errors.add(:file_extension, 'has multiple options')
+          else
+            errors.add(:file_extension, 'is not valid') unless extensions.include?(file_extension)
           end
+        end
+      when :Conversion
+        rejects(:mime_type, :file_extension)
+        requires(:source_data_type, :target_data_type)
+        if style == 'chain'
+          requires(:source_exporter, :target_importer)
           if errors.blank?
             errors.add(:source_exporter, "can't be applied to #{source_data_type.title}") unless source_exporter.apply_to_source?(source_data_type)
             errors.add(:target_importer, "can't be applied to #{target_data_type.title}") unless target_importer.apply_to_target?(target_data_type)
           end
           self.transformation = "#{source_data_type.title} -> [#{source_exporter.name} : #{target_importer.name}] -> #{target_data_type.title}" if errors.blank?
+        else
+          requires(:transformation)
+          rejects(:source_exporter, :target_importer)
         end
       end
       errors.blank?
     end
 
-    def type_options
-      [:Import, :Export, :Update, :Conversion]
+    def reject_message(field = nil)
+      (style && type).present? ? "is not allowed for #{style} #{type.to_s.downcase} translators" : super
     end
 
     def type_enum
-      type.present? ? [type] : type_options
+      [:Import, :Export, :Update, :Conversion]
     end
 
     STYLES_MAP = {'renit' => Setup::Transformation::RenitTransform,
@@ -69,22 +85,26 @@ module Setup
                   'html.erb' => Setup::Transformation::ActionViewTransform,
                   'chain' => Setup::Transformation::ChainTransform}
 
-    def style_options
+    def style_enum
       styles = []
-      unless type.blank?
-        STYLES_MAP.each do |key, value|
-          styles << key if value.types.include?(type)
-        end
-      end
+      STYLES_MAP.each { |key, value| styles << key if value.types.include?(type) } if type.present?
       styles.uniq
     end
 
-    def style_enum
-      style.present? ? [style] : style_options
+    def mime_type_enum
+      MIME::Types.inject([]) { |types, t| types << t.to_s }
+    end
+
+    def file_extension_enum
+      extensions = []
+      if types = MIME::Types[mime_type]
+        types.each { |type| extensions.concat(type.extensions) }
+      end
+      extensions.uniq
     end
 
     def ready_to_save?
-      type.present? && style.present? && (style != 'chain' || (source_data_type && target_data_type && source_exporter))
+      (type && style).present? && (style != 'chain' || (source_data_type && target_data_type && source_exporter).present?)
     end
 
     def can_be_restarted?
@@ -104,17 +124,15 @@ module Setup
     end
 
     def run(options={})
-      context_options = respond_to?(method_name ="context_options_for_#{type.to_s.downcase}") ? send(method_name, options) : {}
+      context_options = try("context_options_for_#{type.to_s.downcase}", options) || {}
       self.class.fields.keys.each { |key| context_options[key.to_sym] = send(key) }
       self.class.relations.keys.each { |key| context_options[key.to_sym] = send(key) }
       context_options[:data_type] = data_type
-      context_options.merge!(options) { |key, context_val, options_val| !context_val ? options_val : options_val }
+      context_options.merge!(options) { |key, context_val, options_val| !context_val ? options_val : context_val }
 
       context_options[:result] = STYLES_MAP[style].run(context_options)
 
-      if respond_to?(method_name ="after_run_#{type.to_s.downcase}")
-        send(method_name, context_options)
-      end
+      try("after_run_#{type.to_s.downcase}", context_options)
 
       context_options[:result]
     end
@@ -126,7 +144,7 @@ module Setup
 
     def context_options_for_export(options)
       raise Exception.new('Source data type not defined') unless data_type = source_data_type || options[:source_data_type]
-      model = data_type.model
+      model = data_type.records_model
       offset = options[:offset] || 0
       limit = options[:limit]
       sources = if object_ids = options[:object_ids]
@@ -143,103 +161,145 @@ module Setup
 
     def context_options_for_conversion(options)
       raise Exception.new("Target data type #{target_data_type.title} is not loaded") unless target_data_type.loaded?
-      {source: options[:object], target: style == 'chain' ? nil : target_data_type.model.new}
+      {source: options[:object], target: style == 'chain' ? nil : target_data_type.records_model.new}
     end
 
     def after_run_import(options)
-      if targets = options[:targets]
-        targets.each do |target|
-          target.discard_event_lookup = options[:discard_events]
-          raise TransformingObjectException.new(target) unless target.save
-        end
-        options[:result] = targets
+      return unless targets = options[:targets]
+      targets.each do |target|
+        target.try(:discard_event_lookup=, options[:discard_events])
+        raise TransformingObjectException.new(target) unless Translator.save(target)
       end
+      options[:result] = targets
     end
 
     def after_run_update(options)
       if target = options[:object]
-        target.discard_event_lookup = options[:discard_events]
-        raise TransformingObjectException.new(object) unless target.save
+        target.try(:discard_event_lookup=, options[:discard_events])
+        raise TransformingObjectException.new(target) unless Translator.save(target)
       end
       options[:result] = target
     end
 
     def after_run_conversion(options)
-      if target = options[:target]
-        if options[:save_result].nil? || options[:save_result]
-          target.discard_event_lookup = options[:discard_events]
-          raise TransformingObjectException.new(target) unless target.save
-        end
-        options[:result] = target
+      return unless target = options[:target]
+      if options[:save_result].nil? || options[:save_result]
+        target.try(:discard_event_lookup=, options[:discard_events])
+        raise TransformingObjectException.new(target) unless Translator.save(target)
       end
-    end
-
-    class SourceIterator
-      include Enumerable
-
-      def initialize(object_ids, model, offset=0, limit=nil)
-        @enum = if object_ids
-                  (object_ids.is_a?(Enumerator) ? object_ids : object_ids.to_enum).skip(offset)
-                else
-                  (limit ? model.limit(limit) : model.all).skip(offset).to_enum
-                end
-        @enum.skip(offset)
-        @model = model
-      end
-
-      def next
-        if @enum
-          @current = @enum.next
-        else
-          @current_index += 1 if @current_index < @object_ids.length
-          current
-        end
-      end
-
-      def current
-        if @enum
-          @current ||= @enum.next
-        else
-          (@current_index < @object_ids.length) ? @model.find(@object_ids[@current_index]) : nil
-        end
-      end
-
-      def count
-        if @enum
-          @model.count
-        else
-          @object_ids.length
-        end
-      end
-
-      def each
-        if @enum
-          @model.all.each { |record| yield record }
-        else
-          @object_ids.each { |obj_id| yield @model.find(obj_id) }
-        end
-      end
+      options[:result] = target
     end
 
     private
 
-    def self.save(record)
-      save_references(record) && record.save(validate: false)
-    end
-
-    def self.save_references(record)
-      record.reflect_on_all_associations(:embeds_one,
-                                         :embeds_many,
-                                         :has_one,
-                                         :has_many,
-                                         :has_and_belongs_to_many).each do |relation|
-        if values = record.send(relation.name)
-          values = [values] unless values.is_a?(Enumerable)
-          values.each { |value| return false unless save_references(value) }
-          values.each { |value| return false unless value.save(validate: false) } unless relation.embedded?
+    class << self
+      def save(record)
+        saved = Set.new
+        if bind_references(record)
+          if save_references(record, saved) && (saved.include?(record) || record.save)
+            true
+          else
+            for_each_node_starting_at(record, stack=[]) do |obj|
+              obj.errors.each do |attribute, error|
+                attr_ref = "#{obj.orm_model.data_type.title}" +
+                    ((name = obj.try(:name)).present? || (name = obj.try(:title)).present? ? " #{name} on attribute " : "'s '") +
+                    attribute.to_s + ((v = obj.try(attribute)).present? ? "'#{v}'" : '')
+                path = ''
+                stack.reverse_each do |node|
+                  node[:record].errors.add(node[:attribute], "with error on #{path}#{attr_ref} (#{error})") if node[:referenced]
+                  path = node[:record].orm_model.data_type.title + ' -> '
+                end
+              end
+            end
+            saved.each { |obj| obj.delete unless obj.deleted? }
+            false
+          end
+        else
+          false
         end
       end
-      return true
+
+      def bind_references(record)
+        references = {}
+        for_each_node_starting_at(record) do |obj|
+          if record_refs = obj.instance_variable_get(:@_references)
+            references[obj] = record_refs
+          end
+        end
+        puts references
+        for_each_node_starting_at(record) do |obj|
+          references.each do |obj_waiting, to_bind|
+            to_bind.each do |property_name, property_binds|
+              is_array = property_binds.is_a?(Array) ? true : (property_binds = [property_binds]; false)
+              property_binds.each do |property_bind|
+                if obj.is_a?(property_bind[:model]) && match?(obj, property_bind[:criteria])
+                  if is_array
+                    unless array_property = obj_waiting.send(property_name)
+                      obj_waiting.send("#{property_name}=", array_property = [])
+                    end
+                    array_property << obj
+                  else
+                    obj_waiting.send("#{property_name}=", obj)
+                  end
+                  property_binds.delete(property_bind)
+                end
+                to_bind.delete(property_name) if property_binds.empty?
+              end
+              references.delete(obj_waiting) if to_bind.empty?
+            end
+          end
+        end if references.present?
+
+        for_each_node_starting_at(record, stack = []) do |obj|
+          if to_bind = references[obj]
+            to_bind.each do |property_name, property_binds|
+              property_binds = [property_binds] unless property_binds.is_a?(Array)
+              property_binds.each do |property_bind|
+                message = "reference not found with criteria #{property_bind[:criteria].to_json}"
+                obj.errors.add(property_name, message)
+                stack.each { |node| node[:record].errors.add(node[:attribute], message) }
+              end
+            end
+          end
+        end if references.present?
+        record.errors.blank?
+      end
+
+      def match?(obj, criteria)
+        criteria.each { |property_name, value| return false unless obj.try(property_name) == value }
+        true
+      end
+
+      def for_each_node_starting_at(record, stack = nil, visited = Set.new, &block)
+        visited << record
+        block.yield(record) if block
+        if orm_model = record.try(:orm_model)
+          orm_model.for_each_association do |relation|
+            if values = record.send(relation[:name])
+              stack << {record: record, attribute: relation[:name], referenced: !relation[:embedded]} if stack
+              values = [values] unless values.is_a?(Enumerable)
+              values.each { |value| for_each_node_starting_at(value, stack, visited, &block) unless visited.include?(value) }
+              stack.pop if stack
+            end
+          end
+        end
+      end
+
+      def save_references(record, saved, visited = Set.new)
+        return true if visited.include?(record)
+        visited << record
+        record.orm_model.for_each_association do |relation|
+          next if Setup::BuildInDataType::EXCLUDED_RELATIONS.include?(relation[:name].to_s)
+          if values = record.send(relation[:name])
+            values = [values] unless values.is_a?(Enumerable)
+            values.each { |value| return false unless save_references(value, saved, visited) }
+            values.each do |value|
+              (value.save ? saved << value : (return false)) unless saved.include?(value)
+            end unless relation[:embedded]
+          end
+        end
+        true
+      end
     end
   end
 
