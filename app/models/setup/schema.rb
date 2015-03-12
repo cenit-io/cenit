@@ -1,6 +1,8 @@
 module Setup
   class Schema
-    include CenitCommon
+    include CenitScoped
+
+    Setup::Models.exclude_actions_for self, :bulk_delete, :delete
 
     BuildInDataType.regist(self).with(:uri, :schema)
 

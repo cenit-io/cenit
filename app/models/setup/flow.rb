@@ -2,7 +2,7 @@ require 'nokogiri'
 
 module Setup
   class Flow < ReqRejValidator
-    include CenitCommon
+    include CenitScoped
     include DynamicValidators
 
     BuildInDataType.regist(self)
@@ -26,7 +26,7 @@ module Setup
 
     field :last_trigger_timestamps, type: DateTime
 
-    belongs_to :template, class_name: Setup::Template.to_s, inverse_of: :flows
+    belongs_to :cenit_collection, class_name: Setup::Collection.to_s, inverse_of: :flows
 
     validates_presence_of :name, :event, :translator
     validates_numericality_in_presence_of :lot_size, greater_than_or_equal_to: 1

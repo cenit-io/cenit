@@ -1,6 +1,6 @@
 module Setup
   class Webhook
-    include CenitCommon
+    include CenitScoped
     include Setup::Enum
 
     BuildInDataType.regist(self).referenced_by(:name)
@@ -8,7 +8,7 @@ module Setup
     embeds_many :url_parameters, class_name: Setup::Parameter.to_s, inverse_of: :webhook
     embeds_many :headers, class_name: Setup::Parameter.to_s, inverse_of: :webhook
 
-    belongs_to :template, class_name: Setup::Template.to_s, inverse_of: :webhooks
+    belongs_to :cenit_collection, class_name: Setup::Collection.to_s, inverse_of: :webhooks
 
     field :name, type: String
     field :path, type: String

@@ -1,9 +1,8 @@
 module Setup
   class Notification
-    include Mongoid::Document
-    include Mongoid::Timestamps
-    include AccountScoped
-    include Trackable
+    include CenitScoped
+
+    Setup::Models.exclude_actions_for self, :new
 
     belongs_to :flow, :class_name => Setup::Flow.to_s, inverse_of: nil
 

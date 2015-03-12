@@ -1,6 +1,6 @@
 module Setup
   class Connection
-    include CenitCommon
+    include CenitScoped
     include NumberGenerator
 
     BuildInDataType.regist(self)
@@ -20,7 +20,7 @@ module Setup
     accepts_nested_attributes_for :url_parameters, :headers
 
     validates_presence_of :name, :url, :key, :token
-    validates_uniqueness_of :token
+    validates_account_uniqueness_of :token
 
     def ensure_token
       self.token ||= generate_token

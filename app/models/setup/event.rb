@@ -1,15 +1,17 @@
 module Setup
   class Event
-    include CenitCommon
+    include CenitScoped
+
+    Setup::Models.exclude_actions_for self, :new
 
     BuildInDataType.regist(self).with(:name).referenced_by(:name).and(sub_schema: "self['_type']")
 
     field :name, type: String
     field :last_trigger_timestamps, type: DateTime
 
-    belongs_to :template, class_name: Setup::Template.to_s, inverse_of: :events
+    belongs_to :cenit_collection, class_name: Setup::Collection.to_s, inverse_of: :events
 
-    validates_uniqueness_of :name
+    validates_account_uniqueness_of :name
 
     before_save :do_not_save
 
