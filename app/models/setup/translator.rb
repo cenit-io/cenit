@@ -26,7 +26,7 @@ module Setup
 
     belongs_to :cenit_collection, class_name: Setup::Collection.to_s, inverse_of: :translators
 
-    validates_uniqueness_of :name
+    validates_account_uniqueness_of :name
     before_save :validates_configuration
 
     def validates_configuration

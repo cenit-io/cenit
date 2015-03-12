@@ -13,7 +13,7 @@ module Setup
     belongs_to :cenit_collection, class_name: Setup::Collection.to_s, inverse_of: :libraries
 
     validates_presence_of :name
-    validates_uniqueness_of :name
+    validates_account_uniqueness_of :name
 
     def find_data_type_by_name(name)
       if data_type = DataType.where(name: name).detect { |data_type| data_type.uri && data_type.uri.library == self }

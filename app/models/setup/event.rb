@@ -11,7 +11,7 @@ module Setup
 
     belongs_to :cenit_collection, class_name: Setup::Collection.to_s, inverse_of: :events
 
-    validates_uniqueness_of :name
+    validates_account_uniqueness_of :name
 
     before_save :do_not_save
 
