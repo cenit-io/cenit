@@ -13,7 +13,9 @@
  RailsAdmin::Config::Actions::EditTranslator,
  RailsAdmin::Config::Actions::Update,
  RailsAdmin::Config::Actions::Convert,
- RailsAdmin::Config::Actions::DeleteSchema].each { |a| RailsAdmin::Config::Actions.register(a) }
+ RailsAdmin::Config::Actions::DeleteSchema,
+ RailsAdmin::Config::Actions::ShareCollection,
+ RailsAdmin::Config::Actions::PullCollection].each { |a| RailsAdmin::Config::Actions.register(a) }
 
 RailsAdmin::Config::Actions.register(:export, RailsAdmin::Config::Actions::EdiExport)
 
@@ -50,6 +52,8 @@ RailsAdmin.config do |config|
     show
     edit { except [Role] }
     edit_translator
+    share_collection
+    pull_collection
     delete { except [Role] }
     delete_schema
     #show_in_app
@@ -197,7 +201,7 @@ RailsAdmin.config do |config|
         unless max = bindings[:controller].instance_variable_get(:@max_collection_size)
           bindings[:controller].instance_variable_set(:@max_collection_size, max = bindings[:controller].instance_variable_get(:@objects).collect { |data_type| data_type.records_model.collection_size }.max)
         end
-        (bindings[:view].render partial: 'used_memory_bar', locals: { max: max, value: bindings[:object].records_model.collection_size}).html_safe
+        (bindings[:view].render partial: 'used_memory_bar', locals: {max: max, value: bindings[:object].records_model.collection_size}).html_safe
       end
       read_only true
     end
@@ -554,26 +558,26 @@ RailsAdmin.config do |config|
         visible { bindings[:object].scheduling_method.present? }
         label do
           case bindings[:object].scheduling_method
-            when :Once
-              'Date and time'
-            when :Periodic
-              'Duration'
-            when :CRON
-              'CRON Expression'
-            else
-              'Expression'
+          when :Once
+            'Date and time'
+          when :Periodic
+            'Duration'
+          when :CRON
+            'CRON Expression'
+          else
+            'Expression'
           end
         end
         help do
           case bindings[:object].scheduling_method
-            when :Once
-              'Select a date and a time'
-            when :Periodic
-              'Type a time duration'
-            when :CRON
-              'Type a CRON Expression'
-            else
-              'Expression'
+          when :Once
+            'Select a date and a time'
+          when :Periodic
+            'Type a time duration'
+          when :CRON
+            'Type a CRON Expression'
+          else
+            'Expression'
           end
         end
         partial { bindings[:object].scheduling_method == :Once ? 'form_datetime_wrapper' : 'form_text' }
@@ -708,21 +712,23 @@ RailsAdmin.config do |config|
 
     fields :name, :type, :style, :transformation
   end
-  
+
   config.model Setup::SharedCollection do
     navigation_label 'Collections'
     weight -19
+    edit do
+      field :name
+      field :description
+    end
     show do
       field :name
       field :description
 
-      field :_id
       field :created_at
       field :creator
       field :updated_at
-      field :updater
     end
-    fields :name, :description
+    fields :name, :creator, :description
   end
 
   config.model Setup::Collection do

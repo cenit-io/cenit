@@ -124,3 +124,15 @@ en:
         breadcrumb: "Disk"
         model: "Collection"
         used_memory: "Space used"
+      share_collection:
+        title: "Share Collection"
+        menu: "Share"
+        breadcrumb: "Share"
+        submit: "Share"
+        done: "created"
+      pull_collection:
+        title: "Pull Collection"
+        menu: "Pull"
+        breadcrumb: "Pull"
+        submit: "Pull"
+        done: "pulled"
