@@ -1,6 +1,6 @@
 module Setup
   class Connection
-    include CenitCommon
+    include CenitScoped
     include NumberGenerator
 
     BuildInDataType.regist(self)

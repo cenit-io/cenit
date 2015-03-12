@@ -1,6 +1,6 @@
 module Setup
   class SharedCollection
-    include CenitCommon
+    include CenitUnscoped
 
     field :name, type: String
     field :description, type: String

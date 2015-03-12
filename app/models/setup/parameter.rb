@@ -1,6 +1,6 @@
 module Setup
   class Parameter
-    include CenitCommon
+    include CenitScoped
 
     BuildInDataType.regist(self).with(:key, :value)
 

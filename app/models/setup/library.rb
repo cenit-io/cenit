@@ -1,6 +1,8 @@
 module Setup
   class Library
-    include CenitCommon
+    include CenitScoped
+
+    Setup::Models.exclude_actions_for self, :edit
 
     BuildInDataType.regist(self)
 

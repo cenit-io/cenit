@@ -1,6 +1,6 @@
 module Setup
   class ConnectionRole
-    include CenitCommon
+    include CenitScoped
 
     BuildInDataType.regist(self).referenced_by(:name)
 

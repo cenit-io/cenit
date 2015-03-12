@@ -15,10 +15,6 @@ module RailsAdmin
           [:get, :delete]
         end
 
-        register_instance_option :authorization_key do
-          :destroy
-        end
-
         register_instance_option :controller do
           proc do
             if params[:delete] # DELETE

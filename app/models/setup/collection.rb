@@ -1,6 +1,6 @@
 module Setup
   class Collection
-    include CenitCommon
+    include CenitScoped
 
     BuildInDataType.regist(self).embedding(:translators, :events, :connection_roles, :webhooks)
 

@@ -2,7 +2,9 @@ require 'edi/formater'
 
 module Setup
   class DataType < BaseDataType
-    include CenitCommon
+    include CenitScoped
+
+    Setup::Models.exclude_actions_for self, :delete, :new, :bulk_delete, :delete_all
 
     BuildInDataType.regist(self).referenced_by(:name)
 

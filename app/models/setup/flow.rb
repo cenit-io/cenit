@@ -2,7 +2,7 @@ require 'nokogiri'
 
 module Setup
   class Flow < ReqRejValidator
-    include CenitCommon
+    include CenitScoped
     include DynamicValidators
 
     BuildInDataType.regist(self)

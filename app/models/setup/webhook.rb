@@ -1,6 +1,6 @@
 module Setup
   class Webhook
-    include CenitCommon
+    include CenitScoped
     include Setup::Enum
 
     BuildInDataType.regist(self).referenced_by(:name)

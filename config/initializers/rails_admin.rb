@@ -37,7 +37,7 @@ RailsAdmin.config do |config|
     memory_usage
     disk_usage
     index # mandatory
-    new { except [Setup::DataType, Role, Setup::Event, Setup::Notification] }
+    new { except [Role] }
     import
     import_schema
     update
@@ -46,11 +46,11 @@ RailsAdmin.config do |config|
     #  only 'Setup::DataType'
     #end
     export
-    bulk_delete { except [Setup::Schema, Setup::DataType, Role] }
+    bulk_delete { except [Role] }
     show
-    edit { except [Setup::Library, Role, Setup::Translator] }
+    edit { except [Role] }
     edit_translator
-    delete { except [Setup::Schema, Setup::DataType, Role] }
+    delete { except [Role] }
     delete_schema
     #show_in_app
     send_to_flow
@@ -58,7 +58,7 @@ RailsAdmin.config do |config|
     load_model
     shutdown_model
     switch_navigation
-    delete_all { except Setup::DataType, Role }
+    delete_all { except [Role] }
     data_type
 
     history_index do
