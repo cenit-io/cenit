@@ -8,6 +8,8 @@ module Setup
     field :description, type: String
     field :data, type: String
 
+    validates_presence_of :name, :description
+
     validates_uniqueness_of :name
   end
 end
