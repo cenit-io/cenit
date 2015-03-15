@@ -42,7 +42,7 @@ module Setup
         if translator.type == :Export
           if response_translator.present?
             if response_translator.type == :Import
-              response_translator.data_type ? rejects(:response_data_type) : requires(:response_data_type)
+              response_translator.data_type.present? ? rejects(:response_data_type) : requires(:response_data_type)
             else
               errors.add(:response_translator, 'is not an import translator')
             end
@@ -91,10 +91,10 @@ module Setup
     end
 
     def can_be_restarted?
-      event || translator
+      event.presence || translator
     end
 
-    def process(options={})
+    def process(options = {})
       puts "Flow processing on '#{self.name}': #{}"
       message = options.merge(flow_id: self.id.to_s, account_id: self.account.id.to_s).to_json
       begin
@@ -113,15 +113,15 @@ module Setup
 
     def simple_translate(message, &block)
       begin
-        if object_ids = message[:object_ids]
+        if (object_ids = message[:object_ids]).present?
           data_type.records_model.any_in(id: object_ids).each { |obj| translator.run(object: obj, discard_events: discard_events) }
         elsif scope_symbol == :all
           data_type.records_model.all.each { |obj| translator.run(object: obj, discard_events: discard_events) }
-        elsif obj_id = message[:source_id]
+        elsif (obj_id = message[:source_id]).present?
           translator.run(object: data_type.records_model.find(obj_id), discard_events: discard_events)
         end
       rescue Exception => ex
-        block.yield(exception: ex) if block
+        block.yield(exception: ex) if block.present?
       end
     end
 
@@ -137,19 +137,21 @@ module Setup
       connection_role.connections.each do |connection|
         begin
           response = HTTParty.send(webhook.method, connection.url + '/' + webhook.path,
-                                   {
-                                       headers: {
-                                           'X_HUB_STORE' => connection.key,
-                                           'X_HUB_TOKEN' => connection.token,
-                                           'X_HUB_TIMESTAMP' => Time.now.utc.to_i.to_s
-                                       }
-                                   })
-          translator.run(target_data_type: data_type,
-                         data: response.message,
-                         discard_events: discard_events) if response.code == 200
-          block.yield(response: response) if block
+            {
+               headers: {
+                 'X_HUB_STORE' => connection.key,
+                 'X_HUB_TOKEN' => connection.token,
+                 'X_HUB_TIMESTAMP' => Time.now.utc.to_i.to_s
+               }
+            })
+          translator.run(
+            target_data_type: data_type,
+            data: response.message,
+            discard_events: discard_events) if response.code == 200
+            
+          block.yield(response: response) if block.present?
         rescue Exception => ex
-          block.yield(response: response, exception: ex) if block
+          block.yield(response: response, exception: ex) if block.present?
         end
       end
     end
@@ -158,30 +160,33 @@ module Setup
       limit = lot_size || 1000
       max = ((object_ids = source_ids_from(message)) ? object_ids.size : data_type.count) - 1
       0.step(max, limit) do |offset|
-        puts result = translator.run(object_ids: object_ids,
-                                     source_data_type: data_type,
-                                     offset: offset,
-                                     limit: limit,
-                                     discard_events: discard_events)
+        puts result = translator.run(
+          object_ids: object_ids,
+          source_data_type: data_type,
+          offset: offset,
+          limit: limit,
+          discard_events: discard_events)
+          
         connection_role.connections.each do |connection|
           begin
             result = check_root(data_type, result)
             response = HTTParty.send(webhook.method, connection.url + '/' + webhook.path,
-                                     {
-                                         body: result,
-                                         headers: {
-                                             'Content-Type' => 'application/json',
-                                             'X_HUB_STORE' => connection.key,
-                                             'X_HUB_TOKEN' => connection.token,
-                                             'X_HUB_TIMESTAMP' => Time.now.utc.to_i.to_s
-                                         }
-                                     })
-            block.yield(response: response) if block
+              {
+                 body: result,
+                 headers: {
+                   'Content-Type' => 'application/json',
+                   'X_HUB_STORE' => connection.key,
+                   'X_HUB_TOKEN' => connection.token,
+                   'X_HUB_TIMESTAMP' => Time.now.utc.to_i.to_s
+                 }
+              })
+                                     
+            block.yield(response: response) if block.present?
             if response_translator #&& response.code == 200
               response_translator.run(target_data_type: response_translator.data_type || response_data_type, data: response.message)
             end
           rescue Exception => ex
-            block.yield(exception: ex) if block
+            block.yield(exception: ex) if block.present?
           end
         end
       end
@@ -195,10 +200,10 @@ module Setup
     end
 
     def source_ids_from(message)
-      if object_ids = message[:object_ids]
+      if (object_ids = message[:object_ids]).present?
         object_ids
       elsif scope_symbol == :event_source
-        (id = message[:source_id]) ? [id] : []
+        (id = message[:source_id]).present? ? [id] : []
       else
         nil
       end
