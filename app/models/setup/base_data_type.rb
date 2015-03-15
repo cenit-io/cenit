@@ -30,7 +30,7 @@ module Setup
       end
       schema.each { |key, val| schema[key] = merge_schema(val, options) if val.is_a?(Hash) } if options[:recursive].present?
       options[:expand_extends] = true if options[:expand_extends].nil?
-      if options[:expand_extends] && (base_model = schema['extends']).present?
+      if options[:expand_extends].present? && (base_model = schema['extends']).present?
         base_model = find_ref_schema(base_model) if base_model.is_a?(String)
         base_model = merge_schema(base_model)
         if schema['type'] == 'object' && base_model['type'] != 'object'

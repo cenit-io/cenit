@@ -91,8 +91,8 @@ module Setup
 
     private
 
-    MONGOID_TYPE_MAP = 
-      {Array => 'array',
+    MONGOID_TYPE_MAP = {
+      Array => 'array',
       BigDecimal => 'integer',
       Mongoid::Boolean => 'boolean',
       Date => {'type' => 'string', 'format' => 'date'},

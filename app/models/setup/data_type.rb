@@ -9,16 +9,16 @@ module Setup
     BuildInDataType.regist(self).referenced_by(:name)
 
     def self.to_include_in_models
-      @to_include_in_models ||= 
-        [Mongoid::Document,
-         Mongoid::Timestamps,
-         Setup::ClassAffectRelation,
-         Mongoid::CenitExtension,
-         EventLookup,
-         AccountScoped,
-         DynamicValidators,
-         Edi::Formatter,
-         Edi::Filler] #, RailsAdminDynamicCharts::Datetime
+      @to_include_in_models ||= [
+        Mongoid::Document,
+        Mongoid::Timestamps,
+        Setup::ClassAffectRelation,
+        Mongoid::CenitExtension,
+        EventLookup,
+        AccountScoped,
+        DynamicValidators,
+        Edi::Formatter,
+        Edi::Filler] #, RailsAdminDynamicCharts::Datetime
     end
 
     belongs_to :uri, class_name: Setup::Schema.to_s, inverse_of: :data_types
@@ -102,7 +102,7 @@ module Setup
     end
 
     def delete_all
-      if  (m = model).present?
+      if (m = model).present?
         m.delete_all unless m.is_a?(Hash)
       else
         #TODO Delete records when not loaded
