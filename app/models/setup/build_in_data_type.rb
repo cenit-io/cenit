@@ -91,17 +91,18 @@ module Setup
 
     private
 
-    MONGOID_TYPE_MAP = {Array => 'array',
-                        BigDecimal => 'integer',
-                        Mongoid::Boolean => 'boolean',
-                        Date => {'type' => 'string', 'format' => 'date'},
-                        DateTime => {'type' => 'string', 'format' => 'date-time'},
-                        Float => 'number',
-                        Hash => 'object',
-                        Integer => 'integer',
-                        String => 'string',
-                        Symbol => 'string',
-                        Time => {'type' => 'string', 'format' => 'time'}}
+    MONGOID_TYPE_MAP = 
+      {Array => 'array',
+      BigDecimal => 'integer',
+      Mongoid::Boolean => 'boolean',
+      Date => {'type' => 'string', 'format' => 'date'},
+      DateTime => {'type' => 'string', 'format' => 'date-time'},
+      Float => 'number',
+      Hash => 'object',
+      Integer => 'integer',
+      String => 'string',
+      Symbol => 'string',
+      Time => {'type' => 'string', 'format' => 'time'}}
 
     def excluded?(name)
       name = name.to_s
@@ -115,31 +116,35 @@ module Setup
 
     def build_schema
       schema = {'type' => 'object', 'properties' => properties = {}}
-      schema[:referenced_by.to_s] = @referenced_by.to_s if @referenced_by
+      schema[:referenced_by.to_s] = @referenced_by.to_s if @referenced_by.present?
       (fields = model.fields).each do |field_name, field|
         properties[field_name] = json_schema_type(field.type) if !field.is_a?(Mongoid::Fields::ForeignKey) && included?(field_name)
       end
-      (relations = model.reflect_on_all_associations(:embeds_one,
-                                                     :embeds_many,
-                                                     :has_one,
-                                                     :belongs_to,
-                                                     :has_many,
-                                                     :has_and_belongs_to_many)).each do |relation|
-        if included?(relation.name)
-          property_schema = case relation.macro
-                            when :embeds_one
-                              {'$ref' => relation.klass.to_s}
-                            when :embeds_many
-                              {'type' => 'array', 'items' => {'$ref' => relation.klass.to_s}}
-                            when :has_one
-                              {'$ref' => relation.klass.to_s, 'referenced' => true, 'export_embedded' => @embedding && @embedding.include?(relation.name)}
-                            when :belongs_to
-                              {'$ref' => relation.klass.to_s, 'referenced' => true, 'export_embedded' => @embedding && @embedding.include?(relation.name)} if (@including && @including.include?(relation.name.to_s)) || relation.inverse_of.nil?
-                            when :has_many, :has_and_belongs_to_many
-                              {'type' => 'array', 'items' => {'$ref' => relation.klass.to_s, 'referenced' => true, 'export_embedded' => @embedding && @embedding.include?(relation.name)}}
-                            end
-          properties[relation.name] = property_schema if property_schema
-        end
+      (relations = model.reflect_on_all_associations(
+        :embeds_one,
+        :embeds_many,
+        :has_one,
+        :belongs_to,
+        :has_many,
+        :has_and_belongs_to_many)).each do |relation|
+          if included?(relation.name)
+            property_schema = 
+              case relation.macro
+              when :embeds_one
+                {'$ref' => relation.klass.to_s}
+              when :embeds_many
+                {'type' => 'array', 'items' => {'$ref' => relation.klass.to_s}}
+              when :has_one
+                {'$ref' => relation.klass.to_s, 'referenced' => true, 'export_embedded' => @embedding && @embedding.include?(relation.name)}
+              when :belongs_to
+                if (@including.present? && @including.include?(relation.name.to_s)) || relation.inverse_of.blank?
+                  {'$ref' => relation.klass.to_s, 'referenced' => true, 'export_embedded' => @embedding && @embedding.include?(relation.name)}
+                end  
+              when :has_many, :has_and_belongs_to_many
+                {'type' => 'array', 'items' => {'$ref' => relation.klass.to_s, 'referenced' => true, 'export_embedded' => @embedding && @embedding.include?(relation.name)}}
+              end
+            properties[relation.name] = property_schema if property_schema.present?
+          end
       end
       schema = @to_merge.merge(schema) if @to_merge
       schema.to_json
