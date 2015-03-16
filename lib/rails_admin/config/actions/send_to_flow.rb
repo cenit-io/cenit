@@ -6,11 +6,11 @@ module RailsAdmin
         register_instance_option :visible? do
           if authorized?
             model = bindings[:abstract_model].model_name.constantize rescue nil
-            if model && model.respond_to?(:data_type)
+            if model.present? && model.respond_to?(:data_type)
               data_type = model.data_type
               #TODO Set send to flow action visible only if there is a flow
               #data_type && !(@flows = Setup::Flow.where(data_type: data_type).collect { |f| f }).blank?
-              !data_type.nil?
+              data_type.present?
             else
               false
             end
@@ -32,9 +32,9 @@ module RailsAdmin
 
             @bulk_ids = params[:bulk_ids]
 
-            if params[:send_data]
-              if flow_id = params[:flow_id]
-                if flow = Setup::Flow.where(id: flow_id).first
+            if params[:send_data].present?
+              if (flow_id = params[:flow_id]).present?
+                if (flow = Setup::Flow.where(id: flow_id).first).present?
                   flow.process(object_ids: @bulk_ids)
                   flash[:notice] = "Models were send to flow '#{flow.name}'"
                 else
@@ -45,7 +45,7 @@ module RailsAdmin
             else
               @flow_options = []
               model = @abstract_model.model_name.constantize rescue nil
-              if model && model.respond_to?(:data_type)
+              if model.present? && model.respond_to?(:data_type)
                 model_data_type = model.data_type
                 flows = Setup::Flow.all.select { |flow| flow.translator.type != :Import && flow.data_type == model_data_type }
                 @flow_options = flows.collect { |f| [f.name, f.id] }

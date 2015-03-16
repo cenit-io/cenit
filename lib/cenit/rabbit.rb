@@ -34,7 +34,7 @@ module Cenit
       exception = translation[:exception]
 
       notification = nil
-      if message[:notification_id.to_s].nil?
+      if message[:notification_id.to_s].blank?
         notification = Setup::Notification.new
         notification.flow_id = message[:flow_id.to_s]['$oid']
         notification.account_id = message[:account_id.to_s]['$oid']
@@ -47,8 +47,8 @@ module Cenit
       if exception
         notification.http_status_message = exception.message
       else
-        notification.http_status_code = response.code if response
-        notification.http_status_message = response.message if response
+        notification.http_status_code = response.code if response.present?
+        notification.http_status_message = response.message if response.present?
       end
       notification.count += 1
       notification.save!

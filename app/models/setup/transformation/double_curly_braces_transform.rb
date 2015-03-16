@@ -11,7 +11,7 @@ module Setup
           if value.is_a?(String) && value =~ /\A\{\{[a-z]+(_|([0-9]|[a-z])+)*(.[a-z]+(_|([0-9]|[a-z])+)*)*\}\}\Z/
             new_value = data_hash
             value[2, value.length - 4].split('.').each do |k|
-              next if new_value.nil? || !(template_hash = template_hash.is_a?(Hash) ? template_hash : nil) || new_value = new_value[k]
+              next if new_value.blank? || !(template_hash = template_hash.is_a?(Hash) ? template_hash : nil) || (new_value = new_value[k]).present?
             end
             template_hash[key] = new_value
           elsif value.is_a?(Hash)
