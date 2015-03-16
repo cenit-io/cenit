@@ -38,7 +38,7 @@ module Setup
     def collect_models_from(constant_names)
       models = []
       constant_names.each do |model_name|
-        if ((model = model_name.constantize).present? rescue nil)
+        if ((model = model_name.constantize) rescue nil).present?
           models << model
         else
           constant_names.delete(model_name)
