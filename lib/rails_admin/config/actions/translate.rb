@@ -45,7 +45,7 @@ module RailsAdmin
                     flash.now[:error] = "Error updating object with id=#{ex.object.id}".html_safe
                     flash.now[:error] += %(<br>- #{ex.object.errors.full_messages.join('<br>- ')}).html_safe
                   rescue Exception => ex
-                    raise ex
+                    #raise ex
                     flash[:error] = ex.message
                   end
                 end
