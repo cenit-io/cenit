@@ -13,6 +13,7 @@ module RailsAdmin
 
         register_instance_option :controller do
           proc do
+
             @max = 0
             @count = {}
             Setup::DataType.all.each do |data_type|
@@ -20,6 +21,7 @@ module RailsAdmin
               @count[data_type.id.to_s] = count = model.is_a?(Class) ? model.collection_size : 0
               @max = count if count > @max
             end
+
           end
         end
 

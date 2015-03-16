@@ -16,19 +16,19 @@ module RailsAdmin
         end
 
         register_instance_option :visible do
-          authorized? && bindings[:object].present? && bindings[:object].is_object? && !bindings[:object].loaded?
+          authorized? && bindings[:object] && bindings[:object].is_object? && !bindings[:object].loaded?
         end
 
         register_instance_option :controller do
           proc do
-            if (model = @object.model).present?
+            if model = @object.model
               flash[:notice] = "Model #{@object.title} is already loaded!"
             else
               begin
                 @object.show_navigation_link = true
                 report = @object.load_models(activated: true)
                 RailsAdmin::AbstractModel.model_loaded(report[:loaded])
-                if report[:model].present?
+                if report[:model]
                   flash[:success] = "Model #{@object.title} loaded!"
                 else
                   flash[:error] = ''.html_safe

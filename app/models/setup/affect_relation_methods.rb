@@ -5,7 +5,7 @@ module Setup
       if self.is_a?(Class)
         self.to_s
       else
-        (data_type = self.try(:data_type)).present? && data_type.data_type_name
+        (data_type = self.try(:data_type)) && data_type.data_type_name
       end
     end
 
@@ -27,7 +27,7 @@ module Setup
 
     def affects_to(model)
       (@_affected_model_names ||= Set.new) << model.model_access_name
-      if (affected_by = model.instance_variable_get(:@_affected_by)).blank?
+      unless affected_by = model.instance_variable_get(:@_affected_by)
         model.instance_variable_set(:@_affected_by, affected_by = Set.new)
       end
       affected_by << model_access_name
@@ -38,7 +38,7 @@ module Setup
     def collect_models_from(constant_names)
       models = []
       constant_names.each do |model_name|
-        if ((model = model_name.constantize) rescue nil).present?
+        if model = model_name.constantize rescue nil
           models << model
         else
           constant_names.delete(model_name)

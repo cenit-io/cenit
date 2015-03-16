@@ -8,13 +8,12 @@ module Forms
 
     after_initialize do
       unless translator.present?
-        data_type_criteria = 
-          case translator_type
-          when :Export, :Conversion
-           :source_data_type
-          when :Import, :Update
-           :target_data_type
-          end
+        data_type_criteria = case translator_type
+                               when :Export, :Conversion
+                                 :source_data_type
+                               when :Import, :Update
+                                 :target_data_type
+                             end
 
         if data_type_criteria
           self.translator = Setup::Translator.all.any_in(data_type_criteria => [nil, data_type]).and(type: translator_type).first
@@ -37,13 +36,12 @@ module Forms
         field :translator do
           associated_collection_scope do
             data_type = bindings[:object].try(:data_type)
-            data_type_criteria = 
-              case translator_type = bindings[:object].try(:translator_type)
-              when :Export, :Conversion
-               :source_data_type
-              when :Import, :Update
-               :target_data_type
-              end
+            data_type_criteria = case translator_type = bindings[:object].try(:translator_type)
+                                   when :Export, :Conversion
+                                     :source_data_type
+                                   when :Import, :Update
+                                     :target_data_type
+                                 end
             Proc.new { |scope|
               if data_type_criteria
                 scope.any_in(data_type_criteria => [nil, data_type]).and(type: translator_type)

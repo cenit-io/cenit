@@ -22,11 +22,13 @@ module RailsAdmin
 
         register_instance_option :controller do
           proc do
+
             if data_type = abstract_model.model_name.constantize.try(:data_type)
               redirect_to rails_admin.show_path(model_name: Setup::DataType.to_s.underscore.gsub('/', '~'), id: data_type.id.to_s)
             else
               redirect_to back_or_index
             end
+
           end
         end
 

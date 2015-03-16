@@ -11,11 +11,11 @@ class Ability
 
       can :destroy, Setup::SharedCollection, creator: user
       can :update, Setup::SharedCollection, creator: user
-      cannot :delete_all, Setup::SharedCollection
+      cannot :pull_collection, Setup::SharedCollection, creator: user
 
       Setup::Models.each do |model, excluded_actions|
         non_root.each do |action|
-          can action.authorization_key, model if relevant_rules_for_match(action.authorization_key, model).empty? && !excluded_actions.include?(action.key)
+          can action.authorization_key, model unless can?(action.authorization_key, model) || excluded_actions.include?(action.key)
         end
       end
 

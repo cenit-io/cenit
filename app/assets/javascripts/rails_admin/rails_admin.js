@@ -20,9 +20,5 @@
 //=  require 'rails_admin/ra.widgets'
 //=  require 'rails_admin/ui'
 //=  require 'rails_admin/custom/ui'
-
-//=  require 'rails_admin/d3'
-//=  require 'rails_admin/highcharts'
-
 //=  require 'rails_admin/triggers-box'
 //=  require 'rails_admin/test-flow-transformation'

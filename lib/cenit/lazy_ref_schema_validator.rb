@@ -25,22 +25,21 @@ module Cenit
       begin
         super
       rescue Exception => ex
-        raise ex unless (lazy_ref = s['$ref']).present? &&
-          lazy_ref =~ /\A([A-Z]|[a-z])+(_|([0-9]|[A-Z]|[a-z])+)*(.([A-Z]|[a-z])+(_|([0-9]|[A-Z]|[a-z])+)*)*\Z/ &&
-          (lazy_ref == lazy_ref.camelize || lazy_ref == lazy_ref.camelize.underscore)
+        raise ex unless (lazy_ref = s['$ref']) &&
+            lazy_ref =~ /\A([A-Z]|[a-z])+(_|([0-9]|[A-Z]|[a-z])+)*(.([A-Z]|[a-z])+(_|([0-9]|[A-Z]|[a-z])+)*)*\Z/ &&
+            (lazy_ref == lazy_ref.camelize || lazy_ref == lazy_ref.camelize.underscore)
         uri = URI.parse(lazy_ref)
-        if (schema = JSON::Validator.schemas[uri.to_s]).blank?
-          json_schema = 
-            case lazy_ref
-            when 'Date'
-              {'type' => 'string', 'format' => 'date'}
-            when 'DateTime'
-              {'type' => 'string', 'format' => 'date-time'}
-            when 'Time'
-              {'type' => 'string', 'format' => 'time'}
-            else
-              {'type' => 'string'}
-            end
+        unless schema = JSON::Validator.schemas[uri.to_s]
+          json_schema = case lazy_ref
+                        when 'Date'
+                          {'type' => 'string', 'format' => 'date'}
+                        when 'DateTime'
+                          {'type' => 'string', 'format' => 'date-time'}
+                        when 'Time'
+                          {'type' => 'string', 'format' => 'time'}
+                        else
+                          {'type' => 'string'}
+                        end
           JSON::Validator.add_schema(schema = JSON::Schema.new(json_schema, uri))
         end
         [uri, schema]
