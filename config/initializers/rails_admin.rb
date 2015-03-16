@@ -39,7 +39,7 @@ RailsAdmin.config do |config|
     memory_usage
     disk_usage
     index # mandatory
-    new { except [Role] }
+    new { except [Setup::Event, Role] }
     import
     import_schema
     update
