@@ -17,9 +17,9 @@ module RailsAdmin
 
         register_instance_option :controller do
           proc do
-            if params[:delete] # DELETE
+            if params[:delete].present? # DELETE
               redirect_path = nil
-              if @auditing_adapter
+              if @auditing_adapter.present?
                 @object.data_types.each do |data_type|
                   @auditing_adapter.delete_object(data_type, RailsAdmin::Config.model(data_type.model), _current_user) if data_type.loaded?
                 end

@@ -18,7 +18,7 @@ module Setup
       end
 
       def each(&block)
-        @models.each(&block) if @models
+        @models.each(&block) if @models.present?
       end
 
       def exclude_actions_for(model, *actions)
