@@ -29,8 +29,8 @@ module RailsAdmin
 
             render_form = true
             form_object = nil
-            if model = @abstract_model.model_name.constantize rescue nil
-              if data = params[:forms_import_translator_selector]
+            if ((model = @abstract_model.model_name.constantize).present? rescue nil)
+              if (data = params[:forms_import_translator_selector]).present?
                 translator = Setup::Translator.where(id: data[:translator_id]).first
                 if (form_object = Forms::ImportTranslatorSelector.new(translator: translator, data: data[:data])).valid?
                   begin

@@ -45,7 +45,7 @@ module Mongoff
         symbol = symbol.to_s.chop.to_sym
         value = args[0]
         @fields.delete(symbol)
-        if value.nil?
+        if value.blank?
           document.delete(symbol)
         elsif value.is_a?(Record)
           @fields[symbol] = value

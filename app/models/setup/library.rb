@@ -16,10 +16,10 @@ module Setup
     validates_account_uniqueness_of :name
 
     def find_data_type_by_name(name)
-      if data_type = DataType.where(name: name).detect { |data_type| data_type.uri && data_type.uri.library == self }
+      if (data_type = DataType.where(name: name).detect { |data_type| data_type.uri && data_type.uri.library == self }).present?
         data_type
       else
-        if (schema = Schema.where(uri: name).detect { |schema| schema.library == self }) && schema.data_types.count == 1
+        if (schema = Schema.where(uri: name).detect { |schema| schema.library == self }).present? && schema.data_types.count == 1
           schema.data_types.first
         else
           nil

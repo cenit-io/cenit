@@ -10,7 +10,7 @@ module Setup
     validates_presence_of :name, :scheduling_method
 
     validate do
-      errors.add(:expression, "can't be blank") unless exp = expression
+      errors.add(:expression, "can't be blank") if (exp = expression).blank?
       case scheduling_method
       when :Once
         errors.add(:expression, 'is not a valid date-time') unless !(DateTime.parse(exp) rescue nil)
@@ -86,7 +86,7 @@ module Setup
 
     def stop
       begin
-        if scheduler_id && (scheduler = ObjectSpace._id2ref(scheduler_id)).is_a?(Rufus::Scheduler)
+        if scheduler_id.present? && (scheduler = ObjectSpace._id2ref(scheduler_id)).is_a?(Rufus::Scheduler).present?
           scheduler.stop
           puts "Scheduler #{name} stoped!"
         end

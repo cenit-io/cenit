@@ -42,7 +42,7 @@ module Setup
         rejects(:target_data_type, :source_exporter, :target_importer, :discard_chained_records)
         requires(:transformation)
         if mime_type.present?
-          if (extensions = file_extension_enum).empty?
+          if (extensions = file_extension_enum).blank?
             self.file_extension = nil
           elsif file_extension.blank?
             extensions.length == 1 ? (self.file_extension = extensions[0]) : errors.add(:file_extension, 'has multiple options')
@@ -76,14 +76,15 @@ module Setup
       [:Import, :Export, :Update, :Conversion]
     end
 
-    STYLES_MAP = {'renit' => Setup::Transformation::RenitTransform,
-                  'double_curly_braces' => Setup::Transformation::DoubleCurlyBracesTransform,
-                  'xslt' => Setup::Transformation::XsltTransform,
-                  'json.rabl' => Setup::Transformation::ActionViewTransform,
-                  'xml.rabl' => Setup::Transformation::ActionViewTransform,
-                  'xml.builder' => Setup::Transformation::ActionViewTransform,
-                  'html.erb' => Setup::Transformation::ActionViewTransform,
-                  'chain' => Setup::Transformation::ChainTransform}
+    STYLES_MAP = {
+      'renit' => Setup::Transformation::RenitTransform,
+      'double_curly_braces' => Setup::Transformation::DoubleCurlyBracesTransform,
+      'xslt' => Setup::Transformation::XsltTransform,
+      'json.rabl' => Setup::Transformation::ActionViewTransform,
+      'xml.rabl' => Setup::Transformation::ActionViewTransform,
+      'xml.builder' => Setup::Transformation::ActionViewTransform,
+      'html.erb' => Setup::Transformation::ActionViewTransform,
+      'chain' => Setup::Transformation::ChainTransform}
 
     def style_enum
       styles = []
@@ -97,7 +98,7 @@ module Setup
 
     def file_extension_enum
       extensions = []
-      if types = MIME::Types[mime_type]
+      if (types = MIME::Types[mime_type]).present?
         types.each { |type| extensions.concat(type.extensions) }
       end
       extensions.uniq
@@ -138,20 +139,22 @@ module Setup
     end
 
     def context_options_for_import(options)
-      raise Exception.new('Target data type not defined') unless data_type = target_data_type || options[:target_data_type]
+      raise Exception.new('Target data type not defined') unless (data_type = target_data_type).present? || options[:target_data_type].present?
       {target_data_type: data_type}
     end
 
     def context_options_for_export(options)
-      raise Exception.new('Source data type not defined') unless data_type = source_data_type || options[:source_data_type]
+      raise Exception.new('Source data type not defined') unless (data_type = source_data_type).present? || options[:source_data_type].present?
       model = data_type.records_model
-      offset = options[:offset] || 0
+      offset = options[:offset].presence || 0
       limit = options[:limit]
-      sources = if object_ids = options[:object_ids]
-                  model.any_in(id: (limit ? object_ids[offset, limit] : object_ids.from(offset))).to_enum
-                else
-                  (limit ? model.limit(limit) : model.all).skip(offset).to_enum
-                end
+      sources = 
+        if (object_ids = options[:object_ids]).present?
+          model.any_in(id: (limit ? object_ids[offset, limit] : object_ids.from(offset))).to_enum
+        else
+          (limit ? model.limit(limit) : model.all).skip(offset).to_enum
+        end
+
       {source_data_type: data_type, sources: sources}
     end
 
@@ -165,7 +168,7 @@ module Setup
     end
 
     def after_run_import(options)
-      return unless targets = options[:targets]
+      return unless (targets = options[:targets]).present?
       targets.each do |target|
         target.try(:discard_event_lookup=, options[:discard_events])
         raise TransformingObjectException.new(target) unless Translator.save(target)
@@ -174,7 +177,7 @@ module Setup
     end
 
     def after_run_update(options)
-      if target = options[:object]
+      if (target = options[:object]).present?
         target.try(:discard_event_lookup=, options[:discard_events])
         raise TransformingObjectException.new(target) unless Translator.save(target)
       end
@@ -182,8 +185,8 @@ module Setup
     end
 
     def after_run_conversion(options)
-      return unless target = options[:target]
-      if options[:save_result].nil? || options[:save_result]
+      return unless (target = options[:target]).present?
+      if options[:save_result].blank? || options[:save_result].present?
         target.try(:discard_event_lookup=, options[:discard_events])
         raise TransformingObjectException.new(target) unless Translator.save(target)
       end
@@ -199,7 +202,7 @@ module Setup
           if save_references(record, saved) && (saved.include?(record) || record.save)
             true
           else
-            for_each_node_starting_at(record, stack=[]) do |obj|
+            for_each_node_starting_at(record, stack = []) do |obj|
               obj.errors.each do |attribute, error|
                 attr_ref = "#{obj.orm_model.data_type.title}" +
                     ((name = obj.try(:name)).present? || (name = obj.try(:title)).present? ? " #{name} on attribute " : "'s '") +
@@ -234,7 +237,7 @@ module Setup
               property_binds.each do |property_bind|
                 if obj.is_a?(property_bind[:model]) && match?(obj, property_bind[:criteria])
                   if is_array
-                    unless array_property = obj_waiting.send(property_name)
+                    if (array_property = obj_waiting.send(property_name)).blank?
                       obj_waiting.send("#{property_name}=", array_property = [])
                     end
                     array_property << obj
@@ -243,15 +246,15 @@ module Setup
                   end
                   property_binds.delete(property_bind)
                 end
-                to_bind.delete(property_name) if property_binds.empty?
+                to_bind.delete(property_name) if property_binds.blank?
               end
-              references.delete(obj_waiting) if to_bind.empty?
+              references.delete(obj_waiting) if to_bind.blank?
             end
           end
         end if references.present?
 
         for_each_node_starting_at(record, stack = []) do |obj|
-          if to_bind = references[obj]
+          if (to_bind = references[obj]).present?
             to_bind.each do |property_name, property_binds|
               property_binds = [property_binds] unless property_binds.is_a?(Array)
               property_binds.each do |property_bind|
@@ -275,11 +278,11 @@ module Setup
         block.yield(record) if block
         if orm_model = record.try(:orm_model)
           orm_model.for_each_association do |relation|
-            if values = record.send(relation[:name])
-              stack << {record: record, attribute: relation[:name], referenced: !relation[:embedded]} if stack
+            if (values = record.send(relation[:name]).present?)
+              stack << {record: record, attribute: relation[:name], referenced: !relation[:embedded]} if stack.present?
               values = [values] unless values.is_a?(Enumerable)
               values.each { |value| for_each_node_starting_at(value, stack, visited, &block) unless visited.include?(value) }
-              stack.pop if stack
+              stack.pop if stack.present?
             end
           end
         end
@@ -290,12 +293,12 @@ module Setup
         visited << record
         record.orm_model.for_each_association do |relation|
           next if Setup::BuildInDataType::EXCLUDED_RELATIONS.include?(relation[:name].to_s)
-          if values = record.send(relation[:name])
+          if (values = record.send(relation[:name])).present?
             values = [values] unless values.is_a?(Enumerable)
             values.each { |value| return false unless save_references(value, saved, visited) }
             values.each do |value|
               (value.save ? saved << value : (return false)) unless saved.include?(value)
-            end unless relation[:embedded]
+            end if relation[:embedded].blank?
           end
         end
         true

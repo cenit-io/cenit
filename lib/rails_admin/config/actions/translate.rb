@@ -27,19 +27,23 @@ module RailsAdmin
             @bulk_ids = params.delete(:bulk_ids)
             translator_type = @action.class.translator_type
 
-            if model = @abstract_model.model_name.constantize rescue nil
+            if ((model = @abstract_model.model_name.constantize).present? rescue nil)
               data_type = model.data_type
               data_type_selector = data_type.is_a?(Setup::BuildInDataType) ? nil : data_type
-              if data = params[:forms_translator_selector]
+              if (data = params[:forms_translator_selector]).present?
                 translator = Setup::Translator.where(id: data[:translator_id]).first
-                if (@object = Forms::TranslatorSelector.new(translator_type: translator_type,
-                                                            data_type: data_type_selector,
-                                                            translator: translator)).valid?
+                if (@object = Forms::TranslatorSelector.new(
+                  translator_type: translator_type,
+                  data_type: data_type_selector,
+                  translator: translator)).valid?
+                  
                   begin
-                    translation = @action.class.translate(translator: translator,
-                                                          bulk_ids: @bulk_ids,
-                                                          model: model,
-                                                          data_type: data_type)
+                    translation = @action.class.translate(
+                      translator: translator,
+                      bulk_ids: @bulk_ids,
+                      model: model,
+                      data_type: data_type)
+                      
                     ok = true
                   rescue Setup::TransformingObjectException => ex
                     flash.now[:error] = "Error updating object with id=#{ex.object.id}".html_safe
@@ -52,15 +56,17 @@ module RailsAdmin
               end
             end
             if ok
-              @action.class.done(controller: self,
-                                 translation: translation,
-                                 back_or_index: back_or_index,
-                                 data_type: data_type,
-                                 translator: translator)
+              @action.class.done(
+                controller: self,
+                translation: translation,
+                back_or_index: back_or_index,
+                data_type: data_type,
+                translator: translator)
             else
-              @object ||= Forms::TranslatorSelector.new(translator_type: translator_type,
-                                                        data_type: data_type_selector,
-                                                        translator: translator)
+              @object ||= Forms::TranslatorSelector.new(
+                translator_type: translator_type,
+                data_type: data_type_selector,
+                translator: translator)
               @model_config = RailsAdmin::Config.model(Forms::TranslatorSelector)
               if @object.errors.present?
                 flash.now[:error] = 'There are errors in the export data specification'.html_safe
