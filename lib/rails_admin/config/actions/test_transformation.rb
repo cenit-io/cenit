@@ -21,14 +21,14 @@ module RailsAdmin
             @sample_data = data_type.sample_to_hash
 
             #@sample_data = JSON.parse(@sample_data) rescue {}
-            @result =
-              if (transformation = params[:transformation]).present?
-                options = {}
-                options[:style] = params[:style] if params[:style].present?
-                 Setup::Flow.transform(transformation, data_type.sample_object, options )
-              else
-                {}
-              end
+
+            if transformation = params[:transformation]
+              options = {}
+              options[:style] = params[:style] if params[:style].present?
+              @result = Setup::Flow.transform(transformation, data_type.sample_object, options )
+            else
+              @result = {}
+            end
 
             #@sample_data = JSON.try(:pretty_generate, @sample_data) || @sample_data
            # @result = JSON.try(:pretty_generate, @result) || @result

@@ -4,10 +4,10 @@ module Mongoid
     class AssertionValidator < ActiveModel::Validator
 
       def validate(record)
-        return if (assertion = options[:assertion]).blank?
+        return unless assertion = options[:assertion]
         assertion = assertion.with_indifferent_access
-        if (condition_if = eval_condition(record, assertion[:if])).present?
-          if (error = assertion[:then_error]).present?
+        if condition_if = eval_condition(record, assertion[:if])
+          if error = assertion[:then_error]
             report_error(record, error, assertion[:target])
           else
             report_error(record, assertion[:else], assertion[:target]) unless eval_condition(record, assertion[:then])
@@ -22,9 +22,9 @@ module Mongoid
       end
 
       def eval_condition(record, condition)
-        return if condition.blank?
+        return unless condition
         condition_value = true
-        condition.each { |attribute, assert| condition_value &&= eval_assert(record, attribute, assert) if condition_value.present? }
+        condition.each { |attribute, assert| condition_value &&= eval_assert(record, attribute, assert) if condition_value }
         condition_value
       end
 
@@ -32,18 +32,17 @@ module Mongoid
         value = record.send(attribute)
         assert_result = true
         assert.each do |assert_key, assert_value|
-          next if assert_result.blank?
-          assert_result &&= 
-            case assert_key
-            when 'present'
-              assert_value ? value.present? : value.blank?
-            when 'enum'
-              assert_value.include?(value)
-            when 'format'
-              Regexp.new("\\A#{assert_value}\\Z", true) =~ value
-            else
-              raise Exception.new("Invalid assert key: #{assert_key}")
-            end
+          next unless assert_result
+          assert_result &&= case assert_key
+                            when 'present'
+                              assert_value ? !value.blank? : value.blank?
+                            when 'enum'
+                              assert_value.include?(value)
+                            when 'format'
+                              Regexp.new("\\A#{assert_value}\\Z", true) =~ value
+                            else
+                              raise Exception.new("Invalid assert key: #{assert_key}")
+                            end
         end
         assert_result
       end

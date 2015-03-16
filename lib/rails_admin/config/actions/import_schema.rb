@@ -20,17 +20,17 @@ module RailsAdmin
         register_instance_option :controller do
           proc do
 
-            if params[:_save].present? && (data = params[:forms_import_schema_data]).present?
+            if params[:_save] && data = params[:forms_import_schema_data]
               library = library = Setup::Library.where(id: data[:library_id]).first
               file = data[:file]
               base_uri = data[:base_uri]
               if (@object = Forms::ImportSchemaData.new(library: library, file: file, base_uri: base_uri)).valid?
-                if (i = (name = file.original_filename).rindex('.')).present? && name.from(i) == '.zip'
+                if (i = (name = file.original_filename).rindex('.')) && name.from(i) == '.zip'
                   schemas = []
                   with_missing_includes = {}
                   begin
                     Zip::InputStream.open(StringIO.new(file.read)) do |zis|
-                      while @object.errors.blank? && (entry = zis.get_next_entry).present?
+                      while @object.errors.blank? && entry = zis.get_next_entry
                         if (schema = entry.get_input_stream.read).present?
                           entry_uri = base_uri.blank? ? entry.name : "#{base_uri}/#{entry.name}"
                           schema = Setup::Schema.new(library: library, uri: entry_uri, schema: schema)

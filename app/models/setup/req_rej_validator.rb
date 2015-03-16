@@ -1,7 +1,7 @@
 module Setup
   class ReqRejValidator
 
-    def reject_message(field = nil)
+    def reject_message(field=nil)
       'is not allowed'
     end
 
@@ -20,7 +20,7 @@ module Setup
     def requires(*fields)
       r = false
       fields.each do |field|
-        if send(field).blank?
+        unless send(field).present?
           r = true
           errors.add(field, "can't be blank")
         end
