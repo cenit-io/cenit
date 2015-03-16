@@ -42,13 +42,6 @@ module Cenit
         schema.load_models
       end
 
-      # if model = 'Dt5504cb526d61630b33040000'.constantize
-      #   1.upto(1000) do
-      #     model.create(name: Faker::Lorem.word, created_at: DateTime.now - rand(100), price: rand(10.5...100.5).round(2))
-      #   end
-      #   model.update_all(account_id: '5504b2696d616326f4020000')
-      # end
-
     end
 
   end
