@@ -24,7 +24,7 @@ RailsAdmin.config do |config|
   ## == PaperTrail ==
   # config.audit_with :paper_trail, 'User', 'PaperTrail::Version' # PaperTrail >= 3.0.0
 
-  config.excluded_models << "Account" << "Setup::Parameter"
+  config.excluded_models << "Account"
 
   ### More at https://github.com/sferik/rails_admin/wiki/Base-configuration
   config.authenticate_with do
@@ -303,7 +303,7 @@ RailsAdmin.config do |config|
       end
       group :credentials
     end
-    configure :url_parameters do
+    configure :parameters do
       visible { bindings[:view]._current_user.has_role? :admin }
     end
     configure :headers do
@@ -313,7 +313,7 @@ RailsAdmin.config do |config|
     group :parameters do
       label "Add Parameters"
     end
-    configure :url_parameters do
+    configure :parameters do
       group :parameters
     end
     configure :headers do
@@ -327,7 +327,7 @@ RailsAdmin.config do |config|
       field :key
       field :token
 
-      field :url_parameters
+      field :parameters
       field :headers
 
       field :_id
@@ -337,7 +337,7 @@ RailsAdmin.config do |config|
       field :updater
     end
 
-    fields :name, :url, :url_parameters, :headers, :key, :token
+    fields :name, :url, :webhooks, :parameters, :headers, :key, :token
   end
 
   config.model Setup::Parameter.name do
@@ -389,7 +389,7 @@ RailsAdmin.config do |config|
     group :parameters do
       label "Add Parameters"
     end
-    configure :url_parameters do
+    configure :parameters do
       group :parameters
     end
     configure :headers do
@@ -402,7 +402,7 @@ RailsAdmin.config do |config|
       field :path
       field :method
 
-      field :url_parameters
+      field :parameters
       field :headers
 
       field :_id
@@ -411,7 +411,7 @@ RailsAdmin.config do |config|
       field :updated_at
       field :updater
     end
-    fields :name, :purpose, :path, :method, :url_parameters, :headers
+    fields :name, :purpose, :path, :method, :parameters, :headers
   end
 
   config.model Setup::Notification.name do

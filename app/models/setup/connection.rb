@@ -5,7 +5,9 @@ module Setup
 
     BuildInDataType.regist(self)
 
-    embeds_many :url_parameters, class_name: Setup::Parameter.to_s, inverse_of: :connection
+    has_and_belongs_to_many :webhooks, class_name: Setup::Webhook.to_s, inverse_of: :connections
+
+    embeds_many :parameters, class_name: Setup::Parameter.to_s, inverse_of: :connection
     embeds_many :headers, class_name: Setup::Parameter.to_s, inverse_of: :connection
     
     devise :database_authenticatable
@@ -17,7 +19,8 @@ module Setup
 
     after_initialize :ensure_token
 
-    accepts_nested_attributes_for :url_parameters, :headers
+    validates_presence_of :webhooks
+    accepts_nested_attributes_for :parameters, :headers
 
     validates_presence_of :name, :url, :key, :token
     validates_account_uniqueness_of :token
