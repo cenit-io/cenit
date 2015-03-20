@@ -11,7 +11,7 @@ module RailsAdmin
           end
 
           def translate(options)
-            ((bulk_ids = options[:bulk_ids]) ? options[:model].any_in(id: bulk_ids) : options[:model].all).each do |object|
+            ((bulk_ids = options[:bulk_ids]).present? ? options[:model].any_in(id: bulk_ids) : options[:model].all).each do |object|
               options[:translator].run(object: object)
             end
           end

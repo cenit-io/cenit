@@ -17,11 +17,13 @@ module Setup
       triggers_hash.each do |field_name, conditions|
         conditions.each do |_, condition|
           puts "...verifying trigger #{condition} on (#{obj_now},#{obj_before})::#{field_name}"
-          puts c = if (condition['o'] == '_change')
-                     field_changed(obj_now, obj_before, field_name)
-                  else
-                     condition_apply(obj_now, field_name, condition) && !condition_apply(obj_before, field_name, condition)
-                  end
+          puts c = 
+            if (condition['o'] == '_change')
+               field_changed(obj_now, obj_before, field_name)
+            else
+               condition_apply(obj_now, field_name, condition) && !condition_apply(obj_before, field_name, condition)
+            end
+
           r &&= c
         end
       end
@@ -37,7 +39,7 @@ module Setup
     end
 
     def to_s
-      name ? name : super
+      name.present? ? name : super
     end
 
     private
@@ -53,19 +55,21 @@ module Setup
     def condition_apply(obj, field_name, condition)
       obj_v = obj.try(field_name)
       cond_v = valuate(condition['v'], obj_v.class)
-      obj_values = if cond_v.is_a?(String) || (cond_v.is_a?(Array) && cond_v.detect { |e| e.is_a?(String) })
-                     convert_to_string_array(obj_v)
-                   else
-                     [obj_v]
-                   end
-      unless op = condition['o']
+      obj_values = 
+        if cond_v.is_a?(String) || (cond_v.is_a?(Array) && cond_v.detect { |e| e.is_a?(String) })
+          convert_to_string_array(obj_v)
+        else
+          [obj_v]
+         end
+
+      if (op = condition['o']).blank?
         op = cond_v.is_a?(Array) ? 'in' : 'is'
       end
       begin
         obj_values.each do |obj_v|
           r = self.send("op_#{op}", obj_v, cond_v)
           puts "#{obj_v} #{op} #{cond_v} -> #{r}"
-          return true if r
+          return true if r.present?
         end
       rescue Exception => ex
         puts "ERROR #{ex.message}"
@@ -76,22 +80,24 @@ module Setup
     def convert_to_string_array(obj_v)
       return [obj_v] if obj_v.is_a?(String)
       array = [:name, :title, :id].map { |property| obj_v.send(property).to_s rescue next }
-      array << obj_v.to_s if array.empty?
+      array << obj_v.to_s if array.blank?
       array
     end
 
     def valuate(cond_v, klass)
-      return unless cond_v
+      return if cond_v.blank?
       return cond_v if cond_v.is_a?(klass)
-      cond_v = [cond_v] unless is_array = cond_v.is_a?(Array)
+      if (is_array = cond_v.is_a?(Array)).blank?
+        cond_v = [cond_v]
+      end
       to_obj_class = {NilClass => :to_s, Integer => :to_f, Fixnum => :to_f, Float => :to_f, String => :to_s,
                       Date => :to_date, DateTime => :to_datetime, Time => :to_time, ActiveSupport::TimeWithZone => :to_time,
                       FalseClass => :to_boolean, TrueClass => :to_boolean, BigDecimal => :to_d}[klass]
       cond_v = cond_v.collect do |e|
         case
-        when e.nil? || (e.is_a?(String) && e.empty?)
+        when e.blank?
           nil
-        when to_obj_class.nil?
+        when to_obj_class.blank?
           e
         else
           begin
@@ -106,7 +112,7 @@ module Setup
     end
 
     def op_like(obj_v, cond_v)
-      obj_v.nil? ? cond_v.nil? : (cond_v.nil? ? false : !obj_v.to_s[cond_v.to_s].nil?)
+      obj_v.blank? ? cond_v.blank? : (cond_v.blank? ? false : obj_v.to_s[cond_v.to_s].present?)
     end
 
     def op_is(obj_v, cond_v)
@@ -114,11 +120,11 @@ module Setup
     end
 
     def op_starts_with(obj_v, cond_v)
-      obj_v.nil? ? cond_v.nil? : (cond_v.nil? ? false : obj_v.to_s.start_with?(cond_v.to_s))
+      obj_v.blank? ? cond_v.blank? : (cond_v.blank? ? false : obj_v.to_s.start_with?(cond_v.to_s))
     end
 
     def op_ends_with(obj_v, cond_v)
-      obj_v.nil? ? cond_v.nil? : (cond_v.nil? ? false : obj_v.to_s.end_with?(cond_v.to_s))
+      obj_v.blank? ? cond_v.blank? : (cond_v.blank? ? false : obj_v.to_s.end_with?(cond_v.to_s))
     end
 
     def op__not_null(obj_v, cond_v)
@@ -126,7 +132,7 @@ module Setup
     end
 
     def op__null(obj_v, cond_v)
-      obj_v.nil? || obj_v.to_s.empty?
+      obj_v.blank?
     end
 
     def op_in(obj_v, cond_v)
@@ -134,13 +140,13 @@ module Setup
     end
 
     def op_default(obj_v, cond_v)
-      op_is(obj_v, cond_v.nil? ? nil : cond_v[0])
+      op_is(obj_v, cond_v.blank? ? nil : cond_v[0])
     end
 
     def op_between(obj_v, cond_v)
-      return false if obj_v.nil? || cond_v.nil?
-      min = cond_v[1].nil? ? true : obj_v >= cond_v[1]
-      max = cond_v[2].nil? ? true : obj_v <= cond_v[2]
+      return false if obj_v.blank? || cond_v.blank?
+      min = cond_v[1].blank? ? true : obj_v >= cond_v[1]
+      max = cond_v[2].blank? ? true : obj_v <= cond_v[2]
       min && max
     end
 
@@ -161,7 +167,7 @@ module Setup
     end
 
     def format_triggers
-      if self.triggers.nil? || self.triggers.length == 0
+      if self.triggers.blank?
         errors.add(:triggers, "can't be blank")
         return false
       end
@@ -181,14 +187,14 @@ module Setup
       modified = nil
       hash.each do |_, conditions|
         conditions.each do |_, condition|
-          modified = condition['o'] = condition.delete('v') if condition['o'].nil? && %w(_null _not_null _change).include?(condition['v'])
+          modified = condition['o'] = condition.delete('v') if condition['o'].blank? && %w(_null _not_null _change).include?(condition['v'])
         end
       end
-      self.triggers = hash.to_json if modified
-      if self.name.nil? || self.name.empty?
+      self.triggers = hash.to_json if modified.present?
+      if self.name.blank?
         triggered_fields = hash.keys
         self.name = "#{self.data_type.name} on #{triggered_fields.shift}"
-        unless triggered_fields.empty?
+        if triggered_fields.present?
           last = triggered_fields.pop
           triggered_fields.each { |f| self.name += ", #{f}" }
           self.name += " and #{last}"

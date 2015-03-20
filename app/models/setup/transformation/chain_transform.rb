@@ -6,12 +6,14 @@ module Setup
         if (save_result = options[:save_result]).nil?
           save_result = true
         end
-        result = options[:source_exporter].run(object: options[:source],
-                                               save_result: save_result && !options[:discard_chained_records],
-                                               discard_events: options[:discard_events])
-        options[:target_importer].run(object: result,
-                                      save_result: save_result,
-                                      discard_events: options[:discard_events])
+        result = options[:source_exporter].run(
+          object: options[:source],
+          save_result: save_result && !options[:discard_chained_records],
+          discard_events: options[:discard_events])
+        options[:target_importer].run(
+          object: result,
+          save_result: save_result,
+          discard_events: options[:discard_events])
       end
 
       def self.types
