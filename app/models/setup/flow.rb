@@ -153,7 +153,7 @@ module Setup
     end
 
     def translate_export(message, &block)
-      limit = lot_size || 1000
+      limit = translator.bulk_source ? lot_size || 1000 : 1
       max = ((object_ids = source_ids_from(message)) ? object_ids.size : data_type.count) - 1
       0.step(max, limit) do |offset|
         puts result = translator.run(
@@ -198,8 +198,8 @@ module Setup
     def source_ids_from(message)
       if object_ids = message[:object_ids]
         object_ids
-      elsif scope_symbol == :event_source
-        (id = message[:source_id]) ? [id] : []
+      elsif scope_symbol == :event_source && id = message[:source_id]
+        [id]
       else
         nil
       end

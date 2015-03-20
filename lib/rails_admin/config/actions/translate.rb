@@ -34,6 +34,7 @@ module RailsAdmin
                 translator = Setup::Translator.where(id: data[:translator_id]).first
                 if (@object = Forms::TranslatorSelector.new(
                   translator_type: translator_type,
+                  bulk_source: @bulk_ids.nil? || @bulk_ids.size != 1,
                   data_type: data_type_selector,
                   translator: translator)).valid?
                   
@@ -65,6 +66,7 @@ module RailsAdmin
             else
               @object ||= Forms::TranslatorSelector.new(
                 translator_type: translator_type,
+                bulk_source: @bulk_ids.nil? || @bulk_ids.size != 1,
                 data_type: data_type_selector,
                 translator: translator)
               @model_config = RailsAdmin::Config.model(Forms::TranslatorSelector)
