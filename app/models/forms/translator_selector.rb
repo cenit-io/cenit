@@ -47,11 +47,12 @@ module Forms
                   :target_data_type
                 end
             Proc.new { |scope|
-              scope = if data_type_criteria
-                        scope.any_in(data_type_criteria => [nil, data_type]).and(type: translator_type)
-                      else
-                        scope.all(type: translator_type)
-                      end
+              scope =
+                  if data_type_criteria
+                    scope.any_in(data_type_criteria => [nil, data_type]).and(type: translator_type)
+                  else
+                    scope.all(type: translator_type)
+                  end
               if translator_type == :Export && bulk_source
                 scope = scope.and(bulk_source: true)
               end

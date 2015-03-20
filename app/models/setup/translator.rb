@@ -149,15 +149,16 @@ module Setup
       model = data_type.records_model
       offset = options[:offset].presence || 0
       limit = options[:limit]
-      source_options = if bulk_source
-                         {sources: if object_ids = options[:object_ids]
-                                     model.any_in(id: (limit ? object_ids[offset, limit] : object_ids.from(offset))).to_enum
-                                   else
-                                     (limit ? model.limit(limit) : model.all).skip(offset).to_enum
-                                   end}
-                       else
-                         {source: options[:object] || ((id = (options[:object_id] || (options[:object_ids] && options[:object_ids][offset]))) && model.where(id: id).first) || model.all.skip(offset).first}
-                       end
+      source_options =
+          if bulk_source
+            {sources: if object_ids = options[:object_ids]
+                        model.any_in(id: (limit ? object_ids[offset, limit] : object_ids.from(offset))).to_enum
+                      else
+                        (limit ? model.limit(limit) : model.all).skip(offset).to_enum
+                      end}
+          else
+            {source: options[:object] || ((id = (options[:object_id] || (options[:object_ids] && options[:object_ids][offset]))) && model.where(id: id).first) || model.all.skip(offset).first}
+          end
       {source_data_type: data_type}.merge(source_options)
     end
 
