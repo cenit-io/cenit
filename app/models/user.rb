@@ -47,7 +47,7 @@ class User
   
   def self.new_with_session(params, session)
     super.tap do |user|
-      if (data = session["devise.doorkeeper_data"]).present? && session["devise.doorkeeper_data"]["extra"]["raw_info"].present?
+      if data = session["devise.doorkeeper_data"] && session["devise.doorkeeper_data"]["extra"]["raw_info"]
         user.email = data["email"] if user.email.blank?
       end
     end
