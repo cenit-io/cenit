@@ -32,9 +32,12 @@ module RailsAdmin
               data_type_selector = data_type.is_a?(Setup::BuildInDataType) ? nil : data_type
               if data = params[:forms_translator_selector]
                 translator = Setup::Translator.where(id: data[:translator_id]).first
-                if (@object = Forms::TranslatorSelector.new(translator_type: translator_type,
-                                                            data_type: data_type_selector,
-                                                            translator: translator)).valid?
+                if (@object = Forms::TranslatorSelector.new(
+                  translator_type: translator_type,
+                  bulk_source: @bulk_ids.nil? || @bulk_ids.size != 1,
+                  data_type: data_type_selector,
+                  translator: translator)).valid?
+                  
                   begin
                     translation = @action.class.translate(translator: translator,
                                                           bulk_ids: @bulk_ids,
@@ -58,9 +61,11 @@ module RailsAdmin
                                  data_type: data_type,
                                  translator: translator)
             else
-              @object ||= Forms::TranslatorSelector.new(translator_type: translator_type,
-                                                        data_type: data_type_selector,
-                                                        translator: translator)
+              @object ||= Forms::TranslatorSelector.new(
+                translator_type: translator_type,
+                bulk_source: @bulk_ids.nil? || @bulk_ids.size != 1,
+                data_type: data_type_selector,
+                translator: translator)
               @model_config = RailsAdmin::Config.model(Forms::TranslatorSelector)
               if @object.errors.present?
                 flash.now[:error] = 'There are errors in the export data specification'.html_safe
