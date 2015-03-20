@@ -139,8 +139,6 @@ module Setup
           response = HTTParty.send(webhook.method, connection.url + '/' + webhook.path,
                                    {
                                        headers: {
-                                           'X_HUB_STORE' => connection.key,
-                                           'X_HUB_TOKEN' => connection.token,
                                            'X_HUB_TIMESTAMP' => Time.now.utc.to_i.to_s
                                        }
                                    })
@@ -173,6 +171,7 @@ module Setup
               parameters = result['parameters'] = {}
               connection.parameters.each { |p| parameters[p.key] = p.value }
               webhook.parameters.each { |p| parameters[p.key] = p.value }
+              result = result.to_json
             end
             headers = {
                 'Content-Type' => translator.mime_type
