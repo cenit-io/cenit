@@ -78,14 +78,14 @@ module Setup
     end
 
     STYLES_MAP = {
-        'renit' => Setup::Transformation::RenitTransform,
-        'double_curly_braces' => Setup::Transformation::DoubleCurlyBracesTransform,
-        'xslt' => Setup::Transformation::XsltTransform,
-        'json.rabl' => Setup::Transformation::ActionViewTransform,
-        'xml.rabl' => Setup::Transformation::ActionViewTransform,
-        'xml.builder' => Setup::Transformation::ActionViewTransform,
-        'html.erb' => Setup::Transformation::ActionViewTransform,
-        'chain' => Setup::Transformation::ChainTransform}
+      'renit' => Setup::Transformation::RenitTransform,
+      'double_curly_braces' => Setup::Transformation::DoubleCurlyBracesTransform,
+      'xslt' => Setup::Transformation::XsltTransform,
+      'json.rabl' => Setup::Transformation::ActionViewTransform,
+      'xml.rabl' => Setup::Transformation::ActionViewTransform,
+      'xml.builder' => Setup::Transformation::ActionViewTransform,
+      'html.erb' => Setup::Transformation::ActionViewTransform,
+      'chain' => Setup::Transformation::ChainTransform}
 
     def style_enum
       styles = []
@@ -150,15 +150,15 @@ module Setup
       offset = options[:offset].presence || 0
       limit = options[:limit]
       source_options =
-          if bulk_source
-            {sources: if object_ids = options[:object_ids]
-                        model.any_in(id: (limit ? object_ids[offset, limit] : object_ids.from(offset))).to_enum
-                      else
-                        (limit ? model.limit(limit) : model.all).skip(offset).to_enum
-                      end}
-          else
-            {source: options[:object] || ((id = (options[:object_id] || (options[:object_ids] && options[:object_ids][offset]))) && model.where(id: id).first) || model.all.skip(offset).first}
-          end
+        if bulk_source
+          {sources: if object_ids = options[:object_ids]
+                      model.any_in(id: (limit ? object_ids[offset, limit] : object_ids.from(offset))).to_enum
+                    else
+                      (limit ? model.limit(limit) : model.all).skip(offset).to_enum
+                    end}
+        else
+          {source: options[:object] || ((id = (options[:object_id] || (options[:object_ids] && options[:object_ids][offset]))) && model.where(id: id).first) || model.all.skip(offset).first}
+        end
       {source_data_type: data_type}.merge(source_options)
     end
 
@@ -209,8 +209,8 @@ module Setup
             for_each_node_starting_at(record, stack = []) do |obj|
               obj.errors.each do |attribute, error|
                 attr_ref = "#{obj.orm_model.data_type.title}" +
-                    ((name = obj.try(:name)) || (name = obj.try(:title)) ? " #{name} on attribute " : "'s '") +
-                    attribute.to_s + ((v = obj.try(attribute)) ? "'#{v}'" : '')
+                  ((name = obj.try(:name)) || (name = obj.try(:title)) ? " #{name} on attribute " : "'s '") +
+                  attribute.to_s + ((v = obj.try(attribute)) ? "'#{v}'" : '')
                 path = ''
                 stack.reverse_each do |node|
                   node[:record].errors.add(node[:attribute], "with error on #{path}#{attr_ref} (#{error})") if node[:referenced]
