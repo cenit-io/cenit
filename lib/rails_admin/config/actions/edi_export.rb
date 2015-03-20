@@ -2,52 +2,29 @@ module RailsAdmin
   module Config
     module Actions
 
-      class EdiExport < RailsAdmin::Config::Actions::Base
+      class EdiExport < RailsAdmin::Config::Actions::Translate
 
-        register_instance_option :visible? do
-          if authorized?
-            model = bindings[:abstract_model].model_name.constantize rescue nil
-            model.respond_to?(:data_type_id)
-          else
-            false
+        class << self
+
+          def translator_type
+            :Export
           end
-        end
 
-        register_instance_option :member do
-          true
-        end
+          def translate(options)
+            options[:translator].run(object_ids: options[:bulk_ids], source_data_type: options[:data_type])
+          end
 
-        register_instance_option :http_methods do
-          [:get, :post]
-        end
-
-        register_instance_option :controller do
-          proc do
-
-            object = @object
-            @object = nil
-
-            if data = params[:forms_send_translator_selector]
-              translator = Setup::Translator.where(id: data[:translator_id]).first
-              if (@object = Forms::SendTranslatorSelector.new(translator: translator)).valid?
-                begin
-                  render plain: translator.run(object: object)
-                  ok = true
-                rescue Exception => ex
-                  #raise ex
-                  flash[:error] = ex.message
-                end
-              end
+          def done(options)
+            file_name = "#{options[:data_type].title.underscore}_#{DateTime.now.strftime('%Y-%m-%d_%Hh%Mm%S')}"
+            if (translator = options[:translator]).file_extension.present?
+              file_name += ".#{translator.file_extension}"
             end
-            unless ok
-              @object ||= Forms::SendTranslatorSelector.new
-              @model_config = RailsAdmin::Config.model(Forms::SendTranslatorSelector)
-              unless @object.errors.blank?
-                flash.now[:error] = 'There are errors in the export data specification'.html_safe
-                flash.now[:error] += %(<br>- #{@object.errors.full_messages.join('<br>- ')}).html_safe
-              end
-            end
+            options[:controller].send_data(options[:translation], filename: file_name, type: translator.mime_type || 'application/octet-stream')
+            #options[:controller].render plain: options[:translation]
+          end
 
+          def disable_buttons?
+            false
           end
         end
 

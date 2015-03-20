@@ -1,152 +1,216 @@
 require 'nokogiri'
 
 module Setup
-  class Flow
-    include Mongoid::Document
-    include Mongoid::Timestamps
-    include AccountScoped
-    include Setup::Enum
-    include Trackable
+  class Flow < ReqRejValidator
+    include CenitScoped
+    include DynamicValidators
+
+    BuildInDataType.regist(self)
 
     field :name, type: String
-    field :purpose, type: String, default: :send
     field :active, type: Boolean, default: :true
-    field :transformation, type: String
-    field :style, type: String
+    field :discard_events, type: Boolean
+
+    belongs_to :event, class_name: Setup::Event.to_s, inverse_of: nil
+
+    belongs_to :translator, class_name: Setup::Translator.to_s, inverse_of: nil
+    belongs_to :custom_data_type, class_name: Setup::DataType.to_s, inverse_of: nil
+    field :data_type_scope, type: String
+    field :lot_size, type: Integer
+
+    belongs_to :connection_role, class_name: Setup::ConnectionRole.to_s, inverse_of: nil
+    belongs_to :webhook, class_name: Setup::Webhook.to_s, inverse_of: nil
+
+    belongs_to :response_translator, class_name: Setup::Translator.to_s, inverse_of: nil
+    belongs_to :response_data_type, class_name: Setup::DataType.to_s, inverse_of: nil
+
     field :last_trigger_timestamps, type: DateTime
 
-    has_one :schedule, class_name: Setup::Schedule.name, inverse_of: :flow
-    has_one :batch, class_name: Setup::Batch.name, inverse_of: :flow
+    belongs_to :cenit_collection, class_name: Setup::Collection.to_s, inverse_of: :flows
 
-    belongs_to :connection_role, class_name: Setup::ConnectionRole.name, inverse_of: :flow
-    belongs_to :data_type, class_name: Setup::DataType.name, inverse_of: :flow
-    belongs_to :webhook, class_name: Setup::Webhook.name, inverse_of: :flow
-    belongs_to :event, class_name: Setup::Event.name, inverse_of: :flow
-    belongs_to :transform, class_name: Setup::Transform.name, inverse_of: :flow
-    
-    has_and_belongs_to_many :templates, class_name: Setup::Template.name, inverse_of: :connection_roles
+    validates_presence_of :name, :event, :translator
+    validates_numericality_in_presence_of :lot_size, greater_than_or_equal_to: 1
+    before_save :validates_configuration
 
-    validates_presence_of :name, :purpose, :data_type, :webhook, :event
-    accepts_nested_attributes_for :schedule, :batch
-    
-    def style_enum
-      %W(double_curly_braces xslt json.rabl xml.rabl xml.builder html.erb csv.erb js.erb text.erb html.haml)
-    end
-
-    def process(object, notification_id=nil)
-      puts "Flow processing '#{object}' on '#{self.name}'..."
-
-      unless object.present? && object.respond_to?(:data_type) && self.data_type == object.data_type && object.respond_to?(:to_xml)
-        puts "Flow processing on '#{self.name}' aborted!"
-        return
-      end
-
-      xml_document = Nokogiri::XML(object.to_xml)
-      hash = Hash.from_xml(xml_document.to_s)
-      if self.transformation.blank?
-        puts 'No transformation applied'
-      else
-        hash = Flow.transform(self.transformation, hash)
-      end
-      process_json_data(hash.to_json, notification_id)
-      puts "Flow processing on '#{self.name}' done!"
-    end
-
-    def process_all
-      model = data_type.model
-      total = model.count
-      puts "TOTAL: #{total}"
-
-      per_batch = flow.batch.size rescue 1000
-      0.step(model.count, per_batch) do |offset|
-        data = model.limit(per_batch).skip(offset).map {|obj| prepare(obj)}
-        process_batch(data)
-      end
-    rescue Exception => e
-      puts "ERROR -> #{e.inspect}"
-    end
-
-    def prepare(object)
-      xml_document = Nokogiri::XML(object.to_xml)
-      Hash.from_xml(xml_document.to_s).values.first
-    end
-
-    def process_batch(data)
-      message = {
-        :flow_id => self.id,
-        :json_data => {data_type.name.downcase => data},
-        :notification_id => nil,
-        :account_id => self.account.id
-      }.to_json
-      begin
-        Cenit::Rabbit.send_to_rabbitmq(message)
-      rescue Exception => ex
-        puts "ERROR sending message: #{ex.message}"
-      end
-      puts "Flow processing json data on '#{self.name}' done!"
-    end
-
-    def process_json_data(json, notification_id=nil)
-      puts "Flow processing json data on '#{self.name}'..."
-      begin
-        json = JSON.parse(json)
-        puts json
-      rescue
-        puts "ERROR: invalid json data -> #{json}"
-        return
-      end
-      message = {
-          :flow_id => self.id,
-          :json_data => clean_json_data(json),
-          :notification_id => notification_id,
-          :account_id => self.account.id
-      }.to_json
-      begin
-        Cenit::Rabbit.send_to_rabbitmq(message)
-      rescue Exception => ex
-        puts "ERROR sending message: #{ex.message}"
-      end
-      puts "Flow processing json data on '#{self.name}' done!"
-      last_trigger_timestamps = Time.now
-    end
-
-    def clean_json_data(json)
-      cleaned_json = {}
-      json.each do |k, v|
-        new_key = Setup::DataType.find_by(id: k.slice(2, k.size)).name.downcase
-        cleaned_json[new_key] = v
-      end
-      cleaned_json
-    end
-
-    def self.transform(transformation, object, options = {})
-      Setup::Transform.new(transformation: transformation, data_type: data_type, style: options[:style]).run(object, options)
-    end
-
-    def self.to_hash(document)
-      return document if document.is_a?(Hash)
-      return Hash.from_xml(document.to_s) if document.is_a?(Nokogiri::XML::Document)
-        
-      begin
-        return JSON.parse(document.to_s)
-      rescue
-        return Hash.from_xml(document.to_s) rescue {}
-      end
-    end
-
-    def self.to_xml_document(document)
-      return document if document.is_a?(Nokogiri::XML::Document)
-
-      unless document.is_a?(Hash)
-        begin
-          document = JSON.parse(document.to_s)
-        rescue
-          document = Hash.from_xml(document.to_s) rescue {}
+    def validates_configuration
+      return false unless ready_to_save?
+      unless requires(:event, :translator)
+        translator.data_type.nil? ? requires(:custom_data_type) : rejects(:custom_data_type)
+        translator.type == :Import ? rejects(:data_type_scope) : requires(:data_type_scope)
+        [:Import, :Export].include?(translator.type) ? requires(:connection_role, :webhook) : rejects(:connection_role, :webhook)
+  
+        if translator.type == :Export
+          if response_translator.present?
+            if response_translator.type == :Import
+              response_translator.data_type.present? ? rejects(:response_data_type) : requires(:response_data_type)
+            else
+              errors.add(:response_translator, 'is not an import translator')
+            end
+          else
+            rejects(:response_data_type, :discard_events)
+          end
+        else
+          rejects(:lot_size, :response_translator, :response_data_type)
         end
       end
-
-      Nokogiri::XML(document.to_xml)
+      errors.blank?
     end
 
+    def reject_message(field = nil)
+      case field
+      when :custom_data_type
+        'is not allowed since translator already defines a data type'
+      when :data_type_scope
+        'is not allowed for import translators'
+      when :response_data_type
+        response_translator.present? ? 'is not allowed since response translator already defines a data type' : "can't be defined until response translator"
+      when :discard_events
+        "can't be defined until response translator"
+      when :lot_size, :response_translator
+        'is not allowed for non export translators'
+      else
+        super
+      end
+    end
+
+    def data_type
+      (translator && translator.data_type) || custom_data_type
+    end
+
+    def data_type_scope_enum
+      enum = []
+      if data_type
+        enum << 'Event source' if event && event.try(:data_type) == data_type
+        enum << "All #{data_type.title.downcase.pluralize}"
+      end
+      enum
+    end
+
+    def ready_to_save?
+      (event && translator).present? && (translator.type == :Import || data_type_scope.present?)
+    end
+
+    def can_be_restarted?
+      event.presence || translator
+    end
+
+    def process(options = {})
+      puts "Flow processing on '#{self.name}': #{}"
+      message = options.merge(flow_id: self.id.to_s, account_id: self.account.id.to_s).to_json
+      begin
+        Cenit::Rabbit.send_to_endpoints(message)
+      rescue Exception => ex
+        puts "ERROR sending message: #{ex.message}"
+      end
+      puts "Flow processing jon '#{self.name}' done!"
+      self.last_trigger_timestamps = DateTime.now
+      save
+    end
+
+    def translate(message, &block)
+      send("translate_#{translator.type.to_s.downcase}", message, &block)
+    end
+
+    def simple_translate(message, &block)
+      begin
+        if (object_ids = message[:object_ids]).present?
+          data_type.records_model.any_in(id: object_ids).each { |obj| translator.run(object: obj, discard_events: discard_events) }
+        elsif scope_symbol == :all
+          data_type.records_model.all.each { |obj| translator.run(object: obj, discard_events: discard_events) }
+        elsif (obj_id = message[:source_id]).present?
+          translator.run(object: data_type.records_model.find(obj_id), discard_events: discard_events)
+        end
+      rescue Exception => ex
+        block.yield(exception: ex) if block.present?
+      end
+    end
+
+    def translate_conversion(message, &block)
+      simple_translate(message, &block)
+    end
+
+    def translate_update(message, &block)
+      simple_translate(message, &block)
+    end
+
+    def translate_import(message, &block)
+      connection_role.connections.each do |connection|
+        begin
+          response = HTTParty.send(webhook.method, connection.url + '/' + webhook.path,
+            {
+               headers: {
+                 'X_HUB_STORE' => connection.key,
+                 'X_HUB_TOKEN' => connection.token,
+                 'X_HUB_TIMESTAMP' => Time.now.utc.to_i.to_s
+               }
+            })
+          translator.run(
+            target_data_type: data_type,
+            data: response.message,
+            discard_events: discard_events) if response.code == 200
+            
+          block.yield(response: response) if block.present?
+        rescue Exception => ex
+          block.yield(response: response, exception: ex) if block.present?
+        end
+      end
+    end
+
+    def translate_export(message, &block)
+      limit = lot_size || 1000
+      max = ((object_ids = source_ids_from(message)) ? object_ids.size : data_type.count) - 1
+      0.step(max, limit) do |offset|
+        puts result = translator.run(
+          object_ids: object_ids,
+          source_data_type: data_type,
+          offset: offset,
+          limit: limit,
+          discard_events: discard_events)
+          
+        connection_role.connections.each do |connection|
+          begin
+            result = check_root(data_type, result)
+            response = HTTParty.send(webhook.method, connection.url + '/' + webhook.path,
+              {
+                 body: result,
+                 headers: {
+                   'Content-Type' => 'application/json',
+                   'X_HUB_STORE' => connection.key,
+                   'X_HUB_TOKEN' => connection.token,
+                   'X_HUB_TIMESTAMP' => Time.now.utc.to_i.to_s
+                 }
+              })
+                                     
+            block.yield(response: response) if block.present?
+            if response_translator #&& response.code == 200
+              response_translator.run(target_data_type: response_translator.data_type || response_data_type, data: response.message)
+            end
+          rescue Exception => ex
+            block.yield(exception: ex) if block.present?
+          end
+        end
+      end
+    end
+
+    def check_root(data_type, result)
+      root_key = data_type.name.downcase
+      result_hash = JSON.parse(result)
+      result = {root_key => result_hash}.to_json unless result_hash.has_key?(root_key)
+      result
+    end
+
+    def source_ids_from(message)
+      if (object_ids = message[:object_ids]).present?
+        object_ids
+      elsif scope_symbol == :event_source
+        (id = message[:source_id]).present? ? [id] : []
+      else
+        nil
+      end
+    end
+
+    def scope_symbol
+      data_type_scope.start_with?('Event') ? :event_source : :all
+    end
   end
 end

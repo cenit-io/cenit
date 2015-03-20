@@ -27,7 +27,7 @@ module Xsd
                     'type:http://www.w3.org/2001/XMLSchema:gDay' => {'type' => 'string', 'format' => 'date'},
                     'type:http://www.w3.org/2001/XMLSchema:string' => {'type' => 'string'},
                     'type:http://www.w3.org/2001/XMLSchema:token' => {'type' => 'string'},
-                    'type:http://www.w3.org/2001/XMLSchema:language' => {'type' => 'string', 'enum' => %w{en es}},
+                    'type:http://www.w3.org/2001/XMLSchema:language' => {'type' => 'string'},
                     'type:http://www.w3.org/2001/XMLSchema:NMTOKEN' => {'type' => 'string'},
                     'type:http://www.w3.org/2001/XMLSchema:NMTOKENS' => {'type' => 'string'},
                     'type:http://www.w3.org/2001/XMLSchema:Name' => {'type' => 'string'},
@@ -90,35 +90,22 @@ module Xsd
 
     private
 
-    def process_element_message(primary_method, alternative_method, name, attributes=nil)
+    def process_element_message(primary_method, alternative_method, name, attributes = nil)
       if top.respond_to?(primary_method)
-        if attributes
-          return top.send(primary_method, attributes)
-        end
-
+        return top.send(primary_method, attributes) if attributes
         return top.send(primary_method)
       elsif top_available? && top.respond_to?(alternative_method)
-        if attributes
-          return top.send(alternative_method, name, attributes)
-        end
+        return top.send(alternative_method, name, attributes) if attributes
         return top.send(alternative_method, name)
       elsif self.respond_to?(primary_method)
-        if attributes
-          return self.send(primary_method, attributes)
-        end
-
+        return self.send(primary_method, attributes) if attributes
         return self.send(primary_method)
       end
-
-      return nil
+      nil
     end
 
     def push(obj)
-      if obj == :pop
-        @stack.pop
-      else
-        @stack << obj if obj
-      end
+      obj == :pop ? @stack.pop : (@stack << obj if obj)
     end
 
     def pop

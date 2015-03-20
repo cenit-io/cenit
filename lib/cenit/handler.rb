@@ -5,14 +5,10 @@ module Cenit
 
       attr_accessor :payload, :parameters, :request_id, :model
 
-      def initialize(message, model=nil)
+      def initialize(message, model = nil)
         self.payload = ::JSON.parse(message).with_indifferent_access
         self.request_id = payload.delete(:request_id)
-        if payload.key? :parameters
-          if payload[:parameters].is_a? Hash
-            self.parameters = payload.delete(:parameters).with_indifferent_access
-          end
-        end
+        self.parameters = payload.delete(:parameters).with_indifferent_access if payload.key?(:parameters) && payload[:parameters].is_a?( Hash)
         self.parameters ||= {}
         self.model = model
       end
@@ -22,23 +18,18 @@ module Cenit
       end
 
       def process
-        return {} if self.model.nil?
+        return {} if self.model.blanK?
 
         data_type = Setup::DataType.where(:name => self.model.camelize).first
-        return {} unless data_type
+        return {} if data_type.blank?
 
         klass = data_type.model
         root = self.model.pluralize
         count = 0
         self.payload[root].each do |obj|
-          next if obj[:id].empty? rescue obj[:id] = obj[:id].to_s
-
+          next if obj[:id].blank? rescue obj[:id] = obj[:id].to_s
           @object = klass.where(id: obj[:id]).first
-          if @object
-            @object.update_attributes(obj)
-          else
-            @object = klass.new(obj)
-          end
+          @object ? @object.update_attributes(obj) : (@object = klass.new(obj))
           count += 1 if @object.save
         end
         {root => count}
