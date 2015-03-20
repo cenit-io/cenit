@@ -32,7 +32,7 @@ module RailsAdmin
 
             @bulk_ids = params[:bulk_ids]
 
-            if params[:send_data].present?
+            if params[:send_data]
               if (flow_id = params[:flow_id]).present?
                 if (flow = Setup::Flow.where(id: flow_id).first).present?
                   flow.process(object_ids: @bulk_ids)

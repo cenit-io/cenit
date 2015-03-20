@@ -92,7 +92,7 @@ module Edi
             json[name] = value
           end
         else
-          if (value = record.send(property_name)).nil?å
+          if (value = record.send(property_name)).nil?
             value = property_schema['default']
           end
           json[name] = value if value.present?
