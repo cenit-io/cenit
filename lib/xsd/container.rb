@@ -8,17 +8,19 @@ module Xsd
     def initialize(parent, attributes)
       super
       _, max_occurs = attributes.detect { |a| a[0] == 'maxOccurs' }
-      @max_occurs = if max_occurs
-                      max_occurs == 'unbounded' ? :unbounded : max_occurs.to_i
-                    else
-                      1
-                    end
+      @max_occurs =
+        if max_occurs
+          max_occurs == 'unbounded' ? :unbounded : max_occurs.to_i
+        else
+          1
+        end
       _, min_occurs = attributes.detect { |a| a[0] == 'minOccurs' }
-      @min_occurs = if min_occurs
-                      min_occurs == 'unbounded' ? 0 : min_occurs.to_i
-                    else
-                      1
-                    end
+      @min_occurs =
+        if min_occurs
+          min_occurs == 'unbounded' ? 0 : min_occurs.to_i
+        else
+          1
+        end
       @elements = []
     end
 
