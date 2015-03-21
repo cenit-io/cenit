@@ -78,14 +78,14 @@ module Setup
     end
 
     STYLES_MAP = {
-        'renit' => Setup::Transformation::RenitTransform,
-        'double_curly_braces' => Setup::Transformation::DoubleCurlyBracesTransform,
-        'xslt' => Setup::Transformation::XsltTransform,
-        'json.rabl' => Setup::Transformation::ActionViewTransform,
-        'xml.rabl' => Setup::Transformation::ActionViewTransform,
-        'xml.builder' => Setup::Transformation::ActionViewTransform,
-        'html.erb' => Setup::Transformation::ActionViewTransform,
-        'chain' => Setup::Transformation::ChainTransform}
+      'renit' => Setup::Transformation::RenitTransform,
+      'double_curly_braces' => Setup::Transformation::DoubleCurlyBracesTransform,
+      'xslt' => Setup::Transformation::XsltTransform,
+      'json.rabl' => Setup::Transformation::ActionViewTransform,
+      'xml.rabl' => Setup::Transformation::ActionViewTransform,
+      'xml.builder' => Setup::Transformation::ActionViewTransform,
+      'html.erb' => Setup::Transformation::ActionViewTransform,
+      'chain' => Setup::Transformation::ChainTransform}
 
     def style_enum
       styles = []
@@ -208,8 +208,8 @@ module Setup
             for_each_node_starting_at(record, stack=[]) do |obj|
               obj.errors.each do |attribute, error|
                 attr_ref = "#{obj.orm_model.data_type.title}" +
-                    ((name = obj.try(:name)) || (name = obj.try(:title)) ? " #{name} on attribute " : "'s '") +
-                    attribute.to_s + ((v = obj.try(attribute)) ? "'#{v}'" : '')
+                  ((name = obj.try(:name)) || (name = obj.try(:title)) ? " #{name} on attribute " : "'s '") +
+                  attribute.to_s + ((v = obj.try(attribute)) ? "'#{v}'" : '')
                 path = ''
                 stack.reverse_each do |node|
                   node[:record].errors.add(node[:attribute], "with error on #{path}#{attr_ref} (#{error})") if node[:referenced]

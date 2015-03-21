@@ -37,7 +37,7 @@ module RailsAdmin
                   bulk_source: @bulk_ids.nil? || @bulk_ids.size != 1,
                   data_type: data_type_selector,
                   translator: translator)).valid?
-                  
+
                   begin
                     translation = @action.class.translate(translator: translator,
                                                           bulk_ids: @bulk_ids,
