@@ -28,7 +28,7 @@ module RailsAdmin
         class << self
 
           def of(model)
-            return 0 if model.blank?
+            return 0 unless model
             size = ObjectSpace.memsize_of(model)
             model.constants(false).each { |c| size += of(c) } if model.is_a?(Class) || model.is_a?(Module)
             size > 0 ? size : 100

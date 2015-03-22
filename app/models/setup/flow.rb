@@ -156,12 +156,11 @@ module Setup
       limit = translator.bulk_source ? lot_size || 1000 : 1
       max = ((object_ids = source_ids_from(message)) ? object_ids.size : data_type.count) - 1
       0.step(max, limit) do |offset|
-        puts result = translator.run(
-          object_ids: object_ids,
-          source_data_type: data_type,
-          offset: offset,
-          limit: limit,
-          discard_events: discard_events)
+        puts result = translator.run(object_ids: object_ids,
+                                     source_data_type: data_type,
+                                     offset: offset,
+                                     limit: limit,
+                                     discard_events: discard_events)
 
         the_connections.each do |connection|
           begin
@@ -184,7 +183,7 @@ module Setup
                                        headers: headers
                                      })
 
-            block.yield(response: response) if block.present?
+            block.yield(response: response) if block
             if response_translator #&& response.code == 200
               response_translator.run(target_data_type: response_translator.data_type || response_data_type, data: response.message)
             end

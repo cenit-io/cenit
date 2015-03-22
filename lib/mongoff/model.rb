@@ -6,7 +6,7 @@ module Mongoff
 
     def initialize(data_type, schema = nil)
       @data_type_id = data_type.id.to_s
-      @persistable = (@schema = schema).blank?
+      @persistable = (@schema = schema).nil?
     end
 
     def data_type
@@ -28,16 +28,15 @@ module Mongoff
     def for_property(property)
       #TODO Create a model space to optimize memory usage
       model = nil
-      if schema['type'] == 'object' && schema['properties'] && (property_schema = schema['properties'][property.to_s]).present?
-        property_schema = property_schema['items'] if property_schema['type'] == 'array' && property_schema['items'].present?
-        model = 
-        if (ref = property_schema['$ref']).present? && (property_dt = data_type.find_data_type(ref)).present?
-          Model.new(property_dt)
-        else
-          Model.new(data_type, property_schema)
-        end
+      if schema['type'] == 'object' && schema['properties'] && property_schema = schema['properties'][property.to_s]
+        property_schema = property_schema['items'] if property_schema['type'] == 'array' && property_schema['items']
+        model = if (ref = property_schema['$ref']) && property_dt = data_type.find_data_type(ref)
+                 Model.new(property_dt)
+                else
+                   Model.new(data_type, property_schema)
+                end
       end
-      model.presence || Model.new(data_type, EMPTY_SCHEMA)
+      model || Model.new(data_type, EMPTY_SCHEMA)
     end
 
     def for_each_association(&block)

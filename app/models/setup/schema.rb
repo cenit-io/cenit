@@ -31,26 +31,26 @@ module Setup
     attr_reader :include_missing_message
 
     def run_after_initialized
-      return true if @_initialized.present?
+      return true if @_initialized
       @include_missing = false
       @data_types_to_keep = Set.new
       @new_data_types = []
-      if self.new_record? && self.library.present? && self.library.schemas.where(uri: self.uri).first
+      if self.new_record? && self.library && self.library.schemas.where(uri: self.uri).first
         errors.add(:uri, "is is already taken on library #{self.library.name}")
         return false
       end
       begin
         return false if errors.present?
         parse_schemas.each do |name, schema|
-          if (data_type = self.data_types.where(name: name).first).present?
+          if data_type = self.data_types.where(name: name).first
             data_type.schema = schema.to_json
-          elsif self.library.present? && self.library.find_data_type_by_name(name)
+          elsif self.library && self.library.find_data_type_by_name(name)
             errors.add(:schema, "model name #{name} is already taken on library")
           else
             @new_data_types << (data_type = Setup::DataType.new(name: name, schema: schema.to_json))
             self.data_types << data_type
           end
-          if data_type.present? && data_type.errors.blank? && data_type.valid?
+          if data_type && data_type.errors.blank? && data_type.valid?
             @data_types_to_keep << data_type
           else
             data_type.errors.each do |attribute, error|
@@ -98,12 +98,12 @@ module Setup
 
     def parse_json_schema
       json = JSON.parse(self.schema)
-      if json['type'].present? || json['allOf'].present?
+      if json['type'] || json['allOf']
         name = self.uri
-        if (index = name.rindex('/')).present? || (index = name.rindex('#')).present?
+        if (index = name.rindex('/')) || index = name.rindex('#')
           name = name[index + 1, name.length - 1]
         end
-        if (index = name.rindex('.')).present?
+        if index = name.rindex('.')
           name = name[0..index - 1]
         end  
         {name.camelize => json}

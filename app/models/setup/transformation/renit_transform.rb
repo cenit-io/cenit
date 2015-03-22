@@ -8,13 +8,13 @@ module Setup
         puts options
         @options = options
         @targets = []
-        if (target = options[:target]).present?
+        if target = options[:target]
           @targets << target
         end
       end
 
       def method_missing(symbol, *args)
-        if args.length == 0 && (value = @options[symbol]).present?
+        if args.length == 0 && value = @options[symbol]
           value
         else
           super
@@ -22,7 +22,7 @@ module Setup
       end
 
       def respond_to?(symbol)
-        @options[symbol].presence || super
+        @options[symbol] || super
       end
 
       def source
@@ -34,7 +34,7 @@ module Setup
       end
 
       def target
-        @targets.blank? ? new_target : @targets.last
+        @targets.empty? ? new_target : @targets.last
       end
 
       def get(record)
@@ -44,7 +44,7 @@ module Setup
       end
 
       def new_target
-        method_missing(:new_target) if @options[:target].present?
+        method_missing(:new_target) if @options[:target]
         @targets << (@target_model ||= target_data_type.records_model).new
         @targets.last
       end

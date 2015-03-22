@@ -43,7 +43,7 @@ module Setup
         rejects(:target_data_type, :source_exporter, :target_importer, :discard_chained_records)
         requires(:transformation)
         if mime_type.present?
-          if (extensions = file_extension_enum).blank?
+          if (extensions = file_extension_enum).empty?
             self.file_extension = nil
           elsif file_extension.blank?
             extensions.length == 1 ? (self.file_extension = extensions[0]) : errors.add(:file_extension, 'has multiple options')
@@ -77,15 +77,14 @@ module Setup
       [:Import, :Export, :Update, :Conversion]
     end
 
-    STYLES_MAP = {
-      'renit' => Setup::Transformation::RenitTransform,
-      'double_curly_braces' => Setup::Transformation::DoubleCurlyBracesTransform,
-      'xslt' => Setup::Transformation::XsltTransform,
-      'json.rabl' => Setup::Transformation::ActionViewTransform,
-      'xml.rabl' => Setup::Transformation::ActionViewTransform,
-      'xml.builder' => Setup::Transformation::ActionViewTransform,
-      'html.erb' => Setup::Transformation::ActionViewTransform,
-      'chain' => Setup::Transformation::ChainTransform}
+    STYLES_MAP = {'renit' => Setup::Transformation::RenitTransform,
+                  'double_curly_braces' => Setup::Transformation::DoubleCurlyBracesTransform,
+                  'xslt' => Setup::Transformation::XsltTransform,
+                  'json.rabl' => Setup::Transformation::ActionViewTransform,
+                  'xml.rabl' => Setup::Transformation::ActionViewTransform,
+                  'xml.builder' => Setup::Transformation::ActionViewTransform,
+                  'html.erb' => Setup::Transformation::ActionViewTransform,
+                  'chain' => Setup::Transformation::ChainTransform}
 
     def style_enum
       styles = []
@@ -147,7 +146,7 @@ module Setup
     def context_options_for_export(options)
       raise Exception.new('Source data type not defined') unless data_type = source_data_type|| options[:source_data_type]
       model = data_type.records_model
-      offset = options[:offset].presence || 0
+      offset = options[:offset] || 0
       limit = options[:limit]
       source_options =
         if bulk_source
@@ -156,7 +155,6 @@ module Setup
                     else
                       (limit ? model.limit(limit) : model.all).skip(offset).to_enum
                     end}
-        else
           {source: options[:object] || ((id = (options[:object_id] || (options[:object_ids] && options[:object_ids][offset]))) && model.where(id: id).first) || model.all.skip(offset).first}
         end
       {source_data_type: data_type}.merge(source_options)
@@ -206,7 +204,7 @@ module Setup
           if save_references(record, saved) && (saved.include?(record) || record.save)
             true
           else
-            for_each_node_starting_at(record, stack = []) do |obj|
+            for_each_node_starting_at(record, stack=[]) do |obj|
               obj.errors.each do |attribute, error|
                 attr_ref = "#{obj.orm_model.data_type.title}" +
                   ((name = obj.try(:name)) || (name = obj.try(:title)) ? " #{name} on attribute " : "'s '") +
@@ -241,7 +239,7 @@ module Setup
               property_binds.each do |property_bind|
                 if obj.is_a?(property_bind[:model]) && match?(obj, property_bind[:criteria])
                   if is_array
-                    if (array_property = obj_waiting.send(property_name)).blank?
+                    unless array_property = obj_waiting.send(property_name)
                       obj_waiting.send("#{property_name}=", array_property = [])
                     end
                     array_property << obj
@@ -250,9 +248,9 @@ module Setup
                   end
                   property_binds.delete(property_bind)
                 end
-                to_bind.delete(property_name) if property_binds.blank?
+                to_bind.delete(property_name) if property_binds.empty?
               end
-              references.delete(obj_waiting) if to_bind.blank?
+              references.delete(obj_waiting) if to_bind.empty?
             end
           end
         end if references
@@ -302,7 +300,7 @@ module Setup
             values.each { |value| return false unless save_references(value, saved, visited) }
             values.each do |value|
               (value.save ? saved << value : (return false)) unless saved.include?(value)
-            end if relation[:embedded].blank?
+            end unless relation[:embedded]
           end
         end
         true

@@ -23,7 +23,7 @@ module RailsAdmin
             shared = false
 
             shared_collection_config = RailsAdmin::Config.model(Setup::SharedCollection)
-            if (shared_params = params[shared_collection_config.abstract_model.param_key]).present?
+            if shared_params = params[shared_collection_config.abstract_model.param_key]
               @object = Setup::SharedCollection.new(shared_params.to_hash)
               @object.data = collection.to_json
               shared = @object.save

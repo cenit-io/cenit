@@ -17,6 +17,7 @@ gem 'rabl'
 gem 'builder'
 gem "haml-rails"
 gem 'figaro'
+gem 'unicorn'
 
 group :doc do
   gem 'sdoc', require: false

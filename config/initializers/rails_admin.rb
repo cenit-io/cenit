@@ -38,11 +38,14 @@ RailsAdmin.config do |config|
     memory_usage
     disk_usage
     index # mandatory
-    new { except [Setup::Event, Role] }
+    new { except [Role] }
     import
     import_schema
     update
     convert
+    #import do
+    #  only 'Setup::DataType'
+    #end
     export
     bulk_delete { except [Role] }
     show
@@ -70,51 +73,12 @@ RailsAdmin.config do |config|
 
   config.model Role.name do
     weight -20
-    navigation_label 'Accounts'
+    navigation_label 'Account'
     show do
       field :name
       field :_id
     end
     fields :name
-  end
-
-  config.model Setup::SharedCollection do
-    navigation_label 'Collections'
-    weight -19
-    edit do
-      field :name
-      field :description
-    end
-    show do
-      field :name
-      field :description
-
-      field :created_at
-      field :creator
-      field :updated_at
-    end
-    fields :name, :creator, :description
-  end
-
-  config.model Setup::Collection do
-    navigation_label 'Collections'
-    weight -18
-    show do
-      field :name
-      field :libraries
-      field :translators
-      field :events
-      field :connection_roles
-      field :webhooks
-      field :flows
-
-      field :_id
-      field :created_at
-      field :creator
-      field :updated_at
-      field :updater
-    end
-    fields :name, :libraries, :translators, :events, :connection_roles, :webhooks, :flows
   end
 
   config.model Setup::Library.name do
@@ -751,6 +715,45 @@ RailsAdmin.config do |config|
     end
 
     fields :name, :type, :style, :transformation
+  end
+
+  config.model Setup::SharedCollection do
+    navigation_label 'Collections'
+    weight -19
+    edit do
+      field :name
+      field :description
+    end
+    show do
+      field :name
+      field :description
+
+      field :created_at
+      field :creator
+      field :updated_at
+    end
+    fields :name, :creator, :description
+  end
+
+  config.model Setup::Collection do
+    navigation_label 'Collections'
+    weight -19
+    show do
+      field :name
+      field :libraries
+      field :translators
+      field :events
+      field :connection_roles
+      field :webhooks
+      field :flows
+
+      field :_id
+      field :created_at
+      field :creator
+      field :updated_at
+      field :updater
+    end
+    fields :name, :libraries, :translators, :events, :connection_roles, :webhooks, :flows
   end
 
 end
