@@ -10,7 +10,6 @@
  #RailsAdmin::Config::Actions::EdiExport,
  RailsAdmin::Config::Actions::ImportSchema,
  RailsAdmin::Config::Actions::DeleteAll,
- RailsAdmin::Config::Actions::EditTranslator,
  RailsAdmin::Config::Actions::Update,
  RailsAdmin::Config::Actions::Convert,
  RailsAdmin::Config::Actions::DeleteSchema,
@@ -24,7 +23,7 @@ RailsAdmin.config do |config|
   ## == PaperTrail ==
   # config.audit_with :paper_trail, 'User', 'PaperTrail::Version' # PaperTrail >= 3.0.0
 
-  config.excluded_models << "Account" << "Setup::Parameter"
+  config.excluded_models << "Account"
 
   ### More at https://github.com/sferik/rails_admin/wiki/Base-configuration
   config.authenticate_with do
@@ -51,7 +50,6 @@ RailsAdmin.config do |config|
     bulk_delete { except [Role] }
     show
     edit { except [Role] }
-    edit_translator
     share_collection
     pull_collection
     delete { except [Role] }
@@ -267,7 +265,7 @@ RailsAdmin.config do |config|
       end
       group :credentials
     end
-    configure :url_parameters do
+    configure :parameters do
       visible { bindings[:view]._current_user.has_role? :admin }
     end
     configure :headers do
@@ -277,7 +275,7 @@ RailsAdmin.config do |config|
     group :parameters do
       label "Add Parameters"
     end
-    configure :url_parameters do
+    configure :parameters do
       group :parameters
     end
     configure :headers do
@@ -291,7 +289,7 @@ RailsAdmin.config do |config|
       field :key
       field :token
 
-      field :url_parameters
+      field :parameters
       field :headers
 
       field :_id
@@ -301,7 +299,7 @@ RailsAdmin.config do |config|
       field :updater
     end
 
-    fields :name, :url, :url_parameters, :headers, :key, :token
+    fields :name, :url, :webhooks, :parameters, :headers, :key, :token
   end
 
   config.model Setup::Parameter.name do
@@ -353,7 +351,7 @@ RailsAdmin.config do |config|
     group :parameters do
       label "Add Parameters"
     end
-    configure :url_parameters do
+    configure :parameters do
       group :parameters
     end
     configure :headers do
@@ -366,7 +364,7 @@ RailsAdmin.config do |config|
       field :path
       field :method
 
-      field :url_parameters
+      field :parameters
       field :headers
 
       field :_id
@@ -375,7 +373,7 @@ RailsAdmin.config do |config|
       field :updated_at
       field :updater
     end
-    fields :name, :purpose, :path, :method, :url_parameters, :headers
+    fields :name, :purpose, :path, :method, :parameters, :headers
   end
 
   config.model Setup::Notification.name do
@@ -618,6 +616,10 @@ RailsAdmin.config do |config|
         help { bindings[:object].type == :Conversion ? 'Required' : 'Optional' }
       end
 
+      field :bulk_source do
+        visible { bindings[:object].type == :Export }
+      end
+
       field :target_data_type do
         inline_edit false
         inline_add false
@@ -669,11 +671,12 @@ RailsAdmin.config do |config|
         help 'Required'
         associated_collection_scope do
           translator = bindings[:object]
-          source_data_type = if translator.source_exporter
-                               translator.source_exporter.target_data_type
-                             else
-                               translator.source_data_type
-                             end
+          source_data_type =
+            if translator.source_exporter
+              translator.source_exporter.target_data_type
+            else
+              translator.source_data_type
+            end
           target_data_type = bindings[:object].target_data_type
           Proc.new { |scope|
             scope = scope.all(type: :Conversion,
@@ -693,6 +696,7 @@ RailsAdmin.config do |config|
       field :name
       field :type
       field :source_data_type
+      field :bulk_source
       field :target_data_type
       field :discard_events
       field :style
