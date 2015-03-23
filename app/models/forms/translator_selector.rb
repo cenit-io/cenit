@@ -3,6 +3,7 @@ module Forms
     include Mongoid::Document
 
     field :translator_type, type: Symbol
+    field :bulk_source, type: Boolean
     belongs_to :data_type, class_name: Setup::DataType.to_s, inverse_of: nil
     belongs_to :translator, class_name: Setup::Translator.to_s, inverse_of: nil
 
@@ -37,6 +38,7 @@ module Forms
         field :translator do
           associated_collection_scope do
             data_type = bindings[:object].try(:data_type)
+            bulk_source = bindings[:object].try(:bulk_source)
             data_type_criteria =
               case translator_type = bindings[:object].try(:translator_type)
               when :Export, :Conversion
@@ -45,11 +47,16 @@ module Forms
                 :target_data_type
               end
             Proc.new { |scope|
-              if data_type_criteria
-                scope.any_in(data_type_criteria => [nil, data_type]).and(type: translator_type)
-              else
-                scope.all(type: translator_type)
+              scope =
+                if data_type_criteria
+                  scope.any_in(data_type_criteria => [nil, data_type]).and(type: translator_type)
+                else
+                  scope.all(type: translator_type)
+                end
+              if translator_type == :Export && bulk_source
+                scope = scope.and(bulk_source: true)
               end
+              scope
             }
           end
         end

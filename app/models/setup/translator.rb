@@ -16,6 +16,7 @@ module Setup
 
     field :mime_type, type: String
     field :file_extension, type: String
+    field :bulk_source, type: Boolean
 
     field :transformation, type: String
 
@@ -36,7 +37,7 @@ module Setup
       errors.add(:style, 'is not valid') unless style_enum.include?(style)
       case type
       when :Import, :Update
-        rejects(:source_data_type, :mime_type, :file_extension, :source_exporter, :target_importer, :discard_chained_records)
+        rejects(:source_data_type, :mime_type, :file_extension, :bulk_source, :source_exporter, :target_importer, :discard_chained_records)
         requires(:transformation)
       when :Export
         rejects(:target_data_type, :source_exporter, :target_importer, :discard_chained_records)
@@ -51,7 +52,7 @@ module Setup
           end
         end
       when :Conversion
-        rejects(:mime_type, :file_extension)
+        rejects(:mime_type, :file_extension, :bulk_source)
         requires(:source_data_type, :target_data_type)
         if style == 'chain'
           requires(:source_exporter, :target_importer)
@@ -76,14 +77,15 @@ module Setup
       [:Import, :Export, :Update, :Conversion]
     end
 
-    STYLES_MAP = {'renit' => Setup::Transformation::RenitTransform,
-                  'double_curly_braces' => Setup::Transformation::DoubleCurlyBracesTransform,
-                  'xslt' => Setup::Transformation::XsltTransform,
-                  'json.rabl' => Setup::Transformation::ActionViewTransform,
-                  'xml.rabl' => Setup::Transformation::ActionViewTransform,
-                  'xml.builder' => Setup::Transformation::ActionViewTransform,
-                  'html.erb' => Setup::Transformation::ActionViewTransform,
-                  'chain' => Setup::Transformation::ChainTransform}
+    STYLES_MAP = {
+      'renit' => Setup::Transformation::RenitTransform,
+      'double_curly_braces' => Setup::Transformation::DoubleCurlyBracesTransform,
+      'xslt' => Setup::Transformation::XsltTransform,
+      'json.rabl' => Setup::Transformation::ActionViewTransform,
+      'xml.rabl' => Setup::Transformation::ActionViewTransform,
+      'xml.builder' => Setup::Transformation::ActionViewTransform,
+      'html.erb' => Setup::Transformation::ActionViewTransform,
+      'chain' => Setup::Transformation::ChainTransform}
 
     def style_enum
       styles = []
@@ -147,13 +149,17 @@ module Setup
       model = data_type.records_model
       offset = options[:offset] || 0
       limit = options[:limit]
-      sources =
-        if object_ids = options[:object_ids]
-          model.any_in(id: (limit ? object_ids[offset, limit] : object_ids.from(offset))).to_enum
+      source_options =
+        if bulk_source
+          {sources: if object_ids = options[:object_ids]
+                      model.any_in(id: (limit ? object_ids[offset, limit] : object_ids.from(offset))).to_enum
+                    else
+                      (limit ? model.limit(limit) : model.all).skip(offset).to_enum
+                    end}
         else
-          (limit ? model.limit(limit) : model.all).skip(offset).to_enum
+          {source: options[:object] || ((id = (options[:object_id] || (options[:object_ids] && options[:object_ids][offset]))) && model.where(id: id).first) || model.all.skip(offset).first}
         end
-      {source_data_type: data_type, sources: sources}
+      {source_data_type: data_type}.merge(source_options)
     end
 
     def context_options_for_update(options)
@@ -184,7 +190,7 @@ module Setup
 
     def after_run_conversion(options)
       return unless target = options[:target]
-      if options[:save_result].nil? || options[:save_result]
+      if options[:save_result].blank? || options[:save_result]
         target.try(:discard_event_lookup=, options[:discard_events])
         raise TransformingObjectException.new(target) unless Translator.save(target)
       end
@@ -203,8 +209,8 @@ module Setup
             for_each_node_starting_at(record, stack=[]) do |obj|
               obj.errors.each do |attribute, error|
                 attr_ref = "#{obj.orm_model.data_type.title}" +
-                  ((name = obj.try(:name)).present? || (name = obj.try(:title)).present? ? " #{name} on attribute " : "'s '") +
-                  attribute.to_s + ((v = obj.try(attribute)).present? ? "'#{v}'" : '')
+                  ((name = obj.try(:name)) || (name = obj.try(:title)) ? " #{name} on attribute " : "'s '") +
+                  attribute.to_s + ((v = obj.try(attribute)) ? "'#{v}'" : '')
                 path = ''
                 stack.reverse_each do |node|
                   node[:record].errors.add(node[:attribute], "with error on #{path}#{attr_ref} (#{error})") if node[:referenced]
@@ -249,7 +255,7 @@ module Setup
               references.delete(obj_waiting) if to_bind.empty?
             end
           end
-        end if references.present?
+        end if references
 
         for_each_node_starting_at(record, stack = []) do |obj|
           if to_bind = references[obj]
@@ -262,7 +268,7 @@ module Setup
               end
             end
           end
-        end if references.present?
+        end if references
         record.errors.blank?
       end
 
