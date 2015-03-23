@@ -37,8 +37,8 @@ module Setup
       unless requires(:event, :translator)
         translator.data_type.nil? ? requires(:custom_data_type) : rejects(:custom_data_type)
         translator.type == :Import ? rejects(:data_type_scope) : requires(:data_type_scope)
-        [:Import, :Export].include?(translator.type) ? requires(:connection_role, :webhook) : rejects(:connection_role, :webhook)
-  
+        [:Import, :Export].include?(translator.type) ? requires(:webhook) : rejects(:connection_role, :webhook)
+
         if translator.type == :Export
           if response_translator.present?
             if response_translator.type == :Import
@@ -139,8 +139,6 @@ module Setup
           response = HTTParty.send(webhook.method, connection.url + '/' + webhook.path,
                                    {
                                        headers: {
-                                           'X_HUB_STORE' => connection.key,
-                                           'X_HUB_TOKEN' => connection.token,
                                            'X_HUB_TIMESTAMP' => Time.now.utc.to_i.to_s
                                        }
                                    })
@@ -158,25 +156,35 @@ module Setup
       limit = lot_size || 1000
       max = ((object_ids = source_ids_from(message)) ? object_ids.size : data_type.count) - 1
       0.step(max, limit) do |offset|
-        puts result = translator.run(object_ids: object_ids,
-                                     source_data_type: data_type,
-                                     offset: offset,
-                                     limit: limit,
-                                     discard_events: discard_events)
-        connection_role.connections.each do |connection|
+        puts result = translator.run(
+            object_ids: object_ids,
+            source_data_type: data_type,
+            offset: offset,
+            limit: limit,
+            discard_events: discard_events)
+
+        the_connections.each do |connection|
           begin
-            result = check_root(data_type, result)
+            if translator.mime_type == 'application/json' && (connection.parameters.present?|| webhook.parameters.present?)
+              result = JSON.parse(result) unless result.is_a?(Hash)
+              #TODO Check translation result already containing a key parameters
+              parameters = result['parameters'] = {}
+              connection.parameters.each { |p| parameters[p.key] = p.value }
+              webhook.parameters.each { |p| parameters[p.key] = p.value }
+              result = result.to_json
+            end
+            headers = {
+                'Content-Type' => translator.mime_type
+            }
+            connection.headers.each { |h| headers[h.key] = h.value }
+            webhook.headers.each { |h| headers[h.key] = h.value }
             response = HTTParty.send(webhook.method, connection.url + '/' + webhook.path,
                                      {
                                          body: result,
-                                         headers: {
-                                             'Content-Type' => 'application/json',
-                                             'X_HUB_STORE' => connection.key,
-                                             'X_HUB_TOKEN' => connection.token,
-                                             'X_HUB_TIMESTAMP' => Time.now.utc.to_i.to_s
-                                         }
+                                         headers: headers
                                      })
-            block.yield(response: response) if block
+
+            block.yield(response: response) if block.present?
             if response_translator #&& response.code == 200
               response_translator.run(target_data_type: response_translator.data_type || response_data_type, data: response.message)
             end
@@ -185,13 +193,6 @@ module Setup
           end
         end
       end
-    end
-
-    def check_root(data_type, result)
-      root_key = data_type.name.downcase
-      result_hash = JSON.parse(result)
-      result = {root_key => result_hash}.to_json unless result_hash.has_key?(root_key)
-      result
     end
 
     def source_ids_from(message)
@@ -206,6 +207,14 @@ module Setup
 
     def scope_symbol
       data_type_scope.start_with?('Event') ? :event_source : :all
+    end
+
+    def the_connections
+      if connection_role.present?
+        connection_role.connections
+      else
+        webhook.connections
+      end
     end
   end
 end
