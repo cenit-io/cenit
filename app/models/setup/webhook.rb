@@ -22,6 +22,7 @@ module Setup
     end
 
     validates_presence_of :name, :path, :purpose
+    validates_account_uniqueness_of :name
 
     accepts_nested_attributes_for :parameters, :headers
 

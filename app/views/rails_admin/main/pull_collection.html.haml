@@ -1,0 +1,24 @@
+%form{method: 'post', class: 'form-horizontal denser'}
+  %h4= t('admin.actions.pull_collection.fill_parameters')
+  - if @object.pull_parameters.present?
+    .fieldset
+      - @object.pull_parameters.each do |pull_parameter|
+        .control-group{class: (error = @missing_parameters.include?(pull_parameter.parameter)) ? 'error' : ''}
+          %label.control-label
+            = pull_parameter.label
+          .controls
+            %input{type: 'text', size: 50, name: "pull_parameters[#{pull_parameter.parameter}]", value:  @parameter_values[pull_parameter.parameter]}
+            - if error
+              %span{class: 'help-inline'}
+                = "can't be blank"
+            %p.help-block
+              = 'Required'
+
+  .form-actions
+    %button.btn.btn-primary{type: 'submit', name: '_pull', :'data-disable-with' => t('admin.actions.pull_collection.submit')}
+      %i{class: @action.try(:link_icon)}
+      = t('admin.actions.pull_collection.submit')
+    %span.extra_buttons
+      %button.btn{type: 'submit', name: '_continue', :'data-disable-with' => t('admin.form.cancel')}
+        %i.icon-remove
+        = t('admin.form.cancel')

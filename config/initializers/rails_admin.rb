@@ -714,11 +714,15 @@ RailsAdmin.config do |config|
   end
 
   config.model Setup::SharedCollection do
+    register_instance_option(:discard_submit_buttons) do
+      true
+    end
     navigation_label 'Collections'
     weight -19
     edit do
       field :name
       field :description
+      field :pull_parameters
     end
     show do
       field :name
@@ -731,6 +735,28 @@ RailsAdmin.config do |config|
     fields :name, :creator, :description
   end
 
+  config.model Setup::CollectionPullParameter do
+    field :label
+    field :parameter, :enum do
+      enum do
+        bindings[:controller].instance_variable_get(:@shared_parameter_enum) || [bindings[:object].parameter]
+      end
+    end
+    edit do
+      field :label
+      field :parameter
+    end
+    show do
+      field :label
+      field :parameter
+
+      field :created_at
+      field :creator
+      field :updated_at
+    end
+    fields :label, :parameter
+  end
+
   config.model Setup::Collection do
     navigation_label 'Collections'
     weight -19
@@ -738,10 +764,11 @@ RailsAdmin.config do |config|
       field :name
       field :libraries
       field :translators
-      field :events
-      field :connection_roles
+      field :connections
       field :webhooks
+      field :connection_roles
       field :flows
+      field :events
 
       field :_id
       field :created_at
@@ -749,7 +776,7 @@ RailsAdmin.config do |config|
       field :updated_at
       field :updater
     end
-    fields :name, :libraries, :translators, :events, :connection_roles, :webhooks, :flows
+    fields :name, :libraries, :translators, :connections, :webhooks, :connection_roles, :flows, :events
   end
 
 end
