@@ -669,11 +669,12 @@ RailsAdmin.config do |config|
         help 'Required'
         associated_collection_scope do
           translator = bindings[:object]
-          source_data_type = if translator.source_exporter
-                               translator.source_exporter.target_data_type
-                             else
-                               translator.source_data_type
-                             end
+          source_data_type =
+            if translator.source_exporter
+              translator.source_exporter.target_data_type
+            else
+              translator.source_data_type
+            end
           target_data_type = bindings[:object].target_data_type
           Proc.new { |scope|
             scope = scope.all(type: :Conversion,

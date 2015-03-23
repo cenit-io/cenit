@@ -118,11 +118,12 @@ module Edi
           unless value = record.send(property_name)
             value = property_schema['default'] || ''
           end
-          value = if (segment_sep = options[:segment_separator]) == :new_line
-                    value.to_s.gsub("\r\n", options[:seg_sep_suppress]).gsub("\n", options[:seg_sep_suppress]).gsub("\r", options[:seg_sep_suppress])
-                  else
-                    value.to_s.gsub(segment_sep, options[:seg_sep_suppress])
-                  end
+          value =
+            if (segment_sep = options[:segment_separator]) == :new_line
+              value.to_s.gsub("\r\n", options[:seg_sep_suppress]).gsub("\n", options[:seg_sep_suppress]).gsub("\r", options[:seg_sep_suppress])
+            else
+              value.to_s.gsub(segment_sep, options[:seg_sep_suppress])
+            end
           field_sep = options[:field_separator]
           case field_sep
           when :by_fixed_length

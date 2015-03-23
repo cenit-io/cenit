@@ -147,11 +147,12 @@ module Setup
       model = data_type.records_model
       offset = options[:offset] || 0
       limit = options[:limit]
-      sources = if object_ids = options[:object_ids]
-                  model.any_in(id: (limit ? object_ids[offset, limit] : object_ids.from(offset))).to_enum
-                else
-                  (limit ? model.limit(limit) : model.all).skip(offset).to_enum
-                end
+      sources =
+        if object_ids = options[:object_ids]
+          model.any_in(id: (limit ? object_ids[offset, limit] : object_ids.from(offset))).to_enum
+        else
+          (limit ? model.limit(limit) : model.all).skip(offset).to_enum
+        end
       {source_data_type: data_type, sources: sources}
     end
 
@@ -202,8 +203,8 @@ module Setup
             for_each_node_starting_at(record, stack=[]) do |obj|
               obj.errors.each do |attribute, error|
                 attr_ref = "#{obj.orm_model.data_type.title}" +
-                    ((name = obj.try(:name)).present? || (name = obj.try(:title)).present? ? " #{name} on attribute " : "'s '") +
-                    attribute.to_s + ((v = obj.try(attribute)).present? ? "'#{v}'" : '')
+                  ((name = obj.try(:name)).present? || (name = obj.try(:title)).present? ? " #{name} on attribute " : "'s '") +
+                  attribute.to_s + ((v = obj.try(attribute)).present? ? "'#{v}'" : '')
                 path = ''
                 stack.reverse_each do |node|
                   node[:record].errors.add(node[:attribute], "with error on #{path}#{attr_ref} (#{error})") if node[:referenced]

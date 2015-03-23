@@ -33,16 +33,17 @@ module Mongoid
         assert_result = true
         assert.each do |assert_key, assert_value|
           next unless assert_result
-          assert_result &&= case assert_key
-                            when 'present'
-                              assert_value ? !value.blank? : value.blank?
-                            when 'enum'
-                              assert_value.include?(value)
-                            when 'format'
-                              Regexp.new("\\A#{assert_value}\\Z", true) =~ value
-                            else
-                              raise Exception.new("Invalid assert key: #{assert_key}")
-                            end
+          assert_result &&=
+            case assert_key
+            when 'present'
+              assert_value ? !value.blank? : value.blank?
+            when 'enum'
+              assert_value.include?(value)
+            when 'format'
+              Regexp.new("\\A#{assert_value}\\Z", true) =~ value
+            else
+              raise Exception.new("Invalid assert key: #{assert_key}")
+            end
         end
         assert_result
       end
