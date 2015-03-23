@@ -138,9 +138,9 @@ module Setup
         begin
           response = HTTParty.send(webhook.method, connection.url + '/' + webhook.path,
                                    {
-                                       headers: {
-                                           'X_HUB_TIMESTAMP' => Time.now.utc.to_i.to_s
-                                       }
+                                     headers: {
+                                       'X_HUB_TIMESTAMP' => Time.now.utc.to_i.to_s
+                                     }
                                    })
           translator.run(target_data_type: data_type,
                          data: response.message,
@@ -153,15 +153,15 @@ module Setup
     end
 
     def translate_export(message, &block)
-      limit = lot_size || 1000
+      limit = translator.bulk_source ? lot_size || 1000 : 1
       max = ((object_ids = source_ids_from(message)) ? object_ids.size : data_type.count) - 1
       0.step(max, limit) do |offset|
         puts result = translator.run(
-            object_ids: object_ids,
-            source_data_type: data_type,
-            offset: offset,
-            limit: limit,
-            discard_events: discard_events)
+          object_ids: object_ids,
+          source_data_type: data_type,
+          offset: offset,
+          limit: limit,
+          discard_events: discard_events)
 
         the_connections.each do |connection|
           begin
@@ -174,14 +174,14 @@ module Setup
               result = result.to_json
             end
             headers = {
-                'Content-Type' => translator.mime_type
+              'Content-Type' => translator.mime_type
             }
             connection.headers.each { |h| headers[h.key] = h.value }
             webhook.headers.each { |h| headers[h.key] = h.value }
             response = HTTParty.send(webhook.method, connection.url + '/' + webhook.path,
                                      {
-                                         body: result,
-                                         headers: headers
+                                       body: result,
+                                       headers: headers
                                      })
 
             block.yield(response: response) if block.present?
@@ -198,8 +198,8 @@ module Setup
     def source_ids_from(message)
       if object_ids = message[:object_ids]
         object_ids
-      elsif scope_symbol == :event_source
-        (id = message[:source_id]) ? [id] : []
+      elsif scope_symbol == :event_source && id = message[:source_id]
+        [id]
       else
         nil
       end

@@ -17,11 +17,12 @@ module Setup
       triggers_hash.each do |field_name, conditions|
         conditions.each do |_, condition|
           puts "...verifying trigger #{condition} on (#{obj_now},#{obj_before})::#{field_name}"
-          puts c = if (condition['o'] == '_change')
-                     field_changed(obj_now, obj_before, field_name)
-                  else
-                     condition_apply(obj_now, field_name, condition) && !condition_apply(obj_before, field_name, condition)
-                  end
+          puts c =
+                 if (condition['o'] == '_change')
+                   field_changed(obj_now, obj_before, field_name)
+                 else
+                   condition_apply(obj_now, field_name, condition) && !condition_apply(obj_before, field_name, condition)
+                 end
           r &&= c
         end
       end
@@ -53,11 +54,12 @@ module Setup
     def condition_apply(obj, field_name, condition)
       obj_v = obj.try(field_name)
       cond_v = valuate(condition['v'], obj_v.class)
-      obj_values = if cond_v.is_a?(String) || (cond_v.is_a?(Array) && cond_v.detect { |e| e.is_a?(String) })
-                     convert_to_string_array(obj_v)
-                   else
-                     [obj_v]
-                   end
+      obj_values =
+        if cond_v.is_a?(String) || (cond_v.is_a?(Array) && cond_v.detect { |e| e.is_a?(String) })
+          convert_to_string_array(obj_v)
+        else
+          [obj_v]
+        end
       unless op = condition['o']
         op = cond_v.is_a?(Array) ? 'in' : 'is'
       end

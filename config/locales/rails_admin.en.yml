@@ -125,14 +125,15 @@ en:
         model: "Collection"
         used_memory: "Space used"
       share_collection:
-        title: "Share Collection"
+        title: "Share Collection '%{object_label}'"
         menu: "Share"
         breadcrumb: "Share"
         submit: "Share"
         done: "created"
       pull_collection:
-        title: "Pull Collection"
+        title: "Pull Collection '%{object_label}'"
         menu: "Pull"
         breadcrumb: "Pull"
         submit: "Pull"
         done: "pulled"
+        fill_parameters: "Please fill the following parameters to pull the collection"

@@ -3,7 +3,7 @@ module Setup
     include CenitScoped
     include NumberGenerator
 
-    BuildInDataType.regist(self)
+    BuildInDataType.regist(self).referenced_by(:name)
 
     has_and_belongs_to_many :webhooks, class_name: Setup::Webhook.to_s, inverse_of: :connections
 
@@ -17,8 +17,11 @@ module Setup
     field :number, as: :key, type: String
     field :token, type: String
 
+    belongs_to :cenit_collection, class_name: Setup::Collection.to_s, inverse_of: :connections
+
     after_initialize :ensure_token
 
+    validates_account_uniqueness_of :name
     validates_presence_of :webhooks
     accepts_nested_attributes_for :parameters, :headers
 
