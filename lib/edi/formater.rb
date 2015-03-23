@@ -10,9 +10,14 @@ module Edi
       output.join(seg_sep)
     end
 
-    def to_json(options={})
+    def to_hash(options={})
       hash = record_to_json(self)
       hash = {self.orm_model.data_type.name.downcase => hash} if options[:include_root]
+      hash
+    end
+
+    def to_json(options={})
+      hash = to_hash(options)
       options[:pretty] ? JSON.pretty_generate(hash) : hash.to_json
     end
 
