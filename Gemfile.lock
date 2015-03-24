@@ -1,5 +1,5 @@
 GIT
-  remote: git://github.com/openjaf/rails_admin_dynamic_charts.git
+  remote: https://github.com/openjaf/rails_admin_dynamic_charts.git
   revision: 773521f07e24200ea90ee4d68ecff1514699eeda
   specs:
     rails_admin_dynamic_charts (0.0.1)
