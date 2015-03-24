@@ -77,14 +77,15 @@ module Setup
       [:Import, :Export, :Update, :Conversion]
     end
 
-    STYLES_MAP = {'renit' => Setup::Transformation::RenitTransform,
-                  'double_curly_braces' => Setup::Transformation::DoubleCurlyBracesTransform,
-                  'xslt' => Setup::Transformation::XsltTransform,
-                  'json.rabl' => Setup::Transformation::ActionViewTransform,
-                  'xml.rabl' => Setup::Transformation::ActionViewTransform,
-                  'xml.builder' => Setup::Transformation::ActionViewTransform,
-                  'html.erb' => Setup::Transformation::ActionViewTransform,
-                  'chain' => Setup::Transformation::ChainTransform}
+    STYLES_MAP = {
+      'renit' => Setup::Transformation::RenitTransform,
+      'double_curly_braces' => Setup::Transformation::DoubleCurlyBracesTransform,
+      'xslt' => Setup::Transformation::XsltTransform,
+      'json.rabl' => Setup::Transformation::ActionViewTransform,
+      'xml.rabl' => Setup::Transformation::ActionViewTransform,
+      'xml.builder' => Setup::Transformation::ActionViewTransform,
+      'html.erb' => Setup::Transformation::ActionViewTransform,
+      'chain' => Setup::Transformation::ChainTransform}
 
     def style_enum
       styles = []
@@ -144,7 +145,7 @@ module Setup
     end
 
     def context_options_for_export(options)
-      raise Exception.new('Source data type not defined') unless data_type = source_data_type|| options[:source_data_type]
+      raise Exception.new('Source data type not defined') unless data_type = source_data_type || options[:source_data_type]
       model = data_type.records_model
       offset = options[:offset] || 0
       limit = options[:limit]
@@ -155,6 +156,7 @@ module Setup
                     else
                       (limit ? model.limit(limit) : model.all).skip(offset).to_enum
                     end}
+        else
           {source: options[:object] || ((id = (options[:object_id] || (options[:object_ids] && options[:object_ids][offset]))) && model.where(id: id).first) || model.all.skip(offset).first}
         end
       {source_data_type: data_type}.merge(source_options)
@@ -256,7 +258,7 @@ module Setup
         end if references
 
         for_each_node_starting_at(record, stack = []) do |obj|
-          if (to_bind = references[obj])
+          if to_bind = references[obj]
             to_bind.each do |property_name, property_binds|
               property_binds = [property_binds] unless property_binds.is_a?(Array)
               property_binds.each do |property_bind|

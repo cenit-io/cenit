@@ -18,22 +18,20 @@ module RailsAdmin
 
         register_instance_option :controller do
           proc do
-            collection = @object
-            @object = nil
             shared = false
 
             shared_collection_config = RailsAdmin::Config.model(Setup::SharedCollection)
             if shared_params = params[shared_collection_config.abstract_model.param_key]
-              @object = Setup::SharedCollection.new(shared_params.to_hash)
-              @object.data = collection.to_json
-              shared = @object.save
+              @shared_collection = Setup::SharedCollection.new(shared_params.to_hash.merge(data: @object.to_json))
+              shared = @shared_collection.save
             end
             if shared
               redirect_to back_or_index
             else
-              @object ||= Setup::SharedCollection.new(name: collection.name)
+              @shared_parameter_enum = Setup::SharedCollection.pull_parameters_enum_for(@object)
+              @shared_collection ||= Setup::SharedCollection.new(name: @object.name, data: @object.to_json)
               @model_config = shared_collection_config
-              if @object.errors.present?
+              if @shared_collection.errors.present?
                 flash.now[:error] = t('admin.flash.error', name: @model_config.label, action: t("admin.actions.#{@action.key}.done").html_safe).html_safe
                 flash.now[:error] += %(<br>- #{@object.errors.full_messages.join('<br>- ')}).html_safe
               end
@@ -43,6 +41,10 @@ module RailsAdmin
 
         register_instance_option :link_icon do
           'icon-share'
+        end
+
+        register_instance_option :pjax? do
+          true
         end
       end
 
