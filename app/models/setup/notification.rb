@@ -6,13 +6,13 @@ module Setup
 
     belongs_to :flow, class_name: Setup::Flow.to_s, inverse_of: nil
 
-    field :response, type: Hash
+    field :response, type: String
     field :retries, type: Integer, default: 0
     field :message, type: String
     field :exception_message, type: String
 
     def can_retry?
-      response.blank? || !(200...299).include?(response['code'])
+      exception_message.present?
     end
 
     def retry

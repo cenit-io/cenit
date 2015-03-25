@@ -44,7 +44,7 @@ module Cenit
             Setup::Notification.new(flow: translation[:flow],
                                     message: translation[:message],
                                     exception_message: translation[:exception_message])
-        notification.response = translation[:response]
+        notification.response = translation[:response].to_s
         notification.retries += 1 unless notification.new_record?
         notification.save
       end
