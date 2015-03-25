@@ -137,3 +137,9 @@ en:
         submit: "Pull"
         done: "pulled"
         fill_parameters: "Please fill the following parameters to pull the collection"
+      retry_notification:
+        title: "Retry"
+        menu: "Retry"
+        breadcrumb: "Retry"
+        submit: "Retry"
+        done: "retried"

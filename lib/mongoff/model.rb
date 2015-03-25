@@ -25,7 +25,7 @@ module Mongoff
       @schema ||= data_type.merged_schema
     end
 
-    def for_property(property)
+    def property_model(property)
       #TODO Create a model space to optimize memory usage
       model = nil
       if schema['type'] == 'object' && schema['properties'] && property_schema = schema['properties'][property.to_s]
@@ -57,7 +57,7 @@ module Mongoff
     end
 
     def method_missing(symbol, *args)
-      if (query = Mongoid::Sessions.default[collection_name].find.try(symbol, *args)).is_a?(Moped::Query)
+      if (query = Mongoid::Sessions.default[collection_name].try(symbol, *args)).is_a?(Moped::Query)
         Criteria.new(self, query)
       else
         super

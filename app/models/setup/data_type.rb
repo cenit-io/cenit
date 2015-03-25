@@ -4,7 +4,7 @@ module Setup
   class DataType < BaseDataType
     include CenitScoped
 
-    Setup::Models.exclude_actions_for self, :delete, :new, :bulk_delete, :delete_all
+    Setup::Models.exclude_actions_for self, :delete, :new, :bulk_delete, :delete_all, :update, :edit
 
     BuildInDataType.regist(self).referenced_by(:name)
 
@@ -45,6 +45,7 @@ module Setup
     field :show_navigation_link, type: Boolean
     field :to_be_destroyed, type: Boolean
     field :used_memory, type: BigDecimal, default: 0
+    field :model_loaded, type: Boolean
 
     scope :activated, -> { where(activated: true) }
 
@@ -113,6 +114,7 @@ module Setup
       unless options[:report_only]
         self.to_be_destroyed = true if options[:destroy]
         self.used_memory = 0
+        self.model_loaded = false
         save
       end
       report
@@ -164,10 +166,12 @@ module Setup
         end
         report[:destroyed].delete_if { |m| m.to_s == model.to_s } if report[:destroyed]
         self.activated = do_activate if do_activate.present?
+        self.model_loaded = true
       else
         report[:errors][self] = errors
         self.used_memory = 0 unless self.used_memory == 0
         self.activated = false
+        self.model_loaded = false
       end
       save
       report

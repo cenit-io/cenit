@@ -5,54 +5,50 @@ require 'bunny'
 module Cenit
   class Rabbit
 
-    def self.send_to_rabbitmq(message)
-      conn = Bunny.new(:automatically_recover => false)
-      conn.start
+    class << self
 
-      ch = conn.create_channel
-      q = ch.queue('send.to.endpoint')
+      def send_to_rabbitmq(message)
+        conn = Bunny.new(:automatically_recover => false)
+        conn.start
 
-      ch.default_exchange.publish(message, :routing_key => q.name)
-      conn.close
-    end
+        ch = conn.create_channel
+        q = ch.queue('send.to.endpoint')
 
-    def self.send_to_endpoints(message)
-      puts "RABBIT: #{message = JSON.parse(message).with_indifferent_access}"
-      flow = Setup::Flow.find(message[:flow_id])
-      flow.translate(message) { |translation_result| notify_to_cenit(translation_result.merge(message: message, flow: flow)) }
-    end
-
-    def self.notify_to_cenit(translation)
-      # Http codes:
-      # 200...299 : OK
-      # 300...399 : Redirect
-      # 400...499 : Bad request
-      # 500...599 : Internal Server Error
-
-      response = translation[:response]
-      message = translation[:message]
-      exception = translation[:exception]
-
-      notification = nil
-      if message[:notification_id.to_s].nil?
-        notification = Setup::Notification.new
-        notification.flow_id = message[:flow_id.to_s]['$oid']
-        notification.account_id = message[:account_id.to_s]['$oid']
-        notification.json_data = message[:json_data.to_s].to_json
-        notification.count = 0
-      else
-        notification = Setup::Notification.find(message[:notification_id.to_s]['$oid'])
+        ch.default_exchange.publish(message, :routing_key => q.name)
+        conn.close
       end
 
-      if exception
-        notification.http_status_message = exception.message
-      else
-        notification.http_status_code = response.code if response
-        notification.http_status_message = response.message if response
+      def send_to_endpoints(message)
+        hash_message = JSON.parse(message).with_indifferent_access
+        if flow = Setup::Flow.where(id: flow_id = hash_message[:flow_id]).first
+          flow.translate(hash_message) do |translation_result|
+            notify_to_cenit(translation_result.merge(message: message,
+                                                     flow: flow,
+                                                     notification_id: hash_message[:notification_id]))
+          end
+        else
+          notify_to_cenit(exception_message: "Flow with id #{flow_id} not found")
+        end
       end
-      notification.count += 1
-      notification.save!
-    end
 
+      def notify_to_cenit(translation)
+        # Http codes:
+        # 200...299 : OK
+        # 300...399 : Redirect
+        # 400...499 : Bad request
+        # 500...599 : Internal Server Error
+
+
+        notification =
+          (translation[:notification_id] && Setup::Notification.where(id: translation[:notification_id]).first) ||
+            Setup::Notification.new(flow: translation[:flow],
+                                    message: translation[:message],
+                                    exception_message: translation[:exception_message])
+        notification.response = translation[:response].to_s
+        notification.retries += 1 unless notification.new_record?
+        notification.save
+      end
+
+    end
   end
 end

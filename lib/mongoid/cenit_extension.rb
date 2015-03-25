@@ -8,7 +8,7 @@ module Mongoid
         mongo_session.command(collstats: collection_name, scale: scale)['size'] rescue 0
       end
 
-      def for_property(property)
+      def property_model(property)
         (relation = try(:reflect_on_association, property)) && relation.try(:klass)
       end
 

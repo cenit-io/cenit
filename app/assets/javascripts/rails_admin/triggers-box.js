@@ -170,7 +170,7 @@
             var model_name = $("#setup_observer_data_type_id").html();
             var i = model_name.indexOf('option selected="selected');
             if (i < 0) i = 0;
-            model_name = model_name.substring(model_name.indexOf('>', i) + 1, model_name.indexOf('</', i));
+            model_name = model_name.substring(i = model_name.indexOf('value="', i) + 7, model_name.indexOf('"', i));
             $("#triggers_box").html('');
             var triggers_options = '';
             var model_fields = fields[model_name];

@@ -14,7 +14,8 @@
  RailsAdmin::Config::Actions::Convert,
  RailsAdmin::Config::Actions::DeleteSchema,
  RailsAdmin::Config::Actions::ShareCollection,
- RailsAdmin::Config::Actions::PullCollection].each { |a| RailsAdmin::Config::Actions.register(a) }
+ RailsAdmin::Config::Actions::PullCollection,
+ RailsAdmin::Config::Actions::RetryNotification].each { |a| RailsAdmin::Config::Actions.register(a) }
 
 RailsAdmin::Config::Actions.register(:export, RailsAdmin::Config::Actions::EdiExport)
 
@@ -62,6 +63,7 @@ RailsAdmin.config do |config|
     switch_navigation
     delete_all { except [Role] }
     data_type
+    retry_notification
 
     history_index do
       only [Setup::DataType, Setup::Webhook, Setup::Flow, Setup::Schema, Setup::Event, Setup::Connection, Setup::ConnectionRole, Setup::Library]
@@ -379,12 +381,16 @@ RailsAdmin.config do |config|
   config.model Setup::Notification.name do
     weight -10
     navigation_label 'Notifications'
+    configure :exception_message do
+      pretty_value do
+        "<label style='color:red'>#{value}</label>".html_safe
+      end
+    end
     show do
       field :flow
-      field :http_status_code
-      field :count
-      field :http_status_message
-      field :json_data
+      field :retries
+      field :response
+      field :exception_message
 
       field :_id
       field :created_at
@@ -392,7 +398,7 @@ RailsAdmin.config do |config|
       field :updated_at
       field :updater
     end
-    fields :flow, :http_status_code, :count, :http_status_message, :json_data
+    fields :flow, :retries, :response, :exception_message
   end
 
   config.model Setup::Flow.name do
@@ -517,12 +523,16 @@ RailsAdmin.config do |config|
     edit do
       field :name
       field :data_type do
-        help false
-        inline_add false
-        inline_edit false
+        help do
+          if (obj = bindings[:object]).new_record? || obj.data_type.loaded?
+            false
+          else
+            "<label style='color:red;float:left'>WARNING:</label><label style='float:left;margin-left:5px'>Triggers for non loaded data type <strong>#{obj.data_type.title}</strong> will be overridden.</label>".html_safe
+          end
+        end
         associated_collection_scope do
           Proc.new { |scope|
-            scope = scope.where(activated: true)
+            scope.where(model_loaded: true)
           }
         end
       end

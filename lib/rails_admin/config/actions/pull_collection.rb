@@ -27,7 +27,7 @@ module RailsAdmin
             @missing_parameters = []
             @object.pull_parameters.each { |pull_parameter| @missing_parameters << pull_parameter.parameter unless @parameter_values[pull_parameter.parameter].present? }
             errors = []
-            if params[:_pull] || @missing_parameters.blank?
+            if @missing_parameters.blank?
               begin
                 collection = Setup::Collection.new
                 collection.from_json(@object.data_with(@parameter_values))

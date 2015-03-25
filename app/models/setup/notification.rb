@@ -2,22 +2,21 @@ module Setup
   class Notification
     include CenitScoped
 
-    Setup::Models.exclude_actions_for self, :new
+    Setup::Models.exclude_actions_for self, :new, :edit, :update
 
-    belongs_to :flow, :class_name => Setup::Flow.to_s, inverse_of: nil
+    belongs_to :flow, class_name: Setup::Flow.to_s, inverse_of: nil
 
-    field :http_status_code, type: String
-    field :http_status_message, type: String
-    field :count, type: Integer
-    field :json_data, type: String
+    field :response, type: String
+    field :retries, type: Integer, default: 0
+    field :message, type: String
+    field :exception_message, type: String
 
-    def must_be_resend?
-      !(200...299).include?(http_status_code)
+    def can_retry?
+      exception_message.present?
     end
 
-    def resend
-      return unless self.must_be_resend?
-      self.flow.process_json_data(self.json_data, self.id)
+    def retry
+      flow.process(JSON.parse(message).merge(notification_id: id.to_s)) if can_retry?
     end
 
   end
