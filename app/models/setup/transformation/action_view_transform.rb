@@ -19,7 +19,7 @@ module Setup
           if handler.present? && metaclass.instance_methods.include?(met = "run_#{handler}".to_sym)
             send(met, options)
           else
-            ActionView::Base.new.try :render, inline: transformation, formats: format, type: handler, handlers: handler, locals: options
+            ActionView::Base.new.try :render, inline: transformation, formats: format, type: handler || format, handlers: handler, locals: options
           end
         end
 
