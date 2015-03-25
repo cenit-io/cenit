@@ -121,7 +121,7 @@ module Setup
           translator.run(object: data_type.records_model.find(obj_id), discard_events: discard_events)
         end
       rescue Exception => ex
-        block.yield(exception: ex) if block
+        block.yield(exception_message: ex.message) if block
       end
     end
 
@@ -136,18 +136,18 @@ module Setup
     def translate_import(message, &block)
       connection_role.connections.each do |connection|
         begin
-          response = HTTParty.send(webhook.method, connection.url + '/' + webhook.path,
+          http_response = HTTParty.send(webhook.method, connection.url + '/' + webhook.path,
                                    {
                                      headers: {
                                        'X_HUB_TIMESTAMP' => Time.now.utc.to_i.to_s
                                      }
                                    })
           translator.run(target_data_type: data_type,
-                         data: response.message,
-                         discard_events: discard_events) if response.code == 200
-          block.yield(response: response) if block
+                         data: http_response.message,
+                         discard_events: discard_events) if http_response.code == 200
+          block.yield(response: http_response.to_json, exception_message: (200...299).include?(http_response.code) ? nil : 'Unsuccessful') if block
         rescue Exception => ex
-          block.yield(response: response, exception: ex) if block
+          block.yield(response: http_response.to_json, exception_message: ex.message) if block
         end
       end
     end
@@ -178,18 +178,18 @@ module Setup
             }
             connection.headers.each { |h| headers[h.key] = h.value }
             webhook.headers.each { |h| headers[h.key] = h.value }
-            response = HTTParty.send(webhook.method, connection.url + '/' + webhook.path,
+            http_response = HTTParty.send(webhook.method, connection.url + '/' + webhook.path,
                                      {
                                        body: result,
                                        headers: headers
                                      })
 
-            block.yield(response: response) if block.present?
-            if response_translator #&& response.code == 200
-              response_translator.run(target_data_type: response_translator.data_type || response_data_type, data: response.message)
+            block.yield(response: http_response.to_json, exception_message: (200...299).include?(http_response.code) ? nil : 'Unsuccessful') if block.present?
+            if response_translator #&& http_response.code == 200
+              response_translator.run(target_data_type: response_translator.data_type || response_data_type, data: http_response.message)
             end
           rescue Exception => ex
-            block.yield(exception: ex) if block
+            block.yield(exception_message: ex.message) if block
           end
         end
       end

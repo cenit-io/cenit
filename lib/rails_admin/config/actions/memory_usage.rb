@@ -17,7 +17,7 @@ module RailsAdmin
           proc do
             @objects ||= list_entries(RailsAdmin::Config.model(Setup::DataType))
 
-            @max = Setup::DataType.fields[:used_memory.to_s].type.new(Setup::DataType.max(:used_memory))
+            @max = Setup::DataType.fields[:used_memory.to_s].type.new(Setup::DataType.max(:used_memory) || 0)
           end
         end
 
