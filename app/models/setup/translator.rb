@@ -84,7 +84,10 @@ module Setup
       'json.rabl' => Setup::Transformation::ActionViewTransform,
       'xml.rabl' => Setup::Transformation::ActionViewTransform,
       'xml.builder' => Setup::Transformation::ActionViewTransform,
+      'html.haml' => Setup::Transformation::ActionViewTransform,
       'html.erb' => Setup::Transformation::ActionViewTransform,
+      'ruby' => Setup::Transformation::ActionViewTransform,
+      'pdf.prawn' => Setup::Transformation::PrawnTransform,
       'chain' => Setup::Transformation::ChainTransform}
 
     def style_enum
