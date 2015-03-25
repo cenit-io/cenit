@@ -41,36 +41,15 @@ module Setup
     end
 
     def with(*fields)
-      if fields.present?
-        raise Exception.new('Illegal argument') if fields.empty?
-        fields = [fields] unless fields.is_a?(Enumerable)
-        @with = fields.collect(&:to_s)
-      else
-        @with = nil
-      end
-      self
+      store_fields(:@with, fields)
     end
 
     def including(*fields)
-      if fields.present?
-        raise Exception.new('Illegal argument') if fields.empty?
-        fields = [fields] unless fields.is_a?(Enumerable)
-        @including = fields.collect(&:to_s)
-      else
-        @including = nil
-      end
-      self
+      store_fields(:@including, fields)
     end
 
     def excluding(*fields)
-      if fields.present?
-        raise Exception.new('Illegal argument') if fields.empty?
-        fields = [fields] unless fields.is_a?(Enumerable)
-        @excluding = fields.collect(&:to_s)
-      else
-        @excluding = nil
-      end
-      self
+      store_fields(:@excluding, fields)
     end
 
     class << self
@@ -92,6 +71,17 @@ module Setup
     EXCLUDED_RELATIONS = %w{account creator updater}
 
     private
+
+    def store_fields(instance_variable, *fields)
+      if fields
+        raise Exception.new('Illegal argument') unless fields.present?
+        fields = [fields] unless fields.is_a?(Enumerable)
+        instance_variable_set(instance_variable, fields.collect(&:to_s))
+      else
+        instance_variable_set(instance_variable, nil)
+      end
+      self
+    end
 
     MONGOID_TYPE_MAP = {Array => 'array',
                         BigDecimal => 'integer',
