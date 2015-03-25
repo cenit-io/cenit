@@ -41,15 +41,15 @@ module Setup
     end
 
     def with(*fields)
-      store_fields(:@with, fields)
+      store_fields(:@with, *fields)
     end
 
     def including(*fields)
-      store_fields(:@including, fields)
+      store_fields(:@including, *fields)
     end
 
     def excluding(*fields)
-      store_fields(:@excluding, fields)
+      store_fields(:@excluding, *fields)
     end
 
     class << self
