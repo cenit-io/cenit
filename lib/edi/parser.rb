@@ -96,7 +96,7 @@ module Edi
           property_schema = data_type.merge_schema(property_schema)
           name = property_schema['edi']['segment'] if property_schema['edi']
           name ||= property_name
-          property_model = model.for_property(property_name)
+          property_model = model.property_model(property_name)
           case property_schema['type']
           when 'array'
             next unless (property_value = record.send(property_name)).nil? || property_value.empty?
