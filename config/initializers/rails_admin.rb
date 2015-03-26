@@ -648,7 +648,7 @@ RailsAdmin.config do |config|
 
       field :mime_type do
         label 'MIME type'
-        visible { bindings[:object].type == :Export }
+        visible { bindings[:object].type == :Export && bindings[:object].style.present? }
       end
 
       field :file_extension do

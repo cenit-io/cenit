@@ -1,36 +1,15 @@
 module Setup
   module Transformation
-    class RenitTransform < Setup::Transformation::AbstractTransform
+    class RubyTransform < Setup::Transformation::WithOptions
 
       attr_reader :targets
 
       def initialize(options)
-        puts options
-        @options = options
+        super
         @targets = []
         if target = options[:target]
           @targets << target
         end
-      end
-
-      def method_missing(symbol, *args)
-        if args.length == 0 && value = @options[symbol]
-          value
-        else
-          super
-        end
-      end
-
-      def respond_to?(symbol)
-        @options[symbol] || super
-      end
-
-      def source
-        respond_to?(:sources) ? sources.current : method_missing(:source)
-      end
-
-      def next_source
-        sources.next
       end
 
       def target
@@ -51,15 +30,12 @@ module Setup
 
       class << self
         def run(options = {})
-          context = RenitTransform.new(options)
+          context = new(options)
           result = context.send(:eval, options[:transformation])
           options[:targets] = context.targets
           result
         end
 
-        def types
-          [:Import, :Export, :Update, :Conversion]
-        end
       end
     end
   end

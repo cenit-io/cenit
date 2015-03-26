@@ -78,26 +78,39 @@ module Setup
     end
 
     STYLES_MAP = {
-      'renit' => Setup::Transformation::RenitTransform,
-      'double_curly_braces' => Setup::Transformation::DoubleCurlyBracesTransform,
-      'xslt' => Setup::Transformation::XsltTransform,
-      'json.rabl' => Setup::Transformation::ActionViewTransform,
-      'xml.rabl' => Setup::Transformation::ActionViewTransform,
-      'xml.builder' => Setup::Transformation::ActionViewTransform,
-      'html.haml' => Setup::Transformation::ActionViewTransform,
-      'html.erb' => Setup::Transformation::ActionViewTransform,
-      'ruby' => Setup::Transformation::ActionViewTransform,
-      'pdf.prawn' => Setup::Transformation::PrawnTransform,
-      'chain' => Setup::Transformation::ChainTransform}
+      'double_curly_braces' => {Setup::Transformation::DoubleCurlyBracesConversionTransform => [:Conversion],
+                                Setup::Transformation::DoubleCurlyBracesExportTransform => [:Export]},
+      'xslt' => {Setup::Transformation::XsltConversionTransform => [:Conversion],
+                 Setup::Transformation::XsltExportTransform => [:Export]},
+      'json.rabl' => {Setup::Transformation::ActionViewTransform => [:Export]},
+      'xml.rabl' => {Setup::Transformation::ActionViewTransform => [:Export]},
+      'xml.builder' => {Setup::Transformation::ActionViewTransform => [:Export]},
+      'html.haml' => {Setup::Transformation::ActionViewTransform => [:Export]},
+      'html.erb' => {Setup::Transformation::ActionViewTransform => [:Export]},
+      'ruby' => {Setup::Transformation::RubyTransform => [:Import, :Export, :Update, :Conversion]},
+      'pdf.prawn' => {Setup::Transformation::PrawnTransform => [:Export]},
+      'chain' => {Setup::Transformation::ChainTransform => [:Conversion]}
+    }
+
+    EXPORT_MIME_FILTER = {
+      'double_curly_braces' => ['application/json'],
+      'xslt' => ['application/xml'],
+      'json.rabl' => ['application/json'],
+      'xml.rabl' => ['application/xml'],
+      'xml.builder' => ['application/xml'],
+      'html.haml' => ['text/html'],
+      'html.erb' => ['text/html'],
+      'pdf.prawn' => ['application/pdf']
+    }
 
     def style_enum
       styles = []
-      STYLES_MAP.each { |key, value| styles << key if value.types.include?(type) } if type.present?
+      STYLES_MAP.each { |key, value| styles << key if value.values.detect { |types| types.include?(type) } } if type.present?
       styles.uniq
     end
 
     def mime_type_enum
-      MIME::Types.inject([]) { |types, t| types << t.to_s }
+      EXPORT_MIME_FILTER[style] || MIME::Types.inject([]) { |types, t| types << t.to_s }
     end
 
     def file_extension_enum
@@ -135,7 +148,7 @@ module Setup
       context_options[:data_type] = data_type
       context_options.merge!(options) { |key, context_val, options_val| !context_val ? options_val : context_val }
 
-      context_options[:result] = STYLES_MAP[style].run(context_options)
+      context_options[:result] = STYLES_MAP[style].keys.detect { |t| STYLES_MAP[style][t].include?(type) }.run(context_options)
 
       try("after_run_#{type.to_s.downcase}", context_options)
 
