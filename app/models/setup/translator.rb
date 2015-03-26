@@ -36,35 +36,35 @@ module Setup
       errors.add(:type, 'is not valid') unless type_enum.include?(type)
       errors.add(:style, 'is not valid') unless style_enum.include?(style)
       case type
-      when :Import, :Update
-        rejects(:source_data_type, :mime_type, :file_extension, :bulk_source, :source_exporter, :target_importer, :discard_chained_records)
-        requires(:transformation)
-      when :Export
-        rejects(:target_data_type, :source_exporter, :target_importer, :discard_chained_records)
-        requires(:transformation)
-        if mime_type.present?
-          if (extensions = file_extension_enum).empty?
-            self.file_extension = nil
-          elsif file_extension.blank?
-            extensions.length == 1 ? (self.file_extension = extensions[0]) : errors.add(:file_extension, 'has multiple options')
-          else
-            errors.add(:file_extension, 'is not valid') unless extensions.include?(file_extension)
-          end
-        end
-      when :Conversion
-        rejects(:mime_type, :file_extension, :bulk_source)
-        requires(:source_data_type, :target_data_type)
-        if style == 'chain'
-          requires(:source_exporter, :target_importer)
-          if errors.blank?
-            errors.add(:source_exporter, "can't be applied to #{source_data_type.title}") unless source_exporter.apply_to_source?(source_data_type)
-            errors.add(:target_importer, "can't be applied to #{target_data_type.title}") unless target_importer.apply_to_target?(target_data_type)
-          end
-          self.transformation = "#{source_data_type.title} -> [#{source_exporter.name} : #{target_importer.name}] -> #{target_data_type.title}" if errors.blank?
-        else
+        when :Import, :Update
+          rejects(:source_data_type, :mime_type, :file_extension, :bulk_source, :source_exporter, :target_importer, :discard_chained_records)
           requires(:transformation)
-          rejects(:source_exporter, :target_importer)
-        end
+        when :Export
+          rejects(:target_data_type, :source_exporter, :target_importer, :discard_chained_records)
+          requires(:transformation)
+          if mime_type.present?
+            if (extensions = file_extension_enum).empty?
+              self.file_extension = nil
+            elsif file_extension.blank?
+              extensions.length == 1 ? (self.file_extension = extensions[0]) : errors.add(:file_extension, 'has multiple options')
+            else
+              errors.add(:file_extension, 'is not valid') unless extensions.include?(file_extension)
+            end
+          end
+        when :Conversion
+          rejects(:mime_type, :file_extension, :bulk_source)
+          requires(:source_data_type, :target_data_type)
+          if style == 'chain'
+            requires(:source_exporter, :target_importer)
+            if errors.blank?
+              errors.add(:source_exporter, "can't be applied to #{source_data_type.title}") unless source_exporter.apply_to_source?(source_data_type)
+              errors.add(:target_importer, "can't be applied to #{target_data_type.title}") unless target_importer.apply_to_target?(target_data_type)
+            end
+            self.transformation = "#{source_data_type.title} -> [#{source_exporter.name} : #{target_importer.name}] -> #{target_data_type.title}" if errors.blank?
+          else
+            requires(:transformation)
+            rejects(:source_exporter, :target_importer)
+          end
       end
       errors.blank?
     end
@@ -78,18 +78,21 @@ module Setup
     end
 
     STYLES_MAP = {
-      'renit' => Setup::Transformation::RenitTransform,
-      'double_curly_braces' => Setup::Transformation::DoubleCurlyBracesTransform,
-      'xslt' => Setup::Transformation::XsltTransform,
-      'json.rabl' => Setup::Transformation::ActionViewTransform,
-      'xml.rabl' => Setup::Transformation::ActionViewTransform,
-      'xml.builder' => Setup::Transformation::ActionViewTransform,
-      'html.erb' => Setup::Transformation::ActionViewTransform,
-      'chain' => Setup::Transformation::ChainTransform}
+        'double_curly_braces' => [Setup::Transformation::DoubleCurlyBracesTransform, :Conversion],
+        'xslt' => [Setup::Transformation::XsltTransform, :Conversion],
+        'json.rabl' => [Setup::Transformation::ActionViewTransform, :Export],
+        'xml.rabl' => [Setup::Transformation::ActionViewTransform, :Export],
+        'xml.builder' => [Setup::Transformation::ActionViewTransform, :Export],
+        'html.haml' => [Setup::Transformation::ActionViewTransform, :Export],
+        'html.erb' => [Setup::Transformation::ActionViewTransform, :Export],
+        'ruby' => [Setup::Transformation::RenitTransform, :Import, :Export, :Update, :Conversion],
+        'pdf.prawn' => [Setup::Transformation::PrawnTransform, :Export],
+        'chain' => [Setup::Transformation::ChainTransform, :Conversion]
+    }
 
     def style_enum
       styles = []
-      STYLES_MAP.each { |key, value| styles << key if value.types.include?(type) } if type.present?
+      STYLES_MAP.each { |key, value| styles << key if value.include?(type) } if type.present?
       styles.uniq
     end
 
@@ -132,7 +135,7 @@ module Setup
       context_options[:data_type] = data_type
       context_options.merge!(options) { |key, context_val, options_val| !context_val ? options_val : context_val }
 
-      context_options[:result] = STYLES_MAP[style].run(context_options)
+      context_options[:result] = STYLES_MAP[style][0].run(context_options)
 
       try("after_run_#{type.to_s.downcase}", context_options)
 
@@ -150,15 +153,15 @@ module Setup
       offset = options[:offset] || 0
       limit = options[:limit]
       source_options =
-        if bulk_source
-          {sources: if object_ids = options[:object_ids]
-                      model.any_in(id: (limit ? object_ids[offset, limit] : object_ids.from(offset))).to_enum
-                    else
-                      (limit ? model.limit(limit) : model.all).skip(offset).to_enum
-                    end}
-        else
-          {source: options[:object] || ((id = (options[:object_id] || (options[:object_ids] && options[:object_ids][offset]))) && model.where(id: id).first) || model.all.skip(offset).first}
-        end
+          if bulk_source
+            {sources: if object_ids = options[:object_ids]
+                        model.any_in(id: (limit ? object_ids[offset, limit] : object_ids.from(offset))).to_enum
+                      else
+                        (limit ? model.limit(limit) : model.all).skip(offset).to_enum
+                      end}
+          else
+            {source: options[:object] || ((id = (options[:object_id] || (options[:object_ids] && options[:object_ids][offset]))) && model.where(id: id).first) || model.all.skip(offset).first}
+          end
       {source_data_type: data_type}.merge(source_options)
     end
 
@@ -209,8 +212,8 @@ module Setup
             for_each_node_starting_at(record, stack=[]) do |obj|
               obj.errors.each do |attribute, error|
                 attr_ref = "#{obj.orm_model.data_type.title}" +
-                  ((name = obj.try(:name)) || (name = obj.try(:title)) ? " #{name} on attribute " : "'s '") +
-                  attribute.to_s + ((v = obj.try(attribute)) ? "'#{v}'" : '')
+                    ((name = obj.try(:name)) || (name = obj.try(:title)) ? " #{name} on attribute " : "'s '") +
+                    attribute.to_s + ((v = obj.try(attribute)) ? "'#{v}'" : '')
                 path = ''
                 stack.reverse_each do |node|
                   node[:record].errors.add(node[:attribute], "with error on #{path}#{attr_ref} (#{error})") if node[:referenced]
