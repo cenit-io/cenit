@@ -97,7 +97,7 @@ module Setup
       'xml.builder' => {Setup::Transformation::ActionViewTransform => [:Export]},
       'html.haml' => {Setup::Transformation::ActionViewTransform => [:Export]},
       'html.erb' => {Setup::Transformation::ActionViewTransform => [:Export]},
-      'ruby' => {Setup::Transformation::RubyTransform => [:Import, :Export, :Update, :Conversion]},
+      'ruby' => {Setup::Transformation::ActionViewTransform => [:Import, :Export, :Update, :Conversion]},
       'pdf.prawn' => {Setup::Transformation::PrawnTransform => [:Export]},
       'chain' => {Setup::Transformation::ChainTransform => [:Conversion]}
     }
@@ -167,7 +167,7 @@ module Setup
 
     def context_options_for_import(options)
       raise Exception.new('Target data type not defined') unless data_type = target_data_type || options[:target_data_type]
-      {target_data_type: data_type}
+      {target_data_type: data_type, targets: Set.new}
     end
 
     def context_options_for_export(options)
