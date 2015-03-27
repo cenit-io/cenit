@@ -97,6 +97,9 @@ module Setup
       'xml.builder' => {Setup::Transformation::ActionViewTransform => [:Export]},
       'html.haml' => {Setup::Transformation::ActionViewTransform => [:Export]},
       'html.erb' => {Setup::Transformation::ActionViewTransform => [:Export]},
+      'csv.erb' => {Setup::Transformation::ActionViewTransform => [:Export]},
+      'js.erb' => {Setup::Transformation::ActionViewTransform => [:Export]},
+      'text.erb' => {Setup::Transformation::ActionViewTransform => [:Export]},
       'ruby' => {Setup::Transformation::ActionViewTransform => [:Import, :Export, :Update, :Conversion]},
       'pdf.prawn' => {Setup::Transformation::PrawnTransform => [:Export]},
       'chain' => {Setup::Transformation::ChainTransform => [:Conversion]}
@@ -110,6 +113,9 @@ module Setup
       'xml.builder' => ['application/xml'],
       'html.haml' => ['text/html'],
       'html.erb' => ['text/html'],
+      'csv.erb' => ['text/csv'],
+      'js.erb' => %w(application/x-javascript application/javascript text/javascript),
+      'text.erb' => ['text/plain'],
       'pdf.prawn' => ['application/pdf']
     }
 
