@@ -16,7 +16,7 @@ module Setup
 
     field :mime_type, type: String
     field :file_extension, type: String
-    field :bulk_source, type: Boolean
+    field :bulk_source, type: Boolean, default: false
 
     field :transformation, type: String
 
@@ -42,6 +42,10 @@ module Setup
       when :Export
         rejects(:target_data_type, :source_exporter, :target_importer, :discard_chained_records)
         requires(:transformation)
+        if bulk_source && NON_BULK_SOURCE_STYLES.include?(style)
+          errors.add(:bulk_source, "is not allowed with '#{style}' style")
+          self.bulk_source = false
+        end
         if mime_type.present?
           if (extensions = file_extension_enum).empty?
             self.file_extension = nil
@@ -76,6 +80,12 @@ module Setup
     def type_enum
       [:Import, :Export, :Update, :Conversion]
     end
+
+    def source_bulkable?
+      type == :Export && !NON_BULK_SOURCE_STYLES.include?(style)
+    end
+
+    NON_BULK_SOURCE_STYLES = %w(double_curly_braces xslt)
 
     STYLES_MAP = {
       'double_curly_braces' => {Setup::Transformation::DoubleCurlyBracesConversionTransform => [:Conversion],

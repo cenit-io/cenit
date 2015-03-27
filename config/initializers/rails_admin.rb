@@ -626,10 +626,6 @@ RailsAdmin.config do |config|
         help { bindings[:object].type == :Conversion ? 'Required' : 'Optional' }
       end
 
-      field :bulk_source do
-        visible { bindings[:object].type == :Export }
-      end
-
       field :target_data_type do
         inline_edit false
         inline_add false
@@ -644,6 +640,10 @@ RailsAdmin.config do |config|
 
       field :style do
         visible { bindings[:object].type.present? }
+      end
+
+      field :bulk_source do
+        visible { bindings[:object].type == :Export && bindings[:object].style.present? && bindings[:object].source_bulkable? }
       end
 
       field :mime_type do
