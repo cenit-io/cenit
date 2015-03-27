@@ -793,4 +793,19 @@ RailsAdmin.config do |config|
     fields :name, :libraries, :translators, :connections, :webhooks, :connection_roles, :flows, :events
   end
 
+  config.model Setup::Test do
+    field :name
+    field :asset, :carrierwave
+    show do
+      field :name
+      field :asset
+
+      field :_id
+      field :created_at
+      field :creator
+      field :updated_at
+      field :updater
+    end
+    fields :name, :asset
+  end
 end

@@ -1,5 +1,6 @@
 require 'rails_admin/config'
 require 'rails_admin/main_controller'
+require 'rails_admin/config/fields/types/carrierwave'
 
 module RailsAdmin
 
@@ -109,6 +110,20 @@ module RailsAdmin
 
             end
 
+          end
+        end
+      end
+    end
+
+    module Fields
+      module Types
+        class Carrierwave
+          def resource_url(thumb = false)
+            "/file?model=#{bindings[:object].class.to_s}&id=#{bindings[:object].id.to_s}&field=#{name}"
+          end
+
+          def image
+            true
           end
         end
       end
