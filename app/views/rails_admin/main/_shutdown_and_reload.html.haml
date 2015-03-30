@@ -1,20 +1,49 @@
-- unless @shutdown.nil? || @shutdown.empty?
+- schemas_to_delete = @object.instance_variable_get(:@_schemas_to_delete)
+- to_delete = @object.instance_variable_get(:@_to_delete)
+- to_shutdown = @object.instance_variable_get(:@_to_shutdown)
+- reload = @object.instance_variable_get(:@_to_reload)
+= render partial: 'action_will_also'  if schemas_to_delete.present? || to_delete.present? || to_shutdown.present? || reload.present?
+- if schemas_to_delete.present?
   %fieldset
     %legend{style: ''}
       %i.icon-chevron-right
-      = t('admin.actions.shutdown_and_reload.shutdown_data_types', shutdown_count: @shutdown.size)
+        = t('admin.actions.shutdown_and_reload.delete_schemas', schemas_count: schemas_to_delete.count)
     %models.control-group{style: 'display: none'}
       %ul
-        - @shutdown.each do |data_type|
+        - schemas_to_delete.each do |schema|
+          %li
+            = link_to(schema.uri, rails_admin.show_path(model_name: Setup::Schema.to_s.underscore.gsub('/', '~'), id: schema.id), class: 'pjax')
+- if to_delete.present?
+  %fieldset
+    %legend{style: ''}
+      %i.icon-chevron-right
+      - if (records_count = to_delete.inject(0) { |sum, data_type| sum + data_type.count }) > 0
+        = t('admin.actions.shutdown_and_reload.delete_data_types_and_records', data_type_count: to_delete.count, records_count: records_count)
+      - else
+        = t('admin.actions.shutdown_and_reload.delete_data_types', data_type_count: to_delete.count)
+    %models.control-group{style: 'display: none'}
+      %ul
+        - to_delete.each do |data_type|
+          %li
+            - label = (count = data_type.count) > 0 ? "#{data_type.title} (#{count} #{t('admin.actions.shutdown_and_reload.records')})" : data_type.title
+            = link_to(label, rails_admin.show_path(model_name: Setup::DataType.to_s.underscore.gsub('/', '~'), id: data_type.id), class: 'pjax')
+- if to_shutdown.present?
+  %fieldset
+    %legend{style: ''}
+      %i.icon-chevron-right
+      = t('admin.actions.shutdown_and_reload.shutdown_data_types', shutdown_count: to_shutdown.size)
+    %models.control-group{style: 'display: none'}
+      %ul
+        - to_shutdown.each do |data_type|
           %li
             = link_to(data_type.title, rails_admin.show_path(model_name: Setup::DataType.to_s.underscore.gsub('/', '~'), id: data_type.id), class: 'pjax')
-- unless @reload.nil? || @reload.empty?
+- if reload.present?
   %fieldset
     %legend{style: ''}
       %i.icon-chevron-right
-      = t('admin.actions.shutdown_and_reload.reload_data_types', reload_count: @reload.size)
+      = t('admin.actions.shutdown_and_reload.reload_data_types', reload_count: reload.size)
     %models.control-group{style: 'display: none'}
       %ul
-        - @reload.each do |data_type|
+        - reload.each do |data_type|
           %li
             = link_to(data_type.title, rails_admin.show_path(model_name: Setup::DataType.to_s.underscore.gsub('/', '~'), id: data_type.id), class: 'pjax')

@@ -23,13 +23,12 @@ en:
         menu: "Load model"
         breadcrumb: "Load model"
       shutdown_model:
-        title: "Shutdown model"
+        title: "Shutdown model '%{object_label}'"
         menu: "Shutdown model"
         breadcrumb: "Shutdown model"
         shutting_down: "Shutting down model '%{model_name}' will also"
         shutdown_data_types: "shutdown %{shutdown_count} data types"
         reload_data_types: "reload %{reload_count} data types"
-        are_you_sure: "Are you sure you want to proceed?"
       switch_navigation:
         show:
           title: "Show navigation link"
@@ -99,19 +98,25 @@ en:
         submit: "Convert"
         bulk_link: "Convert selected %{model_label_plural}"
       delete_schema:
-        title: "Delete"
+        title: "Delete Schema '%{object_label}'"
         menu: "Delete"
         breadcrumb: "Delete"
-        deleting_schema: "Deleting schema '%{schema_uri}' will also"
+      delete_library:
+        title: "Delete Library '%{object_label}'"
+        menu: "Delete"
+        breadcrumb: "Delete"
+      confirmation:
+        are_you_sure: "Are you sure you want to proceed?"
+      shutdown_and_reload:
+        shutdown_data_types: "shutdown %{shutdown_count} data types"
         delete_data_types_and_records: "delete %{data_type_count} data types including %{records_count} records"
+        delete_schemas: "delete %{schemas_count} schemas"
         delete_data_types: "delete %{data_type_count} data types"
         shutdown_data_types: "shutdown %{shutdown_count} data types"
         reload_data_types: "reload %{reload_count} data types"
         records: "records"
-        are_you_sure: "Are you sure you want to proceed?"
-      shutdown_and_reload:
-        shutdown_data_types: "shutdown %{shutdown_count} data types"
-        reload_data_types: "reload %{reload_count} data types"
+      action_will:
+        also: 'These action will also'
       memory_usage:
         title: "Memory Usage"
         menu: "Memory"

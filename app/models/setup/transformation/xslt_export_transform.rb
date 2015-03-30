@@ -1,12 +1,12 @@
 module Setup
   module Transformation
-    class XsltTransform < Setup::Transformation::AbstractTransform
+    class XsltExportTransform < Setup::Transformation::AbstractTransform
 
       class << self
 
         def run(options = {})
           xml_document = Nokogiri::XSLT(options[:transformation]).transform(Nokogiri::XML(options[:source].to_xml))
-          options[:target].from_xml(xml_document.to_xml)
+          xml_document.to_xml
         end
 
       end

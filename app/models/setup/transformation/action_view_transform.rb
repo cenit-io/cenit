@@ -8,7 +8,6 @@ module Setup
 
         def run(options = {})
           transformation = options[:transformation]
-          object = options[:object]
           split_style = options[:style].split('.') if options[:style].present?
 
           format = options[:format] ||= split_style[0].to_sym if split_style[0].present?

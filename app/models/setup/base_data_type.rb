@@ -1,8 +1,24 @@
 module Setup
   class BaseDataType
 
+    def new_from_edi(data, options={})
+      Edi::Parser.parse_edi(self, data, options)
+    end
+
+    def new_from_json(data, options={})
+      Edi::Parser.parse_json(self, data, options)
+    end
+
+    def new_from_xml(data, options={})
+      Edi::Parser.parse_xml(self, data, options)
+    end
+
+    def model_schema
+      raise NotImplementedError
+    end
+
     def merged_schema(options={})
-      sch = merge_schema(JSON.parse(schema), options)
+      sch = merge_schema(JSON.parse(model_schema), options)
       if (base_sch = sch.delete('extends')) && base_sch = find_ref_schema(base_sch)
         sch = base_sch.deep_merge(sch) { |key, val1, val2| array_sum(val1, val2) }
       end
@@ -51,7 +67,7 @@ module Setup
     end
 
     def find_ref_schema(ref)
-      (data_type = find_data_type(ref)) ? JSON.parse(data_type.schema) : nil
+      (data_type = find_data_type(ref)) ? JSON.parse(data_type.model_schema) : nil
     end
 
     def array_sum(val1, val2)

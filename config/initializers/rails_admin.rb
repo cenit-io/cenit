@@ -13,6 +13,7 @@
  RailsAdmin::Config::Actions::Update,
  RailsAdmin::Config::Actions::Convert,
  RailsAdmin::Config::Actions::DeleteSchema,
+ RailsAdmin::Config::Actions::DeleteLibrary,
  RailsAdmin::Config::Actions::ShareCollection,
  RailsAdmin::Config::Actions::PullCollection,
  RailsAdmin::Config::Actions::RetryNotification].each { |a| RailsAdmin::Config::Actions.register(a) }
@@ -55,6 +56,7 @@ RailsAdmin.config do |config|
     pull_collection
     delete { except [Role] }
     delete_schema
+    delete_library
     #show_in_app
     send_to_flow
     test_transformation
@@ -112,6 +114,9 @@ RailsAdmin.config do |config|
 
   config.model Setup::Schema.name do
     navigation_label 'Data Definitions'
+    register_instance_option(:after_form_partials) do
+      %w(shutdown_and_reload)
+    end
     weight -18
 
     object_label_method { :uri }
@@ -130,6 +135,8 @@ RailsAdmin.config do |config|
 
     configure :schema, :text do
       html_attributes do
+        reload = Setup::DataType.shutdown(bindings[:object].data_types, report_only: true)[:destroyed].collect(&:data_type).uniq #.select(&:activated)
+        bindings[:object].instance_variable_set(:@_to_reload, reload)
         {cols: '74', rows: '15'}
       end
     end
@@ -158,17 +165,7 @@ RailsAdmin.config do |config|
       active true
     end
 
-    group :sample_data do
-      label 'Sample data'
-      active do
-        !bindings[:object].errors.get(:sample_data).blank?
-      end
-      visible do
-        bindings[:object].is_object
-      end
-    end
-
-    configure :uri do
+    configure :schema do
       group :model_definition
       read_only true
       help ''
@@ -180,19 +177,12 @@ RailsAdmin.config do |config|
       help ''
     end
 
-    configure :schema, :text do
+    configure :model_schema, :text do
       group :model_definition
       read_only true
       help ''
       html_attributes do
         {cols: '50', rows: '15'}
-      end
-    end
-
-    configure :sample_data, :text do
-      group :sample_data
-      html_attributes do
-        {cols: '70', rows: '15'}
       end
     end
 
@@ -207,7 +197,7 @@ RailsAdmin.config do |config|
     end
 
     list do
-      field :uri
+      field :schema
       field :name
       field :used_memory do
         pretty_value do
@@ -221,11 +211,10 @@ RailsAdmin.config do |config|
     end
 
     show do
-      field :uri
+      field :schema
       field :name
       field :activated
-      field :schema
-      field :sample_data
+      field :model_schema
 
       field :_id
       field :created_at
@@ -233,7 +222,7 @@ RailsAdmin.config do |config|
       field :updated_at
       field :updater
     end
-    fields :uri, :name, :used_memory
+    fields :schema, :name, :used_memory
   end
 
   config.model Setup::Connection.name do
@@ -626,10 +615,6 @@ RailsAdmin.config do |config|
         help { bindings[:object].type == :Conversion ? 'Required' : 'Optional' }
       end
 
-      field :bulk_source do
-        visible { bindings[:object].type == :Export }
-      end
-
       field :target_data_type do
         inline_edit false
         inline_add false
@@ -646,9 +631,13 @@ RailsAdmin.config do |config|
         visible { bindings[:object].type.present? }
       end
 
+      field :bulk_source do
+        visible { bindings[:object].type == :Export && bindings[:object].style.present? && bindings[:object].source_bulkable? }
+      end
+
       field :mime_type do
         label 'MIME type'
-        visible { bindings[:object].type == :Export }
+        visible { bindings[:object].type == :Export && bindings[:object].style.present? }
       end
 
       field :file_extension do

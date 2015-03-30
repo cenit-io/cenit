@@ -44,7 +44,7 @@ module Setup
     
     protected
     def permited_attributes 
-      params[:data_type].permit(:name, :schema, :sample_data)
+      params[:data_type].permit(:name, :model_schema, :sample_data)
     end
     
     def find_data_type

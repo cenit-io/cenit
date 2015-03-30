@@ -33,7 +33,7 @@ module RailsAdmin
                       while @object.errors.blank? && entry = zis.get_next_entry
                         if (schema = entry.get_input_stream.read).present?
                           entry_uri = base_uri.blank? ? entry.name : "#{base_uri}/#{entry.name}"
-                          schema = Setup::Schema.new(library: library, uri: entry_uri, schema: schema)
+                          schema = Setup::Schema.new(library: library, schema: entry_uri, schema: schema)
                           if schema.save
                             schemas << schema
                           elsif schema.include_missing?

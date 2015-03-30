@@ -1,17 +1,9 @@
 module Setup
   module Transformation
-    class DoubleCurlyBracesTransform < Setup::Transformation::AbstractTransform
+    module DoubleCurlyBracesTransformer
+      extend ActiveSupport::Concern
 
-      class << self
-
-        def run(options = {})
-          source_hash = JSON.parse(options[:source].to_json)
-          template_hash = JSON.parse(options[:transformation])
-          do_template(template_hash, source_hash)
-          options[:target].from_json(template_hash)
-        end
-
-        private
+      module ClassMethods
 
         def do_template(template_hash, source_hash)
           for_each_key_value_on(template_hash) do |key, value|
@@ -27,11 +19,11 @@ module Setup
                     next if new_token.nil? || new_token = new_token[k]
                   end
                   new_token =
-                      if new_token.is_a?(Hash)
-                        new_token.to_json
-                      else
-                        new_token.to_s
-                      end if new_value || tokens.length > 1 || token.length > index + 2
+                    if new_token.is_a?(Hash)
+                      new_token.to_json
+                    else
+                      new_token.to_s
+                    end if new_value || tokens.length > 1 || token.length > index + 2
                   new_value = new_value ? new_value.to_s + new_token : new_token
                   if token.length > index + 2
                     new_value += token.from(index + 2).gsub('}}', '')
@@ -52,6 +44,7 @@ module Setup
             for_each_key_value_on(v, &block) if v.is_a?(Hash)
           end
         end
+
       end
     end
   end

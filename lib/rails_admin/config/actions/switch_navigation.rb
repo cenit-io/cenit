@@ -16,15 +16,15 @@ module RailsAdmin
         end
 
         register_instance_option :visible do
-          authorized? && bindings[:object] && bindings[:object].is_object? && bindings[:object].loaded?
+          authorized? && bindings[:object] && bindings[:object].loaded?
         end
 
         register_instance_option :controller do
           proc do
-            if model = @object.model
+            if (model = @object.model)
               @object.show_navigation_link = !@object.show_navigation_link
               @object.save
-              RailsAdmin::AbstractModel.reset_models(model)
+              RailsAdmin::AbstractModel.update_model_config(model)
               flash[:success] =
                 if @object.show_navigation_link
                   "Model #{@object.title} added to navigation links"
