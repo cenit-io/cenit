@@ -1,6 +1,7 @@
 module Setup
   class SharedCollection
     include CenitUnscoped
+    include Trackable
 
     Setup::Models.exclude_actions_for self, :new
 

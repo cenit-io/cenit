@@ -52,6 +52,10 @@ module Mongoff
       persistable? ? Mongoid::Sessions.default[collection_name].find.count : 0
     end
 
+    def delete_all
+      Mongoid::Sessions.default[collection_name].drop
+    end
+
     def collection_size(scale = 1)
       Mongoid::Sessions.default.command(collstats: collection_name, scale: scale)['size'] rescue 0
     end

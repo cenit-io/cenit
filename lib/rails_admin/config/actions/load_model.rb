@@ -21,26 +21,31 @@ module RailsAdmin
 
         register_instance_option :controller do
           proc do
-            if model = @object.model
-              flash[:notice] = "Model #{@object.title} is already loaded!"
-            else
-              begin
-                @object.show_navigation_link = true
-                report = @object.load_models(activated: true)
-                RailsAdmin::AbstractModel.model_loaded(report[:loaded])
-                if report[:model]
-                  flash[:success] = "Model #{@object.title} loaded!"
-                else
-                  flash[:error] = ''.html_safe
-                  report[:errors].each do |data_type, errors|
-                    flash[:error] += "<strong>Model #{data_type.title} could not be loaded</strong>".html_safe
-                    flash[:error] += %(<br>- #{errors.full_messages.join('<br>- ')}<br>).html_safe
+            if @object.is_object?
+              if @object.loaded?
+                flash[:notice] = "Model '#{@object.title}' is already loaded!"
+              else
+                begin
+                  @object.show_navigation_link = true
+                  @object.save
+                  report = @object.load_models(activated: true)
+                  RailsAdmin::AbstractModel.model_loaded(report[:loaded])
+                  if report[:model]
+                    flash[:success] = "Model '#{@object.title}' loaded!"
+                  else
+                    flash[:error] = ''.html_safe
+                    report[:errors].each do |data_type, errors|
+                      flash[:error] += "<strong>Model '#{data_type.title}' could not be loaded</strong>".html_safe
+                      flash[:error] += %(<br>- #{errors.full_messages.join('<br>- ')}<br>).html_safe
+                    end
                   end
+                rescue Exception => ex
+                  # raise ex
+                  flash[:error] = "Error loading model '#{@object.title}': #{ex.message}"
                 end
-              rescue Exception => ex
-                # raise ex
-                flash[:error] = "Error loading model #{@object.title}: #{ex.message}"
               end
+            else
+              flash[:error] = "Can not explicitly load model '#{@object.title}'"
             end
             redirect_to rails_admin.show_path(model_name: Setup::DataType.to_s.underscore.gsub('/', '~'), id: @object.id)
           end

@@ -5,7 +5,7 @@ module Edi
       options.reverse_merge!(field_separator: '*',
                              segment_separator: :new_line,
                              seg_sep_suppress: '<<seg. sep.>>')
-      output = record_to_edi(data_type = self.orm_model.data_type, options, JSON.parse(data_type.schema), self)
+      output = record_to_edi(data_type = self.orm_model.data_type, options, JSON.parse(data_type.model_schema), self)
       seg_sep = options[:segment_separator] == :new_line ? "\r\n" : options[:segment_separator].to_s
       output.join(seg_sep)
     end
@@ -22,7 +22,7 @@ module Edi
     end
 
     def to_xml(options={})
-      (xml_doc = Nokogiri::XML::Document.new) << record_to_xml_element(data_type = self.orm_model.data_type, JSON.parse(data_type.schema), self, xml_doc, nil, options)
+      (xml_doc = Nokogiri::XML::Document.new) << record_to_xml_element(data_type = self.orm_model.data_type, JSON.parse(data_type.model_schema), self, xml_doc, nil, options)
       xml_doc.to_xml
     end
 

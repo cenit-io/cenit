@@ -1,17 +1,3 @@
 %form{method: 'post', class: 'form-horizontal denser'}
-  %h3
-    = t('admin.actions.shutdown_model.shutting_down', model_name: @object.title)
-
   = render partial: 'shutdown_and_reload'
-
-  %h4
-    = t('admin.actions.shutdown_model.are_you_sure')
-
-
-  .form-actions
-    %button.btn.btn-danger{type: 'submit', name: 'shutdown', :'data-disable-with' => t('admin.form.confirmation')}
-      %i.icon-white.icon-ok
-      = t('admin.form.confirmation')
-    %button.btn{type: 'submit', name: '_continue', :'data-disable-with' => t("admin.form.cancel")}
-      %i.icon-remove
-      = t('admin.form.cancel')
+  = render partial: 'confirmation_controls', locals: {confirmation_name: 'shutdown'}

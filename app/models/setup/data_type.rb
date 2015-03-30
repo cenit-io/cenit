@@ -20,27 +20,22 @@ module Setup
                                  Edi::Filler] #, RailsAdminDynamicCharts::Datetime
     end
 
-    belongs_to :uri, class_name: Setup::Schema.to_s, inverse_of: :data_types
+    belongs_to :schema, class_name: Setup::Schema.to_s, inverse_of: :data_types
 
     field :title, type: String
     field :name, type: String
-    field :schema, type: String
-    field :sample_data, type: String
+    field :model_schema, type: String
 
     has_many :events, class_name: Setup::Event.to_s, dependent: :destroy, inverse_of: :data_type
     #TODO Check dependent behavior with flows
     #has_many :flows, class_name: Setup::Flow.name, dependent: :destroy, inverse_of: :data_type
 
-    validates_presence_of :name, :schema
+    validates_presence_of :name, :model_schema
 
-    after_initialize :verify_schema_ok
     before_save :validate_model
-    after_save :verify_schema_ok
     before_destroy :delete_all
 
     field :is_object, type: Boolean
-    field :schema_ok, type: Boolean
-    field :previous_schema, type: String
     field :activated, type: Boolean, default: false
     field :show_navigation_link, type: Boolean
     field :to_be_destroyed, type: Boolean
@@ -48,30 +43,6 @@ module Setup
     field :model_loaded, type: Boolean
 
     scope :activated, -> { where(activated: true) }
-
-    def new_from_edi(data, options={})
-      Edi::Parser.parse_edi(self, data, options)
-    end
-
-    def new_from_json(data, options={})
-      Edi::Parser.parse_json(self, data, options)
-    end
-
-    def new_from_xml(data, options={})
-      Edi::Parser.parse_xml(self, data, options)
-    end
-
-    def sample_to_s
-      '{"' + name.underscore + '": ' + sample_data + '}'
-    end
-
-    def sample_object
-      model.new(JSON.parse(sample_data))
-    end
-
-    def sample_to_hash
-      JSON.parse(sample_to_s)
-    end
 
     def shutdown(options={})
       DataType.shutdown(self, options)
@@ -102,10 +73,8 @@ module Setup
     end
 
     def delete_all
-      if  m = model
-        m.delete_all unless m.is_a?(Hash)
-      else
-        #TODO Delete records when not loaded
+      if  m = records_model
+        m.delete_all
       end
     end
 
@@ -129,35 +98,24 @@ module Setup
     end
 
     def load_models(options={reload: false, reset_config: true})
+      reload
       do_activate = options.delete(:activated) || activated
       report = {loaded: Set.new, errors: {}}
       begin
-        if (do_shutdown = options[:reload] || schema_has_changed?) || !loaded?
-          merge_report(shutdown(options), report) if do_shutdown
-          model = parse_str_schema(report, self.schema)
-        else
-          model = self.model
-          puts "No changes detected on '#{self.name}' schema!"
-        end
-      rescue Exception => ex
-        raise ex
-        puts "ERROR: #{errors.add(:schema, ex.message).to_s}"
-        # merge_report(shutdown(options), report)
-        shutdown(options)
-        if previous_schema
-          begin
-            puts "Reloading previous schema for '#{self.name}'..."
-            parse_str_schema(report, previous_schema)
-            puts "Previous schema for '#{self.name}' reloaded!"
-          rescue Exception => ex
-            puts "ERROR: #{errors.add(:schema, 'previous version also with error: ' + ex.message).to_s}"
+        model =
+          if (do_shutdown = options[:reload]) || !loaded?
+            merge_report(shutdown(options), report) if do_shutdown
+            parse_str_schema(report, self.model_schema)
+          else
+            self.model
           end
-        end
+      rescue Exception => ex
+        #TODO Delete raise
+        #raise ex
+        puts "ERROR: #{errors.add(:model_schema, ex.message).to_s}"
         # merge_report(shutdown(options), report)
         shutdown(options)
       end
-      set_schema_ok
-      self[:previous_schema] = nil
       create_default_events
       if model
         report[:loaded] << (report[:model] = model)
@@ -183,7 +141,7 @@ module Setup
     end
 
     def navigation_label
-      self.uri ? self.uri.library.name : nil
+      self.schema ? self.schema.library.name : nil
     end
 
     def create_default_events
@@ -195,12 +153,12 @@ module Setup
     end
 
     def is_object?
-      self.is_object ||= merged_schema['type'] == 'object' rescue nil
-      self.is_object.nil? ? false : self.is_object
+      is_object.present?
     end
 
     def find_data_type(ref)
-      (self.uri.library && self.uri.library.find_data_type_by_name(ref)) || DataType.where(name: ref).first
+      #TODO Are data types referenced only in libray scope?
+      (self.schema.library && self.schema.library.find_data_type_by_name(ref)) #|| DataType.where(name: ref).first
     end
 
     private
@@ -216,38 +174,15 @@ module Setup
         self.title = json_schema['title'] || self.name if self.title.blank?
         puts "Schema '#{self.name}' validation successful!"
       rescue Exception => ex
-        raise ex
-        puts "ERROR: #{errors.add(:schema, ex.message).to_s}"
-        return false
+        #TODO Remove raise
+        #raise ex
+        puts "ERROR: #{errors.add(:model_schema, ex.message).to_s}"
       end
-      begin
-        if self.sample_data && self.sample_data.present?
-          puts 'Validating sample data...'
-          Cenit::JSONSchemaValidator.validate!(self.schema, self.sample_data)
-          puts 'Sample data validation successfully!'
-        end
-      rescue Exception => ex
-        puts "ERROR: #{errors.add(:sample_data, "fails schema validation: #{ex.message} (#{ex.class})").to_s}"
-        return false
+      sch = merged_schema rescue nil
+      unless self.is_object = sch && sch['type'] == 'object' && !sch['properties'].nil?
+        self.activated = false
       end
-      return true
-    end
-
-    def schema_has_changed?
-      self.previous_schema ? JSON.parse(self.previous_schema) != JSON.parse(self.schema) : true
-    end
-
-    def previous_schema_ok?
-      self.schema_ok
-    end
-
-    def set_schema_ok
-      self.schema_ok = true
-      verify_schema_ok
-    end
-
-    def verify_schema_ok
-      self.previous_schema = self.schema if previous_schema_ok?
+      errors.blank?
     end
 
     def deconstantize(constant_name, options={})
@@ -329,8 +264,8 @@ module Setup
 
     def validate_schema
       # check_type_name(self.name)
-      JSON::Validator.validate!(File.read(File.dirname(__FILE__) + '/schema.json'), self.schema)
-      json = JSON.parse(self.schema, :object_class => MultKeyHash)
+      JSON::Validator.validate!(File.read(File.dirname(__FILE__) + '/schema.json'), self.model_schema)
+      json = JSON.parse(self.model_schema, :object_class => MultKeyHash)
       if json['type'] == 'object'
         check_schema(json, self.name, defined_types=[], embedded_refs=[])
         embedded_refs = embedded_refs.uniq.collect { |ref| self.name + ref }
@@ -441,7 +376,7 @@ module Setup
     @@parsed_schemas = Set.new
 
     def object_schema?(schema)
-      schema['type'] == 'object' && schema['properties'].present?
+      schema['type'] == 'object' && schema['properties']
     end
 
     def reflect_constant(name, value = nil, parent = nil, base_class = Object)
@@ -458,7 +393,7 @@ module Setup
       tokens.each do |token|
         if (parent.const_defined?(token, false) rescue false)
           parent = parent.const_get(token)
-          raise "uses illegal constant #{parent.to_s}" unless @@parsing_schemas.include?(parent) || @@parsed_schemas.include?(parent.to_s) #|| parent == self.uri.library.module
+          raise "uses illegal constant #{parent.to_s}" unless @@parsing_schemas.include?(parent) || @@parsed_schemas.include?(parent.to_s) #|| parent == self.schema.library.module
         else
           return nil if do_not_create
           new_m = Class.new
@@ -496,7 +431,7 @@ module Setup
           #   end
           # end
           c.class_eval("def self.data_type
-            @data_type ||= Setup::DataType.where(id: '#{self.id}').first
+            Setup::DataType.where(id: '#{self.id}').first
           end
           def orm_model
             self.class
@@ -613,7 +548,7 @@ module Setup
                     unless type_model.is_a?(Class)
                       #is a Mongoff model
                       property_desc.delete('$ref')
-                      property_desc = property_desc.merge(JSON.parse(type_model.data_type.schema))
+                      property_desc = property_desc.merge(JSON.parse(type_model.data_type.model_schema))
                       type_model.affects_to(klass)
                       still_trying = true
                     else
@@ -736,7 +671,7 @@ module Setup
           ir = ''
           if referenced = ((ref = items_desc['$ref']) && (!ref.start_with?('#') && items_desc['referenced']))
             if (type_model = (find_or_load_model(report, property_type = ref) || reflect_constant(ref, :do_not_create))) &&
-                @@parsed_schemas.include?(type_model.model_access_name)
+              @@parsed_schemas.include?(type_model.model_access_name)
               property_type = type_model.model_access_name
               if (a = @@has_many_to_bind[property_type]) && i = a.find_index { |x| x[0].eql?(model_name) }
                 a = a.delete_at(i)
