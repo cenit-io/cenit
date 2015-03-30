@@ -2,7 +2,7 @@ module Setup
   class Schema
     include CenitScoped
 
-    Setup::Models.exclude_actions_for self, :bulk_delete, :delete
+    Setup::Models.exclude_actions_for self, :bulk_delete, :delete, :delete_all
 
     BuildInDataType.regist(self).with(:uri, :schema)
 
@@ -11,16 +11,24 @@ module Setup
     field :uri, type: String
     field :schema, type: String
 
-    has_many :data_types, class_name: Setup::DataType.to_s, inverse_of: :uri, dependent: :destroy
+    has_many :data_types, class_name: Setup::DataType.to_s, inverse_of: :schema, dependent: :destroy
 
     validates_presence_of :library, :uri, :schema
 
     before_save :save_data_types
+    after_save :load_models
     before_destroy :destroy_data_types
 
     def load_models(options = {})
+      unless @data_types_to_reload
+        reload
+        @data_types_to_reload = data_types.where(activated: true)
+      end
       models = Set.new
-      data_types.each { |data_type| models += data_type.load_models(options)[:loaded] if data_type.activated }
+      @data_types_to_reload.each do |data_type|
+        data_type.reload
+        models += data_type.load_models(options)[:loaded] if data_type.activated
+      end
       RailsAdmin::AbstractModel.update_model_config(models)
     end
 
@@ -40,14 +48,13 @@ module Setup
         return false
       end
       begin
-        return false if errors.present?
         parse_schemas.each do |name, schema|
-          if data_type = self.data_types.where(name: name).first
-            data_type.schema = schema.to_json
-          elsif self.library && self.library.find_data_type_by_name(name)
-            errors.add(:schema, "model name #{name} is already taken on library")
+          if data_type = data_types.where(name: name).first
+            data_type.model_schema = schema.to_json
+          elsif library && library.find_data_type_by_name(name)
+            errors.add(:schema, "model name #{name} is already taken on library #{library.name}")
           else
-            @new_data_types << (data_type = Setup::DataType.new(name: name, schema: schema.to_json))
+            @new_data_types << (data_type = Setup::DataType.new(name: name, model_schema: schema.to_json))
             self.data_types << data_type
           end
           if data_type && data_type.errors.blank? && data_type.valid?
@@ -60,14 +67,23 @@ module Setup
             return false
           end
         end
-        self.data_types.delete_if { |data_type| !@data_types_to_keep.include?(data_type) }
+        report = DataType.shutdown(data_types, report_only: true)
+        @data_types_to_reload = report[:destroyed].collect(&:data_type).uniq.select(&:activated)
+        DataType.shutdown(data_types)
+        data_types.each do |data_type|
+          unless @data_types_to_keep.include?(data_type)
+            data_type.destroy
+            @data_types_to_reload.delete(data_type)
+          end
+        end
+
       rescue Exception => ex
         if @include_missing = ex.is_a?(Xsd::IncludeMissingException)
           @include_missing_message = ex.message
         else
-          raise ex
+          #TODO Delete raise
+          #raise ex
         end
-
         puts "ERROR: #{errors.add(:schema, ex.message).to_s}"
         destroy_data_types
         return false
@@ -80,20 +96,20 @@ module Setup
     def save_data_types
       if run_after_initialized
         puts "Saving data types for #{uri}"
-        self.data_types.each { |data_type| puts data_type.name }
-        self.data_types.each(&:save)
+        (@data_types_to_keep && @data_types_to_keep.empty? ? data_types : @data_types_to_keep).each { |data_type| puts data_type.name }
+        (@data_types_to_keep && @data_types_to_keep.empty? ? data_types : @data_types_to_keep).each(&:save)
       else
         false
       end
     end
 
     def destroy_data_types
-      @shutdown_report = DataType.shutdown(@new_data_types || self.data_types, destroy: true)
+      @shutdown_report = DataType.shutdown(@new_data_types || data_types, destroy: true)
     end
 
     def parse_schemas
       self.schema = self.schema.strip
-      self.schema.start_with?('{') ? parse_json_schema : parse_xml_schema
+      self.schema.start_with?('{') || self.schema.start_with?('[') ? parse_json_schema : parse_xml_schema
     end
 
     def parse_json_schema
@@ -105,7 +121,7 @@ module Setup
         end
         if index = name.rindex('.')
           name = name[0..index - 1]
-        end  
+        end
         {name.camelize => json}
       else
         json

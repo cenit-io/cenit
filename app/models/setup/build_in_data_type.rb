@@ -17,7 +17,7 @@ module Setup
       model
     end
 
-    def schema
+    def model_schema
       @schema ||= build_schema
     end
 

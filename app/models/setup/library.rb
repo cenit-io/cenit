@@ -2,7 +2,7 @@ module Setup
   class Library
     include CenitScoped
 
-    Setup::Models.exclude_actions_for self, :edit
+    Setup::Models.exclude_actions_for self, :edit, :update, :delete, :bulk_delete, :delete_all
 
     BuildInDataType.regist(self)
 
@@ -16,7 +16,7 @@ module Setup
     validates_account_uniqueness_of :name
 
     def find_data_type_by_name(name)
-      if data_type = DataType.where(name: name).detect { |data_type| data_type.uri && data_type.uri.library == self }
+      if data_type = DataType.where(name: name).detect { |data_type| data_type.schema && data_type.schema.library == self }
         data_type
       else
         if (schema = Schema.where(uri: name).detect { |schema| schema.library == self }) && schema.data_types.count == 1

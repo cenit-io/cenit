@@ -1,3 +1,10 @@
+- if partials = @model_config.try(:after_form_partials)
+  - partials.each do |partial|
+    - if partial.is_a?(Hash)
+      - partial.each do |key, locals|
+        = render partial: key, locals: locals
+    - else
+      = render partial: partial
 - unless @model_config.try(:discard_submit_buttons)
   %input{type: :hidden, name: 'return_to', value: (params[:return_to].presence || request.referer)}
   .form-actions
