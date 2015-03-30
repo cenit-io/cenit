@@ -22,13 +22,13 @@ module RailsAdmin
         register_instance_option :controller do
           proc do
             done = true
-            if model = @object.model
+            if @object.is_object? && @object.activated && @object.loaded?
               begin
                 unless params[:shutdown]
                   report = Setup::DataType.shutdown(@object, report_only: true)
                   @shutdown = report[:destroyed].collect(&:data_type).uniq.select { |data_type| data_type != @object }
-                  @reload = report[:affected].collect(&:data_type).uniq
-                  params[:shutdown] = true if @shutdown.empty? && @reload.empty?
+                  @object.instance_variable_set(:@_to_reload, reload = report[:affected].collect(&:data_type).uniq)
+                  params[:shutdown] = true if @shutdown.empty? && reload.empty?
                 end
                 if params[:shutdown]
                   @object.activated = ok = false
@@ -37,11 +37,11 @@ module RailsAdmin
                     data_type.save
                     ok = ok || data_type == @object
                   end
-                  flash[:success] = ok ? "Model #{@object.title} is now shutdown" : "Model #{@object.title} was not shutdown"
+                  flash[:success] = ok ? "Model '#{@object.title}' is now shutdown" : "Model' #{@object.title}' was not shutdown"
                   if report[:errors].present?
                     flash[:error] = ''.html_safe
                     report[:errors].each do |data_type, errors|
-                      flash[:error] += "<strong>Model #{data_type.title} could not be loaded</strong>".html_safe
+                      flash[:error] += "<strong>Model '#{data_type.title}' could not be loaded</strong>".html_safe
                       flash[:error] += %(<br>- #{errors.full_messages.join('<br>- ')}<br>).html_safe
                     end
                   end
@@ -51,10 +51,10 @@ module RailsAdmin
                 end
               rescue Exception => ex
                 raise ex
-                flash[:error] = "Error shutdown model #{@object.title}: #{ex.message}"
+                flash[:error] = "Error shutdown model '#{@object.title}': #{ex.message}"
               end
             else
-              flash[:error] = "Model #{@object.title} is not loaded"
+              flash[:error] = "Can not explicitly shutdown model '#{@object.title}'"
             end
             redirect_to rails_admin.show_path(model_name: Setup::DataType.to_s.underscore.gsub('/', '~'), id: @object.id) if done
           end

@@ -126,7 +126,7 @@ module RailsAdmin
         collect_models(models_to_reset, models_to_reset)
         collect_models(loaded_models, models_to_reset)
         collect_models(removed_models, models_to_reset)
-        models_to_reset.delete_if { |model| model.data_type.to_be_destroyed }
+        models_to_reset.delete_if { |model| (dt = model.data_type).nil? || dt.to_be_destroyed }
         removed_models.each do |model|
           Config.remove_model(model)
           if m = all.detect { |m| m.model_name.eql?(model.to_s) }
@@ -164,7 +164,8 @@ module RailsAdmin
           puts "#{self.to_s}: resetting configuration of #{model.schema_name rescue model.to_s}"
           Config.reset_model(model)
           data_type = model.data_type
-          schema = JSON.parse(data_type.schema)
+          data_type.reload
+          schema = JSON.parse(data_type.model_schema)
           model.schema_path.split('/').each { |token| schema = data_type.merge_schema(schema[token]) if token.present? }
           model_data_type = data_type.model.eql?(model) ? data_type : nil
           rails_admin_model = Config.model(model).target
