@@ -4,6 +4,7 @@ module Setup
 
     BuildInDataType.regist(self).embedding(:translators, :connections, :webhooks, :connection_roles, :flows, :events)
 
+    mount_uploader :image, CenitImageUploader
     field :name, type: String
 
     has_many :libraries, class_name: Setup::Library.to_s, inverse_of: :cenit_collection

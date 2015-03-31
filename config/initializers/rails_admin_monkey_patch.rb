@@ -114,20 +114,6 @@ module RailsAdmin
         end
       end
     end
-
-    module Fields
-      module Types
-        class Carrierwave
-          def resource_url(thumb = false)
-            "/file?model=#{bindings[:object].class.to_s}&id=#{bindings[:object].id.to_s}&field=#{name}"
-          end
-
-          def image
-            true
-          end
-        end
-      end
-    end
   end
 
   class AbstractModel

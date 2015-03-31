@@ -4,6 +4,7 @@ module Setup
 
     Setup::Models.exclude_actions_for self, :new
 
+    mount_uploader :image, GridFsUploader
     field :name, type: String
     field :description, type: String
     field :data, type: String

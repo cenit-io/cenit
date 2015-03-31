@@ -6,6 +6,6 @@ module Setup
 
     field :name, type: String
 
-    mount_uploader :asset, AvatarUploader
+    mount_uploader :asset, CenitUploader
   end 
 end

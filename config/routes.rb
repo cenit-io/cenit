@@ -3,7 +3,7 @@ Cenit::Application.routes.draw do
     mount RailsAdmin::Engine => '/data', as: 'rails_admin'
 
     get 'schema', to: 'schema#index'
-    get 'file', to: 'file#index'
+    match '/file/:model/:field/:id/:file' => 'file#index', via: :get
 
     get 'explore/:api' => 'api#explore', :as => :explore_api
     devise_for :users, :controllers => { :omniauth_callbacks => "users/omniauth_callbacks" } do
