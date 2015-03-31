@@ -718,16 +718,20 @@ RailsAdmin.config do |config|
 
   config.model Setup::SharedCollection do
     register_instance_option(:discard_submit_buttons) do
-      true
+      !(b = bindings) || !(a = bindings[:action]) || a.key != :edit
     end
     navigation_label 'Collections'
     weight -19
     edit do
+      field :image do
+        visible { !bindings[:object].new_record? }
+      end
       field :name
       field :description
       field :pull_parameters
     end
     show do
+      field :image
       field :name
       field :description
 
@@ -735,7 +739,7 @@ RailsAdmin.config do |config|
       field :creator
       field :updated_at
     end
-    fields :name, :creator, :description
+    fields :image, :name, :creator, :description
   end
 
   config.model Setup::CollectionPullParameter do
@@ -764,6 +768,7 @@ RailsAdmin.config do |config|
     navigation_label 'Collections'
     weight -19
     show do
+      field :image
       field :name
       field :libraries
       field :translators
@@ -779,7 +784,22 @@ RailsAdmin.config do |config|
       field :updated_at
       #field :updater
     end
-    fields :name, :libraries, :translators, :connections, :webhooks, :connection_roles, :flows, :events
+    fields :image, :name, :libraries, :translators, :connections, :webhooks, :connection_roles, :flows, :events
   end
 
+  config.model Setup::Test do
+    field :name
+    field :asset, :carrierwave
+    show do
+      field :name
+      field :asset
+
+      field :_id
+      field :created_at
+      field :creator
+      field :updated_at
+      field :updater
+    end
+    fields :name, :asset
+  end
 end

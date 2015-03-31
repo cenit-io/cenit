@@ -1,5 +1,6 @@
 require 'rails_admin/config'
 require 'rails_admin/main_controller'
+require 'rails_admin/config/fields/types/carrierwave'
 
 module RailsAdmin
 
