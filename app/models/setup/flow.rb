@@ -136,11 +136,7 @@ module Setup
       connection_role.connections.each do |connection|
         begin
           http_response = HTTParty.send(webhook.method, connection.url + '/' + webhook.path,
-                                        {
-                                          headers: {
-                                            'X_HUB_TIMESTAMP' => Time.now.utc.to_i.to_s
-                                          }
-                                        })
+                                        {headers: {'X_HUB_TIMESTAMP' => Time.now.utc.to_i.to_s}})
           translator.run(target_data_type: data_type,
                          data: http_response.message,
                          discard_events: discard_events) if http_response.code == 200
@@ -171,7 +167,7 @@ module Setup
             else
               common_result ||= translator.run(translation_options)
             end
-          headers = { 'Content-Type' => translator.mime_type }
+          headers = {'Content-Type' => translator.mime_type}
           connection.headers.each { |h| headers[h.key] = h.value }
           webhook.headers.each { |h| headers[h.key] = h.value }
           begin
