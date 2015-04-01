@@ -6,7 +6,7 @@ module Setup
       module ClassMethods
 
         def do_template(template_hash, source_hash)
-          for_each_key_value_on(template_hash) do |key, value|
+          for_each_key_value_on(template_hash) do |hash, key, value|
             if value.is_a?(String)
               new_value = nil
               tokens = value.split('{{')
@@ -32,7 +32,7 @@ module Setup
                   new_value = token
                 end
               end
-              template_hash[key] = new_value
+              hash[key] = new_value
             end
           end
           template_hash
@@ -40,7 +40,7 @@ module Setup
 
         def for_each_key_value_on(hash, &block)
           hash.each do |k, v|
-            block.yield(k, v) if block
+            block.yield(hash, k, v) if block
             for_each_key_value_on(v, &block) if v.is_a?(Hash)
           end
         end

@@ -8,9 +8,7 @@ module Setup
     embeds_many :parameters, class_name: Setup::Parameter.to_s, inverse_of: :webhook
     embeds_many :headers, class_name: Setup::Parameter.to_s, inverse_of: :webhook
 
-    has_and_belongs_to_many :connections, class_name: Setup::Connection.to_s, inverse_of: :webhooks
-
-    belongs_to :cenit_collection, class_name: Setup::Collection.to_s, inverse_of: :webhooks
+    has_and_belongs_to_many :connection_roles, class_name: Setup::ConnectionRole.to_s, inverse_of: :webhooks
 
     field :name, type: String
     field :path, type: String
