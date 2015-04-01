@@ -227,9 +227,6 @@ RailsAdmin.config do |config|
 
   config.model Setup::Connection.name do
     weight -15
-    group :credentials do
-      label "Credentials"
-    end
     configure :name, :string do
       help 'Requiered.'
       html_attributes do
@@ -241,6 +238,9 @@ RailsAdmin.config do |config|
       html_attributes do
         {maxlength: 50, size: 50}
       end
+    end
+    group :credentials do
+      label "Credentials"
     end
     configure :key, :string do
       visible { bindings[:view]._current_user.has_role? :admin }
@@ -256,21 +256,21 @@ RailsAdmin.config do |config|
       end
       group :credentials
     end
-    configure :parameters do
-      visible { bindings[:view]._current_user.has_role? :admin }
-    end
-    configure :headers do
-      visible { bindings[:view]._current_user.has_role? :admin }
-    end
 
     group :parameters do
-      label "Add Parameters"
+      label "Parameters & Headers"
     end
     configure :parameters do
       group :parameters
+      visible { bindings[:view]._current_user.has_role? :admin }
     end
     configure :headers do
       group :parameters
+      visible { bindings[:view]._current_user.has_role? :admin }
+    end
+    configure :template_parameters do
+      group :parameters
+      visible { bindings[:view]._current_user.has_role? :admin }
     end
 
     show do
@@ -282,6 +282,7 @@ RailsAdmin.config do |config|
 
       field :parameters
       field :headers
+      field :template_parameters
 
       field :_id
       field :created_at
@@ -290,7 +291,7 @@ RailsAdmin.config do |config|
       #field :updater
     end
 
-    fields :name, :url, :webhooks, :parameters, :headers, :key, :token
+    fields :name, :url, :parameters, :headers, :template_parameters, :key, :token
   end
 
   config.model Setup::Parameter.name do
@@ -309,16 +310,20 @@ RailsAdmin.config do |config|
         {maxlength: 50, size: 50}
       end
     end
+    configure :webhooks do
+      nested_form false
+    end
     configure :connections do
       nested_form false
     end
     modal do
       field :name
+      field :webhooks
       field :connections
-      #field :webhooks
     end
     show do
       field :name
+      field :webhooks
       field :connections
 
       field :_id
@@ -327,7 +332,7 @@ RailsAdmin.config do |config|
       field :updated_at
       #field :updater
     end
-    fields :name, :connections
+    fields :name, :webhooks, :connections
   end
 
   config.model Setup::Webhook.name do
@@ -770,13 +775,13 @@ RailsAdmin.config do |config|
     show do
       field :image
       field :name
-      field :libraries
-      field :translators
-      field :connections
-      field :webhooks
-      field :connection_roles
       field :flows
+      field :connection_roles
+      field :translators
       field :events
+      field :libraries
+      field :webhooks
+      field :connections
 
       field :_id
       field :created_at
@@ -784,7 +789,7 @@ RailsAdmin.config do |config|
       field :updated_at
       #field :updater
     end
-    fields :image, :name, :libraries, :translators, :connections, :webhooks, :connection_roles, :flows, :events
+    fields :image, :name, :flows, :connection_roles, :translators, :events, :libraries, :webhooks, :connections
   end
 
   config.model Setup::Test do

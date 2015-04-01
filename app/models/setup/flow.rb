@@ -18,15 +18,14 @@ module Setup
     field :data_type_scope, type: String
     field :lot_size, type: Integer
 
-    belongs_to :connection_role, class_name: Setup::ConnectionRole.to_s, inverse_of: nil
     belongs_to :webhook, class_name: Setup::Webhook.to_s, inverse_of: nil
+    belongs_to :connection_role, class_name: Setup::ConnectionRole.to_s, inverse_of: nil
+
 
     belongs_to :response_translator, class_name: Setup::Translator.to_s, inverse_of: nil
     belongs_to :response_data_type, class_name: Setup::DataType.to_s, inverse_of: nil
 
     field :last_trigger_timestamps, type: DateTime
-
-    belongs_to :cenit_collection, class_name: Setup::Collection.to_s, inverse_of: :flows
 
     validates_presence_of :name, :event, :translator
     validates_numericality_in_presence_of :lot_size, greater_than_or_equal_to: 1
@@ -137,11 +136,11 @@ module Setup
       connection_role.connections.each do |connection|
         begin
           http_response = HTTParty.send(webhook.method, connection.url + '/' + webhook.path,
-                                   {
-                                     headers: {
-                                       'X_HUB_TIMESTAMP' => Time.now.utc.to_i.to_s
-                                     }
-                                   })
+                                        {
+                                          headers: {
+                                            'X_HUB_TIMESTAMP' => Time.now.utc.to_i.to_s
+                                          }
+                                        })
           translator.run(target_data_type: data_type,
                          data: http_response.message,
                          discard_events: discard_events) if http_response.code == 200
@@ -156,34 +155,31 @@ module Setup
       limit = translator.bulk_source ? lot_size || 1000 : 1
       max = ((object_ids = source_ids_from(message)) ? object_ids.size : data_type.count) - 1
       0.step(max, limit) do |offset|
-        puts result = translator.run(
-          object_ids: object_ids,
-          source_data_type: data_type,
-          offset: offset,
-          limit: limit,
-          discard_events: discard_events)
-
+        common_result = nil
         the_connections.each do |connection|
-          begin
-            if translator.mime_type == 'application/json' && (connection.parameters.present?|| webhook.parameters.present?)
-              result = JSON.parse(result) unless result.is_a?(Hash)
-              #TODO Check translation result already containing a key parameters
-              parameters = result['parameters'] = {}
-              connection.parameters.each { |p| parameters[p.key] = p.value }
-              webhook.parameters.each { |p| parameters[p.key] = p.value }
-              result = result.to_json
-            end
-            headers = {
-              'Content-Type' => translator.mime_type
+          translation_options =
+            {
+              object_ids: object_ids,
+              source_data_type: data_type,
+              offset: offset,
+              limit: limit,
+              discard_events: discard_events
             }
-            connection.headers.each { |h| headers[h.key] = h.value }
-            webhook.headers.each { |h| headers[h.key] = h.value }
+          translation_result =
+            if connection.template_parameters.present?
+              translator.run(translation_options.merge(parameters: connection.template_parameters_hash))
+            else
+              common_result ||= translator.run(translation_options)
+            end
+          headers = { 'Content-Type' => translator.mime_type }
+          connection.headers.each { |h| headers[h.key] = h.value }
+          webhook.headers.each { |h| headers[h.key] = h.value }
+          begin
             http_response = HTTParty.send(webhook.method, connection.url + '/' + webhook.path,
-                                     {
-                                       body: result,
-                                       headers: headers
-                                     })
-
+                                          {
+                                            body: translation_result,
+                                            headers: headers
+                                          })
             block.yield(response: http_response.to_json, exception_message: (200...299).include?(http_response.code) ? nil : 'Unsuccessful') if block.present?
             if response_translator #&& http_response.code == 200
               response_translator.run(target_data_type: response_translator.data_type || response_data_type, data: http_response.message)
@@ -213,7 +209,7 @@ module Setup
       if connection_role.present?
         connection_role.connections
       else
-        webhook.connections
+        webhook.connection_roles.collect { |role| role.connections }.flatten.uniq
       end
     end
   end
