@@ -8,4 +8,9 @@ class CenitImageUploader <  CenitUploader
     %w(jpg jpeg gif png)
   end
 
+  # Create different versions of your uploaded files:
+  version :thumb do
+     process :resize_to_fit => [151, 151]
+  end
+
 end
