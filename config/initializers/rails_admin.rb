@@ -139,6 +139,17 @@ RailsAdmin.config do |config|
         bindings[:object].instance_variable_set(:@_to_reload, reload)
         {cols: '74', rows: '15'}
       end
+      pretty_value do
+        pretty_value =
+          if json = JSON.parse(value) rescue nil
+            JSON.pretty_generate(json)
+          elsif xml = Nokogiri::XML(value) rescue nil
+            xml.to_xml
+          else
+            value
+          end
+        "<pre>#{pretty_value}</pre>".html_safe
+      end
     end
 
     show do
@@ -153,7 +164,7 @@ RailsAdmin.config do |config|
       field :updated_at
       #field :updater
     end
-    fields :library, :uri, :schema
+    fields :library, :uri, :data_types
   end
 
   config.model Setup::DataType.name do
@@ -183,6 +194,9 @@ RailsAdmin.config do |config|
       help ''
       html_attributes do
         {cols: '50', rows: '15'}
+      end
+      pretty_value do
+        "<pre>#{JSON.pretty_generate(JSON.parse(value))}</pre>".html_safe
       end
     end
 
