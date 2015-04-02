@@ -5,7 +5,7 @@ module Setup
     include Mongoid::Document
     include Mongoid::Timestamps
     include Mongoid::CenitExtension
-    include Trackable
+    #include Trackable
 
     included do
       Setup::Models.regist(self)

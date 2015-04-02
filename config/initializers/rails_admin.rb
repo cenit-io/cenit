@@ -104,9 +104,9 @@ RailsAdmin.config do |config|
 
       field :_id
       field :created_at
-      field :creator
+      #field :creator
       field :updated_at
-      field :updater
+      #field :updater
     end
 
     fields :name, :schemas
@@ -144,16 +144,29 @@ RailsAdmin.config do |config|
     show do
       field :library
       field :uri
-      field :schema
+      field :schema do 
+        pretty_value do
+          pretty_value =
+            if json = JSON.parse(value) rescue nil
+              JSON.pretty_generate(json)
+            elsif xml = Nokogiri::XML(value) rescue nil
+              xml.to_xml
+            else
+              value
+            end
+          "<pre>#{pretty_value}</pre>".html_safe
+        end
+      end  
       field :data_types
 
       field :_id
       field :created_at
-      field :creator
+      #field :creator
       field :updated_at
-      field :updater
+      #field :updater
+      
     end
-    fields :library, :uri, :schema
+    fields :library, :uri, :schema #, :data_types
   end
 
   config.model Setup::DataType.name do
@@ -183,6 +196,9 @@ RailsAdmin.config do |config|
       help ''
       html_attributes do
         {cols: '50', rows: '15'}
+      end
+      pretty_value do
+        "<pre>#{JSON.pretty_generate(JSON.parse(value))}</pre>".html_safe
       end
     end
 
@@ -218,18 +234,15 @@ RailsAdmin.config do |config|
 
       field :_id
       field :created_at
-      field :creator
+      #field :creator
       field :updated_at
-      field :updater
+      #field :updater
     end
     fields :schema, :name, :used_memory
   end
 
   config.model Setup::Connection.name do
     weight -15
-    group :credentials do
-      label "Credentials"
-    end
     configure :name, :string do
       help 'Requiered.'
       html_attributes do
@@ -241,6 +254,9 @@ RailsAdmin.config do |config|
       html_attributes do
         {maxlength: 50, size: 50}
       end
+    end
+    group :credentials do
+      label "Credentials"
     end
     configure :key, :string do
       visible { bindings[:view]._current_user.has_role? :admin }
@@ -256,21 +272,21 @@ RailsAdmin.config do |config|
       end
       group :credentials
     end
-    configure :parameters do
-      visible { bindings[:view]._current_user.has_role? :admin }
-    end
-    configure :headers do
-      visible { bindings[:view]._current_user.has_role? :admin }
-    end
 
     group :parameters do
-      label "Add Parameters"
+      label "Parameters & Headers"
     end
     configure :parameters do
       group :parameters
+      visible { bindings[:view]._current_user.has_role? :admin }
     end
     configure :headers do
       group :parameters
+      visible { bindings[:view]._current_user.has_role? :admin }
+    end
+    configure :template_parameters do
+      group :parameters
+      visible { bindings[:view]._current_user.has_role? :admin }
     end
 
     show do
@@ -282,15 +298,16 @@ RailsAdmin.config do |config|
 
       field :parameters
       field :headers
+      field :template_parameters
 
       field :_id
       field :created_at
-      field :creator
+      #field :creator
       field :updated_at
-      field :updater
+      #field :updater
     end
 
-    fields :name, :url, :webhooks, :parameters, :headers, :key, :token
+    fields :name, :url, :parameters, :headers, :template_parameters, :key, :token
   end
 
   config.model Setup::Parameter.name do
@@ -309,25 +326,29 @@ RailsAdmin.config do |config|
         {maxlength: 50, size: 50}
       end
     end
+    configure :webhooks do
+      nested_form false
+    end
     configure :connections do
       nested_form false
     end
     modal do
       field :name
+      field :webhooks
       field :connections
-      #field :webhooks
     end
     show do
       field :name
+      field :webhooks
       field :connections
 
       field :_id
       field :created_at
-      field :creator
+      #field :creator
       field :updated_at
-      field :updater
+      #field :updater
     end
-    fields :name, :connections
+    fields :name, :webhooks, :connections
   end
 
   config.model Setup::Webhook.name do
@@ -360,9 +381,9 @@ RailsAdmin.config do |config|
 
       field :_id
       field :created_at
-      field :creator
+      #field :creator
       field :updated_at
-      field :updater
+      #field :updater
     end
     fields :name, :purpose, :path, :method, :parameters, :headers
   end
@@ -383,9 +404,9 @@ RailsAdmin.config do |config|
 
       field :_id
       field :created_at
-      field :creator
+      #field :creator
       field :updated_at
-      field :updater
+      #field :updater
     end
     fields :flow, :retries, :response, :exception_message
   end
@@ -481,9 +502,9 @@ RailsAdmin.config do |config|
 
       field :_id
       field :created_at
-      field :creator
+      #field :creator
       field :updated_at
-      field :updater
+      #field :updater
     end
 
     fields :name, :event, :translator
@@ -500,9 +521,9 @@ RailsAdmin.config do |config|
 
       field :_id
       field :created_at
-      field :creator
+      #field :creator
       field :updated_at
-      field :updater
+      #field :updater
     end
 
     fields :name, :last_trigger_timestamps
@@ -539,9 +560,9 @@ RailsAdmin.config do |config|
 
       field :_id
       field :created_at
-      field :creator
+      #field :creator
       field :updated_at
-      field :updater
+      #field :updater
     end
 
     fields :name, :data_type, :triggers, :last_trigger_timestamps
@@ -591,9 +612,9 @@ RailsAdmin.config do |config|
 
       field :_id
       field :created_at
-      field :creator
+      #field :creator
       field :updated_at
-      field :updater
+      #field :updater
     end
 
     fields :name, :scheduling_method, :expression, :last_trigger_timestamps
@@ -708,9 +729,9 @@ RailsAdmin.config do |config|
 
       field :_id
       field :created_at
-      field :creator
+      #field :creator
       field :updated_at
-      field :updater
+      #field :updater
     end
 
     fields :name, :type, :style, :transformation
@@ -718,16 +739,20 @@ RailsAdmin.config do |config|
 
   config.model Setup::SharedCollection do
     register_instance_option(:discard_submit_buttons) do
-      true
+      !(b = bindings) || !(a = bindings[:action]) || a.key != :edit
     end
     navigation_label 'Collections'
     weight -19
     edit do
+      field :image do
+        visible { !bindings[:object].new_record? }
+      end
       field :name
       field :description
       field :pull_parameters
     end
     show do
+      field :image
       field :name
       field :description
 
@@ -735,7 +760,7 @@ RailsAdmin.config do |config|
       field :creator
       field :updated_at
     end
-    fields :name, :creator, :description
+    fields :image, :name, :creator, :description
   end
 
   config.model Setup::CollectionPullParameter do
@@ -754,7 +779,7 @@ RailsAdmin.config do |config|
       field :parameter
 
       field :created_at
-      field :creator
+      #field :creator
       field :updated_at
     end
     fields :label, :parameter
@@ -764,22 +789,23 @@ RailsAdmin.config do |config|
     navigation_label 'Collections'
     weight -19
     show do
+      field :image
       field :name
-      field :libraries
-      field :translators
-      field :connections
-      field :webhooks
-      field :connection_roles
       field :flows
+      field :connection_roles
+      field :translators
       field :events
+      field :libraries
+      field :webhooks
+      field :connections
 
       field :_id
       field :created_at
-      field :creator
+      #field :creator
       field :updated_at
-      field :updater
+      #field :updater
     end
-    fields :name, :libraries, :translators, :connections, :webhooks, :connection_roles, :flows, :events
+    fields :image, :name, :flows, :connection_roles, :translators, :events, :libraries, :webhooks, :connections
   end
 
 end

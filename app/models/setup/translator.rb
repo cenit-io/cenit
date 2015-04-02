@@ -25,8 +25,6 @@ module Setup
 
     field :discard_chained_records, type: Boolean
 
-    belongs_to :cenit_collection, class_name: Setup::Collection.to_s, inverse_of: :translators
-
     validates_account_uniqueness_of :name
     before_save :validates_configuration
 

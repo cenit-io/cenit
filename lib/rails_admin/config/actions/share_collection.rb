@@ -22,14 +22,14 @@ module RailsAdmin
 
             shared_collection_config = RailsAdmin::Config.model(Setup::SharedCollection)
             if shared_params = params[shared_collection_config.abstract_model.param_key]
-              @shared_collection = Setup::SharedCollection.new(shared_params.to_hash.merge(data: @object.to_json))
+              @shared_collection = Setup::SharedCollection.new(shared_params.to_hash.merge(image: @object.image, data: @object.to_json))
               shared = @shared_collection.save
             end
             if shared
               redirect_to back_or_index
             else
               @shared_parameter_enum = Setup::SharedCollection.pull_parameters_enum_for(@object)
-              @shared_collection ||= Setup::SharedCollection.new(name: @object.name, data: @object.to_json)
+              @shared_collection ||= Setup::SharedCollection.new(image: @object.image, name: @object.name, data: @object.to_json)
               @model_config = shared_collection_config
               if @shared_collection.errors.present?
                 flash.now[:error] = t('admin.flash.error', name: @model_config.label, action: t("admin.actions.#{@action.key}.done").html_safe).html_safe
