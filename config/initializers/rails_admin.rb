@@ -139,23 +139,24 @@ RailsAdmin.config do |config|
         bindings[:object].instance_variable_set(:@_to_reload, reload)
         {cols: '74', rows: '15'}
       end
-      pretty_value do
-        pretty_value =
-          if json = JSON.parse(value) rescue nil
-            JSON.pretty_generate(json)
-          elsif xml = Nokogiri::XML(value) rescue nil
-            xml.to_xml
-          else
-            value
-          end
-        "<pre>#{pretty_value}</pre>".html_safe
-      end
     end
 
     show do
       field :library
       field :uri
-      field :schema
+      field :schema do 
+        pretty_value do
+          pretty_value =
+            if json = JSON.parse(value) rescue nil
+              JSON.pretty_generate(json)
+            elsif xml = Nokogiri::XML(value) rescue nil
+              xml.to_xml
+            else
+              value
+            end
+          "<pre>#{pretty_value}</pre>".html_safe
+        end
+      end  
       field :data_types
 
       field :_id
@@ -163,8 +164,9 @@ RailsAdmin.config do |config|
       #field :creator
       field :updated_at
       #field :updater
+      
     end
-    fields :library, :uri, :data_types
+    fields :library, :uri, :schema #, :data_types
   end
 
   config.model Setup::DataType.name do
