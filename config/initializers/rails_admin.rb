@@ -806,19 +806,4 @@ RailsAdmin.config do |config|
     fields :image, :name, :flows, :connection_roles, :translators, :events, :libraries, :webhooks, :connections
   end
 
-  config.model Setup::Test do
-    field :name
-    field :asset, :carrierwave
-    show do
-      field :name
-      field :asset
-
-      field :_id
-      field :created_at
-      field :creator
-      field :updated_at
-      field :updater
-    end
-    fields :name, :asset
-  end
 end
