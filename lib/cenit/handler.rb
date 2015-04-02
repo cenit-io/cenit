@@ -28,6 +28,7 @@ module Cenit
         count = 0
         self.payload[root].each do |obj|
           next if obj[:id].blank?
+          obj[:id] = obj[:id].to_s
           @object = klass.where(id: obj[:id]).first
           @object ? @object.update_attributes(obj) : (@object = klass.new(obj))
           count += 1 if @object.save
