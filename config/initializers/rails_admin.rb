@@ -140,6 +140,13 @@ RailsAdmin.config do |config|
           bindings[:object].instance_variable_set(:@_to_reload, reload)
           {cols: '74', rows: '15'}
         end
+      end
+    end
+
+    show do
+      field :library
+      field :uri
+      field :schema do
         pretty_value do
           pretty_value =
             if json = JSON.parse(value) rescue nil
@@ -152,12 +159,6 @@ RailsAdmin.config do |config|
           "<pre>#{pretty_value}</pre>".html_safe
         end
       end
-    end
-
-    show do
-      field :library
-      field :uri
-      field :schema
       field :data_types
 
       field :_id
@@ -167,7 +168,7 @@ RailsAdmin.config do |config|
       #field :updater
       
     end
-    fields :library, :uri, :schema #, :data_types
+    fields :library, :uri, :data_types
   end
 
   config.model Setup::DataType.name do
@@ -863,7 +864,5 @@ RailsAdmin.config do |config|
       #field :updater
     end
     fields :image, :name, :flows, :connection_roles, :translators, :events, :libraries, :webhooks, :connections
-  end
-
   end
 end
