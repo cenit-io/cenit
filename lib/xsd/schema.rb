@@ -3,14 +3,17 @@ module Xsd
 
     tag 'schema'
 
-    def initialize(parent, attributes)
-      super
+    attr_reader :name_prefix
+
+    def initialize(parent, attributes, name_prefix='')
+      super(parent, attributes)
       targetNamespace = (attr = attributes.detect { |attr| attr[0] == 'targetNamespace' }) ? attr[1] : nil
       raise Exception.new('Default and target does not match') if (default = @xmlns[:default]) && default != targetNamespace
       @xmlns[:default] = targetNamespace
       @elements = []
       @types = []
       @includes = Set.new
+      @name_prefix = name_prefix || ''
     end
 
     {element: :elements,

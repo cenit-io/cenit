@@ -8,11 +8,13 @@ module Setup
     mount_uploader :image, GridFsUploader
     field :name, type: String
     field :description, type: String
-    field :data, type: String
-
+    belongs_to :source_collection, class_name: Setup::Collection.to_s, inverse_of: nil
+    has_and_belongs_to_many :connections, inverse_of: nil
     embeds_many :pull_parameters, class_name: Setup::CollectionPullParameter.to_s, inverse_of: :shared_collection
 
-    validates_presence_of :name, :description, :data
+    field :data, type: String
+
+    validates_presence_of :name, :description, :source_collection
     validates_uniqueness_of :name
 
     accepts_nested_attributes_for :pull_parameters
@@ -28,34 +30,47 @@ module Setup
     end
 
     def validate_configuration
+      hash_data = source_collection.present? ? JSON.parse(source_collection.to_json) : {}
+      [hash_data, hash_data['connection_roles']].flatten.each do |hash|
+        if values = hash['connections']
+          values.delete_if { |source_connection| !connections.detect { |c| c.name == source_connection['name'] } }
+        end if hash
+      end
       if pull_parameters.present?
-        hash_data = JSON.parse(data)
+        pull_parameters_enum = enum_for_pull_parameters
         pull_parameters.each do |pull_parameter|
-          if (parameter = pull_parameter.parameter) #TODO Validate parameter format
+          if (parameter = pull_parameter.parameter) && pull_parameters_enum.include?(parameter)
             process_parameter(hash_data, parameter, nil, pull_parameter)
           else
             pull_parameter.errors.add(:parameter, 'is not valid')
           end
         end
-        if pull_parameters.detect { |pull_parameter| pull_parameter.errors.present? }
-          errors.add(:pull_parameters, 'is not valid')
-        else
-          self.data = hash_data.to_json
-        end
+        errors.add(:pull_parameters, 'is not valid') if pull_parameters.detect { |pull_parameter| pull_parameter.errors.present? }
       end
+      self.data = hash_data.to_json
       errors.blank?
     end
 
+    def enum_for_pull_parameters
+      self.class.pull_parameters_enum_for(source_collection, connections)
+    end
+
     class << self
-      def pull_parameters_enum_for(collection)
+      def pull_parameters_enum_for(source_collection, connections)
         enum = []
-        collection.connections.each do |connection|
-          enum += connection.headers.collect { |header| "On connection '#{connection.name}' header '#{header.key}'" }
-          enum += connection.parameters.collect { |parameter| "On connection '#{connection.name}' parameter '#{parameter.key}'" }
-        end
-        collection.webhooks.each do |webhook|
-          enum += webhook.headers.collect { |header| "On webhook '#{webhook.name}' header '#{header.key}'" }
-          enum += webhook.parameters.collect { |parameter| "On webhook '#{webhook.name}' parameter '#{parameter.key}'" }
+        if source_collection
+          connections ||= []
+          source_collection.connections.each do |connection|
+            if connections.include?(connection)
+              enum << "URL of '#{connection.name}'"
+              enum += connection.headers.collect { |header| "On connection '#{connection.name}' header '#{header.key}'" }
+              enum += connection.parameters.collect { |parameter| "On connection '#{connection.name}' parameter '#{parameter.key}'" }
+            end
+          end
+          source_collection.webhooks.each do |webhook|
+            enum += webhook.headers.collect { |header| "On webhook '#{webhook.name}' header '#{header.key}'" }
+            enum += webhook.parameters.collect { |parameter| "On webhook '#{webhook.name}' parameter '#{parameter.key}'" }
+          end
         end
         enum
       end
@@ -65,7 +80,23 @@ module Setup
 
     def process_parameter(hash_data, parameter, parameter_value, pull_parameter = nil)
       parameter = parameter[0..parameter.length - 2]
-      if parameter.start_with?(prefix = "On connection '")
+      if parameter.start_with?('URL')
+        name = parameter.from(parameter.index("'") + 1)
+        if values = hash_data['connections']
+          if value = values.detect { |h| h['name'] == name }
+            if parameter_value.nil?
+              value.delete('url')
+            else
+              value['url'] = parameter_value
+            end
+          else
+            pull_parameter.errors.add(:parameter, "connection '#{name}' not found") if pull_parameter
+          end
+        else
+          pull_parameter.errors.add(:parameter, "no connections") if pull_parameter
+        end
+        return
+      elsif parameter.start_with?(prefix = "On connection '")
         key = 'connections'
       else
         prefix = "On webhook '"

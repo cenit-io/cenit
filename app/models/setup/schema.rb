@@ -114,22 +114,28 @@ module Setup
 
     def parse_json_schema
       json = JSON.parse(self.schema)
-      if json['type'] || json['allOf']
-        name = self.uri
-        if (index = name.rindex('/')) || index = name.rindex('#')
-          name = name[index + 1, name.length - 1]
+      json =
+        if json['type'] || json['allOf']
+          name = self.uri
+          if (index = name.rindex('/')) || index = name.rindex('#')
+            name = name[index + 1, name.length - 1]
+          end
+          if index = name.rindex('.')
+            name = name[0..index - 1]
+          end
+          {name.camelize => json}
+        else
+          json
         end
-        if index = name.rindex('.')
-          name = name[0..index - 1]
-        end
-        {name.camelize => json}
-      else
-        json
+      schemas = {}
+      json.each do |name, schema|
+        schemas[library.name_for(name)] = schema
       end
+      schemas
     end
 
     def parse_xml_schema
-      Xsd::Document.new(uri, self.schema).schema.json_schemas
+      Xsd::Document.new(uri, self.schema, library.name_prefix).schema.json_schemas
     end
   end
 end

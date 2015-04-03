@@ -2,7 +2,7 @@ module Setup
   class Collection
     include CenitScoped
 
-    BuildInDataType.regist(self).embedding(:translators, :connections, :webhooks, :connection_roles, :flows, :events)
+    BuildInDataType.regist(self).embedding(:translators, :connections, :webhooks, :connection_roles, :flows, :events).excluding(:image)
 
     mount_uploader :image, CenitImageUploader
     field :name, type: String
@@ -23,28 +23,44 @@ module Setup
 
     def check_dependencies
       flows.each do |flow|
-        events << flow.event if flow.event.present?
-        translators << flow.translator if flow.translator.present?
-        libraries << flow.custom_data_type.schema.library if flow.custom_data_type.present?
-        webhooks << flow.webhook if flow.webhook.present?
-        connection_roles << flow.connection_role if flow.connection_role.present?
-        translators << flow.response_translator if flow.response_translator.present?
-        libraries << flow.response_data_type.schema.library if flow.response_data_type.present?
+        {
+          event: events,
+          translator: translators,
+          webhook: webhooks,
+          connection_role: connection_roles,
+          translator: translators
+        }.each do |key, association|
+          unless (value = flow.send(key)).nil? || association.detect { |v| v == value }
+            association << value
+          end
+        end
+        [:custom_data_type, :response_data_type].each do |key|
+          unless (data_type = flow.send(key)).nil? || libraries.detect { |v| v == (lib = data_type.schema.library) }
+            libraries << lib
+          end
+        end
       end
       connection_roles.each do |connection_role|
-        connection_role.webhooks.each { |webhook| webhooks << webhook }
-        connection_role.connections.each { |connection| connections << connection }
+        connection_role.webhooks.each { |webhook| webhooks << webhook unless webhooks.detect { |v| v == webhook } }
+        connection_role.connections.each { |connection| connections << connection unless connections.detect { |v| v == connection } }
       end
       translators.each do |translator|
-        libraries << translator.source_data_type.schema.library if translator.source_data_type.present?
-        libraries << translator.target_data_type.schema.library if translator.target_data_type.present?
-        translators << translator.source_exporter if translator.source_exporter.present?
-        translators << translator.target_importer if translator.target_importer.present?
+        [:source_data_type, :target_data_type].each do |key|
+          unless (data_type = translator.send(key)).nil? || libraries.detect { |v| v == (lib = data_type.schema.library) }
+            libraries << lib
+          end
+        end
+        [:source_exporter, :target_importer].each do |key|
+          unless (t = translator.send(key)).nil? || translators.detect { |v| v == t }
+            translators << t
+          end
+        end
       end
       events.each do |event|
-        libraries << event.data_type.schema.library if event.is_a?(Setup::Observer) && event.data_type.present?
+        if event.is_a?(Setup::Observer) && (data_type = event.data_type) && !libraries.detect { |v| v == (lib = data_type.schema.library) }
+          libraries << lib
+        end
       end
-
     end
   end
 end
