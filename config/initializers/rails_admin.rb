@@ -165,8 +165,9 @@ RailsAdmin.config do |config|
       #field :creator
       field :updated_at
       #field :updater
+      
     end
-    fields :library, :uri, :data_types
+    fields :library, :uri, :schema #, :data_types
   end
 
   config.model Setup::DataType.name do
@@ -862,5 +863,7 @@ RailsAdmin.config do |config|
       #field :updater
     end
     fields :image, :name, :flows, :connection_roles, :translators, :events, :libraries, :webhooks, :connections
+  end
+
   end
 end
