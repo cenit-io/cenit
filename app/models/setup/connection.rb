@@ -21,7 +21,6 @@ module Setup
     after_initialize :ensure_token
 
     validates_account_uniqueness_of :name
-    validates_presence_of :webhooks
     accepts_nested_attributes_for :parameters, :headers, :template_parameters
 
     validates_presence_of :name, :url, :key, :token
