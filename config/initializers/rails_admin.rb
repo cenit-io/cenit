@@ -121,30 +121,32 @@ RailsAdmin.config do |config|
 
     object_label_method { :uri }
 
-    configure :library do
-      read_only { !bindings[:object].new_record? }
-      inline_edit false
-    end
-
-    configure :uri do
-      read_only { !bindings[:object].new_record? }
-      html_attributes do
-        {cols: '74', rows: '1'}
+    edit do
+      field :library do
+        read_only { !bindings[:object].new_record? }
+        inline_edit false
       end
-    end
 
-    configure :schema, :text do
-      html_attributes do
-        reload = Setup::DataType.shutdown(bindings[:object].data_types, report_only: true)[:destroyed].collect(&:data_type).uniq #.select(&:activated)
-        bindings[:object].instance_variable_set(:@_to_reload, reload)
-        {cols: '74', rows: '15'}
+      field :uri do
+        read_only { !bindings[:object].new_record? }
+        html_attributes do
+          {cols: '74', rows: '1'}
+        end
+      end
+
+      field :schema, :text do
+        html_attributes do
+          reload = Setup::DataType.shutdown(bindings[:object].data_types, report_only: true)[:destroyed].collect(&:data_type).uniq #.select(&:activated)
+          bindings[:object].instance_variable_set(:@_to_reload, reload)
+          {cols: '74', rows: '15'}
+        end
       end
     end
 
     show do
       field :library
       field :uri
-      field :schema do 
+      field :schema do
         pretty_value do
           pretty_value =
             if json = JSON.parse(value) rescue nil
@@ -156,7 +158,7 @@ RailsAdmin.config do |config|
             end
           "<pre>#{pretty_value}</pre>".html_safe
         end
-      end  
+      end
       field :data_types
 
       field :_id
@@ -166,7 +168,7 @@ RailsAdmin.config do |config|
       #field :updater
       
     end
-    fields :library, :uri, :schema #, :data_types
+    fields :library, :uri, :data_types
   end
 
   config.model Setup::DataType.name do
@@ -464,11 +466,11 @@ RailsAdmin.config do |config|
       field :lot_size do
         visible { (f = bindings[:object]).event && f.translator && f.translator.type == :Export && f.data_type_scope && f.scope_symbol != :event_source }
       end
-      field :connection_role do
+      field :webhook do
         visible { (translator = bindings[:object].translator) && (translator.type == :Import || (translator.type == :Export && bindings[:object].data_type_scope.present?)) }
         help 'Required'
       end
-      field :webhook do
+      field :connection_role do
         visible { (translator = bindings[:object].translator) && (translator.type == :Import || (translator.type == :Export && bindings[:object].data_type_scope.present?)) }
         help 'Required'
       end
@@ -739,7 +741,7 @@ RailsAdmin.config do |config|
 
   config.model Setup::SharedCollection do
     register_instance_option(:discard_submit_buttons) do
-      !(b = bindings) || !(a = bindings[:action]) || a.key != :edit
+      !(a = bindings[:action]) || a.key != :edit
     end
     navigation_label 'Collections'
     weight -19
@@ -749,7 +751,63 @@ RailsAdmin.config do |config|
       end
       field :name
       field :description
-      field :pull_parameters
+      field :source_collection do
+        inline_edit false
+        inline_add false
+        associated_collection_scope do
+          source_collection = (obj = bindings[:object]).source_collection
+          Proc.new { |scope|
+            if obj.new_record?
+              scope.where(id: source_collection ? source_collection.id : nil)
+            else
+              scope
+            end
+          }
+        end
+      end
+      field :connections do
+        inline_add false
+        read_only do
+          !bindings[:object].instance_variable_get(:@_selecting_connections)
+        end
+        help do
+          nil
+        end
+        pretty_value do
+          if bindings[:object].connections.present?
+            v = bindings[:view]
+            ids = ''
+            [value].flatten.select(&:present?).collect do |associated|
+              ids += "<option value=#{associated.id} selected=true/>"
+              amc = polymorphic? ? RailsAdmin.config(associated) : associated_model_config # perf optimization for non-polymorphic associations
+              am = amc.abstract_model
+              wording = associated.send(amc.object_label_method)
+              can_see = !am.embedded? && (show_action = v.action(:show, am, associated))
+              can_see ? v.link_to(wording, v.url_for(action: show_action.action_name, model_name: am.to_param, id: associated.id), class: 'pjax') : wording
+            end.to_sentence.html_safe +
+              v.select_tag("#{bindings[:controller].instance_variable_get(:@model_config).abstract_model.param_key}[connection_ids][]", ids.html_safe, multiple: true, style: 'display:none').html_safe
+          else
+            'No connection selected'.html_safe
+          end
+        end
+        visible do
+          !(obj = bindings[:object]).instance_variable_get(:@_selecting_collection) && obj.source_collection && obj.source_collection.connections.present?
+        end
+        associated_collection_scope do
+          source_collection = bindings[:object].source_collection
+          connections = (source_collection && source_collection.connections) || []
+          Proc.new { |scope|
+            scope.any_in(id: connections.collect { |connection| connection.id })
+          }
+        end
+      end
+      field :pull_parameters do
+        visible do
+          !(obj = bindings[:object]).instance_variable_get(:@_selecting_collection) &&
+            !obj.instance_variable_get(:@_selecting_connections) &&
+            obj.enum_for_pull_parameters.present?
+        end
+      end
     end
     show do
       field :image
@@ -807,5 +865,4 @@ RailsAdmin.config do |config|
     end
     fields :image, :name, :flows, :connection_roles, :translators, :events, :libraries, :webhooks, :connections
   end
-
 end
