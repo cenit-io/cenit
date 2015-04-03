@@ -26,6 +26,7 @@ module Setup
     field :title, type: String
     field :name, type: String
     field :model_schema, type: String
+    field :model_schema, type: String
 
     has_many :events, class_name: Setup::Event.to_s, dependent: :destroy, inverse_of: :data_type
     #TODO Check dependent behavior with flows
@@ -104,12 +105,12 @@ module Setup
       report = {loaded: Set.new, errors: {}}
       begin
         model =
-          if (do_shutdown = options[:reload]) || !loaded?
-            merge_report(shutdown(options), report) if do_shutdown
-            parse_str_schema(report, self.model_schema)
-          else
-            self.model
-          end
+            if (do_shutdown = options[:reload]) || !loaded?
+              merge_report(shutdown(options), report) if do_shutdown
+              parse_str_schema(report, self.model_schema)
+            else
+              self.model
+            end
       rescue Exception => ex
         #TODO Delete raise
         #raise ex
@@ -672,7 +673,7 @@ module Setup
           ir = ''
           if referenced = ((ref = items_desc['$ref']) && (!ref.start_with?('#') && items_desc['referenced']))
             if (type_model = (find_or_load_model(report, property_type = ref) || reflect_constant(ref, :do_not_create))) &&
-              @@parsed_schemas.include?(type_model.model_access_name)
+                @@parsed_schemas.include?(type_model.model_access_name)
               property_type = type_model.model_access_name
               if (a = @@has_many_to_bind[property_type]) && i = a.find_index { |x| x[0].eql?(model_name) }
                 a = a.delete_at(i)
