@@ -8,15 +8,19 @@ end
 
 class String
   def to_json_schema
-    Xsd::BUILD_IN_TYPES[self] || {'$ref' => self}
+    if key = Xsd::BUILD_IN_TYPES.keys.detect { |key| end_with?(key) }
+      Xsd::BUILD_IN_TYPES[key]
+    else
+      {'$ref' => self}
+    end
   end
 
   def to_title
     self.
-        gsub(/([A-Z])(\d)/,'\1 \2').
-        gsub(/([a-z])(\d|[A-Z])/,'\1 \2').
-        gsub(/(\d)([a-z]|[A-Z])/,'\1 \2').
-        tr('_', ' ').
-        tr('-', ' ')
+      gsub(/([A-Z])(\d)/, '\1 \2').
+      gsub(/([a-z])(\d|[A-Z])/, '\1 \2').
+      gsub(/(\d)([a-z]|[A-Z])/, '\1 \2').
+      tr('_', ' ').
+      tr('-', ' ')
   end
 end

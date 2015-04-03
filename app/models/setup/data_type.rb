@@ -4,7 +4,7 @@ module Setup
   class DataType < BaseDataType
     include CenitScoped
 
-    Setup::Models.exclude_actions_for self, :delete, :new, :bulk_delete, :delete_all, :update, :edit
+    Setup::Models.exclude_actions_for self, :new, :update, :edit, :delete, :bulk_delete, :delete_all
 
     BuildInDataType.regist(self).referenced_by(:name)
 
@@ -77,6 +77,7 @@ module Setup
       if  m = records_model
         m.delete_all
       end
+      true
     end
 
     def shutdown_model(options={})
