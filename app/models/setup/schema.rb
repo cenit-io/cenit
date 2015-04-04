@@ -4,7 +4,7 @@ module Setup
 
     Setup::Models.exclude_actions_for self, :bulk_delete, :delete, :delete_all
 
-    BuildInDataType.regist(self).with(:uri, :schema)
+    BuildInDataType.regist(self).with(:uri, :schema).including(:library).referenced_by(:library, :uri)
 
     belongs_to :library, class_name: Setup::Library.to_s, inverse_of: :schemas
 
@@ -127,15 +127,11 @@ module Setup
         else
           json
         end
-      schemas = {}
-      json.each do |name, schema|
-        schemas[library.name_for(name)] = schema
-      end
-      schemas
+      json
     end
 
     def parse_xml_schema
-      Xsd::Document.new(uri, self.schema, library.name_prefix).schema.json_schemas
+      Xsd::Document.new(uri, self.schema).schema.json_schemas
     end
   end
 end

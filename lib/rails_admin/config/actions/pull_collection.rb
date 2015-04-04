@@ -31,7 +31,7 @@ module RailsAdmin
               begin
                 collection = Setup::Collection.new
                 collection.from_json(@object.data_with(@parameter_values))
-                collection.errors.full_messages.each { |msg| errors << msg } unless Setup::Translator.save(collection)
+                collection.errors.full_messages.each { |msg| errors << msg } unless Cenit::Utility.save(collection)
               rescue Exception => ex
                 errors << ex.message
               end
@@ -39,7 +39,10 @@ module RailsAdmin
                 redirect_to_on_success
               else
                 flash[:error] = t('admin.flash.error', name: @model_config.label, action: t("admin.actions.#{@action.key}.done").html_safe).html_safe
-                flash[:error] += %(<br>- #{errors.join('<br>- ')}).html_safe
+                flash[:error] += %(<br>- #{errors[0..4].join('<br>- ')}).html_safe
+                if errors.length - 5 > 0
+                  flash[:error] += "<br>- and other #{errors.length - 5} errors.".html_safe
+                end
                 redirect_to back_or_index
               end
             else

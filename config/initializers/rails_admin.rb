@@ -172,6 +172,7 @@ RailsAdmin.config do |config|
   end
 
   config.model Setup::DataType.name do
+    object_label_method { :on_library_title }
     navigation_label 'Data Definitions'
     weight -17
 
@@ -184,6 +185,14 @@ RailsAdmin.config do |config|
       group :model_definition
       read_only true
       help ''
+    end
+
+    configure :title do
+      group :model_definition
+      help ''
+      pretty_value do
+        bindings[:object].on_library_title
+      end
     end
 
     configure :name do
@@ -215,6 +224,7 @@ RailsAdmin.config do |config|
     end
 
     list do
+      field :title
       field :schema
       field :name
       field :used_memory do
@@ -229,6 +239,7 @@ RailsAdmin.config do |config|
     end
 
     show do
+      field :title
       field :schema
       field :name
       field :activated
@@ -240,7 +251,7 @@ RailsAdmin.config do |config|
       field :updated_at
       #field :updater
     end
-    fields :schema, :name, :used_memory
+    fields :title, :schema, :name, :used_memory
   end
 
   config.model Setup::Connection.name do

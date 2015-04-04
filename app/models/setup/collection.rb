@@ -2,7 +2,7 @@ module Setup
   class Collection
     include CenitScoped
 
-    BuildInDataType.regist(self).embedding(:translators, :connections, :webhooks, :connection_roles, :flows, :events).excluding(:image)
+    BuildInDataType.regist(self).embedding(:flows, :connection_roles, :translators, :events, :libraries, :webhooks, :connections).excluding(:image)
 
     mount_uploader :image, CenitImageUploader
     field :name, type: String
@@ -35,7 +35,7 @@ module Setup
           end
         end
         [:custom_data_type, :response_data_type].each do |key|
-          unless (data_type = flow.send(key)).nil? || libraries.detect { |v| v == (lib = data_type.schema.library) }
+          unless (data_type = flow.send(key)).nil? || ((lib = data_type.schema.library) && libraries.detect { |v| v == lib })
             libraries << lib
           end
         end
