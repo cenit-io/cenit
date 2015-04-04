@@ -18,22 +18,23 @@ module RailsAdmin
 
         register_instance_option :controller do
           proc do
-            shared = false
 
+            shared = false
             shared_collection_config = RailsAdmin::Config.model(Setup::SharedCollection)
-            if shared_params = params[shared_collection_config.abstract_model.param_key]
-              @shared_collection = Setup::SharedCollection.new(shared_params.to_hash.merge(image: @object.image, data: @object.to_json))
-              shared = @shared_collection.save
+            if params[:_restart].nil? && (shared_params = params[shared_collection_config.abstract_model.param_key])
+              @shared_collection = Setup::SharedCollection.new(shared_params.to_hash.merge(image: @object.image))
+              shared = @shared_collection.save if params[:_share]
             end
             if shared
               redirect_to back_or_index
             else
-              @shared_parameter_enum = Setup::SharedCollection.pull_parameters_enum_for(@object)
-              @shared_collection ||= Setup::SharedCollection.new(image: @object.image, name: @object.name, data: @object.to_json)
+              @shared_collection ||= Setup::SharedCollection.new(image: @object.image, name: @object.name, source_collection: @object)
+              @shared_collection.instance_variable_set(:@_selecting_connections, @object.connections.present? && (!shared_params || shared_params[:connection_ids].blank?))
+              @shared_parameter_enum = @shared_collection.enum_for_pull_parameters
               @model_config = shared_collection_config
-              if @shared_collection.errors.present?
+              if params[:_share] && @shared_collection.errors.present?
                 flash.now[:error] = t('admin.flash.error', name: @model_config.label, action: t("admin.actions.#{@action.key}.done").html_safe).html_safe
-                flash.now[:error] += %(<br>- #{@object.errors.full_messages.join('<br>- ')}).html_safe
+                flash.now[:error] += %(<br>- #{@shared_collection.errors.full_messages.join('<br>- ')}).html_safe
               end
             end
           end

@@ -24,5 +24,15 @@ module Setup
         end
       end
     end
+
+    def name_for(data_type_name)
+      name_prefix + data_type_name
+    end
+
+    def name_prefix
+      name + NAME_SEPARATOR
+    end
+
+    NAME_SEPARATOR = ' | '
   end
 end
