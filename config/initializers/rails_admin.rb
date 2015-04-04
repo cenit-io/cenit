@@ -150,9 +150,9 @@ RailsAdmin.config do |config|
         pretty_value do
           pretty_value =
             if json = JSON.parse(value) rescue nil
-              JSON.pretty_generate(json)
+              "<code class='json'>#{JSON.pretty_generate(json)}</code>"
             elsif xml = Nokogiri::XML(value) rescue nil
-              xml.to_xml
+              "<code class='xml'>#{xml.to_xml}</code>"
             else
               value
             end
@@ -200,7 +200,7 @@ RailsAdmin.config do |config|
         {cols: '50', rows: '15'}
       end
       pretty_value do
-        "<pre>#{JSON.pretty_generate(JSON.parse(value))}</pre>".html_safe
+        "<pre><code class='json'>#{JSON.pretty_generate(JSON.parse(value))}</pre></code>".html_safe
       end
     end
 
@@ -410,7 +410,7 @@ RailsAdmin.config do |config|
       field :updated_at
       #field :updater
     end
-    fields :flow, :retries, :response, :exception_message
+    fields :flow, :created_at, :retries, :response, :exception_message
   end
 
   config.model Setup::Flow.name do
