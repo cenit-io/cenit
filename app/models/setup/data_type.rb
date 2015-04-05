@@ -112,7 +112,7 @@ module Setup
         model =
           if (do_shutdown = options[:reload]) || !loaded?
             merge_report(shutdown(options), report) if do_shutdown
-            parse_str_schema(report, self.model_schema)
+            parse_schema(report, data_type_name, merged_schema, nil)
           else
             self.model
           end
@@ -178,6 +178,7 @@ module Setup
       begin
         puts "Validating schema '#{self.name}'"
         json_schema = validate_schema
+        check_id_property(json_schema)
         self.title = json_schema['title'] || self.name if title.blank?
         puts "Schema '#{self.name}' validation successful!"
       rescue Exception => ex
@@ -449,10 +450,6 @@ module Setup
         end
       end
       c
-    end
-
-    def parse_str_schema(report, str_schema)
-      parse_schema(report, data_type_name, JSON.parse(str_schema), nil)
     end
 
     def parse_schema(report, model_name, schema, root = nil, parent = nil, embedded = nil, schema_path = '')

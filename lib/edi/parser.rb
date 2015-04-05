@@ -20,6 +20,10 @@ module Edi
 
       def parse_json(data_type, content, options={}, record=nil)
         content = JSON.parse(content) unless content.is_a?(Hash)
+        ignore = (options[:ignore] || [])
+        ignore = [ignore] unless ignore.is_a?(Enumerable)
+        ignore = ignore.select { |p| p.is_a?(Symbol) || p.is_a?(String) }.collect(&:to_sym)
+        options[:ignore] = ignore
         do_parse_json(data_type, data_type.records_model, content, options, data_type.merged_schema, nil, record)
       end
 
@@ -91,15 +95,23 @@ module Edi
 
       def do_parse_json(data_type, model, json, options, json_schema, record=nil, new_record=nil)
         json_schema = data_type.merge_schema(json_schema)
-        record ||= new_record || model.new
+        updating = false
+        unless record ||= new_record
+          if record = !options[:ignore].include?(:id) && (id = json['id']) && model.where(id: id).first
+            updating = true
+          else
+            record = model.new
+          end
+        end
         json_schema['properties'].each do |property_name, property_schema|
+          next if options[:ignore].include?(property_name.to_sym)
           property_schema = data_type.merge_schema(property_schema)
           name = property_schema['edi']['segment'] if property_schema['edi']
           name ||= property_name
           property_model = model.property_model(property_name)
           case property_schema['type']
           when 'array'
-            next unless (property_value = record.send(property_name)).nil? || property_value.empty?
+            next unless updating || (property_value = record.send(property_name)).nil? || property_value.empty?
             record.send("#{property_name}=", []) if property_value.nil?
             if property_value = json[name]
               raise Exception.new("Array value expected for property #{property_name} but #{property_value.class} found: #{property_value}") unless property_value.is_a?(Array)
@@ -119,7 +131,7 @@ module Edi
               end
             end
           when 'object'
-            next if record.send(property_name)
+            next if !updating && record.send(property_name)
             if property_value = json[name]
               raise Exception.new("Hash value expected for property #{property_name} but #{property_value.class} found: #{property_value}") unless property_value.is_a?(Hash)
               if property_value['$referenced']
@@ -135,7 +147,7 @@ module Edi
               end
             end
           else
-            next if record.send(property_name)
+            next if !updating && record.send(property_name)
             if property_value = json[name]
               raise Exception.new("Simple value expected for property #{property_name} but #{property_value.class} found: #{property_value}") if property_value.is_a?(Hash) || property_value.is_a?(Array)
               record.send("#{property_name}=", property_value)
