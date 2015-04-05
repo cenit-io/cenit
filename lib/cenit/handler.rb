@@ -7,7 +7,8 @@ module Cenit
       def initialize(message, model = nil)
         self.payload = ::JSON.parse(message).with_indifferent_access
         self.request_id = payload.delete(:request_id)
-        self.parameters = payload.delete(:parameters).with_indifferent_access || {} if payload[:parameters].is_a?(Hash)
+        self.parameters = payload.delete(:parameters).with_indifferent_access if payload[:parameters].is_a?(Hash)
+        self.parameters ||= {}
         self.model = model
       end
 
