@@ -26,20 +26,50 @@ module RailsAdmin
             @parameter_values = (params[:pull_parameters] && params[:pull_parameters].to_hash) || {}
             @missing_parameters = []
             @object.pull_parameters.each { |pull_parameter| @missing_parameters << pull_parameter.parameter unless @parameter_values[pull_parameter.parameter].present? }
+            @ids_to_update = {}
+            hash_data = @object.data_with(@parameter_values)
+            Setup::Collection.reflect_on_all_associations(:has_and_belongs_to_many).each do |relation|
+              if data = hash_data[relation.name.to_s]
+                data.each do |item|
+                  if record = relation.klass.where(name: item['name']).first
+                    item['id'] = record.id.to_s
+                    unless records = @ids_to_update[relation.name.to_s]
+                      records = @ids_to_update[relation.name.to_s] = []
+                    end
+                    records << record
+                  end
+                end
+              end
+            end
+            if libraries = @ids_to_update['libraries']
+              data = hash_data['libraries']
+              libraries.each do |library|
+                schemas_data = data.detect { |item| item['name'] == library.name }['schemas']
+                library.schemas.each do |schema|
+                  if schema_data = schemas_data.detect { |sch| sch['uri'] == schema.uri }
+                    schema_data['id'] = schema.id.to_s
+                  end
+                end
+              end
+            end
             errors = []
-            if @missing_parameters.blank?
+            if @missing_parameters.blank? && params[:_pull]
               begin
                 collection = Setup::Collection.new
-                collection.from_json(@object.data_with(@parameter_values))
-                collection.errors.full_messages.each { |msg| errors << msg } unless Setup::Translator.save(collection)
+                collection.from_json(hash_data)
+                collection.errors.full_messages.each { |msg| errors << msg } unless Cenit::Utility.save(collection)
               rescue Exception => ex
+                raise ex
                 errors << ex.message
               end
               if errors.blank?
                 redirect_to_on_success
               else
                 flash[:error] = t('admin.flash.error', name: @model_config.label, action: t("admin.actions.#{@action.key}.done").html_safe).html_safe
-                flash[:error] += %(<br>- #{errors.join('<br>- ')}).html_safe
+                flash[:error] += %(<br>- #{errors[0..4].join('<br>- ')}).html_safe
+                if errors.length - 5 > 0
+                  flash[:error] += "<br>- and other #{errors.length - 5} errors.".html_safe
+                end
                 redirect_to back_or_index
               end
             else

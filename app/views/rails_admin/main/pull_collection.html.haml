@@ -13,7 +13,16 @@
                 = "can't be blank"
             %p.help-block
               = 'Required'
-
+  - unless @ids_to_update.empty?
+    %h4{style: 'color:#b94a48'}= t('admin.actions.pull_collection.update_warning')
+    .fieldset
+      - @ids_to_update.each do |key, records|
+        .control-group
+          %label.control-label
+            = key.titleize
+          .controls
+            - am = RailsAdmin::Config.model(records.first.class).abstract_model
+            = records.collect { |record| link_to(record.name, url_for(action: action(:show, am, record).action_name, model_name: record.class.to_s, id: record.id), class: 'pjax') }.to_sentence
   .form-actions
     %button.btn.btn-primary{type: 'submit', name: '_pull', :'data-disable-with' => t('admin.actions.pull_collection.submit')}
       %i{class: @action.try(:link_icon)}

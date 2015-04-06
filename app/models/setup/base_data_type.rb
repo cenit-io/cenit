@@ -22,7 +22,29 @@ module Setup
       if (base_sch = sch.delete('extends')) && base_sch = find_ref_schema(base_sch)
         sch = base_sch.deep_merge(sch) { |key, val1, val2| array_sum(val1, val2) }
       end
+      check_id_property(sch)
       sch
+    end
+
+    def check_id_property(json_schema)
+      if (json_schema['type'] == 'object') && properties = json_schema['properties']
+        _id, id = properties.delete('_id'), properties.delete('id')
+        raise Exception.new('Defining both id and _id') if _id && id
+        if _id ||= id
+          raise Exception.new("Invalid id property type #{id}") unless _id.size == 1 && _id['type'] && !%w{object array}.include?(_id['type'])
+          json_schema['properties'] = properties = {'_id' => _id.merge('unique' => true,
+                                                                       'title' => 'Id',
+                                                                       'description' => 'Required',
+                                                                       'edi' => {'segment' => 'id'})}.merge(properties)
+          unless required = json_schema['required']
+            required = json_schema['required'] = []
+          end
+          required.delete('_id')
+          required.delete('id')
+          required.unshift('_id')
+        end
+        properties.each { |_, property_schema| check_id_property(property_schema) if property_schema.is_a?(Hash) }
+      end
     end
 
     def merge_schema(schema, options={})

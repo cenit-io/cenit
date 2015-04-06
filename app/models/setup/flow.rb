@@ -150,6 +150,7 @@ module Setup
     def translate_export(message, &block)
       limit = translator.bulk_source ? lot_size || 1000 : 1
       max = ((object_ids = source_ids_from(message)) ? object_ids.size : data_type.count) - 1
+      parameters = webhook.template_parameters_hash
       0.step(max, limit) do |offset|
         common_result = nil
         the_connections.each do |connection|
@@ -159,11 +160,12 @@ module Setup
               source_data_type: data_type,
               offset: offset,
               limit: limit,
-              discard_events: discard_events
+              discard_events: discard_events,
+              parameters: parameters
             }
           translation_result =
             if connection.template_parameters.present?
-              translator.run(translation_options.merge(parameters: connection.template_parameters_hash))
+              translator.run(translation_options.merge(parameters: connection.template_parameters_hash.merge(parameters)))
             else
               common_result ||= translator.run(translation_options)
             end
