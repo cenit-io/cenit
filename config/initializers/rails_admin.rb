@@ -209,7 +209,7 @@ RailsAdmin.config do |config|
         {cols: '50', rows: '15'}
       end
       pretty_value do
-        "<pre><code class='json'>#{JSON.pretty_generate(JSON.parse(value))}</pre></code>".html_safe
+        "<pre><code class='json'>#{JSON.pretty_generate(JSON.parse(value))}</code></pre>".html_safe
       end
     end
 
