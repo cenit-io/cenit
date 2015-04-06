@@ -87,6 +87,7 @@ module Setup
     STYLES_MAP = {
       'double_curly_braces' => {Setup::Transformation::DoubleCurlyBracesConversionTransform => [:Conversion],
                                 Setup::Transformation::DoubleCurlyBracesExportTransform => [:Export]},
+      'liquid' => {Setup::Transformation::LiquidExportTransform => [:Export]},
       'xslt' => {Setup::Transformation::XsltConversionTransform => [:Conversion],
                  Setup::Transformation::XsltExportTransform => [:Export]},
       'json.rabl' => {Setup::Transformation::ActionViewTransform => [:Export]},
@@ -104,6 +105,7 @@ module Setup
 
     EXPORT_MIME_FILTER = {
       'double_curly_braces' => ['application/json'],
+      'liquid' => ['application/json'],
       'xslt' => ['application/xml'],
       'json.rabl' => ['application/json'],
       'xml.rabl' => ['application/xml'],
