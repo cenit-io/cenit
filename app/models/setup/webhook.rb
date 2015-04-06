@@ -8,6 +8,8 @@ module Setup
     embeds_many :parameters, class_name: Setup::Parameter.to_s, inverse_of: :webhook
     embeds_many :headers, class_name: Setup::Parameter.to_s, inverse_of: :webhook
 
+    embeds_many :template_parameters, class_name: Setup::Parameter.to_s, inverse_of: :webhook
+
     has_and_belongs_to_many :connection_roles, class_name: Setup::ConnectionRole.to_s, inverse_of: :webhooks
 
     field :name, type: String
@@ -23,6 +25,12 @@ module Setup
     validates_account_uniqueness_of :name
 
     accepts_nested_attributes_for :parameters, :headers
+
+    def template_parameters_hash
+      hash = {}
+      template_parameters.each_char { |p| h[p.key] = p.value }
+      hash
+    end
 
     def relative_url
       "/#{path}"
