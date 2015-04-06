@@ -112,10 +112,10 @@ module Edi
           case property_schema['type']
           when 'array'
             next unless updating | (property_value = record.send(property_name)).blank?
+            property_schema = data_type.merge_schema(property_schema['items'])
             record.send("#{property_name}=", []) unless property_value && property_schema['referenced']
             if property_value = json[name]
               raise Exception.new("Array value expected for property #{property_name} but #{property_value.class} found: #{property_value}") unless property_value.is_a?(Array)
-              property_schema = data_type.merge_schema(property_schema['items'])
               property_value.each do |sub_value|
                 if sub_value['$referenced']
                   sub_value = Cenit::Utility.deep_remove(sub_value, '$referenced')
