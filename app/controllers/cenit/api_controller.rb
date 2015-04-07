@@ -18,21 +18,16 @@ module Cenit
 
     protected
     def authorize
-      # we are using token authentication via header.
       key = request.headers['X-Hub-Store']
       token = request.headers['X-Hub-Access-Token']
-      connection = Setup::Connection.unscoped.find_by(key: key)
 
-      if connection && Devise.secure_compare(connection.token, token)
-        #TODO: Check if 'X-Hub-Timestamp' belong to a small time window around Time.now
-        Account.current = connection.account
-        return true
-      else
+      unless Account.set_current_with_connection(key, token)
         response_handler = Handler.new(@message)
         responder = response_handler.response('Unauthorized!', 401)
         render json: responder, root: false, status: responder.code
         return false
       end
+      true
     end
 
     def exception_handler(exception)

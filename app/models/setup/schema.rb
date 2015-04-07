@@ -4,7 +4,7 @@ module Setup
 
     Setup::Models.exclude_actions_for self, :bulk_delete, :delete, :delete_all
 
-    BuildInDataType.regist(self).with(:uri, :schema)
+    BuildInDataType.regist(self).with(:uri, :schema).including(:library).referenced_by(:library, :uri)
 
     belongs_to :library, class_name: Setup::Library.to_s, inverse_of: :schemas
 
@@ -115,27 +115,23 @@ module Setup
     def parse_json_schema
       json = JSON.parse(self.schema)
       json =
-        if json['type'] || json['allOf']
-          name = self.uri
-          if (index = name.rindex('/')) || index = name.rindex('#')
-            name = name[index + 1, name.length - 1]
+          if json['type'] || json['allOf']
+            name = self.uri
+            if (index = name.rindex('/')) || index = name.rindex('#')
+              name = name[index + 1, name.length - 1]
+            end
+            if index = name.rindex('.')
+              name = name[0..index - 1]
+            end
+            {name.camelize => json}
+          else
+            json
           end
-          if index = name.rindex('.')
-            name = name[0..index - 1]
-          end
-          {name.camelize => json}
-        else
-          json
-        end
-      schemas = {}
-      json.each do |name, schema|
-        schemas[library.name_for(name)] = schema
-      end
-      schemas
+      json
     end
 
     def parse_xml_schema
-      Xsd::Document.new(uri, self.schema, library.name_prefix).schema.json_schemas
+      Xsd::Document.new(uri, self.schema).schema.json_schemas
     end
   end
 end

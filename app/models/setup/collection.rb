@@ -2,7 +2,7 @@ module Setup
   class Collection
     include CenitScoped
 
-    BuildInDataType.regist(self).embedding(:translators, :connections, :webhooks, :connection_roles, :flows, :events).excluding(:image)
+    BuildInDataType.regist(self).embedding(:flows, :connection_roles, :translators, :events, :libraries, :webhooks, :connections).excluding(:image)
 
     mount_uploader :image, CenitImageUploader
     field :name, type: String
@@ -24,18 +24,18 @@ module Setup
     def check_dependencies
       flows.each do |flow|
         {
-          event: events,
-          translator: translators,
-          webhook: webhooks,
-          connection_role: connection_roles,
-          translator: translators
+            event: events,
+            translator: translators,
+            webhook: webhooks,
+            connection_role: connection_roles,
+            translator: translators
         }.each do |key, association|
           unless (value = flow.send(key)).nil? || association.detect { |v| v == value }
             association << value
           end
         end
         [:custom_data_type, :response_data_type].each do |key|
-          unless (data_type = flow.send(key)).nil? || libraries.detect { |v| v == (lib = data_type.schema.library) }
+          unless (data_type = flow.send(key)).nil? || ((lib = data_type.schema.library) && libraries.detect { |v| v == lib })
             libraries << lib
           end
         end

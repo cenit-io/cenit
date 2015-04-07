@@ -16,5 +16,5 @@
 # end
 
 ActiveSupport::Inflector.inflections do |inflect|
-  inflect.irregular 'sms', 'smss'
+  inflect.irregular 'sms', 'sms'
 end
