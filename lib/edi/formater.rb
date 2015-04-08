@@ -96,7 +96,7 @@ module Edi
         when 'object'
           json[name] = value if value = record_to_hash(record.send(property_name), options, property_schema['referenced'] && !property_schema['export_embedded'])
         else
-          unless value = record.send(property_name)
+          if (value = record.send(property_name)).nil?
             value = property_schema['default']
           end
           json[name] = value if value

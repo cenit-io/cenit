@@ -17,8 +17,7 @@ module Setup
                                  AccountScoped,
                                  DynamicValidators,
                                  Edi::Formatter,
-                                 Edi::Filler,
-                                 RailsAdminDynamicCharts::Datetime]
+                                 Edi::Filler] #, RailsAdminDynamicCharts::Datetime
     end
 
     belongs_to :schema, class_name: Setup::Schema.to_s, inverse_of: :data_types
