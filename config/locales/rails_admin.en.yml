@@ -142,6 +142,7 @@ en:
         submit: "Pull"
         done: "pulled"
         fill_parameters: "Please fill the following parameters to pull the collection"
+        update_warning: "The following objects will be updated"
       retry_notification:
         title: "Retry"
         menu: "Retry"

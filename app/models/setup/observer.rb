@@ -8,7 +8,7 @@ module Setup
 
     validates_presence_of :data_type, :triggers
 
-    before_save :format_triggers
+    before_save :format_triggers, :check_name
 
     def triggers_apply_to?(obj_now, obj_before = nil)
       puts "Applying event '#{self}'..."
@@ -187,13 +187,17 @@ module Setup
         end
       end
       self.triggers = hash.to_json if modified
-      if self.name.nil? || self.name.empty?
+    end
+
+    def check_name
+      if name.blank?
+        hash = JSON.parse(triggers)
         triggered_fields = hash.keys
-        self.name = "#{self.data_type.name} on #{triggered_fields.shift}"
-        unless triggered_fields.empty?
-          last = triggered_fields.pop
-          triggered_fields.each { |f| self.name += ", #{f}" }
-          self.name += " and #{last}"
+        n = "#{self.data_type.on_library_title} on #{triggered_fields.to_sentence}"
+        i = 1
+        self.name = n
+        while Setup::Observer.where(name: name).present? do
+          self.name = n + " (#{i+=1})"
         end
       end
     end

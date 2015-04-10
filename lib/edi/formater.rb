@@ -11,7 +11,11 @@ module Edi
     end
 
     def to_hash(options={})
-      hash = record_to_json(self)
+      ignore = (options[:ignore] || [])
+      ignore = [ignore] unless ignore.is_a?(Enumerable)
+      ignore = ignore.select { |p| p.is_a?(Symbol) || p.is_a?(String) }.collect(&:to_sym)
+      options[:ignore] = ignore
+      hash = record_to_hash(self, options)
       hash = {self.orm_model.data_type.name.downcase => hash} if options[:include_root]
       hash
     end
@@ -71,13 +75,13 @@ module Edi
       element
     end
 
-    def record_to_json(record, referenced=false)
+    def record_to_hash(record, options = {}, referenced = false)
       return unless record
       data_type = record.orm_model.data_type
       schema = data_type.merged_schema
       json = (referenced = referenced && schema['referenced_by']) ? {'$referenced' => true} : {}
       schema['properties'].each do |property_name, property_schema|
-        next if referenced && referenced != property_name
+        next if (referenced && !referenced.include?(property_name)) || options[:ignore].include?(property_name.to_sym)
         property_schema = data_type.merge_schema(property_schema)
         name = property_schema['edi']['segment'] if property_schema['edi']
         name ||= property_name
@@ -86,11 +90,11 @@ module Edi
           property_schema = data_type.merge_schema(property_schema['items'])
           referenced_items = property_schema['referenced'] && !property_schema['export_embedded']
           if value = record.send(property_name)
-            value = value.collect { |sub_record| record_to_json(sub_record, referenced_items) }
+            value = value.collect { |sub_record| record_to_hash(sub_record, options, referenced_items) }
             json[name] = value unless value.empty?
           end
         when 'object'
-          json[name] = value if value = record_to_json(record.send(property_name), property_schema['referenced'] && !property_schema['export_embedded'])
+          json[name] = value if value = record_to_hash(record.send(property_name), options, property_schema['referenced'] && !property_schema['export_embedded'])
         else
           if (value = record.send(property_name)).nil?
             value = property_schema['default']

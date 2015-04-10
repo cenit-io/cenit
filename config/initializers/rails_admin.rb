@@ -150,9 +150,9 @@ RailsAdmin.config do |config|
         pretty_value do
           pretty_value =
             if json = JSON.parse(value) rescue nil
-              JSON.pretty_generate(json)
+              "<code class='json'>#{JSON.pretty_generate(json)}</code>"
             elsif xml = Nokogiri::XML(value) rescue nil
-              xml.to_xml
+              "<code class='xml'>#{xml.to_xml}</code>"
             else
               value
             end
@@ -172,6 +172,7 @@ RailsAdmin.config do |config|
   end
 
   config.model Setup::DataType.name do
+    object_label_method { :on_library_title }
     navigation_label 'Data Definitions'
     weight -17
 
@@ -184,6 +185,14 @@ RailsAdmin.config do |config|
       group :model_definition
       read_only true
       help ''
+    end
+
+    configure :title do
+      group :model_definition
+      help ''
+      pretty_value do
+        bindings[:object].on_library_title
+      end
     end
 
     configure :name do
@@ -200,7 +209,7 @@ RailsAdmin.config do |config|
         {cols: '50', rows: '15'}
       end
       pretty_value do
-        "<pre>#{JSON.pretty_generate(JSON.parse(value))}</pre>".html_safe
+        "<pre><code class='json'>#{JSON.pretty_generate(JSON.parse(value))}</code></pre>".html_safe
       end
     end
 
@@ -215,6 +224,7 @@ RailsAdmin.config do |config|
     end
 
     list do
+      field :title
       field :schema
       field :name
       field :used_memory do
@@ -229,6 +239,7 @@ RailsAdmin.config do |config|
     end
 
     show do
+      field :title
       field :schema
       field :name
       field :activated
@@ -240,7 +251,7 @@ RailsAdmin.config do |config|
       field :updated_at
       #field :updater
     end
-    fields :schema, :name, :used_memory
+    fields :title, :schema, :name, :used_memory
   end
 
   config.model Setup::Connection.name do
@@ -410,7 +421,7 @@ RailsAdmin.config do |config|
       field :updated_at
       #field :updater
     end
-    fields :flow, :retries, :response, :exception_message
+    fields :flow, :created_at, :retries, :response, :exception_message
   end
 
   config.model Setup::Flow.name do

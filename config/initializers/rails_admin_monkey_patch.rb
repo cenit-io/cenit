@@ -166,7 +166,7 @@ module RailsAdmin
           Config.reset_model(model)
           data_type = model.data_type
           data_type.reload
-          schema = JSON.parse(data_type.model_schema)
+          schema = data_type.merged_schema
           model.schema_path.split('/').each { |token| schema = data_type.merge_schema(schema[token]) if token.present? }
           model_data_type = data_type.model.eql?(model) ? data_type : nil
           rails_admin_model = Config.model(model).target
@@ -192,6 +192,20 @@ module RailsAdmin
                       field.register_instance_option option do
                         value
                       end
+                    end
+                  end
+                  field.register_instance_option :visible do
+                    true
+                  end
+                  if field.name == :_id
+                    field.register_instance_option :read_only do
+                      !bindings[:object].new_record?
+                    end
+                    field.register_instance_option :partial do
+                      'form_field'
+                    end
+                    field.register_instance_option :html_attributes do
+                      {size: 50}
                     end
                   end
                 else

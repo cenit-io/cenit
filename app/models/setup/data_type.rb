@@ -6,7 +6,7 @@ module Setup
 
     Setup::Models.exclude_actions_for self, :new, :update, :edit, :delete, :bulk_delete, :delete_all
 
-    BuildInDataType.regist(self).referenced_by(:name)
+    BuildInDataType.regist(self).including(:schema).referenced_by(:name, :schema)
 
     def self.to_include_in_models
       @to_include_in_models ||= [Mongoid::Document,
@@ -44,6 +44,14 @@ module Setup
 
     scope :activated, -> { where(activated: true) }
 
+    def on_library_title
+      if schema && schema.library
+        "#{schema.library.name} | #{title}"
+      else
+        title
+      end
+    end
+
     def shutdown(options={})
       DataType.shutdown(self, options)
     end
@@ -73,10 +81,7 @@ module Setup
     end
 
     def delete_all
-      if  m = records_model
-        m.delete_all
-      end
-      true
+      !(records_model.try(:delete_all) rescue true) || true
     end
 
     def shutdown_model(options={})
@@ -85,7 +90,7 @@ module Setup
         self.to_be_destroyed = true if options[:destroy]
         self.used_memory = 0
         self.model_loaded = false
-        save
+        save unless new_record?
       end
       report
     end
@@ -106,7 +111,7 @@ module Setup
         model =
           if (do_shutdown = options[:reload]) || !loaded?
             merge_report(shutdown(options), report) if do_shutdown
-            parse_str_schema(report, self.model_schema)
+            parse_schema(report, data_type_name, merged_schema, nil)
           else
             self.model
           end
@@ -132,7 +137,7 @@ module Setup
         self.activated = false
         self.model_loaded = false
       end
-      save
+      save unless new_record?
       report
     end
 
@@ -172,7 +177,8 @@ module Setup
       begin
         puts "Validating schema '#{self.name}'"
         json_schema = validate_schema
-        self.title = json_schema['title'] || self.name if self.title.blank?
+        check_id_property(json_schema)
+        self.title = json_schema['title'] || self.name if title.blank?
         puts "Schema '#{self.name}' validation successful!"
       rescue Exception => ex
         #TODO Remove raise
@@ -443,10 +449,6 @@ module Setup
         end
       end
       c
-    end
-
-    def parse_str_schema(report, str_schema)
-      parse_schema(report, data_type_name, JSON.parse(str_schema), nil)
     end
 
     def parse_schema(report, model_name, schema, root = nil, parent = nil, embedded = nil, schema_path = '')
