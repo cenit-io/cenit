@@ -1,5 +1,3 @@
-require 'edi/formater'
-
 module Setup
   class BuildInDataType < BaseDataType
 
