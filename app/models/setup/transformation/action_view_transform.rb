@@ -29,8 +29,8 @@ module Setup
         end
 
         # def run_prawn(options = {})
-        #   result = PrawnRails::Engine.try(:new).try :render, inline: options[:transformation], format:  options[:format],  locals: options
-        #   result
+          # result = PrawnRails::Engine.try(:new).try :render, inline: options[:transformation], format:  options[:format],  locals: options
+          # result
         # end
 
       end

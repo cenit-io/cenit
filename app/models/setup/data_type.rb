@@ -27,8 +27,9 @@ module Setup
     field :model_schema, type: String
 
     has_many :events, class_name: Setup::Event.to_s, dependent: :destroy, inverse_of: :data_type
-    #TODO Check dependent behavior with flows
-    #has_many :flows, class_name: Setup::Flow.name, dependent: :destroy, inverse_of: :data_type
+
+    # TODO Check dependent behavior with flows
+    # has_many :flows, class_name: Setup::Flow.name, dependent: :destroy, inverse_of: :data_type
 
     validates_presence_of :name, :model_schema
 
