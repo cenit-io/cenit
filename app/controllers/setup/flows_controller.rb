@@ -41,15 +41,15 @@ module Setup
       @flow.destroy
       head :no_content
     end
-    
+
     protected
     def permited_attributes 
       params[:flow].permit(:id, :name, :purpose, :active, :data_type_id, :connection_role_id, :webhook_id, :event_id)
     end
-    
+
     def find_flow
       @flow = Setup::Flow.find(params[:id])
     end
-    
+
   end
 end

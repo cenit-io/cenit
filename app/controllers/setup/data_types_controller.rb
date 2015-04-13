@@ -41,15 +41,15 @@ module Setup
       @data_type.destroy
       head :no_content
     end
-    
+
     protected
     def permited_attributes 
       params[:data_type].permit(:name, :model_schema, :sample_data)
     end
-    
+
     def find_data_type
       @data_type = Setup::DataType.find(params[:id])
-    end    
-    
+    end
+
   end
 end

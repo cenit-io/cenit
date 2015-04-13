@@ -1,5 +1,5 @@
 GIT
-  remote: git://github.com/openjaf/rails_admin_dynamic_charts.git
+  remote: https://github.com/openjaf/rails_admin_dynamic_charts.git
   revision: 773521f07e24200ea90ee4d68ecff1514699eeda
   specs:
     rails_admin_dynamic_charts (0.0.1)
@@ -39,7 +39,14 @@ GEM
     addressable (2.3.6)
     amq-protocol (1.9.2)
     arel (5.0.1.20140414130214)
+    ast (2.0.0)
+    astrolabe (1.3.0)
+      parser (>= 2.2.0.pre.3, < 3.0)
     bcrypt (3.1.9)
+    better_errors (2.1.1)
+      coderay (>= 1.0.0)
+      erubis (>= 2.6.6)
+      rack (>= 0.9.0)
     bootstrap-sass (3.3.1.0)
       sass (~> 3.2)
     bson (2.3.0)
@@ -52,6 +59,24 @@ GEM
       debugger-linecache (~> 1.2)
       slop (~> 3.6)
     cancan (1.6.10)
+    capistrano (3.2.1)
+      i18n
+      rake (>= 10.0.0)
+      sshkit (~> 1.3)
+    capistrano-bundler (1.1.2)
+      capistrano (~> 3.0)
+      sshkit (~> 1.2)
+    capistrano-rails (1.1.0)
+      capistrano (>= 3.0.0)
+      capistrano-bundler (>= 1.0.0)
+    capistrano-rails-console (0.5.2)
+      capistrano (>= 3.0.0, < 4.0.0)
+    capistrano-rvm (0.1.2)
+      capistrano (~> 3.0)
+      sshkit (~> 1.2)
+    capistrano-unicorn-nginx (3.2.0)
+      capistrano (>= 3.1)
+      sshkit (>= 1.2.0)
     capybara (2.4.1)
       mime-types (>= 1.16)
       nokogiri (>= 1.3.3)
@@ -71,13 +96,17 @@ GEM
     childprocess (0.5.3)
       ffi (~> 1.0, >= 1.0.11)
     cliver (0.3.2)
+    codemirror-rails (5.0)
+    coderay (1.1.0)
+      railties (>= 3.0, < 5)
     coffee-rails (4.0.1)
       coffee-script (>= 2.2.0)
       railties (>= 4.0.0, < 5.0)
     coffee-script (2.3.0)
       coffee-script-source
       execjs
-    coffee-script-source (1.9.1)
+    coffee-script-source (1.8.0)
+    colorize (0.7.5)
     columnize (0.9.0)
     connection_pool (2.1.0)
     coveralls (0.7.8)
@@ -102,7 +131,7 @@ GEM
     easy_diff (0.0.4)
     erubis (2.7.0)
     eventmachine (1.0.4)
-    execjs (2.4.0)
+    execjs (2.2.2)
     factory_girl (4.5.0)
       activesupport (>= 3.0.0)
     factory_girl_rails (4.5.0)
@@ -114,7 +143,7 @@ GEM
     ffi (1.9.5)
     figaro (1.0.0)
       thor (~> 0.14)
-    font-awesome-rails (4.3.0.0)
+    font-awesome-rails (4.2.0.0)
       railties (>= 3.2, < 5.0)
     glebtv_mongoid_userstamp (0.4.1)
       mongoid (~> 4.0.0.beta1)
@@ -138,13 +167,14 @@ GEM
       thor (>= 0.14, < 2.0)
     jquery-ui-rails (5.0.3)
       railties (>= 3.2.16)
-    json (1.8.2)
+    json (1.8.1)
     json-schema (2.5.0)
       addressable (~> 2.3)
     jwt (1.2.0)
-    kaminari (0.16.3)
+    kaminari (0.16.1)
       actionpack (>= 3.0.0)
       activesupport (>= 3.0.0)
+    kgio (2.9.2)
     libv8 (3.16.14.7)
     liquid (3.0.1)
     mail (2.5.4)
@@ -153,7 +183,7 @@ GEM
     mime-types (1.25.1)
     mini_magick (4.2.0)
     mini_portile (0.6.2)
-    minitest (5.5.1)
+    minitest (5.5.0)
     mongoid (4.0.0)
       activemodel (~> 4.0)
       moped (~> 2.0.0)
@@ -180,12 +210,15 @@ GEM
       bson (~> 2.2)
       connection_pool (~> 2.0)
       optionable (~> 0.2.0)
-    multi_json (1.11.0)
+    multi_json (1.10.1)
     multi_xml (0.5.5)
     multipart-post (2.0.0)
     nested_form (0.3.2)
+    net-scp (1.2.1)
+      net-ssh (>= 2.6.5)
+    net-ssh (2.9.2)
     netrc (0.10.2)
-    nokogiri (1.6.6.2)
+    nokogiri (1.6.5)
       mini_portile (~> 0.6.0)
     oauth2 (1.0.0)
       faraday (>= 0.8, < 0.10)
@@ -204,6 +237,8 @@ GEM
     optionable (0.2.0)
     origin (2.1.1)
     orm_adapter (0.5.0)
+    parser (2.2.0.3)
+      ast (>= 1.1, < 3.0)
     pdf-core (0.5.1)
     poltergeist (1.5.0)
       capybara (~> 2.1)
@@ -211,6 +246,7 @@ GEM
       multi_json (~> 1.0)
       websocket-driver (>= 0.2.0)
     polyglot (0.3.5)
+    powerpack (0.1.0)
     prawn (2.0.1)
       pdf-core (~> 0.5.1)
       ttfunk (~> 1.4.0)
@@ -225,7 +261,7 @@ GEM
     rack-pjax (0.8.0)
       nokogiri (~> 1.5)
       rack (~> 1.1)
-    rack-test (0.6.3)
+    rack-test (0.6.2)
       rack (>= 1.0)
     rails (4.1.4)
       actionmailer (= 4.1.4)
@@ -262,6 +298,8 @@ GEM
       activesupport (= 4.1.4)
       rake (>= 0.8.7)
       thor (>= 0.18.1, < 2.0)
+    rainbow (2.0.0)
+    raindrops (0.13.0)
     rake (10.4.2)
     rdoc (4.2.0)
       json (~> 1.4)
@@ -293,6 +331,13 @@ GEM
       rspec-mocks (~> 3.1.0)
       rspec-support (~> 3.1.0)
     rspec-support (3.1.2)
+    rubocop (0.30.0)
+      astrolabe (~> 1.3)
+      parser (>= 2.2.0.1, < 3.0)
+      powerpack (~> 0.1)
+      rainbow (>= 1.99.1, < 3.0)
+      ruby-progressbar (~> 1.4)
+    ruby-progressbar (1.7.5)
     rubyzip (1.1.6)
     rufus-scheduler (3.0.9)
       tzinfo
@@ -322,10 +367,14 @@ GEM
       multi_json (~> 1.0)
       rack (~> 1.0)
       tilt (~> 1.1, != 1.3.0)
-    sprockets-rails (2.2.4)
+    sprockets-rails (2.2.2)
       actionpack (>= 3.0)
       activesupport (>= 3.0)
       sprockets (>= 2.8, < 4.0)
+    sshkit (1.7.1)
+      colorize (>= 0.7.0)
+      net-scp (>= 1.1.2)
+      net-ssh (>= 2.8.0)
     term-ansicolor (1.3.0)
       tins (~> 1.0)
     therubyracer (0.12.1)
@@ -336,7 +385,7 @@ GEM
       eventmachine (~> 1.0)
       rack (~> 1.0)
     thor (0.19.1)
-    thread_safe (0.3.5)
+    thread_safe (0.3.4)
     tilt (1.4.1)
     tins (1.3.3)
     treetop (1.4.15)
@@ -350,6 +399,10 @@ GEM
     uglifier (2.6.1)
       execjs (>= 0.3.0)
       json (>= 1.8.0)
+    unicorn (4.8.3)
+      kgio (~> 2.6)
+      rack
+      raindrops (~> 0.7)
     warden (1.2.3)
       rack (>= 1.0)
     websocket (1.0.7)
@@ -361,15 +414,23 @@ PLATFORMS
   ruby
 
 DEPENDENCIES
+  better_errors
   bootstrap-sass
   bson_ext
   builder
   bunny (~> 0.9.1)
   byebug
   cancan
+  capistrano (~> 3.2.1)
+  capistrano-bundler
+  capistrano-rails (~> 1.1.0)
+  capistrano-rails-console
+  capistrano-rvm (~> 0.1.1)
+  capistrano-unicorn-nginx (~> 3.2.0)
   capybara
   carrierwave-mongoid
   chartkick
+  codemirror-rails
   coffee-rails (~> 4.0.0)
   coveralls
   database_cleaner
@@ -402,6 +463,7 @@ DEPENDENCIES
   rails_layout
   rolify
   rspec-rails
+  rubocop
   rubyzip
   rufus-scheduler
   sass-rails (~> 4.0.3)
@@ -412,3 +474,4 @@ DEPENDENCIES
   thin
   turbolinks
   uglifier (>= 1.3.0)
+  unicorn

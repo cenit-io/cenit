@@ -1,6 +1,5 @@
 module Cenit
   class GridFs < CarrierWave::Storage::GridFS
-
     class File < CarrierWave::Storage::GridFS::File
 
       def initialize(uploader, path, grid = nil)
