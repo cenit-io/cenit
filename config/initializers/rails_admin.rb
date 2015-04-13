@@ -141,7 +141,7 @@ RailsAdmin.config do |config|
           {cols: '74', rows: '15'}
         end
       end
-    end
+    end 
 
     show do
       field :library
@@ -150,13 +150,13 @@ RailsAdmin.config do |config|
         pretty_value do
           pretty_value =
             if json = JSON.parse(value) rescue nil
-              "<code class='json'>#{JSON.pretty_generate(json)}</code>"
+              "#{JSON.pretty_generate(json)}"
             elsif xml = Nokogiri::XML(value) rescue nil
               "<code class='xml'>#{xml.to_xml}</code>"
             else
               value
             end
-          "<pre>#{pretty_value}</pre>".html_safe
+          "<textarea id='code' name='code'>#{pretty_value}</textarea>".html_safe
         end
       end
       field :data_types
