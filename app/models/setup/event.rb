@@ -2,6 +2,7 @@ module Setup
   class Event
     include CenitScoped
 
+    Setup::Models.exclude_actions_for self, :new
 
     BuildInDataType.regist(self).with(:name).referenced_by(:name).and(sub_schema: "self['_type']")
 

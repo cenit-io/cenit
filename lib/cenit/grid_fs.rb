@@ -1,8 +1,6 @@
 module Cenit
   class GridFs < CarrierWave::Storage::GridFS
-
     class File < CarrierWave::Storage::GridFS::File
-
       self.grid = Mongoid::GridFs.build_namespace_for(Cenit)
 
       self.grid.file_model.store_in collection: Proc.new { "acc#{Account.current.id}.files" }

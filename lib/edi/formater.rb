@@ -42,25 +42,25 @@ module Edi
       schema['properties'].each do |property_name, property_schema|
         property_schema = data_type.merge_schema(property_schema)
         case property_schema['type']
-          when 'array'
-            property_schema = data_type.merge_schema(property_schema['items'])
-            record.send(property_name).each { |sub_record| elements << record_to_xml_element(data_type, property_schema, sub_record, xml_doc, nil, options) }
-          when 'object'
-            elements << record_to_xml_element(data_type, property_schema, record.send(property_name), xml_doc, property_name, options)
-          else
-            value = property_schema['default'] unless value = record.send(property_name)
-            if value
-              name = property_schema['edi']['segment'] if property_schema['edi']
-              name ||= property_name
-              if !property_schema['xml'] || property_schema['xml']['attribute']
-                attr[name] = value if !value.blank? || options[:with_blanks] || required.include?(property_name)
-              elsif content.nil?
-                content = value
-                content_property = property_name
-              else
-                raise Exception.new("More than one content property found: '#{content_property}' and '#{property_name}'")
-              end
+        when 'array'
+          property_schema = data_type.merge_schema(property_schema['items'])
+          record.send(property_name).each { |sub_record| elements << record_to_xml_element(data_type, property_schema, sub_record, xml_doc, nil, options) }
+        when 'object'
+          elements << record_to_xml_element(data_type, property_schema, record.send(property_name), xml_doc, property_name, options)
+        else
+          value = property_schema['default'] unless value = record.send(property_name)
+          if value
+            name = property_schema['edi']['segment'] if property_schema['edi']
+            name ||= property_name
+            if !property_schema['xml'] || property_schema['xml']['attribute']
+              attr[name] = value if !value.blank? || options[:with_blanks] || required.include?(property_name)
+            elsif content.nil?
+              content = value
+              content_property = property_name
+            else
+              raise Exception.new("More than one content property found: '#{content_property}' and '#{property_name}'")
             end
+          end
         end
       end
       name = schema['edi']['segment'] if schema['edi']
@@ -86,20 +86,20 @@ module Edi
         name = property_schema['edi']['segment'] if property_schema['edi']
         name ||= property_name
         case property_schema['type']
-          when 'array'
-            property_schema = data_type.merge_schema(property_schema['items'])
-            referenced_items = property_schema['referenced'] && !property_schema['export_embedded']
-            if value = record.send(property_name)
-              value = value.collect { |sub_record| record_to_hash(sub_record, options, referenced_items) }
-              json[name] = value unless value.empty?
-            end
-          when 'object'
-            json[name] = value if value = record_to_hash(record.send(property_name), options, property_schema['referenced'] && !property_schema['export_embedded'])
-          else
-            unless value = record.send(property_name)
-              value = property_schema['default']
-            end
-            json[name] = value if value
+        when 'array'
+          property_schema = data_type.merge_schema(property_schema['items'])
+          referenced_items = property_schema['referenced'] && !property_schema['export_embedded']
+          if value = record.send(property_name)
+            value = value.collect { |sub_record| record_to_hash(sub_record, options, referenced_items) }
+            json[name] = value unless value.empty?
+          end
+        when 'object'
+          json[name] = value if value = record_to_hash(record.send(property_name), options, property_schema['referenced'] && !property_schema['export_embedded'])
+        else
+          if (value = record.send(property_name)).nil?
+            value = property_schema['default']
+          end
+          json[name] = value if value
         end
       end
       json
@@ -116,38 +116,38 @@ module Edi
       schema['properties'].each do |property_name, property_schema|
         property_schema = data_type.merge_schema(property_schema)
         case property_schema['type']
-          when 'array'
-            property_schema = data_type.merge_schema(property_schema['items'])
-            record.send(property_name).each do |sub_record|
-              output.concat(record_to_edi(data_type, options, property_schema, sub_record))
+        when 'array'
+          property_schema = data_type.merge_schema(property_schema['items'])
+          record.send(property_name).each do |sub_record|
+            output.concat(record_to_edi(data_type, options, property_schema, sub_record))
+          end
+        when 'object'
+          output.concat(record_to_edi(data_type, options, property_schema, record.send(property_name), property_name))
+        else
+          unless value = record.send(property_name)
+            value = property_schema['default'] || ''
+          end
+          value =
+            if (segment_sep = options[:segment_separator]) == :new_line
+              value.to_s.gsub("\r\n", options[:seg_sep_suppress]).gsub("\n", options[:seg_sep_suppress]).gsub("\r", options[:seg_sep_suppress])
+            else
+              value.to_s.gsub(segment_sep, options[:seg_sep_suppress])
             end
-          when 'object'
-            output.concat(record_to_edi(data_type, options, property_schema, record.send(property_name), property_name))
+          field_sep = options[:field_separator]
+          case field_sep
+          when :by_fixed_length
+            if (max_len = property_schema['maxLength']) && (auto_fill = property_schema['auto_fill'])
+              case auto_fill[0]
+              when 'R'
+                value += auto_fill[1] until value.length == max_len
+              when 'L'
+                value = auto_fill[1] + value until value.length == max_len
+              end
+            end
+            segment += value
           else
-            unless value = record.send(property_name)
-              value = property_schema['default'] || ''
-            end
-            value =
-                if (segment_sep = options[:segment_separator]) == :new_line
-                  value.to_s.gsub("\r\n", options[:seg_sep_suppress]).gsub("\n", options[:seg_sep_suppress]).gsub("\r", options[:seg_sep_suppress])
-                else
-                  value.to_s.gsub(segment_sep, options[:seg_sep_suppress])
-                end
-            field_sep = options[:field_separator]
-            case field_sep
-              when :by_fixed_length
-                if (max_len = property_schema['maxLength']) && (auto_fill = property_schema['auto_fill'])
-                  case auto_fill[0]
-                    when 'R'
-                      value += auto_fill[1] until value.length == max_len
-                    when 'L'
-                      value = auto_fill[1] + value until value.length == max_len
-                  end
-                end
-                segment += value
-              else
-                segment += field_sep.to_s + value
-            end
+            segment += field_sep.to_s + value
+          end
         end
       end
       output.unshift(segment) unless segment == header

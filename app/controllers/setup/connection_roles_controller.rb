@@ -48,7 +48,7 @@ module Setup
         webhooks_attributes: [ :id, :name, :path, :purpose], 
         connections_attributes: [:id, :name, :url] )
     end  
-    
+
     def find_connection_role
       @connection_role = Setup::ConnectionRole.find(params[:id])
     end

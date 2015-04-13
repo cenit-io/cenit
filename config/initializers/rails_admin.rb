@@ -40,7 +40,7 @@ RailsAdmin.config do |config|
     memory_usage
     disk_usage
     index # mandatory
-    new { except [Setup::Event, Role] }
+    new { except [Role] }
     import
     import_schema
     update
@@ -141,7 +141,7 @@ RailsAdmin.config do |config|
           {cols: '74', rows: '15'}
         end
       end
-    end
+    end 
 
     show do
       field :library
@@ -149,14 +149,14 @@ RailsAdmin.config do |config|
       field :schema do
         pretty_value do
           pretty_value =
-              if json = JSON.parse(value) rescue nil
-                "<code class='json'>#{JSON.pretty_generate(json)}</code>"
-              elsif xml = Nokogiri::XML(value) rescue nil
-                "<code class='xml'>#{xml.to_xml}</code>"
-              else
-                value
-              end
-          "<pre>#{pretty_value}</pre>".html_safe
+            if json = JSON.parse(value) rescue nil
+              "#{JSON.pretty_generate(json)}"
+            elsif xml = Nokogiri::XML(value) rescue nil
+              "<code class='xml'>#{xml.to_xml}</code>"
+            else
+              value
+            end
+          "<textarea id='code' name='code'>#{pretty_value}</textarea>".html_safe
         end
       end
       field :data_types
@@ -166,7 +166,7 @@ RailsAdmin.config do |config|
       #field :creator
       field :updated_at
       #field :updater
-
+      
     end
     fields :library, :uri, :data_types
   end
@@ -589,26 +589,26 @@ RailsAdmin.config do |config|
         visible { bindings[:object].scheduling_method.present? }
         label do
           case bindings[:object].scheduling_method
-            when :Once
-              'Date and time'
-            when :Periodic
-              'Duration'
-            when :CRON
-              'CRON Expression'
-            else
-              'Expression'
+          when :Once
+            'Date and time'
+          when :Periodic
+            'Duration'
+          when :CRON
+            'CRON Expression'
+          else
+            'Expression'
           end
         end
         help do
           case bindings[:object].scheduling_method
-            when :Once
-              'Select a date and a time'
-            when :Periodic
-              'Type a time duration'
-            when :CRON
-              'Type a CRON Expression'
-            else
-              'Expression'
+          when :Once
+            'Select a date and a time'
+          when :Periodic
+            'Type a time duration'
+          when :CRON
+            'Type a CRON Expression'
+          else
+            'Expression'
           end
         end
         partial { bindings[:object].scheduling_method == :Once ? 'form_datetime_wrapper' : 'form_text' }
@@ -705,11 +705,11 @@ RailsAdmin.config do |config|
         associated_collection_scope do
           translator = bindings[:object]
           source_data_type =
-              if translator.source_exporter
-                translator.source_exporter.target_data_type
-              else
-                translator.source_data_type
-              end
+            if translator.source_exporter
+              translator.source_exporter.target_data_type
+            else
+              translator.source_data_type
+            end
           target_data_type = bindings[:object].target_data_type
           Proc.new { |scope|
             scope = scope.all(type: :Conversion,
@@ -796,7 +796,7 @@ RailsAdmin.config do |config|
               can_see = !am.embedded? && (show_action = v.action(:show, am, associated))
               can_see ? v.link_to(wording, v.url_for(action: show_action.action_name, model_name: am.to_param, id: associated.id), class: 'pjax') : wording
             end.to_sentence.html_safe +
-                v.select_tag("#{bindings[:controller].instance_variable_get(:@model_config).abstract_model.param_key}[connection_ids][]", ids.html_safe, multiple: true, style: 'display:none').html_safe
+              v.select_tag("#{bindings[:controller].instance_variable_get(:@model_config).abstract_model.param_key}[connection_ids][]", ids.html_safe, multiple: true, style: 'display:none').html_safe
           else
             'No connection selected'.html_safe
           end
@@ -815,8 +815,8 @@ RailsAdmin.config do |config|
       field :pull_parameters do
         visible do
           !(obj = bindings[:object]).instance_variable_get(:@_selecting_collection) &&
-              !obj.instance_variable_get(:@_selecting_connections) &&
-              obj.enum_for_pull_parameters.present?
+            !obj.instance_variable_get(:@_selecting_connections) &&
+            obj.enum_for_pull_parameters.present?
         end
       end
     end

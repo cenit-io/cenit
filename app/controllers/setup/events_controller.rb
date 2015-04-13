@@ -41,15 +41,15 @@ module Setup
       @event.destroy
       head :no_content
     end
-    
+
     protected
     def permited_attributes 
       params[:event].permit(:name, :triggers, :data_type_id)
     end
-    
+
     def find_event
       @event = Setup::Event.find(params[:id])
-    end  
-    
+    end
+
   end
 end
