@@ -42,13 +42,13 @@ module Setup
       @connection.destroy
       head :no_content
     end
-    
+
     protected
     def permited_attributes
       params[:connection].permit(:id, :name, :url, :key, :token,
         connection_roles_attributes: [:id, :name, webhooks_attributes: [:id, :name, :path, :purpose]])
     end  
-    
+
     def find_connection
       @connection = Setup::Connection.find(params[:id])
     end
@@ -57,6 +57,6 @@ module Setup
       roles = params[:connection][:connection_roles_attributes].map {|x| Setup::ConnectionRole.find(x) if x.is_a?(String)}
       @connection.connection_roles << roles if roles
     end
-    
+
   end
 end

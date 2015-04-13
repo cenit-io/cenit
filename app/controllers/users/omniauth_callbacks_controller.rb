@@ -5,9 +5,9 @@ class Users::OmniauthCallbacksController < Devise::OmniauthCallbacksController
     @user = User.find_or_initialize_for_doorkeeper_oauth(oauth_data)
     @user.update_doorkeeper_credentials(oauth_data)
     @user.save
-    
+
     if @user.persisted?
-       #current_user = @user
+       # current_user = @user
        sign_in_and_redirect @user, :event => :authentication #this will throw if @user is not activated
        set_flash_message(:notice, :success, :kind => "Doorkeeper") if is_navigational_format?
     else
