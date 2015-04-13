@@ -111,21 +111,12 @@ module Setup
       report = {loaded: Set.new, errors: {}}
       begin
         model =
-        <<<<<<< HEAD
-        if (do_shutdown = options[:reload]) || !loaded?
-          merge_report(shutdown(options), report) if do_shutdown
-          parse_str_schema(report, self.model_schema)
-        else
-          self.model
-        end
-        =======
             if (do_shutdown = options[:reload]) || !loaded?
               merge_report(shutdown(options), report) if do_shutdown
               parse_schema(report, data_type_name, merged_schema, nil)
             else
               self.model
             end
-        >>>>>>> 5 ad4f7bbf9a5651f8f186cbe293cf8f11a12c3cd
       rescue Exception => ex
         #TODO Delete raise
         #raise ex
