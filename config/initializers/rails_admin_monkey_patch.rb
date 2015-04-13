@@ -147,7 +147,7 @@ module RailsAdmin
             end
           end
         end
-        reset_models(models_to_reset)
+        reset_models(models_to_reset.select { |model| model.is_a?(Class) })
       end
 
       def remove_model(models)
@@ -161,14 +161,14 @@ module RailsAdmin
       def reset_models(models)
         models = [models] unless models.is_a?(Enumerable)
         models = sort_by_embeds(models)
-        reset = Set.new
         models.each do |model|
           puts "#{self.to_s}: resetting configuration of #{model.schema_name rescue model.to_s}"
           Config.reset_model(model)
           data_type = model.data_type
           data_type.reload
           schema = data_type.merged_schema
-          model.schema_path.split('/').each { |token| schema = data_type.merge_schema(schema[token]) if token.present? }
+          path = model.schema_path
+          path.split('/').each { |token| schema = data_type.merge_schema(schema[token]) if token.present? }
           model_data_type = data_type.model.eql?(model) ? data_type : nil
           rails_admin_model = Config.model(model).target
           title = model_data_type ? model_data_type.title : model.title
@@ -186,18 +186,23 @@ module RailsAdmin
             rails_admin_model.groups.each do |group|
               group.fields.each do |field|
                 if field_schema = properties[field.name.to_s]
+                  visible_ok = false
                   field_schema = data_type.merge_schema(field_schema)
-                  {label: 'title',
-                   help: 'description'}.each do |option, key|
-                    if value = field_schema[key]
+                  {
+                    label: 'title',
+                    help: 'description',
+                    visible: 'visible'
+                  }.each do |option, key|
+                    unless (value = field_schema[key]).nil?
                       field.register_instance_option option do
                         value
                       end
+                      visible_ok = true if option == :visible
                     end
                   end
                   field.register_instance_option :visible do
                     true
-                  end
+                  end unless visible_ok
                   if field.name == :_id
                     field.register_instance_option :read_only do
                       !bindings[:object].new_record?
@@ -226,7 +231,7 @@ module RailsAdmin
         models.each do |model|
           [:embeds_one, :embeds_many].each do |rk|
             sort_by_embeds(model.reflect_on_all_associations(rk).collect { |r| r.klass }, sorted)
-          end
+          end if model.is_a?(Class)
           sorted << model unless sorted.include?(model)
         end
         sorted

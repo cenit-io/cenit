@@ -1,9 +1,8 @@
 class SchemaController < ApplicationController
 
   def index
-    sleep 10
-    @schema = Setup::DataType.where(uri: params[:uri]).first
-
-    render plain: @schema
+    puts uri = params[:uri]
+    schema = Setup::Schema.where(uri: uri).first
+    render plain: schema && schema.cenit_ref_schema
   end
 end

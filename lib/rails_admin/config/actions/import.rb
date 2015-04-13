@@ -4,7 +4,7 @@ module RailsAdmin
       class Import < RailsAdmin::Config::Actions::Base
 
         register_instance_option :except do
-          [Setup::Schema, Setup::DataType]
+          [Setup::Schema, Setup::Model]
         end
 
         register_instance_option :visible? do
@@ -41,7 +41,7 @@ module RailsAdmin
                     @object = ex.object
                     handle_save_error
                   rescue Exception => ex
-                    #raise ex
+                    raise ex
                     form_object.errors.add(:data, ex.message)
                   end
                 end

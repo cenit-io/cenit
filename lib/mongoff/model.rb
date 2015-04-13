@@ -10,7 +10,7 @@ module Mongoff
     end
 
     def data_type
-      Setup::DataType.where(id: @data_type_id).first
+      Setup::Model.where(id: @data_type_id).first
     end
 
     def new
@@ -44,8 +44,12 @@ module Mongoff
       #TODO ALL
     end
 
+    def all_collections_names
+      persistable? ? data_type.all_data_type_collections_names : [:empty_collection]
+    end
+
     def collection_name
-      persistable? ? data_type.data_type_name.collectionize.to_sym : :empty_collection
+      persistable? ? data_type.data_type_collection_name.to_sym : :empty_collection
     end
 
     def count
@@ -53,11 +57,14 @@ module Mongoff
     end
 
     def delete_all
-      Mongoid::Sessions.default[collection_name].drop
+      all_collections_names.each { |name| Mongoid::Sessions.default[name.to_sym].drop }
     end
 
-    def collection_size(scale = 1)
-      Mongoid::Sessions.default.command(collstats: collection_name, scale: scale)['size'] rescue 0
+    def storage_size(scale = 1)
+      all_collections_names.inject(0) do |size, name|
+        s = Mongoid::Sessions.default.command(collstats: name, scale: scale)['size'] rescue 0
+        size + s
+      end
     end
 
     def method_missing(symbol, *args)

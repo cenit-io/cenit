@@ -5,9 +5,9 @@
       %th.records= t 'admin.actions.disk_usage.used_memory'
       %th.last.shrink
   %tbody
-    - data_type_abstract_model = RailsAdmin::AbstractModel.new(Setup::DataType)
-    - Setup::DataType.all.each do |data_type|
-      - index_path = rails_admin.show_path(model_name: Setup::DataType.to_s.underscore.gsub('/', '~'), id: data_type.id.to_s)
+    - data_type_abstract_model = RailsAdmin::AbstractModel.new(Setup::Model)
+    - Setup::Model.all.each do |data_type|
+      - index_path = rails_admin.show_path(model_name: Setup::Model.to_s.underscore.gsub('/', '~'), id: data_type.id.to_s)
       - row_class = "#{cycle("odd", "even")}#{" link" if index_path}"
       %tr{class: row_class}
         - active = data_type.loaded?

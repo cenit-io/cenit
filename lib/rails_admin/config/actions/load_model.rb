@@ -4,7 +4,7 @@ module RailsAdmin
       class LoadModel < RailsAdmin::Config::Actions::Base
 
         register_instance_option :only do
-          Setup::DataType
+          Setup::Model
         end
 
         register_instance_option :member do
@@ -40,14 +40,14 @@ module RailsAdmin
                     end
                   end
                 rescue Exception => ex
-                  # raise ex
+                  raise ex
                   flash[:error] = "Error loading model '#{@object.title}': #{ex.message}"
                 end
               end
             else
               flash[:error] = "Can not explicitly load model '#{@object.title}'"
             end
-            redirect_to rails_admin.show_path(model_name: Setup::DataType.to_s.underscore.gsub('/', '~'), id: @object.id)
+            redirect_to rails_admin.show_path(model_name: Setup::Model.to_s.underscore.gsub('/', '~'), id: @object.id)
           end
         end
 

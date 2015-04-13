@@ -14,7 +14,7 @@ module Setup
     belongs_to :event, class_name: Setup::Event.to_s, inverse_of: nil
 
     belongs_to :translator, class_name: Setup::Translator.to_s, inverse_of: nil
-    belongs_to :custom_data_type, class_name: Setup::DataType.to_s, inverse_of: nil
+    belongs_to :custom_data_type, class_name: Setup::Model.to_s, inverse_of: nil
     field :data_type_scope, type: String
     field :lot_size, type: Integer
 
@@ -23,7 +23,7 @@ module Setup
 
 
     belongs_to :response_translator, class_name: Setup::Translator.to_s, inverse_of: nil
-    belongs_to :response_data_type, class_name: Setup::DataType.to_s, inverse_of: nil
+    belongs_to :response_data_type, class_name: Setup::Model.to_s, inverse_of: nil
 
     field :last_trigger_timestamps, type: DateTime
 

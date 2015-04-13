@@ -81,7 +81,7 @@ module Edi
       schema = data_type.merged_schema
       json = (referenced = referenced && schema['referenced_by']) ? {'$referenced' => true} : {}
       schema['properties'].each do |property_name, property_schema|
-        next if (referenced && !referenced.include?(property_name)) || options[:ignore].include?(property_name.to_sym)
+        next if property_schema['virtual'] || (referenced && !referenced.include?(property_name)) || options[:ignore].include?(property_name.to_sym)
         property_schema = data_type.merge_schema(property_schema)
         name = property_schema['edi']['segment'] if property_schema['edi']
         name ||= property_name

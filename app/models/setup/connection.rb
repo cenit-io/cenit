@@ -21,11 +21,11 @@ module Setup
 
     after_initialize :ensure_token
 
-    validates_account_uniqueness_of :name
+    validates_uniqueness_of :name
     accepts_nested_attributes_for :parameters, :headers, :template_parameters
 
     validates_presence_of :name, :url, :key, :token
-    validates_account_uniqueness_of :token
+    validates_uniqueness_of :token
 
     def ensure_token
       self.token ||= generate_token

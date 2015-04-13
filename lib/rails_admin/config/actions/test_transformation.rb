@@ -17,7 +17,7 @@ module RailsAdmin
 
         register_instance_option :controller do
           proc do
-            data_type = Setup::DataType.find(params[:data_type_id]) #.sample_object #rescue params[:sample_data]
+            data_type = Setup::Model.find(params[:data_type_id]) #.sample_object #rescue params[:sample_data]
             @sample_data = data_type.sample_to_hash
 
             #@sample_data = JSON.parse(@sample_data) rescue {}

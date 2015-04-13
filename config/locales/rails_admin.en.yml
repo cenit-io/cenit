@@ -149,3 +149,25 @@ en:
         breadcrumb: "Retry"
         submit: "Retry"
         done: "retried"
+      new_file_model:
+        title: "New File Data Type"
+        menu: "Add new"
+        breadcrumb: "New"
+        submit: "Save"
+        done: "created"
+      upload_file:
+        title: "Upload file on '%{model_label_plural}'"
+        menu: "Upload"
+        breadcrumb: "Upload"
+        submit: "Upload"
+        done: "uploaded"
+      download_file:
+        title: "Download '%{object_label}'"
+        menu: "Download"
+        breadcrumb: "Download"
+        submit: "Download"
+        done: "downloaded"
+      delete_data_type:
+        title: "Delete %{model_label} '%{object_label}'"
+        menu: "Delete"
+        breadcrumb: "Delete"

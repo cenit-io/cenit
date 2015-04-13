@@ -17,6 +17,7 @@ module Cenit
       end
 
       def process
+        #TODO PUSH API
         return {} unless model
         return {} unless data_type = Setup::DataType.find_by(name: model.camelize)
 

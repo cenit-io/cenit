@@ -1,17 +1,5 @@
 module Setup
-  class BaseDataType
-
-    def new_from_edi(data, options={})
-      Edi::Parser.parse_edi(self, data, options)
-    end
-
-    def new_from_json(data, options={})
-      Edi::Parser.parse_json(self, data, options)
-    end
-
-    def new_from_xml(data, options={})
-      Edi::Parser.parse_xml(self, data, options)
-    end
+  module SchemaHandler
 
     def model_schema
       raise NotImplementedError
@@ -85,7 +73,7 @@ module Setup
     end
 
     def find_data_type(ref)
-      raise Exception.new('not implemented')
+      raise NotImplementedError
     end
 
     def find_ref_schema(ref)
