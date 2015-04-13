@@ -35,15 +35,16 @@ module Setup
       @collection.destroy
       head :no_content
     end
-    
+
     protected
+
     def permited_attributes
       params[:collection].permit(:name, :library_attributes , :connection_role_attributes, :weebhooks_attributes, :flows_attributes )
     end  
-    
+
     def find_template
       @collection = Setup::Collection.find(params[:id])
     end  
-    
+
   end
 end

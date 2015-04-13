@@ -19,7 +19,7 @@ module Forms
           associated_collection_scope do
             data_type = bindings[:object].try(:data_type)
             Proc.new { |scope|
-                scope.any_in(target_data_type: [nil, data_type]).and(type: :Import)
+              scope.any_in(target_data_type: [nil, data_type]).and(type: :Import)
             }
           end
         end
