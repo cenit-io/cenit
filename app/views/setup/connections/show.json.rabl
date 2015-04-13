@@ -10,5 +10,5 @@ child(:connection_roles, object_root: false) do
   child(:webhooks, object_root: false) do
     node(:id){|e| e.id.to_s }
     attributes :name, :path, :purpose
-  end  
+  end
 end

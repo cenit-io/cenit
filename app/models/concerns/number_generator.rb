@@ -36,5 +36,4 @@ module NumberGenerator
       end
     end
   end
-
 end

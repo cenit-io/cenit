@@ -32,5 +32,4 @@ class ApplicationController < ActionController::Base
     ensure
       Account.current = nil
     end
-
 end
