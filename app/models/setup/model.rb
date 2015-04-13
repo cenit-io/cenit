@@ -5,6 +5,8 @@ module Setup
 
     Setup::Models.exclude_actions_for self, :new, :update, :edit, :delete, :bulk_delete, :delete_all
 
+    BuildInDataType.regist(self).including(:schema).referenced_by(:name)
+
     def self.to_include_in_models
       @to_include_in_models ||= [Mongoid::Document,
                                  Mongoid::Timestamps,

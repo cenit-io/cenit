@@ -151,7 +151,7 @@ RailsAdmin.config do |config|
           {cols: '74', rows: '15'}
         end
       end
-    end 
+    end
 
     show do
       field :library
@@ -409,10 +409,9 @@ RailsAdmin.config do |config|
         {maxlength: 30, size: 30}
       end
     end
-    configure :url, :string do
-      help 'Requiered.'
+    configure :url do
       html_attributes do
-        {maxlength: 50, size: 50}
+        {cols: '50', rows: '1'}
       end
     end
     group :credentials do

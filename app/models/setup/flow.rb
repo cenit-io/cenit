@@ -95,7 +95,7 @@ module Setup
 
     def process(options={})
       puts "Flow processing on '#{self.name}': #{}"
-      message = options.merge(flow_id: self.id.to_s, account_id: self.account.id.to_s).to_json
+      message = options.merge(flow_id: self.id.to_s).to_json
       begin
         Cenit::Rabbit.send_to_endpoints(message)
       rescue Exception => ex
@@ -170,10 +170,10 @@ module Setup
               common_result ||= translator.run(translation_options)
             end
           headers = {'Content-Type' => translator.mime_type}
-          connection.headers.each { |h| headers[h.key] = h.value }
+          connection.headers.each { |h| headers[h.key] = connection.conforms(h.value) }
           webhook.headers.each { |h| headers[h.key] = h.value }
           begin
-            http_response = HTTParty.send(webhook.method, connection.url + '/' + webhook.path,
+            http_response = HTTParty.send(webhook.method, connection.conformed_url + '/' + webhook.path,
                                           {
                                             body: translation_result,
                                             headers: headers
