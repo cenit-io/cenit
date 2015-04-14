@@ -528,6 +528,9 @@ RailsAdmin.config do |config|
     configure :headers do
       group :parameters
     end
+    configure :template_parameters do
+      group :parameters
+    end
 
     show do
       field :name
@@ -537,6 +540,7 @@ RailsAdmin.config do |config|
 
       field :parameters
       field :headers
+      field :template_parameters
 
       field :_id
       field :created_at
@@ -544,7 +548,7 @@ RailsAdmin.config do |config|
       field :updated_at
       #field :updater
     end
-    fields :name, :purpose, :path, :method, :parameters, :headers
+    fields :name, :purpose, :path, :method, :parameters, :headers, :template_parameters
   end
 
   config.model Setup::Notification do

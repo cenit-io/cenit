@@ -38,7 +38,7 @@ module Setup
           values.delete_if { |source_connection| !connections.detect { |c| c.name == source_connection['name'] } }
         end if hash
       end
-      if pull_parameters.present?
+      if source_collection.present? && pull_parameters.present?
         pull_parameters_enum = enum_for_pull_parameters
         pull_parameters.each do |pull_parameter|
           if (parameter = pull_parameter.parameter) && pull_parameters_enum.include?(parameter)
