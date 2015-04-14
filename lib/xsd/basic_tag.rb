@@ -34,7 +34,7 @@ module Xsd
     end
 
     def qualify_type(name)
-      included?(qn = "#{name_prefix}type:#{name}") ? qn : "#{name_prefix}type:#{qualify(name)}"
+      included?(qn = "#{name_prefix}type:#{name}") ? qn : "#{name_prefix}type:#{qualify(name)}" if name
     end
 
     def xmlns(ns)
