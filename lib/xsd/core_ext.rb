@@ -6,6 +6,12 @@
   ")
 end
 
+class NilClass
+  def to_json_schema
+    { 'type' => 'object', 'properties' => {} }
+  end
+end
+
 class String
   def to_json_schema
     if key = Xsd::BUILD_IN_TYPES.keys.detect { |key| end_with?(key) }
