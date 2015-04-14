@@ -83,7 +83,7 @@ en:
         breadcrumb: "Edit"
         next: "Next"
         done: "updated"
-      update:
+      translator_update:
         title: "Update"
         menu: "Update"
         breadcrumb: "Update"
@@ -143,6 +143,7 @@ en:
         done: "pulled"
         fill_parameters: "Please fill the following parameters to pull the collection"
         update_warning: "The following objects will be updated"
+        ready: "Ready to pull!"
       retry_notification:
         title: "Retry"
         menu: "Retry"

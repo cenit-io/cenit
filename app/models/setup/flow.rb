@@ -169,8 +169,7 @@ module Setup
             else
               common_result ||= translator.run(translation_options)
             end
-          headers = {'Content-Type' => translator.mime_type}
-          connection.headers.each { |h| headers[h.key] = connection.conforms(h.value) }
+          headers = {'Content-Type' => translator.mime_type}.merge(connection.conformed_headers)
           webhook.headers.each { |h| headers[h.key] = h.value }
           begin
             http_response = HTTParty.send(webhook.method, connection.conformed_url + '/' + webhook.path,
