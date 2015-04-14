@@ -3,7 +3,7 @@ module Setup
 
     BuildInDataType.regist(self).referenced_by(:name).excluding(:last_trigger_timestamps).including(:data_type)
 
-    belongs_to :data_type, class_name: Setup::DataType.to_s, inverse_of: :events
+    belongs_to :data_type, class_name: Setup::Model.to_s, inverse_of: :events
     field :triggers, type: String
 
     validates_presence_of :data_type, :triggers
@@ -16,7 +16,6 @@ module Setup
       triggers_hash = JSON.parse(self.triggers)
       triggers_hash.each do |field_name, conditions|
         conditions.each do |_, condition|
-          puts "...verifying trigger #{condition} on (#{obj_now},#{obj_before})::#{field_name}"
           puts c =
                    if (condition['o'] == '_change')
                      field_changed(obj_now, obj_before, field_name)

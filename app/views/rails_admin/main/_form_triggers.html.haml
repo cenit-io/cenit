@@ -4,7 +4,7 @@
 :ruby
   @model_field_map = {}
   #TODO Extract trigger fields directly from data type
-  Setup::DataType.all.each do |data_type|
+  Setup::Model.all.each do |data_type|
     if data_type.loaded? && (abstract_model = RailsAdmin::AbstractModel.new(data_type.model)) && !(model_config = abstract_model.config).excluded?
       @model_field_map[data_type.id.to_s] = []
       model_config.list.fields.select(&:filterable?).each do |field|

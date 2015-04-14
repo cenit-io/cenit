@@ -46,6 +46,18 @@ class Account
       end
       self.current = nil
     end
+
+    def tenant_collection_prefix(sep = '')
+      current.present? ? "acc#{current.id}#{sep}" : ''
+    end
+
+    def tenant_collection_name(model_name, sep='_')
+      tenant_collection_prefix(sep) + model_name.collectionize
+    end
+
+    def data_type_collection_name(data_type)
+      tenant_collection_name(data_type.data_type_name)
+    end
   end
 
 end

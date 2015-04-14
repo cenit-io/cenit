@@ -1,5 +1,9 @@
+require 'edi/formater'
+
 module Setup
-  class BuildInDataType < BaseDataType
+  class BuildInDataType
+    include SchemaHandler
+    include FormatParser
 
     attr_reader :model
 
@@ -105,7 +109,7 @@ module Setup
 
     def build_schema
       schema = {'type' => 'object', 'properties' => properties = {}}
-      schema[:referenced_by.to_s] = stringfy(@referenced_by) if @referenced_by
+      schema[:referenced_by.to_s] = Cenit::Utility.stringfy(@referenced_by) if @referenced_by
       (fields = model.fields).each do |field_name, field|
         properties[field_name] = json_schema_type(field.type) if !field.is_a?(Mongoid::Fields::ForeignKey) && included?(field_name)
       end
@@ -140,18 +144,5 @@ module Setup
       ((type = MONGOID_TYPE_MAP[mongoid_type]).is_a?(Hash)) ? type : {'type' => type}
     end
 
-    private
-
-    def stringfy(obj)
-      if obj.is_a?(Hash)
-        hash = {}
-        obj.each { |key, value| hash[key.to_s] = stringfy(value) }
-        hash
-      elsif obj.is_a?(Array)
-        obj.collect { |value| stringfy(value) }
-      else
-        obj.to_s
-      end
-    end
   end
 end

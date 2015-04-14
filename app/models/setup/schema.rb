@@ -11,7 +11,11 @@ module Setup
     field :uri, type: String
     field :schema, type: String
 
-    has_many :data_types, class_name: Setup::DataType.to_s, inverse_of: :schema, dependent: :destroy
+    has_many :data_types, class_name: Setup::Model.to_s, inverse_of: :schema, dependent: :destroy
+
+    field :schema_type, type: Symbol
+
+    attr_readonly :library, :uri
 
     validates_presence_of :library, :uri, :schema
 
@@ -91,6 +95,11 @@ module Setup
       @_initialized = true
     end
 
+    def cenit_ref_schema
+      #TODO !!!
+      schema
+    end
+
     private
 
     def save_data_types
@@ -108,8 +117,14 @@ module Setup
     end
 
     def parse_schemas
-      self.schema = self.schema.strip
-      self.schema.start_with?('{') || self.schema.start_with?('[') ? parse_json_schema : parse_xml_schema
+      self.schema = schema.strip
+      if schema.start_with?('{') || self.schema.start_with?('[')
+        self.schema_type = :json_schema
+        parse_json_schema
+      else
+        self.schema_type = :xml_schema
+        parse_xml_schema
+      end
     end
 
     def parse_json_schema

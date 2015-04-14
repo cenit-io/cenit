@@ -1,3 +1,5 @@
+require 'objspace'
+
 module Cenit
   class Utility
     class << self
@@ -137,6 +139,26 @@ module Cenit
           h
         end : hash
       end
+
+      def memory_usage_of(model)
+        return 0 unless model
+        size = ObjectSpace.memsize_of(model)
+        model.constants(false).each { |c| size += memory_usage_of(c) } if model.is_a?(Class) || model.is_a?(Module)
+        size > 0 ? size : 100
+      end
+
+      def stringfy(obj)
+        if obj.is_a?(Hash)
+          hash = {}
+          obj.each { |key, value| hash[key.to_s] = stringfy(value) }
+          hash
+        elsif obj.is_a?(Array)
+          obj.collect { |value| stringfy(value) }
+        else
+          obj.to_s
+        end
+      end
+
     end
   end
 end

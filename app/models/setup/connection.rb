@@ -21,12 +21,11 @@ module Setup
 
     after_initialize :ensure_token
 
-    validates_account_uniqueness_of :name
-    #validates_presence_of :webhooks
+    validates_uniqueness_of :name
     accepts_nested_attributes_for :parameters, :headers, :template_parameters
 
     validates_presence_of :name, :url, :key, :token
-    validates_account_uniqueness_of :token
+    validates_uniqueness_of :token
 
     def ensure_token
       self.token ||= generate_token
@@ -39,8 +38,31 @@ module Setup
 
     def template_parameters_hash
       hash = {}
-      template_parameters.each_char { |p| h[p.key] = p.value }
+      template_parameters.each { |p| hash[p.key] = p.value }
       hash
+    end
+
+    def conformed_url
+      conforms(url)
+    end
+
+    def conforms(str)
+      s = ''
+      tokens = str.split('{{')
+      tokens.shift if tokens.first.blank?
+      tokens.each do |token|
+        if i = token.index('}}')
+          s += '#{' + token[0, i] + token.from(i+2) + '}'
+        else
+          s += token
+        end
+      end
+      obj = Object.new
+      m = 'def m ;'
+      template_parameters_hash.each { |key, value| m += "#{key} = '#{value}';" }
+      m += "\"#{s}\";end"
+      obj.class_eval(m)
+      obj.m.gsub("\n", '')
     end
 
     private

@@ -22,13 +22,13 @@ module Setup
     end
 
     validates_presence_of :name, :path, :purpose
-    validates_account_uniqueness_of :name
+    validates_uniqueness_of :name
 
     accepts_nested_attributes_for :parameters, :headers
 
     def template_parameters_hash
       hash = {}
-      template_parameters.each_char { |p| h[p.key] = p.value }
+      template_parameters.each { |p| h[p.key] = p.value }
       hash
     end
 
