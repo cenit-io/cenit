@@ -28,7 +28,7 @@ module Setup
 
     def template_parameters_hash
       hash = {}
-      template_parameters.each { |p| h[p.key] = p.value }
+      template_parameters.each { |p| hash[p.key] = p.value }
       hash
     end
 
