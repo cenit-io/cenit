@@ -8,7 +8,7 @@ class Ability
       can RailsAdmin::Config::Actions.all(:root).collect(&:authorization_key)
 
       can [:update, :destroy], Setup::SharedCollection, creator: user
-      cannot :delete_all, Setup::SharedCollection
+      can [:import, :edi_export], Setup::SharedCollection
 
       @@setup_map ||=
         begin
