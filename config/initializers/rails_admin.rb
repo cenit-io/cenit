@@ -10,7 +10,7 @@
  #RailsAdmin::Config::Actions::EdiExport,
  RailsAdmin::Config::Actions::ImportSchema,
  RailsAdmin::Config::Actions::DeleteAll,
- RailsAdmin::Config::Actions::Update,
+ RailsAdmin::Config::Actions::TranslatorUpdate,
  RailsAdmin::Config::Actions::Convert,
  RailsAdmin::Config::Actions::DeleteSchema,
  RailsAdmin::Config::Actions::DeleteLibrary,
@@ -48,7 +48,7 @@ RailsAdmin.config do |config|
     new_file_model
     import
     import_schema
-    update
+    translator_update
     convert
     #import do
     #  only 'Setup::DataType'

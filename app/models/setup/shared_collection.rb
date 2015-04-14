@@ -3,7 +3,9 @@ module Setup
     include CenitUnscoped
     include Trackable
 
-    Setup::Models.exclude_actions_for self, :new
+    Setup::Models.exclude_actions_for self, :new, :translator_update, :convert,  :send_to_flow, :delete_all
+
+    BuildInDataType.regist(self).excluding(:image, :source_collection, :connections)
 
     mount_uploader :image, GridFsUploader
     field :name, type: String
@@ -14,7 +16,7 @@ module Setup
 
     field :data, type: String
 
-    validates_presence_of :name, :description, :source_collection
+    validates_presence_of :name, :description
     validates_uniqueness_of :name
 
     accepts_nested_attributes_for :pull_parameters
@@ -30,7 +32,7 @@ module Setup
     end
 
     def validate_configuration
-      hash_data = source_collection.present? ? JSON.parse(source_collection.to_json) : {}
+      hash_data = JSON.parse((source_collection.present? && source_collection.to_json) || data || '{}')
       [hash_data, hash_data['connection_roles']].flatten.each do |hash|
         if values = hash['connections']
           values.delete_if { |source_connection| !connections.detect { |c| c.name == source_connection['name'] } }
@@ -65,11 +67,13 @@ module Setup
               enum << "URL of '#{connection.name}'"
               enum += connection.headers.collect { |header| "On connection '#{connection.name}' header '#{header.key}'" }
               enum += connection.parameters.collect { |parameter| "On connection '#{connection.name}' parameter '#{parameter.key}'" }
+              enum += connection.template_parameters.collect { |parameter| "On connection '#{connection.name}' template parameter '#{parameter.key}'" }
             end
           end
           source_collection.webhooks.each do |webhook|
             enum += webhook.headers.collect { |header| "On webhook '#{webhook.name}' header '#{header.key}'" }
             enum += webhook.parameters.collect { |parameter| "On webhook '#{webhook.name}' parameter '#{parameter.key}'" }
+            enum += webhook.template_parameters.collect { |parameter| "On webhook '#{webhook.name}' template parameter '#{parameter.key}'" }
           end
         end
         enum
@@ -103,7 +107,7 @@ module Setup
         key = 'webhooks'
       end
       name = parameter[prefix.length..parameter.index("'", prefix.length) - 1]
-      parameters_key = parameter[parameter.index("'", prefix.length) + 1..parameter.rindex("'") - 1].strip + 's'
+      parameters_key = (parameter[parameter.index("'", prefix.length) + 1..parameter.rindex("'") - 1].strip + 's').gsub(' ', '_')
       parameter = parameter[parameter.rindex("'") + 1..parameter.length]
       if values = hash_data[key]
         if value = values.detect { |h| h['name'] == name }
