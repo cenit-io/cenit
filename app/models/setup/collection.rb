@@ -46,7 +46,7 @@ module Setup
       end
       translators.each do |translator|
         [:source_data_type, :target_data_type].each do |key|
-          unless (data_type = translator.send(key)).nil? || libraries.detect { |v| v == (lib = data_type.schema.library) }
+          unless (data_type = translator.send(key)).nil? || ((lib = data_type.schema.library) && libraries.detect { |v| v == lib })
             libraries << lib
           end
         end
@@ -57,7 +57,7 @@ module Setup
         end
       end
       events.each do |event|
-        if event.is_a?(Setup::Observer) && (data_type = event.data_type) && !libraries.detect { |v| v == (lib = data_type.schema.library) }
+        if event.is_a?(Setup::Observer) && (data_type = event.data_type) && !((lib = data_type.schema.library) && libraries.detect { |v| v == lib })
           libraries << lib
         end
       end

@@ -2,7 +2,7 @@ module RailsAdmin
   module Config
     module Actions
 
-      class Update < RailsAdmin::Config::Actions::Translate
+      class TranslatorUpdate < RailsAdmin::Config::Actions::Translate
 
         class << self
 

@@ -1,6 +1,8 @@
 %form{method: 'post', class: 'form-horizontal denser'}
-  %h4= t('admin.actions.pull_collection.fill_parameters')
+  - ready = true
   - if @object.pull_parameters.present?
+    - ready = false
+    %h4= t('admin.actions.pull_collection.fill_parameters')
     .fieldset
       - @object.pull_parameters.each do |pull_parameter|
         .control-group{class: (error = @missing_parameters.include?(pull_parameter.parameter)) ? 'error' : ''}
@@ -14,6 +16,7 @@
             %p.help-block
               = 'Required'
   - unless @ids_to_update.empty?
+    - ready = false
     %h4{style: 'color:#b94a48'}= t('admin.actions.pull_collection.update_warning')
     .fieldset
       - @ids_to_update.each do |key, records|
@@ -22,7 +25,9 @@
             = key.titleize
           .controls
             - am = RailsAdmin::Config.model(records.first.class).abstract_model
-            = records.collect { |record| link_to(record.name, url_for(action: action(:show, am, record).action_name, model_name: record.class.to_s, id: record.id), class: 'pjax') }.to_sentence
+            = records.collect { |record| link_to(record.name, url_for(action: action(:show, am, record).action_name, model_name: record.class.to_s, id: record.id), class: 'pjax') }.to_sentence.html_safe
+  - if ready
+    %h4= t('admin.actions.pull_collection.ready')
   .form-actions
     %button.btn.btn-primary{type: 'submit', name: '_pull', :'data-disable-with' => t('admin.actions.pull_collection.submit')}
       %i{class: @action.try(:link_icon)}
