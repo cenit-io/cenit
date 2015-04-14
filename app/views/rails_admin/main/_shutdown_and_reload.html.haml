@@ -1,7 +1,7 @@
-- schemas_to_delete = @object.instance_variable_get(:@_schemas_to_delete)
-- to_delete = @object.instance_variable_get(:@_to_delete)
-- to_shutdown = @object.instance_variable_get(:@_to_shutdown)
-- reload = @object.instance_variable_get(:@_to_reload)
+- (schemas_to_delete = @object.instance_variable_get(:@_schemas_to_delete)) && (schemas_to_delete = [schemas_to_delete] unless schemas_to_delete.is_a?(Enumerable))
+- (to_delete = @object.instance_variable_get(:@_to_delete)) && (to_delete = [to_delete] unless to_delete.is_a?(Enumerable))
+- (to_shutdown = @object.instance_variable_get(:@_to_shutdown)) && (to_shutdown = [to_shutdown] unless to_shutdown.is_a?(Enumerable))
+- (reload = @object.instance_variable_get(:@_to_reload)) && (reload = [reload] unless reload.is_a?(Enumerable))
 = render partial: 'action_will_also'  if schemas_to_delete.present? || to_delete.present? || to_shutdown.present? || reload.present?
 - if schemas_to_delete.present?
   %fieldset
@@ -26,7 +26,8 @@
         - to_delete.each do |data_type|
           %li
             - label = (count = data_type.count) > 0 ? "#{data_type.title} (#{count} #{t('admin.actions.shutdown_and_reload.records')})" : data_type.title
-            = link_to(label, rails_admin.show_path(model_name: Setup::DataType.to_s.underscore.gsub('/', '~'), id: data_type.id), class: 'pjax')
+            - path = (model = data_type.model) ? rails_admin.index_path(model.to_s.underscore.gsub('/', '~')) : rails_admin.show_path(model_name: Setup::Model.to_s.underscore.gsub('/', '~'), id: data_type.id)
+            = link_to(label, path, class: 'pjax')
 - if to_shutdown.present?
   %fieldset
     %legend{style: ''}
@@ -36,7 +37,7 @@
       %ul
         - to_shutdown.each do |data_type|
           %li
-            = link_to(data_type.title, rails_admin.show_path(model_name: Setup::DataType.to_s.underscore.gsub('/', '~'), id: data_type.id), class: 'pjax')
+            = link_to(data_type.title, rails_admin.show_path(model_name: Setup::Model.to_s.underscore.gsub('/', '~'), id: data_type.id), class: 'pjax')
 - if reload.present?
   %fieldset
     %legend{style: ''}
@@ -46,4 +47,4 @@
       %ul
         - reload.each do |data_type|
           %li
-            = link_to(data_type.title, rails_admin.show_path(model_name: Setup::DataType.to_s.underscore.gsub('/', '~'), id: data_type.id), class: 'pjax')
+            = link_to(data_type.title, rails_admin.show_path(model_name: Setup::Model.to_s.underscore.gsub('/', '~'), id: data_type.id), class: 'pjax')

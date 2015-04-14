@@ -6,9 +6,9 @@ attributes :name
 child(:webhooks, object_root: false) do 
   node(:id){|e| e.id.to_s }
   attributes :name, :path, :purpose
-end  
+end
 
 child(:connections, object_root: false) do 
   node(:id){|e| e.id.to_s }
   attributes :name, :url
-end  
+end

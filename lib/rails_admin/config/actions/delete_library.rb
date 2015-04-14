@@ -24,7 +24,7 @@ module RailsAdmin
                 @object.schemas.each { |schema| @auditing_adapter.delete_object(schema, schema_abstract_model, _current_user) }
                 @auditing_adapter.delete_object(@object, @abstract_model, _current_user)
               end
-              Setup::DataType.shutdown(@object.schemas.collect(&:data_types).flatten)
+              Setup::DataType.shutdown(@object.schemas.collect(&:data_types).flatten + @object.file_data_types)
               if @object.destroy
                 flash[:success] = t('admin.flash.successful', name: @model_config.label, action: t('admin.actions.delete.done'))
                 redirect_path = index_path
@@ -34,7 +34,7 @@ module RailsAdmin
               end
               redirect_to redirect_path
             else
-              @report = Setup::DataType.shutdown(data_types = @object.schemas.collect(&:data_types).flatten, report_only: true)
+              @report = Setup::DataType.shutdown(data_types = @object.schemas.collect(&:data_types).flatten + @object.file_data_types, report_only: true)
               @object.instance_variable_set(:@_schemas_to_delete, @object.schemas)
               @object.instance_variable_set(:@_to_delete, data_types)
               @object.instance_variable_set(:@_to_reload, @report[:affected].collect(&:data_type).uniq)

@@ -15,12 +15,22 @@ gem 'omniauth'
 gem 'omniauth-oauth2'
 gem 'rabl'
 gem 'builder'
-gem "haml-rails"
+gem 'haml-rails'
 gem 'figaro'
 gem 'unicorn'
 
 group :doc do
   gem 'sdoc', require: false
+end
+
+group :development do
+  gem 'better_errors'
+  gem 'capistrano', '~> 3.2.1'
+  gem 'capistrano-unicorn-nginx', '~> 3.2.0'
+  gem 'capistrano-bundler'
+  gem 'capistrano-rails', '~> 1.1.0'
+  gem 'capistrano-rails-console'
+  gem 'capistrano-rvm', '~> 0.1.1'
 end
 
 group :development, :test do
@@ -29,6 +39,7 @@ group :development, :test do
   gem 'rails_layout'
   gem 'ffaker'
   gem 'byebug'
+  gem 'rubocop'
 end
 
 group :test do
@@ -51,7 +62,6 @@ gem 'bson_ext'
 gem 'rails_admin', '0.6.5'
 gem 'mongoid-history'
 gem 'mongoid-audit', '~> 1.0.0'
-#gem "rails_admin_import"
 
 # charts
 gem 'rails_admin_dynamic_charts', git: 'https://github.com/openjaf/rails_admin_dynamic_charts.git'
@@ -59,9 +69,9 @@ gem 'chartkick'
 gem 'descriptive_statistics'
 
 gem 'httparty'
-gem "bunny", "~> 0.9.1"
-gem "json-schema"
-gem "nokogiri"
+gem 'bunny', '~> 0.9.1'
+gem 'json-schema'
+gem 'nokogiri'
 gem 'cancan'
 gem 'rolify'
 gem 'rufus-scheduler'
@@ -70,3 +80,4 @@ gem 'prawn-rails'
 gem 'carrierwave-mongoid'
 gem 'mini_magick'
 gem 'liquid'
+gem 'codemirror-rails'

@@ -1,177 +1,53 @@
 require 'edi/formater'
 
 module Setup
-  class DataType < BaseDataType
-    include CenitScoped
-
-    Setup::Models.exclude_actions_for self, :new, :update, :edit, :delete, :bulk_delete, :delete_all
+  class DataType < Model
+    include FormatParser
 
     BuildInDataType.regist(self).including(:schema).referenced_by(:name, :schema)
 
-    def self.to_include_in_models
-      @to_include_in_models ||= [Mongoid::Document,
-                                 Mongoid::Timestamps,
-                                 Setup::ClassAffectRelation,
-                                 Mongoid::CenitExtension,
-                                 EventLookup,
-                                 AccountScoped,
-                                 DynamicValidators,
-                                 Edi::Formatter,
-                                 Edi::Filler] #, RailsAdminDynamicCharts::Datetime
-    end
-
     belongs_to :schema, class_name: Setup::Schema.to_s, inverse_of: :data_types
 
-    field :title, type: String
-    field :name, type: String
     field :model_schema, type: String
 
-    has_many :events, class_name: Setup::Event.to_s, dependent: :destroy, inverse_of: :data_type
     #TODO Check dependent behavior with flows
     #has_many :flows, class_name: Setup::Flow.name, dependent: :destroy, inverse_of: :data_type
 
-    validates_presence_of :name, :model_schema
+    validates_presence_of :model_schema
 
     before_save :validate_model
-    before_destroy :delete_all
 
     field :is_object, type: Boolean
-    field :activated, type: Boolean, default: false
-    field :show_navigation_link, type: Boolean
-    field :to_be_destroyed, type: Boolean
-    field :used_memory, type: BigDecimal, default: 0
-    field :model_loaded, type: Boolean
 
     scope :activated, -> { where(activated: true) }
 
-    def on_library_title
-      if schema && schema.library
-        "#{schema.library.name} | #{title}"
-      else
-        title
-      end
+    def library
+      schema && schema.library
+    end
+
+    def validator
+      schema
     end
 
     def shutdown(options={})
       DataType.shutdown(self, options)
     end
 
-    def model
-      data_type_name.constantize rescue nil
-    end
-
-    def records_model
-      (m = model) && m.is_a?(Class) ? m : @mongoff_model ||= Mongoff::Model.new(self)
-    end
-
-    def loaded?
-      model ? true : false
-    end
-
-    def data_type_name
-      "Dt#{self.id.to_s}"
-    end
-
-    def collection_size(scale=1)
-      records_model.collection_size(scale)
-    end
-
-    def count
-      records_model.count
-    end
-
-    def delete_all
-      !(records_model.try(:delete_all) rescue true) || true
-    end
-
-    def shutdown_model(options={})
-      report = deconstantize(data_type_name, options)
-      unless options[:report_only]
-        self.to_be_destroyed = true if options[:destroy]
-        self.used_memory = 0
-        self.model_loaded = false
-        save unless new_record?
-      end
-      report
-    end
-
-    def to_be_destroyed?
-      to_be_destroyed
-    end
-
-    def load_model(options={})
-      load_models(options)[:model]
-    end
-
-    def load_models(options={reload: false, reset_config: true})
-      reload
-      do_activate = options.delete(:activated) || activated
-      report = {loaded: Set.new, errors: {}}
-      begin
-        model =
-          if (do_shutdown = options[:reload]) || !loaded?
-            merge_report(shutdown(options), report) if do_shutdown
-            parse_schema(report, data_type_name, merged_schema, nil)
-          else
-            self.model
-          end
-      rescue Exception => ex
-        #TODO Delete raise
-        #raise ex
-        puts "ERROR: #{errors.add(:model_schema, ex.message).to_s}"
-        # merge_report(shutdown(options), report)
-        shutdown(options)
-      end
-      create_default_events
-      if model
-        report[:loaded] << (report[:model] = model)
-        if self.used_memory != (model_used_memory = RailsAdmin::Config::Actions::MemoryUsage.of(model))
-          self.used_memory = model_used_memory
-        end
-        report[:destroyed].delete_if { |m| m.to_s == model.to_s } if report[:destroyed]
-        self.activated = do_activate if do_activate.present?
-        self.model_loaded = true
-      else
-        report[:errors][self] = errors
-        self.used_memory = 0 unless self.used_memory == 0
-        self.activated = false
-        self.model_loaded = false
-      end
-      save unless new_record?
-      report
-    end
-
-    def visible
-      #((Account.current ? Account.current.id : nil) == self.account.id) && self.show_navigation_link
-      self.show_navigation_link
-    end
-
-    def navigation_label
-      self.schema ? self.schema.library.name : nil
-    end
-
-    def create_default_events
-      if self.is_object? && Setup::Observer.where(data_type: self).empty?
-        puts "Creating default events for #{self.name}"
-        Setup::Observer.create(data_type: self, triggers: '{"created_at":{"0":{"o":"_not_null","v":["","",""]}}}')
-        Setup::Observer.create(data_type: self, triggers: '{"updated_at":{"0":{"o":"_change","v":["","",""]}}}')
-      end
-    end
-
     def is_object?
       is_object.present?
     end
 
-    def find_data_type(ref)
-      #TODO Are data types referenced only in libray scope?
-      (self.schema.library && self.schema.library.find_data_type_by_name(ref)) #|| DataType.where(name: ref).first
+    protected
+
+    def do_shutdown_model(options)
+      deconstantize(data_type_name, options)
     end
 
-    private
-
-    def merge_report(report, in_to)
-      in_to.deep_merge!(report) { |key, this_val, other_val| this_val + other_val }
+    def do_load_model(report)
+      parse_schema(report, data_type_name, merged_schema, nil)
     end
+
+    protected
 
     def validate_model
       begin
@@ -192,76 +68,17 @@ module Setup
       errors.blank?
     end
 
-    def deconstantize(constant_name, options={})
-      report = {:destroyed => Set.new, :affected => Set.new}.merge(options)
-      if constant = constant_name.constantize rescue nil
-        if constant.is_a?(Class)
-          deconstantize_class(constant, report)
-        else # it is a Mongoff model
-          constant.affected_models.each { |model| deconstantize_class(model, report, :affected) }
-        end
-      end
-      report
+    def special_case_1(klass)
+      @@parsed_schemas.include?(klass.to_s) || @@parsing_schemas.include?(klass)
     end
 
-    def deconstantize_class(klass, report={:destroyed => Set.new, :affected => Set.new}, affected=nil)
-      return report unless klass.is_a?(Module) || klass == Object
-      affected = nil if report[:shutdown_all]
-      if !affected && report[:affected].include?(klass)
-        report[:affected].delete(klass)
-        report[:destroyed] << klass
-      end
-      return report if report[:destroyed].include?(klass) || report[:affected].include?(klass)
-      return report unless @@parsed_schemas.include?(klass.to_s) || @@parsing_schemas.include?(klass)
-      parent = klass.parent
-      affected = nil if report[:destroyed].include?(parent)
-      puts "Reporting #{affected ? 'affected' : 'destroyed'} class #{klass.to_s} -> #{klass.schema_name rescue klass.to_s}" #" is #{affected ? 'affected' : 'in tree'} -> #{report.to_s}"
-      (affected ? report[:affected] : report[:destroyed]) << klass
-
-      unless report[:report_only] || affected
-        @@parsed_schemas.delete(klass.to_s)
-        @@parsing_schemas.delete(klass)
-        [@@has_many_to_bind,
-         @@has_one_to_bind,
-         @@embeds_many_to_bind,
-         @@embeds_one_to_bind].each { |to_bind| delete_pending_bindings(to_bind, klass) }
-      end
-
-      klass.constants(false).each do |const_name|
-        if klass.const_defined?(const_name, false)
-          const = klass.const_get(const_name, false)
-          deconstantize_class(const, report, affected) if const.is_a?(Class)
-        end
-      end
-      #[:embeds_one, :embeds_many, :embedded_in].each do |rk|
-      [:embedded_in].each do |rk|
-        begin
-          klass.reflect_on_all_associations(rk).each do |r|
-            unless report[:destroyed].include?(r.klass) || report[:affected].include?(r.klass)
-              deconstantize_class(r.klass, report, :affected)
-            end
-          end
-        rescue
-        end
-      end
-      # relations affects if their are reflected back
-      {[:embeds_one, :embeds_many] => [:embedded_in],
-       [:belongs_to] => [:has_one, :has_many],
-       [:has_one, :has_many] => [:belongs_to],
-       [:has_and_belongs_to_many] => [:has_and_belongs_to_many]}.each do |rks, rkbacks|
-        rks.each do |rk|
-          klass.reflect_on_all_associations(rk).each do |r|
-            rkbacks.each do |rkback|
-              unless report[:destroyed].include?(r.klass) || report[:affected].include?(r.klass)
-                deconstantize_class(r.klass, report, :affected) if r.klass.reflect_on_all_associations(rkback).detect { |r| r.klass.eql?(klass) }
-              end
-            end
-          end
-        end
-      end
-      klass.affected_models.each { |m| deconstantize_class(m, report, :affected) }
-      deconstantize_class(parent, report, affected) if affected
-      report
+    def special_case_2(klass)
+      @@parsed_schemas.delete(klass.to_s)
+      @@parsing_schemas.delete(klass)
+      [@@has_many_to_bind,
+       @@has_one_to_bind,
+       @@embeds_many_to_bind,
+       @@embeds_one_to_bind].each { |to_bind| delete_pending_bindings(to_bind, klass) }
     end
 
     def delete_pending_bindings(to_bind, model)
@@ -425,7 +242,7 @@ module Setup
             '#{schema_name}'
           end")
           puts "Created model #{c.schema_name} < #{base_class.to_s}"
-          DataType.to_include_in_models.each do |module_to_include|
+          Setup::Model.to_include_in_models.each do |module_to_include|
             unless c.include?(module_to_include)
               puts "#{c.to_s} including #{module_to_include.to_s}."
               c.include(module_to_include)
@@ -890,8 +707,9 @@ module Setup
         post_process_report(report)
         puts "Post processed report #{report}"
         unless options[:report_only]
+          opts = options.reject { |key, _| key == :destroy }
           report[:destroyed].each do |model|
-            model.data_type.shutdown_model(options) unless data_types.include?(data_type = model.data_type)
+            model.data_type.shutdown_model(opts) unless data_types.include?(data_type = model.data_type)
           end
           deconstantize(report[:destroyed])
           puts 'Reloading affected models...' if report[:affected].present?

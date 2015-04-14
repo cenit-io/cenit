@@ -1,0 +1,20 @@
+= rails_admin_form_for @file_model, url: new_file_model_path, html: { multipart: true, class: "form-horizontal denser"} do |form|
+  = form.generate action: :create
+
+  .form-actions
+    - if @file_model.instance_variable_get(:@_selecting_library)
+      %button.btn.btn-info{type: 'submit', name: '_next', :'data-disable-with' => t('admin.actions.new_wizard.next')}
+        %i.icon-forward
+        = t('admin.actions.new_wizard.next')
+    -else
+      %button.btn.btn-primary{type: 'submit', name: '_save', :'data-disable-with' => t('admin.actions.new_file_model.submit')}
+        %i.icon-ok
+        = t('admin.actions.new_file_model.submit')
+    - if params[:_next] || params[:_save]
+      %button.btn.btn-info{type: 'submit', name: '_restart', :'data-disable-with' => t('admin.actions.new_wizard.restart')}
+        %i.icon-repeat
+        = t('admin.actions.new_wizard.restart')
+    %span.extra_buttons
+      %button.btn{type: 'submit', name: '_continue', :'data-disable-with' => t('admin.form.cancel')}
+        %i.icon-remove
+        = t('admin.form.cancel')
