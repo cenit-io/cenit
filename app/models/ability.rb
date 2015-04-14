@@ -5,25 +5,49 @@ class Ability
     if user
       can :access, :rails_admin # only allow admin users to access Rails Admin
 
-      RailsAdmin::Config::Actions.all(:root).each { |action| can action.authorization_key }
+      can RailsAdmin::Config::Actions.all(:root).collect(&:authorization_key)
 
-      non_root = RailsAdmin::Config::Actions.all.select { |action| !action.root? }
+      can [:update, :destroy], Setup::SharedCollection, creator: user
+      cannot :delete_all, Setup::SharedCollection
 
-      can :destroy, Setup::SharedCollection, creator: user
-      can :update, Setup::SharedCollection, creator: user
-      cannot :pull_collection, Setup::SharedCollection, creator: user
-
-      Setup::Models.each do |model, excluded_actions|
-        non_root.each do |action|
-          can action.authorization_key, model unless can?(action.authorization_key, model) || excluded_actions.include?(action.key)
+      @@setup_map ||=
+        begin
+          hash = {}
+          non_root = []
+          RailsAdmin::Config::Actions.all.each do |action|
+            unless action.root?
+              if models = action.only
+                models = [models] unless models.is_a?(Enumerable)
+                hash[action.authorization_key] = Set.new(models)
+              else
+                non_root << action
+              end
+            end
+          end
+          Setup::Models.each do |model, excluded_actions|
+            non_root.each do |action|
+              models = (hash[key = action.authorization_key] ||= Set.new)
+              models << model if relevant_rules_for_match(action.authorization_key, model).empty? && !excluded_actions.include?(action.key)
+            end
+          end
+          new_hash = {}
+          hash.each do |key, models|
+            a = (new_hash[models] ||= [])
+            a << key
+          end
+          hash = {}
+          new_hash.each { |models, keys| hash[keys] = models.to_a }
+          hash
         end
-      end
 
-      Setup::DataType.all.each do |data_type|
-        if (model = data_type.records_model).is_a?(Class)
-          can :manage, model
-        end
-      end
+      @@setup_map.each { |keys, models| can keys, models }
+
+      models = Setup::DataType.where(model_loaded: true).collect(&:records_model).select { |m| m.is_a?(Class) }
+      can :manage, models
+
+      file_models = Setup::FileDataType.where(model_loaded: true).collect(&:model)
+      file_models.delete(nil)
+      can [:index, :show, :upload_file, :download_file, :destroy], file_models
     end
 
   end

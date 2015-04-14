@@ -16,7 +16,11 @@
  RailsAdmin::Config::Actions::DeleteLibrary,
  RailsAdmin::Config::Actions::ShareCollection,
  RailsAdmin::Config::Actions::PullCollection,
- RailsAdmin::Config::Actions::RetryNotification].each { |a| RailsAdmin::Config::Actions.register(a) }
+ RailsAdmin::Config::Actions::RetryNotification,
+ RailsAdmin::Config::Actions::NewFileModel,
+ RailsAdmin::Config::Actions::UploadFile,
+ RailsAdmin::Config::Actions::DownloadFile,
+ RailsAdmin::Config::Actions::DeleteDataType].each { |a| RailsAdmin::Config::Actions.register(a) }
 
 RailsAdmin::Config::Actions.register(:export, RailsAdmin::Config::Actions::EdiExport)
 
@@ -40,7 +44,8 @@ RailsAdmin.config do |config|
     memory_usage
     disk_usage
     index # mandatory
-    new { except [Role] }
+    new { except [Setup::Event, Role] }
+    new_file_model
     import
     import_schema
     update
@@ -54,28 +59,31 @@ RailsAdmin.config do |config|
     edit { except [Role] }
     share_collection
     pull_collection
+    upload_file
+    download_file
+    load_model
+    shutdown_model
+    delete_data_type
     delete { except [Role] }
     delete_schema
     delete_library
     #show_in_app
     send_to_flow
     test_transformation
-    load_model
-    shutdown_model
     switch_navigation
     delete_all { except [Role] }
     data_type
     retry_notification
 
     history_index do
-      only [Setup::DataType, Setup::Webhook, Setup::Flow, Setup::Schema, Setup::Event, Setup::Connection, Setup::ConnectionRole, Setup::Library]
+      only [Setup::Model, Setup::Webhook, Setup::Flow, Setup::Schema, Setup::Event, Setup::Connection, Setup::ConnectionRole, Setup::Library]
     end
     history_show do
-      only [Setup::DataType, Setup::Webhook, Setup::Flow, Setup::Schema, Setup::Event, Setup::Connection, Setup::ConnectionRole, Setup::Notification, Setup::Library]
+      only [Setup::Model, Setup::Webhook, Setup::Flow, Setup::Schema, Setup::Event, Setup::Connection, Setup::ConnectionRole, Setup::Notification, Setup::Library]
     end
   end
 
-  config.model Role.name do
+  config.model Role do
     weight -20
     navigation_label 'Account'
     show do
@@ -85,7 +93,7 @@ RailsAdmin.config do |config|
     fields :name
   end
 
-  config.model Setup::Library.name do
+  config.model Setup::Library do
     navigation_label 'Data Definitions'
     weight -16
 
@@ -101,6 +109,8 @@ RailsAdmin.config do |config|
     show do
       field :name
       field :schemas
+      field :validators
+      field :file_data_types
 
       field :_id
       field :created_at
@@ -109,10 +119,10 @@ RailsAdmin.config do |config|
       #field :updater
     end
 
-    fields :name, :schemas
+    fields :name, :schemas, :validators, :file_data_types
   end
 
-  config.model Setup::Schema.name do
+  config.model Setup::Schema do
     navigation_label 'Data Definitions'
     register_instance_option(:after_form_partials) do
       %w(shutdown_and_reload)
@@ -141,7 +151,7 @@ RailsAdmin.config do |config|
           {cols: '74', rows: '15'}
         end
       end
-    end 
+    end
 
     show do
       field :library
@@ -166,12 +176,149 @@ RailsAdmin.config do |config|
       #field :creator
       field :updated_at
       #field :updater
-      
+
     end
     fields :library, :uri, :data_types
   end
 
-  config.model Setup::DataType.name do
+  config.model Setup::Model do
+    label 'Data type'
+    label_plural 'Data types'
+    object_label_method { :on_library_title }
+    navigation_label 'Data Definitions'
+    weight -17
+
+    configure :title do
+      pretty_value do
+        bindings[:object].on_library_title
+      end
+    end
+
+    configure :validator, :text do
+      pretty_value do
+        if value
+          am = (amc = RailsAdmin::Config.model(value.class)).abstract_model
+          (v = bindings[:view]).link_to(value.send(amc.object_label_method), v.url_for(action: v.action(:show, am, value).action_name, model_name: am.to_param, id: value.id), class: 'pjax')
+        end
+      end
+    end
+
+    configure :storage_size, :decimal do
+      pretty_value do
+        unless max = bindings[:controller].instance_variable_get(:@max_storage_size)
+          bindings[:controller].instance_variable_set(:@max_storage_size, max = bindings[:controller].instance_variable_get(:@objects).collect { |data_type| data_type.storage_size }.max)
+        end
+        (bindings[:view].render partial: 'used_memory_bar', locals: {max: max, value: bindings[:object].records_model.storage_size}).html_safe
+      end
+      read_only true
+    end
+
+    list do
+      field :title
+      field :validator
+      field :name
+      field :used_memory do
+        pretty_value do
+          unless max = bindings[:controller].instance_variable_get(:@max_used_memory)
+            bindings[:controller].instance_variable_set(:@max_used_memory, max = Setup::Model.fields[:used_memory.to_s].type.new(Setup::Model.max(:used_memory)))
+          end
+          (bindings[:view].render partial: 'used_memory_bar', locals: {max: max, value: Setup::Model.fields[:used_memory.to_s].type.new(value)}).html_safe
+        end
+      end
+      field :storage_size
+    end
+
+    show do
+      field :title
+      field :name
+      field :activated
+
+      field :_id
+      field :created_at
+      #field :creator
+      field :updated_at
+      #field :updater
+    end
+    fields :title, :validator, :name, :used_memory
+  end
+
+  config.model Setup::Validator do
+    navigation_label 'Data Definitions'
+    weight -18
+
+    edit do
+      field :library do
+        inline_edit false
+        read_only { !bindings[:object].new_record? }
+      end
+
+      field :name
+      field :style do
+        visible { bindings[:object].library.present? }
+      end
+
+      field :schema do
+        inline_edit false
+        visible { (obj = bindings[:object]).style.present? && obj.schema_style? }
+        associated_collection_scope do
+          library = (obj = bindings[:object]) && obj.library
+          Proc.new { |scope|
+            library ? library.schemas.where(schema_type: obj.schema_type) : scope
+          }
+        end
+      end
+      field :validation do
+        visible { (obj = bindings[:object]).style.present? && obj.script_style? }
+      end
+    end
+
+    show do
+      field :library
+      field :name
+      field :schema
+      field :_id
+      field :created_at
+      #field :creator
+      field :updated_at
+      #field :updater
+
+    end
+    fields :library, :name, :schema, :validation
+  end
+
+  config.model Setup::FileDataType do
+    visible false
+    register_instance_option(:discard_submit_buttons) do
+      !(a = bindings[:action]) || a.key != :edit
+    end
+    edit do
+      field :name
+      field :library do
+        inline_add false
+        inline_edit false
+        associated_collection_scope do
+          library = (obj = bindings[:object]).library
+          Proc.new { |scope|
+            if library
+              scope.where(id: library.id)
+            else
+              scope
+            end
+          }
+        end
+      end
+      field :validator do
+        inline_edit false
+        visible do
+          !bindings[:object].instance_variable_get(:@_selecting_library)
+        end
+      end
+    end
+    fields :name, :library, :validator
+  end
+
+  config.model Setup::DataType do
+    visible false
     object_label_method { :on_library_title }
     navigation_label 'Data Definitions'
     weight -17
@@ -213,12 +360,12 @@ RailsAdmin.config do |config|
       end
     end
 
-    configure :collection_size, :decimal do
+    configure :storage_size, :decimal do
       pretty_value do
-        unless max = bindings[:controller].instance_variable_get(:@max_collection_size)
-          bindings[:controller].instance_variable_set(:@max_collection_size, max = bindings[:controller].instance_variable_get(:@objects).collect { |data_type| data_type.records_model.collection_size }.max)
+        unless max = bindings[:controller].instance_variable_get(:@max_storage_size)
+          bindings[:controller].instance_variable_set(:@max_storage_size, max = bindings[:controller].instance_variable_get(:@objects).collect { |data_type| data_type.records_model.storage_size }.max)
         end
-        (bindings[:view].render partial: 'used_memory_bar', locals: {max: max, value: bindings[:object].records_model.collection_size}).html_safe
+        (bindings[:view].render partial: 'used_memory_bar', locals: {max: max, value: bindings[:object].records_model.storage_size}).html_safe
       end
       read_only true
     end
@@ -235,7 +382,7 @@ RailsAdmin.config do |config|
           (bindings[:view].render partial: 'used_memory_bar', locals: {max: max, value: Setup::DataType.fields[:used_memory.to_s].type.new(value)}).html_safe
         end
       end
-      field :collection_size
+      field :storage_size
     end
 
     show do
@@ -254,7 +401,7 @@ RailsAdmin.config do |config|
     fields :title, :schema, :name, :used_memory
   end
 
-  config.model Setup::Connection.name do
+  config.model Setup::Connection do
     weight -15
     configure :name, :string do
       help 'Requiered.'
@@ -262,10 +409,9 @@ RailsAdmin.config do |config|
         {maxlength: 30, size: 30}
       end
     end
-    configure :url, :string do
-      help 'Requiered.'
+    configure :url do
       html_attributes do
-        {maxlength: 50, size: 50}
+        {cols: '50', rows: '1'}
       end
     end
     group :credentials do
@@ -323,7 +469,7 @@ RailsAdmin.config do |config|
     fields :name, :url, :parameters, :headers, :template_parameters, :key, :token
   end
 
-  config.model Setup::Parameter.name do
+  config.model Setup::Parameter do
     object_label_method { :to_s }
     edit do
       field :key
@@ -331,7 +477,7 @@ RailsAdmin.config do |config|
     end
   end
 
-  config.model Setup::ConnectionRole.name do
+  config.model Setup::ConnectionRole do
     weight -14
     configure :name, :string do
       help 'Requiered.'
@@ -364,7 +510,7 @@ RailsAdmin.config do |config|
     fields :name, :webhooks, :connections
   end
 
-  config.model Setup::Webhook.name do
+  config.model Setup::Webhook do
     weight -13
 
     configure :path, :string do
@@ -401,7 +547,7 @@ RailsAdmin.config do |config|
     fields :name, :purpose, :path, :method, :parameters, :headers
   end
 
-  config.model Setup::Notification.name do
+  config.model Setup::Notification do
     weight -10
     navigation_label 'Notifications'
     configure :exception_message do
@@ -424,7 +570,7 @@ RailsAdmin.config do |config|
     fields :flow, :created_at, :retries, :response, :exception_message
   end
 
-  config.model Setup::Flow.name do
+  config.model Setup::Flow do
     register_instance_option(:form_synchronized) do
       [:custom_data_type, :data_type_scope, :lot_size, :connection_role, :webhook, :response_translator, :response_data_type]
     end

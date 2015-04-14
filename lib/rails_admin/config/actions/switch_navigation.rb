@@ -4,7 +4,7 @@ module RailsAdmin
       class SwitchNavigation < RailsAdmin::Config::Actions::Base
 
         register_instance_option :only do
-          Setup::DataType
+          Setup::Model
         end
 
         register_instance_option :member do
@@ -34,7 +34,7 @@ module RailsAdmin
             else
               flash[:success] = "Model #{@object.title} is not loaded"
             end
-            redirect_to rails_admin.show_path(model_name: Setup::DataType.to_s.underscore.gsub('/', '~'), id: @object.id)
+            redirect_to rails_admin.show_path(model_name: Setup::Model.to_s.underscore.gsub('/', '~'), id: @object.id)
           end
         end
 

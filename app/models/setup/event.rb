@@ -9,7 +9,7 @@ module Setup
     field :name, type: String
     field :last_trigger_timestamps, type: DateTime
 
-    validates_account_uniqueness_of :name
+    validates_uniqueness_of :name
 
     before_save :do_not_save
 

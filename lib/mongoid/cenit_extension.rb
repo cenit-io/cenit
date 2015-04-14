@@ -4,8 +4,15 @@ module Mongoid
 
     module ClassMethods
 
-      def collection_size(scale = 1)
-        mongo_session.command(collstats: collection_name, scale: scale)['size'] rescue 0
+      def all_collections_names
+        [collection_name]
+      end
+
+      def storage_size(scale = 1)
+        all_collections_names.inject(0) do |size, name|
+          s = mongo_session.command(collstats: name, scale: scale)['size'] rescue 0
+          size + s
+        end
       end
 
       def property_model(property)

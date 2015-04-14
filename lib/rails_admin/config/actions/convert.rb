@@ -18,7 +18,7 @@ module RailsAdmin
         end
 
         register_instance_option :except do
-          [Setup::Library, Setup::Schema, Setup::DataType]
+          [Setup::Library, Setup::Schema, Setup::Model]
         end
 
         register_instance_option :link_icon do

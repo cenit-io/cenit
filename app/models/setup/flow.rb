@@ -14,7 +14,7 @@ module Setup
     belongs_to :event, class_name: Setup::Event.to_s, inverse_of: nil
 
     belongs_to :translator, class_name: Setup::Translator.to_s, inverse_of: nil
-    belongs_to :custom_data_type, class_name: Setup::DataType.to_s, inverse_of: nil
+    belongs_to :custom_data_type, class_name: Setup::Model.to_s, inverse_of: nil
     field :data_type_scope, type: String
     field :lot_size, type: Integer
 
@@ -23,7 +23,7 @@ module Setup
 
 
     belongs_to :response_translator, class_name: Setup::Translator.to_s, inverse_of: nil
-    belongs_to :response_data_type, class_name: Setup::DataType.to_s, inverse_of: nil
+    belongs_to :response_data_type, class_name: Setup::Model.to_s, inverse_of: nil
 
     field :last_trigger_timestamps, type: DateTime
 
@@ -95,7 +95,7 @@ module Setup
 
     def process(options={})
       puts "Flow processing on '#{self.name}': #{}"
-      message = options.merge(flow_id: self.id.to_s, account_id: self.account.id.to_s).to_json
+      message = options.merge(flow_id: self.id.to_s).to_json
       begin
         Cenit::Rabbit.send_to_endpoints(message)
       rescue Exception => ex
@@ -170,10 +170,10 @@ module Setup
               common_result ||= translator.run(translation_options)
             end
           headers = {'Content-Type' => translator.mime_type}
-          connection.headers.each { |h| headers[h.key] = h.value }
+          connection.headers.each { |h| headers[h.key] = connection.conforms(h.value) }
           webhook.headers.each { |h| headers[h.key] = h.value }
           begin
-            http_response = HTTParty.send(webhook.method, connection.url + '/' + webhook.path,
+            http_response = HTTParty.send(webhook.method, connection.conformed_url + '/' + webhook.path,
                                           {
                                             body: translation_result,
                                             headers: headers

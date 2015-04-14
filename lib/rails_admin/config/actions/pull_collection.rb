@@ -44,10 +44,20 @@ module RailsAdmin
             if libraries = @ids_to_update['libraries']
               data = hash_data['libraries']
               libraries.each do |library|
-                schemas_data = data.detect { |item| item['name'] == library.name }['schemas']
-                library.schemas.each do |schema|
-                  if schema_data = schemas_data.detect { |sch| sch['uri'] == schema.uri }
-                    schema_data['id'] = schema.id.to_s
+                if library_data = data.detect { |item| item['name'] == library.name }
+                  if schemas_data = library_data['schemas']
+                    library.schemas.each do |schema|
+                      if schema_data = schemas_data.detect { |sch| sch['uri'] == schema.uri }
+                        schema_data['id'] = schema.id.to_s
+                      end
+                    end
+                  end
+                  if data_type_data = library_data['file_data_types']
+                    library.file_data_types.each do |file_data_type|
+                      if data_type_data = data_type_data.detect { |dt| dt['name'] == file_data_type.name }
+                        data_type_data['id'] = file_data_type.id.to_s
+                      end
+                    end
                   end
                 end
               end

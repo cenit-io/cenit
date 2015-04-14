@@ -35,12 +35,24 @@ module Cenit
 
       #Setup::Schema.model_listeners << RailsAdmin::AbstractModel
 
-      Setup::DataType.update_all(used_memory: 0)
+      Account.all.each do |account|
 
-      Setup::Schema.all.each do |schema|
-        puts "Loading schema #{schema.uri}"
-        schema.load_models
+        Account.current = account
+
+        Setup::Model.update_all(model_loaded: false, used_memory: 0)
+
+        Setup::Schema.all.each do |schema|
+          puts "Loading schema #{schema.uri}"
+          schema.load_models
+        end
+
+        models = []
+        Setup::FileDataType.all.each do |file_data_type|
+          models << file_data_type.load_model if file_data_type.activated
+        end
+        RailsAdmin::AbstractModel.update_model_config(models)
       end
+      Account.current = nil
 
     end
 
