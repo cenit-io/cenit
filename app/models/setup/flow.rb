@@ -57,18 +57,18 @@ module Setup
 
     def reject_message(field = nil)
       case field
-        when :custom_data_type
-          'is not allowed since translator already defines a data type'
-        when :data_type_scope
-          'is not allowed for import translators'
-        when :response_data_type
-          response_translator.present? ? 'is not allowed since response translator already defines a data type' : "can't be defined until response translator"
-        when :discard_events
-          "can't be defined until response translator"
-        when :lot_size, :response_translator
-          'is not allowed for non export translators'
-        else
-          super
+      when :custom_data_type
+        'is not allowed since translator already defines a data type'
+      when :data_type_scope
+        'is not allowed for import translators'
+      when :response_data_type
+        response_translator.present? ? 'is not allowed since response translator already defines a data type' : "can't be defined until response translator"
+      when :discard_events
+        "can't be defined until response translator"
+      when :lot_size, :response_translator
+        'is not allowed for non export translators'
+      else
+        super
       end
     end
 
@@ -155,28 +155,27 @@ module Setup
         common_result = nil
         the_connections.each do |connection|
           translation_options =
-              {
-                  object_ids: object_ids,
-                  source_data_type: data_type,
-                  offset: offset,
-                  limit: limit,
-                  discard_events: discard_events,
-                  parameters: parameters
-              }
+            {
+              object_ids: object_ids,
+              source_data_type: data_type,
+              offset: offset,
+              limit: limit,
+              discard_events: discard_events,
+              parameters: parameters
+            }
           translation_result =
-              if connection.template_parameters.present?
-                translator.run(translation_options.merge(parameters: connection.template_parameters_hash.merge(parameters)))
-              else
-                common_result ||= translator.run(translation_options)
-              end
-          headers = {'Content-Type' => translator.mime_type}
-          connection.headers.each { |h| headers[h.key] = connection.conforms(h.value) }
+            if connection.template_parameters.present?
+              translator.run(translation_options.merge(parameters: connection.template_parameters_hash.merge(parameters)))
+            else
+              common_result ||= translator.run(translation_options)
+            end
+          headers = {'Content-Type' => translator.mime_type}.merge(connection.conformed_headers)
           webhook.headers.each { |h| headers[h.key] = h.value }
           begin
             http_response = HTTParty.send(webhook.method, connection.conformed_url + '/' + webhook.path,
                                           {
-                                              body: translation_result,
-                                              headers: headers
+                                            body: translation_result,
+                                            headers: headers
                                           })
             block.yield(response: http_response.to_json, exception_message: (200...299).include?(http_response.code) ? nil : 'Unsuccessful') if block.present?
             if response_translator #&& http_response.code == 200

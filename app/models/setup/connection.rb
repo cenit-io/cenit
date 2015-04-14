@@ -42,27 +42,17 @@ module Setup
       hash
     end
 
-    def conformed_url
-      conforms(url)
+    def conformed_url(options = {})
+      @url_template ||= Liquid::Template.parse(url)
+      @url_template.render(options.merge(template_parameters_hash))
     end
 
-    def conforms(str)
-      s = ''
-      tokens = str.split('{{')
-      tokens.shift if tokens.first.blank?
-      tokens.each do |token|
-        if i = token.index('}}')
-          s += '#{' + token[0, i] + token.from(i+2) + '}'
-        else
-          s += token
-        end
-      end
-      obj = Object.new
-      m = 'def m ;'
-      template_parameters_hash.each { |key, value| m += "#{key} = '#{value}';" }
-      m += "\"#{s}\";end"
-      obj.class_eval(m)
-      obj.m.gsub("\n", '')
+    def conformed_parameters(options = {})
+      conforms(:parameters, options)
+    end
+
+    def conformed_headers(options = {})
+      conforms(:headers, options)
     end
 
     private
@@ -72,6 +62,17 @@ module Setup
         token = Devise.friendly_token
         break token unless Setup::Connection.where(token: token).first
       end
+    end
+
+    def conforms(field, options = {})
+      unless templates = instance_variable_get(var = "@_#{field}_templates".to_sym)
+        templates = {}
+        send(field).each { |p| templates[p.key] = Liquid::Template.parse(p.value) }
+        instance_variable_set(var, templates)
+      end
+      hash = {}
+      send(field).each { |p| hash[p.key] = templates[p.key].render(options.merge(template_parameters_hash)) }
+      hash
     end
 
   end
