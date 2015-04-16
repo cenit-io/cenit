@@ -4,13 +4,22 @@ module Mongoff
 
     EMPTY_SCHEMA = {}.freeze
 
-    def initialize(data_type, schema = nil)
-      @data_type_id = data_type.id.to_s
+    attr_reader :name
+    attr_reader :parent
+
+    def initialize(data_type, name = nil, parent = nil, schema = nil)
+      @data_type_id = data_type.is_a?(Setup::BuildInDataType) ? data_type : data_type.id.to_s
+      @name = name || data_type.data_type_name
+      @parent = parent
       @persistable = (@schema = schema).nil?
     end
 
+    def to_s
+      parent ? "#{parent}::#{name}" : name
+    end
+
     def data_type
-      Setup::Model.where(id: @data_type_id).first
+      @data_type_id.is_a?(Setup::BuildInDataType) ? @data_type_id : Setup::Model.where(id: @data_type_id).first
     end
 
     def new
@@ -32,12 +41,12 @@ module Mongoff
         property_schema = property_schema['items'] if property_schema['type'] == 'array' && property_schema['items']
         model =
           if (ref = property_schema['$ref']) && property_dt = data_type.find_data_type(ref)
-            Model.new(property_dt)
+            Model.new(property_dt, nil, self)
           else
-            Model.new(data_type, property_schema)
+            Model.new(data_type, property.camelize, self, property_schema)
           end
       end
-      model || Model.new(data_type, EMPTY_SCHEMA)
+      model || Model.new(data_type, property.camelize, self, EMPTY_SCHEMA)
     end
 
     def for_each_association(&block)

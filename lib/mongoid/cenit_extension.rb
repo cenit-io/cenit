@@ -4,6 +4,10 @@ module Mongoid
 
     module ClassMethods
 
+      def persistable?
+        true
+      end
+
       def all_collections_names
         [collection_name]
       end
@@ -16,7 +20,7 @@ module Mongoid
       end
 
       def property_model(property)
-        (relation = try(:reflect_on_association, property)) && relation.try(:klass)
+        ((relation = try(:reflect_on_association, property)) && relation.try(:klass)) || (@mongoff_models && @mongoff_models[property])
       end
 
       def for_each_association(&block)

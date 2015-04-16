@@ -1,11 +1,7 @@
 module Setup
   module AffectRelationMethods
     def model_access_name
-      if self.is_a?(Class)
-        to_s
-      else
-        (data_type = try(:data_type)) && data_type.data_type_name
-      end
+      to_s
     end
 
     def affected_models
