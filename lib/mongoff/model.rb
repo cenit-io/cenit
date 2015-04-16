@@ -8,7 +8,7 @@ module Mongoff
     attr_reader :parent
 
     def initialize(data_type, name = nil, parent = nil, schema = nil)
-      @data_type_id = data_type.id.to_s
+      @data_type_id = data_type.is_a?(Setup::BuildInDataType) ? data_type : data_type.id.to_s
       @name = name || data_type.data_type_name
       @parent = parent
       @persistable = (@schema = schema).nil?
@@ -19,7 +19,7 @@ module Mongoff
     end
 
     def data_type
-      Setup::Model.where(id: @data_type_id).first
+      @data_type_id.is_a?(Setup::BuildInDataType) ? @data_type_id : Setup::Model.where(id: @data_type_id).first
     end
 
     def new
