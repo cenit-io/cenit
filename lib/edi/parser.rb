@@ -94,15 +94,19 @@ module Edi
       end
 
       def do_parse_json(data_type, model, json, options, json_schema, record=nil, new_record=nil)
-        json_schema = data_type.merge_schema(json_schema)
         updating = false
         unless record ||= new_record
-          if record = (!options[:ignore].include?(:id) && (id = json['id']) && model.where(id: id).first)
-            updating = true
+          if model.persistable?
+            if record = (!options[:ignore].include?(:id) && (id = json['id']) && model.where(id: id).first)
+              updating = true
+            else
+              record = model.new
+            end
           else
-            record = model.new
+            return json
           end
         end
+        json_schema = data_type.merge_schema(json_schema)
         json_schema['properties'].each do |property_name, property_schema|
           next if options[:ignore].include?(property_name.to_sym)
           property_schema = data_type.merge_schema(property_schema)
@@ -115,7 +119,6 @@ module Edi
             property_schema = data_type.merge_schema(property_schema['items'])
             record.send("#{property_name}=", []) unless property_value && property_schema['referenced']
             if property_value = json[name]
-              raise Exception.new("Array value expected for property #{property_name} but #{property_value.class} found: #{property_value}") unless property_value.is_a?(Array)
               property_value.each do |sub_value|
                 if sub_value['$referenced']
                   sub_value = Cenit::Utility.deep_remove(sub_value, '$referenced')
@@ -137,7 +140,6 @@ module Edi
           when 'object'
             next if !updating && record.send(property_name)
             if property_value = json[name]
-              raise Exception.new("Hash value expected for property #{property_name} but #{property_value.class} found: #{property_value}") unless property_value.is_a?(Hash)
               if property_value['$referenced']
                 property_value = Cenit::Utility.deep_remove(property_value, '$referenced')
                 if value = Cenit::Utility.find_record(property_model.all, property_value)
@@ -154,9 +156,7 @@ module Edi
             end
           else
             next if (updating && property_name == '_id') || (!updating && record.send(property_name))
-            if (property_value = json[name]).is_a?(Hash) || property_value.is_a?(Array)
-              raise Exception.new("Simple value expected for property #{property_name} but #{property_value.class} found: #{property_value}")
-            end
+            property_value = json[name]
             record.send("#{property_name}=", property_value)
           end
         end
