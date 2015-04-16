@@ -2,7 +2,8 @@ module Setup
   class Translator < ReqRejValidator
     include CenitScoped
 
-    Setup::Models.exclude_actions_for self, :edit
+    # TODO: remove the line below.
+    # Setup::Models.exclude_actions_for self, :edit
     BuildInDataType.regist(self).referenced_by(:name)
 
     field :name, type: String
