@@ -120,8 +120,8 @@ module Edi
             record.send("#{property_name}=", []) unless property_value && property_schema['referenced']
             if property_value = json[name]
               property_value.each do |sub_value|
-                if sub_value['$referenced']
-                  sub_value = Cenit::Utility.deep_remove(sub_value, '$referenced')
+                if sub_value['_reference']
+                  sub_value = Cenit::Utility.deep_remove(sub_value, '_reference')
                   if value = Cenit::Utility.find_record(property_model.all, sub_value)
                     if !(association = record.send(property_name)).include?(value)
                       association << value
@@ -140,8 +140,8 @@ module Edi
           when 'object'
             next if !updating && record.send(property_name)
             if property_value = json[name]
-              if property_value['$referenced']
-                property_value = Cenit::Utility.deep_remove(property_value, '$referenced')
+              if property_value['_reference']
+                property_value = Cenit::Utility.deep_remove(property_value, '_reference')
                 if value = Cenit::Utility.find_record(property_model.all, property_value)
                   record.send("#{property_name}=", value)
                 else

@@ -3,7 +3,7 @@ module Setup
     include CenitScoped
     include Setup::Enum
 
-    BuildInDataType.regist(self).referenced_by(:name)
+    BuildInDataType.regist(self).referenced_by(:name).excluding(:connection_roles)
 
     embeds_many :parameters, class_name: Setup::Parameter.to_s, inverse_of: :webhook
     embeds_many :headers, class_name: Setup::Parameter.to_s, inverse_of: :webhook

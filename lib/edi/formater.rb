@@ -95,7 +95,7 @@ module Edi
       return record if json_object?(record)
       data_type = record.orm_model.data_type
       schema = data_type.merged_schema
-      json = (referenced = referenced && schema['referenced_by']) ? {'$referenced' => true} : {}
+      json = (referenced = referenced && schema['referenced_by']) ? {'_reference' => true} : {}
       schema['properties'].each do |property_name, property_schema|
         next if property_schema['virtual'] || (referenced && !referenced.include?(property_name)) || options[:ignore].include?(property_name.to_sym)
         property_schema = data_type.merge_schema(property_schema)
