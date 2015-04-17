@@ -17,11 +17,11 @@ module Setup
       triggers_hash.each do |field_name, conditions|
         conditions.each do |_, condition|
           puts c =
-                 if (condition['o'] == '_change')
-                   field_changed(obj_now, obj_before, field_name)
-                 else
-                   condition_apply(obj_now, field_name, condition) && !condition_apply(obj_before, field_name, condition)
-                 end
+                   if (condition['o'] == '_change')
+                     field_changed(obj_now, obj_before, field_name)
+                   else
+                     condition_apply(obj_now, field_name, condition) && !condition_apply(obj_before, field_name, condition)
+                   end
           r &&= c
         end
       end
@@ -54,11 +54,11 @@ module Setup
       obj_v = obj.try(field_name)
       cond_v = valuate(condition['v'], obj_v.class)
       obj_values =
-        if cond_v.is_a?(String) || (cond_v.is_a?(Array) && cond_v.detect { |e| e.is_a?(String) })
-          convert_to_string_array(obj_v)
-        else
-          [obj_v]
-        end
+          if cond_v.is_a?(String) || (cond_v.is_a?(Array) && cond_v.detect { |e| e.is_a?(String) })
+            convert_to_string_array(obj_v)
+          else
+            [obj_v]
+          end
       unless op = condition['o']
         op = cond_v.is_a?(Array) ? 'in' : 'is'
       end
@@ -90,17 +90,17 @@ module Setup
                       FalseClass => :to_boolean, TrueClass => :to_boolean, BigDecimal => :to_d}[klass]
       cond_v = cond_v.collect do |e|
         case
-        when e.nil? || (e.is_a?(String) && e.empty?)
-          nil
-        when to_obj_class.nil?
-          e
-        else
-          begin
-            e.to_s.send(to_obj_class)
-          rescue Exception => ex
-            puts "ERROR invoking [#{klass}](#{e} of class #{e.class}).#{to_obj_class} -> #{ex.message}"
+          when e.nil? || (e.is_a?(String) && e.empty?)
+            nil
+          when to_obj_class.nil?
             e
-          end
+          else
+            begin
+              e.to_s.send(to_obj_class)
+            rescue Exception => ex
+              puts "ERROR invoking [#{klass}](#{e} of class #{e.class}).#{to_obj_class} -> #{ex.message}"
+              e
+            end
         end
       end
       return is_array ? cond_v : cond_v[0]

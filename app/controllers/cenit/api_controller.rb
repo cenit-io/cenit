@@ -5,12 +5,11 @@ module Cenit
 
     def consume
       response = {}
+      handler = Handler.new(@message)
       @objects.each do |obj|
-        handler = Handler.new(@message, obj)
-        response.merge(handler.process)
+        response = response.merge(handler.process(obj)) unless obj == "request_id" or obj == "parameters"
       end
-      response_handler = Handler.new(@message)
-      responder = response_handler.response(response, 202)
+      responder = handler.response(response, 202)
       render json: responder, root: false, status: responder.code
     rescue Exception => e
       puts "ERROR: #{e.inspect}"
@@ -21,7 +20,7 @@ module Cenit
       key = request.headers['X-Hub-Store']
       token = request.headers['X-Hub-Access-Token']
 
-      unless Account.set_current_with_connection(key, token) 
+      unless Account.set_current_with_connection(key, token)
         response_handler = Handler.new(@message)
         responder = response_handler.response('Unauthorized!', 401)
         render json: responder, root: false, status: responder.code

@@ -19,11 +19,11 @@ module Setup
                     next if new_token.nil? || new_token = new_token[k]
                   end
                   new_token =
-                    if new_token.is_a?(Hash)
-                      new_token.to_json
-                    else
-                      new_token.to_s
-                    end if new_value || tokens.length > 1 || token.length > index + 2
+                      if new_token.is_a?(Hash)
+                        new_token.to_json
+                      else
+                        new_token.to_s
+                      end if new_value || tokens.length > 1 || token.length > index + 2
                   new_value = new_value ? new_value.to_s + new_token : new_token
                   if token.length > index + 2
                     new_value += token.from(index + 2).gsub('}}', '')

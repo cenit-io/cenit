@@ -3,7 +3,7 @@ module Setup
     include CenitScoped
     include Setup::Enum
 
-    BuildInDataType.regist(self).referenced_by(:name)
+    BuildInDataType.regist(self).referenced_by(:name).excluding(:connection_roles)
 
     embeds_many :parameters, class_name: Setup::Parameter.to_s, inverse_of: :webhook
     embeds_many :headers, class_name: Setup::Parameter.to_s, inverse_of: :webhook
@@ -24,7 +24,7 @@ module Setup
     validates_presence_of :name, :path, :purpose
     validates_uniqueness_of :name
 
-    accepts_nested_attributes_for :parameters, :headers
+    accepts_nested_attributes_for :parameters, :headers, :template_parameters
 
     def template_parameters_hash
       hash = {}

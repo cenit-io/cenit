@@ -130,18 +130,18 @@ module Setup
                                                      :has_and_belongs_to_many)).each do |relation|
         if included?(relation.name)
           property_schema =
-            case relation.macro
-            when :embeds_one
-              {'$ref' => relation.klass.to_s}
-            when :embeds_many
-              {'type' => 'array', 'items' => {'$ref' => relation.klass.to_s}}
-            when :has_one
-              {'$ref' => relation.klass.to_s, 'referenced' => true, 'export_embedded' => @embedding && @embedding.include?(relation.name)}
-            when :belongs_to
-              {'$ref' => relation.klass.to_s, 'referenced' => true, 'export_embedded' => @embedding && @embedding.include?(relation.name)} if (@including && @including.include?(relation.name.to_s)) || relation.inverse_of.nil?
-            when :has_many, :has_and_belongs_to_many
-              {'type' => 'array', 'items' => {'$ref' => relation.klass.to_s, 'referenced' => true, 'export_embedded' => @embedding && @embedding.include?(relation.name)}}
-            end
+              case relation.macro
+                when :embeds_one
+                  {'$ref' => relation.klass.to_s}
+                when :embeds_many
+                  {'type' => 'array', 'items' => {'$ref' => relation.klass.to_s}}
+                when :has_one
+                  {'$ref' => relation.klass.to_s, 'referenced' => true, 'export_embedded' => @embedding && @embedding.include?(relation.name)}
+                when :belongs_to
+                  {'$ref' => relation.klass.to_s, 'referenced' => true, 'export_embedded' => @embedding && @embedding.include?(relation.name)} if (@including && @including.include?(relation.name.to_s)) || relation.inverse_of.nil?
+                when :has_many, :has_and_belongs_to_many
+                  {'type' => 'array', 'items' => {'$ref' => relation.klass.to_s, 'referenced' => true, 'export_embedded' => @embedding && @embedding.include?(relation.name)}}
+              end
           properties[relation.name] = property_schema if property_schema
         end
       end
