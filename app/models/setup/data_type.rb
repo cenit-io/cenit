@@ -231,7 +231,7 @@ module Setup
         raise "uses illegal constant #{c.to_s}" unless @@parsed_schemas.include?(model_name) || (c.is_a?(Class) && @@parsing_schemas.include?(c))
       else
         return nil if do_not_create
-        c = Class.new(base_class) unless value && c = Mongoff::Model.new(self)
+        c = Class.new(base_class) unless value && c = Mongoff::Model.new(self, name, parent, parent ? value : nil)
         parent.const_set(constant_name, c)
       end
 
@@ -261,8 +261,8 @@ module Setup
             self.class
           end")
         else
-          @@parsed_schemas << name
-          puts "Created constant #{constant_name}"
+          @@parsed_schemas << model_name
+          puts "Created constant #{model_name}"
         end
       end
       c
@@ -286,7 +286,7 @@ module Setup
           schema['properties'] ||= {}
           value_schema = schema['properties']['value'] || {}
           value_schema = base_schema.deep_merge(value_schema)
-          schema['properties']['value'] = value_schema.merge('title' => 'Value', 'xml' => {'attribute' => false})
+          schema['properties']['value'] = value_schema.merge('title' => 'Value', 'xml' => {'content' => true})
         else
           schema = base_schema.deep_merge(schema) { |key, val1, val2| array_sum(val1, val2) }
         end
@@ -484,13 +484,15 @@ module Setup
         if property_type == 'string' && %w{date time date-time}.include?(property_desc['format'])
           property_type = property_desc.delete('format')
         end
-        property_type = RJSON_MAP[property_type] if RJSON_MAP[property_type]
-        if property_type.eql?('Array') && (items_desc = property_desc['items'])
-          #TODO Check when type model is a Mongoff model
+        property_type_backup = property_type = RJSON_MAP[property_type] if RJSON_MAP[property_type]
+        v =nil
+        type_model = nil
+        type_model_created = false
+        if property_type.eql?('Array') && items_desc = property_desc['items']
           r = nil
           ir = ''
-          if referenced = ((ref = items_desc['$ref']) && (!ref.start_with?('#') && items_desc['referenced']))
-            if (type_model = (find_or_load_model(report, property_type = ref) || reflect_constant(ref, :do_not_create))) &&
+          if (ref = items_desc['$ref']) && (!ref.start_with?('#') && items_desc['referenced'])
+            if (type_model = (find_or_load_model(report, property_type = ref) || reflect_constant(ref, :do_not_create))).is_a?(Class) &&
               @@parsed_schemas.include?(type_model.model_access_name)
               property_type = type_model.model_access_name
               if (a = @@has_many_to_bind[property_type]) && i = a.find_index { |x| x[0].eql?(model_name) }
@@ -507,7 +509,7 @@ module Setup
                   type_model.affects_to(klass)
                 end
               end
-            else
+            elsif type_model.nil?
               puts "#{klass.to_s}  Waiting [1] for parsing #{property_type} to bind property #{property_name}"
               @@has_many_to_bind[model_name] << [property_type, property_name]
             end
@@ -519,15 +521,18 @@ module Setup
               type_model = find_or_load_model(report, property_type) || reflect_constant(property_type, :do_not_create)
             else
               property_type = (type_model = parse_schema(report, property_name.camelize.singularize, property_desc['items'], root, klass, :embedded, klass.schema_path + "/properties/#{property_name}/items")).model_access_name
+              type_model_created = true
             end
-            if type_model && @@parsed_schemas.detect { |m| m.eql?(property_type = type_model.to_s) }
+            if type_model.is_a?(Class) && @@parsed_schemas.detect { |m| m.eql?(property_type = type_model.to_s) }
               ir = ", inverse_of: :#{relation_name(model_name, property_name)}"
               reflect(type_model, "embedded_in :#{relation_name(model_name, property_name)}, class_name: '#{model_name}', inverse_of: :#{property_name}")
               nested << property_name if r
             else
               r = nil
-              puts "#{klass.to_s}  Waiting [2] for parsing #{property_type} to bind property #{property_name}"
-              @@embeds_many_to_bind[model_name] << [property_type, property_name]
+              if type_model.nil?
+                puts "#{klass.to_s}  Waiting [2] for parsing #{property_type} to bind property #{property_name}"
+                @@embeds_many_to_bind[model_name] << [property_type, property_name]
+              end
             end
           end
           if r
@@ -539,16 +544,26 @@ module Setup
               validations << "validates_association_length_of :#{property_name}#{property_desc['minItems'] ? ', minimum: ' + property_desc['minItems'].to_s : ''}#{property_desc['maxItems'] ? ', maximum: ' + property_desc['maxItems'].to_s : ''}"
             end
           end
-        else
-          v =nil
-          if property_type.eql?('object')
-            if property_desc['properties'] || property_desc['extends']
-              property_type = (type_model = parse_schema(report, property_name.camelize, property_desc, root, klass, :embedded, klass.schema_path + "/properties/#{property_name}")).model_access_name
+        end
+        unless v
+          property_type = property_type_backup
+          if property_type.nil? || property_type.eql?('object') || property_type.eql?('Array')
+            if type_model && type_model_created
+              puts "Destroying created model #{type_model}"
+              klass.send(:remove_const, type_model.name)
+            end
+            property_type = (type_model = parse_schema(report, property_name.camelize, property_desc, root, klass, :embedded, klass.schema_path + "/properties/#{property_name}")).model_access_name
+            if type_model.is_a?(Class)
               v = "embeds_one :#{property_name}, class_name: '#{type_model.to_s}', inverse_of: :#{relation_name(model_name, property_name)}"
               reflect(type_model, "embedded_in :#{relation_name(model_name, property_name)}, class_name: '#{model_name}', inverse_of: :#{property_name}")
               nested << property_name
-            else
-              property_type = 'Hash'
+            else # is a Mongoff Model
+              v = "field :#{property_name}"
+              validations << "validates_schema_of :#{property_name}, model: #{property_type}"
+              unless mongoff_models = klass.instance_variable_get(:@mongoff_models)
+                klass.instance_variable_set(:@mongoff_models, mongoff_models = {})
+              end
+              mongoff_models[property_name] = type_model
             end
           end
           unless v

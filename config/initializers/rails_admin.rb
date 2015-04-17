@@ -23,6 +23,7 @@
  RailsAdmin::Config::Actions::DeleteDataType].each { |a| RailsAdmin::Config::Actions.register(a) }
 
 RailsAdmin::Config::Actions.register(:export, RailsAdmin::Config::Actions::EdiExport)
+RailsAdmin::Config::Fields::Types.register(RailsAdmin::Config::Fields::Types::JsonSchema)
 
 RailsAdmin.config do |config|
 
@@ -144,7 +145,19 @@ RailsAdmin.config do |config|
         end
       end
 
-      field :schema, :text do
+      field :schema, :code_mirror do
+        config do
+          {
+            mode: 'css',
+            theme: 'neo',
+          }
+        end
+        assets do
+          {
+            mode: '/assets/codemirror/modes/css.js',
+            theme: '/assets/codemirror/themes/neo.css',
+          }
+        end
         html_attributes do
           reload = Setup::DataType.shutdown(bindings[:object].data_types, report_only: true)[:destroyed].collect(&:data_type).uniq #.select(&:activated)
           bindings[:object].instance_variable_set(:@_to_reload, reload)
@@ -160,13 +173,14 @@ RailsAdmin.config do |config|
         pretty_value do
           pretty_value =
             if json = JSON.parse(value) rescue nil
-              "#{JSON.pretty_generate(json)}"
+              "<code class='json'>#{JSON.pretty_generate(json)}</code>"
             elsif xml = Nokogiri::XML(value) rescue nil
               "<code class='xml'>#{xml.to_xml}</code>"
             else
               value
             end
-          "<textarea id='code' name='code'>#{pretty_value}</textarea>".html_safe
+          #"<textarea id='code' name='code'>#{pretty_value}</textarea>".html_safe
+          "<pre>#{pretty_value}</pre>".html_safe
         end
       end
       field :data_types
@@ -232,6 +246,8 @@ RailsAdmin.config do |config|
       field :title
       field :name
       field :activated
+      field :validator
+      field :model_schema
 
       field :_id
       field :created_at
