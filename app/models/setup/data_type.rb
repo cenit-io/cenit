@@ -518,7 +518,7 @@ module Setup
             if ref
               raise Exception.new("referencing embedded reference #{ref}") if items_desc['referenced']
               property_type = ref.start_with?('#') ? check_embedded_ref(ref, root.to_s).singularize : ref
-              type_model = find_or_load_model(report, property_type) || reflect_constant(property_type, :do_not_create)
+              property_type = (type_model = find_or_load_model(report, property_type) || reflect_constant(property_type, :do_not_create)).model_access_name
             else
               property_type = (type_model = parse_schema(report, property_name.camelize.singularize, property_desc['items'], root, klass, :embedded, klass.schema_path + "/properties/#{property_name}/items")).model_access_name
               type_model_created = true

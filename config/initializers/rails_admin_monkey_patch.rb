@@ -182,6 +182,7 @@ module RailsAdmin
               value
             end
           end
+          rails_admin_fields = rails_admin_model.fields
           if properties = schema['properties']
             properties.each do |property, property_schema|
               field =
@@ -201,7 +202,7 @@ module RailsAdmin
                     end
                   end
                 else
-                  rails_admin_model.field(property)
+                  rails_admin_fields.detect { |f| f.name == property.to_sym }
                 end
               property_schema = data_type.merge_schema(property_schema)
               visible_ok = false
