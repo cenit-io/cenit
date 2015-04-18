@@ -130,18 +130,18 @@ module Setup
     def parse_json_schema
       json = JSON.parse(self.schema)
       json =
-          if json['type'] || json['allOf']
-            name = self.uri
-            if (index = name.rindex('/')) || index = name.rindex('#')
-              name = name[index + 1, name.length - 1]
-            end
-            if index = name.rindex('.')
-              name = name[0..index - 1]
-            end
-            {name.camelize => json}
-          else
-            json
+        if json['type'] || json['allOf']
+          name = self.uri
+          if (index = name.rindex('/')) || index = name.rindex('#')
+            name = name[index + 1, name.length - 1]
           end
+          if index = name.rindex('.')
+            name = name[0..index - 1]
+          end
+          {name.camelize => json}
+        else
+          json
+        end
       json
     end
 
