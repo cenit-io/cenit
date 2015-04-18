@@ -70,7 +70,15 @@ module Edi
           end
         end
         if sub_element_schemas.empty?
-          record.send("#{content_property}=", element.content) if content_property
+          if content_property
+            content =
+              if element.children.empty?
+                element.content
+              else
+                Hash.from_xml(element.to_xml).values.first
+              end
+            record.send("#{content_property}=", content)
+          end
         else
           sub_element = element.first_element_child
           sub_element_schemas.each do |property_name, property_schema|
