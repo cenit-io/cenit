@@ -91,7 +91,7 @@ module Setup
       to_be_destroyed
     end
 
-    def shutdown_model(options = {} )
+    def shutdown_model(options = {})
       report = deconstantize(data_type_name, options)
       unless options[:report_only]
         self.to_be_destroyed = true if options[:destroy]
@@ -122,7 +122,7 @@ module Setup
         #TODO Delete raise
         #raise ex
         puts "ERROR: #{errors.add(:model_schema, ex.message).to_s}"
-        # merge_report(shutdown(options), report)
+        report[:errors][self] = errors.full_messages
         shutdown(options)
       end
       create_default_events
@@ -135,7 +135,6 @@ module Setup
         self.activated = do_activate if do_activate.present?
         self.model_loaded = true
       else
-        report[:errors][self] = errors
         self.used_memory = 0 unless self.used_memory == 0
         self.activated = false
         self.model_loaded = false
@@ -184,37 +183,49 @@ module Setup
     def deconstantize(constant_name, options={})
       report = {:destroyed => Set.new, :affected => Set.new}.merge(options)
       if constant = constant_name.constantize rescue nil
-        if constant.is_a?(Class)
-          deconstantize_class(constant, report)
-        else # it is a Mongoff model
-          constant.affected_models.each { |model| deconstantize_class(model, report, :affected) }
-        end
+          do_deconstantize(constant, report)
       end
       report
     end
 
-    def deconstantize_class(klass, report={:destroyed => Set.new, :affected => Set.new}, affected=nil)
-      return report unless klass.is_a?(Module) || klass == Object
+    def do_deconstantize(constant, report, affected=nil)
+      if constant.is_a?(Class)
+        deconstantize_class(constant, report, affected)
+      else
+        deconstantize_mongoff_model(constant, report, affected)
+      end
+    end
+
+    def preprocess_deconstantization(klass, report, affected)
+      return [false, affected] if klass == Object
       affected = nil if report[:shutdown_all]
       if !affected && report[:affected].include?(klass)
         report[:affected].delete(klass)
         report[:destroyed] << klass
       end
-      return report if report[:destroyed].include?(klass) || report[:affected].include?(klass)
-      return report unless special_case_1(klass)
+      return [false, affected] if report[:destroyed].include?(klass) || report[:affected].include?(klass)
       parent = klass.parent
       affected = nil if report[:destroyed].include?(parent)
-      puts "Reporting #{affected ? 'affected' : 'destroyed'} class #{klass.to_s} -> #{klass.schema_name rescue klass.to_s}" #" is #{affected ? 'affected' : 'in tree'} -> #{report.to_s}"
+      [true, affected]
+    end
+
+    def deconstantize_mongoff_model(model, report={:destroyed => Set.new, :affected => Set.new}, affected=nil)
+      continue, affected = preprocess_deconstantization(model, report, affected)
+      return report unless continue
+      puts "Reporting #{affected ? 'affected' : 'destroyed'} model #{model.to_s} -> #{model.schema_name rescue model.to_s}"
+      (affected ? report[:affected] : report[:destroyed]) << model
+      model.affected_models.each { |model| do_deconstantize(model, report, :affected) }
+    end
+
+    def deconstantize_class(klass, report={:destroyed => Set.new, :affected => Set.new}, affected=nil)
+      continue, affected = preprocess_deconstantization(klass, report, affected)
+      return report unless continue
+      puts "Reporting #{affected ? 'affected' : 'destroyed'} class #{klass.to_s} -> #{klass.schema_name rescue klass.to_s}"
       (affected ? report[:affected] : report[:destroyed]) << klass
-
-      unless report[:report_only] || affected
-        special_case_2(klass)
-      end
-
       klass.constants(false).each do |const_name|
         if klass.const_defined?(const_name, false)
           const = klass.const_get(const_name, false)
-          deconstantize_class(const, report, affected) if const.is_a?(Class)
+          do_deconstantize(const, report, affected)
         end
       end
       #[:embeds_one, :embeds_many, :embedded_in].each do |rk|
@@ -243,17 +254,9 @@ module Setup
           end
         end
       end
-      klass.affected_models.each { |m| deconstantize_class(m, report, :affected) }
-      deconstantize_class(parent, report, affected) if affected
+      klass.affected_models.each { |m| do_deconstantize(m, report, :affected) }
+      deconstantize_class(klass.parent, report, affected) if affected
       report
-    end
-
-    def special_case_1(klass)
-      true
-    end
-
-    def special_case_2(klass)
-
     end
 
     def create_mongoff_model

@@ -61,7 +61,7 @@ module Setup
             @new_data_types << (data_type = Setup::DataType.new(name: name, model_schema: schema.to_json))
             self.data_types << data_type
           end
-          if data_type && data_type.errors.blank? && data_type.valid?
+          if data_type && data_type.validate_model
             @data_types_to_keep << data_type
           else
             data_type.errors.each do |attribute, error|
@@ -82,11 +82,10 @@ module Setup
         end
 
       rescue Exception => ex
+        #TODO Delete raise
+        #raise ex
         if @include_missing = ex.is_a?(Xsd::IncludeMissingException)
           @include_missing_message = ex.message
-        else
-          #TODO Delete raise
-          #raise ex
         end
         puts "ERROR: #{errors.add(:schema, ex.message).to_s}"
         destroy_data_types

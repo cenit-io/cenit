@@ -1,7 +1,7 @@
 module Xsd
 
   BUILD_IN_TYPES = {
-    'type:http://www.w3.org/2001/XMLSchema:decimal' => {'type' => 'integer'},
+    'type:http://www.w3.org/2001/XMLSchema:decimal' => {'type' => 'number'},
     'type:http://www.w3.org/2001/XMLSchema:float' => {'type' => 'number'},
     'type:http://www.w3.org/2001/XMLSchema:double' => {'type' => 'number'},
     'type:http://www.w3.org/2001/XMLSchema:integer' => {'type' => 'integer'},

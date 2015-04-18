@@ -247,7 +247,20 @@ RailsAdmin.config do |config|
       field :name
       field :activated
       field :validator
-      field :model_schema
+      field :model_schema do
+        pretty_value do
+          pretty_value =
+            if json = JSON.parse(value) rescue nil
+              "<code class='json'>#{JSON.pretty_generate(json)}</code>"
+            elsif xml = Nokogiri::XML(value) rescue nil
+              "<code class='xml'>#{xml.to_xml}</code>"
+            else
+              value
+            end
+          #"<textarea id='code' name='code'>#{pretty_value}</textarea>".html_safe
+          "<pre>#{pretty_value}</pre>".html_safe
+        end
+      end
 
       field :_id
       field :created_at

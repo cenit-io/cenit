@@ -40,24 +40,33 @@ module Edi
         return unless name == element.name
         record ||= new_record || model.new
         attributes = {}
+        attribute_schemas = {}
         sub_element_schemas = {}
         content_property = nil
         json_schema['properties'].each do |property_name, property_schema|
           property_schema = data_type.merge_schema(property_schema)
           name = property_schema['edi'] ? property_schema['edi']['segment'] : property_name
-          if %w{object array}.include?(property_schema['type'])
-            sub_element_schemas[property_name] = property_schema
-          elsif !property_schema['xml'] || property_schema['xml']['attribute']
+          xml_opts = property_schema['xml'] || {}
+          if  xml_opts['attribute']
             attributes[name] = property_name
-          else
+            attribute_schemas[name] = property_schema
+          elsif xml_opts['content']
             raise Exception.new("More than one content property found: '#{content_property}' and '#{property_name}'") if content_property
             content_property = property_name
+          else
+            sub_element_schemas[property_name] = property_schema
           end
         end
         element.attribute_nodes.each do |attr|
           #raise Exception.new("Unexpected attribute '#{attr.name}'") unless property = attributes[attr.name]
           if property = attributes[attr.name]
-            record.send("#{property}=", attr.value)
+            value =
+              if (attr_schema = attribute_schemas[attr.name])['type'] == 'array'
+                attr.value.split(' ')
+              else
+                attr.value
+              end
+            record.send("#{property}=", value)
           end
         end
         if sub_element_schemas.empty?

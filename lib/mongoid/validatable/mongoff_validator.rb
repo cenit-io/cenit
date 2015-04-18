@@ -1,3 +1,5 @@
+require 'json-schema/schema/cenit_reader'
+
 module Mongoid
   module Validatable
 
@@ -6,7 +8,7 @@ module Mongoid
       def validate_each(record, attribute, value)
         begin
           model = options[:model]
-          JSON::Validator.validate!(model.data_type.merge_schema(model.schema), value)
+          JSON::Validator.validate!(model.schema, value, schema_reader: JSON::Schema::CenitReader.new(model.data_type))
         rescue Exception => ex
           record.errors.add(attribute, ex.message)
         end if value

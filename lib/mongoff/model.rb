@@ -18,6 +18,10 @@ module Mongoff
       parent ? "#{parent}::#{name}" : name
     end
 
+    def schema_name
+      to_s
+    end
+
     def data_type
       @data_type_id.is_a?(Setup::BuildInDataType) ? @data_type_id : Setup::Model.where(id: @data_type_id).first
     end
