@@ -4,7 +4,7 @@ module OmniAuth
       option :name, :doorkeeper
 
       option :client_options, {
-        :site => "http://www.cenitsaas.com",
+        :site => ENV['DOORKEEPER_APP_ID'],
         :authorize_path => "/oauth/authorize"
       }
 
