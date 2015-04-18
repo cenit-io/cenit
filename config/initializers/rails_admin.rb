@@ -24,6 +24,16 @@
 
 RailsAdmin::Config::Actions.register(:export, RailsAdmin::Config::Actions::EdiExport)
 RailsAdmin::Config::Fields::Types.register(RailsAdmin::Config::Fields::Types::JsonSchema)
+{
+  config: {
+    mode: 'css',
+    theme: 'neo',
+  },
+  assets: {
+    mode: '/assets/codemirror/modes/css.js',
+    theme: '/assets/codemirror/themes/neo.css',
+  }
+}.each { |option, configuration| RailsAdmin::Config::Fields::Types::CodeMirror.register_instance_option(option) { configuration } }
 
 RailsAdmin.config do |config|
 
@@ -146,18 +156,6 @@ RailsAdmin.config do |config|
       end
 
       field :schema, :code_mirror do
-        config do
-          {
-            mode: 'css',
-            theme: 'neo',
-          }
-        end
-        assets do
-          {
-            mode: '/assets/codemirror/modes/css.js',
-            theme: '/assets/codemirror/themes/neo.css',
-          }
-        end
         html_attributes do
           reload = Setup::DataType.shutdown(bindings[:object].data_types, report_only: true)[:destroyed].collect(&:data_type).uniq #.select(&:activated)
           bindings[:object].instance_variable_set(:@_to_reload, reload)
@@ -858,7 +856,7 @@ RailsAdmin.config do |config|
         help { "Extensions for #{bindings[:object].mime_type}" }
       end
 
-      field :transformation do
+      field :transformation, :code_mirror do
         visible { bindings[:object].style.present? && bindings[:object].style != 'chain' }
         html_attributes do
           {cols: '74', rows: '15'}

@@ -186,20 +186,7 @@ module RailsAdmin
             properties.each do |property, property_schema|
               if field =
                 if model.property_model(property).is_a?(Mongoff::Model)
-                  rails_admin_model.field(property, :json_schema) do
-                    config do
-                      {
-                        mode: 'css',
-                        theme: 'neo',
-                      }
-                    end
-                    assets do
-                      {
-                        mode: '/assets/codemirror/modes/css.js',
-                        theme: '/assets/codemirror/themes/neo.css',
-                      }
-                    end
-                  end
+                  rails_admin_model.field(property, :json_schema)
                 else
                   rails_admin_model.fields(property.to_sym).first
                 end
