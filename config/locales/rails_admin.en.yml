@@ -19,14 +19,14 @@ en:
         sample_data: "Sample data"
         result: "Result"
       load_model:
-        title: "Load model"
-        menu: "Load model"
-        breadcrumb: "Load model"
+        title: "Load '%{object_label}'"
+        menu: "Load"
+        breadcrumb: "Load"
       shutdown_model:
-        title: "Shutdown model '%{object_label}'"
-        menu: "Shutdown model"
-        breadcrumb: "Shutdown model"
-        shutting_down: "Shutting down model '%{model_name}' will also"
+        title: "Shutdown '%{object_label}'"
+        menu: "Shutdown"
+        breadcrumb: "Shutdown"
+        shutting_down: "Shutting down '%{model_name}' will also"
         shutdown_data_types: "shutdown %{shutdown_count} data types"
         reload_data_types: "reload %{reload_count} data types"
       switch_navigation:

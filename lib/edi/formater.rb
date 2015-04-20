@@ -42,31 +42,41 @@ module Edi
       content_property = nil
       schema['properties'].each do |property_name, property_schema|
         property_schema = data_type.merge_schema(property_schema)
+        name = property_schema['edi']['segment'] if property_schema['edi']
+        name ||= property_name
         case property_schema['type']
         when 'array'
-          property_schema = data_type.merge_schema(property_schema['items'])
-          json_objects = []
-          (property_value = record.send(property_name)) && property_value.each do |sub_record|
-            if json_object?(sub_record)
-              json_objects << sub_record
-            else
-              elements << record_to_xml_element(data_type, property_schema, sub_record, xml_doc, property_name, options)
+          property_value = record.send(property_name)
+          xml_opts = property_schema['xml'] || {}
+          if xml_opts['attribute']
+            property_value = property_value && property_value.collect(&:to_s).join(' ')
+            attr[name] = property_value if !property_value.blank? || options[:with_blanks] || required.include?(property_name)
+          elsif xml_opts['simple_type']
+            elements << (e = xml_doc.create_element(name))
+            e << property_value && property_value.collect(&:to_s).join(' ')
+          else
+            property_schema = data_type.merge_schema(property_schema['items'])
+            json_objects = []
+            property_value && property_value.each do |sub_record|
+              if json_object?(sub_record)
+                json_objects << sub_record
+              else
+                elements << record_to_xml_element(data_type, property_schema, sub_record, xml_doc, property_name, options)
+              end
             end
-          end
-          unless json_objects.empty?
-            elements << Nokogiri::XML({property_name => json_objects}.to_xml).root.first_element_child
+            unless json_objects.empty?
+              elements << Nokogiri::XML({property_name => json_objects}.to_xml).root.first_element_child
+            end
           end
         when 'object'
           elements << record_to_xml_element(data_type, property_schema, record.send(property_name), xml_doc, property_name, options)
         else
           value = property_schema['default'] unless value = record.send(property_name)
           if value
-            name = property_schema['edi']['segment'] if property_schema['edi']
-            name ||= property_name
-            xml_opts = property_schema['xml']
-            if xml_opts && xml_opts['attribute']
+            xml_opts = property_schema['xml'] || {}
+            if xml_opts['attribute']
               attr[name] = value if !value.blank? || options[:with_blanks] || required.include?(property_name)
-            elsif xml_opts && xml_opts['content']
+            elsif xml_opts['content']
               if content.nil?
                 content = value
                 content_property = property_name
@@ -80,10 +90,19 @@ module Edi
         end
       end
       name = schema['edi']['segment'] if schema['edi']
-      name ||= enclosed_property_name || record.orm_model.data_type.name #TODO Name for root xml elements
+      name ||= enclosed_property_name || record.orm_model.data_type.name
       element = xml_doc.create_element(name, attr)
       if elements.empty?
-        element << content unless content.nil?
+        content =
+          case content
+          when NilClass
+            []
+          when Hash
+            Nokogiri::XML(content.to_xml).root.element_children
+          else
+            [content]
+          end
+        content.each { |e| element << e }
       else
         raise Exception.new("Incompatible content property ('#{content_property}') in presence of complex content") if content_property
         elements.each { |e| element << e if e }
@@ -91,11 +110,11 @@ module Edi
       element
     end
 
-    def record_to_hash(record, options = {}, referenced = false)
+    def record_to_hash(record, options = {}, referenced = false, schema = nil)
       return record if json_object?(record)
       data_type = record.orm_model.data_type
-      schema = data_type.merged_schema
-      json = (referenced = referenced && schema['referenced_by']) ? {'$referenced' => true} : {}
+      schema ||= data_type.merged_schema
+      json = (referenced = referenced && schema['referenced_by']) ? {'_reference' => true} : {}
       schema['properties'].each do |property_name, property_schema|
         next if property_schema['virtual'] || (referenced && !referenced.include?(property_name)) || options[:ignore].include?(property_name.to_sym)
         property_schema = data_type.merge_schema(property_schema)
@@ -106,11 +125,12 @@ module Edi
           property_schema = data_type.merge_schema(property_schema['items'])
           referenced_items = property_schema['referenced'] && !property_schema['export_embedded']
           if value = record.send(property_name)
-            value = value.collect { |sub_record| record_to_hash(sub_record, options, referenced_items) }
+            value = value.collect { |sub_record| record_to_hash(sub_record, options, referenced_items, property_schema) }
             json[name] = value unless value.empty?
           end
         when 'object'
-          json[name] = value if value = record_to_hash(record.send(property_name), options, property_schema['referenced'] && !property_schema['export_embedded'])
+          json[name] = value if value =
+            record_to_hash(record.send(property_name), options, property_schema['referenced'] && !property_schema['export_embedded'], property_schema)
         else
           if (value = record.send(property_name)).nil?
             value = property_schema['default']

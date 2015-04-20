@@ -3,6 +3,5 @@ module Xsd
 
     tag 'all'
 
-
   end
 end
