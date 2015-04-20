@@ -24,7 +24,7 @@ module Setup
     validates_presence_of :name, :path, :purpose
     validates_uniqueness_of :name
 
-    accepts_nested_attributes_for :parameters, :headers
+    accepts_nested_attributes_for :parameters, :headers, :template_parameters
 
     def template_parameters_hash
       hash = {}

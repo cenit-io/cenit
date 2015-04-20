@@ -40,7 +40,7 @@ module RailsAdmin
                           Zip::InputStream.open(StringIO.new(file.read)) do |zis|
                             while entry = zis.get_next_entry
                               begin
-                                data_type.new_from(entry.get_input_stream, filename: entry.name)
+                                data_type.create_from(entry.get_input_stream, filename: entry.name)
                               rescue Exception => ex
                                 errors << "On entry #{entry.name}: #{ex.message.encode('UTF-8', invalid: :replace, undef: :replace)}"
                               end
@@ -50,7 +50,7 @@ module RailsAdmin
                           errors << "Zip file format error: #{ex.message.encode('UTF-8', invalid: :replace, undef: :replace)}"
                         end
                       else
-                        data_type.new_from(file)
+                        data_type.create_from(file)
                       end
                       errors = nil unless errors.present?
                     rescue Exception => ex

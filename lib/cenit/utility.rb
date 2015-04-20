@@ -2,6 +2,31 @@ require 'objspace'
 
 module Cenit
   class Utility
+
+    class Proxy
+
+      def initialize(obj, attributes)
+        @obj = obj
+        @attributes = attributes
+      end
+
+      def method(sym)
+        @obj.method(sym)
+      end
+
+      def method_missing(symbol, *args)
+        if @obj.respond_to?(symbol)
+          @obj.send(symbol)
+        else
+          @attributes[symbol] || super
+        end
+      end
+
+      def respond_to?(*args)
+        @obj.respond_to?(*args) || @attributes[args[0]] || super
+      end
+    end
+
     class << self
       def save(record)
         saved = Set.new
