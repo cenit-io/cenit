@@ -85,24 +85,20 @@ module Edi
             next unless sub_element
             case property_schema['type']
             when 'array'
-              relation = model.reflect_on_association(property_name)
-              next unless [:has_many, :has_and_belongs_to_many, :embeds_many].include?(relation.macro)
               property_schema = data_type.merge_schema(property_schema['items'])
-              property_model = relation.klass
+              property_model = model.property_model(property_name)
               while sub_element && sub_record = do_parse_xml(data_type, property_model, sub_element, options, property_schema)
                 record.send(property_name) << sub_record
                 sub_element = sub_element.next_element
               end
             when 'object'
-              relation = model.reflect_on_association(property_name)
-              next unless [:has_one, :embeds_one].include?(relation.macro)
-              property_model = relation.klass
+              property_model = model.property_model(property_name)
               if sub_record = do_parse_xml(data_type, property_model, sub_element, options, property_schema, nil, nil, property_name)
                 record.send("#{property_name}=", sub_record)
                 sub_element = sub_element.next_element
               end
             else
-              raise Exception.new('These should not be read')
+              raise Exception.new("Schema for XML element must be of type 'object' or 'array'")
             end
           end
         end

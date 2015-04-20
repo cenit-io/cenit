@@ -49,11 +49,11 @@ module Edi
           property_value = record.send(property_name)
           xml_opts = property_schema['xml'] || {}
           if xml_opts['attribute']
-            property_value = property_value && property_value.join(' ')
+            property_value = property_value && property_value.collect(&:to_s).join(' ')
             attr[name] = property_value if !property_value.blank? || options[:with_blanks] || required.include?(property_name)
           elsif xml_opts['simple_type']
             elements << (e = xml_doc.create_element(name))
-            e << property_value && property_value.join(' ')
+            e << property_value && property_value.collect(&:to_s).join(' ')
           else
             property_schema = data_type.merge_schema(property_schema['items'])
             json_objects = []
