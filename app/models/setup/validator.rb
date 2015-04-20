@@ -41,7 +41,7 @@ module Setup
     end
 
     def style_enum
-      ['JSON Schema', 'XML Schema', 'ruby']
+      ['JSON Schema', 'XML Schema']#, 'ruby']
     end
 
     def schema_style?
