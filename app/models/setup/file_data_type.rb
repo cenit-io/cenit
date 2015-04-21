@@ -1,3 +1,5 @@
+require 'stringio'
+
 module Setup
   class FileDataType < Model
 
@@ -78,15 +80,68 @@ module Setup
       readable.rewind
     end
 
-    def new_from(readable, attributes={})
+    def create_from(string_or_readable, attributes={})
       raise Exception("Model '#{on_library_title}' is not loaded") unless model = self.model
+      temporary_file = nil
+      readable =
+        if string_or_readable.is_a?(String)
+          temporary_file = Tempfile.new('tmp')
+          temporary_file.write(string_or_readable)
+          temporary_file.rewind
+          attributes = default_attributes.merge(attributes)
+          Cenit::Utility::Proxy.new(temporary_file, original_filename: attributes[:filename])
+        else
+          string_or_readable
+        end
       validate_file!(readable)
       attributes = attributes.merge(filename: readable.original_filename) unless attributes[:filename]
       file = model.file_model.namespace.put(readable, attributes)
+      temporary_file.close! if temporary_file
       model.where(file: file).first
     end
 
+    def create_from_json(json_or_readable, attributes={})
+      data = json_or_readable
+      unless validator.nil? || validator.schema_type == :json_schema
+        data = ((data.is_a?(String) || data.is_a?(Hash)) && data) || data.read
+        data = validator.schema.data_types.first.new_from_json(data).to_xml
+      end
+      create_from(data, attributes)
+    end
+
+    def create_from_xml(string_or_readable, attributes={})
+      data = string_or_readable
+      unless validator.nil? || validator.schema_type == :xml_schema
+        data = (data.is_a?(String) && data) || data.read
+        data = validator.schema.data_types.first.new_from_xml(data).to_json
+      end
+      create_from(data, attributes)
+    end
+
     protected
+
+    def default_attributes
+      if validator
+        {
+          filename: "file_#{DateTime.now.strftime('%Y-%m-%d_%Hh%Mm%S')}" +
+            case validator.schema_type
+            when :json_schema
+              '.json'
+            when :xml_schema
+              '.xml'
+            end,
+          contentType:
+            case validator.schema_type
+            when :json_schema
+              'application/json'
+            when :xml_schema
+              'application/xml'
+            end
+        }
+      else
+        {}
+      end
+    end
 
     def do_load_model(report)
       Object.const_set(data_type_name, model = Class.new { class_eval(&FILE_MODEL_MIXIN); self })
@@ -151,6 +206,35 @@ module Setup
 
       before_destroy do
         file.destroy
+      end
+
+      def to_json(options = {})
+        data = file.data
+        data_type = self.class.data_type
+        unless (validator = data_type.validator).nil? || validator.schema_type == :json_schema
+          ignore = (options[:ignore] || [])
+          ignore = [ignore] unless ignore.is_a?(Enumerable)
+          ignore = ignore.select { |p| p.is_a?(Symbol) || p.is_a?(String) }.collect(&:to_sym)
+          options[:ignore] = ignore
+          data = validator.schema.data_types.first.new_from_xml(data).to_json(options)
+        end
+        hash = JSON.parse(data)
+        hash = {data_type.name.downcase => hash} if options[:include_root]
+        if options[:pretty]
+          JSON.pretty_generate(hash)
+        else
+          options[:include_root] ? hash.to_json : data
+        end
+      end
+
+      def to_xml(options = {})
+        data = file.data
+        data_type = self.class.data_type
+        unless (validator = data_type.validator).nil? || validator.schema_type == :xml_schema
+          data = validator.schema.data_types.first.new_from_json(data).to_xml(options)
+        end
+        Nokogiri::XML::Document.parse(data)
+        data
       end
 
       class << self

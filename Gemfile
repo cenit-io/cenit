@@ -81,4 +81,6 @@ gem 'prawn-rails'
 gem 'carrierwave-mongoid'
 gem 'mini_magick'
 gem 'liquid'
+gem 'codemirror-rails'
 gem 'wannabe_bool'
+

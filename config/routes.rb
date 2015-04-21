@@ -1,5 +1,7 @@
 Cenit::Application.routes.draw do
+
   mount RailsAdmin::Engine => '/data', as: 'rails_admin'
+
   root to: 'rails_admin/main#dashboard'
   # root to: 'home#index'
 
@@ -18,15 +20,10 @@ Cenit::Application.routes.draw do
   end
 
   namespace :setup do
-    resources :connections
-    resources :flows
-    resources :webhooks
-    resources :data_types
-    resources :events
-    resources :connection_roles
-    resources :libraries
-    resources :collections
-    resources :schemas
-    resources :schedules
+    get '/:model', to: 'api#index'
+    get '/:model/:id', to: 'api#show'
+    post '/:model', to: 'api#create'
+    match '/:model/:id', to: 'api#update', via: [:patch, :put]
+    delete '/:model/:id', to: 'api#destroy'
   end
 end

@@ -28,8 +28,6 @@ module Cenit
 
     config.after_initialize do
 
-      JSON::Validator.register_default_validator(Cenit::LazyRefSchemaValidator.new)
-
       RailsAdmin::Config.excluded_models.concat RailsAdmin::Config.models_pool.select { |m| m.eql?('Base') || m.end_with?('::Base') }
       puts 'Excluding ' + RailsAdmin::Config.excluded_models.to_s
 

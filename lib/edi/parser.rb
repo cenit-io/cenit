@@ -40,52 +40,65 @@ module Edi
         return unless name == element.name
         record ||= new_record || model.new
         attributes = {}
+        attribute_schemas = {}
         sub_element_schemas = {}
         content_property = nil
         json_schema['properties'].each do |property_name, property_schema|
           property_schema = data_type.merge_schema(property_schema)
           name = property_schema['edi'] ? property_schema['edi']['segment'] : property_name
-          if %w{object array}.include?(property_schema['type'])
-            sub_element_schemas[property_name] = property_schema
-          elsif !property_schema['xml'] || property_schema['xml']['attribute']
+          xml_opts = property_schema['xml'] || {}
+          if  xml_opts['attribute']
             attributes[name] = property_name
-          else
+            attribute_schemas[name] = property_schema
+          elsif xml_opts['content']
             raise Exception.new("More than one content property found: '#{content_property}' and '#{property_name}'") if content_property
             content_property = property_name
+          else
+            sub_element_schemas[property_name] = property_schema
           end
         end
         element.attribute_nodes.each do |attr|
           #raise Exception.new("Unexpected attribute '#{attr.name}'") unless property = attributes[attr.name]
           if property = attributes[attr.name]
-            record.send("#{property}=", attr.value)
+            value =
+              if (attr_schema = attribute_schemas[attr.name])['type'] == 'array'
+                attr.value.split(' ')
+              else
+                attr.value
+              end
+            record.send("#{property}=", value)
           end
         end
         if sub_element_schemas.empty?
-          record.send("#{content_property}=", element.content) if content_property
+          if content_property
+            content =
+              if element.children.empty?
+                element.content
+              else
+                Hash.from_xml(element.to_xml).values.first
+              end
+            record.send("#{content_property}=", content)
+          end
         else
           sub_element = element.first_element_child
           sub_element_schemas.each do |property_name, property_schema|
             next unless sub_element
             case property_schema['type']
             when 'array'
-              relation = model.reflect_on_association(property_name)
-              next unless [:has_many, :has_and_belongs_to_many, :embeds_many].include?(relation.macro)
               property_schema = data_type.merge_schema(property_schema['items'])
-              property_model = relation.klass
+              property_model = model.property_model(property_name)
               while sub_element && sub_record = do_parse_xml(data_type, property_model, sub_element, options, property_schema)
                 record.send(property_name) << sub_record
                 sub_element = sub_element.next_element
               end
             when 'object'
-              relation = model.reflect_on_association(property_name)
-              next unless [:has_one, :embeds_one].include?(relation.macro)
-              property_model = relation.klass
+              property_model = model.property_model(property_name)
               if sub_record = do_parse_xml(data_type, property_model, sub_element, options, property_schema, nil, nil, property_name)
                 record.send("#{property_name}=", sub_record)
                 sub_element = sub_element.next_element
               end
             else
-              raise Exception.new('These should not be read')
+              raise Exception.new("Schema for XML element must be of type 'object' or 'array'")
             end
           end
         end
@@ -120,8 +133,8 @@ module Edi
             record.send("#{property_name}=", []) unless property_value && property_schema['referenced']
             if property_value = json[name]
               property_value.each do |sub_value|
-                if sub_value['$referenced']
-                  sub_value = Cenit::Utility.deep_remove(sub_value, '$referenced')
+                if sub_value['_reference']
+                  sub_value = Cenit::Utility.deep_remove(sub_value, '_reference')
                   if value = Cenit::Utility.find_record(property_model.all, sub_value)
                     if !(association = record.send(property_name)).include?(value)
                       association << value
@@ -140,8 +153,8 @@ module Edi
           when 'object'
             next if !updating && record.send(property_name)
             if property_value = json[name]
-              if property_value['$referenced']
-                property_value = Cenit::Utility.deep_remove(property_value, '$referenced')
+              if property_value['_reference']
+                property_value = Cenit::Utility.deep_remove(property_value, '_reference')
                 if value = Cenit::Utility.find_record(property_model.all, property_value)
                   record.send("#{property_name}=", value)
                 else

@@ -184,47 +184,37 @@ module RailsAdmin
           end
           if properties = schema['properties']
             properties.each do |property, property_schema|
-              field =
+              if field =
                 if model.property_model(property).is_a?(Mongoff::Model)
-                  rails_admin_model.field(property, :json_schema) do
-                    config do
-                      {
-                        mode: 'css',
-                        theme: 'neo',
-                      }
-                    end
-                    assets do
-                      {
-                        mode: '/assets/codemirror/modes/css.js',
-                        theme: '/assets/codemirror/themes/neo.css',
-                      }
-                    end
-                  end
+                  rails_admin_model.field(property, :json_schema)
                 else
-                  rails_admin_model.field(property)
+                  rails_admin_model.fields(property.to_sym).first
                 end
-              property_schema = data_type.merge_schema(property_schema)
-              visible_ok = false
-              {label: 'title', help: 'description', visible: 'visible'}.each do |option, key|
-                unless (value = property_schema[key]).nil?
-                  field.register_instance_option option do
-                    value
+                property_schema = data_type.merge_schema(property_schema)
+                visible_ok = false
+                {label: 'title', help: 'description', visible: 'visible'}.each do |option, key|
+                  unless (value = property_schema[key]).nil?
+                    field.register_instance_option option do
+                      value
+                    end
+                    visible_ok = true if option == :visible
                   end
-                  visible_ok = true if option == :visible
                 end
-              end
-              field.register_instance_option :visible do
-                true
-              end unless visible_ok
-              if field.name == :_id
-                field.register_instance_option :read_only do
-                  !bindings[:object].new_record?
+                unless visible_ok
+                  field.register_instance_option :visible do
+                    true
+                  end
                 end
-                field.register_instance_option :partial do
-                  'form_field'
-                end
-                field.register_instance_option :html_attributes do
-                  {size: 50}
+                if field.name == :_id
+                  field.register_instance_option :read_only do
+                    !bindings[:object].new_record?
+                  end
+                  field.register_instance_option :partial do
+                    'form_field'
+                  end
+                  field.register_instance_option :html_attributes do
+                    {size: 50}
+                  end
                 end
               end
             end

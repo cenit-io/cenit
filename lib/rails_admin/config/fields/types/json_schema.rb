@@ -5,7 +5,11 @@ module RailsAdmin
         class JsonSchema < RailsAdmin::Config::Fields::Types::CodeMirror
 
           register_instance_option :formatted_value do
-            (JSON.pretty_generate(value) rescue nil) || value.to_s
+            if value.is_a?(::String)
+              "\"#{value}\""
+            else
+              (JSON.pretty_generate(value) rescue nil) || value
+            end
           end
 
           def parse_input(params)
@@ -13,6 +17,8 @@ module RailsAdmin
             params[name] =
               if value.blank?
                 nil
+              elsif value.start_with?('"') && value.end_with?('"')
+                value[1..value.length - 2]
               elsif v = JSON.parse(value) rescue nil
                 v
               elsif value == 'true'
