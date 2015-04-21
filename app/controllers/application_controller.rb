@@ -32,4 +32,8 @@ class ApplicationController < ActionController::Base
     ensure
       Account.current = nil
     end
+    
+    def after_sign_out_path_for(resource_or_scope)
+      ENV['SING_OUT_URL'] || root_path
+    end
 end

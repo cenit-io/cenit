@@ -4,15 +4,20 @@ class User
   extend DeviseOverrides
   include NumberGenerator
   rolify
-  
+
   belongs_to :account, inverse_of: :users, class_name: Account.name
   before_validation { self.account ||= Account.current }
   scope :by_account, -> { where(account: Account.current ) }
-  # Include default devise modules. Others available are:
-  # :confirmable, :lockable, :timeoutable and :omniauthable
-  devise  :registerable, :recoverable, :rememberable, :trackable, :validatable, :omniauthable, :database_authenticatable
 
-  ## Database authenticatable
+  # Include default devise modules. Others available are:
+  # :recoverable, :rememberable, :confirmable, :lockable, :timeoutable and :omniauthable
+  if ENV['UNABLE_REGISTERABLE'].to_b
+    devise :trackable, :validatable, :omniauthable, :database_authenticatable
+  else
+    devise :registerable, :trackable, :validatable, :omniauthable, :database_authenticatable
+  end
+
+  # Database authenticatable
   field :email,              type: String, default: ""
   field :encrypted_password, type: String, default: ""
 
@@ -108,11 +113,7 @@ class User
       field :created_at
       field :updated_at
     end
-   # edit do
-   #   fields :email, :password, :password_confirmation, :roles, :key, :authentication_token
-      #field :reset_password_token
-  #  end
-  #  fields :email, :roles, :key, :authentication_token, :sign_in_count, :last_sign_in_at, :last_sign_in_ip
+    fields :email, :roles, :key, :authentication_token, :sign_in_count, :last_sign_in_at, :last_sign_in_ip
   end
 
 end
