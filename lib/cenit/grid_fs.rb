@@ -429,7 +429,7 @@ module Cenit
             i += 1
           end
         else
-          while((buf = io.read(chunk_size)).size > 0)
+          while((buf = io.read(chunk_size)) && buf.size > 0)
             block.call(buf)
           end
         end
