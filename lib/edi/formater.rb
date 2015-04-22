@@ -110,36 +110,37 @@ module Edi
       element
     end
 
-    def record_to_hash(record, options = {}, referenced = false, schema = nil)
-      return record if json_object?(record)
-      data_type = record.orm_model.data_type
-      schema ||= data_type.merged_schema
-      json = (referenced = referenced && schema['referenced_by']) ? {'_reference' => true} : {}
-      schema['properties'].each do |property_name, property_schema|
-        next if property_schema['virtual'] || (referenced && !referenced.include?(property_name)) || options[:ignore].include?(property_name.to_sym)
-        property_schema = data_type.merge_schema(property_schema)
-        name = property_schema['edi']['segment'] if property_schema['edi']
-        name ||= property_name
-        case property_schema['type']
-        when 'array'
-          property_schema = data_type.merge_schema(property_schema['items'])
-          referenced_items = property_schema['referenced'] && !property_schema['export_embedded']
-          if value = record.send(property_name)
-            value = value.collect { |sub_record| record_to_hash(sub_record, options, referenced_items, property_schema) }
-            json[name] = value unless value.empty?
-          end
-        when 'object'
-          json[name] = value if value =
-            record_to_hash(record.send(property_name), options, property_schema['referenced'] && !property_schema['export_embedded'], property_schema)
-        else
-          if (value = record.send(property_name)).nil?
-            value = property_schema['default']
-          end
-          json[name] = value unless value.nil?
-        end
-      end
-      json
-    end
+    def record_to_hash(record, options = {}, referenced = false)
+       return record if json_object?(record)
+       data_type = record.orm_model.data_type
+       schema = data_type.merged_schema
+       json = (referenced = referenced && schema['referenced_by']) ? {'_reference' => true} : {}
+       schema['properties'].each do |property_name, property_schema|
+         next if property_schema['virtual'] || (referenced && !referenced.include?(property_name)) || options[:ignore].include?(property_name.to_sym)
+         property_schema = data_type.merge_schema(property_schema)
+         name = property_schema['edi']['segment'] if property_schema['edi']
+         name ||= property_name
+         case property_schema['type']
+         when 'array'
+           property_schema = data_type.merge_schema(property_schema['items'])
+           referenced_items = property_schema['referenced'] && !property_schema['export_embedded']
+           if value = record.send(property_name)
+             value = value.collect { |sub_record| record_to_hash(sub_record, options, referenced_items) }
+             json[name] = value unless value.empty?
+           end
+         when 'object'
+           json[name] = value if value =
+             record_to_hash(record.send(property_name), options, property_schema['referenced'] && !property_schema['export_embedded'])
+         else
+           if (value = record.send(property_name)).nil?
+             value = property_schema['default']
+           end
+           json[name] = value unless value.nil?
+         end
+       end
+       json
+     end
+    
 
     def record_to_edi(data_type, options, schema, record, enclosed_property_name=nil)
       output = []
