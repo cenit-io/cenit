@@ -65,7 +65,7 @@ development:
 test:
   sessions:
     default:
-      database: rails4_mongoid_test
+      database: cenithub_test
       hosts:
         - localhost:27017
       options:
@@ -74,5 +74,11 @@ test:
         # low amounts for fast failures.
         max_retries: 1
         retry_interval: 0
+
 production:
-  uri: <%= ENV['MONGOHQ_URL'] %>
+  # uri: <%= ENV['MONGOHQ_URL'] %>
+  sessions:
+    default:
+      database: cenithub_produccion
+      hosts:
+        - localhost:27017

@@ -85,17 +85,18 @@ module Setup
       self
     end
 
-    MONGOID_TYPE_MAP = {Array => 'array',
-                        BigDecimal => 'integer',
-                        Mongoid::Boolean => 'boolean',
+    MONGOID_TYPE_MAP = {Array => {'type' => 'array'},
+                        BigDecimal => {'type' => 'integer'},
+                        Mongoid::Boolean => {'type' => 'boolean'},
                         Date => {'type' => 'string', 'format' => 'date'},
                         DateTime => {'type' => 'string', 'format' => 'date-time'},
-                        Float => 'number',
-                        Hash => 'object',
-                        Integer => 'integer',
-                        String => 'string',
-                        Symbol => 'string',
-                        Time => {'type' => 'string', 'format' => 'time'}}
+                        Float => {'type' => 'number'},
+                        Hash => {'type' => 'object'},
+                        Integer => {'type' => 'integer'},
+                        String => {'type' => 'string'},
+                        Symbol => {'type' => 'string'},
+                        Time => {'type' => 'string', 'format' => 'time'},
+                        nil => {}}
 
     def excluded?(name)
       name = name.to_s
@@ -111,7 +112,15 @@ module Setup
       schema = {'type' => 'object', 'properties' => properties = {}}
       schema[:referenced_by.to_s] = Cenit::Utility.stringfy(@referenced_by) if @referenced_by
       (fields = model.fields).each do |field_name, field|
-        properties[field_name] = json_schema_type(field.type) if !field.is_a?(Mongoid::Fields::ForeignKey) && included?(field_name)
+        if !field.is_a?(Mongoid::Fields::ForeignKey) && included?(field_name)
+          json_type = (properties[field_name] = json_schema_type(field.type))['type']
+          if json_type.nil? || json_type == 'object' || json_type == 'array'
+            unless mongoff_models = model.instance_variable_get(:@mongoff_models)
+              model.instance_variable_set(:@mongoff_models, mongoff_models = {})
+            end
+            mongoff_models[field_name] = Mongoff::Model.new(self, field_name.camelize, model, properties[field_name])
+          end
+        end
       end
       (relations = model.reflect_on_all_associations(:embeds_one,
                                                      :embeds_many,
@@ -141,7 +150,7 @@ module Setup
     end
 
     def json_schema_type(mongoid_type)
-      ((type = MONGOID_TYPE_MAP[mongoid_type]).is_a?(Hash)) ? type : {'type' => type}
+      MONGOID_TYPE_MAP[mongoid_type]
     end
 
   end

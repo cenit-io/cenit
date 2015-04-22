@@ -21,7 +21,6 @@ module Setup
     belongs_to :webhook, class_name: Setup::Webhook.to_s, inverse_of: nil
     belongs_to :connection_role, class_name: Setup::ConnectionRole.to_s, inverse_of: nil
 
-
     belongs_to :response_translator, class_name: Setup::Translator.to_s, inverse_of: nil
     belongs_to :response_data_type, class_name: Setup::Model.to_s, inverse_of: nil
 

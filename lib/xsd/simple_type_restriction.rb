@@ -44,7 +44,12 @@ module Xsd
             {'minimum' => value[0][1].to_i, 'exclusiveMinimum' => true}
           when 'maxExclusive'
             {'maximum' => value[0][1].to_i, 'exclusiveMaximum' => true}
+          when 'fractionDigits'
+            {'multipleOf' => 1.0/(10 ** value[0][1].to_i)}
+          when 'totalDigits' #TODO Fractions digits count in total
+            {'minimum' => 10 ** (value[0][1].to_i - 1), 'maximum' => 10 ** value[0][1].to_i - 1}
           else
+            #TODO simpleType and whiteScpace restrictions
             {(key = key.gsub('xs:', '')) => value[0][1].to_i} unless value.empty?
           end
         json = json.merge(restriction) if restriction

@@ -23,6 +23,17 @@
  RailsAdmin::Config::Actions::DeleteDataType].each { |a| RailsAdmin::Config::Actions.register(a) }
 
 RailsAdmin::Config::Actions.register(:export, RailsAdmin::Config::Actions::EdiExport)
+RailsAdmin::Config::Fields::Types.register(RailsAdmin::Config::Fields::Types::JsonSchema)
+{
+  config: {
+    mode: 'css',
+    theme: 'neo',
+  },
+  assets: {
+    mode: '/assets/codemirror/modes/css.js',
+    theme: '/assets/codemirror/themes/neo.css',
+  }
+}.each { |option, configuration| RailsAdmin::Config::Fields::Types::CodeMirror.register_instance_option(option) { configuration } }
 
 RailsAdmin.config do |config|
 
@@ -144,7 +155,7 @@ RailsAdmin.config do |config|
         end
       end
 
-      field :schema, :text do
+      field :schema, :code_mirror do
         html_attributes do
           reload = Setup::DataType.shutdown(bindings[:object].data_types, report_only: true)[:destroyed].collect(&:data_type).uniq #.select(&:activated)
           bindings[:object].instance_variable_set(:@_to_reload, reload)
@@ -233,6 +244,21 @@ RailsAdmin.config do |config|
       field :title
       field :name
       field :activated
+      field :validator
+      field :model_schema do
+        pretty_value do
+          pretty_value =
+            if json = JSON.parse(value) rescue nil
+              "<code class='json'>#{JSON.pretty_generate(json)}</code>"
+            elsif xml = Nokogiri::XML(value) rescue nil
+              "<code class='xml'>#{xml.to_xml}</code>"
+            else
+              value
+            end
+          #"<textarea id='code' name='code'>#{pretty_value}</textarea>".html_safe
+          "<pre>#{pretty_value}</pre>".html_safe
+        end
+      end
 
       field :_id
       field :created_at
@@ -830,7 +856,7 @@ RailsAdmin.config do |config|
         help { "Extensions for #{bindings[:object].mime_type}" }
       end
 
-      field :transformation do
+      field :transformation, :code_mirror do
         visible { bindings[:object].style.present? && bindings[:object].style != 'chain' }
         html_attributes do
           {cols: '74', rows: '15'}

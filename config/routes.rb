@@ -1,36 +1,29 @@
 Cenit::Application.routes.draw do
 
-    mount RailsAdmin::Engine => '/data', as: 'rails_admin'
+  mount RailsAdmin::Engine => '/data', as: 'rails_admin'
 
-    get 'schema', to: 'schema#index'
-    match '/file/:model/:field/:id/:file' => 'file#index', via: :get
+  root to: 'rails_admin/main#dashboard'
+  # root to: 'home#index'
 
-    get 'explore/:api' => 'api#explore', :as => :explore_api
-    devise_for :users, :controllers => { :omniauth_callbacks => "users/omniauth_callbacks" } do
-      get 'sign_out', :to => 'users/sessions#destroy', :as => :destroy_user_session
-    end
-    #devise_for :users
+  get 'schema', to: 'schema#index'
+  get '/file/:model/:field/:id/:file', to: 'file#index'
 
-    #root :to => "home#index"
+  get 'explore/:api', to: 'api#explore', as: :explore_api
+  post 'write/:api', to: 'api#write', as: :write_api
+  
+  devise_for :users, controllers: { omniauth_callbacks: "users/omniauth_callbacks" } do
+    get 'sign_out', to: 'users/sessions#destroy', as: :destroy_user_session
+  end
 
-    root to: 'rails_admin/main#dashboard'
+  namespace :cenit do
+    post '/', to: 'api#consume', as: 'api'
+  end
 
-    namespace :cenit do
-      post '/', to: 'api#consume', as: 'api'
-    end
-
-    namespace :setup do
-      resources :connections
-      resources :flows
-      resources :webhooks
-      resources :data_types
-      resources :events
-      resources :connection_roles
-      resources :libraries
-      resources :collections
-      resources :schemas
-      resources :schedules
-    end
-
-
+  namespace :setup do
+    get '/:model', to: 'api#index'
+    get '/:model/:id', to: 'api#show'
+    post '/:model', to: 'api#create'
+    match '/:model/:id', to: 'api#update', via: [:patch, :put]
+    delete '/:model/:id', to: 'api#destroy'
+  end
 end

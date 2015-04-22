@@ -14,7 +14,7 @@ module Setup
     has_and_belongs_to_many :connections, inverse_of: nil
     embeds_many :pull_parameters, class_name: Setup::CollectionPullParameter.to_s, inverse_of: :shared_collection
 
-    field :data, type: String
+    field :data, type: Hash
 
     validates_presence_of :name, :description
     validates_uniqueness_of :name
@@ -24,7 +24,7 @@ module Setup
     before_save :validate_configuration
 
     def data_with(parameters={})
-      hash_data = JSON.parse(data)
+      hash_data = data
       parameters.each do |parameter, value|
         process_parameter(hash_data, parameter, value)
       end
@@ -32,7 +32,7 @@ module Setup
     end
 
     def validate_configuration
-      hash_data = JSON.parse((source_collection.present? && source_collection.to_json) || data || '{}')
+      hash_data = (source_collection.present? && source_collection.to_hash) || data || '{}'
       [hash_data, hash_data['connection_roles']].flatten.each do |hash|
         if values = hash['connections']
           values.delete_if { |source_connection| !connections.detect { |c| c.name == source_connection['name'] } }
@@ -49,7 +49,7 @@ module Setup
         end
         errors.add(:pull_parameters, 'is not valid') if pull_parameters.detect { |pull_parameter| pull_parameter.errors.present? }
       end
-      self.data = hash_data.to_json
+      self.data = hash_data
       errors.blank?
     end
 

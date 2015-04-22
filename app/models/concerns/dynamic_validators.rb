@@ -32,5 +32,9 @@ module DynamicValidators
     def self.validates(*args)
       validates_with(Mongoid::Validatable::AssertionValidator, _merge_attributes(args))
     end
+
+    def self.validates_schema_of(*args)
+      validates_with(Mongoid::Validatable::MongoffValidator, _merge_attributes(args))
+    end
   end
 end

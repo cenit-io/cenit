@@ -5,13 +5,10 @@ module Xsd
 
     attr_reader :types
 
-    def initialize(parent, types=nil)
+    def initialize(parent, types=[])
       super(parent)
       @types = Set.new
-      if types
-        types = types.split(' ') if types.is_a?(String)
-        types.each { |type| @types << type }
-      end
+      types.each { |type| @types << type } if types
     end
 
     def when_simpleType_end(simpleType)
@@ -19,8 +16,7 @@ module Xsd
     end
 
     def to_json_schema
-      #{'oneOf' => types.collect { |type| type.to_json_schema }}
-      {'type' => 'string'}
+      {'anyOf' => types.collect { |type| type.to_json_schema }}
     end
   end
 end

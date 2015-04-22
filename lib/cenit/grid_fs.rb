@@ -91,7 +91,7 @@ module Cenit
                   Mongoid::GridFs.extract_content_type(attributes[:filename]) || file.contentType
               end
 
-              Mongoid::GridFs.chunking(io, chunkSize) do |buf|
+              Cenit::GridFs.chunking(io, chunkSize) do |buf|
                 md5 << buf
                 length += buf.size
                 chunk = file.chunks.build
@@ -411,6 +411,27 @@ module Cenit
           end
 
           alias_method 'to_str', 'to_s'
+        end
+      end
+
+      def chunking(io, chunk_size, &block)
+        if io.method(:read).arity == 0
+          data = io.read
+          i = 0
+          loop do
+            offset = i * chunk_size
+            length = i + chunk_size < data.size ? chunk_size : data.size - offset
+
+            break if offset >= data.size
+
+            buf = data[offset, length]
+            block.call(buf)
+            i += 1
+          end
+        else
+          while((buf = io.read(chunk_size)) && buf.size > 0)
+            block.call(buf)
+          end
         end
       end
     end
