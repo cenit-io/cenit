@@ -43,14 +43,15 @@ module Mongoff
       model = nil
       if schema['type'] == 'object' && schema['properties'] && property_schema = schema['properties'][property.to_s]
         property_schema = property_schema['items'] if property_schema['type'] == 'array' && property_schema['items']
+        property_schema = data_type.merge_schema(property_schema)
         model =
           if (ref = property_schema['$ref']) && property_dt = data_type.find_data_type(ref)
             Model.new(property_dt, nil, self)
           else
-            Model.new(data_type, property.camelize, self, property_schema)
-          end
+            Model.new(data_type, property.to_s.camelize, self, property_schema)
+          end if property_schema['type'] == 'object' && property_schema['properties']
       end
-      model || Model.new(data_type, property.camelize, self, EMPTY_SCHEMA)
+      model
     end
 
     def for_each_association(&block)

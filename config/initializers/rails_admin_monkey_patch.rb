@@ -130,6 +130,7 @@ module RailsAdmin
         collect_models(removed_models, models_to_reset)
         models_to_reset.delete_if { |model| (dt = model.data_type).nil? || dt.to_be_destroyed }
         removed_models.each do |model|
+          Config.reset_model(model)
           Config.remove_model(model)
           if m = all.detect { |m| m.model_name.eql?(model.to_s) }
             all.delete(m)
@@ -164,17 +165,15 @@ module RailsAdmin
         models.each do |model|
           puts "#{self.to_s}: resetting configuration of #{model.schema_name rescue model.to_s}"
           Config.reset_model(model)
+          rails_admin_model = Config.model(model).target
           data_type = model.data_type
           data_type.reload
-          schema = data_type.merged_schema
-          path = model.schema_path
-          path.split('/').each { |token| schema = data_type.merge_schema(schema[token]) if token.present? }
+          schema = model.schema
           model_data_type = data_type.model.eql?(model) ? data_type : nil
-          rails_admin_model = Config.model(model).target
           title = model_data_type ? model_data_type.title : model.title
           {navigation_label: nil,
-           visible: false,
-           label: title}.each do |option, value|
+          visible: false,
+          label: title}.each do |option, value|
             if model_data_type && model_data_type.respond_to?(option)
               value = model_data_type.send(option)
             end
@@ -188,7 +187,11 @@ module RailsAdmin
                 if model.property_model(property).is_a?(Mongoff::Model)
                   rails_admin_model.field(property, :json_schema)
                 else
-                  rails_admin_model.fields(property.to_sym).first
+                  begin
+                    rails_admin_model.fields(property.to_sym).first
+                  rescue
+                    rails_admin_model.field(property.to_sym)
+                  end
                 end
                 property_schema = data_type.merge_schema(property_schema)
                 visible_ok = false

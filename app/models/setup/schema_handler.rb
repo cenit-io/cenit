@@ -5,6 +5,10 @@ module Setup
       fail NotImplementedError
     end
 
+    def object_schema?(schema)
+      schema['type'] == 'object' && schema['properties']
+    end
+
     def merged_schema(options = {})
       sch = merge_schema(JSON.parse(model_schema), options)
       unless (base_sch = sch.delete('extends')).nil? || (base_sch = find_ref_schema(base_sch)).nil?
@@ -32,6 +36,7 @@ module Setup
         required.unshift('_id')
       end
       properties.each { |_, property_schema| check_id_property(property_schema) if property_schema.is_a?(Hash) }
+      json_schema
     end
 
     def merge_schema!(schema, options = {})
@@ -112,16 +117,18 @@ module Setup
       end
       schema.each { |key, val| schema[key] = do_merge_schema(val, options, references) if val.is_a?(Hash) } if options[:recursive]
       options[:expand_extends] = true if options[:expand_extends].nil?
-      if options[:expand_extends] && base_model = schema['extends']
-        base_model = find_ref_schema(base_model) if base_model.is_a?(String)
-        base_model = do_merge_schema(base_model, nil, references)
-        if schema['type'] == 'object' && base_model['type'] != 'object'
-          schema['properties'] ||= {}
-          value_schema = schema['properties']['value'] || {}
-          value_schema = base_model.deep_merge(value_schema)
-          schema['properties']['value'] = value_schema.merge('title' => 'Value', 'xml' => {'content' => true})
-        else
-          schema = base_model.deep_merge(schema) { |key, val1, val2| array_sum(val1, val2) }
+      if options[:expand_extends]
+        while base_model = schema.delete('extends')
+          base_model = find_ref_schema(base_model) if base_model.is_a?(String)
+          base_model = do_merge_schema(base_model, nil, references)
+          if schema['type'] == 'object' && base_model['type'] != 'object'
+            schema['properties'] ||= {}
+            value_schema = schema['properties']['value'] || {}
+            value_schema = base_model.deep_merge(value_schema)
+            schema['properties']['value'] = value_schema.merge('title' => 'Value', 'xml' => {'content' => true})
+          else
+            schema = base_model.deep_merge(schema) { |key, val1, val2| array_sum(val1, val2) }
+          end
         end
       end
       schema

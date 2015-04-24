@@ -62,6 +62,7 @@ module Setup
 
       def regist(model)
         model.include(Setup::OrmModelAware)
+        model.include(Setup::SchemaModelAware)
         model.include(Edi::Formatter)
         model.include(Edi::Filler)
         model.class.include(Mongoid::CenitExtension)
