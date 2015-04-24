@@ -110,6 +110,7 @@ en:
       shutdown_and_reload:
         shutdown_data_types: "shutdown %{shutdown_count} data types"
         delete_data_types_and_records: "delete %{data_type_count} data types including %{records_count} records"
+        another: "Another %{count}"
         delete_schemas: "delete %{schemas_count} schemas"
         delete_data_types: "delete %{data_type_count} data types"
         shutdown_data_types: "shutdown %{shutdown_count} data types"

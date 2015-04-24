@@ -54,10 +54,11 @@ module Mongoff
           document[symbol] = value
         end
       else
-        if (value = (@fields[symbol] || document[symbol])).is_a?(BSON::Document)
-          @fields[symbol] = Record.new(orm_model.property_model(symbol), value)
-        elsif value.is_a?(::Array)
-          @fields[symbol] = RecordArray.new(orm_model.property_model(symbol), value)
+        property_model = orm_model.property_model(symbol)
+        if (value = (@fields[symbol] || document[symbol])).is_a?(BSON::Document) && property_model
+          @fields[symbol] = Record.new(property_model, value)
+        elsif value.is_a?(::Array)  && property_model
+          @fields[symbol] = RecordArray.new(property_model, value)
         else
           value
         end

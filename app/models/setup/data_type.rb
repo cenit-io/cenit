@@ -17,24 +17,12 @@ module Setup
 
     before_save :validate_model
 
-    field :is_object, type: Boolean
-
-    scope :activated, -> { where(activated: true) }
-
     def library
       schema && schema.library
     end
 
     def validator
       schema
-    end
-
-    def shutdown(options={})
-      DataType.shutdown(self, options)
-    end
-
-    def is_object?
-      is_object.present?
     end
 
     def validate_model
@@ -48,10 +36,6 @@ module Setup
         #TODO Remove raise
         #raise ex
         puts "ERROR: #{errors.add(:model_schema, ex.message).to_s}"
-      end
-      sch = merged_schema rescue nil
-      unless self.is_object = sch && sch['type'] == 'object' && !sch['properties'].nil?
-        self.activated = false
       end
       errors.blank?
     end
@@ -154,10 +138,6 @@ module Setup
 
     MONGO_TYPES= %w{Array BigDecimal Boolean Date DateTime Float Hash Integer Range String Symbol Time}
 
-    def object_schema?(schema)
-      schema['type'] == 'object' && schema['properties']
-    end
-
     def find_constant(name)
       reflect_constant(name, :do_not_create)[0]
     end
@@ -234,6 +214,8 @@ module Setup
           raise Exception.new("requires base model #{base_schema} to be already loaded")
         end
       end
+
+      check_id_property(schema)
 
       if base_schema && !base_model.is_a?(Class)
         if schema['type'] == 'object' && base_schema['type'] != 'object'
@@ -440,7 +422,8 @@ module Setup
             if ref
               raise Exception.new("referencing embedded reference #{ref}") if items_desc['referenced']
               property_type = ref.start_with?('#') ? check_embedded_ref(ref, nil, root.to_s).singularize : ref
-              property_type = (type_model = find_or_load_model(report, property_type) || find_constant(property_type)).model_access_name
+              type_model = find_or_load_model(report, property_type) || find_constant(property_type)
+              property_type = type_model && type_model.model_access_name
             else
               property_type = (type_model = parse_schema(report, property_name.camelize.singularize, property_desc['items'], root, klass, :embedded, klass.schema_path + "/properties/#{property_name}/items")).model_access_name
               type_model_created = true
@@ -537,122 +520,6 @@ module Setup
         return root
       rescue
         return nil
-      end
-    end
-
-    class << self
-      def shutdown(data_types, options={})
-        return {} unless data_types
-        options[:reset_config] = options[:reset_config].nil? && !options[:report_only]
-        raise Exception.new("Both options 'destroy' and 'report_only' is not allowed") if options[:destroy] && options[:report_only]
-        data_types = [data_types] unless data_types.is_a?(Enumerable)
-        report = {destroyed: Set.new, affected: Set.new, reloaded: Set.new, errors: {}}
-        data_types.each do |data_type|
-          begin
-            r = data_type.shutdown_model(options)
-            report[:destroyed] += r[:destroyed]
-            report[:affected] += r[:affected]
-          rescue Exception => ex
-            raise ex
-            puts "Error deconstantizing model #{data_type.name}: #{ex.message}"
-          end
-        end
-        puts "Report: #{report.to_s}"
-        post_process_report(report)
-        puts "Post processed report #{report}"
-        unless options[:report_only]
-          opts = options.reject { |key, _| key == :destroy }
-          report[:destroyed].each do |model|
-            model.data_type.shutdown_model(opts) unless data_types.include?(data_type = model.data_type)
-          end
-          deconstantize(report[:destroyed])
-          puts 'Reloading affected models...' if report[:affected].present?
-          destroyed_lately = []
-          report[:affected].each do |model|
-            data_type = model.data_type
-            unless report[:errors][data_type] || report[:reloaded].detect { |m| m.to_s == model.to_s }
-              begin
-                if model.parent == Object
-                  puts "Reloading #{model.schema_name rescue model.to_s} -> #{model.to_s}"
-                  model_report = data_type.load_models(reload: true, reset_config: false)
-                  report[:reloaded] += model_report[:reloaded] + model_report[:loaded]
-                  report[:destroyed] += model_report[:destroyed]
-                  if loaded_model = model_report[:model]
-                    report[:reloaded] << loaded_model
-                  else
-                    report[:destroyed] << model
-                    report[:errors][data_type] = data_type.errors
-                  end
-                else
-                  puts "Model #{model.schema_name rescue model.to_s} -> #{model.to_s} reload on parent reload!"
-                end
-              rescue Exception => ex
-                raise ex
-                puts "Error deconstantizing  #{model.schema_name rescue model.to_s}"
-                destroyed_lately << model
-              end
-              puts "Model #{model.schema_name rescue model.to_s} -> #{model.to_s} reloaded!"
-            end
-          end
-          report[:affected].clear
-          deconstantize(destroyed_lately)
-          report[:destroyed].delete_if { |model| report[:reloaded].detect { |m| m.to_s == model.to_s } }
-          puts "Final report #{report}"
-          RailsAdmin::AbstractModel.update_model_config([], report[:destroyed], report[:reloaded]) if options[:reset_config]
-        end
-        report
-      end
-
-      def deconstantize(models)
-        models = models.sort_by do |model|
-          index = 0
-          if model.is_a?(Class)
-            parent = model.parent
-            while !parent.eql?(Object)
-              index = index - 1
-              parent = parent.parent
-            end
-          end
-          index
-        end
-        models.each do |model|
-          puts "Decontantizing #{constant_name = model.model_access_name} -> #{model.schema_name rescue model.to_s}"
-          constant_name = constant_name.split('::').last
-          parent = model.is_a?(Class) ? model.parent : Object
-          parent.send(:remove_const, constant_name) if parent.const_defined?(constant_name)
-        end
-      end
-
-      def post_process_report(report)
-        report[:affected].each do |model|
-          unless model.affected_models.detect { |m| !report[:destroyed].include?(m) && m.data_type.activated }
-            report[:destroyed] << model
-            report[:affected].delete(model)
-          end
-        end
-
-        to_destroy_also = Set.new
-        report[:destroyed].each do |model|
-          model.affected_by.each do |m|
-            unless report[:destroyed].include?(m) || (affected = m.try(:affected_models)).nil? || affected.detect { |m2| !report[:destroyed].include?(m2) }
-              to_destroy_also << m
-            end
-          end
-        end
-        report[:destroyed] += to_destroy_also
-
-        affected_children =[]
-        report[:affected].each { |model| affected_children << model if ancestor_included(model, report[:affected]) }
-        report[:affected].delete_if { |model| report[:destroyed].include?(model) || affected_children.include?(model) }
-      end
-
-      def ancestor_included(model, container)
-        parent = model.parent
-        while !parent.eql?(Object)
-          return true if container.include?(parent)
-          parent = parent.parent
-        end
-        false
       end
     end
 
