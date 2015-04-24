@@ -284,6 +284,8 @@ module Setup
         end
       end
 
+      check_id_property(schema)
+
       if properties = schema['properties']
         raise Exception.new('properties definition is invalid') unless properties.is_a?(Hash)
         schema['properties'].each do |property_name, property_desc|
