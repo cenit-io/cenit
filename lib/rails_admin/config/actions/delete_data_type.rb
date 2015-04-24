@@ -28,7 +28,7 @@ module RailsAdmin
                 if @auditing_adapter
                   @auditing_adapter.delete_object(@object, @abstract_model, _current_user)
                 end
-                Setup::DataType.shutdown(@object)
+                Setup::Model.shutdown(@object)
                 if @object.destroy
                   flash[:success] = t('admin.flash.successful', name: @model_config.label, action: t('admin.actions.delete.done'))
                   redirect_path = index_path
@@ -38,7 +38,7 @@ module RailsAdmin
                 end
                 redirect_to redirect_path
               else
-                @report = Setup::DataType.shutdown(@object, report_only: true)
+                @report = Setup::Model.shutdown(@object, report_only: true)
                 @object.instance_variable_set(:@_to_delete, @object) if @object.count > 0
                 to_shutdown = @report[:destroyed].collect(&:data_type).uniq
                 to_shutdown.delete(@object)

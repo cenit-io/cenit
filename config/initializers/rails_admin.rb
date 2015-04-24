@@ -157,7 +157,7 @@ RailsAdmin.config do |config|
 
       field :schema, :code_mirror do
         html_attributes do
-          reload = Setup::DataType.shutdown(bindings[:object].data_types, report_only: true)[:destroyed].collect(&:data_type).uniq #.select(&:activated)
+          reload = Setup::Model.shutdown(bindings[:object].data_types.activated, report_only: true)[:destroyed].collect(&:data_type).uniq #.select(&:activated)
           bindings[:object].instance_variable_set(:@_to_reload, reload)
           {cols: '74', rows: '15'}
         end

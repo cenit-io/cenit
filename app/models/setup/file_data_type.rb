@@ -66,10 +66,6 @@ module Setup
       [name = data_type_collection_name, name + '.files', name + '.chunks']
     end
 
-    def is_object?
-      true
-    end
-
     def model_schema
       SCHEMA
     end

@@ -26,7 +26,7 @@ module Setup
     def load_models(options = {})
       unless @data_types_to_reload
         reload
-        @data_types_to_reload = data_types.where(activated: true)
+        @data_types_to_reload = data_types.activated
       end
       models = Set.new
       @data_types_to_reload.each do |data_type|
@@ -71,9 +71,9 @@ module Setup
             return false
           end
         end
-        report = DataType.shutdown(data_types, report_only: true)
+        report = Model.shutdown(data_types.activated, report_only: true)
         @data_types_to_reload = report[:destroyed].collect(&:data_type).uniq.select(&:activated)
-        DataType.shutdown(data_types)
+        Model.shutdown(data_types.activated)
         data_types.each do |data_type|
           unless @data_types_to_keep.include?(data_type)
             data_type.destroy
@@ -112,7 +112,7 @@ module Setup
     end
 
     def destroy_data_types
-      @shutdown_report = DataType.shutdown(@new_data_types || data_types, destroy: true)
+      @shutdown_report = Model.shutdown(@new_data_types || data_types.activated, destroy: true)
     end
 
     def parse_schemas
@@ -128,20 +128,14 @@ module Setup
 
     def parse_json_schema
       json = JSON.parse(self.schema)
-      json =
-        if json['type'] || json['allOf']
-          name = self.uri
-          if (index = name.rindex('/')) || index = name.rindex('#')
-            name = name[index + 1, name.length - 1]
-          end
-          if index = name.rindex('.')
-            name = name[0..index - 1]
-          end
-          {name.camelize => json}
-        else
-          json
-        end
-      json
+      name = self.uri
+      if (index = name.rindex('/')) || index = name.rindex('#')
+        name = name[index + 1, name.length - 1]
+      end
+      if index = name.rindex('.')
+        name = name[0..index - 1]
+      end
+      {name.camelize => json}
     end
 
     def parse_xml_schema

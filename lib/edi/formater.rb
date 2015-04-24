@@ -110,10 +110,10 @@ module Edi
       element
     end
 
-    def record_to_hash(record, options = {}, referenced = false, schema = nil)
+    def record_to_hash(record, options = {}, referenced = false)
       return record if json_object?(record)
       data_type = record.orm_model.data_type
-      schema ||= data_type.merged_schema
+      schema = record.orm_model.schema
       json = (referenced = referenced && schema['referenced_by']) ? {'_reference' => true} : {}
       schema['properties'].each do |property_name, property_schema|
         next if property_schema['virtual'] || (referenced && !referenced.include?(property_name)) || options[:ignore].include?(property_name.to_sym)
@@ -125,12 +125,12 @@ module Edi
           property_schema = data_type.merge_schema(property_schema['items'])
           referenced_items = property_schema['referenced'] && !property_schema['export_embedded']
           if value = record.send(property_name)
-            value = value.collect { |sub_record| record_to_hash(sub_record, options, referenced_items, property_schema) }
+            value = value.collect { |sub_record| record_to_hash(sub_record, options, referenced_items) }
             json[name] = value unless value.empty?
           end
         when 'object'
           json[name] = value if value =
-            record_to_hash(record.send(property_name), options, property_schema['referenced'] && !property_schema['export_embedded'], property_schema)
+            record_to_hash(record.send(property_name), options, property_schema['referenced'] && !property_schema['export_embedded'])
         else
           if (value = record.send(property_name)).nil?
             value = property_schema['default']
