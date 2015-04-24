@@ -19,14 +19,12 @@ module Cenit
     
     def permitted_connection_role_attributes
       permitted_attributes.connection_role_attributes + [
-        webhook_attributes: permitted_webhook_attributes,
-        connection_attributes: permitted_connection_attributes,
+        webhook_attributes: permitted_webhook_attributes
       ]
     end
     
     def permitted_webhook_attributes
       permitted_attributes.webhook_attributes + [
-        connection_role_attributes: permitted_connection_role_attributes,
         parameter_attributes: permitted_parameter_attributes,
         header_attributes: permitted_parameter_attributes,
         template_parameter: permitted_parameter_attributes,
