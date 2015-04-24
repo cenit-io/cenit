@@ -5,7 +5,7 @@ development:
     default:
       # Defines the name of the default database that Mongoid can connect to.
       # (required).
-      database: rails4_mongoid_development
+      database: cenit_development
       # Provides the hosts the default session can connect to. Must be an array
       # of host:port pairs. (required)
       hosts:
@@ -65,7 +65,7 @@ development:
 test:
   sessions:
     default:
-      database: rails4_mongoid_test
+      database: cenithub_test
       hosts:
         - localhost:27017
       options:
@@ -74,5 +74,11 @@ test:
         # low amounts for fast failures.
         max_retries: 1
         retry_interval: 0
+
 production:
-  uri: <%= ENV['MONGOHQ_URL'] %>
+  # uri: <%= ENV['MONGOHQ_URL'] %>
+  sessions:
+    default:
+      database: cenithub_produccion
+      hosts:
+        - localhost:27017
