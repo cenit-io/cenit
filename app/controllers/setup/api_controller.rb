@@ -1,15 +1,15 @@
 module Setup
   class ApiController < ApplicationController
     include Cenit::StrongParameters
-    
-    respond_to :json
-    before_action :authorize
-    
-    before_action :find_model
+    before_action :save_request_data, :authorize
+    # rescue_from Exception, :with => :exception_handler
+
     before_action :find_item, only: [:show, :update, :destroy]
 
+    respond_to :json
+
     def index
-      @items = get_model.all
+      @items = klass.all
       render json: @items.map { |item| { @model => attributes(item) } }
     end
 
@@ -18,7 +18,7 @@ module Setup
     end
 
     def create
-      @item = get_model.new(permited_attributes)
+      @item = klass.new(permited_attributes)
       if @item.save
         render json: { @model => attributes(@item) }
       else
@@ -55,32 +55,41 @@ module Setup
       render json: 'Unauthorized!', status: :unprocessable_entity 
       return false
     end
+    
+    def exception_handler(exception)
+      # exception_handler = Handler.new(@message)
+      # responder = exception_handler.response(exception.message, 500)
+      # responder.backtrace = exception.backtrace.to_s
+      # render json: responder, root: false, status: responder.code
+      # return false
+    end
 
     def permited_attributes
-      p = JSON.parse (JSON.parse params.to_json).with_indifferent_access.keys.first
-      parameters = ActionController::Parameters.new(p[@model])
+      parameters = ActionController::Parameters.new(@payload[@model])
       parameters.permit(send "permitted_#{@model}_attributes")
-    end
-    
-    def find_model
-      @model = params[:model]
     end
 
     def find_item
-      @item = get_model.where(id: params[:id]).first
+      @item = klass.where(id: params[:id]).first
       unless @item.present?
         render json: {status: "item not found"}
       end
     end
     
-    def get_model
+    def klass
       "Setup::#{@model.camelize}".constantize
     end  
 
     def attributes(item)
       id = item.attributes.delete('_id').to_s
       item.attributes.merge('id' => id)
-    end  
+    end
+    
+    def save_request_data
+      @model = params[:model]
+      @webhook_body = request.body.read
+      @payload = JSON.parse(@webhook_body).with_indifferent_access
+    end
 
   end
 end
