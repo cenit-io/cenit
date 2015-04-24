@@ -87,8 +87,9 @@ module Setup
     
     def save_request_data
       @model = params[:model]
-      @webhook_body = request.body.read
-      @payload = JSON.parse(@webhook_body).with_indifferent_access
+      if (@webhook_body = request.body.read).present?
+        @payload = JSON.parse(@webhook_body).with_indifferent_access
+      end      
     end
 
   end
