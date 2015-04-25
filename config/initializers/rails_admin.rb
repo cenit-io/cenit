@@ -723,20 +723,19 @@ RailsAdmin.config do |config|
     edit do
       field :name
       field :data_type do
-        help do
-          if (obj = bindings[:object]).new_record? || obj.data_type.loaded?
-            false
-          else
-            "<label style='color:red;float:left'>WARNING:</label><label style='float:left;margin-left:5px'>Triggers for non loaded data type <strong>#{obj.data_type.title}</strong> will be overridden.</label>".html_safe
-          end
-        end
         associated_collection_scope do
+          bindings[:controller].instance_variable_set(:@_data_type, data_type = bindings[:object].data_type)
           Proc.new { |scope|
-            scope.where(model_loaded: true)
+            if data_type
+              scope.where(id: data_type.id)
+            else
+              scope
+            end
           }
         end
       end
       field :triggers do
+        visible { bindings[:object].data_type.present? }
         partial 'form_triggers'
         help false
       end

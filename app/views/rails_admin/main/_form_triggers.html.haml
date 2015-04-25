@@ -1,40 +1,33 @@
 
-//%script(src="/assets/triggers-box.js")
-
 :ruby
-  @model_field_map = {}
-  #TODO Extract trigger fields directly from data type
-  Setup::Model.all.each do |data_type|
-    if data_type.loaded? && (abstract_model = RailsAdmin::AbstractModel.new(data_type.model)) && !(model_config = abstract_model.config).excluded?
-      @model_field_map[data_type.id.to_s] = []
-      model_config.list.fields.select(&:filterable?).each do |field|
-        field_options = field.type.eql?(:enum) ? field.with(object: abstract_model.model.new).enum : []
-        #["data-field-label" => field.label, "data-field-name" => field.name, "data-field-options" => field_options.html_safe, "data-field-type" => field.type]
-        @model_field_map[data_type.id.to_s] << [field.label, field.name, field_options, field.type]
-      end
+  model_fields = []
+  if data_type = @_controller.instance_variable_get(:@_data_type)
+    (model = data_type.records_model).simple_properties_schemas.each do |property, schema|
+      model_fields << [schema['title'] || property.titleize, property, (enum = schema['enum']) || [], enum ? 'enum' : model.type_symbol_for(schema)]
     end
   end
-  @model_field_map = @model_field_map.to_json
-  if (@triggers = field.form_value).blank?
-    @triggers = '{}'
+  model_fields = model_fields.to_json
+  if (triggers = field.form_value).blank?
+    triggers = '{}'
   end
-  puts "MODEL FIELD MAP #{@model_field_map}"
-  puts "TRIGGERS #{@triggers}"
+  puts "MODEL FIELD MAP #{model_fields}"
+  puts "TRIGGERS #{triggers}"
 
 .a{style: 'float:left'}
-  %input{style: 'display: none', :'name' => 'setup_observer[triggers][_]'}
+  %input{style: 'display: none', name: 'setup_observer[triggers][_]'}
   .b
     %span#triggers_box
   .c
     %li.dropdown{style: 'list-style-type: none'}
       %a.dropdown-toggle{href: '#', :'data-toggle' => 'dropdown'}
-        .btn.btn-info.disabled{id: 'add_trigger'}
+        .btn.btn-info{id: 'add_trigger'}
           .i{class: 'icon-white icon-plus'}
           = 'Add trigger'  #t('admin.misc.add_filter')
           %b.caret
       %ul.dropdown-menu#triggers
 
 %script
-  var fields = #{@model_field_map.html_safe}
-  var default_triggers = #{@triggers.html_safe}
+  var fields = #{model_fields.html_safe}
+  var default_triggers = #{triggers.html_safe}
   $("#setup_observer_data_type_id").trigger('change');
+

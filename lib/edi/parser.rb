@@ -133,7 +133,7 @@ module Edi
             record.send("#{property_name}=", []) unless property_value && items_schema['referenced']
             if property_value = json[name]
               property_value.each do |sub_value|
-                if items_schema.present? && sub_value['_reference'] #TODO Repalce condition items_schema.present? for detecting non model array schema
+                if property_model && sub_value['_reference']
                   sub_value = Cenit::Utility.deep_remove(sub_value, '_reference')
                   if value = Cenit::Utility.find_record(property_model.all, sub_value)
                     if !(association = record.send(property_name)).include?(value)
@@ -180,7 +180,7 @@ module Edi
           (sub_model = data_type.records_model) &&
           sub_model != model
           sub_record = (updating ? record : sub_model.new)
-          json_schema['properties'].each do |property_name, property_schema|
+          json_schema['properties'].keys.each do |property_name|
             if value = record.send(property_name)
               sub_record.send("#{property_name}=", value)
               record.send("#{property_name}=", nil)
