@@ -1,5 +1,4 @@
 Cenit::Application.routes.draw do
-
   mount RailsAdmin::Engine => '/data', as: 'rails_admin'
 
   root to: 'rails_admin/main#dashboard'
@@ -21,9 +20,9 @@ Cenit::Application.routes.draw do
 
   namespace :api do
     namespace :v1 do
+      post '/push', to: 'api#push'
       get '/:model', to: 'api#index'
       get '/:model/:id', to: 'api#show'
-      post '/push', to: 'api#push'
       delete '/:model/:id', to: 'api#destroy'
     end
   end

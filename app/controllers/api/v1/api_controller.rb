@@ -4,7 +4,7 @@ module Api::V1
     before_action :find_item, only: [:show, :destroy]
     rescue_from Exception, :with => :exception_handler
     respond_to :json
-    
+
     PRESENTATION_KEY = { '_id' => 'id' }.freeze
 
     def index
@@ -47,25 +47,22 @@ module Api::V1
     def authorize
       key = request.headers['X-User-Access-Key']
       token = request.headers['X-User-Access-Token']
-    
       user = User.where(key: key).first if key && token
       if user && Devise.secure_compare(user.token, token) && user.has_role?(:admin)
         Account.current = user.account
         return true
       end
-      
+
       key = request.headers['X-Hub-Store']
       token = request.headers['X-Hub-Access-Token']
-      
       unless Account.set_current_with_connection(key, token)
         responder = Cenit::Responder.new(@request_id, @webhook_body, 401)
         render json: responder, root: false, status: responder.code
         return false
       end
-
-      return true
+      true
     end
-    
+
     def exception_handler(exception)
       responder = Cenit::Responder.new(@request_id, @webhook_body, 500)
       responder.backtrace = exception.backtrace.to_s
