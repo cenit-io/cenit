@@ -430,7 +430,6 @@ RailsAdmin.config do |config|
 
   config.model Setup::Connection do
     weight -15
-    
     configure :name, :string do
       help 'Requiered.'
       html_attributes do
@@ -487,7 +486,7 @@ RailsAdmin.config do |config|
       field :headers
       field :template_parameters
 
-      field :id
+      field :_id
       field :created_at
       #field :creator
       field :updated_at
