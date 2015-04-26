@@ -135,7 +135,6 @@ module Edi
             if property_value = json[name]
               property_value = [ property_value ] unless property_value.is_a?(Array)
               property_value.each do |sub_value|
-                begin
                 if items_schema.present? && sub_value['_reference'] #TODO Repalce condition items_schema.present? for detecting non model array schema
                   sub_value = Cenit::Utility.deep_remove(sub_value, '_reference')
                   if value = Cenit::Utility.find_record(property_model.all, sub_value)
@@ -150,9 +149,6 @@ module Edi
                   if !(association = record.send(property_name)).include?(value = do_parse_json(data_type, property_model, sub_value, options, items_schema))
                     association << value
                   end
-                end
-                rescue
-                  byebug
                 end
               end
             end
