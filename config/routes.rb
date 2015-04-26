@@ -19,11 +19,12 @@ Cenit::Application.routes.draw do
     post '/', to: 'api#consume', as: 'api'
   end
 
-  namespace :setup do
-    get '/:model', to: 'api#index'
-    get '/:model/:id', to: 'api#show'
-    post '/:model', to: 'api#create'
-    match '/:model/:id', to: 'api#update', via: [:patch, :put]
-    delete '/:model/:id', to: 'api#destroy'
+  namespace :api do
+    namespace :v1 do
+      get '/:model', to: 'api#index'
+      get '/:model/:id', to: 'api#show'
+      post '/push', to: 'api#push'
+      delete '/:model/:id', to: 'api#destroy'
+    end
   end
 end

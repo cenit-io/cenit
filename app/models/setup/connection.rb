@@ -19,7 +19,7 @@ module Setup
     field :number, as: :key, type: String
     field :token, type: String
 
-    after_initialize :ensure_token
+    after_initialize :ensure_token 
 
     validates_uniqueness_of :name
     accepts_nested_attributes_for :parameters, :headers, :template_parameters
