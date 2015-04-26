@@ -119,7 +119,6 @@ module Edi
             return json
           end
         end
-        
         json_schema = data_type.merge_schema(json_schema)
         json_schema['properties'].each do |property_name, property_schema|
           next if options[:ignore].include?(property_name.to_sym)
