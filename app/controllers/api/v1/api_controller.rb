@@ -1,19 +1,19 @@
 module Api::V1
   class ApiController < ApplicationController
     before_action :save_request_data, :authorize
-    before_action :find_item, only: [:show, :update, :destroy]
+    before_action :find_item, only: [:show, :destroy]
     rescue_from Exception, :with => :exception_handler
     respond_to :json
     
-    PRESENTATION_KEY = { '_id' => 'id'}.freeze
+    PRESENTATION_KEY = { '_id' => 'id' }.freeze
 
     def index
       @items = klass.all
-      render json: @items.map { |item| { @model => attributes(item) } }
+      render json: @items.map { |item| { @model => attr_presentation(item.attributes) } }
     end
 
     def show
-      render json: { @model => attributes(@item) }
+      render json: { @model => attr_presentation(@item.attributes)  }
     end
 
     def push
@@ -29,7 +29,7 @@ module Api::V1
       broken.delete_if { |key, value| value.compact.blank? }
       response = {}
       if result.present? && broken.blank?
-        result.each { |root, v| response[root.pluralize] = v.map { |_, obj| attributes(obj.attributes) }.flatten }
+        result.each { |root, v| response[root.pluralize] = v.map { |_, obj| attr_presentation(obj.attributes) }.flatten }
         render json: response
       else
         result.each { |root, v| v.each { |_, obj| obj.destroy } }
@@ -45,16 +45,25 @@ module Api::V1
     protected
 
     def authorize
-      # we are using token authentication via header.
       key = request.headers['X-User-Access-Key']
       token = request.headers['X-User-Access-Token']
+    
       user = User.where(key: key).first if key && token
       if user && Devise.secure_compare(user.token, token) && user.has_role?(:admin)
         Account.current = user.account
         return true
       end
-      render json: 'Unauthorized!', status: :unprocessable_entity 
-      return false
+      
+      key = request.headers['X-Hub-Store']
+      token = request.headers['X-Hub-Access-Token']
+      
+      unless Account.set_current_with_connection(key, token)
+        responder = Cenit::Responder.new(@request_id, @webhook_body, 401)
+        render json: responder, root: false, status: responder.code
+        return false
+      end
+
+      return true
     end
     
     def exception_handler(exception)
@@ -65,31 +74,39 @@ module Api::V1
     end
 
     def find_item
-      @model = params[:model]
       @item = klass.where(id: params[:id]).first
       unless @item.present?
         render json: { status: "item not found" }
       end
     end
 
+    def get_model(model)
+      model = model.singularize
+      "Setup::#{model.camelize}".constantize 
+    rescue
+      Setup::DataType.where(name: model.camelize).first.model
+    end
+
     def klass
-      "Setup::#{@model.camelize}".constantize
+      "Setup::#{@model.camelize}".constantize rescue get_model(@model)
     end
 
     def process_message(root, message)
-      "Setup::#{root.singularize.camelize}".constantize.data_type.new_from_json(message.to_json)
+      if klass = get_model(root)
+        klass.data_type.new_from_json(message.to_json)
+      end
     end
 
-    def attributes(items)
+    def attr_presentation(items)
       items.is_a?(Array) ? items.map { |e| remove_mogo_id(e) }.flatten : remove_mogo_id(items)
     end
 
     def remove_mogo_id(items)
-      return items.to_s if items.is_a?(BSON::ObjectId)
+      return { id: items.to_s } if items.is_a?(BSON::ObjectId)
       return items unless items.is_a?(Enumerable)
       PRESENTATION_KEY.each { |key, value| items.merge!(value => items.delete(key)) }
       items.delete_if { |key, value| value.blank? }
-      items.each { |key, value| items[key] = attributes(value) }
+      items.each { |key, value| items[key] = (key == 'id' ? attr_presentation(value.to_s) : attr_presentation(value)) }
       items
     end
 
@@ -98,6 +115,7 @@ module Api::V1
       if (@webhook_body = request.body.read).present?
         @payload = JSON.parse(@webhook_body).with_indifferent_access
       end
+      @model = params[:model]
     end
   end
 end
