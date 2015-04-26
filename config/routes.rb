@@ -14,10 +14,6 @@ Cenit::Application.routes.draw do
     get 'sign_out', to: 'users/sessions#destroy', as: :destroy_user_session
   end
 
-  namespace :cenit do
-    post '/', to: 'api#consume', as: 'api'
-  end
-
   namespace :api do
     namespace :v1 do
       post '/push', to: 'api#push'
