@@ -132,6 +132,7 @@ module Edi
             items_schema = data_type.merge_schema(property_schema['items'] || {})
             record.send("#{property_name}=", []) unless property_value && items_schema['referenced']
             if property_value = json[name]
+              property_value = [ property_value ] unless property_value.is_a?(Array)
               property_value.each do |sub_value|
                 if items_schema.present? && sub_value['_reference'] #TODO Repalce condition items_schema.present? for detecting non model array schema
                   sub_value = Cenit::Utility.deep_remove(sub_value, '_reference')
@@ -169,6 +170,7 @@ module Edi
             end
           else
             next if (updating && property_name == '_id') || (!updating && record.send(property_name))
+            next if ( updating && json[name].nil? )
             property_value = json[name]
             record.send("#{property_name}=", property_value)
           end
