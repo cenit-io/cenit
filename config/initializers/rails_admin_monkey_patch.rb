@@ -130,13 +130,15 @@ module RailsAdmin
         collect_models(removed_models, models_to_reset)
         models_to_reset.delete_if { |model| (dt = model.data_type).nil? || dt.to_be_destroyed }
         removed_models.each do |model|
-          Config.reset_model(model)
-          Config.remove_model(model)
-          if m = all.detect { |m| m.model_name.eql?(model.to_s) }
-            all.delete(m)
-            puts "#{self.to_s}: model #{model.schema_name rescue model.to_s} removed!"
-          else
-            puts "#{self.to_s}: model #{model.schema_name rescue model.to_s} is not present to be removed!"
+          if model.is_a?(Class)
+            Config.reset_model(model)
+            Config.remove_model(model)
+            if m = all.detect { |m| m.model_name.eql?(model.to_s) }
+              all.delete(m)
+              puts "#{self.to_s}: model #{model.schema_name rescue model.to_s} removed!"
+            else
+              puts "#{self.to_s}: model #{model.schema_name rescue model.to_s} is not present to be removed!"
+            end
           end
           models_to_reset.delete(model)
         end
@@ -172,8 +174,8 @@ module RailsAdmin
           model_data_type = data_type.model.eql?(model) ? data_type : nil
           title = model_data_type ? model_data_type.title : model.title
           {navigation_label: nil,
-          visible: false,
-          label: title}.each do |option, value|
+           visible: false,
+           label: title}.each do |option, value|
             if model_data_type && model_data_type.respond_to?(option)
               value = model_data_type.send(option)
             end
@@ -182,6 +184,7 @@ module RailsAdmin
             end
           end
           if properties = schema['properties']
+            properties['created_at'] = properties['updated_at'] = {'type' => 'string', 'format' => 'date-time', 'visible' => false}
             properties.each do |property, property_schema|
               if field =
                 if model.property_model(property).is_a?(Mongoff::Model)

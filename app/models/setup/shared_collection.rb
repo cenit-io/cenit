@@ -3,12 +3,13 @@ module Setup
     include CenitUnscoped
     include Trackable
 
-    Setup::Models.exclude_actions_for self, :new, :translator_update, :convert,  :send_to_flow, :delete_all
+    Setup::Models.exclude_actions_for self, :new, :translator_update, :convert, :send_to_flow, :delete_all
 
     BuildInDataType.regist(self).excluding(:image, :source_collection, :connections)
 
     mount_uploader :image, GridFsUploader
     field :name, type: String
+    field :category, type: String
     field :description, type: String
     belongs_to :source_collection, class_name: Setup::Collection.to_s, inverse_of: nil
     has_and_belongs_to_many :connections, inverse_of: nil
@@ -21,7 +22,18 @@ module Setup
 
     accepts_nested_attributes_for :pull_parameters
 
-    before_save :validate_configuration
+    before_save :validate_configuration, :categorize
+
+    def category_enum
+      %w(Collection Library Translator)
+    end
+
+    def categorize
+      shared = data.keys.select { |key| key != 'name' }
+      self.category =
+        shared.length == 1 && %w(libraries translators).include?(shared[0]) ? shared[0].singularize.capitalize : 'Collection'
+      true
+    end
 
     def data_with(parameters={})
       hash_data = data
@@ -50,7 +62,15 @@ module Setup
         errors.add(:pull_parameters, 'is not valid') if pull_parameters.detect { |pull_parameter| pull_parameter.errors.present? }
       end
       self.data = hash_data
-      errors.blank?
+      if errors.blank?
+        if source_collection && source_collection.new_record?
+          source_collection.name = name unless source_collection.name.present?
+          source_collection.save
+        end
+        true
+      else
+        false
+      end
     end
 
     def enum_for_pull_parameters

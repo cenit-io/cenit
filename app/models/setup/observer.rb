@@ -10,19 +10,25 @@ module Setup
 
     before_save :format_triggers, :check_name
 
+    def ready_to_save?
+      data_type.present?
+    end
+
+    def can_be_restarted?
+      ready_to_save?
+    end
+
     def triggers_apply_to?(obj_now, obj_before = nil)
-      puts "Applying event '#{self}'..."
       r = true
       triggers_hash = JSON.parse(self.triggers)
       triggers_hash.each do |field_name, conditions|
         conditions.each do |_, condition|
-          puts c =
-                 if (condition['o'] == '_change')
-                   field_changed(obj_now, obj_before, field_name)
-                 else
-                   condition_apply(obj_now, field_name, condition) && !condition_apply(obj_before, field_name, condition)
-                 end
-          r &&= c
+          r &&=
+            if (condition['o'] == '_change')
+              field_changed(obj_now, obj_before, field_name)
+            else
+              condition_apply(obj_now, field_name, condition) && !condition_apply(obj_before, field_name, condition)
+            end
         end
       end
       puts "Event '#{name ? name : self}' #{r ? '' : 'DOES NOT'} APPLIES!"
@@ -43,11 +49,7 @@ module Setup
     private
 
     def field_changed(obj_now, obj_before, field_name)
-      now_v = obj_now.try(field_name)
-      before_v = obj_before.try(field_name)
-      r = now_v != before_v
-      puts "#{now_v} change? #{before_v} -> #{r}"
-      r
+      obj_now.try(field_name) != obj_before.try(field_name)
     end
 
     def condition_apply(obj, field_name, condition)
@@ -62,14 +64,8 @@ module Setup
       unless op = condition['o']
         op = cond_v.is_a?(Array) ? 'in' : 'is'
       end
-      begin
-        obj_values.each do |obj_v|
-          r = self.send("op_#{op}", obj_v, cond_v)
-          puts "#{obj_v} #{op} #{cond_v} -> #{r}"
-          return true if r
-        end
-      rescue Exception => ex
-        puts "ERROR #{ex.message}"
+      if respond_to?(applier_method = "op_#{op}", true)
+        obj_values.each { |obj_v| return true if send(applier_method, obj_v, cond_v) }
       end
       false
     end
@@ -81,13 +77,27 @@ module Setup
       array
     end
 
+    CONVERSION_METHOD =
+      {
+        NilClass => :to_s,
+        Integer => :to_f,
+        Fixnum => :to_f,
+        Float => :to_f,
+        String => :to_s,
+        Date => :to_date,
+        DateTime => :to_datetime,
+        Time => :to_time,
+        ActiveSupport::TimeWithZone => :to_time,
+        FalseClass => :to_boolean,
+        TrueClass => :to_boolean,
+        BigDecimal => :to_d
+      }
+
     def valuate(cond_v, klass)
       return unless cond_v
       return cond_v if cond_v.is_a?(klass)
       cond_v = [cond_v] unless is_array = cond_v.is_a?(Array)
-      to_obj_class = {NilClass => :to_s, Integer => :to_f, Fixnum => :to_f, Float => :to_f, String => :to_s,
-                      Date => :to_date, DateTime => :to_datetime, Time => :to_time, ActiveSupport::TimeWithZone => :to_time,
-                      FalseClass => :to_boolean, TrueClass => :to_boolean, BigDecimal => :to_d}[klass]
+      to_obj_class = CONVERSION_METHOD[klass]
       cond_v = cond_v.collect do |e|
         case
         when e.nil? || (e.is_a?(String) && e.empty?)
@@ -95,12 +105,7 @@ module Setup
         when to_obj_class.nil?
           e
         else
-          begin
-            e.to_s.send(to_obj_class)
-          rescue Exception => ex
-            puts "ERROR invoking [#{klass}](#{e} of class #{e.class}).#{to_obj_class} -> #{ex.message}"
-            e
-          end
+          e.to_s.try(to_obj_class) || e
         end
       end
       return is_array ? cond_v : cond_v[0]
@@ -162,10 +167,6 @@ module Setup
     end
 
     def format_triggers
-      if self.triggers.nil? || self.triggers.length == 0
-        errors.add(:triggers, "can't be blank")
-        return false
-      end
       begin
         self.triggers = self.triggers.gsub('=>', ':')
         hash = JSON.parse(self.triggers)
@@ -176,7 +177,7 @@ module Setup
         end
         self.triggers = hash.to_json
       rescue
-        errors.add(:triggers, 'are not valid')
+        errors.add(:triggers, 'is not valid')
         return false
       end
       modified = nil

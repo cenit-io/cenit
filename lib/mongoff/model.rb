@@ -1,6 +1,7 @@
 module Mongoff
   class Model
     include Setup::InstanceAffectRelation
+    include MetadataAccess
 
     EMPTY_SCHEMA = {}.freeze
 
@@ -39,7 +40,6 @@ module Mongoff
     end
 
     def property_model(property)
-      #TODO Create a model space to optimize memory usage
       model = nil
       if schema['type'] == 'object' && schema['properties'] && property_schema = schema['properties'][property.to_s]
         property_schema = property_schema['items'] if property_schema['type'] == 'array' && property_schema['items']

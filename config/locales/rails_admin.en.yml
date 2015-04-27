@@ -130,8 +130,15 @@ en:
         breadcrumb: "Disk"
         model: "Collection"
         used_memory: "Space used"
-      share_collection:
-        title: "Share Collection '%{object_label}'"
+      bulk_share:
+        title: "Share %{model_label_plural}"
+        bulk_link: "Share selected %{model_label_plural}"
+        menu: "Share"
+        breadcrumb: "Share"
+        submit: "Share"
+        done: "created"
+      simple_share:
+        title: "Share %{model_label} '%{object_label}'"
         menu: "Share"
         breadcrumb: "Share"
         submit: "Share"
