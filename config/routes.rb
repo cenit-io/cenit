@@ -1,5 +1,4 @@
 Cenit::Application.routes.draw do
-
   mount RailsAdmin::Engine => '/data', as: 'rails_admin'
 
   root to: 'rails_admin/main#dashboard'
@@ -15,15 +14,12 @@ Cenit::Application.routes.draw do
     get 'sign_out', to: 'users/sessions#destroy', as: :destroy_user_session
   end
 
-  namespace :cenit do
-    post '/', to: 'api#consume', as: 'api'
-  end
-
-  namespace :setup do
-    get '/:model', to: 'api#index'
-    get '/:model/:id', to: 'api#show'
-    post '/:model', to: 'api#create'
-    match '/:model/:id', to: 'api#update', via: [:patch, :put]
-    delete '/:model/:id', to: 'api#destroy'
+  namespace :api do
+    namespace :v1 do
+      post '/push', to: 'api#push'
+      get '/:model', to: 'api#index'
+      get '/:model/:id', to: 'api#show'
+      delete '/:model/:id', to: 'api#destroy'
+    end
   end
 end
