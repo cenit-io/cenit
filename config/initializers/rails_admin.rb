@@ -14,7 +14,8 @@
  RailsAdmin::Config::Actions::Convert,
  RailsAdmin::Config::Actions::DeleteSchema,
  RailsAdmin::Config::Actions::DeleteLibrary,
- RailsAdmin::Config::Actions::ShareCollection,
+ RailsAdmin::Config::Actions::SimpleShare,
+ RailsAdmin::Config::Actions::BulkShare,
  RailsAdmin::Config::Actions::PullCollection,
  RailsAdmin::Config::Actions::RetryNotification,
  RailsAdmin::Config::Actions::NewFileModel,
@@ -68,7 +69,8 @@ RailsAdmin.config do |config|
     bulk_delete { except [Role] }
     show
     edit { except [Role] }
-    share_collection
+    simple_share
+    bulk_share
     pull_collection
     upload_file
     download_file
@@ -939,6 +941,7 @@ RailsAdmin.config do |config|
       field :name
       field :description
       field :source_collection do
+        visible { !((source_collection = bindings[:object].source_collection) && source_collection.new_record?) }
         inline_edit false
         inline_add false
         associated_collection_scope do
@@ -999,13 +1002,14 @@ RailsAdmin.config do |config|
     show do
       field :image
       field :name
+      field :category
       field :description
 
       field :created_at
       field :creator
       field :updated_at
     end
-    fields :image, :name, :creator, :description
+    fields :image, :name, :category, :creator, :description
   end
 
   config.model Setup::CollectionPullParameter do
