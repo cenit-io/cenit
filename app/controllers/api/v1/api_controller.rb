@@ -79,7 +79,7 @@ module Api::V1
 
     def get_model(model)
       model = model.singularize
-      "Setup::#{model.camelize}".constantize 
+      "Setup::#{model.camelize}".constantize
     rescue
       Setup::DataType.where(name: model.camelize).first.model
     end
@@ -112,6 +112,7 @@ module Api::V1
       if (@webhook_body = request.body.read).present?
         @payload = JSON.parse(@webhook_body).with_indifferent_access
       end
+      @lib = params[:lib]
       @model = params[:model]
     end
   end
