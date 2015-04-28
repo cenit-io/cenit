@@ -4,6 +4,8 @@ module Mongoid
 
     module ClassMethods
 
+      include Mongoff::MetadataAccess
+
       def persistable?
         true
       end

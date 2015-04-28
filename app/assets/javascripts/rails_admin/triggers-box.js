@@ -11,12 +11,11 @@
             }
         },
 
-        load_defaults: function (model_name) {
-            var model_fields = fields[model_name];
+        load_defaults: function () {
             for (var p in default_triggers) {
-                for (var i = 0; i < model_fields.length; i++) {
-                    if (model_fields[i][1] == p) {
-                        var field = model_fields[i];
+                for (var i = 0; i < fields.length; i++) {
+                    if (fields[i][1] == p) {
+                        var field = fields[i];
                         var field_triggers = default_triggers[p];
                         for (var index in field_triggers) {
                             var field_value = field_triggers[index]['v'];
@@ -29,7 +28,7 @@
                             if (index != null)
                                 $.triggers.append(field[0], field[1], field[3], field_value, field_triggers[index]['o'], options, index);
                         }
-                        i = model_fields.length;
+                        i = fields.length;
                     }
                 }
             }
@@ -53,6 +52,7 @@
                         '</select>';
                     break;
                 case 'date':
+                case 'time':
                 case 'datetime':
                 case 'timestamp':
                     var control = '<select class="switch-additionnal-fieldsets input-small" name="' + operator_name + '">' +
@@ -167,16 +167,11 @@
 
     $(document).on('change', "#setup_observer_data_type_id", function (e) {
         if (typeof fields != 'undefined') {
-            var model_name = $("#setup_observer_data_type_id").html();
-            var i = model_name.indexOf('option selected="selected');
-            if (i < 0) i = 0;
-            model_name = model_name.substring(i = model_name.indexOf('value="', i) + 7, model_name.indexOf('"', i));
             $("#triggers_box").html('');
             var triggers_options = '';
-            var model_fields = fields[model_name];
-            if (model_fields != null) {
-                for (var i = 0; i < model_fields.length; i++) {
-                    var field = model_fields[i];
+            if (fields != null) {
+                for (var i = 0; i < fields.length; i++) {
+                    var field = fields[i];
                     var options = '';
                     for (var j = 0; j < field[2].length; j++) {
                         options += "<option value=&quot;" + field[2][j] + "&quot;>" + field[2][j] + "</option> ";
@@ -184,7 +179,7 @@
                     triggers_options += '<li> <a data-field-label="' + field[0] + '" data-field-name="' + field[1] + '" data-field-options="' + options + '" data-field-type="' + field[3] + '" data-field-value="" href="#">' + field[0] + '</a></li>';
                 }
                 $("#triggers").html(triggers_options);
-                $.triggers.load_defaults(model_name);
+                $.triggers.load_defaults();
                 $("#add_trigger").removeClass('disabled');
             } else {
                 $("#add_trigger").addClass('disabled');

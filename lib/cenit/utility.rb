@@ -31,7 +31,7 @@ module Cenit
       def save(record)
         saved = Set.new
         if bind_references(record)
-          if save_references(record, saved) && (saved.include?(record) || record.save)
+          if save_references(record, saved) && record.save
             true
           else
             for_each_node_starting_at(record, stack=[]) do |obj|

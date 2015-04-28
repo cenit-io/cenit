@@ -23,16 +23,16 @@ module Api::V1
         message.is_a?(Array) ? message.each { |e| items[e] = process_message(root,e) } : items[message] = process_message(root,message)
         result[root] = items
       end
-      result.delete_if { |key, value| value.compact.blank? }
+      result.delete_if { |_, value| value.compact.blank? }
       broken = {}
-      result.each { |root, v| broken[root] = v.map { |e, obj| obj.save ? next : { error_messages: obj.errors.full_messages, item: e } } }
-      broken.delete_if { |key, value| value.compact.blank? }
+      result.each { |root, v| broken[root] = v.map { |e, obj| Cenit::Utility.save(obj) ? next : { error_messages: obj.errors.full_messages, item: e } } }
+      broken.delete_if { |_, value| value.compact.blank? }
       response = {}
-      if result.present? && broken.blank?
-        result.each { |root, v| response[root.pluralize] = v.map { |_, obj| attr_presentation(obj.attributes) }.flatten }
+      if result.present?
+        result.each { |root, v| response[root.pluralize] = v.map { |_, obj| true }.flatten.count }
+        response.merge(errors: broken) if broken.present?
         render json: response
       else
-        result.each { |root, v| v.each { |_, obj| obj.destroy } }
         render json: broken, status: :unprocessable_entity
       end
     end
@@ -90,7 +90,7 @@ module Api::V1
 
     def process_message(root, message)
       if klass = get_model(root)
-        klass.data_type.new_from_json(message.to_json)
+        klass.data_type.new_from_json(message)
       end
     end
 
