@@ -25,19 +25,14 @@ module Mongoff
     end
 
     def << item
-      if item.is_a?(Record)
+      if item.is_a?(Record) || item.class.respond_to?(:data_type) || item.is_a?(BSON::Document)
+        item = Record.new(model, item) if item.is_a?(BSON::Document)
         unless @records.include?(item)
           @records << item
-          array << item.document
-        end
-      elsif item.is_a?(BSON::Document)
-        unless array.include?(item)
-          @records << Record.new(model, item)
-          array << item
+          array << (@referenced ? item.id : item.attributes)
         end
       else
-        @records << item
-        array << item
+        raise Exception.new("Invalid value #{item}")
       end
     end
   end

@@ -34,7 +34,7 @@ module Edi
 
     def record_to_xml_element(data_type, schema, record, xml_doc, enclosed_property_name, options)
       return unless record
-      return Nokogiri::XML({enclosed_property_name => record}.to_xml).root.first_element_child if json_object?(record)
+      return Nokogiri::XML({enclosed_property_name => record}.to_xml).root.first_element_child if Cenit::Utility.json_object?(record)
       required = schema['required'] || []
       attr = {}
       elements = []
@@ -58,7 +58,7 @@ module Edi
             property_schema = data_type.merge_schema(property_schema['items'])
             json_objects = []
             property_value && property_value.each do |sub_record|
-              if json_object?(sub_record)
+              if Cenit::Utility.json_object?(sub_record)
                 json_objects << sub_record
               else
                 elements << record_to_xml_element(data_type, property_schema, sub_record, xml_doc, property_name, options)
@@ -111,7 +111,7 @@ module Edi
     end
 
     def record_to_hash(record, options = {}, referenced = false)
-      return record if json_object?(record)
+      return record if Cenit::Utility.json_object?(record)
       data_type = record.orm_model.data_type
       schema = record.orm_model.schema
       json = (referenced = referenced && schema['referenced_by']) ? {'_reference' => true} : {}
@@ -122,7 +122,6 @@ module Edi
         name ||= property_name
         case property_schema['type']
         when 'array'
-          property_schema = data_type.merge_schema(property_schema['items'])
           referenced_items = property_schema['referenced'] && !property_schema['export_embedded']
           if value = record.send(property_name)
             value = value.collect { |sub_record| record_to_hash(sub_record, options, referenced_items) }
@@ -190,10 +189,5 @@ module Edi
       output
     end
 
-    private
-
-    def json_object?(obj)
-      [Hash, Array, Integer, Float, String, TrueClass, FalseClass, Boolean, NilClass].detect { |klass| obj.is_a?(klass) }
-    end
   end
 end

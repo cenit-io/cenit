@@ -17,8 +17,7 @@ module Setup
                                  AccountScoped,
                                  DynamicValidators,
                                  Edi::Formatter,
-                                 Edi::Filler,
-                                 RailsAdminDynamicCharts::Datetime]
+                                 Edi::Filler] #, RailsAdminDynamicCharts::Datetime]
     end
 
     field :title, type: String
@@ -119,6 +118,7 @@ module Setup
       end
       create_default_events
       if model
+        reload
         report[:loaded] << (report[:model] = model)
         if self.used_memory != (model_used_memory = Cenit::Utility.memory_usage_of(model))
           self.used_memory = model_used_memory
@@ -180,7 +180,7 @@ module Setup
         puts "Post processed report #{report}"
         unless options[:report_only]
           opts = options.reject { |key, _| key == :destroy }
-          report[:destroyed].each do |model|
+          report[:destroyed].to_a.each do |model|
             model.data_type.report_shutdown(opts) unless data_type_ids.include?(model.data_type.id.to_s)
           end
           destroy_constant(report[:destroyed])
@@ -190,7 +190,7 @@ module Setup
             data_type = model.data_type
             unless report[:errors][data_type] || report[:reloaded].detect { |m| m.to_s == model.to_s }
               begin
-                if model.parent == Object
+                if model.parent == Object && data_type.activated
                   puts "Reloading #{model.schema_name rescue model.to_s} -> #{model.to_s}"
                   model_report = data_type.load_models(reload: true, reset_config: false)
                   report[:reloaded] += model_report[:reloaded] + model_report[:loaded]
@@ -224,6 +224,7 @@ module Setup
       private
 
       def destroy_constant(models)
+        models = [models] unless models.is_a?(Enumerable)
         models = models.sort_by do |model|
           index = 0
           if model.is_a?(Class)
@@ -244,26 +245,49 @@ module Setup
       end
 
       def post_process_report(report)
+        sets = Set.new
         report[:affected].each do |model|
-          unless model.affected_models.detect { |m| !report[:destroyed].include?(m) && m.data_type.activated }
+          unless set = sets.detect { |set| set.include?(model) }
+            set = collect_affected_from(model)
+            set.instance_variable_set(:@__activated, set.detect { |m| !report[:destroyed].include?(m) && m.data_type.activated })
+          end
+          sets << set
+          unless set.instance_variable_get(:@__activated)
             report[:destroyed] << model
             report[:affected].delete(model)
           end
         end
-
         to_destroy_also = Set.new
-        report[:destroyed].each do |model|
-          model.affected_by.each do |m|
-            unless report[:destroyed].include?(m) || (affected = m.try(:affected_models)).nil? || affected.detect { |m2| !report[:destroyed].include?(m2) }
-              to_destroy_also << m
+        to_scan = report[:destroyed].clone
+        scanned = Set.new
+        until to_scan.empty?
+          to_scan.each do |model|
+            model.affected_by.each do |m|
+              unless set = sets.detect { |set| set.include?(m) }
+                set = collect_affected_from(m)
+                set.instance_variable_set(:@__activated, set.detect { |m| !report[:destroyed].include?(m) && m.data_type.activated })
+              end
+              sets << set
+              unless set.instance_variable_get(:@__activated)
+                to_destroy_also += set
+              end
             end
           end
+          scanned += to_scan
+          to_scan = to_destroy_also - scanned
         end
         report[:destroyed] += to_destroy_also
 
         affected_children =[]
         report[:affected].each { |model| affected_children << model if ancestor_included(model, report[:affected]) }
         report[:affected].delete_if { |model| report[:destroyed].include?(model) || affected_children.include?(model) }
+
+        report[:affected].to_a.each do |m|
+          unless m.parent == Object && m.data_type.activated
+            report[:affected].delete(m)
+            report[:destroyed] << m
+          end
+        end
       end
 
       def ancestor_included(model, container)
@@ -274,6 +298,13 @@ module Setup
         end
         false
       end
+
+      def collect_affected_from(model, set = Set.new)
+        return set if set.include?(model)
+        set << model
+        model.affected_models.each { |m| collect_affected_from(m, set) }
+        set
+      end
     end
 
     protected
@@ -283,7 +314,7 @@ module Setup
     end
 
     def merge_report(report, in_to)
-      in_to.deep_merge!(report) { |key, this_val, other_val| this_val + other_val }
+      in_to.deep_merge!(report) { |_, this_val, other_val| this_val + other_val }
     end
 
     def deconstantize(constant_name, report = {})
