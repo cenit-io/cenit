@@ -81,7 +81,7 @@ module Api::V1
       model = model.singularize
       "Setup::#{model.camelize}".constantize 
     rescue
-      Setup::DataType.where(name: model.camelize).first.model
+      Setup::DataType.where(name: model.camelize).first.records_model
     end
 
     def klass
