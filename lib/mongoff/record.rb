@@ -69,8 +69,8 @@ module Mongoff
         document[attribute_key] = value.attributes if attribute_key == field
       elsif value.is_a?(Enumerable)
         document[attribute_key] = attr_array = []
-        @fields[field] = field_array = RecordArray.new(property_model, attr_array, attribute_key != field)
-        if value.first.is_a?(Record) || value.first.class.respond_to?(:data_type)
+        if property_model
+          @fields[field] = field_array = RecordArray.new(property_model, attr_array, attribute_key != field)
           value.each do |v|
             field_array << v
             attr_array << (attribute_key == field ? v.attributes : v.id)

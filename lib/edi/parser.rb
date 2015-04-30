@@ -109,7 +109,7 @@ module Edi
       def do_parse_json(data_type, model, json, options, json_schema, record=nil, new_record=nil)
         updating = false
         unless record ||= new_record
-          if model.persistable?
+          if model && model.persistable?
             if record = (!options[:ignore].include?(:id) && (id = json['id']) && model.where(id: id).first)
               updating = true
             else
@@ -134,7 +134,7 @@ module Edi
             if property_value = json[name]
               property_value = [ property_value ] unless property_value.is_a?(Array)
               property_value.each do |sub_value|
-                if property_model && sub_value['_reference']
+                if property_model && property_model.persistable? && sub_value['_reference']
                   sub_value = Cenit::Utility.deep_remove(sub_value, '_reference')
                   if value = Cenit::Utility.find_record(property_model.all, sub_value)
                     if !(association = record.send(property_name)).include?(value)
@@ -169,7 +169,7 @@ module Edi
               record.send("#{property_name}=", nil)
             end
           else
-            next if (updating && property_name == '_id') || (!updating && record.send(property_name))
+            next if (updating && property_name == '_id') #|| (!updating && record.send(property_name))
             next if ( updating && json[name].nil? )
             property_value = json[name]
             record.send("#{property_name}=", property_value)
