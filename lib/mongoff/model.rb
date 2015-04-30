@@ -39,23 +39,40 @@ module Mongoff
       @schema ||= data_type.merged_schema
     end
 
-    def property_model(property)
-      model = nil
-      if schema['type'] == 'object' && schema['properties'] && property_schema = schema['properties'][property.to_s]
+    def property_model?(property)
+      property = property.to_s
+      if schema['type'] == 'object' && schema['properties'] && property_schema = schema['properties'][property]
         property_schema = property_schema['items'] if property_schema['type'] == 'array' && property_schema['items']
         property_schema = data_type.merge_schema(property_schema)
+        return true if property_schema['type'] == 'object' && property_schema['properties']
+      end
+      false
+    end
+
+    def property_model(property)
+      property = property.to_s
+      model = nil
+      if schema['type'] == 'object' && schema['properties'] && property_schema = schema['properties'][property]
+        property_schema = property_schema['items'] if property_schema['type'] == 'array' && property_schema['items']
         model =
           if (ref = property_schema['$ref']) && property_dt = data_type.find_data_type(ref)
-            Model.new(property_dt, nil, self)
+            property_dt.records_model
           else
-            Model.new(data_type, property.to_s.camelize, self, property_schema)
-          end if property_schema['type'] == 'object' && property_schema['properties']
+            property_schema = data_type.merge_schema(property_schema)
+            if property_schema['type'] == 'object' && property_schema['properties']
+              Model.new(data_type, property.camelize, self, property_schema)
+            else
+              nil
+            end
+          end
       end
       model
     end
 
     def for_each_association(&block)
-      #TODO ALL
+      properties_schemas.each do |property, schema|
+        block.yield(name: property, embedded: !schema['referenced']) if property_model?(property)
+      end
     end
 
     def all_collections_names
@@ -67,11 +84,15 @@ module Mongoff
     end
 
     def count
-      persistable? ? Mongoid::Sessions.default[collection_name].find.count : 0
+      persistable? ? collection.find.count : 0
     end
 
     def delete_all
       all_collections_names.each { |name| Mongoid::Sessions.default[name.to_sym].drop }
+    end
+
+    def collection
+      Mongoid::Sessions.default[collection_name]
     end
 
     def storage_size(scale = 1)
@@ -82,7 +103,7 @@ module Mongoff
     end
 
     def method_missing(symbol, *args)
-      if (query = Mongoid::Sessions.default[collection_name].try(symbol, *args)).is_a?(Moped::Query)
+      if (query = collection.try(symbol, *args)).is_a?(Moped::Query)
         Criteria.new(self, query)
       else
         super

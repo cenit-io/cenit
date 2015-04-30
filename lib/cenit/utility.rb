@@ -48,7 +48,7 @@ module Cenit
             end
             saved.each do |obj|
               if obj = obj.reload rescue nil
-                obj.delete
+                obj.delete #TODO Prevent destroying objects already saved before
               end
             end
             false
@@ -184,6 +184,21 @@ module Cenit
         end
       end
 
+      def json_object?(obj, options = {})
+        case obj
+        when Hash
+          if opts[:recursive]
+            obj.keys.each { |k| return false unless k.is_a?(String) }
+            obj.values.each { |k| return false unless json_object?(String) }
+          end
+          true
+        when Array
+          obj.each { |v| return false unless json_object?(v) } if options[:recursive]
+          true
+        else
+          [Integer, Float, String, TrueClass, FalseClass, Boolean, NilClass].detect { |klass| obj.is_a?(klass) }
+        end
+      end
     end
   end
 end
