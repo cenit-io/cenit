@@ -21,6 +21,10 @@ module Mongoid
         end
       end
 
+      def property_model?(property)
+        ((((relation = try(:reflect_on_association, property)) && relation.try(:klass)) || (@mongoff_models && @mongoff_models[property])) && true) || false
+      end
+
       def property_model(property)
         ((relation = try(:reflect_on_association, property)) && relation.try(:klass)) || (@mongoff_models && @mongoff_models[property])
       end

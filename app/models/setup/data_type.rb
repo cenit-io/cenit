@@ -406,23 +406,19 @@ module Setup
         if property_type.eql?('Array') && items_desc = property_desc['items']
           r = nil
           ir = ''
-          if (ref = items_desc['$ref']) && (!ref.start_with?('#') && items_desc['referenced'])
+          if (ref = items_desc['$ref']) && (!ref.start_with?('#') && property_desc['referenced'])
             if (type_model = (find_or_load_model(report, property_type = ref) || find_constant(ref))).is_a?(Class)
               property_type = type_model.model_access_name
-              if r = type_model.reflect_on_all_associations(:belongs_to).detect { |r| r.klass.eql?(klass) }
-                r = :has_many
-              else
-                r = :has_and_belongs_to_many
-                ir = ', inverse_of: nil'
-                type_model.affects_to(klass)
-              end
+              r = :has_and_belongs_to_many
+              ir = ', inverse_of: nil'
+              type_model.affects_to(klass)
             elsif type_model.nil?
               raise Exception.new("contains an unresolved reference: '#{ref}'")
             end
           else
             r = :embeds_many
             if ref
-              raise Exception.new("referencing embedded reference #{ref}") if items_desc['referenced']
+              raise Exception.new("referencing embedded reference #{ref}") if property_desc['referenced']
               property_type = ref.start_with?('#') ? check_embedded_ref(ref, nil, root.to_s).singularize : ref
               type_model = find_or_load_model(report, property_type) || find_constant(property_type)
               property_type = type_model && type_model.model_access_name
