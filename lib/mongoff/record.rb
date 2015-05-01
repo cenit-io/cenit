@@ -6,11 +6,12 @@ module Mongoff
     attr_reader :orm_model
     attr_reader :document
 
-    def initialize(model, document = nil)
+    def initialize(model, document = nil, new_record = true)
       @orm_model = model
       @document = document || BSON::Document.new
       @fields = {}
       @document[:_id] ||= BSON::ObjectId.new unless model.property_model(:_id)
+      @new_record = new_record || false
     end
 
     def attributes
@@ -43,8 +44,16 @@ module Mongoff
       errors.blank?
     end
 
+    def new_record?
+      @new_record
+    end
+
     def save(options = {})
-      orm_model.collection.insert(attributes)
+      if new_record?
+        orm_model.collection.insert(attributes)
+      else
+        orm_model.collection.find(_id: id).update('$set' => attributes)
+      end
       true
     end
 

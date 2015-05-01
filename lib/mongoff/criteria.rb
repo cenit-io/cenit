@@ -15,7 +15,7 @@ module Mongoff
     end
 
     def each(*args, &blk)
-      query.each { |document| yield Record.new(model, document) }
+      query.each { |document| yield Record.new(model, document, false) }
     end
 
     def method_missing(symbol, *args)
