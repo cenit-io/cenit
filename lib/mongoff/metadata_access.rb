@@ -53,5 +53,25 @@ module Mongoff
     def property_type_symbol(property)
       type_symbol_for(property_schema(property))
     end
+
+    CONVERSION = {
+      String => ->(value) { value.to_s },
+      Integer => ->(value) { value.to_s.to_i },
+      Float => ->(value) { value.to_s.to_f },
+      Date => ->(value) { Date.parse(value.to_s) rescue nil },
+      DateTime => ->(value) { DateTime.parse(value.to_s) rescue nil },
+      Time => ->(value) { Time.parse(value.to_s) rescue nil },
+      Hash => ->(value) { JSON.parse(value.to_s) rescue nil },
+      Array => ->(value) { JSON.parse(value.to_s) rescue nil },
+      nil => ->(value) { value }
+    }
+
+    def ruby_value(value, schema)
+      if value.is_a?(type = ruby_type_for(schema))
+        value
+      else
+        CONVERSION[type].call(value)
+      end
+    end
   end
 end

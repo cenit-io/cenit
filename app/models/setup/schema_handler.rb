@@ -127,7 +127,7 @@ module Setup
             value_schema = base_model.deep_merge(value_schema)
             schema['properties']['value'] = value_schema.merge('title' => 'Value', 'xml' => {'content' => true})
           else
-            schema = base_model.deep_merge(schema) { |key, val1, val2| array_sum(val1, val2) }
+            schema = base_model.deep_merge(schema) { |_, val1, val2| array_sum(val1, val2) }
           end
         end
       end

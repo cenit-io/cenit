@@ -176,11 +176,12 @@ module Edi
           end
         end
 
-        if (sub_model = json_schema['sub_schema']) &&
-          (sub_model = json.send(:eval, sub_model)) &&
+        if (sub_model = json['_type']) &&
+          sub_model.is_a?(String) &&
+          (sub_model = sub_model.start_with?('self[') ? (json.send(:eval, sub_model) rescue nil) : sub_model) &&
           (data_type = data_type.find_data_type(sub_model)) &&
           (sub_model = data_type.records_model) &&
-          sub_model != model
+          !sub_model.eql?(model)
           sub_record = (updating ? record : sub_model.new)
           json_schema['properties'].keys.each do |property_name|
             if value = record.send(property_name)
@@ -317,11 +318,12 @@ module Edi
           return [nil, start, nil] if !json[property_name] && json.empty? && required.include?(property_name)
         end
 
-        if (sub_model = json_schema['sub_schema']) &&
-          (sub_model = record.try(:eval, sub_model)) &&
+        if (sub_model = json['_type']) &&
+          sub_model.is_a?(String) &&
+          (sub_model = sub_model.start_with?('self[') ? (json.send(:eval, sub_model) rescue nil) : sub_model) &&
           (data_type = data_type.find_data_type(sub_model)) &&
           (sub_model = data_type.records_model) &&
-          sub_model != model
+          !sub_model.eql?(model)
           sub_record = sub_model.new
           json_schema['properties'].each do |property_name, property_schema|
             if value = record.send(property_name)

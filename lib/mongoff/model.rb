@@ -8,13 +8,6 @@ module Mongoff
     attr_reader :name
     attr_reader :parent
 
-    def initialize(data_type, name = nil, parent = nil, schema = nil)
-      @data_type_id = data_type.is_a?(Setup::BuildInDataType) ? data_type : data_type.id.to_s
-      @name = name || data_type.data_type_name
-      @parent = parent
-      @persistable = (@schema = schema).nil?
-    end
-
     def to_s
       parent ? "#{parent}::#{name}" : name
     end
@@ -24,7 +17,7 @@ module Mongoff
     end
 
     def data_type
-      @data_type_id.is_a?(Setup::BuildInDataType) ? @data_type_id : Setup::Model.where(id: @data_type_id).first
+      @data_type_id.is_a?(Setup::Model) ? @data_type_id : Setup::Model.where(id: @data_type_id).first
     end
 
     def new
@@ -60,7 +53,7 @@ module Mongoff
           else
             property_schema = data_type.merge_schema(property_schema)
             if property_schema['type'] == 'object' && property_schema['properties']
-              Model.new(data_type, property.camelize, self, property_schema)
+              Model.for(data_type: data_type, name: property.camelize, parent: self, schema: property_schema)
             else
               nil
             end
@@ -96,10 +89,14 @@ module Mongoff
     end
 
     def storage_size(scale = 1)
-      all_collections_names.inject(0) do |size, name|
+      data_type.all_data_type_storage_collections_names.inject(0) do |size, name|
         s = Mongoid::Sessions.default.command(collstats: name, scale: scale)['size'] rescue 0
         size + s
       end
+    end
+
+    def all
+      find
     end
 
     def method_missing(symbol, *args)
@@ -116,6 +113,56 @@ module Mongoff
       else
         super
       end
+    end
+
+    def submodel_of?(model)
+      return true if self.eql?(model) || (@base_model && @base_model.submodel_of?(model))
+      base_model =
+        if base_data_type = data_type.find_data_type(JSON.parse(data_type.model_schema)['extends'])
+          Model.for(data_type: base_data_type, cache: caching?)
+        else
+          nil
+        end
+      if base_model
+        @base_model = base_model if caching?
+        base_model.submodel_of?(model)
+      else
+        false
+      end
+    end
+
+    class << self
+
+      def for(options = {})
+        model_name = options[:name]
+        cache_model = (cache_models = Thread.current[:mongoff_models] ||= {})[model_name]
+        unless data_type = (options[:data_type] || (cache_model && cache_model.data_type))
+          raise Exception.new('name or data type required') unless model_name
+          unless data_type = Setup::DataType.for_name(model_name.split('::').first)
+            raise Exception.new("unknown data type for #{model_name}")
+          end
+        end
+        options[:cache] = true if options[:cache].nil?
+        return new(data_type, options) unless options[:cache]
+        unless cache_model
+          cache_model = new(data_type, options)
+          cache_models[cache_model.to_s] = cache_model
+        end
+        cache_model
+      end
+    end
+
+    private
+
+    def initialize(data_type, options = {})
+      @data_type_id = (data_type.is_a?(Setup::BuildInDataType) || options[:cache]) ? data_type : data_type.id.to_s
+      @name = options[:name] || data_type.data_type_name
+      @parent = options[:parent]
+      @persistable = (@schema = options[:schema]).nil?
+    end
+
+    def caching?
+      @data_type_id.is_a?(String)
     end
   end
 end

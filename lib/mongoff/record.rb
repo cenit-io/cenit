@@ -15,7 +15,7 @@ module Mongoff
     end
 
     def attributes
-      update_ids
+      prepare_attributes
       @document
     end
 
@@ -24,7 +24,7 @@ module Mongoff
     end
 
     def schema
-      @schema ||= orm_model.data_type.merged_schema
+      orm_model.schema
     end
 
     def is_a?(model)
@@ -48,6 +48,10 @@ module Mongoff
       @new_record
     end
 
+    def save!(options = {})
+      raise Exception.new('Invalid data') unless save(options)
+    end
+
     def save(options = {})
       if new_record?
         orm_model.collection.insert(attributes)
@@ -58,7 +62,7 @@ module Mongoff
     end
 
     def [](field)
-      attribute_key = attribute_key(field, property_model = orm_model.property_model(field))
+      attribute_key = attribute_key(field, model: property_model = orm_model.property_model(field))
       if (value = (@fields[field] || document[attribute_key])).is_a?(BSON::Document) && property_model
         @fields[field] = Record.new(property_model, value)
       elsif value.is_a?(::Array) && property_model
@@ -70,13 +74,16 @@ module Mongoff
 
     def []=(field, value)
       @fields.delete(field)
-      attribute_key = attribute_key(field, property_model = orm_model.property_model(field))
+      attribute_key = attribute_key(field, field_metadata = {})
+      property_model = field_metadata[:model]
+      property_schema = field_metadata[:schema] || orm_model.property_schema(field)
       if value.nil?
+        @fields.delete(field)
         document.delete(attribute_key)
       elsif value.is_a?(Record) || value.class.respond_to?(:data_type)
         @fields[field] = value
         document[attribute_key] = value.attributes if attribute_key == field
-      elsif value.is_a?(Enumerable)
+      elsif !value.is_a?(Hash) && value.is_a?(Enumerable)
         document[attribute_key] = attr_array = []
         if property_model
           @fields[field] = field_array = RecordArray.new(property_model, attr_array, attribute_key != field)
@@ -91,7 +98,7 @@ module Mongoff
           end
         end unless value.empty?
       else
-        document[field] = value
+        document[field] = orm_model.ruby_value(value, property_schema)
       end
     end
 
@@ -107,25 +114,26 @@ module Mongoff
 
     protected
 
-    def attribute_key(field, property_model = nil)
-      if (property_model || orm_model.property_model(field)) && (schema = orm_model.property_schema(field))['referenced']
+    def attribute_key(field, field_metadata = {})
+      if (field_metadata[:model] ||= orm_model.property_model(field)) && (schema = (field_metadata[:schema] ||= orm_model.property_schema(field)))['referenced']
         return ("#{field}_id" + ('s' if schema['type'] == 'array').to_s).to_sym
       end
       field
     end
 
-    def update_ids
+    def prepare_attributes
+      @document[:_type] = orm_model.to_s
       @fields.each do |field, value|
         unless @document[field]
           attribute_key = attribute_key(field)
           if value.is_a?(RecordArray)
             @document[attribute_key] = array = []
             value.each do |v|
-              v.update_ids if v.is_a?(Record)
+              v.prepare_attributes if v.is_a?(Record)
               array << v.id
             end
           else
-            value.update_ids if value.is_a?(Record)
+            value.prepare_attributes if value.is_a?(Record)
             @document[attribute_key] = value.id
           end
         end
