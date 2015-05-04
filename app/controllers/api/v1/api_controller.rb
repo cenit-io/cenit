@@ -5,27 +5,27 @@ module Api::V1
     rescue_from Exception, :with => :exception_handler
     respond_to :json
 
-    PRESENTATION_KEY = { '_id' => 'id' }.freeze
+    PRESENTATION_KEY = {'_id' => 'id'}.freeze
 
     def index
       @items = klass.all
-      render json: @items.map { |item| { @model => attr_presentation(item.attributes) } }
+      render json: @items.map { |item| {((model = (hash = item.to_hash(embedding_all: true)).delete('_type')) ? model.downcase : @model) => hash} }
     end
 
     def show
-      render json: { @model => attr_presentation(@item.attributes)  }
+      render json: {@model => attr_presentation(@item.attributes)}
     end
 
     def push
       result = {}
       @payload.each do |root, message|
         items = {}
-        message.is_a?(Array) ? message.each { |e| items[e] = process_message(root,e) } : items[message] = process_message(root,message)
+        message.is_a?(Array) ? message.each { |e| items[e] = process_message(root, e) } : items[message] = process_message(root, message)
         result[root] = items
       end
       result.delete_if { |_, value| value.compact.blank? }
       broken = {}
-      result.each { |root, v| broken[root] = v.map { |e, obj| Cenit::Utility.save(obj) ? next : { error_messages: obj.errors.full_messages, item: e } } }
+      result.each { |root, v| broken[root] = v.map { |e, obj| Cenit::Utility.save(obj) ? next : {error_messages: obj.errors.full_messages, item: e} } }
       broken.delete_if { |_, value| value.compact.blank? }
       response = {}
       if result.present?
@@ -73,13 +73,13 @@ module Api::V1
     def find_item
       @item = klass.where(id: params[:id]).first
       unless @item.present?
-        render json: { status: "item not found" }
+        render json: {status: "item not found"}
       end
     end
 
     def get_model(model)
       model = model.singularize
-      "Setup::#{model.camelize}".constantize 
+      "Setup::#{model.camelize}".constantize
     rescue
       Setup::DataType.where(name: model.camelize).first.records_model
     end
@@ -99,7 +99,7 @@ module Api::V1
     end
 
     def remove_mogo_id(items)
-      return { id: items.to_s } if items.is_a?(BSON::ObjectId)
+      return {id: items.to_s} if items.is_a?(BSON::ObjectId)
       return items unless items.is_a?(Enumerable)
       PRESENTATION_KEY.each { |key, value| items.merge!(value => items.delete(key)) }
       items.delete_if { |key, value| value.blank? }

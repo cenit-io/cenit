@@ -187,7 +187,7 @@ module Cenit
       def json_object?(obj, options = {})
         case obj
         when Hash
-          if opts[:recursive]
+          if options[:recursive]
             obj.keys.each { |k| return false unless k.is_a?(String) }
             obj.values.each { |k| return false unless json_object?(String) }
           end

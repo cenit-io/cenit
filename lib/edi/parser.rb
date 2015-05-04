@@ -110,7 +110,7 @@ module Edi
         updating = false
         unless record ||= new_record
           if model && model.persistable?
-            if record = (!options[:ignore].include?(:id) && (id = json['id']) && model.where(id: id).first)
+            if record = (!options[:ignore].include?(:id) && (id = json['id']) && model.where(_id: id).first)
               updating = true
             else
               record = model.new
@@ -132,7 +132,7 @@ module Edi
             items_schema = data_type.merge_schema(property_schema['items'] || {})
             record.send("#{property_name}=", []) unless property_value && property_schema['referenced']
             if property_value = json[name]
-              property_value = [ property_value ] unless property_value.is_a?(Array)
+              property_value = [property_value] unless property_value.is_a?(Array)
               property_value.each do |sub_value|
                 if property_model && property_model.persistable? && sub_value['_reference']
                   sub_value = Cenit::Utility.deep_remove(sub_value, '_reference')
@@ -169,18 +169,19 @@ module Edi
               record.send("#{property_name}=", nil)
             end
           else
-            next if (updating && property_name == '_id') #|| (!updating && record.send(property_name))
-            next if ( updating && json[name].nil? )
-            property_value = json[name]
-            record.send("#{property_name}=", property_value)
+            next if (updating && property_name == '_id')
+            if property_value = json[name]
+              record.send("#{property_name}=", property_value)
+            end
           end
         end
 
-        if (sub_model = json_schema['sub_schema']) &&
-          (sub_model = json.send(:eval, sub_model)) &&
+        if (sub_model = json['_type']) &&
+          sub_model.is_a?(String) &&
+          (sub_model = sub_model.start_with?('self[') ? (json.send(:eval, sub_model) rescue nil) : sub_model) &&
           (data_type = data_type.find_data_type(sub_model)) &&
           (sub_model = data_type.records_model) &&
-          sub_model != model
+          !sub_model.eql?(model)
           sub_record = (updating ? record : sub_model.new)
           json_schema['properties'].keys.each do |property_name|
             if value = record.send(property_name)
@@ -317,11 +318,12 @@ module Edi
           return [nil, start, nil] if !json[property_name] && json.empty? && required.include?(property_name)
         end
 
-        if (sub_model = json_schema['sub_schema']) &&
-          (sub_model = record.try(:eval, sub_model)) &&
+        if (sub_model = json['_type']) &&
+          sub_model.is_a?(String) &&
+          (sub_model = sub_model.start_with?('self[') ? (json.send(:eval, sub_model) rescue nil) : sub_model) &&
           (data_type = data_type.find_data_type(sub_model)) &&
           (sub_model = data_type.records_model) &&
-          sub_model != model
+          !sub_model.eql?(model)
           sub_record = sub_model.new
           json_schema['properties'].each do |property_name, property_schema|
             if value = record.send(property_name)

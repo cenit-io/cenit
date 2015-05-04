@@ -15,7 +15,7 @@ module Mongoid
       end
 
       def storage_size(scale = 1)
-        all_collections_names.inject(0) do |size, name|
+        data_type.all_data_type_storage_collections_names.inject(0) do |size, name|
           s = mongo_session.command(collstats: name, scale: scale)['size'] rescue 0
           size + s
         end

@@ -57,12 +57,24 @@ module Setup
       end
     end
 
-    def data_type_collection_name
+    def subtype?
+      false
+    end
+
+    def data_type_storage_collection_name
       Account.tenant_collection_name(data_type_name)
+    end
+
+    def data_type_collection_name
+      data_type_storage_collection_name
     end
 
     def all_data_type_collections_names
       [data_type_collection_name]
+    end
+
+    def all_data_type_storage_collections_names
+      [data_type_storage_collection_name]
     end
 
     def storage_size(scale=1)
@@ -397,7 +409,7 @@ module Setup
     end
 
     def create_mongoff_model
-      Mongoff::Model.new(self)
+      Mongoff::Model.for(data_type: self)
     end
   end
 end

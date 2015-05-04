@@ -10,9 +10,6 @@ module Setup
 
     field :model_schema, type: String
 
-    #TODO Check dependent behavior with flows
-    #has_many :flows, class_name: Setup::Flow.name, dependent: :destroy, inverse_of: :data_type
-
     validates_presence_of :model_schema
 
     before_save :validate_model
@@ -29,6 +26,7 @@ module Setup
       begin
         puts "Validating schema '#{self.name}'"
         json_schema, _ = validate_schema
+        fail Exception, 'defines invalid property name: _type' if object_schema?(json_schema) &&json_schema['properties']['_type']
         check_id_property(json_schema)
         self.title = json_schema['title'] || self.name if title.blank?
         puts "Schema '#{self.name}' validation successful!"
@@ -37,14 +35,24 @@ module Setup
         #raise ex
         puts "ERROR: #{errors.add(:model_schema, ex.message).to_s}"
       end
+      @collection_data_type = nil
       errors.blank?
     end
 
-    protected
-
-    def do_shutdown_model(options)
-      deconstantize(data_type_name, options)
+    def subtype?
+      collection_data_type != self
     end
+
+    def collection_data_type
+      @collection_data_type ||=
+        ((base = JSON.parse(model_schema)['extends']) && base.is_a?(String) && (base = find_data_type(base)) && base.collection_data_type) || self
+    end
+
+    def data_type_collection_name
+      Account.tenant_collection_name(collection_data_type.data_type_name)
+    end
+
+    protected
 
     def do_load_model(report)
       parse_schema(report)
@@ -169,7 +177,11 @@ module Setup
         constant = parent.const_get(constant_name)
       else
         return [nil, false] if do_not_create
-        constant = Class.new(base_class) unless value && constant = Mongoff::Model.new(self, name, parent, parent ? value : nil)
+        constant = Class.new(base_class) unless value && constant = Mongoff::Model.for(data_type: self,
+                                                                                       name: name,
+                                                                                       parent: parent,
+                                                                                       schema: parent ? value : nil,
+                                                                                       cache: false)
         parent.const_set(constant_name, constant)
         created = true
       end
@@ -518,6 +530,12 @@ module Setup
         return root
       rescue
         return nil
+      end
+    end
+
+    class << self
+      def for_name(name)
+        where(id: name.from(2)).first
       end
     end
 
