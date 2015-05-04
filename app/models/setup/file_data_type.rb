@@ -58,10 +58,6 @@ module Setup
       self.title = self.name if title.blank?
     end
 
-    def data_type_collection_name
-      Account.tenant_collection_name(data_type_name)
-    end
-
     def all_data_type_collections_names
       [name = data_type_collection_name, name + '.files', name + '.chunks']
     end
