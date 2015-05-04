@@ -9,7 +9,7 @@ module Api::V1
 
     def index
       @items = klass.all
-      render json: @items.map { |item| {((model = (hash = item.to_hash).delete('_type')) ? model.downcase : @model) => hash} }
+      render json: @items.map { |item| {((model = (hash = item.to_hash(embedding_all: true)).delete('_type')) ? model.downcase : @model) => hash} }
     end
 
     def show
