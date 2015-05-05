@@ -2,6 +2,7 @@ module Mongoff
   class Model
     include Setup::InstanceAffectRelation
     include MetadataAccess
+    include Queryable
 
     EMPTY_SCHEMA = {}.freeze
 
@@ -100,11 +101,7 @@ module Mongoff
     end
 
     def method_missing(symbol, *args)
-      if (query = collection.try(symbol, *args)).is_a?(Moped::Query)
-        Criteria.new(self, query)
-      else
-        super
-      end
+      query_for(self, collection, symbol, *args) || super
     end
 
     def eql?(obj)
@@ -152,6 +149,33 @@ module Mongoff
       end
     end
 
+    CONVERSION = {
+      BSON::ObjectId => ->(value) { BSON::ObjectId.from_string(value.to_s) },
+      String => ->(value) { value.to_s },
+      Integer => ->(value) { value.to_s.to_i },
+      Float => ->(value) { value.to_s.to_f },
+      Date => ->(value) { Date.parse(value.to_s) rescue nil },
+      DateTime => ->(value) { DateTime.parse(value.to_s) rescue nil },
+      Time => ->(value) { Time.parse(value.to_s) rescue nil },
+      Hash => ->(value) { JSON.parse(value.to_s) rescue nil },
+      Array => ->(value) { JSON.parse(value.to_s) rescue nil },
+      nil => ->(value) { Cenit::Utility.json_object?(value) ? value : nil }
+    }
+
+    def mongo_value(value, field_or_schema)
+      type =
+        if !caching? || field_or_schema.is_a?(Hash)
+          mongo_type_for(field_or_schema)
+        else
+          @mongo_types[field_or_schema] ||= mongo_type_for(field_or_schema)
+        end
+      if value.is_a?(type)
+        value
+      else
+        CONVERSION[type].call(value)
+      end
+    end
+
     private
 
     def initialize(data_type, options = {})
@@ -159,10 +183,11 @@ module Mongoff
       @name = options[:name] || data_type.data_type_name
       @parent = options[:parent]
       @persistable = (@schema = options[:schema]).nil?
+      @mongo_types = {}
     end
 
     def caching?
-      @data_type_id.is_a?(String)
+      !@data_type_id.is_a?(String)
     end
   end
 end

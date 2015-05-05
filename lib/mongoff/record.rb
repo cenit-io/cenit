@@ -73,6 +73,7 @@ module Mongoff
     end
 
     def []=(field, value)
+      field = :_id if field.to_s == 'id'
       @fields.delete(field)
       attribute_key = attribute_key(field, field_metadata = {})
       property_model = field_metadata[:model]
@@ -98,7 +99,7 @@ module Mongoff
           end
         end unless value.empty?
       else
-        document[field] = orm_model.ruby_value(value, property_schema)
+        document[field] = orm_model.mongo_value(value, property_schema || field)
       end
     end
 
