@@ -131,7 +131,8 @@ module Setup
                                                             name: field_name.camelize,
                                                             parent: model,
                                                             schema: properties[field_name],
-                                                            cache: false)
+                                                            cache: false,
+                                                            modelable: false)
           end
         end
       end

@@ -10,7 +10,7 @@ module Setup
     end
 
     def new_from_json(data, options={})
-      Edi::Parser.parse_json(self, data, options)
+      Edi::Parser.parse_json(self, data, options, nil, records_model)
     end
 
     def create_from_json(data, options={})

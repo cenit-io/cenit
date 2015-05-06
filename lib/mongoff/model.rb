@@ -1,3 +1,6 @@
+require 'json-schema/schema/cenit_reader'
+require 'json-schema/validators/mongoff'
+
 module Mongoff
   class Model
     include Setup::InstanceAffectRelation
@@ -29,18 +32,27 @@ module Mongoff
       @persistable
     end
 
+    def modelable?
+      if @modelable.nil?
+        @modelable = model_schema?(schema)
+      else
+        @modelable
+      end
+    end
+
     def schema
-      @schema ||= data_type.merged_schema
+      @schema ||= data_type.merged_schema(recursive: caching?)
+    end
+
+    def model_schema?(schema)
+      schema = schema['items'] if schema['type'] == 'array' && schema['items']
+      schema = data_type.merge_schema(schema)
+      schema['type'] == 'object' && schema['properties']
     end
 
     def property_model?(property)
       property = property.to_s
-      if schema['type'] == 'object' && schema['properties'] && property_schema = schema['properties'][property]
-        property_schema = property_schema['items'] if property_schema['type'] == 'array' && property_schema['items']
-        property_schema = data_type.merge_schema(property_schema)
-        return true if property_schema['type'] == 'object' && property_schema['properties']
-      end
-      false
+      schema['type'] == 'object' && schema['properties'] && (property_schema = schema['properties'][property]) && model_schema?(property_schema)
     end
 
     def property_model(property)
@@ -176,14 +188,21 @@ module Mongoff
       end
     end
 
+    def fully_validate_against_schema(value, options = {})
+      JSON::Validator.fully_validate(schema, value, options.merge(version: :mongoff,
+                                                                  schema_reader: JSON::Schema::CenitReader.new(data_type),
+                                                                  errors_as_objects: true))
+    end
+
     private
 
     def initialize(data_type, options = {})
       @data_type_id = (data_type.is_a?(Setup::BuildInDataType) || options[:cache]) ? data_type : data_type.id.to_s
       @name = options[:name] || data_type.data_type_name
       @parent = options[:parent]
-      @persistable = (@schema = options[:schema]).nil?
       @mongo_types = {}
+      @persistable = (@schema = options[:schema]).nil?
+      @modelable = options[:modelable]
     end
 
     def caching?

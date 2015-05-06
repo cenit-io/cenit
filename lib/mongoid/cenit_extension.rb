@@ -6,8 +6,12 @@ module Mongoid
 
       include Mongoff::MetadataAccess
 
-      def persistable?
+      def modelable?
         true
+      end
+
+      def persistable?
+        parent == Object
       end
 
       def all_collections_names

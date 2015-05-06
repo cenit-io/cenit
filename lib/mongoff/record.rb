@@ -9,14 +9,14 @@ module Mongoff
     def initialize(model, document = nil, new_record = true)
       @orm_model = model
       @document = document || BSON::Document.new
+      @document[:_id] ||= BSON::ObjectId.new unless model.property_schema(:_id)
       @fields = {}
-      @document[:_id] ||= BSON::ObjectId.new unless model.property_model(:_id)
       @new_record = new_record || false
     end
 
     def attributes
       prepare_attributes
-      @document
+      document
     end
 
     def id
@@ -39,11 +39,6 @@ module Mongoff
       @errors ||= ActiveModel::Errors.new(self)
     end
 
-    def valid?
-      #TODO Schema validation
-      errors.blank?
-    end
-
     def new_record?
       @new_record
     end
@@ -53,12 +48,20 @@ module Mongoff
     end
 
     def save(options = {})
-      if new_record?
-        orm_model.collection.insert(attributes)
-      else
-        orm_model.collection.find(_id: id).update('$set' => attributes)
+      errors.clear
+      orm_model.fully_validate_against_schema(attributes).each do |error|
+        errors.add(:base, error[:message])
       end
-      true
+      begin
+        if new_record?
+          orm_model.collection.insert(attributes)
+        else
+          orm_model.collection.find(_id: id).update('$set' => attributes)
+        end
+      rescue Exception => ex
+        errors.add(:base, ex.message)
+      end if errors.blank?
+      errors.blank?
     end
 
     def [](field)
@@ -123,19 +126,19 @@ module Mongoff
     end
 
     def prepare_attributes
-      @document[:_type] = orm_model.to_s
+      document[:_type] = orm_model.to_s if orm_model.persistable?
       @fields.each do |field, value|
-        unless @document[field]
+        unless document[field]
           attribute_key = attribute_key(field)
           if value.is_a?(RecordArray)
-            @document[attribute_key] = array = []
+            document[attribute_key] = array = []
             value.each do |v|
               v.prepare_attributes if v.is_a?(Record)
               array << v.id
             end
           else
             value.prepare_attributes if value.is_a?(Record)
-            @document[attribute_key] = value.id
+            document[attribute_key] = value.id
           end
         end
       end

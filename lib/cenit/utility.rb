@@ -65,7 +65,6 @@ module Cenit
             references[obj] = record_refs
           end
         end
-        puts references
         for_each_node_starting_at(record) do |obj|
           references.each do |obj_waiting, to_bind|
             to_bind.each do |property_name, property_binds|

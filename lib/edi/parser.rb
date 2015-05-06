@@ -18,13 +18,13 @@ module Edi
         record
       end
 
-      def parse_json(data_type, content, options={}, record=nil)
+      def parse_json(data_type, content, options={}, record=nil, model=nil)
         content = JSON.parse(content) unless content.is_a?(Hash)
         ignore = (options[:ignore] || [])
         ignore = [ignore] unless ignore.is_a?(Enumerable)
         ignore = ignore.select { |p| p.is_a?(Symbol) || p.is_a?(String) }.collect(&:to_sym)
         options[:ignore] = ignore
-        do_parse_json(data_type, data_type.records_model, content, options, data_type.merged_schema, nil, record)
+        do_parse_json(data_type, data_type.records_model, content, options, (record && record.orm_model.schema) || (model && model.schema) || data_type.merged_schema, nil, record)
       end
 
       def parse_xml(data_type, content, options={}, record=nil)
@@ -109,7 +109,7 @@ module Edi
       def do_parse_json(data_type, model, json, options, json_schema, record=nil, new_record=nil)
         updating = false
         unless record ||= new_record
-          if model && model.persistable?
+          if model && model.modelable?
             if record = (!options[:ignore].include?(:id) && (id = json['id']) && model.where(_id: id).first)
               updating = true
             else
