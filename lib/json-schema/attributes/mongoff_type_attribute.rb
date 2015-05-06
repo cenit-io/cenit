@@ -1,14 +1,18 @@
 module JSON
   class Schema
     class MongoffTypeAttribute < JSON::Schema::TypeV4Attribute
+
+      DATE_FORMATS = %w(date date-time time)
+      DATE_CLASSES = DATE_FORMATS.collect { |format| format.gsub('-', '_').camelize.constantize }
+
       class << self
         def validate(current_schema, data, fragments, processor, validator, options = {})
           union = true
           types = current_schema.schema['type']
 
           return if types == 'string' &&
-            %w(date date-time time).include?(format = current_schema.schema['format']) &&
-            data.is_a?(format.gsub('-', '_').camelize.constantize)
+            DATE_FORMATS.include?(format = current_schema.schema['format']) &&
+            DATE_CLASSES.any? { |klass| data.is_a?(klass) }
 
           if !types.is_a?(Array)
             types = [types]

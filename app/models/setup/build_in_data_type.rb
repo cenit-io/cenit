@@ -3,7 +3,7 @@ require 'edi/formater'
 module Setup
   class BuildInDataType
     include SchemaHandler
-    include FormatParser
+    include DataTypeParser
 
     attr_reader :model
 

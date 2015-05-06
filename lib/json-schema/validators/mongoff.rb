@@ -7,9 +7,9 @@ module JSON
     class Mongoff < JSON::Schema::Draft4
       def initialize
         super
-        @attributes['properties'] = MongoffPropertiesAttribute
-        @attributes['required'] = MongoffRequiredAttribute
-        @attributes['type'] = MongoffTypeAttribute
+        @attributes['properties'] = JSON::Schema::MongoffPropertiesAttribute
+        @attributes['required'] = JSON::Schema::MongoffRequiredAttribute
+        @attributes['type'] =JSON::Schema:: MongoffTypeAttribute
         @names = ['mongoff']
       end
 

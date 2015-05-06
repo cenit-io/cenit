@@ -4,6 +4,7 @@ require 'json-schema/validators/mongoff'
 module Mongoff
   class Model
     include Setup::InstanceAffectRelation
+    include Setup::InstanceModelParser
     include MetadataAccess
     include Queryable
 
@@ -41,13 +42,16 @@ module Mongoff
     end
 
     def schema
-      @schema ||= data_type.merged_schema(recursive: caching?)
+      if model_schema?(@schema = data_type.merged_schema(recursive: caching?))
+        @schema = (Model[:base_schema] || {}).deep_merge(@schema)
+      end unless @schema
+      @schema
     end
 
     def model_schema?(schema)
       schema = schema['items'] if schema['type'] == 'array' && schema['items']
       schema = data_type.merge_schema(schema)
-      schema['type'] == 'object' && schema['properties']
+      schema['type'] == 'object' && !schema['properties'].nil?
     end
 
     def property_model?(property)
@@ -141,6 +145,48 @@ module Mongoff
     end
 
     class << self
+
+      def options
+        @options ||=
+          {
+            before_save: ->(_) {},
+            after_save: ->(_) {}
+          }
+      end
+
+      def [](option)
+        options[option]
+      end
+
+      def []=(option, value)
+        validate_option!(option, value)
+        options[option] = value
+      end
+
+      def validate_option!(option, value)
+        unless case option
+               when :before_save, :after_save
+                 value.is_a?(Proc)
+               else
+                 true
+               end
+          raise Exception.new("Invalid value #{value} for option #{option}")
+        end
+      end
+
+      def config(&block)
+        class_eval(&block) if block
+      end
+
+      def method_missing(symbol, *args)
+        if !symbol.to_s.end_with?('=') && ((args.length == 0 && block_given?) || args.length == 1 && !block_given?)
+          self[symbol] = block_given? ? yield : args[0]
+        elsif args.length == 0 && !block_given?
+          self[symbol]
+        else
+          super
+        end
+      end
 
       def for(options = {})
         model_name = options[:name]

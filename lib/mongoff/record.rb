@@ -53,11 +53,13 @@ module Mongoff
         errors.add(:base, error[:message])
       end
       begin
+        Model.before_save.call(self)
         if new_record?
           orm_model.collection.insert(attributes)
         else
           orm_model.collection.find(_id: id).update('$set' => attributes)
         end
+        Model.after_save.call(self)
       rescue Exception => ex
         errors.add(:base, ex.message)
       end if errors.blank?
@@ -104,6 +106,10 @@ module Mongoff
       else
         document[field] = orm_model.mongo_value(value, property_schema || field)
       end
+    end
+
+    def respond_to?(*_)
+      true
     end
 
     def method_missing(symbol, *args)

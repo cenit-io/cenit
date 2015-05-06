@@ -2,7 +2,7 @@ require 'edi/formater'
 
 module Setup
   class DataType < Model
-    include FormatParser
+    include DataTypeParser
 
     BuildInDataType.regist(self).including(:schema).referenced_by(:name, :schema)
 
