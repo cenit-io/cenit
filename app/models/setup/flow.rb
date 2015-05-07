@@ -26,13 +26,13 @@ module Setup
 
     field :last_trigger_timestamps, type: DateTime
 
-    validates_presence_of :name, :event, :translator
+    validates_presence_of :name, :translator
     validates_numericality_in_presence_of :lot_size, greater_than_or_equal_to: 1
     before_save :validates_configuration
 
     def validates_configuration
       return false unless ready_to_save?
-      unless requires(:event, :translator)
+      unless requires(:translator)
         translator.data_type.nil? ? requires(:custom_data_type) : rejects(:custom_data_type)
         translator.type == :Import ? rejects(:data_type_scope) : requires(:data_type_scope)
         [:Import, :Export].include?(translator.type) ? requires(:webhook) : rejects(:connection_role, :webhook)
@@ -85,7 +85,7 @@ module Setup
     end
 
     def ready_to_save?
-      (event && translator).present? && (translator.type == :Import || data_type_scope.present?)
+      translator.present? && (translator.type == :Import || data_type_scope.present?)
     end
 
     def can_be_restarted?
