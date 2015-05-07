@@ -119,6 +119,8 @@ module Edi
             return json
           end
         end
+        resetting = json['_reset'] || []
+        resetting = [resetting] unless resetting.is_a?(Enumerable)
         json_schema = data_type.merge_schema(json_schema)
         json_schema['properties'].each do |property_name, property_schema|
           next if options[:ignore].include?(property_name.to_sym)
@@ -130,7 +132,7 @@ module Edi
           when 'array'
             next unless updating | (property_value = record.send(property_name)).blank?
             items_schema = data_type.merge_schema(property_schema['items'] || {})
-            record.send("#{property_name}=", []) unless property_value && property_schema['referenced']
+            record.send("#{property_name}=", []) unless !resetting.include?(property_name) && property_value && property_schema['referenced']
             if property_value = json[name]
               property_value = [property_value] unless property_value.is_a?(Array)
               property_value.each do |sub_value|
