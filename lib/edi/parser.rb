@@ -110,7 +110,7 @@ module Edi
         updating = false
         unless record ||= new_record
           if model && model.modelable?
-            if record = (!options[:ignore].include?(:id) && (id = json['id']) && model.where(_id: id).first)
+            if record = (!options[:ignore].include?(:id) && (id = json['id']) && model.where(id: id).first)
               updating = true
             else
               record = model.new

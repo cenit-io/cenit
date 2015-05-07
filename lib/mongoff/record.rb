@@ -56,6 +56,7 @@ module Mongoff
         Model.before_save.call(self)
         if new_record?
           orm_model.collection.insert(attributes)
+          @new_record = false
         else
           orm_model.collection.find(_id: id).update('$set' => attributes)
         end
