@@ -169,3 +169,16 @@ module Setup
 
   end
 end
+
+class String
+
+  #TODO These code is duplicated
+  def to_title
+    self.
+      gsub(/([A-Z])(\d)/, '\1 \2').
+      gsub(/([a-z])(\d|[A-Z])/, '\1 \2').
+      gsub(/(\d)([a-z]|[A-Z])/, '\1 \2').
+      tr('_', ' ').
+      tr('-', ' ')
+  end
+end
