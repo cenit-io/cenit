@@ -17,7 +17,8 @@ module Setup
                                  AccountScoped,
                                  DynamicValidators,
                                  Edi::Formatter,
-                                 Edi::Filler] #, RailsAdminDynamicCharts::Datetime]
+                                 Edi::Filler,
+                                 ClassModelParser] #, RailsAdminDynamicCharts::Datetime]
     end
 
     field :title, type: String

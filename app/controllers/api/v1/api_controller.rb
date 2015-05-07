@@ -81,7 +81,7 @@ module Api::V1
       model = model.singularize
       "Setup::#{model.camelize}".constantize
     rescue
-      Setup::DataType.where(name: model.camelize).first.records_model
+      (@models ||= {})[model] ||= Setup::DataType.where(name: model.camelize).first.records_model
     end
 
     def klass
@@ -90,7 +90,7 @@ module Api::V1
 
     def process_message(root, message)
       if klass = get_model(root)
-        klass.data_type.new_from_json(message)
+        klass.new_from_json(message)
       end
     end
 

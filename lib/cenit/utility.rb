@@ -65,7 +65,6 @@ module Cenit
             references[obj] = record_refs
           end
         end
-        puts references
         for_each_node_starting_at(record) do |obj|
           references.each do |obj_waiting, to_bind|
             to_bind.each do |property_name, property_binds|
@@ -196,7 +195,7 @@ module Cenit
           obj.each { |v| return false unless json_object?(v) } if options[:recursive]
           true
         else
-          [Integer, Float, String, TrueClass, FalseClass, Boolean, NilClass].detect { |klass| obj.is_a?(klass) }
+          [Integer, Float, String, TrueClass, FalseClass, Boolean, NilClass].any? { |klass| obj.is_a?(klass) }
         end
       end
     end
