@@ -48,7 +48,7 @@ module Cenit
             end
             saved.each do |obj|
               if obj = obj.reload rescue nil
-                obj.delete #TODO Prevent destroying objects already saved before
+                obj.delete if obj.instance_variable_get(:@saved_on_saving_references)
               end
             end
             false
@@ -138,7 +138,14 @@ module Cenit
             values = [values] unless values.is_a?(Enumerable)
             values.each { |value| return false unless save_references(value, saved, visited) }
             values.each do |value|
-              (value.save ? saved << value : (return false)) unless saved.include?(value)
+              unless saved.include?(value)
+                value.instance_variable_set(:@saved_on_saving_references, true) if value.new_record?
+                if value.save
+                  saved << value
+                else
+                  return false
+                end
+              end
             end unless relation[:embedded]
           end
         end

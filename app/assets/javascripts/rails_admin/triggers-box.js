@@ -41,7 +41,8 @@
             var operator_name = 'setup_observer[triggers][' + field_name + '][' + index + '][o]';
             var common_options = '<option ' + (field_operator == "_not_null" ? 'selected="selected"' : '') + ' value="_not_null">' + RailsAdmin.I18n.t("is_present") + '</option>' +
                 '<option ' + (field_operator == "_null" ? 'selected="selected"' : '') + ' value="_null" >' + RailsAdmin.I18n.t("is_blank") + '</option>' +
-                '<option ' + (field_operator == "_change" ? 'selected="selected"' : '') + ' value="_change"  >' + RailsAdmin.I18n.t("change") + '</option>';
+                '<option ' + (field_operator == "_change" ? 'selected="selected"' : '') + ' value="_change"  >' + RailsAdmin.I18n.t("change") + '</option>' +
+                '<option ' + (field_operator == "_presence_change" ? 'selected="selected"' : '') + ' value="_presence_change"  >' + RailsAdmin.I18n.t("present_and_change") + '</option>';
             switch (field_type) {
                 case 'boolean':
                     var control = '<select class="input-small" name="' + value_name + '">' +

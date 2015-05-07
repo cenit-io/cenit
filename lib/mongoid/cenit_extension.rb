@@ -2,6 +2,8 @@ module Mongoid
   module CenitExtension
     extend ActiveSupport::Concern
 
+    include Setup::ClassModelParser
+
     module ClassMethods
 
       include Mongoff::MetadataAccess
