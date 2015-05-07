@@ -618,7 +618,7 @@ RailsAdmin.config do |config|
         inline_edit false
         inline_add false
         visible do
-          if (f = bindings[:object]).event && f.translator && f.translator.data_type.nil?
+          if (f = bindings[:object]).translator.present? && f.translator.data_type.nil?
             f.instance_variable_set(:@selecting_data_type, f.custom_data_type = f.event && f.event.try(:data_type)) unless f.data_type
             true
           else
@@ -639,7 +639,7 @@ RailsAdmin.config do |config|
         help 'Required'
       end
       field :data_type_scope do
-        visible { (f = bindings[:object]).event && f.translator && f.translator.type != :Import && f.data_type && !f.instance_variable_get(:@selecting_data_type) }
+        visible { (f = bindings[:object]).translator.present? && f.translator.type != :Import && f.data_type && !f.instance_variable_get(:@selecting_data_type) }
         label do
           if (translator = bindings[:object].translator)
             if [:Export, :Conversion].include?(translator.type)
@@ -654,7 +654,7 @@ RailsAdmin.config do |config|
         help 'Required'
       end
       field :lot_size do
-        visible { (f = bindings[:object]).event && f.translator && f.translator.type == :Export && f.data_type_scope && f.scope_symbol != :event_source }
+        visible { (f = bindings[:object]).translator.present? && f.translator.type == :Export && f.data_type_scope && f.scope_symbol != :event_source }
       end
       field :webhook do
         visible { (translator = bindings[:object].translator) && (translator.type == :Import || (translator.type == :Export && bindings[:object].data_type_scope.present?)) }
@@ -679,7 +679,7 @@ RailsAdmin.config do |config|
         help ''
       end
       field :discard_events do
-        visible { bindings[:object].ready_to_save? }
+        visible { bindings[:object].response_translator.present? && bindings[:object].ready_to_save?}
         help "Events won't be fired for created or updated records if checked"
       end
       field :active do
