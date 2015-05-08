@@ -2,12 +2,18 @@ module Mongoid
   module CenitExtension
     extend ActiveSupport::Concern
 
+    include Setup::ClassModelParser
+
     module ClassMethods
 
       include Mongoff::MetadataAccess
 
-      def persistable?
+      def modelable?
         true
+      end
+
+      def persistable?
+        parent == Object
       end
 
       def all_collections_names

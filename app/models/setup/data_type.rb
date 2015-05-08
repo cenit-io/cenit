@@ -2,7 +2,7 @@ require 'edi/formater'
 
 module Setup
   class DataType < Model
-    include FormatParser
+    include DataTypeParser
 
     BuildInDataType.regist(self).including(:schema).referenced_by(:name, :schema)
 
@@ -181,7 +181,8 @@ module Setup
                                                                                        name: name,
                                                                                        parent: parent,
                                                                                        schema: parent ? value : nil,
-                                                                                       cache: false)
+                                                                                       cache: false,
+                                                                                       modelable: false)
         parent.const_set(constant_name, constant)
         created = true
       end

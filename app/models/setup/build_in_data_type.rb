@@ -3,7 +3,7 @@ require 'edi/formater'
 module Setup
   class BuildInDataType
     include SchemaHandler
-    include FormatParser
+    include DataTypeParser
 
     attr_reader :model
 
@@ -131,7 +131,8 @@ module Setup
                                                             name: field_name.camelize,
                                                             parent: model,
                                                             schema: properties[field_name],
-                                                            cache: false)
+                                                            cache: false,
+                                                            modelable: false)
           end
         end
       end
@@ -166,5 +167,18 @@ module Setup
       MONGOID_TYPE_MAP[mongoid_type]
     end
 
+  end
+end
+
+class String
+
+  #TODO These code is duplicated
+  def to_title
+    self.
+      gsub(/([A-Z])(\d)/, '\1 \2').
+      gsub(/([a-z])(\d|[A-Z])/, '\1 \2').
+      gsub(/(\d)([a-z]|[A-Z])/, '\1 \2').
+      tr('_', ' ').
+      tr('-', ' ')
   end
 end

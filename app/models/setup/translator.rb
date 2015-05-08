@@ -204,7 +204,7 @@ module Setup
     def after_run_import(options)
       return unless targets = options[:targets]
       targets.each do |target|
-        target.try(:discard_event_lookup=, options[:discard_events])
+        target.instance_variable_set(:@discard_event_lookup, options[:discard_events])
         raise TransformingObjectException.new(target) unless Cenit::Utility.save(target)
       end
       options[:result] = targets
@@ -212,7 +212,7 @@ module Setup
 
     def after_run_update(options)
       if target = options[:object]
-        target.try(:discard_event_lookup=, options[:discard_events])
+        target.instance_variable_set(:@discard_event_lookup, options[:discard_events])
         raise TransformingObjectException.new(target) unless Cenit::Utility.save(target)
       end
       options[:result] = target
@@ -221,7 +221,7 @@ module Setup
     def after_run_conversion(options)
       return unless target = options[:target]
       if options[:save_result].blank? || options[:save_result]
-        target.try(:discard_event_lookup=, options[:discard_events])
+        target.instance_variable_set(:@discard_event_lookup, options[:discard_events])
         raise TransformingObjectException.new(target) unless Cenit::Utility.save(target)
       end
       options[:result] = target

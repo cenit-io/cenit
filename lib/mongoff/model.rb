@@ -1,7 +1,12 @@
+require 'json-schema/schema/cenit_reader'
+require 'json-schema/validators/mongoff'
+
 module Mongoff
   class Model
     include Setup::InstanceAffectRelation
+    include Setup::InstanceModelParser
     include MetadataAccess
+    include Queryable
 
     EMPTY_SCHEMA = {}.freeze
 
@@ -28,18 +33,30 @@ module Mongoff
       @persistable
     end
 
+    def modelable?
+      if @modelable.nil?
+        @modelable = model_schema?(schema)
+      else
+        @modelable
+      end
+    end
+
     def schema
-      @schema ||= data_type.merged_schema
+      if model_schema?(@schema = data_type.merged_schema(recursive: caching?))
+        @schema = (Model[:base_schema] || {}).deep_merge(@schema)
+      end unless @schema
+      @schema
+    end
+
+    def model_schema?(schema)
+      schema = schema['items'] if schema['type'] == 'array' && schema['items']
+      schema = data_type.merge_schema(schema)
+      schema['type'] == 'object' && !schema['properties'].nil?
     end
 
     def property_model?(property)
       property = property.to_s
-      if schema['type'] == 'object' && schema['properties'] && property_schema = schema['properties'][property]
-        property_schema = property_schema['items'] if property_schema['type'] == 'array' && property_schema['items']
-        property_schema = data_type.merge_schema(property_schema)
-        return true if property_schema['type'] == 'object' && property_schema['properties']
-      end
-      false
+      schema['type'] == 'object' && schema['properties'] && (property_schema = schema['properties'][property]) && model_schema?(property_schema)
     end
 
     def property_model(property)
@@ -100,11 +117,7 @@ module Mongoff
     end
 
     def method_missing(symbol, *args)
-      if (query = collection.try(symbol, *args)).is_a?(Moped::Query)
-        Criteria.new(self, query)
-      else
-        super
-      end
+      query_for(self, collection, symbol, *args) || super
     end
 
     def eql?(obj)
@@ -133,6 +146,48 @@ module Mongoff
 
     class << self
 
+      def options
+        @options ||=
+          {
+            before_save: ->(_) {},
+            after_save: ->(_) {}
+          }
+      end
+
+      def [](option)
+        options[option]
+      end
+
+      def []=(option, value)
+        validate_option!(option, value)
+        options[option] = value
+      end
+
+      def validate_option!(option, value)
+        unless case option
+               when :before_save, :after_save
+                 value.is_a?(Proc)
+               else
+                 true
+               end
+          raise Exception.new("Invalid value #{value} for option #{option}")
+        end
+      end
+
+      def config(&block)
+        class_eval(&block) if block
+      end
+
+      def method_missing(symbol, *args)
+        if !symbol.to_s.end_with?('=') && ((args.length == 0 && block_given?) || args.length == 1 && !block_given?)
+          self[symbol] = block_given? ? yield : args[0]
+        elsif args.length == 0 && !block_given?
+          self[symbol]
+        else
+          super
+        end
+      end
+
       def for(options = {})
         model_name = options[:name]
         cache_model = (cache_models = Thread.current[:mongoff_models] ||= {})[model_name]
@@ -152,17 +207,52 @@ module Mongoff
       end
     end
 
+    CONVERSION = {
+      BSON::ObjectId => ->(value) { BSON::ObjectId.from_string(value.to_s) },
+      String => ->(value) { value.to_s },
+      Integer => ->(value) { value.to_s.to_i },
+      Float => ->(value) { value.to_s.to_f },
+      Date => ->(value) { Date.parse(value.to_s) rescue nil },
+      DateTime => ->(value) { DateTime.parse(value.to_s) rescue nil },
+      Time => ->(value) { Time.parse(value.to_s) rescue nil },
+      Hash => ->(value) { JSON.parse(value.to_s) rescue nil },
+      Array => ->(value) { JSON.parse(value.to_s) rescue nil },
+      nil => ->(value) { Cenit::Utility.json_object?(value) ? value : nil }
+    }
+
+    def mongo_value(value, field_or_schema)
+      type =
+        if !caching? || field_or_schema.is_a?(Hash)
+          mongo_type_for(field_or_schema)
+        else
+          @mongo_types[field_or_schema] ||= mongo_type_for(field_or_schema)
+        end
+      if value.is_a?(type)
+        value
+      else
+        CONVERSION[type].call(value)
+      end
+    end
+
+    def fully_validate_against_schema(value, options = {})
+      JSON::Validator.fully_validate(schema, value, options.merge(version: :mongoff,
+                                                                  schema_reader: JSON::Schema::CenitReader.new(data_type),
+                                                                  errors_as_objects: true))
+    end
+
     private
 
     def initialize(data_type, options = {})
       @data_type_id = (data_type.is_a?(Setup::BuildInDataType) || options[:cache]) ? data_type : data_type.id.to_s
       @name = options[:name] || data_type.data_type_name
       @parent = options[:parent]
+      @mongo_types = {}
       @persistable = (@schema = options[:schema]).nil?
+      @modelable = options[:modelable]
     end
 
     def caching?
-      @data_type_id.is_a?(String)
+      !@data_type_id.is_a?(String)
     end
   end
 end

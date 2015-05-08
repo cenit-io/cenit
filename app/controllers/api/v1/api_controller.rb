@@ -28,12 +28,12 @@ module Api::V1
       result.each { |root, v| broken[root] = v.map { |e, obj| Cenit::Utility.save(obj) ? next : {error_messages: obj.errors.full_messages, item: e} } }
       broken.delete_if { |_, value| value.compact.blank? }
       response = {}
-      if result.present?
+      if broken.present?
+        render json: broken, status: :unprocessable_entity
+      else
         result.each { |root, v| response[root.pluralize] = v.map { |_, obj| true }.flatten.count }
         response.merge(errors: broken) if broken.present?
         render json: response
-      else
-        render json: broken, status: :unprocessable_entity
       end
     end
 
@@ -81,7 +81,7 @@ module Api::V1
       model = model.singularize
       "Setup::#{model.camelize}".constantize
     rescue
-      Setup::DataType.where(name: model.camelize).first.records_model
+      (@models ||= {})[model] ||= Setup::DataType.where(name: model.camelize).first.records_model
     end
 
     def klass
@@ -90,7 +90,7 @@ module Api::V1
 
     def process_message(root, message)
       if klass = get_model(root)
-        klass.data_type.new_from_json(message)
+        klass.new_from_json(message)
       end
     end
 

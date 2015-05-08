@@ -17,7 +17,8 @@ module Setup
                                  AccountScoped,
                                  DynamicValidators,
                                  Edi::Formatter,
-                                 Edi::Filler] #, RailsAdminDynamicCharts::Datetime]
+                                 Edi::Filler,
+                                 ClassModelParser] #, RailsAdminDynamicCharts::Datetime]
     end
 
     field :title, type: String
@@ -36,6 +37,10 @@ module Setup
     validates_presence_of :name
 
     scope :activated, -> { where(activated: true) }
+
+    after_save do
+      create_default_events
+    end
 
     before_destroy do
       !(records_model.try(:delete_all) rescue true) || true
@@ -128,7 +133,6 @@ module Setup
         report[:errors][self] = errors.full_messages
         Model.shutdown(self, options)
       end
-      create_default_events
       if model
         reload
         report[:loaded] << (report[:model] = model)
@@ -156,9 +160,9 @@ module Setup
     end
 
     def create_default_events
-      if model.is_a?(Class) && Setup::Observer.where(data_type: self).empty?
+      if records_model.persistable? && Setup::Observer.where(data_type: self).empty?
         Setup::Observer.create(data_type: self, triggers: '{"created_at":{"0":{"o":"_not_null","v":["","",""]}}}')
-        Setup::Observer.create(data_type: self, triggers: '{"updated_at":{"0":{"o":"_change","v":["","",""]}}}')
+        Setup::Observer.create(data_type: self, triggers: '{"updated_at":{"0":{"o":"_presence_change","v":["","",""]}}}')
       end
     end
 

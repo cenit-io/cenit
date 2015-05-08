@@ -24,8 +24,8 @@ module Setup
       triggers_hash.each do |field_name, conditions|
         conditions.each do |_, condition|
           r &&=
-            if (condition['o'] == '_change')
-              field_changed(obj_now, obj_before, field_name)
+            if %w(_change _presence_change).include?(condition['o'])
+              !(condition['o'] == '_presence_change' && obj_before.nil?) && field_changed(obj_now, obj_before, field_name)
             else
               condition_apply(obj_now, field_name, condition) && !condition_apply(obj_before, field_name, condition)
             end
@@ -132,7 +132,7 @@ module Setup
     end
 
     def op__null(obj_v, cond_v)
-      obj_v.nil? || obj_v.to_s.empty?
+      obj_v.blank? && cond_v.present?
     end
 
     def op_in(obj_v, cond_v)

@@ -1,6 +1,7 @@
 module Mongoff
   class Criteria
     include Enumerable
+    include Queryable
 
     attr_reader :model
     attr_reader :query
@@ -28,11 +29,7 @@ module Mongoff
     end
 
     def method_missing(symbol, *args)
-      if (q = query.try(symbol, *args)).is_a?(Moped::Query)
-        Criteria.new(model, q)
-      else
-        super
-      end
+      query_for(model, query, symbol, *args) || super
     end
   end
 end
