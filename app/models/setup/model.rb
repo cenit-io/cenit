@@ -75,7 +75,7 @@ module Setup
     end
 
     def all_data_type_collections_names
-      [data_type_collection_name]
+      all_data_type_storage_collections_names
     end
 
     def all_data_type_storage_collections_names
@@ -412,8 +412,12 @@ module Setup
       report
     end
 
+    def mongoff_model_class
+      Mongoff::Model
+    end
+
     def create_mongoff_model
-      Mongoff::Model.for(data_type: self)
+      mongoff_model_class.for(data_type: self)
     end
   end
 end

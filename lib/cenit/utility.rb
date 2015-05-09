@@ -186,7 +186,7 @@ module Cenit
         elsif obj.is_a?(Array)
           obj.collect { |value| stringfy(value) }
         else
-          obj.to_s
+          obj.is_a?(Symbol) ? obj.to_s : obj
         end
       end
 

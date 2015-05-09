@@ -3,48 +3,6 @@ require 'stringio'
 module Setup
   class FileDataType < Model
 
-    SCHEMA =
-      {
-        type: :object,
-        properties:
-          {
-            filename: {
-              title: 'File name',
-              type: :string
-            },
-            contentType: {
-              title: 'Content type',
-              type: :string
-            },
-            length: {
-              title: 'Size',
-              type: :integer
-            },
-            uploadDate: {
-              title: 'Uploaded at',
-              type: :string,
-              format: :time
-            },
-            file: {
-              type: :object,
-              properties: {
-                chunks: {
-                  type: :array,
-                  items: {
-                    type: :object,
-                    properties: {},
-                  },
-                  referenced: true,
-                  visible: false
-                }
-              },
-              referenced: true,
-              visible: false,
-              virtual: true
-            }
-          }
-      }.to_json.freeze
-
     BuildInDataType.regist(self).referenced_by(:name, :library).with(:title, :name, :_type, :validator)
 
     belongs_to :library, class_name: Setup::Library.to_s, inverse_of: :file_data_types
@@ -58,12 +16,24 @@ module Setup
       self.title = self.name if title.blank?
     end
 
-    def all_data_type_collections_names
-      [name = data_type_collection_name, name + '.files', name + '.chunks']
+    def data_type_storage_collection_name
+      "#{super}.files"
+    end
+
+    def chunks_storage_collection_name
+      data_type_storage_collection_name.gsub(/files\Z/, 'chunks')
+    end
+
+    def all_data_type_storage_collections_names
+      [data_type_storage_collection_name, chunks_storage_collection_name]
+    end
+
+    def mongoff_model_class
+      Mongoff::GridFs::FileModel
     end
 
     def model_schema
-      SCHEMA
+      Mongoff::GridFs::FileModel::SCHEMA.to_json
     end
 
     def validate_file!(readable)

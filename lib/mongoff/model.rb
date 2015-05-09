@@ -26,7 +26,15 @@ module Mongoff
     end
 
     def new
-      Record.new(self)
+      record_class.new(self)
+    end
+
+    def record_class
+      Record
+    end
+
+    def reflectable?
+      persistable?
     end
 
     def persistable?
@@ -42,7 +50,7 @@ module Mongoff
     end
 
     def schema
-      if model_schema?(@schema = data_type.merged_schema(recursive: caching?))
+      if model_schema?(@schema = proto_schema)
         @schema = (Model[:base_schema] || {}).deep_merge(@schema)
       end unless @schema
       @schema
@@ -144,6 +152,51 @@ module Mongoff
       end
     end
 
+    def attribute_key(field, field_metadata = {})
+      if (field_metadata[:model] ||= property_model(field)) && (schema = (field_metadata[:schema] ||= property_schema(field)))['referenced']
+        return ("#{field}_id" + ('s' if schema['type'] == 'array').to_s).to_sym
+      end
+      field
+    end
+
+    CONVERSION = {
+      BSON::ObjectId => ->(value) { BSON::ObjectId.from_string(value.to_s) },
+      BSON::Binary => ->(value) { BSON::Binary.new(value.to_s) },
+      String => ->(value) { value.to_s },
+      Integer => ->(value) { value.to_s.to_i },
+      Float => ->(value) { value.to_s.to_f },
+      Date => ->(value) { Date.parse(value.to_s) rescue nil },
+      DateTime => ->(value) { DateTime.parse(value.to_s) rescue nil },
+      Time => ->(value) { Time.parse(value.to_s) rescue nil },
+      Hash => ->(value) { JSON.parse(value.to_s) rescue nil },
+      Array => ->(value) { JSON.parse(value.to_s) rescue nil },
+      nil => ->(value) { Cenit::Utility.json_object?(value) ? value : nil }
+    }
+
+    def mongo_value(value, field_or_schema)
+      type =
+        if !caching? || field_or_schema.is_a?(Hash)
+          mongo_type_for(field_or_schema)
+        else
+          @mongo_types[field_or_schema] ||= mongo_type_for(field_or_schema)
+        end
+      if value.is_a?(type)
+        value
+      else
+        convert(type, value)
+      end
+    end
+
+    def convert(type, value)
+      CONVERSION[type].call(value)
+    end
+
+    def fully_validate_against_schema(value, options = {})
+      JSON::Validator.fully_validate(schema, value, options.merge(version: :mongoff,
+                                                                  schema_reader: JSON::Schema::CenitReader.new(data_type),
+                                                                  errors_as_objects: true))
+    end
+
     class << self
 
       def options
@@ -207,52 +260,24 @@ module Mongoff
       end
     end
 
-    CONVERSION = {
-      BSON::ObjectId => ->(value) { BSON::ObjectId.from_string(value.to_s) },
-      String => ->(value) { value.to_s },
-      Integer => ->(value) { value.to_s.to_i },
-      Float => ->(value) { value.to_s.to_f },
-      Date => ->(value) { Date.parse(value.to_s) rescue nil },
-      DateTime => ->(value) { DateTime.parse(value.to_s) rescue nil },
-      Time => ->(value) { Time.parse(value.to_s) rescue nil },
-      Hash => ->(value) { JSON.parse(value.to_s) rescue nil },
-      Array => ->(value) { JSON.parse(value.to_s) rescue nil },
-      nil => ->(value) { Cenit::Utility.json_object?(value) ? value : nil }
-    }
-
-    def mongo_value(value, field_or_schema)
-      type =
-        if !caching? || field_or_schema.is_a?(Hash)
-          mongo_type_for(field_or_schema)
-        else
-          @mongo_types[field_or_schema] ||= mongo_type_for(field_or_schema)
-        end
-      if value.is_a?(type)
-        value
-      else
-        CONVERSION[type].call(value)
-      end
-    end
-
-    def fully_validate_against_schema(value, options = {})
-      JSON::Validator.fully_validate(schema, value, options.merge(version: :mongoff,
-                                                                  schema_reader: JSON::Schema::CenitReader.new(data_type),
-                                                                  errors_as_objects: true))
-    end
-
-    private
+    protected
 
     def initialize(data_type, options = {})
       @data_type_id = (data_type.is_a?(Setup::BuildInDataType) || options[:cache]) ? data_type : data_type.id.to_s
       @name = options[:name] || data_type.data_type_name
       @parent = options[:parent]
-      @mongo_types = {}
       @persistable = (@schema = options[:schema]).nil?
       @modelable = options[:modelable]
+      @mongo_types = {}
+      @custom_properties = {}.with_indifferent_access
     end
 
     def caching?
       !@data_type_id.is_a?(String)
+    end
+
+    def proto_schema
+      data_type.merged_schema(recursive: caching?)
     end
   end
 end

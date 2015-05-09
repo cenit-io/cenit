@@ -12,6 +12,11 @@ module Mongoff
       @document[:_id] ||= BSON::ObjectId.new unless model.property_schema(:_id)
       @fields = {}
       @new_record = new_record || false
+      model.simple_properties_schemas.each do |property, schema| #TODO Defaults for non simple properties
+        if document[property].nil? && value = schema['default']
+          self[property] = value
+        end
+      end
     end
 
     def attributes
@@ -68,7 +73,7 @@ module Mongoff
     end
 
     def [](field)
-      attribute_key = attribute_key(field, model: property_model = orm_model.property_model(field))
+      attribute_key = orm_model.attribute_key(field, model: property_model = orm_model.property_model(field))
       if (value = (@fields[field] || document[attribute_key])).is_a?(BSON::Document) && property_model
         @fields[field] = Record.new(property_model, value)
       elsif value.is_a?(::Array) && property_model
@@ -81,7 +86,7 @@ module Mongoff
     def []=(field, value)
       field = :_id if field.to_s == 'id'
       @fields.delete(field)
-      attribute_key = attribute_key(field, field_metadata = {})
+      attribute_key = orm_model.attribute_key(field, field_metadata = {})
       property_model = field_metadata[:model]
       property_schema = field_metadata[:schema] || orm_model.property_schema(field)
       if value.nil?
@@ -105,7 +110,7 @@ module Mongoff
           end
         end unless value.empty?
       else
-        document[field] = orm_model.mongo_value(value, property_schema || field)
+        document[field] = orm_model.mongo_value(value, property_schema.present? ? property_schema : field)
       end
     end
 
@@ -125,18 +130,11 @@ module Mongoff
 
     protected
 
-    def attribute_key(field, field_metadata = {})
-      if (field_metadata[:model] ||= orm_model.property_model(field)) && (schema = (field_metadata[:schema] ||= orm_model.property_schema(field)))['referenced']
-        return ("#{field}_id" + ('s' if schema['type'] == 'array').to_s).to_sym
-      end
-      field
-    end
-
     def prepare_attributes
-      document[:_type] = orm_model.to_s if orm_model.persistable?
+      document[:_type] = orm_model.to_s if orm_model.reflectable?
       @fields.each do |field, value|
         unless document[field]
-          attribute_key = attribute_key(field)
+          attribute_key = orm_model.attribute_key(field)
           if value.is_a?(RecordArray)
             document[attribute_key] = array = []
             value.each do |v|
