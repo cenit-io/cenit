@@ -13,7 +13,7 @@ module Mongoff
       @fields = {}
       @new_record = new_record || false
       model.simple_properties_schemas.each do |property, schema| #TODO Defaults for non simple properties
-        if document[property].nil? && value = schema['default']
+        if @document[property].nil? && value = schema['default']
           self[property] = value
         end
       end
@@ -48,12 +48,20 @@ module Mongoff
       @new_record
     end
 
+    def destroyed?
+      @destroyed ||= false
+    end
+
     def save!(options = {})
       raise Exception.new('Invalid data') unless save(options)
     end
 
     def save(options = {})
       errors.clear
+      if destroyed?
+        errors.add(:base, 'Destroyed record can not be saved')
+        return false
+      end
       orm_model.fully_validate_against_schema(attributes).each do |error|
         errors.add(:base, error[:message])
       end
@@ -70,6 +78,14 @@ module Mongoff
         errors.add(:base, ex.message)
       end if errors.blank?
       errors.blank?
+    end
+
+    def destroy
+      begin
+        orm_model.where(id: id).remove
+      rescue
+      end
+      @destroyed = true
     end
 
     def [](field)

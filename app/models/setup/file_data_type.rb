@@ -6,7 +6,7 @@ module Setup
     BuildInDataType.regist(self).referenced_by(:name, :library).with(:title, :name, :_type, :validator)
 
     belongs_to :library, class_name: Setup::Library.to_s, inverse_of: :file_data_types
-    belongs_to :validator, class_name: Setup::Validator.to_s, inverse_of: nil
+    belongs_to :validator, class_name: Setup::FormatValidator.to_s, inverse_of: nil
 
     attr_readonly :library
 
@@ -43,23 +43,12 @@ module Setup
     end
 
     def create_from(string_or_readable, attributes={})
-      raise Exception("Model '#{on_library_title}' is not loaded") unless model = self.model
-      temporary_file = nil
-      readable =
-        if string_or_readable.is_a?(String)
-          temporary_file = Tempfile.new('tmp')
-          temporary_file.write(string_or_readable)
-          temporary_file.rewind
-          attributes = default_attributes.merge(attributes)
-          Cenit::Utility::Proxy.new(temporary_file, original_filename: attributes[:filename])
-        else
-          string_or_readable
-        end
-      validate_file!(readable)
-      attributes = attributes.merge(filename: readable.original_filename) unless attributes[:filename]
-      file = model.file_model.namespace.put(readable, attributes)
-      temporary_file.close! if temporary_file
-      model.where(file: file).first
+      file = model.new
+      file.filename = attributes[:filename]
+      file.contentType = attributes[:contentType] if attributes[:contentType]
+      file.data = string_or_readable
+      file.save
+      file
     end
 
     def create_from_json(json_or_readable, attributes={})
@@ -106,45 +95,22 @@ module Setup
     end
 
     def do_load_model(report)
-      Object.const_set(data_type_name, model = Class.new { class_eval(&FILE_MODEL_MIXIN); self })
-      file_model = Cenit::GridFs.build_grid_file_model(model)
-      model.belongs_to(:file, class_name: file_model.to_s, inverse_of: nil)
-      [file_model, file_model.chunk_model].each { |m| m.include(Setup::ClassAffectRelation) }
-      file_model.affects_to(model)
-      {
-        model => ['', title],
-        file_model => %w(/properties/file File),
-        file_model.chunk_model => %w(/properties/file/properties/chunks/items Chunk)
-      }.each do |model, values|
-        model.class_eval("def self.data_type
+      Object.const_set(data_type_name, model = Class.new)
+      model.instance_variable_set(:@grid_fs_file_model, grid_fs_file_model = Mongoff::GridFs::FileModel.new(self, observable: false))
+      model.class_eval(&FILE_MODEL_MIXIN)
+      model.store_in(collection: -> { grid_fs_file_model.collection_name })
+      model.class_eval("def self.data_type
             Setup::FileDataType.where(id: '#{self.id}').first
           end
           def self.schema_path
-            '#{values[0]}'
+            ''
           end
           def self.title
-            '#{values[1]}'
+            '#{title}'
           end
           def orm_model
             self.class
           end")
-      end
-      model.class_eval do
-        class << self
-
-          def file_model
-            const_get(:File.to_s)
-          end
-
-          def chunk_model
-            file_model.chunk_model
-          end
-
-          def all_collections_names
-            [collection_name, file_model.collection_name, chunk_model.collection_name]
-          end
-        end
-      end
       model
     end
 
@@ -156,14 +122,48 @@ module Setup
       end
 
       field :filename, type: String
-      field :contentType, type: String
+      field :contentType, type: String, default: -> { Mongoff::GridFs::FileModel::SCHEMA['properties']['contentType']['default'] }
       field :length, type: Integer
       field :uploadDate, type: Time
+      field :chunkSize, type: String
+      field :md5, type: String
+      field :aliases
+      field :metadata
 
-      def update_from(grid_file)
-        self.file = grid_file
-        %w(filename contentType length uploadDate).each { |method| send("#{method}=", grid_file.send(method)) }
-        save
+      def grid_fs_file_model
+        self.class.instance_variable_get(:@grid_fs_file_model)
+      end
+
+      def file
+        @file ||=
+          if new_record?
+            f = grid_fs_file_model.new
+            f.id = id
+            f
+          else
+            grid_fs_file_model.where(id: id).first
+          end
+      end
+
+      def data=(string_or_readable)
+        @new_data = string_or_readable
+      end
+
+      def data
+        file.data
+      end
+
+      def save(options = {})
+        if @new_data
+          file.data = @new_data
+          if file.save
+            @new_record = false
+          else
+            @errors = file.errors
+            return false
+          end
+        end
+        file.destroy unless super
       end
 
       before_destroy do
@@ -200,9 +200,8 @@ module Setup
       end
 
       class << self
-        def update_for(grid_file)
-          wrapper = where(file: grid_file).first || new
-          wrapper.update_from(grid_file)
+        def all_storage_collections_names
+          instance_variable_get(:@grid_fs_file_model).all_storage_collections_names
         end
       end
     end

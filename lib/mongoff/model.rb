@@ -33,6 +33,10 @@ module Mongoff
       Record
     end
 
+    def observable?
+      @observable.nil? ? reflectable? : @observable && true
+    end
+
     def reflectable?
       persistable?
     end
@@ -246,7 +250,7 @@ module Mongoff
         cache_model = (cache_models = Thread.current[:mongoff_models] ||= {})[model_name]
         unless data_type = (options[:data_type] || (cache_model && cache_model.data_type))
           raise Exception.new('name or data type required') unless model_name
-          unless data_type = Setup::DataType.for_name(model_name.split('::').first)
+          unless data_type = Setup::Model.for_name(model_name.split('::').first)
             raise Exception.new("unknown data type for #{model_name}")
           end
         end
@@ -268,6 +272,9 @@ module Mongoff
       @parent = options[:parent]
       @persistable = (@schema = options[:schema]).nil?
       @modelable = options[:modelable]
+      unless options[:observable].nil?
+        @observable = options[:observable]
+      end
       @mongo_types = {}
       @custom_properties = {}.with_indifferent_access
     end

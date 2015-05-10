@@ -182,6 +182,11 @@ module Setup
     end
 
     class << self
+
+      def for_name(name)
+        where(id: name.from(2)).first
+      end
+
       def shutdown(data_types, options={})
         return {} unless data_types
         options[:reset_config] = options[:reset_config].nil? && !options[:report_only]

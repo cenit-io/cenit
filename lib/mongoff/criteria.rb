@@ -1,6 +1,9 @@
 module Mongoff
   class Criteria
+    include Enumerable
     include Queryable
+
+    undef_method(:sort)
 
     attr_reader :model
     attr_reader :query

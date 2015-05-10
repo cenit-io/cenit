@@ -9,24 +9,6 @@ module Mongoff
                                          type: :object,
                                          properties:
                                            {
-                                             length: {
-                                               title: 'Size',
-                                               type: :integer
-                                             },
-                                             chunkSize: {
-                                               type: :integer,
-                                               minimum: MINIMUM_CHUNK_SIZE,
-                                               default: MINIMUM_CHUNK_SIZE
-                                             },
-                                             uploadDate: {
-                                               title: 'Uploaded at',
-                                               type: :string,
-                                               format: :time
-                                             },
-                                             md5: {
-                                               type: :string
-                                             },
-
                                              filename: {
                                                title: 'File name',
                                                type: :string
@@ -35,6 +17,24 @@ module Mongoff
                                                title: 'Content type',
                                                type: :string,
                                                default: 'application/octet-stream'
+                                             },
+                                             length: {
+                                               title: 'Size',
+                                               type: :integer
+                                             },
+                                             uploadDate: {
+                                               title: 'Uploaded at',
+                                               type: :string,
+                                               format: :time
+                                             },
+
+                                             chunkSize: {
+                                               type: :integer,
+                                               minimum: MINIMUM_CHUNK_SIZE,
+                                               default: MINIMUM_CHUNK_SIZE
+                                             },
+                                             md5: {
+                                               type: :string
                                              },
                                              aliases: {
                                                type: :array,

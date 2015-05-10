@@ -19,7 +19,7 @@ module Mongoff
             end
         end unless args.length == 0
         if (query = (selector.present? ? mongo_queryable.try(symbol, selector) : mongo_queryable.try(symbol))).is_a?(Moped::Query)
-          criteria = Criteria.new(model, query)
+          criteria = Mongoff::Criteria.new(model, query)
         end
       end
       criteria

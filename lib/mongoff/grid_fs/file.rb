@@ -13,7 +13,7 @@ module Mongoff
 
       def data
         data = ''
-        chunks.sort(n: -1).each { |chunk| data << chunk.data.data }
+        chunks.sort(n: 1).each { |chunk| data << chunk.data.data }
         data
       end
 
@@ -35,17 +35,22 @@ module Mongoff
               else
                 @new_data
               end
-            data_type.validate_file(readable)
+            # orm_model.data_type.validate_file(readable)
             create_temporary_chunks(readable)
           end
         temporary_file.close if temporary_file
         if errors.blank? && super
           if new_chunks_ids
             chunks.remove_all
-            chunk_model.find(id: {'$in' => new_chunks_ids}).update('$set' => {files_id: id})
+            chunk_model.where(id: {'$in' => new_chunks_ids}).update_all('$set' => {files_id: id})
           end
         end
         errors.blank?
+      end
+
+      def destroy
+        chunks.remove_all
+        super
       end
 
       private
@@ -62,6 +67,9 @@ module Mongoff
         n = -1
 
         reading(readable) do |io|
+
+          self[:filename] = extract_basename(io).squeeze('/') unless self[:filename].present?
+
           chunking(io, chunkSize) do |buf|
             md5 << buf
             length += buf.size
