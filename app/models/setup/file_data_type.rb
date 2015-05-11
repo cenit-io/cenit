@@ -6,7 +6,7 @@ module Setup
     BuildInDataType.regist(self).referenced_by(:name, :library).with(:title, :name, :_type, :validator)
 
     belongs_to :library, class_name: Setup::Library.to_s, inverse_of: :file_data_types
-    belongs_to :validator, class_name: Setup::FormatValidator.to_s, inverse_of: nil
+    belongs_to :validator, class_name: Setup::Validator.to_s, inverse_of: nil
 
     attr_readonly :library
 
@@ -36,10 +36,17 @@ module Setup
       Mongoff::GridFs::FileModel::SCHEMA.to_json
     end
 
+    def validate_file(readable)
+      readable.rewind
+      errors = validator.present? ? validator.validate_data(readable.read) : []
+      readable.rewind
+      errors
+    end
+
     def validate_file!(readable)
-      readable.rewind
-      validator.validate_data!(readable.read) if validator.present?
-      readable.rewind
+      if (errors = validate_file(readable)).present?
+        raise Exception.new('Invalid file data: ' + errors.to_sentence)
+      end
     end
 
     def create_from(string_or_readable, attributes={})

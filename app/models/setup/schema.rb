@@ -1,5 +1,5 @@
 module Setup
-  class Schema
+  class Schema < Validator
     include CenitScoped
 
     Setup::Models.exclude_actions_for self, :bulk_delete, :delete, :delete_all
@@ -18,10 +18,24 @@ module Setup
     attr_readonly :library, :uri
 
     validates_presence_of :library, :uri, :schema
+    validates_inclusion_of :schema_type, in: [:json_schema, :xml_schema]
 
     before_save :save_data_types
     after_save :load_models
     before_destroy :destroy_data_types
+
+    def validates_configuration
+      self.name = "#{library.name} | #{uri}" unless name.present?
+      super
+    end
+
+    def on_library_title
+      if lib = library
+        "#{lib.name} | #{uri}"
+      else
+        uri
+      end
+    end
 
     def load_models(options = {})
       unless @data_types_to_reload
@@ -140,6 +154,20 @@ module Setup
 
     def parse_xml_schema
       Xsd::Document.new(uri, self.schema).schema.json_schemas
+    end
+
+    def validate_data(data)
+      case schema_type
+      when :json_schema
+        begin
+          JSON::Validator.validate!(@schema ||= data_types.first.merged_schema(recursive: true), JSON.parse(data))
+          []
+        rescue Exception => ex
+          [ex.message]
+        end
+      when :xml_schema
+        Nokogiri::XML::Schema(schema.cenit_ref_schema).validate(Nokogiri::XML(data))
+      end
     end
   end
 end

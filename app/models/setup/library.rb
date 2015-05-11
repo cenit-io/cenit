@@ -9,7 +9,6 @@ module Setup
     field :name, type: String
 
     has_many :schemas, class_name: Setup::Schema.to_s, inverse_of: :library, dependent: :destroy
-    has_many :validators, class_name: Setup::Validator.to_s, inverse_of: :library, dependent: :destroy
     has_many :file_data_types, class_name: Setup::FileDataType.to_s, inverse_of: :library, dependent: :destroy
 
     validates_presence_of :name

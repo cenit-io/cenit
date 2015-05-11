@@ -3,6 +3,11 @@ module Setup
     class << self
       include Enumerable
 
+      def unregist(model)
+        @models ||= Hash.new { |h, k| h[k] = [] }
+        @models.delete(model)
+      end
+
       def regist(model)
         @models ||= Hash.new { |h, k| h[k] = [] }
         @models[model]

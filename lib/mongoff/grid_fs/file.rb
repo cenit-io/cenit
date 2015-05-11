@@ -22,7 +22,7 @@ module Mongoff
       end
 
       def save(options = {})
-        self[:chunkSize] = FileModel::MINIMUM_CHUNK_SIZE if  self[:chunkSize] <  FileModel::MINIMUM_CHUNK_SIZE
+        self[:chunkSize] = FileModel::MINIMUM_CHUNK_SIZE if  self[:chunkSize] < FileModel::MINIMUM_CHUNK_SIZE
         temporary_file = nil
         new_chunks_ids =
           if @new_data
@@ -35,8 +35,11 @@ module Mongoff
               else
                 @new_data
               end
-            # orm_model.data_type.validate_file(readable)
-            create_temporary_chunks(readable)
+            if (file_data_errors = orm_model.data_type.validate_file(readable)).present?
+              errors.add(:base, "Invalid file data: #{file_data_errors.to_sentence}")
+            else
+              create_temporary_chunks(readable)
+            end
           end
         temporary_file.close if temporary_file
         if errors.blank? && super
