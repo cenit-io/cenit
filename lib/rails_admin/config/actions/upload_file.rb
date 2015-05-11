@@ -49,13 +49,13 @@ module RailsAdmin
                         rescue Exception => ex
                           errors << "Zip file format error: #{ex.message.encode('UTF-8', invalid: :replace, undef: :replace)}"
                         end
-                      else
-                        data_type.create_from(file)
+                      elsif (file = data_type.create_from(file)).errors.present?
+                        errors += file.errors.full_messages
                       end
                       errors = nil unless errors.present?
                     rescue Exception => ex
                       #raise ex
-                      errors << ex.message.encode('UTF-8', invalid: :replace, undef: :replace)
+                      errors << ex.message
                     end
                   end
                   # base_uri = data[:base_uri]
@@ -127,6 +127,7 @@ module RailsAdmin
               @model_config = upload_file_config
               errors += @upload_file.errors.full_messages
               if errors.present?
+                errors = errors.collect { |error| error.encode('UTF-8', invalid: :replace, undef: :replace) }
                 flash.now[:error] = t('admin.flash.error', name: @model_config.label, action: t("admin.actions.#{@action.key}.done").html_safe).html_safe
                 flash.now[:error] += %(<br>- #{errors.join('<br>- ')}).html_safe
               end

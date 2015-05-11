@@ -27,8 +27,8 @@ module Mongoff
       },
       object: Hash,
       array: Array,
-      nil: Hash
-    }.deep_stringify_keys
+      nil => Hash
+    }.with_indifferent_access
 
     def mongo_type_for(field_or_schema)
       if field_or_schema.is_a?(Hash)
@@ -38,7 +38,11 @@ module Mongoff
         end
         type
       elsif schema = property_schema(field_or_schema)
-        mongo_type_for(schema)
+        if property_model?(field_or_schema) && schema['referenced']
+          BSON::ObjectId #TODO when array schema
+        else
+          mongo_type_for(schema)
+        end
       elsif field_or_schema.to_s == '_id'
         BSON::ObjectId
       else

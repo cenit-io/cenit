@@ -8,12 +8,16 @@ module Mongoid
 
       include Mongoff::MetadataAccess
 
+      def observable?
+        true
+      end
+
       def modelable?
         true
       end
 
       def persistable?
-        parent == Object
+       [Object, Setup].include?(parent)
       end
 
       def all_collections_names
