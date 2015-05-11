@@ -114,7 +114,6 @@ module Mongoff
           io.flush
           io.rewind
         rescue
-          nil
         end
 
         begin
@@ -123,7 +122,6 @@ module Mongoff
           begin
             io.pos = pos
           rescue
-            nil
           end
         end
       end
