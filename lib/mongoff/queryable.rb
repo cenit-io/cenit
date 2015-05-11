@@ -8,10 +8,18 @@ module Mongoff
         selector = {}
         args[0].each do |field, value|
           field = field.to_s == 'id' ? :_id : field.to_sym
-          selector[field] = model.mongo_value(value, field)
+          attribute_key = model.attribute_key(field)
+          selector[attribute_key] =
+            if value.is_a?(Hash)
+              value
+            elsif value.is_a?(Enumerable)
+              value.collect { |v| model.mongo_value(v, field) }
+            else
+              model.mongo_value(value, field)
+            end
         end unless args.length == 0
-        if (query = mongo_queryable.try(symbol, selector)).is_a?(Moped::Query)
-          criteria = Criteria.new(self, query)
+        if (query = (selector.present? ? mongo_queryable.try(symbol, selector) : mongo_queryable.try(symbol))).is_a?(Moped::Query)
+          criteria = Mongoff::Criteria.new(model, query)
         end
       end
       criteria

@@ -3,6 +3,8 @@ module Mongoff
     include Enumerable
     include Queryable
 
+    undef_method(:sort)
+
     attr_reader :model
     attr_reader :query
 
@@ -19,17 +21,17 @@ module Mongoff
       query.each do |document|
         m =
           if type = document['_type']
-            Mongoff::Model.for(name: type)
+            model.class.for(name: type)
           else
             model
           end
         next unless m.submodel_of?(model)
-        yield Record.new(m, document, false)
+        yield model.record_class.new(m, document, false)
       end
     end
 
     def method_missing(symbol, *args)
-      query_for(model, query, symbol, *args) || super
+      query_for(model, query, symbol, *args)
     end
   end
 end

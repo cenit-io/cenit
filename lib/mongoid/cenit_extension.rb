@@ -8,6 +8,10 @@ module Mongoid
 
       include Mongoff::MetadataAccess
 
+      def observable?
+        true
+      end
+
       def modelable?
         true
       end

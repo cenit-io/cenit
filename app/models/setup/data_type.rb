@@ -534,12 +534,6 @@ module Setup
       end
     end
 
-    class << self
-      def for_name(name)
-        where(id: name.from(2)).first
-      end
-    end
-
     class MultKeyHash < Hash
 
       attr_reader :mult_key_def
