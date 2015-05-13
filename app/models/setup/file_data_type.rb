@@ -62,7 +62,7 @@ module Setup
       data = json_or_readable
       unless validator.nil? || validator.schema_type == :json_schema
         data = ((data.is_a?(String) || data.is_a?(Hash)) && data) || data.read
-        data = validator.schema.data_types.first.new_from_json(data).to_xml
+        data = validator.data_types.first.new_from_json(data).to_xml
       end
       create_from(data, attributes)
     end
@@ -185,7 +185,7 @@ module Setup
           ignore = [ignore] unless ignore.is_a?(Enumerable)
           ignore = ignore.select { |p| p.is_a?(Symbol) || p.is_a?(String) }.collect(&:to_sym)
           options[:ignore] = ignore
-          data = validator.schema.data_types.first.new_from_xml(data).to_json(options)
+          data = validator.data_types.first.new_from_xml(data).to_json(options)
         end
         hash = JSON.parse(data)
         hash = {data_type.name.downcase => hash} if options[:include_root]

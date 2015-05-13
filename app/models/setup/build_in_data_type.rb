@@ -64,6 +64,10 @@ module Setup
 
     class << self
 
+      def [](ref)
+        build_ins[ref]
+      end
+
       def build_ins
         @build_ins ||= {}
       end

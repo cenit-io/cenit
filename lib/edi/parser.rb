@@ -28,7 +28,7 @@ module Edi
       end
 
       def parse_xml(data_type, content, options={}, record=nil)
-        do_parse_xml(data_type, data_type.records_model, Nokogiri::XML(content).root, options, data_type.merged_schema, nil, record)
+        do_parse_xml(data_type, data_type.records_model, content.is_a?(Nokogiri::XML::Element) ? content : Nokogiri::XML(content).root, options, data_type.merged_schema, nil, record)
       end
 
       private
@@ -98,7 +98,7 @@ module Edi
                 sub_element = sub_element.next_element
               end
             else
-              raise Exception.new("Schema for XML element must be of type 'object' or 'array'")
+              record.send("#{property_name}=", Hash.from_xml(sub_element.to_xml).values.first)
             end
           end
         end
