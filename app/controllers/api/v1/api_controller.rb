@@ -9,7 +9,7 @@ module Api::V1
 
     def index
       @items = klass.all
-      render json: @items.map { |item| {((model = (hash = item.to_hash(embedding_all: true)).delete('_type')) ? model.downcase : @model) => hash} }
+      render json: @items.map { |item| {((model = (hash = item.to_hash(including: :_id)).delete('_type')) ? model.downcase : @model) => hash} }
     end
 
     def show
@@ -17,24 +17,26 @@ module Api::V1
     end
 
     def push
-      result = {}
+      response = {created: created = {}, errors: broken = Hash.new { |h, k| h[k] = [] }}
       @payload.each do |root, message|
-        items = {}
-        message.is_a?(Array) ? message.each { |e| items[e] = process_message(root, e) } : items[message] = process_message(root, message)
-        result[root] = items
+        if klass = get_model(root)
+          count = 0
+          message = [message] unless message.is_a?(Array)
+          message.each do |item|
+            if (record = klass.create_from_json(item)).errors.blank?
+              count += 1
+            else
+              broken[root] << {errors: record.errors.full_messages, item: item}
+            end
+          end
+          created[root.pluralize] = count
+        else
+          broken[root] = 'no model found'
+        end
       end
-      result.delete_if { |_, value| value.compact.blank? }
-      broken = {}
-      result.each { |root, v| broken[root] = v.map { |e, obj| Cenit::Utility.save(obj) ? next : {error_messages: obj.errors.full_messages, item: e} } }
-      broken.delete_if { |_, value| value.compact.blank? }
-      response = {}
-      if broken.present?
-        render json: broken, status: :unprocessable_entity
-      else
-        result.each { |root, v| response[root.pluralize] = v.map { |_, obj| true }.flatten.count }
-        response.merge(errors: broken) if broken.present?
-        render json: response
-      end
+      response.delete(:created) if created.blank?
+      response.delete(:errors) if broken.blank?
+      render json: response
     end
 
     def destroy
@@ -73,25 +75,24 @@ module Api::V1
     def find_item
       @item = klass.where(id: params[:id]).first
       unless @item.present?
-        render json: {status: "item not found"}
+        render json: {status: 'item not found'}
       end
     end
 
-    def get_model(model)
-      model = model.singularize
-      "Setup::#{model.camelize}".constantize
-    rescue
-      (@models ||= {})[model] ||= Setup::DataType.where(name: model.camelize).first.records_model
+    def get_model(root)
+      root = root.singularize
+      @models[root] ||=
+        begin
+          "Setup::#{root.camelize}".constantize
+        rescue
+          if data_type = Setup::DataType.where(name: root.camelize).first
+            data_type.records_model
+          end
+        end
     end
 
     def klass
       "Setup::#{@model.camelize}".constantize rescue get_model(@model)
-    end
-
-    def process_message(root, message)
-      if klass = get_model(root)
-        klass.new_from_json(message)
-      end
     end
 
     def attr_presentation(items)
@@ -108,6 +109,7 @@ module Api::V1
     end
 
     def save_request_data
+      @models ||= {}
       @request_id = request.uuid
       if (@webhook_body = request.body.read).present?
         @payload = JSON.parse(@webhook_body).with_indifferent_access

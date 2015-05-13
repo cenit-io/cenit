@@ -4,7 +4,7 @@ module Setup
   class DataType < Model
     include DataTypeParser
 
-    BuildInDataType.regist(self).including(:schema).referenced_by(:name, :schema)
+    BuildInDataType.regist(self).excluding(:used_memory).including(:schema).referenced_by(:name, :schema)
 
     belongs_to :schema, class_name: Setup::Schema.to_s, inverse_of: :data_types
 

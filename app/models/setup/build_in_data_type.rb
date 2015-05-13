@@ -12,7 +12,7 @@ module Setup
     end
 
     def name
-      @name ||= model.model_name.plural
+      @name ||= model.model_name.to_s
     end
 
     def initialize(model)
@@ -94,18 +94,22 @@ module Setup
       self
     end
 
-    MONGOID_TYPE_MAP = {Array => {'type' => 'array'},
-                        BigDecimal => {'type' => 'integer'},
-                        Mongoid::Boolean => {'type' => 'boolean'},
-                        Date => {'type' => 'string', 'format' => 'date'},
-                        DateTime => {'type' => 'string', 'format' => 'date-time'},
-                        Float => {'type' => 'number'},
-                        Hash => {'type' => 'object'},
-                        Integer => {'type' => 'integer'},
-                        String => {'type' => 'string'},
-                        Symbol => {'type' => 'string'},
-                        Time => {'type' => 'string', 'format' => 'time'},
-                        nil => {}}
+    MONGOID_TYPE_MAP =
+      {
+        BSON::ObjectId => {'type' => 'string'},
+        Array => {'type' => 'array'},
+        BigDecimal => {'type' => 'integer'},
+        Mongoid::Boolean => {'type' => 'boolean'},
+        Date => {'type' => 'string', 'format' => 'date'},
+        DateTime => {'type' => 'string', 'format' => 'date-time'},
+        Float => {'type' => 'number'},
+        Hash => {'type' => 'object'},
+        Integer => {'type' => 'integer'},
+        String => {'type' => 'string'},
+        Symbol => {'type' => 'string'},
+        Time => {'type' => 'string', 'format' => 'time'},
+        nil => {}
+      }
 
     def excluded?(name)
       name = name.to_s
@@ -118,7 +122,7 @@ module Setup
     end
 
     def build_schema
-      schema = {'type' => 'object', 'properties' => properties = {}}
+      schema = {'type' => 'object', 'properties' => properties = {"_id" => {'type' => 'string'}}}
       schema[:referenced_by.to_s] = Cenit::Utility.stringfy(@referenced_by) if @referenced_by
       (fields = model.fields).each do |field_name, field|
         if !field.is_a?(Mongoid::Fields::ForeignKey) && included?(field_name)
