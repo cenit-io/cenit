@@ -3,7 +3,7 @@ require 'edi/formater'
 module Setup
   class BuildInDataType
     include SchemaHandler
-    include FormatParser
+    include DataTypeParser
 
     attr_reader :model
 
@@ -12,11 +12,15 @@ module Setup
     end
 
     def name
-      @name ||= model.model_name.plural
+      @name ||= model.model_name.to_s
     end
 
     def initialize(model)
       @model = model
+    end
+
+    def subtype?
+      model.superclass.include?(Mongoid::Document)
     end
 
     def records_model
@@ -60,6 +64,10 @@ module Setup
 
     class << self
 
+      def [](ref)
+        build_ins[ref]
+      end
+
       def build_ins
         @build_ins ||= {}
       end
@@ -90,18 +98,22 @@ module Setup
       self
     end
 
-    MONGOID_TYPE_MAP = {Array => {'type' => 'array'},
-                        BigDecimal => {'type' => 'integer'},
-                        Mongoid::Boolean => {'type' => 'boolean'},
-                        Date => {'type' => 'string', 'format' => 'date'},
-                        DateTime => {'type' => 'string', 'format' => 'date-time'},
-                        Float => {'type' => 'number'},
-                        Hash => {'type' => 'object'},
-                        Integer => {'type' => 'integer'},
-                        String => {'type' => 'string'},
-                        Symbol => {'type' => 'string'},
-                        Time => {'type' => 'string', 'format' => 'time'},
-                        nil => {}}
+    MONGOID_TYPE_MAP =
+      {
+        BSON::ObjectId => {'type' => 'string'},
+        Array => {'type' => 'array'},
+        BigDecimal => {'type' => 'integer'},
+        Mongoid::Boolean => {'type' => 'boolean'},
+        Date => {'type' => 'string', 'format' => 'date'},
+        DateTime => {'type' => 'string', 'format' => 'date-time'},
+        Float => {'type' => 'number'},
+        Hash => {'type' => 'object'},
+        Integer => {'type' => 'integer'},
+        String => {'type' => 'string'},
+        Symbol => {'type' => 'string'},
+        Time => {'type' => 'string', 'format' => 'time'},
+        nil => {}
+      }
 
     def excluded?(name)
       name = name.to_s
@@ -114,7 +126,7 @@ module Setup
     end
 
     def build_schema
-      schema = {'type' => 'object', 'properties' => properties = {}}
+      schema = {'type' => 'object', 'properties' => properties = {"_id" => {'type' => 'string'}}}
       schema[:referenced_by.to_s] = Cenit::Utility.stringfy(@referenced_by) if @referenced_by
       (fields = model.fields).each do |field_name, field|
         if !field.is_a?(Mongoid::Fields::ForeignKey) && included?(field_name)
@@ -123,7 +135,12 @@ module Setup
             unless mongoff_models = model.instance_variable_get(:@mongoff_models)
               model.instance_variable_set(:@mongoff_models, mongoff_models = {})
             end
-            mongoff_models[field_name] = Mongoff::Model.new(self, field_name.camelize, model, properties[field_name])
+            mongoff_models[field_name] = Mongoff::Model.for(data_type: self,
+                                                            name: field_name.camelize,
+                                                            parent: model,
+                                                            schema: properties[field_name],
+                                                            cache: false,
+                                                            modelable: false)
           end
         end
       end
@@ -135,18 +152,18 @@ module Setup
                                                      :has_and_belongs_to_many)).each do |relation|
         if included?(relation.name)
           property_schema =
-              case relation.macro
-                when :embeds_one
-                  {'$ref' => relation.klass.to_s}
-                when :embeds_many
-                  {'type' => 'array', 'items' => {'$ref' => relation.klass.to_s}}
-                when :has_one
-                  {'$ref' => relation.klass.to_s, 'referenced' => true, 'export_embedded' => @embedding && @embedding.include?(relation.name)}
-                when :belongs_to
-                  {'$ref' => relation.klass.to_s, 'referenced' => true, 'export_embedded' => @embedding && @embedding.include?(relation.name)} if (@including && @including.include?(relation.name.to_s)) || relation.inverse_of.nil?
-                when :has_many, :has_and_belongs_to_many
-                  {'type' => 'array', 'items' => {'$ref' => relation.klass.to_s, 'referenced' => true, 'export_embedded' => @embedding && @embedding.include?(relation.name)}}
-              end
+            case relation.macro
+            when :embeds_one
+              {'$ref' => relation.klass.to_s}
+            when :embeds_many
+              {'type' => 'array', 'items' => {'$ref' => relation.klass.to_s}}
+            when :has_one
+              {'$ref' => relation.klass.to_s, 'referenced' => true, 'export_embedded' => @embedding && @embedding.include?(relation.name)}
+            when :belongs_to
+              {'$ref' => relation.klass.to_s, 'referenced' => true, 'export_embedded' => @embedding && @embedding.include?(relation.name)} if (@including && @including.include?(relation.name.to_s)) || relation.inverse_of.nil?
+            when :has_many, :has_and_belongs_to_many
+              {'type' => 'array', 'items' => {'$ref' => relation.klass.to_s}, 'referenced' => true, 'export_embedded' => @embedding && @embedding.include?(relation.name)}
+            end
           properties[relation.name] = property_schema if property_schema
         end
       end
@@ -158,5 +175,18 @@ module Setup
       MONGOID_TYPE_MAP[mongoid_type]
     end
 
+  end
+end
+
+class String
+
+  #TODO These code is duplicated
+  def to_title
+    self.
+      gsub(/([A-Z])(\d)/, '\1 \2').
+      gsub(/([a-z])(\d|[A-Z])/, '\1 \2').
+      gsub(/(\d)([a-z]|[A-Z])/, '\1 \2').
+      tr('_', ' ').
+      tr('-', ' ')
   end
 end

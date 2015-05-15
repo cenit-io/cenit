@@ -2,12 +2,22 @@ module Mongoid
   module CenitExtension
     extend ActiveSupport::Concern
 
+    include Setup::ClassModelParser
+
     module ClassMethods
 
       include Mongoff::MetadataAccess
 
-      def persistable?
+      def observable?
         true
+      end
+
+      def modelable?
+        true
+      end
+
+      def persistable?
+       [Object, Setup].include?(parent)
       end
 
       def all_collections_names
@@ -15,10 +25,14 @@ module Mongoid
       end
 
       def storage_size(scale = 1)
-        all_collections_names.inject(0) do |size, name|
+        data_type.all_data_type_storage_collections_names.inject(0) do |size, name|
           s = mongo_session.command(collstats: name, scale: scale)['size'] rescue 0
           size + s
         end
+      end
+
+      def property_model?(property)
+        ((((relation = try(:reflect_on_association, property)) && relation.try(:klass)) || (@mongoff_models && @mongoff_models[property])) && true) || false
       end
 
       def property_model(property)

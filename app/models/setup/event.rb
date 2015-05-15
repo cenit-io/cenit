@@ -4,7 +4,7 @@ module Setup
 
     Setup::Models.exclude_actions_for self
 
-    BuildInDataType.regist(self).with(:name).referenced_by(:name).and(sub_schema: "self['_type']")
+    BuildInDataType.regist(self).with(:name).referenced_by(:name)
 
     field :name, type: String
     field :last_trigger_timestamps, type: DateTime

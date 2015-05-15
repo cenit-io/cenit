@@ -13,7 +13,7 @@ module Mongoff
       properties_schemas[property.to_s]
     end
 
-    RUBY_TYPE_MAP = {
+    MONGO_TYPE_MAP = {
       integer: Integer,
       number: Float,
       boolean: Boolean,
@@ -27,26 +27,35 @@ module Mongoff
       },
       object: Hash,
       array: Array,
-      nil: Hash
-    }.deep_stringify_keys
+      nil => Hash
+    }.with_indifferent_access
 
-    def ruby_type_for(schema)
-      if (type = RUBY_TYPE_MAP[schema['type']]).is_a?(Hash)
-        type = type['format'][schema['format']] || type['default']
+    def mongo_type_for(field_or_schema)
+      if field_or_schema.is_a?(Hash)
+        key = field_or_schema['type']
+        if (type = MONGO_TYPE_MAP[key]).is_a?(Hash)
+          type = type['format'][field_or_schema['format']] || type['default']
+        end
+        type
+      elsif schema = property_schema(field_or_schema)
+        if property_model?(field_or_schema) && schema['referenced']
+          BSON::ObjectId #TODO when array schema
+        else
+          mongo_type_for(schema)
+        end
+      elsif field_or_schema.to_s == '_id'
+        BSON::ObjectId
+      else
+        nil
       end
-      type
     end
 
     def type_symbol_for(schema)
-      ruby_type_for(schema).to_s.downcase.to_sym
+      mongo_type_for(schema).to_s.downcase.to_sym
     end
 
-    def property_ruby_type(property)
-      ruby_type_for(property_schema(property))
-    end
-
-    def simple_properties_ruby_types
-      (hash = simple_properties_schemas).each { |property, schema| hash[property] = ruby_type_for(schema) }
+    def simple_properties_mongo_types
+      (hash = simple_properties_schemas).each { |property, schema| hash[property] = mongo_type_for(schema) }
       hash
     end
 

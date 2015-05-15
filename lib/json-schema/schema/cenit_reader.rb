@@ -9,7 +9,9 @@ module JSON
       end
 
       def read(ref)
-        if schema = data_type.find_ref_schema(ref.to_s)
+        #TODO Do it better than this (only for application start up)
+        uri = ref.scheme == 'file' ? ref.to_s.split('/').last : ref.to_s
+        if schema = data_type.find_ref_schema(uri)
           JSON::Schema.new(JSON::Validator.parse(schema.to_json), ref)
         else
           raise Exception.new("Unresolved schema reference #{ref}")

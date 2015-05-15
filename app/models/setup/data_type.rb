@@ -2,16 +2,13 @@ require 'edi/formater'
 
 module Setup
   class DataType < Model
-    include FormatParser
+    include DataTypeParser
 
-    BuildInDataType.regist(self).including(:schema).referenced_by(:name, :schema)
+    BuildInDataType.regist(self).excluding(:used_memory).including(:schema).referenced_by(:name, :schema)
 
     belongs_to :schema, class_name: Setup::Schema.to_s, inverse_of: :data_types
 
     field :model_schema, type: String
-
-    #TODO Check dependent behavior with flows
-    #has_many :flows, class_name: Setup::Flow.name, dependent: :destroy, inverse_of: :data_type
 
     validates_presence_of :model_schema
 
@@ -29,6 +26,7 @@ module Setup
       begin
         puts "Validating schema '#{self.name}'"
         json_schema, _ = validate_schema
+        fail Exception, 'defines invalid property name: _type' if object_schema?(json_schema) &&json_schema['properties']['_type']
         check_id_property(json_schema)
         self.title = json_schema['title'] || self.name if title.blank?
         puts "Schema '#{self.name}' validation successful!"
@@ -37,14 +35,24 @@ module Setup
         #raise ex
         puts "ERROR: #{errors.add(:model_schema, ex.message).to_s}"
       end
+      @collection_data_type = nil
       errors.blank?
     end
 
-    protected
-
-    def do_shutdown_model(options)
-      deconstantize(data_type_name, options)
+    def subtype?
+      collection_data_type != self
     end
+
+    def collection_data_type
+      @collection_data_type ||=
+        ((base = JSON.parse(model_schema)['extends']) && base.is_a?(String) && (base = find_data_type(base)) && base.collection_data_type) || self
+    end
+
+    def data_type_collection_name
+      Account.tenant_collection_name(collection_data_type.data_type_name)
+    end
+
+    protected
 
     def do_load_model(report)
       parse_schema(report)
@@ -169,7 +177,12 @@ module Setup
         constant = parent.const_get(constant_name)
       else
         return [nil, false] if do_not_create
-        constant = Class.new(base_class) unless value && constant = Mongoff::Model.new(self, name, parent, parent ? value : nil)
+        constant = Class.new(base_class) unless value && constant = Mongoff::Model.for(data_type: self,
+                                                                                       name: name,
+                                                                                       parent: parent,
+                                                                                       schema: parent ? value : nil,
+                                                                                       cache: false,
+                                                                                       modelable: false)
         parent.const_set(constant_name, constant)
         created = true
       end
@@ -406,23 +419,19 @@ module Setup
         if property_type.eql?('Array') && items_desc = property_desc['items']
           r = nil
           ir = ''
-          if (ref = items_desc['$ref']) && (!ref.start_with?('#') && items_desc['referenced'])
+          if (ref = items_desc['$ref']) && (!ref.start_with?('#') && property_desc['referenced'])
             if (type_model = (find_or_load_model(report, property_type = ref) || find_constant(ref))).is_a?(Class)
               property_type = type_model.model_access_name
-              if r = type_model.reflect_on_all_associations(:belongs_to).detect { |r| r.klass.eql?(klass) }
-                r = :has_many
-              else
-                r = :has_and_belongs_to_many
-                ir = ', inverse_of: nil'
-                type_model.affects_to(klass)
-              end
+              r = :has_and_belongs_to_many
+              ir = ', inverse_of: nil'
+              type_model.affects_to(klass)
             elsif type_model.nil?
               raise Exception.new("contains an unresolved reference: '#{ref}'")
             end
           else
             r = :embeds_many
             if ref
-              raise Exception.new("referencing embedded reference #{ref}") if items_desc['referenced']
+              raise Exception.new("referencing embedded reference #{ref}") if property_desc['referenced']
               property_type = ref.start_with?('#') ? check_embedded_ref(ref, nil, root.to_s).singularize : ref
               type_model = find_or_load_model(report, property_type) || find_constant(property_type)
               property_type = type_model && type_model.model_access_name

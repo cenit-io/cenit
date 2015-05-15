@@ -41,7 +41,7 @@ RailsAdmin.config do |config|
   ## == PaperTrail ==
   # config.audit_with :paper_trail, 'User', 'PaperTrail::Version' # PaperTrail >= 3.0.0
 
-  config.excluded_models << "Account"
+  config.excluded_models += [Account, Setup::Validator]
 
   ### More at https://github.com/sferik/rails_admin/wiki/Base-configuration
   config.authenticate_with do
@@ -122,7 +122,6 @@ RailsAdmin.config do |config|
     show do
       field :name
       field :schemas
-      field :validators
       field :file_data_types
 
       field :_id
@@ -132,17 +131,16 @@ RailsAdmin.config do |config|
       #field :updater
     end
 
-    fields :name, :schemas, :validators, :file_data_types
+    fields :name, :schemas, :file_data_types
   end
 
   config.model Setup::Schema do
+    object_label_method { :on_library_title }
     navigation_label 'Data Definitions'
     register_instance_option(:after_form_partials) do
       %w(shutdown_and_reload)
     end
     weight -18
-
-    object_label_method { :uri }
 
     edit do
       field :library do
@@ -271,60 +269,13 @@ RailsAdmin.config do |config|
     fields :title, :validator, :name, :used_memory
   end
 
-  config.model Setup::Validator do
-    navigation_label 'Data Definitions'
-    weight -18
-
-    edit do
-      field :library do
-        inline_edit false
-        read_only { !bindings[:object].new_record? }
-      end
-
-      field :name
-      field :style do
-        visible { bindings[:object].library.present? }
-      end
-
-      field :schema do
-        inline_edit false
-        visible { (obj = bindings[:object]).style.present? && obj.schema_style? }
-        associated_collection_scope do
-          library = (obj = bindings[:object]) && obj.library
-          Proc.new { |scope|
-            library ? library.schemas.where(schema_type: obj.schema_type) : scope
-          }
-        end
-      end
-      field :validation do
-        visible { (obj = bindings[:object]).style.present? && obj.script_style? }
-      end
-    end
-
-    show do
-      field :library
-      field :name
-      field :schema
-      field :_id
-      field :created_at
-      #field :creator
-      field :updated_at
-      #field :updater
-
-    end
-    fields :library, :name, :schema, :validation
-  end
-
   config.model Setup::FileDataType do
     visible false
     register_instance_option(:discard_submit_buttons) do
       !(a = bindings[:action]) || a.key != :edit
     end
     edit do
-      field :name
       field :library do
-        inline_add false
-        inline_edit false
         associated_collection_scope do
           library = (obj = bindings[:object]).library
           Proc.new { |scope|
@@ -336,11 +287,10 @@ RailsAdmin.config do |config|
           }
         end
       end
+      field :name
       field :validator do
+        inline_add false
         inline_edit false
-        visible do
-          !bindings[:object].instance_variable_get(:@_selecting_library)
-        end
       end
     end
     fields :name, :library, :validator
@@ -618,7 +568,7 @@ RailsAdmin.config do |config|
         inline_edit false
         inline_add false
         visible do
-          if (f = bindings[:object]).event && f.translator && f.translator.data_type.nil?
+          if (f = bindings[:object]).translator.present? && f.translator.data_type.nil?
             f.instance_variable_set(:@selecting_data_type, f.custom_data_type = f.event && f.event.try(:data_type)) unless f.data_type
             true
           else
@@ -639,7 +589,7 @@ RailsAdmin.config do |config|
         help 'Required'
       end
       field :data_type_scope do
-        visible { (f = bindings[:object]).event && f.translator && f.translator.type != :Import && f.data_type && !f.instance_variable_get(:@selecting_data_type) }
+        visible { (f = bindings[:object]).translator.present? && f.translator.type != :Import && f.data_type && !f.instance_variable_get(:@selecting_data_type) }
         label do
           if (translator = bindings[:object].translator)
             if [:Export, :Conversion].include?(translator.type)
@@ -654,7 +604,7 @@ RailsAdmin.config do |config|
         help 'Required'
       end
       field :lot_size do
-        visible { (f = bindings[:object]).event && f.translator && f.translator.type == :Export && f.data_type_scope && f.scope_symbol != :event_source }
+        visible { (f = bindings[:object]).translator.present? && f.translator.type == :Export && f.data_type_scope && f.scope_symbol != :event_source }
       end
       field :webhook do
         visible { (translator = bindings[:object].translator) && (translator.type == :Import || (translator.type == :Export && bindings[:object].data_type_scope.present?)) }
@@ -679,7 +629,7 @@ RailsAdmin.config do |config|
         help ''
       end
       field :discard_events do
-        visible { bindings[:object].ready_to_save? }
+        visible { bindings[:object].response_translator.present? && bindings[:object].ready_to_save? }
         help "Events won't be fired for created or updated records if checked"
       end
       field :active do

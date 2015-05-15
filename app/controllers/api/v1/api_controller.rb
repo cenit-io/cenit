@@ -5,36 +5,47 @@ module Api::V1
     rescue_from Exception, :with => :exception_handler
     respond_to :json
 
-    PRESENTATION_KEY = { '_id' => 'id' }.freeze
+    PRESENTATION_KEY = {'_id' => 'id'}.freeze
 
     def index
       @items = klass.all
-      render json: @items.map { |item| { @model => attr_presentation(item.attributes) } }
+      render json: @items.map { |item| {((model = (hash = item.to_hash(including: :_id)).delete('_type')) ? model.downcase : @model) => hash} }
     end
 
     def show
-      render json: { @model => attr_presentation(@item.attributes)  }
+      render json: {@model => attr_presentation(@item.attributes)}
     end
 
     def push
-      result = {}
-      @payload.each do |root, message|
-        items = {}
-        message.is_a?(Array) ? message.each { |e| items[e] = process_message(root,e) } : items[message] = process_message(root,message)
-        result[root] = items
+      response = {created: creation_report = {}, errors: broken_report = Hash.new { |h, k| h[k] = [] }}
+      payload =
+        case request.content_type
+        when 'application/json'
+          JSONPayload
+        when 'application/xml'
+          XMLPayload
+        else
+          BasicPayload
+        end.new(@webhook_body)
+      count = 0
+      payload.each do |root, message|
+        if data_type = get_data_type(root)
+          message = [message] unless message.is_a?(Array)
+          message.each do |item|
+            if (record = data_type.send(payload.create_method, payload.process_item(item, data_type))).errors.blank?
+              count += 1
+            else
+              broken_report[root] << {errors: record.errors.full_messages, item: item}
+            end
+          end
+          creation_report[root.pluralize] = count
+        else
+          broken_report[root] = 'no model found'
+        end
       end
-      result.delete_if { |_, value| value.compact.blank? }
-      broken = {}
-      result.each { |root, v| broken[root] = v.map { |e, obj| Cenit::Utility.save(obj) ? next : { error_messages: obj.errors.full_messages, item: e } } }
-      broken.delete_if { |_, value| value.compact.blank? }
-      response = {}
-      if result.present?
-        result.each { |root, v| response[root.pluralize] = v.map { |_, obj| true }.flatten.count }
-        response.merge(errors: broken) if broken.present?
-        render json: response
-      else
-        render json: broken, status: :unprocessable_entity
-      end
+      response.delete(:created) if creation_report.blank?
+      response.delete(:errors) if broken_report.blank?
+      render json: response
     end
 
     def destroy
@@ -73,25 +84,25 @@ module Api::V1
     def find_item
       @item = klass.where(id: params[:id]).first
       unless @item.present?
-        render json: { status: "item not found" }
+        render json: {status: 'item not found'}
       end
     end
 
-    def get_model(model)
-      model = model.singularize
-      "Setup::#{model.camelize}".constantize 
-    rescue
-      Setup::DataType.where(name: model.camelize).first.model
+    def get_data_type(root)
+      root = root.singularize.camelize
+      @data_types[root] ||= Setup::BuildInDataType["Setup::#{root}"] || Setup::Model.where(name: root).first
+    end
+
+    def get_model(root)
+      if data_type = get_data_type(root)
+        data_type.records_model
+      else
+        nil
+      end
     end
 
     def klass
-      "Setup::#{@model.camelize}".constantize rescue get_model(@model)
-    end
-
-    def process_message(root, message)
-      if klass = get_model(root)
-        klass.data_type.new_from_json(message)
-      end
+      get_model(@model)
     end
 
     def attr_presentation(items)
@@ -99,7 +110,7 @@ module Api::V1
     end
 
     def remove_mogo_id(items)
-      return { id: items.to_s } if items.is_a?(BSON::ObjectId)
+      return {id: items.to_s} if items.is_a?(BSON::ObjectId)
       return items unless items.is_a?(Enumerable)
       PRESENTATION_KEY.each { |key, value| items.merge!(value => items.delete(key)) }
       items.delete_if { |key, value| value.blank? }
@@ -108,11 +119,65 @@ module Api::V1
     end
 
     def save_request_data
+      @data_types ||= {}
       @request_id = request.uuid
-      if (@webhook_body = request.body.read).present?
-        @payload = JSON.parse(@webhook_body).with_indifferent_access
-      end
+      @webhook_body = request.body.read
       @model = params[:model]
+    end
+
+    private
+
+    attr_reader :webhook_body
+
+    class BasicPayload
+
+      attr_reader :create_method
+
+      def initialize(payload = nil, create_method = :create_from)
+        @payload = payload
+        @create_method = create_method || :create_from
+      end
+
+      def each(&block)
+      end
+
+      def process_item(item, data_type)
+
+      end
+    end
+
+    class JSONPayload < BasicPayload
+      def initialize(webhook_body)
+        super(JSON.parse(webhook_body), :create_from_json)
+      end
+
+      def each(&block)
+        @payload.each { |root, message| block.call(root, message) } if block
+      end
+
+      def process_item(item, data_type)
+        data_type.is_a?(Setup::FileDataType) ? item.to_json : item
+      end
+    end
+
+    class XMLPayload < BasicPayload
+      def initialize(webhook_body)
+        super(Nokogiri::XML::DocumentFragment.parse(webhook_body), :create_from_xml)
+      end
+
+      def each(&block)
+        if roots = @payload.element_children
+          roots.each do |root|
+            if elements = root.element_children
+              elements.each { |e| block.call(root.name, e) }
+            end
+          end
+        end if block
+      end
+
+      def process_item(item, data_type)
+        data_type.is_a?(Setup::FileDataType) ? item.to_xml : item
+      end
     end
   end
 end

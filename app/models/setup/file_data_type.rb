@@ -3,48 +3,6 @@ require 'stringio'
 module Setup
   class FileDataType < Model
 
-    SCHEMA =
-      {
-        type: :object,
-        properties:
-          {
-            filename: {
-              title: 'File name',
-              type: :string
-            },
-            contentType: {
-              title: 'Content type',
-              type: :string
-            },
-            length: {
-              title: 'Size',
-              type: :integer
-            },
-            uploadDate: {
-              title: 'Uploaded at',
-              type: :string,
-              format: :time
-            },
-            file: {
-              type: :object,
-              properties: {
-                chunks: {
-                  type: :array,
-                  items: {
-                    type: :object,
-                    properties: {},
-                  },
-                  referenced: true,
-                  visible: false
-                }
-              },
-              referenced: true,
-              visible: false,
-              virtual: true
-            }
-          }
-      }.to_json.freeze
-
     BuildInDataType.regist(self).referenced_by(:name, :library).with(:title, :name, :_type, :validator)
 
     belongs_to :library, class_name: Setup::Library.to_s, inverse_of: :file_data_types
@@ -58,49 +16,53 @@ module Setup
       self.title = self.name if title.blank?
     end
 
-    def data_type_collection_name
-      Account.tenant_collection_name(data_type_name)
+    def data_type_storage_collection_name
+      "#{super}.files"
     end
 
-    def all_data_type_collections_names
-      [name = data_type_collection_name, name + '.files', name + '.chunks']
+    def chunks_storage_collection_name
+      data_type_storage_collection_name.gsub(/files\Z/, 'chunks')
+    end
+
+    def all_data_type_storage_collections_names
+      [data_type_storage_collection_name, chunks_storage_collection_name]
+    end
+
+    def mongoff_model_class
+      Mongoff::GridFs::FileModel
     end
 
     def model_schema
-      SCHEMA
+      Mongoff::GridFs::FileModel::SCHEMA.to_json
+    end
+
+    def validate_file(readable)
+      readable.rewind
+      errors = validator.present? ? validator.validate_data(readable.read) : []
+      readable.rewind
+      errors
     end
 
     def validate_file!(readable)
-      readable.rewind
-      validator.validate_data!(readable.read) if validator.present?
-      readable.rewind
+      if (errors = validate_file(readable)).present?
+        raise Exception.new('Invalid file data: ' + errors.to_sentence)
+      end
     end
 
     def create_from(string_or_readable, attributes={})
-      raise Exception("Model '#{on_library_title}' is not loaded") unless model = self.model
-      temporary_file = nil
-      readable =
-        if string_or_readable.is_a?(String)
-          temporary_file = Tempfile.new('tmp')
-          temporary_file.write(string_or_readable)
-          temporary_file.rewind
-          attributes = default_attributes.merge(attributes)
-          Cenit::Utility::Proxy.new(temporary_file, original_filename: attributes[:filename])
-        else
-          string_or_readable
-        end
-      validate_file!(readable)
-      attributes = attributes.merge(filename: readable.original_filename) unless attributes[:filename]
-      file = model.file_model.namespace.put(readable, attributes)
-      temporary_file.close! if temporary_file
-      model.where(file: file).first
+      file = model.new
+      file.filename = attributes[:filename]
+      file.contentType = attributes[:contentType] if attributes[:contentType]
+      file.data = string_or_readable
+      file.save
+      file
     end
 
     def create_from_json(json_or_readable, attributes={})
       data = json_or_readable
       unless validator.nil? || validator.schema_type == :json_schema
         data = ((data.is_a?(String) || data.is_a?(Hash)) && data) || data.read
-        data = validator.schema.data_types.first.new_from_json(data).to_xml
+        data = validator.data_types.first.new_from_json(data).to_xml
       end
       create_from(data, attributes)
     end
@@ -140,45 +102,22 @@ module Setup
     end
 
     def do_load_model(report)
-      Object.const_set(data_type_name, model = Class.new { class_eval(&FILE_MODEL_MIXIN); self })
-      file_model = Cenit::GridFs.build_grid_file_model(model)
-      model.belongs_to(:file, class_name: file_model.to_s, inverse_of: nil)
-      [file_model, file_model.chunk_model].each { |m| m.include(Setup::ClassAffectRelation) }
-      file_model.affects_to(model)
-      {
-        model => ['', title],
-        file_model => %w(/properties/file File),
-        file_model.chunk_model => %w(/properties/file/properties/chunks/items Chunk)
-      }.each do |model, values|
-        model.class_eval("def self.data_type
+      Object.const_set(data_type_name, model = Class.new)
+      model.instance_variable_set(:@grid_fs_file_model, grid_fs_file_model = Mongoff::GridFs::FileModel.new(self, observable: false))
+      model.class_eval(&FILE_MODEL_MIXIN)
+      model.store_in(collection: -> { grid_fs_file_model.collection_name })
+      model.class_eval("def self.data_type
             Setup::FileDataType.where(id: '#{self.id}').first
           end
           def self.schema_path
-            '#{values[0]}'
+            ''
           end
           def self.title
-            '#{values[1]}'
+            '#{title}'
           end
           def orm_model
             self.class
           end")
-      end
-      model.class_eval do
-        class << self
-
-          def file_model
-            const_get(:File.to_s)
-          end
-
-          def chunk_model
-            file_model.chunk_model
-          end
-
-          def all_collections_names
-            [collection_name, file_model.collection_name, chunk_model.collection_name]
-          end
-        end
-      end
       model
     end
 
@@ -190,14 +129,48 @@ module Setup
       end
 
       field :filename, type: String
-      field :contentType, type: String
+      field :contentType, type: String, default: -> { Mongoff::GridFs::FileModel::SCHEMA['properties']['contentType']['default'] }
       field :length, type: Integer
       field :uploadDate, type: Time
+      field :chunkSize, type: String
+      field :md5, type: String
+      field :aliases
+      field :metadata
 
-      def update_from(grid_file)
-        self.file = grid_file
-        %w(filename contentType length uploadDate).each { |method| send("#{method}=", grid_file.send(method)) }
-        save
+      def grid_fs_file_model
+        self.class.instance_variable_get(:@grid_fs_file_model)
+      end
+
+      def file
+        @file ||=
+          if new_record?
+            f = grid_fs_file_model.new
+            f.id = id
+            f
+          else
+            grid_fs_file_model.where(id: id).first
+          end
+      end
+
+      def data=(string_or_readable)
+        @new_data = string_or_readable
+      end
+
+      def data
+        file.data
+      end
+
+      def save(options = {})
+        if @new_data
+          file.data = @new_data
+          if file.save
+            @new_record = false
+          else
+            @errors = file.errors
+            return false
+          end
+        end
+        file.destroy unless super
       end
 
       before_destroy do
@@ -212,7 +185,7 @@ module Setup
           ignore = [ignore] unless ignore.is_a?(Enumerable)
           ignore = ignore.select { |p| p.is_a?(Symbol) || p.is_a?(String) }.collect(&:to_sym)
           options[:ignore] = ignore
-          data = validator.schema.data_types.first.new_from_xml(data).to_json(options)
+          data = validator.data_types.first.new_from_xml(data).to_json(options)
         end
         hash = JSON.parse(data)
         hash = {data_type.name.downcase => hash} if options[:include_root]
@@ -234,9 +207,8 @@ module Setup
       end
 
       class << self
-        def update_for(grid_file)
-          wrapper = where(file: grid_file).first || new
-          wrapper.update_from(grid_file)
+        def all_storage_collections_names
+          instance_variable_get(:@grid_fs_file_model).all_storage_collections_names
         end
       end
     end

@@ -25,7 +25,7 @@ module RailsAdmin
 
             errors = []
 
-            if (@object.class.try(:file_model).try(:data_type)).is_a?(Setup::FileDataType)
+            if (@object.class.try(:data_type)).is_a?(Setup::FileDataType)
               begin
                 send_data(@object.file.data, filename: @object.filename, type: @object.contentType)
                 errors = nil

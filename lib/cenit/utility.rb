@@ -48,7 +48,7 @@ module Cenit
             end
             saved.each do |obj|
               if obj = obj.reload rescue nil
-                obj.delete
+                obj.delete if obj.instance_variable_get(:@saved_on_saving_references)
               end
             end
             false
@@ -65,7 +65,6 @@ module Cenit
             references[obj] = record_refs
           end
         end
-        puts references
         for_each_node_starting_at(record) do |obj|
           references.each do |obj_waiting, to_bind|
             to_bind.each do |property_name, property_binds|
@@ -139,7 +138,14 @@ module Cenit
             values = [values] unless values.is_a?(Enumerable)
             values.each { |value| return false unless save_references(value, saved, visited) }
             values.each do |value|
-              (value.save ? saved << value : (return false)) unless saved.include?(value)
+              unless saved.include?(value)
+                value.instance_variable_set(:@saved_on_saving_references, true) if value.new_record?
+                if value.save
+                  saved << value
+                else
+                  return false
+                end
+              end
             end unless relation[:embedded]
           end
         end
@@ -180,10 +186,25 @@ module Cenit
         elsif obj.is_a?(Array)
           obj.collect { |value| stringfy(value) }
         else
-          obj.to_s
+          obj.is_a?(Symbol) ? obj.to_s : obj
         end
       end
 
+      def json_object?(obj, options = {})
+        case obj
+        when Hash
+          if options[:recursive]
+            obj.keys.each { |k| return false unless k.is_a?(String) }
+            obj.values.each { |k| return false unless json_object?(String) }
+          end
+          true
+        when Array
+          obj.each { |v| return false unless json_object?(v) } if options[:recursive]
+          true
+        else
+          [Integer, Float, String, TrueClass, FalseClass, Boolean, NilClass].any? { |klass| obj.is_a?(klass) }
+        end
+      end
     end
   end
 end

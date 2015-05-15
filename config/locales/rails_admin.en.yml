@@ -1,5 +1,7 @@
 en:
   admin:
+    js:
+      present_and_change: Present & Change
     actions:
       send_to_flow:
         title: "Send to flow %{model_label_plural}"

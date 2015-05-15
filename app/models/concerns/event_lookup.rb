@@ -3,20 +3,11 @@ module EventLookup
 
   included do
 
-    attr_accessor :discard_event_lookup
-
-    #TODO Implement these logic on not loaded models
     before_save do |object|
       @_obj_before = object.class.where(id: object.id).first
     end
 
-    after_save do |object|
-      if discard_event_lookup
-        puts "EVENTS DISCARDED"
-      else
-        Setup::Observer.lookup(self, @_obj_before)
-      end
-    end
+    after_save Mongoff::Model.after_save
   end
 
 end

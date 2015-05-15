@@ -11,10 +11,13 @@ module Edi
     end
 
     def to_hash(options={})
-      ignore = (options[:ignore] || [])
-      ignore = [ignore] unless ignore.is_a?(Enumerable)
-      ignore = ignore.select { |p| p.is_a?(Symbol) || p.is_a?(String) }.collect(&:to_sym)
-      options[:ignore] = ignore
+      [:ignore, :only, :embedding].each do |option|
+        value = (options[option] || [])
+        value = [value] unless value.is_a?(Enumerable)
+        value = value.select { |p| p.is_a?(Symbol) || p.is_a?(String) }.collect(&:to_sym)
+        options[option] = value
+      end
+      options.delete(:only) if options[:only].empty?
       hash = record_to_hash(self, options)
       hash = {self.orm_model.data_type.name.downcase => hash} if options[:include_root]
       hash
@@ -34,7 +37,7 @@ module Edi
 
     def record_to_xml_element(data_type, schema, record, xml_doc, enclosed_property_name, options)
       return unless record
-      return Nokogiri::XML({enclosed_property_name => record}.to_xml).root.first_element_child if json_object?(record)
+      return Nokogiri::XML({enclosed_property_name => record}.to_xml).root.first_element_child if Cenit::Utility.json_object?(record)
       required = schema['required'] || []
       attr = {}
       elements = []
@@ -58,7 +61,7 @@ module Edi
             property_schema = data_type.merge_schema(property_schema['items'])
             json_objects = []
             property_value && property_value.each do |sub_record|
-              if json_object?(sub_record)
+              if Cenit::Utility.json_object?(sub_record)
                 json_objects << sub_record
               else
                 elements << record_to_xml_element(data_type, property_schema, sub_record, xml_doc, property_name, options)
@@ -110,33 +113,41 @@ module Edi
       element
     end
 
-    def record_to_hash(record, options = {}, referenced = false)
-      return record if json_object?(record)
+    def record_to_hash(record, options = {}, referenced = false, enclosed_model = nil)
+      return record if Cenit::Utility.json_object?(record)
       data_type = record.orm_model.data_type
       schema = record.orm_model.schema
       json = (referenced = referenced && schema['referenced_by']) ? {'_reference' => true} : {}
       schema['properties'].each do |property_name, property_schema|
-        next if property_schema['virtual'] || (referenced && !referenced.include?(property_name)) || options[:ignore].include?(property_name.to_sym)
         property_schema = data_type.merge_schema(property_schema)
+        property_model = record.orm_model.property_model(property_name)
         name = property_schema['edi']['segment'] if property_schema['edi']
         name ||= property_name
+        can_be_referenced = !(options[:embedding_all] || options[:embedding].include?(name.to_sym))
+        next if property_schema['virtual'] ||
+          (can_be_referenced && referenced && !referenced.include?(property_name)) ||
+          options[:ignore].include?(name.to_sym) ||
+          (options[:only] && !options[:only].include?(name.to_sym))
+        
         case property_schema['type']
         when 'array'
-          property_schema = data_type.merge_schema(property_schema['items'])
-          referenced_items = property_schema['referenced'] && !property_schema['export_embedded']
+          referenced_items = can_be_referenced && property_schema['referenced'] && !property_schema['export_embedded']
           if value = record.send(property_name)
-            value = value.collect { |sub_record| record_to_hash(sub_record, options, referenced_items) }
+            value = value.collect { |sub_record| record_to_hash(sub_record, options, referenced_items, property_model) }
             json[name] = value unless value.empty?
           end
         when 'object'
           json[name] = value if value =
-            record_to_hash(record.send(property_name), options, property_schema['referenced'] && !property_schema['export_embedded'])
+            record_to_hash(record.send(property_name), options, can_be_referenced && property_schema['referenced'] && !property_schema['export_embedded'], property_model)
         else
-          if (value = record.send(property_name)).nil?
-            value = property_schema['default']
+          if (value = record.send(property_name) || property_schema['default']).is_a?(BSON::ObjectId)
+            value = value.to_s
           end
           json[name] = value unless value.nil?
         end
+      end
+      if !json['_reference'] && enclosed_model && record.orm_model != enclosed_model && !options[:ignore].include?(:_type) && (!options[:only] || options[:only].include?(:_type))
+        json['_type'] = data_type.name
       end
       json
     end
@@ -190,10 +201,5 @@ module Edi
       output
     end
 
-    private
-
-    def json_object?(obj)
-      [Hash, Array, Integer, Float, String, TrueClass, FalseClass, Boolean, NilClass].detect { |klass| obj.is_a?(klass) }
-    end
   end
 end
