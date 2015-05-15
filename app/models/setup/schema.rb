@@ -18,7 +18,6 @@ module Setup
     attr_readonly :library, :uri
 
     validates_presence_of :library, :uri, :schema
-    validates_inclusion_of :schema_type, in: [:json_schema, :xml_schema]
 
     before_save :save_data_types
     after_save :load_models
@@ -166,7 +165,7 @@ module Setup
           [ex.message]
         end
       when :xml_schema
-        Nokogiri::XML::Schema(schema.cenit_ref_schema).validate(Nokogiri::XML(data))
+        Nokogiri::XML::Schema(cenit_ref_schema).validate(Nokogiri::XML(data))
       end
     end
   end
