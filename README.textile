@@ -41,16 +41,14 @@ h1. Join us
 * Website: http://www.cenitsaas.com
 
 
-h1. Features.
+h2. Frameworks and Tools.
 
-Rails 4.0.x with Mongoid.
-
-* MongoDB is used as a datastore with the "Mongoid":http://mongoid.org/  gem for quick development without schemas or migrations.
-* Dinamic load of Json Schemas
+* Ruby on Rails
+* MongoDB
+* Mongoid and Mongoff as Object Document Mapper (ODM)
 * rails_admin, for build admin panel.
 * RabbitMQ for internal pipeline messages.
 * Authentication (via Devise)
-* multi-tenantcy with shared-schema database
 
 h2. What Is Implemented -- and What Is Not
 
