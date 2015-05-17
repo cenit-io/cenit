@@ -1,5 +1,46 @@
 "!https://codeclimate.com/github/openjaf/cenit/badges/gpa.svg!":https://codeclimate.com/github/openjaf/cenit
 
+h1 Cenit
+
+h2. What is 
+
+Cenit is an open source social platform as a service for data and business integration. It makes possible 
+the automation of all operational processes, connecting legacy apps and internet services.
+
+h2. Why were doing this 
+
+A common story for companies is the blending of solutions around its core business value. 
+Features developed by them, third-party's adaptations and other SaaS to facilitate operations. 
+
+Once grown enough a new expansion requires a huge integration effort. But available integration 
+solutions are heavy process. Some of them also need B2B transactions using complex EDI standards 
+required for large companies or business sectors.
+
+This facts overkill many companies that can’t overcome these challenges.
+
+h2. General Feature
+
+* 100% Open Source platform as a service (Open-PaaS).
+* Hub with a great design that provides powerful yet simple abstractions, making a complex problem tractable.
+* Primary concepts are: Data Type, Webhook, Flow, Event, Connection and Transform.
+* Dynamic load schemas: XSD, JSON and EDI grammars.
+* Powerful transform to translates and modified any formats to any format.
+* Full Stack HTTP API and incremental API's helper libraries in several languages.
+* Export and import integration settings (collections), and automatically saves its as a repo on github.
+* Social networking features to share collections.
+
+h2. Shared Collections
+
+There are now over 25 pre-built shared integration collections out the box for connecting 
+to internet services, fulfilment solutions, accounting, communications, ERP, multi-channels, etc.
+
+h1. Join us
+
+* Github project: https://github.com/openjaf/cenit
+* Email: support@cenitsaas.com
+* Website: http://www.cenitsaas.com
+
+
 h1. Features.
 
 Rails 4.0.x with Mongoid.
