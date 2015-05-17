@@ -1,6 +1,6 @@
 "!https://codeclimate.com/github/openjaf/cenit/badges/gpa.svg!":https://codeclimate.com/github/openjaf/cenit
 
-h1. Cenit
+h1. Cenit Hub
 
 h2. What is 
 
