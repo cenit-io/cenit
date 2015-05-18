@@ -4,8 +4,9 @@ module Edi
     def to_edi(options={})
       options.reverse_merge!(field_separator: '*',
                              segment_separator: :new_line,
-                             seg_sep_suppress: '<<seg. sep.>>')
-      output = record_to_edi(data_type = self.orm_model.data_type, options, JSON.parse(data_type.model_schema), self)
+                             seg_sep_suppress: '<<seg. sep.>>',
+                             inline_field_separator: ':')
+      output = record_to_edi(data_type = (model = self.orm_model).data_type, options, model.schema, self)
       seg_sep = options[:segment_separator] == :new_line ? "\r\n" : options[:segment_separator].to_s
       output.join(seg_sep)
     end
@@ -125,10 +126,11 @@ module Edi
         name ||= property_name
         can_be_referenced = !(options[:embedding_all] || options[:embedding].include?(name.to_sym))
         next if property_schema['virtual'] ||
-          (can_be_referenced && referenced && !referenced.include?(property_name)) ||
+          ((property_schema['edi'] || {})['discard'] && !(included_anyway = options[:including_discards])) ||
+        (can_be_referenced && referenced && !referenced.include?(property_name)) ||
           options[:ignore].include?(name.to_sym) ||
-          (options[:only] && !options[:only].include?(name.to_sym))
-        
+          (options[:only] && !options[:only].include?(name.to_sym) && !included_anyway)
+
         case property_schema['type']
         when 'array'
           referenced_items = can_be_referenced && property_schema['referenced'] && !property_schema['export_embedded']
@@ -155,50 +157,87 @@ module Edi
     def record_to_edi(data_type, options, schema, record, enclosed_property_name=nil)
       output = []
       return output unless record
-      if schema['edi']
-        segment = schema['edi']['segment'] || ''
-      else
-        header = segment = (enclosed_property_name || record.orm_model.data_type.title)
-      end
+      field_sep = options[:field_separator]
+      segment =
+        if (edi_options = schema['edi'] || {})['virtual']
+          ''
+        else
+          edi_options['segment'] ||
+            if (record_data_type = record.orm_model.data_type) != data_type
+              record_data_type.name
+            else
+              enclosed_property_name || data_type.name
+            end
+        end
       schema['properties'].each do |property_name, property_schema|
         property_schema = data_type.merge_schema(property_schema)
-        case property_schema['type']
-        when 'array'
-          property_schema = data_type.merge_schema(property_schema['items'])
-          record.send(property_name).each do |sub_record|
-            output.concat(record_to_edi(data_type, options, property_schema, sub_record))
-          end
-        when 'object'
-          output.concat(record_to_edi(data_type, options, property_schema, record.send(property_name), property_name))
-        else
-          unless value = record.send(property_name)
-            value = property_schema['default'] || ''
-          end
-          value =
-            if (segment_sep = options[:segment_separator]) == :new_line
-              value.to_s.gsub("\r\n", options[:seg_sep_suppress]).gsub("\n", options[:seg_sep_suppress]).gsub("\r", options[:seg_sep_suppress])
-            else
-              value.to_s.gsub(segment_sep, options[:seg_sep_suppress])
+        next if property_schema['edi'] && property_schema['edi']['discard']
+        if (property_model = record.orm_model.property_model(property_name)) && property_model.modelable?
+          if property_schema['type'] == 'array'
+            property_schema = data_type.merge_schema(property_schema['items'])
+            record.send(property_name).each do |sub_record|
+              output.concat(record_to_edi(data_type, options, property_schema, sub_record, property_name))
             end
-          field_sep = options[:field_separator]
-          case field_sep
-          when :by_fixed_length
-            if (max_len = property_schema['maxLength']) && (auto_fill = property_schema['auto_fill'])
-              case auto_fill[0]
-              when 'R'
-                value += auto_fill[1] until value.length == max_len
-              when 'L'
-                value = auto_fill[1] + value until value.length == max_len
+          else
+            if sub_record = record.send(property_name)
+              if property_schema['edi'] && property_schema['edi']['inline']
+                value = []
+                property_model.properties_schemas.each do |property_name, property_schema|
+                  value << edi_value(sub_record, property_name, property_schema, sub_record.orm_model.property_model(property_name), options)
+                end
+                segment +=
+                  if field_sep == :by_fixed_length
+                    value.join
+                  else
+                    while value.last.blank?
+                      value.pop
+                    end
+                    field_sep + value.join(options[:inline_field_separator])
+                  end
+              else
+                output.concat(record_to_edi(data_type, options, property_schema, sub_record, property_name))
               end
             end
-            segment += value
-          else
-            segment += field_sep.to_s + value
+          end
+        else
+          value = edi_value(record, property_name, property_schema, property_model, options)
+          segment +=
+            if field_sep == :by_fixed_length
+              value
+            else
+              field_sep + value
+            end
+        end
+      end
+      while segment.end_with?(field_sep)
+        segment = segment.chomp(field_sep)
+      end
+      output.unshift(segment) unless edi_options['virtual']
+      output
+    end
+
+    def edi_value(record, property_name, property_schema, property_model, options)
+      unless value = record[property_name]
+        value = property_schema['default'] || ''
+      end
+      value = property_model.to_string(value) if property_model
+      value =
+        if (segment_sep = options[:segment_separator]) == :new_line
+          value.to_s.gsub(/(\n|\r|\r\n)+/, options[:seg_sep_suppress])
+        else
+          value.to_s.gsub(segment_sep, options[:seg_sep_suppress])
+        end
+      if options[:field_separator] == :by_fixed_length
+        if (max_len = property_schema['maxLength']) && (auto_fill = property_schema['auto_fill'])
+          case auto_fill[0]
+          when 'R'
+            value += auto_fill[1] until value.length == max_len
+          when 'L'
+            value = auto_fill[1] + value until value.length == max_len
           end
         end
       end
-      output.unshift(segment) unless segment == header
-      output
+      value
     end
 
   end

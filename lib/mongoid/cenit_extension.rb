@@ -8,6 +8,15 @@ module Mongoid
 
       include Mongoff::MetadataAccess
 
+      def mongo_value(value, field_or_schema)
+        return value unless field_or_schema.is_a?(String) || field_or_schema.is_a?(Symbol)
+        if (property_model = property_model(field_or_schema)).is_a?(Mongoff::Model)
+          property_model.mongo_value(value, property_model.schema)
+        else
+          value
+        end
+      end
+
       def observable?
         true
       end
@@ -17,7 +26,7 @@ module Mongoid
       end
 
       def persistable?
-       [Object, Setup].include?(parent)
+        [Object, Setup].include?(parent)
       end
 
       def all_collections_names
@@ -32,7 +41,7 @@ module Mongoid
       end
 
       def property_model?(property)
-        ((((relation = try(:reflect_on_association, property)) && relation.try(:klass)) || (@mongoff_models && @mongoff_models[property])) && true) || false
+        ((((relation = try(:reflect_on_association, property)) && relation.try(:klass) && true) || (@mongoff_models && @mongoff_models[property].modelable?)) && true) || false
       end
 
       def property_model(property)

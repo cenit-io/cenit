@@ -269,6 +269,18 @@ RailsAdmin.config do |config|
     fields :title, :validator, :name, :used_memory
   end
 
+  config.model Setup::EdiValidator do
+    label 'EDI Validators'
+    navigation_label 'Data Definitions'
+    edit do
+      field :name
+      field :schema
+      field :content_type do
+
+      end
+    end
+  end
+
   config.model Setup::FileDataType do
     visible false
     register_instance_option(:discard_submit_buttons) do

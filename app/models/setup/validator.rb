@@ -11,5 +11,13 @@ module Setup
     def validates_configuration
       errors.blank?
     end
+
+    def validate_data(data)
+      fail NotImplementedError
+    end
+
+    def content_type
+      nil
+    end
   end
 end
