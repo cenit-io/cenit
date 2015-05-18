@@ -163,6 +163,15 @@ module Mongoff
       field
     end
 
+    def to_string(value)
+      case value
+      when Hash, Array
+        value.to_json
+      else
+        value.to_s
+      end
+    end
+
     CONVERSION = {
       BSON::ObjectId => ->(value) { BSON::ObjectId.from_string(value.to_s) },
       BSON::Binary => ->(value) { BSON::Binary.new(value.to_s) },

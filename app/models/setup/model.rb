@@ -2,6 +2,7 @@ module Setup
   class Model
     include CenitScoped
     include SchemaHandler
+    include DataTypeParser
 
     Setup::Models.exclude_actions_for self, :new, :update, :edit, :delete, :bulk_delete, :delete_all
 

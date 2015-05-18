@@ -13,11 +13,15 @@ module Api::V1
     end
 
     def show
-      render json: {@model => attr_presentation(@item.attributes)}
+      render json: { @model => @item.to_hash }
     end
 
     def push
-      response = {created: creation_report = {}, errors: broken_report = Hash.new { |h, k| h[k] = [] }}
+      response =
+        {
+          success: success_report = Hash.new { |h, k| h[k] = [] },
+          errors: broken_report = Hash.new { |h, k| h[k] = [] }
+        }
       payload =
         case request.content_type
         when 'application/json'
@@ -27,23 +31,21 @@ module Api::V1
         else
           BasicPayload
         end.new(@webhook_body)
-      count = 0
       payload.each do |root, message|
         if data_type = get_data_type(root)
           message = [message] unless message.is_a?(Array)
           message.each do |item|
             if (record = data_type.send(payload.create_method, payload.process_item(item, data_type))).errors.blank?
-              count += 1
+              success_report[root.pluralize] << record.to_json(only: :id, including_discards: true)
             else
               broken_report[root] << {errors: record.errors.full_messages, item: item}
             end
           end
-          creation_report[root.pluralize] = count
         else
           broken_report[root] = 'no model found'
         end
       end
-      response.delete(:created) if creation_report.blank?
+      response.delete(:success) if success_report.blank?
       response.delete(:errors) if broken_report.blank?
       render json: response
     end
@@ -103,19 +105,6 @@ module Api::V1
 
     def klass
       get_model(@model)
-    end
-
-    def attr_presentation(items)
-      items.is_a?(Array) ? items.map { |e| remove_mogo_id(e) }.flatten : remove_mogo_id(items)
-    end
-
-    def remove_mogo_id(items)
-      return {id: items.to_s} if items.is_a?(BSON::ObjectId)
-      return items unless items.is_a?(Enumerable)
-      PRESENTATION_KEY.each { |key, value| items.merge!(value => items.delete(key)) }
-      items.delete_if { |key, value| value.blank? }
-      items.each { |key, value| items[key] = (key == 'id' ? attr_presentation(value.to_s) : attr_presentation(value)) }
-      items
     end
 
     def save_request_data

@@ -5,12 +5,10 @@ module Edi
 
       def parse_edi(data_type, content, options={}, record=nil)
         start = options[:start] || 0
-        if (segment_sep = options[:segment_separator]) == :new_line
-          content = content.gsub("\r", '')
-          segment_sep = "\n"
-        end
+        content = content.gsub("\r", '')
+        segment_sep = "\n" if (segment_sep = options[:segment_separator]) == :new_line
         raise Exception.new("Record model #{record.orm_model} does not match data type model#{data_type.orm_model}") unless record.nil? || record.orm_model == data_type.records_model
-        json, start, record = do_parse_edi(data_type, data_type.model, content, data_type.merged_schema, start, options[:field_separator], segment_sep, report={segments: []}, nil, nil, nil, nil, record)
+        json, start, record = do_parse_edi(data_type, model = data_type.records_model, content, model.schema, start, options[:field_separator], segment_sep, report={segments: []}, new_record: record)
         raise Exception.new("Unexpected input at position #{start}: #{content[start, content.length - start <= 10 ? content.length - 1 : 10]}") if start < content.length
         report[:json] = json
         report[:scan_size] = start
@@ -197,39 +195,51 @@ module Edi
         record
       end
 
-      def do_parse_edi(data_type, model, content, json_schema, start, field_sep, segment_sep, report, record=nil, json=nil, fields=nil, segment=nil, new_record=nil)
+      def do_parse_edi(data_type, model, content, json_schema, start, field_sep, segment_sep, report, options = {})
+        record = options[:record] || options[:new_record] || model.new
+        json = options[:json]
+        fields = options[:fields]
+        segment = options[:segment]
+        segment_sep ||= report[:segment_separator]
         json_schema = data_type.merge_schema(json_schema)
-        unless record
-          if json_schema['edi'] && seg_id = json_schema['edi']['segment']
-            return [nil, start, nil] unless start < content.length && content[start, seg_id.length] == seg_id
-            field_sep = content[start + seg_id.length] unless field_sep
-            #raise Exception.new("Invalid field separator #{field_sep}") unless field_sep == :by_fixed_length || field_sep == content[start + seg_id.length]
-            unless segment_sep ||= report[:segment_separator]
-              if field_sep == :by_fixed_length
-                cursor = start + seg_id.length
-                json_schema['properties'].each do |property_name, property_schema|
-                  if !%w{object array}.include?(property_schema['type']) && property_schema['$ref'].nil?
-                    if (length = property_schema['length']) || ((length = property_schema['maxLength']) && (property_schema['auto_fill'] || length == property_schema['minLength']))
-                      cursor += length
-                    else
-                      raise Exception.new("property #{property_name} has no fixed length or auto fill option is missing while parsing with fixed length option")
-                    end
+        seg_id = (edi_options = json_schema['edi'] || {})['segment'] ||
+          if (record_data_type = record.orm_model.data_type) != data_type
+            record_data_type.name
+          else
+            options[:enclosed_property] || data_type.name
+          end
+        if !edi_options['virtual']
+          return [nil, start, nil] unless start < content.length && content[start, seg_id.length] == seg_id
+          if (fields_count = model.properties_schemas.count { |property, schema| !model.property_model?(property) && (!schema['edi'] || !schema['edi']['discard']) }) == 0
+            segment_sep ||= content[start + seg_id.length]
+          else
+            field_sep ||= content[start + seg_id.length]
+          end unless segment_sep && field_sep
+          unless segment_sep
+            if field_sep == :by_fixed_length
+              cursor = start + seg_id.length
+              json_schema['properties'].each do |property_name, property_schema|
+                if !%w{object array}.include?(property_schema['type']) && property_schema['$ref'].nil?
+                  if (length = property_schema['length']) || ((length = property_schema['maxLength']) && (property_schema['auto_fill'] || length == property_schema['minLength']))
+                    cursor += length
+                  else
+                    raise Exception.new("property #{property_name} has no fixed length or auto fill option is missing while parsing with fixed length option")
                   end
                 end
-                if cursor < content.length
-                  puts "Segment separator inferred: #{segment_sep = content[cursor]}"
-                else
-                  puts 'End of content reached no segment separator needs to be inferred'
-                end
+              end
+              if cursor < content.length
+                puts "Segment separator inferred: #{segment_sep = content[cursor]}"
               else
-                next_seg_relation = model.relations.values.detect { |relation| [:has_many, :has_and_belongs_to_many, :embeds_many, :has_one, :embeds_one].include?(relation.macro) }
-                if next_seg_relation && (next_seg_schema = json_schema['properties'][next_seg_relation.name.to_s])
-                  next_seg_schema = next_seg_schema['items'] if next_seg_schema['type'] == 'array'
-                  next_seg_schema = data_type.merge_schema(next_seg_schema)
-                  raise Exception.new('Can not infers segment separator without EDI segment metadata in next sub-segment schema') unless next_seg_schema['edi'] && next_seg_id = next_seg_schema['edi']['segment']
-                  puts "Inferring segment separator with field separator #{field_sep}..."
-                  fields_count = json_schema['properties'].values.count { |property_schema| !%w{object array}.include?(property_schema['type']) && property_schema['$ref'].nil? }
-                  cursor = start + seg_id.length + 1
+                puts 'End of content reached no segment separator needs to be inferred'
+              end
+            else
+              if next_seg_property = model.properties_schemas.keys.detect { |property| model.property_model?(property) }
+                next_seg_schema = model.property_model(next_seg_property).schema
+                next_seg_schema = data_type.merge_schema(next_seg_schema)
+                raise Exception.new('Can not infers segment separator without EDI segment metadata in next sub-segment schema') unless next_seg_schema['edi'] && next_seg_id = next_seg_schema['edi']['segment']
+                puts "Inferring segment separator with field separator #{field_sep}..."
+                cursor = start + seg_id.length + 1
+                if fields_count > 0
                   while fields_count > 0
                     cursor = content.index(field_sep, cursor) + 1
                     fields_count -= 1
@@ -237,84 +247,81 @@ module Edi
                   raise Exception.new('Error inferring segment separator') unless next_seg_id && (content[cursor - next_seg_id.length - 1, next_seg_id.length] == next_seg_id)
                   puts "Segment separator inferred: #{segment_sep = content[cursor - next_seg_id.length - 2]}"
                 else
-                  raise Exception.new('Can not infers segment separator without sub-segment schemas')
+                  segment_sep = cursor < content.length ? content[cursor] : nil
                 end
               end
-              report[:segment_separator] = segment_sep
             end
-            if field_sep == :by_fixed_length
-              fields = []
-              start += seg_id.length
-              top = content.index(segment_sep, start) || content.length
-              json_schema['properties'].each do |property_name, property_schema|
-                next if start == top
-                if !%w{object array}.include?(property_schema['type']) && property_schema['$ref'].nil?
-                  if (length = property_schema['length']) || ((length = property_schema['maxLength']) && (property_schema['auto_fill'] || length == property_schema['minLength']))
-                    length = top - start if start + length >= top
-                    fields << content[start, length]
-                    start += length
-                  else
-                    raise Exception.new("property #{property_name} has no fixed length or auto fill option is missing while parsing with fixed length option")
-                  end
-                end
-              end
-            else
-              fields = (segment = content[start..(start = (content.index(segment_sep, start) || content.length)) - 1]).split(field_sep)
-              fields.shift
-            end
-            unless (start != content.length - 1) && (content[start, segment_sep.length] == segment_sep)
-              puts content.length
-              puts "Warning!!!"
-              start = content.index(segment_sep, start) || start
-            end
-            start += segment_sep.length
-          else
-            fields = []
+            report[:segment_separator] = segment_sep
           end
-        end
+          if field_sep == :by_fixed_length
+            fields = []
+            start += seg_id.length
+            top = content.index(segment_sep, start) || content.length
+            json_schema['properties'].each do |property_name, property_schema|
+              next if start == top
+              if !%w{object array}.include?(property_schema['type']) && property_schema['$ref'].nil?
+                if (length = property_schema['length']) || ((length = property_schema['maxLength']) && (property_schema['auto_fill'] || length == property_schema['minLength']))
+                  length = top - start if start + length >= top
+                  fields << content[start, length]
+                  start += length
+                else
+                  raise Exception.new("property #{property_name} has no fixed length or auto fill option is missing while parsing with fixed length option")
+                end
+              end
+            end
+          else
+            fields = (segment = content[start..(start = (segment_sep && (content.index(segment_sep, start)) || content.length)) - 1]).split(field_sep)
+            fields.shift
+          end
+          if segment_sep && (start == content.length - 1 || content[start, segment_sep.length] != segment_sep)
+            puts content.length
+            puts "Warning!!!"
+            start = content.index(segment_sep, start) || start
+          end
+          start += segment_sep ? segment_sep.length : 0
+        else
+          fields = []
+        end unless options[:record]
         json ||= {}
-        record ||= new_record || model.new
         required = json_schema['required'] || []
         json_schema['properties'].each do |property_name, property_schema|
           next if json[property_name]
           property_schema = data_type.merge_schema(property_schema)
-          case property_schema['type']
-          when 'array'
-            relation = model.reflect_on_association(property_name)
-            next unless [:has_many, :has_and_belongs_to_many, :embeds_many].include?(relation.macro)
-            property_schema = data_type.merge_schema(property_schema['items'])
-            property_model = relation.klass
-            property_json = []
-            while (sub_segment = do_parse_edi(data_type, property_model, content, property_schema, start, field_sep, segment_sep, report))[0]
-              property_json << sub_segment[0]
-              (record.send(property_name)) << sub_segment[2]
-              start = sub_segment[1]
-            end
-            json[property_name] = property_json unless property_json.empty?
-          when 'object'
-            relation = model.reflect_on_association(property_name)
-            next unless [:has_one, :embeds_one].include?(relation.macro)
-            property_model = relation.klass
-            if field = fields.shift #composite field
-              property_json = {}
-              property_record = property_model.new
-              sub_elements = field.split(':')
-              property_schema['properties'].each do |key, _|
-                if (sub_element = sub_elements.shift) && !sub_element.blank?
-                  property_json[key] = sub_element
-                  property_record.send("#{key}=", sub_element)
-                end
+          next if property_schema['edi'] && property_schema['edi']['discard']
+          if (property_model = model.property_model(property_name)) && property_model.modelable?
+            if  property_schema['type'] == 'array'
+              property_schema = data_type.merge_schema(property_schema['items'])
+              property_json = []
+              record[property_name] = [] if record[property_name].nil?
+              association = record[property_name]
+              while (sub_segment = do_parse_edi(data_type, property_model, content, property_schema, start, field_sep, segment_sep, report, enclosed_property: property_name))[0]
+                property_json << sub_segment[0]
+                association << sub_segment[2]
+                start = sub_segment[1]
               end
-              property_json.empty? ? (property_json = nil) : record.send("#{property_name}=", property_record)
+              json[property_name] = property_json unless property_json.empty?
             else
-              property_json, start, property_record = do_parse_edi(data_type, property_model, content, property_schema, start, field_sep, segment_sep, report)
-              record.send("#{property_name}=", property_record) if property_record
+              if field = fields.shift #composite field
+                property_json = {}
+                property_record = property_model.new
+                sub_elements = field.split(':')
+                property_schema['properties'].each do |key, _|
+                  if (sub_element = sub_elements.shift) && !sub_element.blank?
+                    property_json[key] = sub_element
+                    property_record.send("#{key}=", property_model.mongo_value(sub_element, key))
+                  end
+                end
+                property_json.empty? ? (property_json = nil) : record.send("#{property_name}=", property_record)
+              else
+                property_json, start, property_record = do_parse_edi(data_type, property_model, content, property_schema, start, field_sep, segment_sep, report, enclosed_property: property_name)
+                record.send("#{property_name}=", property_record) if property_record
+              end
+              json[property_name] = property_json if property_json
             end
-            json[property_name] = property_json if property_json
           else
             if (field = fields.shift) && field.length != 0
               json[property_name] = field
-              record.send("#{property_name}=", field)
+              record.send("#{property_name}=", model.mongo_value(field, property_name))
             end
           end
           return [nil, start, nil] if !json[property_name] && json.empty? && required.include?(property_name)
@@ -333,7 +340,7 @@ module Edi
               record.send("#{property_name}=", nil)
             end
           end
-          json, start, record = do_parse_edi(data_type, sub_model, content, data_type.merged_schema, start, field_sep, segment_sep, report, sub_record, json, fields, segment)
+          json, start, record = do_parse_edi(data_type, sub_model, content, data_type.merged_schema, start, field_sep, segment_sep, report, record: sub_record, json: json, fields: fields, segment: segment)
         end
 
         return [nil, start, nil] if json.empty?
