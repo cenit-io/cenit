@@ -5,7 +5,7 @@ module Setup
 
     Setup::Models.exclude_actions_for self, :bulk_delete, :delete, :delete_all
 
-    BuildInDataType.regist(self).with(:uri, :schema).including(:library).referenced_by(:library, :uri)
+    BuildInDataType.regist(self).with(:uri, :schema).embedding(:data_types).discarding(:data_types).including(:library).referenced_by(:library, :uri)
 
     belongs_to :library, class_name: Setup::Library.to_s, inverse_of: :schemas
 

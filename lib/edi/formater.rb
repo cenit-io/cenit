@@ -126,9 +126,10 @@ module Edi
         name ||= property_name
         can_be_referenced = !(options[:embedding_all] || options[:embedding].include?(name.to_sym))
         next if property_schema['virtual'] ||
-          (can_be_referenced && referenced && !referenced.include?(property_name)) ||
+          ((property_schema['edi'] || {})['discard'] && !(included_anyway = options[:including_discards])) ||
+        (can_be_referenced && referenced && !referenced.include?(property_name)) ||
           options[:ignore].include?(name.to_sym) ||
-          (options[:only] && !options[:only].include?(name.to_sym))
+          (options[:only] && !options[:only].include?(name.to_sym) && !included_anyway)
 
         case property_schema['type']
         when 'array'
