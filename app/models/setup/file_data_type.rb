@@ -60,18 +60,27 @@ module Setup
 
     def create_from_json(json_or_readable, attributes={})
       data = json_or_readable
-      unless validator.nil? || validator.schema_type == :json_schema
+      unless validator.nil? || validator.data_format == :json
         data = ((data.is_a?(String) || data.is_a?(Hash)) && data) || data.read
-        data = validator.data_types.first.new_from_json(data).to_xml
+        data = validator.format_from_json(data)
       end
       create_from(data, attributes)
     end
 
     def create_from_xml(string_or_readable, attributes={})
       data = string_or_readable
-      unless validator.nil? || validator.schema_type == :xml_schema
+      unless validator.nil? || validator.data_format == :xml
         data = (data.is_a?(String) && data) || data.read
-        data = validator.schema.data_types.first.new_from_xml(data).to_json
+        data = validator.format_from_xml(data)
+      end
+      create_from(data, attributes)
+    end
+
+    def create_from_edi(string_or_readable, attributes={})
+      data = string_or_readable
+      unless validator.nil? || validator.data_format == :edi
+        data = (data.is_a?(String) && data) || data.read
+        data = validator.format_from_edi(data)
       end
       create_from(data, attributes)
     end
@@ -81,20 +90,8 @@ module Setup
     def default_attributes
       if validator
         {
-          filename: "file_#{DateTime.now.strftime('%Y-%m-%d_%Hh%Mm%S')}" +
-            case validator.schema_type
-            when :json_schema
-              '.json'
-            when :xml_schema
-              '.xml'
-            end,
-          contentType:
-            case validator.schema_type
-            when :json_schema
-              'application/json'
-            when :xml_schema
-              'application/xml'
-            end
+          filename: "file_#{DateTime.now.strftime('%Y-%m-%d_%Hh%Mm%S')}" + (extension = validator.file_extension) ? ".#{extension}" : '',
+          contentType: validator.content_type
         }
       else
         {}
@@ -125,7 +122,7 @@ module Setup
 
     FILE_MODEL_MIXIN = proc do
       Setup::Model.to_include_in_models.each do |module_to_include|
-        include(module_to_include) unless include?(module_to_include) || [RailsAdminDynamicCharts::Datetime].include?(module_to_include)
+        include(module_to_include) unless include?(module_to_include) || [Edi::Formatter, RailsAdminDynamicCharts::Datetime].include?(module_to_include)
       end
 
       field :filename, type: String
@@ -136,6 +133,10 @@ module Setup
       field :md5, type: String
       field :aliases
       field :metadata
+
+      def name
+        filename
+      end
 
       def grid_fs_file_model
         self.class.instance_variable_get(:@grid_fs_file_model)
@@ -180,12 +181,12 @@ module Setup
       def to_json(options = {})
         data = file.data
         data_type = self.class.data_type
-        unless (validator = data_type.validator).nil? || validator.schema_type == :json_schema
+        unless (validator = data_type.validator).nil? || validator.data_format == :json
           ignore = (options[:ignore] || [])
           ignore = [ignore] unless ignore.is_a?(Enumerable)
           ignore = ignore.select { |p| p.is_a?(Symbol) || p.is_a?(String) }.collect(&:to_sym)
           options[:ignore] = ignore
-          data = validator.data_types.first.new_from_xml(data).to_json(options)
+          data = validator.format_to(:json, data, options)
         end
         hash = JSON.parse(data)
         hash = {data_type.name.downcase => hash} if options[:include_root]
@@ -199,10 +200,19 @@ module Setup
       def to_xml(options = {})
         data = file.data
         data_type = self.class.data_type
-        unless (validator = data_type.validator).nil? || validator.schema_type == :xml_schema
-          data = validator.schema.data_types.first.new_from_json(data).to_xml(options)
+        unless (validator = data_type.validator).nil? || validator.data_format == :xml
+          data = validator.format_to(:xml, data, options)
         end
         Nokogiri::XML::Document.parse(data)
+        data
+      end
+
+      def to_edi(options = {})
+        data = file.data
+        data_type = self.class.data_type
+        unless (validator = data_type.validator).nil? || validator.data_format == :edi
+          data = validator.format_to(:edi, data, options)
+        end
         data
       end
 

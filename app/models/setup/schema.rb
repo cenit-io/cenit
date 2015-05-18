@@ -1,6 +1,7 @@
 module Setup
   class Schema < Validator
     include CenitScoped
+    include DataTypeValidator
 
     Setup::Models.exclude_actions_for self, :bulk_delete, :delete, :delete_all
 
@@ -112,6 +113,24 @@ module Setup
       schema
     end
 
+    def data_type
+      data_types.first
+    end
+
+    def validate_data(data)
+      case schema_type
+      when :json_schema
+        begin
+          JSON::Validator.validate!(@schema ||= data_types.first.merged_schema(recursive: true), JSON.parse(data))
+          []
+        rescue Exception => ex
+          [ex.message]
+        end
+      when :xml_schema
+        Nokogiri::XML::Schema(cenit_ref_schema).validate(Nokogiri::XML(data))
+      end
+    end
+
     private
 
     def save_data_types
@@ -153,20 +172,6 @@ module Setup
 
     def parse_xml_schema
       Xsd::Document.new(uri, self.schema).schema.json_schemas
-    end
-
-    def validate_data(data)
-      case schema_type
-      when :json_schema
-        begin
-          JSON::Validator.validate!(@schema ||= data_types.first.merged_schema(recursive: true), JSON.parse(data))
-          []
-        rescue Exception => ex
-          [ex.message]
-        end
-      when :xml_schema
-        Nokogiri::XML::Schema(cenit_ref_schema).validate(Nokogiri::XML(data))
-      end
     end
   end
 end

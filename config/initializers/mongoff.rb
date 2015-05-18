@@ -8,11 +8,17 @@ Mongoff::Model.config do
       'properties' => {
         'created_at' => {
           'type' => 'string',
-          'format' => 'date-time'
+          'format' => 'date-time',
+          'edi' => {
+            'discard' => true
+          }
         },
         'updated_at' => {
           'type' => 'string',
-          'format' => 'date-time'
+          'format' => 'date-time',
+          'edi' => {
+            'discard' => true
+          }
         }
       }
     }
