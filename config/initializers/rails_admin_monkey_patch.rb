@@ -233,7 +233,7 @@ module RailsAdmin
       def sort_by_embeds(models, sorted = [])
         models.each do |model|
           [:embeds_one, :embeds_many].each do |rk|
-            sort_by_embeds(model.reflect_on_all_associations(rk).collect { |r| r.klass }, sorted)
+            sort_by_embeds(model.reflect_on_all_associations(rk).collect { |r| r.klass }.reject { |model| models.include?(model) || sorted.include?(model) }, sorted)
           end if model.is_a?(Class)
           sorted << model unless sorted.include?(model)
         end
