@@ -3,8 +3,6 @@ module Setup
     include CenitScoped
     include DataTypeValidator
 
-    Setup::Models.exclude_actions_for self, :bulk_delete, :delete, :delete_all
-
     BuildInDataType.regist(self).with(:uri, :schema).embedding(:data_types).discarding(:data_types).including(:library).referenced_by(:library, :uri)
 
     belongs_to :library, class_name: Setup::Library.to_s, inverse_of: :schemas
@@ -137,7 +135,11 @@ module Setup
       if run_after_initialized
         puts "Saving data types for #{uri}"
         (@data_types_to_keep && @data_types_to_keep.empty? ? data_types : @data_types_to_keep).each { |data_type| puts data_type.name }
-        (@data_types_to_keep && @data_types_to_keep.empty? ? data_types : @data_types_to_keep).each(&:save)
+        (@data_types_to_keep && @data_types_to_keep.empty? ? data_types : @data_types_to_keep).each do |data_type|
+          if data_type.new_record? & data_type.save
+            data_type.instance_variable_set(:@dynamically_saved, true)
+          end
+        end
       else
         false
       end

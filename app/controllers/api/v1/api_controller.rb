@@ -9,11 +9,15 @@ module Api::V1
 
     def index
       @items = klass.all
-      render json: @items.map { |item| {((model = (hash = item.to_hash(including: :_id)).delete('_type')) ? model.downcase : @model) => hash} }
+      render json: @items.map { |item| {((model = (hash = item.inspect_json(include_id: true)).delete('_type')) ? model.downcase : @model) => hash} }
     end
 
     def show
-      render json: { @model => @item.to_hash }
+      if @item.orm_model.data_type.is_a?(Setup::FileDataType)
+        send_data @item.data, filename: @item[:filename], type: @item[:contentType]
+      else
+        render json: {@model => @item.to_hash}
+      end
     end
 
     def push
@@ -22,21 +26,14 @@ module Api::V1
           success: success_report = Hash.new { |h, k| h[k] = [] },
           errors: broken_report = Hash.new { |h, k| h[k] = [] }
         }
-      payload =
-        case request.content_type
-        when 'application/json'
-          JSONPayload
-        when 'application/xml'
-          XMLPayload
-        else
-          BasicPayload
-        end.new(@webhook_body)
-      payload.each do |root, message|
-        if data_type = get_data_type(root)
+      @payload.each do |root, message|
+        if data_type = @payload.data_type_for(root)
           message = [message] unless message.is_a?(Array)
           message.each do |item|
-            if (record = data_type.send(payload.create_method, payload.process_item(item, data_type))).errors.blank?
-              success_report[root.pluralize] << record.to_json(only: :id, including_discards: true)
+            if (record = data_type.send(@payload.create_method,
+                                        @payload.process_item(item, data_type),
+                                        options = @payload.create_options)).errors.blank?
+              success_report[root.pluralize] << record.inspect_json(inspecting: :id, inspect_scope: options[:create_collector])
             else
               broken_report[root] << {errors: record.errors.full_messages, item: item}
             end
@@ -90,9 +87,12 @@ module Api::V1
       end
     end
 
+    def get_data_type_by_name(name)
+      @data_types[name] ||= Setup::BuildInDataType["Setup::#{name}"] || Setup::Model.where(name: name).first
+    end
+
     def get_data_type(root)
-      root = root.singularize.camelize
-      @data_types[root] ||= Setup::BuildInDataType["Setup::#{root}"] || Setup::Model.where(name: root).first
+      get_data_type_by_name(root.singularize.camelize)
     end
 
     def get_model(root)
@@ -112,6 +112,17 @@ module Api::V1
       @request_id = request.uuid
       @webhook_body = request.body.read
       @model = params[:model]
+      @payload =
+        case request.content_type
+        when 'application/json'
+          JSONPayload
+        when 'application/xml'
+          XMLPayload
+        else
+          BasicPayload
+        end.new(controller: self,
+                message: @webhook_body,
+                content_type: request.content_type)
     end
 
     private
@@ -120,28 +131,60 @@ module Api::V1
 
     class BasicPayload
 
-      attr_reader :create_method
+      attr_reader :config
+      attr_reader :create_options
 
-      def initialize(payload = nil, create_method = :create_from)
-        @payload = payload
-        @create_method = create_method || :create_from
+      def initialize(config)
+        @config =
+          {
+            create_method: case config[:content_type]
+                           when 'application/json'
+                             :create_from_json
+                           when 'application/xml'
+                             :create_from_xml
+                           else
+                             :create_from
+                           end,
+            message: ''
+          }.merge(config || {})
+        @data_type = (controller = config[:controller]).send(:get_data_type_by_name, (@root = controller.request.headers['data-type']))
+        @create_options = {create_collector: Set.new}
+        create_options_keys.each { |option| @create_options[option.to_sym] = controller.request[option] }
+      end
+
+      def create_method
+        config[:create_method]
+      end
+
+      def create_options_keys
+        %w(filename)
+      end
+
+      def each_root(&block)
+        block.call(@root, config[:message]) if block
       end
 
       def each(&block)
+        if @data_type
+          block.call(@data_type.name, config[:message])
+        else
+          each_root(&block)
+        end
       end
 
       def process_item(item, data_type)
+        item
+      end
 
+      def data_type_for(root)
+        @data_type && @data_type.name == root ? @data_type : config[:controller].send(:get_data_type, root)
       end
     end
 
     class JSONPayload < BasicPayload
-      def initialize(webhook_body)
-        super(JSON.parse(webhook_body), :create_from_json)
-      end
 
-      def each(&block)
-        @payload.each { |root, message| block.call(root, message) } if block
+      def each_root(&block)
+        JSON.parse(config[:message]).each { |root, message| block.call(root, message) } if block
       end
 
       def process_item(item, data_type)
@@ -149,13 +192,14 @@ module Api::V1
       end
     end
 
-    class XMLPayload < BasicPayload
-      def initialize(webhook_body)
-        super(Nokogiri::XML::DocumentFragment.parse(webhook_body), :create_from_xml)
-      end
+    def create_options_keys
+      super + %w(only)
+    end
 
-      def each(&block)
-        if roots = @payload.element_children
+    class XMLPayload < BasicPayload
+
+      def each_root(&block)
+        if roots = Nokogiri::XML::DocumentFragment.parse(config[:message]).element_children
           roots.each do |root|
             if elements = root.element_children
               elements.each { |e| block.call(root.name, e) }
