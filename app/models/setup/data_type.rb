@@ -2,9 +2,8 @@ require 'edi/formater'
 
 module Setup
   class DataType < Model
-    include DataTypeParser
 
-    BuildInDataType.regist(self).including(:schema).referenced_by(:name, :schema)
+    BuildInDataType.regist(self).excluding(:used_memory).including(:schema).referenced_by(:name, :schema)
 
     belongs_to :schema, class_name: Setup::Schema.to_s, inverse_of: :data_types
 
@@ -219,8 +218,10 @@ module Setup
 
       schema = merge_schema!(schema, expand_extends: false)
 
+      base_ref = nil
       base_model = nil
       if (base_schema = schema.delete('extends')) && base_schema.is_a?(String)
+        base_ref = base_schema
         if base_model = find_or_load_model(report, base_schema)
           base_schema = base_model.data_type.merged_schema
         else
@@ -230,14 +231,18 @@ module Setup
 
       check_id_property(schema)
 
-      if base_schema && !base_model.is_a?(Class)
-        if schema['type'] == 'object' && base_schema['type'] != 'object'
-          schema['properties'] ||= {}
-          value_schema = schema['properties']['value'] || {}
-          value_schema = base_schema.deep_merge(value_schema)
-          schema['properties']['value'] = value_schema.merge('title' => 'Value', 'xml' => {'content' => true})
+      if base_schema
+        if base_model.is_a?(Class)
+          schema = merge_schema!(schema, only_overriders: true, extends: base_ref)
         else
-          schema = base_schema.deep_merge(schema) { |key, val1, val2| array_sum(val1, val2) }
+          if schema['type'] == 'object' && base_schema['type'] != 'object'
+            schema['properties'] ||= {}
+            value_schema = schema['properties']['value'] || {}
+            value_schema = base_schema.deep_merge(value_schema)
+            schema['properties']['value'] = value_schema.merge('title' => 'Value', 'xml' => {'content' => true})
+          else
+            schema = base_schema.deep_merge(schema) { |key, val1, val2| array_hash_merge(val1, val2) }
+          end
         end
       end
 
@@ -290,6 +295,8 @@ module Setup
           v = nil
           still_trying = true
           referenced = property_desc['referenced']
+
+          property_desc = merge_schema(property_desc, expand_extends: false) if property_desc['type'] || property_desc['properties']
 
           while still_trying && ref = property_desc['$ref'] # property type contains a reference
             still_trying = false
@@ -417,6 +424,7 @@ module Setup
         type_model = nil
         type_model_created = false
         if property_type.eql?('Array') && items_desc = property_desc['items']
+          items_desc = merge_schema(items_desc, expand_extends: false) if items_desc['type'] || items_desc['properties']
           r = nil
           ir = ''
           if (ref = items_desc['$ref']) && (!ref.start_with?('#') && property_desc['referenced'])

@@ -12,7 +12,7 @@ module Setup
     end
 
     def name
-      @name ||= model.model_name.plural
+      @name ||= model.model_name.to_s
     end
 
     def initialize(model)
@@ -58,11 +58,19 @@ module Setup
       store_fields(:@including, *fields)
     end
 
+    def discarding(*fields)
+      store_fields(:@discarding, *fields)
+    end
+
     def excluding(*fields)
       store_fields(:@excluding, *fields)
     end
 
     class << self
+
+      def [](ref)
+        build_ins[ref]
+      end
 
       def build_ins
         @build_ins ||= {}
@@ -94,18 +102,22 @@ module Setup
       self
     end
 
-    MONGOID_TYPE_MAP = {Array => {'type' => 'array'},
-                        BigDecimal => {'type' => 'integer'},
-                        Mongoid::Boolean => {'type' => 'boolean'},
-                        Date => {'type' => 'string', 'format' => 'date'},
-                        DateTime => {'type' => 'string', 'format' => 'date-time'},
-                        Float => {'type' => 'number'},
-                        Hash => {'type' => 'object'},
-                        Integer => {'type' => 'integer'},
-                        String => {'type' => 'string'},
-                        Symbol => {'type' => 'string'},
-                        Time => {'type' => 'string', 'format' => 'time'},
-                        nil => {}}
+    MONGOID_TYPE_MAP =
+      {
+        BSON::ObjectId => {'type' => 'string'},
+        Array => {'type' => 'array'},
+        BigDecimal => {'type' => 'integer'},
+        Mongoid::Boolean => {'type' => 'boolean'},
+        Date => {'type' => 'string', 'format' => 'date'},
+        DateTime => {'type' => 'string', 'format' => 'date-time'},
+        Float => {'type' => 'number'},
+        Hash => {'type' => 'object'},
+        Integer => {'type' => 'integer'},
+        String => {'type' => 'string'},
+        Symbol => {'type' => 'string'},
+        Time => {'type' => 'string', 'format' => 'time'},
+        nil => {}
+      }
 
     def excluded?(name)
       name = name.to_s
@@ -114,11 +126,12 @@ module Setup
 
     def included?(name)
       name = name.to_s
-      (@with && @with.include?(name)) || (@including && @including.include?(name)) || !(@with || excluded?(name))
+      (@with && @with.include?(name)) || (@including && @including.include?(name)) || (@discarding && @discarding.include?(name)) || !(@with || excluded?(name))
     end
 
     def build_schema
-      schema = {'type' => 'object', 'properties' => properties = {}}
+      @discarding ||= []
+      schema = {'type' => 'object', 'properties' => properties = {"_id" => {'type' => 'string'}}}
       schema[:referenced_by.to_s] = Cenit::Utility.stringfy(@referenced_by) if @referenced_by
       (fields = model.fields).each do |field_name, field|
         if !field.is_a?(Mongoid::Fields::ForeignKey) && included?(field_name)
@@ -156,7 +169,12 @@ module Setup
             when :has_many, :has_and_belongs_to_many
               {'type' => 'array', 'items' => {'$ref' => relation.klass.to_s}, 'referenced' => true, 'export_embedded' => @embedding && @embedding.include?(relation.name)}
             end
-          properties[relation.name] = property_schema if property_schema
+          if property_schema
+            if @discarding.include?(relation.name.to_s)
+              (property_schema['edi'] ||= {})['discard'] = true
+            end
+            properties[relation.name] = property_schema
+          end
         end
       end
       schema = @to_merge.merge(schema) if @to_merge

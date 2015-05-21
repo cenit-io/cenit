@@ -2,6 +2,8 @@ module Mongoff
   module GridFs
     class File < Mongoff::Record
 
+      include FileFormatter
+
       def initialize(model, document = nil, new_record = true)
         raise "Illegal file model #{model}" unless model.is_a?(FileModel)
         super
@@ -28,14 +30,14 @@ module Mongoff
           if @new_data
             readable =
               if @new_data.is_a?(String)
-                temporary_file = Tempfile.new('tmp')
+                temporary_file = Tempfile.new('file_')
                 temporary_file.write(@new_data)
                 temporary_file.rewind
                 Cenit::Utility::Proxy.new(temporary_file, original_filename: filename)
               else
                 @new_data
               end
-            if (file_data_errors = orm_model.data_type.validate_file(readable)).present?
+            if !options[:valid_data] && (file_data_errors = orm_model.data_type.validate_file(readable)).present?
               errors.add(:base, "Invalid file data: #{file_data_errors.to_sentence}")
             else
               create_temporary_chunks(readable)

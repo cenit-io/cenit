@@ -1,10 +1,9 @@
 module Setup
   class Schema < Validator
     include CenitScoped
+    include DataTypeValidator
 
-    Setup::Models.exclude_actions_for self, :bulk_delete, :delete, :delete_all
-
-    BuildInDataType.regist(self).with(:uri, :schema).including(:library).referenced_by(:library, :uri)
+    BuildInDataType.regist(self).with(:uri, :schema).embedding(:data_types).discarding(:data_types).including(:library).referenced_by(:library, :uri)
 
     belongs_to :library, class_name: Setup::Library.to_s, inverse_of: :schemas
 
@@ -18,7 +17,6 @@ module Setup
     attr_readonly :library, :uri
 
     validates_presence_of :library, :uri, :schema
-    validates_inclusion_of :schema_type, in: [:json_schema, :xml_schema]
 
     before_save :save_data_types
     after_save :load_models
@@ -113,13 +111,35 @@ module Setup
       schema
     end
 
+    def data_type
+      data_types.first
+    end
+
+    def validate_data(data)
+      case schema_type
+      when :json_schema
+        begin
+          JSON::Validator.validate!(@schema ||= data_types.first.merged_schema(recursive: true), JSON.parse(data))
+          []
+        rescue Exception => ex
+          [ex.message]
+        end
+      when :xml_schema
+        Nokogiri::XML::Schema(cenit_ref_schema).validate(Nokogiri::XML(data))
+      end
+    end
+
     private
 
     def save_data_types
       if run_after_initialized
         puts "Saving data types for #{uri}"
         (@data_types_to_keep && @data_types_to_keep.empty? ? data_types : @data_types_to_keep).each { |data_type| puts data_type.name }
-        (@data_types_to_keep && @data_types_to_keep.empty? ? data_types : @data_types_to_keep).each(&:save)
+        (@data_types_to_keep && @data_types_to_keep.empty? ? data_types : @data_types_to_keep).each do |data_type|
+          if data_type.new_record? & data_type.save
+            data_type.instance_variable_set(:@dynamically_saved, true)
+          end
+        end
       else
         false
       end
@@ -154,20 +174,6 @@ module Setup
 
     def parse_xml_schema
       Xsd::Document.new(uri, self.schema).schema.json_schemas
-    end
-
-    def validate_data(data)
-      case schema_type
-      when :json_schema
-        begin
-          JSON::Validator.validate!(@schema ||= data_types.first.merged_schema(recursive: true), JSON.parse(data))
-          []
-        rescue Exception => ex
-          [ex.message]
-        end
-      when :xml_schema
-        Nokogiri::XML::Schema(schema.cenit_ref_schema).validate(Nokogiri::XML(data))
-      end
     end
   end
 end

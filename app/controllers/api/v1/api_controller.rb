@@ -9,32 +9,42 @@ module Api::V1
 
     def index
       @items = klass.all
-      render json: @items.map { |item| {((model = (hash = item.to_hash(embedding_all: true)).delete('_type')) ? model.downcase : @model) => hash} }
+      render json: @items.map { |item| {((model = (hash = item.inspect_json(include_id: true)).delete('_type')) ? model.downcase : @model) => hash} }
     end
 
     def show
-      render json: {@model => attr_presentation(@item.attributes)}
+      if @item.orm_model.data_type.is_a?(Setup::FileDataType)
+        send_data @item.data, filename: @item[:filename], type: @item[:contentType]
+      else
+        render json: {@model => @item.to_hash}
+      end
     end
 
     def push
-      result = {}
+      response =
+        {
+          success: success_report = Hash.new { |h, k| h[k] = [] },
+          errors: broken_report = Hash.new { |h, k| h[k] = [] }
+        }
       @payload.each do |root, message|
-        items = {}
-        message.is_a?(Array) ? message.each { |e| items[e] = process_message(root, e) } : items[message] = process_message(root, message)
-        result[root] = items
+        if data_type = @payload.data_type_for(root)
+          message = [message] unless message.is_a?(Array)
+          message.each do |item|
+            if (record = data_type.send(@payload.create_method,
+                                        @payload.process_item(item, data_type),
+                                        options = @payload.create_options)).errors.blank?
+              success_report[root.pluralize] << record.inspect_json(inspecting: :id, inspect_scope: options[:create_collector])
+            else
+              broken_report[root] << {errors: record.errors.full_messages, item: item}
+            end
+          end
+        else
+          broken_report[root] = 'no model found'
+        end
       end
-      result.delete_if { |_, value| value.compact.blank? }
-      broken = {}
-      result.each { |root, v| broken[root] = v.map { |e, obj| Cenit::Utility.save(obj) ? next : {error_messages: obj.errors.full_messages, item: e} } }
-      broken.delete_if { |_, value| value.compact.blank? }
-      response = {}
-      if broken.present?
-        render json: broken, status: :unprocessable_entity
-      else
-        result.each { |root, v| response[root.pluralize] = v.map { |_, obj| true }.flatten.count }
-        response.merge(errors: broken) if broken.present?
-        render json: response
-      end
+      response.delete(:success) if success_report.blank?
+      response.delete(:errors) if broken_report.blank?
+      render json: response
     end
 
     def destroy
@@ -73,47 +83,134 @@ module Api::V1
     def find_item
       @item = klass.where(id: params[:id]).first
       unless @item.present?
-        render json: {status: "item not found"}
+        render json: {status: 'item not found'}
       end
     end
 
-    def get_model(model)
-      model = model.singularize
-      "Setup::#{model.camelize}".constantize
-    rescue
-      (@models ||= {})[model] ||= Setup::DataType.where(name: model.camelize).first.records_model
+    def get_data_type_by_name(name)
+      @data_types[name] ||= Setup::BuildInDataType["Setup::#{name}"] || Setup::Model.where(name: name).first
+    end
+
+    def get_data_type(root)
+      get_data_type_by_name(root.singularize.camelize)
+    end
+
+    def get_model(root)
+      if data_type = get_data_type(root)
+        data_type.records_model
+      else
+        nil
+      end
     end
 
     def klass
-      "Setup::#{@model.camelize}".constantize rescue get_model(@model)
-    end
-
-    def process_message(root, message)
-      if klass = get_model(root)
-        klass.new_from_json(message)
-      end
-    end
-
-    def attr_presentation(items)
-      items.is_a?(Array) ? items.map { |e| remove_mogo_id(e) }.flatten : remove_mogo_id(items)
-    end
-
-    def remove_mogo_id(items)
-      return {id: items.to_s} if items.is_a?(BSON::ObjectId)
-      return items unless items.is_a?(Enumerable)
-      PRESENTATION_KEY.each { |key, value| items.merge!(value => items.delete(key)) }
-      items.delete_if { |key, value| value.blank? }
-      items.each { |key, value| items[key] = (key == 'id' ? attr_presentation(value.to_s) : attr_presentation(value)) }
-      items
+      get_model(@model)
     end
 
     def save_request_data
+      @data_types ||= {}
       @request_id = request.uuid
-      if (@webhook_body = request.body.read).present?
-        @payload = JSON.parse(@webhook_body).with_indifferent_access
-      end
-      @lib = params[:lib]
+      @webhook_body = request.body.read
       @model = params[:model]
+      @payload =
+        case request.content_type
+        when 'application/json'
+          JSONPayload
+        when 'application/xml'
+          XMLPayload
+        else
+          BasicPayload
+        end.new(controller: self,
+                message: @webhook_body,
+                content_type: request.content_type)
+    end
+
+    private
+
+    attr_reader :webhook_body
+
+    class BasicPayload
+
+      attr_reader :config
+      attr_reader :create_options
+
+      def initialize(config)
+        @config =
+          {
+            create_method: case config[:content_type]
+                           when 'application/json'
+                             :create_from_json
+                           when 'application/xml'
+                             :create_from_xml
+                           else
+                             :create_from
+                           end,
+            message: ''
+          }.merge(config || {})
+        @data_type = (controller = config[:controller]).send(:get_data_type_by_name, (@root = controller.request.headers['data-type']))
+        @create_options = {create_collector: Set.new}
+        create_options_keys.each { |option| @create_options[option.to_sym] = controller.request[option] }
+      end
+
+      def create_method
+        config[:create_method]
+      end
+
+      def create_options_keys
+        %w(filename)
+      end
+
+      def each_root(&block)
+        block.call(@root, config[:message]) if block
+      end
+
+      def each(&block)
+        if @data_type
+          block.call(@data_type.name, config[:message])
+        else
+          each_root(&block)
+        end
+      end
+
+      def process_item(item, data_type)
+        item
+      end
+
+      def data_type_for(root)
+        @data_type && @data_type.name == root ? @data_type : config[:controller].send(:get_data_type, root)
+      end
+    end
+
+    class JSONPayload < BasicPayload
+
+      def each_root(&block)
+        JSON.parse(config[:message]).each { |root, message| block.call(root, message) } if block
+      end
+
+      def process_item(item, data_type)
+        data_type.is_a?(Setup::FileDataType) ? item.to_json : item
+      end
+    end
+
+    def create_options_keys
+      super + %w(only)
+    end
+
+    class XMLPayload < BasicPayload
+
+      def each_root(&block)
+        if roots = Nokogiri::XML::DocumentFragment.parse(config[:message]).element_children
+          roots.each do |root|
+            if elements = root.element_children
+              elements.each { |e| block.call(root.name, e) }
+            end
+          end
+        end if block
+      end
+
+      def process_item(item, data_type)
+        data_type.is_a?(Setup::FileDataType) ? item.to_xml : item
+      end
     end
   end
 end
