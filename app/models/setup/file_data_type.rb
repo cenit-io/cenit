@@ -49,59 +49,59 @@ module Setup
       end
     end
 
-    def create_from(string_or_readable, attributes={})
-      file = model.new
-      file.filename = attributes[:filename]
-      file.contentType = attributes[:contentType] if attributes[:contentType]
+    def create_from(string_or_readable, options = {})
+      options = default_attributes.merge(options)
+      file = records_model.new
+      file.filename = options[:filename]
+      file.contentType = options[:contentType] if options[:contentType]
       file.data = string_or_readable
-      file.save
+      file.save(options)
       file
     end
 
-    def create_from_json(json_or_readable, attributes={})
+    def create_from_json(json_or_readable, options = {})
       data = json_or_readable
       unless validator.nil? || validator.data_format == :json
         data = ((data.is_a?(String) || data.is_a?(Hash)) && data) || data.read
         data = validator.format_from_json(data)
+        options[:valid_data] = true
       end
-      create_from(data, attributes)
+      create_from(data, options)
     end
 
-    def create_from_xml(string_or_readable, attributes={})
+    def create_from_xml(string_or_readable, options = {})
       data = string_or_readable
       unless validator.nil? || validator.data_format == :xml
         data = (data.is_a?(String) && data) || data.read
         data = validator.format_from_xml(data)
+        options[:valid_data] = true
       end
-      create_from(data, attributes)
+      create_from(data, options)
     end
 
-    def create_from_edi(string_or_readable, attributes={})
+    def create_from_edi(string_or_readable, options = {})
       data = string_or_readable
       unless validator.nil? || validator.data_format == :edi
         data = (data.is_a?(String) && data) || data.read
         data = validator.format_from_edi(data)
+        options[:valid_data] = true
       end
-      create_from(data, attributes)
+      create_from(data, options)
+    end
+
+    def default_attributes
+      {
+        filename: "file_#{DateTime.now.strftime('%Y-%m-%d_%Hh%Mm%S')}" + ((extension = validator.try(:file_extension)) ? ".#{extension}" : ''),
+        contentType: validator.try(:content_type) || 'application/octet-stream'
+      }
     end
 
     protected
 
-    def default_attributes
-      if validator
-        {
-          filename: "file_#{DateTime.now.strftime('%Y-%m-%d_%Hh%Mm%S')}" + (extension = validator.file_extension) ? ".#{extension}" : '',
-          contentType: validator.content_type
-        }
-      else
-        {}
-      end
-    end
-
     def do_load_model(report)
       Object.const_set(data_type_name, model = Class.new)
       model.instance_variable_set(:@grid_fs_file_model, grid_fs_file_model = Mongoff::GridFs::FileModel.new(self, observable: false))
-      model.class_eval(&FILE_MODEL_MIXIN)
+      model.include(FileModel)
       model.store_in(collection: -> { grid_fs_file_model.collection_name })
       model.class_eval("def self.data_type
             Setup::FileDataType.where(id: '#{self.id}').first
@@ -120,19 +120,29 @@ module Setup
 
     private
 
-    FILE_MODEL_MIXIN = proc do
+    module FileModel
+      extend ActiveSupport::Concern
+
       Setup::Model.to_include_in_models.each do |module_to_include|
-        include(module_to_include) unless include?(module_to_include) || [Edi::Formatter, RailsAdminDynamicCharts::Datetime].include?(module_to_include)
+        include(module_to_include) unless include?(module_to_include) || [RailsAdminDynamicCharts::Datetime].include?(module_to_include)
       end
 
-      field :filename, type: String
-      field :contentType, type: String, default: -> { Mongoff::GridFs::FileModel::SCHEMA['properties']['contentType']['default'] }
-      field :length, type: Integer
-      field :uploadDate, type: Time
-      field :chunkSize, type: String
-      field :md5, type: String
-      field :aliases
-      field :metadata
+      include Mongoff::GridFs::FileFormatter
+
+      included do
+        field :filename, type: String
+        field :contentType, type: String, default: -> { Mongoff::GridFs::FileModel::SCHEMA['properties']['contentType']['default'] }
+        field :length, type: Integer
+        field :uploadDate, type: Time
+        field :chunkSize, type: String
+        field :md5, type: String
+        field :aliases
+        field :metadata
+
+        before_destroy do
+          file.destroy
+        end
+      end
 
       def name
         filename
@@ -164,7 +174,7 @@ module Setup
       def save(options = {})
         if @new_data
           file.data = @new_data
-          if file.save
+          if file.save(options)
             @new_record = false
           else
             @errors = file.errors
@@ -174,49 +184,8 @@ module Setup
         file.destroy unless super
       end
 
-      before_destroy do
-        file.destroy
-      end
+      module ClassMethods
 
-      def to_json(options = {})
-        data = file.data
-        data_type = self.class.data_type
-        unless (validator = data_type.validator).nil? || validator.data_format == :json
-          ignore = (options[:ignore] || [])
-          ignore = [ignore] unless ignore.is_a?(Enumerable)
-          ignore = ignore.select { |p| p.is_a?(Symbol) || p.is_a?(String) }.collect(&:to_sym)
-          options[:ignore] = ignore
-          data = validator.format_to(:json, data, options)
-        end
-        hash = JSON.parse(data)
-        hash = {data_type.name.downcase => hash} if options[:include_root]
-        if options[:pretty]
-          JSON.pretty_generate(hash)
-        else
-          options[:include_root] ? hash.to_json : data
-        end
-      end
-
-      def to_xml(options = {})
-        data = file.data
-        data_type = self.class.data_type
-        unless (validator = data_type.validator).nil? || validator.data_format == :xml
-          data = validator.format_to(:xml, data, options)
-        end
-        Nokogiri::XML::Document.parse(data)
-        data
-      end
-
-      def to_edi(options = {})
-        data = file.data
-        data_type = self.class.data_type
-        unless (validator = data_type.validator).nil? || validator.data_format == :edi
-          data = validator.format_to(:edi, data, options)
-        end
-        data
-      end
-
-      class << self
         def all_storage_collections_names
           instance_variable_get(:@grid_fs_file_model).all_storage_collections_names
         end

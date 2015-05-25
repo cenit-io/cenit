@@ -28,10 +28,10 @@ module Cenit
     end
 
     class << self
-      def save(record)
+      def save(record, options)
         saved = Set.new
         if bind_references(record)
-          if save_references(record, saved) && record.save
+          if save_references(record, options, saved) && record.save
             true
           else
             for_each_node_starting_at(record, stack=[]) do |obj|
@@ -48,7 +48,7 @@ module Cenit
             end
             saved.each do |obj|
               if obj = obj.reload rescue nil
-                obj.delete if obj.instance_variable_get(:@saved_on_saving_references)
+                obj.delete if obj.instance_variable_get(:@dynamically_saved)
               end
             end
             false
@@ -129,18 +129,24 @@ module Cenit
         end
       end
 
-      def save_references(record, saved, visited = Set.new)
+      def save_references(record, options, saved, visited = Set.new)
         return true if visited.include?(record)
         visited << record
         record.orm_model.for_each_association do |relation|
           next if Setup::BuildInDataType::EXCLUDED_RELATIONS.include?(relation[:name].to_s)
           if values = record.send(relation[:name])
             values = [values] unless values.is_a?(Enumerable)
-            values.each { |value| return false unless save_references(value, saved, visited) }
+            values.each { |value| return false unless save_references(value, options, saved, visited) }
             values.each do |value|
               unless saved.include?(value)
-                value.instance_variable_set(:@saved_on_saving_references, true) if value.new_record?
-                if value.save
+                new_record = value.new_record?
+                if value.save(options)
+                  if new_record || value.instance_variable_get(:@dynamically_saved)
+                    value.instance_variable_set(:@dynamically_saved, true)
+                    options[:create_collector] << value if options[:create_collector]
+                  else
+                    options[:update_collector] << value if options[:update_collector]
+                  end
                   saved << value
                 else
                   return false
