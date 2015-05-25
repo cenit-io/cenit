@@ -28,7 +28,7 @@ module Cenit
     end
 
     class << self
-      def save(record, options)
+      def save(record, options = {})
         saved = Set.new
         if bind_references(record)
           if save_references(record, options, saved) && record.save
