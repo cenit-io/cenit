@@ -44,7 +44,7 @@ module Setup
     end
 
     def validate_configuration
-      hash_data = (source_collection.present? && source_collection.to_hash) || data || '{}'
+      hash_data = (source_collection.present? && source_collection.to_hash(:ignore => :id)) || data || '{}'
       [hash_data, hash_data['connection_roles']].flatten.each do |hash|
         if values = hash['connections']
           values.delete_if { |source_connection| !connections.detect { |c| c.name == source_connection['name'] } }
