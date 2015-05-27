@@ -24,7 +24,7 @@ module Setup
     belongs_to :response_translator, class_name: Setup::Translator.to_s, inverse_of: nil
     belongs_to :response_data_type, class_name: Setup::Model.to_s, inverse_of: nil
 
-    field :last_trigger_timestamps, type: DateTime
+    field :last_trigger_timestamps, type: Time
 
     validates_presence_of :name, :translator
     validates_numericality_in_presence_of :lot_size, greater_than_or_equal_to: 1
