@@ -2,7 +2,7 @@ module Setup
   class Collection
     include CenitScoped
 
-    BuildInDataType.regist(self).embedding(:flows, :connection_roles, :translators, :events, :libraries, :webhooks, :connections).excluding(:image)
+    BuildInDataType.regist(self).embedding(:flows, :connection_roles, :translators, :events, :libraries, :custom_validators, :webhooks, :connections).excluding(:image)
 
     mount_uploader :image, CenitImageUploader
     field :name, type: String
@@ -13,6 +13,7 @@ module Setup
     has_and_belongs_to_many :translators, class_name: Setup::Translator.to_s, inverse_of: nil
     has_and_belongs_to_many :events, class_name: Setup::Event.to_s, inverse_of: nil
     has_and_belongs_to_many :libraries, class_name: Setup::Library.to_s, inverse_of: nil
+    has_and_belongs_to_many :custom_validators, class_name: Setup::CustomValidator.to_s, inverse_of: nil
 
 
     has_and_belongs_to_many :webhooks, class_name: Setup::Webhook.to_s, inverse_of: nil

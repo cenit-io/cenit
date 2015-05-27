@@ -28,7 +28,7 @@ module Cenit
     end
 
     class << self
-      def save(record, options)
+      def save(record, options = {})
         saved = Set.new
         if bind_references(record)
           if save_references(record, options, saved) && record.save
@@ -201,7 +201,7 @@ module Cenit
         when Hash
           if options[:recursive]
             obj.keys.each { |k| return false unless k.is_a?(String) }
-            obj.values.each { |k| return false unless json_object?(String) }
+            obj.values.each { |v| return false unless json_object?(v) }
           end
           true
         when Array
