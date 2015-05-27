@@ -272,13 +272,8 @@ RailsAdmin.config do |config|
   config.model Setup::EdiValidator do
     label 'EDI Validators'
     navigation_label 'Data Definitions'
-    edit do
-      field :name
-      field :schema
-      field :content_type do
 
-      end
-    end
+    fields :name, :schema, :content_type
   end
 
   config.model Setup::FileDataType do
@@ -955,9 +950,14 @@ RailsAdmin.config do |config|
       end
       field :pull_parameters do
         visible do
-          !(obj = bindings[:object]).instance_variable_get(:@_selecting_collection) &&
+          if !(obj = bindings[:object]).instance_variable_get(:@_selecting_collection) &&
             !obj.instance_variable_get(:@_selecting_connections) &&
-            obj.enum_for_pull_parameters.present?
+            (pull_parameters_enum = obj.enum_for_pull_parameters).present?
+            bindings[:controller].instance_variable_set(:@shared_parameter_enum, pull_parameters_enum)
+            true
+          else
+            false
+          end
         end
       end
     end
@@ -975,6 +975,7 @@ RailsAdmin.config do |config|
   end
 
   config.model Setup::CollectionPullParameter do
+    object_label_method { :label }
     field :label
     field :parameter, :enum do
       enum do
@@ -1007,6 +1008,7 @@ RailsAdmin.config do |config|
       field :translators
       field :events
       field :libraries
+      field :custom_validators
       field :webhooks
       field :connections
 
@@ -1016,6 +1018,10 @@ RailsAdmin.config do |config|
       field :updated_at
       #field :updater
     end
-    fields :image, :name, :flows, :connection_roles, :translators, :events, :libraries, :webhooks, :connections
+    fields :image, :name, :flows, :connection_roles, :translators, :events, :libraries, :custom_validators, :webhooks, :connections
+  end
+
+  config.model Setup::CustomValidator do
+    visible false
   end
 end

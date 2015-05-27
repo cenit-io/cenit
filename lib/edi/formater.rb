@@ -121,12 +121,14 @@ module Edi
     end
 
     def record_to_hash(record, options = {}, referenced = false, enclosed_model = nil)
-      return nil if options[:inspected_records].include?(record)
       return record if Cenit::Utility.json_object?(record)
-      options[:inspected_records] << record
       data_type = record.orm_model.data_type
       schema = record.orm_model.schema
       json = (referenced = referenced && schema['referenced_by']) ? {'_reference' => true} : {}
+      if !referenced
+        return nil if options[:inspected_records].include?(record)
+        options[:inspected_records] << record
+      end
       schema['properties']['_id'] ||= {'_id' => {'type' => 'string'}, 'edi' => {'segment' => 'id'}} if options[:include_id]
       schema['properties'].each do |property_name, property_schema|
         property_schema = data_type.merge_schema(property_schema)
