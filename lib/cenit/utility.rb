@@ -136,8 +136,14 @@ module Cenit
           next if Setup::BuildInDataType::EXCLUDED_RELATIONS.include?(relation[:name].to_s)
           if values = record.send(relation[:name])
             values = [values] unless values.is_a?(Enumerable)
-            values.each { |value| return false unless save_references(value, options, saved, visited) }
+            values_to_save = []
             values.each do |value|
+              unless visited.include?(value)
+                return false unless save_references(value, options, saved, visited)
+                values_to_save << value
+              end
+            end
+            values_to_save.each do |value|
               unless saved.include?(value)
                 new_record = value.new_record?
                 if value.save(options)
@@ -157,7 +163,7 @@ module Cenit
         end
         true
       end
-
+    
       def find_record(scope, conditions)
         match_conditions = {}
         conditions.each do |key, value|
