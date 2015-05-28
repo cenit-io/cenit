@@ -27,10 +27,10 @@ module RailsAdmin
               collection.send("#{klass.to_s.split('::').last.downcase.pluralize}=", @bulk_ids ? klass.any_in(id: @bulk_ids) : klass.all)
             end
             collection.check_dependencies
-            if params[:_restart].nil? && (shared_params = params[shared_collection_config.abstract_model.param_key])
+            if params[:_restart].nil? && (shared_params = params.delete(shared_collection_config.abstract_model.param_key))
               @shared_collection = Setup::SharedCollection.new(shared_params.to_hash.merge(image: collection.image))
               @shared_collection.source_collection = collection
-              shared = @shared_collection.save if params[:_share]
+              shared = params[:_share] && @shared_collection.save
             end
             if shared
               redirect_to back_or_index

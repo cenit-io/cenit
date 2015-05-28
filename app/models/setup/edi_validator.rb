@@ -1,9 +1,9 @@
 module Setup
-  class EdiValidator < Validator
+  class EdiValidator < CustomValidator
     include CenitScoped
     include DataTypeValidator
 
-    BuildInDataType.regist(self)
+    BuildInDataType.regist(self).referenced_by(:name)
 
     belongs_to :schema, class_name: Setup::Schema.to_s, inverse_of: nil
 

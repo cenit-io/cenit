@@ -163,7 +163,7 @@ module Cenit
         end
         true
       end
-
+    
       def find_record(scope, conditions)
         match_conditions = {}
         conditions.each do |key, value|
@@ -207,7 +207,7 @@ module Cenit
         when Hash
           if options[:recursive]
             obj.keys.each { |k| return false unless k.is_a?(String) }
-            obj.values.each { |k| return false unless json_object?(String) }
+            obj.values.each { |v| return false unless json_object?(v) }
           end
           true
         when Array
