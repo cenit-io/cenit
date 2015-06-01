@@ -27,10 +27,11 @@ module Setup
       else
         self.parameter = CollectionPullParameter.generate_parameter(type, name, property, key)
       end
-      requires(:type, :name, :property, :parameter)
+      !requires(:type, :name, :property, :parameter)
     end
 
     def process_on(hash_data, parameter_value = nil)
+      errors.clear
       unless key.present?
         if values = hash_data[type.to_s.downcase.pluralize]
           if value = values.detect { |h| h['name'] == name.to_s }
@@ -69,6 +70,7 @@ module Setup
       else
         errors.add(:base, "with key '#{values_key}' not found on shared data")
       end
+      errors.blank?
     end
 
     class << self

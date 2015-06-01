@@ -136,8 +136,14 @@ module Cenit
           next if Setup::BuildInDataType::EXCLUDED_RELATIONS.include?(relation[:name].to_s)
           if values = record.send(relation[:name])
             values = [values] unless values.is_a?(Enumerable)
-            values.each { |value| return false unless save_references(value, options, saved, visited) }
+            values_to_save = []
             values.each do |value|
+              unless visited.include?(value)
+                return false unless save_references(value, options, saved, visited)
+                values_to_save << value
+              end
+            end
+            values_to_save.each do |value|
               unless saved.include?(value)
                 new_record = value.new_record?
                 if value.save(options)
@@ -209,6 +215,20 @@ module Cenit
           true
         else
           [Integer, Float, String, TrueClass, FalseClass, Boolean, NilClass].any? { |klass| obj.is_a?(klass) }
+        end
+      end
+
+      def array_hash_merge(val1, val2, options = {}, &block)
+        if val1.is_a?(Array) && val2.is_a?(Array)
+          if options[:array_uniq]
+            (val2 + val1).uniq(&block)
+          else
+            val1 + val2
+          end
+        elsif val1.is_a?(Hash) && val2.is_a?(Hash)
+          val1.deep_merge(val2) { |_, val1, val2| array_hash_merge(val1, val2) }
+        else
+          val2
         end
       end
     end

@@ -885,17 +885,25 @@ RailsAdmin.config do |config|
     fields :name, :type, :style, :transformation
   end
 
+  config.model Setup::SharedName do
+    visible { false }
+    navigation_label 'Collections'
+    fields :name, :owners
+  end
+
   config.model Setup::SharedCollection do
     register_instance_option(:discard_submit_buttons) do
       !(a = bindings[:action]) || a.key != :edit
     end
     navigation_label 'Collections'
+    object_label_method { :versioned_name }
     weight -19
     edit do
       field :image do
         visible { !bindings[:object].new_record? }
       end
       field :name
+      field :shared_version
       field :description
       field :source_collection do
         visible { !((source_collection = bindings[:object].source_collection) && source_collection.new_record?) }
@@ -926,7 +934,7 @@ RailsAdmin.config do |config|
             ids = ''
             [value].flatten.select(&:present?).collect do |associated|
               ids += "<option value=#{associated.id} selected=true/>"
-              amc = polymorphic? ? RailsAdmin.config(associated) : associated_model_config # perf optimization for non-polymorphic associations
+              amc = polymorphic? ? RailsAdmin.config(associated) : associated_model_config
               am = amc.abstract_model
               wording = associated.send(amc.object_label_method)
               can_see = !am.embedded? && (show_action = v.action(:show, am, associated))
@@ -948,6 +956,35 @@ RailsAdmin.config do |config|
           }
         end
       end
+      field :dependencies do
+        inline_add false
+        read_only do
+          !bindings[:object].instance_variable_get(:@_selecting_connections)
+        end
+        help do
+          nil
+        end
+        pretty_value do
+          if bindings[:object].dependencies.present?
+            v = bindings[:view]
+            ids = ''
+            [value].flatten.select(&:present?).collect do |associated|
+              ids += "<option value=#{associated.id} selected=true/>"
+              amc = polymorphic? ? RailsAdmin.config(associated) : associated_model_config
+              am = amc.abstract_model
+              wording = associated.send(amc.object_label_method)
+              can_see = !am.embedded? && (show_action = v.action(:show, am, associated))
+              can_see ? v.link_to(wording, v.url_for(action: show_action.action_name, model_name: am.to_param, id: associated.id), class: 'pjax') : wording
+            end.to_sentence.html_safe +
+              v.select_tag("#{bindings[:controller].instance_variable_get(:@model_config).abstract_model.param_key}[dependency_ids][]", ids.html_safe, multiple: true, style: 'display:none').html_safe
+          else
+            'No dependencies selected'.html_safe
+          end
+        end
+        visible do
+          !(obj = bindings[:object]).instance_variable_get(:@_selecting_collection)
+        end
+      end
       field :pull_parameters do
         visible do
           if !(obj = bindings[:object]).instance_variable_get(:@_selecting_collection) &&
@@ -963,15 +1000,38 @@ RailsAdmin.config do |config|
     end
     show do
       field :image
-      field :name
+      field :name do
+        pretty_value do
+          bindings[:object].versioned_name
+        end
+      end
       field :category
       field :description
+      field :owners, :text do
+        pretty_value do
+          value.collect { |user| user.email }.to_sentence.html_safe
+        end
+      end
+      field :dependencies
 
       field :created_at
-      field :creator
       field :updated_at
     end
-    fields :image, :name, :category, :creator, :description
+    list do
+      field :image
+      field :name do
+        pretty_value do
+          bindings[:object].versioned_name
+        end
+      end
+      field :category
+      field :owners, :text do
+        pretty_value do
+          value.collect { |user| user.email }.to_sentence.html_safe
+        end
+      end
+      field :description
+    end
   end
 
   config.model Setup::CollectionPullParameter do
