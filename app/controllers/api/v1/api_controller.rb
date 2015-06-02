@@ -22,10 +22,10 @@ module Api::V1
 
     def push
       response =
-        {
-          success: success_report = Hash.new { |h, k| h[k] = [] },
-          errors: broken_report = Hash.new { |h, k| h[k] = [] }
-        }
+          {
+              success: success_report = Hash.new { |h, k| h[k] = [] },
+              errors: broken_report = Hash.new { |h, k| h[k] = [] }
+          }
       @payload.each do |root, message|
         if data_type = @payload.data_type_for(root)
           message = [message] unless message.is_a?(Array)
@@ -51,6 +51,11 @@ module Api::V1
       @item.destroy
       head :no_content
     end
+
+    def auth
+      head :no_content
+    end
+
 
     protected
 
@@ -113,16 +118,16 @@ module Api::V1
       @webhook_body = request.body.read
       @model = params[:model]
       @payload =
-        case request.content_type
-        when 'application/json'
-          JSONPayload
-        when 'application/xml'
-          XMLPayload
-        else
-          BasicPayload
-        end.new(controller: self,
-                message: @webhook_body,
-                content_type: request.content_type)
+          case request.content_type
+            when 'application/json'
+              JSONPayload
+            when 'application/xml'
+              XMLPayload
+            else
+              BasicPayload
+          end.new(controller: self,
+                  message: @webhook_body,
+                  content_type: request.content_type)
     end
 
     private
@@ -136,17 +141,17 @@ module Api::V1
 
       def initialize(config)
         @config =
-          {
-            create_method: case config[:content_type]
-                           when 'application/json'
-                             :create_from_json
-                           when 'application/xml'
-                             :create_from_xml
-                           else
-                             :create_from
-                           end,
-            message: ''
-          }.merge(config || {})
+            {
+                create_method: case config[:content_type]
+                                 when 'application/json'
+                                   :create_from_json
+                                 when 'application/xml'
+                                   :create_from_xml
+                                 else
+                                   :create_from
+                               end,
+                message: ''
+            }.merge(config || {})
         @data_type = (controller = config[:controller]).send(:get_data_type_by_name, (@root = controller.request.headers['data-type']))
         @create_options = {create_collector: Set.new}
         create_options_keys.each { |option| @create_options[option.to_sym] = controller.request[option] }
