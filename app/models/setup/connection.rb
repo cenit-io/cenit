@@ -3,7 +3,7 @@ module Setup
     include CenitScoped
     include NumberGenerator
 
-    BuildInDataType.regist(self).referenced_by(:name).excluding(:connection_roles)
+    BuildInDataType.regist(self).referenced_by(:name).excluding(:connection_roles).discarding(:number, :token)
 
     has_and_belongs_to_many :connection_roles, class_name: Setup::ConnectionRole.to_s, inverse_of: :connections
 
