@@ -48,8 +48,12 @@ module Api::V1
     end
 
     def destroy
-      @item.destroy
-      head :no_content
+      if Setup::Models.registered?(klass) && Setup::Models.excluded_actions_for(klass).include?(:delete)
+        render json: {status: :not_allowed}
+      else
+        @item.destroy
+        render json: {status: :ok}
+      end
     end
 
     protected
@@ -104,7 +108,7 @@ module Api::V1
     end
 
     def klass
-      get_model(@model)
+      @klass ||= get_model(@model)
     end
 
     def save_request_data
