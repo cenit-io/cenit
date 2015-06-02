@@ -3,7 +3,7 @@ module Setup
     include CenitUnscoped
     include Trackable
 
-    Setup::Models.exclude_actions_for self, :new, :edit, :translator_update, :convert, :send_to_flow, :delete_all, #TODO :delete
+    Setup::Models.exclude_actions_for self, :new, :edit, :translator_update, :convert, :send_to_flow, :delete_all #TODO :delete
 
     BuildInDataType.regist(self).with(:name, :shared_version, :description, :pull_parameters, :dependencies, :data).referenced_by(:name, :shared_version)
 
@@ -58,13 +58,12 @@ module Setup
         end if hash
       end if connections.present?
       dependencies_hash_data = dependencies_data
-      if source_collection.present? && pull_parameters.present?
+      if pull_parameters.present?
         pull_parameters_enum = enum_for_pull_parameters
         pull_parameters.each do |pull_parameter|
           if pull_parameter.validate_configuration
             if (parameter = pull_parameter.parameter) && pull_parameters_enum.include?(parameter)
-              pull_parameter.process_on(hash_data)
-              pull_parameter.process_on(dependencies_hash_data)
+              pull_parameter.process_on(hash_data) || pull_parameter.process_on(dependencies_hash_data)
             else
               pull_parameter.errors.add(:base, 'is not valid')
             end
@@ -122,7 +121,7 @@ module Setup
     def categorize
       shared = data.keys.select { |key| key != 'name' }
       self.category =
-        shared.length == 1 && %w(libraries translators).include?(shared[0]) ? shared[0].singularize.capitalize : 'Collection'
+          shared.length == 1 && %w(libraries translators).include?(shared[0]) ? shared[0].singularize.capitalize : 'Collection'
       true
     end
 
@@ -155,7 +154,7 @@ module Setup
 
     def enum_for_pull_parameters
       collect_pull_parameters unless pull_parameters.present?
-      pull_parameters.collect(&:parameter)
+      (pull_parameters.collect(&:parameter) + source_pull_parameters_enum).uniq
     end
 
     def collect_pull_parameters
@@ -168,27 +167,25 @@ module Setup
       end
     end
 
-    class << self
-      def pull_parameters_enum_for(source_collection, connections)
-        enum = []
-        if source_collection
-          connections ||= []
-          source_collection.connections.each do |connection|
-            if connections.include?(connection)
-              enum << CollectionPullParameter.parameter_for(connection, :url)
-              [:headers, :parameters, :template_parameters].each do |property|
-                enum += connection.send(property).collect { |value| CollectionPullParameter.parameter_for(connection, property, value.key) }
-              end
-            end
-          end
-          source_collection.webhooks.each do |webhook|
+    def source_pull_parameters_enum(source_collection = self.source_collection, connections = self.connections)
+      enum = []
+      if source_collection
+        connections ||= []
+        source_collection.connections.each do |connection|
+          if connections.include?(connection)
+            enum << CollectionPullParameter.parameter_for(connection, :url)
             [:headers, :parameters, :template_parameters].each do |property|
-              enum += webhook.send(property).collect { |value| CollectionPullParameter.parameter_for(connection, property, value.key) }
+              enum += connection.send(property).collect { |value| CollectionPullParameter.parameter_for(connection, property, value.key) }
             end
           end
         end
-        enum
+        source_collection.webhooks.each do |webhook|
+          [:headers, :parameters, :template_parameters].each do |property|
+            enum += webhook.send(property).collect { |value| CollectionPullParameter.parameter_for(connection, property, value.key) }
+          end
+        end
       end
+      enum
     end
 
     protected
