@@ -140,8 +140,8 @@ module Setup
         hash = values.inject({}) { |hash, item| hash[item['name']] = item; hash }
         hash_data[key] = hash.values.to_a unless hash.size == values.length
       end
-      parameters.each do |parameter, value|
-        if pull_parameter = pull_parameters.detect { |pull_parameter| pull_parameter.parameter == parameter }
+      parameters.each do |id, value|
+        if pull_parameter = pull_parameters.where(id: id).first
           pull_parameter.process_on(hash_data, value)
         end
       end

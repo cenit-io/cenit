@@ -1,7 +1,7 @@
 module Api::V1
   class ApiController < ApplicationController
     before_action :save_request_data, :authorize
-    before_action :find_item, only: [:show, :destroy]
+    before_action :find_item, only: [:show, :destroy, :pull]
     rescue_from Exception, :with => :exception_handler
     respond_to :json
 
@@ -53,6 +53,27 @@ module Api::V1
       else
         @item.destroy
         render json: {status: :ok}
+      end
+    end
+
+    def pull
+      if @item.is_a?(Setup::SharedCollection)
+        begin
+          pull_request = Cenit::Actions.pull(@item, @webhook_body.present? ? JSON.parse(@webhook_body) : {})
+          pull_request.each { |key, value| pull_request.delete(key) unless value.present? }
+          if pull_request[:missing_parameters]
+            pull_request.delete(:updated_records)
+          elsif updated_records = pull_request[:updated_records]
+            updated_records.each do |key, records|
+              updated_records[key] = records.collect { |record| {id: record.id.to_s} }
+            end
+          end
+          render json: pull_request
+        rescue Exception => ex
+          render json: {status: :bad_request}
+        end
+      else
+        render json: {status: :not_allowed}
       end
     end
 
