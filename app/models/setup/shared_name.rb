@@ -3,7 +3,7 @@ module Setup
     include CenitUnscoped
     include Trackable
 
-    Setup::Models.exclude_actions_for self, :new, :edit, :translator_update, :convert, :send_to_flow, :delete_all, #TODO :delete
+    Setup::Models.exclude_actions_for self, :new, :edit, :translator_update, :convert, :send_to_flow, :delete_all #TODO :delete
 
     BuildInDataType.regist(self)
 

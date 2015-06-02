@@ -29,7 +29,7 @@
   - if ready
     %h4=  (@hash_data['name'] && @hash_data.size > 1) ? t('admin.actions.pull_collection.ready') : t('admin.actions.pull_collection.nothing_to_pull')
   .form-actions
-    - if @hash_data['name'] && @hash_data.size > 1
+    - if !@hash_data.empty? && (@hash_data['name'].nil? || @hash_data.size > 1)
       %button.btn.btn-primary{type: 'submit', name: '_pull', :'data-disable-with' => t('admin.actions.pull_collection.submit')}
         %i{class: @action.try(:link_icon)}
         = t('admin.actions.pull_collection.submit')
