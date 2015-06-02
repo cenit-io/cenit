@@ -12,7 +12,7 @@ module Setup
     def merged_schema(options = {})
       sch = merge_schema(JSON.parse(model_schema), options)
       unless (base_sch = sch.delete('extends')).nil? || (base_sch = find_ref_schema(base_sch)).nil?
-        sch = base_sch.deep_merge(sch) { |_, val1, val2| array_hash_merge(val1, val2) }
+        sch = base_sch.deep_merge(sch) { |_, val1, val2| Cenit::Utility.array_hash_merge(val1, val2) }
       end
       check_id_property(sch)
       sch
@@ -59,16 +59,6 @@ module Setup
       end
     end
 
-    def array_hash_merge(val1, val2)
-      if val1.is_a?(Array) && val2.is_a?(Array)
-        val1 + val2
-      elsif val1.is_a?(Hash) && val2.is_a?(Hash)
-        val1.deep_merge(val2) { |_, val1, val2| array_hash_merge(val1, val2) }
-      else
-        val2
-      end
-    end
-
     def get_embedded_schema(ref, root_schema, root_name='')
       raise Exception.new("invalid format for embedded reference #{ref}") unless ref =~ /\A#(\/[a-z]+(_|([0-9]|[a-z])+)*)*\Z/
       raise Exception.new("embedding itself (referencing '#')") if ref.eql?('#')
@@ -111,7 +101,7 @@ module Setup
           schema.each do |key, value|
             if key == '$ref' && (!options[:keep_ref] || sch[key])
               if ref = find_ref_schema(value)
-                sch = sch.reverse_merge(ref) { |_, val1, val2| array_hash_merge(val1, val2) }
+                sch = sch.reverse_merge(ref) { |_, val1, val2| Cenit::Utility.array_hash_merge(val1, val2) }
               else
                 raise Exception.new("contains an unresolved reference #{value}") unless options[:silent]
               end
@@ -119,7 +109,7 @@ module Setup
               case existing_value = sch[key]
               when Hash
                 if value.is_a?(Hash)
-                  value = value.reverse_merge(existing_value) { |_, val1, val2| array_hash_merge(val1, val2) }
+                  value = value.reverse_merge(existing_value) { |_, val1, val2| Cenit::Utility.array_hash_merge(val1, val2) }
                 end
               when Array
                 value = value + existing_value if value.is_a?(Array)
@@ -141,7 +131,7 @@ module Setup
             value_schema = base_model.deep_merge(value_schema)
             schema['properties']['value'] = value_schema.merge('title' => 'Value', 'xml' => {'content' => true})
           else
-            schema = base_model.deep_merge(schema) { |_, val1, val2| array_hash_merge(val1, val2) }
+            schema = base_model.deep_merge(schema) { |_, val1, val2| Cenit::Utility.array_hash_merge(val1, val2) }
           end
         end
       elsif options[:only_overriders]
@@ -153,7 +143,7 @@ module Setup
             properties = schema['properties'] || {}
             base_properties.reject! { |property_name, _| properties[property_name].nil? }
             schema = {'properties' => base_properties}.deep_merge(schema) do |_, val1, val2|
-              array_hash_merge(val1, val2)
+              Cenit::Utility.array_hash_merge(val1, val2)
             end unless base_properties.blank?
           end
         end

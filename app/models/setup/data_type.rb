@@ -241,7 +241,7 @@ module Setup
             value_schema = base_schema.deep_merge(value_schema)
             schema['properties']['value'] = value_schema.merge('title' => 'Value', 'xml' => {'content' => true})
           else
-            schema = base_schema.deep_merge(schema) { |key, val1, val2| array_hash_merge(val1, val2) }
+            schema = base_schema.deep_merge(schema) { |key, val1, val2| Cenit::Utility.array_hash_merge(val1, val2) }
           end
         end
       end

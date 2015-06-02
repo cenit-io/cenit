@@ -40,7 +40,7 @@ module Setup
     scope :activated, -> { where(activated: true) }
 
     after_save do
-      #create_default_events
+      #TODO create_default_events
     end
 
     before_destroy do
@@ -121,12 +121,12 @@ module Setup
       report = {loaded: Set.new, errors: {}}
       begin
         model =
-            if (do_shutdown = options[:reload]) || !loaded?
-              merge_report(Model.shutdown(self, options), report) if do_shutdown
-              do_load_model(report)
-            else
-              self.model
-            end
+          if (do_shutdown = options[:reload]) || !loaded?
+            merge_report(Model.shutdown(self, options), report) if do_shutdown
+            do_load_model(report)
+          else
+            self.model
+          end
       rescue Exception => ex
         #TODO Delete raise
         raise ex
