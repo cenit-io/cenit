@@ -40,7 +40,7 @@ module Setup
     scope :activated, -> { where(activated: true) }
 
     after_save do
-      create_default_events
+      #TODO create_default_events
     end
 
     before_destroy do
