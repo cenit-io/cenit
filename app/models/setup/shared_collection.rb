@@ -3,7 +3,7 @@ module Setup
     include CenitUnscoped
     include Trackable
 
-    Setup::Models.exclude_actions_for self, :new, :edit, :translator_update, :convert, :send_to_flow, :delete_all, #TODO :delete
+    Setup::Models.exclude_actions_for self, :new, :edit, :translator_update, :convert, :send_to_flow, :delete_all, :delete
 
     BuildInDataType.regist(self).with(:name, :shared_version, :description, :pull_parameters, :dependencies, :data).referenced_by(:name, :shared_version)
 
@@ -51,20 +51,19 @@ module Setup
     end
 
     def validate_configuration
-      hash_data = (source_collection.present? && source_collection.to_hash(ignore: :id)) || data || {}
+      hash_data = (source_collection.present? && source_collection.share_hash) || data || {}
       [hash_data, hash_data['connection_roles']].flatten.each do |hash|
         if values = hash['connections']
           values.delete_if { |source_connection| !connections.detect { |c| c.name == source_connection['name'] } }
         end if hash
       end if connections.present?
       dependencies_hash_data = dependencies_data
-      if source_collection.present? && pull_parameters.present?
+      if pull_parameters.present?
         pull_parameters_enum = enum_for_pull_parameters
         pull_parameters.each do |pull_parameter|
           if pull_parameter.validate_configuration
             if (parameter = pull_parameter.parameter) && pull_parameters_enum.include?(parameter)
-              pull_parameter.process_on(hash_data)
-              pull_parameter.process_on(dependencies_hash_data)
+              pull_parameter.process_on(hash_data) || pull_parameter.process_on(dependencies_hash_data)
             else
               pull_parameter.errors.add(:base, 'is not valid')
             end
@@ -141,8 +140,8 @@ module Setup
         hash = values.inject({}) { |hash, item| hash[item['name']] = item; hash }
         hash_data[key] = hash.values.to_a unless hash.size == values.length
       end
-      parameters.each do |parameter, value|
-        if pull_parameter = pull_parameters.detect { |pull_parameter| pull_parameter.parameter == parameter }
+      parameters.each do |id, value|
+        if pull_parameter = pull_parameters.where(id: id).first
           pull_parameter.process_on(hash_data, value)
         end
       end
@@ -155,7 +154,7 @@ module Setup
 
     def enum_for_pull_parameters
       collect_pull_parameters unless pull_parameters.present?
-      pull_parameters.collect(&:parameter)
+      (pull_parameters.collect(&:parameter) + source_pull_parameters_enum).uniq
     end
 
     def collect_pull_parameters
@@ -168,27 +167,25 @@ module Setup
       end
     end
 
-    class << self
-      def pull_parameters_enum_for(source_collection, connections)
-        enum = []
-        if source_collection
-          connections ||= []
-          source_collection.connections.each do |connection|
-            if connections.include?(connection)
-              enum << CollectionPullParameter.parameter_for(connection, :url)
-              [:headers, :parameters, :template_parameters].each do |property|
-                enum += connection.send(property).collect { |value| CollectionPullParameter.parameter_for(connection, property, value.key) }
-              end
-            end
-          end
-          source_collection.webhooks.each do |webhook|
+    def source_pull_parameters_enum(source_collection = self.source_collection, connections = self.connections)
+      enum = []
+      if source_collection
+        connections ||= []
+        source_collection.connections.each do |connection|
+          if connections.include?(connection)
+            enum << CollectionPullParameter.parameter_for(connection, :url)
             [:headers, :parameters, :template_parameters].each do |property|
-              enum += webhook.send(property).collect { |value| CollectionPullParameter.parameter_for(connection, property, value.key) }
+              enum += connection.send(property).collect { |value| CollectionPullParameter.parameter_for(connection, property, value.key) }
             end
           end
         end
-        enum
+        source_collection.webhooks.each do |webhook|
+          [:headers, :parameters, :template_parameters].each do |property|
+            enum += webhook.send(property).collect { |value| CollectionPullParameter.parameter_for(webhook, property, value.key) }
+          end
+        end
       end
+      enum
     end
 
     protected

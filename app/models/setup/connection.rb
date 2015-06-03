@@ -22,7 +22,7 @@ module Setup
     after_initialize :ensure_token
 
     validates_uniqueness_of :name
-    accepts_nested_attributes_for :parameters, :headers, :template_parameters
+    accepts_nested_attributes_for :parameters, :headers, :template_parameters, allow_destroy: true
 
     validates_presence_of :name, :url, :key, :token
     validates_uniqueness_of :token

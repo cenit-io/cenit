@@ -1014,6 +1014,7 @@ RailsAdmin.config do |config|
       end
       field :dependencies
 
+      field :_id
       field :created_at
       field :updated_at
     end

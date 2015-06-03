@@ -1,3 +1,7 @@
+- missing_parameters = @pull_request[:missing_parameters]
+- pull_parameters = @pull_request[:pull_parameters]
+- updated_records = @pull_request[:updated_records]
+- pull_data = @pull_request[:pull_data]
 %form{method: 'post', class: 'form-horizontal denser'}
   - ready = true
   - if @object.pull_parameters.present?
@@ -5,21 +9,21 @@
     %h4= t('admin.actions.pull_collection.fill_parameters')
     .fieldset
       - @object.pull_parameters.each do |pull_parameter|
-        .control-group{class: (error = @missing_parameters.include?(pull_parameter.parameter)) ? 'error' : ''}
+        .control-group{class: (error = missing_parameters.include?(pull_parameter.id.to_s)) ? 'error' : ''}
           %label.control-label
             = pull_parameter.label
           .controls
-            %input{type: 'text', size: 50, name: "pull_parameters[#{pull_parameter.parameter}]", value:  @parameter_values[pull_parameter.parameter]}
+            %input{type: 'text', size: 50, name: "pull_parameters[#{pull_parameter.id}]", value:  pull_parameters[pull_parameter.id.to_s]}
             - if error
               %span{class: 'help-inline'}
                 = "can't be blank"
             %p.help-block
               = 'Required'
-  - unless @ids_to_update.empty?
+  - unless updated_records.blank?
     - ready = false
     %h4{style: 'color:#b94a48'}= t('admin.actions.pull_collection.update_warning')
     .fieldset
-      - @ids_to_update.each do |key, records|
+      - updated_records.each do |key, records|
         .control-group
           %label.control-label
             = key.titleize
@@ -27,9 +31,9 @@
             - am = RailsAdmin::Config.model(records.first.class).abstract_model
             = records.collect { |record| link_to(record.name, url_for(action: action(:show, am, record).action_name, model_name: record.class.to_s, id: record.id), class: 'pjax') }.to_sentence.html_safe
   - if ready
-    %h4=  (@hash_data['name'] && @hash_data.size > 1) ? t('admin.actions.pull_collection.ready') : t('admin.actions.pull_collection.nothing_to_pull')
+    %h4=  (pull_data['name'] && pull_data.size > 1) ? t('admin.actions.pull_collection.ready') : t('admin.actions.pull_collection.nothing_to_pull')
   .form-actions
-    - if @hash_data['name'] && @hash_data.size > 1
+    - if pull_data.any? && (pull_data['name'].nil? || pull_data.size > 1)
       %button.btn.btn-primary{type: 'submit', name: '_pull', :'data-disable-with' => t('admin.actions.pull_collection.submit')}
         %i{class: @action.try(:link_icon)}
         = t('admin.actions.pull_collection.submit')
