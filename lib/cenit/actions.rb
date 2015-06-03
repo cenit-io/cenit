@@ -15,7 +15,7 @@ module Cenit
             invariant_items = Set.new
             data.each do |item|
               if record = relation.klass.where(name: item['name']).first
-                if record.to_hash(ignore: :id).eql?(item)
+                if record.share_hash.eql?(item)
                   invariant_items << item
                 else
                   item['id'] = record.id.to_s
@@ -67,7 +67,10 @@ module Cenit
           begin
             collection = Setup::Collection.new
             collection.from_json(pull_request[:pull_data])
+            collection.name = BSON::ObjectId.new.to_s until Setup::Collection.where(name: collection.name).blank?
             if Cenit::Utility.save(collection, { create_collector: create_collector = Set.new })
+              Setup::Collection.where(name: collection.name = shared_collection.name).delete
+              collection.save
               pull_data = pull_request.delete(:pull_data)
               pull_request[:created_records] = collection.inspect_json(inspecting: :id, inspect_scope: create_collector).reject { |_, value| !value.is_a?(Enumerable) }
               pull_request[:pull_data] = pull_data

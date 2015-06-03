@@ -25,7 +25,7 @@ module RailsAdmin
 
             @pull_request = Cenit::Actions.pull_request(@object, pull_parameters: params[:pull_parameters])
             if @pull_request[:missing_parameters].blank? && params[:_pull]
-              Cenit::Actions.pull(@object, @pull_request)
+              @pull_request = Cenit::Actions.pull(@object, @pull_request)
               if (errors = @pull_request[:errors]).blank?
                 redirect_to_on_success
               else

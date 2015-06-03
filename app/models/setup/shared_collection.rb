@@ -51,7 +51,7 @@ module Setup
     end
 
     def validate_configuration
-      hash_data = (source_collection.present? && source_collection.to_hash(ignore: :id)) || data || {}
+      hash_data = (source_collection.present? && source_collection.share_hash) || data || {}
       [hash_data, hash_data['connection_roles']].flatten.each do |hash|
         if values = hash['connections']
           values.delete_if { |source_connection| !connections.detect { |c| c.name == source_connection['name'] } }
@@ -181,7 +181,7 @@ module Setup
         end
         source_collection.webhooks.each do |webhook|
           [:headers, :parameters, :template_parameters].each do |property|
-            enum += webhook.send(property).collect { |value| CollectionPullParameter.parameter_for(connection, property, value.key) }
+            enum += webhook.send(property).collect { |value| CollectionPullParameter.parameter_for(webhook, property, value.key) }
           end
         end
       end
