@@ -163,7 +163,7 @@ module Cenit
         end
         true
       end
-
+    
       def find_record(scope, conditions)
         match_conditions = {}
         conditions.each do |key, value|
