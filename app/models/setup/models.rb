@@ -33,6 +33,10 @@ module Setup
       def excluded_actions_for(model)
         @models[model]
       end
+
+      def registered?(model)
+        @models.include?(model)
+      end
     end
   end
 end

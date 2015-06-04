@@ -217,6 +217,20 @@ module Cenit
           [Integer, Float, String, TrueClass, FalseClass, Boolean, NilClass].any? { |klass| obj.is_a?(klass) }
         end
       end
+
+      def array_hash_merge(val1, val2, options = {}, &block)
+        if val1.is_a?(Array) && val2.is_a?(Array)
+          if options[:array_uniq]
+            (val2 + val1).uniq(&block)
+          else
+            val1 + val2
+          end
+        elsif val1.is_a?(Hash) && val2.is_a?(Hash)
+          val1.deep_merge(val2) { |_, val1, val2| array_hash_merge(val1, val2) }
+        else
+          val2
+        end
+      end
     end
   end
 end

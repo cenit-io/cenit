@@ -117,7 +117,7 @@ module Setup
         Symbol => {'type' => 'string'},
         Time => {'type' => 'string', 'format' => 'time'},
         nil => {}
-      }
+      }.freeze
 
     def excluded?(name)
       name = name.to_s
@@ -133,9 +133,12 @@ module Setup
       @discarding ||= []
       schema = {'type' => 'object', 'properties' => properties = {"_id" => {'type' => 'string'}}}
       schema[:referenced_by.to_s] = Cenit::Utility.stringfy(@referenced_by) if @referenced_by
-      (fields = model.fields).each do |field_name, field|
+      model.fields.each do |field_name, field|
         if !field.is_a?(Mongoid::Fields::ForeignKey) && included?(field_name)
           json_type = (properties[field_name] = json_schema_type(field.type))['type']
+          if @discarding.include?(field_name)
+            (properties[field_name]['edi'] ||= {})['discard'] = true
+          end
           if json_type.nil? || json_type == 'object' || json_type == 'array'
             unless mongoff_models = model.instance_variable_get(:@mongoff_models)
               model.instance_variable_set(:@mongoff_models, mongoff_models = {})
@@ -149,12 +152,12 @@ module Setup
           end
         end
       end
-      (relations = model.reflect_on_all_associations(:embeds_one,
-                                                     :embeds_many,
-                                                     :has_one,
-                                                     :belongs_to,
-                                                     :has_many,
-                                                     :has_and_belongs_to_many)).each do |relation|
+      model.reflect_on_all_associations(:embeds_one,
+                                        :embeds_many,
+                                        :has_one,
+                                        :belongs_to,
+                                        :has_many,
+                                        :has_and_belongs_to_many).each do |relation|
         if included?(relation.name)
           property_schema =
             case relation.macro
@@ -182,7 +185,7 @@ module Setup
     end
 
     def json_schema_type(mongoid_type)
-      MONGOID_TYPE_MAP[mongoid_type]
+      MONGOID_TYPE_MAP[mongoid_type].dup
     end
 
   end

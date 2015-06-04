@@ -4,7 +4,6 @@ class Account
 
   belongs_to :owner, class_name: User.to_s, inverse_of: nil
   has_many :users, class_name: User.to_s, inverse_of: :account
-  has_many :connections, class_name: Setup::Connection.to_s, inverse_of: :account
 
   field :name, type: String
 

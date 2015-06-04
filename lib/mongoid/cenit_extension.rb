@@ -1,4 +1,14 @@
 module Mongoid
+  module Config
+
+    def unregist_model(klass)
+      LOCK.synchronize do
+        models.delete(klass)
+      end
+    end
+
+  end
+
   module CenitExtension
     extend ActiveSupport::Concern
 
