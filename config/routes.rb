@@ -20,6 +20,9 @@ Cenit::Application.routes.draw do
       get '/:model', to: 'api#index'
       get '/:model/:id', to: 'api#show'
       delete '/:model/:id', to: 'api#destroy'
+      post '/auth', to: 'api#auth'
+      get '/auth', to: 'api#auth'
+      head '/auth', to: 'api#auth'
     end
   end
 end

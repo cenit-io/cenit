@@ -15,6 +15,7 @@ module Setup
 
     belongs_to :translator, class_name: Setup::Translator.to_s, inverse_of: nil
     belongs_to :custom_data_type, class_name: Setup::Model.to_s, inverse_of: nil
+    field :nil_data_type, type: Boolean
     field :data_type_scope, type: String
     field :lot_size, type: Integer
 
@@ -26,6 +27,7 @@ module Setup
 
     field :last_trigger_timestamps, type: Time
 
+    validates_uniqueness_of :name
     validates_presence_of :name, :translator
     validates_numericality_in_presence_of :lot_size, greater_than_or_equal_to: 1
     before_save :validates_configuration
@@ -33,20 +35,37 @@ module Setup
     def validates_configuration
       return false unless ready_to_save?
       unless requires(:translator)
-        translator.data_type.nil? ? requires(:custom_data_type) : rejects(:custom_data_type)
-        translator.type == :Import ? rejects(:data_type_scope) : requires(:data_type_scope)
-        [:Import, :Export].include?(translator.type) ? requires(:webhook) : rejects(:connection_role, :webhook)
+        if translator.data_type.nil?
+          requires(:custom_data_type) unless translator.type == :Export && nil_data_type
+        else
+          rejects(:custom_data_type)
+        end
+        if translator.type == :Import
+          rejects(:data_type_scope)
+        else
+          requires(:data_type_scope) unless translator.type == :Export && data_type.nil?
+        end
+        if [:Import, :Export].include?(translator.type)
+          requires(:webhook)
+        else
+          rejects(:connection_role, :webhook)
+        end
 
         if translator.type == :Export
           if response_translator.present?
             if response_translator.type == :Import
-              response_translator.data_type ? rejects(:response_data_type) : requires(:response_data_type)
+              if response_translator.data_type
+                rejects(:response_data_type)
+              else
+                requires(:response_data_type)
+              end
             else
               errors.add(:response_translator, 'is not an import translator')
             end
           else
             rejects(:response_data_type, :discard_events)
           end
+          rejects(:custom_data_type, :data_type_scope, :lot_size) if nil_data_type
         else
           rejects(:lot_size, :response_translator, :response_data_type)
         end
@@ -80,12 +99,13 @@ module Setup
       if data_type
         enum << 'Event source' if event && event.try(:data_type) == data_type
         enum << "All #{data_type.title.downcase.pluralize}"
+        enum << ''
       end
       enum
     end
 
     def ready_to_save?
-      translator.present? && (translator.type == :Import || data_type_scope.present?)
+      translator.present? && (translator.type == :Import || data_type_scope.present? || (translator.type == :Export && nil_data_type && webhook.present?))
     end
 
     def can_be_restarted?
@@ -95,11 +115,7 @@ module Setup
     def process(options={})
       puts "Flow processing on '#{self.name}': #{}"
       message = options.merge(flow_id: self.id.to_s).to_json
-      begin
-        Cenit::Rabbit.send_to_endpoints(message)
-      rescue Exception => ex
-        puts "ERROR sending message: #{ex.message}"
-      end
+      Cenit::Rabbit.send_to_endpoints(message)
       puts "Flow processing jon '#{self.name}' done!"
       self.last_trigger_timestamps = DateTime.now
       save
@@ -113,6 +129,8 @@ module Setup
       begin
         if object_ids = message[:object_ids]
           data_type.records_model.any_in(id: object_ids).each { |obj| translator.run(object: obj, discard_events: discard_events) }
+        elsif scope_symbol.nil?
+          translator.run(object: nil, discard_events: discard_events)
         elsif scope_symbol == :all
           data_type.records_model.all.each { |obj| translator.run(object: obj, discard_events: discard_events) }
         elsif obj_id = message[:source_id]
@@ -148,7 +166,7 @@ module Setup
 
     def translate_export(message, &block)
       limit = translator.bulk_source ? lot_size || 1000 : 1
-      max = ((object_ids = source_ids_from(message)) ? object_ids.size : data_type.count) - 1
+      max = ((object_ids = source_ids_from(message)) ? object_ids.size : data_type.count) - (scope_symbol ? 1 : 0)
       parameters = webhook.template_parameters_hash
       0.step(max, limit) do |offset|
         common_result = nil
@@ -190,6 +208,8 @@ module Setup
     def source_ids_from(message)
       if object_ids = message[:object_ids]
         object_ids
+      elsif scope_symbol.nil?
+        []
       elsif scope_symbol == :event_source && id = message[:source_id]
         [id]
       else
@@ -198,7 +218,11 @@ module Setup
     end
 
     def scope_symbol
-      data_type_scope.start_with?('Event') ? :event_source : :all
+      if data_type_scope.present?
+        data_type_scope.start_with?('Event') ? :event_source : :all
+      else
+        nil
+      end
     end
 
     def the_connections
