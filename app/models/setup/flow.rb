@@ -196,7 +196,7 @@ module Setup
                                           })
             block.yield(response: http_response.to_json, exception_message: (200...299).include?(http_response.code) ? nil : 'Unsuccessful') if block.present?
             if response_translator #&& http_response.code == 200
-              response_translator.run(target_data_type: response_translator.data_type || response_data_type, data: http_response.message)
+              response_translator.run(target_data_type: response_translator.data_type || response_data_type, data: http_response.body)
             end
           rescue Exception => ex
             block.yield(exception_message: ex.message) if block
