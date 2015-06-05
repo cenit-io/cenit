@@ -21,7 +21,8 @@
  RailsAdmin::Config::Actions::NewFileModel,
  RailsAdmin::Config::Actions::UploadFile,
  RailsAdmin::Config::Actions::DownloadFile,
- RailsAdmin::Config::Actions::DeleteDataType].each { |a| RailsAdmin::Config::Actions.register(a) }
+ RailsAdmin::Config::Actions::DeleteDataType,
+ RailsAdmin::Config::Actions::ProcessFlow].each { |a| RailsAdmin::Config::Actions.register(a) }
 
 RailsAdmin::Config::Actions.register(:export, RailsAdmin::Config::Actions::EdiExport)
 RailsAdmin::Config::Fields::Types.register(RailsAdmin::Config::Fields::Types::JsonSchema)
@@ -76,6 +77,7 @@ RailsAdmin.config do |config|
     download_file
     load_model
     shutdown_model
+    process_flow
     delete_data_type
     delete { except [Role] }
     delete_schema
@@ -575,8 +577,12 @@ RailsAdmin.config do |config|
         inline_edit false
         inline_add false
         visible do
-          if (f = bindings[:object]).translator.present? && f.translator.data_type.nil?
+          if (f = bindings[:object]).custom_data_type.present?
+            f.nil_data_type = false
+          end
+          if f.translator.present? && f.translator.data_type.nil? && !f.nil_data_type
             f.instance_variable_set(:@selecting_data_type, f.custom_data_type = f.event && f.event.try(:data_type)) unless f.data_type
+            f.nil_data_type = f.translator.type == :Export && (params = (controller = bindings[:controller]).params) && (params = params[controller.abstract_model.param_key]) && params[:custom_data_type_id].blank? && params.keys.include?(:custom_data_type_id.to_s)
             true
           else
             false
@@ -593,7 +599,29 @@ RailsAdmin.config do |config|
             'Data type'
           end
         end
-        help 'Required'
+        help do
+          if bindings[:object].nil_data_type
+            ''
+          elsif (translator = bindings[:object].translator) && [:Export, :Conversion].include?(translator.type)
+            'Optional'
+          else
+            'Required'
+          end
+        end
+      end
+      field :nil_data_type do
+        visible { bindings[:object].nil_data_type }
+        label do
+          if (translator = bindings[:object].translator)
+            if [:Export, :Conversion].include?(translator.type)
+              'No source data type'
+            else
+              'No target data type'
+            end
+          else
+            'No data type'
+          end
+        end
       end
       field :data_type_scope do
         visible { (f = bindings[:object]).translator.present? && f.translator.type != :Import && f.data_type && !f.instance_variable_get(:@selecting_data_type) }
@@ -611,18 +639,18 @@ RailsAdmin.config do |config|
         help 'Required'
       end
       field :lot_size do
-        visible { (f = bindings[:object]).translator.present? && f.translator.type == :Export && f.data_type_scope && f.scope_symbol != :event_source }
+        visible { (f = bindings[:object]).translator.present? && f.translator.type == :Export && !f.nil_data_type && f.data_type_scope && f.scope_symbol != :event_source }
       end
       field :webhook do
-        visible { (translator = bindings[:object].translator) && (translator.type == :Import || (translator.type == :Export && bindings[:object].data_type_scope.present?)) }
+        visible { (translator = (f = bindings[:object]).translator) && (translator.type == :Import || (translator.type == :Export && (bindings[:object].data_type_scope.present? || f.nil_data_type))) }
         help 'Required'
       end
       field :connection_role do
-        visible { (translator = bindings[:object].translator) && (translator.type == :Import || (translator.type == :Export && bindings[:object].data_type_scope.present?)) }
-        help 'Required'
+        visible { (translator = (f = bindings[:object]).translator) && (translator.type == :Import || (translator.type == :Export && (bindings[:object].data_type_scope.present? || f.nil_data_type))) }
+        help 'Optional'
       end
       field :response_translator do
-        visible { (translator = bindings[:object].translator) && translator.type == :Export && bindings[:object].ready_to_save? }
+        visible { (translator = (f = bindings[:object]).translator) && (translator.type == :Import || (translator.type == :Export && (bindings[:object].data_type_scope.present? || f.nil_data_type))) && f.ready_to_save? }
         associated_collection_scope do
           Proc.new { |scope|
             scope.where(type: :Import)
