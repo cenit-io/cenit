@@ -1113,4 +1113,28 @@ RailsAdmin.config do |config|
   config.model Setup::CustomValidator do
     visible false
   end
+
+  config.model Setup::Integration do
+    edit do
+      field :name
+      field :pull_connection
+      field :pull_event do
+        inline_add { false }
+        inline_edit { false }
+      end
+      field :data_type
+      field :receiver_connection
+    end
+    show do
+      field :name
+      field :pull_connection
+      field :pull_flow
+      field :pull_event
+      field :pull_translator
+      field :data_type
+      field :send_translator
+      field :send_flow
+      field :receiver_connection
+    end
+  end
 end
