@@ -1136,5 +1136,6 @@ RailsAdmin.config do |config|
       field :send_flow
       field :receiver_connection
     end
+    fields :name, :pull_connection, :pull_flow, :pull_event, :pull_translator, :data_type, :send_translator, :send_flow, :receiver_connection
   end
 end

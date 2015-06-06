@@ -229,7 +229,13 @@ module Setup
       if connection_role.present?
         connection_role.connections
       else
-        webhook.connection_roles.collect { |role| role.connections }.flatten.uniq
+        connections = []
+        Setup::ConnectionRole.all.each do |connection_role|
+          if connection_role.webhooks.include?(webhook)
+            connections = (connections + connection_role.connections.to_a).uniq
+          end
+        end
+        connections
       end
     end
   end

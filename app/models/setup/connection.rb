@@ -5,8 +5,6 @@ module Setup
 
     BuildInDataType.regist(self).referenced_by(:name).excluding(:connection_roles)
 
-    has_and_belongs_to_many :connection_roles, class_name: Setup::ConnectionRole.to_s, inverse_of: :connections
-
     embeds_many :parameters, class_name: Setup::Parameter.to_s, inverse_of: :connection
     embeds_many :headers, class_name: Setup::Parameter.to_s, inverse_of: :connection
 
