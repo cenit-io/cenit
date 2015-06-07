@@ -3,7 +3,7 @@ module Setup
     include CenitScoped
     include DataTypeValidator
 
-    BuildInDataType.regist(self).with(:uri, :schema).embedding(:data_types).discarding(:data_types).including(:library).referenced_by(:library, :uri)
+    BuildInDataType.regist(self).with(:uri, :schema).embedding(:data_types).including(:library).referenced_by(:library, :uri)
 
     belongs_to :library, class_name: Setup::Library.to_s, inverse_of: :schemas
 

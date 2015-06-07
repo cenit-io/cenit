@@ -46,7 +46,7 @@ module Setup
         else
           errors.add(:base, "no #{type.to_s.pluralize}")
         end
-        return
+        return errors.blank?
       end
       values_key = self.type.to_s.downcase.pluralize
       if values = hash_data[values_key]
