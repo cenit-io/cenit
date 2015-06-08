@@ -22,8 +22,10 @@ module Edi
       end
       [:only, :inspecting].each { |option| options.delete(option) if options[option].empty? }
       options[:inspected_records] = Set.new
+      options[:stack] = []
       options[:include_id] = include_id
       hash = record_to_hash(self, options)
+      options.delete(:stack)
       hash = {self.orm_model.data_type.name.downcase => hash} if options[:include_root]
       hash
     end
@@ -121,12 +123,16 @@ module Edi
     end
 
     def record_to_hash(record, options = {}, referenced = false, enclosed_model = nil)
-      return nil if options[:inspected_records].include?(record)
       return record if Cenit::Utility.json_object?(record)
-      options[:inspected_records] << record
       data_type = record.orm_model.data_type
       schema = record.orm_model.schema
       json = (referenced = referenced && schema['referenced_by']) ? {'_reference' => true} : {}
+      return nil if options[:stack].include?(record)
+      if !referenced
+        return nil if options[:inspected_records].include?(record)
+        options[:inspected_records] << record
+      end
+      options[:stack] << record
       schema['properties']['_id'] ||= {'_id' => {'type' => 'string'}, 'edi' => {'segment' => 'id'}} if options[:include_id]
       schema['properties'].each do |property_name, property_schema|
         property_schema = data_type.merge_schema(property_schema)
@@ -170,6 +176,7 @@ module Edi
       if !options[:inspecting] && !json['_reference'] && enclosed_model && !record.orm_model.eql?(enclosed_model) && !options[:ignore].include?(:_type) && (!options[:only] || options[:only].include?(:_type))
         json['_type'] = data_type.name
       end
+      options[:stack].pop
       json
     end
 

@@ -175,21 +175,28 @@ module Setup
     end
 
     def context_options_for_export(options)
-      raise Exception.new('Source data type not defined') unless data_type = source_data_type || options[:source_data_type]
-      model = data_type.records_model
-      offset = options[:offset] || 0
-      limit = options[:limit]
-      source_options =
-        if bulk_source
-          {sources: if object_ids = options[:object_ids]
-                      model.any_in(id: (limit ? object_ids[offset, limit] : object_ids.from(offset))).to_enum
-                    else
-                      (limit ? model.limit(limit) : model.all).skip(offset).to_enum
-                    end}
-        else
-          {source: options[:object] || ((id = (options[:object_id] || (options[:object_ids] && options[:object_ids][offset]))) && model.where(id: id).first) || model.all.skip(offset).first}
-        end
-      {source_data_type: data_type}.merge(source_options)
+      if data_type = source_data_type || options[:source_data_type]
+        model = data_type.records_model
+        offset = options[:offset] || 0
+        limit = options[:limit]
+        source_options =
+          if bulk_source
+            {
+              sources: if object_ids = options[:object_ids]
+                         model.any_in(id: (limit ? object_ids[offset, limit] : object_ids.from(offset))).to_enum
+                       else
+                         (limit ? model.limit(limit) : model.all).skip(offset).to_enum
+                       end
+            }
+          else
+            {
+              source: options[:object] || ((id = (options[:object_id] || (options[:object_ids] && options[:object_ids][offset]))) && model.where(id: id).first) || model.all.skip(offset).first
+            }
+          end
+        {source_data_type: data_type}.merge(source_options)
+      else
+        {}
+      end
     end
 
     def context_options_for_update(options)
@@ -197,7 +204,6 @@ module Setup
     end
 
     def context_options_for_conversion(options)
-      raise Exception.new("Target data type #{target_data_type.title} is not loaded") unless target_data_type.loaded?
       {source: options[:object], target: style == 'chain' ? nil : target_data_type.records_model.new}
     end
 

@@ -40,7 +40,7 @@ module Setup
     scope :activated, -> { where(activated: true) }
 
     after_save do
-     #TODO create_default_events
+      #TODO create_default_events
     end
 
     before_destroy do
@@ -261,7 +261,13 @@ module Setup
         models.each do |model|
           puts "Decontantizing #{constant_name = model.model_access_name} -> #{model.schema_name rescue model.to_s}"
           constant_name = constant_name.split('::').last
-          parent = model.is_a?(Class) ? model.parent : Object
+          parent =
+            if model.is_a?(Class)
+              Mongoid::Config.unregist_model(model)
+              model.parent
+            else
+              Object
+            end
           parent.send(:remove_const, constant_name) if parent.const_defined?(constant_name)
         end
       end

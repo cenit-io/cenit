@@ -1,4 +1,14 @@
 module Mongoid
+  module Config
+
+    def unregist_model(klass)
+      LOCK.synchronize do
+        models.delete(klass)
+      end
+    end
+
+  end
+
   module CenitExtension
     extend ActiveSupport::Concern
 
@@ -55,7 +65,7 @@ module Mongoid
                                     :has_many,
                                     :has_and_belongs_to_many,
                                     :belongs_to).each do |relation|
-          block.yield(name: relation.name, embedded: relation.embedded?)
+          block.yield(name: relation.name, embedded: relation.embedded?) unless relation.macro == :belongs_to && relation.inverse_of.present?
         end
       end
 

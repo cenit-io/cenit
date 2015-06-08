@@ -10,8 +10,6 @@ module Setup
 
     embeds_many :template_parameters, class_name: Setup::Parameter.to_s, inverse_of: :webhook
 
-    has_and_belongs_to_many :connection_roles, class_name: Setup::ConnectionRole.to_s, inverse_of: :webhooks
-
     field :name, type: String
     field :path, type: String
     field :purpose, type: String, default: :send
@@ -24,7 +22,7 @@ module Setup
     validates_presence_of :name, :path, :purpose
     validates_uniqueness_of :name
 
-    accepts_nested_attributes_for :parameters, :headers, :template_parameters
+    accepts_nested_attributes_for :parameters, :headers, :template_parameters, allow_destroy: true
 
     def template_parameters_hash
       hash = {}

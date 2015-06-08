@@ -46,9 +46,13 @@ module Cenit
                 end
               end
             end
+            saved.delete_if { |obj| !obj.instance_variable_get(:@dynamically_created) }
+            for_each_node_starting_at(record) do |obj|
+              saved << obj if obj.instance_variable_get(:@dynamically_created)
+            end
             saved.each do |obj|
               if obj = obj.reload rescue nil
-                obj.delete if obj.instance_variable_get(:@dynamically_saved)
+                obj.delete
               end
             end
             false
@@ -86,20 +90,30 @@ module Cenit
               references.delete(obj_waiting) if to_bind.empty?
             end
           end
-        end if references
+        end if references.present?
 
         for_each_node_starting_at(record, stack = []) do |obj|
           if to_bind = references[obj]
             to_bind.each do |property_name, property_binds|
-              property_binds = [property_binds] unless property_binds.is_a?(Array)
+              is_array = property_binds.is_a?(Array) ? true : (property_binds = [property_binds]; false)
               property_binds.each do |property_bind|
-                message = "reference not found with criteria #{property_bind[:criteria].to_json}"
-                obj.errors.add(property_name, message)
-                stack.each { |node| node[:record].errors.add(node[:attribute], message) }
+                if value = Cenit::Utility.find_record(obj.orm_model.property_model(property_name).all, property_bind[:criteria])
+                  if is_array
+                    if !(association = obj.send(property_name)).include?(value)
+                      association << value
+                    end
+                  else
+                    obj.send("#{property_name}=", value)
+                  end
+                else
+                  message = "reference not found with criteria #{property_bind[:criteria].to_json}"
+                  obj.errors.add(property_name, message)
+                  stack.each { |node| node[:record].errors.add(node[:attribute], message) }
+                end
               end
             end
           end
-        end if references
+        end if references.present?
         record.errors.blank?
       end
 
@@ -136,13 +150,19 @@ module Cenit
           next if Setup::BuildInDataType::EXCLUDED_RELATIONS.include?(relation[:name].to_s)
           if values = record.send(relation[:name])
             values = [values] unless values.is_a?(Enumerable)
-            values.each { |value| return false unless save_references(value, options, saved, visited) }
+            values_to_save = []
             values.each do |value|
+              unless visited.include?(value)
+                return false unless save_references(value, options, saved, visited)
+                values_to_save << value
+              end
+            end
+            values_to_save.each do |value|
               unless saved.include?(value)
                 new_record = value.new_record?
                 if value.save(options)
-                  if new_record || value.instance_variable_get(:@dynamically_saved)
-                    value.instance_variable_set(:@dynamically_saved, true)
+                  if new_record || value.instance_variable_get(:@dynamically_created)
+                    value.instance_variable_set(:@dynamically_created, true)
                     options[:create_collector] << value if options[:create_collector]
                   else
                     options[:update_collector] << value if options[:update_collector]
@@ -201,7 +221,7 @@ module Cenit
         when Hash
           if options[:recursive]
             obj.keys.each { |k| return false unless k.is_a?(String) }
-            obj.values.each { |k| return false unless json_object?(String) }
+            obj.values.each { |v| return false unless json_object?(v) }
           end
           true
         when Array
@@ -209,6 +229,20 @@ module Cenit
           true
         else
           [Integer, Float, String, TrueClass, FalseClass, Boolean, NilClass].any? { |klass| obj.is_a?(klass) }
+        end
+      end
+
+      def array_hash_merge(val1, val2, options = {}, &block)
+        if val1.is_a?(Array) && val2.is_a?(Array)
+          if options[:array_uniq]
+            (val2 + val1).uniq(&block)
+          else
+            val1 + val2
+          end
+        elsif val1.is_a?(Hash) && val2.is_a?(Hash)
+          val1.deep_merge(val2) { |_, val1, val2| array_hash_merge(val1, val2) }
+        else
+          val2
         end
       end
     end

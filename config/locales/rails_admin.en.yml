@@ -154,6 +154,7 @@ en:
         fill_parameters: "Please fill the following parameters to pull the collection"
         update_warning: "The following objects will be updated"
         ready: "Ready to pull!"
+        nothing_to_pull: "Nothing to pull from here"
       retry_notification:
         title: "Retry"
         menu: "Retry"
@@ -182,3 +183,7 @@ en:
         title: "Delete %{model_label} '%{object_label}'"
         menu: "Delete"
         breadcrumb: "Delete"
+      process_flow:
+        title: "Process"
+        menu: "Process"
+        done: "processed"
