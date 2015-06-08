@@ -37,8 +37,8 @@ module Cenit
             for_each_node_starting_at(record, stack=[]) do |obj|
               obj.errors.each do |attribute, error|
                 attr_ref = "#{obj.orm_model.data_type.title}" +
-                  ((name = obj.try(:name)) || (name = obj.try(:title)) ? " #{name} on attribute " : "'s '") +
-                  attribute.to_s + ((v = obj.try(attribute)) ? "'#{v}'" : '')
+                    ((name = obj.try(:name)) || (name = obj.try(:title)) ? " #{name} on attribute " : "'s '") +
+                    attribute.to_s + ((v = obj.try(attribute)) ? "'#{v}'" : '')
                 path = ''
                 stack.reverse_each do |node|
                   node[:record].errors.add(node[:attribute], "with error on #{path}#{attr_ref} (#{error})") if node[:referenced]
@@ -218,17 +218,17 @@ module Cenit
 
       def json_object?(obj, options = {})
         case obj
-        when Hash
-          if options[:recursive]
-            obj.keys.each { |k| return false unless k.is_a?(String) }
-            obj.values.each { |v| return false unless json_object?(v) }
-          end
-          true
-        when Array
-          obj.each { |v| return false unless json_object?(v) } if options[:recursive]
-          true
-        else
-          [Integer, Float, String, TrueClass, FalseClass, Boolean, NilClass].any? { |klass| obj.is_a?(klass) }
+          when Hash
+            if options[:recursive]
+              obj.keys.each { |k| return false unless k.is_a?(String) }
+              obj.values.each { |v| return false unless json_object?(v) }
+            end
+            true
+          when Array
+            obj.each { |v| return false unless json_object?(v) } if options[:recursive]
+            true
+          else
+            [Integer, Float, String, TrueClass, FalseClass, Boolean, NilClass].any? { |klass| obj.is_a?(klass) }
         end
       end
 
