@@ -3,8 +3,12 @@ module RailsAdmin
     module Actions
       class ProcessFlow < RailsAdmin::Config::Actions::Base
 
+        register_instance_option :pjax? do
+          false
+        end
+
         register_instance_option :visible do
-          authorized? && bindings[:object].nil_data_type
+          authorized? && (flow = bindings[:object]) && flow.nil_data_type
         end
 
         register_instance_option :only do
