@@ -77,6 +77,10 @@ module Api::V1
       end
     end
 
+    def auth
+      head :no_content
+    end
+
     protected
 
     def authorize
