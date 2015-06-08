@@ -114,15 +114,40 @@ module Setup
 
     def process(options={})
       puts "Flow processing on '#{self.name}': #{}"
-      message = options.merge(flow_id: self.id.to_s).to_json
-      Cenit::Rabbit.send_to_endpoints(message)
+      executing_id, execution_graph = (Thread.current[:flow_execution] ||= []).last || [nil, {}]
+      if executing_id.present? && !(adjacency_list = execution_graph[executing_id] ||= []).include?(id.to_s)
+        adjacency_list << id.to_s
+      end
+      if cycle = cyclic_execution(execution_graph, executing_id)
+        cycle = cycle.collect { |id| ((flow = Setup::Flow.where(id: id).first) && flow.name) || id }
+        Setup::Notification.create(flow: self, exception_message: "Cyclic flow execution: #{cycle.join(' -> ')}")
+      else
+        message = options.merge(flow_id: id.to_s, tirgger_flow_id: executing_id, execution_graph: execution_graph).to_json
+        Cenit::Rabbit.send_to_endpoints(message)
+      end
       puts "Flow processing jon '#{self.name}' done!"
       self.last_trigger_timestamps = DateTime.now
       save
     end
 
     def translate(message, &block)
+      (flow_execution = Thread.current[:flow_execution] ||= []) << [id.to_s, message[:execution_graph] || {}]
       send("translate_#{translator.type.to_s.downcase}", message, &block)
+      flow_execution.pop
+    end
+
+    private
+
+    def cyclic_execution(execution_graph, start_id, cycle=[])
+      if cycle.include?(start_id)
+        cycle << start_id
+        return cycle
+      elsif adjacency_list = execution_graph[start_id]
+        cycle << start_id
+        adjacency_list.each { |id| return cycle if cyclic_execution(execution_graph, id, cycle) }
+        cycle.pop
+      end
+      false
     end
 
     def simple_translate(message, &block)
@@ -134,7 +159,7 @@ module Setup
         elsif scope_symbol == :all
           data_type.records_model.all.each { |obj| translator.run(object: obj, discard_events: discard_events) }
         elsif obj_id = message[:source_id]
-          translator.run(object: data_type.records_model.find(obj_id), discard_events: discard_events)
+          translator.run(object: data_type.records_model.where(id: obj_id).first, discard_events: discard_events)
         end
       rescue Exception => ex
         block.yield(exception_message: ex.message) if block
@@ -229,7 +254,13 @@ module Setup
       if connection_role.present?
         connection_role.connections
       else
-        webhook.connection_roles.collect { |role| role.connections }.flatten.uniq
+        connections = []
+        Setup::ConnectionRole.all.each do |connection_role|
+          if connection_role.webhooks.include?(webhook)
+            connections = (connections + connection_role.connections.to_a).uniq
+          end
+        end
+        connections
       end
     end
   end

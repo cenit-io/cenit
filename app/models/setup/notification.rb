@@ -12,7 +12,7 @@ module Setup
     field :exception_message, type: String
 
     def can_retry?
-      exception_message.present?
+      (message && exception_message).present?
     end
 
     def retry

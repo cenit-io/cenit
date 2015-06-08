@@ -204,7 +204,6 @@ module Setup
     end
 
     def context_options_for_conversion(options)
-      raise Exception.new("Target data type #{target_data_type.title} is not loaded") unless target_data_type.loaded?
       {source: options[:object], target: style == 'chain' ? nil : target_data_type.records_model.new}
     end
 

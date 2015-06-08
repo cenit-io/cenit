@@ -11,7 +11,7 @@ module Setup
       Setup::Models.regist(self)
 
       def share_hash
-        to_hash(ignore: [:id, :number, :token])
+        to_hash(ignore: [:id, :data_types, :number, :token])
       end
     end
 
