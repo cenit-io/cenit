@@ -386,7 +386,7 @@ module Setup
         end
       end
 
-      nested.each { |n| reflect(klass, "accepts_nested_attributes_for :#{n}") }
+      nested.each { |n| reflect(klass, "accepts_nested_attributes_for :#{n}, allow_destroy: true") }
 
       puts "Parsing #{klass.schema_name} done!"
       klass

@@ -183,3 +183,7 @@ en:
         title: "Delete %{model_label} '%{object_label}'"
         menu: "Delete"
         breadcrumb: "Delete"
+      process_flow:
+        title: "Process"
+        menu: "Process"
+        done: "processed"

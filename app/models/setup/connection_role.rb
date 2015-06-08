@@ -11,6 +11,5 @@ module Setup
 
 
     validates_uniqueness_of :name
-    accepts_nested_attributes_for :webhooks
   end
 end

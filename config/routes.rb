@@ -9,8 +9,8 @@ Cenit::Application.routes.draw do
 
   get 'explore/:api', to: 'api#explore', as: :explore_api
   post 'write/:api', to: 'api#write', as: :write_api
-
-  devise_for :users, controllers: {omniauth_callbacks: "users/omniauth_callbacks"} do
+  
+  devise_for :users, controllers: { omniauth_callbacks: "users/omniauth_callbacks" } do
     get 'sign_out', to: 'users/sessions#destroy', as: :destroy_user_session
   end
 
@@ -20,7 +20,7 @@ Cenit::Application.routes.draw do
       get '/:model', to: 'api#index'
       get '/:model/:id', to: 'api#show'
       delete '/:model/:id', to: 'api#destroy'
-      post '/auth', to: 'api#auth'
+      post '/:model/:id/pull', to: 'api#pull'
     end
   end
 end
