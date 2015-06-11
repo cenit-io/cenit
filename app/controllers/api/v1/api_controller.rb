@@ -8,7 +8,23 @@ module Api::V1
     PRESENTATION_KEY = {'_id' => 'id'}.freeze
 
     def index
-      @items = klass.all
+      @items =
+        if @criteria.present?
+          if sort_key = @criteria.delete(:sort_by)
+            asc = @criteria.has_key?(:ascending) | @criteria.has_key?(:asc)
+            [:ascending, :asc, :descending, :desc].each { |key| @criteria.delete(key) }
+          end
+          if limit = @criteria.delete(:limit)
+            limit = limit.to_s.to_i
+            limit = nil if limit == 0
+          end
+          items = klass.where(@criteria)
+          items = items.sort(sort_key => asc ? 1 : -1) if sort_key
+          items = items.limit(limit) if limit
+          items
+        else
+          klass.all
+        end
       render json: @items.map { |item| {((model = (hash = item.inspect_json(include_id: true)).delete('_type')) ? model.downcase : @model) => hash} }
     end
 
@@ -152,6 +168,7 @@ module Api::V1
         end.new(controller: self,
                 message: @webhook_body,
                 content_type: request.content_type)
+      @criteria = params.to_hash.with_indifferent_access.reject { |key, _| %w(controller action model id).include?(key) }
     end
 
     private
