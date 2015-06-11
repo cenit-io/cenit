@@ -25,7 +25,7 @@ module Setup
     field :discard_chained_records, type: Boolean
 
     validates_uniqueness_of :name
-    before_save :validates_configuration
+    before_save :validates_configuration, :validates_transformation
 
     def validates_configuration
       requires(:name)
@@ -69,6 +69,13 @@ module Setup
       errors.blank?
     end
 
+    def validates_transformation
+      if style == 'ruby'
+        Capataz.validate(transformation).each { |error| errors.add(:transformation, error) }
+      end
+      errors.blank?
+    end
+
     def reject_message(field = nil)
       (style && type).present? ? "is not allowed for #{style} #{type.to_s.downcase} translators" : super
     end
@@ -84,21 +91,19 @@ module Setup
     NON_BULK_SOURCE_STYLES = %w(double_curly_braces xslt)
 
     STYLES_MAP = {
-      'double_curly_braces' => {Setup::Transformation::DoubleCurlyBracesConversionTransform => [:Conversion],
-                                Setup::Transformation::DoubleCurlyBracesExportTransform => [:Export]},
       'liquid' => {Setup::Transformation::LiquidExportTransform => [:Export]},
       'xslt' => {Setup::Transformation::XsltConversionTransform => [:Conversion],
                  Setup::Transformation::XsltExportTransform => [:Export]},
-      'json.rabl' => {Setup::Transformation::ActionViewTransform => [:Export]},
-      'xml.rabl' => {Setup::Transformation::ActionViewTransform => [:Export]},
-      'xml.builder' => {Setup::Transformation::ActionViewTransform => [:Export]},
-      'html.haml' => {Setup::Transformation::ActionViewTransform => [:Export]},
-      'html.erb' => {Setup::Transformation::ActionViewTransform => [:Export]},
-      'csv.erb' => {Setup::Transformation::ActionViewTransform => [:Export]},
-      'js.erb' => {Setup::Transformation::ActionViewTransform => [:Export]},
-      'text.erb' => {Setup::Transformation::ActionViewTransform => [:Export]},
+      # 'json.rabl' => {Setup::Transformation::ActionViewTransform => [:Export]},
+      # 'xml.rabl' => {Setup::Transformation::ActionViewTransform => [:Export]},
+      # 'xml.builder' => {Setup::Transformation::ActionViewTransform => [:Export]},
+      # 'html.haml' => {Setup::Transformation::ActionViewTransform => [:Export]},
+      # 'html.erb' => {Setup::Transformation::ActionViewTransform => [:Export]},
+      # 'csv.erb' => {Setup::Transformation::ActionViewTransform => [:Export]},
+      # 'js.erb' => {Setup::Transformation::ActionViewTransform => [:Export]},
+      # 'text.erb' => {Setup::Transformation::ActionViewTransform => [:Export]},
       'ruby' => {Setup::Transformation::ActionViewTransform => [:Import, :Export, :Update, :Conversion]},
-      'pdf.prawn' => {Setup::Transformation::PrawnTransform => [:Export]},
+      # 'pdf.prawn' => {Setup::Transformation::PrawnTransform => [:Export]},
       'chain' => {Setup::Transformation::ChainTransform => [:Conversion]}
     }
 
@@ -161,6 +166,7 @@ module Setup
       self.class.relations.keys.each { |key| context_options[key.to_sym] = send(key) }
       context_options[:data_type] = data_type
       context_options.merge!(options) { |key, context_val, options_val| !context_val ? options_val : context_val }
+      context_options[:transformation] = transformation_code(context_options)
 
       context_options[:result] = STYLES_MAP[style].keys.detect { |t| STYLES_MAP[style][t].include?(type) }.run(context_options)
 
@@ -231,6 +237,15 @@ module Setup
         raise TransformingObjectException.new(target) unless Cenit::Utility.save(target)
       end
       options[:result] = target
+    end
+
+    def transformation_code(context_options = {})
+      case style
+      when 'ruby'
+        Capataz.rewrite(transformation, locals: context_options.keys)
+      else
+        transformation
+      end
     end
   end
 
