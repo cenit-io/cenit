@@ -168,7 +168,7 @@ module Api::V1
         end.new(controller: self,
                 message: @webhook_body,
                 content_type: request.content_type)
-      @criteria = params.to_hash.with_indifferent_access.reject { |key, _| %w(controller action model id).include?(key) }
+      @criteria = params.to_hash.with_indifferent_access.reject { |key, _| %w(controller action model id api).include?(key) }
     end
 
     private

@@ -91,7 +91,7 @@ module Capataz
       options[:halt_on_error] = true if options[:halt_on_error].nil?
       if locals = options[:locals]
         locals = [locals] unless locals.is_a?(Enumerable)
-        locals.each { |local| code = "#{local} ||= nil; " + code }
+        locals.each { |local| code = "#{local} ||= nil\r\n" + code }
       end
       buffer = Parser::Source::Buffer.new('code')
       buffer.source = code
@@ -99,7 +99,11 @@ module Capataz
     end
 
     def handle(obj, options = {})
-      Capataz::Proxy.new(obj, options)
+      if obj.is_a?(Fixnum)
+        obj
+      else
+        Capataz::Proxy.new(obj, options)
+      end
     end
 
     private
