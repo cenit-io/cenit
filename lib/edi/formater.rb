@@ -158,19 +158,20 @@ module Edi
               next if inspecting && (scope = options[:inspect_scope]) && !scope.include?(sub_record)
               new_value << record_to_hash(sub_record, options, referenced_items, property_model)
             end
-            json[name] = new_value unless new_value.empty?
+            json[name] = new_value if new_value.present? || options[:include_blanks] || options[:include_empty]
+          else
+            json[name] = nil if options[:include_null]
           end
         when 'object'
           sub_record = record.send(property_name)
           next if inspecting && (scope = options[:inspect_scope]) && !scope.include?(sub_record)
-          if value = record_to_hash(sub_record, options, can_be_referenced && property_schema['referenced'] && !property_schema['export_embedded'], property_model)
-            json[name] = value
-          end
+          value = record_to_hash(sub_record, options, can_be_referenced && property_schema['referenced'] && !property_schema['export_embedded'], property_model)
+          store(json, name, value, options)
         else
           if (value = record.send(property_name) || property_schema['default']).is_a?(BSON::ObjectId)
             value = value.to_s
           end
-          json[name] = value unless value.nil?
+         store(json, name, value, options)
         end
       end
       if !options[:inspecting] && !json['_reference'] && enclosed_model && !record.orm_model.eql?(enclosed_model) && !options[:ignore].include?(:_type) && (!options[:only] || options[:only].include?(:_type))
@@ -180,6 +181,17 @@ module Edi
       json
     end
 
+    def store(json, key, value, options)
+      if value
+        if value.is_a?(Array) || value.is_a?(Hash)
+          json[key] = value if value.present? || options[:include_blanks] || options[:include_empty]
+        else
+          json[key] = value
+        end
+      else
+        json[key] = nil if options[:include_null]
+      end
+    end
     def record_to_edi(data_type, options, schema, record, enclosed_property_name=nil)
       output = []
       return output unless record
