@@ -95,11 +95,12 @@ module Capataz
       end
       buffer = Parser::Source::Buffer.new('code')
       buffer.source = code
-      Capataz::Rewriter.new(options).rewrite(buffer, Parser::CurrentRuby.new.parse(buffer))
+      puts code = Capataz::Rewriter.new(options).rewrite(buffer, Parser::CurrentRuby.new.parse(buffer))
+      code
     end
 
     def handle(obj, options = {})
-      if obj.is_a?(Fixnum)
+      if obj.is_a?(Fixnum) || obj.capataz_proxy?
         obj
       else
         Capataz::Proxy.new(obj, options)
