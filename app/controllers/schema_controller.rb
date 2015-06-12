@@ -5,4 +5,5 @@ class SchemaController < ApplicationController
     schema = Setup::Schema.where(uri: uri).first
     render plain: schema && schema.cenit_ref_schema
   end
+
 end

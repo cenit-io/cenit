@@ -27,7 +27,8 @@ module Cenit
           end
         end
 
-        Setup::Library.any_in(id: (data = pull_data['libraries']).collect { |item| item['id'] }).each do |library|
+        libraries_id = (data = pull_data['libraries']) ? data.collect { |item| item['id'] } : []
+        Setup::Library.any_in(id: libraries_id).each do |library|
           if library_data = data.detect { |item| item['name'] == library.name }
             if schemas_data = library_data['schemas']
               library.schemas.each do |schema|
@@ -79,6 +80,7 @@ module Cenit
               pull_data = pull_request.delete(:pull_data)
               pull_request[:created_records] = collection.inspect_json(inspecting: :id, inspect_scope: create_collector).reject { |_, value| !value.is_a?(Enumerable) }
               pull_request[:pull_data] = pull_data
+              pull_request[:collection] = {id: collection.id.to_s}
             else
               collection.errors.full_messages.each { |msg| errors << msg }
             end

@@ -146,33 +146,35 @@ module Cenit
       def save_references(record, options, saved, visited = Set.new)
         return true if visited.include?(record)
         visited << record
-        record.orm_model.for_each_association do |relation|
-          next if Setup::BuildInDataType::EXCLUDED_RELATIONS.include?(relation[:name].to_s)
-          if values = record.send(relation[:name])
-            values = [values] unless values.is_a?(Enumerable)
-            values_to_save = []
-            values.each do |value|
-              unless visited.include?(value)
-                return false unless save_references(value, options, saved, visited)
-                values_to_save << value
-              end
-            end
-            values_to_save.each do |value|
-              unless saved.include?(value)
-                new_record = value.new_record?
-                if value.save(options)
-                  if new_record || value.instance_variable_get(:@dynamically_created)
-                    value.instance_variable_set(:@dynamically_created, true)
-                    options[:create_collector] << value if options[:create_collector]
-                  else
-                    options[:update_collector] << value if options[:update_collector]
-                  end
-                  saved << value
-                else
-                  return false
+        if model = record.try(:orm_model)
+          model.for_each_association do |relation|
+            next if Setup::BuildInDataType::EXCLUDED_RELATIONS.include?(relation[:name].to_s)
+            if values = record.send(relation[:name])
+              values = [values] unless values.is_a?(Enumerable)
+              values_to_save = []
+              values.each do |value|
+                unless visited.include?(value)
+                  return false unless save_references(value, options, saved, visited)
+                  values_to_save << value
                 end
               end
-            end unless relation[:embedded]
+              values_to_save.each do |value|
+                unless saved.include?(value)
+                  new_record = value.new_record?
+                  if value.save(options)
+                    if new_record || value.instance_variable_get(:@dynamically_created)
+                      value.instance_variable_set(:@dynamically_created, true)
+                      options[:create_collector] << value if options[:create_collector]
+                    else
+                      options[:update_collector] << value if options[:update_collector]
+                    end
+                    saved << value
+                  else
+                    return false
+                  end
+                end
+              end unless relation[:embedded]
+            end
           end
         end
         true
