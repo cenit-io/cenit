@@ -174,14 +174,16 @@ module Setup
       simple_translate(message, &block)
     end
 
-    def translate_import(message, &block)
-      connection_role.connections.each do |connection|
+    def translate_import(_, &block)
+      parameters = webhook.template_parameters_hash
+      the_connections.each do |connection|
         begin
-          http_response = HTTParty.send(webhook.method, connection.url + '/' + webhook.path,
-                                        {headers: {'X_HUB_TIMESTAMP' => Time.now.utc.to_i.to_s}})
+          headers = connection.conformed_headers.merge(webhook.conformed_headers)
+          http_response = HTTParty.send(webhook.method, connection.conformed_url + '/' + webhook.conformed_path, headers)
           translator.run(target_data_type: data_type,
-                         data: http_response.message,
-                         discard_events: discard_events) if http_response.code == 200
+                         data: http_response.body,
+                         discard_events: discard_events,
+                         parameters: connection.template_parameters_hash.merge(parameters)) if http_response.code == 200
           block.yield(response: http_response.to_json, exception_message: (200...299).include?(http_response.code) ? nil : 'Unsuccessful') if block
         rescue Exception => ex
           block.yield(response: http_response.to_json, exception_message: ex.message) if block
@@ -211,10 +213,9 @@ module Setup
             else
               common_result ||= translator.run(translation_options)
             end
-          headers = {'Content-Type' => translator.mime_type}.merge(connection.conformed_headers)
-          webhook.headers.each { |h| headers[h.key] = h.value }
+          headers = {'Content-Type' => translator.mime_type}.merge(connection.conformed_headers).merge(webhook.conformed_headers)
           begin
-            http_response = HTTParty.send(webhook.method, connection.conformed_url + '/' + webhook.path,
+            http_response = HTTParty.send(webhook.method, connection.conformed_url + '/' + webhook.conformed_path,
                                           {
                                             body: translation_result,
                                             headers: headers
@@ -252,7 +253,7 @@ module Setup
 
     def the_connections
       if connection_role.present?
-        connection_role.connections
+        connection_role.connections || []
       else
         connections = []
         Setup::ConnectionRole.all.each do |connection_role|
