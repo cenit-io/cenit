@@ -31,10 +31,6 @@ module Cenit
       RailsAdmin::Config.excluded_models.concat RailsAdmin::Config.models_pool.select { |m| m.eql?('Base') || m.end_with?('::Base') }
       puts 'Excluding ' + RailsAdmin::Config.excluded_models.to_s
 
-      #Setup::Schema.model_listeners << RailsAdmin::AbstractModel
-
-      testing = false
-
       Account.all.each do |account|
 
         Account.current = account
@@ -52,40 +48,6 @@ module Cenit
         end
         RailsAdmin::AbstractModel.update_model_config(models)
 
-        if flow = Setup::Flow.where(id: '556f66166d6163367c050000').first
-          flow.process
-          # data_type.load_model unless data_type.loaded?
-          # model = data_type.model
-          # # Setup::DataType.shutdown(data_type)
-          # hooks = []
-          # ObjectSpace.each_object(Object) do |obj|
-          #   begin
-          #     if (r = ObjectSpace.reachable_objects_from(obj)).is_a?(Enumerable) && r.include?(model)
-          #       hooks << obj
-          #     end
-          #   rescue Exception => ex
-          #     # puts ex.message
-          #   end
-          # end
-          # puts "================================> #{hooks.size}"
-          # puts hooks
-          # puts 'ok!!!!!!!!!!!!!!!'
-          # Setup::DataType.shutdown(data_type)
-          # GC.start
-          # sleep(10)
-          # hooks = []
-          # ObjectSpace.each_object(Object) do |obj|
-          #   begin
-          #     if (r = ObjectSpace.reachable_objects_from(obj)).is_a?(Enumerable) && r.include?(model)
-          #       hooks << obj
-          #     end
-          #   rescue Exception => ex
-          #     # puts ex.message
-          #   end
-          # end
-          # puts "================================> #{hooks.size}"
-          # puts hooks
-        end if testing
       end
       Account.current = nil
 
