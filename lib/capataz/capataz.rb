@@ -95,8 +95,7 @@ module Capataz
       end
       buffer = Parser::Source::Buffer.new('code')
       buffer.source = code
-      puts code = Capataz::Rewriter.new(options).rewrite(buffer, Parser::CurrentRuby.new.parse(buffer))
-      code
+      Capataz::Rewriter.new(options).rewrite(buffer, Parser::CurrentRuby.new.parse(buffer))
     end
 
     def handle(obj, options = {})

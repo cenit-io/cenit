@@ -133,6 +133,7 @@ module Setup
     def translate(message, &block)
       (flow_execution = Thread.current[:flow_execution] ||= []) << [id.to_s, message[:execution_graph] || {}]
       send("translate_#{translator.type.to_s.downcase}", message, &block)
+    ensure
       flow_execution.pop
     end
 
@@ -179,7 +180,7 @@ module Setup
       the_connections.each do |connection|
         begin
           headers = connection.conformed_headers.merge(webhook.conformed_headers)
-          http_response = HTTParty.send(webhook.method, connection.conformed_url + '/' + webhook.conformed_path, headers)
+          http_response = HTTParty.send(webhook.method, connection.conformed_url + '/' + webhook.conformed_path, headers: headers)
           translator.run(target_data_type: data_type,
                          data: http_response.body,
                          discard_events: discard_events,
