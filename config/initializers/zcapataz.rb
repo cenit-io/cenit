@@ -7,7 +7,7 @@ Capataz.config do
 
   deny_invoke_of :require, :new, :create, :class, :eval, :class_eval, :instance_eval, :instance_variable_set, :instance_variable_get, :constants, :const_get, :const_set, :constantize
 
-  allowed_constants JSON
+  allowed_constants JSON, Array
 
   allow_on JSON, :parse
 

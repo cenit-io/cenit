@@ -1,3 +1,9 @@
+class BasicObject
+  def capataz_proxy?
+    false
+  end
+end
+
 module Capataz
   class Proxy
 
@@ -31,6 +37,22 @@ module Capataz
       else
         fail NoMethodError, "undefined method #{symbol} for #{@obj}"
       end
+    end
+
+    def is_a?(type)
+      if type.capataz_proxy?
+        @obj.is_a?(type.capataz_slave)
+      else
+        @obj.is_a?(type)
+      end
+    end
+
+    def capataz_proxy?
+      true
+    end
+
+    def capataz_slave
+      @obj
     end
 
     def respond_to?(*args)
