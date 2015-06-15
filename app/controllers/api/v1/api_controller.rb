@@ -95,6 +95,18 @@ module Api::V1
       head :no_content
     end
 
+    def new_account
+      parameters = (JSON.parse(@webhook_body) rescue {}).keep_if { |key, _| %w(email password password_confirmation).include?(key) }
+      parameters.reverse_merge!(email: params[:email], password: params[:password] || '', password_confirmation: params[:password_confirmation] || '')
+      response =
+        if (user = User.new_with_session(parameters, session)).save
+          {number: user.number, token: user.authentication_token}
+        else
+          user.errors.to_json
+        end
+      render json: response
+    end
+
     protected
 
     def authorize
