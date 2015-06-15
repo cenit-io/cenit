@@ -2,19 +2,25 @@ module Setup
   class Library
     include CenitScoped
 
-    Setup::Models.exclude_actions_for self, :edit, :update, :delete, :bulk_delete, :delete_all
+    Setup::Models.exclude_actions_for self, :delete, :bulk_delete, :delete_all
 
-    BuildInDataType.regist(self).embedding(:schemas, :validators, :file_data_types).referenced_by(:name)
+    BuildInDataType.regist(self).embedding(:schemas, :validators, :file_data_types).referenced_by(:slug)
 
     field :name, type: String
+    field :slug, type: String
 
     has_many :schemas, class_name: Setup::Schema.to_s, inverse_of: :library, dependent: :destroy
     has_many :file_data_types, class_name: Setup::FileDataType.to_s, inverse_of: :library, dependent: :destroy
 
     validates_presence_of :name
-    validates_uniqueness_of :name
+    # validates_uniqueness_of :slug #TODO Validates Slug and remove make slug method
+    validates_length_of :slug, maximum: 255
 
-    before_save :validates_name_uniqueness
+    before_save :make_slug, :validates_name_uniqueness
+
+    def make_slug
+      self.slug = name.underscore if slug.blank?
+    end
 
     def validates_name_uniqueness
       hash = Hash.new { |h, k| h[k] = 0 }

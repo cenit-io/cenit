@@ -5,8 +5,6 @@ module Api::V1
     rescue_from Exception, :with => :exception_handler
     respond_to :json
 
-    PRESENTATION_KEY = {'_id' => 'id'}.freeze
-
     def index
       @items =
         if @criteria.present?
@@ -133,7 +131,12 @@ module Api::V1
     end
 
     def get_data_type_by_name(name)
-      @data_types[name] ||= Setup::BuildInDataType["Setup::#{name}"] || Setup::Model.where(name: name).first
+      @data_types[name] ||=
+        if @library == 'setup'
+          Setup::BuildInDataType["Setup::#{name}"]
+        else
+          Setup::Model.where(name: name).detect { |model| model.library.slug }
+        end
     end
 
     def get_data_type(root)
@@ -156,6 +159,7 @@ module Api::V1
       @data_types ||= {}
       @request_id = request.uuid
       @webhook_body = request.body.read
+      @library = params[:library]
       @model = params[:model]
       @payload =
         case request.content_type
@@ -168,7 +172,7 @@ module Api::V1
         end.new(controller: self,
                 message: @webhook_body,
                 content_type: request.content_type)
-      @criteria = params.to_hash.with_indifferent_access.reject { |key, _| %w(controller action model id api).include?(key) }
+      @criteria = params.to_hash.with_indifferent_access.reject { |key, _| %w(controller action library model id api).include?(key) }
     end
 
     private
