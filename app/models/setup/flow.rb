@@ -131,10 +131,16 @@ module Setup
     end
 
     def translate(message, &block)
-      (flow_execution = Thread.current[:flow_execution] ||= []) << [id.to_s, message[:execution_graph] || {}]
-      send("translate_#{translator.type.to_s.downcase}", message, &block)
-    ensure
-      flow_execution.pop
+      if translator.present?
+        begin
+          (flow_execution = Thread.current[:flow_execution] ||= []) << [id.to_s, message[:execution_graph] || {}]
+          send("translate_#{translator.type.to_s.downcase}", message, &block)
+        ensure
+          flow_execution.pop
+        end
+      else
+        yield(exception_message: "translator can't be blank")
+      end
     end
 
     private
