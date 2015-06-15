@@ -147,8 +147,11 @@ module Capataz
     end
 
     def store_options(entry_key, access_key, objs, options)
-      options = [options] unless options.is_a?(Enumerable)
-      fail "Options can't be blank" unless options.present?
+      if options.is_a?(Enumerable)
+        options = options.flatten if options.is_a?(Array)
+      else
+        options = [options]
+      end
       options =
         if options.length == 1 && options[0].is_a?(Proc)
           options[0]

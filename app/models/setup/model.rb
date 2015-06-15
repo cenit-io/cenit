@@ -9,7 +9,8 @@ module Setup
     BuildInDataType.regist(self).including(:schema).referenced_by(:name)
 
     def self.to_include_in_models
-      @to_include_in_models ||= [Mongoid::Document,
+      @to_include_in_models ||= [Setup::DynamicModel,
+                                 Mongoid::Document,
                                  Mongoid::Timestamps,
                                  Setup::SchemaModelAware,
                                  Setup::ClassAffectRelation,

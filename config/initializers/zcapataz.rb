@@ -1,4 +1,3 @@
-
 require 'capataz/capataz'
 
 Capataz.config do
@@ -11,9 +10,19 @@ Capataz.config do
 
   allow_on JSON, :parse
 
-  allow_for ActionView::Base, :render
+  allow_for ActionView::Base, []
 
-  deny_for [Mongoid::CenitExtension, Mongoff::Record], ->(instance, method) do
+  allow_for Setup::Model, (%w(json xml edi).collect do |format|
+    %w(create new create!).collect do |action|
+      if action.end_with?('!')
+        "#{action.chop}_from_#{format}!"
+      else
+        "#{action}_from_#{format}"
+      end
+    end
+  end).flatten
+
+  deny_for [Setup::DynamicModel, Mongoff::Record], ->(instance, method) do
     return false if [:to_json, :to_edi, :to_hash, :to_xml].include?(method)
     if (method = method.to_s).end_with?('=')
       method = method.chop
