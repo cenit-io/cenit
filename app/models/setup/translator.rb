@@ -165,7 +165,7 @@ module Setup
       self.class.fields.keys.each { |key| context_options[key.to_sym] = send(key) }
       self.class.relations.keys.each { |key| context_options[key.to_sym] = send(key) }
       context_options[:data_type] = data_type
-      context_options.merge!(options) { |key, context_val, options_val| !context_val ? options_val : context_val }
+      context_options.merge!(options) { |_, context_val, options_val| !context_val ? options_val : context_val }
       context_options[:transformation] = transformation_code(context_options)
 
       context_options[:result] = STYLES_MAP[style].keys.detect { |t| STYLES_MAP[style][t].include?(type) }.run(context_options)
