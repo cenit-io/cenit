@@ -119,10 +119,12 @@ RailsAdmin.config do |config|
 
     edit do
       field :name
+      field :slug
     end
 
     show do
       field :name
+      field :slug
       field :schemas
       field :file_data_types
 
@@ -133,7 +135,7 @@ RailsAdmin.config do |config|
       #field :updater
     end
 
-    fields :name, :schemas, :file_data_types
+    fields :name, :slug, :schemas, :file_data_types
   end
 
   config.model Setup::Schema do
@@ -932,7 +934,7 @@ RailsAdmin.config do |config|
       end
       field :name
       field :shared_version
-      field :description
+      field :description, :wysihtml5
       field :source_collection do
         visible { !((source_collection = bindings[:object].source_collection) && source_collection.new_record?) }
         inline_edit false
@@ -1034,7 +1036,11 @@ RailsAdmin.config do |config|
         end
       end
       field :category
-      field :description
+      field :description do
+        pretty_value do
+          value.html_safe
+        end
+      end
       field :owners, :text do
         pretty_value do
           value.collect { |user| user.email }.to_sentence.html_safe
@@ -1059,7 +1065,11 @@ RailsAdmin.config do |config|
           value.collect { |user| user.email }.to_sentence.html_safe
         end
       end
-      field :description
+      field :description do
+        pretty_value do
+          value.html_safe
+        end
+      end
     end
   end
 

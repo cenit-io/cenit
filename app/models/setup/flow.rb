@@ -131,10 +131,16 @@ module Setup
     end
 
     def translate(message, &block)
-      (flow_execution = Thread.current[:flow_execution] ||= []) << [id.to_s, message[:execution_graph] || {}]
-      send("translate_#{translator.type.to_s.downcase}", message, &block)
-    ensure
-      flow_execution.pop
+      if translator.present?
+        begin
+          (flow_execution = Thread.current[:flow_execution] ||= []) << [id.to_s, message[:execution_graph] || {}]
+          send("translate_#{translator.type.to_s.downcase}", message, &block)
+        ensure
+          flow_execution.pop
+        end
+      else
+        yield(exception_message: "translator can't be blank")
+      end
     end
 
     private
@@ -180,7 +186,8 @@ module Setup
       the_connections.each do |connection|
         begin
           headers = connection.conformed_headers.merge(webhook.conformed_headers)
-          http_response = HTTParty.send(webhook.method, connection.conformed_url + '/' + webhook.conformed_path, headers: headers)
+          url_parameter = "?" + connection.conformed_parameters.merge(webhook.conformed_parameters).to_param
+          http_response = HTTParty.send(webhook.method, connection.conformed_url + '/' + webhook.conformed_path + url_parameter, headers: headers)
           translator.run(target_data_type: data_type,
                          data: http_response.body,
                          discard_events: discard_events,
@@ -195,7 +202,7 @@ module Setup
     def translate_export(message, &block)
       limit = translator.bulk_source ? lot_size || 1000 : 1
       max = ((object_ids = source_ids_from(message)) ? object_ids.size : data_type.count) - (scope_symbol ? 1 : 0)
-      parameters = webhook.template_parameters_hash
+      webhook_template_parameters = webhook.template_parameters_hash
       0.step(max, limit) do |offset|
         common_result = nil
         the_connections.each do |connection|
@@ -206,24 +213,25 @@ module Setup
               offset: offset,
               limit: limit,
               discard_events: discard_events,
-              parameters: parameters
+              parameters: template_parameters = webhook_template_parameters.dup
             }
           translation_result =
             if connection.template_parameters.present?
-              translator.run(translation_options.merge(parameters: connection.template_parameters_hash.merge(parameters)))
+              template_parameters.reverse_merge!(connection.template_parameters_hash)
+              translator.run(translation_options)
             else
               common_result ||= translator.run(translation_options)
             end
-          headers = {'Content-Type' => translator.mime_type}.merge(connection.conformed_headers).merge(webhook.conformed_headers)
+          headers = {'Content-Type' => translator.mime_type}.merge(connection.conformed_headers(template_parameters)).merge(webhook.conformed_headers(template_parameters))
           begin
-            http_response = HTTParty.send(webhook.method, connection.conformed_url + '/' + webhook.conformed_path,
+            http_response = HTTParty.send(webhook.method, connection.conformed_url(template_parameters) + '/' + webhook.conformed_path(template_parameters),
                                           {
                                             body: translation_result,
                                             headers: headers
                                           })
             block.yield(response: http_response.to_json, exception_message: (200...299).include?(http_response.code) ? nil : 'Unsuccessful') if block.present?
             if response_translator #&& http_response.code == 200
-              response_translator.run(target_data_type: response_translator.data_type || response_data_type, data: http_response.body)
+              response_translator.run(translation_options.merge(target_data_type: response_translator.data_type || response_data_type, data: http_response.body))
             end
           rescue Exception => ex
             block.yield(exception_message: ex.message) if block
