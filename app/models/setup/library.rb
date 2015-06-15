@@ -19,7 +19,7 @@ module Setup
     before_save :make_slug, :validates_name_uniqueness
 
     def make_slug
-      self.slug = name.underscore if slug.blank?
+      self.slug = name.gsub("\'", '').parameterize if slug.blank?
     end
 
     def validates_name_uniqueness
