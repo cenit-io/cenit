@@ -34,7 +34,7 @@ module Setup
     before_save :validates_configuration
 
     def validates_configuration
-      format_triggers_on(:scope_filter)
+      format_triggers_on(:scope_filter) if scope_filter.present?
       return false unless ready_to_save?
       unless requires(:name, :translator)
         if translator.data_type.nil?
