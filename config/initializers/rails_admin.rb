@@ -119,10 +119,12 @@ RailsAdmin.config do |config|
 
     edit do
       field :name
+      field :slug
     end
 
     show do
       field :name
+      field :slug
       field :schemas
       field :file_data_types
 
@@ -133,7 +135,7 @@ RailsAdmin.config do |config|
       #field :updater
     end
 
-    fields :name, :schemas, :file_data_types
+    fields :name, :slug, :schemas, :file_data_types
   end
 
   config.model Setup::Schema do
@@ -624,7 +626,11 @@ RailsAdmin.config do |config|
         end
       end
       field :data_type_scope do
-        visible { (f = bindings[:object]).translator.present? && f.translator.type != :Import && f.data_type && !f.instance_variable_get(:@selecting_data_type) }
+        visible do
+          bindings[:controller].instance_variable_set(:@_data_type, bindings[:object].data_type)
+          bindings[:controller].instance_variable_set(:@_update_field, 'translator_id')
+          (f = bindings[:object]).translator.present? && f.translator.type != :Import && f.data_type && !f.instance_variable_get(:@selecting_data_type)
+        end
         label do
           if (translator = bindings[:object].translator)
             if [:Export, :Conversion].include?(translator.type)
@@ -638,6 +644,11 @@ RailsAdmin.config do |config|
         end
         help 'Required'
       end
+      field :scope_filter do
+        visible { bindings[:object].scope_symbol == :filtered }
+        partial 'form_triggers'
+        help false
+      end
       field :lot_size do
         visible { (f = bindings[:object]).translator.present? && f.translator.type == :Export && !f.nil_data_type && f.data_type_scope && f.scope_symbol != :event_source }
       end
@@ -650,7 +661,7 @@ RailsAdmin.config do |config|
         help 'Optional'
       end
       field :response_translator do
-        visible { (translator = (f = bindings[:object]).translator) && (translator.type == :Import || (translator.type == :Export && (bindings[:object].data_type_scope.present? || f.nil_data_type))) && f.ready_to_save? }
+        visible { (translator = (f = bindings[:object]).translator) && (translator.type == :Export && (bindings[:object].data_type_scope.present? || f.nil_data_type)) && f.ready_to_save? }
         associated_collection_scope do
           Proc.new { |scope|
             scope.where(type: :Import)
@@ -712,6 +723,7 @@ RailsAdmin.config do |config|
       field :data_type do
         associated_collection_scope do
           bindings[:controller].instance_variable_set(:@_data_type, data_type = bindings[:object].data_type)
+          bindings[:controller].instance_variable_set(:@_update_field, 'data_type_id')
           Proc.new { |scope|
             if data_type
               scope.where(id: data_type.id)
@@ -932,7 +944,7 @@ RailsAdmin.config do |config|
       end
       field :name
       field :shared_version
-      field :description
+      field :description, :wysihtml5
       field :source_collection do
         visible { !((source_collection = bindings[:object].source_collection) && source_collection.new_record?) }
         inline_edit false
@@ -1034,7 +1046,11 @@ RailsAdmin.config do |config|
         end
       end
       field :category
-      field :description
+      field :description do
+        pretty_value do
+          value.html_safe
+        end
+      end
       field :owners, :text do
         pretty_value do
           value.collect { |user| user.email }.to_sentence.html_safe
@@ -1059,7 +1075,11 @@ RailsAdmin.config do |config|
           value.collect { |user| user.email }.to_sentence.html_safe
         end
       end
-      field :description
+      field :description do
+        pretty_value do
+          value.html_safe
+        end
+      end
     end
   end
 

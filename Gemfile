@@ -83,4 +83,5 @@ gem 'mini_magick'
 gem 'liquid'
 gem 'codemirror-rails'
 gem 'wannabe_bool'
+gem 'parser'
 
