@@ -22,6 +22,9 @@ module Edi
         ignore = [ignore] unless ignore.is_a?(Enumerable)
         ignore = ignore.select { |p| p.is_a?(Symbol) || p.is_a?(String) }.collect(&:to_sym)
         options[:ignore] = ignore
+        unless (primary_field_option = options[:primary_field]).nil? || primary_field_option.is_a?(Symbol)
+          options[:primary_field] = primary_field_option.to_s.to_sym
+        end
         do_parse_json(data_type, data_type.records_model, content, options, (record && record.orm_model.schema) || (model && model.schema) || data_type.merged_schema, nil, record)
       end
 
@@ -106,9 +109,10 @@ module Edi
 
       def do_parse_json(data_type, model, json, options, json_schema, record=nil, new_record=nil)
         updating = false
+        primary_field = options.delete(:primary_field) || :id
         unless record ||= new_record
           if model && model.modelable?
-            if record = (!options[:ignore].include?(:id) && (id = json['id']) && model.where(id: id).first)
+            if record = (!options[:ignore].include?(primary_field) && (field_value = json[primary_field.to_s]) && model.where(primary_field => field_value).first)
               updating = true
             else
               (record = model.new).instance_variable_set(:@dynamically_created, true)
@@ -166,7 +170,7 @@ module Edi
               record.send("#{property_name}=", nil)
             end
           else
-            next if (updating && property_name == '_id')
+            next if (updating && (property_name == '_id' || name == primary_field.to_s))
             if property_value = json[name]
               record.send("#{property_name}=", property_value)
             end

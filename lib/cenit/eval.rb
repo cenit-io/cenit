@@ -9,7 +9,7 @@ module Cenit
     def render(context)
       locals = {}
       context.environments.each { |e| locals.merge!(e) }
-      ActionView::Base.new.render inline: @value, type: :ruby, handlers: :ruby, locals: locals.symbolize_keys
+      ActionView::Base.new.render inline: Capataz.rewrite(@value, locals: locals.keys), type: :ruby, handlers: :ruby, locals: locals.symbolize_keys
     end
   end
 end

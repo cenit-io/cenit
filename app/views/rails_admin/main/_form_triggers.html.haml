@@ -12,9 +12,10 @@
   end
   puts "MODEL FIELD MAP #{model_fields}"
   puts "TRIGGERS #{triggers}"
+  update_field = "#{model_name = @abstract_model.to_s.parameterize.underscore}_#{@_controller.instance_variable_get(:@_update_field)}"
 
 .a{style: 'float:left'}
-  %input{style: 'display: none', name: 'setup_observer[triggers][_]'}
+  %input{style: 'display: none', name: "#{model_name}[#{field.name}][_]"}
   .b
     %span#triggers_box
   .c
@@ -22,12 +23,15 @@
       %a.dropdown-toggle{href: '#', :'data-toggle' => 'dropdown'}
         .btn.btn-info{id: 'add_trigger'}
           .i{class: 'icon-white icon-plus'}
-          = 'Add trigger'  #t('admin.misc.add_filter')
+          = 'Add'  #t('admin.misc.add_filter')
           %b.caret
       %ul.dropdown-menu#triggers
 
 %script
+  var model_name = '#{model_name}'
+  var model_field_name = '#{field.name}'
+  var update_field = '#{update_field}'
   var fields = #{model_fields.html_safe}
   var default_triggers = #{triggers.html_safe}
-  $("#setup_observer_data_type_id").trigger('change');
+  $("##{update_field}").trigger('change');
 

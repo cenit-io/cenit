@@ -2,6 +2,7 @@ module Setup
   class Webhook
     include CenitScoped
     include Setup::Enum
+    include ParametersCommon
 
     BuildInDataType.regist(self).referenced_by(:name).excluding(:connection_roles)
 
@@ -24,14 +25,8 @@ module Setup
 
     accepts_nested_attributes_for :parameters, :headers, :template_parameters, allow_destroy: true
 
-    def template_parameters_hash
-      hash = {}
-      template_parameters.each { |p| hash[p.key] = p.value }
-      hash
-    end
-
-    def relative_url
-      "/#{path}"
+    def conformed_path(options = {})
+      conform_field_value(:path, options)
     end
   end
 end

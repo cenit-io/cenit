@@ -124,8 +124,8 @@ module Mongoff
       end
     end
 
-    def all
-      find
+    def all(criteria = {})
+      find(criteria)
     end
 
     def method_missing(symbol, *args)
