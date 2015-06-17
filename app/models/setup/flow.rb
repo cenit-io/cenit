@@ -6,7 +6,7 @@ module Setup
     include DynamicValidators
     include TriggersFormatter
 
-    BuildInDataType.regist(self)
+    BuildInDataType.regist(self).referenced_by(:name)
 
     field :name, type: String
     field :active, type: Boolean, default: :true
