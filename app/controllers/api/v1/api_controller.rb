@@ -97,7 +97,7 @@ module Api::V1
 
     def new_account
       parameters = (JSON.parse(@webhook_body) rescue {}).keep_if { |key, _| %w(email password password_confirmation).include?(key) }
-      parameters.reverse_merge!(email: params[:email], password: params[:password] || '', password_confirmation: params[:password_confirmation] || '')
+      parameters.reverse_merge!(email: params[:email], password: (pwd = params[:password] || Devise.friendly_token), password_confirmation: params[:password_confirmation] || pwd)
       response =
         if (user = User.new_with_session(parameters, session)).save
           {number: user.number, token: user.authentication_token}
@@ -110,6 +110,7 @@ module Api::V1
     protected
 
     def authorize
+      return true if action_name == 'new_account'
       key = request.headers['X-User-Access-Key']
       token = request.headers['X-User-Access-Token']
       user = User.where(key: key).first if key && token
