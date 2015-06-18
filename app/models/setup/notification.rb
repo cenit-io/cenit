@@ -2,6 +2,8 @@ module Setup
   class Notification
     include CenitScoped
 
+    BuildInDataType.regist(self)
+
     Setup::Models.exclude_actions_for self, :new, :edit, :update
 
     belongs_to :flow, class_name: Setup::Flow.to_s, inverse_of: nil

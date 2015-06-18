@@ -45,8 +45,7 @@ module RailsAdmin
                                                           data_type: data_type)
                     ok = true
                   rescue Setup::TransformingObjectException => ex
-                    flash.now[:error] = "Error updating object with id=#{ex.object.id}".html_safe
-                    flash.now[:error] += %(<br>- #{ex.object.errors.full_messages.join('<br>- ')}).html_safe
+                    do_flash(:error, "Error updating object with id=#{ex.object.id}", ex.object.errors.full_messages)
                   rescue Exception => ex
                     raise ex
                     flash[:error] = ex.message
@@ -68,8 +67,7 @@ module RailsAdmin
                 translator: translator)
               @model_config = RailsAdmin::Config.model(Forms::TranslatorSelector)
               if @object.errors.present?
-                flash.now[:error] = 'There are errors in the export data specification'.html_safe
-                flash.now[:error] += %(<br>- #{@object.errors.full_messages.join('<br>- ')}).html_safe
+                do_flash_now(:error, 'There are errors in the export data specification', @object.errors.full_messages)
               end
               render :translate
             end

@@ -1,6 +1,10 @@
 module Edi
   module Formatter
 
+    def to_params(options={})
+      to_hash(options).to_params(options)
+    end
+
     def to_edi(options={})
       options.reverse_merge!(field_separator: '*',
                              segment_separator: :new_line,
@@ -277,6 +281,47 @@ module Edi
       end
       value
     end
+  end
+end
 
+class Hash
+
+  def to_params(options={})
+    unsafe = options[:unsafe]
+    sort.map do |k, values|
+      if values.is_a?(Array)
+        values << nil if values.empty?
+        values.sort.collect do |v|
+          [escape(k, unsafe),escape(v, unsafe)] * '='
+        end
+      elsif values.is_a?(Hash)
+        normalize_nested_query(values, k, unsafe)
+      else
+        [escape(k, unsafe),escape(values, unsafe)] * '='
+      end
+    end * '&'
+  end
+
+  private
+
+  def normalize_nested_query(value, prefix, unsafe)
+    case value
+    when Array
+      value.map do |v|
+        normalize_nested_query(v, "#{prefix}[]", unsafe)
+      end.flatten.sort
+    when Hash
+      value.map do |k, v|
+        normalize_nested_query(v, prefix ? "#{prefix}[#{k}]" : k, unsafe)
+      end.flatten.sort
+    else
+      [escape(prefix, unsafe), escape(value, unsafe)] * '='
+    end
+  end
+
+  def escape(value, unsafe)
+    URI::escape(value.to_s, unsafe)
+  rescue ArgumentError
+    URI::escape(value.to_s.force_encoding(Encoding::UTF_8), unsafe)
   end
 end

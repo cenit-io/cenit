@@ -37,8 +37,7 @@ module RailsAdmin
             end
 
             if errors
-              flash.now[:error] = t('admin.flash.error', name: @model_config.label, action: t("admin.actions.#{@action.key}.done").html_safe).html_safe
-              flash.now[:error] += %(<br>- #{errors.join('<br>- ')}).html_safe
+              do_flash(:error, t('admin.flash.error', name: @model_config.label, action: t("admin.actions.#{@action.key}.done").html_safe), errors)
               redirect_to back_or_index
             end
 

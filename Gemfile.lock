@@ -51,6 +51,8 @@ GEM
       debug_inspector (>= 0.0.1)
     bootstrap-sass (3.3.1.0)
       sass (~> 3.2)
+    bootstrap-wysihtml5-rails (0.3.3.7)
+      railties (>= 3.0)
     bson (2.3.0)
     bson_ext (1.5.1)
     builder (3.2.2)
@@ -224,6 +226,7 @@ GEM
     netrc (0.10.2)
     nokogiri (1.6.5)
       mini_portile (~> 0.6.0)
+    oauth (0.4.7)
     oauth2 (1.0.0)
       faraday (>= 0.8, < 0.10)
       jwt (~> 1.0)
@@ -422,6 +425,7 @@ DEPENDENCIES
   better_errors
   binding_of_caller
   bootstrap-sass
+  bootstrap-wysihtml5-rails
   bson_ext
   builder
   bunny (~> 0.9.1)
@@ -457,6 +461,7 @@ DEPENDENCIES
   mongoid-history
   mongoid-rspec
   nokogiri
+  oauth
   omniauth
   omniauth-oauth2
   parser
