@@ -100,6 +100,7 @@ module Api::V1
       parameters.reverse_merge!(email: params[:email], password: (pwd = params[:password] || Devise.friendly_token), password_confirmation: params[:password_confirmation] || pwd)
       response =
         if (user = User.new_with_session(parameters, session)).save
+          Account.create_with_owner(owner: user)
           {number: user.number, token: user.authentication_token}
         else
           user.errors.to_json
