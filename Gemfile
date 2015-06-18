@@ -84,4 +84,5 @@ gem 'liquid'
 gem 'codemirror-rails'
 gem 'wannabe_bool'
 gem 'parser'
+gem 'oauth'
 

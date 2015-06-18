@@ -109,7 +109,6 @@ module Setup
 
     EXPORT_MIME_FILTER = {
       'double_curly_braces' => ['application/json'],
-      'liquid' => ['application/json'],
       'xslt' => ['application/xml'],
       'json.rabl' => ['application/json'],
       'xml.rabl' => ['application/xml'],
