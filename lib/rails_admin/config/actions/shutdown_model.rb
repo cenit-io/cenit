@@ -41,8 +41,7 @@ module RailsAdmin
                   if report[:errors].present?
                     flash[:error] = ''.html_safe
                     report[:errors].each do |data_type, errors|
-                      flash[:error] += "<strong>Model '#{data_type.title}' could not be loaded</strong>".html_safe
-                      flash[:error] += %(<br>- #{errors.full_messages.join('<br>- ')}<br>).html_safe
+                      do_flash(:error, "<strong>Model '#{data_type.title}' could not be loaded</strong>", errors.full_messages)
                     end
                   end
                 else

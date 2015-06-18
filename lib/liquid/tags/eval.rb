@@ -1,5 +1,10 @@
-module Cenit
-  class Eval < Liquid::Tag
+
+require 'liquid/tags/cenit_basic_tag'
+
+module Liquid
+  class Eval < CenitBasicTag
+
+    tag :eval
 
     def initialize(tag_name, value, tokens)
       super

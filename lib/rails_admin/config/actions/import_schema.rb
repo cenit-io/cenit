@@ -84,8 +84,7 @@ module RailsAdmin
             @object ||= Forms::ImportSchemaData.new
             @model_config = RailsAdmin::Config.model(Forms::ImportSchemaData)
             if @object.errors.present?
-              flash.now[:error] = t('admin.flash.error', name: @model_config.label, action: t("admin.actions.#{@action.key}.done").html_safe).html_safe
-              flash.now[:error] += %(<br>- #{@object.errors.full_messages.join('<br>- ')}).html_safe
+              do_flash(:error, t('admin.flash.error', name: @model_config.label, action: t("admin.actions.#{@action.key}.done").html_safe), @object.errors.full_messages)
             end
 
           end

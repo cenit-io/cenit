@@ -2,7 +2,7 @@
 :ruby
   model_fields = []
   if data_type = @_controller.instance_variable_get(:@_data_type)
-    (model = data_type.records_model).simple_properties_schemas.each do |property, schema|
+    (model = data_type.create_mongoff_model).simple_properties_schemas.each do |property, schema|
       model_fields << [schema['title'] || property.titleize, property, (enum = schema['enum']) || [], enum ? 'enum' : model.type_symbol_for(schema)]
     end
   end
