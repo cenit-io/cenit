@@ -40,8 +40,7 @@ module RailsAdmin
               @shared_parameter_enum = @shared_collection.enum_for_pull_parameters
               @model_config = shared_collection_config
               if params[:_share] && @shared_collection.errors.present?
-                flash.now[:error] = t('admin.flash.error', name: @model_config.label, action: t("admin.actions.#{@action.key}.done").html_safe).html_safe
-                flash.now[:error] += %(<br>- #{@shared_collection.errors.full_messages.join('<br>- ')}).html_safe
+                do_flash(:error, t('admin.flash.error', name: @model_config.label, action: t("admin.actions.#{@action.key}.done").html_safe), @shared_collection.errors.full_messages)
               end
               render :share
             end

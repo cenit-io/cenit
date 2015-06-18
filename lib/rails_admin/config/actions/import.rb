@@ -53,8 +53,7 @@ module RailsAdmin
               @object = form_object || Forms::ImportTranslatorSelector.new
               @model_config = RailsAdmin::Config.model(Forms::ImportTranslatorSelector)
               if @object.errors.present?
-                flash.now[:error] = 'There are errors in the import data specification'.html_safe
-                flash.now[:error] += %(<br>- #{@object.errors.full_messages.join('<br>- ')}).html_safe
+                do_flash(:error, 'There are errors in the import data specification', @object.errors.full_messages)
               end
             end
 

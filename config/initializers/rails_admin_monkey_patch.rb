@@ -307,6 +307,28 @@ module RailsAdmin
         format.js { render whereto, layout: false, status: :not_acceptable }
       end
     end
+
+    def do_flash(flash_key, header, messages, options = {})
+      do_flash_on(flash, flash_key, header, messages, options)
+    end
+
+    def do_flash_now(flash_key, header, messages, options = {})
+      do_flash_on(flash.now, flash_key, header, messages, options)
+    end
+
+    def do_flash_on(flash_hash, flash_key, header, messages, options = {})
+      options = (options || {}).reverse_merge(reset: true)
+      if options[:reset] || flash_hash[flash_key].nil?
+        flash_hash[flash_key] = header.html_safe
+      else
+        flash_hash[flash_key] += header.html_safe
+      end
+      max = options[:max] || 5
+      flash_hash[flash_key] += %(<br>- #{messages[0..max - 1].join('<br>- ')}).html_safe
+      if messages.length - max > 0
+        flash_hash[flash_key] += "<br>- and another #{messages.length - max}.".html_safe
+      end
+    end
   end
 
   module Adapters
