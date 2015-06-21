@@ -12,7 +12,7 @@ class User
   # Include default devise modules. Others available are:
   # :recoverable, :rememberable, :confirmable, :lockable, :timeoutable and :omniauthable
   
-  devise :trackable, :validatable, :omniauthable, :database_authenticatable, :confirmable
+  devise :trackable, :validatable, :omniauthable, :database_authenticatable
   devise :registerable unless ENV['UNABLE_REGISTERABLE'].to_b
   devise :confirmable unless ENV['UNABLE_CONFIRMABLE'].to_b
 
