@@ -11,11 +11,10 @@ class User
 
   # Include default devise modules. Others available are:
   # :recoverable, :rememberable, :confirmable, :lockable, :timeoutable and :omniauthable
-  if ENV['UNABLE_REGISTERABLE'].to_b
-    devise :trackable, :validatable, :omniauthable, :database_authenticatable, :confirmable
-  else
-    devise :registerable, :trackable, :validatable, :omniauthable, :database_authenticatable, :confirmable
-  end
+  
+  devise :trackable, :validatable, :omniauthable, :database_authenticatable, :confirmable
+  devise :registerable unless ENV['UNABLE_REGISTERABLE'].to_b
+  devise :confirmable unless ENV['UNABLE_CONFIRMABLE'].to_b
 
   # Database authenticatable
   field :email,              type: String, default: ""
