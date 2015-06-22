@@ -112,8 +112,10 @@ module Api::V1
 
     def authorize
       return true if action_name == 'new_account'
-      key = request.headers['X-User-Access-Key']
-      token = request.headers['X-User-Access-Token']
+      key = params.delete('X-User-Access-Key')
+      key = request.headers['X-User-Access-Key'] || key
+      token = params.delete('X-User-Access-Token')
+      token = request.headers['X-User-Access-Token'] || token
       user = User.where(key: key).first if key && token
       if user && Devise.secure_compare(user.token, token) && user.has_role?(:admin)
         Account.current = user.account
