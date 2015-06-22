@@ -1,6 +1,6 @@
 module Api::V1
   class ApiController < ApplicationController
-    before_action :save_request_data, :authorize
+    before_action :save_request_data, :authorize, except: [:new_account]
     before_action :find_item, only: [:show, :destroy, :pull]
     rescue_from Exception, :with => :exception_handler
     respond_to :json
@@ -111,7 +111,6 @@ module Api::V1
     protected
 
     def authorize
-      return true if action_name == 'new_account'
       key = params.delete('X-User-Access-Key')
       key = request.headers['X-User-Access-Key'] || key
       token = params.delete('X-User-Access-Token')
