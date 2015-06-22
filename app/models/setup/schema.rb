@@ -106,9 +106,9 @@ module Setup
       @_initialized = true
     end
 
-    def cenit_ref_schema
-      #TODO !!!
-      schema
+    def cenit_ref_schema(options = {})
+      options = {service_url: Cenit.service_url, service_schema_path: Cenit.service_schema_path}.merge(options)
+      send("cenit_ref_#{schema_type}", options)
     end
 
     def data_type
@@ -174,6 +174,27 @@ module Setup
 
     def parse_xml_schema
       Xsd::Document.new(uri, self.schema).schema.json_schemas
+    end
+
+    def cenit_ref_json_schema(options = {})
+      schema
+    end
+
+    def cenit_ref_xml_schema(options = {})
+      doc = Nokogiri::XML(schema)
+      cursor = doc.root.first_element_child
+      while cursor
+        if %w(import include redefine).include?(cursor.name) && (attr = cursor.attributes['schemaLocation'])
+          puts attr.value = options[:service_url].to_s + options[:service_schema_path] + '?' +
+            {
+              key: Account.current.owner.unique_key,
+              library_id: library.id.to_s,
+              uri: attr.value
+            }.to_param
+        end
+        cursor = cursor.next_element
+      end
+      doc.to_xml
     end
   end
 end

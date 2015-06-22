@@ -37,7 +37,7 @@ module Edi
       def do_parse_xml(data_type, model, element, options, json_schema, record=nil, new_record=nil, enclosed_property=nil)
         json_schema = data_type.merge_schema(json_schema)
         name = json_schema['edi']['segment'] if json_schema['edi']
-        name ||= enclosed_property || model.data_type.title
+        name ||= enclosed_property || model.data_type.name
         return unless name == element.name
         record ||= new_record || model.new
         attributes = {}
@@ -55,7 +55,8 @@ module Edi
             raise Exception.new("More than one content property found: '#{content_property}' and '#{property_name}'") if content_property
             content_property = property_name
           else
-            sub_element_schemas[property_name] = property_schema
+            property_schema[:property_name] = property_name
+            sub_element_schemas[name] = property_schema
           end
         end
         element.attribute_nodes.each do |attr|
@@ -81,25 +82,26 @@ module Edi
             record.send("#{content_property}=", content)
           end
         else
-          sub_element = element.first_element_child
-          sub_element_schemas.each do |property_name, property_schema|
-            next unless sub_element
-            case property_schema['type']
-            when 'array'
-              property_schema = data_type.merge_schema(property_schema['items'])
-              property_model = model.property_model(property_name)
-              while sub_element && sub_record = do_parse_xml(data_type, property_model, sub_element, options, property_schema)
-                record.send(property_name) << sub_record
-                sub_element = sub_element.next_element
+          element.element_children.each do |sub_element|
+            if property_schema = sub_element_schemas[sub_element.name]
+              property_name = property_schema[:property_name]
+              case property_schema['type']
+              when 'array'
+                property_schema = data_type.merge_schema(property_schema['items'])
+                property_model = model.property_model(property_name)
+                while sub_element && sub_record = do_parse_xml(data_type, property_model, sub_element, options, property_schema)
+                  record.send(property_name) << sub_record
+                  sub_element = sub_element.next_element
+                end
+              when 'object'
+                property_model = model.property_model(property_name)
+                if sub_record = do_parse_xml(data_type, property_model, sub_element, options, property_schema, nil, nil, property_name)
+                  record.send("#{property_name}=", sub_record)
+                  sub_element = sub_element.next_element
+                end
+              else
+                record.send("#{property_name}=", Hash.from_xml(sub_element.to_xml).values.first)
               end
-            when 'object'
-              property_model = model.property_model(property_name)
-              if sub_record = do_parse_xml(data_type, property_model, sub_element, options, property_schema, nil, nil, property_name)
-                record.send("#{property_name}=", sub_record)
-                sub_element = sub_element.next_element
-              end
-            else
-              record.send("#{property_name}=", Hash.from_xml(sub_element.to_xml).values.first)
             end
           end
         end
