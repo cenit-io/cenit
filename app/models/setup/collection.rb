@@ -31,7 +31,7 @@ module Setup
           translator: translators,
           webhook: webhooks,
           connection_role: connection_roles,
-          translator: translators
+          response_translator: translators
         }.each do |key, association|
           unless (value = flow.send(key)).nil? || association.detect { |v| v == value }
             association << value

@@ -4,6 +4,7 @@ module Setup
   class Flow < ReqRejValidator
     include CenitScoped
     include DynamicValidators
+    include TriggersFormatter
 
     BuildInDataType.regist(self)
 
@@ -17,6 +18,7 @@ module Setup
     belongs_to :custom_data_type, class_name: Setup::Model.to_s, inverse_of: nil
     field :nil_data_type, type: Boolean
     field :data_type_scope, type: String
+    field :scope_filter, type: String
     field :lot_size, type: Integer
 
     belongs_to :webhook, class_name: Setup::Webhook.to_s, inverse_of: nil
@@ -28,13 +30,13 @@ module Setup
     field :last_trigger_timestamps, type: Time
 
     validates_uniqueness_of :name
-    validates_presence_of :name, :translator
     validates_numericality_in_presence_of :lot_size, greater_than_or_equal_to: 1
     before_save :validates_configuration
 
     def validates_configuration
+      format_triggers_on(:scope_filter)
       return false unless ready_to_save?
-      unless requires(:translator)
+      unless requires(:name, :translator)
         if translator.data_type.nil?
           requires(:custom_data_type) unless translator.type == :Export && nil_data_type
         else
@@ -44,6 +46,11 @@ module Setup
           rejects(:data_type_scope)
         else
           requires(:data_type_scope) unless translator.type == :Export && data_type.nil?
+          if scope_symbol == :filtered
+            format_triggers_on(:scope_filter, true)
+          else
+            rejects(:scope_filter)
+          end
         end
         if [:Import, :Export].include?(translator.type)
           requires(:webhook)
@@ -75,18 +82,18 @@ module Setup
 
     def reject_message(field = nil)
       case field
-        when :custom_data_type
-          'is not allowed since translator already defines a data type'
-        when :data_type_scope
-          'is not allowed for import translators'
-        when :response_data_type
-          response_translator.present? ? 'is not allowed since response translator already defines a data type' : "can't be defined until response translator"
-        when :discard_events
-          "can't be defined until response translator"
-        when :lot_size, :response_translator
-          'is not allowed for non export translators'
-        else
-          super
+      when :custom_data_type
+        'is not allowed since translator already defines a data type'
+      when :data_type_scope
+        'is not allowed for import translators'
+      when :response_data_type
+        response_translator.present? ? 'is not allowed since response translator already defines a data type' : "can't be defined until response translator"
+      when :discard_events
+        "can't be defined until response translator"
+      when :lot_size, :response_translator
+        'is not allowed for non export translators'
+      else
+        super
       end
     end
 
@@ -99,7 +106,7 @@ module Setup
       if data_type
         enum << 'Event source' if event && event.try(:data_type) == data_type
         enum << "All #{data_type.title.downcase.pluralize}"
-        enum << ''
+        enum << 'Filter'
       end
       enum
     end
@@ -131,9 +138,16 @@ module Setup
     end
 
     def translate(message, &block)
-      (flow_execution = Thread.current[:flow_execution] ||= []) << [id.to_s, message[:execution_graph] || {}]
-      send("translate_#{translator.type.to_s.downcase}", message, &block)
-      flow_execution.pop
+      if translator.present?
+        begin
+          (flow_execution = Thread.current[:flow_execution] ||= []) << [id.to_s, message[:execution_graph] || {}]
+          send("translate_#{translator.type.to_s.downcase}", message, &block)
+        ensure
+          flow_execution.pop
+        end
+      else
+        yield(exception_message: "translator can't be blank")
+      end
     end
 
     private
@@ -152,14 +166,10 @@ module Setup
 
     def simple_translate(message, &block)
       begin
-        if object_ids = message[:object_ids]
-          data_type.records_model.any_in(id: object_ids).each { |obj| translator.run(object: obj, discard_events: discard_events) }
-        elsif scope_symbol.nil?
-          translator.run(object: nil, discard_events: discard_events)
-        elsif scope_symbol == :all
-          data_type.records_model.all.each { |obj| translator.run(object: obj, discard_events: discard_events) }
-        elsif obj_id = message[:source_id]
+        if obj_id = message[:source_id]
           translator.run(object: data_type.records_model.where(id: obj_id).first, discard_events: discard_events)
+        elsif  object_ids = source_ids_from(message)
+          data_type.records_model.any_in(id: object_ids).each { |obj| translator.run(object: obj, discard_events: discard_events) }
         end
       rescue Exception => ex
         block.yield(exception_message: ex.message) if block
@@ -174,14 +184,17 @@ module Setup
       simple_translate(message, &block)
     end
 
-    def translate_import(message, &block)
-      connection_role.connections.each do |connection|
+    def translate_import(_, &block)
+      parameters = webhook.template_parameters_hash
+      the_connections.each do |connection|
         begin
-          http_response = HTTParty.send(webhook.method, connection.url + '/' + webhook.path,
-                                        {headers: {'X_HUB_TIMESTAMP' => Time.now.utc.to_i.to_s}})
+          headers = connection.conformed_headers.merge(webhook.conformed_headers)
+          url_parameter = "?" + connection.conformed_parameters.merge(webhook.conformed_parameters).to_param
+          http_response = HTTParty.send(webhook.method, connection.conformed_url + '/' + webhook.conformed_path + url_parameter, headers: headers)
           translator.run(target_data_type: data_type,
-                         data: http_response.message,
-                         discard_events: discard_events) if http_response.code == 200
+                         data: http_response.body,
+                         discard_events: discard_events,
+                         parameters: connection.template_parameters_hash.merge(parameters)) if http_response.code == 200
           block.yield(response: http_response.to_json, exception_message: (200...299).include?(http_response.code) ? nil : 'Unsuccessful') if block
         rescue Exception => ex
           block.yield(response: http_response.to_json, exception_message: ex.message) if block
@@ -192,36 +205,36 @@ module Setup
     def translate_export(message, &block)
       limit = translator.bulk_source ? lot_size || 1000 : 1
       max = ((object_ids = source_ids_from(message)) ? object_ids.size : data_type.count) - (scope_symbol ? 1 : 0)
-      parameters = webhook.template_parameters_hash
+      webhook_template_parameters = webhook.template_parameters_hash
       0.step(max, limit) do |offset|
         common_result = nil
         the_connections.each do |connection|
           translation_options =
-              {
-                  object_ids: object_ids,
-                  source_data_type: data_type,
-                  offset: offset,
-                  limit: limit,
-                  discard_events: discard_events,
-                  parameters: parameters
-              }
+            {
+              object_ids: object_ids,
+              source_data_type: data_type,
+              offset: offset,
+              limit: limit,
+              discard_events: discard_events,
+              parameters: template_parameters = webhook_template_parameters.dup
+            }
           translation_result =
-              if connection.template_parameters.present?
-                translator.run(translation_options.merge(parameters: connection.template_parameters_hash.merge(parameters)))
-              else
-                common_result ||= translator.run(translation_options)
-              end
-          headers = {'Content-Type' => translator.mime_type}.merge(connection.conformed_headers)
-          webhook.headers.each { |h| headers[h.key] = h.value }
+            if connection.template_parameters.present?
+              template_parameters.reverse_merge!(connection.template_parameters_hash)
+              translator.run(translation_options)
+            else
+              common_result ||= translator.run(translation_options)
+            end
+          headers = {'Content-Type' => translator.mime_type}.merge(connection.conformed_headers(template_parameters)).merge(webhook.conformed_headers(template_parameters))
           begin
-            http_response = HTTParty.send(webhook.method, connection.conformed_url + '/' + webhook.path,
+            http_response = HTTParty.send(webhook.method, connection.conformed_url(template_parameters) + '/' + webhook.conformed_path(template_parameters),
                                           {
-                                              body: translation_result,
-                                              headers: headers
+                                            body: translation_result,
+                                            headers: headers
                                           })
             block.yield(response: http_response.to_json, exception_message: (200...299).include?(http_response.code) ? nil : 'Unsuccessful') if block.present?
             if response_translator #&& http_response.code == 200
-              response_translator.run(target_data_type: response_translator.data_type || response_data_type, data: http_response.body)
+              response_translator.run(translation_options.merge(target_data_type: response_translator.data_type || response_data_type, data: http_response.body))
             end
           rescue Exception => ex
             block.yield(exception_message: ex.message) if block
@@ -237,6 +250,8 @@ module Setup
         []
       elsif scope_symbol == :event_source && id = message[:source_id]
         [id]
+      elsif scope_symbol == :filtered
+        data_type.records_model.all.select { |record| field_triggers_apply_to?(:scope_filter, record) }.collect(&:id)
       else
         nil
       end
@@ -244,7 +259,13 @@ module Setup
 
     def scope_symbol
       if data_type_scope.present?
-        data_type_scope.start_with?('Event') ? :event_source : :all
+        if data_type_scope.start_with?('Event')
+          :event_source
+        elsif data_type_scope.start_with?('Filter')
+          :filtered
+        else
+          :all
+        end
       else
         nil
       end
@@ -252,7 +273,7 @@ module Setup
 
     def the_connections
       if connection_role.present?
-        connection_role.connections
+        connection_role.connections || []
       else
         connections = []
         Setup::ConnectionRole.all.each do |connection_role|

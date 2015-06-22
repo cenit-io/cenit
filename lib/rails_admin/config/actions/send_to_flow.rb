@@ -47,7 +47,7 @@ module RailsAdmin
               model = @abstract_model.model_name.constantize rescue nil
               if model.present? && model.respond_to?(:data_type)
                 model_data_type = model.data_type
-                flows = Setup::Flow.all.select { |flow| flow.translator.type != :Import && flow.data_type == model_data_type }
+                flows = Setup::Flow.all.select { |flow| flow.translator && flow.translator.type != :Import && flow.data_type == model_data_type }
                 @flow_options = flows.collect { |f| [f.name, f.id] }
               end
               render @action.template_name

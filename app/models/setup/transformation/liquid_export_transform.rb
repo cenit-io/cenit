@@ -1,7 +1,6 @@
 module Setup
   module Transformation
     class LiquidExportTransform
-      include DoubleCurlyBracesTransformer
 
       class << self
 

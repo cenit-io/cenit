@@ -1,0 +1,2 @@
+module Setup::DynamicModel
+end

@@ -459,6 +459,7 @@ DEPENDENCIES
   nokogiri
   omniauth
   omniauth-oauth2
+  parser
   poltergeist (= 1.5.0)
   prawn-rails
   rabl

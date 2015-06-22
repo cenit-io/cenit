@@ -77,19 +77,21 @@ module Setup
       validates_configuration
     end
 
-    RUBY_IMPORT_TRANSFORMATION =
-        'if (parsed_data = JSON.parse(data)).is_a?(Array)
+    RUBY_IMPORT_TRANSFORMATION = <<-EOF
+if (parsed_data = JSON.parse(data)).is_a?(Array)
   parsed_data.each { |item| target_data_type.create_from_json!(item) }
 else
   target_data_type.create_from_json!(parsed_data)
-end'
+end
+EOF
 
-    RUBY_EXPORT_TRANSFORMATION =
-        "if (jsons = sources.collect { |source| source.to_json(pretty: true, ignore: :id) } ).length == 1
-    jsons[0]
+    RUBY_EXPORT_TRANSFORMATION = <<-EOF
+if (jsons = sources.collect { |source| source.to_json(pretty: true, ignore: :id) } ).length == 1
+  jsons[0]
 else
   \"[\#{jsons.join(', ')}]\"
-end"
+end
+EOF
 
     protected
 

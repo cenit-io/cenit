@@ -5,10 +5,24 @@ module Api::V1
     rescue_from Exception, :with => :exception_handler
     respond_to :json
 
-    PRESENTATION_KEY = {'_id' => 'id'}.freeze
-
     def index
-      @items = klass.all
+      @items =
+        if @criteria.present?
+          if sort_key = @criteria.delete(:sort_by)
+            asc = @criteria.has_key?(:ascending) | @criteria.has_key?(:asc)
+            [:ascending, :asc, :descending, :desc].each { |key| @criteria.delete(key) }
+          end
+          if limit = @criteria.delete(:limit)
+            limit = limit.to_s.to_i
+            limit = nil if limit == 0
+          end
+          items = klass.where(@criteria)
+          items = items.sort(sort_key => asc ? 1 : -1) if sort_key
+          items = items.limit(limit) if limit
+          items
+        else
+          klass.all
+        end
       render json: @items.map { |item| {((model = (hash = item.inspect_json(include_id: true)).delete('_type')) ? model.downcase : @model) => hash} }
     end
 
@@ -22,10 +36,10 @@ module Api::V1
 
     def push
       response =
-          {
-              success: success_report = Hash.new { |h, k| h[k] = [] },
-              errors: broken_report = Hash.new { |h, k| h[k] = [] }
-          }
+        {
+          success: success_report = Hash.new { |h, k| h[k] = [] },
+          errors: broken_report = Hash.new { |h, k| h[k] = [] }
+        }
       @payload.each do |root, message|
         if data_type = @payload.data_type_for(root)
           message = [message] unless message.is_a?(Array)
@@ -81,10 +95,17 @@ module Api::V1
       head :no_content
     end
 
-    def auth
-      head :no_content
+    def new_account
+      parameters = (JSON.parse(@webhook_body) rescue {}).keep_if { |key, _| %w(email password password_confirmation).include?(key) }
+      parameters.reverse_merge!(email: params[:email], password: params[:password] || '', password_confirmation: params[:password_confirmation] || '')
+      response =
+        if (user = User.new_with_session(parameters, session)).save
+          {number: user.number, token: user.authentication_token}
+        else
+          user.errors.to_json
+        end
+      render json: response
     end
-
 
     protected
 
@@ -122,7 +143,12 @@ module Api::V1
     end
 
     def get_data_type_by_name(name)
-      @data_types[name] ||= Setup::BuildInDataType["Setup::#{name}"] || Setup::Model.where(name: name).first
+      @data_types[name] ||=
+        if @library == 'setup'
+          Setup::BuildInDataType["Setup::#{name}"]
+        else
+          Setup::Model.where(name: name).detect { |model| model.library.slug }
+        end
     end
 
     def get_data_type(root)
@@ -145,18 +171,20 @@ module Api::V1
       @data_types ||= {}
       @request_id = request.uuid
       @webhook_body = request.body.read
+      @library = params[:library]
       @model = params[:model]
       @payload =
-          case request.content_type
-            when 'application/json'
-              JSONPayload
-            when 'application/xml'
-              XMLPayload
-            else
-              BasicPayload
-          end.new(controller: self,
-                  message: @webhook_body,
-                  content_type: request.content_type)
+        case request.content_type
+        when 'application/json'
+          JSONPayload
+        when 'application/xml'
+          XMLPayload
+        else
+          BasicPayload
+        end.new(controller: self,
+                message: @webhook_body,
+                content_type: request.content_type)
+      @criteria = params.to_hash.with_indifferent_access.reject { |key, _| %w(controller action library model id api).include?(key) }
     end
 
     private
@@ -170,17 +198,17 @@ module Api::V1
 
       def initialize(config)
         @config =
-            {
-                create_method: case config[:content_type]
-                                 when 'application/json'
-                                   :create_from_json
-                                 when 'application/xml'
-                                   :create_from_xml
-                                 else
-                                   :create_from
-                               end,
-                message: ''
-            }.merge(config || {})
+          {
+            create_method: case config[:content_type]
+                           when 'application/json'
+                             :create_from_json
+                           when 'application/xml'
+                             :create_from_xml
+                           else
+                             :create_from
+                           end,
+            message: ''
+          }.merge(config || {})
         @data_type = (controller = config[:controller]).send(:get_data_type_by_name, (@root = controller.request.headers['data-type']))
         @create_options = {create_collector: Set.new}
         create_options_keys.each { |option| @create_options[option.to_sym] = controller.request[option] }

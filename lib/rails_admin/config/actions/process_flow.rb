@@ -8,7 +8,7 @@ module RailsAdmin
         end
 
         register_instance_option :visible do
-          authorized? && (flow = bindings[:object]) && flow.nil_data_type
+          authorized? && (flow = bindings[:object]) && (flow.nil_data_type || (flow.translator && flow.translator.type == :Import))
         end
 
         register_instance_option :only do
@@ -26,7 +26,7 @@ module RailsAdmin
         register_instance_option :controller do
           proc do
 
-            if @object.nil_data_type
+            if (@object.nil_data_type || (@object.translator && @object.translator.type == :Import))
               begin
                 @object.process
                 flash[:success] = "Flow #{@object.name} successfully processed"
