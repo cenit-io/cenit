@@ -1,3 +1,6 @@
+
+require 'cenit/core_ext'
+
 module Cenit
   class << self
 
