@@ -84,4 +84,6 @@ gem 'liquid'
 gem 'codemirror-rails'
 gem 'wannabe_bool'
 gem 'parser'
+gem 'oauth'
+gem 'bootstrap-wysihtml5-rails'
 

@@ -73,7 +73,15 @@ module Cenit
             begin
               collection.name = BSON::ObjectId.new.to_s
             end while Setup::Collection.where(name: collection.name).present?
-            if Cenit::Utility.save(collection, {create_collector: create_collector = Set.new})
+            unless Cenit::Utility.save(collection, {create_collector: create_collector = Set.new})
+              collection.errors.full_messages.each { |msg| errors << msg }
+              collection.errors.clear
+              if Cenit::Utility.save(collection, {create_collector: create_collector})
+                pull_request[:fixed_errors] = errors
+                errors = []
+              end
+            end
+            if errors.blank?
               Setup::Collection.where(name: shared_collection.name).delete
               collection.name = shared_collection.name
               collection.save
@@ -81,8 +89,6 @@ module Cenit
               pull_request[:created_records] = collection.inspect_json(inspecting: :id, inspect_scope: create_collector).reject { |_, value| !value.is_a?(Enumerable) }
               pull_request[:pull_data] = pull_data
               pull_request[:collection] = {id: collection.id.to_s}
-            else
-              collection.errors.full_messages.each { |msg| errors << msg }
             end
           rescue Exception => ex
             errors << ex.message

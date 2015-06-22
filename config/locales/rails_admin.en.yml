@@ -155,6 +155,8 @@ en:
         update_warning: "The following objects will be updated"
         ready: "Ready to pull!"
         nothing_to_pull: "Nothing to pull from here"
+        fixed_errors_header: "The following errors where fixed when pulling the collection"
+        missing_parameters: "Missing parameters"
       retry_notification:
         title: "Retry"
         menu: "Retry"
