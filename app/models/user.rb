@@ -5,7 +5,7 @@ class User
   include NumberGenerator
   rolify
 
-  belongs_to :account, inverse_of: :users, class_name: Account.name
+  belongs_to :account, inverse_of: :users, class_name: Account.to_s
   before_validation { self.account ||= Account.current }
   scope :by_account, -> { where(account: Account.current ) }
 
@@ -38,6 +38,7 @@ class User
   field :last_sign_in_ip,    type: String
   field :authentication_token, as: :token, type: String
   field :number, as: :key, type: String
+  field :unique_key, type: String
   field :unconfirmed_email, type: String
   
   field :doorkeeper_uid, type: String 
@@ -67,6 +68,10 @@ class User
 
   def ensure_token
     self.token ||= generate_token
+    md5 = Digest::MD5.new
+    md5 << key
+    md5 << token
+    self.unique_key = md5.hexdigest
   end
   
   def generate_token

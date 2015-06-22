@@ -99,7 +99,7 @@ module Capataz
     end
 
     def handle(obj, options = {})
-      if obj.is_a?(Fixnum) || obj.capataz_proxy?
+      if obj.is_a?(Fixnum) || obj.is_a?(Symbol) || obj.capataz_proxy?
         obj
       else
         Capataz::Proxy.new(obj, options)
