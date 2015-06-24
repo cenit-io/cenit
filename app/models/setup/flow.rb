@@ -224,25 +224,29 @@ module Setup
               translator.run(translation_options)
             else
               common_result ||= translator.run(translation_options)
+            end || ''
+          if translation_options.is_a?(String)
+            template_parameters.reverse_merge!(
+              url: conformed_url = connection.conformed_url(template_parameters),
+              path: conformed_path = webhook.conformed_path(template_parameters),
+              method: webhook.method,
+              body: translation_result
+            )
+            headers =
+              {
+                'Content-Type' => translator.mime_type
+              }.merge(connection.conformed_headers(template_parameters)).merge(webhook.conformed_headers(template_parameters))
+            begin
+              http_response = HTTParty.send(webhook.method, conformed_url + '/' + conformed_path, {body: translation_result, headers: headers})
+              block.yield(response: http_response.to_json, exception_message: (200...299).include?(http_response.code) ? nil : 'Unsuccessful') if block.present?
+              if response_translator #&& http_response.code == 200
+                response_translator.run(translation_options.merge(target_data_type: response_translator.data_type || response_data_type, data: http_response.body))
+              end
+            rescue Exception => ex
+              block.yield(exception_message: ex.message) if block
             end
-          template_parameters.reverse_merge!(
-            url: conformed_url = connection.conformed_url(template_parameters),
-            path: conformed_path = webhook.conformed_path(template_parameters),
-            method: webhook.method,
-            body: translation_result
-          )
-          headers =
-            {
-              'Content-Type' => translator.mime_type
-            }.merge(connection.conformed_headers(template_parameters)).merge(webhook.conformed_headers(template_parameters))
-          begin
-            http_response = HTTParty.send(webhook.method, conformed_url + '/' + conformed_path, {body: translation_result, headers: headers})
-            block.yield(response: http_response.to_json, exception_message: (200...299).include?(http_response.code) ? nil : 'Unsuccessful') if block.present?
-            if response_translator #&& http_response.code == 200
-              response_translator.run(translation_options.merge(target_data_type: response_translator.data_type || response_data_type, data: http_response.body))
-            end
-          rescue Exception => ex
-            block.yield(exception_message: ex.message) if block
+          else
+            block.yield(exception_message: "Invalid translation result type: #{translation_result.class} (string or blank expected)") if block
           end
         end
       end
