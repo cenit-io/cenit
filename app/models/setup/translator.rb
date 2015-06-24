@@ -190,12 +190,19 @@ module Setup
               sources: if object_ids = options[:object_ids]
                          model.any_in(id: (limit ? object_ids[offset, limit] : object_ids.from(offset))).to_enum
                        else
-                         (limit ? model.limit(limit) : model.all).skip(offset).to_enum
+                         enum = (limit ? model.limit(limit) : model.all).skip(offset).to_enum
+                         options[:object_ids] = enum.collect { |obj| obj.id.is_a?(BSON::ObjectId) ? obj.id.to_s : obj.id }
+                         enum
                        end
             }
           else
             {
-              source: options[:object] || ((id = (options[:object_id] || (options[:object_ids] && options[:object_ids][offset]))) && model.where(id: id).first) || model.all.skip(offset).first
+              source:
+                begin
+                  obj = options[:object] || ((id = (options[:object_id] || (options[:object_ids] && options[:object_ids][offset]))) && model.where(id: id).first) || model.all.skip(offset).first
+                  options[:object_ids] = [obj.id.is_a?(BSON::ObjectId) ? obj.id.to_s : obj.id] unless options[:object_ids] || obj.nil?
+                  obj
+                end
             }
           end
         {source_data_type: data_type}.merge(source_options)
