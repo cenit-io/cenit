@@ -32,6 +32,12 @@ module Capataz
       end
     end
 
+    def on_return(node)
+      report_error('can not use return') unless Capataz.can_declare?(:return)
+      super
+      capatize(node.children[2])
+    end
+
     def on_casgn(node)
       report_error('can not define (or override) constants') unless Capataz.can_declare?(:constant)
       super
