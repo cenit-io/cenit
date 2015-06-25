@@ -39,9 +39,17 @@ module Edi
       options[:pretty] ? JSON.pretty_generate(hash) : hash.to_json
     end
 
-    def to_xml(options={})
-      (xml_doc = Nokogiri::XML::Document.new) << record_to_xml_element(data_type = self.orm_model.data_type, JSON.parse(data_type.model_schema), self, xml_doc, nil, options)
-      xml_doc.to_xml
+    def to_xml_element(options = {})
+      unless xml_doc = options[:xml_doc]
+        options[:xml_doc] = xml_doc = Nokogiri::XML::Document.new
+      end
+      record_to_xml_element(data_type = self.orm_model.data_type, JSON.parse(data_type.model_schema), self, xml_doc, nil, options)
+    end
+
+    def to_xml(options = {})
+      element = to_xml_element(options)
+      options[:xml_doc] << element
+      options[:xml_doc].to_xml
     end
 
     alias_method :inspect_json, :to_hash
@@ -175,7 +183,7 @@ module Edi
           if (value = record.send(property_name) || property_schema['default']).is_a?(BSON::ObjectId)
             value = value.to_s
           end
-         store(json, name, value, options)
+          store(json, name, value, options)
         end
       end
       if !options[:inspecting] && !json['_reference'] && enclosed_model && !record.orm_model.eql?(enclosed_model) && !options[:ignore].include?(:_type) && (!options[:only] || options[:only].include?(:_type))
@@ -196,6 +204,7 @@ module Edi
         json[key] = nil if options[:include_null]
       end
     end
+
     def record_to_edi(data_type, options, schema, record, enclosed_property_name=nil)
       output = []
       return output unless record
@@ -292,12 +301,12 @@ class Hash
       if values.is_a?(Array)
         values << nil if values.empty?
         values.sort.collect do |v|
-          [escape(k, unsafe),escape(v, unsafe)] * '='
+          [escape(k, unsafe), escape(v, unsafe)] * '='
         end
       elsif values.is_a?(Hash)
         normalize_nested_query(values, k, unsafe)
       else
-        [escape(k, unsafe),escape(values, unsafe)] * '='
+        [escape(k, unsafe), escape(values, unsafe)] * '='
       end
     end * '&'
   end

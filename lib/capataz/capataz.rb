@@ -46,8 +46,9 @@ module Capataz
       @config
     end
 
-    def instance_response_to?(instance, method)
-      method = method.to_s.to_sym unless method.is_a?(Symbol)
+    def instance_response_to?(instance, *args)
+      fail ArgumentError if args.length == 0
+      method = args[0].is_a?(Symbol) ? args[0] : args[0].to_s.to_sym
       return false if @config[:denied_methods].include?(method)
       if options = @config[:instances][instance]
         return false unless allowed_method?(options, instance, method)
@@ -57,7 +58,7 @@ module Capataz
           return false unless allowed_method?(options, instance, method)
         end
       end
-      true
+      instance.respond_to?(*args)
     end
 
     def allows_invocation_of(method)
@@ -99,7 +100,7 @@ module Capataz
     end
 
     def handle(obj, options = {})
-      if obj.is_a?(Fixnum) || obj.capataz_proxy?
+      if obj.is_a?(Fixnum) || obj.is_a?(Symbol) || obj.capataz_proxy?
         obj
       else
         Capataz::Proxy.new(obj, options)

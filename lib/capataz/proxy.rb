@@ -55,8 +55,12 @@ module Capataz
       @obj
     end
 
+    def class
+      @obj.class
+    end
+
     def respond_to?(*args)
-      Capataz.instance_response_to?(@obj, args[0])
+      Capataz.instance_response_to?(@obj, *args)
     end
   end
 end

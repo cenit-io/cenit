@@ -4,7 +4,6 @@ Cenit::Application.routes.draw do
   root to: 'rails_admin/main#dashboard'
   # root to: 'home#index'
 
-  get 'schema', to: 'schema#index'
   get '/file/:model/:field/:id/:file', to: 'file#index'
 
   get 'explore/:api', to: 'api#explore', as: :explore_api
@@ -13,6 +12,8 @@ Cenit::Application.routes.draw do
   devise_for :users, controllers: { omniauth_callbacks: "users/omniauth_callbacks" } do
     get 'sign_out', to: 'users/sessions#destroy', as: :destroy_user_session
   end
+
+  get 'schema', to: 'schema#index'
 
   namespace :api do
     namespace :v1 do
