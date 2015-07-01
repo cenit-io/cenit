@@ -167,11 +167,26 @@ module Setup
       context_options.merge!(options) { |_, context_val, options_val| !context_val ? options_val : context_val }
       context_options[:transformation] = transformation_code(context_options)
 
+      context_options[:target_data_type].regist_creation_listener(self) if context_options[:target_data_type]
+      context_options[:source_data_type].regist_creation_listener(self) if context_options[:source_data_type]
+
       context_options[:result] = STYLES_MAP[style].keys.detect { |t| STYLES_MAP[style][t].include?(type) }.run(context_options)
+
+      context_options[:target_data_type].unregist_creation_listener(self) if context_options[:target_data_type]
+      context_options[:source_data_type].unregist_creation_listener(self) if context_options[:source_data_type]
 
       try("after_run_#{type.to_s.downcase}", context_options)
 
       context_options[:result]
+    end
+
+    def before_create(record)
+      record.instance_variable_set(:@discard_event_lookup, true) if discard_events
+      if type == :Conversion && discard_chained_records
+        record.orm_model.data_type == target_data_type
+      else
+        true
+      end
     end
 
     def context_options_for_import(options)
@@ -217,15 +232,6 @@ module Setup
 
     def context_options_for_conversion(options)
       {source: options[:object], target: style == 'chain' ? nil : target_data_type.records_model.new}
-    end
-
-    def after_run_import(options)
-      return unless targets = options[:targets]
-      targets.each do |target|
-        target.instance_variable_set(:@discard_event_lookup, options[:discard_events])
-        raise TransformingObjectException.new(target) unless Cenit::Utility.save(target)
-      end
-      options[:result] = targets
     end
 
     def after_run_update(options)
