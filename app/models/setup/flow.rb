@@ -225,7 +225,7 @@ module Setup
             else
               common_result ||= translator.run(translation_options)
             end || ''
-          if translation_options.is_a?(String)
+          if translation_result.is_a?(String)
             template_parameters.reverse_merge!(
               url: conformed_url = connection.conformed_url(template_parameters),
               path: conformed_path = webhook.conformed_path(template_parameters),
