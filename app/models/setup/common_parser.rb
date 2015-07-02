@@ -1,9 +1,17 @@
 module Setup
   module CommonParser
-    
+
+    def regist_creation_listener(listener)
+      (@creation_listeners ||= []) << listener
+    end
+
+    def unregist_creation_listener(listener)
+      @creation_listeners.delete(listener) if @creation_listeners
+    end
+
     def create_from(data, options = {})
       if formatted_data = JSON.parse(data) rescue nil
-       create_from_json(formatted_data, options)
+        create_from_json(formatted_data, options)
       elsif formatted_data = Nokogiri::XML(data) rescue nil
         create_from_xml(formatted_data, options)
       else
@@ -54,7 +62,12 @@ module Setup
     private
 
     def save_record(record, options)
-      Cenit::Utility.save(record, options)
+      create = true
+      @creation_listeners.each { |listener| create &&= listener.try(:before_create, record) } if @creation_listeners
+      if create
+        Cenit::Utility.save(record, options)
+        @creation_listeners.each { |listener| listener.try(:after_create, record) } if @creation_listeners
+      end
       record
     end
   end

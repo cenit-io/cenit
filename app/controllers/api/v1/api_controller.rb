@@ -150,7 +150,7 @@ module Api::V1
         if @library == 'setup'
           Setup::BuildInDataType["Setup::#{name}"]
         else
-          Setup::Model.where(name: name).detect { |model| model.library.slug }
+          Setup::Model.where(name: name).detect { |model| model.library.slug == @library }
         end
     end
 
