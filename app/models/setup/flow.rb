@@ -196,7 +196,7 @@ module Setup
           headers = connection.conformed_headers(template_parameters).merge(webhook.conformed_headers(template_parameters))
           conformed_url = connection.conformed_url(template_parameters)
           conformed_path = webhook.conformed_path(template_parameters)
-          url_parameter = "?" + connection.conformed_parameters.merge(webhook.conformed_parameters).to_param
+          url_parameter = '?' + connection.conformed_parameters.merge(webhook.conformed_parameters).to_param
 
           http_response = HTTParty.send(webhook.method, conformed_url + '/' + conformed_path + url_parameter, headers: headers)
 
