@@ -188,19 +188,15 @@ module Setup
       webhook_template_parameters = webhook.template_parameters_hash
       the_connections.each do |connection|
         begin
-
           template_parameters = webhook_template_parameters.dup
           if connection.template_parameters.present?
             template_parameters.reverse_merge!(connection.template_parameters_hash)
           end
-
           headers = connection.conformed_headers(template_parameters).merge(webhook.conformed_headers(template_parameters))
           conformed_url = connection.conformed_url(template_parameters)
           conformed_path = webhook.conformed_path(template_parameters)
           url_parameter = "?" + connection.conformed_parameters.merge(webhook.conformed_parameters).to_param
-
           http_response = HTTParty.send(webhook.method, conformed_url + '/' + conformed_path + url_parameter, headers: headers)
-
           translator.run(target_data_type: data_type,
                          data: http_response.body,
                          discard_events: discard_events,
@@ -249,7 +245,7 @@ module Setup
             begin
               http_response = HTTParty.send(webhook.method, conformed_url + '/' + conformed_path, {body: translation_result, headers: headers})
               block.yield(response: http_response.to_json, exception_message: (200...299).include?(http_response.code) ? nil : 'Unsuccessful') if block.present?
-              if response_translator #&& http_response.code == 200
+              if response_translator && (200...299).include?(http_response.code)
                 response_translator.run(translation_options.merge(target_data_type: response_translator.data_type || response_data_type, data: http_response.body))
               end
             rescue Exception => ex
