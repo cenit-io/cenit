@@ -28,7 +28,7 @@ module Mongoid
       end
 
       def observable?
-        true
+        persistable?
       end
 
       def modelable?

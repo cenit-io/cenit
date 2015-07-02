@@ -23,7 +23,7 @@ Capataz.config do
   end + [:name]).flatten
 
   deny_for [Setup::DynamicModel, Mongoff::Record], ->(instance, method) do
-    return false if [:to_json, :to_edi, :to_hash, :to_xml, :to_params].include?(method)
+    return false if [:to_json, :to_edi, :to_hash, :to_xml, :to_params, :[], :[]=].include?(method)
     if (method = method.to_s).end_with?('=')
       method = method.chop
     end

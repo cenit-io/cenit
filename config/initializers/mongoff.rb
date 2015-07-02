@@ -34,6 +34,8 @@ Mongoff::Model.config do
   end
 
   after_save ->(record) do
-    Setup::Observer.lookup(record, record.instance_variable_get(:@_obj_before)) if record.orm_model.observable?
+    if record.orm_model.observable? && !record.instance_variable_get(:@discard_event_lookup)
+      Setup::Observer.lookup(record, record.instance_variable_get(:@_obj_before))
+    end
   end
 end
