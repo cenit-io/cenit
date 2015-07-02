@@ -82,18 +82,18 @@ module Setup
 
     def reject_message(field = nil)
       case field
-      when :custom_data_type
-        'is not allowed since translator already defines a data type'
-      when :data_type_scope
-        'is not allowed for import translators'
-      when :response_data_type
-        response_translator.present? ? 'is not allowed since response translator already defines a data type' : "can't be defined until response translator"
-      when :discard_events
-        "can't be defined until response translator"
-      when :lot_size, :response_translator
-        'is not allowed for non export translators'
-      else
-        super
+        when :custom_data_type
+          'is not allowed since translator already defines a data type'
+        when :data_type_scope
+          'is not allowed for import translators'
+        when :response_data_type
+          response_translator.present? ? 'is not allowed since response translator already defines a data type' : "can't be defined until response translator"
+        when :discard_events
+          "can't be defined until response translator"
+        when :lot_size, :response_translator
+          'is not allowed for non export translators'
+        else
+          super
       end
     end
 
@@ -185,16 +185,26 @@ module Setup
     end
 
     def translate_import(_, &block)
-      parameters = webhook.template_parameters_hash
+      webhook_template_parameters = webhook.template_parameters_hash
       the_connections.each do |connection|
         begin
-          headers = connection.conformed_headers.merge(webhook.conformed_headers)
+
+          template_parameters = webhook_template_parameters.dup
+          if connection.template_parameters.present?
+            template_parameters.reverse_merge!(connection.template_parameters_hash)
+          end
+
+          headers = connection.conformed_headers(template_parameters).merge(webhook.conformed_headers(template_parameters))
+          conformed_url = connection.conformed_url(template_parameters)
+          conformed_path = webhook.conformed_path(template_parameters)
           url_parameter = "?" + connection.conformed_parameters.merge(webhook.conformed_parameters).to_param
-          http_response = HTTParty.send(webhook.method, connection.conformed_url + '/' + webhook.conformed_path + url_parameter, headers: headers)
+
+          http_response = HTTParty.send(webhook.method, conformed_url + '/' + conformed_path + url_parameter, headers: headers)
+
           translator.run(target_data_type: data_type,
                          data: http_response.body,
                          discard_events: discard_events,
-                         parameters: connection.template_parameters_hash.merge(parameters)) if http_response.code == 200
+                         parameters: template_parameters) if http_response.code == 200
           block.yield(response: http_response.to_json, exception_message: (200...299).include?(http_response.code) ? nil : 'Unsuccessful') if block
         rescue Exception => ex
           block.yield(response: http_response.to_json, exception_message: ex.message) if block
@@ -210,32 +220,32 @@ module Setup
         common_result = nil
         the_connections.each do |connection|
           translation_options =
-            {
-              object_ids: object_ids,
-              source_data_type: data_type,
-              offset: offset,
-              limit: limit,
-              discard_events: discard_events,
-              parameters: template_parameters = webhook_template_parameters.dup
-            }
+              {
+                  object_ids: object_ids,
+                  source_data_type: data_type,
+                  offset: offset,
+                  limit: limit,
+                  discard_events: discard_events,
+                  parameters: template_parameters = webhook_template_parameters.dup
+              }
           translation_result =
-            if connection.template_parameters.present?
-              template_parameters.reverse_merge!(connection.template_parameters_hash)
-              translator.run(translation_options)
-            else
-              common_result ||= translator.run(translation_options)
-            end || ''
-          if translation_options.is_a?(String)
+              if connection.template_parameters.present?
+                template_parameters.reverse_merge!(connection.template_parameters_hash)
+                translator.run(translation_options)
+              else
+                common_result ||= translator.run(translation_options)
+              end || ''
+          if translation_result.is_a?(String)
             template_parameters.reverse_merge!(
-              url: conformed_url = connection.conformed_url(template_parameters),
-              path: conformed_path = webhook.conformed_path(template_parameters),
-              method: webhook.method,
-              body: translation_result
+                url: conformed_url = connection.conformed_url(template_parameters),
+                path: conformed_path = webhook.conformed_path(template_parameters),
+                method: webhook.method,
+                body: translation_result
             )
             headers =
-              {
-                'Content-Type' => translator.mime_type
-              }.merge(connection.conformed_headers(template_parameters)).merge(webhook.conformed_headers(template_parameters))
+                {
+                    'Content-Type' => translator.mime_type
+                }.merge(connection.conformed_headers(template_parameters)).merge(webhook.conformed_headers(template_parameters))
             begin
               http_response = HTTParty.send(webhook.method, conformed_url + '/' + conformed_path, {body: translation_result, headers: headers})
               block.yield(response: http_response.to_json, exception_message: (200...299).include?(http_response.code) ? nil : 'Unsuccessful') if block.present?
