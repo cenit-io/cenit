@@ -48,7 +48,7 @@ module Edi
           property_schema = data_type.merge_schema(property_schema)
           name = property_schema['edi'] ? property_schema['edi']['segment'] : property_name
           xml_opts = property_schema['xml'] || {}
-          if  xml_opts['attribute']
+          if xml_opts['attribute']
             attributes[name] = property_name
             attribute_schemas[name] = property_schema
           elsif xml_opts['content']
@@ -58,9 +58,8 @@ module Edi
             property_schema[:property_name] = property_name
             sub_element_schemas[name] = property_schema
           end
-        end
+        end if json_schema['properties']
         element.attribute_nodes.each do |attr|
-          #raise Exception.new("Unexpected attribute '#{attr.name}'") unless property = attributes[attr.name]
           if property = attributes[attr.name]
             value =
               if (attr_schema = attribute_schemas[attr.name])['type'] == 'array'
@@ -87,17 +86,22 @@ module Edi
               property_name = property_schema[:property_name]
               case property_schema['type']
               when 'array'
-                property_schema = data_type.merge_schema(property_schema['items'])
-                property_model = model.property_model(property_name)
-                while sub_element && sub_record = do_parse_xml(data_type, property_model, sub_element, options, property_schema)
-                  record.send(property_name) << sub_record
-                  sub_element = sub_element.next_element
+                property_schema = data_type.merge_schema(property_schema['items'] || {})
+                if (property_model = model.property_model(property_name)) && property_model.modelable?
+                  while sub_element && sub_record = do_parse_xml(data_type, property_model, sub_element, options, property_schema, nil, nil, property_name)
+                    record.send(property_name) << sub_record
+                    sub_element = sub_element.next_element
+                  end
+                else
+                  record.send("#{property_name}=", Hash.from_xml(sub_element.to_xml).values.first)
                 end
               when 'object'
-                property_model = model.property_model(property_name)
-                if sub_record = do_parse_xml(data_type, property_model, sub_element, options, property_schema, nil, nil, property_name)
-                  record.send("#{property_name}=", sub_record)
-                  sub_element = sub_element.next_element
+                if (property_model = model.property_model(property_name)) && property_model.modelable?
+                  if sub_record = do_parse_xml(data_type, property_model, sub_element, options, property_schema, nil, nil, property_name)
+                    record.send("#{property_name}=", sub_record)
+                  end
+                else
+                  record.send("#{property_name}=", Hash.from_xml(sub_element.to_xml).values.first)
                 end
               else
                 record.send("#{property_name}=", Hash.from_xml(sub_element.to_xml).values.first)

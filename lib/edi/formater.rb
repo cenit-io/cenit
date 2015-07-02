@@ -58,7 +58,7 @@ module Edi
 
     def record_to_xml_element(data_type, schema, record, xml_doc, enclosed_property_name, options)
       return unless record
-      return Nokogiri::XML({enclosed_property_name => record}.to_xml).root.first_element_child if Cenit::Utility.json_object?(record)
+      return Nokogiri::XML({enclosed_property_name => record}.to_xml(dasherize: false)).root.first_element_child if Cenit::Utility.json_object?(record)
       required = schema['required'] || []
       attr = {}
       elements = []
@@ -68,6 +68,7 @@ module Edi
         property_schema = data_type.merge_schema(property_schema)
         name = property_schema['edi']['segment'] if property_schema['edi']
         name ||= property_name
+        property_model = record.orm_model.property_model(property_name)
         case property_schema['type']
         when 'array'
           property_value = record.send(property_name)
@@ -78,22 +79,28 @@ module Edi
           elsif xml_opts['simple_type']
             elements << (e = xml_doc.create_element(name))
             e << property_value && property_value.collect(&:to_s).join(' ')
-          else
-            property_schema = data_type.merge_schema(property_schema['items'])
+          elsif property_model && property_model.modelable?
+            property_schema = data_type.merge_schema(property_schema['items'] || {})
             json_objects = []
-            property_value && property_value.each do |sub_record|
+            property_value.each do |sub_record|
               if Cenit::Utility.json_object?(sub_record)
                 json_objects << sub_record
               else
                 elements << record_to_xml_element(data_type, property_schema, sub_record, xml_doc, property_name, options)
               end
-            end
+            end if property_value
             unless json_objects.empty?
-              elements << Nokogiri::XML({property_name => json_objects}.to_xml).root.first_element_child
+              elements << Nokogiri::XML({property_name => json_objects}.to_xml(dasherize: false)).root.first_element_child
             end
+          else
+            elements << Nokogiri::XML({name => property_value}.to_xml(dasherize: false)).root.first_element_child
           end
         when 'object'
-          elements << record_to_xml_element(data_type, property_schema, record.send(property_name), xml_doc, property_name, options)
+          if property_model && property_model.modelable?
+            elements << record_to_xml_element(data_type, property_schema, record.send(property_name), xml_doc, property_name, options)
+          else
+            elements << Nokogiri::XML({name => record.send(property_name)}.to_xml(dasherize: false)).root.first_element_child
+          end
         else
           value = property_schema['default'] unless value = record.send(property_name)
           if value
@@ -108,7 +115,7 @@ module Edi
                 raise Exception.new("More than one content property found: '#{content_property}' and '#{property_name}'")
               end
             else
-              elements << Nokogiri::XML({name => value}.to_xml).root.first_element_child
+              elements << Nokogiri::XML({name => value}.to_xml(dasherize: false)).root.first_element_child
             end
           end
         end
