@@ -185,16 +185,25 @@ module Setup
     end
 
     def translate_import(_, &block)
-      parameters = webhook.template_parameters_hash
+      webhook_template_parameters = webhook.template_parameters_hash
       the_connections.each do |connection|
         begin
-          headers = connection.conformed_headers.merge(webhook.conformed_headers)
+          template_parameters = webhook_template_parameters.dup
+          if connection.template_parameters.present?
+            template_parameters.reverse_merge!(connection.template_parameters_hash)
+          end
+
+          headers = connection.conformed_headers(template_parameters).merge(webhook.conformed_headers(template_parameters))
+          conformed_url = connection.conformed_url(template_parameters)
+          conformed_path = webhook.conformed_path(template_parameters)
           url_parameter = "?" + connection.conformed_parameters.merge(webhook.conformed_parameters).to_param
-          http_response = HTTParty.send(webhook.method, connection.conformed_url + '/' + webhook.conformed_path + url_parameter, headers: headers)
+
+          http_response = HTTParty.send(webhook.method, conformed_url + '/' + conformed_path + url_parameter, headers: headers)
+
           translator.run(target_data_type: data_type,
                          data: http_response.body,
                          discard_events: discard_events,
-                         parameters: connection.template_parameters_hash.merge(parameters)) if http_response.code == 200
+                         parameters: template_parameters) if http_response.code == 200
           block.yield(response: http_response.to_json, exception_message: (200...299).include?(http_response.code) ? nil : 'Unsuccessful') if block
         rescue Exception => ex
           block.yield(response: http_response.to_json, exception_message: ex.message) if block
