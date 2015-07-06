@@ -195,7 +195,7 @@ module Setup
           headers = connection.conformed_headers(template_parameters).merge(webhook.conformed_headers(template_parameters))
           conformed_url = connection.conformed_url(template_parameters)
           conformed_path = webhook.conformed_path(template_parameters)
-          url_parameter = "?" + connection.conformed_parameters.merge(webhook.conformed_parameters).to_param
+          url_parameter = "?" + connection.conformed_parameters(template_parameters).merge(webhook.conformed_parameters(template_parameters)).to_param
           http_response = HTTParty.send(webhook.method, conformed_url + '/' + conformed_path + url_parameter, headers: headers)
           translator.run(target_data_type: data_type,
                          data: http_response.body,
@@ -235,6 +235,7 @@ module Setup
             template_parameters.reverse_merge!(
                 url: conformed_url = connection.conformed_url(template_parameters),
                 path: conformed_path = webhook.conformed_path(template_parameters),
+                url_parameter: url_parameter = "?" + connection.conformed_parameters(template_parameters).merge(webhook.conformed_parameters(template_parameters)).to_param,
                 method: webhook.method,
                 body: translation_result
             )
@@ -243,7 +244,7 @@ module Setup
                     'Content-Type' => translator.mime_type
                 }.merge(connection.conformed_headers(template_parameters)).merge(webhook.conformed_headers(template_parameters))
             begin
-              http_response = HTTParty.send(webhook.method, conformed_url + '/' + conformed_path, {body: translation_result, headers: headers})
+              http_response = HTTParty.send(webhook.method, conformed_url + '/' + conformed_path + url_parameter, {body: translation_result, headers: headers})
               block.yield(response: http_response.to_json, exception_message: (200...299).include?(http_response.code) ? nil : 'Unsuccessful') if block.present?
               if response_translator && (200...299).include?(http_response.code)
                 response_translator.run(translation_options.merge(target_data_type: response_translator.data_type || response_data_type, data: http_response.body))
