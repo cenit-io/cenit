@@ -22,7 +22,8 @@
  RailsAdmin::Config::Actions::UploadFile,
  RailsAdmin::Config::Actions::DownloadFile,
  RailsAdmin::Config::Actions::DeleteDataType,
- RailsAdmin::Config::Actions::ProcessFlow].each { |a| RailsAdmin::Config::Actions.register(a) }
+ RailsAdmin::Config::Actions::ProcessFlow,
+ RailsAdmin::Config::Actions::BuildGem].each { |a| RailsAdmin::Config::Actions.register(a) }
 
 RailsAdmin::Config::Actions.register(:export, RailsAdmin::Config::Actions::EdiExport)
 RailsAdmin::Config::Fields::Types.register(RailsAdmin::Config::Fields::Types::JsonSchema)
@@ -72,6 +73,7 @@ RailsAdmin.config do |config|
     edit { except [Role] }
     simple_share
     bulk_share
+    build_gem
     pull_collection
     upload_file
     download_file
@@ -944,6 +946,7 @@ RailsAdmin.config do |config|
       end
       field :name
       field :shared_version
+      field :summary
       field :description, :wysihtml5
       field :source_collection do
         visible { !((source_collection = bindings[:object].source_collection) && source_collection.new_record?) }

@@ -14,6 +14,7 @@ module Setup
     field :shared_version, type: String
     field :category, type: String
     field :description, type: String
+    field :summary, type: String
     belongs_to :source_collection, class_name: Setup::Collection.to_s, inverse_of: nil
     has_and_belongs_to_many :connections, class_name: Setup::Connection.to_s, inverse_of: nil
     embeds_many :pull_parameters, class_name: Setup::CollectionPullParameter.to_s, inverse_of: :shared_collection
