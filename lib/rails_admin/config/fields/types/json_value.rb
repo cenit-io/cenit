@@ -2,7 +2,7 @@ module RailsAdmin
   module Config
     module Fields
       module Types
-        class JsonSchema < RailsAdmin::Config::Fields::Types::CodeMirror
+        class JsonValue < RailsAdmin::Config::Fields::Types::Text
           include JsonValueCommon
         end
       end

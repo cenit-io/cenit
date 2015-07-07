@@ -103,11 +103,9 @@ module Cenit
       def build_gem(shared_collection)
         data =
           {
-            user_name: Account.current.owner.email,
-            user_email: Account.current.owner.email,
             summary: shared_collection.summary,
             description: shared_collection.description,
-            homepage: 'www.cenitsass.com'
+            homepage: Cenit.homepage
           }.merge(shared_collection.to_hash).with_indifferent_access
 
         CenitCmd::Collection.new.build_gem(data)
