@@ -29,7 +29,8 @@ module Setup
 
     attr_readonly :shared_version
 
-    validates_presence_of :name, :authors, :summary, :description
+    validates_presence_of :authors, :summary, :description
+    validates_format_of :name, with: /\A[a-z]+\Z/
     validates_format_of :shared_version, with: /\A(0|[1-9]\d*)(\.(0|[1-9]\d*))*\Z/
     validates_length_of :shared_version, maximum: 255
 

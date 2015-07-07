@@ -19,7 +19,7 @@ module Setup
     has_and_belongs_to_many :webhooks, class_name: Setup::Webhook.to_s, inverse_of: nil
     has_and_belongs_to_many :connections, class_name: Setup::Connection.to_s, inverse_of: nil
 
-    validates_presence_of :name
+    validates_format_of :name, with: /\A[a-z]+\Z/
     validates_uniqueness_of :name
 
     before_save :check_dependencies

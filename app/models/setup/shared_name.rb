@@ -10,7 +10,7 @@ module Setup
     field :name, type: String
     has_and_belongs_to_many :owners, class_name: ::User.to_s, inverse_of: nil
 
-    validates_presence_of :name
+    validates_format_of :name, with: /\A[a-z]+\Z/
     validates_uniqueness_of :name
 
     before_save do
