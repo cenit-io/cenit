@@ -26,6 +26,7 @@
  RailsAdmin::Config::Actions::BuildGem].each { |a| RailsAdmin::Config::Actions.register(a) }
 
 RailsAdmin::Config::Actions.register(:export, RailsAdmin::Config::Actions::EdiExport)
+RailsAdmin::Config::Fields::Types.register(RailsAdmin::Config::Fields::Types::JsonValue)
 RailsAdmin::Config::Fields::Types.register(RailsAdmin::Config::Fields::Types::JsonSchema)
 {
   config: {
@@ -212,6 +213,8 @@ RailsAdmin.config do |config|
       end
     end
 
+    configure :slug
+
     configure :validator, :text do
       pretty_value do
         if value
@@ -235,6 +238,7 @@ RailsAdmin.config do |config|
       field :title
       field :validator
       field :name
+      field :slug
       field :used_memory do
         pretty_value do
           unless max = bindings[:controller].instance_variable_get(:@max_used_memory)
@@ -249,6 +253,7 @@ RailsAdmin.config do |config|
     show do
       field :title
       field :name
+      field :slug
       field :activated
       field :validator
       field :model_schema do
@@ -946,8 +951,9 @@ RailsAdmin.config do |config|
       end
       field :name
       field :shared_version
+      field :authors
       field :summary
-      field :description, :wysihtml5
+      field :description
       field :source_collection do
         visible { !((source_collection = bindings[:object].source_collection) && source_collection.new_record?) }
         inline_edit false
@@ -1049,16 +1055,9 @@ RailsAdmin.config do |config|
         end
       end
       field :category
-      field :description do
-        pretty_value do
-          value.html_safe
-        end
-      end
-      field :owners, :text do
-        pretty_value do
-          value.collect { |user| user.email }.to_sentence.html_safe
-        end
-      end
+      field :summary
+      field :description
+      field :authors
       field :dependencies
 
       field :_id
@@ -1073,17 +1072,13 @@ RailsAdmin.config do |config|
         end
       end
       field :category
-      field :owners, :text do
-        pretty_value do
-          value.collect { |user| user.email }.to_sentence.html_safe
-        end
-      end
-      field :description do
-        pretty_value do
-          value.html_safe
-        end
-      end
+      field :authors
+      field :summary
     end
+  end
+
+  config.model Setup::CollectionAuthor do
+    object_label_method { :label }
   end
 
   config.model Setup::CollectionPullParameter do

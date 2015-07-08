@@ -2,10 +2,11 @@ module Setup
   class SharedCollection
     include CenitUnscoped
     include Trackable
+    include CollectionName
 
     Setup::Models.exclude_actions_for self, :new, :edit, :translator_update, :convert, :send_to_flow, :delete_all, :delete
 
-    BuildInDataType.regist(self).with(:name, :shared_version, :description, :pull_parameters, :dependencies, :data).referenced_by(:name, :shared_version)
+    BuildInDataType.regist(self).with(:name, :shared_version, :authors, :summary, :description, :pull_parameters, :dependencies, :data).referenced_by(:name, :shared_version)
 
     belongs_to :shared_name, class_name: Setup::SharedName.to_s, inverse_of: nil
 
@@ -15,6 +16,7 @@ module Setup
     field :category, type: String
     field :description, type: String
     field :summary, type: String
+    embeds_many :authors, class_name: Setup::CollectionAuthor.to_s, inverse_of: :shared_collection
     belongs_to :source_collection, class_name: Setup::Collection.to_s, inverse_of: nil
     has_and_belongs_to_many :connections, class_name: Setup::Connection.to_s, inverse_of: nil
     embeds_many :pull_parameters, class_name: Setup::CollectionPullParameter.to_s, inverse_of: :shared_collection
@@ -22,12 +24,17 @@ module Setup
 
     field :data, type: Hash
 
+    after_initialize do
+      authors << Setup::CollectionAuthor.new(name: ::User.current.name, email: ::User.current.email) if authors.empty?
+    end
+
     attr_readonly :shared_version
 
-    validates_presence_of :name, :description
+    validates_presence_of :authors, :summary, :description
     validates_format_of :shared_version, with: /\A(0|[1-9]\d*)(\.(0|[1-9]\d*))*\Z/
     validates_length_of :shared_version, maximum: 255
 
+    accepts_nested_attributes_for :authors, allow_destroy: true
     accepts_nested_attributes_for :pull_parameters, allow_destroy: true
 
     before_save :check_dependencies, :validate_configuration, :ensure_shared_name, :save_source_collection, :categorize
@@ -80,7 +87,15 @@ module Setup
       end
       hash_data.delete_if { |_, values| values.empty? }
       self.data = hash_data
-      errors.blank?
+      if errors.blank?
+        if ::User.current.name.blank?
+          ::User.current.name = users.first.name
+          ::User.current.save
+        end
+        true
+      else
+        false
+      end
     end
 
     def ensure_shared_name

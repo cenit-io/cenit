@@ -3,6 +3,7 @@ module Setup
     include CenitScoped
     include SchemaHandler
     include DataTypeParser
+    include Slug
 
     Setup::Models.exclude_actions_for self, :new, :update, :edit, :delete, :bulk_delete, :delete_all
 
@@ -337,6 +338,14 @@ module Setup
     end
 
     protected
+
+    def slug_taken?(slug)
+      return true if library.file_data_types.any? { |data_type| data_type.slug == slug }
+      library.schemas.each do |schema|
+        return true if schema.data_types.any? { |data_type| data_type.slug == slug }
+      end
+      false
+    end
 
     def do_load_model(report)
       raise NotImplementedError
