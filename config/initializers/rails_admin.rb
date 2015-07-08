@@ -213,6 +213,8 @@ RailsAdmin.config do |config|
       end
     end
 
+    configure :slug
+
     configure :validator, :text do
       pretty_value do
         if value
@@ -236,6 +238,7 @@ RailsAdmin.config do |config|
       field :title
       field :validator
       field :name
+      field :slug
       field :used_memory do
         pretty_value do
           unless max = bindings[:controller].instance_variable_get(:@max_used_memory)
@@ -250,6 +253,7 @@ RailsAdmin.config do |config|
     show do
       field :title
       field :name
+      field :slug
       field :activated
       field :validator
       field :model_schema do
