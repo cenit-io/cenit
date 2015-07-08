@@ -27,7 +27,7 @@ module Setup
           candidate = candidate.underscore.gsub(/ +/, '_').downcase
           candidate = 'slug' if candidate.blank?
           i = 1
-          while self.class.where(slug: candidate).present?
+          while slug_taken?(candidate)
             candidate = candidate.gsub(/_\d*\Z/, '') + "_#{i += 1}"
           end
           self.slug = candidate
@@ -35,6 +35,12 @@ module Setup
         errors.add(:slug, 'is not valid') unless slug =~ /\A([a-z]|_|\d)+\Z/
         errors.blank?
       end
+    end
+
+    protected
+
+    def slug_taken?(slug)
+      self.class.where(slug: slug).present?
     end
   end
 end
