@@ -2,6 +2,7 @@ module Setup
   class SharedCollection
     include CenitUnscoped
     include Trackable
+    include CollectionName
 
     Setup::Models.exclude_actions_for self, :new, :edit, :translator_update, :convert, :send_to_flow, :delete_all, :delete
 
@@ -30,7 +31,6 @@ module Setup
     attr_readonly :shared_version
 
     validates_presence_of :authors, :summary, :description
-    validates_format_of :name, with: /\A[a-z]+\Z/
     validates_format_of :shared_version, with: /\A(0|[1-9]\d*)(\.(0|[1-9]\d*))*\Z/
     validates_length_of :shared_version, maximum: 255
 
