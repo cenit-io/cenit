@@ -97,12 +97,12 @@ module Setup
         parameter = parameter[0..parameter.length - 2]
         if parameter.start_with?('On ')
           hash['type'] =
-            if parameter.start_with?(prefix = "On connection '")
-              'connection'
-            else
-              prefix = "On webhook '"
-              'webhook'
-            end
+              if parameter.start_with?(prefix = "On connection '")
+                'connection'
+              else
+                prefix = "On webhook '"
+                'webhook'
+              end
           hash['name'] = parameter[prefix.length..parameter.index("'", prefix.length) - 1]
           hash['property'] = (parameter[parameter.index("'", prefix.length) + 1..parameter.rindex("'") - 1].strip + 's').gsub(' ', '_')
           hash['key'] = parameter[parameter.rindex("'") + 1..parameter.length]

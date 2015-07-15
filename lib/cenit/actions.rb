@@ -56,11 +56,11 @@ module Cenit
         [collection_data, pull_data, updated_records].each { |hash| hash.each_key { |key| hash.delete(key) if hash[key].empty? } }
 
         {
-          pull_parameters: pull_parameters,
-          updated_records: updated_records,
-          missing_parameters: missing_parameters,
-          pull_data: pull_data,
-          collection_data: collection_data
+            pull_parameters: pull_parameters,
+            updated_records: updated_records,
+            missing_parameters: missing_parameters,
+            pull_data: pull_data,
+            collection_data: collection_data
         }
       end
 

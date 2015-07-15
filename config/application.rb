@@ -31,11 +31,16 @@ module Cenit
       RailsAdmin::Config.excluded_models.concat RailsAdmin::Config.models_pool.select { |m| m.eql?('Base') || m.end_with?('::Base') }
       puts 'Excluding ' + RailsAdmin::Config.excluded_models.to_s
 
+      User.all.each do |user|
+       user.confirmed_at = Time.now
+       user.save
+      end
+
       Account.all.each do |account|
 
         Account.current = account
 
-        Setup::Model.update_all(model_loaded: false, used_memory: 0)
+        Setup::Model.update_all(model_loaded: false, used_memory: 0, activated: false)
 
         Setup::Schema.all.each do |schema|
           puts "Loading schema #{schema.uri}"
