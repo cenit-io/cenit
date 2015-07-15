@@ -25,7 +25,7 @@ module Setup
     field :data, type: Hash
 
     after_initialize do
-      authors << Setup::CollectionAuthor.new(name: ::User.current.name, email: ::User.current.email) if authors.empty?
+      # authors << Setup::CollectionAuthor.new(name: ::User.current.name, email: ::User.current.email) if authors.empty?
     end
 
     attr_readonly :shared_version
@@ -89,7 +89,7 @@ module Setup
       self.data = hash_data
       if errors.blank?
         if ::User.current.name.blank?
-          ::User.current.name = users.first.name
+          ::User.current.name = authors.first.name
           ::User.current.save
         end
         true
@@ -137,7 +137,7 @@ module Setup
     def categorize
       shared = data.keys.select { |key| key != 'name' }
       self.category =
-        shared.length == 1 && %w(libraries translators).include?(shared[0]) ? shared[0].singularize.capitalize : 'Collection'
+          shared.length == 1 && %w(libraries translators).include?(shared[0]) ? shared[0].singularize.capitalize : 'Collection'
       true
     end
 

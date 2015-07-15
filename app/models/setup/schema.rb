@@ -178,11 +178,11 @@ module Setup
       while cursor
         if %w(import include redefine).include?(cursor.name) && (attr = cursor.attributes['schemaLocation'])
           puts attr.value = options[:service_url].to_s + options[:service_schema_path] + '?' +
-            {
-              key: Account.current.owner.unique_key,
-              library_id: library.id.to_s,
-              uri: attr.value
-            }.to_param
+              {
+                  key: Account.current.owner.unique_key,
+                  library_id: library.id.to_s,
+                  uri: attr.value
+              }.to_param
         end
         cursor = cursor.next_element
       end

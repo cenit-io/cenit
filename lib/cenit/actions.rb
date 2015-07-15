@@ -102,11 +102,11 @@ module Cenit
 
       def build_gem(shared_collection)
         data =
-          {
-            summary: shared_collection.summary,
-            description: shared_collection.description,
-            homepage: Cenit.homepage
-          }.merge(shared_collection.to_hash).with_indifferent_access
+            {
+                summary: shared_collection.summary,
+                description: shared_collection.description,
+                homepage: Cenit.homepage
+            }.merge(shared_collection.to_hash).with_indifferent_access
 
         CenitCmd::Collection.new.build_gem(data)
       end

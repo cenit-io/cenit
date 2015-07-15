@@ -26,11 +26,11 @@ module Setup
     def check_dependencies
       flows.each do |flow|
         {
-          event: events,
-          translator: translators,
-          webhook: webhooks,
-          connection_role: connection_roles,
-          response_translator: translators
+            event: events,
+            translator: translators,
+            webhook: webhooks,
+            connection_role: connection_roles,
+            response_translator: translators
         }.each do |key, association|
           unless (value = flow.send(key)).nil? || association.detect { |v| v == value }
             association << value

@@ -82,18 +82,18 @@ module Setup
 
     def reject_message(field = nil)
       case field
-      when :custom_data_type
-        'is not allowed since translator already defines a data type'
-      when :data_type_scope
-        'is not allowed for import translators'
-      when :response_data_type
-        response_translator.present? ? 'is not allowed since response translator already defines a data type' : "can't be defined until response translator"
-      when :discard_events
-        "can't be defined until response translator"
-      when :lot_size, :response_translator
-        'is not allowed for non export translators'
-      else
-        super
+        when :custom_data_type
+          'is not allowed since translator already defines a data type'
+        when :data_type_scope
+          'is not allowed for import translators'
+        when :response_data_type
+          response_translator.present? ? 'is not allowed since response translator already defines a data type' : "can't be defined until response translator"
+        when :discard_events
+          "can't be defined until response translator"
+        when :lot_size, :response_translator
+          'is not allowed for non export translators'
+        else
+          super
       end
     end
 
@@ -222,36 +222,36 @@ module Setup
         common_result = nil
         the_connections.each do |connection|
           translation_options =
-            {
-              object_ids: object_ids,
-              source_data_type: data_type,
-              offset: offset,
-              limit: limit,
-              discard_events: discard_events,
-              parameters: template_parameters = webhook_template_parameters.dup
-            }
+              {
+                  object_ids: object_ids,
+                  source_data_type: data_type,
+                  offset: offset,
+                  limit: limit,
+                  discard_events: discard_events,
+                  parameters: template_parameters = webhook_template_parameters.dup
+              }
           translation_result =
-            if connection.template_parameters.present?
-              template_parameters.reverse_merge!(connection.template_parameters_hash)
-              translator.run(translation_options)
-            else
-              common_result ||= translator.run(translation_options)
-            end || ''
+              if connection.template_parameters.present?
+                template_parameters.reverse_merge!(connection.template_parameters_hash)
+                translator.run(translation_options)
+              else
+                common_result ||= translator.run(translation_options)
+              end || ''
           if translation_result.is_a?(String)
             url_parameter = connection.conformed_parameters(template_parameters).merge(webhook.conformed_parameters(template_parameters)).to_param
             if url_parameter.present?
               url_parameter = '?' + url_parameter
             end
             template_parameters.reverse_merge!(
-              url: conformed_url = connection.conformed_url(template_parameters),
-              path: conformed_path = webhook.conformed_path(template_parameters) + url_parameter,
-              method: webhook.method,
-              body: translation_result
+                url: conformed_url = connection.conformed_url(template_parameters),
+                path: conformed_path = webhook.conformed_path(template_parameters) + url_parameter,
+                method: webhook.method,
+                body: translation_result
             )
             headers =
-              {
-                'Content-Type' => translator.mime_type
-              }.merge(connection.conformed_headers(template_parameters)).merge(webhook.conformed_headers(template_parameters))
+                {
+                    'Content-Type' => translator.mime_type
+                }.merge(connection.conformed_headers(template_parameters)).merge(webhook.conformed_headers(template_parameters))
             begin
               http_response = HTTParty.send(webhook.method, conformed_url + '/' + conformed_path, {body: translation_result, headers: headers})
               block.yield(response: http_response.to_json, exception_message: (200...299).include?(http_response.code) ? nil : 'Unsuccessful') if block.present?
