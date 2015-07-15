@@ -44,6 +44,8 @@ class User
   field :doorkeeper_uid, type: String 
   field :doorkeeper_access_token, type: String
 
+  field :name, type: String
+
   before_save :ensure_token
   validates_uniqueness_of :token
 

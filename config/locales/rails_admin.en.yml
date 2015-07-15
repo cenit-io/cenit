@@ -189,3 +189,7 @@ en:
         title: "Process"
         menu: "Process"
         done: "processed"
+      build_gem:
+        title: "Build Gem"
+        menu: "Build Gem"
+        done: "build"
