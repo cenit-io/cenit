@@ -17,7 +17,7 @@ module Setup
     field :method, type: String, default: :post
 
     def method_enum
-      [:get, :post, :put, :delete, :copy, :head, :patch, :options, :link, :unlink, :purge, :lock, :unlock, :propfind]
+      [:get, :post, :put, :delete, :patch, :copy, :head, :options, :link, :unlink, :purge, :lock, :unlock, :propfind]
     end
 
     validates_presence_of :name, :path, :purpose

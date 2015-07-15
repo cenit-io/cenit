@@ -8,7 +8,7 @@ module RailsAdmin
         end
 
         register_instance_option :visible do
-          authorized? && (flow = bindings[:object]) && ((flow.translator && flow.translator.type == :Export && flow.event.class == Setup::Scheduler) || (flow.nil_data_type || (flow.translator && flow.translator.type == :Import)))
+          authorized? && ProcessFlow.processable(bindings[:object])
         end
 
         register_instance_option :only do
@@ -26,7 +26,7 @@ module RailsAdmin
         register_instance_option :controller do
           proc do
 
-            if (@object.nil_data_type || (@object.translator && @object.translator.type == :Export && @object.event.class == Setup::Scheduler) || (@object.translator && @object.translator.type == :Import))
+            if ProcessFlow.processable(@object)
               begin
                 @object.process
                 flash[:success] = "Flow #{@object.name} successfully processed"
@@ -43,6 +43,13 @@ module RailsAdmin
 
         register_instance_option :link_icon do
           'icon-play'
+        end
+
+
+        class << self
+          def processable(flow)
+            flow && ((flow.translator && flow.translator.type == :Export && flow.event.class == Setup::Scheduler) || (flow.nil_data_type || (flow.translator && flow.translator.type == :Import)))
+          end
         end
       end
     end
