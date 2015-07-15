@@ -145,17 +145,21 @@ module Api::V1
       end
     end
 
-    def get_data_type_by_name(name)
-      @data_types[name] ||=
-        if @library == 'setup'
-          Setup::BuildInDataType["Setup::#{name}"]
-        else
-          Setup::Model.where(name: name).detect { |model| model.library.slug == @library }
-        end
+    def get_data_type_by_slug(slug)
+      if slug
+        @data_types[slug] ||=
+          if @library == 'setup'
+            Setup::BuildInDataType["Setup::#{slug.camelize}"]
+          else
+            Setup::Model.where(slug: slug).detect { |model| model.library.slug == @library }
+          end
+      else
+        nil
+      end
     end
 
     def get_data_type(root)
-      get_data_type_by_name(root.singularize.camelize)
+      get_data_type_by_slug(root.singularize)
     end
 
     def get_model(root)
@@ -212,7 +216,7 @@ module Api::V1
                            end,
             message: ''
           }.merge(config || {})
-        @data_type = (controller = config[:controller]).send(:get_data_type_by_name, (@root = controller.request.headers['data-type']))
+        @data_type = (controller = config[:controller]).send(:get_data_type_by_slug, (@root = controller.request.headers['data-type']))
         @create_options = {create_collector: Set.new}
         create_options_keys.each { |option| @create_options[option.to_sym] = controller.request[option] }
       end

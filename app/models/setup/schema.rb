@@ -161,15 +161,7 @@ module Setup
     end
 
     def parse_json_schema
-      json = JSON.parse(self.schema)
-      name = self.uri
-      if (index = name.rindex('/')) || index = name.rindex('#')
-        name = name[index + 1, name.length - 1]
-      end
-      if index = name.rindex('.')
-        name = name[0..index - 1]
-      end
-      {name.camelize => json}
+      {uri => JSON.parse(self.schema)}
     end
 
     def parse_xml_schema

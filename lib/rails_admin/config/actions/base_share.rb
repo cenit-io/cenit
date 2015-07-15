@@ -11,8 +11,11 @@ module RailsAdmin
         register_instance_option :controller do
           proc do
 
-            shared = false
             shared_collection_config = RailsAdmin::Config.model(Setup::SharedCollection)
+            if shared_params = params.delete(shared_collection_config.abstract_model.param_key)
+              sanitize_params_for!(:create, shared_collection_config, shared_params)
+            end
+            shared = false
             if @object # record_share
               if @object.is_a?(Setup::Collection)
                 collection = @object
@@ -27,7 +30,7 @@ module RailsAdmin
               collection.send("#{klass.to_s.split('::').last.downcase.pluralize}=", @bulk_ids ? klass.any_in(id: @bulk_ids) : klass.all)
             end
             collection.check_dependencies
-            if params[:_restart].nil? && (shared_params = params.delete(shared_collection_config.abstract_model.param_key))
+            if params[:_restart].nil? && shared_params
               @shared_collection = Setup::SharedCollection.new(shared_params.to_hash.merge(image: collection.image))
               @shared_collection.source_collection = collection
               shared = params[:_share] && @shared_collection.save

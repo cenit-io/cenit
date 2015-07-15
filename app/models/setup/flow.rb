@@ -196,7 +196,10 @@ module Setup
           headers = connection.conformed_headers(template_parameters).merge(webhook.conformed_headers(template_parameters))
           conformed_url = connection.conformed_url(template_parameters)
           conformed_path = webhook.conformed_path(template_parameters)
-          url_parameter = '?' + connection.conformed_parameters.merge(webhook.conformed_parameters).to_param
+          url_parameter = connection.conformed_parameters(template_parameters).merge(webhook.conformed_parameters(template_parameters)).to_param
+          if url_parameter.present?
+            url_parameter = '?' + url_parameter
+          end
 
           http_response = HTTParty.send(webhook.method, conformed_url + '/' + conformed_path + url_parameter, headers: headers)
 
@@ -235,9 +238,13 @@ module Setup
               common_result ||= translator.run(translation_options)
             end || ''
           if translation_result.is_a?(String)
+            url_parameter = connection.conformed_parameters(template_parameters).merge(webhook.conformed_parameters(template_parameters)).to_param
+            if url_parameter.present?
+              url_parameter = '?' + url_parameter
+            end
             template_parameters.reverse_merge!(
               url: conformed_url = connection.conformed_url(template_parameters),
-              path: conformed_path = webhook.conformed_path(template_parameters),
+              path: conformed_path = webhook.conformed_path(template_parameters) + url_parameter,
               method: webhook.method,
               body: translation_result
             )
