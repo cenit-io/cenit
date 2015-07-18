@@ -188,7 +188,7 @@ module Setup
           if updated
             @new_record = false
           else
-            file.destroy
+            file.destroy if @errors.present?
           end
         end
         updated
