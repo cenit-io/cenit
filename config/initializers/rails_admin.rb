@@ -850,6 +850,7 @@ RailsAdmin.config do |config|
 
       field :style do
         visible { bindings[:object].type.present? }
+        help 'Required'
       end
 
       field :bulk_source do
