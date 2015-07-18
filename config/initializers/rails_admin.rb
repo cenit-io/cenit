@@ -1080,6 +1080,7 @@ RailsAdmin.config do |config|
       field :category
       field :authors
       field :summary
+      field :dependencies
     end
   end
 
