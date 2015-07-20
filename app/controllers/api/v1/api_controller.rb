@@ -96,16 +96,58 @@ module Api::V1
     end
 
     def new_account
-      parameters = (JSON.parse(@webhook_body) rescue {}).keep_if { |key, _| %w(email password password_confirmation).include?(key) }
-      parameters.reverse_merge!(email: params[:email], password: (pwd = params[:password] || Devise.friendly_token), password_confirmation: params[:password_confirmation] || pwd)
+      data = (JSON.parse(@webhook_body) rescue {}).keep_if { |key, _| %w(email password password_confirmation token code).include?(key) }
+      data.reverse_merge!(email: params[:email], password: pwd = params[:password], password_confirmation: params[:password_confirmation] || pwd)
+      status = 406
       response =
-        if (user = User.new_with_session(parameters, session)).save
-          Account.create_with_owner(owner: user)
-          {number: user.number, token: user.authentication_token}
-        else
-          user.errors.to_json
+        if token = data[:token] || params[:token]
+          if tkaptcha = TkAaptcha.where(token: token).first
+            if code = data[:code] || params[:code]
+              if code == tkaptcha.code
+                data.reverse_merge!(tkaptcha.data || {})
+                data[:password] = Devise.friendly_token unless data[:password]
+                data[:password_confirmation] = data[:password] unless data[:password_confirmation]
+                tkaptcha.destroy
+                user =
+                  begin
+                    (user = User.new_with_session(data, session)).save
+                    user
+                  rescue
+                    user #TODO Handle sending confirmation email error
+                  end
+                if user.errors.blank?
+                  Account.create_with_owner(owner: user)
+                  status = 200
+                  {number: user.number, token: user.authentication_token}
+                else
+                  user.errors.to_json
+                end
+              else #invalid code
+                {code: ['is not valid']}
+              end
+            else #code missing
+              {code: ['is missing']}
+            end
+          else #invalid token
+            {token: ['is not valid']}
+          end
+        elsif data[:email]
+          data[:password] = Devise.friendly_token unless data[:password]
+          data[:password_confirmation] = data[:password] unless data[:password_confirmation]
+          if (user = User.new(data)).valid?(context: :create)
+            if (tkaptcha = TkAaptcha.create(email: data[:email], data: data)).errors.blank?
+              status = 200
+              {token: tkaptcha.token}
+            else
+              tkaptcha.errors.to_json
+            end
+          else
+            user.errors.to_json
+          end
+        else #bad request
+          {token: ['is missing'], email: ['is missing']}
         end
-      render json: response
+      render json: response, status: status
     end
 
     protected

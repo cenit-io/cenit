@@ -31,7 +31,7 @@ class Account
     def create_with_owner(params={})
       account = new(params)
       if account.save
-        account.owner.role = :admin
+        account.owner.roles << ::Role.where(name: :admin).first
         account.users << account.owner
       end
       account

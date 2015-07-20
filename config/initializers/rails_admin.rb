@@ -513,7 +513,7 @@ RailsAdmin.config do |config|
     configure :path, :string do
       help "Requiered. Path of the webhook relative to connection URL."
       html_attributes do
-        {maxlength: 50, size: 50}
+        {maxlength: 255, size: 100}
       end
     end
     group :parameters do
@@ -581,7 +581,9 @@ RailsAdmin.config do |config|
         inline_edit false
         inline_add false
       end
-      field :translator
+      field :translator do
+        help 'Required'
+      end
       field :custom_data_type do
         inline_edit false
         inline_add false
@@ -729,8 +731,7 @@ RailsAdmin.config do |config|
       field :name
       field :data_type do
         associated_collection_scope do
-          bindings[:controller].instance_variable_set(:@_data_type, data_type = bindings[:object].data_type)
-          bindings[:controller].instance_variable_set(:@_update_field, 'data_type_id')
+          data_type = bindings[:object].data_type
           Proc.new { |scope|
             if data_type
               scope.where(id: data_type.id)
@@ -741,7 +742,11 @@ RailsAdmin.config do |config|
         end
       end
       field :triggers do
-        visible { bindings[:object].data_type.present? }
+        visible do
+          bindings[:controller].instance_variable_set(:@_data_type, data_type = bindings[:object].data_type)
+          bindings[:controller].instance_variable_set(:@_update_field, 'data_type_id')
+          data_type.present?
+        end
         partial 'form_triggers'
         help false
       end
@@ -845,6 +850,7 @@ RailsAdmin.config do |config|
 
       field :style do
         visible { bindings[:object].type.present? }
+        help 'Required'
       end
 
       field :bulk_source do
@@ -1074,6 +1080,7 @@ RailsAdmin.config do |config|
       field :category
       field :authors
       field :summary
+      field :dependencies
     end
   end
 
