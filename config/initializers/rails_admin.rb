@@ -101,19 +101,62 @@ RailsAdmin.config do |config|
     end
   end
 
-  config.model Role do
-    weight -20
+  config.model User do
+    weight -15
     navigation_label 'Account'
-    show do
-      field :name
-      field :_id
+
+    object_label_method do
+      :email
     end
-    fields :name
+
+    configure :key do
+      visible do
+        bindings[:view]._current_user.has_role? :admin
+      end
+    end
+
+    configure :authentication_token do
+      visible do
+        bindings[:view]._current_user.has_role? :admin
+      end
+    end
+
+    list do
+      scopes [:by_account]
+    end
+
+    show do
+      field :email
+      field :roles
+      field :key
+      field :authentication_token
+      field :sign_in_count
+      field :current_sign_in_at
+      field :last_sign_in_at
+      field :current_sign_in_ip
+      field :last_sign_in_ip
+      field :reset_password_sent_at
+
+      field :_id
+      field :created_at
+      field :updated_at
+    end
+    fields :email, :roles, :key, :authentication_token, :sign_in_count, :last_sign_in_at, :last_sign_in_ip
   end
+
+  # config.model Role do
+  #   weight -20
+  #   navigation_label 'Account'
+  #   show do
+  #     field :name
+  #     field :_id
+  #   end
+  #   fields :name
+  # end
 
   config.model Setup::Library do
     navigation_label 'Data Definitions'
-    weight -16
+    weight -18
 
     configure :name do
       read_only { !bindings[:object].new_record? }
@@ -147,7 +190,7 @@ RailsAdmin.config do |config|
     register_instance_option(:after_form_partials) do
       %w(shutdown_and_reload)
     end
-    weight -18
+    weight -17
 
     edit do
       field :library do
@@ -318,7 +361,7 @@ RailsAdmin.config do |config|
     visible false
     object_label_method { :on_library_title }
     navigation_label 'Data Definitions'
-    weight -17
+    weight -16
 
     group :model_definition do
       label 'Model definition'
@@ -399,7 +442,8 @@ RailsAdmin.config do |config|
   end
 
   config.model Setup::Connection do
-    weight -15
+    weight -14
+    navigation_label 'API Register'
     configure :name, :string do
       help 'Requiered.'
       html_attributes do
@@ -475,7 +519,8 @@ RailsAdmin.config do |config|
   end
 
   config.model Setup::ConnectionRole do
-    weight -14
+    weight -15
+    navigation_label 'API Register'
     configure :name, :string do
       help 'Requiered.'
       html_attributes do
@@ -509,7 +554,7 @@ RailsAdmin.config do |config|
 
   config.model Setup::Webhook do
     weight -13
-
+    navigation_label 'API Register'
     configure :path, :string do
       help "Requiered. Path of the webhook relative to connection URL."
       html_attributes do
@@ -549,7 +594,7 @@ RailsAdmin.config do |config|
   end
 
   config.model Setup::Notification do
-    weight -10
+    weight -1
     navigation_label 'Notifications'
     configure :exception_message do
       pretty_value do
@@ -572,6 +617,8 @@ RailsAdmin.config do |config|
   end
 
   config.model Setup::Flow do
+    navigation_label 'Flows'
+    weight -12
     register_instance_option(:form_synchronized) do
       [:custom_data_type, :data_type_scope, :lot_size, :connection_role, :webhook, :response_translator, :response_data_type]
     end
@@ -706,6 +753,8 @@ RailsAdmin.config do |config|
   end
 
   config.model Setup::Event do
+    navigation_label 'Flows'
+    weight -10
     edit do
       field :name
     end
@@ -725,6 +774,8 @@ RailsAdmin.config do |config|
   end
 
   config.model Setup::Observer do
+    navigation_label 'Flows'
+    weight -9
     edit do
       field :name
       field :data_type do
@@ -764,6 +815,8 @@ RailsAdmin.config do |config|
   end
 
   config.model Setup::Scheduler do
+    navigation_label 'Flows'
+    weight -8
     edit do
       field :name
       field :scheduling_method
@@ -816,6 +869,8 @@ RailsAdmin.config do |config|
   end
 
   config.model Setup::Translator do
+    navigation_label 'Flows'
+    weight -11
     register_instance_option(:form_synchronized) do
       [:source_data_type, :target_data_type, :transformation, :target_importer, :source_exporter, :discard_chained_records]
     end
@@ -1133,6 +1188,8 @@ RailsAdmin.config do |config|
   end
 
   config.model Setup::Integration do
+    navigation_label 'Flows'
+    weight -7
     edit do
       field :name
       field :pull_connection

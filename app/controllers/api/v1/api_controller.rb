@@ -47,9 +47,36 @@ module Api::V1
             if (record = data_type.send(@payload.create_method,
                                         @payload.process_item(item, data_type),
                                         options = @payload.create_options)).errors.blank?
-              success_report[root.pluralize] << record.inspect_json(inspecting: :id, inspect_scope: options[:create_collector])
+              success_report[data_type.slug.pluralize] << record.inspect_json(inspecting: :id, inspect_scope: options[:create_collector])
             else
-              broken_report[root] << {errors: record.errors.full_messages, item: item}
+              broken_report[data_type.slug] << {errors: record.errors.full_messages, item: item}
+            end
+          end
+        else
+          broken_report[root] = 'no model found'
+        end
+      end
+      response.delete(:success) if success_report.blank?
+      response.delete(:errors) if broken_report.blank?
+      render json: response
+    end
+
+    def create
+      response =
+          {
+              success: success_report = Hash.new { |h, k| h[k] = [] },
+              errors: broken_report = Hash.new { |h, k| h[k] = [] }
+          }
+      @payload.each do |root, message|
+        if data_type = @payload.data_type_for(root)
+          message = [message] unless message.is_a?(Array)
+          message.each do |item|
+            if (record = data_type.send(@payload.create_method,
+                                        @payload.process_item(item, data_type),
+                                        options = @payload.create_options)).errors.blank?
+              success_report[data_type.slug.pluralize] << record.inspect_json(inspecting: :id, inspect_scope: options[:create_collector])
+            else
+              broken_report[data_type.slug] << {errors: record.errors.full_messages, item: item}
             end
           end
         else
@@ -216,7 +243,7 @@ module Api::V1
                                end,
                 message: ''
             }.merge(config || {})
-        @data_type = (controller = config[:controller]).send(:get_data_type_by_slug, (@root = controller.request.headers['data-type']))
+        @data_type = (controller = config[:controller]).send(:get_data_type, (@root = controller.request.params[:model] || controller.request.headers['data-type']))
         @create_options = {create_collector: Set.new}
         create_options_keys.each { |option| @create_options[option.to_sym] = controller.request[option] }
       end

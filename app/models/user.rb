@@ -83,47 +83,47 @@ class User
     end
   end
 
-  rails_admin do
-    weight -15
-    navigation_label 'Account'
-
-    object_label_method do
-      :email
-    end
-
-    configure :key do
-      visible do
-        bindings[:view]._current_user.has_role? :admin
-      end
-    end
-
-    configure :authentication_token do
-      visible do
-        bindings[:view]._current_user.has_role? :admin
-      end
-    end
-
-    list do
-      scopes [:by_account]
-    end
-
-    show do
-      field :email
-      field :roles
-      field :key
-      field :authentication_token
-      field :sign_in_count
-      field :current_sign_in_at
-      field :last_sign_in_at
-      field :current_sign_in_ip
-      field :last_sign_in_ip
-      field :reset_password_sent_at
-
-      field :_id
-      field :created_at
-      field :updated_at
-    end
-    fields :email, :roles, :key, :authentication_token, :sign_in_count, :last_sign_in_at, :last_sign_in_ip
-  end
+  # rails_admin do
+  #   weight -15
+  #   navigation_label 'Account'
+  #
+  #   object_label_method do
+  #     :email
+  #   end
+  #
+  #   configure :key do
+  #     visible do
+  #       bindings[:view]._current_user.has_role? :admin
+  #     end
+  #   end
+  #
+  #   configure :authentication_token do
+  #     visible do
+  #       bindings[:view]._current_user.has_role? :admin
+  #     end
+  #   end
+  #
+  #   list do
+  #     scopes [:by_account]
+  #   end
+  #
+  #   show do
+  #     field :email
+  #     field :roles
+  #     field :key
+  #     field :authentication_token
+  #     field :sign_in_count
+  #     field :current_sign_in_at
+  #     field :last_sign_in_at
+  #     field :current_sign_in_ip
+  #     field :last_sign_in_ip
+  #     field :reset_password_sent_at
+  #
+  #     field :_id
+  #     field :created_at
+  #     field :updated_at
+  #   end
+  #   fields :email, :roles, :key, :authentication_token, :sign_in_count, :last_sign_in_at, :last_sign_in_ip
+  # end
 
 end
