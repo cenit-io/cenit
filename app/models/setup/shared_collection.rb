@@ -24,6 +24,10 @@ module Setup
 
     field :data, type: Hash
 
+    after_initialize do
+      #authors << Setup::CollectionAuthor.new(name: ::User.current.name, email: ::User.current.email) if authors.empty?
+    end
+
     attr_readonly :shared_version
 
     validates_presence_of :authors, :summary, :description
