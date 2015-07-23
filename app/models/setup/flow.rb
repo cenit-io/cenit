@@ -228,7 +228,8 @@ module Setup
                   offset: offset,
                   limit: limit,
                   discard_events: discard_events,
-                  parameters: template_parameters = webhook_template_parameters.dup
+                  parameters: template_parameters = webhook_template_parameters.dup,
+                  files: file = {}
               }
           translation_result =
               if connection.template_parameters.present?
@@ -252,8 +253,14 @@ module Setup
                 {
                     'Content-Type' => translator.mime_type
                 }.merge(connection.conformed_headers(template_parameters)).merge(webhook.conformed_headers(template_parameters))
+            body = if file.blank?
+                     translation_result
+                   else
+                     io = StringIO.new(file[:data])
+                     {content: UploadIO.new(io, file[:mime], file[:name])}
+                   end
             begin
-              http_response = HTTParty.send(webhook.method, conformed_url + '/' + conformed_path, {body: translation_result, headers: headers})
+              http_response = HTTMultiParty.send(webhook.method, conformed_url + '/' + conformed_path, {body: body, headers: headers})
               block.yield(response: http_response.to_json, exception_message: (200...299).include?(http_response.code) ? nil : 'Unsuccessful') if block.present?
               if response_translator #&& http_response.code == 200
                 response_translator.run(translation_options.merge(target_data_type: response_translator.data_type || response_data_type, data: http_response.body))

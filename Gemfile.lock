@@ -1,4 +1,13 @@
 GIT
+  remote: https://github.com/jwagener/httmultiparty.git
+  revision: ab6724553f708afb40ff21607b323dd7f83cfb41
+  specs:
+    httmultiparty (0.3.16)
+      httparty (>= 0.7.3)
+      mimemagic
+      multipart-post
+
+GIT
   remote: https://github.com/openjaf/cenit_cmd.git
   revision: 6581aa12d7153cd0a588b0762d99519189899bfb
   specs:
@@ -217,6 +226,7 @@ GEM
       mime-types (~> 1.16)
       treetop (~> 1.4.8)
     mime-types (1.25.1)
+    mimemagic (0.3.0)
     mini_magick (4.2.0)
     mini_portile (0.6.2)
     minitest (5.5.0)
@@ -484,6 +494,7 @@ DEPENDENCIES
   figaro
   github_api
   haml-rails
+  httmultiparty!
   httparty
   jbuilder (~> 1.0.1)
   jeweler

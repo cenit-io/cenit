@@ -30,7 +30,7 @@ module Edi
       options[:include_id] = include_id
       hash = record_to_hash(self, options)
       options.delete(:stack)
-      hash = {self.orm_model.data_type.name.downcase => hash} if options[:include_root]
+      hash = {self.orm_model.data_type.slug.downcase => hash} if options[:include_root]
       hash
     end
 

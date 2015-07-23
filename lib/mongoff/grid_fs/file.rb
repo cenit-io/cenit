@@ -7,6 +7,7 @@ module Mongoff
       def initialize(model, document = nil, new_record = true)
         raise "Illegal file model #{model}" unless model.is_a?(FileModel)
         super
+        @custom_contentType = false
       end
 
       def chunk_model
@@ -23,26 +24,31 @@ module Mongoff
         @new_data = string_or_readable
       end
 
+      def []=(field, value)
+        @custom_contentType = true if field == :contentType
+        super
+      end
+
       def save(options = {})
         self[:chunkSize] = FileModel::MINIMUM_CHUNK_SIZE if  self[:chunkSize] < FileModel::MINIMUM_CHUNK_SIZE
         temporary_file = nil
         new_chunks_ids =
-          if @new_data
-            readable =
-              if @new_data.is_a?(String)
-                temporary_file = Tempfile.new('file_')
-                temporary_file.write(@new_data)
-                temporary_file.rewind
-                Cenit::Utility::Proxy.new(temporary_file, original_filename: filename)
+            if @new_data
+              readable =
+                  if @new_data.is_a?(String)
+                    temporary_file = Tempfile.new('file_')
+                    temporary_file.write(@new_data)
+                    temporary_file.rewind
+                    Cenit::Utility::Proxy.new(temporary_file, original_filename: filename)
+                  else
+                    @new_data
+                  end
+              if !options[:valid_data] && (file_data_errors = orm_model.data_type.validate_file(readable)).present?
+                errors.add(:base, "Invalid file data: #{file_data_errors.to_sentence}")
               else
-                @new_data
+                create_temporary_chunks(readable)
               end
-            if !options[:valid_data] && (file_data_errors = orm_model.data_type.validate_file(readable)).present?
-              errors.add(:base, "Invalid file data: #{file_data_errors.to_sentence}")
-            else
-              create_temporary_chunks(readable)
             end
-          end
         temporary_file.close if temporary_file
         if errors.blank? && super
           if new_chunks_ids
@@ -74,6 +80,7 @@ module Mongoff
         reading(readable) do |io|
 
           self[:filename] = extract_basename(io).squeeze('/') unless self[:filename].present?
+          self[:contentType] = extract_content_type(self[:filename]) unless @custom_contentType
 
           chunking(io, chunkSize) do |buf|
             md5 << buf
@@ -130,16 +137,24 @@ module Mongoff
 
       def extract_basename(object)
         file_name =
-          if msg = [
-            :original_path,
-            :original_filename,
-            :path,
-            :filename,
-            :pathname
-          ].detect { |msg| object.respond_to?(msg) }
-            object.send(msg)
-          end
+            if msg = [
+                :original_path,
+                :original_filename,
+                :path,
+                :filename,
+                :pathname
+            ].detect { |msg| object.respond_to?(msg) }
+              object.send(msg)
+            end
         file_name ? clean(file_name) : nil
+      end
+
+      def extract_content_type(filename)
+        if mime_type = MIME::Types.type_for(::File.basename(filename.to_s)).first
+          mime_type.to_s
+        else
+          self[:contentType]
+        end
       end
 
       def clean(path)

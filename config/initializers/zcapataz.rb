@@ -6,7 +6,7 @@ Capataz.config do
 
   deny_invoke_of :require, :new, :create, :class, :eval, :class_eval, :instance_eval, :instance_variable_set, :instance_variable_get, :constants, :const_get, :const_set, :constantize
 
-  allowed_constants JSON, Array, Hash, Nokogiri, Nokogiri::XML
+  allowed_constants JSON, Array, Hash, Nokogiri, Nokogiri::XML, SecureRandom
 
   allow_on JSON, :parse
 
@@ -19,7 +19,7 @@ Capataz.config do
       else
         "#{action}_from_#{format}"
       end
-    end
+    end + [:create_from]
   end + [:name, :slug, :to_json, :to_edi, :to_hash, :to_xml, :to_params]).flatten
 
   deny_for [Setup::DynamicModel, Mongoff::Record], ->(instance, method) do

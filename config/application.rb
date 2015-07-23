@@ -40,7 +40,8 @@ module Cenit
 
         Account.current = account
 
-        Setup::Model.update_all(model_loaded: false, used_memory: 0, activated: false)
+        # Setup::Model.update_all(model_loaded: false, used_memory: 0, activated: false)
+        Setup::Model.update_all(model_loaded: false, used_memory: 0)
 
         Setup::Schema.all.each do |schema|
           puts "Loading schema #{schema.uri}"
