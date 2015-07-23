@@ -146,6 +146,11 @@ module Setup
         end
       end
 
+      def write_attribute(name, value)
+        @custom_contentType = true if name.to_s == :contentType.to_s
+        super
+      end
+
       def name
         filename
       end
@@ -174,6 +179,8 @@ module Setup
       end
 
       def save(options = {})
+        [:filename, :aliases, :metadata].each { |field| file[field] =  self[field] }
+        file[:contentType] = self[:contentType] if @custom_contentType
         if @new_data
           file.data = @new_data
           unless file.save(options)
