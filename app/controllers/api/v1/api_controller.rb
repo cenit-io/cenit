@@ -270,7 +270,7 @@ module Api::V1
                            end,
             message: ''
           }.merge(config || {})
-        @data_type = (controller = config[:controller]).send(:get_data_type_by_slug, (@root = controller.request.headers['data-type']))
+        @data_type = (controller = config[:controller]).send(:get_data_type, (@root = controller.request.params[:model] || controller.request.headers['data-type']))
         @create_options = {create_collector: Set.new}
         create_options_keys.each { |option| @create_options[option.to_sym] = controller.request[option] }
       end
