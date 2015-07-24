@@ -5,7 +5,7 @@ module Setup
 
     Setup::Models.exclude_actions_for self, :delete, :bulk_delete, :delete_all
 
-    BuildInDataType.regist(self).embedding(:schemas, :validators, :file_data_types).referenced_by(:slug)
+    BuildInDataType.regist(self).embedding(:schemas, :file_data_types).referenced_by(:slug)
 
     field :name, type: String
 

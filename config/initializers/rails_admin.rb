@@ -23,7 +23,9 @@
  RailsAdmin::Config::Actions::DownloadFile,
  RailsAdmin::Config::Actions::DeleteDataType,
  RailsAdmin::Config::Actions::ProcessFlow,
- RailsAdmin::Config::Actions::BuildGem].each { |a| RailsAdmin::Config::Actions.register(a) }
+ RailsAdmin::Config::Actions::BuildGem,
+ RailsAdmin::Config::Actions::Execute,
+ RailsAdmin::Config::Actions::UserInfo].each { |a| RailsAdmin::Config::Actions.register(a) }
 
 RailsAdmin::Config::Actions.register(:export, RailsAdmin::Config::Actions::EdiExport)
 RailsAdmin::Config::Fields::Types.register(RailsAdmin::Config::Fields::Types::JsonValue)
@@ -56,8 +58,9 @@ RailsAdmin.config do |config|
 
   config.actions do
     dashboard # mandatory
-    memory_usage
-    disk_usage
+    user_info
+    # memory_usage
+    # disk_usage
     index # mandatory
     new { except [Setup::Event, Role] }
     new_file_model
@@ -71,6 +74,7 @@ RailsAdmin.config do |config|
     export
     bulk_delete { except [Role] }
     show
+    execute
     edit { except [Role] }
     simple_share
     bulk_share
@@ -513,7 +517,7 @@ RailsAdmin.config do |config|
     configure :path, :string do
       help "Requiered. Path of the webhook relative to connection URL."
       html_attributes do
-        {maxlength: 50, size: 50}
+        {maxlength: 255, size: 100}
       end
     end
     group :parameters do
@@ -581,7 +585,9 @@ RailsAdmin.config do |config|
         inline_edit false
         inline_add false
       end
-      field :translator
+      field :translator do
+        help 'Required'
+      end
       field :custom_data_type do
         inline_edit false
         inline_add false
@@ -729,8 +735,7 @@ RailsAdmin.config do |config|
       field :name
       field :data_type do
         associated_collection_scope do
-          bindings[:controller].instance_variable_set(:@_data_type, data_type = bindings[:object].data_type)
-          bindings[:controller].instance_variable_set(:@_update_field, 'data_type_id')
+          data_type = bindings[:object].data_type
           Proc.new { |scope|
             if data_type
               scope.where(id: data_type.id)
@@ -741,7 +746,11 @@ RailsAdmin.config do |config|
         end
       end
       field :triggers do
-        visible { bindings[:object].data_type.present? }
+        visible do
+          bindings[:controller].instance_variable_set(:@_data_type, data_type = bindings[:object].data_type)
+          bindings[:controller].instance_variable_set(:@_update_field, 'data_type_id')
+          data_type.present?
+        end
         partial 'form_triggers'
         help false
       end
@@ -845,6 +854,7 @@ RailsAdmin.config do |config|
 
       field :style do
         visible { bindings[:object].type.present? }
+        help 'Required'
       end
 
       field :bulk_source do
@@ -917,7 +927,11 @@ RailsAdmin.config do |config|
       field :style
       field :mime_type
       field :file_extension
-      field :transformation
+      field :transformation do
+        pretty_value do
+          "<pre><code class='ruby'>#{value}</code></pre>".html_safe
+        end
+      end
       field :source_exporter
       field :target_importer
       field :discard_chained_records
@@ -1074,6 +1088,7 @@ RailsAdmin.config do |config|
       field :category
       field :authors
       field :summary
+      field :dependencies
     end
   end
 
@@ -1155,5 +1170,25 @@ RailsAdmin.config do |config|
       field :receiver_connection
     end
     fields :name, :pull_connection, :pull_flow, :pull_event, :pull_translator, :data_type, :send_translator, :send_flow, :receiver_connection
+  end
+
+  config.model Setup::Algorithm do
+    edit do
+      field :name
+      field :description
+      field :parameters
+      field :code, :code_mirror
+    end
+    show do
+      field :name
+      field :description
+      field :parameters
+      field :code do
+        pretty_value do
+          "<pre><code class='ruby'>#{value}</code></pre>".html_safe
+        end
+      end
+    end
+    fields :name, :description, :parameters
   end
 end

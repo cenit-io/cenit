@@ -124,12 +124,14 @@ module Setup
       extend ActiveSupport::Concern
 
       Setup::Model.to_include_in_models.each do |module_to_include|
-        include(module_to_include) unless include?(module_to_include) || [RailsAdminDynamicCharts::Datetime].include?(module_to_include)
+        include(module_to_include) unless include?(module_to_include) || [Mongoid::Timestamps, RailsAdminDynamicCharts::Datetime].include?(module_to_include)
       end
 
       include Mongoff::GridFs::FileFormatter
 
       included do
+        field :created_at, type: Time
+        field :updated_at, type: Time
         field :filename, type: String
         field :contentType, type: String, default: -> { Mongoff::GridFs::FileModel::SCHEMA['properties']['contentType']['default'] }
         field :length, type: Integer
@@ -142,6 +144,11 @@ module Setup
         before_destroy do
           file.destroy
         end
+      end
+
+      def write_attribute(name, value)
+        @custom_contentType = true if name.to_s == :contentType.to_s
+        super
       end
 
       def name
@@ -172,16 +179,26 @@ module Setup
       end
 
       def save(options = {})
+        [:filename, :aliases, :metadata].each { |field| file[field] =  self[field] }
+        file[:contentType] = self[:contentType] if @custom_contentType
         if @new_data
           file.data = @new_data
-          if file.save(options)
-            @new_record = false
-          else
+          unless file.save(options)
             @errors = file.errors
             return false
           end
         end
-        file.destroy unless super
+        self.updated_at = Time.now
+        self.created_at = updated_at unless created_at.present?
+        updated = !update_document(options)
+        if new_record?
+          if updated
+            @new_record = false
+          else
+            file.destroy if @errors.present?
+          end
+        end
+        updated
       end
 
       module ClassMethods
