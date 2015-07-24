@@ -24,7 +24,8 @@
  RailsAdmin::Config::Actions::DeleteDataType,
  RailsAdmin::Config::Actions::ProcessFlow,
  RailsAdmin::Config::Actions::BuildGem,
- RailsAdmin::Config::Actions::Execute].each { |a| RailsAdmin::Config::Actions.register(a) }
+ RailsAdmin::Config::Actions::Execute,
+ RailsAdmin::Config::Actions::UserInfo].each { |a| RailsAdmin::Config::Actions.register(a) }
 
 RailsAdmin::Config::Actions.register(:export, RailsAdmin::Config::Actions::EdiExport)
 RailsAdmin::Config::Fields::Types.register(RailsAdmin::Config::Fields::Types::JsonValue)
@@ -57,8 +58,9 @@ RailsAdmin.config do |config|
 
   config.actions do
     dashboard # mandatory
-    memory_usage
-    disk_usage
+    user_info
+    # memory_usage
+    # disk_usage
     index # mandatory
     new { except [Setup::Event, Role] }
     new_file_model
