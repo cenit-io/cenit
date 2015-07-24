@@ -193,3 +193,9 @@ en:
         title: "Build Gem"
         menu: "Build Gem"
         done: "build"
+      execute:
+        title: "Execute"
+        menu: "execute"
+        submit: "Execute"
+        breadcrumb: "Execute"
+        done: "executed"

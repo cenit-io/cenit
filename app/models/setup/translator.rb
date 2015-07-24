@@ -102,7 +102,7 @@ module Setup
       # 'csv.erb' => {Setup::Transformation::ActionViewTransform => [:Export]},
       # 'js.erb' => {Setup::Transformation::ActionViewTransform => [:Export]},
       # 'text.erb' => {Setup::Transformation::ActionViewTransform => [:Export]},
-      'ruby' => {Setup::Transformation::ActionViewTransform => [:Import, :Export, :Update, :Conversion]},
+      'ruby' => {Setup::Transformation::Ruby => [:Import, :Export, :Update, :Conversion]},
       # 'pdf.prawn' => {Setup::Transformation::PrawnTransform => [:Export]},
       'chain' => {Setup::Transformation::ChainTransform => [:Conversion]}
     }
@@ -165,7 +165,7 @@ module Setup
       self.class.relations.keys.each { |key| context_options[key.to_sym] = send(key) }
       context_options[:data_type] = data_type
       context_options.merge!(options) { |_, context_val, options_val| !context_val ? options_val : context_val }
-      context_options[:transformation] = transformation_code(context_options)
+      context_options[:transformation] = transformation
 
       context_options[:target_data_type].regist_creation_listener(self) if context_options[:target_data_type]
       context_options[:source_data_type].regist_creation_listener(self) if context_options[:source_data_type]
@@ -249,15 +249,6 @@ module Setup
         raise TransformingObjectException.new(target) unless Cenit::Utility.save(target)
       end
       options[:result] = target
-    end
-
-    def transformation_code(context_options = {})
-      case style
-      when 'ruby'
-        Capataz.rewrite(transformation, locals: context_options.keys)
-      else
-        transformation
-      end
     end
   end
 

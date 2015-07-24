@@ -19,7 +19,7 @@ Capataz.config do
       else
         "#{action}_from_#{format}"
       end
-    end
+    end + [:create_from]
   end + [:name, :slug, :to_json, :to_edi, :to_hash, :to_xml, :to_params]).flatten
 
   deny_for [Setup::DynamicModel, Mongoff::Record], ->(instance, method) do

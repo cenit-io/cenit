@@ -324,6 +324,7 @@ module RailsAdmin
         flash_hash[flash_key] += header.html_safe
       end
       max = options[:max] || 5
+      messages = [messages] unless messages.is_a?(Enumerable)
       flash_hash[flash_key] += %(<br>- #{messages[0..max - 1].join('<br>- ')}).html_safe
       if messages.length - max > 0
         flash_hash[flash_key] += "<br>- and another #{messages.length - max}.".html_safe
