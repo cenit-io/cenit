@@ -31,9 +31,11 @@ module RailsAdmin
             render_form = true
             form_object = nil
             if model = @abstract_model.model_name.constantize rescue nil
+              data_type_selector = model.data_type
+              data_type_selector = nil if data_type_selector.is_a?(Setup::BuildInDataType)
               if data = params[selector_config.abstract_model.param_key]
                 translator = Setup::Translator.where(id: data[:translator_id]).first
-                if (form_object = Forms::ImportTranslatorSelector.new(translator: translator, data_type: model.data_type, data: data[:data])).valid?
+                if (form_object = Forms::ImportTranslatorSelector.new(translator: translator, data_type: data_type_selector, data: data[:data])).valid?
                   begin
                     translator.run(target_data_type: model.data_type, data: data[:data])
                     redirect_to_on_success
@@ -51,7 +53,7 @@ module RailsAdmin
               flash[:error] = 'Error loading model'
             end
             if render_form
-              @object = form_object || Forms::ImportTranslatorSelector.new(data_type: model.data_type)
+              @object = form_object || Forms::ImportTranslatorSelector.new(data_type: data_type_selector)
               @model_config = selector_config
               if @object.errors.present?
                 do_flash(:error, 'There are errors in the import data specification', @object.errors.full_messages)
