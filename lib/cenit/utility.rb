@@ -247,6 +247,27 @@ module Cenit
           val2
         end
       end
+
+      def json_value_of(value)
+        return value unless value.is_a?(String)
+        if value.blank?
+          nil
+        elsif value.start_with?('"') && value.end_with?('"')
+          value[1..value.length - 2]
+        elsif v = JSON.parse(value) rescue nil
+          v
+        elsif value == 'true'
+          true
+        elsif value == 'false'
+          false
+        elsif (v = value.to_i).to_s == value
+          v
+        elsif (v = value.to_f).to_s == value
+          v
+        else
+          value
+        end
+      end
     end
   end
 end
