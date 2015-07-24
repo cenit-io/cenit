@@ -52,7 +52,7 @@ class Ability
 
       file_models = Setup::FileDataType.where(model_loaded: true).collect(&:model)
       file_models.delete(nil)
-      can [:index, :show, :upload_file, :download_file, :destroy, :import, :edi_export, :delete_all], file_models
+      can [:index, :show, :upload_file, :download_file, :destroy, :import, :edi_export, :delete_all, :send_to_flow], file_models
     end
 
   end
