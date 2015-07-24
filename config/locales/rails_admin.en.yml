@@ -199,3 +199,7 @@ en:
         submit: "Execute"
         breadcrumb: "Execute"
         done: "executed"
+      user_info:
+        title: "My Profile"
+        menu: "My Profile"
+        breadcrumb: "My Profile"
