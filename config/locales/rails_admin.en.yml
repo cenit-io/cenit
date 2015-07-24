@@ -193,3 +193,13 @@ en:
         title: "Build Gem"
         menu: "Build Gem"
         done: "build"
+      execute:
+        title: "Execute"
+        menu: "execute"
+        submit: "Execute"
+        breadcrumb: "Execute"
+        done: "executed"
+      user_info:
+        title: "My Profile"
+        menu: "My Profile"
+        breadcrumb: "My Profile"

@@ -7,6 +7,7 @@ module Mongoff
       def initialize(model, document = nil, new_record = true)
         raise "Illegal file model #{model}" unless model.is_a?(FileModel)
         super
+        @custom_contentType = false
       end
 
       def chunk_model
@@ -21,6 +22,11 @@ module Mongoff
 
       def data=(string_or_readable)
         @new_data = string_or_readable
+      end
+
+      def []=(field, value)
+        @custom_contentType = true if field == :contentType
+        super
       end
 
       def save(options = {})
@@ -74,6 +80,7 @@ module Mongoff
         reading(readable) do |io|
 
           self[:filename] = extract_basename(io).squeeze('/') unless self[:filename].present?
+          self[:contentType] = extract_content_type(self[:filename]) unless @custom_contentType
 
           chunking(io, chunkSize) do |buf|
             md5 << buf
@@ -140,6 +147,14 @@ module Mongoff
             object.send(msg)
           end
         file_name ? clean(file_name) : nil
+      end
+
+      def extract_content_type(filename)
+        if mime_type = MIME::Types.type_for(::File.basename(filename.to_s)).first
+          mime_type.to_s
+        else
+          self[:contentType]
+        end
       end
 
       def clean(path)

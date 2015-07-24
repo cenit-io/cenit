@@ -19,11 +19,12 @@ Capataz.config do
       else
         "#{action}_from_#{format}"
       end
-    end
-  end + [:name]).flatten
+    end + [:create_from]
+  end + [:name, :slug, :to_json, :to_edi, :to_hash, :to_xml, :to_params]).flatten
 
   deny_for [Setup::DynamicModel, Mongoff::Record], ->(instance, method) do
     return false if [:to_json, :to_edi, :to_hash, :to_xml, :to_params, :[], :[]=].include?(method)
+    return false if [:data].include?(method) && instance.is_a?(Mongoff::GridFs::FileFormatter)
     if (method = method.to_s).end_with?('=')
       method = method.chop
     end

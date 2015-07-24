@@ -4,8 +4,6 @@ Cenit::Application.routes.draw do
   root to: 'rails_admin/main#dashboard'
   # root to: 'home#index'
 
-  get '/file/:model/:field/:id/:file', to: 'file#index'
-
   get 'explore/:api', to: 'api#explore', as: :explore_api
   post 'write/:api', to: 'api#write', as: :write_api
   
@@ -14,15 +12,19 @@ Cenit::Application.routes.draw do
   end
 
   get 'schema', to: 'schema#index'
+  get 'captcha', to: 'captcha#index'
+  get 'captcha/:token', to: 'captcha#index'
 
   namespace :api do
     namespace :v1 do
-      put '/setup/account', to: 'api#new_account'
+      post '/setup/account', to: 'api#new_account'
       post '/:library/push', to: 'api#push'
+      post '/:library/:model', to: 'api#create'
       get '/:library/:model', to: 'api#index'
       get '/:library/:model/:id', to: 'api#show'
       delete '/:library/:model/:id', to: 'api#destroy'
       post '/:library/:model/:id/pull', to: 'api#pull'
+      post '/:library/:model/:id/execute', to: 'api#execute'
       post '/auth', to: 'api#auth'
     end
   end
