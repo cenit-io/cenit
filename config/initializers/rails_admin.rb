@@ -1191,4 +1191,18 @@ RailsAdmin.config do |config|
     end
     fields :name, :description, :parameters
   end
+
+  config.model User do
+    show do
+      field :email
+      field :roles
+      field :key
+      field :authentication_token
+      field :sign_in_count
+      field :current_sign_in_at
+      field :last_sign_in_at
+      field :current_sign_in_ip
+      field :last_sign_in_ip
+    end
+  end
 end
