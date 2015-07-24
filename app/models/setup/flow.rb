@@ -202,7 +202,6 @@ module Setup
           end
 
           http_response = HTTParty.send(webhook.method, conformed_url + '/' + conformed_path + url_parameter, headers: headers)
-
           translator.run(target_data_type: data_type,
                          data: http_response.body,
                          discard_events: discard_events,

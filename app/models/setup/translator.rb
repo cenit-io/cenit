@@ -81,7 +81,7 @@ module Setup
     end
 
     def type_enum
-      [:Import, :Export, :Update, :Conversion, :Function]
+      [:Import, :Export, :Update, :Conversion]
     end
 
     def source_bulkable?
@@ -102,7 +102,7 @@ module Setup
         # 'csv.erb' => {Setup::Transformation::ActionViewTransform => [:Export]},
         # 'js.erb' => {Setup::Transformation::ActionViewTransform => [:Export]},
         # 'text.erb' => {Setup::Transformation::ActionViewTransform => [:Export]},
-        'ruby' => {Setup::Transformation::ActionViewTransform => [:Import, :Export, :Update, :Conversion, :Function]},
+        'ruby' => {Setup::Transformation::ActionViewTransform => [:Import, :Export, :Update, :Conversion]},
         # 'pdf.prawn' => {Setup::Transformation::PrawnTransform => [:Export]},
         'chain' => {Setup::Transformation::ChainTransform => [:Conversion]}
     }
