@@ -14,4 +14,7 @@ Cenit.config do
   #Captcha length
   captcha_length 5
 
+  #Process flow messages asynchronous
+  asynchronous_flow_processing false
+
 end

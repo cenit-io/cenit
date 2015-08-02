@@ -130,7 +130,11 @@ module Setup
         Setup::Notification.create(flow: self, exception_message: "Cyclic flow execution: #{cycle.join(' -> ')}")
       else
         message = options.merge(flow_id: id.to_s, tirgger_flow_id: executing_id, execution_graph: execution_graph).to_json
-        Cenit::Rabbit.send_to_endpoints(message)
+        if Cenit.asynchronous_flow_processing
+          Cenit::Rabbit.send_to_rabbitmq(message)
+        else
+          Cenit::Rabbit.process_message(message)
+        end
       end
       puts "Flow processing jon '#{self.name}' done!"
       self.last_trigger_timestamps = DateTime.now
