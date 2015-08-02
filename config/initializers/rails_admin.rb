@@ -146,7 +146,7 @@ RailsAdmin.config do |config|
   end
 
   config.model Setup::Schema do
-    object_label_method { :on_library_title }
+    object_label_method { :custom_title }
     navigation_label 'Data Definitions'
     register_instance_option(:after_form_partials) do
       %w(shutdown_and_reload)
@@ -207,13 +207,13 @@ RailsAdmin.config do |config|
   config.model Setup::Model do
     label 'Data type'
     label_plural 'Data types'
-    object_label_method { :on_library_title }
+    object_label_method { :custom_title }
     navigation_label 'Data Definitions'
     weight -17
 
     configure :title do
       pretty_value do
-        bindings[:object].on_library_title
+        bindings[:object].custom_title
       end
     end
 
@@ -320,7 +320,7 @@ RailsAdmin.config do |config|
 
   config.model Setup::DataType do
     visible false
-    object_label_method { :on_library_title }
+    object_label_method { :custom_title }
     navigation_label 'Data Definitions'
     weight -17
 
@@ -339,7 +339,7 @@ RailsAdmin.config do |config|
       group :model_definition
       help ''
       pretty_value do
-        bindings[:object].on_library_title
+        bindings[:object].custom_title
       end
     end
 
