@@ -1,13 +1,18 @@
 module Capataz
   class Rewriter < Parser::Rewriter
 
+    attr_reader :logs
+
     def initialize(options = {})
-      @options = {errors: []}.merge(options)
+      @options = options || {}
+      @logs = options[:logs] || {}
+      @self_linker = options[:self_linker]
+      @self_send_prefixer = options[:self_send_prefixer]
       @capatized_nodes = Set.new
     end
 
     def rewrite(source_buffer, ast)
-      @options[:errors].clear
+      @logs.clear
       @capatized_nodes.clear
       @source_rewriter = Capataz::SourceRewriter.new(source_buffer)
 
@@ -19,11 +24,18 @@ module Capataz
 
     def on_send(node)
       super
-      report_error("invoking method #{node.children[1]} is not allowed") unless Capataz.allows_invocation_of(node.children[1])
+      unless Capataz.allows_invocation_of(method_name = node.children[1])
+        report_error("invoking method #{method_name} is not allowed")
+      end
       if left = node.children[0]
         capatize(left) if left.type != :send
-      else
-         insert_before(node.location.expression, '::Capataz.handle(self).') if node.type == :send
+      elsif node.type == :send
+        unless @self_linker.link?(method_name)
+          report_error("error linking #{method_name}")
+        end if @self_linker
+        (@logs[:self_sends] ||= []) << method_name
+        prefix = @self_send_prefixer ? @self_send_prefixer.prefix(method_name, @self_linker) : ''
+        insert_before(node.location.expression, "::Capataz.handle(self).#{prefix}")
       end
       i = 2
       while i < node.children.length
@@ -110,7 +122,7 @@ module Capataz
       if @options[:halt_on_error]
         fail message
       else
-        @options[:errors] << message
+        (logs[:errors] ||= []) << message
       end
     end
 

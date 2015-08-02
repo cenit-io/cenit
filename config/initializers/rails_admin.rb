@@ -24,7 +24,7 @@
  RailsAdmin::Config::Actions::DeleteDataType,
  RailsAdmin::Config::Actions::ProcessFlow,
  RailsAdmin::Config::Actions::BuildGem,
- RailsAdmin::Config::Actions::Execute,
+ RailsAdmin::Config::Actions::Run,
  RailsAdmin::Config::Actions::UserInfo].each { |a| RailsAdmin::Config::Actions.register(a) }
 
 RailsAdmin::Config::Actions.register(:export, RailsAdmin::Config::Actions::EdiExport)
@@ -74,7 +74,7 @@ RailsAdmin.config do |config|
     export
     bulk_delete { except [Role] }
     show
-    execute
+    run
     edit { except [Role] }
     simple_share
     bulk_share
@@ -1178,6 +1178,9 @@ RailsAdmin.config do |config|
       field :description
       field :parameters
       field :code, :code_mirror
+      field :call_links do
+        visible { bindings[:object].call_links.present? }
+      end
     end
     show do
       field :name
@@ -1190,6 +1193,21 @@ RailsAdmin.config do |config|
       end
     end
     fields :name, :description, :parameters
+  end
+
+  config.model Setup::CallLink do
+    edit do
+      field :name do
+        read_only true
+        help { nil }
+      end
+      field :link do
+        inline_add false
+        inline_edit false
+        help { nil }
+      end
+    end
+    fields :name, :link
   end
 
   config.model User do
