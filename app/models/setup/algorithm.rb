@@ -1,16 +1,21 @@
 module Setup
   class Algorithm
     include CenitScoped
+    include CustomTitle
 
     BuildInDataType.regist(self).referenced_by(:name)
 
+    field :name_space, type: String
     field :name, type: Symbol
     field :description, type: String
     embeds_many :parameters, class_name: Setup::AlgorithmParameter.to_s, inverse_of: :algorithm
     field :code, type: String
     embeds_many :call_links, class_name: Setup::CallLink.to_s, inverse_of: :algorithm
 
-    validates_presence_of :name, :code, :description
+    validates_presence_of :name_space, :name, :code, :description
+    validates_length_of :name_space, maximum: 255
+    validates_format_of :name, with: /\A[a-z]([a-z]|\_|\d)*\Z/
+    validates_uniqueness_of :name, scope: :name_space
 
     accepts_nested_attributes_for :parameters, allow_destroy: true
     accepts_nested_attributes_for :call_links, update_only: true
@@ -59,6 +64,10 @@ module Setup
       else
         nil
       end
+    end
+
+    def scope_title
+      name_space
     end
   end
 end

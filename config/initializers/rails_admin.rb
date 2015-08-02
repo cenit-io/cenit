@@ -1173,7 +1173,9 @@ RailsAdmin.config do |config|
   end
 
   config.model Setup::Algorithm do
+    object_label_method { :custom_title }
     edit do
+      field :name_space
       field :name
       field :description
       field :parameters
@@ -1183,6 +1185,7 @@ RailsAdmin.config do |config|
       end
     end
     show do
+      field :name_space
       field :name
       field :description
       field :parameters
@@ -1200,6 +1203,7 @@ RailsAdmin.config do |config|
       field :name do
         read_only true
         help { nil }
+        label 'Call name'
       end
       field :link do
         inline_add false
