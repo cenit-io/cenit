@@ -131,13 +131,13 @@ module Setup
     end
 
     def category_enum
-      %w(Collection Library Translator)
+      %w(Collection Library Translator Algorithm)
     end
 
     def categorize
       shared = data.keys.select { |key| key != 'name' }
       self.category =
-        shared.length == 1 && %w(libraries translators).include?(shared[0]) ? shared[0].singularize.capitalize : 'Collection'
+        shared.length == 1 && %w(libraries translators algorithms).include?(shared[0]) ? shared[0].singularize.capitalize : 'Collection'
       true
     end
 
