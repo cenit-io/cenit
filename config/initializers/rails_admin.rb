@@ -1131,6 +1131,7 @@ RailsAdmin.config do |config|
       field :events
       field :libraries
       field :custom_validators
+      field :algorithms
       field :webhooks
       field :connections
 
@@ -1140,7 +1141,7 @@ RailsAdmin.config do |config|
       field :updated_at
       #field :updater
     end
-    fields :image, :name, :flows, :connection_roles, :translators, :events, :libraries, :custom_validators, :webhooks, :connections
+    fields :image, :name, :flows, :connection_roles, :translators, :events, :libraries, :custom_validators, :algorithms, :webhooks, :connections
   end
 
   config.model Setup::CustomValidator do
@@ -1195,7 +1196,7 @@ RailsAdmin.config do |config|
         end
       end
     end
-    fields :name, :description, :parameters
+    fields :name_space, :name, :description, :parameters, :call_links
   end
 
   config.model Setup::CallLink do

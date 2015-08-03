@@ -17,9 +17,11 @@ module Cenit
           if data = pull_data[relation.name.to_s]
             invariant_data[relation.name.to_s] = invariant_names = Set.new
             data.each do |item|
-              if record = relation.klass.where(name: item['name']).first
+              criteria = {name_space: item['name_space'], name: item['name']}
+              criteria.delete_if { |_, value| value.nil? }
+              if record = relation.klass.where(criteria).first
                 if record.share_hash.eql?(item)
-                  invariant_names << item['name']
+                  invariant_names << criteria
                 else
                   updated_records[relation.name.to_s] << record
                 end
@@ -51,7 +53,13 @@ module Cenit
 
         collection_data = pull_data.deep_dup
 
-        invariant_data.each { |key, invariant_names| pull_data[key].delete_if { |item| invariant_names.include?(item['name']) } }
+        invariant_data.each do |key, invariant_names|
+          pull_data[key].delete_if do |item|
+            criteria = {name_space: item['name_space'], name: item['name']}
+            criteria.delete_if { |_, value| value.nil? }
+            invariant_names.include?(criteria)
+          end
+        end
 
         [collection_data, pull_data, updated_records].each { |hash| hash.each_key { |key| hash.delete(key) if hash[key].empty? } }
 
@@ -111,6 +119,33 @@ module Cenit
         CenitCmd::Collection.new.build_gem(data)
       end
 
+      def build_collection(source, klass)
+        if source.nil? || source.is_a?(Array) # bulk share
+          klass = klass.to_s.constantize unless klass.is_a?(Class)
+          collection = Setup::Collection.new
+          collection.send("#{klass.to_s.split('::').last.downcase.pluralize}=", source ? klass.any_in(id: source) : klass.all)
+        else # simple share
+          if source.is_a?(Setup::Collection)
+            collection = source
+          else
+            collection = Setup::Collection.new(name: @object.try(:name))
+            collection.send("#{source.class.to_s.split('::').last.downcase.pluralize}") << source
+          end
+        end
+        collection.check_dependencies
+        collection
+      end
+
+      def store(shared_collection)
+        return false unless shared_collection.save
+        if Cenit.share_on_github
+
+        end
+        if Cenit.share_on_ruby_gems
+
+        end
+        true
+      end
     end
   end
 end

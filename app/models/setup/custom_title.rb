@@ -11,7 +11,7 @@ module Setup
 
     def custom_title
       if scoped_title = scope_title
-        "#{scope_title} | #{title}"
+        "#{scoped_title} | #{title}"
       else
         title
       end

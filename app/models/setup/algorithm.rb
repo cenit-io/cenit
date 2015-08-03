@@ -3,10 +3,10 @@ module Setup
     include CenitScoped
     include CustomTitle
 
-    BuildInDataType.regist(self).referenced_by(:name)
+    BuildInDataType.regist(self).referenced_by(:name_space, :name)
 
     field :name_space, type: String
-    field :name, type: Symbol
+    field :name, type: String
     field :description, type: String
     embeds_many :parameters, class_name: Setup::AlgorithmParameter.to_s, inverse_of: :algorithm
     field :code, type: String
@@ -68,6 +68,14 @@ module Setup
 
     def scope_title
       name_space
+    end
+
+    def for_each_call(visited = Set.new, &block)
+      unless visited.include?(self)
+        visited << self
+        block.call(self) if block
+      end
+      call_links.each { |call_link| call_link.link.for_each_call(visited, &block) }
     end
   end
 end

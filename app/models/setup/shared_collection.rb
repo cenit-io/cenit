@@ -153,7 +153,15 @@ module Setup
       hash_data = dependencies_data.deep_merge(data) { |_, val1, val2| Cenit::Utility.array_hash_merge(val1, val2) }
       hash_data.each do |key, values|
         next if key == 'name'
-        hash = values.inject({}) { |hash, item| hash[item['name']] = item; hash }
+        hash = values.inject({}) do |hash, item|
+          name =
+            if name = item['name_space']
+              {name_space: name, name: item['name']}
+            else
+              item['name']
+            end
+          hash[name] = item; hash
+        end
         hash_data[key] = hash.values.to_a unless hash.size == values.length
       end
       parameters.each do |id, value|

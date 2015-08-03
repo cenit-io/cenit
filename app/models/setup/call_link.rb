@@ -4,7 +4,7 @@ module Setup
 
     BuildInDataType.regist(self).referenced_by(:name)
 
-    field :name, type: Symbol
+    field :name, type: String
     belongs_to :link, class_name: Setup::Algorithm.to_s, inverse_of: nil
 
     embedded_in :algorithm, class_name: Setup::Algorithm.to_s, inverse_of: :call_links
