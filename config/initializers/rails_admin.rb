@@ -688,7 +688,7 @@ RailsAdmin.config do |config|
         help ''
       end
       field :discard_events do
-        visible { bindings[:object].response_translator.present? && bindings[:object].ready_to_save? }
+        visible { (((obj = bindings[:object]).translator && obj.translator.type == :Import) || obj.response_translator.present?) && bindings[:object].ready_to_save? }
         help "Events won't be fired for created or updated records if checked"
       end
       field :active do
