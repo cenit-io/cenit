@@ -210,8 +210,10 @@ module Setup
           translator.run(target_data_type: data_type,
                          data: http_response.body,
                          discard_events: discard_events,
-                         parameters: template_parameters) if http_response.code == 200
-          block.yield(response: http_response.to_json, exception_message: (200...299).include?(http_response.code) ? nil : 'Unsuccessful') if block
+                         parameters: template_parameters,
+                         headers: http_response.headers) if http_response.code == 200
+          response = http_response.to_json rescue http_response.headers.to_json
+          block.yield(response: response, exception_message: (200...299).include?(http_response.code) ? nil : 'Unsuccessful') if block
         rescue Exception => ex
           block.yield(response: http_response.to_json, exception_message: ex.message) if block
         end

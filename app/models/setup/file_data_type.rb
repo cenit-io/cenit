@@ -52,8 +52,6 @@ module Setup
     def create_from(string_or_readable, options = {})
       options = default_attributes.merge(options)
       file = records_model.new
-      file.filename = options[:filename]
-      file.contentType = options[:contentType] if options[:contentType]
       file.data = string_or_readable
       file.save(options)
       file
@@ -91,8 +89,8 @@ module Setup
 
     def default_attributes
       {
-        filename: "file_#{DateTime.now.strftime('%Y-%m-%d_%Hh%Mm%S')}" + ((extension = validator.try(:file_extension)) ? ".#{extension}" : ''),
-        contentType: validator.try(:content_type) || 'application/octet-stream'
+        default_filename: "file_#{DateTime.now.strftime('%Y-%m-%d_%Hh%Mm%S')}" + ((extension = validator.try(:file_extension)) ? ".#{extension}" : ''),
+        default_contentType: validator.try(:content_type) || 'application/octet-stream'
       }
     end
 
