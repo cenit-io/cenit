@@ -3,7 +3,7 @@ module Cenit
 
     def initialize
       @prefixes = Hash.new { |h, linker| h[linker] = Hash.new { |h, method| h[method] = "__#{linker}_" } }
-      @algorithms = {}
+      @algorithms = {}.with_indifferent_access
     end
 
     def method_missing(symbol, *args, &block)
@@ -43,7 +43,7 @@ module Cenit
       end
 
       def prefix(method, linker)
-        prefix = @interpreter.instance_variable_get(:@prefixes)[linker.id.to_s][method]
+        prefix = @interpreter.instance_variable_get(:@prefixes)[linker.linker_id][method]
         @interpreter.instance_variable_get(:@algorithms)[(prefix + method.to_s).to_sym] = linker.link(method)
         prefix
       end

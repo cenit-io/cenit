@@ -33,7 +33,7 @@ module Capataz
         unless @self_linker.link?(method_name)
           report_error("error linking #{method_name}")
         end if @self_linker
-        (@logs[:self_sends] ||= []) << method_name
+        (@logs[:self_sends] ||= Set.new) << method_name
         prefix = @self_send_prefixer ? @self_send_prefixer.prefix(method_name, @self_linker) : ''
         insert_before(node.location.expression, "::Capataz.handle(self).#{prefix}")
       end

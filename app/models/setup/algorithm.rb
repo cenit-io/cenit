@@ -23,7 +23,7 @@ module Setup
     before_save :validate_code
 
     def validate_code
-      Capataz.rewrite(code, halt_on_error: false, logs: logs = {})
+      Capataz.rewrite(code, halt_on_error: false, logs: logs = {}, locals: parameters.collect { |p| p.name })
       if logs[:errors].present?
         logs[:errors].each { |msg| errors.add(:code, msg) }
         self.call_links = []
@@ -64,6 +64,10 @@ module Setup
       else
         nil
       end
+    end
+
+    def linker_id
+      id.to_s
     end
 
     def scope_title
