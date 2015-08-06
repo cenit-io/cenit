@@ -130,7 +130,11 @@ module Setup
         Setup::Notification.create(flow: self, exception_message: "Cyclic flow execution: #{cycle.join(' -> ')}")
       else
         message = options.merge(flow_id: id.to_s, tirgger_flow_id: executing_id, execution_graph: execution_graph).to_json
-        Cenit::Rabbit.send_to_endpoints(message)
+        if Cenit.asynchronous_flow_processing
+          Cenit::Rabbit.send_to_rabbitmq(message)
+        else
+          Cenit::Rabbit.process_message(message)
+        end
       end
       puts "Flow processing jon '#{self.name}' done!"
       self.last_trigger_timestamps = DateTime.now
@@ -206,8 +210,10 @@ module Setup
           translator.run(target_data_type: data_type,
                          data: http_response.body,
                          discard_events: discard_events,
-                         parameters: template_parameters) if http_response.code == 200
-          block.yield(response: http_response.to_json, exception_message: (200...299).include?(http_response.code) ? nil : 'Unsuccessful') if block
+                         parameters: template_parameters,
+                         headers: http_response.headers) if http_response.code == 200
+          response = http_response.to_json rescue http_response.headers.to_json
+          block.yield(response: response, exception_message: (200...299).include?(http_response.code) ? nil : 'Unsuccessful') if block
         rescue Exception => ex
           block.yield(response: http_response.to_json, exception_message: ex.message) if block
         end
@@ -237,23 +243,38 @@ module Setup
             else
               common_result ||= translator.run(translation_options)
             end || ''
-          if translation_result.is_a?(String)
+          if [Hash, String].include?(translation_result.class)
             url_parameter = connection.conformed_parameters(template_parameters).merge(webhook.conformed_parameters(template_parameters)).to_param
             if url_parameter.present?
               url_parameter = '?' + url_parameter
+            end
+            if translation_result.is_a?(String)
+              body = translation_result
+            else
+              body = {}
+              translation_result.each do |key, content|
+                body[key] =
+                  if content.is_a?(String) || content.respond_to?(:read)
+                    content
+                  elsif content.is_a?(Hash)
+                    UploadIO.new(StringIO.new(content[:data]), content[:contentType], content[:filename])
+                  else
+                    content.to_s
+                  end
+              end
             end
             template_parameters.reverse_merge!(
               url: conformed_url = connection.conformed_url(template_parameters),
               path: conformed_path = webhook.conformed_path(template_parameters) + url_parameter,
               method: webhook.method,
-              body: translation_result
+              body: body
             )
             headers =
               {
                 'Content-Type' => translator.mime_type
               }.merge(connection.conformed_headers(template_parameters)).merge(webhook.conformed_headers(template_parameters))
             begin
-              http_response = HTTParty.send(webhook.method, conformed_url + '/' + conformed_path, {body: translation_result, headers: headers})
+              http_response = HTTMultiParty.send(webhook.method, conformed_url + '/' + conformed_path, {body: body, headers: headers})
               block.yield(response: http_response.to_json, exception_message: (200...299).include?(http_response.code) ? nil : 'Unsuccessful') if block.present?
               if response_translator #&& http_response.code == 200
                 response_translator.run(translation_options.merge(target_data_type: response_translator.data_type || response_data_type, data: http_response.body))
@@ -262,7 +283,7 @@ module Setup
               block.yield(exception_message: ex.message) if block
             end
           else
-            block.yield(exception_message: "Invalid translation result type: #{translation_result.class} (string or blank expected)") if block
+            block.yield(exception_message: "Invalid translation result type: #{translation_result.class}") if block
           end
         end
       end

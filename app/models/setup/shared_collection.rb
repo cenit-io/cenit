@@ -24,8 +24,8 @@ module Setup
 
     field :data, type: Hash
 
-    after_initialize do
-      authors << Setup::CollectionAuthor.new(name: ::User.current.name, email: ::User.current.email) if new_record? && authors.empty?
+    before_validation do
+      authors << Setup::CollectionAuthor.new(name: ::User.current.name, email: ::User.current.email) if authors.empty?
     end
 
     attr_readonly :shared_version
@@ -131,13 +131,13 @@ module Setup
     end
 
     def category_enum
-      %w(Collection Library Translator)
+      %w(Collection Library Translator Algorithm)
     end
 
     def categorize
       shared = data.keys.select { |key| key != 'name' }
       self.category =
-        shared.length == 1 && %w(libraries translators).include?(shared[0]) ? shared[0].singularize.capitalize : 'Collection'
+        shared.length == 1 && %w(libraries translators algorithms).include?(shared[0]) ? shared[0].singularize.capitalize : 'Collection'
       true
     end
 
@@ -153,7 +153,15 @@ module Setup
       hash_data = dependencies_data.deep_merge(data) { |_, val1, val2| Cenit::Utility.array_hash_merge(val1, val2) }
       hash_data.each do |key, values|
         next if key == 'name'
-        hash = values.inject({}) { |hash, item| hash[item['name']] = item; hash }
+        hash = values.inject({}) do |hash, item|
+          name =
+            if name = item['name_space']
+              {name_space: name, name: item['name']}
+            else
+              item['name']
+            end
+          hash[name] = item; hash
+        end
         hash_data[key] = hash.values.to_a unless hash.size == values.length
       end
       parameters.each do |id, value|

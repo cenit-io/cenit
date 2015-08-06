@@ -29,7 +29,7 @@
             = key.titleize
           .controls
             - am = RailsAdmin::Config.model(records.first.class).abstract_model
-            = records.collect { |record| link_to(record.name, url_for(action: action(:show, am, record).action_name, model_name: record.class.to_s, id: record.id), class: 'pjax') }.to_sentence.html_safe
+            = records.collect { |record| link_to(record.try(:custom_title) || record.name, url_for(action: action(:show, am, record).action_name, model_name: record.class.to_s, id: record.id), class: 'pjax') }.to_sentence.html_safe
   - if ready
     %h4=  (pull_data['name'] && pull_data.size > 1) ? t('admin.actions.pull_collection.ready') : t('admin.actions.pull_collection.nothing_to_pull')
   .form-actions

@@ -4,6 +4,7 @@ module Setup
     include SchemaHandler
     include DataTypeParser
     include Slug
+    include CustomTitle
 
     Setup::Models.exclude_actions_for self, :new, :update, :edit, :delete, :bulk_delete, :delete_all
 
@@ -55,14 +56,6 @@ module Setup
 
     def library
       nil
-    end
-
-    def on_library_title
-      if lib = library
-        "#{lib.name} | #{title}"
-      else
-        title
-      end
     end
 
     def subtype?
