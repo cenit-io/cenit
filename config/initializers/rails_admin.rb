@@ -24,7 +24,7 @@
  RailsAdmin::Config::Actions::DeleteDataType,
  RailsAdmin::Config::Actions::ProcessFlow,
  RailsAdmin::Config::Actions::BuildGem,
- RailsAdmin::Config::Actions::Execute,
+ RailsAdmin::Config::Actions::Run,
  RailsAdmin::Config::Actions::UserInfo].each { |a| RailsAdmin::Config::Actions.register(a) }
 
 RailsAdmin::Config::Actions.register(:export, RailsAdmin::Config::Actions::EdiExport)
@@ -74,7 +74,7 @@ RailsAdmin.config do |config|
     export
     bulk_delete { except [Role] }
     show
-    execute
+    run
     edit { except [Role] }
     simple_share
     bulk_share
@@ -146,7 +146,7 @@ RailsAdmin.config do |config|
   end
 
   config.model Setup::Schema do
-    object_label_method { :on_library_title }
+    object_label_method { :custom_title }
     navigation_label 'Data Definitions'
     register_instance_option(:after_form_partials) do
       %w(shutdown_and_reload)
@@ -207,13 +207,13 @@ RailsAdmin.config do |config|
   config.model Setup::Model do
     label 'Data type'
     label_plural 'Data types'
-    object_label_method { :on_library_title }
+    object_label_method { :custom_title }
     navigation_label 'Data Definitions'
     weight -17
 
     configure :title do
       pretty_value do
-        bindings[:object].on_library_title
+        bindings[:object].custom_title
       end
     end
 
@@ -320,7 +320,7 @@ RailsAdmin.config do |config|
 
   config.model Setup::DataType do
     visible false
-    object_label_method { :on_library_title }
+    object_label_method { :custom_title }
     navigation_label 'Data Definitions'
     weight -17
 
@@ -339,7 +339,7 @@ RailsAdmin.config do |config|
       group :model_definition
       help ''
       pretty_value do
-        bindings[:object].on_library_title
+        bindings[:object].custom_title
       end
     end
 
@@ -688,7 +688,7 @@ RailsAdmin.config do |config|
         help ''
       end
       field :discard_events do
-        visible { bindings[:object].response_translator.present? && bindings[:object].ready_to_save? }
+        visible { (((obj = bindings[:object]).translator && obj.translator.type == :Import) || obj.response_translator.present?) && bindings[:object].ready_to_save? }
         help "Events won't be fired for created or updated records if checked"
       end
       field :active do
@@ -1131,6 +1131,7 @@ RailsAdmin.config do |config|
       field :events
       field :libraries
       field :custom_validators
+      field :algorithms
       field :webhooks
       field :connections
 
@@ -1140,7 +1141,7 @@ RailsAdmin.config do |config|
       field :updated_at
       #field :updater
     end
-    fields :image, :name, :flows, :connection_roles, :translators, :events, :libraries, :custom_validators, :webhooks, :connections
+    fields :image, :name, :flows, :connection_roles, :translators, :events, :libraries, :custom_validators, :algorithms, :webhooks, :connections
   end
 
   config.model Setup::CustomValidator do
@@ -1173,13 +1174,19 @@ RailsAdmin.config do |config|
   end
 
   config.model Setup::Algorithm do
+    object_label_method { :custom_title }
     edit do
+      field :name_space
       field :name
       field :description
       field :parameters
       field :code, :code_mirror
+      field :call_links do
+        visible { bindings[:object].call_links.present? }
+      end
     end
     show do
+      field :name_space
       field :name
       field :description
       field :parameters
@@ -1189,7 +1196,23 @@ RailsAdmin.config do |config|
         end
       end
     end
-    fields :name, :description, :parameters
+    fields :name_space, :name, :description, :parameters, :call_links
+  end
+
+  config.model Setup::CallLink do
+    edit do
+      field :name do
+        read_only true
+        help { nil }
+        label 'Call name'
+      end
+      field :link do
+        inline_add false
+        inline_edit false
+        help { nil }
+      end
+    end
+    fields :name, :link
   end
 
   config.model User do

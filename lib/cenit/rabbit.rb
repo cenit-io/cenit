@@ -18,7 +18,7 @@ module Cenit
         conn.close
       end
 
-      def send_to_endpoints(message)
+      def process_message(message)
         hash_message = JSON.parse(message).with_indifferent_access
         if flow = Setup::Flow.where(id: flow_id = hash_message[:flow_id]).first
           flow.translate(hash_message) do |translation_result|

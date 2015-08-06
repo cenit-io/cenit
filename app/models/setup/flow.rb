@@ -130,7 +130,11 @@ module Setup
         Setup::Notification.create(flow: self, exception_message: "Cyclic flow execution: #{cycle.join(' -> ')}")
       else
         message = options.merge(flow_id: id.to_s, tirgger_flow_id: executing_id, execution_graph: execution_graph).to_json
-        Cenit::Rabbit.send_to_endpoints(message)
+        if Cenit.asynchronous_flow_processing
+          Cenit::Rabbit.send_to_rabbitmq(message)
+        else
+          Cenit::Rabbit.process_message(message)
+        end
       end
       puts "Flow processing jon '#{self.name}' done!"
       self.last_trigger_timestamps = DateTime.now
@@ -206,8 +210,10 @@ module Setup
           translator.run(target_data_type: data_type,
                          data: http_response.body,
                          discard_events: discard_events,
-                         parameters: template_parameters) if http_response.code == 200
-          block.yield(response: http_response.to_json, exception_message: (200...299).include?(http_response.code) ? nil : 'Unsuccessful') if block
+                         parameters: template_parameters,
+                         headers: http_response.headers) if http_response.code == 200
+          response = http_response.to_json rescue http_response.headers.to_json
+          block.yield(response: response, exception_message: (200...299).include?(http_response.code) ? nil : 'Unsuccessful') if block
         rescue Exception => ex
           block.yield(response: http_response.to_json, exception_message: ex.message) if block
         end

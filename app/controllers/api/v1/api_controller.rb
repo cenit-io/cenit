@@ -1,7 +1,7 @@
 module Api::V1
   class ApiController < ApplicationController
     before_action :save_request_data, :authorize, except: [:new_account]
-    before_action :find_item, only: [:show, :destroy, :pull, :execute]
+    before_action :find_item, only: [:show, :destroy, :pull, :run]
     rescue_from Exception, :with => :exception_handler
     respond_to :json
 
@@ -70,10 +70,10 @@ module Api::V1
       end
     end
 
-    def execute
+    def run
       if @item.is_a?(Setup::Algorithm)
         begin
-          render plain: @item.execute(@webhook_body)
+          render plain: @item.run(@webhook_body)
         rescue Exception => ex
           render json: {error: ex.message}, status: 406
         end

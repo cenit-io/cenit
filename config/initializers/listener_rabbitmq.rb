@@ -13,7 +13,7 @@ Thread.new {
     puts " [*] Waiting for messages. To exit press CTRL+C"
     q.subscribe(:block => true) do |delivery_info, properties, body|
       puts " [x] Received #{body}"
-      Cenit::Rabbit.send_to_endpoints(body)
+      Cenit::Rabbit.process_message(body)
     end
   rescue Interrupt => _
     conn.close
