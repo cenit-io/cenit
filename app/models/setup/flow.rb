@@ -82,18 +82,18 @@ module Setup
 
     def reject_message(field = nil)
       case field
-        when :custom_data_type
-          'is not allowed since translator already defines a data type'
-        when :data_type_scope
-          'is not allowed for import translators'
-        when :response_data_type
-          response_translator.present? ? 'is not allowed since response translator already defines a data type' : "can't be defined until response translator"
-        when :discard_events
-          "can't be defined until response translator"
-        when :lot_size, :response_translator
-          'is not allowed for non export translators'
-        else
-          super
+      when :custom_data_type
+        'is not allowed since translator already defines a data type'
+      when :data_type_scope
+        'is not allowed for import translators'
+      when :response_data_type
+        response_translator.present? ? 'is not allowed since response translator already defines a data type' : "can't be defined until response translator"
+      when :discard_events
+        "can't be defined until response translator"
+      when :lot_size, :response_translator
+        'is not allowed for non export translators'
+      else
+        super
       end
     end
 
@@ -202,6 +202,7 @@ module Setup
           end
 
           http_response = HTTParty.send(webhook.method, conformed_url + '/' + conformed_path + url_parameter, headers: headers)
+
           translator.run(target_data_type: data_type,
                          data: http_response.body,
                          discard_events: discard_events,
@@ -221,43 +222,51 @@ module Setup
         common_result = nil
         the_connections.each do |connection|
           translation_options =
-              {
-                  object_ids: object_ids,
-                  source_data_type: data_type,
-                  offset: offset,
-                  limit: limit,
-                  discard_events: discard_events,
-                  parameters: template_parameters = webhook_template_parameters.dup,
-                  files: file = {}
-              }
+            {
+              object_ids: object_ids,
+              source_data_type: data_type,
+              offset: offset,
+              limit: limit,
+              discard_events: discard_events,
+              parameters: template_parameters = webhook_template_parameters.dup
+            }
           translation_result =
-              if connection.template_parameters.present?
-                template_parameters.reverse_merge!(connection.template_parameters_hash)
-                translator.run(translation_options)
-              else
-                common_result ||= translator.run(translation_options)
-              end || ''
-          if translation_result.is_a?(String)
+            if connection.template_parameters.present?
+              template_parameters.reverse_merge!(connection.template_parameters_hash)
+              translator.run(translation_options)
+            else
+              common_result ||= translator.run(translation_options)
+            end || ''
+          if [Hash, String].include?(translation_result.class)
             url_parameter = connection.conformed_parameters(template_parameters).merge(webhook.conformed_parameters(template_parameters)).to_param
             if url_parameter.present?
               url_parameter = '?' + url_parameter
             end
+            if translation_result.is_a?(String)
+              body = translation_result
+            else
+              body = {}
+              translation_result.each do |key, content|
+                body[key] =
+                  if content.is_a?(String) || content.respond_to?(:read)
+                    content
+                  elsif content.is_a?(Hash)
+                    UploadIO.new(StringIO.new(content[:data]), content[:contentType], content[:filename])
+                  else
+                    content.to_s
+                  end
+              end
+            end
             template_parameters.reverse_merge!(
-                url: conformed_url = connection.conformed_url(template_parameters),
-                path: conformed_path = webhook.conformed_path(template_parameters) + url_parameter,
-                method: webhook.method,
-                body: translation_result
+              url: conformed_url = connection.conformed_url(template_parameters),
+              path: conformed_path = webhook.conformed_path(template_parameters) + url_parameter,
+              method: webhook.method,
+              body: body
             )
             headers =
-                {
-                    'Content-Type' => translator.mime_type
-                }.merge(connection.conformed_headers(template_parameters)).merge(webhook.conformed_headers(template_parameters))
-            body = if file.blank?
-                     translation_result
-                   else
-                     io = StringIO.new(file[:data])
-                     {content: UploadIO.new(io, file[:mime], file[:name])}
-                   end
+              {
+                'Content-Type' => translator.mime_type
+              }.merge(connection.conformed_headers(template_parameters)).merge(webhook.conformed_headers(template_parameters))
             begin
               http_response = HTTMultiParty.send(webhook.method, conformed_url + '/' + conformed_path, {body: body, headers: headers})
               block.yield(response: http_response.to_json, exception_message: (200...299).include?(http_response.code) ? nil : 'Unsuccessful') if block.present?
@@ -268,7 +277,7 @@ module Setup
               block.yield(exception_message: ex.message) if block
             end
           else
-            block.yield(exception_message: "Invalid translation result type: #{translation_result.class} (string or blank expected)") if block
+            block.yield(exception_message: "Invalid translation result type: #{translation_result.class}") if block
           end
         end
       end

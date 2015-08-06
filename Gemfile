@@ -91,5 +91,5 @@ gem 'bootstrap-wysihtml5-rails'
 gem 'cenit_cmd', git: 'https://github.com/openjaf/cenit_cmd.git'
 gem 'jeweler'
 gem 'github_api'
-
 gem 'captcha'
+gem 'httmultiparty'

@@ -32,39 +32,39 @@ module Setup
       errors.add(:type, 'is not valid') unless type_enum.include?(type)
       errors.add(:style, 'is not valid') unless style_enum.include?(style)
       case type
-        when :Import, :Update
-          rejects(:source_data_type, :mime_type, :file_extension, :bulk_source, :source_exporter, :target_importer, :discard_chained_records)
-          requires(:transformation)
-        when :Export
-          rejects(:target_data_type, :source_exporter, :target_importer, :discard_chained_records)
-          requires(:transformation)
-          if bulk_source && NON_BULK_SOURCE_STYLES.include?(style)
-            errors.add(:bulk_source, "is not allowed with '#{style}' style")
-            self.bulk_source = false
-          end
-          if mime_type.present?
-            if (extensions = file_extension_enum).empty?
-              self.file_extension = nil
-            elsif file_extension.blank?
-              extensions.length == 1 ? (self.file_extension = extensions[0]) : errors.add(:file_extension, 'has multiple options')
-            else
-              errors.add(:file_extension, 'is not valid') unless extensions.include?(file_extension)
-            end
-          end
-        when :Conversion
-          rejects(:mime_type, :file_extension, :bulk_source)
-          requires(:source_data_type, :target_data_type)
-          if style == 'chain'
-            requires(:source_exporter, :target_importer)
-            if errors.blank?
-              errors.add(:source_exporter, "can't be applied to #{source_data_type.title}") unless source_exporter.apply_to_source?(source_data_type)
-              errors.add(:target_importer, "can't be applied to #{target_data_type.title}") unless target_importer.apply_to_target?(target_data_type)
-            end
-            self.transformation = "#{source_data_type.title} -> [#{source_exporter.name} : #{target_importer.name}] -> #{target_data_type.title}" if errors.blank?
+      when :Import, :Update
+        rejects(:source_data_type, :mime_type, :file_extension, :bulk_source, :source_exporter, :target_importer, :discard_chained_records)
+        requires(:transformation)
+      when :Export
+        rejects(:target_data_type, :source_exporter, :target_importer, :discard_chained_records)
+        requires(:transformation)
+        if bulk_source && NON_BULK_SOURCE_STYLES.include?(style)
+          errors.add(:bulk_source, "is not allowed with '#{style}' style")
+          self.bulk_source = false
+        end
+        if mime_type.present?
+          if (extensions = file_extension_enum).empty?
+            self.file_extension = nil
+          elsif file_extension.blank?
+            extensions.length == 1 ? (self.file_extension = extensions[0]) : errors.add(:file_extension, 'has multiple options')
           else
-            requires(:transformation)
-            rejects(:source_exporter, :target_importer)
+            errors.add(:file_extension, 'is not valid') unless extensions.include?(file_extension)
           end
+        end
+      when :Conversion
+        rejects(:mime_type, :file_extension, :bulk_source)
+        requires(:source_data_type, :target_data_type)
+        if style == 'chain'
+          requires(:source_exporter, :target_importer)
+          if errors.blank?
+            errors.add(:source_exporter, "can't be applied to #{source_data_type.title}") unless source_exporter.apply_to_source?(source_data_type)
+            errors.add(:target_importer, "can't be applied to #{target_data_type.title}") unless target_importer.apply_to_target?(target_data_type)
+          end
+          self.transformation = "#{source_data_type.title} -> [#{source_exporter.name} : #{target_importer.name}] -> #{target_data_type.title}" if errors.blank?
+        else
+          requires(:transformation)
+          rejects(:source_exporter, :target_importer)
+        end
       end
       errors.blank?
     end
@@ -91,34 +91,34 @@ module Setup
     NON_BULK_SOURCE_STYLES = %w(double_curly_braces xslt liquid)
 
     STYLES_MAP = {
-        'liquid' => {Setup::Transformation::LiquidExportTransform => [:Export]},
-        'xslt' => {Setup::Transformation::XsltConversionTransform => [:Conversion],
-                   Setup::Transformation::XsltExportTransform => [:Export]},
-        # 'json.rabl' => {Setup::Transformation::ActionViewTransform => [:Export]},
-        # 'xml.rabl' => {Setup::Transformation::ActionViewTransform => [:Export]},
-        # 'xml.builder' => {Setup::Transformation::ActionViewTransform => [:Export]},
-        # 'html.haml' => {Setup::Transformation::ActionViewTransform => [:Export]},
-        # 'html.erb' => {Setup::Transformation::ActionViewTransform => [:Export]},
-        # 'csv.erb' => {Setup::Transformation::ActionViewTransform => [:Export]},
-        # 'js.erb' => {Setup::Transformation::ActionViewTransform => [:Export]},
-        # 'text.erb' => {Setup::Transformation::ActionViewTransform => [:Export]},
-        'ruby' => {Setup::Transformation::ActionViewTransform => [:Import, :Export, :Update, :Conversion]},
-        # 'pdf.prawn' => {Setup::Transformation::PrawnTransform => [:Export]},
-        'chain' => {Setup::Transformation::ChainTransform => [:Conversion]}
+      'liquid' => {Setup::Transformation::LiquidExportTransform => [:Export]},
+      'xslt' => {Setup::Transformation::XsltConversionTransform => [:Conversion],
+                 Setup::Transformation::XsltExportTransform => [:Export]},
+      # 'json.rabl' => {Setup::Transformation::ActionViewTransform => [:Export]},
+      # 'xml.rabl' => {Setup::Transformation::ActionViewTransform => [:Export]},
+      # 'xml.builder' => {Setup::Transformation::ActionViewTransform => [:Export]},
+      # 'html.haml' => {Setup::Transformation::ActionViewTransform => [:Export]},
+      # 'html.erb' => {Setup::Transformation::ActionViewTransform => [:Export]},
+      # 'csv.erb' => {Setup::Transformation::ActionViewTransform => [:Export]},
+      # 'js.erb' => {Setup::Transformation::ActionViewTransform => [:Export]},
+      # 'text.erb' => {Setup::Transformation::ActionViewTransform => [:Export]},
+      'ruby' => {Setup::Transformation::Ruby => [:Import, :Export, :Update, :Conversion]},
+      # 'pdf.prawn' => {Setup::Transformation::PrawnTransform => [:Export]},
+      'chain' => {Setup::Transformation::ChainTransform => [:Conversion]}
     }
 
     EXPORT_MIME_FILTER = {
-        'double_curly_braces' => ['application/json'],
-        'xslt' => %w(application/xml text/html),
-        'json.rabl' => ['application/json'],
-        'xml.rabl' => ['application/xml'],
-        'xml.builder' => ['application/xml'],
-        'html.haml' => ['text/html'],
-        'html.erb' => ['text/html'],
-        'csv.erb' => ['text/csv'],
-        'js.erb' => %w(application/x-javascript application/javascript text/javascript),
-        'text.erb' => ['text/plain'],
-        'pdf.prawn' => ['application/pdf']
+      'double_curly_braces' => ['application/json'],
+      'xslt' => %w(application/xml text/html),
+      'json.rabl' => ['application/json'],
+      'xml.rabl' => ['application/xml'],
+      'xml.builder' => ['application/xml'],
+      'html.haml' => ['text/html'],
+      'html.erb' => ['text/html'],
+      'csv.erb' => ['text/csv'],
+      'js.erb' => %w(application/x-javascript application/javascript text/javascript),
+      'text.erb' => ['text/plain'],
+      'pdf.prawn' => ['application/pdf']
     }
 
     def style_enum
@@ -165,7 +165,7 @@ module Setup
       self.class.relations.keys.each { |key| context_options[key.to_sym] = send(key) }
       context_options[:data_type] = data_type
       context_options.merge!(options) { |_, context_val, options_val| !context_val ? options_val : context_val }
-      context_options[:transformation] = transformation_code(context_options)
+      context_options[:transformation] = transformation
 
       context_options[:target_data_type].regist_creation_listener(self) if context_options[:target_data_type]
       context_options[:source_data_type].regist_creation_listener(self) if context_options[:source_data_type]
@@ -200,26 +200,26 @@ module Setup
         offset = options[:offset] || 0
         limit = options[:limit]
         source_options =
-            if bulk_source
-              {
-                  sources: if object_ids = options[:object_ids]
-                             model.any_in(id: (limit ? object_ids[offset, limit] : object_ids.from(offset))).to_enum
-                           else
-                             enum = (limit ? model.limit(limit) : model.all).skip(offset).to_enum
-                             options[:object_ids] = enum.collect { |obj| obj.id.is_a?(BSON::ObjectId) ? obj.id.to_s : obj.id }
-                             enum
-                           end
-              }
-            else
-              {
-                  source:
-                      begin
-                        obj = options[:object] || ((id = (options[:object_id] || (options[:object_ids] && options[:object_ids][offset]))) && model.where(id: id).first) || model.all.skip(offset).first
-                        options[:object_ids] = [obj.id.is_a?(BSON::ObjectId) ? obj.id.to_s : obj.id] unless options[:object_ids] || obj.nil?
-                        obj
-                      end
-              }
-            end
+          if bulk_source
+            {
+              sources: if object_ids = options[:object_ids]
+                         model.any_in(id: (limit ? object_ids[offset, limit] : object_ids.from(offset))).to_enum
+                       else
+                         enum = (limit ? model.limit(limit) : model.all).skip(offset).to_enum
+                         options[:object_ids] = enum.collect { |obj| obj.id.is_a?(BSON::ObjectId) ? obj.id.to_s : obj.id }
+                         enum
+                       end
+            }
+          else
+            {
+              source:
+                begin
+                  obj = options[:object] || ((id = (options[:object_id] || (options[:object_ids] && options[:object_ids][offset]))) && model.where(id: id).first) || model.all.skip(offset).first
+                  options[:object_ids] = [obj.id.is_a?(BSON::ObjectId) ? obj.id.to_s : obj.id] unless options[:object_ids] || obj.nil?
+                  obj
+                end
+            }
+          end
         {source_data_type: data_type}.merge(source_options)
       else
         {}
@@ -249,15 +249,6 @@ module Setup
         raise TransformingObjectException.new(target) unless Cenit::Utility.save(target)
       end
       options[:result] = target
-    end
-
-    def transformation_code(context_options = {})
-      case style
-        when 'ruby'
-          Capataz.rewrite(transformation, locals: context_options.keys)
-        else
-          transformation
-      end
     end
   end
 

@@ -24,8 +24,8 @@ module Setup
 
     field :data, type: Hash
 
-    after_initialize do
-      authors << Setup::CollectionAuthor.new(name: ::User.current.name, email: ::User.current.email) if new_record? && authors.empty?
+    before_validation do
+      authors << Setup::CollectionAuthor.new(name: ::User.current.name, email: ::User.current.email) if authors.empty?
     end
 
     attr_readonly :shared_version

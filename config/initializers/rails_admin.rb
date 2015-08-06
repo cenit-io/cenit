@@ -23,7 +23,9 @@
  RailsAdmin::Config::Actions::DownloadFile,
  RailsAdmin::Config::Actions::DeleteDataType,
  RailsAdmin::Config::Actions::ProcessFlow,
- RailsAdmin::Config::Actions::BuildGem].each { |a| RailsAdmin::Config::Actions.register(a) }
+ RailsAdmin::Config::Actions::BuildGem,
+ RailsAdmin::Config::Actions::Execute,
+ RailsAdmin::Config::Actions::UserInfo].each { |a| RailsAdmin::Config::Actions.register(a) }
 
 RailsAdmin::Config::Actions.register(:export, RailsAdmin::Config::Actions::EdiExport)
 RailsAdmin::Config::Fields::Types.register(RailsAdmin::Config::Fields::Types::JsonValue)
@@ -56,8 +58,9 @@ RailsAdmin.config do |config|
 
   config.actions do
     dashboard # mandatory
-    memory_usage
-    disk_usage
+    user_info
+    # memory_usage
+    # disk_usage
     index # mandatory
     new { except [Setup::Event, Role] }
     new_file_model
@@ -71,6 +74,7 @@ RailsAdmin.config do |config|
     export
     bulk_delete { except [Role] }
     show
+    execute
     edit { except [Role] }
     simple_share
     bulk_share
@@ -978,7 +982,11 @@ RailsAdmin.config do |config|
       field :style
       field :mime_type
       field :file_extension
-      field :transformation
+      field :transformation do
+        pretty_value do
+          "<pre><code class='ruby'>#{value}</code></pre>".html_safe
+        end
+      end
       field :source_exporter
       field :target_importer
       field :discard_chained_records
@@ -1219,5 +1227,39 @@ RailsAdmin.config do |config|
       field :receiver_connection
     end
     fields :name, :pull_connection, :pull_flow, :pull_event, :pull_translator, :data_type, :send_translator, :send_flow, :receiver_connection
+  end
+
+  config.model Setup::Algorithm do
+    edit do
+      field :name
+      field :description
+      field :parameters
+      field :code, :code_mirror
+    end
+    show do
+      field :name
+      field :description
+      field :parameters
+      field :code do
+        pretty_value do
+          "<pre><code class='ruby'>#{value}</code></pre>".html_safe
+        end
+      end
+    end
+    fields :name, :description, :parameters
+  end
+
+  config.model User do
+    show do
+      field :email
+      field :roles
+      field :key
+      field :authentication_token
+      field :sign_in_count
+      field :current_sign_in_at
+      field :last_sign_in_at
+      field :current_sign_in_ip
+      field :last_sign_in_ip
+    end
   end
 end
