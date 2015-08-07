@@ -19,12 +19,12 @@ Cenit::Application.routes.draw do
     namespace :v1 do
       post '/setup/account', to: 'api#new_account'
       post '/:library/push', to: 'api#push'
-      post '/:library/:model', to: 'api#create'
+      post '/:library/:model', to: 'api#push'
       get '/:library/:model', to: 'api#index'
       get '/:library/:model/:id', to: 'api#show'
       delete '/:library/:model/:id', to: 'api#destroy'
       post '/:library/:model/:id/pull', to: 'api#pull'
-      post '/:library/:model/:id/execute', to: 'api#execute'
+      post '/:library/:model/:id/run', to: 'api#run'
       post '/auth', to: 'api#auth'
     end
   end

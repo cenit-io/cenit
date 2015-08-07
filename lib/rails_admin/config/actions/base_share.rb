@@ -16,24 +16,11 @@ module RailsAdmin
               sanitize_params_for!(:create, shared_collection_config, shared_params)
             end
             shared = false
-            if @object # record_share
-              if @object.is_a?(Setup::Collection)
-                collection = @object
-              else
-                collection = Setup::Collection.new(name: @object.try(:name))
-                collection.send("#{@object.class.to_s.split('::').last.downcase.pluralize}") << @object
-              end
-            else # bulk share
-              @bulk_ids = params.delete(:bulk_ids)
-              klass = @abstract_model.model_name.constantize
-              collection = Setup::Collection.new
-              collection.send("#{klass.to_s.split('::').last.downcase.pluralize}=", @bulk_ids ? klass.any_in(id: @bulk_ids) : klass.all)
-            end
-            collection.check_dependencies
+            collection = Cenit::Actions.build_collection(@object || params.delete[:bulk_ids], @abstract_model.model_name)
             if params[:_restart].nil? && shared_params
               @shared_collection = Setup::SharedCollection.new(shared_params.to_hash.merge(image: collection.image))
               @shared_collection.source_collection = collection
-              shared = params[:_share] && @shared_collection.save
+              shared = params[:_share] && Cenit::Actions.store(@shared_collection)
             end
             if shared
               redirect_to back_or_index

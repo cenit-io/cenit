@@ -1,7 +1,7 @@
 module RailsAdmin
   module Config
     module Actions
-      class Execute < RailsAdmin::Config::Actions::Base
+      class Run < RailsAdmin::Config::Actions::Base
 
         register_instance_option :only do
           [Setup::Algorithm]
@@ -20,12 +20,12 @@ module RailsAdmin
 
             if @object.parameters.empty? || params[:_run]
               begin
-                @output = @object.execute(@input = params.delete(:input))
+                @output = @object.run(@input = params.delete(:input))
               rescue Exception => ex
                 @error = ex.message
               end
             end
-            render :execute
+            render :run
           end
         end
 

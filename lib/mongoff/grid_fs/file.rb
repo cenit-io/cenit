@@ -37,19 +37,22 @@ module Mongoff
             readable =
               if @new_data.is_a?(String)
                 temporary_file = Tempfile.new('file_')
+                temporary_file.binmode
                 temporary_file.write(@new_data)
                 temporary_file.rewind
-                Cenit::Utility::Proxy.new(temporary_file, original_filename: filename)
+                Cenit::Utility::Proxy.new(temporary_file, original_filename: filename || options[:filename] || options[:default_filename])
               else
                 @new_data
               end
             if !options[:valid_data] && (file_data_errors = orm_model.data_type.validate_file(readable)).present?
               errors.add(:base, "Invalid file data: #{file_data_errors.to_sentence}")
             else
-              create_temporary_chunks(readable)
+              create_temporary_chunks(readable, options)
             end
           end
         temporary_file.close if temporary_file
+        self.filename = options[:filename] unless filename.present?
+        self.contentType = options[:contentType] unless contentType.present?
         if errors.blank? && super
           if new_chunks_ids
             chunks.remove_all
@@ -70,7 +73,7 @@ module Mongoff
         chunk_model.where(files: id)
       end
 
-      def create_temporary_chunks(readable)
+      def create_temporary_chunks(readable, options)
         new_chunks_ids = []
         temporary_files_id = BSON::ObjectId.new
         md5 = Digest::MD5.new
@@ -79,8 +82,10 @@ module Mongoff
 
         reading(readable) do |io|
 
-          self[:filename] = extract_basename(io).squeeze('/') unless self[:filename].present?
-          self[:contentType] = extract_content_type(self[:filename]) unless @custom_contentType
+          self[:filename] = options[:filename] || extract_basename(io).squeeze('/') || options[:default_filename] unless filename.present?
+          if contentType = options[:contentType] || extract_content_type(self[:filename]) || options[:default_contentType]
+            self[:contentType] = contentType
+          end unless @custom_contentType
 
           chunking(io, chunkSize) do |buf|
             md5 << buf

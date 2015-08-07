@@ -5,7 +5,7 @@ module Setup
       class << self
 
         def run(options = {})
-          Cenit::RubyInterpreter.run(options[:transformation], options)
+          Cenit::RubyInterpreter.run(options[:transformation], options[:translator], options)
         end
 
       end

@@ -183,6 +183,10 @@ GEM
     hashie (3.3.2)
     highline (1.7.2)
     hike (1.2.3)
+    httmultiparty (0.3.16)
+      httparty (>= 0.7.3)
+      mimemagic
+      multipart-post
     httparty (0.13.3)
       json (~> 1.8)
       multi_xml (>= 0.5.2)
@@ -217,6 +221,7 @@ GEM
       mime-types (~> 1.16)
       treetop (~> 1.4.8)
     mime-types (1.25.1)
+    mimemagic (0.3.0)
     mini_magick (4.2.0)
     mini_portile (0.6.2)
     minitest (5.5.0)
@@ -484,6 +489,7 @@ DEPENDENCIES
   figaro
   github_api
   haml-rails
+  httmultiparty
   httparty
   jbuilder (~> 1.0.1)
   jeweler

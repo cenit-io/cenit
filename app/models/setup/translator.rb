@@ -169,6 +169,7 @@ module Setup
 
       context_options[:target_data_type].regist_creation_listener(self) if context_options[:target_data_type]
       context_options[:source_data_type].regist_creation_listener(self) if context_options[:source_data_type]
+      context_options[:translator] = self
 
       context_options[:result] = STYLES_MAP[style].keys.detect { |t| STYLES_MAP[style][t].include?(type) }.run(context_options)
 
@@ -249,6 +250,18 @@ module Setup
         raise TransformingObjectException.new(target) unless Cenit::Utility.save(target)
       end
       options[:result] = target
+    end
+
+    def link?(call_symbol)
+      link(call_symbol).present?
+    end
+
+    def link(call_symbol)
+      Setup::Algorithm.where(name: call_symbol).first
+    end
+
+    def linker_id
+      't' + id.to_s
     end
   end
 
