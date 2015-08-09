@@ -1296,6 +1296,6 @@ RailsAdmin.config do |config|
     navigation_label 'Administration'
     object_label_method { :label }
 
-    fields :name, :owner, :number, :users
+    fields :name, :owner, :tenant_account, :number, :users
   end
 end
