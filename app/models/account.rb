@@ -7,8 +7,9 @@ class Account
 
   field :name, type: String
 
-  accepts_nested_attributes_for :owner
-  accepts_nested_attributes_for :users
+  def label
+    owner.present? ? owner.label : Account.to_s + '#' + id.to_s
+  end
 
   def owner?(user)
     owner == user
