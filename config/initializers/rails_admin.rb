@@ -45,8 +45,6 @@ RailsAdmin.config do |config|
   ## == PaperTrail ==
   # config.audit_with :paper_trail, 'User', 'PaperTrail::Version' # PaperTrail >= 3.0.0
 
-  config.excluded_models += [Setup::Validator]
-
   ### More at https://github.com/sferik/rails_admin/wiki/Base-configuration
   config.authenticate_with do
     warden.authenticate! scope: :user
@@ -101,6 +99,10 @@ RailsAdmin.config do |config|
     history_show do
       only [Setup::Model, Setup::Webhook, Setup::Flow, Setup::Schema, Setup::Event, Setup::Connection, Setup::ConnectionRole, Setup::Notification, Setup::Library]
     end
+  end
+
+  config.model Setup::Validator do
+    visible false
   end
 
   config.model Setup::Library do
