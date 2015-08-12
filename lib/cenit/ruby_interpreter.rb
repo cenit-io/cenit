@@ -23,7 +23,7 @@ module Cenit
     end
 
     def __run__(*args)
-      locals = (args.last.is_a?(Hash) ? args.pop : {}).with_indifferent_access
+      locals = (args.last.is_a?(Hash) ? args.pop : {}).symbolize_keys
       code = args.shift.to_s
       code = Capataz.rewrite(code, locals: locals.keys, self_linker: args.first, self_send_prefixer: @prefixer = Prefixer.new(self))
       locals.each { |local, _| code = "#{local} = locals[:#{local}]\r\n" + code }

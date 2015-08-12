@@ -278,7 +278,19 @@ module RailsAdmin
     end
   end
 
+  module ApplicationHelper
+
+    def edit_user_link
+      return nil unless authorized?(:show, _current_user.class, _current_user) && _current_user.respond_to?(:email)
+      return nil unless abstract_model = RailsAdmin.config(_current_user.class).abstract_model
+      return nil unless show_action = RailsAdmin::Config::Actions.find(:show, controller: controller, abstract_model: abstract_model, object: _current_user)
+      link_to _current_user.email, url_for(action: show_action.action_name, model_name: abstract_model.to_param, id: _current_user.id, controller: 'rails_admin/main')
+    end
+
+  end
+
   class MainController
+
     def sanitize_params_for!(action, model_config = @model_config, target_params = params[@abstract_model.param_key])
       return unless target_params.present?
       fields = model_config.send(action).with(controller: self, view: view_context, object: @object).fields.select do |field|
