@@ -174,11 +174,11 @@ module Setup
       cursor = doc.root.first_element_child
       while cursor
         if %w(import include redefine).include?(cursor.name) && (attr = cursor.attributes['schemaLocation'])
-          puts attr.value = options[:service_url].to_s + options[:service_schema_path] + '?' +
+          attr.value = options[:service_url].to_s + options[:service_schema_path] + '?' +
               {
                   key: Account.current.owner.unique_key,
                   library_id: library.id.to_s,
-                  uri: attr.value
+                  uri: Cenit::Utility.abs_uri(uri, attr.value)
               }.to_param
         end
         cursor = cursor.next_element

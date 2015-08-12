@@ -6,7 +6,7 @@ Cenit.config do
   deactivate_models false
 
   #Use this option to setup an external service
-  service_url 'http://localhost:4567'
+  service_url 'http://localhost:3001'
 
   #Home page
   homepage 'www.cenitsass.com'

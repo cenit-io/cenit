@@ -70,7 +70,7 @@ gem 'chartkick'
 gem 'descriptive_statistics'
 
 gem 'httparty'
-gem 'httmultiparty', git: 'https://github.com/jwagener/httmultiparty.git'
+#gem 'httmultiparty', git: 'https://github.com/jwagener/httmultiparty.git'
 gem 'bunny', '~> 0.9.1'
 gem 'json-schema'
 gem 'nokogiri'

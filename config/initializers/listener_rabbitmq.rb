@@ -7,7 +7,7 @@ Thread.new {
   conn.start
 
   ch = conn.create_channel
-  q  = ch.queue('send.to.endpoint')
+  q = ch.queue('send.to.endpoint')
 
   begin
     puts " [*] Waiting for messages. To exit press CTRL+C"

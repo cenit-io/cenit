@@ -5,7 +5,7 @@ module Xsd
 
     attr_reader :name_prefix
 
-    def initialize(parent, attributes, name_prefix='')
+    def initialize(parent, attributes, name_prefix = '', document = nil)
       super(parent, attributes)
       targetNamespace = (attr = attributes.detect { |attr| attr[0] == 'targetNamespace' }) ? attr[1] : nil
       raise Exception.new('Default and target does not match') if (default = @xmlns[:default]) && default != targetNamespace
@@ -14,11 +14,14 @@ module Xsd
       @types = []
       @includes = Set.new
       @name_prefix = name_prefix || ''
+      @document = document
     end
 
-    {element: :elements,
-     simpleType: :types,
-     complexType: :types}.each do |tag_name, store_id|
+    {
+        element: :elements,
+        simpleType: :types,
+        complexType: :types
+    }.each do |tag_name, store_id|
       class_eval("def when_#{tag_name}_end(#{tag_name})
           @#{store_id} << #{tag_name}
         end")
@@ -27,10 +30,13 @@ module Xsd
     def include_start(attributes = [])
       _, location = attributes.detect { |a| a[0] == 'schemaLocation' }
       raise Exception('include without location') unless location
-      if schema = Setup::Schema.where(uri: location).first
+      abs_location = Cenit::Utility.abs_uri(document.uri, location)
+      if schema = Setup::Schema.where(uri: abs_location).first
         schema.data_types.each { |data_type| @includes.add(data_type.name) }
       else
-        raise IncludeMissingException.new("includes undefined schema #{location}")
+        msg = "includes undefined schema #{location}"
+        msg += " (#{abs_location})" if abs_location != location
+        raise IncludeMissingException.new(msg)
       end
       nil
     end

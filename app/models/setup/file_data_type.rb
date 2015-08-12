@@ -89,8 +89,8 @@ module Setup
 
     def default_attributes
       {
-        default_filename: "file_#{DateTime.now.strftime('%Y-%m-%d_%Hh%Mm%S')}" + ((extension = validator.try(:file_extension)) ? ".#{extension}" : ''),
-        default_contentType: validator.try(:content_type) || 'application/octet-stream'
+          default_filename: "file_#{DateTime.now.strftime('%Y-%m-%d_%Hh%Mm%S')}" + ((extension = validator.try(:file_extension)) ? ".#{extension}" : ''),
+          default_contentType: validator.try(:content_type) || 'application/octet-stream'
       }
     end
 
@@ -159,13 +159,13 @@ module Setup
 
       def file
         @file ||=
-          if new_record?
-            f = grid_fs_file_model.new
-            f.id = id
-            f
-          else
-            grid_fs_file_model.where(id: id).first
-          end
+            if new_record?
+              f = grid_fs_file_model.new
+              f.id = id
+              f
+            else
+              grid_fs_file_model.where(id: id).first
+            end
       end
 
       def data=(string_or_readable)
@@ -177,7 +177,7 @@ module Setup
       end
 
       def save(options = {})
-        [:filename, :aliases, :metadata].each { |field| file[field] =  self[field] }
+        [:filename, :aliases, :metadata].each { |field| file[field] = self[field] }
         file[:contentType] = self[:contentType] if @custom_contentType
         if @new_data
           file.data = @new_data

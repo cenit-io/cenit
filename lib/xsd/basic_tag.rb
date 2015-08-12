@@ -7,6 +7,10 @@ module Xsd
       @parent = parent
     end
 
+    def document
+      @document ||= (p = parent) ? p.document : nil
+    end
+
     def tag_name
       self.class.try(:tag_name)
     end
@@ -25,6 +29,7 @@ module Xsd
     def name_prefix
       parent ? parent.name_prefix : ''
     end
+
     def included?(qualified_name)
       parent ? parent.included?(qualified_name) : false
     end
