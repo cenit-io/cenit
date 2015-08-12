@@ -27,6 +27,7 @@ module Xsd
     'type:http://www.w3.org/2001/XMLSchema:gMonth' => {'type' => 'string', 'format' => 'date'},
     'type:http://www.w3.org/2001/XMLSchema:gDay' => {'type' => 'string', 'format' => 'date'},
     'type:http://www.w3.org/2001/XMLSchema:string' => {'type' => 'string'},
+    'type:http://www.w3.org/2001/XMLSchema:normalizedString' => {'type' => 'string'},
     'type:http://www.w3.org/2001/XMLSchema:token' => {'type' => 'string'},
     'type:http://www.w3.org/2001/XMLSchema:language' => {'type' => 'string'},
     'type:http://www.w3.org/2001/XMLSchema:NMTOKEN' => {'type' => 'string'},
