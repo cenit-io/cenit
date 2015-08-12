@@ -3,7 +3,7 @@ module Setup
     include CenitScoped
     include CollectionName
 
-    BuildInDataType.regist(self).embedding(:flows, :connection_roles, :translators, :events, :libraries, :custom_validators, :webhooks, :connections).excluding(:image)
+    BuildInDataType.regist(self).embedding(:flows, :connection_roles, :translators, :events, :libraries, :custom_validators, :algorithms, :webhooks, :connections).excluding(:image)
 
     mount_uploader :image, CenitImageUploader
 
@@ -14,6 +14,7 @@ module Setup
     has_and_belongs_to_many :events, class_name: Setup::Event.to_s, inverse_of: nil
     has_and_belongs_to_many :libraries, class_name: Setup::Library.to_s, inverse_of: nil
     has_and_belongs_to_many :custom_validators, class_name: Setup::CustomValidator.to_s, inverse_of: nil
+    has_and_belongs_to_many :algorithms, class_name: Setup::Algorithm.to_s, inverse_of: nil
 
 
     has_and_belongs_to_many :webhooks, class_name: Setup::Webhook.to_s, inverse_of: nil
@@ -63,6 +64,9 @@ module Setup
           libraries << lib
         end
       end
+      visited_algs = Set.new
+      algorithms.each { |alg| alg.for_each_call(visited_algs) }
+      self.algorithms = visited_algs.to_a
     end
   end
 end

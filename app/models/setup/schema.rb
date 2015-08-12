@@ -2,6 +2,7 @@ module Setup
   class Schema < Validator
     include CenitScoped
     include DataTypeValidator
+    include CustomTitle
 
     BuildInDataType.regist(self).with(:uri, :schema).embedding(:data_types).including(:library).referenced_by(:library, :uri)
 
@@ -22,17 +23,13 @@ module Setup
     after_save :load_models
     before_destroy :destroy_data_types
 
+    def title
+      uri
+    end
+
     def validates_configuration
       self.name = "#{library.name} | #{uri}" unless name.present?
       super
-    end
-
-    def on_library_title
-      if lib = library
-        "#{lib.name} | #{uri}"
-      else
-        uri
-      end
     end
 
     def load_models(options = {})

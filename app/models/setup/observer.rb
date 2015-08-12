@@ -46,7 +46,7 @@ module Setup
       if name.blank?
         hash = JSON.parse(triggers)
         triggered_fields = hash.keys
-        n = "#{self.data_type.on_library_title} on #{triggered_fields.to_sentence}"
+        n = "#{self.data_type.custom_title} on #{triggered_fields.to_sentence}"
         i = 1
         self.name = n
         while Setup::Observer.where(name: name).present? do
