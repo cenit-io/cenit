@@ -1,4 +1,4 @@
-class TkAaptcha
+class TkAptcha
   include Mongoid::Document
   include Mongoid::Timestamps
 
