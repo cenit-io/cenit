@@ -7,6 +7,10 @@ module Xsd
       @parent = parent
     end
 
+    def document
+      @document ||= (p = parent) ? p.document : nil
+    end
+
     def tag_name
       self.class.try(:tag_name)
     end

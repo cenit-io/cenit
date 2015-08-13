@@ -24,8 +24,7 @@
  RailsAdmin::Config::Actions::DeleteDataType,
  RailsAdmin::Config::Actions::ProcessFlow,
  RailsAdmin::Config::Actions::BuildGem,
- RailsAdmin::Config::Actions::Run,
- RailsAdmin::Config::Actions::UserInfo].each { |a| RailsAdmin::Config::Actions.register(a) }
+ RailsAdmin::Config::Actions::Run].each { |a| RailsAdmin::Config::Actions.register(a) }
 
 RailsAdmin::Config::Actions.register(:export, RailsAdmin::Config::Actions::EdiExport)
 RailsAdmin::Config::Fields::Types.register(RailsAdmin::Config::Fields::Types::JsonValue)
@@ -46,7 +45,7 @@ RailsAdmin.config do |config|
   ## == PaperTrail ==
   # config.audit_with :paper_trail, 'User', 'PaperTrail::Version' # PaperTrail >= 3.0.0
 
-  config.excluded_models += [Account, Setup::Validator]
+  config.excluded_models += [Setup::Validator]
 
   ### More at https://github.com/sferik/rails_admin/wiki/Base-configuration
   config.authenticate_with do
@@ -58,11 +57,10 @@ RailsAdmin.config do |config|
 
   config.actions do
     dashboard # mandatory
-    user_info
     # memory_usage
     # disk_usage
     index # mandatory
-    new { except [Setup::Event, Role] }
+    new { except [Setup::Event] }
     new_file_model
     import
     import_schema
@@ -72,10 +70,10 @@ RailsAdmin.config do |config|
     #  only 'Setup::DataType'
     #end
     export
-    bulk_delete { except [Role] }
+    bulk_delete
     show
     run
-    edit { except [Role] }
+    edit
     simple_share
     bulk_share
     build_gem
@@ -86,14 +84,14 @@ RailsAdmin.config do |config|
     shutdown_model
     process_flow
     delete_data_type
-    delete { except [Role] }
+    delete
     delete_schema
     delete_library
     #show_in_app
     send_to_flow
     test_transformation
     switch_navigation
-    delete_all { except [Role] }
+    delete_all
     data_type
     retry_notification
 
@@ -103,16 +101,6 @@ RailsAdmin.config do |config|
     history_show do
       only [Setup::Model, Setup::Webhook, Setup::Flow, Setup::Schema, Setup::Event, Setup::Connection, Setup::ConnectionRole, Setup::Notification, Setup::Library]
     end
-  end
-
-  config.model Role do
-    weight -20
-    navigation_label 'Account'
-    show do
-      field :name
-      field :_id
-    end
-    fields :name
   end
 
   config.model Setup::Library do
@@ -1215,8 +1203,83 @@ RailsAdmin.config do |config|
     fields :name, :link
   end
 
+  config.model Role do
+    navigation_label 'Administration'
+    fields :name, :users
+  end
+
   config.model User do
+    navigation_label 'Administration'
+    object_label_method { :label }
+
+    group :credentials do
+      label 'Credentials'
+      active true
+    end
+
+    group :activity do
+      label 'Activity'
+      active true
+    end
+
+    configure :name
+    configure :email
+    configure :roles
+    configure :key do
+      group :credentials
+    end
+    configure :authentication_token do
+      group :credentials
+    end
+    configure :sign_in_count do
+    group :activity
+  end
+    configure :current_sign_in_at do
+      group :activity
+    end
+    configure :last_sign_in_at do
+      group :activity
+    end
+    configure :current_sign_in_ip do
+      group :activity
+    end
+    configure :last_sign_in_ip do
+      group :activity
+    end
+
+    edit do
+      field :name
+      field :email do
+        visible { User.current.super_admin? }
+      end
+      field :roles do
+        visible { User.current.super_admin? }
+      end
+      field :key do
+        visible { !bindings[:object].new_record? && User.current.super_admin? }
+      end
+      field :authentication_token do
+        visible { !bindings[:object].new_record? && User.current.super_admin? }
+      end
+      field :sign_in_count do
+        visible { !bindings[:object].new_record? && User.current.super_admin? }
+      end
+      field :current_sign_in_at do
+        visible { !bindings[:object].new_record? && User.current.super_admin? }
+      end
+      field :last_sign_in_at do
+        visible { !bindings[:object].new_record? && User.current.super_admin? }
+      end
+      field :current_sign_in_ip do
+        visible { !bindings[:object].new_record? && User.current.super_admin? }
+      end
+      field :last_sign_in_ip do
+        visible { !bindings[:object].new_record? && User.current.super_admin? }
+      end
+    end
+
     show do
+      field :name
       field :email
       field :roles
       field :key
@@ -1227,5 +1290,12 @@ RailsAdmin.config do |config|
       field :current_sign_in_ip
       field :last_sign_in_ip
     end
+  end
+
+  config.model Account do
+    navigation_label 'Administration'
+    object_label_method { :label }
+
+    fields :name, :owner, :tenant_account, :number, :users
   end
 end

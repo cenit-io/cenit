@@ -22,6 +22,7 @@ module Xsd
         else
           1
         end
+      _, @ref = attributes.detect { |a| a[0] == 'ref' }
     end
 
     def when_simpleType_end(simpleType)
@@ -33,6 +34,7 @@ module Xsd
     end
 
     def to_json_schema
+      return qualify_element(@ref).to_json_schema if @ref
       json =
         {
           'title' => name.to_title,

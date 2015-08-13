@@ -50,7 +50,7 @@ module Xsd
 
     [Xsd::Schema, Element, ComplexType, SimpleType].each do |tag_type|
       class_eval("def #{tag_type.tag_name}_start(attributes = [])
-          #{tag_type == Xsd::Schema ? '@schema = ' : ''}#{tag_type}.new(top_if_available, attributes#{tag_type == Xsd::Schema ? ', @name_prefix' : ''})
+          #{tag_type == Xsd::Schema ? '@schema = ' : ''}#{tag_type}.new(top_if_available, attributes#{tag_type == Xsd::Schema ? ', @name_prefix, self' : ''})
         end")
     end
 

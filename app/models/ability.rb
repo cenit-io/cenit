@@ -2,10 +2,16 @@ class Ability
   include CanCan::Ability
 
   def initialize(user)
-    if @user = user
+    if user
       can :access, :rails_admin # only allow admin users to access Rails Admin
 
-      can(:show, User) { |u| super_admin? || u.eql?(user) }
+      can([:show, :edit], User) { |u| u.eql?(user) }
+      if user.super_admin?
+        can :manage, [Role, User, Account]
+        can :destroy, Setup::SharedCollection
+      else
+        cannot :destroy, Setup::SharedCollection
+      end
 
       can RailsAdmin::Config::Actions.all(:root).collect(&:authorization_key)
 
@@ -13,7 +19,6 @@ class Ability
         shared_collection.owners.include?(user)
       end
       can [:import, :edi_export], Setup::SharedCollection
-      can(:destroy, Setup::SharedCollection) { super_admin? }
 
       @@setup_map ||=
         begin
@@ -55,9 +60,5 @@ class Ability
       can [:index, :show, :upload_file, :download_file, :destroy, :import, :edi_export, :delete_all, :send_to_flow], file_models
     end
 
-  end
-
-  def super_admin?
-    @super_admin ||= @user.roles.where(name: 'super_admin').present?
   end
 end
