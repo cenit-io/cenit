@@ -109,14 +109,15 @@ module Api::V1
 
     def new_account
       data = (JSON.parse(@webhook_body) rescue {}).keep_if { |key, _| %w(email password password_confirmation token code).include?(key) }
+      data = data.with_indifferent_access
       data.reverse_merge!(email: params[:email], password: pwd = params[:password], password_confirmation: params[:password_confirmation] || pwd)
       status = 406
       response =
         if token = data[:token] || params[:token]
-          if tkaptcha = TkAaptcha.where(token: token).first
+          if tkaptcha = TkAptcha.where(token: token).first
             if code = data[:code] || params[:code]
               if code == tkaptcha.code
-                data.reverse_merge!(tkaptcha.data || {})
+                data.merge!(tkaptcha.data || {}) {|_, left, right| left || right}
                 data[:password] = Devise.friendly_token unless data[:password]
                 data[:password_confirmation] = data[:password] unless data[:password_confirmation]
                 tkaptcha.destroy
@@ -147,7 +148,7 @@ module Api::V1
           data[:password] = Devise.friendly_token unless data[:password]
           data[:password_confirmation] = data[:password] unless data[:password_confirmation]
           if (user = User.new(data)).valid?(context: :create)
-            if (tkaptcha = TkAaptcha.create(email: data[:email], data: data)).errors.blank?
+            if (tkaptcha = TkAptcha.create(email: data[:email], data: data)).errors.blank?
               status = 200
               {token: tkaptcha.token}
             else

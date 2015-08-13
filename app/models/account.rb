@@ -53,7 +53,7 @@ class Account
     def tenant_collection_prefix(sep = '')
       if current.present?
         acc_id =
-          if current.owner.super_admin? && current.tenant_account.present?
+          if (user = current.owner) && user.super_admin? && current.tenant_account.present?
             current.tenant_account.id
           else
             current.id

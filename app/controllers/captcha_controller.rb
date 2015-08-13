@@ -2,14 +2,14 @@ class CaptchaController < ApplicationController
 
   def index
     if token = params[:token]
-      if tkaptcha = TkAaptcha.where(token: token).first
+      if tkaptcha = TkAptcha.where(token: token).first
         tkaptcha.recode
         send_data Image.new(code: tkaptcha.code).data, type: 'image/jpeg', disposition: 'inline'
       else
         render json: {error: 'Invalid token'}, status: 404
       end
     else
-      render json: {token: TkAaptcha.create.token}
+      render json: {token: TkAptcha.create.token}
     end
   end
 
