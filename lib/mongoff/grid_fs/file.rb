@@ -51,8 +51,7 @@ module Mongoff
             end
           end
         temporary_file.close if temporary_file
-        self.filename = options[:filename] unless filename.present?
-        self.contentType = options[:contentType] unless contentType.present?
+        [:filename, :contentType, :metadata].each { |property| self[property] = options[property] unless self[property].present? }
         if errors.blank? && super
           if new_chunks_ids
             chunks.remove_all

@@ -7,8 +7,11 @@ class Account
 
   field :name, type: String
 
-  accepts_nested_attributes_for :owner
-  accepts_nested_attributes_for :users
+  belongs_to :tenant_account, class_name: Account.to_s, inverse_of: nil
+
+  def label
+    owner.present? ? owner.label : Account.to_s + '#' + id.to_s
+  end
 
   def owner?(user)
     owner == user
@@ -48,7 +51,17 @@ class Account
     end
 
     def tenant_collection_prefix(sep = '')
-      current.present? ? "acc#{current.id}#{sep}" : ''
+      if current.present?
+        acc_id =
+          if current.owner.super_admin? && current.tenant_account.present?
+            current.tenant_account.id
+          else
+            current.id
+          end
+        "acc#{acc_id}#{sep}"
+      else
+        ''
+      end
     end
 
     def tenant_collection_name(model_name, sep='_')

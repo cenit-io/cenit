@@ -100,8 +100,10 @@ module Capataz
     end
 
     def handle(obj, options = {})
-      if obj.is_a?(Fixnum) || obj.is_a?(Symbol) || obj.capataz_proxy?
+      if obj.capataz_proxy? || obj.is_a?(Fixnum) || obj.is_a?(Symbol)
         obj
+      elsif obj.is_a?(Hash)
+        Capataz::HashProxy.new(obj)
       else
         Capataz::Proxy.new(obj, options)
       end
