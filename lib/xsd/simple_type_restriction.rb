@@ -5,12 +5,19 @@ module Xsd
 
     attr_reader :base
     attr_reader :restrictions
+    attr_reader :attributes
 
     def initialize(parent, base, restrictions=nil)
       super(parent)
       @base = base
       @restrictions = {}
+      @attributes = []
       restrictions.each { |key, value| @restrictions[key] = value } if restrictions
+    end
+
+    def attribute_start(attributes = [])
+      @attributes << (attr = Xsd::Attribute.new(self, attributes))
+      attr
     end
 
     def start_element_tag(name, attributes)

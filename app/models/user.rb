@@ -60,7 +60,7 @@ class User
   def inspect_updated_fields
     changed_attributes.keys.each do |attr|
       reset_attribute!(attr) unless %w(name).include?(attr)
-    end unless User.current.super_admin?
+    end unless (user = User.current) && user.super_admin?
     true
   end
 
