@@ -18,10 +18,12 @@ module Edi
 
       def parse_json(data_type, content, options={}, record=nil, model=nil)
         content = JSON.parse(content) unless content.is_a?(Hash)
-        ignore = (options[:ignore] || [])
-        ignore = [ignore] unless ignore.is_a?(Enumerable)
-        ignore = ignore.select { |p| p.is_a?(Symbol) || p.is_a?(String) }.collect(&:to_sym)
-        options[:ignore] = ignore
+        [:ignore, :reset].each do |opt|
+          val = (options[opt] || [])
+          val = [val] unless val.is_a?(Enumerable)
+          val = val.select { |p| p.is_a?(Symbol) || p.is_a?(String) }.collect(&:to_sym)
+          options[opt] = val
+        end
         unless (primary_field_option = options[:primary_field]).nil? || primary_field_option.is_a?(Symbol)
           options[:primary_field] = primary_field_option.to_s.to_sym
         end
@@ -128,7 +130,7 @@ module Edi
           end
         end
         resetting = json['_reset'] || []
-        resetting = [resetting] unless resetting.is_a?(Enumerable)
+        resetting = (resetting.is_a?(Enumerable) ? resetting.to_a : [resetting]) + options[:reset].to_a
         json_schema = data_type.merge_schema(json_schema)
         json_schema['properties'].each do |property_name, property_schema|
           next if options[:ignore].include?(property_name.to_sym)
@@ -140,7 +142,7 @@ module Edi
           when 'array'
             next unless updating | (association = record.send(property_name)).blank?
             items_schema = data_type.merge_schema(property_schema['items'] || {})
-            unless !resetting.include?(property_name) && association && property_schema['referenced']
+            unless !resetting.include?(property_name) && (options[:add_only] || (association && property_schema['referenced']))
               record.send("#{property_name}=", [])
               association = record.send(property_name)
             end
@@ -173,7 +175,7 @@ module Edi
                 record.send("#{property_name}=", do_parse_json(data_type, property_model, property_value, options, property_schema))
               end
             else
-              record.send("#{property_name}=", nil)
+              record.send("#{property_name}=", nil) unless options[:add_only]
             end
           else
             next if (updating && (property_name == '_id' || name == primary_field.to_s))
