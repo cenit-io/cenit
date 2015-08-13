@@ -3,7 +3,6 @@ module Xsd
 
     tag 'complexType'
 
-    attr_reader :attributes
     attr_reader :container
 
     def initialize(parent, attributes)
@@ -11,18 +10,33 @@ module Xsd
       @attributes = []
     end
 
+    def simpleContent_start(attributes = [])
+      @simpleContent = true
+      nil
+    end
+
+    def complexContent_start(attributes = [])
+      @complexContent = true
+      nil
+    end
+
     def extension_start(attributes = [])
       _, @base = attributes.detect { |a| a[0] == 'base' }
-      if (@base = qualify_type(@base).to_json_schema)['$ref']
-        @base = @base['$ref']
-      end
-      #@attributes << Xsd::Attribute.new(self, [%w{name value}, ['type', base], %w{use required}])
       nil
+    end
+
+    def restriction_start(attributes = [])
+      _, @base = attributes.detect { |a| a[0] == 'base' }
+      @simpleType = SimpleTypeRestriction.new(self, @base)
     end
 
     def attribute_start(attributes = [])
       @attributes << (attr = Xsd::Attribute.new(self, attributes))
       attr
+    end
+
+    def attributes
+      @attributes + (@simpleType.is_a?(SimpleTypeRestriction) ? @simpleType.attributes : [])
     end
 
     [Xsd::Sequence, Xsd::Choice, Xsd::All].each do |container_class|
@@ -37,8 +51,14 @@ module Xsd
     def to_json_schema
       json = {'type' => 'object'}
       json['title'] = name.to_title if name
-      json['extends'] = @base if @base
+      if !@simpleContent && @base
+        if (@base = qualify_type(@base).to_json_schema)['$ref']
+          @base = @base['$ref']
+        end
+        json['extends'] = @base
+      end
       json['properties'] = properties = {}
+      properties['value'] = (@simpleType || qualify_type(@base)).to_json_schema if @simpleContent
       enum = 0
       required = []
       attributes.each do |a|
@@ -54,9 +74,12 @@ module Xsd
       if container
         container_schema = container.to_json_schema
         if container.max_occurs == :unbounded || container.max_occurs > 1 || container.min_occurs > 1
-          properties[p = 'value'] = {'type' => 'array',
-                                     'minItems' => container.min_occurs,
-                                     'items' => properties[p]}
+          properties[p = 'value'] =
+            {
+              'type' => 'array',
+              'minItems' => container.min_occurs,
+              'items' => properties[p]
+            }
           properties[p]['maxItems'] = container.max_occurs unless container.max_occurs == :unbounded
           required << p if container.min_occurs > 0
         else
