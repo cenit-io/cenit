@@ -114,15 +114,15 @@ module Setup
 
     def validate_data(data)
       case schema_type
-        when :json_schema
-          begin
-            JSON::Validator.validate!(@schema ||= data_types.first.merged_schema(recursive: true), JSON.parse(data))
-            []
-          rescue Exception => ex
-            [ex.message]
-          end
-        when :xml_schema
-          Nokogiri::XML::Schema(cenit_ref_schema).validate(Nokogiri::XML(data))
+      when :json_schema
+        begin
+          JSON::Validator.validate!(@schema ||= data_types.first.merged_schema(recursive: true), JSON.parse(data))
+          []
+        rescue Exception => ex
+          [ex.message]
+        end
+      when :xml_schema
+        Nokogiri::XML::Schema(cenit_ref_schema).validate(Nokogiri::XML(data))
       end
     end
 
@@ -175,11 +175,11 @@ module Setup
       while cursor
         if %w(import include redefine).include?(cursor.name) && (attr = cursor.attributes['schemaLocation'])
           attr.value = options[:service_url].to_s + options[:service_schema_path] + '?' +
-              {
-                  key: Account.current.owner.unique_key,
-                  library_id: library.id.to_s,
-                  uri: Cenit::Utility.abs_uri(uri, attr.value)
-              }.to_param
+            {
+              key: Account.current.owner.unique_key,
+              library_id: library.id.to_s,
+              uri: Cenit::Utility.abs_uri(uri, attr.value)
+            }.to_param
         end
         cursor = cursor.next_element
       end

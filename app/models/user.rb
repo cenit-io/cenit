@@ -17,8 +17,8 @@ class User
   devise :confirmable unless ENV['UNABLE_CONFIRMABLE'].to_b
 
   # Database authenticatable
-  field :email, type: String, default: ""
-  field :encrypted_password, type: String, default: ""
+  field :email, type: String, default: ''
+  field :encrypted_password, type: String, default: ''
 
   ## Recoverable
   field :reset_password_token, type: String
@@ -46,8 +46,23 @@ class User
 
   field :name, type: String
 
-  before_save :ensure_token
   validates_uniqueness_of :token
+  before_save :ensure_token, :inspect_updated_fields
+
+  def label
+    if name.present?
+      "#{name} (#{email})"
+    else
+      email
+    end
+  end
+
+  def inspect_updated_fields
+    changed_attributes.keys.each do |attr|
+      reset_attribute!(attr) unless %w(name).include?(attr)
+    end unless User.current.super_admin?
+    true
+  end
 
   def self.find_or_initialize_for_doorkeeper_oauth(oauth_data)
     user = User.where(email: oauth_data.info.email).first
@@ -81,6 +96,14 @@ class User
       token = Devise.friendly_token
       break token unless User.where(token: token).first
     end
+  end
+
+  def admin?
+    has_role?(:admin) || has_role?(:super_admin)
+  end
+
+  def super_admin?
+    has_role?(:super_admin)
   end
 
 end

@@ -24,21 +24,20 @@
  RailsAdmin::Config::Actions::DeleteDataType,
  RailsAdmin::Config::Actions::ProcessFlow,
  RailsAdmin::Config::Actions::BuildGem,
- RailsAdmin::Config::Actions::Run,
- RailsAdmin::Config::Actions::UserInfo].each { |a| RailsAdmin::Config::Actions.register(a) }
+ RailsAdmin::Config::Actions::Run].each { |a| RailsAdmin::Config::Actions.register(a) }
 
 RailsAdmin::Config::Actions.register(:export, RailsAdmin::Config::Actions::EdiExport)
 RailsAdmin::Config::Fields::Types.register(RailsAdmin::Config::Fields::Types::JsonValue)
 RailsAdmin::Config::Fields::Types.register(RailsAdmin::Config::Fields::Types::JsonSchema)
 {
-    config: {
-        mode: 'css',
-        theme: 'neo',
-    },
-    assets: {
-        mode: '/assets/codemirror/modes/css.js',
-        theme: '/assets/codemirror/themes/neo.css',
-    }
+  config: {
+    mode: 'css',
+    theme: 'neo',
+  },
+  assets: {
+    mode: '/assets/codemirror/modes/css.js',
+    theme: '/assets/codemirror/themes/neo.css',
+  }
 }.each { |option, configuration| RailsAdmin::Config::Fields::Types::CodeMirror.register_instance_option(option) { configuration } }
 
 RailsAdmin.config do |config|
@@ -46,7 +45,7 @@ RailsAdmin.config do |config|
   ## == PaperTrail ==
   # config.audit_with :paper_trail, 'User', 'PaperTrail::Version' # PaperTrail >= 3.0.0
 
-  config.excluded_models += [Account, Setup::Validator]
+  config.excluded_models += [Setup::Validator]
 
   ### More at https://github.com/sferik/rails_admin/wiki/Base-configuration
   config.authenticate_with do
@@ -58,11 +57,10 @@ RailsAdmin.config do |config|
 
   config.actions do
     dashboard # mandatory
-    user_info
     # memory_usage
     # disk_usage
     index # mandatory
-    new { except [Setup::Event, Role] }
+    new { except [Setup::Event] }
     new_file_model
     import
     import_schema
@@ -72,10 +70,10 @@ RailsAdmin.config do |config|
     #  only 'Setup::DataType'
     #end
     export
-    bulk_delete { except [Role] }
+    bulk_delete
     show
     run
-    edit { except [Role] }
+    edit
     simple_share
     bulk_share
     build_gem
@@ -86,14 +84,14 @@ RailsAdmin.config do |config|
     shutdown_model
     process_flow
     delete_data_type
-    delete { except [Role] }
+    delete
     delete_schema
     delete_library
     #show_in_app
     send_to_flow
     test_transformation
     switch_navigation
-    delete_all { except [Role] }
+    delete_all
     data_type
     retry_notification
 
@@ -105,62 +103,9 @@ RailsAdmin.config do |config|
     end
   end
 
-  config.model User do
-    weight -15
-    navigation_label 'Account'
-
-    object_label_method do
-      :email
-    end
-
-    configure :key do
-      visible do
-        bindings[:view]._current_user.has_role? :admin
-      end
-    end
-
-    configure :authentication_token do
-      visible do
-        bindings[:view]._current_user.has_role? :admin
-      end
-    end
-
-    list do
-      scopes [:by_account]
-    end
-
-    show do
-      field :email
-      field :roles
-      field :key
-      field :authentication_token
-      field :sign_in_count
-      field :current_sign_in_at
-      field :last_sign_in_at
-      field :current_sign_in_ip
-      field :last_sign_in_ip
-      field :reset_password_sent_at
-
-      field :_id
-      field :created_at
-      field :updated_at
-    end
-    fields :email, :roles, :key, :authentication_token, :sign_in_count, :last_sign_in_at, :last_sign_in_ip
-  end
-
-  # config.model Role do
-  #   weight -20
-  #   navigation_label 'Account'
-  #   show do
-  #     field :name
-  #     field :_id
-  #   end
-  #   fields :name
-  # end
-
   config.model Setup::Library do
     navigation_label 'Data Definitions'
-    weight -18
+    weight -16
 
     configure :name do
       read_only { !bindings[:object].new_record? }
@@ -194,7 +139,7 @@ RailsAdmin.config do |config|
     register_instance_option(:after_form_partials) do
       %w(shutdown_and_reload)
     end
-    weight -17
+    weight -18
 
     edit do
       field :library do
@@ -224,13 +169,13 @@ RailsAdmin.config do |config|
       field :schema do
         pretty_value do
           pretty_value =
-              if json = JSON.parse(value) rescue nil
-                "<code class='json'>#{JSON.pretty_generate(json)}</code>"
-              elsif xml = Nokogiri::XML(value) rescue nil
-                "<code class='xml'>#{xml.to_xml}</code>"
-              else
-                value
-              end
+            if json = JSON.parse(value) rescue nil
+              "<code class='json'>#{JSON.pretty_generate(json)}</code>"
+            elsif xml = Nokogiri::XML(value) rescue nil
+              "<code class='xml'>#{xml.to_xml}</code>"
+            else
+              value
+            end
           #"<textarea id='code' name='code'>#{pretty_value}</textarea>".html_safe
           "<pre>#{pretty_value}</pre>".html_safe
         end
@@ -306,13 +251,13 @@ RailsAdmin.config do |config|
       field :model_schema do
         pretty_value do
           pretty_value =
-              if json = JSON.parse(value) rescue nil
-                "<code class='json'>#{JSON.pretty_generate(json)}</code>"
-              elsif xml = Nokogiri::XML(value) rescue nil
-                "<code class='xml'>#{xml.to_xml}</code>"
-              else
-                value
-              end
+            if json = JSON.parse(value) rescue nil
+              "<code class='json'>#{JSON.pretty_generate(json)}</code>"
+            elsif xml = Nokogiri::XML(value) rescue nil
+              "<code class='xml'>#{xml.to_xml}</code>"
+            else
+              value
+            end
           #"<textarea id='code' name='code'>#{pretty_value}</textarea>".html_safe
           "<pre>#{pretty_value}</pre>".html_safe
         end
@@ -365,7 +310,7 @@ RailsAdmin.config do |config|
     visible false
     object_label_method { :custom_title }
     navigation_label 'Data Definitions'
-    weight -16
+    weight -17
 
     group :model_definition do
       label 'Model definition'
@@ -446,8 +391,7 @@ RailsAdmin.config do |config|
   end
 
   config.model Setup::Connection do
-    weight -14
-    navigation_label 'API Register'
+    weight -15
     configure :name, :string do
       help 'Requiered.'
       html_attributes do
@@ -523,8 +467,7 @@ RailsAdmin.config do |config|
   end
 
   config.model Setup::ConnectionRole do
-    weight -15
-    navigation_label 'API Register'
+    weight -14
     configure :name, :string do
       help 'Requiered.'
       html_attributes do
@@ -558,7 +501,7 @@ RailsAdmin.config do |config|
 
   config.model Setup::Webhook do
     weight -13
-    navigation_label 'API Register'
+
     configure :path, :string do
       help "Requiered. Path of the webhook relative to connection URL."
       html_attributes do
@@ -598,7 +541,7 @@ RailsAdmin.config do |config|
   end
 
   config.model Setup::Notification do
-    weight -1
+    weight -10
     navigation_label 'Notifications'
     configure :exception_message do
       pretty_value do
@@ -621,8 +564,6 @@ RailsAdmin.config do |config|
   end
 
   config.model Setup::Flow do
-    navigation_label 'Flows'
-    weight -12
     register_instance_option(:form_synchronized) do
       [:custom_data_type, :data_type_scope, :lot_size, :connection_role, :webhook, :response_translator, :response_data_type]
     end
@@ -759,8 +700,6 @@ RailsAdmin.config do |config|
   end
 
   config.model Setup::Event do
-    navigation_label 'Flows'
-    weight -10
     edit do
       field :name
     end
@@ -780,8 +719,6 @@ RailsAdmin.config do |config|
   end
 
   config.model Setup::Observer do
-    navigation_label 'Flows'
-    weight -9
     edit do
       field :name
       field :data_type do
@@ -824,8 +761,6 @@ RailsAdmin.config do |config|
   end
 
   config.model Setup::Scheduler do
-    navigation_label 'Flows'
-    weight -8
     edit do
       field :name
       field :scheduling_method
@@ -833,26 +768,26 @@ RailsAdmin.config do |config|
         visible { bindings[:object].scheduling_method.present? }
         label do
           case bindings[:object].scheduling_method
-            when :Once
-              'Date and time'
-            when :Periodic
-              'Duration'
-            when :CRON
-              'CRON Expression'
-            else
-              'Expression'
+          when :Once
+            'Date and time'
+          when :Periodic
+            'Duration'
+          when :CRON
+            'CRON Expression'
+          else
+            'Expression'
           end
         end
         help do
           case bindings[:object].scheduling_method
-            when :Once
-              'Select a date and a time'
-            when :Periodic
-              'Type a time duration'
-            when :CRON
-              'Type a CRON Expression'
-            else
-              'Expression'
+          when :Once
+            'Select a date and a time'
+          when :Periodic
+            'Type a time duration'
+          when :CRON
+            'Type a CRON Expression'
+          else
+            'Expression'
           end
         end
         partial { bindings[:object].scheduling_method == :Once ? 'form_datetime_wrapper' : 'form_text' }
@@ -878,8 +813,6 @@ RailsAdmin.config do |config|
   end
 
   config.model Setup::Translator do
-    navigation_label 'Flows'
-    weight -11
     register_instance_option(:form_synchronized) do
       [:source_data_type, :target_data_type, :transformation, :target_importer, :source_exporter, :discard_chained_records]
     end
@@ -952,11 +885,11 @@ RailsAdmin.config do |config|
         associated_collection_scope do
           translator = bindings[:object]
           source_data_type =
-              if translator.source_exporter
-                translator.source_exporter.target_data_type
-              else
-                translator.source_data_type
-              end
+            if translator.source_exporter
+              translator.source_exporter.target_data_type
+            else
+              translator.source_data_type
+            end
           target_data_type = bindings[:object].target_data_type
           Proc.new { |scope|
             scope = scope.all(type: :Conversion,
@@ -1058,7 +991,7 @@ RailsAdmin.config do |config|
               can_see = !am.embedded? && (show_action = v.action(:show, am, associated))
               can_see ? v.link_to(wording, v.url_for(action: show_action.action_name, model_name: am.to_param, id: associated.id), class: 'pjax') : wording
             end.to_sentence.html_safe +
-                v.select_tag("#{bindings[:controller].instance_variable_get(:@model_config).abstract_model.param_key}[connection_ids][]", ids.html_safe, multiple: true, style: 'display:none').html_safe
+              v.select_tag("#{bindings[:controller].instance_variable_get(:@model_config).abstract_model.param_key}[connection_ids][]", ids.html_safe, multiple: true, style: 'display:none').html_safe
           else
             'No connection selected'.html_safe
           end
@@ -1094,7 +1027,7 @@ RailsAdmin.config do |config|
               can_see = !am.embedded? && (show_action = v.action(:show, am, associated))
               can_see ? v.link_to(wording, v.url_for(action: show_action.action_name, model_name: am.to_param, id: associated.id), class: 'pjax') : wording
             end.to_sentence.html_safe +
-                v.select_tag("#{bindings[:controller].instance_variable_get(:@model_config).abstract_model.param_key}[dependency_ids][]", ids.html_safe, multiple: true, style: 'display:none').html_safe
+              v.select_tag("#{bindings[:controller].instance_variable_get(:@model_config).abstract_model.param_key}[dependency_ids][]", ids.html_safe, multiple: true, style: 'display:none').html_safe
           else
             'No dependencies selected'.html_safe
           end
@@ -1106,8 +1039,8 @@ RailsAdmin.config do |config|
       field :pull_parameters do
         visible do
           if !(obj = bindings[:object]).instance_variable_get(:@_selecting_collection) &&
-              !obj.instance_variable_get(:@_selecting_connections) &&
-              (pull_parameters_enum = obj.enum_for_pull_parameters).present?
+            !obj.instance_variable_get(:@_selecting_connections) &&
+            (pull_parameters_enum = obj.enum_for_pull_parameters).present?
             bindings[:controller].instance_variable_set(:@shared_parameter_enum, pull_parameters_enum)
             true
           else
@@ -1204,8 +1137,6 @@ RailsAdmin.config do |config|
   end
 
   config.model Setup::Integration do
-    navigation_label 'Flows'
-    weight -7
     edit do
       field :name
       field :pull_connection
@@ -1272,8 +1203,83 @@ RailsAdmin.config do |config|
     fields :name, :link
   end
 
+  config.model Role do
+    navigation_label 'Administration'
+    fields :name, :users
+  end
+
   config.model User do
+    navigation_label 'Administration'
+    object_label_method { :label }
+
+    group :credentials do
+      label 'Credentials'
+      active true
+    end
+
+    group :activity do
+      label 'Activity'
+      active true
+    end
+
+    configure :name
+    configure :email
+    configure :roles
+    configure :key do
+      group :credentials
+    end
+    configure :authentication_token do
+      group :credentials
+    end
+    configure :sign_in_count do
+    group :activity
+  end
+    configure :current_sign_in_at do
+      group :activity
+    end
+    configure :last_sign_in_at do
+      group :activity
+    end
+    configure :current_sign_in_ip do
+      group :activity
+    end
+    configure :last_sign_in_ip do
+      group :activity
+    end
+
+    edit do
+      field :name
+      field :email do
+        visible { User.current.super_admin? }
+      end
+      field :roles do
+        visible { User.current.super_admin? }
+      end
+      field :key do
+        visible { !bindings[:object].new_record? && User.current.super_admin? }
+      end
+      field :authentication_token do
+        visible { !bindings[:object].new_record? && User.current.super_admin? }
+      end
+      field :sign_in_count do
+        visible { !bindings[:object].new_record? && User.current.super_admin? }
+      end
+      field :current_sign_in_at do
+        visible { !bindings[:object].new_record? && User.current.super_admin? }
+      end
+      field :last_sign_in_at do
+        visible { !bindings[:object].new_record? && User.current.super_admin? }
+      end
+      field :current_sign_in_ip do
+        visible { !bindings[:object].new_record? && User.current.super_admin? }
+      end
+      field :last_sign_in_ip do
+        visible { !bindings[:object].new_record? && User.current.super_admin? }
+      end
+    end
+
     show do
+      field :name
       field :email
       field :roles
       field :key
@@ -1284,5 +1290,12 @@ RailsAdmin.config do |config|
       field :current_sign_in_ip
       field :last_sign_in_ip
     end
+  end
+
+  config.model Account do
+    navigation_label 'Administration'
+    object_label_method { :label }
+
+    fields :name, :owner, :tenant_account, :number, :users
   end
 end

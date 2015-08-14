@@ -18,9 +18,9 @@ module Xsd
     end
 
     {
-        element: :elements,
-        simpleType: :types,
-        complexType: :types
+      element: :elements,
+      simpleType: :types,
+      complexType: :types
     }.each do |tag_name, store_id|
       class_eval("def when_#{tag_name}_end(#{tag_name})
           @#{store_id} << #{tag_name}
