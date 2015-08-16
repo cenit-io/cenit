@@ -1,14 +1,10 @@
 module Xsd
   class ComplexType < TypedTag
+    include AttributeContainerTag
 
     tag 'complexType'
 
     attr_reader :container
-
-    def initialize(parent, attributes)
-      super
-      @attributes = []
-    end
 
     def simpleContent_start(attributes = [])
       @simpleContent = true
@@ -21,27 +17,22 @@ module Xsd
     end
 
     def extension_start(attributes = [])
-      _, @base = attributes.detect { |a| a[0] == 'base' }
+      @base = attributeValue(:base, attributes)
       nil
     end
 
     def restriction_start(attributes = [])
-      _, @base = attributes.detect { |a| a[0] == 'base' }
-      @simpleType = SimpleTypeRestriction.new(self, @base)
-    end
-
-    def attribute_start(attributes = [])
-      @attributes << (attr = Xsd::Attribute.new(self, attributes))
-      attr
+      @base = attributeValue(:base, attributes)
+      @simpleType = SimpleTypeRestriction.new(parent: self, base: @base)
     end
 
     def attributes
-      @attributes + (@simpleType.is_a?(SimpleTypeRestriction) ? @simpleType.attributes : [])
+      super + (@simpleType.is_a?(SimpleTypeRestriction) ? @simpleType.attributes : [])
     end
 
     [Xsd::Sequence, Xsd::Choice, Xsd::All].each do |container_class|
       class_eval("def #{container_class.tag_name}_start(attributes = [])
-          #{container_class.to_s}.new(self, attributes)
+          #{container_class.to_s}.new(parent: self, attributes: attributes)
         end
       def when_#{container_class.tag_name}_end(container)
           @container = container

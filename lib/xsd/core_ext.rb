@@ -8,7 +8,7 @@ end
 
 class NilClass
   def to_json_schema
-    { }
+    {}
   end
 end
 

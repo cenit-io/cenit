@@ -1,28 +1,12 @@
 module Xsd
   class Element < TypedTag
+    include BoundedTag
 
     tag 'element'
 
-    attr_accessor :max_occurs
-    attr_accessor :min_occurs
-
-    def initialize(parent, attributes)
+    def initialize(args)
       super
-      _, max_occurs = attributes.detect { |a| a[0] == 'maxOccurs' }
-      @max_occurs =
-        if max_occurs
-          max_occurs == 'unbounded' ? :unbounded : max_occurs.to_i
-        else
-          1
-        end
-      _, min_occurs = attributes.detect { |a| a[0] == 'minOccurs' }
-      @min_occurs =
-        if min_occurs
-          min_occurs == 'unbounded' ? 0 : min_occurs.to_i
-        else
-          1
-        end
-      _, @ref = attributes.detect { |a| a[0] == 'ref' }
+      @ref = attributeValue(:ref, args[:attributes])
     end
 
     def when_simpleType_end(simpleType)

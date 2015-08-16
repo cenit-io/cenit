@@ -6,20 +6,20 @@ module Xsd
     attr_reader :type
 
     def restriction_start(attributes = [])
-      _, base = attributes.detect { |a| a[0] == 'base' }
-      SimpleTypeRestriction.new(self, base)
+      base = attributeValue(:base, attributes)
+      SimpleTypeRestriction.new(parent: self, base: base)
     end
 
     def list_start(attributes = [])
-      _, itemType = attributes.detect { |a| a[0] == 'itemType' }
+      itemType = attributeValue(:itemType, attributes)
       itemType = qualify_type(itemType) if itemType
-      SimpleTypeList.new(self, itemType)
+      SimpleTypeList.new(parent: self, item_type: itemType)
     end
 
     def union_start(attributes = [])
-      _, memberTypes = attributes.detect { |a| a[0] == 'memberTypes' }
+      memberTypes = attributeValue(:memberTypes, attributes)
       memberTypes = memberTypes.split(' ').collect { |type| qualify_type(type) } if memberTypes
-      SimpleTypeUnion.new(self, memberTypes)
+      SimpleTypeUnion.new(parent: self, types: memberTypes)
     end
 
     def when_restriction_end(restriction)

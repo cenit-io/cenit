@@ -5,9 +5,9 @@ module Xsd
 
     attr_reader :use
 
-    def initialize(parent, attributes)
+    def initialize(args)
       super
-      _, @use = attributes.detect { |a| a[0] == 'use' }
+      @use = attributeValue(:use, args[:attributes])
     end
 
     def required?

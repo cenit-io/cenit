@@ -5,16 +5,16 @@ module Xsd
 
     attr_reader :name_prefix
 
-    def initialize(parent, attributes, name_prefix = '', document = nil)
-      super(parent, attributes)
-      targetNamespace = (attr = attributes.detect { |attr| attr[0] == 'targetNamespace' }) ? attr[1] : nil
+    def initialize(args)
+      super
+      targetNamespace = (attr = args[:attributes].detect { |attr| attr[0] == 'targetNamespace' }) ? attr[1] : nil
       raise Exception.new('Default and target does not match') if (default = @xmlns[:default]) && default != targetNamespace
       @xmlns[:default] = targetNamespace
       @elements = []
       @types = []
       @includes = Set.new
-      @name_prefix = name_prefix || ''
-      @document = document
+      @name_prefix = args[:name_prefix] || ''
+      @document = args[:document]
     end
 
     {
@@ -28,7 +28,7 @@ module Xsd
     end
 
     def include_start(attributes = [])
-      _, location = attributes.detect { |a| a[0] == 'schemaLocation' }
+      location = attributeValue(:schemaLocation, attributes)
       raise Exception('include without location') unless location
       abs_location = Cenit::Utility.abs_uri(document.uri, location)
       if schema = Setup::Schema.where(uri: abs_location).first
