@@ -1227,15 +1227,24 @@ RailsAdmin.config do |config|
     configure :name
     configure :email
     configure :roles
+    configure :password do
+      group :credentials
+    end
+    configure :password_confirmation do
+      group :credentials
+    end
     configure :key do
       group :credentials
     end
     configure :authentication_token do
       group :credentials
     end
+    configure :confirmed_at do
+      group :activity
+    end
     configure :sign_in_count do
-    group :activity
-  end
+      group :activity
+    end
     configure :current_sign_in_at do
       group :activity
     end
@@ -1257,10 +1266,19 @@ RailsAdmin.config do |config|
       field :roles do
         visible { User.current.super_admin? }
       end
+      field :password do
+        visible { User.current.super_admin? }
+      end
+      field :password_confirmation do
+        visible { User.current.super_admin? }
+      end
       field :key do
         visible { !bindings[:object].new_record? && User.current.super_admin? }
       end
       field :authentication_token do
+        visible { !bindings[:object].new_record? && User.current.super_admin? }
+      end
+      field :confirmed_at do
         visible { !bindings[:object].new_record? && User.current.super_admin? }
       end
       field :sign_in_count do
