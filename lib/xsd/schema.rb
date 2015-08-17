@@ -10,6 +10,8 @@ module Xsd
       targetNamespace = (attr = args[:attributes].detect { |attr| attr[0] == 'targetNamespace' }) ? attr[1] : nil
       raise Exception.new('Default and target does not match') if (default = @xmlns[:default]) && default != targetNamespace
       @xmlns[:default] = targetNamespace
+      @attributes = []
+      @attribute_groups = []
       @elements = []
       @types = []
       @includes = Set.new
@@ -18,6 +20,8 @@ module Xsd
     end
 
     {
+      attribute: :attributes,
+      attributeGroup: :attribute_groups,
       element: :elements,
       simpleType: :types,
       complexType: :types
@@ -47,17 +51,19 @@ module Xsd
 
     def json_schemas
       schemas = {}
-      {qualify_type: @types, qualify_element: @elements}.each do |qualify_method, store|
+      {
+        attribute: @attributes,
+        attribute_group: @attribute_groups,
+        type: @types,
+        element: @elements,
+      }.each do |qualify_method, store|
         store.each do |tag|
-          name = send(qualify_method, tag.name)
+          name = qualify_with(qualify_method, tag.name)
           raise Exception.new("name clash: #{name}") if schemas[name]
           schemas[name] = tag.to_json_schema
         end
       end
       schemas
     end
-  end
-
-  class IncludeMissingException < Exception
   end
 end

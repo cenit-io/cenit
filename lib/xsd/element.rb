@@ -1,13 +1,9 @@
 module Xsd
   class Element < TypedTag
     include BoundedTag
+    include RefererTag
 
     tag 'element'
-
-    def initialize(args)
-      super
-      @ref = attributeValue(:ref, args[:attributes])
-    end
 
     def when_simpleType_end(simpleType)
       @type = simpleType.type
@@ -18,7 +14,7 @@ module Xsd
     end
 
     def to_json_schema
-      return qualify_element(@ref).to_json_schema if @ref
+      return qualify_element(ref).to_json_schema if ref
       json =
         {
           'title' => name.to_title,

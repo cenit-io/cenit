@@ -40,11 +40,19 @@ module Xsd
     end
 
     def qualify_element(name)
-      included?(qn = "#{name_prefix}element:#{name}") ? qn : "#{name_prefix}element:#{qualify(name)}"
+      qualify_with(:element, name)
     end
 
     def qualify_type(name)
-      included?(qn = "#{name_prefix}type:#{name}") ? qn : "#{name_prefix}type:#{qualify(name)}" if name
+      qualify_with(:type, name)
+    end
+
+    def qualify_attribute_group(name)
+      qualify_with(:attribute_group, name)
+    end
+
+    def qualify_attribute(name)
+      qualify_with(:attribute, name)
     end
 
     def xmlns(ns)
@@ -57,9 +65,17 @@ module Xsd
 
     private
 
+    def qualify_with(qualify_method, name)
+      included?(qn = "#{name_prefix}#{qualify_method}:#{name}") ? qn : "#{name_prefix}#{qualify_method}:#{qualify(name)}"
+    end
+
     def qualify(name)
       ns = (i = name.rindex(':')) ? xmlns(name[0..i-1]) : xmlns(:default)
-      ns.blank? ? name : "#{ns}:#{i ? name.from(i+1) : name}"
+      if ns.blank?
+        name
+      else
+        "#{ns}:#{i ? name.from(i+1) : name}"
+      end
     end
   end
 end
