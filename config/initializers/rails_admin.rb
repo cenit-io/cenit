@@ -12,7 +12,7 @@
  RailsAdmin::Config::Actions::DeleteAll,
  RailsAdmin::Config::Actions::TranslatorUpdate,
  RailsAdmin::Config::Actions::Convert,
- RailsAdmin::Config::Actions::DeleteSchema,
+ RailsAdmin::Config::Actions::DeleteValidator,
  RailsAdmin::Config::Actions::DeleteLibrary,
  RailsAdmin::Config::Actions::SimpleShare,
  RailsAdmin::Config::Actions::BulkShare,
@@ -83,7 +83,7 @@ RailsAdmin.config do |config|
     process_flow
     delete_data_type
     delete
-    delete_schema
+    delete_validator
     delete_library
     #show_in_app
     send_to_flow
