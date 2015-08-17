@@ -99,8 +99,8 @@ en:
         done: "converted"
         submit: "Convert"
         bulk_link: "Convert selected %{model_label_plural}"
-      delete_schema:
-        title: "Delete Schema '%{object_label}'"
+      delete_validator:
+        title: "Delete %{model_label} '%{object_label}'"
         menu: "Delete"
         breadcrumb: "Delete"
       delete_library:

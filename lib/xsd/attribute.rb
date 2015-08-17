@@ -1,13 +1,14 @@
 module Xsd
   class Attribute < TypedTag
+    include RefererTag
 
     tag 'attribute'
 
     attr_reader :use
 
-    def initialize(parent, attributes)
+    def initialize(args)
       super
-      _, @use = attributes.detect { |a| a[0] == 'use' }
+      @use = attributeValue(:use, args[:attributes])
     end
 
     def required?
@@ -26,6 +27,14 @@ module Xsd
 
     def type
       @type ? @type : type_name
+    end
+
+    def to_json_schema
+      return qualify_attribute(ref).to_json_schema if ref
+      if (schema_type = type).is_a?(String)
+        schema_type = qualify_type(schema_type)
+      end
+      schema_type.to_json_schema.merge('title' => name.to_title, 'xml' => {'attribute' => true})
     end
 
   end

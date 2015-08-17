@@ -3,9 +3,9 @@ module Xsd
 
     attr_reader :type_name
 
-    def initialize(parent, attributes)
+    def initialize(args)
       super
-      _, @type_name = attributes.detect { |a| a[0] == 'type' }
+      @type_name = attributeValue(:type, args[:attributes])
     end
   end
 end
