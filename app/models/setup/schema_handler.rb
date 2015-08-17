@@ -88,36 +88,39 @@ module Setup
       options[:root_schema] ||= JSON.parse(model_schema)
       options[:silent] = true if options[:silent].nil?
       references = Set.new
-      while ref = schema['$ref']
-        if references.include?(ref)
-          if options[:silent]
-            schema.delete('$ref')
-          else
-            raise Exception.new("contains a circular reference #{ref}")
-          end
-        else
-          references << ref
-          sch = {}
-          schema.each do |key, value|
-            if key == '$ref' && (!options[:keep_ref] || sch[key])
-              if ref = find_ref_schema(value)
-                sch = sch.reverse_merge(ref) { |_, val1, val2| Cenit::Utility.array_hash_merge(val1, val2) }
-              else
-                raise Exception.new("contains an unresolved reference #{value}") unless options[:silent]
-              end
+      while refs = schema['$ref']
+        refs = [refs] unless refs.is_a?(Array)
+        refs.each do |ref|
+          if references.include?(ref)
+            if options[:silent]
+              schema.delete('$ref')
             else
-              case existing_value = sch[key]
-              when Hash
-                if value.is_a?(Hash)
-                  value = value.reverse_merge(existing_value) { |_, val1, val2| Cenit::Utility.array_hash_merge(val1, val2) }
-                end
-              when Array
-                value = value + existing_value if value.is_a?(Array)
-              end
-              sch[key] = value
+              raise Exception.new("contains a circular reference #{ref}")
             end
+          else
+            references << ref
+            sch = {}
+            schema.each do |key, value|
+            if key == '$ref' && (!options[:keep_ref] || sch[key])
+                if ref = find_ref_schema(value)
+                  sch = sch.reverse_merge(ref) { |_, val1, val2| Cenit::Utility.array_hash_merge(val1, val2) }
+                else
+                  raise Exception.new("contains an unresolved reference #{value}") unless options[:silent]
+                end
+              else
+                case existing_value = sch[key]
+                when Hash
+                  if value.is_a?(Hash)
+                    value = value.reverse_merge(existing_value) { |_, val1, val2| Cenit::Utility.array_hash_merge(val1, val2) }
+                  end
+                when Array
+                  value = value + existing_value if value.is_a?(Array)
+                end
+                sch[key] = value
+              end
+            end
+            schema = sch
           end
-          schema = sch
         end
       end
       schema.each { |key, val| schema[key] = do_merge_schema(val, options) if val.is_a?(Hash) } if options[:recursive]

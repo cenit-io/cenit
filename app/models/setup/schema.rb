@@ -1,3 +1,5 @@
+require 'xsd/include_missing_exception'
+
 module Setup
   class Schema < Validator
     include CenitScoped
@@ -89,7 +91,6 @@ module Setup
             @data_types_to_reload.delete(data_type)
           end
         end
-
       rescue Exception => ex
         #TODO Delete raise
         #raise ex
