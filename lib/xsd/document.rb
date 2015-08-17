@@ -45,7 +45,8 @@ module Xsd
       'type:http://www.w3.org/2001/XMLSchema:hexBinary' => {'type' => 'integer'},
       'type:http://www.w3.org/2001/XMLSchema:base64Binary' => {'type' => 'integer'},
       'type:http://www.w3.org/2001/XMLSchema:anyURI' => {'type' => 'string'},
-      'type:http://www.w3.org/2001/XMLSchema:notation' => {'type' => 'string'}
+      'type:http://www.w3.org/2001/XMLSchema:notation' => {'type' => 'string'},
+      'type:http://www.w3.org/2001/XMLSchema:anyType' => {}
     }.freeze
 
   class Document < Nokogiri::XML::SAX::Document

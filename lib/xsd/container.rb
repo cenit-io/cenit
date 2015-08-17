@@ -22,6 +22,11 @@ module Xsd
       end")
     end
 
+    def any_start(attributes = [])
+      @elements << Xsd::Any.new(parent: self, attributes: attributes)
+      nil
+    end
+
     def to_json_schema
       json = {'type' => 'object', 'title' => tag_name.capitalize}
       json['properties'] = properties = {}
