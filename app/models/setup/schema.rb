@@ -131,9 +131,7 @@ module Setup
 
     def save_data_types
       if run_after_initialized
-        puts "Saving data types for #{uri}"
-        (@data_types_to_keep && @data_types_to_keep.empty? ? data_types : @data_types_to_keep).each { |data_type| puts data_type.name }
-        (@data_types_to_keep && @data_types_to_keep.empty? ? data_types : @data_types_to_keep).each do |data_type|
+        (@data_types_to_keep.blank? ? data_types : @data_types_to_keep).each do |data_type|
           if data_type.new_record? & data_type.save
             data_type.instance_variable_set(:@dynamically_created, true)
           end

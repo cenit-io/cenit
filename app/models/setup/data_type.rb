@@ -11,6 +11,8 @@ module Setup
 
     validates_presence_of :model_schema
 
+    after_initialize { @validate_model_schema = true }
+
     before_save :validate_model
 
     def library
@@ -21,20 +23,26 @@ module Setup
       schema
     end
 
+    def write_attribute(name, value)
+      @validate_model_schema = true if name.to_s == :model_schema.to_s
+      super
+    end
+
     def validate_model
-      begin
-        puts "Validating schema '#{self.name}'"
-        json_schema, _ = validate_schema
-        fail Exception, 'defines invalid property name: _type' if object_schema?(json_schema) &&json_schema['properties']['_type']
-        check_id_property(json_schema)
-        self.title = json_schema['title'] || self.name if title.blank?
-        puts "Schema '#{self.name}' validation successful!"
-      rescue Exception => ex
-        #TODO Remove raise
-        #raise ex
-        puts "ERROR: #{errors.add(:model_schema, ex.message).to_s}"
+      if @validate_model_schema
+        begin
+          json_schema, _ = validate_schema
+          fail Exception, 'defines invalid property name: _type' if object_schema?(json_schema) &&json_schema['properties']['_type']
+          check_id_property(json_schema)
+          self.title = json_schema['title'] || self.name if title.blank?
+        rescue Exception => ex
+          #TODO Remove raise
+          #raise ex
+          errors.add(:model_schema, ex.message)
+        end
+        @collection_data_type = nil
+        @validate_model_schema = false
       end
-      @collection_data_type = nil
       errors.blank?
     end
 
@@ -63,8 +71,6 @@ module Setup
       json = JSON.parse(self.model_schema, :object_class => MultKeyHash)
       if json['type'] == 'object'
         check_schema(json, self.name, defined_types=[], embedded_refs={}, json)
-        puts "Defined types #{defined_types}"
-        puts "Embedded references #{embedded_refs}"
       end
       [json, embedded_refs]
     end
