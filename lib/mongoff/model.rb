@@ -77,7 +77,7 @@ module Mongoff
       if schema['type'] == 'object' && schema['properties'] && property_schema = schema['properties'][property]
         property_schema = property_schema['items'] if property_schema['type'] == 'array' && property_schema['items']
         model =
-          if (ref = property_schema['$ref']) && property_dt = data_type.find_data_type(ref)
+          if (ref = property_schema['$ref']).is_a?(String) && property_dt = data_type.find_data_type(ref)
             property_dt.records_model
           else
             property_schema = data_type.merge_schema(property_schema)

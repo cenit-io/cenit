@@ -3,8 +3,13 @@ module Xsd
 
     attr_reader :parent
 
-    def initialize(parent)
-      @parent = parent
+    def initialize(args)
+      @parent = args[:parent]
+      self.class.instance_methods.each do |method|
+        if method =~ /\Ainitialize(\_[a-z]+)+\Z/
+          send(method, args)
+        end
+      end
     end
 
     def document
@@ -29,16 +34,25 @@ module Xsd
     def name_prefix
       parent ? parent.name_prefix : ''
     end
+
     def included?(qualified_name)
       parent ? parent.included?(qualified_name) : false
     end
 
     def qualify_element(name)
-      included?(qn = "#{name_prefix}element:#{name}") ? qn : "#{name_prefix}element:#{qualify(name)}"
+      qualify_with(:element, name)
     end
 
     def qualify_type(name)
-      included?(qn = "#{name_prefix}type:#{name}") ? qn : "#{name_prefix}type:#{qualify(name)}" if name
+      qualify_with(:type, name)
+    end
+
+    def qualify_attribute_group(name)
+      qualify_with(:attribute_group, name)
+    end
+
+    def qualify_attribute(name)
+      qualify_with(:attribute, name)
     end
 
     def xmlns(ns)
@@ -51,9 +65,17 @@ module Xsd
 
     private
 
+    def qualify_with(qualify_method, name)
+      included?(qn = "#{name_prefix}#{qualify_method}:#{name}") ? qn : "#{name_prefix}#{qualify_method}:#{qualify(name)}"
+    end
+
     def qualify(name)
       ns = (i = name.rindex(':')) ? xmlns(name[0..i-1]) : xmlns(:default)
-      ns.blank? ? name : "#{ns}:#{i ? name.from(i+1) : name}"
+      if ns.blank?
+        name
+      else
+        "#{ns}:#{i ? name.from(i+1) : name}"
+      end
     end
   end
 end
