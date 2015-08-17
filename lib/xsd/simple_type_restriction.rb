@@ -1,23 +1,19 @@
 module Xsd
   class SimpleTypeRestriction < BasicTag
+    include AttributeContainerTag
 
     tag 'restriction'
 
     attr_reader :base
     attr_reader :restrictions
-    attr_reader :attributes
 
-    def initialize(parent, base, restrictions=nil)
-      super(parent)
-      @base = base
+    def initialize(args)
+      super
+      @base = args[:base]
       @restrictions = {}
-      @attributes = []
-      restrictions.each { |key, value| @restrictions[key] = value } if restrictions
-    end
-
-    def attribute_start(attributes = [])
-      @attributes << (attr = Xsd::Attribute.new(self, attributes))
-      attr
+      if restrictions = args[:restrictions]
+        restrictions.each { |key, value| @restrictions[key] = value }
+      end
     end
 
     def start_element_tag(name, attributes)

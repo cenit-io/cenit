@@ -5,10 +5,12 @@ module Xsd
 
     attr_reader :types
 
-    def initialize(parent, types=[])
-      super(parent)
+    def initialize(args)
+      super
       @types = Set.new
-      types.each { |type| @types << type } if types
+      if types = args[:types]
+        types.each { |type| @types << type }
+      end
     end
 
     def when_simpleType_end(simpleType)

@@ -6,7 +6,7 @@ module Setup
     include Slug
     include CustomTitle
 
-    Setup::Models.exclude_actions_for self, :new, :update, :edit, :delete, :bulk_delete, :delete_all
+    Setup::Models.exclude_actions_for self, :new, :update, :edit, :bulk_delete, :delete_all
 
     BuildInDataType.regist(self).including(:schema).referenced_by(:name)
 

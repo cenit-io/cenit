@@ -8,9 +8,9 @@ class Ability
       can([:show, :edit], User) { |u| u.eql?(user) }
       if user.super_admin?
         can :manage, [Role, User, Account]
-        can :destroy, Setup::SharedCollection
+        can :destroy, [Setup::SharedCollection, Setup::Model]
       else
-        cannot :destroy, Setup::SharedCollection
+        cannot :destroy, [Setup::SharedCollection, Setup::Model]
       end
 
       can RailsAdmin::Config::Actions.all(:root).collect(&:authorization_key)
