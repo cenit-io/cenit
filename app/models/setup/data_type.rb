@@ -12,12 +12,9 @@ module Setup
     validates_presence_of :model_schema
 
     after_initialize { @validate_model_schema = true }
+    before_validation { self.library = schema.library if schema }
 
     before_save :validate_model
-
-    def library
-      schema && schema.library
-    end
 
     def validator
       schema

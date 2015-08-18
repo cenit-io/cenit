@@ -36,6 +36,8 @@ module Setup
 
     has_many :events, class_name: Setup::Observer.to_s, dependent: :destroy, inverse_of: :data_type
 
+    belongs_to :library, class_name: Setup::Library.to_s, inverse_of: nil
+
     attr_readonly :name
 
     validates_presence_of :name
@@ -51,10 +53,6 @@ module Setup
     end
 
     def validator
-      nil
-    end
-
-    def library
       nil
     end
 
