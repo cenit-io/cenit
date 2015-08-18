@@ -335,12 +335,23 @@ module RailsAdmin
       else
         flash_hash[flash_key] += header.html_safe
       end
-      max = options[:max] || 5
+      max_message_count = options[:max] || 5
+      max_message_length = 500
+      max_length = 1500
       messages = [messages] unless messages.is_a?(Enumerable)
-      flash_hash[flash_key] += %(<br>- #{messages[0..max - 1].join('<br>- ')}).html_safe
-      if messages.length - max > 0
-        flash_hash[flash_key] += "<br>- and another #{messages.length - max}.".html_safe
+      msgs = messages[0..max_message_count].collect { |msg| msg.length < max_message_length ? msg : msg[0..max_message_length] + '...' }
+      count = 0
+      flash_message = ''
+      msgs.each do |msg|
+        if flash_message.length < max_length
+          flash_message += "<br>- #{msg}".html_safe
+          count += 1
+        end
       end
+      if (count = messages.length - count) > 0
+        flash_hash[flash_key] += "<br>- and another #{count}.".html_safe
+      end
+      flash_hash[flash_key] = flash_message.html_safe
     end
   end
 
