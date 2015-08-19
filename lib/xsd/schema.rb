@@ -5,19 +5,23 @@ module Xsd
 
     attr_reader :name_prefix
 
-    def initialize(parent, attributes, name_prefix = '', document = nil)
-      super(parent, attributes)
-      targetNamespace = (attr = attributes.detect { |attr| attr[0] == 'targetNamespace' }) ? attr[1] : nil
+    def initialize(args)
+      super
+      targetNamespace = (attr = args[:attributes].detect { |attr| attr[0] == 'targetNamespace' }) ? attr[1] : nil
       raise Exception.new('Default and target does not match') if (default = @xmlns[:default]) && default != targetNamespace
       @xmlns[:default] = targetNamespace
+      @attributes = []
+      @attribute_groups = []
       @elements = []
       @types = []
       @includes = Set.new
-      @name_prefix = name_prefix || ''
-      @document = document
+      @name_prefix = args[:name_prefix] || ''
+      @document = args[:document]
     end
 
     {
+      attribute: :attributes,
+      attributeGroup: :attribute_groups,
       element: :elements,
       simpleType: :types,
       complexType: :types
@@ -28,7 +32,7 @@ module Xsd
     end
 
     def include_start(attributes = [])
-      _, location = attributes.detect { |a| a[0] == 'schemaLocation' }
+      location = attributeValue(:schemaLocation, attributes)
       raise Exception('include without location') unless location
       abs_location = Cenit::Utility.abs_uri(document.uri, location)
       if schema = Setup::Schema.where(uri: abs_location).first
@@ -47,17 +51,19 @@ module Xsd
 
     def json_schemas
       schemas = {}
-      {qualify_type: @types, qualify_element: @elements}.each do |qualify_method, store|
+      {
+        attribute: @attributes,
+        attribute_group: @attribute_groups,
+        type: @types,
+        element: @elements,
+      }.each do |qualify_method, store|
         store.each do |tag|
-          name = send(qualify_method, tag.name)
+          name = qualify_with(qualify_method, tag.name)
           raise Exception.new("name clash: #{name}") if schemas[name]
           schemas[name] = tag.to_json_schema
         end
       end
       schemas
     end
-  end
-
-  class IncludeMissingException < Exception
   end
 end
