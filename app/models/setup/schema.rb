@@ -29,6 +29,10 @@ module Setup
       uri
     end
 
+    def scope_title
+      library && library.name
+    end
+
     def validates_configuration
       self.name = "#{library.name} | #{uri}" unless name.present?
       super
@@ -39,12 +43,14 @@ module Setup
         reload
         @data_types_to_reload = data_types.activated
       end
-      models = Set.new
-      @data_types_to_reload.each do |data_type|
-        data_type.reload
-        models += data_type.load_models(options)[:loaded] if data_type.activated
+      if @data_types_to_reload.present?
+        models = Set.new
+        @data_types_to_reload.each do |data_type|
+          data_type.reload
+          models += data_type.load_models(options)[:loaded] if data_type.activated
+        end
+        RailsAdmin::AbstractModel.update_model_config(models)
       end
-      RailsAdmin::AbstractModel.update_model_config(models)
     end
 
     def include_missing?
@@ -63,32 +69,42 @@ module Setup
         return false
       end
       begin
-        parse_schemas.each do |name, schema|
-          if data_type = data_types.where(name: name).first
-            data_type.model_schema = schema.to_json
-          elsif library && library.find_data_type_by_name(name)
-            errors.add(:schema, "model name #{name} is already taken on library #{library.name}")
-          else
-            @new_data_types << (data_type = Setup::DataType.new(name: name, model_schema: schema.to_json))
-            self.data_types << data_type
-          end
-          if data_type && data_type.validate_model
-            @data_types_to_keep << data_type
-          else
-            data_type.errors.each do |attribute, error|
-              errors.add(:schema, "when defining model #{name} on attribute '#{attribute}': #{error}")
-            end if data_type
-            destroy_data_types
-            return false
+        schemas = json_schemas
+        data_types.any_in(name: schemas.keys).each do |data_type|
+          data_type.model_schema = schemas[data_type.name].to_json
+          schemas[data_type.name] = data_type
+        end
+        new_data_type_names = schemas.keys.select { |name| schemas[name].is_a?(Hash) }
+        if library && (conflicts = Setup::Model.all.any_in(name: new_data_type_names).and(library_id: library.id)).present?
+          conflicts.each { |existing_data_type| errors.add(:schema, "model name #{existing_data_type.name} is already taken on library #{library.name}") }
+        else
+          schemas.each do |name, schema|
+            if (data_type = schema).is_a?(Hash)
+              @new_data_types << (data_type = Setup::DataType.new(name: name, model_schema: schema.to_json))
+              self.data_types << data_type
+            end
+            if data_type && data_type.validate_model
+              @data_types_to_keep << data_type
+            else
+              data_type.errors.each do |attribute, error|
+                errors.add(:schema, "when defining model #{name} on attribute '#{attribute}': #{error}")
+              end if data_type
+              destroy_data_types
+              return false
+            end
           end
         end
-        report = Model.shutdown(data_types.activated, report_only: true)
-        @data_types_to_reload = report[:destroyed].collect(&:data_type).uniq.select(&:activated)
-        Model.shutdown(data_types.activated)
-        data_types.each do |data_type|
-          unless @data_types_to_keep.include?(data_type)
-            data_type.destroy
-            @data_types_to_reload.delete(data_type)
+        if new_record?
+          @data_types_to_reload = []
+        else
+          report = Model.shutdown(data_types.activated, report_only: true)
+          @data_types_to_reload = report[:destroyed].collect(&:data_type).uniq.select(&:activated)
+          Model.shutdown(data_types.activated)
+          data_types.each do |data_type|
+            unless @data_types_to_keep.include?(data_type)
+              data_type.destroy
+              @data_types_to_reload.delete(data_type)
+            end
           end
         end
       rescue Exception => ex
@@ -97,11 +113,10 @@ module Setup
         if @include_missing = ex.is_a?(Xsd::IncludeMissingException)
           @include_missing_message = ex.message
         end
-        puts "ERROR: #{errors.add(:schema, ex.message).to_s}"
+        errors.add(:schema, ex.message)
         destroy_data_types
-        return false
       end
-      @_initialized = true
+      @_initialized = errors.blank?
     end
 
     def cenit_ref_schema(options = {})
@@ -127,33 +142,68 @@ module Setup
       end
     end
 
-    private
+    def auto_save_references_for?(relation)
+      relation.to_s == :data_types.to_s
+    end
+
+    def parse_schema
+      @parsed_schema ||=
+        begin
+          self.schema = schema.strip
+          if schema.start_with?('{') || self.schema.start_with?('[')
+            self.schema_type = :json_schema
+            parse_json_schema
+          else
+            self.schema_type = :xml_schema
+            parse_xml_schema
+          end
+        end
+    end
+
+    def json_schemas
+      bind_includes
+      parse_schema.is_a?(Hash) ? @parsed_schema : @parsed_schema.json_schemas
+    end
+
+    def bind_includes
+      unless @includes_binded
+        @parsed_schema.bind_includes(library) unless parse_schema.is_a?(Hash)
+        @includes_binded = true
+      end
+    end
+
+    def included?(qualified_name, visited = Set.new)
+      return false if visited.include?(self) || visited.include?(@parsed_schema)
+      visited << self
+      data_types.any? { |data_type| data_type.name == qualified_name } ||
+        if parse_schema.is_a?(Hash)
+          @parsed_schema.has_key?(qualified_name)
+        else
+          @parsed_schema.included?(qualified_name, visited)
+        end
+    end
 
     def save_data_types
       if run_after_initialized
+        new_attributes = []
         (@data_types_to_keep.blank? ? data_types : @data_types_to_keep).each do |data_type|
-          if data_type.new_record? & data_type.save
+          if data_type.new_record? & data_type.valid?(:create)
             data_type.instance_variable_set(:@dynamically_created, true)
+            data_type.instance_variable_set(:@new_record, false)
+            new_attributes << data_type.attributes
           end
         end
+        Setup::DataType.collection.insert(new_attributes) if new_attributes.present?
+        true
       else
         false
       end
     end
 
+    private
+
     def destroy_data_types
       @shutdown_report = Model.shutdown(@new_data_types || data_types.activated, destroy: true)
-    end
-
-    def parse_schemas
-      self.schema = schema.strip
-      if schema.start_with?('{') || self.schema.start_with?('[')
-        self.schema_type = :json_schema
-        parse_json_schema
-      else
-        self.schema_type = :xml_schema
-        parse_xml_schema
-      end
     end
 
     def parse_json_schema
@@ -161,7 +211,7 @@ module Setup
     end
 
     def parse_xml_schema
-      Xsd::Document.new(uri, self.schema).schema.json_schemas
+      Xsd::Document.new(uri, self.schema).schema
     end
 
     def cenit_ref_json_schema(options = {})

@@ -36,6 +36,8 @@ module Setup
 
     has_many :events, class_name: Setup::Observer.to_s, dependent: :destroy, inverse_of: :data_type
 
+    belongs_to :library, class_name: Setup::Library.to_s, inverse_of: nil
+
     attr_readonly :name
 
     validates_presence_of :name
@@ -51,10 +53,6 @@ module Setup
     end
 
     def validator
-      nil
-    end
-
-    def library
       nil
     end
 
@@ -333,11 +331,7 @@ module Setup
     protected
 
     def slug_taken?(slug)
-      return true if library.file_data_types.any? { |data_type| data_type.slug == slug }
-      library.schemas.each do |schema|
-        return true if schema.data_types.any? { |data_type| data_type.slug == slug }
-      end
-      false
+      Setup::Model.where(slug: slug, library: library).present?
     end
 
     def do_load_model(report)
