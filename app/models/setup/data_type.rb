@@ -11,20 +11,17 @@ module Setup
 
     validates_presence_of :model_schema
 
-    after_initialize { @validate_model_schema = true }
+    after_initialize { @validate_model_schema = new_record? }
+    before_validation { self.library = schema.library if schema }
 
     before_save :validate_model
-
-    def library
-      schema && schema.library
-    end
 
     def validator
       schema
     end
 
     def write_attribute(name, value)
-      @validate_model_schema = true if name.to_s == :model_schema.to_s
+      @validate_model_schema = true if name.to_s == :model_schema.to_s && value != attributes[:model_schema]
       super
     end
 

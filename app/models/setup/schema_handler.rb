@@ -101,11 +101,14 @@ module Setup
             references << ref
             sch = {}
             schema.each do |key, value|
-            if key == '$ref' && (!options[:keep_ref] || sch[key])
-                if ref = find_ref_schema(value)
-                  sch = sch.reverse_merge(ref) { |_, val1, val2| Cenit::Utility.array_hash_merge(val1, val2) }
-                else
-                  raise Exception.new("contains an unresolved reference #{value}") unless options[:silent]
+              if key == '$ref' && (!options[:keep_ref] || sch[key])
+                value = [value] unless value.is_a?(Array)
+                value.each do |ref|
+                  if ref_sch = find_ref_schema(ref)
+                    sch = sch.reverse_merge(ref_sch) { |_, val1, val2| Cenit::Utility.array_hash_merge(val1, val2) }
+                  else
+                    raise Exception.new("contains an unresolved reference #{value}") unless options[:silent]
+                  end
                 end
               else
                 case existing_value = sch[key]
