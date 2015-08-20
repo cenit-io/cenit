@@ -22,7 +22,7 @@ module Xsd
           'type' => 'object'
         }
       merge_json =
-        if @type
+        if @type || type_name.nil?
           if @type.is_a?(ComplexType)
             @type.to_json_schema
           else

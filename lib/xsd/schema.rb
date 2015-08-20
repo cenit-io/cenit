@@ -4,6 +4,7 @@ module Xsd
     tag 'schema'
 
     attr_reader :name_prefix
+    attr_reader :names
 
     def initialize(args)
       super
@@ -14,9 +15,11 @@ module Xsd
       @attribute_groups = []
       @elements = []
       @types = []
+      @include_uris = Set.new
       @includes = Set.new
       @name_prefix = args[:name_prefix] || ''
       @document = args[:document]
+      @names = Set.new
     end
 
     {
@@ -28,25 +31,35 @@ module Xsd
     }.each do |tag_name, store_id|
       class_eval("def when_#{tag_name}_end(#{tag_name})
           @#{store_id} << #{tag_name}
+          @names << qualify_with(:#{store_id.to_s.chop}, #{tag_name}.name, false)
         end")
     end
 
     def include_start(attributes = [])
-      location = attributeValue(:schemaLocation, attributes)
-      raise Exception('include without location') unless location
-      abs_location = Cenit::Utility.abs_uri(document.uri, location)
-      if schema = Setup::Schema.where(uri: abs_location).first
-        schema.data_types.each { |data_type| @includes.add(data_type.name) }
+      if location = attributeValue(:schemaLocation, attributes)
+        @include_uris << location
       else
-        msg = "includes undefined schema #{location}"
-        msg += " (#{abs_location})" if abs_location != location
-        raise IncludeMissingException.new(msg)
+        raise Exception('include without location')
       end
       nil
     end
 
-    def included?(qualified_name)
-      @includes.include?(qualified_name)
+    def bind_includes(schema_resolver)
+      @include_uris.each do |uri|
+        if schema = schema_resolver.schema_for(document.uri, uri)
+          @includes << schema
+        else
+          raise IncludeMissingException.new("includes undefined schema #{uri}")
+        end
+      end
+    end
+
+    def included?(qualified_name, visited = Set.new)
+      return false if visited.include?(self)
+      visited << self
+      return true if names.include?(qualified_name)
+      @includes.each { |schema| return true if schema.included?(qualified_name, visited) }
+      false
     end
 
     def json_schemas
