@@ -35,8 +35,8 @@ module Xsd
       parent ? parent.name_prefix : ''
     end
 
-    def included?(qualified_name)
-      parent ? parent.included?(qualified_name) : false
+    def included?(qualified_name, visited = Set.new)
+      parent ? parent.included?(qualified_name, visited) : false
     end
 
     def qualify_element(name)
@@ -65,8 +65,8 @@ module Xsd
 
     private
 
-    def qualify_with(qualify_method, name)
-      included?(qn = "#{name_prefix}#{qualify_method}:#{name}") ? qn : "#{name_prefix}#{qualify_method}:#{qualify(name)}"
+    def qualify_with(qualify_method, name, check_include = true)
+      check_include && included?(qn = "#{name_prefix}#{qualify_method}:#{name}") ? qn : "#{name_prefix}#{qualify_method}:#{qualify(name)}"
     end
 
     def qualify(name)

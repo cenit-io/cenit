@@ -27,6 +27,10 @@ module Setup
       model
     end
 
+    def slug
+      model.to_s.split('::').last.underscore
+    end
+
     def model_schema
       @schema ||= build_schema
     end

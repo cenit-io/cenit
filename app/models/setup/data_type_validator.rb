@@ -2,7 +2,7 @@ module Setup
   module DataTypeValidator
 
     def data_format
-      data_type.schema.schema_type.to_s.split('_').first
+      data_type.schema.schema_type.to_s.split('_').first.to_sym
     end
 
     def content_type

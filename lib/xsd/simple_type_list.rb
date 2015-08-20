@@ -26,7 +26,7 @@ module Xsd
             ]
           }
         else
-          item_type.to_json_schema
+          qualify_type(item_type).to_json_schema
         end
       {
         'type' => 'array',
