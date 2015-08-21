@@ -71,7 +71,7 @@ module Setup
       begin
         schemas = json_schemas
         data_types.any_in(name: schemas.keys).each do |data_type|
-          data_type.model_schema = schemas[data_type.name].to_json
+          data_type.model_schema = schemas[data_type.name]
           schemas[data_type.name] = data_type
         end
         new_data_type_names = schemas.keys.select { |name| schemas[name].is_a?(Hash) }
@@ -130,15 +130,15 @@ module Setup
 
     def validate_data(data)
       case schema_type
-      when :json_schema
-        begin
-          JSON::Validator.validate!(@schema ||= data_types.first.merged_schema(recursive: true), JSON.parse(data))
-          []
-        rescue Exception => ex
-          [ex.message]
-        end
-      when :xml_schema
-        Nokogiri::XML::Schema(cenit_ref_schema).validate(Nokogiri::XML(data))
+        when :json_schema
+          begin
+            JSON::Validator.validate!(@schema ||= data_types.first.merged_schema(recursive: true), JSON.parse(data))
+            []
+          rescue Exception => ex
+            [ex.message]
+          end
+        when :xml_schema
+          Nokogiri::XML::Schema(cenit_ref_schema).validate(Nokogiri::XML(data))
       end
     end
 
@@ -148,16 +148,16 @@ module Setup
 
     def parse_schema
       @parsed_schema ||=
-        begin
-          self.schema = schema.strip
-          if schema.start_with?('{') || self.schema.start_with?('[')
-            self.schema_type = :json_schema
-            parse_json_schema
-          else
-            self.schema_type = :xml_schema
-            parse_xml_schema
+          begin
+            self.schema = schema.strip
+            if schema.start_with?('{') || self.schema.start_with?('[')
+              self.schema_type = :json_schema
+              parse_json_schema
+            else
+              self.schema_type = :xml_schema
+              parse_xml_schema
+            end
           end
-        end
     end
 
     def json_schemas
@@ -176,11 +176,11 @@ module Setup
       return false if visited.include?(self) || visited.include?(@parsed_schema)
       visited << self
       data_types.any? { |data_type| data_type.name == qualified_name } ||
-        if parse_schema.is_a?(Hash)
-          @parsed_schema.has_key?(qualified_name)
-        else
-          @parsed_schema.included?(qualified_name, visited)
-        end
+          if parse_schema.is_a?(Hash)
+            @parsed_schema.has_key?(qualified_name)
+          else
+            @parsed_schema.included?(qualified_name, visited)
+          end
     end
 
     def save_data_types
@@ -224,11 +224,11 @@ module Setup
       while cursor
         if %w(import include redefine).include?(cursor.name) && (attr = cursor.attributes['schemaLocation'])
           attr.value = options[:service_url].to_s + options[:service_schema_path] + '?' +
-            {
-              key: Account.current.owner.unique_key,
-              library_id: library.id.to_s,
-              uri: Cenit::Utility.abs_uri(uri, attr.value)
-            }.to_param
+              {
+                  key: Account.current.owner.unique_key,
+                  library_id: library.id.to_s,
+                  uri: Cenit::Utility.abs_uri(uri, attr.value)
+              }.to_param
         end
         cursor = cursor.next_element
       end

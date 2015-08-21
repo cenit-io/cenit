@@ -11,7 +11,7 @@ module Setup
 
     validates_presence_of :model_schema
 
-    after_initialize { @validate_model_schema = new_record? }
+    after_initialize { @validate_model_schema = true }
     before_validation { self.library = schema.library if schema }
 
     before_save :validate_model
@@ -21,7 +21,7 @@ module Setup
     end
 
     def write_attribute(name, value)
-      @validate_model_schema = true if name.to_s == :model_schema.to_s && value != attributes[:model_schema]
+      @validate_model_schema = true if name.to_s == :model_schema.to_s
       super
     end
 
@@ -49,7 +49,7 @@ module Setup
 
     def collection_data_type
       @collection_data_type ||=
-        ((base = JSON.parse(model_schema)['extends']) && base.is_a?(String) && (base = find_data_type(base)) && base.collection_data_type) || self
+          ((base = JSON.parse(model_schema)['extends']) && base.is_a?(String) && (base = find_data_type(base)) && base.collection_data_type) || self
     end
 
     def data_type_collection_name

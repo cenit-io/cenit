@@ -34,6 +34,7 @@ module RailsAdmin
                       while @object.errors.blank? && entry = zis.get_next_entry
                         if (schema = entry.get_input_stream.read).present?
                           uri = base_uri.blank? ? entry.name : "#{base_uri}/#{entry.name}"
+                          puts "->>>>>>>>>>>>>>    #{uri}"
                           schemas[entry.name] = schema = Setup::Schema.new(library: library, uri: uri, schema: schema)
                           begin
                             schema.parse_schema
