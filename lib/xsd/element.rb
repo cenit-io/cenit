@@ -18,7 +18,7 @@ module Xsd
       json =
         {
           'title' => name.to_title,
-          'edi' => {'segment' => name},
+          'edi' => {'segment' => qualify(name)},
           'type' => 'object'
         }
       merge_json =
@@ -39,6 +39,7 @@ module Xsd
           end
           {'extends' => type_schema}
         end
+      json['xml'] = { 'namespace' => xmlns(:default) }
       json.merge(merge_json)
     end
   end

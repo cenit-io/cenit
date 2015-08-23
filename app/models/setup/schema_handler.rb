@@ -84,49 +84,10 @@ module Setup
     private
 
     def do_merge_schema(schema, options = {})
+      schema = schema.deep_dup
       options ||= {}
       options[:root_schema] ||= JSON.parse(model_schema)
       options[:silent] = true if options[:silent].nil?
-      references = Set.new
-      while refs = schema['$ref']
-        refs = [refs] unless refs.is_a?(Array)
-        refs.each do |ref|
-          if references.include?(ref)
-            if options[:silent]
-              schema.delete('$ref')
-            else
-              raise Exception.new("contains a circular reference #{ref}")
-            end
-          else
-            references << ref
-            sch = {}
-            schema.each do |key, value|
-              if key == '$ref' && (!options[:keep_ref] || sch[key])
-                value = [value] unless value.is_a?(Array)
-                value.each do |ref|
-                  if ref_sch = find_ref_schema(ref)
-                    sch = sch.reverse_merge(ref_sch) { |_, val1, val2| Cenit::Utility.array_hash_merge(val1, val2) }
-                  else
-                    raise Exception.new("contains an unresolved reference #{value}") unless options[:silent]
-                  end
-                end
-              else
-                case existing_value = sch[key]
-                when Hash
-                  if value.is_a?(Hash)
-                    value = value.reverse_merge(existing_value) { |_, val1, val2| Cenit::Utility.array_hash_merge(val1, val2) }
-                  end
-                when Array
-                  value = value + existing_value if value.is_a?(Array)
-                end
-                sch[key] = value
-              end
-            end
-            schema = sch
-          end
-        end
-      end
-      schema.each { |key, val| schema[key] = do_merge_schema(val, options) if val.is_a?(Hash) } if options[:recursive]
       if (options[:expand_extends].nil? && options[:only_overriders].nil?) || options[:expand_extends]
         while base_model = schema.delete('extends')
           base_model = find_ref_schema(base_model) if base_model.is_a?(String)
@@ -154,6 +115,46 @@ module Setup
           end
         end
       end
+      references = Set.new
+      while refs = schema['$ref']
+        refs = [refs] unless refs.is_a?(Array)
+        refs.each do |ref|
+          if references.include?(ref)
+            if options[:silent]
+              schema.delete('$ref')
+            else
+              raise Exception.new("contains a circular reference #{ref}")
+            end
+          else
+            references << ref
+          end
+        end
+        sch = {}
+        schema.each do |key, value|
+          if key == '$ref' && (!options[:keep_ref] || sch[key])
+            value = [value] unless value.is_a?(Array)
+            value.each do |ref|
+              if ref_sch = find_ref_schema(ref)
+                sch = sch.reverse_merge(ref_sch) { |_, val1, val2| Cenit::Utility.array_hash_merge(val1, val2) }
+              else
+                raise Exception.new("contains an unresolved reference #{value}") unless options[:silent]
+              end
+            end
+          else
+            case existing_value = sch[key]
+              when Hash
+                if value.is_a?(Hash)
+                  value = value.reverse_merge(existing_value) { |_, val1, val2| Cenit::Utility.array_hash_merge(val1, val2) }
+                end
+              when Array
+                value = value + existing_value if value.is_a?(Array)
+            end
+            sch[key] = value
+          end
+        end
+        schema = sch
+      end
+      schema.each { |key, val| schema[key] = do_merge_schema(val, options) if val.is_a?(Hash) } if options[:recursive]
       schema
     end
   end
