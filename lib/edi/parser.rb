@@ -189,7 +189,7 @@ module Edi
               end
             else
               next if (updating && (property_name == '_id' || name == primary_field.to_s))
-              if property_value = json[name]
+              unless (property_value = json[name]).nil?
                 record.send("#{property_name}=", property_value)
               end
           end

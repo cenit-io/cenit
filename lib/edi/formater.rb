@@ -43,7 +43,9 @@ module Edi
       unless xml_doc = options[:xml_doc]
         options[:xml_doc] = xml_doc = Nokogiri::XML::Document.new
       end
-      record_to_xml_element(data_type = self.orm_model.data_type, JSON.parse(data_type.model_schema), self, xml_doc, nil, options)
+      element = record_to_xml_element(data_type = self.orm_model.data_type, self.orm_model.schema, self, xml_doc, nil, options, namespaces = {})
+      namespaces.each { |ns, xmlns| element["xmlns:#{xmlns}"] = ns }
+      element
     end
 
     def to_xml(options = {})
@@ -56,7 +58,12 @@ module Edi
 
     private
 
-    def record_to_xml_element(data_type, schema, record, xml_doc, enclosed_property_name, options)
+    def split_name(name)
+      name = (tokens = name.split(':')).pop
+      [tokens.join(':'), name]
+    end
+
+    def record_to_xml_element(data_type, schema, record, xml_doc, enclosed_property_name, options, namespaces)
       return unless record
       return Nokogiri::XML({enclosed_property_name => record}.to_xml(dasherize: false)).root.first_element_child if Cenit::Utility.json_object?(record)
       required = schema['required'] || []
@@ -64,7 +71,7 @@ module Edi
       elements = []
       content = nil
       content_property = nil
-      schema['properties'].each do |property_name, property_schema|
+      record.orm_model.properties_schemas.each do |property_name, property_schema|
         property_schema = data_type.merge_schema(property_schema)
         name = property_schema['edi']['segment'] if property_schema['edi']
         name ||= property_name
@@ -86,7 +93,7 @@ module Edi
                 if Cenit::Utility.json_object?(sub_record)
                   json_objects << sub_record
                 else
-                  elements << record_to_xml_element(data_type, property_schema, sub_record, xml_doc, property_name, options)
+                  elements << record_to_xml_element(data_type, property_schema, sub_record, xml_doc, property_name, options, namespaces)
                 end
               end if property_value
               unless json_objects.empty?
@@ -97,16 +104,16 @@ module Edi
             end
           when 'object'
             if property_model && property_model.modelable?
-              elements << record_to_xml_element(data_type, property_schema, record.send(property_name), xml_doc, property_name, options)
+              elements << record_to_xml_element(data_type, property_schema, record.send(property_name), xml_doc, property_name, options, namespaces)
             else
               elements << Nokogiri::XML({name => record.send(property_name)}.to_xml(dasherize: false)).root.first_element_child
             end
           else
-            value = property_schema['default'] unless value = record.send(property_name)
-            if value
+            value = property_schema['default'] if (value = record.send(property_name)).nil?
+            unless value.nil?
               xml_opts = property_schema['xml'] || {}
               if xml_opts['attribute']
-                attr[name] = value if !value.blank? || options[:with_blanks] || required.include?(property_name)
+                attr[name] = value if !value.nil? || options[:with_blanks] || required.include?(property_name)
               elsif xml_opts['content']
                 if content.nil?
                   content = value
@@ -122,6 +129,11 @@ module Edi
       end
       name = schema['edi']['segment'] if schema['edi']
       name ||= enclosed_property_name || record.orm_model.data_type.name
+      ns, name = split_name(name)
+      unless xmlns = namespaces[ns]
+        xmlns = namespaces[ns] = "ns#{namespaces.size + 1}"
+      end
+      name = xmlns + ':' + name
       element = xml_doc.create_element(name, attr)
       if elements.empty?
         content =
@@ -131,7 +143,7 @@ module Edi
               when Hash
                 Nokogiri::XML(content.to_xml).root.element_children
               else
-                [content]
+                [json_value(content).to_s]
             end
         content.each { |e| element << e }
       else
@@ -207,9 +219,13 @@ module Edi
         if value.is_a?(Array) || value.is_a?(Hash)
           json[key] = value if value.present? || options[:include_blanks] || options[:include_empty]
         else
-          json[key] = value
+          json[key] = json_value(value)
         end
       end
+    end
+
+    def json_value(value)
+      value
     end
 
     def record_to_edi(data_type, options, schema, record, enclosed_property_name=nil)
