@@ -225,7 +225,12 @@ module Edi
     end
 
     def json_value(value)
-      value
+      case value
+        when Time
+          value.strftime('%H:%M:%S')
+        else
+          value.to_s
+      end
     end
 
     def record_to_edi(data_type, options, schema, record, enclosed_property_name=nil)
