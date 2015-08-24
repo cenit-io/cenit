@@ -28,10 +28,6 @@ module Mongoff
       self[:_id]
     end
 
-    def schema
-      orm_model.schema
-    end
-
     def is_a?(model)
       if model.is_a?(Mongoff::Model)
         orm_model == model

@@ -165,11 +165,15 @@ module Edi
       end
       options[:stack] << record
       schema['properties']['_id'] ||= {'_id' => {'type' => 'string'}, 'edi' => {'segment' => 'id'}} if options[:include_id]
+      content_property = nil
       schema['properties'].each do |property_name, property_schema|
         property_schema = data_type.merge_schema(property_schema)
         property_model = record.orm_model.property_model(property_name)
         name = property_schema['edi']['segment'] if property_schema['edi']
         name ||= property_name
+        if property_schema['type'] != 'object' && (schema['properties'].size == 1 || (property_schema['xml'] && property_schema['xml']['content']))
+          content_property = name
+        end
         can_be_referenced = !(options[:embedding_all] || options[:embedding].include?(name.to_sym))
         if inspecting = options[:inspecting]
           next unless (property_model || inspecting.include?(name.to_sym))
@@ -189,10 +193,10 @@ module Edi
                 next if inspecting && (scope = options[:inspect_scope]) && !scope.include?(sub_record)
                 new_value << record_to_hash(sub_record, options, referenced_items, property_model)
               end
-              json[name] = new_value if new_value.present? || options[:include_blanks] || options[:include_empty]
             else
-              json[name] = nil if options[:include_null]
+              new_value = nil
             end
+            store(json, name, new_value, options)
           when 'object'
             sub_record = record.send(property_name)
             next if inspecting && (scope = options[:inspect_scope]) && !scope.include?(sub_record)
@@ -209,10 +213,17 @@ module Edi
         json['_type'] = data_type.name
       end
       options[:stack].pop
-      json
+      if content_property && json.size == 1 && options[:inline_content] && json.has_key?(content_property) && !json[content_property].is_a?(Hash)
+        json[content_property]
+      else
+        json
+      end
     end
 
     def store(json, key, value, options)
+      if options[:nqnames]
+        key = key.to_s.split(':').last
+      end
       if value.nil?
         json[key] = nil if options[:include_null]
       else
@@ -229,7 +240,7 @@ module Edi
         when Time
           value.strftime('%H:%M:%S')
         else
-          value.to_s
+          value
       end
     end
 
