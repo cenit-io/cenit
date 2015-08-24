@@ -268,6 +268,14 @@ module Api::V1
                            else
                              :create_from
                            end,
+            to_method: case config[:accept]
+                             when 'application/json'
+                               :to_json
+                             when 'application/xml'
+                               :to_xml
+                             else
+                               :to_json
+                           end,
             message: ''
           }.merge(config || {})
         @data_type = (controller = config[:controller]).send(:get_data_type, (@root = controller.request.params[:model] || controller.request.headers['data-type'])) rescue nil
@@ -278,6 +286,10 @@ module Api::V1
       def create_method
         config[:create_method]
       end
+      def to_method
+        config[:to_method]
+      end
+
 
       def create_options_keys
         %w(filename)
