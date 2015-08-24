@@ -6,16 +6,6 @@ module Xsd
 
     attr_reader :container
 
-    def simpleContent_start(attributes = [])
-      @simpleContent = true
-      nil
-    end
-
-    def complexContent_start(attributes = [])
-      @complexContent = true
-      nil
-    end
-
     def extension_start(attributes = [])
       @base = attributeValue(:base, attributes)
       nil
@@ -42,7 +32,7 @@ module Xsd
     def to_json_schema
       json_schema = {'type' => 'object'}
       json_schema['title'] = name.to_title if name
-      if !@simpleContent && @base
+      if @base
         if (@base = qualify_type(@base).to_json_schema)['$ref']
           @base = @base['$ref']
         end
@@ -51,9 +41,6 @@ module Xsd
       inject_attributes(json_schema)
       properties = json_schema['properties'] ||= {}
       required = json_schema['required'] ||= []
-      if @simpleContent
-        properties['value'] = (@simpleType || qualify_type(@base)).to_json_schema.merge('title' => 'Value')
-      end
       index = 0
       if container
         container_schema = container.to_json_schema

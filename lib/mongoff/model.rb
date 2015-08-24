@@ -77,16 +77,18 @@ module Mongoff
       if schema['type'] == 'object' && schema['properties'] && property_schema = schema['properties'][property]
         property_schema = property_schema['items'] if property_schema['type'] == 'array' && property_schema['items']
         model =
-          if (ref = property_schema['$ref']).is_a?(String) && property_dt = data_type.find_data_type(ref)
-            property_dt.records_model
-          else
-            property_schema = data_type.merge_schema(property_schema)
-            if property_schema['type'] == 'object' && property_schema['properties']
-              Model.for(data_type: data_type, name: property.camelize, parent: self, schema: property_schema)
+            if (ref = property_schema['$ref']).is_a?(String) &&
+                (property_dt = data_type.find_data_type(ref)) &&
+                property_dt.records_model.modelable?
+              property_dt.records_model
             else
-              nil
+              property_schema = data_type.merge_schema(property_schema, recursive: true)
+              if property_schema['type'] == 'object' && property_schema['properties']
+                Model.for(data_type: data_type, name: property.camelize, parent: self, schema: property_schema)
+              else
+                nil
+              end
             end
-          end
       end
       model
     end
@@ -143,11 +145,11 @@ module Mongoff
     def submodel_of?(model)
       return true if self.eql?(model) || (@base_model && @base_model.submodel_of?(model))
       base_model =
-        if base_data_type = data_type.find_data_type(JSON.parse(data_type.model_schema)['extends'])
-          Model.for(data_type: base_data_type, cache: caching?)
-        else
-          nil
-        end
+          if base_data_type = data_type.find_data_type(JSON.parse(data_type.model_schema)['extends'])
+            Model.for(data_type: base_data_type, cache: caching?)
+          else
+            nil
+          end
       if base_model
         @base_model = base_model if caching?
         base_model.submodel_of?(model)
@@ -157,7 +159,8 @@ module Mongoff
     end
 
     def attribute_key(field, field_metadata = {})
-      if (field_metadata[:model] ||= property_model(field)) && (schema = (field_metadata[:schema] ||= property_schema(field)))['referenced']
+      if (field_metadata[:model] ||= property_model(field)) &&
+          (schema = (field_metadata[:schema] ||= property_schema(field)))['referenced']
         return ("#{field}_id" + ('s' if schema['type'] == 'array').to_s).to_sym
       end
       field
@@ -165,34 +168,35 @@ module Mongoff
 
     def to_string(value)
       case value
-      when Hash, Array
-        value.to_json
-      else
-        value.to_s
+        when Hash, Array
+          value.to_json
+        else
+          value.to_s
       end
     end
 
     CONVERSION = {
-      BSON::ObjectId => ->(value) { BSON::ObjectId.from_string(value.to_s) },
-      BSON::Binary => ->(value) { BSON::Binary.new(value.to_s) },
-      String => ->(value) { value.to_s },
-      Integer => ->(value) { value.to_s.to_i },
-      Float => ->(value) { value.to_s.to_f },
-      Date => ->(value) { Date.parse(value.to_s) rescue nil },
-      DateTime => ->(value) { DateTime.parse(value.to_s) rescue nil },
-      Time => ->(value) { Time.parse(value.to_s) rescue nil },
-      Hash => ->(value) { JSON.parse(value.to_s) rescue nil },
-      Array => ->(value) { JSON.parse(value.to_s) rescue nil },
-      nil => ->(value) { Cenit::Utility.json_object?(value) ? value : nil }
+        BSON::ObjectId => ->(value) { BSON::ObjectId.from_string(value.to_s) },
+        BSON::Binary => ->(value) { BSON::Binary.new(value.to_s) },
+        Boolean => ->(value) { value.to_s.to_boolean },
+        String => ->(value) { value.to_s },
+        Integer => ->(value) { value.to_s.to_i },
+        Float => ->(value) { value.to_s.to_f },
+        Date => ->(value) { Date.parse(value.to_s) rescue nil },
+        DateTime => ->(value) { DateTime.parse(value.to_s) rescue nil },
+        Time => ->(value) { Time.parse(value.to_s) rescue nil },
+        Hash => ->(value) { JSON.parse(value.to_s) rescue nil },
+        Array => ->(value) { JSON.parse(value.to_s) rescue nil },
+        nil => ->(value) { Cenit::Utility.json_object?(value) ? value : nil }
     }
 
     def mongo_value(value, field_or_schema)
       type =
-        if !caching? || field_or_schema.is_a?(Hash)
-          mongo_type_for(field_or_schema)
-        else
-          @mongo_types[field_or_schema] ||= mongo_type_for(field_or_schema)
-        end
+          if !caching? || field_or_schema.is_a?(Hash)
+            mongo_type_for(field_or_schema)
+          else
+            @mongo_types[field_or_schema] ||= mongo_type_for(field_or_schema)
+          end
       if value.is_a?(type)
         value
       else
@@ -214,10 +218,10 @@ module Mongoff
 
       def options
         @options ||=
-          {
-            before_save: ->(_) {},
-            after_save: ->(_) {}
-          }
+            {
+                before_save: ->(_) {},
+                after_save: ->(_) {}
+            }
       end
 
       def [](option)
@@ -231,10 +235,10 @@ module Mongoff
 
       def validate_option!(option, value)
         unless case option
-               when :before_save, :after_save
-                 value.is_a?(Proc)
-               else
-                 true
+                 when :before_save, :after_save
+                   value.is_a?(Proc)
+                 else
+                   true
                end
           raise Exception.new("Invalid value #{value} for option #{option}")
         end

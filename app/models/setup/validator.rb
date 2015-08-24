@@ -20,6 +20,10 @@ module Setup
       fail NotImplementedError
     end
 
+    def data_format
+      nil
+    end
+
     def content_type
       nil
     end

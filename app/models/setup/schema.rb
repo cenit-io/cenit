@@ -125,7 +125,7 @@ module Setup
     end
 
     def data_type
-      data_types.first
+      data_types.last
     end
 
     def validate_data(data)
