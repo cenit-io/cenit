@@ -128,17 +128,17 @@ module Setup
       data_types.last
     end
 
-    def validate_data(data)
+    def validate_file_record(file)
       case schema_type
       when :json_schema
         begin
-          JSON::Validator.validate!(@schema ||= data_types.first.merged_schema(recursive: true), JSON.parse(data))
+          JSON::Validator.validate!(@schema ||= data_types.first.merged_schema(recursive: true), JSON.parse(file.data))
           []
         rescue Exception => ex
           [ex.message]
         end
       when :xml_schema
-        Nokogiri::XML::Schema(cenit_ref_schema).validate(Nokogiri::XML(data))
+        Nokogiri::XML::Schema(cenit_ref_schema).validate(Nokogiri::XML(file.data))
       end
     end
 
