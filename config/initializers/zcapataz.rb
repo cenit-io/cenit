@@ -6,7 +6,7 @@ Capataz.config do
 
   deny_invoke_of :require, :new, :create, :class, :eval, :class_eval, :instance_eval, :instance_variable_set, :instance_variable_get, :constants, :const_get, :const_set, :constantize
 
-  allowed_constants JSON, Array, Hash, Nokogiri, Nokogiri::XML, Time, Base64, Digest, Digest::MD5, SecureRandom
+  allowed_constants JSON, Array, Hash, Nokogiri, Nokogiri::XML, Time, Base64, Digest, Digest::MD5, SecureRandom, Setup, Setup::Library, Setup::Schema, Setup::DataType
 
   allow_on JSON, :parse
 
@@ -20,9 +20,13 @@ Capataz.config do
         "#{action}_from_#{format}"
       end
     end + [:create_from]
-  end + [:name, :slug, :to_json, :to_edi, :to_hash, :to_xml, :to_params]).flatten
+  end + [:name, :slug, :to_json, :to_edi, :to_hash, :to_xml, :to_params, :records_model]).flatten
 
-  deny_for [Setup::DynamicModel, Mongoff::Record], ->(instance, method) do
+  allow_for [Class, Mongoff::Model], [:where, :all]
+
+  allow_for [Mongoid::Criteria, Mongoff::Criteria], Enumerable.instance_methods(false) + Origin::Queryable.instance_methods(false)
+
+  deny_for [Setup::DynamicRecord, Mongoff::Record], ->(instance, method) do
     return false if [:id, :to_json, :to_edi, :to_hash, :to_xml, :to_params, :[], :[]=].include?(method)
     return false if [:data].include?(method) && instance.is_a?(Mongoff::GridFs::FileFormatter)
     if (method = method.to_s).end_with?('=')
