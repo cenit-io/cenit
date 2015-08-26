@@ -28,9 +28,6 @@ module Cenit
 
     config.after_initialize do
 
-      RailsAdmin::Config.excluded_models.concat RailsAdmin::Config.models_pool.select { |m| m.eql?('Base') || m.end_with?('::Base') }
-      puts 'Excluding ' + RailsAdmin::Config.excluded_models.to_s
-
       model_update_options = {model_loaded: false, used_memory: 0}
       model_update_options[:activated] = false if Cenit.deactivate_models
 
@@ -40,20 +37,21 @@ module Cenit
 
         Setup::Model.update_all(model_update_options)
 
-        Setup::Schema.all.each do |schema|
-          puts "Loading schema #{schema.uri}"
-          schema.load_models
+        unless Cenit.deactivate_models
+          Setup::Schema.all.each do |schema|
+            puts "Loading schema #{schema.uri}"
+            schema.load_models
+          end
+          models = []
+          Setup::FileDataType.all.each do |file_data_type|
+            models << file_data_type.load_model if file_data_type.activated
+          end
+          RailsAdmin::AbstractModel.update_model_config(models)
         end
-
-        models = []
-        Setup::FileDataType.all.each do |file_data_type|
-          models << file_data_type.load_model if file_data_type.activated
-        end
-        RailsAdmin::AbstractModel.update_model_config(models)
 
       end
-      Account.current = nil
 
+      Account.current = nil
     end
 
   end

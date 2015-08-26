@@ -9,6 +9,7 @@ class Ability
       if user.super_admin?
         can :manage, [Role, User, Account]
         can :destroy, [Setup::SharedCollection, Setup::Model]
+        can :edit, Setup::Model
       else
         cannot :destroy, [Setup::SharedCollection, Setup::Model]
       end
