@@ -37,7 +37,7 @@ module Cenit
         fail "Options hash expected as third argument but #{@options.class} found"
       end
       code = Capataz.rewrite(code, locals: locals.keys, self_linker: @options[:self_linker], self_send_prefixer: @prefixer = Prefixer.new(self))
-      locals.each { |local, _| code = "#{local} = locals[:#{local}]\r\n" + code }
+      locals.each { |local, _| code = "#{local} = ::Capataz.handle(locals[:#{local}])\r\n" + code }
       instance_eval(code)
     end
 

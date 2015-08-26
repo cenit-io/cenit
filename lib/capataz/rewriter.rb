@@ -39,7 +39,7 @@ module Capataz
       end
       i = 2
       while i < node.children.length
-        capatize(node.children[i])
+        decapatize(node.children[i])
         i += 1
       end
     end
@@ -137,6 +137,11 @@ module Capataz
           insert_after(node.location.expression, ')')
         end
       end
+    end
+
+    def decapatize(node)
+      insert_before(node.location.expression, '(')
+      insert_after(node.location.expression, ').capataz_slave')
     end
 
     def const_from(node)

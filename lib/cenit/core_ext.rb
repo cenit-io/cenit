@@ -14,3 +14,14 @@ module Enumerable
   end
 
 end
+
+module OpenSSL
+  class Digest
+    class << self
+      def new_sign(*args)
+        args = args.collect { |a| a.capataz_proxy? ? a.capataz_slave : a }
+        new(*args)
+      end
+    end
+  end
+end

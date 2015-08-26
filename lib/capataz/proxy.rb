@@ -2,6 +2,10 @@ class BasicObject
   def capataz_proxy?
     false
   end
+
+  def capataz_slave
+    self
+  end
 end
 
 class Object
