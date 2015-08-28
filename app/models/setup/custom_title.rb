@@ -1,15 +1,12 @@
 module Setup
   module CustomTitle
 
-    def title
-      try(:name)
-    end
-
     def scope_title
       nil
     end
 
     def custom_title
+      title = try(:title) || try(:name) || to_s
       if scoped_title = scope_title
         "#{scoped_title} | #{title}"
       else

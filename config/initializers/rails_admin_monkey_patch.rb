@@ -172,7 +172,7 @@ module RailsAdmin
           data_type.reload
           schema = model.schema
           model_data_type = data_type.model.eql?(model) ? data_type : nil
-          title = model_data_type ? model_data_type.title : model.title
+          title = (model_data_type && model_data_type.title) ||  model.title
           {navigation_label: nil,
            visible: false,
            label: title}.each do |option, value|
