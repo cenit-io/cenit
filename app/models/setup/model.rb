@@ -52,6 +52,10 @@ module Setup
       !(records_model.try(:delete_all) rescue true) || true
     end
 
+    def scope_title
+      library && library.name
+    end
+
     def validator
       nil
     end
