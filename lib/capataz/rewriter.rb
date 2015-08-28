@@ -39,7 +39,7 @@ module Capataz
       end
       i = 2
       while i < node.children.length
-        capatize(node.children[i])
+        decapatize(node.children[i])
         i += 1
       end
     end
@@ -136,6 +136,13 @@ module Capataz
         else
           insert_after(node.location.expression, ')')
         end
+      end
+    end
+
+    def decapatize(node)
+      unless node.type == :hash
+        insert_before(node.location.expression, '(')
+        insert_after(node.location.expression, ').capataz_slave')
       end
     end
 

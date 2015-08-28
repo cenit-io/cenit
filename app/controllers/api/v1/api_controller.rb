@@ -1,29 +1,33 @@
 module Api::V1
   class ApiController < ApplicationController
-    before_action :save_request_data, :authorize, except: [:new_account]
+    before_action :authorize, :save_request_data, except: [:new_account]
     before_action :find_item, only: [:show, :destroy, :pull, :run]
     rescue_from Exception, :with => :exception_handler
     respond_to :json
 
     def index
-      @items =
-        if @criteria.present?
-          if sort_key = @criteria.delete(:sort_by)
-            asc = @criteria.has_key?(:ascending) | @criteria.has_key?(:asc)
-            [:ascending, :asc, :descending, :desc].each { |key| @criteria.delete(key) }
-          end
-          if limit = @criteria.delete(:limit)
-            limit = limit.to_s.to_i
-            limit = nil if limit == 0
-          end
-          items = klass.where(@criteria)
-          items = items.sort(sort_key => asc ? 1 : -1) if sort_key
-          items = items.limit(limit) if limit
-          items
-        else
-          klass.all
-        end
-      render json: @items.map { |item| {((model = (hash = item.inspect_json(include_id: true)).delete('_type')) ? model.downcase : @model) => hash} }
+      if klass = self.klass
+        @items =
+            if @criteria.present?
+              if sort_key = @criteria.delete(:sort_by)
+                asc = @criteria.has_key?(:ascending) | @criteria.has_key?(:asc)
+                [:ascending, :asc, :descending, :desc].each { |key| @criteria.delete(key) }
+              end
+              if limit = @criteria.delete(:limit)
+                limit = limit.to_s.to_i
+                limit = nil if limit == 0
+              end
+              items = klass.where(@criteria)
+              items = items.sort(sort_key => asc ? 1 : -1) if sort_key
+              items = items.limit(limit) if limit
+              items
+            else
+              klass.all
+            end
+        render json: @items.map { |item| {((model = (hash = item.inspect_json(include_id: true)).delete('_type')) ? model.downcase : @model) => hash} }
+      else
+        render json: {error: 'no model found'}, status: :not_found
+      end
     end
 
     def show
@@ -36,10 +40,10 @@ module Api::V1
 
     def push
       response =
-        {
-          success: success_report = Hash.new { |h, k| h[k] = [] },
-          errors: broken_report = Hash.new { |h, k| h[k] = [] }
-        }
+          {
+              success: success_report = Hash.new { |h, k| h[k] = [] },
+              errors: broken_report = Hash.new { |h, k| h[k] = [] }
+          }
       @payload.each do |root, message|
         if data_type = @payload.data_type_for(root)
           message = [message] unless message.is_a?(Array)
@@ -113,53 +117,53 @@ module Api::V1
       data.reverse_merge!(email: params[:email], password: pwd = params[:password], password_confirmation: params[:password_confirmation] || pwd)
       status = 406
       response =
-        if token = data[:token] || params[:token]
-          if tkaptcha = TkAptcha.where(token: token).first
-            if code = data[:code] || params[:code]
-              if code == tkaptcha.code
-                data.merge!(tkaptcha.data || {}) {|_, left, right| left || right}
-                data[:password] = Devise.friendly_token unless data[:password]
-                data[:password_confirmation] = data[:password] unless data[:password_confirmation]
-                tkaptcha.destroy
-                user =
-                  begin
-                    (user = User.new_with_session(data, session)).save
-                    user
-                  rescue
-                    user #TODO Handle sending confirmation email error
+          if token = data[:token] || params[:token]
+            if tkaptcha = TkAptcha.where(token: token).first
+              if code = data[:code] || params[:code]
+                if code == tkaptcha.code
+                  data.merge!(tkaptcha.data || {}) { |_, left, right| left || right }
+                  data[:password] = Devise.friendly_token unless data[:password]
+                  data[:password_confirmation] = data[:password] unless data[:password_confirmation]
+                  tkaptcha.destroy
+                  user =
+                      begin
+                        (user = User.new_with_session(data, session)).save
+                        user
+                      rescue
+                        user #TODO Handle sending confirmation email error
+                      end
+                  if user.errors.blank?
+                    Account.create_with_owner(owner: user)
+                    status = 200
+                    {number: user.number, token: user.authentication_token}
+                  else
+                    user.errors.to_json
                   end
-                if user.errors.blank?
-                  Account.create_with_owner(owner: user)
-                  status = 200
-                  {number: user.number, token: user.authentication_token}
-                else
-                  user.errors.to_json
+                else #invalid code
+                  {code: ['is not valid']}
                 end
-              else #invalid code
-                {code: ['is not valid']}
+              else #code missing
+                {code: ['is missing']}
               end
-            else #code missing
-              {code: ['is missing']}
+            else #invalid token
+              {token: ['is not valid']}
             end
-          else #invalid token
-            {token: ['is not valid']}
-          end
-        elsif data[:email]
-          data[:password] = Devise.friendly_token unless data[:password]
-          data[:password_confirmation] = data[:password] unless data[:password_confirmation]
-          if (user = User.new(data)).valid?(context: :create)
-            if (tkaptcha = TkAptcha.create(email: data[:email], data: data)).errors.blank?
-              status = 200
-              {token: tkaptcha.token}
+          elsif data[:email]
+            data[:password] = Devise.friendly_token unless data[:password]
+            data[:password_confirmation] = data[:password] unless data[:password_confirmation]
+            if (user = User.new(data)).valid?(context: :create)
+              if (tkaptcha = TkAptcha.create(email: data[:email], data: data)).errors.blank?
+                status = 200
+                {token: tkaptcha.token}
+              else
+                tkaptcha.errors.to_json
+              end
             else
-              tkaptcha.errors.to_json
+              user.errors.to_json
             end
-          else
-            user.errors.to_json
+          else #bad request
+            {token: ['is missing'], email: ['is missing']}
           end
-        else #bad request
-          {token: ['is missing'], email: ['is missing']}
-        end
       render json: response, status: status
     end
 
@@ -203,11 +207,19 @@ module Api::V1
     def get_data_type_by_slug(slug)
       if slug
         @data_types[slug] ||=
-          if @library == 'setup'
-            Setup::BuildInDataType["Setup::#{slug.camelize}"]
-          else
-            Setup::Model.where(slug: slug).detect { |model| model.library.slug == @library }
-          end
+            if @library_slug == 'setup'
+              Setup::BuildInDataType["Setup::#{slug.camelize}"]
+            else
+              if @library_id.nil?
+                lib = Setup::Library.where(slug: @library_slug).first
+                @library_id = (lib && lib.id) || ''
+              end
+              if @library_id.present?
+                Setup::Model.where(slug: slug, library_id: @library_id).first
+              else
+                nil
+              end
+            end
       else
         nil
       end
@@ -233,19 +245,20 @@ module Api::V1
       @data_types ||= {}
       @request_id = request.uuid
       @webhook_body = request.body.read
-      @library = params[:library]
+      @library_slug = params[:library]
+      @library_id = nil
       @model = params[:model]
       @payload =
-        case request.content_type
-        when 'application/json'
-          JSONPayload
-        when 'application/xml'
-          XMLPayload
-        else
-          BasicPayload
-        end.new(controller: self,
-                message: @webhook_body,
-                content_type: request.content_type)
+          case request.content_type
+            when 'application/json'
+              JSONPayload
+            when 'application/xml'
+              XMLPayload
+            else
+              BasicPayload
+          end.new(controller: self,
+                  message: @webhook_body,
+                  content_type: request.content_type)
       @criteria = params.to_hash.with_indifferent_access.reject { |key, _| %w(controller action library model id api).include?(key) }
     end
 
@@ -260,17 +273,17 @@ module Api::V1
 
       def initialize(config)
         @config =
-          {
-            create_method: case config[:content_type]
-                           when 'application/json'
-                             :create_from_json
-                           when 'application/xml'
-                             :create_from_xml
-                           else
-                             :create_from
-                           end,
-            message: ''
-          }.merge(config || {})
+            {
+                create_method: case config[:content_type]
+                                 when 'application/json'
+                                   :create_from_json
+                                 when 'application/xml'
+                                   :create_from_xml
+                                 else
+                                   :create_from
+                               end,
+                message: ''
+            }.merge(config || {})
         @data_type = (controller = config[:controller]).send(:get_data_type, (@root = controller.request.params[:model] || controller.request.headers['data-type'])) rescue nil
         @create_options = {create_collector: Set.new}
         create_options_keys.each { |option| @create_options[option.to_sym] = controller.request[option] }

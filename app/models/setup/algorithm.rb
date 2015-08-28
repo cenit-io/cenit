@@ -36,6 +36,7 @@ module Setup
             links << Setup::CallLink.new(name: call_name)
           end
         end
+        self.call_links.clear
         self.call_links = links
         do_link
       end
