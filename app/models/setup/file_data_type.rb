@@ -8,12 +8,26 @@ module Setup
     belongs_to :library, class_name: Setup::Library.to_s, inverse_of: :file_data_types
     belongs_to :validator, class_name: Setup::Validator.to_s, inverse_of: nil
 
+    has_and_belongs_to_many :validators, class_name: Setup::Validator.to_s, inverse_of: nil
+
     attr_readonly :library
 
     validates_presence_of :library
 
-    before_save do
+    before_save :validate_configuration
+
+    def validate_configuration
       self.title = self.name if title.blank?
+      if validator.present?
+        if validator.is_a?(Setup::DataTypeValidator)
+          validators.delete(validator) if validators.include?(validator)
+        else
+          errors.add(:validator, 'only schemas and EDI validators are supported as main validators')
+        end
+      else
+        errors.add(:validator, 'is required when other validators present') if validators.present?
+      end
+      errors.blank?
     end
 
     def data_type_storage_collection_name
@@ -36,15 +50,17 @@ module Setup
       Mongoff::GridFs::FileModel::SCHEMA.to_json
     end
 
-    def validate_file(readable)
-      readable.rewind
-      errors = validator.present? ? validator.validate_data(readable.read) : []
-      readable.rewind
+    def validate_file(file)
+      errors = validator.present? ? validator.validate_file_record(file) : []
+      validators.each do |v|
+        next if errors.present?
+        errors += v.validate_file_record(file)
+      end
       errors
     end
 
-    def validate_file!(readable)
-      if (errors = validate_file(readable)).present?
+    def validate_file!(file)
+      if (errors = validate_file(file)).present?
         raise Exception.new('Invalid file data: ' + errors.to_sentence)
       end
     end
@@ -89,8 +105,8 @@ module Setup
 
     def default_attributes
       {
-        default_filename: "file_#{DateTime.now.strftime('%Y-%m-%d_%Hh%Mm%S')}" + ((extension = validator.try(:file_extension)) ? ".#{extension}" : ''),
-        default_contentType: validator.try(:content_type) || 'application/octet-stream'
+          default_filename: "file_#{DateTime.now.strftime('%Y-%m-%d_%Hh%Mm%S')}" + ((extension = validator.try(:file_extension)) ? ".#{extension}" : ''),
+          default_contentType: validator.try(:content_type) || 'application/octet-stream'
       }
     end
 
@@ -159,13 +175,13 @@ module Setup
 
       def file
         @file ||=
-          if new_record?
-            f = grid_fs_file_model.new
-            f.id = id
-            f
-          else
-            grid_fs_file_model.where(id: id).first
-          end
+            if new_record?
+              f = grid_fs_file_model.new
+              f.id = id
+              f
+            else
+              grid_fs_file_model.where(id: id).first
+            end
       end
 
       def data=(string_or_readable)
@@ -177,7 +193,7 @@ module Setup
       end
 
       def save(options = {})
-        [:filename, :aliases, :metadata].each { |field| file[field] =  self[field] }
+        [:filename, :aliases, :metadata].each { |field| file[field] = self[field] }
         file[:contentType] = self[:contentType] if @custom_contentType
         if @new_data
           file.data = @new_data

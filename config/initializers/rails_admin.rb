@@ -281,6 +281,12 @@ RailsAdmin.config do |config|
     fields :name, :schema, :content_type
   end
 
+  config.model Setup::AlgorithmValidator do
+    navigation_label 'Data Definitions'
+
+    fields :name, :algorithm
+  end
+
   config.model Setup::FileDataType do
     visible false
     register_instance_option(:discard_submit_buttons) do
@@ -303,7 +309,11 @@ RailsAdmin.config do |config|
       field :validator do
         inline_add false
         inline_edit false
+        associated_collection_scope do
+          Proc.new { |scope| scope.any_in(_type: [Setup::Schema.to_s, Setup::EdiValidator.to_s]) }
+        end
       end
+      field :validators
     end
     fields :name, :library, :validator
   end

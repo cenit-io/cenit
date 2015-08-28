@@ -15,9 +15,24 @@ module Mongoff
       end
 
       def data
-        data = ''
-        chunks.sort(n: 1).each { |chunk| data << chunk.data.data }
-        data
+        if @new_data
+          if @new_data.is_a?(String)
+            @new_data
+          else
+            @new_data.rewind
+            data = @new_data.read
+            @new_data.rewind
+            data
+          end
+        else
+          @data ||=
+              begin
+                data = ''
+                chunks.sort(n: 1).each { |chunk| data << chunk.data.data }
+                data
+              end
+        end
+
       end
 
       def data=(string_or_readable)
@@ -30,28 +45,29 @@ module Mongoff
       end
 
       def save(options = {})
+        self[:metadata] = options[:metadata] || {}
         self[:chunkSize] = FileModel::MINIMUM_CHUNK_SIZE if  self[:chunkSize] < FileModel::MINIMUM_CHUNK_SIZE
         temporary_file = nil
         new_chunks_ids =
-          if @new_data
-            readable =
-              if @new_data.is_a?(String)
-                temporary_file = Tempfile.new('file_')
-                temporary_file.binmode
-                temporary_file.write(@new_data)
-                temporary_file.rewind
-                Cenit::Utility::Proxy.new(temporary_file, original_filename: filename || options[:filename] || options[:default_filename])
+            if @new_data
+              readable =
+                  if @new_data.is_a?(String)
+                    temporary_file = Tempfile.new('file_')
+                    temporary_file.binmode
+                    temporary_file.write(@new_data)
+                    temporary_file.rewind
+                    Cenit::Utility::Proxy.new(temporary_file, original_filename: filename || options[:filename] || options[:default_filename])
+                  else
+                    @new_data
+                  end
+              if !options[:valid_data] && (file_data_errors = orm_model.data_type.validate_file(self)).present?
+                errors.add(:base, "Invalid file data: #{file_data_errors.to_sentence}")
               else
-                @new_data
+                create_temporary_chunks(readable, options)
               end
-            if !options[:valid_data] && (file_data_errors = orm_model.data_type.validate_file(readable)).present?
-              errors.add(:base, "Invalid file data: #{file_data_errors.to_sentence}")
-            else
-              create_temporary_chunks(readable, options)
             end
-          end
         temporary_file.close if temporary_file
-        [:filename, :contentType, :metadata].each { |property| self[property] = options[property] unless self[property].present? }
+        [:filename, :contentType].each { |property| self[property] = options[property] unless self[property].present? }
         if errors.blank? && super
           if new_chunks_ids
             chunks.remove_all
@@ -141,15 +157,15 @@ module Mongoff
 
       def extract_basename(object)
         file_name =
-          if msg = [
-            :original_path,
-            :original_filename,
-            :path,
-            :filename,
-            :pathname
-          ].detect { |msg| object.respond_to?(msg) }
-            object.send(msg)
-          end
+            if msg = [
+                :original_path,
+                :original_filename,
+                :path,
+                :filename,
+                :pathname
+            ].detect { |msg| object.respond_to?(msg) }
+              object.send(msg)
+            end
         file_name ? clean(file_name) : nil
       end
 

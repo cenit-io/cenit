@@ -16,7 +16,7 @@ module Setup
       errors.blank?
     end
 
-    def validate_data(data)
+    def validate_file_record(data)
       fail NotImplementedError
     end
 

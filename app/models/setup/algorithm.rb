@@ -36,6 +36,7 @@ module Setup
             links << Setup::CallLink.new(name: call_name)
           end
         end
+        self.call_links.clear
         self.call_links = links
         do_link
       end
@@ -51,7 +52,7 @@ module Setup
       args = {}
       parameters.each { |parameter| args[parameter.name] = input.shift }
       do_link
-      Cenit::RubyInterpreter.run(code, self, args)
+      Cenit::RubyInterpreter.run(code, args, self_linker: self)
     end
 
     def link?(call_symbol)
