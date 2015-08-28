@@ -8,7 +8,7 @@ Capataz.config do
 
   allowed_constants JSON, Array, Hash, Nokogiri, Nokogiri::XML, Time, Base64, Digest, Digest::MD5, SecureRandom, Setup, Setup::Library, Setup::Schema, Setup::DataType, OpenSSL, OpenSSL::Digest, OpenSSL::HMAC
 
-  allow_on JSON, :parse
+  allow_on JSON, [:parse, :pretty_generate]
 
   allow_for ActionView::Base, []
 
