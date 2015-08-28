@@ -70,9 +70,11 @@ module Setup
       end
       begin
         schemas = json_schemas
+        updated_data_types = []
         data_types.any_in(name: schemas.keys).each do |data_type|
           data_type.model_schema = schemas[data_type.name].to_json
           schemas[data_type.name] = data_type
+          updated_data_types << data_type
         end
         new_data_type_names = schemas.keys.select { |name| schemas[name].is_a?(Hash) }
         if library && (conflicts = Setup::Model.all.any_in(name: new_data_type_names).and(library_id: library.id)).present?
@@ -106,6 +108,7 @@ module Setup
               @data_types_to_reload.delete(data_type)
             end
           end
+          updated_data_types.each { |data_type| data_type.save unless @data_types_to_reload.include?(data_type) }
         end
       rescue Exception => ex
         #TODO Delete raise
