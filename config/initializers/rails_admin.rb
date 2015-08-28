@@ -228,6 +228,10 @@ RailsAdmin.config do |config|
       read_only true
     end
 
+    edit do
+      field :title
+    end
+
     list do
       field :title
       field :validator
