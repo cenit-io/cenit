@@ -14,7 +14,7 @@ module Liquid
     def render(context)
       locals = {}
       context.environments.each { |e| locals.merge!(e) }
-      Cenit::RubyInterpreter.run(@value, locals)
+      Cenit::RubyInterpreter.run(@value, locals, linking_algorithms: false)
     end
   end
 end

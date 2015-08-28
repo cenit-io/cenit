@@ -6,12 +6,12 @@ module Setup
     include Slug
     include CustomTitle
 
-    Setup::Models.exclude_actions_for self, :new, :update, :edit, :bulk_delete, :delete_all
+    Setup::Models.exclude_actions_for self, :new, :update, :bulk_delete, :delete_all
 
     BuildInDataType.regist(self).including(:schema).referenced_by(:name)
 
     def self.to_include_in_models
-      @to_include_in_models ||= [Setup::DynamicModel,
+      @to_include_in_models ||= [Setup::DynamicRecord,
                                  Mongoid::Document,
                                  Mongoid::Timestamps,
                                  Setup::SchemaModelAware,

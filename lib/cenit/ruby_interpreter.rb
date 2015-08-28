@@ -4,10 +4,11 @@ module Cenit
     def initialize
       @prefixes = Hash.new { |h, linker| h[linker] = Hash.new { |h, method| h[method] = "__#{linker}_" } }
       @algorithms = {}.with_indifferent_access
+      @options = {}
     end
 
     def method_missing(symbol, *args, &block)
-      if algorithm = @algorithms[symbol]
+      if @options[:linking_algorithms] && algorithm = @algorithms[symbol]
         instance_eval "define_singleton_method(:#{symbol},
         ->(#{(params = algorithm.parameters.collect { |p| p.name }).join(', ')}) {
           #{Capataz.rewrite(algorithm.code, locals: params, self_linker: algorithm, self_send_prefixer: @prefixer)}
@@ -23,10 +24,20 @@ module Cenit
     end
 
     def __run__(*args)
-      locals = (args.last.is_a?(Hash) ? args.pop : {}).symbolize_keys
-      code = args.shift.to_s
-      code = Capataz.rewrite(code, locals: locals.keys, self_linker: args.first, self_send_prefixer: @prefixer = Prefixer.new(self))
-      locals.each { |local, _| code = "#{local} = locals[:#{local}]\r\n" + code }
+      fail "Code expected as first argument but #{code.class} found" unless (code = args.shift).is_a?(String)
+      if (locals = args.shift || {}).is_a?(Hash)
+        locals = locals.symbolize_keys
+      else
+        fail "Locals hash expected as second argument but #{locals.class} found"
+      end
+      if (@options = args.shift || {}).is_a?(Hash)
+        @options = @options.symbolize_keys
+        @options[:linking_algorithms] = true unless @options.has_key?(:linking_algorithms)
+      else
+        fail "Options hash expected as third argument but #{@options.class} found"
+      end
+      code = Capataz.rewrite(code, locals: locals.keys, self_linker: @options[:self_linker], self_send_prefixer: @prefixer = Prefixer.new(self))
+      locals.each { |local, _| code = "#{local} = ::Capataz.handle(locals[:#{local}])\r\n" + code }
       instance_eval(code)
     end
 
