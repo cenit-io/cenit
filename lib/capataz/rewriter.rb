@@ -140,8 +140,10 @@ module Capataz
     end
 
     def decapatize(node)
-      insert_before(node.location.expression, '(')
-      insert_after(node.location.expression, ').capataz_slave')
+      unless node.type == :hash
+        insert_before(node.location.expression, '(')
+        insert_after(node.location.expression, ').capataz_slave')
+      end
     end
 
     def const_from(node)
