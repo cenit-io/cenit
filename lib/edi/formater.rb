@@ -203,10 +203,7 @@ module Edi
             value = record_to_hash(sub_record, options, can_be_referenced && property_schema['referenced'] && !property_schema['export_embedded'], property_model)
             store(json, name, value, options)
           else
-            if (!(value = record.send(property_name)).nil? || property_schema['default']).is_a?(BSON::ObjectId)
-              value = value.to_s
-            end
-            store(json, name, value, options)
+            store(json, name, record.send(property_name) || property_schema['default'], options) #TODO Default values should came from record attributes
         end
       end
       if !options[:inspecting] && !json['_reference'] && enclosed_model && !record.orm_model.eql?(enclosed_model) && !options[:ignore].include?(:_type) && (!options[:only] || options[:only].include?(:_type))
@@ -230,7 +227,8 @@ module Edi
         if value.is_a?(Array) || value.is_a?(Hash)
           json[key] = value if value.present? || options[:include_blanks] || options[:include_empty]
         else
-          json[key] = json_value(value)
+          value = value.to_s if value.is_a?(BSON::ObjectId)
+          json[key] = json_value(value) if value.present? || options[:include_blanks]
         end
       end
     end
