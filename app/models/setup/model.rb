@@ -164,8 +164,12 @@ module Setup
       end
     end
 
-    def find_data_type(ref)
-      (lib = library) && lib.find_data_type_by_name(ref)
+    def find_data_type(ref, library_id = self.library_id)
+      super || Setup::Model.where(library_id: library_id, name: name).first
+    end
+
+    def library_id
+      self[:library_id]
     end
 
     def report_shutdown(report)
