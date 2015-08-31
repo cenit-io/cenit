@@ -51,11 +51,14 @@ module Mongoid
       end
 
       def property_model?(property)
-        ((((relation = try(:reflect_on_association, property)) && relation.try(:klass) && true) || (@mongoff_models && @mongoff_models[property].modelable?)) && true) || false
+        ((((relation = try(:reflect_on_association, property)) && relation.try(:klass) && true) || (@mongoff_models && @mongoff_models[property].modelable?)) && true) ||
+          superclass != Object && superclass.property_model?(property)
       end
 
       def property_model(property)
-        ((relation = try(:reflect_on_association, property)) && relation.try(:klass)) || (@mongoff_models && @mongoff_models[property])
+        ((relation = try(:reflect_on_association, property)) && relation.try(:klass)) ||
+          (@mongoff_models && @mongoff_models[property]) ||
+          (superclass != Object && superclass.property_model(property)) || nil
       end
 
       def for_each_association(&block)
