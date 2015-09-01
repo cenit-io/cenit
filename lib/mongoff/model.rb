@@ -100,6 +100,13 @@ module Mongoff
       model
     end
 
+    def stored_properties_on(record)
+      properties = Set.new
+      record.document.each_key { |field| properties << field.to_s if property?(field) }
+      record.fields.each_key { |field| properties << field.to_s}
+      properties
+    end
+
     def for_each_association(&block)
       properties_schemas.each do |property, schema|
         block.yield(name: property, embedded: !schema['referenced']) if property_model?(property)

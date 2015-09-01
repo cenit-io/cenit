@@ -9,7 +9,7 @@ module Mongoff
         name_property = nil
         if (edi_opts = schema['edi']) && segments = edi_opts['segments']
           segment_property = segments[name]
-          name_property = name if properties_schemas.has_key?(name)
+          name_property = name if property?(name)
         else
           properties.each do |property|
             next if segment_property
@@ -46,6 +46,10 @@ module Mongoff
 
     def properties
       properties_schemas.keys
+    end
+
+    def property?(property)
+      properties_schemas.has_key?(property)
     end
 
     MONGO_TYPE_MAP = {
