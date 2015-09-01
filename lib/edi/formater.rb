@@ -165,7 +165,7 @@ module Edi
         options[:inspected_records] << record
       end
       options[:stack] << record
-      schema['properties']['_id'] ||= {'_id' => {'type' => 'string'}, 'edi' => {'segment' => 'id'}} if options[:include_id]
+      store(json, 'id', record.id, options) if options[:include_id]
       content_property = nil
       model.stored_properties_on(record).each do |property_name|
         property_schema = model.property_schema(property_name)
