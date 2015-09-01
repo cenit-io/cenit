@@ -35,12 +35,13 @@ module Setup
       errors.blank?
     end
 
+    #TODO Delete these method
     def find_data_type_by_name(name)
       if data_type = Setup::Model.where(library: self, name: name).first
         data_type
       else
         if (schema = Setup::Schema.where(library: self, uri: name).first) && schema.data_types.count == 1
-          schema.data_types.first
+          schema.data_types.last
         else
           nil
         end

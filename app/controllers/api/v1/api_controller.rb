@@ -1,6 +1,6 @@
 module Api::V1
   class ApiController < ApplicationController
-    before_action :authorize, :save_request_data, except: [:new_account]
+    before_action :authorize, :do_optimize_data_type_handling, :save_request_data, except: [:new_account]
     before_action :find_item, only: [:show, :destroy, :pull, :run]
     rescue_from Exception, :with => :exception_handler
     respond_to :json

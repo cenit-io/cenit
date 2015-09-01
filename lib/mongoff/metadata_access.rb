@@ -1,8 +1,35 @@
 module Mongoff
   module MetadataAccess
 
+
+    def property_for(name)
+      @properties_by_mane ||= {}
+      unless @properties_by_mane.has_key?(name)
+        segment_property = nil
+        name_property = nil
+        if (edi_opts = schema['edi']) && segments = edi_opts['segments']
+          segment_property = segments[name]
+          name_property = name if property?(name)
+        else
+          properties.each do |property|
+            next if segment_property
+            schema = property_model(property).schema
+            if ((edi_opts = schema['edi']) && edi_opts['segment'] == name)
+              segment_property = property
+            else
+              schema = property_schema(property)
+              segment_property = property if ((edi_opts = schema['edi']) && edi_opts['segment'] == name)
+            end
+            name_property = property if property == name
+          end
+        end
+        @properties_by_mane[name] = segment_property || name_property
+      end
+      @properties_by_mane[name]
+    end
+
     def properties_schemas
-      ((schema = self.schema)['type'] == 'object' && schema['properties']) || {}
+      @properties_schemas ||= ((schema = self.schema)['type'] == 'object' && schema['properties']) || {}
     end
 
     def simple_properties_schemas
@@ -10,7 +37,19 @@ module Mongoff
     end
 
     def property_schema(property)
-      properties_schemas[property.to_s]
+      if sch = properties_schemas[property.to_s]
+        data_type.merge_schema(sch)
+      else
+        nil
+      end
+    end
+
+    def properties
+      properties_schemas.keys
+    end
+
+    def property?(property)
+      properties_schemas.has_key?(property)
     end
 
     MONGO_TYPE_MAP = {

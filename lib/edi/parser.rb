@@ -47,36 +47,20 @@ module Edi
         name ||= enclosed_property || model.data_type.name
         return unless name == qualify_name(element)
         record ||= new_record || model.new
-        attributes = {}
-        attribute_schemas = {}
-        sub_element_schemas = {}
-        content_property = nil
-        model.properties_schemas.each do |property_name, property_schema|
-          property_model = model.property_model(property_name)
-          item_schema = property_model && property_model.modelable? ? property_model.schema : data_type.merge_schema(property_schema)
-          if edi_opts = item_schema['edi']
-            next if edi_opts['discard']
-            name = edi_opts['segment'] || property_name
-          else
-            name = property_name
-          end
-          xml_opts = item_schema['xml'] || {}
-          if xml_opts['attribute']
-            attributes[name] = property_name
-            attribute_schemas[name] = item_schema
-          elsif xml_opts['content']
-            raise Exception.new("More than one content property found: '#{content_property}' and '#{property_name}'") if content_property
-            content_property = property_name
-          else
-            property_schema = data_type.merge_schema(property_schema)
-            property_schema[:property_name] = property_name
-            sub_element_schemas[name] = property_schema
+        if (xml_opts = json_schema['xml']).nil? || (content_property = xml_opts['content_property']).nil?
+          model.properties.each do |property|
+            next if content_property
+            property_model = model.property_model(property)
+            property_schema = property_model.schema
+            if xml_opts = property_schema['xml'] || {}
+              content_property = property if xml_opts['content']
+            end
           end
         end
         element.attribute_nodes.each do |attr|
-          if property = attributes[attr.name]
+          if property = model.property_for(attr.name)
             value =
-                if attribute_schemas[attr.name]['type'] == 'array'
+                if model.property_model(property).schema['type'] == 'array'
                   attr.value.split(' ')
                 else
                   attr.value
@@ -84,39 +68,38 @@ module Edi
             record.send("#{property}=", value)
           end
         end
-        if sub_element_schemas.empty?
-          if content_property
-            content =
-                if element.children.empty?
-                  element.content
-                else
-                  element.namespaces.each { |ns, value| element[ns] = value }
-                  Hash.from_xml(element.to_xml).values.first
-                end
-            record.send("#{content_property}=", content)
-          end
+        if content_property
+          content =
+              if element.children.empty?
+                element.content
+              else
+                element.namespaces.each { |ns, value| element[ns] = value }
+                Hash.from_xml(element.to_xml).values.first
+              end
+          record.send("#{content_property}=", content)
         else
-          element.element_children.each do |sub_element|
-            if property_schema = sub_element_schemas[qualify_name(sub_element)]
-              property_name = property_schema[:property_name]
-              property_model = model.property_model(property_name)
+          elements = element.element_children.to_a
+          elements.each do |sub_element|
+            if property = model.property_for(qualify_name(sub_element))
+              property_model = model.property_model(property)
+              property_schema = model.property_schema(property)
               if property_model.modelable?
                 if property_schema['type'] == 'array'
                   property_schema = property_model.schema
-                  unless association = record.send(property_name)
-                    record.send("#{property_name}=", [])
-                    association = record.send(property_name)
+                  unless association = record.send(property)
+                    record.send("#{property}=", [])
+                    association = record.send(property)
                   end
-                  if sub_record = do_parse_xml(data_type, property_model, sub_element, options, property_schema, nil, nil, property_name)
+                  if sub_record = do_parse_xml(data_type, property_model, sub_element, options, property_schema, nil, nil, property)
                     association << sub_record
                   end
                 else # type 'object'
-                  if sub_record = do_parse_xml(data_type, property_model, sub_element, options, property_schema, nil, nil, property_name)
-                    record.send("#{property_name}=", sub_record)
+                  if sub_record = do_parse_xml(data_type, property_model, sub_element, options, property_schema, nil, nil, property)
+                    record.send("#{property}=", sub_record)
                   end
                 end
               else
-                record.send("#{property_name}=", Hash.from_xml(sub_element.to_xml).values.first)
+                record.send("#{property}=", Hash.from_xml(sub_element.to_xml).values.first)
               end
             end
           end
@@ -365,7 +348,7 @@ module Edi
           property_schema = data_type.merge_schema(property_schema)
           next if property_schema['edi'] && property_schema['edi']['discard']
           if (property_model = model.property_model(property_name)) && property_model.modelable?
-            if  property_schema['type'] == 'array'
+            if property_schema['type'] == 'array'
               property_schema = data_type.merge_schema(property_schema['items'])
               property_json = []
               record[property_name] = [] if record[property_name].nil?

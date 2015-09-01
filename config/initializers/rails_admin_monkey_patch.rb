@@ -172,7 +172,7 @@ module RailsAdmin
           data_type.reload
           schema = model.schema
           model_data_type = data_type.model.eql?(model) ? data_type : nil
-          title = (model_data_type && model_data_type.title) ||  model.title
+          title = (model_data_type && model_data_type.title) || model.title
           {navigation_label: nil,
            visible: false,
            label: title}.each do |option, value|
@@ -187,7 +187,8 @@ module RailsAdmin
             properties['created_at'] = properties['updated_at'] = {'type' => 'string', 'format' => 'date-time', 'visible' => false}
             properties.each do |property, property_schema|
               if field =
-                if model.property_model(property).is_a?(Mongoff::Model)
+                if (property_model = model.property_model(property)).is_a?(Mongoff::Model) &&
+                  !%w(integer number string boolean).include?(property_model.schema['type'])
                   rails_admin_model.field(property, :json_schema)
                 else
                   begin
