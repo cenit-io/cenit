@@ -19,10 +19,16 @@ class ApplicationController < ActionController::Base
 
   around_filter :scope_current_account, :optimize_data_type_handling
 
+  protected
+
+  def do_optimize_data_type_handling
+    Thread.current[:data_type_optimizer] = Setup::DataTypeOptimizer.new
+  end
+
   private
 
   def optimize_data_type_handling
-    Thread.current[:data_type_optimizer] = Setup::DataTypeOptimizer.new
+    do_optimize_data_type_handling
     yield
   end
 
