@@ -165,7 +165,7 @@ module Setup
     end
 
     def find_data_type(ref, library_id = self.library_id)
-      super || Setup::Model.where(library_id: library_id, name: name).first
+      super || Setup::Model.where(library_id: library_id, name: ref).first
     end
 
     def library_id
