@@ -35,7 +35,7 @@ module Setup
       @schema ||= build_schema
     end
 
-    def find_data_type(ref)
+    def find_data_type(ref, library_id = self.library_id)
       BuildInDataType.build_ins[ref]
     end
 

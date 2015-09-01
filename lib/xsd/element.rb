@@ -15,10 +15,11 @@ module Xsd
 
     def to_json_schema
       return qualify_element(ref).to_json_schema if ref
-      json =
+      json_schema =
         {
           'title' => name.to_title,
           'edi' => {'segment' => qualify(name)},
+          'xml' => {'namespace' => xmlns(:default), 'content_property' => false},
           'type' => 'object'
         }
       merge_json =
@@ -30,7 +31,8 @@ module Xsd
               'properties' => {
                 'value' => @type.to_json_schema.merge('title' => 'Value',
                                                       'xml' => {'content' => true})
-              }
+              },
+              'xml' => {'content_property' => 'value'}
             }
           end
         else
@@ -39,8 +41,7 @@ module Xsd
           end
           {'extends' => type_schema}
         end
-      json['xml'] = { 'namespace' => xmlns(:default) }
-      json.merge(merge_json)
+      json_schema.deep_merge(merge_json)
     end
   end
 end

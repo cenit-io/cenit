@@ -5,6 +5,7 @@ module Mongoff
 
     attr_reader :orm_model
     attr_reader :document
+    attr_reader :fields
 
     def initialize(model, document = nil, new_record = true)
       @orm_model = model

@@ -82,7 +82,7 @@ module Setup
         else
           schemas.each do |name, schema|
             if (data_type = schema).is_a?(Hash)
-              @new_data_types << (data_type = Setup::DataType.new(name: name, model_schema: schema.to_json))
+              @new_data_types << (data_type = Setup::DataType.new(name: name, model_schema: schema.to_json, library: library))
               self.data_types << data_type
             end
             if data_type && data_type.validate_model
@@ -188,15 +188,13 @@ module Setup
 
     def save_data_types
       if run_after_initialized
-        new_attributes = []
-        (@data_types_to_keep.blank? ? data_types : @data_types_to_keep).each do |data_type|
-          if data_type.new_record? & data_type.valid?(:create)
-            data_type.instance_variable_set(:@dynamically_created, true)
-            data_type.instance_variable_set(:@new_record, false)
-            new_attributes << data_type.attributes
-          end
+        self_optimizer = false
+        unless optimizer = Thread.current[:data_type_optimizer]
+          optimizer = Setup::DataTypeOptimizer.new
+          self_optimizer = true
         end
-        Setup::DataType.collection.insert(new_attributes) if new_attributes.present?
+        optimizer.regist_data_types(@data_types_to_keep.blank? ? data_types : @data_types_to_keep)
+        optimizer.save_data_types if self_optimizer
         true
       else
         false

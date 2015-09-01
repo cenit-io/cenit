@@ -246,6 +246,7 @@ module Setup
             value_schema = schema['properties']['value'] || {}
             value_schema = base_schema.deep_merge(value_schema)
             schema['properties']['value'] = value_schema.merge('title' => 'Value', 'xml' => {'content' => true})
+            (schema['xml'] ||= {})['content_property'] = 'value'
           else
             schema = base_schema.deep_merge(schema) { |key, val1, val2| Cenit::Utility.array_hash_merge(val1, val2) }
           end
@@ -258,6 +259,9 @@ module Setup
       return klass unless created && klass.is_a?(Class)
 
       root ||= klass
+      unless mongoff_models = klass.instance_variable_get(:@mongoff_models)
+        klass.instance_variable_set(:@mongoff_models, mongoff_models = {})
+      end
 
       embedded_refs.each do |path, model_name|
         puts "Loading embedded ref #{path} -> #{model_name}"
@@ -319,9 +323,6 @@ module Setup
                   else
                     v = "field :#{property_name}"
                     validations << "validates_schema_of :#{property_name}, model: #{type_model}"
-                    unless mongoff_models = klass.instance_variable_get(:@mongoff_models)
-                      klass.instance_variable_set(:@mongoff_models, mongoff_models = {})
-                    end
                     mongoff_models[property_name] = type_model
                   end
                 else
@@ -420,6 +421,9 @@ module Setup
 
     def process_non_ref(report, property_name, property_desc, klass, root, nested=[], enums={}, validations=[], required=[])
 
+      unless mongoff_models = klass.instance_variable_get(:@mongoff_models)
+        klass.instance_variable_set(:@mongoff_models, mongoff_models = {})
+      end
       property_desc = merge_schema(property_desc, expand_extends: false)
       model_name = klass.model_access_name
       still_trying = true
@@ -492,13 +496,16 @@ module Setup
             else # is a Mongoff Model
               v = "field :#{property_name}"
               validations << "validates_schema_of :#{property_name}, model: #{property_type}"
-              unless mongoff_models = klass.instance_variable_get(:@mongoff_models)
-                klass.instance_variable_set(:@mongoff_models, mongoff_models = {})
-              end
               mongoff_models[property_name] = type_model
             end
           end
           unless v
+            mongoff_models[property_name] = Mongoff::Model.for(data_type: self,
+                                                               name: property_name.camelize,
+                                                               parent: klass,
+                                                               schema: property_desc,
+                                                               cache: false,
+                                                               modelable: false)
             if property_type
               v = "field :#{property_name}, type: #{property_type}"
               v += ", default: \'#{property_desc['default']}\'" if property_desc['default']
