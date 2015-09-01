@@ -51,11 +51,28 @@ module Mongoid
       end
 
       def property_model?(property)
-        ((((relation = try(:reflect_on_association, property)) && relation.try(:klass) && true) || (@mongoff_models && @mongoff_models[property].modelable?)) && true) || false
+        ((((relation = try(:reflect_on_association, property)) && relation.try(:klass) && true) || (@mongoff_models && @mongoff_models[property].modelable?)) && true) ||
+          superclass != Object && superclass.property_model?(property)
       end
 
       def property_model(property)
-        ((relation = try(:reflect_on_association, property)) && relation.try(:klass)) || (@mongoff_models && @mongoff_models[property])
+        ((relation = try(:reflect_on_association, property)) && relation.try(:klass)) ||
+          (@mongoff_models && @mongoff_models[property]) ||
+          (superclass != Object && superclass.property_model(property)) || nil
+      end
+
+      def stored_properties_on(record)
+        properties = Set.new
+        fields.keys.each { |field| properties << field.to_s if property?(field) && !record[field].nil? }
+        reflect_on_all_associations(:embeds_one,
+                                    :embeds_many,
+                                    :has_one,
+                                    :has_many,
+                                    :has_and_belongs_to_many,
+                                    :belongs_to).each do |relation|
+          properties << relation.name.to_s if property?(relation.name.to_s) && record.send(relation.name).present?
+        end
+        properties
       end
 
       def for_each_association(&block)
