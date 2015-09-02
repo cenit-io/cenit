@@ -51,13 +51,13 @@ module RailsAdmin
                   schemas[uri] = Setup::Schema.new(library: library, uri: uri, schema: file.read)
                 end
               end
-              Thread.current[:data_type_optimizer] = data_type_optimizer = Setup::DataTypeOptimizer.new
+              data_type_optimizer = Setup::DataTypeOptimizer.new_optimizer
               library.set_schemas_scope(schemas.values)
               schemas.values.each(&:bind_includes)
               new_schemas_attributes = []
               schemas.each do |entry_name, schema|
                 next unless @object.errors.blank?
-                if schema.validates_configuration && schema.save_data_types
+                if schema.save_data_types && schema.validates_configuration
                   data_types_count += schema.data_types.size
                   saved_schemas_ids << schema.id
                   new_schemas_attributes << schema.attributes
@@ -65,7 +65,7 @@ module RailsAdmin
                   @object.errors.add(:file, "contains invalid schema #{entry_name}: #{schema.errors.full_messages.join(', ')}")
                 end
               end
-              data_type_optimizer.save_data_types
+              data_type_optimizer.save_data_types.each { |error| @object.errors.add(:file, error) }
               begin
                 Setup::Schema.collection.insert(new_schemas_attributes)
               rescue Exception => ex

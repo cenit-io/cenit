@@ -55,6 +55,7 @@ module Setup
     end
 
     def save_data_types
+      errors = []
       optimize
       new_attributes = []
       valid = true
@@ -70,6 +71,7 @@ module Setup
               #TODO ?
             end
           else
+            errors += data_type.errors.full_messages.collect { |msg| "On data type #{data_type.name}: #{msg}" }
             valid = false unless dt_valid
           end
         end
@@ -77,7 +79,24 @@ module Setup
       if valid && new_attributes.present?
         Setup::DataType.collection.insert(new_attributes)
       end
-      valid
+      errors
+    end
+
+    class << self
+
+      def optimizer
+        Thread.current[:optimizer]
+      end
+
+      def new_optimizer
+        Thread.current[:optimizer] = Setup::DataTypeOptimizer.new
+      end
+
+      def save_data_types
+        if o = optimizer
+          o.save_data_types
+        end
+      end
     end
   end
 end
