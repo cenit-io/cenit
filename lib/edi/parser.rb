@@ -104,7 +104,6 @@ module Edi
             end
           end
         end
-        record.try(:run_after_initialized)
         record
       end
 
@@ -135,6 +134,7 @@ module Edi
               name = property_schema['edi']['segment'] if property_schema['edi']
               name ||= property_name
               name = name.split(':').last if phase > 0
+              next if taken_items.include?(name)
               property_model = model.property_model(property_name)
               taken_items << property_name if json.has_key?(name)
               case property_schema['type']
@@ -250,7 +250,6 @@ module Edi
             fail "Can not assign #{json} as simple content to #{data_type.name}"
           end
         end
-        record.try(:run_after_initialized)
         record
       end
 
@@ -406,7 +405,6 @@ module Edi
 
         report[:segments] << [segment, record]
 
-        record.try(:run_after_initialized)
         return [json, start, record]
       end
     end

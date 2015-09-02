@@ -16,18 +16,18 @@ module Edi
     end
 
     def to_hash(options={})
-      include_id = options[:include_id].present?
+      include_id = options[:include_id]
       [:ignore, :only, :embedding, :inspecting].each do |option|
         value = (options[option] || [])
         value = [value] unless value.is_a?(Enumerable)
         value = value.select { |p| p.is_a?(Symbol) || p.is_a?(String) }.collect(&:to_sym)
         options[option] = value
-        include_id ||= (value.include?(:id) || value.include?(:_id))
+        include_id ||= (value.include?(:id) || value.include?(:_id)) if include_id.nil? && option != :ignore
       end
       [:only, :inspecting].each { |option| options.delete(option) if options[option].empty? }
       options[:inspected_records] = Set.new
       options[:stack] = []
-      options[:include_id] = include_id
+      options[:include_id] = include_id.present?
       hash = record_to_hash(self, options)
       options.delete(:stack)
       hash = {self.orm_model.data_type.slug => hash} if options[:include_root]

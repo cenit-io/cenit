@@ -29,7 +29,7 @@ module Cenit
 
     class << self
       def save(record, options = {})
-        saved = Set.new
+        saved = options[:saved_collector] || Set.new
         if bind_references(record)
           if save_references(record, options, saved) && record.save
             true
@@ -38,7 +38,7 @@ module Cenit
               obj.errors.each do |attribute, error|
                 attr_ref = "#{obj.orm_model.data_type.title}" +
                   ((name = obj.try(:name)) || (name = obj.try(:title)) ? " #{name} on attribute " : "'s '") +
-                  attribute.to_s + ((v = obj.try(attribute)) ? "'#{v}'" : '')
+                  attribute.to_s #TODO Truck and do html safe for long values, i.e, XML Schemas ---> + ((v = obj.try(attribute)) ? "'#{v}'" : '')
                 path = ''
                 stack.reverse_each do |node|
                   node[:record].errors.add(node[:attribute], "with error on #{path}#{attr_ref} (#{error})") if node[:referenced]
@@ -54,7 +54,7 @@ module Cenit
               if obj = obj.reload rescue nil
                 obj.delete
               end
-            end
+            end unless options.has_key?(:saved_collector)
             false
           end
         else
@@ -62,7 +62,7 @@ module Cenit
         end
       end
 
-      def bind_references(record)
+      def bind_references(record, options = {})
         references = {}
         for_each_node_starting_at(record) do |obj|
           if record_refs = obj.instance_variable_get(:@_references)
@@ -105,7 +105,7 @@ module Cenit
                   else
                     obj.send("#{property_name}=", value)
                   end
-                else
+                elsif !options[:skip_error_report]
                   message = "reference not found with criteria #{property_bind[:criteria].to_json}"
                   obj.errors.add(property_name, message)
                   stack.each { |node| node[:record].errors.add(node[:attribute], message) }
