@@ -50,7 +50,7 @@ module Setup
     end
 
     def find_data_type(ref, library_id = self.library_id)
-      if optimizer = Thread.current[:data_type_optimizer]
+      if optimizer = Setup::DataTypeOptimizer.optimizer
         optimizer.find_data_type(ref, library_id)
       else
         nil
@@ -65,7 +65,11 @@ module Setup
       if ref.start_with?('#')
         get_embedded_schema(ref, root_schema)[1] rescue nil
       else
-        (data_type = find_data_type(ref)) ? JSON.parse(data_type.model_schema) : nil
+        if data_type = find_data_type(ref)
+          JSON.parse(data_type.model_schema)
+        else
+          nil
+        end
       end
     end
 
@@ -105,8 +109,8 @@ module Setup
         if (options[:expand_extends].nil? && options[:only_overriders].nil?) || options[:expand_extends]
           while base_model = schema.delete('extends')
             merging = true
-            base_model = find_ref_schema(base_model) if base_model.is_a?(String)
-            base_model = do_merge_schema(base_model)
+            found = find_ref_schema(base_model) if base_model.is_a?(String)
+            base_model = do_merge_schema(found)
             if schema['type'] == 'object' && base_model['type'] != 'object'
               schema['properties'] ||= {}
               value_schema = schema['properties']['value'] || {}

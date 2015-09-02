@@ -22,7 +22,7 @@ class ApplicationController < ActionController::Base
   protected
 
   def do_optimize_data_type_handling
-    Thread.current[:data_type_optimizer] = Setup::DataTypeOptimizer.new
+    Setup::DataTypeOptimizer.new_optimizer
   end
 
   private

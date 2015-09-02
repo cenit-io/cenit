@@ -298,7 +298,7 @@ module Mongoff
       @name = options[:name] || data_type.data_type_name
       @parent = options[:parent]
       unless @persistable = (@schema = options[:schema]).nil?
-        @schema = data_type.merge_schema(@schema)
+        @schema = data_type.merge_schema(@schema, root_schema: options[:root_schema])
       end
       @modelable = options[:modelable]
       unless options[:observable].nil?

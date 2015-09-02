@@ -58,7 +58,7 @@ module Mongoid
       def property_model(property)
         ((relation = try(:reflect_on_association, property)) && relation.try(:klass)) ||
           (@mongoff_models && @mongoff_models[property]) ||
-          (superclass != Object && superclass.property_model(property)) || nil
+          (superclass.is_a?(Mongoid::Document) && superclass.property_model(property)) || nil
       end
 
       def stored_properties_on(record)

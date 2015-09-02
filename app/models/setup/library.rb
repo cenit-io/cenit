@@ -48,6 +48,10 @@ module Setup
       end
     end
 
+    def run_after_initialized
+      set_schemas_scope(schemas)
+    end
+
     def set_schemas_scope(schemas)
       @schemas_scope = {}
       schemas.each { |schema| @schemas_scope[schema.uri] = schema }

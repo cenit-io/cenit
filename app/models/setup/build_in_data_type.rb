@@ -154,7 +154,8 @@ module Setup
                                                             parent: model,
                                                             schema: properties[field_name],
                                                             cache: false,
-                                                            modelable: false)
+                                                            modelable: false,
+                                                            root_schema: schema)
           end
         end
       end
