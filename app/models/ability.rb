@@ -7,10 +7,11 @@ class Ability
 
       can([:show, :edit], User) { |u| u.eql?(user) }
       if user.super_admin?
-        can :manage, [Role, User, Account]
+        can :manage, [Role, User, Account, Setup::SharedName]
         can :destroy, [Setup::SharedCollection, Setup::Model]
         can :edit, Setup::Model
       else
+        cannot :access, Setup::SharedName
         cannot :destroy, [Setup::SharedCollection, Setup::Model]
       end
 

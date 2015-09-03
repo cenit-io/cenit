@@ -1332,4 +1332,10 @@ RailsAdmin.config do |config|
 
     fields :name, :owner, :tenant_account, :number, :users
   end
+
+  config.model Setup::SharedName do
+    navigation_label 'Administration'
+
+    fields :name, :owners
+  end
 end
