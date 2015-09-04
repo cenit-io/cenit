@@ -17,4 +17,7 @@ Cenit.config do
   #Process flow messages asynchronous
   asynchronous_flow_processing false
 
+  #oauth2 callback site
+  oauth2_callback_site 'http://localhost:3000'
+
 end
