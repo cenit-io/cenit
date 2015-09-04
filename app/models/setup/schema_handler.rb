@@ -109,8 +109,8 @@ module Setup
         if (options[:expand_extends].nil? && options[:only_overriders].nil?) || options[:expand_extends]
           while base_model = schema.delete('extends')
             merging = true
-            found = find_ref_schema(base_model) if base_model.is_a?(String)
-            base_model = do_merge_schema(found)
+            base_model = find_ref_schema(base_model) if base_model.is_a?(String)
+            base_model = do_merge_schema(base_model)
             if schema['type'] == 'object' && base_model['type'] != 'object'
               schema['properties'] ||= {}
               value_schema = schema['properties']['value'] || {}
