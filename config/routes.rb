@@ -11,6 +11,7 @@ Cenit::Application.routes.draw do
     get 'sign_out', to: 'users/sessions#destroy', as: :destroy_user_session
   end
 
+  get 'oauth2/callback', to: 'oauth2_callback#index'
   get 'schema', to: 'schema#index'
   get 'captcha', to: 'captcha#index'
   get 'captcha/:token', to: 'captcha#index'

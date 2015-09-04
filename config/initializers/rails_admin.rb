@@ -24,7 +24,8 @@
  RailsAdmin::Config::Actions::DeleteDataType,
  RailsAdmin::Config::Actions::ProcessFlow,
  RailsAdmin::Config::Actions::BuildGem,
- RailsAdmin::Config::Actions::Run].each { |a| RailsAdmin::Config::Actions.register(a) }
+ RailsAdmin::Config::Actions::Run,
+ RailsAdmin::Config::Actions::Authorize].each { |a| RailsAdmin::Config::Actions.register(a) }
 
 RailsAdmin::Config::Actions.register(:export, RailsAdmin::Config::Actions::EdiExport)
 RailsAdmin::Config::Fields::Types.register(RailsAdmin::Config::Fields::Types::JsonValue)
@@ -81,6 +82,7 @@ RailsAdmin.config do |config|
     load_model
     shutdown_model
     process_flow
+    authorize
     delete_data_type
     delete
     delete_validator
@@ -1337,5 +1339,79 @@ RailsAdmin.config do |config|
     navigation_label 'Administration'
 
     fields :name, :owners
+  end
+
+  config.model Setup::Oauth2Provider do
+    navigation_label 'OAuth2'
+
+    fields :name, :response_type, :authorization_endpoint, :token_endpoint, :access_token_request_method, :clients, :scopes
+  end
+
+  config.model Setup::Oauth2Client do
+    navigation_label 'OAuth2'
+
+    fields :name, :provider, :identifier, :secret
+  end
+
+  config.model Setup::Oauth2Scope do
+    navigation_label 'OAuth2'
+
+    fields :name, :description, :provider
+  end
+
+  config.model Setup::Oauth2Authorization do
+    edit do
+      field :name
+      field :provider do
+        inline_add false
+        inline_edit false
+        associated_collection_scope do
+          provider = (obj = bindings[:object]) && obj.provider
+          Proc.new { |scope|
+            if provider
+              scope.any_in(id: provider.id)
+            else
+              scope
+            end
+          }
+        end
+      end
+      field :client do
+        inline_add false
+        inline_edit false
+        visible do
+          if ((obj = bindings[:object]) && obj.provider).present?
+            obj.client = obj.provider.clients.first if obj.client.blank?
+            true
+          else
+            false
+          end
+        end
+        associated_collection_scope do
+          provider = ((obj = bindings[:object]) && obj.provider) || nil
+          Proc.new { |scope|
+            if provider
+              scope.where(provider_id: provider.id)
+            else
+              scope
+            end
+          }
+        end
+      end
+      field :scopes do
+        visible { ((obj = bindings[:object]) && obj.provider).present? }
+        associated_collection_scope do
+          provider = ((obj = bindings[:object]) && obj.provider) || nil
+          Proc.new { |scope|
+            if provider
+              scope.where(provider_id: provider.id)
+            else
+              scope
+            end
+          }
+        end
+      end
+    end
+
   end
 end

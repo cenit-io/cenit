@@ -503,6 +503,7 @@ DEPENDENCIES
   mongoid-rspec
   nokogiri
   oauth
+  oauth2
   omniauth
   omniauth-oauth2
   parser
