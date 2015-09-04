@@ -9,7 +9,12 @@ class Oauth2CallbackController < ApplicationController
             client = OAuth2::Client.new(authorization.client.identifier, authorization.client.secret, token_url: authorization.provider.token_endpoint)
             token = client.auth_code.get_token(code, redirect_uri: "#{Cenit.oauth2_callback_site}/oauth2/callback")
             authorization.token_type = token.params['token_type']
-            authorization.authorized_at = Time.at(token.params['created_at'])
+            authorization.authorized_at =
+              if time = token.params['created_at']
+                Time.at(time)
+              else
+                Time.now
+              end
             authorization.access_token = token.token
             authorization.token_span = token.expires_in
             authorization.refresh_token = token.refresh_token
