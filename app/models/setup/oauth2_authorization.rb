@@ -15,7 +15,7 @@ module Setup
     field :refresh_token, type: String
     field :access_token, type: String
     field :token_type, type: String
-    field :token_span, type: Long
+    field :token_span, type: BigDecimal
     field :authorized_at, type: Time
 
     validates_presence_of :name, :provider, :client
