@@ -4,6 +4,11 @@ module RailsAdmin
 
       class Authorize < RailsAdmin::Config::Actions::Base
 
+        register_instance_option :only do
+          Setup::Oauth2Authorization
+        end
+
+
         register_instance_option :http_methods do
           [:get]
         end
