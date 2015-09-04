@@ -7,11 +7,10 @@ class Ability
 
       can([:show, :edit], User) { |u| u.eql?(user) }
       if user.super_admin?
-        can :manage, [Role, User, Account, Setup::SharedName]
+        can :manage, [Role, User, Account, Setup::SharedName, Setup::Oauth2Provider, Setup::Oauth2Client, Setup::Oauth2Scope, Setup::Oauth2Authorization]
         can :destroy, [Setup::SharedCollection, Setup::Model]
         can :edit, Setup::Model
       else
-        cannot :access, Setup::SharedName
         cannot :destroy, [Setup::SharedCollection, Setup::Model]
       end
 
@@ -39,7 +38,7 @@ class Ability
           Setup::Models.each do |model, excluded_actions|
             non_root.each do |action|
               models = (hash[key = action.authorization_key] ||= Set.new)
-              models << model if relevant_rules_for_match(action.authorization_key, model).empty? && !excluded_actions.include?(action.key)
+              models << model if relevant_rules_for_match(action.authorization_key, model).empty? && !(excluded_actions.include?(:all) || excluded_actions.include?(action.key))
             end
           end
           new_hash = {}
