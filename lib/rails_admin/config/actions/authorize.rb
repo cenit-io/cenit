@@ -20,7 +20,8 @@ module RailsAdmin
                                         authorize_url: @object.provider.authorization_endpoint)
 
             redirect_to client.auth_code.authorize_url(redirect_uri: "#{Cenit.oauth2_callback_site}/oauth2/callback",
-                                                       state: Account.current.id.to_s + ' ' + @object.id.to_s)
+                                                       state: Account.current.id.to_s + ' ' + @object.id.to_s,
+                                                       scope: @object.scopes.to_a.join(' '))
 
           end
         end
