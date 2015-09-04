@@ -6,7 +6,7 @@ class Oauth2CallbackController < ApplicationController
       if Account.current = Account.where(id: account_id).first
         if authorization = Setup::Oauth2Authorization.where(id: authorization_id).first
           begin
-            client = OAuth2::Client.new(authorization.client.identifier, authorization.client.secret, site: authorization.provider.token_endpoint)
+            client = OAuth2::Client.new(authorization.client.identifier, authorization.client.secret, token_url: authorization.provider.token_endpoint)
             token = client.auth_code.get_token(code, redirect_uri: "#{Cenit.oauth2_callback_site}/oauth2/callback")
             authorization.token_type = token.params['token_type']
             authorization.authorized_at = Time.at(token.params['created_at'])
