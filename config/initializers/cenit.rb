@@ -6,10 +6,10 @@ Cenit.config do
   deactivate_models true
 
   #Use this option to setup an external service
-  service_url 'http://service.cenithub.com'
+  service_url  ENV['SERVICE_URL']
 
   #Home page
-  homepage 'www.cenitsass.com'
+  homepage ENV['HOMEPAGE']
 
   #Captcha length
   captcha_length 5
@@ -18,6 +18,9 @@ Cenit.config do
   asynchronous_flow_processing false
 
   #oauth2 callback site
-  oauth2_callback_site ENV['CALLBACK_SITE']
+  oauth2_callback_site ENV['OAUTH2_CALLBACK_SITE']
+
+  #HTTP Proxy
+  http_proxy ENV['HTTP-PROXY']
 
 end

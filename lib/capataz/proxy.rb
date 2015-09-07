@@ -8,13 +8,6 @@ class BasicObject
   end
 end
 
-class Object
-  def is_a?(klass)
-    klass = klass.capataz_slave if klass.capataz_proxy?
-    super(klass)
-  end
-end
-
 module Capataz
   class Proxy
 
