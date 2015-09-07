@@ -454,6 +454,11 @@ RailsAdmin.config do |config|
       group :parameters
       visible { bindings[:view]._current_user.has_role? :admin }
     end
+    configure :oauth2_authorization do
+      group :parameters
+      inline_edit false
+      visible { bindings[:view]._current_user.has_role? :admin }
+    end
 
     show do
       field :name
@@ -465,6 +470,7 @@ RailsAdmin.config do |config|
       field :parameters
       field :headers
       field :template_parameters
+      field :oauth2_authorization
 
       field :_id
       field :created_at
@@ -473,7 +479,7 @@ RailsAdmin.config do |config|
       #field :updater
     end
 
-    fields :name, :url, :parameters, :headers, :template_parameters, :key, :token
+    fields :name, :url, :parameters, :headers, :template_parameters, :oauth2_authorization, :key, :token
   end
 
   config.model Setup::Parameter do

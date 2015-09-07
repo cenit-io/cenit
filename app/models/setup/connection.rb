@@ -11,6 +11,8 @@ module Setup
 
     embeds_many :template_parameters, class_name: Setup::Parameter.to_s, inverse_of: :connection
 
+    belongs_to :oauth2_authorization, class_name: Setup::Oauth2Authorization.to_s, inverse_of: nil
+
     devise :database_authenticatable
 
     field :name, type: String
@@ -39,6 +41,14 @@ module Setup
       conform_field_value(:url, options)
     end
 
+    def conformed_headers(options = {})
+      headers = super
+      if oauth2_authorization.present?
+        headers['Authorization'] = oauth2_authorization.token_type + ' ' + oauth2_authorization.access_token
+      end
+      headers
+    end
+
     private
 
     def generate_token
@@ -47,8 +57,5 @@ module Setup
         break token unless Setup::Connection.where(token: token).first
       end
     end
-
-
-
   end
 end
