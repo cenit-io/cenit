@@ -9,7 +9,9 @@ class Oauth2CallbackController < ApplicationController
       (authorization = Setup::Oauth2Authorization.where(id: cenit_token.data[:authorization_id]).first)
       begin
         client = OAuth2::Client.new(authorization.client.identifier, authorization.client.secret, token_url: authorization.provider.token_endpoint)
-        # client.connection.proxy('http://54.68.213.74:8080')
+        if http_proxy = Cenit.http_proxy
+          client.connection.proxy(http_proxy)
+        end
         options =
           {
             redirect_uri: "#{Cenit.oauth2_callback_site}/oauth2/callback",

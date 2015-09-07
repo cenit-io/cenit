@@ -24,8 +24,9 @@ module RailsAdmin
                                         @object.client.secret,
                                         authorize_url: @object.provider.authorization_endpoint)
 
-            #client.connection.proxy('http://54.68.213.74:8080')
-
+            if http_proxy = Cenit.http_proxy
+              client.connection.proxy(http_proxy)
+            end
             cenit_token = CenitToken.create(data: {account_id: Account.current.id, authorization_id: @object.id})
             options =
               {
