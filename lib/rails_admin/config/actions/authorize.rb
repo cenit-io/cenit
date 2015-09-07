@@ -24,9 +24,18 @@ module RailsAdmin
                                         @object.client.secret,
                                         authorize_url: @object.provider.authorization_endpoint)
 
-            redirect_to client.auth_code.authorize_url(redirect_uri: "#{Cenit.oauth2_callback_site}/oauth2/callback",
-                                                       state: Account.current.id.to_s + ' ' + @object.id.to_s,
-                                                       scope: @object.scopes.collect { |scope| scope.name }.join(' '))
+            #client.connection.proxy('http://54.68.213.74:8080')
+
+            cenit_token = CenitToken.create(data: {account_id: Account.current.id, authorization_id: @object.id})
+            options =
+              {
+                redirect_uri: "#{Cenit.oauth2_callback_site}/oauth2/callback",
+                state: cenit_token.token,
+                scope: @object.scopes.collect { |scope| scope.name }.join(' ')
+              }
+            @object.provider.parameters.each { |parameter| options[parameter.key.to_sym] = parameter.value }
+
+            redirect_to client.auth_code.authorize_url(options)
 
           end
         end
