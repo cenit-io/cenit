@@ -1341,10 +1341,24 @@ RailsAdmin.config do |config|
     fields :name, :owners
   end
 
+  config.model CenitToken do
+    navigation_label 'Administration'
+  end
+
+  config.model TkAptcha do
+    navigation_label 'Administration'
+  end
+
   config.model Setup::Oauth2Provider do
     navigation_label 'OAuth2'
 
-    fields :name, :response_type, :authorization_endpoint, :token_endpoint, :access_token_request_method, :clients, :scopes
+    fields :name, :response_type, :authorization_endpoint, :token_endpoint, :access_token_request_method, :parameters, :clients, :scopes
+  end
+
+  config.model Setup::Oauth2Parameter do
+    navigation_label 'OAuth2'
+    object_label_method { :to_s }
+    fields :key, :value
   end
 
   config.model Setup::Oauth2Client do
