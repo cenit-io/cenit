@@ -4,7 +4,7 @@ module RailsAdmin
       class Run < RailsAdmin::Config::Actions::Base
 
         register_instance_option :only do
-          [Setup::Algorithm]
+          [Script, Setup::Algorithm]
         end
 
         register_instance_option :member do

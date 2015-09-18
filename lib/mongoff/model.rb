@@ -22,7 +22,7 @@ module Mongoff
     end
 
     def data_type
-      @data_type_id.is_a?(Setup::Model) ? @data_type_id : Setup::Model.where(id: @data_type_id).first
+      @data_type_id.is_a?(Setup::DataType) ? @data_type_id : Setup::DataType.where(id: @data_type_id).first
     end
 
     def new
@@ -159,7 +159,7 @@ module Mongoff
     def submodel_of?(model)
       return true if eql?(model) || (@base_model && @base_model.submodel_of?(model))
       base_model =
-          if base_data_type = data_type.find_data_type(JSON.parse(data_type.model_schema)['extends'])
+          if base_data_type = data_type.find_data_type(JSON.parse(data_type.schema)['extends'])
             Model.for(data_type: base_data_type, cache: caching?)
           else
             nil
@@ -277,7 +277,7 @@ module Mongoff
         cache_model = (cache_models = Thread.current[:mongoff_models] ||= {})[model_name]
         unless data_type = (options[:data_type] || (cache_model && cache_model.data_type))
           raise Exception.new('name or data type required') unless model_name
-          unless data_type = Setup::Model.for_name(model_name.split('::').first)
+          unless data_type = Setup::DataType.for_name(model_name.split('::').first)
             raise Exception.new("unknown data type for #{model_name}")
           end
         end

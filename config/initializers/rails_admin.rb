@@ -12,13 +12,11 @@
  RailsAdmin::Config::Actions::DeleteAll,
  RailsAdmin::Config::Actions::TranslatorUpdate,
  RailsAdmin::Config::Actions::Convert,
- RailsAdmin::Config::Actions::DeleteValidator,
  RailsAdmin::Config::Actions::DeleteLibrary,
  RailsAdmin::Config::Actions::SimpleShare,
  RailsAdmin::Config::Actions::BulkShare,
  RailsAdmin::Config::Actions::PullCollection,
  RailsAdmin::Config::Actions::RetryNotification,
- RailsAdmin::Config::Actions::NewFileModel,
  RailsAdmin::Config::Actions::UploadFile,
  RailsAdmin::Config::Actions::DownloadFile,
  RailsAdmin::Config::Actions::DeleteDataType,
@@ -58,15 +56,11 @@ RailsAdmin.config do |config|
     # memory_usage
     # disk_usage
     index # mandatory
-    new { except [Setup::Event] }
-    new_file_model
+    new { except [Setup::Event, Setup::DataType] }
     import
     import_schema
     translator_update
     convert
-    #import do
-    #  only 'Setup::DataType'
-    #end
     export
     bulk_delete
     show
@@ -83,7 +77,6 @@ RailsAdmin.config do |config|
     process_flow
     delete_data_type
     delete
-    delete_validator
     delete_library
     #show_in_app
     send_to_flow
@@ -93,12 +86,12 @@ RailsAdmin.config do |config|
     data_type
     retry_notification
 
-    history_index do
-      only [Setup::Model, Setup::Webhook, Setup::Flow, Setup::Schema, Setup::Event, Setup::Connection, Setup::ConnectionRole, Setup::Library]
-    end
-    history_show do
-      only [Setup::Model, Setup::Webhook, Setup::Flow, Setup::Schema, Setup::Event, Setup::Connection, Setup::ConnectionRole, Setup::Notification, Setup::Library]
-    end
+    # history_index do
+    #   only [Setup::DataType, Setup::Webhook, Setup::Flow, Setup::Schema, Setup::Event, Setup::Connection, Setup::ConnectionRole, Setup::Library]
+    # end
+    # history_show do
+    #   only [Setup::DataType, Setup::Webhook, Setup::Flow, Setup::Schema, Setup::Event, Setup::Connection, Setup::ConnectionRole, Setup::Notification, Setup::Library]
+    # end
   end
 
   config.model Setup::Validator do
@@ -123,7 +116,7 @@ RailsAdmin.config do |config|
       field :name
       field :slug
       field :schemas
-      field :file_data_types
+      field :data_types
 
       field :_id
       field :created_at
@@ -132,15 +125,12 @@ RailsAdmin.config do |config|
       #field :updater
     end
 
-    fields :name, :slug, :schemas, :file_data_types
+    fields :name, :slug, :schemas, :data_types
   end
 
   config.model Setup::Schema do
     object_label_method { :custom_title }
     navigation_label 'Data Definitions'
-    register_instance_option(:after_form_partials) do
-      %w(shutdown_and_reload)
-    end
     weight -18
 
     edit do
@@ -158,8 +148,6 @@ RailsAdmin.config do |config|
 
       field :schema, :code_mirror do
         html_attributes do
-          reload = Setup::Model.shutdown(bindings[:object].data_types.activated, report_only: true)[:destroyed].collect(&:data_type).uniq #.select(&:activated)
-          bindings[:object].instance_variable_set(:@_to_reload, reload)
           {cols: '74', rows: '15'}
         end
       end
@@ -178,11 +166,9 @@ RailsAdmin.config do |config|
             else
               value
             end
-          #"<textarea id='code' name='code'>#{pretty_value}</textarea>".html_safe
           "<pre>#{pretty_value}</pre>".html_safe
         end
       end
-      field :data_types
 
       field :_id
       field :created_at
@@ -191,10 +177,10 @@ RailsAdmin.config do |config|
       #field :updater
 
     end
-    fields :library, :uri, :data_types
+    fields :library, :uri
   end
 
-  config.model Setup::Model do
+  config.model Setup::DataType do
     label 'Data type'
     label_plural 'Data types'
     object_label_method { :custom_title }
@@ -208,15 +194,6 @@ RailsAdmin.config do |config|
     end
 
     configure :slug
-
-    configure :validator, :text do
-      pretty_value do
-        if value
-          am = (amc = RailsAdmin::Config.model(value.class)).abstract_model
-          (v = bindings[:view]).link_to(value.send(amc.object_label_method), v.url_for(action: v.action(:show, am, value).action_name, model_name: am.to_param, id: value.id), class: 'pjax')
-        end
-      end
-    end
 
     configure :storage_size, :decimal do
       pretty_value do
@@ -234,15 +211,14 @@ RailsAdmin.config do |config|
 
     list do
       field :title
-      field :validator
       field :name
       field :slug
       field :used_memory do
         pretty_value do
           unless max = bindings[:controller].instance_variable_get(:@max_used_memory)
-            bindings[:controller].instance_variable_set(:@max_used_memory, max = Setup::Model.fields[:used_memory.to_s].type.new(Setup::Model.max(:used_memory)))
+            bindings[:controller].instance_variable_set(:@max_used_memory, max = Setup::DataType.fields[:used_memory.to_s].type.new(Setup::DataType.max(:used_memory)))
           end
-          (bindings[:view].render partial: 'used_memory_bar', locals: {max: max, value: Setup::Model.fields[:used_memory.to_s].type.new(value)}).html_safe
+          (bindings[:view].render partial: 'used_memory_bar', locals: {max: max, value: Setup::DataType.fields[:used_memory.to_s].type.new(value)}).html_safe
         end
       end
       field :storage_size
@@ -253,18 +229,14 @@ RailsAdmin.config do |config|
       field :name
       field :slug
       field :activated
-      field :validator
-      field :model_schema do
+      field :schema do
         pretty_value do
           pretty_value =
-            if json = JSON.parse(value) rescue nil
-              "<code class='json'>#{JSON.pretty_generate(json)}</code>"
-            elsif xml = Nokogiri::XML(value) rescue nil
-              "<code class='xml'>#{xml.to_xml}</code>"
+            if json = JSON.pretty_generate(value) rescue nil
+              "<code class='json'>#{json}</code>"
             else
               value
             end
-          #"<textarea id='code' name='code'>#{pretty_value}</textarea>".html_safe
           "<pre>#{pretty_value}</pre>".html_safe
         end
       end
@@ -275,7 +247,7 @@ RailsAdmin.config do |config|
       field :updated_at
       #field :updater
     end
-    fields :title, :validator, :name, :used_memory
+    fields :title, :name, :used_memory
   end
 
   config.model Setup::EdiValidator do
@@ -292,76 +264,31 @@ RailsAdmin.config do |config|
   end
 
   config.model Setup::FileDataType do
-    visible false
-    register_instance_option(:discard_submit_buttons) do
-      !(a = bindings[:action]) || a.key != :edit
-    end
-    edit do
-      field :library do
-        associated_collection_scope do
-          library = (obj = bindings[:object]).library
-          Proc.new { |scope|
-            if library
-              scope.where(id: library.id)
-            else
-              scope
-            end
-          }
-        end
+    configure :library do
+      associated_collection_scope do
+        library = (obj = bindings[:object]).library
+        Proc.new { |scope|
+          if library
+            scope.where(id: library.id)
+          else
+            scope
+          end
+        }
       end
-      field :name
-      field :validator do
-        inline_add false
-        inline_edit false
-        associated_collection_scope do
-          Proc.new { |scope| scope.any_in(_type: [Setup::Schema.to_s, Setup::EdiValidator.to_s]) }
-        end
+    end
+    configure :validator do
+      inline_add false
+      inline_edit false
+      associated_collection_scope do
+        Proc.new { |scope| scope.any_in(_type: [Setup::Schema.to_s, Setup::EdiValidator.to_s]) }
       end
-      field :validators
     end
-    fields :name, :library, :validator
-  end
-
-  config.model Setup::DataType do
-    visible false
-    object_label_method { :custom_title }
-    navigation_label 'Data Definitions'
-    weight -17
-
-    group :model_definition do
-      label 'Model definition'
-      active true
-    end
-
-    configure :schema do
-      group :model_definition
-      read_only true
-      help ''
-    end
-
-    configure :title do
-      group :model_definition
-      help ''
+    configure :used_memory do
       pretty_value do
-        bindings[:object].custom_title
-      end
-    end
-
-    configure :name do
-      group :model_definition
-      read_only true
-      help ''
-    end
-
-    configure :model_schema, :text do
-      group :model_definition
-      read_only true
-      help ''
-      html_attributes do
-        {cols: '50', rows: '15'}
-      end
-      pretty_value do
-        "<pre><code class='json'>#{JSON.pretty_generate(JSON.parse(value))}</code></pre>".html_safe
+        unless max = bindings[:controller].instance_variable_get(:@max_used_memory)
+          bindings[:controller].instance_variable_set(:@max_used_memory, max = Setup::SchemaDataType.fields[:used_memory.to_s].type.new(Setup::SchemaDataType.max(:used_memory)))
+        end
+        (bindings[:view].render partial: 'used_memory_bar', locals: {max: max, value: Setup::SchemaDataType.fields[:used_memory.to_s].type.new(value)}).html_safe
       end
     end
 
@@ -375,16 +302,25 @@ RailsAdmin.config do |config|
       read_only true
     end
 
+    edit do
+      field :library
+      field :title
+      field :name
+      field :validator
+      field :validators
+    end
+
     list do
       field :title
-      field :schema
       field :name
+      field :validator
+      field :validators
       field :used_memory do
         pretty_value do
           unless max = bindings[:controller].instance_variable_get(:@max_used_memory)
-            bindings[:controller].instance_variable_set(:@max_used_memory, max = Setup::DataType.fields[:used_memory.to_s].type.new(Setup::DataType.max(:used_memory)))
+            bindings[:controller].instance_variable_set(:@max_used_memory, max = Setup::SchemaDataType.fields[:used_memory.to_s].type.new(Setup::SchemaDataType.max(:used_memory)))
           end
-          (bindings[:view].render partial: 'used_memory_bar', locals: {max: max, value: Setup::DataType.fields[:used_memory.to_s].type.new(value)}).html_safe
+          (bindings[:view].render partial: 'used_memory_bar', locals: {max: max, value: Setup::SchemaDataType.fields[:used_memory.to_s].type.new(value)}).html_safe
         end
       end
       field :storage_size
@@ -392,10 +328,10 @@ RailsAdmin.config do |config|
 
     show do
       field :title
-      field :schema
       field :name
       field :activated
-      field :model_schema
+      field :validator
+      field :validators
 
       field :_id
       field :created_at
@@ -403,7 +339,84 @@ RailsAdmin.config do |config|
       field :updated_at
       #field :updater
     end
-    fields :title, :schema, :name, :used_memory
+  end
+
+  config.model Setup::SchemaDataType do
+    object_label_method { :custom_title }
+    navigation_label 'Data Definitions'
+    weight -17
+    register_instance_option(:after_form_partials) do
+      %w(shutdown_and_reload)
+    end
+
+    configure :title do
+      pretty_value do
+        bindings[:object].custom_title
+      end
+    end
+
+    configure :name do
+      read_only { !bindings[:object].new_record? }
+    end
+
+    configure :schema, :code_mirror do
+      html_attributes do
+        report = bindings[:object].shutdown(report_only: true)
+        reload = (report[:reloaded].collect(&:data_type) + report[:destroyed].collect(&:data_type)).uniq
+        bindings[:object].instance_variable_set(:@_to_reload, reload)
+        {cols: '74', rows: '15'}
+      end
+      pretty_value do
+        "<pre><code class='json'>#{JSON.pretty_generate(JSON.parse(value))}</code></pre>".html_safe
+      end
+    end
+
+    configure :storage_size, :decimal do
+      pretty_value do
+        unless max = bindings[:controller].instance_variable_get(:@max_storage_size)
+          bindings[:controller].instance_variable_set(:@max_storage_size, max = bindings[:controller].instance_variable_get(:@objects).collect { |data_type| data_type.records_model.storage_size }.max)
+        end
+        (bindings[:view].render partial: 'used_memory_bar', locals: {max: max, value: bindings[:object].records_model.storage_size}).html_safe
+      end
+    end
+
+    edit do
+      field :library
+      field :title
+      field :name
+      field :schema, :json_schema
+    end
+
+    list do
+      field :title
+      field :name
+      field :used_memory do
+        pretty_value do
+          unless max = bindings[:controller].instance_variable_get(:@max_used_memory)
+            bindings[:controller].instance_variable_set(:@max_used_memory, max = Setup::SchemaDataType.fields[:used_memory.to_s].type.new(Setup::SchemaDataType.max(:used_memory)))
+          end
+          (bindings[:view].render partial: 'used_memory_bar', locals: {max: max, value: Setup::SchemaDataType.fields[:used_memory.to_s].type.new(value)}).html_safe
+        end
+      end
+      field :storage_size
+    end
+
+    show do
+      field :title
+      field :name
+      field :activated
+      field :schema do
+        pretty_value do
+          "<pre><code class='ruby'>#{JSON.pretty_generate(value)}</code></pre>".html_safe
+        end
+      end
+
+      field :_id
+      field :created_at
+      #field :creator
+      field :updated_at
+      #field :updater
+    end
   end
 
   config.model Setup::Connection do
@@ -1056,7 +1069,7 @@ RailsAdmin.config do |config|
         visible do
           if !(obj = bindings[:object]).instance_variable_get(:@_selecting_collection) &&
             !obj.instance_variable_get(:@_selecting_connections) &&
-            (pull_parameters_enum = obj.enum_for_pull_parameters).present?
+              (pull_parameters_enum = obj.enum_for_pull_parameters).present?
             bindings[:controller].instance_variable_set(:@shared_parameter_enum, pull_parameters_enum)
             true
           else
@@ -1337,5 +1350,27 @@ RailsAdmin.config do |config|
     navigation_label 'Administration'
 
     fields :name, :owners
+  end
+
+  config.model Script do
+    navigation_label 'Administration'
+
+    edit do
+      field :name
+      field :description
+      field :code, :code_mirror
+    end
+
+    show do
+      field :name
+      field :description
+      field :code do
+        pretty_value do
+          "<pre><code class='ruby'>#{value}</code></pre>".html_safe
+        end
+      end
+    end
+
+    fields :name, :description, :code
   end
 end

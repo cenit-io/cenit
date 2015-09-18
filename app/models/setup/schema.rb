@@ -12,18 +12,12 @@ module Setup
 
     field :uri, type: String
     field :schema, type: String
-
-    has_many :data_types, class_name: Setup::Model.to_s, inverse_of: :schema, dependent: :destroy
-
     field :schema_type, type: Symbol
 
     attr_readonly :library, :uri
 
     validates_presence_of :library, :uri, :schema
-
-    before_save :save_data_types
-    after_save :load_models
-    before_destroy :destroy_data_types
+    validates_uniqueness_of :uri, scope: :library
 
     def title
       uri
@@ -38,7 +32,7 @@ module Setup
       super
     end
 
-    def load_models(options = {})
+    def load_models(options = {}) #TODO Delete this method
       unless @data_types_to_reload
         reload
         @data_types_to_reload = data_types.activated
@@ -74,7 +68,7 @@ module Setup
             new_data_type_names = []
             data_types.each do |data_type|
               if schemas.has_key?(data_type.name)
-                data_type.model_schema = schemas[data_type.name].to_json
+                data_type.schema = schemas[data_type.name]
                 schemas[data_type.name] = data_type
                 if data_type.new_record?
                   @new_data_types << data_type
@@ -85,12 +79,12 @@ module Setup
               end
             end
             new_data_type_names += schemas.keys.select { |name| schemas[name].is_a?(Hash) }
-            if library && (conflicts = Setup::Model.all.any_in(name: new_data_type_names).and(library_id: library.id)).present?
+            if library && (conflicts = Setup::DataType.all.any_in(name: new_data_type_names).and(library_id: library.id)).present?
               conflicts.each { |existing_data_type| @errors_cache[:schema] << errors.add(:schema, "model name #{existing_data_type.name} is already taken on library #{library.name}") }
             else
               schemas.each do |name, schema|
                 if (data_type = schema).is_a?(Hash)
-                  @new_data_types << (data_type = Setup::DataType.new(name: name, model_schema: schema.to_json, library: library))
+                  @new_data_types << (data_type = Setup::SchemaDataType.new(name: name, schema: schema, library: library))
                   self.data_types << data_type
                 end
                 if data_type && data_type.validate_model
@@ -107,9 +101,9 @@ module Setup
             if new_record?
               @data_types_to_reload = []
             else
-              report = Model.shutdown(data_types.activated, report_only: true)
+              report = DataType.shutdown(data_types.activated, report_only: true)
               @data_types_to_reload = report[:destroyed].collect(&:data_type).uniq.select(&:activated)
-              Model.shutdown(data_types.activated)
+              DataType.shutdown(data_types.activated)
               data_types.each do |data_type|
                 unless @data_types_to_keep.include?(data_type)
                   data_type.destroy
@@ -137,6 +131,10 @@ module Setup
     def cenit_ref_schema(options = {})
       options = {service_url: Cenit.service_url, service_schema_path: Cenit.service_schema_path}.merge(options)
       send("cenit_ref_#{schema_type}", options)
+    end
+
+    def data_format
+      schema_type.to_s.split('_').first.to_sym
     end
 
     def data_type
@@ -216,7 +214,7 @@ module Setup
     private
 
     def destroy_data_types
-      @shutdown_report = Model.shutdown(@new_data_types || data_types.activated, destroy: true)
+      @shutdown_report = DataType.shutdown(@new_data_types || data_types.activated, destroy: true)
     end
 
     def parse_json_schema

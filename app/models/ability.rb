@@ -7,12 +7,11 @@ class Ability
 
       can([:show, :edit], User) { |u| u.eql?(user) }
       if user.super_admin?
-        can :manage, [Role, User, Account, Setup::SharedName]
-        can :destroy, [Setup::SharedCollection, Setup::Model]
-        can :edit, Setup::Model
+        can :manage, [Role, User, Account, Setup::SharedName, Script]
+        can :destroy, Setup::SharedCollection
       else
         cannot :access, Setup::SharedName
-        cannot :destroy, [Setup::SharedCollection, Setup::Model]
+        cannot :destroy, Setup::SharedCollection
       end
 
       can RailsAdmin::Config::Actions.all(:root).collect(&:authorization_key)
@@ -39,7 +38,7 @@ class Ability
           Setup::Models.each do |model, excluded_actions|
             non_root.each do |action|
               models = (hash[key = action.authorization_key] ||= Set.new)
-              models << model if relevant_rules_for_match(action.authorization_key, model).empty? && !excluded_actions.include?(action.key)
+              models << model if relevant_rules_for_match(action.authorization_key, model).empty? && !(excluded_actions.include?(:all) || excluded_actions.include?(action.key))
             end
           end
           new_hash = {}
@@ -54,12 +53,13 @@ class Ability
 
       @@setup_map.each { |keys, models| can keys, models }
 
-      models = Setup::DataType.where(model_loaded: true).collect(&:records_model).select { |m| m.is_a?(Class) }
+      models = Setup::SchemaDataType.where(model_loaded: true).collect(&:model)
+      models.delete(nil)
       can :manage, models
 
       file_models = Setup::FileDataType.where(model_loaded: true).collect(&:model)
       file_models.delete(nil)
-      can [:index, :show, :upload_file, :download_file, :destroy, :import, :edi_export, :delete_all, :send_to_flow], file_models
+      can [:index, :show, :upload_file, :download_file, :destroy, :import, :edi_export, :delete_all, :send_to_flow, :data_type], file_models
     end
 
   end

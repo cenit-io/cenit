@@ -1,9 +1,9 @@
 require 'stringio'
 
 module Setup
-  class FileDataType < Model
+  class FileDataType < DataType
 
-    BuildInDataType.regist(self).referenced_by(:name, :library).with(:title, :name, :_type, :validator).including(:library)
+    BuildInDataType.regist(self).referenced_by(:name, :library).with(:title, :name, :_type, :validator, :validators).including(:library)
 
     belongs_to :library, class_name: Setup::Library.to_s, inverse_of: :file_data_types
     belongs_to :validator, class_name: Setup::Validator.to_s, inverse_of: nil
@@ -11,8 +11,6 @@ module Setup
     has_and_belongs_to_many :validators, class_name: Setup::Validator.to_s, inverse_of: nil
 
     attr_readonly :library
-
-    validates_presence_of :library
 
     before_save :validate_configuration
 
@@ -46,8 +44,8 @@ module Setup
       Mongoff::GridFs::FileModel
     end
 
-    def model_schema
-      Mongoff::GridFs::FileModel::SCHEMA.to_json
+    def schema
+      Mongoff::GridFs::FileModel::SCHEMA
     end
 
     def validate_file(file)
@@ -137,7 +135,7 @@ module Setup
     module FileModel
       extend ActiveSupport::Concern
 
-      Setup::Model.to_include_in_models.each do |module_to_include|
+      Setup::DataType.to_include_in_models.each do |module_to_include|
         include(module_to_include) unless include?(module_to_include) || [Mongoid::Timestamps, RailsAdminDynamicCharts::Datetime].include?(module_to_include)
       end
 

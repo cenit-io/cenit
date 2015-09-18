@@ -78,7 +78,7 @@ module RailsAdmin
               redirect_to back_or_index
             else
               Setup::Schema.all.any_in(id: saved_schemas_ids).delete_all
-              Setup::DataType.all.any_in(schema_id: saved_schemas_ids).delete_all
+              Setup::SchemaDataType.all.any_in(schema_id: saved_schemas_ids).delete_all
               @object ||= Forms::ImportSchemaData.new
               @model_config = RailsAdmin::Config.model(Forms::ImportSchemaData)
               if @object.errors.present?

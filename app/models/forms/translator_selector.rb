@@ -4,7 +4,7 @@ module Forms
 
     field :translator_type, type: Symbol
     field :bulk_source, type: Boolean
-    belongs_to :data_type, class_name: Setup::Model.to_s, inverse_of: nil
+    belongs_to :data_type, class_name: Setup::DataType.to_s, inverse_of: nil
     belongs_to :translator, class_name: Setup::Translator.to_s, inverse_of: nil
 
     after_initialize do

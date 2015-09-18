@@ -215,7 +215,7 @@ module Api::V1
                 @library_id = (lib && lib.id) || ''
               end
               if @library_id.present?
-                Setup::Model.where(slug: slug, library_id: @library_id).first
+                Setup::DataType.where(slug: slug, library_id: @library_id).first
               else
                 nil
               end

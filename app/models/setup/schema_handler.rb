@@ -1,7 +1,7 @@
 module Setup
   module SchemaHandler
 
-    def model_schema
+    def schema
       fail NotImplementedError
     end
 
@@ -10,7 +10,7 @@ module Setup
     end
 
     def merged_schema(options = {})
-      sch = merge_schema(JSON.parse(model_schema), options)
+      sch = merge_schema(schema, options)
       unless (base_sch = sch.delete('extends')).nil? || (base_sch = find_ref_schema(base_sch)).nil?
         sch = base_sch.deep_merge(sch) { |_, val1, val2| Cenit::Utility.array_hash_merge(val1, val2) }
       end
@@ -61,12 +61,12 @@ module Setup
       nil
     end
 
-    def find_ref_schema(ref, root_schema = JSON.parse(model_schema))
+    def find_ref_schema(ref, root_schema = schema)
       if ref.start_with?('#')
         get_embedded_schema(ref, root_schema)[1] rescue nil
       else
         if data_type = find_data_type(ref)
-          JSON.parse(data_type.model_schema)
+          data_type.schema
         else
           nil
         end
@@ -100,7 +100,7 @@ module Setup
     def do_merge_schema(schema, options = {})
       schema = schema.deep_dup
       options ||= {}
-      options[:root_schema] ||= JSON.parse(model_schema)
+      options[:root_schema] ||= schema
       options[:silent] = true if options[:silent].nil?
       references = Set.new
       merging = true
@@ -166,12 +166,12 @@ module Setup
               end
             else
               case existing_value = sch[key]
-              when Hash
-                if value.is_a?(Hash)
-                  value = value.reverse_merge(existing_value) { |_, val1, val2| Cenit::Utility.array_hash_merge(val1, val2) }
-                end
-              when Array
-                value = value + existing_value if value.is_a?(Array)
+                when Hash
+                  if value.is_a?(Hash)
+                    value = value.reverse_merge(existing_value) { |_, val1, val2| Cenit::Utility.array_hash_merge(val1, val2) }
+                  end
+                when Array
+                  value = value + existing_value if value.is_a?(Array)
               end
               sch[key] = value
             end

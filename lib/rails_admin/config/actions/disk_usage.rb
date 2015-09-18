@@ -16,7 +16,7 @@ module RailsAdmin
 
             @max = 0
             @count = {}
-            Setup::Model.all.each do |data_type|
+            Setup::DataType.all.each do |data_type|
               model = data_type.records_model
               @count[data_type.id.to_s] = count = model.is_a?(Class) ? model.storage_size : 0
               @max = count if count > @max

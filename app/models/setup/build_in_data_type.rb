@@ -31,7 +31,7 @@ module Setup
       model.to_s.split('::').last.underscore
     end
 
-    def model_schema
+    def schema
       @schema ||= build_schema
     end
 
@@ -188,7 +188,7 @@ module Setup
         end
       end
       schema = @to_merge.merge(schema) if @to_merge
-      schema.to_json
+      schema
     end
 
     def json_schema_type(mongoid_type)

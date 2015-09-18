@@ -6,13 +6,13 @@ Capataz.config do
 
   deny_invoke_of :require, :new, :create, :class, :eval, :class_eval, :instance_eval, :instance_variable_set, :instance_variable_get, :constants, :const_get, :const_set, :constantize
 
-  allowed_constants JSON, Array, Hash, Nokogiri, Nokogiri::XML, Time, Base64, Digest, Digest::MD5, SecureRandom, Setup, Setup::Library, Setup::Schema, Setup::DataType, OpenSSL, OpenSSL::Digest, OpenSSL::HMAC
+  allowed_constants JSON, Array, Hash, Nokogiri, Nokogiri::XML, Time, Base64, Digest, Digest::MD5, SecureRandom, Setup, Setup::Library, Setup::Schema, Setup::SchemaDataType, OpenSSL, OpenSSL::Digest, OpenSSL::HMAC
 
   allow_on JSON, [:parse, :pretty_generate]
 
   allow_for ActionView::Base, []
 
-  allow_for Setup::Model, (%w(json xml edi).collect do |format|
+  allow_for Setup::DataType, (%w(json xml edi).collect do |format|
     %w(create new create!).collect do |action|
       if action.end_with?('!')
         "#{action.chop}_from_#{format}!"

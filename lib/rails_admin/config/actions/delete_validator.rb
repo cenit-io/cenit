@@ -1,7 +1,7 @@
 module RailsAdmin
   module Config
     module Actions
-      class DeleteValidator < RailsAdmin::Config::Actions::Base
+      class DeleteValidator < RailsAdmin::Config::Actions::Base #TODO Delete these action
 
         register_instance_option :only do
           [Setup::Schema, Setup::EdiValidator]
@@ -42,7 +42,7 @@ module RailsAdmin
               redirect_to redirect_path
             else
               if @object.is_a?(Setup::Schema)
-                @report = Setup::Model.shutdown(@object.data_types.activated, report_only: true)
+                @report = Setup::DataType.shutdown(@object.data_types.activated, report_only: true)
                 @object.instance_variable_set(:@_to_delete, @object.data_types)
                 @object.instance_variable_set(:@_to_shutdown, @report[:destroyed].collect(&:data_type).uniq.select { |data_type| data_type.schema != @object })
                 @object.instance_variable_set(:@_to_reload, @report[:affected].collect(&:data_type).uniq)
