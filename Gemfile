@@ -92,3 +92,5 @@ gem 'jeweler'
 gem 'github_api'
 gem 'captcha'
 gem 'httmultiparty'
+
+gem 'oauth2'

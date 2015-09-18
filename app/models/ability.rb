@@ -7,7 +7,25 @@ class Ability
 
       can([:show, :edit], User) { |u| u.eql?(user) }
       if user.super_admin?
-        can :manage, [Role, User, Account, Setup::SharedName, Script]
+        can :manage,
+            [
+              Role,
+              User,
+              Account,
+              Setup::SharedName,
+              Setup::BaseOauthProvider,
+              Setup::OauthProvider,
+              Setup::Oauth2Provider,
+              Setup::OauthClient,
+              Setup::Oauth2Scope,
+              Setup::BaseOauthAuthorization,
+              Setup::OauthAuthorization,
+              Setup::Oauth2Authorization,
+              Setup::OauthParameter,
+              CenitToken,
+              TkAptcha,
+              Script
+            ]
         can :destroy, Setup::SharedCollection
       else
         cannot :access, Setup::SharedName

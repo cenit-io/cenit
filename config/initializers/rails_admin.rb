@@ -22,7 +22,8 @@
  RailsAdmin::Config::Actions::DeleteDataType,
  RailsAdmin::Config::Actions::ProcessFlow,
  RailsAdmin::Config::Actions::BuildGem,
- RailsAdmin::Config::Actions::Run].each { |a| RailsAdmin::Config::Actions.register(a) }
+ RailsAdmin::Config::Actions::Run,
+ RailsAdmin::Config::Actions::Authorize].each { |a| RailsAdmin::Config::Actions.register(a) }
 
 RailsAdmin::Config::Actions.register(:export, RailsAdmin::Config::Actions::EdiExport)
 RailsAdmin::Config::Fields::Types.register(RailsAdmin::Config::Fields::Types::JsonValue)
@@ -75,6 +76,7 @@ RailsAdmin.config do |config|
     load_model
     shutdown_model
     process_flow
+    authorize
     delete_data_type
     delete
     delete_library
@@ -465,6 +467,11 @@ RailsAdmin.config do |config|
       group :parameters
       visible { bindings[:view]._current_user.has_role? :admin }
     end
+    configure :oauth2_authorization do
+      group :parameters
+      inline_edit false
+      visible { bindings[:view]._current_user.has_role? :admin }
+    end
 
     show do
       field :name
@@ -476,6 +483,7 @@ RailsAdmin.config do |config|
       field :parameters
       field :headers
       field :template_parameters
+      field :oauth2_authorization
 
       field :_id
       field :created_at
@@ -484,7 +492,7 @@ RailsAdmin.config do |config|
       #field :updater
     end
 
-    fields :name, :url, :parameters, :headers, :template_parameters, :key, :token
+    fields :name, :url, :parameters, :headers, :template_parameters, :oauth2_authorization, :key, :token
   end
 
   config.model Setup::Parameter do
@@ -1372,5 +1380,149 @@ RailsAdmin.config do |config|
     end
 
     fields :name, :description, :code
+  end
+
+  config.model CenitToken do
+    navigation_label 'Administration'
+  end
+
+  config.model TkAptcha do
+    navigation_label 'Administration'
+  end
+
+  config.model Setup::BaseOauthProvider do
+    navigation_label 'OAuth'
+
+    fields :name, :response_type, :authorization_endpoint, :token_endpoint, :token_method, :parameters, :clients
+  end
+
+  config.model Setup::OauthProvider do
+    fields :name, :response_type, :authorization_endpoint, :token_endpoint, :token_method, :request_token_endpoint, :parameters, :clients
+  end
+
+  config.model Setup::Oauth2Provider do
+    fields :name, :response_type, :authorization_endpoint, :token_endpoint, :token_method, :parameters, :clients, :scope_separator, :scopes
+  end
+
+  config.model Setup::OauthParameter do
+    navigation_label 'OAuth'
+    object_label_method { :to_s }
+    fields :key, :value
+  end
+
+  config.model Setup::OauthClient do
+    navigation_label 'OAuth'
+
+    fields :name, :provider, :identifier, :secret
+  end
+
+  config.model Setup::Oauth2Scope do
+    navigation_label 'OAuth'
+
+    fields :name, :description, :provider
+  end
+
+  config.model Setup::BaseOauthAuthorization do
+    label 'Authorizations'
+    fields :name, :provider, :client
+  end
+
+  config.model Setup::OauthAuthorization do
+    edit do
+      field :name
+      field :provider do
+        inline_add false
+        inline_edit false
+        associated_collection_scope do
+          provider = (obj = bindings[:object]) && obj.provider
+          Proc.new { |scope|
+            if provider
+              scope.any_in(id: provider.id, _type: Setup::OauthProvider.to_s)
+            else
+              scope
+            end
+          }
+        end
+      end
+      field :client do
+        inline_add false
+        inline_edit false
+        visible do
+          if ((obj = bindings[:object]) && obj.provider).present?
+            obj.client = obj.provider.clients.first if obj.client.blank?
+            true
+          else
+            false
+          end
+        end
+        associated_collection_scope do
+          provider = ((obj = bindings[:object]) && obj.provider) || nil
+          Proc.new { |scope|
+            if provider
+              scope.where(provider_id: provider.id)
+            else
+              scope
+            end
+          }
+        end
+      end
+    end
+
+  end
+
+  config.model Setup::Oauth2Authorization do
+    edit do
+      field :name
+      field :provider do
+        inline_add false
+        inline_edit false
+        associated_collection_scope do
+          provider = (obj = bindings[:object]) && obj.provider
+          Proc.new { |scope|
+            if provider
+              scope.any_in(id: provider.id, _type: Setup::Oauth2Provider.to_s)
+            else
+              scope
+            end
+          }
+        end
+      end
+      field :client do
+        inline_add false
+        inline_edit false
+        visible do
+          if ((obj = bindings[:object]) && obj.provider).present?
+            obj.client = obj.provider.clients.first if obj.client.blank?
+            true
+          else
+            false
+          end
+        end
+        associated_collection_scope do
+          provider = ((obj = bindings[:object]) && obj.provider) || nil
+          Proc.new { |scope|
+            if provider
+              scope.where(provider_id: provider.id)
+            else
+              scope
+            end
+          }
+        end
+      end
+      field :scopes do
+        visible { ((obj = bindings[:object]) && obj.provider).present? }
+        associated_collection_scope do
+          provider = ((obj = bindings[:object]) && obj.provider) || nil
+          Proc.new { |scope|
+            if provider
+              scope.where(provider_id: provider.id)
+            else
+              scope
+            end
+          }
+        end
+      end
+    end
+
   end
 end

@@ -103,7 +103,7 @@ module Mongoff
     def stored_properties_on(record)
       properties = Set.new
       record.document.each_key { |field| properties << field.to_s if property?(field) }
-      record.fields.each_key { |field| properties << field.to_s}
+      record.fields.each_key { |field| properties << field.to_s }
       properties
     end
 
@@ -211,10 +211,14 @@ module Mongoff
           else
             @mongo_types[field_or_schema] ||= mongo_type_for(field_or_schema)
           end
-      if value.is_a?(type)
-        value
+      if type
+        if value.is_a?(type)
+          value
+        else
+          convert(type, value)
+        end
       else
-        convert(type, value)
+        nil  #TODO Non defined properties result in nil types!
       end
     end
 

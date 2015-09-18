@@ -203,3 +203,7 @@ en:
         title: "My Profile"
         menu: "My Profile"
         breadcrumb: "My Profile"
+      authorize:
+        title: "Authorize"
+        menu: "Authorize"
+        breadcrumb: "Authorize"
