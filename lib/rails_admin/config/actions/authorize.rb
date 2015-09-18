@@ -23,7 +23,7 @@ module RailsAdmin
             cenit_token = CenitToken.create(data: {account_id: Account.current.id, authorization_id: @object.id})
 
             client = @object.provider.create_http_client(state: cenit_token.token)
-            session[:oauth_state] = cenit_token.tokent
+            session[:oauth_state] = cenit_token.token
 
             redirect_to client.auth_code.authorize_url
 
