@@ -44,7 +44,7 @@ module Setup
 
     def collection_data_type
       @collection_data_type ||=
-          ((base = JSON.parse(schema)['extends']) && base.is_a?(String) && (base = find_data_type(base)) && base.collection_data_type) || self
+          ((base = schema['extends']) && base.is_a?(String) && (base = find_data_type(base)) && base.collection_data_type) || self
     end
 
     def data_type_collection_name
@@ -326,7 +326,7 @@ module Setup
                     unless type_model.is_a?(Class)
                       #is a Mongoff model
                       property_desc.delete('$ref')
-                      property_desc = property_desc.merge(JSON.parse(type_model.data_type.schema))
+                      property_desc = property_desc.merge(type_model.data_type.schema)
                       type_model.affects_to(klass)
                       still_trying = true
                     else

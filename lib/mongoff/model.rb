@@ -159,7 +159,7 @@ module Mongoff
     def submodel_of?(model)
       return true if eql?(model) || (@base_model && @base_model.submodel_of?(model))
       base_model =
-          if base_data_type = data_type.find_data_type(JSON.parse(data_type.schema)['extends'])
+          if base_data_type = data_type.find_data_type(data_type.schema['extends'])
             Model.for(data_type: base_data_type, cache: caching?)
           else
             nil
