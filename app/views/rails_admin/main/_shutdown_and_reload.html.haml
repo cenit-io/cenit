@@ -32,7 +32,7 @@
         - non_empty.each do |data_type|
           %li
             - label = (count = data_type.count) > 0 ? "#{data_type.title} (#{count} #{t('admin.actions.shutdown_and_reload.records')})" : data_type.title
-            - path = (model = data_type.model) ? rails_admin.index_path(model.to_s.underscore.gsub('/', '~')) : rails_admin.show_path(model_name: Setup::DataType.to_s.underscore.gsub('/', '~'), id: data_type.id)
+            - path = (model = data_type.model) ? rails_admin.index_path(model.to_s.underscore.gsub('/', '~')) : rails_admin.show_path(model_name: data_type.class.to_s.underscore.gsub('/', '~'), id: data_type.id)
             = link_to(label, path, class: 'pjax')
         - to_delete.each do |data_type|
           - next unless non_empty.length < max
@@ -40,7 +40,7 @@
             - non_empty << data_type
             %li
               - label = (count = data_type.count) > 0 ? "#{data_type.title} (#{count} #{t('admin.actions.shutdown_and_reload.records')})" : data_type.title
-              - path = (model = data_type.model) ? rails_admin.index_path(model.to_s.underscore.gsub('/', '~')) : rails_admin.show_path(model_name: Setup::DataType.to_s.underscore.gsub('/', '~'), id: data_type.id)
+              - path = (model = data_type.model) ? rails_admin.index_path(model.to_s.underscore.gsub('/', '~')) : rails_admin.show_path(model_name: data_type.class.to_s.underscore.gsub('/', '~'), id: data_type.id)
               = link_to(label, path, class: 'pjax')
         - if to_delete.length > max
           %li
@@ -54,7 +54,7 @@
       %ul
         - to_shutdown[0..max].each do |data_type|
           %li
-            = link_to(data_type.title, rails_admin.show_path(model_name: Setup::DataType.to_s.underscore.gsub('/', '~'), id: data_type.id), class: 'pjax')
+            = link_to(data_type.title, rails_admin.show_path(model_name: data_type.class.to_s.underscore.gsub('/', '~'), id: data_type.id), class: 'pjax')
         - if to_shutdown.length > max
           %li
             %label= t('admin.actions.shutdown_and_reload.another', count: to_shutdown.length - max)
@@ -67,7 +67,7 @@
       %ul
         - reload[0..max].each do |data_type|
           %li
-            = link_to(data_type.title, rails_admin.show_path(model_name: Setup::DataType.to_s.underscore.gsub('/', '~'), id: data_type.id), class: 'pjax')
+            = link_to(data_type.title, rails_admin.show_path(model_name: data_type.class.to_s.underscore.gsub('/', '~'), id: data_type.id), class: 'pjax')
         - if reload.length > max
           %li
             %label= t('admin.actions.shutdown_and_reload.another', count: reload.length - max)

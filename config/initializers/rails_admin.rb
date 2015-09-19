@@ -19,11 +19,12 @@
  RailsAdmin::Config::Actions::RetryNotification,
  RailsAdmin::Config::Actions::UploadFile,
  RailsAdmin::Config::Actions::DownloadFile,
- RailsAdmin::Config::Actions::DeleteDataType,
  RailsAdmin::Config::Actions::ProcessFlow,
  RailsAdmin::Config::Actions::BuildGem,
  RailsAdmin::Config::Actions::Run,
- RailsAdmin::Config::Actions::Authorize].each { |a| RailsAdmin::Config::Actions.register(a) }
+ RailsAdmin::Config::Actions::Authorize,
+ RailsAdmin::Config::Actions::SimpleDeleteDataType,
+ RailsAdmin::Config::Actions::BulkDeleteDataType].each { |a| RailsAdmin::Config::Actions.register(a) }
 
 RailsAdmin::Config::Actions.register(:export, RailsAdmin::Config::Actions::EdiExport)
 RailsAdmin::Config::Fields::Types.register(RailsAdmin::Config::Fields::Types::JsonValue)
@@ -77,7 +78,8 @@ RailsAdmin.config do |config|
     shutdown_model
     process_flow
     authorize
-    delete_data_type
+    simple_delete_data_type
+    bulk_delete_data_type
     delete
     delete_library
     #show_in_app

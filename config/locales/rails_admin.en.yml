@@ -181,10 +181,15 @@ en:
         breadcrumb: "Download"
         submit: "Download"
         done: "downloaded"
-      delete_data_type:
+      simple_delete_data_type:
         title: "Delete %{model_label} '%{object_label}'"
         menu: "Delete"
         breadcrumb: "Delete"
+      bulk_delete_data_type:
+        title: "Delete %{model_label_plural}"
+        menu: "Delete"
+        breadcrumb: "Delete"
+        bulk_link: "Delete selected %{model_label_plural}"
       process_flow:
         title: "Process"
         menu: "Process"
