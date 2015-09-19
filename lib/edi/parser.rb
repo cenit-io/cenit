@@ -104,6 +104,7 @@ module Edi
             end
           end
         end
+        record.try(:run_after_initialized)
         record
       end
 
@@ -250,6 +251,7 @@ module Edi
             fail "Can not assign #{json} as simple content to #{data_type.name}"
           end
         end
+        record.try(:run_after_initialized)
         record
       end
 
@@ -405,6 +407,7 @@ module Edi
 
         report[:segments] << [segment, record]
 
+        record.try(:run_after_initialized)
         return [json, start, record]
       end
     end
