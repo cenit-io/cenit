@@ -14,7 +14,14 @@ module RailsAdmin
         register_instance_option :controller do
           proc do
 
-            data_types = [@object] || ((@bulk_ids = params[:bulk_ids] || []).present? ? Setup::DataType.any_in(id: @bulk_ids) : Setup::DataType.all)
+            data_types =
+              if @object
+                [@object]
+              elsif (@bulk_ids = params[:bulk_ids] || []).present?
+                Setup::DataType.any_in(id: @bulk_ids)
+              else
+                Setup::DataType.all
+              end
             if params[:delete] # DELETE
               data_types.each { |data_type| @auditing_adapter.delete_object(data_type, @abstract_model, _current_user) } if @auditing_adapter
               Setup::DataType.shutdown(data_types)
