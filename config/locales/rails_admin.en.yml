@@ -212,3 +212,12 @@ en:
         title: "Authorize"
         menu: "Authorize"
         breadcrumb: "Authorize"
+      simple_generate:
+        title: "Generate data types from %{model_label} '%{object_label}'"
+        menu: "Generate data types"
+        breadcrumb: "Generate"
+      bulk_generate:
+        title: "Generate data types from %{model_label_plural}"
+        menu: "Generate data types"
+        breadcrumb: "Generate"
+        bulk_link: "Generate data types from selected %{model_label_plural}"

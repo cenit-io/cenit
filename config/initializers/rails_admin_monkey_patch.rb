@@ -331,18 +331,14 @@ module RailsAdmin
 
     def do_flash_on(flash_hash, flash_key, header, messages, options = {})
       options = (options || {}).reverse_merge(reset: true)
-      if options[:reset] || flash_hash[flash_key].nil?
-        flash_hash[flash_key] = header.html_safe
-      else
-        flash_hash[flash_key] += header.html_safe
-      end
+      flash_message = header.html_safe
+      flash_message = flash_hash[flash_key] + flash_message unless options[:reset] || flash_hash[flash_key].nil?
       max_message_count = options[:max] || 5
       max_message_length = 500
       max_length = 1500
       messages = [messages] unless messages.is_a?(Enumerable)
       msgs = messages[0..max_message_count].collect { |msg| msg.length < max_message_length ? msg : msg[0..max_message_length] + '...' }
       count = 0
-      flash_message = ''
       msgs.each do |msg|
         if flash_message.length < max_length
           flash_message += "<br>- #{msg}".html_safe
@@ -350,7 +346,7 @@ module RailsAdmin
         end
       end
       if (count = messages.length - count) > 0
-        flash_hash[flash_key] += "<br>- and another #{count}.".html_safe
+        flash_message += "<br>- and another #{count}.".html_safe
       end
       flash_hash[flash_key] = flash_message.html_safe
     end
