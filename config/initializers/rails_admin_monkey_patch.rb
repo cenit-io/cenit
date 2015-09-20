@@ -189,7 +189,7 @@ module RailsAdmin
               if field =
                 if (property_model = model.property_model(property)).is_a?(Mongoff::Model) &&
                   !%w(integer number string boolean).include?(property_model.schema['type'])
-                  rails_admin_model.field(property, :json_schema)
+                  rails_admin_model.field(property, :json_value)
                 else
                   begin
                     rails_admin_model.fields(property.to_sym).first

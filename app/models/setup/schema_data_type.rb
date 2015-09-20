@@ -289,7 +289,7 @@ module Setup
       if properties = schema['properties']
         raise Exception.new('properties definition is invalid') unless properties.is_a?(Hash)
         properties = merge_schema(properties)
-        schema['properties'].each do |property_name, property_desc|
+        properties.each do |property_name, property_desc|
           raise Exception.new("property '#{property_name}' definition is invalid") unless property_desc.is_a?(Hash)
           check_property_name(property_name)
 
@@ -519,9 +519,9 @@ module Setup
             if constraints.length > 0
               validations << "validates_numericality_in_presence_of :#{property_name}, {#{constraints[0] + (constraints[1] ? ', ' + constraints[1] : '')}}"
             end
-            if property_desc['unique']
-              validations << "validates_uniqueness_in_presence_of :#{property_name}"
-            end
+          end
+          if property_desc['unique']
+            validations << "validates_uniqueness_in_presence_of :#{property_name}"
           end
         end
       end
