@@ -40,6 +40,9 @@ module RailsAdmin
               @new_data_types_count -= conflicting_data_types.length
               @options.instance_variable_set(:@_to_override, conflicting_data_types)
               @object.instance_variable_set(:@_to_override, conflicting_data_types)
+              report = Setup::DataType.shutdown(conflicting_data_types, report_only: true)
+              @object.instance_variable_set(:@_to_shutdown, report[:destroyed].collect(&:data_type).uniq)
+              @object.instance_variable_set(:@_to_reload, report[:affected].collect(&:data_type).uniq)
               @model_config = options_config
               render :generate
             end
