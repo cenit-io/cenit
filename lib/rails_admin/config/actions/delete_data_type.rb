@@ -39,7 +39,7 @@ module RailsAdmin
               to_shutdown.delete(@object)
               @object.instance_variable_set(:@_to_shutdown, to_shutdown)
               @object.instance_variable_set(:@_to_reload, @report[:affected].collect(&:data_type).uniq)
-              render 'delete_data_definition'
+              render 'delete_data_types'
             end
           end
         end

@@ -47,7 +47,7 @@ module RailsAdmin
                 @object.instance_variable_set(:@_to_shutdown, @report[:destroyed].collect(&:data_type).uniq.select { |data_type| data_type.schema != @object })
                 @object.instance_variable_set(:@_to_reload, @report[:affected].collect(&:data_type).uniq)
               end
-              render 'delete_data_definition'
+              render 'delete_data_types'
             end
           end
         end

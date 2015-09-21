@@ -241,7 +241,10 @@ module Setup
         raise Exception.new("Both options 'destroy' and 'report_only' is not allowed") if options[:destroy] && options[:report_only]
         data_types = [data_types] unless data_types.is_a?(Enumerable)
         data_type_ids = data_types.collect(& ->(data_type) { data_type.id.to_s })
-        any_in(id: data_type_ids).update_all(to_be_destroyed: true) if options[:destroy]
+        update_options = {}
+        update_options[:to_be_destroyed] = true if options[:destroy]
+        update_options[:activated] = false if options[:deactivate]
+        any_in(id: data_type_ids).update_all(update_options) if update_options.present?
         report = options.reverse_merge!(destroyed: Set.new, affected: Set.new, reloaded: Set.new, errors: {})
         any_in(id: data_type_ids).each { |data_type| data_type.report_shutdown(report) }
         puts "Report: #{report.to_s}"

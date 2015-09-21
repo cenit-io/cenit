@@ -158,7 +158,7 @@ module Cenit
         true
       end
 
-      def generate_data_types(source, options = {})
+      def data_type_schemas(source, options = {})
         schemas =
           case source
           when nil # All schemas
@@ -170,13 +170,21 @@ module Cenit
           end
         json_schemas = Hash.new { |h, k| h[k] = {} }
         schemas.each { |schema| json_schemas[schema.library.id].merge!(schema.json_schemas) }
+        json_schemas
+      end
+
+      def generate_data_types(source, options = {})
+        options = options.with_indifferent_access
+        json_schemas = data_type_schemas(source, options)
         json_schemas.each do |library_id, data_type_schemas|
           existing_data_types = Setup::DataType.any_in(library_id: library_id, name: data_type_schemas.keys)
           if existing_data_types.present?
-            if options[:override]
-              Setup::DataType.shutdown(existing_data_types)
-              existing_data_types.each { |data_type| data_type.schema = data_type_schemas.delete(data_type.name) }
-              existing_data_types.update_all
+            if options[:override_data_types].to_b
+              Setup::DataType.shutdown(existing_data_types, deactivate: true)
+              existing_data_types.each do |data_type|
+                data_type.schema = data_type_schemas.delete(data_type.name)
+                data_type.save
+              end
             else
               fail "Can not override existing data types without override option: #{existing_data_types.collect(&:name).to_sentence}"
             end

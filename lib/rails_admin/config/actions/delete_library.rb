@@ -38,7 +38,7 @@ module RailsAdmin
               @object.instance_variable_set(:@_schemas_to_delete, @object.schemas)
               @object.instance_variable_set(:@_to_delete, @object.data_types)
               @object.instance_variable_set(:@_to_reload, @report[:affected].collect(&:data_type).uniq)
-              render 'delete_data_definition'
+              render 'delete_data_types'
             end
           end
         end

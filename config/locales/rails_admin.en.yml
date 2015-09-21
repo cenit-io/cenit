@@ -116,7 +116,8 @@ en:
         delete_schemas: "delete %{schemas_count} schemas"
         delete_data_types: "delete %{data_type_count} data types"
         shutdown_data_types: "shutdown %{shutdown_count} data types"
-        reload_data_types: "reload %{reload_count} data types"
+        reload_data_types: "reload %{count} data types"
+        override_data_types: "override %{count} data types"
         records: "records"
       action_will:
         also: 'These action will also'
@@ -212,6 +213,8 @@ en:
         title: "Authorize"
         menu: "Authorize"
         breadcrumb: "Authorize"
+      generate:
+        new_data_types: "There will be generated %{count} data types"
       simple_generate:
         title: "Generate data types from %{model_label} '%{object_label}'"
         menu: "Generate data types"
