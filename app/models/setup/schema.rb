@@ -53,7 +53,7 @@ module Setup
 
     attr_reader :include_missing_message
 
-    def run_after_initialized
+    def run_after_initialized__ #TODO Delete these method
       if @errors_cache.nil?
         @errors_cache = Hash.new { |h, k| h[k] = [] }
         @include_missing = false
@@ -196,7 +196,7 @@ module Setup
         end
     end
 
-    def save_data_types
+    def save_data_types #TODO Search for more method to delete
       if run_after_initialized
         self_optimizer = false
         unless optimizer = Setup::DataTypeOptimizer.optimizer

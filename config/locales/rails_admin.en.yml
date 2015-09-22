@@ -224,3 +224,7 @@ en:
         menu: "Generate data types"
         breadcrumb: "Generate"
         bulk_link: "Generate data types from selected %{model_label_plural}"
+      expand:
+        title: "Expand %{model_label} '%{object_label}'"
+        menu: "Expand"
+        breadcrumb: "Expand"

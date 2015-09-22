@@ -51,7 +51,7 @@ module RailsAdmin
                   schemas[uri] = Setup::Schema.new(library: library, uri: uri, schema: file.read)
                 end
               end
-              data_type_optimizer = Setup::DataTypeOptimizer.new_optimizer
+              data_type_optimizer = Setup::DataTypeOptimizer.new_optimizer #TODO !!!
               library.set_schemas_scope(schemas.values)
               schemas.values.each(&:bind_includes)
               new_schemas_attributes = []

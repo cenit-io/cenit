@@ -26,7 +26,8 @@
  RailsAdmin::Config::Actions::SimpleDeleteDataType,
  RailsAdmin::Config::Actions::BulkDeleteDataType,
  RailsAdmin::Config::Actions::SimpleGenerate,
- RailsAdmin::Config::Actions::BulkGenerate].each { |a| RailsAdmin::Config::Actions.register(a) }
+ RailsAdmin::Config::Actions::BulkGenerate,
+ RailsAdmin::Config::Actions::Expand].each { |a| RailsAdmin::Config::Actions.register(a) }
 
 RailsAdmin::Config::Actions.register(:export, RailsAdmin::Config::Actions::EdiExport)
 RailsAdmin::Config::Fields::Types.register(RailsAdmin::Config::Fields::Types::JsonValue)
@@ -82,6 +83,7 @@ RailsAdmin.config do |config|
     authorize
     simple_generate
     bulk_generate
+    expand
     simple_delete_data_type
     bulk_delete_data_type
     delete
