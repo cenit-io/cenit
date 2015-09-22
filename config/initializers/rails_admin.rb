@@ -964,6 +964,28 @@ RailsAdmin.config do |config|
     fields :name, :owners
   end
 
+  config.model Script do
+    navigation_label 'Administration'
+
+    edit do
+      field :name
+      field :description
+      field :code, :code_mirror
+    end
+
+    show do
+      field :name
+      field :description
+      field :code do
+        pretty_value do
+          "<pre><code class='ruby'>#{value}</code></pre>".html_safe
+        end
+      end
+    end
+
+    fields :name, :description, :code
+  end
+
   config.model Setup::SharedCollection do
     register_instance_option(:discard_submit_buttons) do
       !(a = bindings[:action]) || a.key != :edit

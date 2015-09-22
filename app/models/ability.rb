@@ -23,7 +23,8 @@ class Ability
               Setup::Oauth2Authorization,
               Setup::OauthParameter,
               CenitToken,
-              TkAptcha
+              TkAptcha,
+              Script
             ]
         can :destroy, [Setup::SharedCollection, Setup::Model]
         can :edit, Setup::Model

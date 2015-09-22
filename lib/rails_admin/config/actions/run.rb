@@ -4,7 +4,7 @@ module RailsAdmin
       class Run < RailsAdmin::Config::Actions::Base
 
         register_instance_option :only do
-          [Setup::Algorithm]
+          [Script, Setup::Algorithm]
         end
 
         register_instance_option :member do
@@ -18,7 +18,7 @@ module RailsAdmin
         register_instance_option :controller do
           proc do
 
-            if @object.parameters.empty? || params[:_run]
+            if (@object.parameters.empty? && !@object.try(:need_run_confirmation)) || params[:_run]
               begin
                 @output = @object.run(@input = params.delete(:input))
               rescue Exception => ex
