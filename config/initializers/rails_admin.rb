@@ -964,6 +964,28 @@ RailsAdmin.config do |config|
     fields :name, :owners
   end
 
+  config.model Script do
+    navigation_label 'Administration'
+
+    edit do
+      field :name
+      field :description
+      field :code, :code_mirror
+    end
+
+    show do
+      field :name
+      field :description
+      field :code do
+        pretty_value do
+          "<pre><code class='ruby'>#{value}</code></pre>".html_safe
+        end
+      end
+    end
+
+    fields :name, :description, :code
+  end
+
   config.model Setup::SharedCollection do
     register_instance_option(:discard_submit_buttons) do
       !(a = bindings[:action]) || a.key != :edit
@@ -1355,28 +1377,84 @@ RailsAdmin.config do |config|
     navigation_label 'Administration'
   end
 
-  config.model Setup::Oauth2Provider do
-    navigation_label 'OAuth2'
+  config.model Setup::BaseOauthProvider do
+    navigation_label 'OAuth'
 
-    fields :name, :response_type, :authorization_endpoint, :token_endpoint, :access_token_request_method, :parameters, :clients, :scopes
+    fields :name, :response_type, :authorization_endpoint, :token_endpoint, :token_method, :parameters, :clients
   end
 
-  config.model Setup::Oauth2Parameter do
-    navigation_label 'OAuth2'
+  config.model Setup::OauthProvider do
+    fields :name, :response_type, :authorization_endpoint, :token_endpoint, :token_method, :request_token_endpoint, :parameters, :clients
+  end
+
+  config.model Setup::Oauth2Provider do
+    fields :name, :response_type, :authorization_endpoint, :token_endpoint, :token_method, :parameters, :clients, :scope_separator, :scopes
+  end
+
+  config.model Setup::OauthParameter do
+    navigation_label 'OAuth'
     object_label_method { :to_s }
     fields :key, :value
   end
 
-  config.model Setup::Oauth2Client do
-    navigation_label 'OAuth2'
+  config.model Setup::OauthClient do
+    navigation_label 'OAuth'
 
     fields :name, :provider, :identifier, :secret
   end
 
   config.model Setup::Oauth2Scope do
-    navigation_label 'OAuth2'
+    navigation_label 'OAuth'
 
     fields :name, :description, :provider
+  end
+
+  config.model Setup::BaseOauthAuthorization do
+    label 'Authorizations'
+    fields :name, :provider, :client
+  end
+
+  config.model Setup::OauthAuthorization do
+    edit do
+      field :name
+      field :provider do
+        inline_add false
+        inline_edit false
+        associated_collection_scope do
+          provider = (obj = bindings[:object]) && obj.provider
+          Proc.new { |scope|
+            if provider
+              scope.any_in(id: provider.id, _type: Setup::OauthProvider.to_s)
+            else
+              scope
+            end
+          }
+        end
+      end
+      field :client do
+        inline_add false
+        inline_edit false
+        visible do
+          if ((obj = bindings[:object]) && obj.provider).present?
+            obj.client = obj.provider.clients.first if obj.client.blank?
+            true
+          else
+            false
+          end
+        end
+        associated_collection_scope do
+          provider = ((obj = bindings[:object]) && obj.provider) || nil
+          Proc.new { |scope|
+            if provider
+              scope.where(provider_id: provider.id)
+            else
+              scope
+            end
+          }
+        end
+      end
+    end
+
   end
 
   config.model Setup::Oauth2Authorization do
@@ -1389,7 +1467,7 @@ RailsAdmin.config do |config|
           provider = (obj = bindings[:object]) && obj.provider
           Proc.new { |scope|
             if provider
-              scope.any_in(id: provider.id)
+              scope.any_in(id: provider.id, _type: Setup::Oauth2Provider.to_s)
             else
               scope
             end

@@ -168,7 +168,7 @@ module Setup
               case existing_value = sch[key]
               when Hash
                 if value.is_a?(Hash)
-                  value = value.reverse_merge(existing_value) { |_, val1, val2| Cenit::Utility.array_hash_merge(val1, val2) }
+                  value = existing_value.deep_merge(value) { |_, val1, val2| Cenit::Utility.array_hash_merge(val1, val2) }
                 end
               when Array
                 value = value + existing_value if value.is_a?(Array)

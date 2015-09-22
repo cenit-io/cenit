@@ -1,5 +1,5 @@
 module Setup
-  class Oauth2Parameter
+  class OauthParameter
     include CenitUnscoped
 
     Setup::Models.exclude_actions_for self, :all
@@ -9,7 +9,7 @@ module Setup
     field :key, type: String
     field :value, type: String
 
-    embedded_in :provider, class_name: Setup::Oauth2Provider.to_s, inverse_of: :parameters
+    embedded_in :provider, class_name: Setup::BaseOauthProvider.to_s, inverse_of: :parameters
 
     validates_presence_of :key
 
