@@ -1,5 +1,5 @@
 module Setup
-  class Oauth2Client
+  class OauthClient
     include CenitUnscoped
 
     Setup::Models.exclude_actions_for self, :all
@@ -8,7 +8,7 @@ module Setup
 
     field :name, type: String
 
-    belongs_to :provider, class_name: Setup::Oauth2Provider.to_s, inverse_of: :clients
+    belongs_to :provider, class_name: Setup::BaseOauthProvider.to_s, inverse_of: :clients
 
     field :identifier, type: String
     field :secret, type: String

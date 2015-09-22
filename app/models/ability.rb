@@ -13,13 +13,18 @@ class Ability
               User,
               Account,
               Setup::SharedName,
+              Setup::BaseOauthProvider,
+              Setup::OauthProvider,
               Setup::Oauth2Provider,
-              Setup::Oauth2Client,
+              Setup::OauthClient,
               Setup::Oauth2Scope,
+              Setup::BaseOauthAuthorization,
+              Setup::OauthAuthorization,
               Setup::Oauth2Authorization,
-              Setup::Oauth2Parameter,
+              Setup::OauthParameter,
               CenitToken,
-              TkAptcha
+              TkAptcha,
+              Script
             ]
         can :destroy, [Setup::SharedCollection, Setup::Model]
         can :edit, Setup::Model

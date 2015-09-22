@@ -22,7 +22,7 @@
             = @output
   .form-actions
     %button.btn.btn-primary{type: 'submit', name: '_run', :'data-disable-with' => t('admin.actions.run.submit')}
-      - if @object.parameters.empty? || params[:_run]
+      - if (@object.parameters.empty? && !@object.try(:need_run_confirmation)) || params[:_run]
         %i.icon-repeat
       - else
         %i{class: @action.try(:link_icon)}
