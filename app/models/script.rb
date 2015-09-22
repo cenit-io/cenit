@@ -12,6 +12,10 @@ class Script
     []
   end
 
+  def need_run_confirmation
+    true
+  end
+
   def run(input)
     instance_eval(code)
   end
