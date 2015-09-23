@@ -129,15 +129,10 @@ module Setup
         cycle = cycle.collect { |id| ((flow = Setup::Flow.where(id: id).first) && flow.name) || id }
         Setup::Notification.create(flow: self, exception_message: "Cyclic flow execution: #{cycle.join(' -> ')}")
       else
-        message = options.merge(flow_id: id.to_s,
-                                tirgger_flow_id: executing_id,
-                                execution_graph: execution_graph,
-                                token: CenitToken.create(data: {account_id: Account.current.id.to_s}).token).to_json
-        if Cenit.asynchronous_flow_processing
-          Cenit::Rabbit.send_to_rabbitmq(message)
-        else
-          Cenit::Rabbit.process_message(message)
-        end
+        Cenit::Rabbit.send_to_rabbitmq(handler: Setup::Flow,
+                                       flow_id: id.to_s,
+                                       tirgger_flow_id: executing_id,
+                                       execution_graph: execution_graph)
       end
       puts "Flow processing jon '#{self.name}' done!"
       self.last_trigger_timestamps = DateTime.now
@@ -335,6 +330,29 @@ module Setup
           end
         end
         connections
+      end
+    end
+
+    class << self
+      def process_message(message)
+        if flow = Setup::Flow.where(id: flow_id = message[:flow_id]).first
+          flow.translate(message) do |translation_result|
+            notification =
+              Setup::Notification.where(id: message[:notification_id]).first ||
+                Setup::Notification.new(flow: flow,
+                                        message: message,
+                                        exception_message: translation_result[:exception_message])
+            notification.response = translation_result[:response].to_s
+            notification.retries += 1 unless notification.new_record?
+            notification.save
+          end
+        else
+          fail "Flow with id #{flow_id} not found"
+        end
+      end
+
+      def asynchronous_cenit_option
+        :asynchronous_flow_processing
       end
     end
   end

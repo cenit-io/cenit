@@ -7,13 +7,13 @@ Thread.new {
   conn.start
 
   ch = conn.create_channel
-  q = ch.queue('send.to.endpoint')
+  q = ch.queue('cenit')
 
   begin
     q.subscribe(block: true) do |delivery_info, properties, body|
       Cenit::Rabbit.process_message(body)
     end
-  rescue
+  rescue Interrupt => _
     conn.close
     exit(0)
   end

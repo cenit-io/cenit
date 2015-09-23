@@ -8,54 +8,57 @@ module Cenit
     class << self
 
       def send_to_rabbitmq(message)
-        conn = Bunny.new(automatically_recover: false)
-        conn.start
-
-        ch = conn.create_channel
-        q = ch.queue('send.to.endpoint')
-
-        ch.default_exchange.publish(message, routing_key: q.name)
-        conn.close
-      end
-
-      def process_message(message)
-        hash_message = JSON.parse(message).with_indifferent_access
-        if (token = CenitToken.where(token: hash_message.delete(:token)).first) &&
-          account = Account.where(id: token.data[:account_id]).first
-          token.destroy
-          Account.current = account
-          if flow = Setup::Flow.where(id: flow_id = hash_message[:flow_id]).first
-            flow.translate(hash_message) do |translation_result|
-              notify_to_cenit(translation_result.merge(message: message,
-                                                       flow: flow,
-                                                       notification_id: hash_message[:notification_id]))
-            end
-          else
-            notify_to_cenit(exception_message: "Flow with id #{flow_id} not found")
-          end
+        handler = message[:handler]
+        msg_handler = handler.to_s.constantize rescue nil
+        if handler == msg_handler
+          message[:handler] = handler.to_s
         else
-          #TODO Crate log for invalid message
+          fail "Invalid handler: #{handler}"
+        end
+        if (asynch_option = handler.try(:asynchronous_cenit_option)) && Cenit.send(asynch_option)
+          message[:token] = CenitToken.create(data: {account_id: Account.current.id.to_s}).token
+          conn = Bunny.new(automatically_recover: false)
+          conn.start
+          ch = conn.create_channel
+          q = ch.queue('cenit')
+          ch.default_exchange.publish(message.to_json, routing_key: q.name)
+          conn.close
+        else
+          process_message(message)
         end
       end
 
-      def notify_to_cenit(translation)
-        # Http codes:
-        # 200...299 : OK
-        # 300...399 : Redirect
-        # 400...499 : Bad request
-        # 500...599 : Internal Server Error
-
-
-        notification =
-          (translation[:notification_id] && Setup::Notification.where(id: translation[:notification_id]).first) ||
-            Setup::Notification.new(flow: translation[:flow],
-                                    message: translation[:message],
-                                    exception_message: translation[:exception_message])
-        notification.response = translation[:response].to_s
-        notification.retries += 1 unless notification.new_record?
-        notification.save
+      def process_message(message)
+        message = JSON.parse(message) unless message.is_a?(Hash)
+        message = message.with_indifferent_access
+        message_token = message.delete(:token)
+        if token = CenitToken.where(token: message_token).first
+          if account = Account.where(id: token.data[:account_id]).first
+            Account.current = account if Account.current.nil?
+          end
+          token.destroy
+        else
+          account = nil
+        end
+        if Account.current.nil? || (message_token.present? && Account.current != account)
+          Setup::Notification.create(exception_message: "Invalid message #{message}")
+        else
+          handler_str = message.delete(:handler)
+          handler = handler_str.constantize rescue nil
+          exception_message =
+            if handler
+              begin
+                handler.process_message(message)
+                nil
+              rescue Exception => ex
+                ex.message
+              end
+            else
+              "Invalid handler #{handler_str}"
+            end
+          Setup::Notification.create(exception_message: exception_message) if exception_message
+        end
       end
-
     end
   end
 end
