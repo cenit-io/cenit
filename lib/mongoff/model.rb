@@ -81,18 +81,18 @@ module Mongoff
         else
           ref, property_dt = check_referenced_schema(property_schema)
           model =
-              if ref
-                property_dt.records_model
-              else
-                property_schema = data_type.merge_schema(property_schema)
-                records_schema =
-                    if property_schema['type'] == 'array' && property_schema.has_key?('items')
-                      property_schema['items']
-                    else
-                      property_schema
-                    end
-                Model.for(data_type: data_type, name: property.camelize, parent: self, schema: records_schema)
-              end
+            if ref
+              property_dt.records_model
+            else
+              property_schema = data_type.merge_schema(property_schema)
+              records_schema =
+                if property_schema['type'] == 'array' && property_schema.has_key?('items')
+                  property_schema['items']
+                else
+                  property_schema
+                end
+              Model.for(data_type: data_type, name: property.camelize, parent: self, schema: records_schema)
+            end
           schema['properties'][property] = property_schema
           @properties_models[property] = model
         end
@@ -159,11 +159,11 @@ module Mongoff
     def submodel_of?(model)
       return true if eql?(model) || (@base_model && @base_model.submodel_of?(model))
       base_model =
-          if base_data_type = data_type.find_data_type(data_type.schema['extends'])
-            Model.for(data_type: base_data_type, cache: caching?)
-          else
-            nil
-          end
+        if base_data_type = data_type.find_data_type(data_type.schema['extends'])
+          Model.for(data_type: base_data_type, cache: caching?)
+        else
+          nil
+        end
       if base_model
         @base_model = base_model if caching?
         base_model.submodel_of?(model)
@@ -174,7 +174,7 @@ module Mongoff
 
     def attribute_key(field, field_metadata = {})
       if (field_metadata[:model] ||= property_model(field)) &&
-          (schema = (field_metadata[:schema] ||= property_schema(field)))['referenced']
+        (schema = (field_metadata[:schema] ||= property_schema(field)))['referenced']
         return ("#{field}_id" + ('s' if schema['type'] == 'array').to_s).to_sym
       end
       field
@@ -182,43 +182,39 @@ module Mongoff
 
     def to_string(value)
       case value
-        when Hash, Array
-          value.to_json
-        else
-          value.to_s
+      when Hash, Array
+        value.to_json
+      else
+        value.to_s
       end
     end
 
     CONVERSION = {
-        BSON::ObjectId => ->(value) { BSON::ObjectId.from_string(value.to_s) },
-        BSON::Binary => ->(value) { BSON::Binary.new(value.to_s) },
-        Boolean => ->(value) { value.to_s.to_boolean },
-        String => ->(value) { value.to_s },
-        Integer => ->(value) { value.to_s.to_i },
-        Float => ->(value) { value.to_s.to_f },
-        Date => ->(value) { Date.parse(value.to_s) rescue nil },
-        DateTime => ->(value) { DateTime.parse(value.to_s) rescue nil },
-        Time => ->(value) { Time.parse(value.to_s) rescue nil },
-        Hash => ->(value) { JSON.parse(value.to_s) rescue nil },
-        Array => ->(value) { JSON.parse(value.to_s) rescue nil },
-        nil => ->(value) { Cenit::Utility.json_object?(value) ? value : nil }
+      BSON::ObjectId => ->(value) { BSON::ObjectId.from_string(value.to_s) },
+      BSON::Binary => ->(value) { BSON::Binary.new(value.to_s) },
+      Boolean => ->(value) { value.to_s.to_boolean },
+      String => ->(value) { value.to_s },
+      Integer => ->(value) { value.to_s.to_i },
+      Float => ->(value) { value.to_s.to_f },
+      Date => ->(value) { Date.parse(value.to_s) rescue nil },
+      DateTime => ->(value) { DateTime.parse(value.to_s) rescue nil },
+      Time => ->(value) { Time.parse(value.to_s) rescue nil },
+      Hash => ->(value) { JSON.parse(value.to_s) rescue nil },
+      Array => ->(value) { JSON.parse(value.to_s) rescue nil },
+      NilClass => ->(value) { Cenit::Utility.json_object?(value) ? value : nil }
     }
 
     def mongo_value(value, field_or_schema)
       type =
-          if !caching? || field_or_schema.is_a?(Hash)
-            mongo_type_for(field_or_schema)
-          else
-            @mongo_types[field_or_schema] ||= mongo_type_for(field_or_schema)
-          end
-      if type
-        if value.is_a?(type)
-          value
+        if !caching? || field_or_schema.is_a?(Hash)
+          mongo_type_for(field_or_schema)
         else
-          convert(type, value)
+          @mongo_types[field_or_schema] ||= mongo_type_for(field_or_schema)
         end
+      if value.is_a?(type)
+        value
       else
-        nil  #TODO Non defined properties result in nil types!
+        convert(type, value)
       end
     end
 
@@ -236,10 +232,10 @@ module Mongoff
 
       def options
         @options ||=
-            {
-                before_save: ->(_) {},
-                after_save: ->(_) {}
-            }
+          {
+            before_save: ->(_) {},
+            after_save: ->(_) {}
+          }
       end
 
       def [](option)
@@ -253,10 +249,10 @@ module Mongoff
 
       def validate_option!(option, value)
         unless case option
-                 when :before_save, :after_save
-                   value.is_a?(Proc)
-                 else
-                   true
+               when :before_save, :after_save
+                 value.is_a?(Proc)
+               else
+                 true
                end
           raise Exception.new("Invalid value #{value} for option #{option}")
         end
@@ -327,8 +323,8 @@ module Mongoff
 
     def check_referenced_schema(schema)
       if (ref = schema['$ref']).is_a?(String) &&
-          (schema.size == 1 || (schema.size == 2 && schema.has_key?('referenced'))) &&
-          (property_dt = data_type.find_data_type(ref))
+        (schema.size == 1 || (schema.size == 2 && schema.has_key?('referenced'))) &&
+        (property_dt = data_type.find_data_type(ref))
         [ref, property_dt]
       else
         [nil, nil]

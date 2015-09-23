@@ -97,7 +97,7 @@ module Mongoff
     end
 
     def []=(field, value)
-      field = :_id if field.to_s == 'id'
+      field = :_id if %w(id _id).include?(field.to_s)
       @fields.delete(field)
       attribute_key = orm_model.attribute_key(field, field_metadata = {})
       property_model = field_metadata[:model]

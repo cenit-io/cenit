@@ -66,7 +66,7 @@ module Mongoff
       },
       object: Hash,
       array: Array,
-      nil => Hash
+      nil => NilClass
     }.with_indifferent_access
 
     def mongo_type_for(field_or_schema)
