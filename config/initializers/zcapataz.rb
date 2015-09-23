@@ -22,7 +22,7 @@ Capataz.config do
     end + [:create_from]
   end + [:name, :slug, :to_json, :to_edi, :to_hash, :to_xml, :to_params, :records_model]).flatten
 
-  allow_for [Class, Mongoff::Model], [:where, :all, :new_sign, :digest]
+  allow_for [Class, Mongoff::Model], [:where, :all, :new_sign, :digest, :now]
 
   allow_for [Mongoid::Criteria, Mongoff::Criteria], Enumerable.instance_methods(false) + Origin::Queryable.instance_methods(false)
 
