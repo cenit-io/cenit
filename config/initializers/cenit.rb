@@ -15,7 +15,7 @@ Cenit.config do
   captcha_length 5
 
   #Process flow messages asynchronous
-  asynchronous_flow_processing false
+  asynchronous_flow_processing true
 
   #oauth2 callback site
   oauth2_callback_site ENV['OAUTH2_CALLBACK_SITE']

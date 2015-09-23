@@ -8,26 +8,33 @@ module Cenit
     class << self
 
       def send_to_rabbitmq(message)
-        conn = Bunny.new(:automatically_recover => false)
+        conn = Bunny.new(automatically_recover: false)
         conn.start
 
         ch = conn.create_channel
         q = ch.queue('send.to.endpoint')
 
-        ch.default_exchange.publish(message, :routing_key => q.name)
+        ch.default_exchange.publish(message, routing_key: q.name)
         conn.close
       end
 
       def process_message(message)
         hash_message = JSON.parse(message).with_indifferent_access
-        if flow = Setup::Flow.where(id: flow_id = hash_message[:flow_id]).first
-          flow.translate(hash_message) do |translation_result|
-            notify_to_cenit(translation_result.merge(message: message,
-                                                     flow: flow,
-                                                     notification_id: hash_message[:notification_id]))
+        if (token = CenitToken.where(token: hash_message.delete(:token)).first) &&
+          account = Account.where(id: token.data[:account_id]).first
+          token.destroy
+          Account.current = account
+          if flow = Setup::Flow.where(id: flow_id = hash_message[:flow_id]).first
+            flow.translate(hash_message) do |translation_result|
+              notify_to_cenit(translation_result.merge(message: message,
+                                                       flow: flow,
+                                                       notification_id: hash_message[:notification_id]))
+            end
+          else
+            notify_to_cenit(exception_message: "Flow with id #{flow_id} not found")
           end
         else
-          notify_to_cenit(exception_message: "Flow with id #{flow_id} not found")
+          #TODO Crate log for invalid message
         end
       end
 

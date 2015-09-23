@@ -129,7 +129,10 @@ module Setup
         cycle = cycle.collect { |id| ((flow = Setup::Flow.where(id: id).first) && flow.name) || id }
         Setup::Notification.create(flow: self, exception_message: "Cyclic flow execution: #{cycle.join(' -> ')}")
       else
-        message = options.merge(flow_id: id.to_s, tirgger_flow_id: executing_id, execution_graph: execution_graph).to_json
+        message = options.merge(flow_id: id.to_s,
+                                tirgger_flow_id: executing_id,
+                                execution_graph: execution_graph,
+                                token: CenitToken.create(data: {account_id: Account.current.id.to_s}).token).to_json
         if Cenit.asynchronous_flow_processing
           Cenit::Rabbit.send_to_rabbitmq(message)
         else
