@@ -351,7 +351,7 @@ module Setup
         end
       end
 
-      def asynchronous_cenit_option
+      def asynchronous_cenit_option(method)
         :asynchronous_flow_processing
       end
     end

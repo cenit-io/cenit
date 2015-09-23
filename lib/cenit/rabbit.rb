@@ -15,7 +15,8 @@ module Cenit
         else
           fail "Invalid handler: #{handler}"
         end
-        if (asynch_option = handler.try(:asynchronous_cenit_option)) && Cenit.send(asynch_option)
+        handler_method = message[:handler_method] || :process_message
+        if (asynch_option = handler.try(:asynchronous_cenit_option, handler_method)) && Cenit.send(asynch_option)
           message[:token] = CenitToken.create(data: {account_id: Account.current.id.to_s}).token
           conn = Bunny.new(automatically_recover: false)
           conn.start
@@ -48,7 +49,7 @@ module Cenit
           exception_message =
             if handler
               begin
-                handler.process_message(message)
+                handler.send(message.delete(:handler_method) || :process_message, message)
                 nil
               rescue Exception => ex
                 ex.message

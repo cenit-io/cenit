@@ -13,7 +13,7 @@ module RailsAdmin
 
         register_instance_option :controller do
           proc do
-            source = @object || params[:bulk_ids]
+            source = (@object && [@object.id.to_s]) || (@bulk_ids = params[:bulk_ids])
             options_config = RailsAdmin::Config.model(Forms::GenerateOptions)
             if options_params = params[options_config.abstract_model.param_key]
               options_params = options_params.select { |k, _| %w(override_data_types).include?(k.to_s) }.permit!
@@ -23,7 +23,9 @@ module RailsAdmin
             @options = Forms::GenerateOptions.new(options_params)
             ok = false
             begin
-              Cenit::Actions.generate_data_types(source, @options.attributes)
+              Cenit::Rabbit.send_to_rabbitmq(@options.attributes.merge(source: source,
+                                                                       handler: Cenit::Actions,
+                                                                       handler_method: :generate_data_types))
               ok = true
             rescue Exception => ex
               do_flash(:error, 'Error generating data types:', ex.message)
@@ -33,10 +35,10 @@ module RailsAdmin
             else
               conflicting_data_types = []
               @new_data_types_count = 0
-              (data_type_schemas = Cenit::Actions.data_type_schemas(source)).values.each do |h|
+              Cenit::Actions.data_type_schemas(source).values.each do |h|
                 @new_data_types_count += h.size
                 conflicting_data_types += Setup::DataType.any_in(name: h.keys).to_a
-              end
+              end unless Cenit.asynchronous_data_type_generation
               @new_data_types_count -= conflicting_data_types.length
               @options.instance_variable_set(:@_to_override, conflicting_data_types)
               @object.instance_variable_set(:@_to_override, conflicting_data_types)

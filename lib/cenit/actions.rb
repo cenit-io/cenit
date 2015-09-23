@@ -173,13 +173,13 @@ module Cenit
         json_schemas
       end
 
-      def generate_data_types(source, options = {})
-        options = options.with_indifferent_access
-        json_schemas = data_type_schemas(source, options)
+      def generate_data_types(message)
+        message = message.with_indifferent_access
+        json_schemas = data_type_schemas(message[:source], message)
         json_schemas.each do |library_id, data_type_schemas|
           existing_data_types = Setup::DataType.any_in(library_id: library_id, name: data_type_schemas.keys)
           if existing_data_types.present?
-            if options[:override_data_types].to_b
+            if message[:override_data_types].to_b
               Setup::DataType.shutdown(existing_data_types, deactivate: true)
               existing_data_types.each do |data_type|
                 data_type.schema = data_type_schemas.delete(data_type.name)
@@ -197,6 +197,15 @@ module Cenit
             end
             Setup::DataType.collection.insert(new_data_types_attributes)
           end
+        end
+      end
+
+      def asynchronous_cenit_option(method)
+        case method
+        when :generate_data_types
+          :asynchronous_data_type_generation
+        else
+          nil
         end
       end
 
