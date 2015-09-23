@@ -170,11 +170,15 @@ module Setup
 
     def simple_translate(message, &block)
       begin
-        if obj_id = message[:source_id]
-          translator.run(object: data_type.records_model.where(id: obj_id).first, discard_events: discard_events)
-        elsif  object_ids = source_ids_from(message)
-          data_type.records_model.any_in(id: object_ids).each { |obj| translator.run(object: obj, discard_events: discard_events) }
-        end
+        objects =
+          if obj_id = message[:source_id]
+            data_type.records_model.where(id: obj_id)
+          elsif  object_ids = source_ids_from(message)
+            data_type.records_model.any_in(id: object_ids)
+          else
+            data_type.records_model.all
+          end
+        objects.each { |obj| translator.run(object: obj, discard_events: discard_events) }
       rescue Exception => ex
         block.yield(exception_message: ex.message) if block
       end
