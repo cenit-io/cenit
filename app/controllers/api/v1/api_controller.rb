@@ -1,9 +1,18 @@
 module Api::V1
   class ApiController < ApplicationController
-    before_action :authorize, :do_optimize_data_type_handling, :save_request_data, except: [:new_account]
+    before_action :authorize, :do_optimize_data_type_handling, :save_request_data, except: [:new_account, :cors_check]
     before_action :find_item, only: [:show, :destroy, :pull, :run]
     rescue_from Exception, :with => :exception_handler
     respond_to :json
+    
+    def cors_checkpro
+        headers['Access-Control-Allow-Origin'] = request.headers['Origin']
+        headers['Access-Control-Allow-Credentials'] = false
+        headers['Access-Control-Allow-Headers'] = 'Origin, X-Requested-With, Accept, Content-Type, X-User-Access-Key, X-User-Access-Token'
+        headers['Access-Control-Allow-Methods'] = 'POST, GET, PUT, DELETE, OPTIONS'
+        headers['Access-Control-Max-Age'] = '1728000'
+        render :text => '', :content_type => 'text/plain'
+    end
 
     def index
       if klass = self.klass
@@ -177,6 +186,7 @@ module Api::V1
       user = User.where(key: key).first if key && token
       if user && Devise.secure_compare(user.token, token) && user.has_role?(:admin)
         Account.current = user.account
+        cors_header
         return true
       end
 
@@ -187,7 +197,16 @@ module Api::V1
         render json: responder, root: false, status: responder.code
         return false
       end
+      cors_header
       true
+    end
+    
+    def cors_header
+      headers['Access-Control-Allow-Origin'] = request.headers['Origin']
+      headers['Access-Control-Allow-Credentials'] = false
+      headers['Access-Control-Allow-Headers'] = 'Origin, X-Requested-With, Content-Type, accept, x-user-access-token, X-User-Access-Token'
+      headers['Access-Control-Allow-Methods'] = 'POST, GET, PUT, DELETE, OPTIONS'
+      headers['Access-Control-Max-Age'] = '1728000'
     end
 
     def exception_handler(exception)
