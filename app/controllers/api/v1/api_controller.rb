@@ -5,7 +5,7 @@ module Api::V1
     rescue_from Exception, :with => :exception_handler
     respond_to :json
     
-    def cors_checkpro
+    def cors_check
         headers['Access-Control-Allow-Origin'] = request.headers['Origin']
         headers['Access-Control-Allow-Credentials'] = false
         headers['Access-Control-Allow-Headers'] = 'Origin, X-Requested-With, Accept, Content-Type, X-User-Access-Key, X-User-Access-Token'
