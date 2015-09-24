@@ -23,9 +23,7 @@ module RailsAdmin
             @options = Forms::GenerateOptions.new(options_params)
             ok = false
             begin
-              Cenit::Rabbit.send_to_rabbitmq(@options.attributes.merge(source: source,
-                                                                       handler: Cenit::Actions,
-                                                                       handler_method: :generate_data_types))
+              Cenit::Rabbit.enqueue(@options.attributes.merge(source: source, task: Setup::DataTypeGeneration))
               ok = true
             rescue Exception => ex
               do_flash(:error, 'Error generating data types:', ex.message)
@@ -35,7 +33,7 @@ module RailsAdmin
             else
               conflicting_data_types = []
               @new_data_types_count = 0
-              Cenit::Actions.data_type_schemas(source).values.each do |h|
+              Setup::DataTypeGeneration.data_type_schemas(source).values.each do |h|
                 @new_data_types_count += h.size
                 conflicting_data_types += Setup::DataType.any_in(name: h.keys).to_a
               end unless Cenit.asynchronous_data_type_generation
