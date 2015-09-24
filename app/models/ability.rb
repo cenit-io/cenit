@@ -6,6 +6,9 @@ class Ability
       can :access, :rails_admin # only allow admin users to access Rails Admin
 
       can([:show, :edit], User) { |u| u.eql?(user) }
+
+      can(:destroy, Setup::Task) { |task| task.status != :running }
+
       if user.super_admin?
         can :manage,
             [

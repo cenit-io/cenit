@@ -15,7 +15,7 @@ Cenit.config do
   captcha_length 5
 
   #Process flow messages asynchronous
-  asynchronous_flow_processing true
+  asynchronous_flow_execution true
 
   #Generate data types asynchronous
   asynchronous_data_type_generation true

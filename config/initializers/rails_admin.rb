@@ -585,27 +585,50 @@ RailsAdmin.config do |config|
     fields :name, :purpose, :path, :method, :parameters, :headers, :template_parameters
   end
 
+  config.model Setup::Task do
+    object_label_method { :to_s }
+    fields :description, :retries, :progress, :status, :notifications
+  end
+
+  config.model Setup::FlowExecution do
+    object_label_method { :to_s }
+    fields :flow, :description, :retries, :progress, :status, :notifications
+  end
+
   config.model Setup::Notification do
-    weight -10
-    navigation_label 'Notifications'
-    configure :exception_message do
+    object_label_method { :label }
+
+    configure :type do
       pretty_value do
-        "<label style='color:red'>#{value}</label>".html_safe
+        color =
+          case bindings[:object].type
+          when :notice
+            'blue'
+          when :warning
+            'orange'
+          else
+            'red'
+          end
+        "<label style='color:#{color}'>#{value.to_s.capitalize}</label>".html_safe
       end
     end
-    show do
-      field :flow
-      field :retries
-      field :response
-      field :exception_message
 
-      field :_id
-      field :created_at
-      #field :creator
-      field :updated_at
-      #field :updater
+    configure :message do
+      pretty_value do
+        color =
+          case bindings[:object].type
+          when :notice
+            'blue'
+          when :warning
+            'orange'
+          else
+            'red'
+          end
+        "<label style='color:#{color}'>#{value}</label>".html_safe
+      end
     end
-    fields :flow, :created_at, :retries, :response, :exception_message
+
+    fields :type, :message
   end
 
   config.model Setup::Flow do
@@ -1085,7 +1108,7 @@ RailsAdmin.config do |config|
         visible do
           if !(obj = bindings[:object]).instance_variable_get(:@_selecting_collection) &&
             !obj.instance_variable_get(:@_selecting_connections) &&
-              (pull_parameters_enum = obj.enum_for_pull_parameters).present?
+            (pull_parameters_enum = obj.enum_for_pull_parameters).present?
             bindings[:controller].instance_variable_set(:@shared_parameter_enum, pull_parameters_enum)
             true
           else

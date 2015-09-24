@@ -127,12 +127,12 @@ module Setup
       end
       if cycle = cyclic_execution(execution_graph, executing_id)
         cycle = cycle.collect { |id| ((flow = Setup::Flow.where(id: id).first) && flow.name) || id }
-        Setup::Notification.create(flow: self, exception_message: "Cyclic flow execution: #{cycle.join(' -> ')}")
+        Setup::Notification.create(message: "Cyclic flow execution: #{cycle.join(' -> ')}")
       else
-        Cenit::Rabbit.send_to_rabbitmq(handler: Setup::Flow,
-                                       flow_id: id.to_s,
-                                       tirgger_flow_id: executing_id,
-                                       execution_graph: execution_graph)
+        Cenit::Rabbit.enqueue(task: Setup::FlowExecution,
+                              flow_id: id.to_s,
+                              tirgger_flow_id: executing_id,
+                              execution_graph: execution_graph)
       end
       puts "Flow processing jon '#{self.name}' done!"
       self.last_trigger_timestamps = DateTime.now
@@ -148,7 +148,7 @@ module Setup
           flow_execution.pop
         end
       else
-        yield(exception_message: "translator can't be blank")
+        yield(message: "Flow translator can't be blank")
       end
     end
 
@@ -178,7 +178,7 @@ module Setup
           end
         objects.each { |obj| translator.run(object: obj, discard_events: discard_events) }
       rescue Exception => ex
-        block.yield(exception_message: ex.message) if block
+        block.yield(message: ex.message) if block
       end
     end
 
@@ -215,9 +215,10 @@ module Setup
                          parameters: template_parameters,
                          headers: http_response.headers) if http_response.code == 200
           response = http_response.to_json rescue http_response.headers.to_json
-          block.yield(response: response, exception_message: (200...299).include?(http_response.code) ? nil : 'Unsuccessful') if block
+          block.yield(message: {response_code: http_response.code, response: response}.to_json,
+                      type: (200...299).include?(http_response.code) ? :notice : :error) if block.present?
         rescue Exception => ex
-          block.yield(response: http_response.to_json, exception_message: ex.message) if block
+          block.yield(message: {error: ex.message, response: http_response.to_json}.to_json) if block
         end
       end
     end
@@ -277,15 +278,16 @@ module Setup
               }.merge(connection.conformed_headers(template_parameters)).merge(webhook.conformed_headers(template_parameters))
             begin
               http_response = HTTMultiParty.send(webhook.method, conformed_url + '/' + conformed_path, {body: body, headers: headers})
-              block.yield(response: http_response.to_json, exception_message: (200...299).include?(http_response.code) ? nil : 'Unsuccessful') if block.present?
+              block.yield(message: {response_code: http_response.code, response: http_response.to_json}.to_json,
+                          type: (200...299).include?(http_response.code) ? :notice : :error) if block.present?
               if response_translator #&& http_response.code == 200
                 response_translator.run(translation_options.merge(target_data_type: response_translator.data_type || response_data_type, data: http_response.body))
               end
             rescue Exception => ex
-              block.yield(exception_message: ex.message) if block
+              block.yield(message: ex.message) if block
             end
           else
-            block.yield(exception_message: "Invalid translation result type: #{translation_result.class}") if block
+            block.yield(message: "Invalid translation result type: #{translation_result.class}") if block
           end
         end
       end
@@ -330,29 +332,6 @@ module Setup
           end
         end
         connections
-      end
-    end
-
-    class << self
-      def process_message(message)
-        if flow = Setup::Flow.where(id: flow_id = message[:flow_id]).first
-          flow.translate(message) do |translation_result|
-            notification =
-              Setup::Notification.where(id: message[:notification_id]).first ||
-                Setup::Notification.new(flow: flow,
-                                        message: message,
-                                        exception_message: translation_result[:exception_message])
-            notification.response = translation_result[:response].to_s
-            notification.retries += 1 unless notification.new_record?
-            notification.save
-          end
-        else
-          fail "Flow with id #{flow_id} not found"
-        end
-      end
-
-      def asynchronous_cenit_option(method)
-        :asynchronous_flow_processing
       end
     end
   end

@@ -7,25 +7,26 @@ module Cenit
 
     class << self
 
-      def send_to_rabbitmq(message)
-        handler = message[:handler]
-        msg_handler = handler.to_s.constantize rescue nil
-        if handler == msg_handler
-          message[:handler] = handler.to_s
+      def enqueue(message)
+        message = message.with_indifferent_access
+        task_class, task, report = detask(message)
+        if task_class
+          task ||= task_class.create(message: message)
+          if Cenit.send('asynchronous_' + task_class.to_s.split('::').last.underscore)
+            message[:task_id] = task.id.to_s
+            message[:token] = CenitToken.create(data: {account_id: Account.current.id.to_s}).token
+            conn = Bunny.new(automatically_recover: false)
+            conn.start
+            ch = conn.create_channel
+            q = ch.queue('cenit')
+            ch.default_exchange.publish(message.to_json, routing_key: q.name)
+            conn.close
+          else
+            message[:task] = task
+            process_message(message)
+          end
         else
-          fail "Invalid handler: #{handler}"
-        end
-        handler_method = message[:handler_method] || :process_message
-        if (asynch_option = handler.try(:asynchronous_cenit_option, handler_method)) && Cenit.send(asynch_option)
-          message[:token] = CenitToken.create(data: {account_id: Account.current.id.to_s}).token
-          conn = Bunny.new(automatically_recover: false)
-          conn.start
-          ch = conn.create_channel
-          q = ch.queue('cenit')
-          ch.default_exchange.publish(message.to_json, routing_key: q.name)
-          conn.close
-        else
-          process_message(message)
+          Setup::Notification.create(message: report)
         end
       end
 
@@ -42,23 +43,60 @@ module Cenit
           account = nil
         end
         if Account.current.nil? || (message_token.present? && Account.current != account)
-          Setup::Notification.create(exception_message: "Invalid message #{message}")
+          Setup::Notification.create(message: "Invalid message #{message}")
         else
-          handler_str = message.delete(:handler)
-          handler = handler_str.constantize rescue nil
-          exception_message =
-            if handler
-              begin
-                handler.send(message.delete(:handler_method) || :process_message, message)
-                nil
-              rescue Exception => ex
-                ex.message
+          begin
+            task_class, task, report = detask(message)
+            if task ||= task_class && task_class.create(message: message)
+              if task.status == :running
+                task.notify(message: "Can't be executed because is already running")
+              else
+                task.execute
               end
             else
-              "Invalid handler #{handler_str}"
+              Setup::Notification.create(message: report)
             end
-          Setup::Notification.create(exception_message: exception_message) if exception_message
+          rescue Exception => ex
+            if task
+              task.notify(message: ex.message)
+            else
+              Setup::Notification.create(message: "Can not execute task for message: #{message}")
+            end
+          end
         end
+      end
+
+      private
+
+      def detask(message)
+        report = nil
+        case task = message.delete(:task)
+        when Class
+          task_class = task
+          task = nil
+        when Setup::Task
+          task_class = task.class
+        when String
+          unless task_class = task.constantize rescue nil
+            report = "Invalid task class name: #{task}"
+          end
+          task = nil
+        else
+          task_class = nil
+          if task
+            report = "Invalid task argument: #{task}"
+            task = nil
+          elsif id = message.delete(:task_id)
+            if task = Setup::Task.where(id: id).first
+              task_class = task.class
+            else
+              report = "Task with ID '#{id}' not found"
+            end
+          else
+            report = 'Task information is missing'
+          end
+        end
+        [task_class, task, report]
       end
     end
   end

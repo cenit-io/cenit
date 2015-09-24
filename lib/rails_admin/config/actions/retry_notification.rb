@@ -4,7 +4,7 @@ module RailsAdmin
       class RetryNotification < RailsAdmin::Config::Actions::Base
 
         register_instance_option :only do
-          [Setup::Notification]
+          [Setup::Task, Setup::FlowExecution]
         end
 
         register_instance_option :visible? do
