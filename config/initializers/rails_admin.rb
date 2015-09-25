@@ -595,6 +595,11 @@ RailsAdmin.config do |config|
     fields :flow, :description, :retries, :progress, :status, :notifications
   end
 
+  config.model Setup::DataTypeGeneration do
+    object_label_method { :to_s }
+    fields :description, :retries, :progress, :status, :notifications
+  end
+
   config.model Setup::Notification do
     object_label_method { :label }
 
