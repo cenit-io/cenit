@@ -2,7 +2,7 @@ module Api::V1
   class ApiController < ApplicationController
     before_action :authorize_account, :save_request_data, except: [:new_account, :cors_check]
     before_action :find_item, only: [:show, :destroy, :pull, :run]
-    before_action :authorize_action, except: [:new_account]
+    before_action :authorize_action, except: [:new_account, :cors_check]
     rescue_from Exception, :with => :exception_handler
     respond_to :json
     
