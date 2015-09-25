@@ -188,12 +188,11 @@ module Setup
     def included?(qualified_name, visited = Set.new)
       return false if visited.include?(self) || visited.include?(@parsed_schema)
       visited << self
-      data_types.any? { |data_type| data_type.name == qualified_name } ||
-        if parse_schema.is_a?(Hash)
-          @parsed_schema.has_key?(qualified_name)
-        else
-          @parsed_schema.included?(qualified_name, visited)
-        end
+      if parse_schema.is_a?(Hash)
+        @parsed_schema.has_key?(qualified_name)
+      else
+        @parsed_schema.included?(qualified_name, visited)
+      end
     end
 
     def save_data_types #TODO Search for more method to delete
