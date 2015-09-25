@@ -428,7 +428,7 @@ module Setup
         v =nil
         type_model = nil
         type_model_created = false
-        if property_type.eql?('Array') && items_desc = property_desc['items']
+        if property_type.eql?('Array') && (items_desc = property_desc['items']).is_a?(Hash)
           items_desc = merge_schema(items_desc, expand_extends: false) if items_desc['type'] || items_desc['properties']
           r = nil
           ir = ''
