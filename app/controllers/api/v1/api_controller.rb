@@ -61,7 +61,7 @@ module Api::V1
             if (record = data_type.send(@payload.create_method,
                                         @payload.process_item(item, data_type),
                                         options = @payload.create_options)).errors.blank?
-              success_report[root.pluralize] << record.inspect_json(inspecting: :id, inspect_scope: options[:create_collector])
+              success_report[root.pluralize] << record.inspect_json(include_id: :id, inspect_scope: options[:create_collector])
             else
               broken_report[root] << {errors: record.errors.full_messages, item: item}
             end
@@ -203,7 +203,7 @@ module Api::V1
         action_symbol =
           case @_action_name
           when 'push'
-            :create
+            get_data_type(@model).is_a?(Setup::FileDataType) ? :upload_file : :create
           else
             @_action_name.to_sym
           end
@@ -336,7 +336,7 @@ module Api::V1
       end
 
       def create_options_keys
-        %w(filename)
+        %w(filename metadata)
       end
 
       def each_root(&block)
