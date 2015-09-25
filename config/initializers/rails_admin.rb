@@ -16,7 +16,7 @@
  RailsAdmin::Config::Actions::SimpleShare,
  RailsAdmin::Config::Actions::BulkShare,
  RailsAdmin::Config::Actions::PullCollection,
- RailsAdmin::Config::Actions::RetryNotification,
+ RailsAdmin::Config::Actions::RetryTask,
  RailsAdmin::Config::Actions::UploadFile,
  RailsAdmin::Config::Actions::DownloadFile,
  RailsAdmin::Config::Actions::ProcessFlow,
@@ -94,7 +94,7 @@ RailsAdmin.config do |config|
     switch_navigation
     delete_all
     data_type
-    retry_notification
+    retry_task
 
     # history_index do
     #   only [Setup::DataType, Setup::Webhook, Setup::Flow, Setup::Schema, Setup::Event, Setup::Connection, Setup::ConnectionRole, Setup::Library]
