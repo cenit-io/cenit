@@ -1512,4 +1512,8 @@ RailsAdmin.config do |config|
     end
 
   end
+
+  config.model Setup::Raml do
+    fields :api_name, :api_version, :raml_doc
+  end
 end

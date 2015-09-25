@@ -24,8 +24,10 @@ class Ability
               Setup::OauthParameter,
               CenitToken,
               TkAptcha,
-              Script
+              Script,
+              Setup::Raml
             ]
+        can :import, Setup::SharedCollection
         can :destroy, [Setup::SharedCollection, Setup::Model]
         can :edit, Setup::Model
       else
@@ -37,7 +39,7 @@ class Ability
       can :update, Setup::SharedCollection do |shared_collection|
         shared_collection.owners.include?(user)
       end
-      can [:import, :edi_export], Setup::SharedCollection
+      can :edi_export, Setup::SharedCollection
 
       @@setup_map ||=
         begin
@@ -73,13 +75,15 @@ class Ability
 
       models = Setup::DataType.where(model_loaded: true).collect(&:records_model).select { |m| m.is_a?(Class) }
       can :manage, models
+      can :manage, Mongoff::Model
+      can :manage, Mongoff::Record
 
       file_models = Setup::FileDataType.where(model_loaded: true).collect(&:model)
       file_models.delete(nil)
       can [:index, :show, :upload_file, :download_file, :destroy, :import, :edi_export, :delete_all, :send_to_flow], file_models
 
     else
-      can [:index, :show], Setup::SharedCollection
+      can [:index, :show], [Setup::SharedCollection, Setup::Raml]
     end
 
   end
