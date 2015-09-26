@@ -3,6 +3,8 @@ en:
     js:
       present_and_change: Present & Change
     actions:
+      dashboard:
+        title: "Administration"
       send_to_flow:
         title: "Send to flow %{model_label_plural}"
         menu: "Send %{model_label_plural} to flow"
