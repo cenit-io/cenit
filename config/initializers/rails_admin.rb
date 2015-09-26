@@ -1352,6 +1352,7 @@ RailsAdmin.config do |config|
     end
 
     edit do
+      field :picture
       field :name
       field :email do
         visible { User.current.super_admin? }
@@ -1392,6 +1393,7 @@ RailsAdmin.config do |config|
     end
 
     show do
+      field :picture
       field :name
       field :email
       field :roles

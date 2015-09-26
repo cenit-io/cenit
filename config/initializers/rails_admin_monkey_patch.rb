@@ -285,7 +285,9 @@ module RailsAdmin
       return nil unless authorized?(:show, _current_user.class, _current_user) && _current_user.respond_to?(:email)
       return nil unless abstract_model = RailsAdmin.config(_current_user.class).abstract_model
       return nil unless show_action = RailsAdmin::Config::Actions.find(:show, controller: controller, abstract_model: abstract_model, object: _current_user)
-      link_to _current_user.email, url_for(action: show_action.action_name, model_name: abstract_model.to_param, id: _current_user.id, controller: 'rails_admin/main')
+      text = _current_user.name
+      text = _current_user.email if text.blank?
+      link_to text, url_for(action: show_action.action_name, model_name: abstract_model.to_param, id: _current_user.id, controller: 'rails_admin/main')
     end
 
   end
