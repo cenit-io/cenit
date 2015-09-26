@@ -26,4 +26,7 @@ Cenit.config do
   #HTTP Proxy
   http_proxy ENV['HTTP-PROXY']
 
+  #Hide navigation admin pane
+  hide_admin_navigation false
+
 end
