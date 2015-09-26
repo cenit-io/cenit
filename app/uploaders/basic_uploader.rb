@@ -9,7 +9,13 @@ class BasicUploader < CarrierWave::Uploader::Base
     if original_filename.present?
       md5 = Digest::MD5.new
       md5 << super
-      md5.hexdigest + '.jpg'
+      md5.hexdigest + file_extension
+    end
+  end
+
+  def file_extension
+    if original_filename.present?
+      File.extname(super)
     end
   end
 end
