@@ -45,7 +45,7 @@ class User
   field :doorkeeper_access_token, type: String
 
   field :name, type: String
-  mount_uploader :picture, AccountImageUploader
+  mount_uploader :picture, ImageUploader
 
   validates_uniqueness_of :token
   before_save :ensure_token, :inspect_updated_fields
