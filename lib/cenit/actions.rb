@@ -157,49 +157,6 @@ module Cenit
         end
         true
       end
-
-      def expand_data_types(source, options = {})
-        options = options.with_indifferent_access
-        data_types =
-          case source
-          when nil # All schemas
-            Setup::Schema.all
-          when Array # bulk schema ids
-            Setup::Schema.any_in(id: source)
-          else
-            [source]
-          end
-        data_types.each do |data_type|
-          segments = {}
-          refs = Set.new
-          schema = data_type.merged_schema(ref_collector: refs)
-          if schema['type'] == 'object' && properties = schema['properties']
-            properties = data_type.merge_schema(properties, ref_collector: refs)
-            properties.each do |property_name, property_schema|
-              property_segment = nil
-              property_schema = data_type.merge_schema(property_schema, ref_collector: refs)
-              if property_schema['type'] == 'array' && items = property_schema['items']
-                property_schema['items'] = items = data_type.merge_schema(items, ref_collector: refs)
-                if (edi_opts = items['edi']) && edi_opts.has_key?('segment')
-                  property_segment = edi_opts['segment']
-                end
-              end
-              properties[property_name] = property_schema
-              if (edi_opts = property_schema['edi']) && edi_opts.has_key?('segment')
-                property_segment = edi_opts['segment']
-              end
-              segments[property_segment] = property_name if property_segment
-            end
-            schema['properties'] = properties
-          end
-          #TODO inject refs dependencies
-          (schema['edi'] ||= {})['segments'] = segments if options[:segment_shortcuts]
-          if data_type.schema != schema
-            data_type.schema = schema
-            data_type.save
-          end
-        end
-      end
     end
   end
 end

@@ -98,6 +98,10 @@ module Setup
     private
 
     def do_merge_schema(schema, options = {})
+      if schema.is_a?(Array)
+        return schema.collect { |sch| do_merge_schema(sch, options) }
+      end
+      return schema unless schema.is_a?(Hash)
       schema = schema.deep_dup
       options ||= {}
       options[:root_schema] ||= schema

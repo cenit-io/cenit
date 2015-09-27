@@ -4,7 +4,7 @@ module RailsAdmin
       class RetryTask < RailsAdmin::Config::Actions::Base
 
         register_instance_option :only do
-          [Setup::Task, Setup::FlowExecution, Setup::DataTypeGeneration]
+          [Setup::Task, Setup::FlowExecution, Setup::DataTypeGeneration, Setup::DataTypeExpansion]
         end
 
         register_instance_option :visible? do

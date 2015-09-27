@@ -7,8 +7,6 @@ class Ability
 
       can([:show, :edit], User) { |u| u.eql?(user) }
 
-      can(:destroy, Setup::Task) { |task| task.status != :running }
-
       if user.super_admin?
         can :manage,
             [
@@ -29,10 +27,11 @@ class Ability
               TkAptcha,
               Script
             ]
-        can :destroy, Setup::SharedCollection
+        can :destroy, [Setup::SharedCollection, Setup::Task]
       else
         cannot :access, Setup::SharedName
         cannot :destroy, Setup::SharedCollection
+        can(:destroy, Setup::Task) { |task| task.status != :running }
       end
 
       can RailsAdmin::Config::Actions.all(:root).collect(&:authorization_key)

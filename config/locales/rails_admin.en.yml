@@ -6,8 +6,8 @@ en:
       dashboard:
         title: "Administration"
       send_to_flow:
-        title: "Send to flow %{model_label_plural}"
-        menu: "Send %{model_label_plural} to flow"
+        title: "Send %{model_label_plural} to flow"
+        menu: "Send to flow"
         breadcrumb: "Send %{model_label_plural} to flow"
         link: "Send found %{model_label_plural} to flow"
         bulk_link: "Send selected %{model_label_plural} to a flow"
@@ -160,7 +160,7 @@ en:
         nothing_to_pull: "Nothing to pull from here"
         fixed_errors_header: "The following errors where fixed when pulling the collection"
         missing_parameters: "Missing parameters"
-      retry_notification:
+      retry_task:
         title: "Retry"
         menu: "Retry"
         breadcrumb: "Retry"
@@ -226,7 +226,12 @@ en:
         menu: "Generate data types"
         breadcrumb: "Generate"
         bulk_link: "Generate data types from selected %{model_label_plural}"
-      expand:
+      simple_expand:
         title: "Expand %{model_label} '%{object_label}'"
         menu: "Expand"
         breadcrumb: "Expand"
+      bulk_expand:
+        title: "Expand %{model_label_plural}"
+        menu: "Expand"
+        breadcrumb: "Expand"
+        bulk_link: "Expand selected %{model_label_plural}"
