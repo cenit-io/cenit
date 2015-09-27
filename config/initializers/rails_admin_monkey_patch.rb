@@ -323,15 +323,33 @@ module RailsAdmin
       end
     end
 
-    def do_flash(flash_key, header, messages, options = {})
+    def do_flash_process_result(objs)
+      objs = [objs] unless objs.is_a?(Enumerable)
+      messages =
+        objs.collect do |obj|
+          amc = RailsAdmin.config(obj)
+          am = amc.abstract_model
+          wording = obj.send(amc.object_label_method)
+          if show_action = view_context.action(:show, am, obj)
+            wording + ' ' + view_context.link_to(t('admin.flash.click_here'), view_context.url_for(action: show_action.action_name, model_name: am.to_param, id: obj.id), class: 'pjax')
+          else
+            wording
+          end
+        end
+      model_label = @model_config.label
+      model_label = model_label.pluralize if @action.bulkable?
+      do_flash(:notice, t('admin.flash.processed', name: model_label, action: t("admin.actions.#{@action.key}.doing")) + ':', messages)
+    end
+
+    def do_flash(flash_key, header, messages = [], options = {})
       do_flash_on(flash, flash_key, header, messages, options)
     end
 
-    def do_flash_now(flash_key, header, messages, options = {})
+    def do_flash_now(flash_key, header, messages = [], options = {})
       do_flash_on(flash.now, flash_key, header, messages, options)
     end
 
-    def do_flash_on(flash_hash, flash_key, header, messages, options = {})
+    def do_flash_on(flash_hash, flash_key, header, messages = [], options = {})
       options = (options || {}).reverse_merge(reset: true)
       flash_message = header.html_safe
       flash_message = flash_hash[flash_key] + flash_message unless options[:reset] || flash_hash[flash_key].nil?

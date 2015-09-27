@@ -125,18 +125,20 @@ module Setup
       if executing_id.present? && !(adjacency_list = execution_graph[executing_id] ||= []).include?(id.to_s)
         adjacency_list << id.to_s
       end
-      if cycle = cyclic_execution(execution_graph, executing_id)
-        cycle = cycle.collect { |id| ((flow = Setup::Flow.where(id: id).first) && flow.name) || id }
-        Setup::Notification.create(message: "Cyclic flow execution: #{cycle.join(' -> ')}")
-      else
-        Cenit::Rabbit.enqueue(task: Setup::FlowExecution,
-                              flow_id: id.to_s,
-                              tirgger_flow_id: executing_id,
-                              execution_graph: execution_graph)
-      end
+      result =
+        if cycle = cyclic_execution(execution_graph, executing_id)
+          cycle = cycle.collect { |id| ((flow = Setup::Flow.where(id: id).first) && flow.name) || id }
+          Setup::Notification.create(message: "Cyclic flow execution: #{cycle.join(' -> ')}")
+        else
+          Cenit::Rabbit.enqueue(task: Setup::FlowExecution,
+                                flow_id: id.to_s,
+                                tirgger_flow_id: executing_id,
+                                execution_graph: execution_graph)
+        end
       puts "Flow processing jon '#{self.name}' done!"
       self.last_trigger_timestamps = DateTime.now
       save
+      result
     end
 
     def translate(message, &block)

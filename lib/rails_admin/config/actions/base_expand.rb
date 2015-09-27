@@ -17,19 +17,19 @@ module RailsAdmin
               options_params = {}
             end
             @options = Forms::ExpandOptions.new(options_params)
-            ok = false
+            result = nil
             begin
-              Cenit::Rabbit.enqueue(@options.attributes.merge(source: source, task: Setup::DataTypeExpansion))
-              ok = true
+              result = Cenit::Rabbit.enqueue(@options.attributes.merge(source: source, task: Setup::DataTypeExpansion))
             rescue Exception => ex
               do_flash(:error, 'Error expanding data type:', ex.message)
             end if params[:_expand]
-            if ok
+            if result
+              do_flash_process_result(result)
               redirect_to back_or_index
             else
               report = Setup::DataType.shutdown(@object, report_only: true)
-              @object.instance_variable_set(:@_to_shutdown, report[:destroyed].collect(&:data_type).uniq)
-              @object.instance_variable_set(:@_to_reload, report[:affected].collect(&:data_type).uniq)
+              @object.instance_variable_set(:@_to_shutdown, report[:destroyed].collect(&:data_type).uniq) if report[:destroyed]
+              @object.instance_variable_set(:@_to_reload, report[:affected].collect(&:data_type).uniq) if report[:affected]
               @model_config = options_config
               render :expand
             end

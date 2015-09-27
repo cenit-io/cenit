@@ -3,7 +3,7 @@ module Setup
 
     BuildInDataType.regist(self)
 
-    Setup::Models.exclude_actions_for self, :new, :edit, :update
+    Setup::Models.exclude_actions_for self, :new, :edit, :update, :delete_all
 
     def run(message)
       message = message.with_indifferent_access

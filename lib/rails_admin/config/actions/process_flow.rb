@@ -28,8 +28,7 @@ module RailsAdmin
 
             if ProcessFlow.processable(@object)
               begin
-                @object.process
-                flash[:success] = "Flow #{@object.name} successfully processed"
+                do_flash_process_result(@object.process)
               rescue Exception => ex
                 flash[:error] = ex.message
               end

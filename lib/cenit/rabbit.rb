@@ -25,6 +25,7 @@ module Cenit
             message[:task] = task
             process_message(message)
           end
+          task
         else
           Setup::Notification.create(message: report)
         end

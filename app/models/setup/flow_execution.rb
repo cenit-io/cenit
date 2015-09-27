@@ -3,7 +3,7 @@ module Setup
 
     BuildInDataType.regist(self)
 
-    Setup::Models.exclude_actions_for self, :new, :edit, :update
+    Setup::Models.exclude_actions_for self, :new, :edit, :update, :delete_all
 
     belongs_to :flow, class_name: Setup::Flow.to_s, inverse_of: nil
 
