@@ -17,6 +17,17 @@ module Setup
 
     validates_presence_of :name, :provider, :client
 
+    before_save :check_instance_type
+
+    def check_instance_type
+      if self.is_a?(Setup::Oauth2Authorization) || self.is_a?(Setup::Oauth2Authorization)
+        true
+      else
+        errors.add(:base, 'An authorization must be of type OAuth or OAuth2')
+        false
+      end
+    end
+
     def ready_to_save?
       provider.present?
     end
