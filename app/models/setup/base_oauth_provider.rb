@@ -29,15 +29,5 @@ module Setup
     def token_method_enum
       %w(POST GET)
     end
-
-    def create_http_client(authorization, options = {})
-      @session = options.delete(:session)
-    end
-
-    def base_options
-      options = {redirect_uri: "#{Cenit.oauth2_callback_site}/oauth2/callback"}
-      parameters.each { |parameter| options[parameter.key.to_sym] = parameter.value }
-      options
-    end
   end
 end

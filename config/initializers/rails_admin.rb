@@ -59,7 +59,7 @@ RailsAdmin.config do |config|
     # memory_usage
     # disk_usage
     index # mandatory
-    new { except [Setup::Event] }
+    new { except [Setup::Event, Setup::BaseOauthAuthorization] }
     new_file_model
     import
     import_schema
@@ -1424,9 +1424,9 @@ RailsAdmin.config do |config|
           provider = (obj = bindings[:object]) && obj.provider
           Proc.new { |scope|
             if provider
-              scope.any_in(id: provider.id, _type: Setup::OauthProvider.to_s)
+              scope.any_in(id: provider.id)
             else
-              scope
+              scope.any_in(_type: Setup::OauthProvider.to_s)
             end
           }
         end
@@ -1467,9 +1467,9 @@ RailsAdmin.config do |config|
           provider = (obj = bindings[:object]) && obj.provider
           Proc.new { |scope|
             if provider
-              scope.any_in(id: provider.id, _type: Setup::Oauth2Provider.to_s)
+              scope.any_in(id: provider.id)
             else
-              scope
+              scope.any_in(_type: Setup::Oauth2Provider.to_s)
             end
           }
         end
