@@ -1403,6 +1403,7 @@ RailsAdmin.config do |config|
       field :picture
       field :name
       field :email
+      field :account
       field :roles
       field :key
       field :authentication_token
@@ -1412,6 +1413,8 @@ RailsAdmin.config do |config|
       field :current_sign_in_ip
       field :last_sign_in_ip
     end
+
+    fields :picture, :name, :email, :account, :roles, :key, :authentication_token, :authentication_token, :sign_in_count, :current_sign_in_at, :last_sign_in_at, :current_sign_in_ip, :last_sign_in_ip
   end
 
   config.model Account do
