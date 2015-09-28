@@ -5,7 +5,7 @@ module RailsAdmin
       class Authorize < RailsAdmin::Config::Actions::Base
 
         register_instance_option :only do
-          Setup::BaseOauthAuthorization
+          [Setup::BaseOauthAuthorization, Setup::OauthAuthorization, Setup::Oauth2Authorization]
         end
 
 
@@ -20,13 +20,16 @@ module RailsAdmin
         register_instance_option :controller do
           proc do
 
-            cenit_token = CenitToken.create(data: {account_id: Account.current.id, authorization_id: @object.id})
+            cenit_token = CenitToken.new(data: {account_id: Account.current.id, authorization_id: @object.id})
+            cenit_token.ensure_token
 
-            client = @object.provider.create_http_client(state: cenit_token.token)
+            url = @object.authorize_url(cenit_token: cenit_token)
+
+            cenit_token.save
+
             session[:oauth_state] = cenit_token.token
 
-            redirect_to client.auth_code.authorize_url
-
+            redirect_to url
           end
         end
 

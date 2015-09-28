@@ -32,4 +32,12 @@ Cenit.config do
   #Hide navigation admin pane
   hide_admin_navigation false
 
+  #HTTP Proxy Port
+  http_proxy_port ENV['HTTP-PROXY-PORT']
+
+  #HTTP Proxy User
+  http_proxy_user ENV['HTTP-PROXY-USER']
+
+  #HTTP Proxy Password
+  http_proxy_password ENV['HTTP-PROXY-PASSWORD']
 end

@@ -8,7 +8,7 @@ module Setup
 
     field :name, type: String
 
-    belongs_to :provider, class_name: Setup::OauthProvider.to_s, inverse_of: nil
+    belongs_to :provider, class_name: Setup::BaseOauthProvider.to_s, inverse_of: nil
     belongs_to :client, class_name:  Setup::OauthClient.to_s, inverse_of: nil
 
     field :access_token, type: String
@@ -20,10 +20,10 @@ module Setup
     before_save :check_instance_type
 
     def check_instance_type
-      if self.is_a?(Setup::Oauth2Authorization) || self.is_a?(Setup::Oauth2Authorization)
+      if self.is_a?(Setup::OauthAuthorization) || self.is_a?(Setup::Oauth2Authorization)
         true
       else
-        errors.add(:base, 'An authorization must be of type OAuth or OAuth2')
+        errors.add(:base, 'An authorization must be of type Oauth or Oauth2')
         false
       end
     end
@@ -34,6 +34,33 @@ module Setup
 
     def can_be_restarted?
       provider.present?
+    end
+
+    def create_http_client(options = {})
+      fail NotImplementedError
+    end
+
+    def callback_key
+      fail NotImplementedError
+    end
+
+    def base_params
+      {callback_key =>  "#{Cenit.oauth2_callback_site}/oauth2/callback"}
+    end
+
+    def authorize_params(params = {})
+      params = base_params.merge(params)
+      provider.parameters.each { |parameter| params[parameter.key.to_sym] = parameter.value }
+      params
+    end
+
+    def token_params(params = {})
+      params[:token_method] ||= provider.token_method
+      base_params.merge(params)
+    end
+
+    def authorize_url(params)
+      fail NotImplementedError
     end
   end
 end
