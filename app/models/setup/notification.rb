@@ -18,7 +18,7 @@ module Setup
     end
 
     def label
-      message
+      "[#{type.to_s.capitalize}] #{message}"
     end
   end
 end
