@@ -163,6 +163,11 @@ RailsAdmin.config do |config|
           {cols: '74', rows: '15'}
         end
       end
+
+      field :data_type do
+        inline_edit false
+        inline_add false
+      end
     end
 
     show do
@@ -181,6 +186,7 @@ RailsAdmin.config do |config|
           "<pre>#{pretty_value}</pre>".html_safe
         end
       end
+      field :data_type
 
       field :_id
       field :created_at
@@ -189,7 +195,7 @@ RailsAdmin.config do |config|
       #field :updater
 
     end
-    fields :library, :uri
+    fields :library, :uri, :data_type
   end
 
   config.model Setup::DataType do

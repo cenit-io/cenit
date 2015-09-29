@@ -14,6 +14,8 @@ module Setup
     field :schema, type: String
     field :schema_type, type: Symbol
 
+    belongs_to :data_type, class_name: Setup::SchemaDataType.to_s, inverse_of: nil
+
     attr_readonly :library, :uri
 
     validates_presence_of :library, :uri, :schema
@@ -32,102 +34,6 @@ module Setup
       super
     end
 
-    def load_models(options = {}) #TODO Delete this method
-      unless @data_types_to_reload
-        reload
-        @data_types_to_reload = data_types.activated
-      end
-      if @data_types_to_reload.present?
-        models = Set.new
-        @data_types_to_reload.each do |data_type|
-          data_type.reload
-          models += data_type.load_models(options)[:loaded] if data_type.activated
-        end
-        RailsAdmin::AbstractModel.update_model_config(models)
-      end
-    end
-
-    def include_missing?
-      @include_missing
-    end
-
-    attr_reader :include_missing_message
-
-    def run_after_initialized__ #TODO Delete these method
-      if @errors_cache.nil?
-        @errors_cache = Hash.new { |h, k| h[k] = [] }
-        @include_missing = false
-        @data_types_to_keep = Set.new
-        @new_data_types = []
-        if self.new_record? && self.library && self.library.schemas.where(uri: self.uri).first
-          @errors_cache[:uri] << errors.add(:uri, "is is already taken on library #{self.library.name}")
-        else
-          begin
-            schemas = json_schemas
-            updated_data_types = []
-            new_data_type_names = []
-            data_types.each do |data_type|
-              if schemas.has_key?(data_type.name)
-                data_type.schema = schemas[data_type.name]
-                schemas[data_type.name] = data_type
-                if data_type.new_record?
-                  @new_data_types << data_type
-                  new_data_type_names << data_type.name
-                else
-                  updated_data_types << data_type
-                end
-              end
-            end
-            new_data_type_names += schemas.keys.select { |name| schemas[name].is_a?(Hash) }
-            if library && (conflicts = Setup::DataType.all.any_in(name: new_data_type_names).and(library_id: library.id)).present?
-              conflicts.each { |existing_data_type| @errors_cache[:schema] << errors.add(:schema, "model name #{existing_data_type.name} is already taken on library #{library.name}") }
-            else
-              schemas.each do |name, schema|
-                if (data_type = schema).is_a?(Hash)
-                  @new_data_types << (data_type = Setup::SchemaDataType.new(name: name, schema: schema, library: library))
-                  self.data_types << data_type
-                end
-                if data_type && data_type.validate_model
-                  @data_types_to_keep << data_type
-                else
-                  data_type.errors.each do |attribute, error|
-                    @errors_cache[:schema] << errors.add(:schema, "when defining model #{name} on attribute '#{attribute}': #{error}")
-                  end if data_type
-                  destroy_data_types
-                  return false
-                end
-              end
-            end
-            if new_record?
-              @data_types_to_reload = []
-            else
-              report = DataType.shutdown(data_types.activated, report_only: true)
-              @data_types_to_reload = report[:destroyed].collect(&:data_type).uniq.select(&:activated)
-              DataType.shutdown(data_types.activated)
-              data_types.each do |data_type|
-                unless @data_types_to_keep.include?(data_type)
-                  data_type.destroy
-                  @data_types_to_reload.delete(data_type)
-                end
-              end
-              updated_data_types.each { |data_type| data_type.save unless @data_types_to_reload.include?(data_type) }
-            end
-          rescue Exception => ex
-            #TODO Delete raise
-            #raise ex
-            if @include_missing = ex.is_a?(Xsd::IncludeMissingException)
-              @include_missing_message = ex.message
-            end
-            @errors_cache[:schema] << errors.add(:schema, ex.message)
-            destroy_data_types
-          end
-        end
-      else
-        @errors_cache.each { |key, message| errors.add(key, message) }
-      end
-      errors.blank?
-    end
-
     def cenit_ref_schema(options = {})
       options = {service_url: Cenit.service_url, service_schema_path: Cenit.service_schema_path}.merge(options)
       send("cenit_ref_#{schema_type}", options)
@@ -137,9 +43,6 @@ module Setup
       schema_type.to_s.split('_').first.to_sym
     end
 
-    def data_type
-      data_types.last
-    end
 
     def validate_file_record(file)
       case schema_type
@@ -153,10 +56,6 @@ module Setup
       when :xml_schema
         Nokogiri::XML::Schema(cenit_ref_schema).validate(Nokogiri::XML(file.data))
       end
-    end
-
-    def auto_save_references_for?(relation)
-      relation.to_s == :data_types.to_s
     end
 
     def parse_schema
@@ -175,7 +74,16 @@ module Setup
 
     def json_schemas
       bind_includes
-      parse_schema.is_a?(Hash) ? @parsed_schema : @parsed_schema.json_schemas
+      if parse_schema.is_a?(Hash)
+        @data_type_name = @parsed_schema.keys.first
+        @parsed_schema
+      else
+        json_schms = @parsed_schema.json_schemas
+        if (elements_schms = json_schms.keys.select { |name| name.start_with?('element') }).size == 1
+          @data_type_name = elements_schms.first
+        end
+        json_schemas
+      end
     end
 
     def bind_includes
@@ -195,26 +103,7 @@ module Setup
       end
     end
 
-    def save_data_types #TODO Search for more method to delete
-      if run_after_initialized
-        self_optimizer = false
-        unless optimizer = Setup::DataTypeOptimizer.optimizer
-          optimizer = Setup::DataTypeOptimizer.new
-          self_optimizer = true
-        end
-        optimizer.regist_data_types(@data_types_to_keep.blank? ? data_types : @data_types_to_keep)
-        if self_optimizer
-          optimizer.save_data_types.each { |error| errors.add(:base, error) }
-        end
-      end
-      errors.blank?
-    end
-
     private
-
-    def destroy_data_types
-      @shutdown_report = DataType.shutdown(@new_data_types || data_types.activated, destroy: true)
-    end
 
     def parse_json_schema
       {uri => JSON.parse(self.schema)}
