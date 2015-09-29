@@ -141,10 +141,6 @@ module Mongoff
       end
     end
 
-    def auto_save_references_for?(relation)
-      false
-    end
-
     protected
 
     def prepare_attributes
