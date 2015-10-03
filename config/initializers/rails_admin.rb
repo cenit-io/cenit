@@ -272,7 +272,7 @@ RailsAdmin.config do |config|
     label 'EDI Validators'
     navigation_label 'Data Definitions'
 
-    fields :name, :schema, :content_type
+    fields :name, :schema_data_type, :content_type
   end
 
   config.model Setup::AlgorithmValidator do
@@ -294,13 +294,6 @@ RailsAdmin.config do |config|
         }
       end
     end
-    configure :validator do
-      inline_add false
-      inline_edit false
-      associated_collection_scope do
-        Proc.new { |scope| scope.any_in(_type: [Setup::Schema.to_s, Setup::EdiValidator.to_s]) }
-      end
-    end
     configure :used_memory do
       pretty_value do
         unless max = bindings[:controller].instance_variable_get(:@max_used_memory)
@@ -320,19 +313,38 @@ RailsAdmin.config do |config|
       read_only true
     end
 
+    configure :validators  do
+      inline_add false
+    end
+
+    configure :schema_data_type  do
+      inline_add false
+      inline_edit false
+    end
+
+    configure :records_methods do
+      inline_add false
+    end
+
+    configure :data_type_methods do
+      inline_add false
+    end
+
     edit do
       field :library
       field :title
       field :name
-      field :validator
       field :validators
+      field :schema_data_type
+      field :records_methods
+      field :data_type_methods
     end
 
     list do
       field :title
       field :name
-      field :validator
       field :validators
+      field :schema_data_type
       field :used_memory do
         pretty_value do
           unless max = bindings[:controller].instance_variable_get(:@max_used_memory)
@@ -348,8 +360,8 @@ RailsAdmin.config do |config|
       field :title
       field :name
       field :activated
-      field :validator
       field :validators
+      field :schema_data_type
 
       field :_id
       field :created_at
