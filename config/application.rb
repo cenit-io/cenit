@@ -29,7 +29,7 @@ module Cenit
     config.after_initialize do
 
       model_update_options = {model_loaded: false, used_memory: 0}
-      model_update_options[:activated] = false #if Cenit.deactivate_models
+      model_update_options[:activated] = false if Cenit.deactivate_models
 
       Account.all.each do |account|
 
