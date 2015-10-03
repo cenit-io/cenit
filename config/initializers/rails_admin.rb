@@ -164,7 +164,7 @@ RailsAdmin.config do |config|
         end
       end
 
-      field :data_type do
+      field :schema_data_type do
         inline_edit false
         inline_add false
       end
@@ -195,7 +195,7 @@ RailsAdmin.config do |config|
       #field :updater
 
     end
-    fields :library, :uri, :data_type
+    fields :library, :uri, :schema_data_type
   end
 
   config.model Setup::DataType do

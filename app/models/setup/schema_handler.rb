@@ -120,7 +120,8 @@ module Setup
               value_schema = schema['properties']['value'] || {}
               value_schema = base_model.deep_merge(value_schema)
               schema['properties']['value'] = value_schema.merge('title' => 'Value', 'xml' => {'content' => true})
-              (schema['xml'] ||= {})['content_property'] = 'value'
+              schema['xml'] ||= {}
+              schema['xml']['content_property'] = 'value'
             else
               unless (xml_opts = schema['xml']).nil? || xml_opts['content_property']
                 schema['xml'].delete('content_property') if (xml_opts = base_model['xml']) && xml_opts['content_property']

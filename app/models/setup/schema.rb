@@ -14,7 +14,7 @@ module Setup
     field :schema, type: String
     field :schema_type, type: Symbol
 
-    belongs_to :data_type, class_name: Setup::SchemaDataType.to_s, inverse_of: nil
+    belongs_to :schema_data_type, class_name: Setup::SchemaDataType.to_s, inverse_of: nil
 
     attr_readonly :library, :uri
 
@@ -31,6 +31,13 @@ module Setup
 
     def validates_configuration
       self.name = "#{library.name} | #{uri}" unless name.present?
+      self.schema = schema.strip
+      self.schema_type =
+        if (schema.start_with?('{') || self.schema.start_with?('['))
+          :json_schema
+        else
+          :xml_schema
+        end
       super
     end
 
@@ -53,6 +60,7 @@ module Setup
                                          version: :mongoff,
                                          schema_reader: JSON::Schema::CenitReader.new(self),
                                          strict: true)
+          []
         rescue Exception => ex
           [ex.message]
         end
@@ -75,15 +83,13 @@ module Setup
 
     def parse_schema
       @parsed_schema ||=
-        begin
-          self.schema = schema.strip
-          if schema.start_with?('{') || self.schema.start_with?('[')
-            self.schema_type = :json_schema
-            parse_json_schema
-          else
-            self.schema_type = :xml_schema
-            parse_xml_schema
-          end
+        case schema_type
+        when :json_schema
+          parse_json_schema
+        when :xml_schema
+          parse_xml_schema
+        else
+          #TODO !!!
         end
     end
 
@@ -97,7 +103,7 @@ module Setup
         if (elements_schms = json_schms.keys.select { |name| name.start_with?('element') }).size == 1
           @data_type_name = elements_schms.first
         end
-        json_schemas
+        json_schms
       end
     end
 

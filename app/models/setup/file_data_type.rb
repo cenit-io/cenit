@@ -26,7 +26,7 @@ module Setup
           errors.add(:validators, "include multiple validators of the same exclusive type #{validator_class}: #{validators.collect(&:name).to_sentence}") if validators.count > 1
         end
         unless schema_data_type.present? || errors.present? || (validator = validators_classes.values.first.first).nil?
-          self.schema_data_type = validator.try(:data_type) || validator.try(:schema_data_type)
+          self.schema_data_type = validator.schema_data_type
         end
       else
         self.schema_data_type = nil
@@ -85,7 +85,7 @@ module Setup
       data = json_or_readable
       unless format_validator.nil? || format_validator.data_format == :json
         data = ((data.is_a?(String) || data.is_a?(Hash)) && data) || data.read
-        data = format_validator.format_from_json(data)
+        data = format_validator.format_from_json(data, schema_data_type: schema_data_type)
         options[:valid_data] = true
       end
       create_from(data, options)
@@ -95,7 +95,7 @@ module Setup
       data = string_or_readable
       unless format_validator.nil? || format_validator.data_format == :xml
         data = (data.is_a?(String) && data) || data.read
-        data = format_validator.format_from_xml(data)
+        data = format_validator.format_from_xml(data, schema_data_type: schema_data_type)
         options[:valid_data] = true
       end
       create_from(data, options)
@@ -105,7 +105,7 @@ module Setup
       data = string_or_readable
       unless format_validator.nil? || format_validator.data_format == :edi
         data = (data.is_a?(String) && data) || data.read
-        data = format_validator.format_from_edi(data)
+        data = format_validator.format_from_edi(data, schema_data_type: schema_data_type)
         options[:valid_data] = true
       end
       create_from(data, options)

@@ -38,6 +38,9 @@ module Setup
 
     belongs_to :library, class_name: Setup::Library.to_s, inverse_of: :data_types
 
+    has_and_belongs_to_many :records_methods, class_name: Setup::Algorithm.to_s, inverse_of: nil
+    has_and_belongs_to_many :data_type_methods, class_name: Setup::Algorithm.to_s, inverse_of: nil
+
     attr_readonly :name
 
     validates_presence_of :library, :name
@@ -45,7 +48,7 @@ module Setup
 
     scope :activated, -> { where(activated: true) }
 
-    before_save :check_instance_type, :on_saving
+    before_save :check_instance_type, :validates_configuration, :on_saving
     after_save :on_saved
 
     def check_instance_type
@@ -55,6 +58,17 @@ module Setup
         errors.add(:base, 'A data type must be of type Schema or File')
         false
       end
+    end
+
+    def validates_configuration
+      [:records_methods, :data_type_methods].each do |methods|
+        send(methods).each do |method|
+          if method.parameters.count == 0
+            errors.add(methods, "contains algorithm taking no parameter: #{method.custom_title} (at less one parameter is required)")
+          end
+        end
+      end
+      errors.blank?
     end
 
     def activated?

@@ -266,9 +266,11 @@ module Edi
         next if property_schema['edi'] && property_schema['edi']['discard']
         if (property_model = record.orm_model.property_model(property_name)) && property_model.modelable?
           if property_schema['type'] == 'array'
-            property_schema = data_type.merge_schema(property_schema['items'])
-            record.send(property_name).each do |sub_record|
-              output.concat(record_to_edi(data_type, options, property_schema, sub_record, property_name))
+            if sub_values = record.send(property_name)
+              property_schema = data_type.merge_schema(property_schema['items'])
+              sub_values.each do |sub_record|
+                output.concat(record_to_edi(data_type, options, property_schema, sub_record, property_name))
+              end
             end
           else
             if sub_record = record.send(property_name)
@@ -309,7 +311,7 @@ module Edi
     end
 
     def edi_value(record, property_name, property_schema, property_model, options)
-      unless value = record[property_name]
+      if (value = record[property_name]).nil?
         value = property_schema['default'] || ''
       end
       value = property_model.to_string(value) if property_model

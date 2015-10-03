@@ -37,7 +37,7 @@ module Setup
         end
       end
       Setup::Schema.any_in(id: data_type_names.keys).each do |schema|
-        schema[:data_type_id] = json_schemas[schema[:library_id]][data_type_names[schema.id]]
+        schema[:schema_data_type_id] = json_schemas[schema[:library_id]][data_type_names[schema.id]]
         schema.save
       end if data_type_names.present?
     end
@@ -53,6 +53,18 @@ module Setup
           else
             [source]
           end
+        schemas = schemas.to_a
+        libraries_schemas = Hash.new { |h, k| h[k] = [] }
+        libraries = {}
+        schemas.each do |schema|
+          if libraries.has_key?(library_id = schema.library_id)
+            schema.library = libraries[library_id]
+          else
+            libraries[library_id] = schema.library
+          end
+          libraries_schemas[library_id] << schema
+        end
+        libraries.each { |library_id, library| library.set_schemas_scope(libraries_schemas[library_id]) }
         schemas.each(&:bind_includes)
         json_schemas = Hash.new { |h, k| h[k] = {} }
         data_type_names = options[:data_type_names]
