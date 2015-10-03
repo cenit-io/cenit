@@ -1,8 +1,8 @@
 module Setup
-  module DataTypeValidator
+  module FormatValidator
 
     def data_format
-      data_type.schema.schema_type.to_s.split('_').first.to_sym
+      fail NotImplementedError
     end
 
     def content_type

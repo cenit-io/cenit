@@ -3,7 +3,7 @@ require 'xsd/include_missing_exception'
 module Setup
   class Schema < Validator
     include CenitScoped
-    include DataTypeValidator
+    include Setup::FormatValidator
     include CustomTitle
 
     BuildInDataType.regist(self).with(:uri, :schema).embedding(:data_types).including(:library).referenced_by(:library, :uri)
@@ -48,13 +48,28 @@ module Setup
       case schema_type
       when :json_schema
         begin
-          JSON::Validator.validate!(@schema ||= data_types.first.merged_schema(recursive: true), JSON.parse(file.data))
-          []
+          JSON::Validator.fully_validate(JSON.parse(schema),
+                                         JSON.parse(file.data),
+                                         version: :mongoff,
+                                         schema_reader: JSON::Schema::CenitReader.new(self),
+                                         strict: true)
         rescue Exception => ex
           [ex.message]
         end
       when :xml_schema
         Nokogiri::XML::Schema(cenit_ref_schema).validate(Nokogiri::XML(file.data))
+      end
+    end
+
+    def find_ref_schema(ref)
+      if ref == uri
+        self
+      elsif schm = Setup::Schema.where(library_id: library_id, uri: ref).first
+        schm.schema
+      elsif data = Setup::Schema.where(library_id: library_id, name: ref).first
+        data_type.schema
+      else
+        nil
       end
     end
 

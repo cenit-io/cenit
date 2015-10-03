@@ -3,12 +3,11 @@ require 'stringio'
 module Setup
   class FileDataType < DataType
 
-    BuildInDataType.regist(self).referenced_by(:name, :library).with(:title, :name, :_type, :validator, :validators).including(:library)
+    BuildInDataType.regist(self).referenced_by(:name, :library).with(:title, :name, :_type, :validators, :schema_data_type).including(:library)
 
     belongs_to :library, class_name: Setup::Library.to_s, inverse_of: :file_data_types
-    belongs_to :validator, class_name: Setup::Validator.to_s, inverse_of: nil
-
     has_and_belongs_to_many :validators, class_name: Setup::Validator.to_s, inverse_of: nil
+    belongs_to :schema_data_type, class_name: Setup::SchemaDataType.to_s, inverse_of: nil
 
     attr_readonly :library
 
@@ -16,16 +15,27 @@ module Setup
 
     def validate_configuration
       self.title = self.name if title.blank?
-      if validator.present?
-        if validator.is_a?(Setup::DataTypeValidator)
-          validators.delete(validator) if validators.include?(validator)
-        else
-          errors.add(:validator, 'only schemas and EDI validators are supported as main validators')
+      validators_classes = Hash.new { |h, k| h[k] = [] }
+      if validators.present?
+        validators.each { |validator| validators_classes[validator.class] << validator }
+        validators_classes.delete(Setup::AlgorithmValidator)
+        if validators_classes.count > 1
+          errors.add(:validators, "include validators of exclusive types: #{validators_classes.keys.to_a.collect(&:to_s).to_sentence}")
+        end
+        validators_classes.each do |validator_class, validators|
+          errors.add(:validators, "include multiple validators of the same exclusive type #{validator_class}: #{validators.collect(&:name).to_sentence}") if validators.count > 1
+        end
+        unless schema_data_type.present? || errors.present? || (validator = validators_classes.values.first.first).nil?
+          self.schema_data_type = validator.try(:data_type) || validator.try(:schema_data_type)
         end
       else
-        errors.add(:validator, 'is required when other validators present') if validators.present?
+        self.schema_data_type = nil
       end
       errors.blank?
+    end
+
+    def format_validator
+      @format_validator ||= validators.detect { |validator| validator.is_a?(Setup::FormatValidator) }
     end
 
     def data_type_storage_collection_name
@@ -49,7 +59,7 @@ module Setup
     end
 
     def validate_file(file)
-      errors = validator.present? ? validator.validate_file_record(file) : []
+      errors = []
       validators.each do |v|
         next if errors.present?
         errors += v.validate_file_record(file)
@@ -73,9 +83,9 @@ module Setup
 
     def create_from_json(json_or_readable, options = {})
       data = json_or_readable
-      unless validator.nil? || validator.data_format == :json
+      unless format_validator.nil? || format_validator.data_format == :json
         data = ((data.is_a?(String) || data.is_a?(Hash)) && data) || data.read
-        data = validator.format_from_json(data)
+        data = format_validator.format_from_json(data)
         options[:valid_data] = true
       end
       create_from(data, options)
@@ -83,9 +93,9 @@ module Setup
 
     def create_from_xml(string_or_readable, options = {})
       data = string_or_readable
-      unless validator.nil? || validator.data_format == :xml
+      unless format_validator.nil? || format_validator.data_format == :xml
         data = (data.is_a?(String) && data) || data.read
-        data = validator.format_from_xml(data)
+        data = format_validator.format_from_xml(data)
         options[:valid_data] = true
       end
       create_from(data, options)
@@ -93,9 +103,9 @@ module Setup
 
     def create_from_edi(string_or_readable, options = {})
       data = string_or_readable
-      unless validator.nil? || validator.data_format == :edi
+      unless format_validator.nil? || format_validator.data_format == :edi
         data = (data.is_a?(String) && data) || data.read
-        data = validator.format_from_edi(data)
+        data = format_validator.format_from_edi(data)
         options[:valid_data] = true
       end
       create_from(data, options)
@@ -103,8 +113,8 @@ module Setup
 
     def default_attributes
       {
-          default_filename: "file_#{DateTime.now.strftime('%Y-%m-%d_%Hh%Mm%S')}" + ((extension = validator.try(:file_extension)) ? ".#{extension}" : ''),
-          default_contentType: validator.try(:content_type) || 'application/octet-stream'
+        default_filename: "file_#{DateTime.now.strftime('%Y-%m-%d_%Hh%Mm%S')}" + ((extension = format_validator.try(:file_extension)) ? ".#{extension}" : ''),
+        default_contentType: format_validator.try(:content_type) || 'application/octet-stream'
       }
     end
 
@@ -173,13 +183,13 @@ module Setup
 
       def file
         @file ||=
-            if new_record?
-              f = grid_fs_file_model.new
-              f.id = id
-              f
-            else
-              grid_fs_file_model.where(id: id).first
-            end
+          if new_record?
+            f = grid_fs_file_model.new
+            f.id = id
+            f
+          else
+            grid_fs_file_model.where(id: id).first
+          end
       end
 
       def data=(string_or_readable)

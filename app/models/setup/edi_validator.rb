@@ -1,11 +1,11 @@
 module Setup
   class EdiValidator < CustomValidator
     include CenitScoped
-    include DataTypeValidator
+    include Setup::FormatValidator
 
     BuildInDataType.regist(self).referenced_by(:name)
 
-    belongs_to :schema, class_name: Setup::Schema.to_s, inverse_of: nil
+    belongs_to :schema_data_type, class_name: Setup::SchemaDataType.to_s, inverse_of: nil
 
     field :content_type, type: String
 
@@ -21,10 +21,6 @@ module Setup
 
     def content_type_enum
       MIME::Types.inject([]) { |types, t| types << t.to_s }
-    end
-
-    def data_type
-      schema.data_type
     end
 
     def data_format
