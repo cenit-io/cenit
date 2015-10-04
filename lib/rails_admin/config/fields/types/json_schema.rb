@@ -7,7 +7,7 @@ module RailsAdmin
 
           def parse_input(params)
             super
-            params[name] = nil if params.has_key?(name) && !params[name].is_a?(Hash)
+            params[name] = nil if params.has_key?(name) && !(params[name].is_a?(::Hash) || params[name].is_a?(::String))
           end
         end
       end

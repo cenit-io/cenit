@@ -5,16 +5,29 @@ module Setup
 
     BuildInDataType.regist(self).referenced_by(:name, :library).with(:title, :name, :_type, :schema).including(:library)
 
-    field :schema, type: Hash
+    field :schema
 
     validates_presence_of :schema
+
+    def read_attribute(name)
+      value = super
+      if name.to_s == 'schema' && value.is_a?(String)
+        attributes['schema'] = value = JSON.parse(value) rescue value
+      end
+      value
+    end
 
     def model_attributes
       ['schema']
     end
 
     def on_saving
-      validate_model && super
+      if validate_model && super
+        attributes['schema'] = attributes['schema'].to_json unless attributes['schema'].is_a?(String)
+        true
+      else
+        false
+      end
     end
 
     def schema_changed?
@@ -44,7 +57,7 @@ module Setup
 
     def collection_data_type
       @collection_data_type ||=
-          ((base = schema['extends']) && base.is_a?(String) && (base = find_data_type(base)) && base.collection_data_type) || self
+        ((base = schema['extends']) && base.is_a?(String) && (base = find_data_type(base)) && base.collection_data_type) || self
     end
 
     def data_type_collection_name
@@ -59,6 +72,7 @@ module Setup
 
     def validate_schema
       # check_type_name(self.name)
+      self.schema = JSON.parse(schema) unless schema.is_a?(Hash)
       JSON::Validator.validate!(File.read(File.dirname(__FILE__) + '/schema.json'), schema.to_json)
       if schema['type'] == 'object'
         check_schema(schema, self.name, defined_types=[], embedded_refs={}, schema)
