@@ -205,6 +205,11 @@ RailsAdmin.config do |config|
     navigation_label 'Data Definitions'
     weight -17
 
+    group :behavior do
+      label 'Behavior'
+      active false
+    end
+
     configure :title do
       pretty_value do
         bindings[:object].custom_title
@@ -223,8 +228,20 @@ RailsAdmin.config do |config|
       read_only true
     end
 
+    configure :records_methods do
+      group :behavior
+      inline_add false
+    end
+
+    configure :data_type_methods do
+      group :behavior
+      inline_add false
+    end
+
     edit do
       field :title
+      field :records_methods
+      field :data_type_methods
     end
 
     list do
@@ -282,6 +299,16 @@ RailsAdmin.config do |config|
   end
 
   config.model Setup::FileDataType do
+
+    group :content do
+      label 'Content'
+    end
+
+    group :behavior do
+      label 'Behavior'
+      active false
+    end
+
     configure :library do
       associated_collection_scope do
         library = (obj = bindings[:object]).library
@@ -314,19 +341,23 @@ RailsAdmin.config do |config|
     end
 
     configure :validators  do
+      group :content
       inline_add false
     end
 
     configure :schema_data_type  do
+      group :content
       inline_add false
       inline_edit false
     end
 
     configure :records_methods do
+      group :behavior
       inline_add false
     end
 
     configure :data_type_methods do
+      group :behavior
       inline_add false
     end
 
@@ -372,6 +403,11 @@ RailsAdmin.config do |config|
   end
 
   config.model Setup::SchemaDataType do
+    group :behavior do
+      label 'Behavior'
+      active false
+    end
+
     object_label_method { :custom_title }
     navigation_label 'Data Definitions'
     weight -17
@@ -410,11 +446,23 @@ RailsAdmin.config do |config|
       end
     end
 
+    configure :records_methods do
+      group :behavior
+      inline_add false
+    end
+
+    configure :data_type_methods do
+      group :behavior
+      inline_add false
+    end
+
     edit do
       field :library
       field :title
       field :name
       field :schema, :json_schema
+      field :records_methods
+      field :data_type_methods
     end
 
     list do

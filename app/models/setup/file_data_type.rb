@@ -19,19 +19,29 @@ module Setup
       if validators.present?
         validators.each { |validator| validators_classes[validator.class] << validator }
         validators_classes.delete(Setup::AlgorithmValidator)
-        if validators_classes.count > 1
-          errors.add(:validators, "include validators of exclusive types: #{validators_classes.keys.to_a.collect(&:to_s).to_sentence}")
-        end
-        validators_classes.each do |validator_class, validators|
-          errors.add(:validators, "include multiple validators of the same exclusive type #{validator_class}: #{validators.collect(&:name).to_sentence}") if validators.count > 1
-        end
-        unless schema_data_type.present? || errors.present? || (validator = validators_classes.values.first.first).nil?
-          self.schema_data_type = validator.schema_data_type
+        if validators_classes.size == 1 && validators_classes.values.first.size == 1
+          self.schema_data_type = validators_classes.values.first.first.schema_data_type
+        else
+          if schema_data_type.present?
+            errors.add(:schema_data_type, 'is not allowed if no format validator is defined')
+            self.schema_data_type = nil
+          end
+          if validators_classes.count > 1
+            errors.add(:validators, "include validators of exclusive types: #{validators_classes.keys.to_a.collect(&:to_s).to_sentence}")
+          end
+          validators_classes.each do |validator_class, validators|
+            errors.add(:validators, "include multiple validators of the same exclusive type #{validator_class}: #{validators.collect(&:name).to_sentence}") if validators.count > 1
+          end
         end
       else
+        errors.add(:schema_data_type, 'is not allowed if no format validator is defined') if schema_data_type.present?
         self.schema_data_type = nil
       end
       errors.blank?
+    end
+
+    def ready_to_save?
+      @validators_selected
     end
 
     def format_validator
@@ -73,42 +83,59 @@ module Setup
       end
     end
 
-    def create_from(string_or_readable, options = {})
-      options = default_attributes.merge(options)
+    def new_from(string_or_readable, options = {})
       file = records_model.new
       file.data = string_or_readable
+      file
+    end
+
+    def create_from(string_or_readable, options = {})
+      if data_type_methods.any? { |alg| alg.name == 'create_from' }
+        return method_missing(:create_from, string_or_readable, options)
+      end
+      options = default_attributes.merge(options)
+      file = new_from(string_or_readable, options)
       file.save(options)
       file
     end
 
-    def create_from_json(json_or_readable, options = {})
+    def new_from_json(json_or_readable, options = {})
+      if data_type_methods.any? { |alg| alg.name == 'new_from_json' }
+        return method_missing(:new_from_json, json_or_readable, options)
+      end
       data = json_or_readable
       unless format_validator.nil? || format_validator.data_format == :json
         data = ((data.is_a?(String) || data.is_a?(Hash)) && data) || data.read
         data = format_validator.format_from_json(data, schema_data_type: schema_data_type)
         options[:valid_data] = true
       end
-      create_from(data, options)
+      new_from(data, options)
     end
 
-    def create_from_xml(string_or_readable, options = {})
+    def new_from_xml(string_or_readable, options = {})
+      if data_type_methods.any? { |alg| alg.name == 'new_from_xml' }
+        return method_missing(:new_from_xml, string_or_readable, options)
+      end
       data = string_or_readable
       unless format_validator.nil? || format_validator.data_format == :xml
         data = (data.is_a?(String) && data) || data.read
         data = format_validator.format_from_xml(data, schema_data_type: schema_data_type)
         options[:valid_data] = true
       end
-      create_from(data, options)
+      new_from(data, options)
     end
 
-    def create_from_edi(string_or_readable, options = {})
+    def new_from_edi(string_or_readable, options = {})
+      if data_type_methods.any? { |alg| alg.name == 'new_from_edi' }
+        return method_missing(:new_from_edi, string_or_readable, options)
+      end
       data = string_or_readable
       unless format_validator.nil? || format_validator.data_format == :edi
         data = (data.is_a?(String) && data) || data.read
         data = format_validator.format_from_edi(data, schema_data_type: schema_data_type)
         options[:valid_data] = true
       end
-      create_from(data, options)
+      new_from(data, options)
     end
 
     def default_attributes
@@ -221,6 +248,10 @@ module Setup
           end
         end
         updated
+      end
+
+      def method_missing(symbol, *args)
+        file.method_missing(symbol, *args)
       end
 
       module ClassMethods

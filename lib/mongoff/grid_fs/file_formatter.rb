@@ -3,6 +3,9 @@ module Mongoff
     module FileFormatter
 
       def to_hash(options = {})
+        if orm_model.data_type.records_methods.any? { |alg| alg.name = 'to_hash' }
+          return method_missing(:to_hash, options)
+        end
         data = self.data
         data_type = orm_model.data_type
         options = options.merge(schema_data_type: data_type.schema_data_type)
@@ -19,6 +22,9 @@ module Mongoff
       end
 
       def to_json(options = {})
+        if orm_model.data_type.records_methods.any? { |alg| alg.name == 'to_json' }
+          return method_missing(:to_json, options)
+        end
         data = self.data
         data_type = orm_model.data_type
         options = options.merge(schema_data_type: data_type.schema_data_type)
@@ -39,6 +45,9 @@ module Mongoff
       end
 
       def to_xml(options = {})
+        if orm_model.data_type.records_methods.any? { |alg| alg.name == 'to_xml' }
+          return method_missing(:to_xml, options)
+        end
         data = self.data
         data_type = orm_model.data_type
         options = options.merge(schema_data_type: data_type.schema_data_type)
@@ -50,6 +59,9 @@ module Mongoff
       end
 
       def to_xml_element(options = {})
+        if orm_model.data_type.records_methods.any? { |alg| alg.name == 'to_xml_element' }
+          return method_missing(:to_xml_element, options)
+        end
         data = self.data
         data_type = orm_model.data_type
         options = options.merge(schema_data_type: data_type.schema_data_type)
@@ -60,6 +72,9 @@ module Mongoff
       end
 
       def to_edi(options = {})
+        if orm_model.data_type.records_methods.any? { |alg| alg.name == 'to_edi' }
+          return method_missing(:to_edi, options)
+        end
         data = file.data
         data_type = orm_model.data_type
         options = options.merge(schema_data_type: data_type.schema_data_type)

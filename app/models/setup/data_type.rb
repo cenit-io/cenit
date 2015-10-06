@@ -5,6 +5,7 @@ module Setup
     include DataTypeParser
     include Slug
     include CustomTitle
+    include Mongoff::DataTypeMethods
 
     Setup::Models.exclude_actions_for self, :update, :bulk_delete, :delete, :delete_all
 
@@ -22,6 +23,7 @@ module Setup
                                  DynamicValidators,
                                  Edi::Formatter,
                                  Edi::Filler,
+                                 Mongoff::RecordsMethods,
                                  ClassModelParser] #, RailsAdminDynamicCharts::Datetime]
     end
 
@@ -231,6 +233,16 @@ module Setup
         save unless new_record?
       end
       report
+    end
+
+    def method_missing(symbol, *args)
+      if method = data_type_methods.detect { |alg| alg.name == symbol.to_s }
+        args.unshift(self)
+        method.reload
+        method.run(args)
+      else
+        super
+      end
     end
 
     class << self

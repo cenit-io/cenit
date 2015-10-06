@@ -9,14 +9,18 @@ module Setup
       @creation_listeners.delete(listener) if @creation_listeners
     end
 
-    def create_from(data, options = {})
+    def new_from(data, options = {})
       if formatted_data = JSON.parse(data) rescue nil
-        create_from_json(formatted_data, options)
+        new_from_json(formatted_data, options)
       elsif formatted_data = Nokogiri::XML(data) rescue nil
-        create_from_xml(formatted_data, options)
+        new_from_xml(formatted_data, options)
       else
-        create_from_edi(formatted_data, options)
+        new_from_edi(formatted_data, options)
       end
+    end
+
+    def create_from(data, options = {})
+      save_record(new_from(data, options), options)
     end
 
     def create_from_edi(data, options = {})
