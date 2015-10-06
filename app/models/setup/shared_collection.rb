@@ -10,7 +10,7 @@ module Setup
 
     belongs_to :shared_name, class_name: Setup::SharedName.to_s, inverse_of: nil
 
-    mount_uploader :image, GridFsUploader
+    mount_uploader :image, ImageUploader
     field :name, type: String
     field :shared_version, type: String
     field :category, type: String

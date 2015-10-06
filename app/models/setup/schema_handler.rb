@@ -1,7 +1,7 @@
 module Setup
   module SchemaHandler
 
-    def model_schema
+    def schema
       fail NotImplementedError
     end
 
@@ -10,7 +10,7 @@ module Setup
     end
 
     def merged_schema(options = {})
-      sch = merge_schema(JSON.parse(model_schema), options)
+      sch = merge_schema(schema, options)
       unless (base_sch = sch.delete('extends')).nil? || (base_sch = find_ref_schema(base_sch)).nil?
         sch = base_sch.deep_merge(sch) { |_, val1, val2| Cenit::Utility.array_hash_merge(val1, val2) }
       end
@@ -61,12 +61,12 @@ module Setup
       nil
     end
 
-    def find_ref_schema(ref, root_schema = JSON.parse(model_schema))
+    def find_ref_schema(ref, root_schema = schema)
       if ref.start_with?('#')
         get_embedded_schema(ref, root_schema)[1] rescue nil
       else
         if data_type = find_data_type(ref)
-          JSON.parse(data_type.model_schema)
+          data_type.schema
         else
           nil
         end
@@ -98,9 +98,13 @@ module Setup
     private
 
     def do_merge_schema(schema, options = {})
+      if schema.is_a?(Array)
+        return schema.collect { |sch| do_merge_schema(sch, options) }
+      end
+      return schema unless schema.is_a?(Hash)
       schema = schema.deep_dup
       options ||= {}
-      options[:root_schema] ||= JSON.parse(model_schema)
+      options[:root_schema] ||= schema
       options[:silent] = true if options[:silent].nil?
       references = Set.new
       merging = true
@@ -116,7 +120,8 @@ module Setup
               value_schema = schema['properties']['value'] || {}
               value_schema = base_model.deep_merge(value_schema)
               schema['properties']['value'] = value_schema.merge('title' => 'Value', 'xml' => {'content' => true})
-              (schema['xml'] ||= {})['content_property'] = 'value'
+              schema['xml'] ||= {}
+              schema['xml']['content_property'] = 'value'
             else
               unless (xml_opts = schema['xml']).nil? || xml_opts['content_property']
                 schema['xml'].delete('content_property') if (xml_opts = base_model['xml']) && xml_opts['content_property']

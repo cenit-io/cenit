@@ -11,9 +11,9 @@ module Setup
 
     validates_uniqueness_of :name
 
-    before_save :do_not_save
+    before_save :check_instance_type
 
-    def do_not_save
+    def check_instance_type
       if self.is_a?(Setup::Observer) || self.is_a?(Setup::Scheduler)
         true
       else

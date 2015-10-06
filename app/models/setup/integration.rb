@@ -11,7 +11,7 @@ module Setup
     belongs_to :pull_event, class_name: Setup::Event.to_s, inverse_of: nil
 
     belongs_to :pull_translator, class_name: Setup::Translator.to_s, inverse_of: nil
-    belongs_to :data_type, class_name: Setup::Model.to_s, inverse_of: nil
+    belongs_to :data_type, class_name: Setup::DataType.to_s, inverse_of: nil
     belongs_to :send_translator, class_name: Setup::Translator.to_s, inverse_of: nil
 
     belongs_to :send_flow, class_name: Setup::Flow.to_s, inverse_of: nil

@@ -22,7 +22,7 @@ module Mongoff
     end
 
     def data_type
-      @data_type_id.is_a?(Setup::Model) ? @data_type_id : Setup::Model.where(id: @data_type_id).first
+      @data_type_id.is_a?(Setup::DataType) ? @data_type_id : Setup::DataType.where(id: @data_type_id).first
     end
 
     def new
@@ -74,7 +74,7 @@ module Mongoff
     def property_model(property)
       property = property.to_s
       model = nil
-      if schema['type'] == 'object' && schema['properties'] && property_schema = schema['properties'][property]
+      if schema.is_a?(Hash) && schema['type'] == 'object' && schema['properties'] && property_schema = schema['properties'][property]
         @properties_models ||= {}
         if @properties_models.has_key?(property)
           model = @properties_models[property]
@@ -277,7 +277,7 @@ module Mongoff
         cache_model = (cache_models = Thread.current[:mongoff_models] ||= {})[model_name]
         unless data_type = (options[:data_type] || (cache_model && cache_model.data_type))
           raise Exception.new('name or data type required') unless model_name
-          unless data_type = Setup::Model.for_name(model_name.split('::').first)
+          unless data_type = Setup::DataType.for_name(model_name.split('::').first)
             raise Exception.new("unknown data type for #{model_name}")
           end
         end

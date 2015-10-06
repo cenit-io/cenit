@@ -41,10 +41,10 @@ module Cenit
                 end
               end
             end
-            if data_type_data = library_data['file_data_types']
-              library.file_data_types.each do |file_data_type|
-                if file_data_type_data = data_type_data.detect { |dt| dt['name'] == file_data_type.name }
-                  file_data_type_data['id'] = file_data_type.id.to_s
+            if data_types_data = library_data['data_types']
+              library.data_types.each do |data_type|
+                if data_type_data = data_types_data.detect { |dt| dt['name'] == data_type.name }
+                  data_type_data['id'] = data_type.id.to_s
                 end
               end
             end

@@ -35,11 +35,6 @@ module RailsAdmin
                         if (schema = entry.get_input_stream.read).present?
                           uri = base_uri.blank? ? entry.name : "#{base_uri}/#{entry.name}"
                           schemas[entry.name] = schema = Setup::Schema.new(library: library, uri: uri, schema: schema)
-                          begin
-                            schema.parse_schema
-                          rescue Exception => ex
-                            @object.errors.add(:file, "contains invalid schema #{entry.name}: #{ex.message}")
-                          end
                         end
                       end
                     end
@@ -51,21 +46,16 @@ module RailsAdmin
                   schemas[uri] = Setup::Schema.new(library: library, uri: uri, schema: file.read)
                 end
               end
-              data_type_optimizer = Setup::DataTypeOptimizer.new_optimizer
-              library.set_schemas_scope(schemas.values)
-              schemas.values.each(&:bind_includes)
               new_schemas_attributes = []
               schemas.each do |entry_name, schema|
                 next unless @object.errors.blank?
-                if schema.save_data_types && schema.validates_configuration
-                  data_types_count += schema.data_types.size
+                if schema.validates_configuration
                   saved_schemas_ids << schema.id
                   new_schemas_attributes << schema.attributes
                 else
                   @object.errors.add(:file, "contains invalid schema #{entry_name}: #{schema.errors.full_messages.join(', ')}")
                 end
               end
-              data_type_optimizer.save_data_types.each { |error| @object.errors.add(:file, error) }
               begin
                 Setup::Schema.collection.insert(new_schemas_attributes)
               rescue Exception => ex
@@ -74,11 +64,10 @@ module RailsAdmin
             end
 
             if @object && @object.errors.blank?
-              flash[:success] = "#{schemas.size} schemas and #{data_types_count} data types successfully imported"
+              flash[:success] = "#{schemas.size} schemas successfully imported"
               redirect_to back_or_index
             else
               Setup::Schema.all.any_in(id: saved_schemas_ids).delete_all
-              Setup::DataType.all.any_in(schema_id: saved_schemas_ids).delete_all
               @object ||= Forms::ImportSchemaData.new
               @model_config = RailsAdmin::Config.model(Forms::ImportSchemaData)
               if @object.errors.present?

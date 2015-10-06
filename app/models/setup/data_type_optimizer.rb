@@ -17,7 +17,7 @@ module Setup
 
     def find_data_type(ref, library_id = self.library_id)
       unless data_type = (hash = @libraries[library_id])[ref]
-        data_type = Setup::Model.where(name: ref, library_id: library_id).first
+        data_type = Setup::DataType.where(name: ref, library_id: library_id).first
         hash[ref] = data_type
       end
       data_type
@@ -50,7 +50,7 @@ module Setup
         end
         #TODO inject refs dependencies
         (schema['edi'] ||= {})['segments'] = segments
-        data_type.model_schema = schema.to_json
+        data_type.schema = schema
       end
     end
 
@@ -77,7 +77,7 @@ module Setup
         end
       end
       if valid && new_attributes.present?
-        Setup::DataType.collection.insert(new_attributes)
+        Setup::SchemaDataType.collection.insert(new_attributes)
       end
       errors
     end
