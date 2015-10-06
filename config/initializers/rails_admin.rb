@@ -15,7 +15,7 @@
  RailsAdmin::Config::Actions::DeleteLibrary,
  RailsAdmin::Config::Actions::SimpleShare,
  RailsAdmin::Config::Actions::BulkShare,
- RailsAdmin::Config::Actions::PullCollection,
+ RailsAdmin::Config::Actions::Pull,
  RailsAdmin::Config::Actions::RetryTask,
  RailsAdmin::Config::Actions::UploadFile,
  RailsAdmin::Config::Actions::DownloadFile,
@@ -75,7 +75,7 @@ RailsAdmin.config do |config|
     simple_share
     bulk_share
     build_gem
-    pull_collection
+    pull
     upload_file
     download_file
     load_model
