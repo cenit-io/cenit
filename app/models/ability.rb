@@ -30,7 +30,6 @@ class Ability
             ]
         can :import, Setup::SharedCollection
         can :destroy, [Setup::SharedCollection, Setup::DataType, Setup::Task]
-        can :edit, Setup::Model
       else
         cannot :access, Setup::SharedName
         cannot :destroy, Setup::SharedCollection
