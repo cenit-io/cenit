@@ -25,9 +25,12 @@ class Ability
               Setup::OauthParameter,
               CenitToken,
               TkAptcha,
-              Script
+              Script,
+              Setup::Raml
             ]
-        can :destroy, [Setup::SharedCollection, Setup::Task]
+        can :import, Setup::SharedCollection
+        can :destroy, [Setup::SharedCollection, Setup::DataType, Setup::Task]
+        can :edit, Setup::Model
       else
         cannot :access, Setup::SharedName
         cannot :destroy, Setup::SharedCollection
@@ -39,7 +42,7 @@ class Ability
       can :update, Setup::SharedCollection do |shared_collection|
         shared_collection.owners.include?(user)
       end
-      can [:import, :edi_export], Setup::SharedCollection
+      can :edi_export, Setup::SharedCollection
 
       @@setup_map ||=
         begin
@@ -82,6 +85,9 @@ class Ability
       file_models = Setup::FileDataType.where(model_loaded: true).collect(&:model)
       file_models.delete(nil)
       can [:index, :show, :upload_file, :download_file, :destroy, :import, :edi_export, :delete_all, :send_to_flow, :data_type], file_models
+
+    else
+      can [:index, :show], [Setup::SharedCollection, Setup::Raml]
     end
 
   end

@@ -28,6 +28,8 @@ Cenit::Application.routes.draw do
       post '/:library/:model/:id/pull', to: 'api#pull'
       post '/:library/:model/:id/run', to: 'api#run'
       post '/auth', to: 'api#auth'
+      match '/:library/:model', to: 'api#cors_check', via: [:options]
+      match '/:library/:model/:id', to: 'api#cors_check', via: [:options]
     end
   end
 end
