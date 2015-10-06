@@ -1,29 +1,43 @@
 module Api::V1
   class ApiController < ApplicationController
-    before_action :save_request_data, :authorize, except: [:new_account]
+    before_action :authorize_account, :save_request_data, except: [:new_account, :cors_check]
     before_action :find_item, only: [:show, :destroy, :pull, :run]
+    before_action :authorize_action, except: [:new_account, :cors_check]
     rescue_from Exception, :with => :exception_handler
     respond_to :json
+    
+    def cors_check
+        headers['Access-Control-Allow-Origin'] = request.headers['Origin']
+        headers['Access-Control-Allow-Credentials'] = false
+        headers['Access-Control-Allow-Headers'] = 'Origin, X-Requested-With, Accept, Content-Type, X-User-Access-Key, X-User-Access-Token'
+        headers['Access-Control-Allow-Methods'] = 'POST, GET, PUT, DELETE, OPTIONS'
+        headers['Access-Control-Max-Age'] = '1728000'
+        render :text => '', :content_type => 'text/plain'
+    end
 
     def index
-      @items =
-        if @criteria.present?
-          if sort_key = @criteria.delete(:sort_by)
-            asc = @criteria.has_key?(:ascending) | @criteria.has_key?(:asc)
-            [:ascending, :asc, :descending, :desc].each { |key| @criteria.delete(key) }
+      if klass = self.klass
+        @items =
+          if @criteria.present?
+            if sort_key = @criteria.delete(:sort_by)
+              asc = @criteria.has_key?(:ascending) | @criteria.has_key?(:asc)
+              [:ascending, :asc, :descending, :desc].each { |key| @criteria.delete(key) }
+            end
+            if limit = @criteria.delete(:limit)
+              limit = limit.to_s.to_i
+              limit = nil if limit == 0
+            end
+            items = klass.where(@criteria)
+            items = items.sort(sort_key => asc ? 1 : -1) if sort_key
+            items = items.limit(limit) if limit
+            items
+          else
+            klass.all
           end
-          if limit = @criteria.delete(:limit)
-            limit = limit.to_s.to_i
-            limit = nil if limit == 0
-          end
-          items = klass.where(@criteria)
-          items = items.sort(sort_key => asc ? 1 : -1) if sort_key
-          items = items.limit(limit) if limit
-          items
-        else
-          klass.all
-        end
-      render json: @items.map { |item| {((model = (hash = item.inspect_json(include_id: true)).delete('_type')) ? model.downcase : @model) => hash} }
+        render json: @items.map { |item| {((model = (hash = item.inspect_json(include_id: true)).delete('_type')) ? model.downcase : @model) => hash} }
+      else
+        render json: {error: 'no model found'}, status: :not_found
+      end
     end
 
     def show
@@ -47,7 +61,7 @@ module Api::V1
             if (record = data_type.send(@payload.create_method,
                                         @payload.process_item(item, data_type),
                                         options = @payload.create_options)).errors.blank?
-              success_report[root.pluralize] << record.inspect_json(inspecting: :id, inspect_scope: options[:create_collector])
+              success_report[root.pluralize] << record.inspect_json(include_id: :id, inspect_scope: options[:create_collector])
             else
               broken_report[root] << {errors: record.errors.full_messages, item: item}
             end
@@ -109,14 +123,15 @@ module Api::V1
 
     def new_account
       data = (JSON.parse(@webhook_body) rescue {}).keep_if { |key, _| %w(email password password_confirmation token code).include?(key) }
+      data = data.with_indifferent_access
       data.reverse_merge!(email: params[:email], password: pwd = params[:password], password_confirmation: params[:password_confirmation] || pwd)
       status = 406
       response =
         if token = data[:token] || params[:token]
-          if tkaptcha = TkAaptcha.where(token: token).first
+          if tkaptcha = TkAptcha.where(token: token).first
             if code = data[:code] || params[:code]
               if code == tkaptcha.code
-                data.reverse_merge!(tkaptcha.data || {})
+                data.merge!(tkaptcha.data || {}) { |_, left, right| left || right }
                 data[:password] = Devise.friendly_token unless data[:password]
                 data[:password_confirmation] = data[:password] unless data[:password_confirmation]
                 tkaptcha.destroy
@@ -147,7 +162,7 @@ module Api::V1
           data[:password] = Devise.friendly_token unless data[:password]
           data[:password_confirmation] = data[:password] unless data[:password_confirmation]
           if (user = User.new(data)).valid?(context: :create)
-            if (tkaptcha = TkAaptcha.create(email: data[:email], data: data)).errors.blank?
+            if (tkaptcha = TkAptcha.create(email: data[:email], data: data)).errors.blank?
               status = 200
               {token: tkaptcha.token}
             else
@@ -164,48 +179,88 @@ module Api::V1
 
     protected
 
-    def authorize
+    def authorize_account
       key = params.delete('X-User-Access-Key')
       key = request.headers['X-User-Access-Key'] || key
       token = params.delete('X-User-Access-Token')
       token = request.headers['X-User-Access-Token'] || token
-      user = User.where(key: key).first if key && token
-      if user && Devise.secure_compare(user.token, token) && user.has_role?(:admin)
-        Account.current = user.account
-        return true
-      end
-
-      key = request.headers['X-Hub-Store']
-      token = request.headers['X-Hub-Access-Token']
-      unless Account.set_current_with_connection(key, token)
-        responder = Cenit::Responder.new(@request_id, @webhook_body, 401)
-        render json: responder, root: false, status: responder.code
-        return false
+      if key || token
+        user = User.where(key: key).first
+        if user && Devise.secure_compare(user.token, token) && user.has_role?(:admin)
+          Account.current = user.account
+        end
+      else
+        key = request.headers['X-Hub-Store']
+        token = request.headers['X-Hub-Access-Token']
+        Account.set_current_with_connection(key, token) if key || token
       end
       true
+    end
+
+    def authorize_action
+      if klass
+        @ability = Ability.new(Account.current && Account.current.owner)
+        action_symbol =
+          case @_action_name
+          when 'push'
+            get_data_type(@model).is_a?(Setup::FileDataType) ? :upload_file : :create
+          else
+            @_action_name.to_sym
+          end
+        if @ability.can?(action_symbol, @item || klass)
+          true
+        else
+          responder = Cenit::Responder.new(@request_id, @webhook_body, 401)
+          render json: responder, root: false, status: responder.code
+          false
+        end
+      else
+        render json: {error: 'no model found'}, status: :not_found
+      end
+      cors_header
+      true
+    end
+    
+    def cors_header
+      headers['Access-Control-Allow-Origin'] = request.headers['Origin']
+      headers['Access-Control-Allow-Credentials'] = false
+      headers['Access-Control-Allow-Headers'] = 'Origin, X-Requested-With, Content-Type, accept, x-user-access-token, X-User-Access-Token'
+      headers['Access-Control-Allow-Methods'] = 'POST, GET, PUT, DELETE, OPTIONS'
+      headers['Access-Control-Max-Age'] = '1728000'
     end
 
     def exception_handler(exception)
       responder = Cenit::Responder.new(@request_id, @webhook_body, 500)
       responder.backtrace = exception.backtrace.to_s
       render json: responder, root: false, status: responder.code
-      return false
+      false
     end
 
     def find_item
       @item = klass.where(id: params[:id]).first
-      unless @item.present?
+      if @item.present?
+        true
+      else
         render json: {status: 'item not found'}
+        false
       end
     end
 
     def get_data_type_by_slug(slug)
       if slug
         @data_types[slug] ||=
-          if @library == 'setup'
+          if @library_slug == 'setup'
             Setup::BuildInDataType["Setup::#{slug.camelize}"]
           else
-            Setup::Model.where(slug: slug).detect { |model| model.library.slug == @library }
+            if @library_id.nil?
+              lib = Setup::Library.where(slug: @library_slug).first
+              @library_id = (lib && lib.id) || ''
+            end
+            if @library_id.present?
+              Setup::DataType.where(slug: slug, library_id: @library_id).first
+            else
+              nil
+            end
           end
       else
         nil
@@ -232,7 +287,8 @@ module Api::V1
       @data_types ||= {}
       @request_id = request.uuid
       @webhook_body = request.body.read
-      @library = params[:library]
+      @library_slug = params[:library]
+      @library_id = nil
       @model = params[:model]
       @payload =
         case request.content_type
@@ -268,14 +324,6 @@ module Api::V1
                            else
                              :create_from
                            end,
-            to_method: case config[:accept]
-                             when 'application/json'
-                               :to_json
-                             when 'application/xml'
-                               :to_xml
-                             else
-                               :to_json
-                           end,
             message: ''
           }.merge(config || {})
         @data_type = (controller = config[:controller]).send(:get_data_type, (@root = controller.request.params[:model] || controller.request.headers['data-type'])) rescue nil
@@ -286,13 +334,9 @@ module Api::V1
       def create_method
         config[:create_method]
       end
-      def to_method
-        config[:to_method]
-      end
-
 
       def create_options_keys
-        %w(filename)
+        %w(filename metadata)
       end
 
       def each_root(&block)

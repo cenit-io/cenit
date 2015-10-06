@@ -16,18 +16,18 @@ module Edi
     end
 
     def to_hash(options={})
-      include_id = options[:include_id].present?
+      include_id = options[:include_id]
       [:ignore, :only, :embedding, :inspecting].each do |option|
         value = (options[option] || [])
         value = [value] unless value.is_a?(Enumerable)
         value = value.select { |p| p.is_a?(Symbol) || p.is_a?(String) }.collect(&:to_sym)
         options[option] = value
-        include_id ||= (value.include?(:id) || value.include?(:_id))
+        include_id ||= (value.include?(:id) || value.include?(:_id)) if include_id.nil? && option != :ignore
       end
       [:only, :inspecting].each { |option| options.delete(option) if options[option].empty? }
       options[:inspected_records] = Set.new
       options[:stack] = []
-      options[:include_id] = include_id
+      options[:include_id] = include_id.present?
       hash = record_to_hash(self, options)
       options.delete(:stack)
       hash = {self.orm_model.data_type.slug => hash} if options[:include_root]
@@ -43,7 +43,9 @@ module Edi
       unless xml_doc = options[:xml_doc]
         options[:xml_doc] = xml_doc = Nokogiri::XML::Document.new
       end
-      record_to_xml_element(data_type = self.orm_model.data_type, JSON.parse(data_type.model_schema), self, xml_doc, nil, options)
+      element = record_to_xml_element(data_type = self.orm_model.data_type, self.orm_model.schema, self, xml_doc, nil, options, namespaces = {})
+      namespaces.each { |ns, xmlns| element["xmlns:#{xmlns}"] = ns }
+      element
     end
 
     def to_xml(options = {})
@@ -56,7 +58,12 @@ module Edi
 
     private
 
-    def record_to_xml_element(data_type, schema, record, xml_doc, enclosed_property_name, options)
+    def split_name(name)
+      name = (tokens = name.split(':')).pop
+      [tokens.join(':'), name]
+    end
+
+    def record_to_xml_element(data_type, schema, record, xml_doc, enclosed_property_name, options, namespaces)
       return unless record
       return Nokogiri::XML({enclosed_property_name => record}.to_xml(dasherize: false)).root.first_element_child if Cenit::Utility.json_object?(record)
       required = schema['required'] || []
@@ -64,7 +71,7 @@ module Edi
       elements = []
       content = nil
       content_property = nil
-      schema['properties'].each do |property_name, property_schema|
+      record.orm_model.properties_schemas.each do |property_name, property_schema|
         property_schema = data_type.merge_schema(property_schema)
         name = property_schema['edi']['segment'] if property_schema['edi']
         name ||= property_name
@@ -86,7 +93,7 @@ module Edi
               if Cenit::Utility.json_object?(sub_record)
                 json_objects << sub_record
               else
-                elements << record_to_xml_element(data_type, property_schema, sub_record, xml_doc, property_name, options)
+                elements << record_to_xml_element(data_type, property_schema, sub_record, xml_doc, property_name, options, namespaces)
               end
             end if property_value
             unless json_objects.empty?
@@ -97,16 +104,16 @@ module Edi
           end
         when 'object'
           if property_model && property_model.modelable?
-            elements << record_to_xml_element(data_type, property_schema, record.send(property_name), xml_doc, property_name, options)
+            elements << record_to_xml_element(data_type, property_schema, record.send(property_name), xml_doc, property_name, options, namespaces)
           else
             elements << Nokogiri::XML({name => record.send(property_name)}.to_xml(dasherize: false)).root.first_element_child
           end
         else
-          value = property_schema['default'] unless value = record.send(property_name)
-          if value
+          value = property_schema['default'] if (value = record.send(property_name)).nil?
+          unless value.nil?
             xml_opts = property_schema['xml'] || {}
             if xml_opts['attribute']
-              attr[name] = value if !value.blank? || options[:with_blanks] || required.include?(property_name)
+              attr[name] = value if !value.nil? || options[:with_blanks] || required.include?(property_name)
             elsif xml_opts['content']
               if content.nil?
                 content = value
@@ -122,6 +129,11 @@ module Edi
       end
       name = schema['edi']['segment'] if schema['edi']
       name ||= enclosed_property_name || record.orm_model.data_type.name
+      ns, name = split_name(name)
+      unless xmlns = namespaces[ns]
+        xmlns = namespaces[ns] = "ns#{namespaces.size + 1}"
+      end
+      name = xmlns + ':' + name
       element = xml_doc.create_element(name, attr)
       if elements.empty?
         content =
@@ -131,7 +143,7 @@ module Edi
           when Hash
             Nokogiri::XML(content.to_xml).root.element_children
           else
-            [content]
+            [json_value(content).to_s]
           end
         content.each { |e| element << e }
       else
@@ -144,7 +156,8 @@ module Edi
     def record_to_hash(record, options = {}, referenced = false, enclosed_model = nil)
       return record if Cenit::Utility.json_object?(record)
       data_type = record.orm_model.data_type
-      schema = record.orm_model.schema
+      model = record.orm_model
+      schema = model.schema
       json = (referenced = referenced && schema['referenced_by']) ? {'_reference' => true} : {}
       return nil if options[:stack].include?(record)
       if !referenced
@@ -152,12 +165,16 @@ module Edi
         options[:inspected_records] << record
       end
       options[:stack] << record
-      schema['properties']['_id'] ||= {'_id' => {'type' => 'string'}, 'edi' => {'segment' => 'id'}} if options[:include_id]
-      schema['properties'].each do |property_name, property_schema|
-        property_schema = data_type.merge_schema(property_schema)
-        property_model = record.orm_model.property_model(property_name)
+      store(json, 'id', record.id, options) if options[:include_id]
+      content_property = nil
+      model.stored_properties_on(record).each do |property_name|
+        property_schema = model.property_schema(property_name)
+        property_model = model.property_model(property_name)
         name = property_schema['edi']['segment'] if property_schema['edi']
         name ||= property_name
+        if property_schema['type'] != 'object' && (schema['properties'].size == 1 || (property_schema['xml'] && property_schema['xml']['content']))
+          content_property = name
+        end
         can_be_referenced = !(options[:embedding_all] || options[:embedding].include?(name.to_sym))
         if inspecting = options[:inspecting]
           next unless (property_model || inspecting.include?(name.to_sym))
@@ -177,38 +194,55 @@ module Edi
               next if inspecting && (scope = options[:inspect_scope]) && !scope.include?(sub_record)
               new_value << record_to_hash(sub_record, options, referenced_items, property_model)
             end
-            json[name] = new_value if new_value.present? || options[:include_blanks] || options[:include_empty]
           else
-            json[name] = nil if options[:include_null]
+            new_value = nil
           end
+          store(json, name, new_value, options)
         when 'object'
           sub_record = record.send(property_name)
           next if inspecting && (scope = options[:inspect_scope]) && !scope.include?(sub_record)
           value = record_to_hash(sub_record, options, can_be_referenced && property_schema['referenced'] && !property_schema['export_embedded'], property_model)
           store(json, name, value, options)
         else
-          if (value = record.send(property_name) || property_schema['default']).is_a?(BSON::ObjectId)
-            value = value.to_s
+          if (value = record.send(property_name)).nil?
+            value = property_schema['default']
           end
-          store(json, name, value, options)
+          store(json, name, value, options) #TODO Default values should came from record attributes
         end
       end
       if !options[:inspecting] && !json['_reference'] && enclosed_model && !record.orm_model.eql?(enclosed_model) && !options[:ignore].include?(:_type) && (!options[:only] || options[:only].include?(:_type))
         json['_type'] = data_type.name
       end
       options[:stack].pop
-      json
+      if content_property && json.size == 1 && options[:inline_content] && json.has_key?(content_property) && !json[content_property].is_a?(Hash)
+        json[content_property]
+      else
+        json
+      end
     end
 
     def store(json, key, value, options)
-      if value
+      if options[:nqnames]
+        key = key.to_s.split(':').last
+      end
+      if value.nil?
+        json[key] = nil if options[:include_null]
+      else
         if value.is_a?(Array) || value.is_a?(Hash)
           json[key] = value if value.present? || options[:include_blanks] || options[:include_empty]
         else
-          json[key] = value
+          value = value.to_s if value.is_a?(BSON::ObjectId)
+          json[key] = json_value(value) if !(value.nil? || value.try(:empty?)) || options[:include_blanks] #TODO String blanks!
         end
+      end
+    end
+
+    def json_value(value)
+      case value
+      when Time
+        value.strftime('%H:%M:%S')
       else
-        json[key] = nil if options[:include_null]
+        value
       end
     end
 
@@ -232,9 +266,11 @@ module Edi
         next if property_schema['edi'] && property_schema['edi']['discard']
         if (property_model = record.orm_model.property_model(property_name)) && property_model.modelable?
           if property_schema['type'] == 'array'
-            property_schema = data_type.merge_schema(property_schema['items'])
-            record.send(property_name).each do |sub_record|
-              output.concat(record_to_edi(data_type, options, property_schema, sub_record, property_name))
+            if sub_values = record.send(property_name)
+              property_schema = data_type.merge_schema(property_schema['items'])
+              sub_values.each do |sub_record|
+                output.concat(record_to_edi(data_type, options, property_schema, sub_record, property_name))
+              end
             end
           else
             if sub_record = record.send(property_name)
@@ -275,7 +311,7 @@ module Edi
     end
 
     def edi_value(record, property_name, property_schema, property_model, options)
-      unless value = record[property_name]
+      if (value = record[property_name]).nil?
         value = property_schema['default'] || ''
       end
       value = property_model.to_string(value) if property_model

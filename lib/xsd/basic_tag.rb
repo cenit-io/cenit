@@ -63,7 +63,7 @@ module Xsd
       parent ? parent.json_schema(ns) : nil
     end
 
-    private
+    protected
 
     def qualify_with(qualify_method, name, check_include = true)
       check_include && included?(qn = "#{name_prefix}#{qualify_method}:#{name}") ? qn : "#{name_prefix}#{qualify_method}:#{qualify(name)}"

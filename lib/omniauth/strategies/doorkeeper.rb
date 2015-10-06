@@ -5,7 +5,8 @@ module OmniAuth
 
       option :client_options, {
         :site => ENV['DOORKEEPER_APP_ID'],
-        :authorize_path => "/oauth/authorize"
+        :authorize_path => "/oauth/authorize",
+        :ssl => {:ca_path => '/usr/lib/ssl/certs'}
       }
 
       uid do

@@ -22,7 +22,7 @@ module Mongoff
     end
 
     def data_type
-      @data_type_id.is_a?(Setup::Model) ? @data_type_id : Setup::Model.where(id: @data_type_id).first
+      @data_type_id.is_a?(Setup::DataType) ? @data_type_id : Setup::DataType.where(id: @data_type_id).first
     end
 
     def new
@@ -74,21 +74,37 @@ module Mongoff
     def property_model(property)
       property = property.to_s
       model = nil
-      if schema['type'] == 'object' && schema['properties'] && property_schema = schema['properties'][property]
-        property_schema = property_schema['items'] if property_schema['type'] == 'array' && property_schema['items']
-        model =
-          if (ref = property_schema['$ref']).is_a?(String) && property_dt = data_type.find_data_type(ref)
-            property_dt.records_model
-          else
-            property_schema = data_type.merge_schema(property_schema)
-            if property_schema['type'] == 'object' && property_schema['properties']
-              Model.for(data_type: data_type, name: property.camelize, parent: self, schema: property_schema)
+      if schema.is_a?(Hash) && schema['type'] == 'object' && schema['properties'] && property_schema = schema['properties'][property]
+        @properties_models ||= {}
+        if @properties_models.has_key?(property)
+          model = @properties_models[property]
+        else
+          ref, property_dt = check_referenced_schema(property_schema)
+          model =
+            if ref
+              property_dt.records_model
             else
-              nil
+              property_schema = data_type.merge_schema(property_schema)
+              records_schema =
+                if property_schema['type'] == 'array' && property_schema.has_key?('items')
+                  property_schema['items']
+                else
+                  property_schema
+                end
+              Model.for(data_type: data_type, name: property.camelize, parent: self, schema: records_schema)
             end
-          end
+          schema['properties'][property] = property_schema
+          @properties_models[property] = model
+        end
       end
       model
+    end
+
+    def stored_properties_on(record)
+      properties = Set.new
+      record.document.each_key { |field| properties << field.to_s if property?(field) }
+      record.fields.each_key { |field| properties << field.to_s }
+      properties
     end
 
     def for_each_association(&block)
@@ -134,16 +150,16 @@ module Mongoff
 
     def eql?(obj)
       if obj.is_a?(Mongoff::Model)
-        data_type == obj.data_type && schema == obj.schema
+        to_s == obj.to_s
       else
         super
       end
     end
 
     def submodel_of?(model)
-      return true if self.eql?(model) || (@base_model && @base_model.submodel_of?(model))
+      return true if eql?(model) || (@base_model && @base_model.submodel_of?(model))
       base_model =
-        if base_data_type = data_type.find_data_type(JSON.parse(data_type.model_schema)['extends'])
+        if base_data_type = data_type.find_data_type(data_type.schema['extends'])
           Model.for(data_type: base_data_type, cache: caching?)
         else
           nil
@@ -157,7 +173,8 @@ module Mongoff
     end
 
     def attribute_key(field, field_metadata = {})
-      if (field_metadata[:model] ||= property_model(field)) && (schema = (field_metadata[:schema] ||= property_schema(field)))['referenced']
+      if (field_metadata[:model] ||= property_model(field)) &&
+        (schema = (field_metadata[:schema] ||= property_schema(field)))['referenced']
         return ("#{field}_id" + ('s' if schema['type'] == 'array').to_s).to_sym
       end
       field
@@ -175,6 +192,7 @@ module Mongoff
     CONVERSION = {
       BSON::ObjectId => ->(value) { BSON::ObjectId.from_string(value.to_s) },
       BSON::Binary => ->(value) { BSON::Binary.new(value.to_s) },
+      Boolean => ->(value) { value.to_s.to_boolean },
       String => ->(value) { value.to_s },
       Integer => ->(value) { value.to_s.to_i },
       Float => ->(value) { value.to_s.to_f },
@@ -183,7 +201,7 @@ module Mongoff
       Time => ->(value) { Time.parse(value.to_s) rescue nil },
       Hash => ->(value) { JSON.parse(value.to_s) rescue nil },
       Array => ->(value) { JSON.parse(value.to_s) rescue nil },
-      nil => ->(value) { Cenit::Utility.json_object?(value) ? value : nil }
+      NilClass => ->(value) { Cenit::Utility.json_object?(value) ? value : nil }
     }
 
     def mongo_value(value, field_or_schema)
@@ -259,7 +277,7 @@ module Mongoff
         cache_model = (cache_models = Thread.current[:mongoff_models] ||= {})[model_name]
         unless data_type = (options[:data_type] || (cache_model && cache_model.data_type))
           raise Exception.new('name or data type required') unless model_name
-          unless data_type = Setup::Model.for_name(model_name.split('::').first)
+          unless data_type = Setup::DataType.for_name(model_name.split('::').first)
             raise Exception.new("unknown data type for #{model_name}")
           end
         end
@@ -279,13 +297,14 @@ module Mongoff
       @data_type_id = (data_type.is_a?(Setup::BuildInDataType) || options[:cache]) ? data_type : data_type.id.to_s
       @name = options[:name] || data_type.data_type_name
       @parent = options[:parent]
-      @persistable = (@schema = options[:schema]).nil?
+      unless @persistable = (@schema = options[:schema]).nil?
+        @schema = data_type.merge_schema(@schema, root_schema: options[:root_schema])
+      end
       @modelable = options[:modelable]
       unless options[:observable].nil?
         @observable = options[:observable]
       end
       @mongo_types = {}
-      @custom_properties = {}.with_indifferent_access
     end
 
     def caching?
@@ -293,7 +312,23 @@ module Mongoff
     end
 
     def proto_schema
-      data_type.merged_schema(recursive: caching?)
+      sch = data_type.merged_schema #(recursive: caching?)
+      if properties = sch['properties']
+        sch[properties] = data_type.merge_schema(properties)
+      end
+      sch
+    end
+
+    private
+
+    def check_referenced_schema(schema)
+      if (ref = schema['$ref']).is_a?(String) &&
+        (schema.size == 1 || (schema.size == 2 && schema.has_key?('referenced'))) &&
+        (property_dt = data_type.find_data_type(ref))
+        [ref, property_dt]
+      else
+        [nil, nil]
+      end
     end
   end
 end

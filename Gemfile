@@ -18,6 +18,7 @@ gem 'builder'
 gem 'haml-rails'
 gem 'figaro'
 gem 'unicorn'
+gem 'raml'
 
 group :doc do
   gem 'sdoc', require: false
@@ -93,3 +94,5 @@ gem 'jeweler'
 gem 'github_api'
 gem 'captcha'
 gem 'httmultiparty'
+
+gem 'oauth2'

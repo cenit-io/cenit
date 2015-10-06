@@ -2,10 +2,15 @@ en:
   admin:
     js:
       present_and_change: Present & Change
+    flash:
+      processed: "%{name} %{action} have been processed"
+      click_here: "(click here for details)"
     actions:
+      dashboard:
+        title: "Administration"
       send_to_flow:
-        title: "Send to flow %{model_label_plural}"
-        menu: "Send %{model_label_plural} to flow"
+        title: "Send %{model_label_plural} to flow"
+        menu: "Send to flow"
         breadcrumb: "Send %{model_label_plural} to flow"
         link: "Send found %{model_label_plural} to flow"
         bulk_link: "Send selected %{model_label_plural} to a flow"
@@ -116,7 +121,8 @@ en:
         delete_schemas: "delete %{schemas_count} schemas"
         delete_data_types: "delete %{data_type_count} data types"
         shutdown_data_types: "shutdown %{shutdown_count} data types"
-        reload_data_types: "reload %{reload_count} data types"
+        reload_data_types: "reload %{count} data types"
+        override_data_types: "override %{count} data types"
         records: "records"
       action_will:
         also: 'These action will also'
@@ -157,7 +163,7 @@ en:
         nothing_to_pull: "Nothing to pull from here"
         fixed_errors_header: "The following errors where fixed when pulling the collection"
         missing_parameters: "Missing parameters"
-      retry_notification:
+      retry_task:
         title: "Retry"
         menu: "Retry"
         breadcrumb: "Retry"
@@ -181,14 +187,20 @@ en:
         breadcrumb: "Download"
         submit: "Download"
         done: "downloaded"
-      delete_data_type:
+      simple_delete_data_type:
         title: "Delete %{model_label} '%{object_label}'"
         menu: "Delete"
         breadcrumb: "Delete"
+      bulk_delete_data_type:
+        title: "Delete %{model_label_plural}"
+        menu: "Delete"
+        breadcrumb: "Delete"
+        bulk_link: "Delete selected %{model_label_plural}"
       process_flow:
         title: "Process"
         menu: "Process"
         done: "processed"
+        doing: "execution"
       build_gem:
         title: "Build Gem"
         menu: "Build Gem"
@@ -203,3 +215,31 @@ en:
         title: "My Profile"
         menu: "My Profile"
         breadcrumb: "My Profile"
+      authorize:
+        title: "Authorize"
+        menu: "Authorize"
+        breadcrumb: "Authorize"
+      generate:
+        new_data_types: "There will be generated %{count} data types"
+      simple_generate:
+        title: "Generate data types from %{model_label} '%{object_label}'"
+        menu: "Generate data types"
+        breadcrumb: "Generate"
+        doing: "data type generation"
+      bulk_generate:
+        title: "Generate data types from %{model_label_plural}"
+        menu: "Generate data types"
+        breadcrumb: "Generate"
+        bulk_link: "Generate data types from selected %{model_label_plural}"
+        doing: "data type generation"
+      simple_expand:
+        title: "Expand %{model_label} '%{object_label}'"
+        menu: "Expand"
+        breadcrumb: "Expand"
+        doing: "expansion"
+      bulk_expand:
+        title: "Expand %{model_label_plural}"
+        menu: "Expand"
+        breadcrumb: "Expand"
+        bulk_link: "Expand selected %{model_label_plural}"
+        doing: "expansion"

@@ -12,19 +12,23 @@
  RailsAdmin::Config::Actions::DeleteAll,
  RailsAdmin::Config::Actions::TranslatorUpdate,
  RailsAdmin::Config::Actions::Convert,
- RailsAdmin::Config::Actions::DeleteValidator,
  RailsAdmin::Config::Actions::DeleteLibrary,
  RailsAdmin::Config::Actions::SimpleShare,
  RailsAdmin::Config::Actions::BulkShare,
- RailsAdmin::Config::Actions::PullCollection,
- RailsAdmin::Config::Actions::RetryNotification,
- RailsAdmin::Config::Actions::NewFileModel,
+ RailsAdmin::Config::Actions::Pull,
+ RailsAdmin::Config::Actions::RetryTask,
  RailsAdmin::Config::Actions::UploadFile,
  RailsAdmin::Config::Actions::DownloadFile,
- RailsAdmin::Config::Actions::DeleteDataType,
  RailsAdmin::Config::Actions::ProcessFlow,
  RailsAdmin::Config::Actions::BuildGem,
- RailsAdmin::Config::Actions::Run].each { |a| RailsAdmin::Config::Actions.register(a) }
+ RailsAdmin::Config::Actions::Run,
+ RailsAdmin::Config::Actions::Authorize,
+ RailsAdmin::Config::Actions::SimpleDeleteDataType,
+ RailsAdmin::Config::Actions::BulkDeleteDataType,
+ RailsAdmin::Config::Actions::SimpleGenerate,
+ RailsAdmin::Config::Actions::BulkGenerate,
+ RailsAdmin::Config::Actions::SimpleExpand,
+ RailsAdmin::Config::Actions::BulkExpand].each { |a| RailsAdmin::Config::Actions.register(a) }
 
 RailsAdmin::Config::Actions.register(:export, RailsAdmin::Config::Actions::EdiExport)
 RailsAdmin::Config::Fields::Types.register(RailsAdmin::Config::Fields::Types::JsonValue)
@@ -58,15 +62,11 @@ RailsAdmin.config do |config|
     # memory_usage
     # disk_usage
     index # mandatory
-    new { except [Setup::Event] }
-    new_file_model
+    new { except [Setup::Event, Setup::DataType, Setup::BaseOauthAuthorization] }
     import
     import_schema
     translator_update
     convert
-    #import do
-    #  only 'Setup::DataType'
-    #end
     export
     bulk_delete
     show
@@ -75,15 +75,20 @@ RailsAdmin.config do |config|
     simple_share
     bulk_share
     build_gem
-    pull_collection
+    pull
     upload_file
     download_file
     load_model
     shutdown_model
     process_flow
-    delete_data_type
+    authorize
+    simple_generate
+    bulk_generate
+    simple_expand
+    bulk_expand
+    simple_delete_data_type
+    bulk_delete_data_type
     delete
-    delete_validator
     delete_library
     #show_in_app
     send_to_flow
@@ -91,14 +96,14 @@ RailsAdmin.config do |config|
     switch_navigation
     delete_all
     data_type
-    retry_notification
+    retry_task
 
-    history_index do
-      only [Setup::Model, Setup::Webhook, Setup::Flow, Setup::Schema, Setup::Event, Setup::Connection, Setup::ConnectionRole, Setup::Library]
-    end
-    history_show do
-      only [Setup::Model, Setup::Webhook, Setup::Flow, Setup::Schema, Setup::Event, Setup::Connection, Setup::ConnectionRole, Setup::Notification, Setup::Library]
-    end
+    # history_index do
+    #   only [Setup::DataType, Setup::Webhook, Setup::Flow, Setup::Schema, Setup::Event, Setup::Connection, Setup::ConnectionRole, Setup::Library]
+    # end
+    # history_show do
+    #   only [Setup::DataType, Setup::Webhook, Setup::Flow, Setup::Schema, Setup::Event, Setup::Connection, Setup::ConnectionRole, Setup::Notification, Setup::Library]
+    # end
   end
 
   config.model Setup::Validator do
@@ -123,7 +128,7 @@ RailsAdmin.config do |config|
       field :name
       field :slug
       field :schemas
-      field :file_data_types
+      field :data_types
 
       field :_id
       field :created_at
@@ -132,15 +137,12 @@ RailsAdmin.config do |config|
       #field :updater
     end
 
-    fields :name, :slug, :schemas, :file_data_types
+    fields :name, :slug, :schemas, :data_types
   end
 
   config.model Setup::Schema do
     object_label_method { :custom_title }
     navigation_label 'Data Definitions'
-    register_instance_option(:after_form_partials) do
-      %w(shutdown_and_reload)
-    end
     weight -18
 
     edit do
@@ -158,10 +160,13 @@ RailsAdmin.config do |config|
 
       field :schema, :code_mirror do
         html_attributes do
-          reload = Setup::Model.shutdown(bindings[:object].data_types.activated, report_only: true)[:destroyed].collect(&:data_type).uniq #.select(&:activated)
-          bindings[:object].instance_variable_set(:@_to_reload, reload)
           {cols: '74', rows: '15'}
         end
+      end
+
+      field :schema_data_type do
+        inline_edit false
+        inline_add false
       end
     end
 
@@ -178,11 +183,10 @@ RailsAdmin.config do |config|
             else
               value
             end
-          #"<textarea id='code' name='code'>#{pretty_value}</textarea>".html_safe
           "<pre>#{pretty_value}</pre>".html_safe
         end
       end
-      field :data_types
+      field :data_type
 
       field :_id
       field :created_at
@@ -191,15 +195,20 @@ RailsAdmin.config do |config|
       #field :updater
 
     end
-    fields :library, :uri, :data_types
+    fields :library, :uri, :schema_data_type
   end
 
-  config.model Setup::Model do
+  config.model Setup::DataType do
     label 'Data type'
     label_plural 'Data types'
     object_label_method { :custom_title }
     navigation_label 'Data Definitions'
     weight -17
+
+    group :behavior do
+      label 'Behavior'
+      active false
+    end
 
     configure :title do
       pretty_value do
@@ -208,15 +217,6 @@ RailsAdmin.config do |config|
     end
 
     configure :slug
-
-    configure :validator, :text do
-      pretty_value do
-        if value
-          am = (amc = RailsAdmin::Config.model(value.class)).abstract_model
-          (v = bindings[:view]).link_to(value.send(amc.object_label_method), v.url_for(action: v.action(:show, am, value).action_name, model_name: am.to_param, id: value.id), class: 'pjax')
-        end
-      end
-    end
 
     configure :storage_size, :decimal do
       pretty_value do
@@ -228,143 +228,26 @@ RailsAdmin.config do |config|
       read_only true
     end
 
-    list do
-      field :title
-      field :validator
-      field :name
-      field :slug
-      field :used_memory do
-        pretty_value do
-          unless max = bindings[:controller].instance_variable_get(:@max_used_memory)
-            bindings[:controller].instance_variable_set(:@max_used_memory, max = Setup::Model.fields[:used_memory.to_s].type.new(Setup::Model.max(:used_memory)))
-          end
-          (bindings[:view].render partial: 'used_memory_bar', locals: {max: max, value: Setup::Model.fields[:used_memory.to_s].type.new(value)}).html_safe
-        end
-      end
-      field :storage_size
+    configure :records_methods do
+      group :behavior
+      inline_add false
     end
 
-    show do
-      field :title
-      field :name
-      field :slug
-      field :activated
-      field :validator
-      field :model_schema do
-        pretty_value do
-          pretty_value =
-            if json = JSON.parse(value) rescue nil
-              "<code class='json'>#{JSON.pretty_generate(json)}</code>"
-            elsif xml = Nokogiri::XML(value) rescue nil
-              "<code class='xml'>#{xml.to_xml}</code>"
-            else
-              value
-            end
-          #"<textarea id='code' name='code'>#{pretty_value}</textarea>".html_safe
-          "<pre>#{pretty_value}</pre>".html_safe
-        end
-      end
-
-      field :_id
-      field :created_at
-      #field :creator
-      field :updated_at
-      #field :updater
+    configure :data_type_methods do
+      group :behavior
+      inline_add false
     end
-    fields :title, :validator, :name, :used_memory
-  end
 
-  config.model Setup::EdiValidator do
-    label 'EDI Validators'
-    navigation_label 'Data Definitions'
-
-    fields :name, :schema, :content_type
-  end
-
-  config.model Setup::FileDataType do
-    visible false
-    register_instance_option(:discard_submit_buttons) do
-      !(a = bindings[:action]) || a.key != :edit
-    end
     edit do
-      field :library do
-        associated_collection_scope do
-          library = (obj = bindings[:object]).library
-          Proc.new { |scope|
-            if library
-              scope.where(id: library.id)
-            else
-              scope
-            end
-          }
-        end
-      end
-      field :name
-      field :validator do
-        inline_add false
-        inline_edit false
-      end
-    end
-    fields :name, :library, :validator
-  end
-
-  config.model Setup::DataType do
-    visible false
-    object_label_method { :custom_title }
-    navigation_label 'Data Definitions'
-    weight -17
-
-    group :model_definition do
-      label 'Model definition'
-      active true
-    end
-
-    configure :schema do
-      group :model_definition
-      read_only true
-      help ''
-    end
-
-    configure :title do
-      group :model_definition
-      help ''
-      pretty_value do
-        bindings[:object].custom_title
-      end
-    end
-
-    configure :name do
-      group :model_definition
-      read_only true
-      help ''
-    end
-
-    configure :model_schema, :text do
-      group :model_definition
-      read_only true
-      help ''
-      html_attributes do
-        {cols: '50', rows: '15'}
-      end
-      pretty_value do
-        "<pre><code class='json'>#{JSON.pretty_generate(JSON.parse(value))}</code></pre>".html_safe
-      end
-    end
-
-    configure :storage_size, :decimal do
-      pretty_value do
-        unless max = bindings[:controller].instance_variable_get(:@max_storage_size)
-          bindings[:controller].instance_variable_set(:@max_storage_size, max = bindings[:controller].instance_variable_get(:@objects).collect { |data_type| data_type.records_model.storage_size }.max)
-        end
-        (bindings[:view].render partial: 'used_memory_bar', locals: {max: max, value: bindings[:object].records_model.storage_size}).html_safe
-      end
-      read_only true
+      field :title
+      field :records_methods
+      field :data_type_methods
     end
 
     list do
       field :title
-      field :schema
       field :name
+      field :slug
       field :used_memory do
         pretty_value do
           unless max = bindings[:controller].instance_variable_get(:@max_used_memory)
@@ -378,10 +261,20 @@ RailsAdmin.config do |config|
 
     show do
       field :title
-      field :schema
       field :name
+      field :slug
       field :activated
-      field :model_schema
+      field :schema do
+        pretty_value do
+          pretty_value =
+            if json = JSON.pretty_generate(value) rescue nil
+              "<code class='json'>#{json}</code>"
+            else
+              value
+            end
+          "<pre>#{pretty_value}</pre>".html_safe
+        end
+      end
 
       field :_id
       field :created_at
@@ -389,7 +282,219 @@ RailsAdmin.config do |config|
       field :updated_at
       #field :updater
     end
-    fields :title, :schema, :name, :used_memory
+    fields :title, :name, :used_memory
+  end
+
+  config.model Setup::EdiValidator do
+    label 'EDI Validators'
+    navigation_label 'Data Definitions'
+
+    fields :name, :schema_data_type, :content_type
+  end
+
+  config.model Setup::AlgorithmValidator do
+    navigation_label 'Data Definitions'
+
+    fields :name, :algorithm
+  end
+
+  config.model Setup::FileDataType do
+
+    group :content do
+      label 'Content'
+    end
+
+    group :behavior do
+      label 'Behavior'
+      active false
+    end
+
+    configure :library do
+      associated_collection_scope do
+        library = (obj = bindings[:object]).library
+        Proc.new { |scope|
+          if library
+            scope.where(id: library.id)
+          else
+            scope
+          end
+        }
+      end
+    end
+    configure :used_memory do
+      pretty_value do
+        unless max = bindings[:controller].instance_variable_get(:@max_used_memory)
+          bindings[:controller].instance_variable_set(:@max_used_memory, max = Setup::SchemaDataType.fields[:used_memory.to_s].type.new(Setup::SchemaDataType.max(:used_memory)))
+        end
+        (bindings[:view].render partial: 'used_memory_bar', locals: {max: max, value: Setup::SchemaDataType.fields[:used_memory.to_s].type.new(value)}).html_safe
+      end
+    end
+
+    configure :storage_size, :decimal do
+      pretty_value do
+        unless max = bindings[:controller].instance_variable_get(:@max_storage_size)
+          bindings[:controller].instance_variable_set(:@max_storage_size, max = bindings[:controller].instance_variable_get(:@objects).collect { |data_type| data_type.records_model.storage_size }.max)
+        end
+        (bindings[:view].render partial: 'used_memory_bar', locals: {max: max, value: bindings[:object].records_model.storage_size}).html_safe
+      end
+      read_only true
+    end
+
+    configure :validators  do
+      group :content
+      inline_add false
+    end
+
+    configure :schema_data_type  do
+      group :content
+      inline_add false
+      inline_edit false
+    end
+
+    configure :records_methods do
+      group :behavior
+      inline_add false
+    end
+
+    configure :data_type_methods do
+      group :behavior
+      inline_add false
+    end
+
+    edit do
+      field :library
+      field :title
+      field :name
+      field :validators
+      field :schema_data_type
+      field :records_methods
+      field :data_type_methods
+    end
+
+    list do
+      field :title
+      field :name
+      field :validators
+      field :schema_data_type
+      field :used_memory do
+        pretty_value do
+          unless max = bindings[:controller].instance_variable_get(:@max_used_memory)
+            bindings[:controller].instance_variable_set(:@max_used_memory, max = Setup::SchemaDataType.fields[:used_memory.to_s].type.new(Setup::SchemaDataType.max(:used_memory)))
+          end
+          (bindings[:view].render partial: 'used_memory_bar', locals: {max: max, value: Setup::SchemaDataType.fields[:used_memory.to_s].type.new(value)}).html_safe
+        end
+      end
+      field :storage_size
+    end
+
+    show do
+      field :title
+      field :name
+      field :activated
+      field :validators
+      field :schema_data_type
+
+      field :_id
+      field :created_at
+      #field :creator
+      field :updated_at
+      #field :updater
+    end
+  end
+
+  config.model Setup::SchemaDataType do
+    group :behavior do
+      label 'Behavior'
+      active false
+    end
+
+    object_label_method { :custom_title }
+    navigation_label 'Data Definitions'
+    weight -17
+    register_instance_option(:after_form_partials) do
+      %w(shutdown_and_reload)
+    end
+
+    configure :title do
+      pretty_value do
+        bindings[:object].custom_title
+      end
+    end
+
+    configure :name do
+      read_only { !bindings[:object].new_record? }
+    end
+
+    configure :schema, :code_mirror do
+      html_attributes do
+        report = bindings[:object].shutdown(report_only: true)
+        reload = (report[:reloaded].collect(&:data_type) + report[:destroyed].collect(&:data_type)).uniq
+        bindings[:object].instance_variable_set(:@_to_reload, reload)
+        {cols: '74', rows: '15'}
+      end
+      pretty_value do
+        "<pre><code class='json'>#{JSON.pretty_generate(value)}</code></pre>".html_safe
+      end
+    end
+
+    configure :storage_size, :decimal do
+      pretty_value do
+        unless max = bindings[:controller].instance_variable_get(:@max_storage_size)
+          bindings[:controller].instance_variable_set(:@max_storage_size, max = bindings[:controller].instance_variable_get(:@objects).collect { |data_type| data_type.records_model.storage_size }.max)
+        end
+        (bindings[:view].render partial: 'used_memory_bar', locals: {max: max, value: bindings[:object].records_model.storage_size}).html_safe
+      end
+    end
+
+    configure :records_methods do
+      group :behavior
+      inline_add false
+    end
+
+    configure :data_type_methods do
+      group :behavior
+      inline_add false
+    end
+
+    edit do
+      field :library
+      field :title
+      field :name
+      field :schema, :json_schema
+      field :records_methods
+      field :data_type_methods
+    end
+
+    list do
+      field :title
+      field :name
+      field :used_memory do
+        pretty_value do
+          unless max = bindings[:controller].instance_variable_get(:@max_used_memory)
+            bindings[:controller].instance_variable_set(:@max_used_memory, max = Setup::SchemaDataType.fields[:used_memory.to_s].type.new(Setup::SchemaDataType.max(:used_memory)))
+          end
+          (bindings[:view].render partial: 'used_memory_bar', locals: {max: max, value: Setup::SchemaDataType.fields[:used_memory.to_s].type.new(value)}).html_safe
+        end
+      end
+      field :storage_size
+    end
+
+    show do
+      field :title
+      field :name
+      field :activated
+      field :schema do
+        pretty_value do
+          "<pre><code class='ruby'>#{JSON.pretty_generate(value)}</code></pre>".html_safe
+        end
+      end
+
+      field :_id
+      field :created_at
+      #field :creator
+      field :updated_at
+      #field :updater
+    end
   end
 
   config.model Setup::Connection do
@@ -438,6 +543,11 @@ RailsAdmin.config do |config|
       group :parameters
       visible { bindings[:view]._current_user.has_role? :admin }
     end
+    configure :oauth2_authorization do
+      group :parameters
+      inline_edit false
+      visible { bindings[:view]._current_user.has_role? :admin }
+    end
 
     show do
       field :name
@@ -449,6 +559,7 @@ RailsAdmin.config do |config|
       field :parameters
       field :headers
       field :template_parameters
+      field :oauth2_authorization
 
       field :_id
       field :created_at
@@ -457,7 +568,7 @@ RailsAdmin.config do |config|
       #field :updater
     end
 
-    fields :name, :url, :parameters, :headers, :template_parameters, :key, :token
+    fields :name, :url, :parameters, :headers, :template_parameters, :oauth2_authorization, :key, :token
   end
 
   config.model Setup::Parameter do
@@ -542,27 +653,60 @@ RailsAdmin.config do |config|
     fields :name, :purpose, :path, :method, :parameters, :headers, :template_parameters
   end
 
+  config.model Setup::Task do
+    object_label_method { :to_s }
+    fields :description, :retries, :progress, :status, :notifications
+  end
+
+  config.model Setup::FlowExecution do
+    object_label_method { :to_s }
+    fields :flow, :description, :retries, :progress, :status, :notifications
+  end
+
+  config.model Setup::DataTypeGeneration do
+    object_label_method { :to_s }
+    fields :description, :retries, :progress, :status, :notifications
+  end
+
+  config.model Setup::DataTypeExpansion do
+    object_label_method { :to_s }
+    fields :description, :retries, :progress, :status, :notifications
+  end
+
   config.model Setup::Notification do
-    weight -10
-    navigation_label 'Notifications'
-    configure :exception_message do
+    object_label_method { :label }
+
+    configure :type do
       pretty_value do
-        "<label style='color:red'>#{value}</label>".html_safe
+        color =
+          case bindings[:object].type
+          when :notice
+            'blue'
+          when :warning
+            'orange'
+          else
+            'red'
+          end
+        "<label style='color:#{color}'>#{value.to_s.capitalize}</label>".html_safe
       end
     end
-    show do
-      field :flow
-      field :retries
-      field :response
-      field :exception_message
 
-      field :_id
-      field :created_at
-      #field :creator
-      field :updated_at
-      #field :updater
+    configure :message do
+      pretty_value do
+        color =
+          case bindings[:object].type
+          when :notice
+            'blue'
+          when :warning
+            'orange'
+          else
+            'red'
+          end
+        "<label style='color:#{color}'>#{value}</label>".html_safe
+      end
     end
-    fields :flow, :created_at, :retries, :response, :exception_message
+
+    fields :type, :message
   end
 
   config.model Setup::Flow do
@@ -942,6 +1086,28 @@ RailsAdmin.config do |config|
     fields :name, :owners
   end
 
+  config.model Script do
+    navigation_label 'Administration'
+
+    edit do
+      field :name
+      field :description
+      field :code, :code_mirror
+    end
+
+    show do
+      field :name
+      field :description
+      field :code do
+        pretty_value do
+          "<pre><code class='ruby'>#{value}</code></pre>".html_safe
+        end
+      end
+    end
+
+    fields :name, :description, :code
+  end
+
   config.model Setup::SharedCollection do
     register_instance_option(:discard_submit_buttons) do
       !(a = bindings[:action]) || a.key != :edit
@@ -1259,6 +1425,7 @@ RailsAdmin.config do |config|
     end
 
     edit do
+      field :picture
       field :name
       field :email do
         visible { User.current.super_admin? }
@@ -1299,8 +1466,10 @@ RailsAdmin.config do |config|
     end
 
     show do
+      field :picture
       field :name
       field :email
+      field :account
       field :roles
       field :key
       field :authentication_token
@@ -1310,6 +1479,8 @@ RailsAdmin.config do |config|
       field :current_sign_in_ip
       field :last_sign_in_ip
     end
+
+    fields :picture, :name, :email, :account, :roles, :key, :authentication_token, :authentication_token, :sign_in_count, :current_sign_in_at, :last_sign_in_at, :current_sign_in_ip, :last_sign_in_ip
   end
 
   config.model Account do
@@ -1317,5 +1488,181 @@ RailsAdmin.config do |config|
     object_label_method { :label }
 
     fields :name, :owner, :tenant_account, :number, :users
+  end
+
+  config.model Setup::SharedName do
+    navigation_label 'Administration'
+
+    fields :name, :owners
+  end
+
+  config.model Script do
+    navigation_label 'Administration'
+
+    edit do
+      field :name
+      field :description
+      field :code, :code_mirror
+    end
+
+    show do
+      field :name
+      field :description
+      field :code do
+        pretty_value do
+          "<pre><code class='ruby'>#{value}</code></pre>".html_safe
+        end
+      end
+    end
+
+    fields :name, :description, :code
+  end
+
+  config.model CenitToken do
+    navigation_label 'Administration'
+  end
+
+  config.model TkAptcha do
+    navigation_label 'Administration'
+  end
+
+  config.model Setup::BaseOauthProvider do
+    navigation_label 'OAuth'
+
+    fields :name, :response_type, :authorization_endpoint, :token_endpoint, :token_method, :parameters, :clients
+  end
+
+  config.model Setup::OauthProvider do
+    fields :name, :response_type, :authorization_endpoint, :token_endpoint, :token_method, :request_token_endpoint, :parameters, :clients
+  end
+
+  config.model Setup::Oauth2Provider do
+    fields :name, :response_type, :authorization_endpoint, :token_endpoint, :token_method, :parameters, :clients, :scope_separator, :scopes
+  end
+
+  config.model Setup::OauthParameter do
+    navigation_label 'OAuth'
+    object_label_method { :to_s }
+    fields :key, :value
+  end
+
+  config.model Setup::OauthClient do
+    navigation_label 'OAuth'
+
+    fields :name, :provider, :identifier, :secret
+  end
+
+  config.model Setup::Oauth2Scope do
+    navigation_label 'OAuth'
+
+    fields :name, :description, :provider
+  end
+
+  config.model Setup::BaseOauthAuthorization do
+    label 'Authorizations'
+    fields :name, :provider, :client
+  end
+
+  config.model Setup::OauthAuthorization do
+    edit do
+      field :name
+      field :provider do
+        inline_add false
+        inline_edit false
+        associated_collection_scope do
+          provider = (obj = bindings[:object]) && obj.provider
+          Proc.new { |scope|
+            if provider
+              scope.any_in(id: provider.id)
+            else
+              scope.any_in(_type: Setup::OauthProvider.to_s)
+            end
+          }
+        end
+      end
+      field :client do
+        inline_add false
+        inline_edit false
+        visible do
+          if ((obj = bindings[:object]) && obj.provider).present?
+            obj.client = obj.provider.clients.first if obj.client.blank?
+            true
+          else
+            false
+          end
+        end
+        associated_collection_scope do
+          provider = ((obj = bindings[:object]) && obj.provider) || nil
+          Proc.new { |scope|
+            if provider
+              scope.where(provider_id: provider.id)
+            else
+              scope
+            end
+          }
+        end
+      end
+    end
+
+  end
+
+  config.model Setup::Oauth2Authorization do
+    edit do
+      field :name
+      field :provider do
+        inline_add false
+        inline_edit false
+        associated_collection_scope do
+          provider = (obj = bindings[:object]) && obj.provider
+          Proc.new { |scope|
+            if provider
+              scope.any_in(id: provider.id)
+            else
+              scope.any_in(_type: Setup::Oauth2Provider.to_s)
+            end
+          }
+        end
+      end
+      field :client do
+        inline_add false
+        inline_edit false
+        visible do
+          if ((obj = bindings[:object]) && obj.provider).present?
+            obj.client = obj.provider.clients.first if obj.client.blank?
+            true
+          else
+            false
+          end
+        end
+        associated_collection_scope do
+          provider = ((obj = bindings[:object]) && obj.provider) || nil
+          Proc.new { |scope|
+            if provider
+              scope.where(provider_id: provider.id)
+            else
+              scope
+            end
+          }
+        end
+      end
+      field :scopes do
+        visible { ((obj = bindings[:object]) && obj.provider).present? }
+        associated_collection_scope do
+          provider = ((obj = bindings[:object]) && obj.provider) || nil
+          Proc.new { |scope|
+            if provider
+              scope.where(provider_id: provider.id)
+            else
+              scope
+            end
+          }
+        end
+      end
+    end
+
+  end
+
+  config.model Setup::Raml do
+    fields :api_name, :api_version, :raml_doc
   end
 end

@@ -4,7 +4,7 @@ module RailsAdmin
       class LoadModel < RailsAdmin::Config::Actions::Base
 
         register_instance_option :only do
-          Setup::Model
+          [Setup::DataType, Setup::SchemaDataType, Setup::FileDataType]
         end
 
         register_instance_option :member do
@@ -29,6 +29,7 @@ module RailsAdmin
                 @object.show_navigation_link = true
                 @object.save
                 report = @object.load_models(activated: true)
+                @object.save
                 RailsAdmin::AbstractModel.model_loaded(report[:loaded])
                 if report[:model]
                   flash[:success] = "Model '#{@object.title}' loaded!"
@@ -39,11 +40,11 @@ module RailsAdmin
                   end
                 end
               rescue Exception => ex
-                #raise ex
+                raise ex
                 flash[:error] = "Error loading model '#{@object.title}': #{ex.message}"
               end
             end
-            redirect_to rails_admin.show_path(model_name: Setup::Model.to_s.underscore.gsub('/', '~'), id: @object.id)
+            redirect_to rails_admin.show_path(model_name: @object.class.to_s.underscore.gsub('/', '~'), id: @object.id)
           end
         end
 

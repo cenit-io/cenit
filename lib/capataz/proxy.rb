@@ -2,12 +2,9 @@ class BasicObject
   def capataz_proxy?
     false
   end
-end
 
-class Object
-  def is_a?(klass)
-    klass = klass.capataz_slave if klass.capataz_proxy?
-    super(klass)
+  def capataz_slave
+    self
   end
 end
 

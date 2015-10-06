@@ -41,10 +41,10 @@ module Cenit
                 end
               end
             end
-            if data_type_data = library_data['file_data_types']
-              library.file_data_types.each do |file_data_type|
-                if data_type_data = data_type_data.detect { |dt| dt['name'] == file_data_type.name }
-                  data_type_data['id'] = file_data_type.id.to_s
+            if data_types_data = library_data['data_types']
+              library.data_types.each do |data_type|
+                if data_type_data = data_types_data.detect { |dt| dt['name'] == data_type.name }
+                  data_type_data['id'] = data_type.id.to_s
                 end
               end
             end
@@ -83,12 +83,23 @@ module Cenit
             begin
               collection.name = BSON::ObjectId.new.to_s
             end while Setup::Collection.where(name: collection.name).present?
-            unless Cenit::Utility.save(collection, {create_collector: create_collector = Set.new})
+            Cenit::Utility.bind_references(collection, skip_error_report: true)
+            collection.libraries.each { |lib| lib.run_after_initialized }
+            collection.libraries.each { |lib| lib.schemas.each(&:bind_includes) }
+            collection.libraries.each { |lib| lib.schemas.each(&:run_after_initialized) }
+            unless Cenit::Utility.save(collection, create_collector: create_collector = Set.new, saved_collector: saved = Set.new) &&
+              (errors = Setup::DataTypeOptimizer.save_data_types).blank?
               collection.errors.full_messages.each { |msg| errors << msg }
               collection.errors.clear
-              if Cenit::Utility.save(collection, {create_collector: create_collector})
+              if Cenit::Utility.save(collection, {create_collector: create_collector}) && Setup::DataTypeOptimizer.save_data_types.blank?
                 pull_request[:fixed_errors] = errors
                 errors = []
+              else
+                saved.each do |obj|
+                  if obj = obj.reload rescue nil
+                    obj.delete
+                  end
+                end
               end
             end
             if errors.blank?

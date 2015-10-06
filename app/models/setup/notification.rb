@@ -6,20 +6,19 @@ module Setup
 
     Setup::Models.exclude_actions_for self, :new, :edit, :update
 
-    belongs_to :flow, class_name: Setup::Flow.to_s, inverse_of: nil
 
-    field :response, type: String
-    field :retries, type: Integer, default: 0
     field :message, type: String
-    field :exception_message, type: String
+    field :type, type: Symbol, default: :error
 
-    def can_retry?
-      (message && exception_message).present?
+    validates_presence_of :message, :type
+    validates_inclusion_of :type, in: ->(n) { n.type_enum }
+
+    def type_enum
+      [:error, :warning, :notice]
     end
 
-    def retry
-      flow.process(JSON.parse(message).merge(notification_id: id.to_s)) if can_retry?
+    def label
+      "[#{type.to_s.capitalize}] #{message}"
     end
-
   end
 end

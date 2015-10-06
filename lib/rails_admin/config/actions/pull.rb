@@ -2,7 +2,7 @@ module RailsAdmin
   module Config
     module Actions
 
-      class PullCollection < RailsAdmin::Config::Actions::Base
+      class Pull < RailsAdmin::Config::Actions::Base
 
         register_instance_option :pjax? do
           false

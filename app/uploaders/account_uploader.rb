@@ -1,6 +1,6 @@
-class CenitUploader < BasicUploader
+class AccountUploader < BasicUploader
   
-  storage :cenit_grid_fs
+  storage :account_grid_fs
 
   def grid
     self.class.grid

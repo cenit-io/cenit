@@ -15,7 +15,7 @@ module Setup
     belongs_to :event, class_name: Setup::Event.to_s, inverse_of: nil
 
     belongs_to :translator, class_name: Setup::Translator.to_s, inverse_of: nil
-    belongs_to :custom_data_type, class_name: Setup::Model.to_s, inverse_of: nil
+    belongs_to :custom_data_type, class_name: Setup::DataType.to_s, inverse_of: nil
     field :nil_data_type, type: Boolean
     field :data_type_scope, type: String
     field :scope_filter, type: String
@@ -25,7 +25,7 @@ module Setup
     belongs_to :connection_role, class_name: Setup::ConnectionRole.to_s, inverse_of: nil
 
     belongs_to :response_translator, class_name: Setup::Translator.to_s, inverse_of: nil
-    belongs_to :response_data_type, class_name: Setup::Model.to_s, inverse_of: nil
+    belongs_to :response_data_type, class_name: Setup::DataType.to_s, inverse_of: nil
 
     field :last_trigger_timestamps, type: Time
 
@@ -82,18 +82,18 @@ module Setup
 
     def reject_message(field = nil)
       case field
-        when :custom_data_type
-          'is not allowed since translator already defines a data type'
-        when :data_type_scope
-          'is not allowed for import translators'
-        when :response_data_type
-          response_translator.present? ? 'is not allowed since response translator already defines a data type' : "can't be defined until response translator"
-        when :discard_events
-          "can't be defined until response translator"
-        when :lot_size, :response_translator
-          'is not allowed for non export translators'
-        else
-          super
+      when :custom_data_type
+        'is not allowed since translator already defines a data type'
+      when :data_type_scope
+        'is not allowed for import translators'
+      when :response_data_type
+        response_translator.present? ? 'is not allowed since response translator already defines a data type' : "can't be defined until response translator"
+      when :discard_events
+        "can't be defined until response translator"
+      when :lot_size, :response_translator
+        'is not allowed for non export translators'
+      else
+        super
       end
     end
 
@@ -125,20 +125,20 @@ module Setup
       if executing_id.present? && !(adjacency_list = execution_graph[executing_id] ||= []).include?(id.to_s)
         adjacency_list << id.to_s
       end
-      if cycle = cyclic_execution(execution_graph, executing_id)
-        cycle = cycle.collect { |id| ((flow = Setup::Flow.where(id: id).first) && flow.name) || id }
-        Setup::Notification.create(flow: self, exception_message: "Cyclic flow execution: #{cycle.join(' -> ')}")
-      else
-        message = options.merge(flow_id: id.to_s, tirgger_flow_id: executing_id, execution_graph: execution_graph).to_json
-        if Cenit.asynchronous_flow_processing
-          Cenit::Rabbit.send_to_rabbitmq(message)
+      result =
+        if cycle = cyclic_execution(execution_graph, executing_id)
+          cycle = cycle.collect { |id| ((flow = Setup::Flow.where(id: id).first) && flow.name) || id }
+          Setup::Notification.create(message: "Cyclic flow execution: #{cycle.join(' -> ')}")
         else
-          Cenit::Rabbit.process_message(message)
+          Cenit::Rabbit.enqueue(task: Setup::FlowExecution,
+                                flow_id: id.to_s,
+                                tirgger_flow_id: executing_id,
+                                execution_graph: execution_graph)
         end
-      end
       puts "Flow processing jon '#{self.name}' done!"
       self.last_trigger_timestamps = DateTime.now
       save
+      result
     end
 
     def translate(message, &block)
@@ -150,7 +150,7 @@ module Setup
           flow_execution.pop
         end
       else
-        yield(exception_message: "translator can't be blank")
+        yield(message: "Flow translator can't be blank")
       end
     end
 
@@ -170,13 +170,17 @@ module Setup
 
     def simple_translate(message, &block)
       begin
-        if obj_id = message[:source_id]
-          translator.run(object: data_type.records_model.where(id: obj_id).first, discard_events: discard_events)
-        elsif  object_ids = source_ids_from(message)
-          data_type.records_model.any_in(id: object_ids).each { |obj| translator.run(object: obj, discard_events: discard_events) }
-        end
+        objects =
+          if obj_id = message[:source_id]
+            data_type.records_model.where(id: obj_id)
+          elsif  object_ids = source_ids_from(message)
+            data_type.records_model.any_in(id: object_ids)
+          else
+            data_type.records_model.all
+          end
+        objects.each { |obj| translator.run(object: obj, discard_events: discard_events) }
       rescue Exception => ex
-        block.yield(exception_message: ex.message) if block
+        block.yield(message: ex.message) if block
       end
     end
 
@@ -197,23 +201,13 @@ module Setup
             template_parameters.reverse_merge!(connection.template_parameters_hash)
           end
 
+          headers = connection.conformed_headers(template_parameters).merge(webhook.conformed_headers(template_parameters))
           conformed_url = connection.conformed_url(template_parameters)
           conformed_path = webhook.conformed_path(template_parameters)
           url_parameter = connection.conformed_parameters(template_parameters).merge(webhook.conformed_parameters(template_parameters)).to_param
           if url_parameter.present?
             url_parameter = '?' + url_parameter
           end
-
-          template_parameters.reverse_merge!(
-              url: conformed_url,
-              path: conformed_path + url_parameter,
-              method: webhook.method
-          )
-
-          headers =
-              {
-                  'Content-Type' => translator.mime_type
-              }.merge(connection.conformed_headers(template_parameters)).merge(webhook.conformed_headers(template_parameters))
 
           http_response = HTTParty.send(webhook.method, conformed_url + '/' + conformed_path + url_parameter, headers: headers)
 
@@ -223,9 +217,10 @@ module Setup
                          parameters: template_parameters,
                          headers: http_response.headers) if http_response.code == 200
           response = http_response.to_json rescue http_response.headers.to_json
-          block.yield(response: response, exception_message: (200...299).include?(http_response.code) ? nil : 'Unsuccessful') if block
+          block.yield(message: {response_code: http_response.code, response: response}.to_json,
+                      type: (200...299).include?(http_response.code) ? :notice : :error) if block.present?
         rescue Exception => ex
-          block.yield(response: http_response.to_json, exception_message: ex.message) if block
+          block.yield(message: {error: ex.message, response: http_response.to_json}.to_json) if block
         end
       end
     end
@@ -238,21 +233,21 @@ module Setup
         common_result = nil
         the_connections.each do |connection|
           translation_options =
-              {
-                  object_ids: object_ids,
-                  source_data_type: data_type,
-                  offset: offset,
-                  limit: limit,
-                  discard_events: discard_events,
-                  parameters: template_parameters = webhook_template_parameters.dup
-              }
+            {
+              object_ids: object_ids,
+              source_data_type: data_type,
+              offset: offset,
+              limit: limit,
+              discard_events: discard_events,
+              parameters: template_parameters = webhook_template_parameters.dup
+            }
           translation_result =
-              if connection.template_parameters.present?
-                template_parameters.reverse_merge!(connection.template_parameters_hash)
-                translator.run(translation_options)
-              else
-                common_result ||= translator.run(translation_options)
-              end || ''
+            if connection.template_parameters.present?
+              template_parameters.reverse_merge!(connection.template_parameters_hash)
+              translator.run(translation_options)
+            else
+              common_result ||= translator.run(translation_options)
+            end || ''
           if [Hash, String].include?(translation_result.class)
             url_parameter = connection.conformed_parameters(template_parameters).merge(webhook.conformed_parameters(template_parameters)).to_param
             if url_parameter.present?
@@ -264,37 +259,37 @@ module Setup
               body = {}
               translation_result.each do |key, content|
                 body[key] =
-                    if content.is_a?(String) || content.respond_to?(:read)
-                      content
-                    elsif content.is_a?(Hash)
-                      UploadIO.new(StringIO.new(content[:data]), content[:contentType], content[:filename])
-                    else
-                      content.to_s
-                    end
+                  if content.is_a?(String) || content.respond_to?(:read)
+                    content
+                  elsif content.is_a?(Hash)
+                    UploadIO.new(StringIO.new(content[:data]), content[:contentType], content[:filename])
+                  else
+                    content.to_s
+                  end
               end
             end
             template_parameters.reverse_merge!(
-                url: conformed_url = connection.conformed_url(template_parameters),
-                path: conformed_path = webhook.conformed_path(template_parameters) + url_parameter,
-                method: webhook.method,
-                body: body
+              url: conformed_url = connection.conformed_url(template_parameters),
+              path: conformed_path = webhook.conformed_path(template_parameters) + url_parameter,
+              method: webhook.method,
+              body: body
             )
             headers =
-                {
-                    'Content-Type' => translator.mime_type
-                }.merge(connection.conformed_headers(template_parameters)).merge(webhook.conformed_headers(template_parameters))
+              {
+                'Content-Type' => translator.mime_type
+              }.merge(connection.conformed_headers(template_parameters)).merge(webhook.conformed_headers(template_parameters))
             begin
               http_response = HTTMultiParty.send(webhook.method, conformed_url + '/' + conformed_path, {body: body, headers: headers})
-              response = http_response.to_json rescue http_response.headers.to_json
-              block.yield(response: response, exception_message: (200...299).include?(http_response.code) ? nil : 'Unsuccessful') if block.present?
-              if response_translator && http_response.code == 200
-                response_translator.run(translation_options.merge(target_data_type: response_translator.data_type || response_data_type, data: http_response.body, headers: http_response.headers))
+              block.yield(message: {response_code: http_response.code, response: http_response.to_json}.to_json,
+                          type: (200...299).include?(http_response.code) ? :notice : :error) if block.present?
+              if response_translator #&& http_response.code == 200
+                response_translator.run(translation_options.merge(target_data_type: response_translator.data_type || response_data_type, data: http_response.body))
               end
             rescue Exception => ex
-              block.yield(exception_message: ex.message) if block
+              block.yield(message: ex.message) if block
             end
           else
-            block.yield(exception_message: "Invalid translation result type: #{translation_result.class}") if block
+            block.yield(message: "Invalid translation result type: #{translation_result.class}") if block
           end
         end
       end

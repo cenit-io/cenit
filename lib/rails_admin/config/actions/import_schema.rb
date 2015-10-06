@@ -36,11 +36,6 @@ module RailsAdmin
                           uri = base_uri.blank? ? entry.name : "#{base_uri}/#{entry.name}"
                           puts "->>>>>>>>>>>>>>    #{uri}"
                           schemas[entry.name] = schema = Setup::Schema.new(library: library, uri: uri, schema: schema)
-                          begin
-                            schema.parse_schema
-                          rescue Exception => ex
-                            @object.errors.add(:file, "contains invalid schema #{entry.name}: #{ex.message}")
-                          end
                         end
                       end
                     end
@@ -52,13 +47,10 @@ module RailsAdmin
                   schemas[uri] = Setup::Schema.new(library: library, uri: uri, schema: file.read)
                 end
               end
-              library.set_schemas_scope(schemas.values)
-              schemas.values.each(&:bind_includes)
               new_schemas_attributes = []
               schemas.each do |entry_name, schema|
                 next unless @object.errors.blank?
-                if schema.validates_configuration && schema.save_data_types
-                  data_types_count += schema.data_types.size
+                if schema.validates_configuration
                   saved_schemas_ids << schema.id
                   new_schemas_attributes << schema.attributes
                 else
@@ -73,11 +65,10 @@ module RailsAdmin
             end
 
             if @object && @object.errors.blank?
-              flash[:success] = "#{schemas.size} schemas and #{data_types_count} data types successfully imported"
+              flash[:success] = "#{schemas.size} schemas successfully imported"
               redirect_to back_or_index
             else
               Setup::Schema.all.any_in(id: saved_schemas_ids).delete_all
-              Setup::DataType.all.any_in(schema_id: saved_schemas_ids).delete_all
               @object ||= Forms::ImportSchemaData.new
               @model_config = RailsAdmin::Config.model(Forms::ImportSchemaData)
               if @object.errors.present?

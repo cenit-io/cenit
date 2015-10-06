@@ -5,7 +5,7 @@ module Setup
 
     BuildInDataType.regist(self).embedding(:flows, :connection_roles, :translators, :events, :libraries, :custom_validators, :algorithms, :webhooks, :connections).excluding(:image)
 
-    mount_uploader :image, CenitImageUploader
+    mount_uploader :image, AccountImageUploader
 
     has_and_belongs_to_many :flows, class_name: Setup::Flow.to_s, inverse_of: nil
     has_and_belongs_to_many :connection_roles, class_name: Setup::ConnectionRole.to_s, inverse_of: nil

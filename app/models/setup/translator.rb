@@ -7,8 +7,8 @@ module Setup
     field :name, type: String
     field :type, type: Symbol
 
-    belongs_to :source_data_type, class_name: Setup::Model.to_s, inverse_of: nil
-    belongs_to :target_data_type, class_name: Setup::Model.to_s, inverse_of: nil
+    belongs_to :source_data_type, class_name: Setup::DataType.to_s, inverse_of: nil
+    belongs_to :target_data_type, class_name: Setup::DataType.to_s, inverse_of: nil
 
     field :discard_events, type: Boolean
     field :style, type: String

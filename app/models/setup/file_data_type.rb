@@ -1,19 +1,51 @@
 require 'stringio'
 
 module Setup
-  class FileDataType < Model
+  class FileDataType < DataType
 
-    BuildInDataType.regist(self).referenced_by(:name, :library).with(:title, :name, :_type, :validator).including(:library)
+    BuildInDataType.regist(self).referenced_by(:name, :library).with(:title, :name, :_type, :validators, :schema_data_type).including(:library)
 
     belongs_to :library, class_name: Setup::Library.to_s, inverse_of: :file_data_types
-    belongs_to :validator, class_name: Setup::Validator.to_s, inverse_of: nil
+    has_and_belongs_to_many :validators, class_name: Setup::Validator.to_s, inverse_of: nil
+    belongs_to :schema_data_type, class_name: Setup::SchemaDataType.to_s, inverse_of: nil
 
     attr_readonly :library
 
-    validates_presence_of :library
+    before_save :validate_configuration
 
-    before_save do
+    def validate_configuration
       self.title = self.name if title.blank?
+      validators_classes = Hash.new { |h, k| h[k] = [] }
+      if validators.present?
+        validators.each { |validator| validators_classes[validator.class] << validator }
+        validators_classes.delete(Setup::AlgorithmValidator)
+        if validators_classes.size == 1 && validators_classes.values.first.size == 1
+          self.schema_data_type = validators_classes.values.first.first.schema_data_type
+        else
+          if schema_data_type.present?
+            errors.add(:schema_data_type, 'is not allowed if no format validator is defined')
+            self.schema_data_type = nil
+          end
+          if validators_classes.count > 1
+            errors.add(:validators, "include validators of exclusive types: #{validators_classes.keys.to_a.collect(&:to_s).to_sentence}")
+          end
+          validators_classes.each do |validator_class, validators|
+            errors.add(:validators, "include multiple validators of the same exclusive type #{validator_class}: #{validators.collect(&:name).to_sentence}") if validators.count > 1
+          end
+        end
+      else
+        errors.add(:schema_data_type, 'is not allowed if no format validator is defined') if schema_data_type.present?
+        self.schema_data_type = nil
+      end
+      errors.blank?
+    end
+
+    def ready_to_save?
+      @validators_selected
+    end
+
+    def format_validator
+      @format_validator ||= validators.detect { |validator| validator.is_a?(Setup::FormatValidator) }
     end
 
     def data_type_storage_collection_name
@@ -32,65 +64,84 @@ module Setup
       Mongoff::GridFs::FileModel
     end
 
-    def model_schema
-      Mongoff::GridFs::FileModel::SCHEMA.to_json
+    def schema
+      Mongoff::GridFs::FileModel::SCHEMA
     end
 
-    def validate_file(readable)
-      readable.rewind
-      errors = validator.present? ? validator.validate_data(readable.read) : []
-      readable.rewind
+    def validate_file(file)
+      errors = []
+      validators.each do |v|
+        next if errors.present?
+        errors += v.validate_file_record(file)
+      end
       errors
     end
 
-    def validate_file!(readable)
-      if (errors = validate_file(readable)).present?
+    def validate_file!(file)
+      if (errors = validate_file(file)).present?
         raise Exception.new('Invalid file data: ' + errors.to_sentence)
       end
     end
 
-    def create_from(string_or_readable, options = {})
-      options = default_attributes.merge(options)
+    def new_from(string_or_readable, options = {})
       file = records_model.new
       file.data = string_or_readable
+      file
+    end
+
+    def create_from(string_or_readable, options = {})
+      if data_type_methods.any? { |alg| alg.name == 'create_from' }
+        return method_missing(:create_from, string_or_readable, options)
+      end
+      options = default_attributes.merge(options)
+      file = new_from(string_or_readable, options)
       file.save(options)
       file
     end
 
-    def create_from_json(json_or_readable, options = {})
+    def new_from_json(json_or_readable, options = {})
+      if data_type_methods.any? { |alg| alg.name == 'new_from_json' }
+        return method_missing(:new_from_json, json_or_readable, options)
+      end
       data = json_or_readable
-      unless validator.nil? || validator.data_format == :json
+      unless format_validator.nil? || format_validator.data_format == :json
         data = ((data.is_a?(String) || data.is_a?(Hash)) && data) || data.read
-        data = validator.format_from_json(data)
+        data = format_validator.format_from_json(data, schema_data_type: schema_data_type)
         options[:valid_data] = true
       end
-      create_from(data, options)
+      new_from(data, options)
     end
 
-    def create_from_xml(string_or_readable, options = {})
+    def new_from_xml(string_or_readable, options = {})
+      if data_type_methods.any? { |alg| alg.name == 'new_from_xml' }
+        return method_missing(:new_from_xml, string_or_readable, options)
+      end
       data = string_or_readable
-      unless validator.nil? || validator.data_format == :xml
+      unless format_validator.nil? || format_validator.data_format == :xml
         data = (data.is_a?(String) && data) || data.read
-        data = validator.format_from_xml(data)
+        data = format_validator.format_from_xml(data, schema_data_type: schema_data_type)
         options[:valid_data] = true
       end
-      create_from(data, options)
+      new_from(data, options)
     end
 
-    def create_from_edi(string_or_readable, options = {})
+    def new_from_edi(string_or_readable, options = {})
+      if data_type_methods.any? { |alg| alg.name == 'new_from_edi' }
+        return method_missing(:new_from_edi, string_or_readable, options)
+      end
       data = string_or_readable
-      unless validator.nil? || validator.data_format == :edi
+      unless format_validator.nil? || format_validator.data_format == :edi
         data = (data.is_a?(String) && data) || data.read
-        data = validator.format_from_edi(data)
+        data = format_validator.format_from_edi(data, schema_data_type: schema_data_type)
         options[:valid_data] = true
       end
-      create_from(data, options)
+      new_from(data, options)
     end
 
     def default_attributes
       {
-          default_filename: "file_#{DateTime.now.strftime('%Y-%m-%d_%Hh%Mm%S')}" + ((extension = validator.try(:file_extension)) ? ".#{extension}" : ''),
-          default_contentType: validator.try(:content_type) || 'application/octet-stream'
+        default_filename: "file_#{DateTime.now.strftime('%Y-%m-%d_%Hh%Mm%S')}" + ((extension = format_validator.try(:file_extension)) ? ".#{extension}" : ''),
+        default_contentType: format_validator.try(:content_type) || 'application/octet-stream'
       }
     end
 
@@ -121,7 +172,7 @@ module Setup
     module FileModel
       extend ActiveSupport::Concern
 
-      Setup::Model.to_include_in_models.each do |module_to_include|
+      Setup::DataType.to_include_in_models.each do |module_to_include|
         include(module_to_include) unless include?(module_to_include) || [Mongoid::Timestamps, RailsAdminDynamicCharts::Datetime].include?(module_to_include)
       end
 
@@ -159,13 +210,13 @@ module Setup
 
       def file
         @file ||=
-            if new_record?
-              f = grid_fs_file_model.new
-              f.id = id
-              f
-            else
-              grid_fs_file_model.where(id: id).first
-            end
+          if new_record?
+            f = grid_fs_file_model.new
+            f.id = id
+            f
+          else
+            grid_fs_file_model.where(id: id).first
+          end
       end
 
       def data=(string_or_readable)
@@ -197,6 +248,10 @@ module Setup
           end
         end
         updated
+      end
+
+      def method_missing(symbol, *args)
+        file.method_missing(symbol, *args)
       end
 
       module ClassMethods

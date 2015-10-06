@@ -2,7 +2,7 @@ module Forms
   class ImportTranslatorSelector
     include Mongoid::Document
 
-    belongs_to :data_type, class_name: Setup::Model.to_s, inverse_of: nil
+    belongs_to :data_type, class_name: Setup::DataType.to_s, inverse_of: nil
     belongs_to :translator, class_name: Setup::Translator.to_s, inverse_of: nil
 
     field :data, type: String

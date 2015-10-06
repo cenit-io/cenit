@@ -28,8 +28,7 @@ module RailsAdmin
 
             if ProcessFlow.processable(@object)
               begin
-                @object.process
-                flash[:success] = "Flow #{@object.name} successfully processed"
+                do_flash_process_result(@object.process)
               rescue Exception => ex
                 flash[:error] = ex.message
               end
@@ -48,7 +47,7 @@ module RailsAdmin
 
         class << self
           def processable(flow)
-            flow && ((flow.translator && flow.translator.type == :Export && flow.event.class == Setup::Scheduler) || flow.nil_data_type || (flow.translator && flow.translator.type == :Import))
+            flow && ((flow.translator && flow.translator.type == :Export && flow.event.class == Setup::Scheduler) || (flow.nil_data_type || (flow.translator && flow.translator.type != :Export)))
           end
         end
       end

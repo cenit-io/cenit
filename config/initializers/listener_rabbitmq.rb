@@ -7,12 +7,10 @@ Thread.new {
   conn.start
 
   ch = conn.create_channel
-  q = ch.queue('send.to.endpoint')
+  q = ch.queue('cenit')
 
   begin
-    puts " [*] Waiting for messages. To exit press CTRL+C"
-    q.subscribe(:block => true) do |delivery_info, properties, body|
-      puts " [x] Received #{body}"
+    q.subscribe(block: true) do |delivery_info, properties, body|
       Cenit::Rabbit.process_message(body)
     end
   rescue Interrupt => _

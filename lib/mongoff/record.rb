@@ -2,9 +2,11 @@ module Mongoff
   class Record
     include Edi::Filler
     include Edi::Formatter
+    include RecordsMethods
 
     attr_reader :orm_model
     attr_reader :document
+    attr_reader :fields
 
     def initialize(model, document = nil, new_record = true)
       @orm_model = model
@@ -26,10 +28,6 @@ module Mongoff
 
     def id
       self[:_id]
-    end
-
-    def schema
-      orm_model.schema
     end
 
     def is_a?(model)
@@ -100,7 +98,7 @@ module Mongoff
     end
 
     def []=(field, value)
-      field = :_id if field.to_s == 'id'
+      field = :_id if %w(id _id).include?(field.to_s)
       @fields.delete(field)
       attribute_key = orm_model.attribute_key(field, field_metadata = {})
       property_model = field_metadata[:model]
@@ -130,12 +128,16 @@ module Mongoff
       end
     end
 
-    def respond_to?(*_)
-      true
+    def respond_to?(*args)
+      super || orm_model.property?(args.first.to_s) || orm_model.data_type.records_methods.any? { |alg| alg.name == symbol.to_s }
     end
 
     def method_missing(symbol, *args)
-      if symbol.to_s.end_with?('=')
+      if method = orm_model.data_type.records_methods.detect { |alg| alg.name == symbol.to_s }
+        args.unshift(self)
+        method.reload
+        method.run(args)
+      elsif symbol.to_s.end_with?('=')
         self[symbol.to_s.chop.to_sym] = args[0]
       elsif args.blank?
         self[symbol]
