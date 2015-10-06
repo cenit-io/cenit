@@ -74,7 +74,7 @@ module Mongoff
     def property_model(property)
       property = property.to_s
       model = nil
-      if schema['type'] == 'object' && schema['properties'] && property_schema = schema['properties'][property]
+      if schema.is_a?(Hash) && schema['type'] == 'object' && schema['properties'] && property_schema = schema['properties'][property]
         @properties_models ||= {}
         if @properties_models.has_key?(property)
           model = @properties_models[property]

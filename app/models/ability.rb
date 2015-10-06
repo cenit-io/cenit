@@ -76,6 +76,8 @@ class Ability
       models = Setup::SchemaDataType.where(model_loaded: true).collect(&:model)
       models.delete(nil)
       can :manage, models
+      can :manage, Mongoff::Model
+      can :manage, Mongoff::Record
 
       file_models = Setup::FileDataType.where(model_loaded: true).collect(&:model)
       file_models.delete(nil)
