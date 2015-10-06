@@ -122,7 +122,8 @@ module Setup
         String => {'type' => 'string'},
         Symbol => {'type' => 'string'},
         Time => {'type' => 'string', 'format' => 'time'},
-        nil => {}
+        nil => {},
+        Object => {}
       }.freeze
 
     def excluded?(name)
