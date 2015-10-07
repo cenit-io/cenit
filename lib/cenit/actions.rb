@@ -83,15 +83,10 @@ module Cenit
             begin
               collection.name = BSON::ObjectId.new.to_s
             end while Setup::Collection.where(name: collection.name).present?
-            Cenit::Utility.bind_references(collection, skip_error_report: true)
-            collection.libraries.each { |lib| lib.run_after_initialized }
-            collection.libraries.each { |lib| lib.schemas.each(&:bind_includes) }
-            collection.libraries.each { |lib| lib.schemas.each(&:run_after_initialized) }
-            unless Cenit::Utility.save(collection, create_collector: create_collector = Set.new, saved_collector: saved = Set.new) &&
-              (errors = Setup::DataTypeOptimizer.save_data_types).blank?
+            unless Cenit::Utility.save(collection, create_collector: create_collector = Set.new, saved_collector: saved = Set.new)
               collection.errors.full_messages.each { |msg| errors << msg }
               collection.errors.clear
-              if Cenit::Utility.save(collection, {create_collector: create_collector}) && Setup::DataTypeOptimizer.save_data_types.blank?
+              if Cenit::Utility.save(collection, {create_collector: create_collector})
                 pull_request[:fixed_errors] = errors
                 errors = []
               else
