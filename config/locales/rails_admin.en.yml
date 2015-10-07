@@ -151,7 +151,7 @@ en:
         breadcrumb: "Share"
         submit: "Share"
         done: "created"
-      pull_collection:
+      pull:
         title: "Pull Collection '%{object_label}'"
         menu: "Pull"
         breadcrumb: "Pull"
