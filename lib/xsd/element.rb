@@ -16,31 +16,31 @@ module Xsd
     def to_json_schema
       return qualify_element(ref).to_json_schema if ref
       json_schema =
-        {
-          'title' => name.to_title,
-          'edi' => {'segment' => qualify(name)},
-          'xml' => {'namespace' => xmlns(:default), 'content_property' => false},
-          'type' => 'object'
-        }
+          {
+              'title' => name.to_title,
+              'edi' => {'segment' => qualify(name)},
+              'xml' => {'namespace' => xmlns(:default), 'content_property' => false},
+              'type' => 'object'
+          }
       merge_json =
-        if @type || type_name.nil?
-          if @type.is_a?(ComplexType)
-            @type.to_json_schema
+          if @type || type_name.nil?
+            if @type.is_a?(ComplexType)
+              @type.to_json_schema
+            else
+              {
+                  'properties' => {
+                      'value' => @type.to_json_schema.merge('title' => 'Value',
+                                                            'xml' => {'content' => true})
+                  },
+                  'xml' => {'content_property' => 'value'}
+              }
+            end
           else
-            {
-              'properties' => {
-                'value' => @type.to_json_schema.merge('title' => 'Value',
-                                                      'xml' => {'content' => true})
-              },
-              'xml' => {'content_property' => 'value'}
-            }
+            if (type_schema = qualify_type(type_name).to_json_schema)['$ref']
+              type_schema = type_schema['$ref']
+            end
+            {'extends' => type_schema}
           end
-        else
-          if (type_schema = qualify_type(type_name).to_json_schema)['$ref']
-            type_schema = type_schema['$ref']
-          end
-          {'extends' => type_schema}
-        end
       json_schema.deep_merge(merge_json)
     end
   end

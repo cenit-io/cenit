@@ -88,7 +88,7 @@ module Cenit
             collection.libraries.each { |lib| lib.schemas.each(&:bind_includes) }
             collection.libraries.each { |lib| lib.schemas.each(&:run_after_initialized) }
             unless Cenit::Utility.save(collection, create_collector: create_collector = Set.new, saved_collector: saved = Set.new) &&
-              (errors = Setup::DataTypeOptimizer.save_data_types).blank?
+                (errors = Setup::DataTypeOptimizer.save_data_types).blank?
               collection.errors.full_messages.each { |msg| errors << msg }
               collection.errors.clear
               if Cenit::Utility.save(collection, {create_collector: create_collector}) && Setup::DataTypeOptimizer.save_data_types.blank?

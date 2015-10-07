@@ -6,7 +6,7 @@ Cenit.config do
   deactivate_models true
 
   #Use this option to setup an external service
-  service_url  ENV['SERVICE_URL']
+  service_url ENV['SERVICE_URL']
 
   #Home page
   homepage ENV['HOMEPAGE']

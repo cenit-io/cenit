@@ -52,13 +52,13 @@ module Mongoid
 
       def property_model?(property)
         ((((relation = try(:reflect_on_association, property)) && relation.try(:klass) && true) || (@mongoff_models && @mongoff_models[property].modelable?)) && true) ||
-          superclass != Object && superclass.property_model?(property)
+            superclass != Object && superclass.property_model?(property)
       end
 
       def property_model(property)
         ((relation = try(:reflect_on_association, property)) && relation.try(:klass)) ||
-          (@mongoff_models && @mongoff_models[property]) ||
-          (superclass.is_a?(Mongoid::Document) && superclass.property_model(property)) || nil
+            (@mongoff_models && @mongoff_models[property]) ||
+            (superclass.is_a?(Mongoid::Document) && superclass.property_model(property)) || nil
       end
 
       def stored_properties_on(record)

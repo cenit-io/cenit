@@ -34,14 +34,14 @@ RailsAdmin::Config::Actions.register(:export, RailsAdmin::Config::Actions::EdiEx
 RailsAdmin::Config::Fields::Types.register(RailsAdmin::Config::Fields::Types::JsonValue)
 RailsAdmin::Config::Fields::Types.register(RailsAdmin::Config::Fields::Types::JsonSchema)
 {
-  config: {
-    mode: 'css',
-    theme: 'neo',
-  },
-  assets: {
-    mode: '/assets/codemirror/modes/css.js',
-    theme: '/assets/codemirror/themes/neo.css',
-  }
+    config: {
+        mode: 'css',
+        theme: 'neo',
+    },
+    assets: {
+        mode: '/assets/codemirror/modes/css.js',
+        theme: '/assets/codemirror/themes/neo.css',
+    }
 }.each { |option, configuration| RailsAdmin::Config::Fields::Types::CodeMirror.register_instance_option(option) { configuration } }
 
 RailsAdmin.config do |config|
@@ -176,13 +176,13 @@ RailsAdmin.config do |config|
       field :schema do
         pretty_value do
           pretty_value =
-            if json = JSON.parse(value) rescue nil
-              "<code class='json'>#{JSON.pretty_generate(json)}</code>"
-            elsif xml = Nokogiri::XML(value) rescue nil
-              "<code class='xml'>#{xml.to_xml}</code>"
-            else
-              value
-            end
+              if json = JSON.parse(value) rescue nil
+                "<code class='json'>#{JSON.pretty_generate(json)}</code>"
+              elsif xml = Nokogiri::XML(value) rescue nil
+                "<code class='xml'>#{xml.to_xml}</code>"
+              else
+                value
+              end
           "<pre>#{pretty_value}</pre>".html_safe
         end
       end
@@ -267,11 +267,11 @@ RailsAdmin.config do |config|
       field :schema do
         pretty_value do
           pretty_value =
-            if json = JSON.pretty_generate(value) rescue nil
-              "<code class='json'>#{json}</code>"
-            else
-              value
-            end
+              if json = JSON.pretty_generate(value) rescue nil
+                "<code class='json'>#{json}</code>"
+              else
+                value
+              end
           "<pre>#{pretty_value}</pre>".html_safe
         end
       end
@@ -340,12 +340,12 @@ RailsAdmin.config do |config|
       read_only true
     end
 
-    configure :validators  do
+    configure :validators do
       group :content
       inline_add false
     end
 
-    configure :schema_data_type  do
+    configure :schema_data_type do
       group :content
       inline_add false
       inline_edit false
@@ -679,14 +679,14 @@ RailsAdmin.config do |config|
     configure :type do
       pretty_value do
         color =
-          case bindings[:object].type
-          when :notice
-            'blue'
-          when :warning
-            'orange'
-          else
-            'red'
-          end
+            case bindings[:object].type
+              when :notice
+                'blue'
+              when :warning
+                'orange'
+              else
+                'red'
+            end
         "<label style='color:#{color}'>#{value.to_s.capitalize}</label>".html_safe
       end
     end
@@ -694,14 +694,14 @@ RailsAdmin.config do |config|
     configure :message do
       pretty_value do
         color =
-          case bindings[:object].type
-          when :notice
-            'blue'
-          when :warning
-            'orange'
-          else
-            'red'
-          end
+            case bindings[:object].type
+              when :notice
+                'blue'
+              when :warning
+                'orange'
+              else
+                'red'
+            end
         "<label style='color:#{color}'>#{value}</label>".html_safe
       end
     end
@@ -914,26 +914,26 @@ RailsAdmin.config do |config|
         visible { bindings[:object].scheduling_method.present? }
         label do
           case bindings[:object].scheduling_method
-          when :Once
-            'Date and time'
-          when :Periodic
-            'Duration'
-          when :CRON
-            'CRON Expression'
-          else
-            'Expression'
+            when :Once
+              'Date and time'
+            when :Periodic
+              'Duration'
+            when :CRON
+              'CRON Expression'
+            else
+              'Expression'
           end
         end
         help do
           case bindings[:object].scheduling_method
-          when :Once
-            'Select a date and a time'
-          when :Periodic
-            'Type a time duration'
-          when :CRON
-            'Type a CRON Expression'
-          else
-            'Expression'
+            when :Once
+              'Select a date and a time'
+            when :Periodic
+              'Type a time duration'
+            when :CRON
+              'Type a CRON Expression'
+            else
+              'Expression'
           end
         end
         partial { bindings[:object].scheduling_method == :Once ? 'form_datetime_wrapper' : 'form_text' }
@@ -1031,11 +1031,11 @@ RailsAdmin.config do |config|
         associated_collection_scope do
           translator = bindings[:object]
           source_data_type =
-            if translator.source_exporter
-              translator.source_exporter.target_data_type
-            else
-              translator.source_data_type
-            end
+              if translator.source_exporter
+                translator.source_exporter.target_data_type
+              else
+                translator.source_data_type
+              end
           target_data_type = bindings[:object].target_data_type
           Proc.new { |scope|
             scope = scope.all(type: :Conversion,
@@ -1159,7 +1159,7 @@ RailsAdmin.config do |config|
               can_see = !am.embedded? && (show_action = v.action(:show, am, associated))
               can_see ? v.link_to(wording, v.url_for(action: show_action.action_name, model_name: am.to_param, id: associated.id), class: 'pjax') : wording
             end.to_sentence.html_safe +
-              v.select_tag("#{bindings[:controller].instance_variable_get(:@model_config).abstract_model.param_key}[connection_ids][]", ids.html_safe, multiple: true, style: 'display:none').html_safe
+                v.select_tag("#{bindings[:controller].instance_variable_get(:@model_config).abstract_model.param_key}[connection_ids][]", ids.html_safe, multiple: true, style: 'display:none').html_safe
           else
             'No connection selected'.html_safe
           end
@@ -1195,7 +1195,7 @@ RailsAdmin.config do |config|
               can_see = !am.embedded? && (show_action = v.action(:show, am, associated))
               can_see ? v.link_to(wording, v.url_for(action: show_action.action_name, model_name: am.to_param, id: associated.id), class: 'pjax') : wording
             end.to_sentence.html_safe +
-              v.select_tag("#{bindings[:controller].instance_variable_get(:@model_config).abstract_model.param_key}[dependency_ids][]", ids.html_safe, multiple: true, style: 'display:none').html_safe
+                v.select_tag("#{bindings[:controller].instance_variable_get(:@model_config).abstract_model.param_key}[dependency_ids][]", ids.html_safe, multiple: true, style: 'display:none').html_safe
           else
             'No dependencies selected'.html_safe
           end
@@ -1207,8 +1207,8 @@ RailsAdmin.config do |config|
       field :pull_parameters do
         visible do
           if !(obj = bindings[:object]).instance_variable_get(:@_selecting_collection) &&
-            !obj.instance_variable_get(:@_selecting_connections) &&
-            (pull_parameters_enum = obj.enum_for_pull_parameters).present?
+              !obj.instance_variable_get(:@_selecting_connections) &&
+              (pull_parameters_enum = obj.enum_for_pull_parameters).present?
             bindings[:controller].instance_variable_set(:@shared_parameter_enum, pull_parameters_enum)
             true
           else

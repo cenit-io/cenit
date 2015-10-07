@@ -23,6 +23,7 @@ config/deploy
 config/deploy.rb
 /vendor/bundle
 /vendor/cache
+/vendor
 .DS_Store
 # these should all be checked in to normalise the environment:
 # , .ruby-version, .ruby-gemset
@@ -33,3 +34,4 @@ config/deploy.rb
 .ruby-gemset
 .ruby-version
 .idea
+Gemfile.lock

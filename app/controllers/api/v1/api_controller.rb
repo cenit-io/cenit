@@ -5,35 +5,35 @@ module Api::V1
     before_action :authorize_action, except: [:new_account, :cors_check]
     rescue_from Exception, :with => :exception_handler
     respond_to :json
-    
+
     def cors_check
-        headers['Access-Control-Allow-Origin'] = request.headers['Origin']
-        headers['Access-Control-Allow-Credentials'] = false
-        headers['Access-Control-Allow-Headers'] = 'Origin, X-Requested-With, Accept, Content-Type, X-User-Access-Key, X-User-Access-Token'
-        headers['Access-Control-Allow-Methods'] = 'POST, GET, PUT, DELETE, OPTIONS'
-        headers['Access-Control-Max-Age'] = '1728000'
-        render :text => '', :content_type => 'text/plain'
+      headers['Access-Control-Allow-Origin'] = request.headers['Origin']
+      headers['Access-Control-Allow-Credentials'] = false
+      headers['Access-Control-Allow-Headers'] = 'Origin, X-Requested-With, Accept, Content-Type, X-User-Access-Key, X-User-Access-Token'
+      headers['Access-Control-Allow-Methods'] = 'POST, GET, PUT, DELETE, OPTIONS'
+      headers['Access-Control-Max-Age'] = '1728000'
+      render :text => '', :content_type => 'text/plain'
     end
 
     def index
       if klass = self.klass
         @items =
-          if @criteria.present?
-            if sort_key = @criteria.delete(:sort_by)
-              asc = @criteria.has_key?(:ascending) | @criteria.has_key?(:asc)
-              [:ascending, :asc, :descending, :desc].each { |key| @criteria.delete(key) }
+            if @criteria.present?
+              if sort_key = @criteria.delete(:sort_by)
+                asc = @criteria.has_key?(:ascending) | @criteria.has_key?(:asc)
+                [:ascending, :asc, :descending, :desc].each { |key| @criteria.delete(key) }
+              end
+              if limit = @criteria.delete(:limit)
+                limit = limit.to_s.to_i
+                limit = nil if limit == 0
+              end
+              items = klass.where(@criteria)
+              items = items.sort(sort_key => asc ? 1 : -1) if sort_key
+              items = items.limit(limit) if limit
+              items
+            else
+              klass.all
             end
-            if limit = @criteria.delete(:limit)
-              limit = limit.to_s.to_i
-              limit = nil if limit == 0
-            end
-            items = klass.where(@criteria)
-            items = items.sort(sort_key => asc ? 1 : -1) if sort_key
-            items = items.limit(limit) if limit
-            items
-          else
-            klass.all
-          end
         render json: @items.map { |item| {((model = (hash = item.inspect_json(include_id: true)).delete('_type')) ? model.downcase : @model) => hash} }
       else
         render json: {error: 'no model found'}, status: :not_found
@@ -201,12 +201,12 @@ module Api::V1
       if klass
         @ability = Ability.new(Account.current && Account.current.owner)
         action_symbol =
-          case @_action_name
-          when 'push'
-            get_data_type(@model).is_a?(Setup::FileDataType) ? :upload_file : :create
-          else
-            @_action_name.to_sym
-          end
+            case @_action_name
+              when 'push'
+                get_data_type(@model).is_a?(Setup::FileDataType) ? :upload_file : :create
+              else
+                @_action_name.to_sym
+            end
         if @ability.can?(action_symbol, @item || klass)
           true
         else
@@ -220,7 +220,7 @@ module Api::V1
       cors_header
       true
     end
-    
+
     def cors_header
       headers['Access-Control-Allow-Origin'] = request.headers['Origin']
       headers['Access-Control-Allow-Credentials'] = false
@@ -249,8 +249,8 @@ module Api::V1
     def get_data_type_by_slug(slug)
       if slug
         @data_types[slug] ||=
-          if @library_slug == 'setup'
-            Setup::BuildInDataType["Setup::#{slug.camelize}"]
+            if @library_slug == 'setup'
+              Setup::BuildInDataType["Setup::#{slug.camelize}"]
           else
             if @library_id.nil?
               lib = Setup::Library.where(slug: @library_slug).first

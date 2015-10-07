@@ -9,7 +9,7 @@ module Setup
     field :name, type: String
 
     belongs_to :provider, class_name: Setup::BaseOauthProvider.to_s, inverse_of: nil
-    belongs_to :client, class_name:  Setup::OauthClient.to_s, inverse_of: nil
+    belongs_to :client, class_name: Setup::OauthClient.to_s, inverse_of: nil
 
     field :access_token, type: String
     field :token_span, type: BigDecimal
@@ -45,7 +45,7 @@ module Setup
     end
 
     def base_params
-      {callback_key =>  "#{Cenit.oauth2_callback_site}/oauth2/callback"}
+      {callback_key => "#{Cenit.oauth2_callback_site}/oauth2/callback"}
     end
 
     def authorize_params(params = {})

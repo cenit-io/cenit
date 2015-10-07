@@ -15,13 +15,13 @@ module RailsAdmin
           proc do
 
             data_types =
-              if @object
-                [@object]
-              elsif (@bulk_ids = params[:bulk_ids] || []).present?
-                Setup::DataType.any_in(id: @bulk_ids)
-              else
-                Setup::DataType.all
-              end
+                if @object
+                  [@object]
+                elsif (@bulk_ids = params[:bulk_ids] || []).present?
+                  Setup::DataType.any_in(id: @bulk_ids)
+                else
+                  Setup::DataType.all
+                end
             if params[:delete] # DELETE
               data_types.each { |data_type| @auditing_adapter.delete_object(data_type, @abstract_model, _current_user) } if @auditing_adapter
               Setup::DataType.shutdown(data_types)

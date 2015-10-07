@@ -1,4 +1,3 @@
-
 module RailsAdmin
   module Config
     module Actions

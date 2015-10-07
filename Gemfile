@@ -18,7 +18,6 @@ gem 'builder'
 gem 'haml-rails'
 gem 'figaro'
 gem 'unicorn'
-gem 'raml'
 
 group :doc do
   gem 'sdoc', require: false
