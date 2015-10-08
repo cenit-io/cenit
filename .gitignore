@@ -17,6 +17,8 @@ config/application.yml
 config/deploy
 *.swp
 *.swo
+Gemfile.lock
+config/mongoid.yml
 
 ## Environment normalisation:
 .bundle/

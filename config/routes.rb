@@ -19,17 +19,18 @@ Cenit::Application.routes.draw do
 
   namespace :api do
     namespace :v1 do
+      get   '/public/:model/:api_name/:api_version/*path', to: 'api#raml'
       post '/setup/account', to: 'api#new_account'
       post '/:library/push', to: 'api#push'
       post '/:library/:model', to: 'api#push'
       get '/:library/:model', to: 'api#index'
       get '/:library/:model/:id', to: 'api#show'
+      get '/:library/:model/:id/:field', to: 'api#content'
       delete '/:library/:model/:id', to: 'api#destroy'
       post '/:library/:model/:id/pull', to: 'api#pull'
       post '/:library/:model/:id/run', to: 'api#run'
       post '/auth', to: 'api#auth'
-      match '/:library/:model', to: 'api#cors_check', via: [:options]
-      match '/:library/:model/:id', to: 'api#cors_check', via: [:options]
-    end
+      match '/*path', to: 'api#cors_check', via: [:options]
+     end
   end
 end

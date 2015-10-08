@@ -5,36 +5,48 @@ module Api::V1
     before_action :authorize_action, except: [:new_account, :cors_check]
     rescue_from Exception, :with => :exception_handler
     respond_to :json
-
+    
     def cors_check
-      headers['Access-Control-Allow-Origin'] = request.headers['Origin']
-      headers['Access-Control-Allow-Credentials'] = false
-      headers['Access-Control-Allow-Headers'] = 'Origin, X-Requested-With, Accept, Content-Type, X-User-Access-Key, X-User-Access-Token'
-      headers['Access-Control-Allow-Methods'] = 'POST, GET, PUT, DELETE, OPTIONS'
-      headers['Access-Control-Max-Age'] = '1728000'
-      render :text => '', :content_type => 'text/plain'
+        headers['Access-Control-Allow-Origin'] = request.headers['Origin']
+        headers['Access-Control-Allow-Credentials'] = false
+        headers['Access-Control-Allow-Headers'] = 'Origin, X-Requested-With, Accept, Content-Type, X-User-Access-Key, X-User-Access-Token'
+        headers['Access-Control-Allow-Methods'] = 'POST, GET, PUT, DELETE, OPTIONS'
+        headers['Access-Control-Max-Age'] = '1728000'
+        render :text => '', :content_type => 'text/plain'
     end
 
     def index
       if klass = self.klass
         @items =
-            if @criteria.present?
-              if sort_key = @criteria.delete(:sort_by)
-                asc = @criteria.has_key?(:ascending) | @criteria.has_key?(:asc)
-                [:ascending, :asc, :descending, :desc].each { |key| @criteria.delete(key) }
-              end
-              if limit = @criteria.delete(:limit)
-                limit = limit.to_s.to_i
-                limit = nil if limit == 0
-              end
-              items = klass.where(@criteria)
-              items = items.sort(sort_key => asc ? 1 : -1) if sort_key
-              items = items.limit(limit) if limit
-              items
-            else
-              klass.all
+          if @criteria.present?
+            if sort_key = @criteria.delete(:sort_by)
+              asc = @criteria.has_key?(:ascending) | @criteria.has_key?(:asc)
+              [:ascending, :asc, :descending, :desc].each { |key| @criteria.delete(key) }
             end
+            if limit = @criteria.delete(:limit)
+              limit = limit.to_s.to_i
+              limit = nil if limit == 0
+            end
+            items = klass.where(@criteria)
+            items = items.sort(sort_key => asc ? 1 : -1) if sort_key
+            items = items.limit(limit) if limit
+            items
+          else
+            klass.all
+          end
         render json: @items.map { |item| {((model = (hash = item.inspect_json(include_id: true)).delete('_type')) ? model.downcase : @model) => hash} }
+      else
+        render json: {error: 'no model found'}, status: :not_found
+      end
+    end
+
+    def raml
+        if (klass = self.klass) && (@items = klass.where(@criteria).first)
+        if (@path == "root.raml")
+            render text: @items.to_hash['raml_doc']
+        else
+          render text: @items.ref_hash[@path]
+        end
       else
         render json: {error: 'no model found'}, status: :not_found
       end
@@ -45,6 +57,14 @@ module Api::V1
         send_data @item.data, filename: @item[:filename], type: @item[:contentType]
       else
         render json: {@model => @item.to_hash}
+      end
+    end
+
+    def content
+      if @item.orm_model.data_type.is_a?(Setup::FileDataType)
+        send_data @item.data, filename: @item[:filename], type: @item[:contentType]
+      else
+        render text: @item.to_hash[@field]
       end
     end
 
@@ -201,12 +221,14 @@ module Api::V1
       if klass
         @ability = Ability.new(Account.current && Account.current.owner)
         action_symbol =
-            case @_action_name
-              when 'push'
-                get_data_type(@model).is_a?(Setup::FileDataType) ? :upload_file : :create
-              else
-                @_action_name.to_sym
-            end
+          case @_action_name
+          when 'push'
+            get_data_type(@model).is_a?(Setup::FileDataType) ? :upload_file : :create
+            when 'raml'
+              :show
+          else
+            @_action_name.to_sym
+          end
         if @ability.can?(action_symbol, @item || klass)
           true
         else
@@ -220,9 +242,9 @@ module Api::V1
       cors_header
       true
     end
-
+    
     def cors_header
-      headers['Access-Control-Allow-Origin'] = request.headers['Origin']
+      headers['Access-Control-Allow-Origin'] = request.headers['Origin'] || '*'
       headers['Access-Control-Allow-Credentials'] = false
       headers['Access-Control-Allow-Headers'] = 'Origin, X-Requested-With, Content-Type, accept, x-user-access-token, X-User-Access-Token'
       headers['Access-Control-Allow-Methods'] = 'POST, GET, PUT, DELETE, OPTIONS'
@@ -287,9 +309,12 @@ module Api::V1
       @data_types ||= {}
       @request_id = request.uuid
       @webhook_body = request.body.read
-      @library_slug = params[:library]
+      @library_slug = params[:library] || 'setup'
       @library_id = nil
       @model = params[:model]
+      @field = params[:field] if params[:field]
+      @format = params[:format] if params[:format]
+      @path = "#{params[:path]}.#{params[:format]}" if params[:path] && params[:format]
       @payload =
         case request.content_type
         when 'application/json'
@@ -301,7 +326,7 @@ module Api::V1
         end.new(controller: self,
                 message: @webhook_body,
                 content_type: request.content_type)
-      @criteria = params.to_hash.with_indifferent_access.reject { |key, _| %w(controller action library model id api).include?(key) }
+      @criteria = params.to_hash.with_indifferent_access.reject { |key, _| %w(controller action library model id field path format ).include?(key) }
     end
 
     private

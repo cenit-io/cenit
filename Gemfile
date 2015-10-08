@@ -18,6 +18,8 @@ gem 'builder'
 gem 'haml-rails'
 gem 'figaro'
 gem 'unicorn'
+gem 'raml_parser', git: 'https://github.com/asnioby/raml_parser', branch: 'develop'
+#gem 'raml_ruby', git: 'https://github.com/asnioby/raml_ruby'
 
 group :doc do
   gem 'sdoc', require: false
