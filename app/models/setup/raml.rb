@@ -2,7 +2,7 @@ module Setup
   class Raml
     include CenitUnscoped
 
-    Setup::Models.exclude_actions_for self, :new, :edit, :translator_update, :convert, :send_to_flow, :delete_all, :delete, :import
+    Setup::Models.exclude_actions_for self, :new, :edit, :translator_update, :convert, :send_to_flow, :delete_all, :import
 
     BuildInDataType.regist(self).referenced_by(:api)
 

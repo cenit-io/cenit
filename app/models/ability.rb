@@ -32,7 +32,7 @@ class Ability
         can :destroy, [Setup::SharedCollection, Setup::DataType, Setup::Task]
       else
         cannot :access, Setup::SharedName
-        cannot :destroy, Setup::SharedCollection
+        cannot :destroy, [Setup::SharedCollection, Setup::Raml]
         can(:destroy, Setup::Task) { |task| task.status != :running }
       end
 
