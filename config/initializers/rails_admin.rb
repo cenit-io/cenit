@@ -654,26 +654,31 @@ RailsAdmin.config do |config|
   end
 
   config.model Setup::Task do
+    navigation_label 'Monitor'
     object_label_method { :to_s }
     fields :description, :retries, :progress, :status, :notifications
   end
 
   config.model Setup::FlowExecution do
+    navigation_label 'Monitor'
     object_label_method { :to_s }
     fields :flow, :description, :retries, :progress, :status, :notifications
   end
 
   config.model Setup::DataTypeGeneration do
+    navigation_label 'Monitor'
     object_label_method { :to_s }
     fields :description, :retries, :progress, :status, :notifications
   end
 
   config.model Setup::DataTypeExpansion do
+    navigation_label 'Monitor'
     object_label_method { :to_s }
     fields :description, :retries, :progress, :status, :notifications
   end
 
   config.model Setup::Notification do
+    navigation_label 'Monitor'
     object_label_method { :label }
 
     configure :type do
@@ -706,7 +711,7 @@ RailsAdmin.config do |config|
       end
     end
 
-    fields :type, :message
+    fields :type, :message, :attachment, :task
   end
 
   config.model Setup::Flow do

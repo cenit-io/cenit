@@ -15,7 +15,9 @@ class BasicUploader < CarrierWave::Uploader::Base
 
   def file_extension
     if original_filename.present?
-      File.extname(super)
+      File.extname(original_filename)
+    else
+      nil
     end
   end
 end
