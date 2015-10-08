@@ -64,11 +64,11 @@ module Cenit
         [collection_data, pull_data, updated_records].each { |hash| hash.each_key { |key| hash.delete(key) if hash[key].empty? } }
 
         {
-            pull_parameters: pull_parameters,
-            updated_records: updated_records,
-            missing_parameters: missing_parameters,
-            pull_data: pull_data,
-            collection_data: collection_data
+          pull_parameters: pull_parameters,
+          updated_records: updated_records,
+          missing_parameters: missing_parameters,
+          pull_data: pull_data,
+          collection_data: collection_data
         }
       end
 
@@ -83,15 +83,10 @@ module Cenit
             begin
               collection.name = BSON::ObjectId.new.to_s
             end while Setup::Collection.where(name: collection.name).present?
-            Cenit::Utility.bind_references(collection, skip_error_report: true)
-            collection.libraries.each { |lib| lib.run_after_initialized }
-            collection.libraries.each { |lib| lib.schemas.each(&:bind_includes) }
-            collection.libraries.each { |lib| lib.schemas.each(&:run_after_initialized) }
-            unless Cenit::Utility.save(collection, create_collector: create_collector = Set.new, saved_collector: saved = Set.new) &&
-                (errors = Setup::DataTypeOptimizer.save_data_types).blank?
+            unless Cenit::Utility.save(collection, create_collector: create_collector = Set.new, saved_collector: saved = Set.new)
               collection.errors.full_messages.each { |msg| errors << msg }
               collection.errors.clear
-              if Cenit::Utility.save(collection, {create_collector: create_collector}) && Setup::DataTypeOptimizer.save_data_types.blank?
+              if Cenit::Utility.save(collection, {create_collector: create_collector})
                 pull_request[:fixed_errors] = errors
                 errors = []
               else
@@ -121,11 +116,11 @@ module Cenit
 
       def build_gem(shared_collection)
         data =
-            {
-                summary: shared_collection.summary,
-                description: shared_collection.description,
-                homepage: Cenit.homepage
-            }.merge(shared_collection.to_hash).with_indifferent_access
+          {
+            summary: shared_collection.summary,
+            description: shared_collection.description,
+            homepage: Cenit.homepage
+          }.merge(shared_collection.to_hash).with_indifferent_access
 
         CenitCmd::Collection.new.build_gem(data)
       end
