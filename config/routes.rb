@@ -19,7 +19,7 @@ Cenit::Application.routes.draw do
 
   namespace :api do
     namespace :v1 do
-      get   '/public/:model/:api_name/:api_version/*path', to: 'api#raml'
+      get  '/public/:model/:api_name/:api_version/*path', to: 'api#raml'
       post '/setup/account', to: 'api#new_account'
       post '/:library/push', to: 'api#push'
       post '/:library/:model', to: 'api#push'

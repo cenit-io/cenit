@@ -37,3 +37,5 @@ config/deploy.rb
 .ruby-version
 .idea
 Gemfile.lock
+config/secret.yml
+

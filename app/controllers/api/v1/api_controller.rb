@@ -41,7 +41,7 @@ module Api::V1
     end
 
     def raml
-        if (klass = self.klass) && (@items = klass.where(@criteria).first)
+      if (klass = self.klass) && (@items = klass.where(@criteria).first)
         if (@path == "root.raml")
             render text: @items.to_hash['raml_doc']
         else
@@ -224,7 +224,7 @@ module Api::V1
           case @_action_name
           when 'push'
             get_data_type(@model).is_a?(Setup::FileDataType) ? :upload_file : :create
-            when 'raml'
+          when 'raml'
               :show
           else
             @_action_name.to_sym

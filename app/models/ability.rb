@@ -10,24 +10,23 @@ class Ability
       if user.super_admin?
         can :manage,
             [
-              Role,
-              User,
-              Account,
-              Setup::SharedName,
-              Setup::BaseOauthProvider,
-              Setup::OauthProvider,
-              Setup::Oauth2Provider,
-              Setup::OauthClient,
-              Setup::Oauth2Scope,
-              Setup::BaseOauthAuthorization,
-              Setup::OauthAuthorization,
-              Setup::Oauth2Authorization,
-              Setup::OauthParameter,
-              CenitToken,
-              TkAptcha,
-              Script,
-              Setup::Raml,
-              Setup::RamlReference
+                Role,
+                User,
+                Account,
+                Setup::SharedName,
+                Setup::BaseOauthProvider,
+                Setup::OauthProvider,
+                Setup::Oauth2Provider,
+                Setup::OauthClient,
+                Setup::Oauth2Scope,
+                Setup::BaseOauthAuthorization,
+                Setup::OauthAuthorization,
+                Setup::Oauth2Authorization,
+                Setup::OauthParameter,
+                CenitToken,
+                TkAptcha,
+                Script,
+                Setup::Raml
             ]
         can :import, Setup::SharedCollection
         can :destroy, [Setup::SharedCollection, Setup::DataType, Setup::Task]
@@ -45,23 +44,24 @@ class Ability
       can :edi_export, Setup::SharedCollection
 
       @@setup_map ||=
-        begin
-          hash = {}
-          non_root = []
-          RailsAdmin::Config::Actions.all.each do |action|
-            unless action.root?
-              if models = action.only
-                models = [models] unless models.is_a?(Enumerable)
-                hash[action.authorization_key] = Set.new(models)
-              else
-                non_root << action
+          begin
+            hash = {}
+            non_root = []
+            RailsAdmin::Config::Actions.all.each do |action|
+              unless action.root?
+                if models = action.only
+                  models = [models] unless models.is_a?(Enumerable)
+                  hash[action.authorization_key] = Set.new(models)
+                else
+                  non_root << action
+                end
               end
             end
-          end
-          Setup::Models.each do |model, excluded_actions|
-            non_root.each do |action|
-              models = (hash[key = action.authorization_key] ||= Set.new)
-              models << model if relevant_rules_for_match(action.authorization_key, model).empty? && !(excluded_actions.include?(:all) || excluded_actions.include?(action.key))
+            Setup::Models.each do |model, excluded_actions|
+              non_root.each do |action|
+                models = (hash[key = action.authorization_key] ||= Set.new)
+                models << model if relevant_rules_for_match(action.authorization_key, model).empty? && !(excluded_actions.include?(:all) || excluded_actions.include?(action.key))
+              end
             end
             new_hash = {}
             hash.each do |key, models|
@@ -86,7 +86,7 @@ class Ability
       can [:index, :show, :upload_file, :download_file, :destroy, :import, :edi_export, :delete_all, :send_to_flow, :data_type], file_models
 
     else
-      can [:index, :show], [Setup::SharedCollection, Setup::Raml, Setup::RamlReference]
+      can [:index, :show], [Setup::SharedCollection, Setup::Raml]
     end
 
   end

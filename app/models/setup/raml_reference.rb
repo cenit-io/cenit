@@ -1,6 +1,6 @@
 module Setup
   class RamlReference
-    include CenitScoped
+    include CenitUnscoped
 
     BuildInDataType.regist(self).with(:path, :content)
 
