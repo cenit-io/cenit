@@ -5,7 +5,7 @@ module Cenit
 
     class Proxy
 
-      def initialize(obj, attributes)
+      def initialize(obj, attributes = {})
         @obj = obj
         @attributes = attributes
       end

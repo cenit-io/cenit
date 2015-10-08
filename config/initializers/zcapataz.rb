@@ -6,7 +6,7 @@ Capataz.config do
 
   deny_invoke_of :require, :new, :create, :class, :eval, :class_eval, :instance_eval, :instance_variable_set, :instance_variable_get, :constants, :const_get, :const_set, :constantize
 
-  allowed_constants Psych, JSON, Array, Hash, Nokogiri, Nokogiri::XML, Time, Base64, Digest, Digest::MD5, SecureRandom, Setup, Setup::Library, Setup::Schema, Setup::SchemaDataType, OpenSSL, OpenSSL::Digest, OpenSSL::HMAC
+  allowed_constants Psych, JSON, Array, Hash, Nokogiri, Nokogiri::XML, Time, Base64, Digest, Digest::MD5, SecureRandom, Setup, Setup::Library, Setup::Schema, Setup::SchemaDataType, Setup::DataType, Setup::FileDataType, OpenSSL, OpenSSL::Digest, OpenSSL::HMAC
 
   allow_on JSON, [:parse, :pretty_generate]
 

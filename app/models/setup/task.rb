@@ -13,7 +13,7 @@ module Setup
     field :progress, type: Float, default: 0
     field :retries, type: Integer, default: 0
 
-    has_and_belongs_to_many :notifications, class_name: Setup::Notification.to_s, inverse_of: nil, dependent: :destroy
+    has_many :notifications, class_name: Setup::Notification.to_s, inverse_of: :task, dependent: :destroy
 
     validates_inclusion_of :status, in: ->(t) { t.status_enum }
     validates_numericality_of :progress, greater_than_or_equal_to: 0, less_than_or_equal_to: 100
@@ -51,8 +51,27 @@ module Setup
     end
 
     def notify(attributes)
-      notifications << Setup::Notification.create(attributes)
-      save
+      attachment = attributes.delete(:attachment)
+      notification = Setup::Notification.new(attributes)
+      temporary_file = nil
+      if attachment
+        readable = attachment[:body]
+        if readable.is_a?(String)
+          temporary_file = Tempfile.new('file_')
+          temporary_file.binmode
+          temporary_file.write(readable)
+          temporary_file.rewind
+          readable = temporary_file
+        end
+        notification.attachment = readable
+        notification.attachment.filename = attachment[:filename] if attachment[:filename]
+        #notification.attachment.content_type = attachment[:contentType] if attachment[:contentType]
+      end
+      if notification.save
+        notifications << notification
+        save
+      end
+      temporary_file.close if temporary_file
     end
 
     def can_retry?

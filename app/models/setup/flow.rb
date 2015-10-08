@@ -216,11 +216,11 @@ module Setup
                          discard_events: discard_events,
                          parameters: template_parameters,
                          headers: http_response.headers) if http_response.code == 200
-          response = http_response.to_json rescue http_response.headers.to_json
-          block.yield(message: {response_code: http_response.code, response: response}.to_json,
-                      type: (200...299).include?(http_response.code) ? :notice : :error) if block.present?
+          block.yield(message: {response_code: http_response.code}.to_json,
+                      type: (200...299).include?(http_response.code) ? :notice : :error,
+                      attachment: attachment_from(http_response)) if block.present?
         rescue Exception => ex
-          block.yield(message: {error: ex.message, response: http_response.to_json}.to_json) if block
+          block.yield(message: {error: ex.message}.to_json, attachment: attachment_from(http_response)) if block
         end
       end
     end
@@ -280,8 +280,9 @@ module Setup
                 }.merge(connection.conformed_headers(template_parameters)).merge(webhook.conformed_headers(template_parameters))
             begin
               http_response = HTTMultiParty.send(webhook.method, conformed_url + '/' + conformed_path, {body: body, headers: headers})
-              block.yield(message: {response_code: http_response.code, response: http_response.to_json}.to_json,
-                          type: (200...299).include?(http_response.code) ? :notice : :error) if block.present?
+              block.yield(message: {response_code: http_response.code}.to_json,
+                          type: (200...299).include?(http_response.code) ? :notice : :error,
+                          attachment: attachment_from(http_response)) if block.present?
               if response_translator #&& http_response.code == 200
                 response_translator.run(translation_options.merge(target_data_type: response_translator.data_type || response_data_type, data: http_response.body))
               end
@@ -293,6 +294,13 @@ module Setup
           end
         end
       end
+    end
+
+    def attachment_from(http_response)
+      {
+        contentType: http_response.content_type,
+        body: http_response.body
+      } if http_response
     end
 
     def source_ids_from(message)
