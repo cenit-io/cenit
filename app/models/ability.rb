@@ -6,6 +6,7 @@ class Ability
       can :access, :rails_admin # only allow admin users to access Rails Admin
 
       can([:show, :edit], User) { |u| u.eql?(user) }
+
       if user.super_admin?
         can :manage,
             [
@@ -24,12 +25,15 @@ class Ability
               Setup::OauthParameter,
               CenitToken,
               TkAptcha,
-              Script
+              Script,
+              Setup::Raml
             ]
-        can :destroy, [Setup::SharedCollection, Setup::Model]
-        can :edit, Setup::Model
+        can :import, Setup::SharedCollection
+        can :destroy, [Setup::SharedCollection, Setup::DataType, Setup::Task]
       else
-        cannot :destroy, [Setup::SharedCollection, Setup::Model]
+        cannot :access, Setup::SharedName
+        cannot :destroy, [Setup::SharedCollection, Setup::Raml]
+        can(:destroy, Setup::Task) { |task| task.status != :running }
       end
 
       can RailsAdmin::Config::Actions.all(:root).collect(&:authorization_key)
@@ -37,7 +41,7 @@ class Ability
       can :update, Setup::SharedCollection do |shared_collection|
         shared_collection.owners.include?(user)
       end
-      can [:import, :edi_export], Setup::SharedCollection
+      can :edi_export, Setup::SharedCollection
 
       @@setup_map ||=
         begin
@@ -71,12 +75,18 @@ class Ability
 
       @@setup_map.each { |keys, models| can keys, models }
 
-      models = Setup::DataType.where(model_loaded: true).collect(&:records_model).select { |m| m.is_a?(Class) }
+      models = Setup::SchemaDataType.where(model_loaded: true).collect(&:model)
+      models.delete(nil)
       can :manage, models
+      can :manage, Mongoff::Model
+      can :manage, Mongoff::Record
 
       file_models = Setup::FileDataType.where(model_loaded: true).collect(&:model)
       file_models.delete(nil)
-      can [:index, :show, :upload_file, :download_file, :destroy, :import, :edi_export, :delete_all, :send_to_flow], file_models
+      can [:index, :show, :upload_file, :download_file, :destroy, :import, :edi_export, :delete_all, :send_to_flow, :data_type], file_models
+
+    else
+      can [:index, :show], [Setup::SharedCollection, Setup::Raml]
     end
 
   end

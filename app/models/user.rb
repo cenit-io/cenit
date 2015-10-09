@@ -45,6 +45,7 @@ class User
   field :doorkeeper_access_token, type: String
 
   field :name, type: String
+  mount_uploader :picture, ImageUploader
 
   validates_uniqueness_of :token
   before_save :ensure_token, :inspect_updated_fields
@@ -59,7 +60,7 @@ class User
 
   def inspect_updated_fields
     changed_attributes.keys.each do |attr|
-      reset_attribute!(attr) unless %w(name).include?(attr)
+      reset_attribute!(attr) unless %w(name picture).include?(attr)
     end unless new_record? || (user = User.current).nil? || user.super_admin?
     true
   end

@@ -7,48 +7,98 @@ module Cenit
 
     class << self
 
-      def send_to_rabbitmq(message)
-        conn = Bunny.new(:automatically_recover => false)
-        conn.start
-
-        ch = conn.create_channel
-        q = ch.queue('send.to.endpoint')
-
-        ch.default_exchange.publish(message, :routing_key => q.name)
-        conn.close
-      end
-
-      def process_message(message)
-        hash_message = JSON.parse(message).with_indifferent_access
-        if flow = Setup::Flow.where(id: flow_id = hash_message[:flow_id]).first
-          flow.translate(hash_message) do |translation_result|
-            notify_to_cenit(translation_result.merge(message: message,
-                                                     flow: flow,
-                                                     notification_id: hash_message[:notification_id]))
+      def enqueue(message)
+        message = message.with_indifferent_access
+        task_class, task, report = detask(message)
+        if task_class
+          task ||= task_class.create(message: message)
+          if Cenit.send('asynchronous_' + task_class.to_s.split('::').last.underscore)
+            message[:task_id] = task.id.to_s
+            message[:token] = CenitToken.create(data: {account_id: Account.current.id.to_s}).token
+            conn = Bunny.new(automatically_recover: false)
+            conn.start
+            ch = conn.create_channel
+            q = ch.queue('cenit')
+            ch.default_exchange.publish(message.to_json, routing_key: q.name)
+            conn.close
+          else
+            message[:task] = task
+            process_message(message)
           end
+          task
         else
-          notify_to_cenit(exception_message: "Flow with id #{flow_id} not found")
+          Setup::Notification.create(message: report)
         end
       end
 
-      def notify_to_cenit(translation)
-        # Http codes:
-        # 200...299 : OK
-        # 300...399 : Redirect
-        # 400...499 : Bad request
-        # 500...599 : Internal Server Error
-
-
-        notification =
-          (translation[:notification_id] && Setup::Notification.where(id: translation[:notification_id]).first) ||
-            Setup::Notification.new(flow: translation[:flow],
-                                    message: translation[:message],
-                                    exception_message: translation[:exception_message])
-        notification.response = translation[:response].to_s
-        notification.retries += 1 unless notification.new_record?
-        notification.save
+      def process_message(message)
+        message = JSON.parse(message) unless message.is_a?(Hash)
+        message = message.with_indifferent_access
+        message_token = message.delete(:token)
+        if token = CenitToken.where(token: message_token).first
+          if account = Account.where(id: token.data[:account_id]).first
+            Account.current = account if Account.current.nil?
+          end
+          token.destroy
+        else
+          account = nil
+        end
+        if Account.current.nil? || (message_token.present? && Account.current != account)
+          Setup::Notification.create(message: "Invalid message #{message}")
+        else
+          begin
+            task_class, task, report = detask(message)
+            if task ||= task_class && task_class.create(message: message)
+              if task.status == :running
+                task.notify(message: "Can't be executed because is already running")
+              else
+                task.execute
+              end
+            else
+              Setup::Notification.create(message: report)
+            end
+          rescue Exception => ex
+            if task
+              task.notify(message: ex.message)
+            else
+              Setup::Notification.create(message: "Can not execute task for message: #{message}")
+            end
+          end
+        end
       end
 
+      private
+
+      def detask(message)
+        report = nil
+        case task = message.delete(:task)
+        when Class
+          task_class = task
+          task = nil
+        when Setup::Task
+          task_class = task.class
+        when String
+          unless task_class = task.constantize rescue nil
+            report = "Invalid task class name: #{task}"
+          end
+          task = nil
+        else
+          task_class = nil
+          if task
+            report = "Invalid task argument: #{task}"
+            task = nil
+          elsif id = message.delete(:task_id)
+            if task = Setup::Task.where(id: id).first
+              task_class = task.class
+            else
+              report = "Task with ID '#{id}' not found"
+            end
+          else
+            report = 'Task information is missing'
+          end
+        end
+        [task_class, task, report]
+      end
     end
   end
 end

@@ -1,4 +1,3 @@
-
 module RailsAdmin
   module Config
     module Actions
@@ -14,9 +13,9 @@ module RailsAdmin
 
         register_instance_option :controller do
           proc do
-            @objects ||= list_entries(RailsAdmin::Config.model(Setup::Model))
+            @objects ||= list_entries(RailsAdmin::Config.model(Setup::DataType))
 
-            @max = Setup::Model.fields[:used_memory.to_s].type.new(Setup::Model.max(:used_memory) || 0)
+            @max = Setup::DataType.fields[:used_memory.to_s].type.new(Setup::DataType.max(:used_memory) || 0)
           end
         end
 

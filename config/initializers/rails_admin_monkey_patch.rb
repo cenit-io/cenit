@@ -189,7 +189,7 @@ module RailsAdmin
               if field =
                 if (property_model = model.property_model(property)).is_a?(Mongoff::Model) &&
                   !%w(integer number string boolean).include?(property_model.schema['type'])
-                  rails_admin_model.field(property, :json_schema)
+                  rails_admin_model.field(property, :json_value)
                 else
                   begin
                     rails_admin_model.fields(property.to_sym).first
@@ -285,7 +285,9 @@ module RailsAdmin
       return nil unless authorized?(:show, _current_user.class, _current_user) && _current_user.respond_to?(:email)
       return nil unless abstract_model = RailsAdmin.config(_current_user.class).abstract_model
       return nil unless show_action = RailsAdmin::Config::Actions.find(:show, controller: controller, abstract_model: abstract_model, object: _current_user)
-      link_to _current_user.email, url_for(action: show_action.action_name, model_name: abstract_model.to_param, id: _current_user.id, controller: 'rails_admin/main')
+      text = _current_user.name
+      text = _current_user.email if text.blank?
+      link_to text, url_for(action: show_action.action_name, model_name: abstract_model.to_param, id: _current_user.id, controller: 'rails_admin/main')
     end
 
   end
@@ -321,28 +323,42 @@ module RailsAdmin
       end
     end
 
-    def do_flash(flash_key, header, messages, options = {})
+    def do_flash_process_result(objs)
+      objs = [objs] unless objs.is_a?(Enumerable)
+      messages =
+        objs.collect do |obj|
+          amc = RailsAdmin.config(obj)
+          am = amc.abstract_model
+          wording = obj.send(amc.object_label_method)
+          if show_action = view_context.action(:show, am, obj)
+            wording + ' ' + view_context.link_to(t('admin.flash.click_here'), view_context.url_for(action: show_action.action_name, model_name: am.to_param, id: obj.id), class: 'pjax')
+          else
+            wording
+          end
+        end
+      model_label = @model_config.label
+      model_label = model_label.pluralize if @action.bulkable?
+      do_flash(:notice, t('admin.flash.processed', name: model_label, action: t("admin.actions.#{@action.key}.doing")) + ':', messages)
+    end
+
+    def do_flash(flash_key, header, messages = [], options = {})
       do_flash_on(flash, flash_key, header, messages, options)
     end
 
-    def do_flash_now(flash_key, header, messages, options = {})
+    def do_flash_now(flash_key, header, messages = [], options = {})
       do_flash_on(flash.now, flash_key, header, messages, options)
     end
 
-    def do_flash_on(flash_hash, flash_key, header, messages, options = {})
+    def do_flash_on(flash_hash, flash_key, header, messages = [], options = {})
       options = (options || {}).reverse_merge(reset: true)
-      if options[:reset] || flash_hash[flash_key].nil?
-        flash_hash[flash_key] = header.html_safe
-      else
-        flash_hash[flash_key] += header.html_safe
-      end
+      flash_message = header.html_safe
+      flash_message = flash_hash[flash_key] + flash_message unless options[:reset] || flash_hash[flash_key].nil?
       max_message_count = options[:max] || 5
       max_message_length = 500
       max_length = 1500
       messages = [messages] unless messages.is_a?(Enumerable)
       msgs = messages[0..max_message_count].collect { |msg| msg.length < max_message_length ? msg : msg[0..max_message_length] + '...' }
       count = 0
-      flash_message = ''
       msgs.each do |msg|
         if flash_message.length < max_length
           flash_message += "<br>- #{msg}".html_safe
@@ -350,7 +366,7 @@ module RailsAdmin
         end
       end
       if (count = messages.length - count) > 0
-        flash_hash[flash_key] += "<br>- and another #{count}.".html_safe
+        flash_message += "<br>- and another #{count}.".html_safe
       end
       flash_hash[flash_key] = flash_message.html_safe
     end

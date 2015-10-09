@@ -10,4 +10,5 @@ class SchemaController < ApplicationController
       render json: {library_id: params[:library_id], uri: params[:uri]}, status: 404
     end
   end
+
 end

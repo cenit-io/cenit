@@ -2,14 +2,14 @@ module RailsAdmin
   module Config
     module Actions
 
-      class NewFileModel < RailsAdmin::Config::Actions::Base
+      class NewFileModel < RailsAdmin::Config::Actions::Base #TODO Remove these class
 
         register_instance_option :pjax? do
           false
         end
 
         register_instance_option :only do
-          Setup::Model
+          Setup::DataType
         end
 
         register_instance_option :collection do

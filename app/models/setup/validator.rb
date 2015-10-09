@@ -4,7 +4,7 @@ module Setup
 
     BuildInDataType.regist(self).referenced_by(:name)
 
-    Setup::Models.exclude_actions_for self, :bulk_delete, :delete, :delete_all
+    Setup::Models.exclude_actions_for self
 
     field :name, type: String
 
