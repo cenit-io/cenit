@@ -28,11 +28,11 @@ module Setup
       algorithms = Set.new(self.algorithms)
       flows.each do |flow|
         {
-            event: events,
-            translator: translators,
-            webhook: webhooks,
-            connection_role: connection_roles,
-            response_translator: translators
+          event: events,
+          translator: translators,
+          webhook: webhooks,
+          connection_role: connection_roles,
+          response_translator: translators
         }.each do |key, association|
           unless (value = flow.send(key)).nil? || association.any? { |v| v == value }
             association << value

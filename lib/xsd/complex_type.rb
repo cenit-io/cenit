@@ -46,11 +46,11 @@ module Xsd
         container_schema = container.to_json_schema
         if container.max_occurs == :unbounded || container.max_occurs > 1 || container.min_occurs > 1
           properties[p = 'value'] =
-              {
-                  'type' => 'array',
-                  'minItems' => container.min_occurs,
-                  'items' => container_schema
-              }
+            {
+              'type' => 'array',
+              'minItems' => container.min_occurs,
+              'items' => container_schema
+            }
           properties[p]['maxItems'] = container.max_occurs unless container.max_occurs == :unbounded
           required << p if container.min_occurs > 0
         else

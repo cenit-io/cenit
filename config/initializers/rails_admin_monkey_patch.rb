@@ -187,16 +187,16 @@ module RailsAdmin
             properties['created_at'] = properties['updated_at'] = {'type' => 'string', 'format' => 'date-time', 'visible' => false}
             properties.each do |property, property_schema|
               if field =
-                  if (property_model = model.property_model(property)).is_a?(Mongoff::Model) &&
-                      !%w(integer number string boolean).include?(property_model.schema['type'])
-                    rails_admin_model.field(property, :json_value)
-                  else
-                    begin
-                      rails_admin_model.fields(property.to_sym).first
-                    rescue
-                      rails_admin_model.field(property.to_sym)
-                    end
+                if (property_model = model.property_model(property)).is_a?(Mongoff::Model) &&
+                  !%w(integer number string boolean).include?(property_model.schema['type'])
+                  rails_admin_model.field(property, :json_value)
+                else
+                  begin
+                    rails_admin_model.fields(property.to_sym).first
+                  rescue
+                    rails_admin_model.field(property.to_sym)
                   end
+                end
                 property_schema = data_type.merge_schema(property_schema)
                 visible_ok = false
                 {label: 'title', help: 'description', visible: 'visible'}.each do |option, key|
@@ -326,16 +326,16 @@ module RailsAdmin
     def do_flash_process_result(objs)
       objs = [objs] unless objs.is_a?(Enumerable)
       messages =
-          objs.collect do |obj|
-            amc = RailsAdmin.config(obj)
-            am = amc.abstract_model
-            wording = obj.send(amc.object_label_method)
-            if show_action = view_context.action(:show, am, obj)
-              wording + ' ' + view_context.link_to(t('admin.flash.click_here'), view_context.url_for(action: show_action.action_name, model_name: am.to_param, id: obj.id), class: 'pjax')
-            else
-              wording
-            end
+        objs.collect do |obj|
+          amc = RailsAdmin.config(obj)
+          am = amc.abstract_model
+          wording = obj.send(amc.object_label_method)
+          if show_action = view_context.action(:show, am, obj)
+            wording + ' ' + view_context.link_to(t('admin.flash.click_here'), view_context.url_for(action: show_action.action_name, model_name: am.to_param, id: obj.id), class: 'pjax')
+          else
+            wording
           end
+        end
       model_label = @model_config.label
       model_label = model_label.pluralize if @action.bulkable?
       do_flash(:notice, t('admin.flash.processed', name: model_label, action: t("admin.actions.#{@action.key}.doing")) + ':', messages)
@@ -379,14 +379,14 @@ module RailsAdmin
         return scope unless options[:sort]
 
         case options[:sort]
-          when String
-            collection_name = (sort = options[:sort])[0..i = sort.rindex('.') - 1]
-            field_name = sort.from(i + 2)
-            if collection_name && collection_name != table_name
-              fail('sorting by associated model column is not supported in Non-Relational databases')
-            end
-          when Symbol
-            field_name = options[:sort].to_s
+        when String
+          collection_name = (sort = options[:sort])[0..i = sort.rindex('.') - 1]
+          field_name = sort.from(i + 2)
+          if collection_name && collection_name != table_name
+            fail('sorting by associated model column is not supported in Non-Relational databases')
+          end
+        when Symbol
+          field_name = options[:sort].to_s
         end
         if options[:sort_reverse]
           scope.asc field_name

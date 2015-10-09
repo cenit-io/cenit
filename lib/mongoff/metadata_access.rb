@@ -53,20 +53,20 @@ module Mongoff
     end
 
     MONGO_TYPE_MAP = {
-        integer: Integer,
-        number: Float,
-        boolean: Boolean,
-        string: {
-            default: String,
-            format: {
-                date: Date,
-                :'date-time' => DateTime,
-                time: Time
-            }
-        },
-        object: Hash,
-        array: Array,
-        nil => NilClass
+      integer: Integer,
+      number: Float,
+      boolean: Boolean,
+      string: {
+        default: String,
+        format: {
+          date: Date,
+          :'date-time' => DateTime,
+          time: Time
+        }
+      },
+      object: Hash,
+      array: Array,
+      nil => NilClass
     }.with_indifferent_access
 
     def mongo_type_for(field_or_schema)

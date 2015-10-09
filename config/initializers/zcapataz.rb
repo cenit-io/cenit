@@ -14,13 +14,9 @@ Capataz.config do
 
   allow_on YAML, [:load]
 
-  allow_on Psych, [:load, :add_domain_type]
-
   allow_on URI, [:decode, :encode]
 
   allow_on File, [:dirname, :basename]
-
-  # allow_on Raml, [:parse]
 
   allow_on RamlParser::Parser, [:parse_hash, :parse_doc]
 
@@ -29,8 +25,6 @@ Capataz.config do
   allow_for [Mongoff::Model], [:where, :all]
 
   allow_for [Setup::Raml], [:ref_hash, :raml_parse, :build_hash, :map_collection]
-
-  allow_for [File], [:dirname, :basename]
 
   allow_for [Class], [:where, :all, :new_sign, :digest, :hexdigest, :id]
 

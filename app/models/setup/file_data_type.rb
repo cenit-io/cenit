@@ -140,8 +140,8 @@ module Setup
 
     def default_attributes
       {
-          default_filename: "file_#{DateTime.now.strftime('%Y-%m-%d_%Hh%Mm%S')}" + ((extension = format_validator.try(:file_extension)) ? ".#{extension}" : ''),
-          default_contentType: format_validator.try(:content_type) || 'application/octet-stream'
+        default_filename: "file_#{DateTime.now.strftime('%Y-%m-%d_%Hh%Mm%S')}" + ((extension = format_validator.try(:file_extension)) ? ".#{extension}" : ''),
+        default_contentType: format_validator.try(:content_type) || 'application/octet-stream'
       }
     end
 
@@ -210,13 +210,13 @@ module Setup
 
       def file
         @file ||=
-            if new_record?
-              f = grid_fs_file_model.new
-              f.id = id
-              f
-            else
-              grid_fs_file_model.where(id: id).first
-            end
+          if new_record?
+            f = grid_fs_file_model.new
+            f.id = id
+            f
+          else
+            grid_fs_file_model.where(id: id).first
+          end
       end
 
       def data=(string_or_readable)

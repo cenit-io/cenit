@@ -137,7 +137,7 @@ module Setup
     def categorize
       shared = data.keys.select { |key| key != 'name' }
       self.category =
-          shared.length == 1 && %w(libraries translators algorithms).include?(shared[0]) ? shared[0].singularize.capitalize : 'Collection'
+        shared.length == 1 && %w(libraries translators algorithms).include?(shared[0]) ? shared[0].singularize.capitalize : 'Collection'
       true
     end
 
@@ -155,11 +155,11 @@ module Setup
         next if key == 'name'
         hash = values.inject({}) do |hash, item|
           name =
-              if name = item['name_space']
-                {name_space: name, name: item['name']}
-              else
-                item['name']
-              end
+            if name = item['name_space']
+              {name_space: name, name: item['name']}
+            else
+              item['name']
+            end
           hash[name] = item; hash
         end
         hash_data[key] = hash.values.to_a unless hash.size == values.length

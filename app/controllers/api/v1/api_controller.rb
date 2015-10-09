@@ -5,14 +5,14 @@ module Api::V1
     before_action :authorize_action, except: [:new_account, :cors_check]
     rescue_from Exception, :with => :exception_handler
     respond_to :json
-    
+
     def cors_check
-        headers['Access-Control-Allow-Origin'] = request.headers['Origin']
-        headers['Access-Control-Allow-Credentials'] = false
-        headers['Access-Control-Allow-Headers'] = 'Origin, X-Requested-With, Accept, Content-Type, X-User-Access-Key, X-User-Access-Token'
-        headers['Access-Control-Allow-Methods'] = 'POST, GET, PUT, DELETE, OPTIONS'
-        headers['Access-Control-Max-Age'] = '1728000'
-        render :text => '', :content_type => 'text/plain'
+      headers['Access-Control-Allow-Origin'] = request.headers['Origin']
+      headers['Access-Control-Allow-Credentials'] = false
+      headers['Access-Control-Allow-Headers'] = 'Origin, X-Requested-With, Accept, Content-Type, X-User-Access-Key, X-User-Access-Token'
+      headers['Access-Control-Allow-Methods'] = 'POST, GET, PUT, DELETE, OPTIONS'
+      headers['Access-Control-Max-Age'] = '1728000'
+      render :text => '', :content_type => 'text/plain'
     end
 
     def index
@@ -43,7 +43,7 @@ module Api::V1
     def raml
       if (klass = self.klass) && (@items = klass.where(@criteria).first)
         if (@path == "root.raml")
-            render text: @items.to_hash['raml_doc']
+          render text: @items.to_hash['raml_doc']
         else
           render text: @items.ref_hash[@path]
         end
@@ -225,7 +225,7 @@ module Api::V1
           when 'push'
             get_data_type(@model).is_a?(Setup::FileDataType) ? :upload_file : :create
           when 'raml'
-              :show
+            :show
           else
             @_action_name.to_sym
           end
@@ -242,7 +242,7 @@ module Api::V1
       cors_header
       true
     end
-    
+
     def cors_header
       headers['Access-Control-Allow-Origin'] = request.headers['Origin'] || '*'
       headers['Access-Control-Allow-Credentials'] = false
@@ -271,8 +271,8 @@ module Api::V1
     def get_data_type_by_slug(slug)
       if slug
         @data_types[slug] ||=
-            if @library_slug == 'setup'
-              Setup::BuildInDataType["Setup::#{slug.camelize}"]
+          if @library_slug == 'setup'
+            Setup::BuildInDataType["Setup::#{slug.camelize}"]
           else
             if @library_id.nil?
               lib = Setup::Library.where(slug: @library_slug).first

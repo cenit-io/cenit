@@ -72,30 +72,30 @@ module Cenit
       def detask(message)
         report = nil
         case task = message.delete(:task)
-          when Class
-            task_class = task
+        when Class
+          task_class = task
+          task = nil
+        when Setup::Task
+          task_class = task.class
+        when String
+          unless task_class = task.constantize rescue nil
+            report = "Invalid task class name: #{task}"
+          end
+          task = nil
+        else
+          task_class = nil
+          if task
+            report = "Invalid task argument: #{task}"
             task = nil
-          when Setup::Task
-            task_class = task.class
-          when String
-            unless task_class = task.constantize rescue nil
-              report = "Invalid task class name: #{task}"
-            end
-            task = nil
-          else
-            task_class = nil
-            if task
-              report = "Invalid task argument: #{task}"
-              task = nil
-            elsif id = message.delete(:task_id)
-              if task = Setup::Task.where(id: id).first
-                task_class = task.class
-              else
-                report = "Task with ID '#{id}' not found"
-              end
+          elsif id = message.delete(:task_id)
+            if task = Setup::Task.where(id: id).first
+              task_class = task.class
             else
-              report = 'Task information is missing'
+              report = "Task with ID '#{id}' not found"
             end
+          else
+            report = 'Task information is missing'
+          end
         end
         [task_class, task, report]
       end

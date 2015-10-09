@@ -33,11 +33,11 @@ module Setup
       self.name = "#{library.name} | #{uri}" unless name.present?
       self.schema = schema.strip
       self.schema_type =
-          if (schema.start_with?('{') || self.schema.start_with?('['))
-            :json_schema
-          else
-            :xml_schema
-          end
+        if (schema.start_with?('{') || self.schema.start_with?('['))
+          :json_schema
+        else
+          :xml_schema
+        end
       super
     end
 
@@ -53,19 +53,19 @@ module Setup
 
     def validate_file_record(file)
       case schema_type
-        when :json_schema
-          begin
-            JSON::Validator.fully_validate(JSON.parse(schema),
-                                           JSON.parse(file.data),
-                                           version: :mongoff,
-                                           schema_reader: JSON::Schema::CenitReader.new(self),
-                                           strict: true)
-            []
-          rescue Exception => ex
-            [ex.message]
-          end
-        when :xml_schema
-          Nokogiri::XML::Schema(cenit_ref_schema).validate(Nokogiri::XML(file.data))
+      when :json_schema
+        begin
+          JSON::Validator.fully_validate(JSON.parse(schema),
+                                         JSON.parse(file.data),
+                                         version: :mongoff,
+                                         schema_reader: JSON::Schema::CenitReader.new(self),
+                                         strict: true)
+          []
+        rescue Exception => ex
+          [ex.message]
+        end
+      when :xml_schema
+        Nokogiri::XML::Schema(cenit_ref_schema).validate(Nokogiri::XML(file.data))
       end
     end
 
@@ -83,14 +83,14 @@ module Setup
 
     def parse_schema
       @parsed_schema ||=
-          case schema_type
-            when :json_schema
-              parse_json_schema
-            when :xml_schema
-              parse_xml_schema
-            else
-              #TODO !!!
-          end
+        case schema_type
+        when :json_schema
+          parse_json_schema
+        when :xml_schema
+          parse_xml_schema
+        else
+          #TODO !!!
+        end
     end
 
     def json_schemas
@@ -144,11 +144,11 @@ module Setup
       while cursor
         if %w(import include redefine).include?(cursor.name) && (attr = cursor.attributes['schemaLocation'])
           attr.value = options[:service_url].to_s + options[:service_schema_path] + '?' +
-              {
-                  key: Account.current.owner.unique_key,
-                  library_id: library.id.to_s,
-                  uri: Cenit::Utility.abs_uri(uri, attr.value)
-              }.to_param
+            {
+              key: Account.current.owner.unique_key,
+              library_id: library.id.to_s,
+              uri: Cenit::Utility.abs_uri(uri, attr.value)
+            }.to_param
         end
         cursor = cursor.next_element
       end

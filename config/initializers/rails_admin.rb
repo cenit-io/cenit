@@ -1676,9 +1676,10 @@ RailsAdmin.config do |config|
       field :api_name
       field :api_version
       field :raml_doc
+      field :raml_references
     end
 
-    fields :api_name, :api_version, :raml_doc, :raml_references
+    fields :api_name, :api_version
   end
 
   config.model Setup::RamlReference do

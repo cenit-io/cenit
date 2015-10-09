@@ -109,22 +109,22 @@ module Setup
     end
 
     MONGOID_TYPE_MAP =
-        {
-            BSON::ObjectId => {'type' => 'string'},
-            Array => {'type' => 'array'},
-            BigDecimal => {'type' => 'integer'},
-            Mongoid::Boolean => {'type' => 'boolean'},
-            Date => {'type' => 'string', 'format' => 'date'},
-            DateTime => {'type' => 'string', 'format' => 'date-time'},
-            Float => {'type' => 'number'},
-            Hash => {'type' => 'object'},
-            Integer => {'type' => 'integer'},
-            String => {'type' => 'string'},
-            Symbol => {'type' => 'string'},
-            Time => {'type' => 'string', 'format' => 'time'},
-            nil => {},
-            Object => {}
-        }.freeze
+      {
+        BSON::ObjectId => {'type' => 'string'},
+        Array => {'type' => 'array'},
+        BigDecimal => {'type' => 'integer'},
+        Mongoid::Boolean => {'type' => 'boolean'},
+        Date => {'type' => 'string', 'format' => 'date'},
+        DateTime => {'type' => 'string', 'format' => 'date-time'},
+        Float => {'type' => 'number'},
+        Hash => {'type' => 'object'},
+        Integer => {'type' => 'integer'},
+        String => {'type' => 'string'},
+        Symbol => {'type' => 'string'},
+        Time => {'type' => 'string', 'format' => 'time'},
+        nil => {},
+        Object => {}
+      }.freeze
 
     def excluded?(name)
       name = name.to_s
@@ -168,18 +168,18 @@ module Setup
                                         :has_and_belongs_to_many).each do |relation|
         if included?(relation_name = relation.name.to_s)
           property_schema =
-              case relation.macro
-                when :embeds_one
-                  {'$ref' => relation.klass.to_s}
-                when :embeds_many
-                  {'type' => 'array', 'items' => {'$ref' => relation.klass.to_s}}
-                when :has_one
-                  {'$ref' => relation.klass.to_s, 'referenced' => true, 'export_embedded' => @embedding && @embedding.include?(relation_name)}
-                when :belongs_to
-                  {'$ref' => relation.klass.to_s, 'referenced' => true, 'export_embedded' => @embedding && @embedding.include?(relation_name)} if (@including && @including.include?(relation_name.to_s)) || relation.inverse_of.nil?
-                when :has_many, :has_and_belongs_to_many
-                  {'type' => 'array', 'items' => {'$ref' => relation.klass.to_s}, 'referenced' => true, 'export_embedded' => @embedding && @embedding.include?(relation_name)}
-              end
+            case relation.macro
+            when :embeds_one
+              {'$ref' => relation.klass.to_s}
+            when :embeds_many
+              {'type' => 'array', 'items' => {'$ref' => relation.klass.to_s}}
+            when :has_one
+              {'$ref' => relation.klass.to_s, 'referenced' => true, 'export_embedded' => @embedding && @embedding.include?(relation_name)}
+            when :belongs_to
+              {'$ref' => relation.klass.to_s, 'referenced' => true, 'export_embedded' => @embedding && @embedding.include?(relation_name)} if (@including && @including.include?(relation_name.to_s)) || relation.inverse_of.nil?
+            when :has_many, :has_and_belongs_to_many
+              {'type' => 'array', 'items' => {'$ref' => relation.klass.to_s}, 'referenced' => true, 'export_embedded' => @embedding && @embedding.include?(relation_name)}
+            end
           if property_schema
             if @discarding.include?(relation_name.to_s)
               (property_schema['edi'] ||= {})['discard'] = true
@@ -204,10 +204,10 @@ class String
   #TODO These code is duplicated
   def to_title
     self.
-        gsub(/([A-Z])(\d)/, '\1 \2').
-        gsub(/([a-z])(\d|[A-Z])/, '\1 \2').
-        gsub(/(\d)([a-z]|[A-Z])/, '\1 \2').
-        tr('_', ' ').
-        tr('-', ' ')
+      gsub(/([A-Z])(\d)/, '\1 \2').
+      gsub(/([a-z])(\d|[A-Z])/, '\1 \2').
+      gsub(/(\d)([a-z]|[A-Z])/, '\1 \2').
+      tr('_', ' ').
+      tr('-', ' ')
   end
 end
