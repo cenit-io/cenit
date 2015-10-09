@@ -40,11 +40,31 @@ module Api::V1
       end
     end
 
+    def raml
+      if (klass = self.klass) && (@items = klass.where(@criteria).first)
+        if (@path == "root.raml")
+            render text: @items.to_hash['raml_doc']
+        else
+          render text: @items.ref_hash[@path]
+        end
+      else
+        render json: {error: 'no model found'}, status: :not_found
+      end
+    end
+
     def show
       if @item.orm_model.data_type.is_a?(Setup::FileDataType)
         send_data @item.data, filename: @item[:filename], type: @item[:contentType]
       else
         render json: {@model => @item.to_hash}
+      end
+    end
+
+    def content
+      if @item.orm_model.data_type.is_a?(Setup::FileDataType)
+        send_data @item.data, filename: @item[:filename], type: @item[:contentType]
+      else
+        render text: @item.to_hash[@field]
       end
     end
 
@@ -204,6 +224,8 @@ module Api::V1
           case @_action_name
           when 'push'
             get_data_type(@model).is_a?(Setup::FileDataType) ? :upload_file : :create
+          when 'raml'
+              :show
           else
             @_action_name.to_sym
           end
@@ -222,7 +244,7 @@ module Api::V1
     end
     
     def cors_header
-      headers['Access-Control-Allow-Origin'] = request.headers['Origin']
+      headers['Access-Control-Allow-Origin'] = request.headers['Origin'] || '*'
       headers['Access-Control-Allow-Credentials'] = false
       headers['Access-Control-Allow-Headers'] = 'Origin, X-Requested-With, Content-Type, accept, x-user-access-token, X-User-Access-Token'
       headers['Access-Control-Allow-Methods'] = 'POST, GET, PUT, DELETE, OPTIONS'
@@ -249,8 +271,8 @@ module Api::V1
     def get_data_type_by_slug(slug)
       if slug
         @data_types[slug] ||=
-          if @library_slug == 'setup'
-            Setup::BuildInDataType["Setup::#{slug.camelize}"]
+            if @library_slug == 'setup'
+              Setup::BuildInDataType["Setup::#{slug.camelize}"]
           else
             if @library_id.nil?
               lib = Setup::Library.where(slug: @library_slug).first
@@ -287,9 +309,12 @@ module Api::V1
       @data_types ||= {}
       @request_id = request.uuid
       @webhook_body = request.body.read
-      @library_slug = params[:library]
+      @library_slug = params[:library] || 'setup'
       @library_id = nil
       @model = params[:model]
+      @field = params[:field] if params[:field]
+      @format = params[:format] if params[:format]
+      @path = "#{params[:path]}.#{params[:format]}" if params[:path] && params[:format]
       @payload =
         case request.content_type
         when 'application/json'
@@ -301,7 +326,7 @@ module Api::V1
         end.new(controller: self,
                 message: @webhook_body,
                 content_type: request.content_type)
-      @criteria = params.to_hash.with_indifferent_access.reject { |key, _| %w(controller action library model id api).include?(key) }
+      @criteria = params.to_hash.with_indifferent_access.reject { |key, _| %w(controller action library model id field path format ).include?(key) }
     end
 
     private

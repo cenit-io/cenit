@@ -16,7 +16,7 @@ module RailsAdmin
         end
 
         register_instance_option :visible do
-          authorized? && (data_type = bindings[:object]) && data_type.activated && data_type.loaded?
+          authorized? && (data_type = bindings[:object]).activated && data_type.loaded?
         end
 
         register_instance_option :controller do

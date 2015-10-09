@@ -25,13 +25,13 @@ module RailsAdmin
             if transformation = params[:transformation]
               options = {}
               options[:style] = params[:style] if params[:style].present?
-              @result = Setup::Flow.transform(transformation, data_type.sample_object, options )
+              @result = Setup::Flow.transform(transformation, data_type.sample_object, options)
             else
               @result = {}
             end
 
             #@sample_data = JSON.try(:pretty_generate, @sample_data) || @sample_data
-           # @result = JSON.try(:pretty_generate, @result) || @result
+            # @result = JSON.try(:pretty_generate, @result) || @result
 
             render @action.template_name
           end

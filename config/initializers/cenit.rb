@@ -3,10 +3,10 @@ require 'cenit/config'
 Cenit.config do
 
   #Deactivate models on cenit startup
-  deactivate_models true
+  deactivate_models false
 
   #Use this option to setup an external service
-  service_url  ENV['SERVICE_URL']
+  service_url ENV['SERVICE_URL']
 
   #Home page
   homepage ENV['HOMEPAGE']

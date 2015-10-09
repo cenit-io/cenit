@@ -170,12 +170,12 @@ module Setup
       report = {loaded: Set.new, errors: {}}
       begin
         model =
-          if (do_shutdown = options[:reload]) || !loaded?
-            merge_report(DataType.shutdown(self, options), report) if do_shutdown
-            do_load_model(report)
-          else
-            self.model
-          end
+            if (do_shutdown = options[:reload]) || !loaded?
+              merge_report(DataType.shutdown(self, options), report) if do_shutdown
+              do_load_model(report)
+            else
+              self.model
+            end
       rescue Exception => ex
         #TODO Delete raise
         raise ex
@@ -338,12 +338,12 @@ module Setup
           puts "Decontantizing #{constant_name = model.model_access_name} -> #{model.schema_name rescue model.to_s}"
           constant_name = constant_name.split('::').last
           parent =
-            if model.is_a?(Class)
-              Mongoid::Config.unregist_model(model)
-              model.parent
-            else
-              Object
-            end
+              if model.is_a?(Class)
+                Mongoid::Config.unregist_model(model)
+                model.parent
+              else
+                Object
+              end
           parent.send(:remove_const, constant_name) if parent.const_defined?(constant_name)
         end
       end

@@ -33,7 +33,7 @@ module Setup
 
     def request_token(params)
       cenit_token = params.delete(:cenit_token)
-      request_token =  create_http_client.get_request_token(token_params(params))
+      request_token = create_http_client.get_request_token(token_params(params))
       request_token.secret = cenit_token.data[:request_token_secret] if cenit_token
       request_token.token = params[:oauth_token]
 

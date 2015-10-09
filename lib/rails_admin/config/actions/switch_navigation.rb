@@ -26,11 +26,11 @@ module RailsAdmin
               @object.save
               RailsAdmin::AbstractModel.update_model_config(model)
               flash[:success] =
-                if @object.show_navigation_link
-                  "Model #{@object.title} added to navigation links"
-                else
-                  "Model #{@object.title} removed from navigation links"
-                end
+                  if @object.show_navigation_link
+                    "Model #{@object.title} added to navigation links"
+                  else
+                    "Model #{@object.title} removed from navigation links"
+                  end
             else
               flash[:success] = "Model #{@object.title} is not loaded"
             end

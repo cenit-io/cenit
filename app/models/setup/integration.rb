@@ -83,7 +83,7 @@ if (parsed_data = JSON.parse(data)).is_a?(Array)
 else
   target_data_type.create_from_json!(parsed_data)
 end
-EOF
+    EOF
 
     RUBY_EXPORT_TRANSFORMATION = <<-EOF
 if (jsons = sources.collect { |source| source.to_json(pretty: true, ignore: :id) } ).length == 1
@@ -91,7 +91,7 @@ if (jsons = sources.collect { |source| source.to_json(pretty: true, ignore: :id)
 else
   \"[\#{jsons.join(', ')}]\"
 end
-EOF
+    EOF
 
     protected
 

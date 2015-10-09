@@ -18,6 +18,8 @@ gem 'builder'
 gem 'haml-rails'
 gem 'figaro'
 gem 'unicorn'
+gem 'raml_parser', git: 'https://github.com/asnioby/raml_parser', branch: 'develop'
+#gem 'raml_ruby', git: 'https://github.com/asnioby/raml_ruby'
 
 group :doc do
   gem 'sdoc', require: false
@@ -54,8 +56,8 @@ group :test do
 end
 
 group :production do
- gem 'thin'
- gem 'rails_12factor'
+  gem 'thin'
+  gem 'rails_12factor'
 end
 
 gem 'mongoid'
@@ -70,6 +72,7 @@ gem 'chartkick'
 gem 'descriptive_statistics'
 
 gem 'httparty'
+#gem 'httmultiparty', git: 'https://github.com/jwagener/httmultiparty.git'
 gem 'bunny', '~> 0.9.1'
 gem 'json-schema'
 gem 'nokogiri'
