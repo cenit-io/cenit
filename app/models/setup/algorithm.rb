@@ -18,7 +18,7 @@ module Setup
     validates_uniqueness_of :name, scope: :name_space
 
     accepts_nested_attributes_for :parameters, allow_destroy: true
-    accepts_nested_attributes_for :call_links, update_only: true
+    accepts_nested_attributes_for :call_links, allow_destroy: true #TODO !!!
 
     before_save :validate_code
 

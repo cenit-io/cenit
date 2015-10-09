@@ -15,11 +15,11 @@ namespace :sample do
 
     Setup::ConnectionRole.unscoped.destroy_all
     puts 'All Connection Role Deleted.'
-    
+
     Setup::Webhook.unscoped.destroy_all
     puts 'All Webhook Deleted.'
 
-    Setup::DataType.unscoped.destroy_all
+    Setup::SchemaDataType.unscoped.destroy_all
     puts 'All DataType Deleted.'
 
     Setup::Schema.unscoped.destroy_all
@@ -27,13 +27,13 @@ namespace :sample do
 
     Setup::Library.unscoped.destroy_all
     puts 'All Library Deleted.'
-    
+
     Setup::Schedule.unscoped.destroy_all
     puts 'All Scheduler Deleted.'
-    
+
     Setup::Batch.unscoped.destroy_all
     puts 'All Batch Deleted.'
-    
+
     Setup::Event.unscoped.destroy_all
     puts 'All Event Deleted.'
 
@@ -97,17 +97,17 @@ namespace :sample do
             model.delete_all
             puts "All #{data_type.name} are deleted before load sample."
           end
-          data_type.create_default_events
+          # data_type.create_default_events
         end
       end
 
 
-      product_data_type = Setup::DataType.where(name: 'Product').first
+      product_data_type = Setup::SchemaDataType.where(name: 'Product').first
       next if product_data_type.nil?
       product_model = product_data_type.load_model
       next if product_model.nil?
 
-      order_data_type = Setup::DataType.where(name: 'Order').first
+      order_data_type = Setup::SchemaDataType.where(name: 'Order').first
       next if order_data_type.nil?
       order_model = order_data_type.load_model
       next if order_model.nil?
@@ -205,16 +205,16 @@ namespace :sample do
             "taxons" => taxons,
             "options" => ["color", "size"],
             "properties" => properties,
-#            "images_attributes" => [
-#                {
-#                    "url" => "http://lorempixel.com/#{height}/#{width}/",
-#                    "position" => 1,
-#                    "title" => sku,
-#                    "type" => "thumbnail",
-#                    #               "dimension_attributes" => { "height" => height,"width" => height }
-#                }
-#            ],
-#            "variants_attributes" => variants
+            #            "images_attributes" => [
+            #                {
+            #                    "url" => "http://lorempixel.com/#{height}/#{width}/",
+            #                    "position" => 1,
+            #                    "title" => sku,
+            #                    "type" => "thumbnail",
+            #                    #               "dimension_attributes" => { "height" => height,"width" => height }
+            #                }
+            #            ],
+            #            "variants_attributes" => variants
         }
 
 
@@ -261,11 +261,11 @@ namespace :sample do
 
       add_product_connection_role = Setup::ConnectionRole.create!(name: 'add_product')
       add_product_connection_role.webhooks << add_product_webhook
-      add_product_connection_role.connections += [store_I, store_II ]
-      
+      add_product_connection_role.connections += [store_I, store_II]
+
       update_product_connection_role = Setup::ConnectionRole.create!(name: 'update_product')
       update_product_connection_role.webhooks << update_product_webhook
-      update_product_connection_role.connections += [store_I, store_II ]
+      update_product_connection_role.connections += [store_I, store_II]
 
       product_created = Setup::Event.find_by(name: 'Product on created_at', data_type: product_data_type)
       product_updated = Setup::Event.find_by(name: 'Product on updated_at', data_type: product_data_type)

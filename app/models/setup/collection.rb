@@ -5,7 +5,7 @@ module Setup
 
     BuildInDataType.regist(self).embedding(:flows, :connection_roles, :translators, :events, :libraries, :custom_validators, :algorithms, :webhooks, :connections).excluding(:image)
 
-    mount_uploader :image, CenitImageUploader
+    mount_uploader :image, AccountImageUploader
 
     has_and_belongs_to_many :flows, class_name: Setup::Flow.to_s, inverse_of: nil
     has_and_belongs_to_many :connection_roles, class_name: Setup::ConnectionRole.to_s, inverse_of: nil
@@ -25,6 +25,7 @@ module Setup
     before_save :check_dependencies
 
     def check_dependencies
+      algorithms = Set.new(self.algorithms)
       flows.each do |flow|
         {
           event: events,
@@ -33,40 +34,53 @@ module Setup
           connection_role: connection_roles,
           response_translator: translators
         }.each do |key, association|
-          unless (value = flow.send(key)).nil? || association.detect { |v| v == value }
+          unless (value = flow.send(key)).nil? || association.any? { |v| v == value }
             association << value
           end
         end
-        [:custom_data_type, :response_data_type].each do |key|
-          unless (data_type = flow.send(key)).nil? || ((lib = data_type.validator.try(:library)) && libraries.detect { |v| v == lib })
-            libraries << lib
-          end
-        end
+        check_data_type_dependencies(flow.custom_data_type, algorithms)
+        check_data_type_dependencies(flow.response_data_type, algorithms)
       end
       connection_roles.each do |connection_role|
-        connection_role.webhooks.each { |webhook| webhooks << webhook unless webhooks.detect { |v| v == webhook } }
-        connection_role.connections.each { |connection| connections << connection unless connections.detect { |v| v == connection } }
+        connection_role.webhooks.each { |webhook| webhooks << webhook unless webhooks.any? { |v| v == webhook } }
+        connection_role.connections.each { |connection| connections << connection unless connections.any? { |v| v == connection } }
       end
-      translators.each do |translator|
-        [:source_data_type, :target_data_type].each do |key|
-          unless (data_type = translator.send(key)).nil? || ((lib = data_type.validator.try(:library)) && libraries.detect { |v| v == lib })
-            libraries << lib
-          end
-        end
+      translators = Set.new(self.translators)
+      self.translators.each do |translator|
         [:source_exporter, :target_importer].each do |key|
-          unless (t = translator.send(key)).nil? || translators.detect { |v| v == t }
+          if t = translator.send(key)
             translators << t
           end
         end
       end
-      events.each do |event|
-        if event.is_a?(Setup::Observer) && (data_type = event.data_type) && !((lib = data_type.validator.try(:library)) && libraries.detect { |v| v == lib })
-          libraries << lib
-        end
+      translators.each do |translator|
+        check_data_type_dependencies(translator.source_data_type, algorithms)
+        check_data_type_dependencies(translator.target_data_type, algorithms)
       end
+      events.each { |event| check_data_type_dependencies(event.data_type, algorithms) if event.is_a?(Setup::Observer) }
+      libraries.each { |library| library.data_types.each { |data_type| check_data_type_dependencies(data_type, algorithms) } }
       visited_algs = Set.new
       algorithms.each { |alg| alg.for_each_call(visited_algs) }
       self.algorithms = visited_algs.to_a
+    end
+
+    private
+
+    def check_data_type_dependencies(data_type, algorithms)
+      if data_type
+        libraries << data_type.library unless libraries.any? { |lib| lib == data_type.library }
+        algorithms.merge(data_type.records_methods)
+        algorithms.merge(data_type.data_type_methods)
+        if data_type.is_a?(Setup::FileDataType)
+          check_data_type_dependencies(data_type.schema_data_type, algorithms)
+          data_type.validators.each do |validator|
+            check_data_type_dependencies(validator.try(:schema_data_type), algorithms)
+            if algorithm = validator.try(:algorithm)
+              algorithms << algorithm
+            end
+          end
+        end
+      end
     end
   end
 end

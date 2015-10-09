@@ -1,4 +1,3 @@
-
 require 'liquid/tags/cenit_basic_tag'
 
 module Liquid

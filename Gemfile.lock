@@ -1,4 +1,12 @@
 GIT
+  remote: https://github.com/asnioby/raml_parser
+  revision: 9cba7e93251ef0ae67164f1079e961d62d1c0231
+  branch: develop
+  specs:
+    raml_parser (0.2.5)
+      activesupport (>= 4.0.0)
+
+GIT
   remote: https://github.com/openjaf/cenit_cmd.git
   revision: 6581aa12d7153cd0a588b0762d99519189899bfb
   specs:
@@ -7,7 +15,7 @@ GIT
 
 GIT
   remote: https://github.com/openjaf/rails_admin_dynamic_charts.git
-  revision: 773521f07e24200ea90ee4d68ecff1514699eeda
+  revision: 055343c7d35224aa6816370c50b3263337d7b29a
   specs:
     rails_admin_dynamic_charts (0.0.1)
       chartkick (> 0)
@@ -515,6 +523,7 @@ DEPENDENCIES
   rails_admin (= 0.6.5)
   rails_admin_dynamic_charts!
   rails_layout
+  raml_parser!
   rolify
   rspec-rails
   rubocop
@@ -530,3 +539,6 @@ DEPENDENCIES
   uglifier (>= 1.3.0)
   unicorn
   wannabe_bool
+
+BUNDLED WITH
+   1.10.4

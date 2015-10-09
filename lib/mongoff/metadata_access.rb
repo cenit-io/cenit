@@ -29,7 +29,7 @@ module Mongoff
     end
 
     def properties_schemas
-      @properties_schemas ||= ((schema = self.schema)['type'] == 'object' && schema['properties']) || {}
+      @properties_schemas ||= ((schema = self.schema).is_a?(Hash) && schema['type'] == 'object' && schema['properties']) || {}
     end
 
     def simple_properties_schemas
@@ -66,7 +66,7 @@ module Mongoff
       },
       object: Hash,
       array: Array,
-      nil => Hash
+      nil => NilClass
     }.with_indifferent_access
 
     def mongo_type_for(field_or_schema)
