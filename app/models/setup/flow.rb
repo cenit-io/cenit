@@ -6,10 +6,11 @@ module Setup
     include DynamicValidators
     include TriggersFormatter
 
-    BuildInDataType.regist(self).referenced_by(:name)
+    BuildInDataType.regist(self).referenced_by(:name).excluding(:response_attachments)
 
     field :name, type: String
     field :active, type: Boolean, default: :true
+    field :response_attachments, type: Boolean, default: :false
     field :discard_events, type: Boolean
 
     belongs_to :event, class_name: Setup::Event.to_s, inverse_of: nil
@@ -300,7 +301,7 @@ module Setup
       {
         contentType: http_response.content_type,
         body: http_response.body
-      } if http_response
+      } if response_attachments && http_response
     end
 
     def source_ids_from(message)

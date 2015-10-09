@@ -833,6 +833,10 @@ RailsAdmin.config do |config|
       field :active do
         visible { bindings[:object].ready_to_save? }
       end
+      field :response_attachments do
+        visible { bindings[:object].ready_to_save? }
+        help 'Attach responses to notification if checked'
+      end
     end
 
     show do
