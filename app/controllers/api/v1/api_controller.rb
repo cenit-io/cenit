@@ -2,7 +2,7 @@ module Api::V1
   class ApiController < ApplicationController
     before_action :authorize_account, :save_request_data, except: [:new_account, :cors_check]
     before_action :find_item, only: [:show, :destroy, :pull, :run]
-    before_action :authorize_action, except: [:new_account, :cors_check]
+    before_action :authorize_action, except: [:new_account, :cors_check, :push]
     rescue_from Exception, :with => :exception_handler
     respond_to :json
     
@@ -74,6 +74,34 @@ module Api::V1
           success: success_report = Hash.new { |h, k| h[k] = [] },
           errors: broken_report = Hash.new { |h, k| h[k] = [] }
         }
+      @payload.each do |root, message|
+        @model = root
+        if authorize_action && (data_type = @payload.data_type_for(root))
+          message = [message] unless message.is_a?(Array)
+          message.each do |item|
+            if (record = data_type.send(@payload.create_method,
+                                        @payload.process_item(item, data_type),
+                                        options = @payload.create_options)).errors.blank?
+              success_report[root.pluralize] << record.inspect_json(include_id: :id, inspect_scope: options[:create_collector])
+            else
+              broken_report[root] << {errors: record.errors.full_messages, item: item}
+            end
+          end
+        else
+          broken_report[root] = 'no model found'
+        end
+      end
+      response.delete(:success) if success_report.blank?
+      response.delete(:errors) if broken_report.blank?
+      render json: response
+    end
+
+    def create
+      response =
+          {
+              success: success_report = Hash.new { |h, k| h[k] = [] },
+              errors: broken_report = Hash.new { |h, k| h[k] = [] }
+          }
       @payload.each do |root, message|
         if data_type = @payload.data_type_for(root)
           message = [message] unless message.is_a?(Array)
@@ -217,7 +245,7 @@ module Api::V1
       true
     end
 
-    def authorize_action
+    def authorize_action(root = nil)
       if klass
         @ability = Ability.new(Account.current && Account.current.owner)
         action_symbol =
@@ -290,7 +318,7 @@ module Api::V1
     end
 
     def get_data_type(root)
-      get_data_type_by_slug(root.singularize)
+      get_data_type_by_slug(root.singularize) if root
     end
 
     def get_model(root)

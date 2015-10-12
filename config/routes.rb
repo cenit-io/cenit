@@ -22,7 +22,7 @@ Cenit::Application.routes.draw do
       get  '/public/:model/:api_name/:api_version/*path', to: 'api#raml'
       post '/setup/account', to: 'api#new_account'
       post '/:library/push', to: 'api#push'
-      post '/:library/:model', to: 'api#push'
+      post '/:library/:model', to: 'api#create'
       get '/:library/:model', to: 'api#index'
       get '/:library/:model/:id', to: 'api#show'
       get '/:library/:model/:id/:field', to: 'api#content'

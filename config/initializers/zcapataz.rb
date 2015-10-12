@@ -30,8 +30,6 @@ Capataz.config do
 
   allow_for [Setup::Raml], [:ref_hash, :raml_parse, :build_hash, :map_collection]
 
-  allow_for [File], [:dirname, :basename]
-
   allow_for [Class], [:where, :all, :new_sign, :digest, :hexdigest, :id]
 
   allow_for [Mongoid::Criteria, Mongoff::Criteria], Enumerable.instance_methods(false) + Origin::Queryable.instance_methods(false)
@@ -51,7 +49,7 @@ Capataz.config do
   allow_for [Mongoid::Criteria, Mongoff::Criteria], Enumerable.instance_methods(false) + Origin::Queryable.instance_methods(false)
 
   deny_for [Setup::DynamicRecord, Mongoff::Record], ->(instance, method) do
-    return false if [:id, :to_json, :to_edi, :to_hash, :to_xml, :to_params, :[], :[]=].include?(method)
+    return false if [:id, :to_json, :to_edi, :to_hash, :to_xml, :to_params, :[], :[]=, :save].include?(method)
     return false if [:data].include?(method) && instance.is_a?(Mongoff::GridFs::FileFormatter)
     if (method = method.to_s).end_with?('=')
       method = method.chop

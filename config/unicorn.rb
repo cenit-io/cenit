@@ -1,10 +1,11 @@
 # Set your full path to application.
+
 app_dir = File.expand_path('../../', __FILE__)
 shared_dir = File.expand_path('../../../shared/', __FILE__)
 app_name = "cenit"
 
 # Set unicorn options
-worker_processes 5
+worker_processes 1
 preload_app true
 timeout 240
 
@@ -38,8 +39,30 @@ before_fork do |server, worker|
 end
 
 after_fork do |server, worker|
+
   defined?(ActiveRecord::Base) and ActiveRecord::Base.establish_connection
   defined?(Rails) and Rails.cache.respond_to?(:reconnect) and Rails.cache.reconnect
+
+  unless server.instance_variable_get(:@rabbit_listener_started)
+    puts 'RABBIT LISTENER STARTED'
+    Thread.new {
+      conn = Bunny.new(:automatically_recover => false)
+      conn.start
+
+      ch = conn.create_channel
+      q = ch.queue('cenit')
+
+      begin
+        q.subscribe(block: true) do |delivery_info, properties, body|
+          Cenit::Rabbit.process_message(body)
+        end
+      rescue Interrupt => _
+        conn.close
+        exit(0)
+      end
+    }
+    server.instance_variable_set(:@rabbit_listener_started, true)
+  end
 end
 
 before_exec do |server|
