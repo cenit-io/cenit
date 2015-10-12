@@ -17,7 +17,7 @@ gem 'rabl'
 gem 'builder'
 gem 'haml-rails'
 gem 'figaro'
-gem 'unicorn'
+gem 'unicorn', require: false
 gem 'raml_parser', git: 'https://github.com/asnioby/raml_parser', branch: 'develop'
 
 group :doc do
