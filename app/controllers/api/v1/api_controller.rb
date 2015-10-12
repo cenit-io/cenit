@@ -245,7 +245,7 @@ module Api::V1
       true
     end
 
-    def authorize_action(root = nil)
+    def authorize_action
       if klass
         @ability = Ability.new(Account.current && Account.current.owner)
         action_symbol =
