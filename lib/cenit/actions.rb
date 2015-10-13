@@ -100,6 +100,7 @@ module Cenit
             if errors.blank?
               Setup::Collection.where(name: shared_collection.name).delete
               collection.name = shared_collection.name
+              collection.image = shared_collection.image
               collection.save
               pull_data = pull_request.delete(:pull_data)
               pull_request[:created_records] = collection.inspect_json(inspecting: :id, inspect_scope: create_collector).reject { |_, value| !value.is_a?(Enumerable) }
