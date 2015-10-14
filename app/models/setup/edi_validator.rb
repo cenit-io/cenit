@@ -1,9 +1,9 @@
 module Setup
-  class EdiValidator < Validator
+  class EdiValidator < CustomValidator
     include CenitScoped
     include DataTypeValidator
 
-    BuildInDataType.regist(self)
+    BuildInDataType.regist(self).referenced_by(:name)
 
     belongs_to :schema, class_name: Setup::Schema.to_s, inverse_of: nil
 
@@ -35,9 +35,9 @@ module Setup
       {} #TODO edi options
     end
 
-    def validate_data(data)
+    def validate_file_record(file)
       begin
-        Edi::Parser.parse_edi(data_type, data, format_options)
+        Edi::Parser.parse_edi(data_type, file.data, format_options)
         []
       rescue Exception => ex
         [ex.message]

@@ -5,9 +5,9 @@ module Xsd
 
     attr_reader :item_type
 
-    def initialize(parent, item_type=nil)
-      super(parent)
-      @item_type = item_type
+    def initialize(args)
+      super
+      @item_type = args[:item_type]
     end
 
     def when_simpleType_end(simpleType)
@@ -26,7 +26,7 @@ module Xsd
             ]
           }
         else
-          item_type.to_json_schema
+          qualify_type(item_type).to_json_schema
         end
       {
         'type' => 'array',

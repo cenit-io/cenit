@@ -11,26 +11,16 @@ module RailsAdmin
         register_instance_option :controller do
           proc do
 
-            shared = false
             shared_collection_config = RailsAdmin::Config.model(Setup::SharedCollection)
-            if @object # record_share
-              if @object.is_a?(Setup::Collection)
-                collection = @object
-              else
-                collection = Setup::Collection.new(name: @object.try(:name))
-                collection.send("#{@object.class.to_s.split('::').last.downcase.pluralize}") << @object
-              end
-            else # bulk share
-              @bulk_ids = params.delete(:bulk_ids)
-              klass = @abstract_model.model_name.constantize
-              collection = Setup::Collection.new
-              collection.send("#{klass.to_s.split('::').last.downcase.pluralize}=", @bulk_ids ? klass.any_in(id: @bulk_ids) : klass.all)
+            if shared_params = params.delete(shared_collection_config.abstract_model.param_key)
+              sanitize_params_for!(:create, shared_collection_config, shared_params)
             end
-            collection.check_dependencies
-            if params[:_restart].nil? && (shared_params = params[shared_collection_config.abstract_model.param_key])
+            shared = false
+            collection = Cenit::Actions.build_collection(@object || params.delete(:bulk_ids), @abstract_model.model_name)
+            if params[:_restart].nil? && shared_params
               @shared_collection = Setup::SharedCollection.new(shared_params.to_hash.merge(image: collection.image))
               @shared_collection.source_collection = collection
-              shared = @shared_collection.save if params[:_share]
+              shared = params[:_share] && Cenit::Actions.store(@shared_collection)
             end
             if shared
               redirect_to back_or_index
@@ -40,8 +30,7 @@ module RailsAdmin
               @shared_parameter_enum = @shared_collection.enum_for_pull_parameters
               @model_config = shared_collection_config
               if params[:_share] && @shared_collection.errors.present?
-                flash.now[:error] = t('admin.flash.error', name: @model_config.label, action: t("admin.actions.#{@action.key}.done").html_safe).html_safe
-                flash.now[:error] += %(<br>- #{@shared_collection.errors.full_messages.join('<br>- ')}).html_safe
+                do_flash(:error, t('admin.flash.error', name: @model_config.label, action: t("admin.actions.#{@action.key}.done").html_safe), @shared_collection.errors.full_messages)
               end
               render :share
             end

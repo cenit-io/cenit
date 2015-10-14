@@ -1,5 +1,10 @@
-module Cenit
-  class Eval < Liquid::Tag
+
+require 'liquid/tags/cenit_basic_tag'
+
+module Liquid
+  class Eval < CenitBasicTag
+
+    tag :eval
 
     def initialize(tag_name, value, tokens)
       super
@@ -9,7 +14,7 @@ module Cenit
     def render(context)
       locals = {}
       context.environments.each { |e| locals.merge!(e) }
-      ActionView::Base.new.render inline: @value, type: :ruby, handlers: :ruby, locals: locals.symbolize_keys
+      Cenit::RubyInterpreter.run(@value, locals, linking_algorithms: false)
     end
   end
 end

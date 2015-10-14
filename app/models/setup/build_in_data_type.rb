@@ -27,22 +27,28 @@ module Setup
       model
     end
 
+    def slug
+      model.to_s.split('::').last.underscore
+    end
+
     def model_schema
       @schema ||= build_schema
     end
 
-    def find_data_type(ref)
+    def find_data_type(ref, library_id = self.library_id)
       BuildInDataType.build_ins[ref]
     end
 
     def embedding(*fields)
-      @embedding = fields.is_a?(Enumerable) ? fields : [fields]
-      self
+      store_fields(:@embedding, *fields)
     end
 
-    def referenced_by(*field_access)
-      @referenced_by = field_access
-      self
+    def referenced_by(*fields)
+      unless fields.nil?
+        fields = [fields] unless fields.is_a?(Enumerable)
+        fields << :_id
+      end
+      store_fields(:@referenced_by, *fields)
     end
 
     def and(to_merge)
@@ -95,7 +101,7 @@ module Setup
       if fields
         raise Exception.new('Illegal argument') unless fields.present?
         fields = [fields] unless fields.is_a?(Enumerable)
-        instance_variable_set(instance_variable, fields.collect(&:to_s))
+        instance_variable_set(instance_variable, fields.collect(&:to_s).uniq)
       else
         instance_variable_set(instance_variable, nil)
       end
@@ -117,7 +123,7 @@ module Setup
         Symbol => {'type' => 'string'},
         Time => {'type' => 'string', 'format' => 'time'},
         nil => {}
-      }
+      }.freeze
 
     def excluded?(name)
       name = name.to_s
@@ -125,17 +131,20 @@ module Setup
     end
 
     def included?(name)
-      name = name.to_s
-      (@with && @with.include?(name)) || (@including && @including.include?(name)) || (@discarding && @discarding.include?(name)) || !(@with || excluded?(name))
+      [:@with, :@including, :@embedding, :@discarding].each { |v| return true if (v = instance_variable_get(v)) && v.include?(name) }
+      !(@with || excluded?(name))
     end
 
     def build_schema
       @discarding ||= []
       schema = {'type' => 'object', 'properties' => properties = {"_id" => {'type' => 'string'}}}
       schema[:referenced_by.to_s] = Cenit::Utility.stringfy(@referenced_by) if @referenced_by
-      (fields = model.fields).each do |field_name, field|
-        if !field.is_a?(Mongoid::Fields::ForeignKey) && included?(field_name)
+      model.fields.each do |field_name, field|
+        if !field.is_a?(Mongoid::Fields::ForeignKey) && included?(field_name.to_s)
           json_type = (properties[field_name] = json_schema_type(field.type))['type']
+          if @discarding.include?(field_name)
+            (properties[field_name]['edi'] ||= {})['discard'] = true
+          end
           if json_type.nil? || json_type == 'object' || json_type == 'array'
             unless mongoff_models = model.instance_variable_get(:@mongoff_models)
               model.instance_variable_set(:@mongoff_models, mongoff_models = {})
@@ -145,17 +154,18 @@ module Setup
                                                             parent: model,
                                                             schema: properties[field_name],
                                                             cache: false,
-                                                            modelable: false)
+                                                            modelable: false,
+                                                            root_schema: schema)
           end
         end
       end
-      (relations = model.reflect_on_all_associations(:embeds_one,
-                                                     :embeds_many,
-                                                     :has_one,
-                                                     :belongs_to,
-                                                     :has_many,
-                                                     :has_and_belongs_to_many)).each do |relation|
-        if included?(relation.name)
+      model.reflect_on_all_associations(:embeds_one,
+                                        :embeds_many,
+                                        :has_one,
+                                        :belongs_to,
+                                        :has_many,
+                                        :has_and_belongs_to_many).each do |relation|
+        if included?(relation_name = relation.name.to_s)
           property_schema =
             case relation.macro
             when :embeds_one
@@ -163,17 +173,17 @@ module Setup
             when :embeds_many
               {'type' => 'array', 'items' => {'$ref' => relation.klass.to_s}}
             when :has_one
-              {'$ref' => relation.klass.to_s, 'referenced' => true, 'export_embedded' => @embedding && @embedding.include?(relation.name)}
+              {'$ref' => relation.klass.to_s, 'referenced' => true, 'export_embedded' => @embedding && @embedding.include?(relation_name)}
             when :belongs_to
-              {'$ref' => relation.klass.to_s, 'referenced' => true, 'export_embedded' => @embedding && @embedding.include?(relation.name)} if (@including && @including.include?(relation.name.to_s)) || relation.inverse_of.nil?
+              {'$ref' => relation.klass.to_s, 'referenced' => true, 'export_embedded' => @embedding && @embedding.include?(relation_name)} if (@including && @including.include?(relation_name.to_s)) || relation.inverse_of.nil?
             when :has_many, :has_and_belongs_to_many
-              {'type' => 'array', 'items' => {'$ref' => relation.klass.to_s}, 'referenced' => true, 'export_embedded' => @embedding && @embedding.include?(relation.name)}
+              {'type' => 'array', 'items' => {'$ref' => relation.klass.to_s}, 'referenced' => true, 'export_embedded' => @embedding && @embedding.include?(relation_name)}
             end
           if property_schema
-            if @discarding.include?(relation.name.to_s)
+            if @discarding.include?(relation_name.to_s)
               (property_schema['edi'] ||= {})['discard'] = true
             end
-            properties[relation.name] = property_schema
+            properties[relation_name] = property_schema
           end
         end
       end
@@ -182,7 +192,7 @@ module Setup
     end
 
     def json_schema_type(mongoid_type)
-      MONGOID_TYPE_MAP[mongoid_type]
+      MONGOID_TYPE_MAP[mongoid_type].dup
     end
 
   end

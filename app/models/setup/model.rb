@@ -3,13 +3,16 @@ module Setup
     include CenitScoped
     include SchemaHandler
     include DataTypeParser
+    include Slug
+    include CustomTitle
 
-    Setup::Models.exclude_actions_for self, :new, :update, :edit, :delete, :bulk_delete, :delete_all
+    Setup::Models.exclude_actions_for self, :new, :update, :bulk_delete, :delete_all
 
     BuildInDataType.regist(self).including(:schema).referenced_by(:name)
 
     def self.to_include_in_models
-      @to_include_in_models ||= [Mongoid::Document,
+      @to_include_in_models ||= [Setup::DynamicRecord,
+                                 Mongoid::Document,
                                  Mongoid::Timestamps,
                                  Setup::SchemaModelAware,
                                  Setup::ClassAffectRelation,
@@ -33,6 +36,8 @@ module Setup
 
     has_many :events, class_name: Setup::Observer.to_s, dependent: :destroy, inverse_of: :data_type
 
+    belongs_to :library, class_name: Setup::Library.to_s, inverse_of: nil
+
     attr_readonly :name
 
     validates_presence_of :name
@@ -40,27 +45,19 @@ module Setup
     scope :activated, -> { where(activated: true) }
 
     after_save do
-     #TODO create_default_events
+      #TODO create_default_events
     end
 
     before_destroy do
       !(records_model.try(:delete_all) rescue true) || true
     end
 
+    def scope_title
+      library && library.name
+    end
+
     def validator
       nil
-    end
-
-    def library
-      nil
-    end
-
-    def on_library_title
-      if lib = library
-        "#{lib.name} | #{title}"
-      else
-        title
-      end
     end
 
     def subtype?
@@ -167,8 +164,12 @@ module Setup
       end
     end
 
-    def find_data_type(ref)
-      (lib = library) && lib.find_data_type_by_name(ref)
+    def find_data_type(ref, library_id = self.library_id)
+      super || Setup::Model.where(library_id: library_id, name: ref).first
+    end
+
+    def library_id
+      self[:library_id]
     end
 
     def report_shutdown(report)
@@ -261,7 +262,13 @@ module Setup
         models.each do |model|
           puts "Decontantizing #{constant_name = model.model_access_name} -> #{model.schema_name rescue model.to_s}"
           constant_name = constant_name.split('::').last
-          parent = model.is_a?(Class) ? model.parent : Object
+          parent =
+            if model.is_a?(Class)
+              Mongoid::Config.unregist_model(model)
+              model.parent
+            else
+              Object
+            end
           parent.send(:remove_const, constant_name) if parent.const_defined?(constant_name)
         end
       end
@@ -330,6 +337,10 @@ module Setup
     end
 
     protected
+
+    def slug_taken?(slug)
+      Setup::Model.where(slug: slug, library: library).present?
+    end
 
     def do_load_model(report)
       raise NotImplementedError

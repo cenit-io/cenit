@@ -25,7 +25,7 @@ module Setup
     field :discard_chained_records, type: Boolean
 
     validates_uniqueness_of :name
-    before_save :validates_configuration
+    before_save :validates_configuration, :validates_transformation
 
     def validates_configuration
       requires(:name)
@@ -69,6 +69,13 @@ module Setup
       errors.blank?
     end
 
+    def validates_transformation
+      if style == 'ruby'
+        Capataz.validate(transformation).each { |error| errors.add(:transformation, error) }
+      end
+      errors.blank?
+    end
+
     def reject_message(field = nil)
       (style && type).present? ? "is not allowed for #{style} #{type.to_s.downcase} translators" : super
     end
@@ -81,31 +88,28 @@ module Setup
       type == :Export && !NON_BULK_SOURCE_STYLES.include?(style)
     end
 
-    NON_BULK_SOURCE_STYLES = %w(double_curly_braces xslt)
+    NON_BULK_SOURCE_STYLES = %w(double_curly_braces xslt liquid)
 
     STYLES_MAP = {
-      'double_curly_braces' => {Setup::Transformation::DoubleCurlyBracesConversionTransform => [:Conversion],
-                                Setup::Transformation::DoubleCurlyBracesExportTransform => [:Export]},
       'liquid' => {Setup::Transformation::LiquidExportTransform => [:Export]},
       'xslt' => {Setup::Transformation::XsltConversionTransform => [:Conversion],
                  Setup::Transformation::XsltExportTransform => [:Export]},
-      'json.rabl' => {Setup::Transformation::ActionViewTransform => [:Export]},
-      'xml.rabl' => {Setup::Transformation::ActionViewTransform => [:Export]},
-      'xml.builder' => {Setup::Transformation::ActionViewTransform => [:Export]},
-      'html.haml' => {Setup::Transformation::ActionViewTransform => [:Export]},
-      'html.erb' => {Setup::Transformation::ActionViewTransform => [:Export]},
-      'csv.erb' => {Setup::Transformation::ActionViewTransform => [:Export]},
-      'js.erb' => {Setup::Transformation::ActionViewTransform => [:Export]},
-      'text.erb' => {Setup::Transformation::ActionViewTransform => [:Export]},
-      'ruby' => {Setup::Transformation::ActionViewTransform => [:Import, :Export, :Update, :Conversion]},
-      'pdf.prawn' => {Setup::Transformation::PrawnTransform => [:Export]},
+      # 'json.rabl' => {Setup::Transformation::ActionViewTransform => [:Export]},
+      # 'xml.rabl' => {Setup::Transformation::ActionViewTransform => [:Export]},
+      # 'xml.builder' => {Setup::Transformation::ActionViewTransform => [:Export]},
+      # 'html.haml' => {Setup::Transformation::ActionViewTransform => [:Export]},
+      # 'html.erb' => {Setup::Transformation::ActionViewTransform => [:Export]},
+      # 'csv.erb' => {Setup::Transformation::ActionViewTransform => [:Export]},
+      # 'js.erb' => {Setup::Transformation::ActionViewTransform => [:Export]},
+      # 'text.erb' => {Setup::Transformation::ActionViewTransform => [:Export]},
+      'ruby' => {Setup::Transformation::Ruby => [:Import, :Export, :Update, :Conversion]},
+      # 'pdf.prawn' => {Setup::Transformation::PrawnTransform => [:Export]},
       'chain' => {Setup::Transformation::ChainTransform => [:Conversion]}
     }
 
     EXPORT_MIME_FILTER = {
       'double_curly_braces' => ['application/json'],
-      'liquid' => ['application/json'],
-      'xslt' => ['application/xml'],
+      'xslt' => %w(application/xml text/html),
       'json.rabl' => ['application/json'],
       'xml.rabl' => ['application/xml'],
       'xml.builder' => ['application/xml'],
@@ -160,13 +164,30 @@ module Setup
       self.class.fields.keys.each { |key| context_options[key.to_sym] = send(key) }
       self.class.relations.keys.each { |key| context_options[key.to_sym] = send(key) }
       context_options[:data_type] = data_type
-      context_options.merge!(options) { |key, context_val, options_val| !context_val ? options_val : context_val }
+      context_options.merge!(options) { |_, context_val, options_val| !context_val ? options_val : context_val }
+      context_options[:transformation] = transformation
+
+      context_options[:target_data_type].regist_creation_listener(self) if context_options[:target_data_type]
+      context_options[:source_data_type].regist_creation_listener(self) if context_options[:source_data_type]
+      context_options[:translator] = self
 
       context_options[:result] = STYLES_MAP[style].keys.detect { |t| STYLES_MAP[style][t].include?(type) }.run(context_options)
+
+      context_options[:target_data_type].unregist_creation_listener(self) if context_options[:target_data_type]
+      context_options[:source_data_type].unregist_creation_listener(self) if context_options[:source_data_type]
 
       try("after_run_#{type.to_s.downcase}", context_options)
 
       context_options[:result]
+    end
+
+    def before_create(record)
+      record.instance_variable_set(:@discard_event_lookup, true) if discard_events
+      if type == :Conversion && discard_chained_records
+        record.orm_model.data_type == target_data_type
+      else
+        true
+      end
     end
 
     def context_options_for_import(options)
@@ -175,21 +196,35 @@ module Setup
     end
 
     def context_options_for_export(options)
-      raise Exception.new('Source data type not defined') unless data_type = source_data_type || options[:source_data_type]
-      model = data_type.records_model
-      offset = options[:offset] || 0
-      limit = options[:limit]
-      source_options =
-        if bulk_source
-          {sources: if object_ids = options[:object_ids]
-                      model.any_in(id: (limit ? object_ids[offset, limit] : object_ids.from(offset))).to_enum
-                    else
-                      (limit ? model.limit(limit) : model.all).skip(offset).to_enum
-                    end}
-        else
-          {source: options[:object] || ((id = (options[:object_id] || (options[:object_ids] && options[:object_ids][offset]))) && model.where(id: id).first) || model.all.skip(offset).first}
-        end
-      {source_data_type: data_type}.merge(source_options)
+      if data_type = source_data_type || options[:source_data_type]
+        model = data_type.records_model
+        offset = options[:offset] || 0
+        limit = options[:limit]
+        source_options =
+          if bulk_source
+            {
+              sources: if object_ids = options[:object_ids]
+                         model.any_in(id: (limit ? object_ids[offset, limit] : object_ids.from(offset))).to_enum
+                       else
+                         enum = (limit ? model.limit(limit) : model.all).skip(offset).to_enum
+                         options[:object_ids] = enum.collect { |obj| obj.id.is_a?(BSON::ObjectId) ? obj.id.to_s : obj.id }
+                         enum
+                       end
+            }
+          else
+            {
+              source:
+                begin
+                  obj = options[:object] || ((id = (options[:object_id] || (options[:object_ids] && options[:object_ids][offset]))) && model.where(id: id).first) || model.all.skip(offset).first
+                  options[:object_ids] = [obj.id.is_a?(BSON::ObjectId) ? obj.id.to_s : obj.id] unless options[:object_ids] || obj.nil?
+                  obj
+                end
+            }
+          end
+        {source_data_type: data_type}.merge(source_options)
+      else
+        {}
+      end
     end
 
     def context_options_for_update(options)
@@ -197,17 +232,7 @@ module Setup
     end
 
     def context_options_for_conversion(options)
-      raise Exception.new("Target data type #{target_data_type.title} is not loaded") unless target_data_type.loaded?
       {source: options[:object], target: style == 'chain' ? nil : target_data_type.records_model.new}
-    end
-
-    def after_run_import(options)
-      return unless targets = options[:targets]
-      targets.each do |target|
-        target.instance_variable_set(:@discard_event_lookup, options[:discard_events])
-        raise TransformingObjectException.new(target) unless Cenit::Utility.save(target)
-      end
-      options[:result] = targets
     end
 
     def after_run_update(options)
@@ -225,6 +250,18 @@ module Setup
         raise TransformingObjectException.new(target) unless Cenit::Utility.save(target)
       end
       options[:result] = target
+    end
+
+    def link?(call_symbol)
+      link(call_symbol).present?
+    end
+
+    def link(call_symbol)
+      Setup::Algorithm.where(name: call_symbol).first
+    end
+
+    def linker_id
+      't' + id.to_s
     end
   end
 

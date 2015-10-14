@@ -46,6 +46,15 @@ module Mongoff
         data
       end
 
+      def to_xml_element(options = {})
+        data = self.data
+        data_type = orm_model.data_type
+        unless (validator = data_type.validator).nil? || validator.data_format == :xml
+          data = validator.format_to(:xml, data, options)
+        end
+        Nokogiri::XML::Document.parse(data).root
+      end
+
       def to_edi(options = {})
         data = file.data
         data_type = orm_model.data_type

@@ -4,12 +4,14 @@ class Account
 
   belongs_to :owner, class_name: User.to_s, inverse_of: nil
   has_many :users, class_name: User.to_s, inverse_of: :account
-  has_many :connections, class_name: Setup::Connection.to_s, inverse_of: :account
 
   field :name, type: String
 
-  accepts_nested_attributes_for :owner
-  accepts_nested_attributes_for :users
+  belongs_to :tenant_account, class_name: Account.to_s, inverse_of: nil
+
+  def label
+    owner.present? ? owner.label : Account.to_s + '#' + id.to_s
+  end
 
   def owner?(user)
     owner == user
@@ -32,6 +34,7 @@ class Account
     def create_with_owner(params={})
       account = new(params)
       if account.save
+        account.owner.roles << ::Role.where(name: :admin).first
         account.users << account.owner
       end
       account
@@ -48,7 +51,17 @@ class Account
     end
 
     def tenant_collection_prefix(sep = '')
-      current.present? ? "acc#{current.id}#{sep}" : ''
+      if current.present?
+        acc_id =
+          if (user = current.owner) && user.super_admin? && current.tenant_account.present?
+            current.tenant_account.id
+          else
+            current.id
+          end
+        "acc#{acc_id}#{sep}"
+      else
+        ''
+      end
     end
 
     def tenant_collection_name(model_name, sep='_')

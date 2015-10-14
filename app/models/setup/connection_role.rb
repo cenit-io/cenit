@@ -6,11 +6,10 @@ module Setup
 
     field :name, :type => String
 
-    has_and_belongs_to_many :webhooks, class_name: Setup::Webhook.to_s, inverse_of: :connection_roles
-    has_and_belongs_to_many :connections, class_name: Setup::Connection.to_s, inverse_of: :connection_roles
+    has_and_belongs_to_many :webhooks, class_name: Setup::Webhook.to_s, inverse_of: :nil
+    has_and_belongs_to_many :connections, class_name: Setup::Connection.to_s, inverse_of: :nil
 
 
     validates_uniqueness_of :name
-    accepts_nested_attributes_for :webhooks
   end
 end

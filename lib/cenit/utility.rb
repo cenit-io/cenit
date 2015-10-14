@@ -29,7 +29,7 @@ module Cenit
 
     class << self
       def save(record, options = {})
-        saved = Set.new
+        saved = options[:saved_collector] || Set.new
         if bind_references(record)
           if save_references(record, options, saved) && record.save
             true
@@ -38,7 +38,7 @@ module Cenit
               obj.errors.each do |attribute, error|
                 attr_ref = "#{obj.orm_model.data_type.title}" +
                   ((name = obj.try(:name)) || (name = obj.try(:title)) ? " #{name} on attribute " : "'s '") +
-                  attribute.to_s + ((v = obj.try(attribute)) ? "'#{v}'" : '')
+                  attribute.to_s #TODO Truck and do html safe for long values, i.e, XML Schemas ---> + ((v = obj.try(attribute)) ? "'#{v}'" : '')
                 path = ''
                 stack.reverse_each do |node|
                   node[:record].errors.add(node[:attribute], "with error on #{path}#{attr_ref} (#{error})") if node[:referenced]
@@ -46,11 +46,15 @@ module Cenit
                 end
               end
             end
+            saved.delete_if { |obj| !obj.instance_variable_get(:@dynamically_created) }
+            for_each_node_starting_at(record) do |obj|
+              saved << obj if obj.instance_variable_get(:@dynamically_created)
+            end
             saved.each do |obj|
               if obj = obj.reload rescue nil
-                obj.delete if obj.instance_variable_get(:@dynamically_saved)
+                obj.delete
               end
-            end
+            end unless options.has_key?(:saved_collector)
             false
           end
         else
@@ -58,7 +62,7 @@ module Cenit
         end
       end
 
-      def bind_references(record)
+      def bind_references(record, options = {})
         references = {}
         for_each_node_starting_at(record) do |obj|
           if record_refs = obj.instance_variable_get(:@_references)
@@ -86,20 +90,30 @@ module Cenit
               references.delete(obj_waiting) if to_bind.empty?
             end
           end
-        end if references
+        end if references.present?
 
         for_each_node_starting_at(record, stack = []) do |obj|
           if to_bind = references[obj]
             to_bind.each do |property_name, property_binds|
-              property_binds = [property_binds] unless property_binds.is_a?(Array)
+              is_array = property_binds.is_a?(Array) ? true : (property_binds = [property_binds]; false)
               property_binds.each do |property_bind|
-                message = "reference not found with criteria #{property_bind[:criteria].to_json}"
-                obj.errors.add(property_name, message)
-                stack.each { |node| node[:record].errors.add(node[:attribute], message) }
+                if value = Cenit::Utility.find_record(obj.orm_model.property_model(property_name).all, property_bind[:criteria])
+                  if is_array
+                    if !(association = obj.send(property_name)).include?(value)
+                      association << value
+                    end
+                  else
+                    obj.send("#{property_name}=", value)
+                  end
+                elsif !options[:skip_error_report]
+                  message = "reference not found with criteria #{property_bind[:criteria].to_json}"
+                  obj.errors.add(property_name, message)
+                  stack.each { |node| node[:record].errors.add(node[:attribute], message) }
+                end
               end
             end
           end
-        end if references
+        end if references.present?
         record.errors.blank?
       end
 
@@ -132,27 +146,35 @@ module Cenit
       def save_references(record, options, saved, visited = Set.new)
         return true if visited.include?(record)
         visited << record
-        record.orm_model.for_each_association do |relation|
-          next if Setup::BuildInDataType::EXCLUDED_RELATIONS.include?(relation[:name].to_s)
-          if values = record.send(relation[:name])
-            values = [values] unless values.is_a?(Enumerable)
-            values.each { |value| return false unless save_references(value, options, saved, visited) }
-            values.each do |value|
-              unless saved.include?(value)
-                new_record = value.new_record?
-                if value.save(options)
-                  if new_record || value.instance_variable_get(:@dynamically_saved)
-                    value.instance_variable_set(:@dynamically_saved, true)
-                    options[:create_collector] << value if options[:create_collector]
-                  else
-                    options[:update_collector] << value if options[:update_collector]
-                  end
-                  saved << value
-                else
-                  return false
+        if model = record.try(:orm_model)
+          model.for_each_association do |relation|
+            next if Setup::BuildInDataType::EXCLUDED_RELATIONS.include?(relation[:name].to_s) || record.try(:auto_save_references_for?, relation[:name])
+            if values = record.send(relation[:name])
+              values = [values] unless values.is_a?(Enumerable)
+              values_to_save = []
+              values.each do |value|
+                unless visited.include?(value)
+                  return false unless save_references(value, options, saved, visited)
+                  values_to_save << value
                 end
               end
-            end unless relation[:embedded]
+              values_to_save.each do |value|
+                unless saved.include?(value)
+                  new_record = value.new_record?
+                  if value.save(options)
+                    if new_record || value.instance_variable_get(:@dynamically_created)
+                      value.instance_variable_set(:@dynamically_created, true)
+                      options[:create_collector] << value if options[:create_collector]
+                    else
+                      options[:update_collector] << value if options[:update_collector]
+                    end
+                    saved << value
+                  else
+                    return false
+                  end
+                end
+              end unless relation[:embedded]
+            end
           end
         end
         true
@@ -201,7 +223,7 @@ module Cenit
         when Hash
           if options[:recursive]
             obj.keys.each { |k| return false unless k.is_a?(String) }
-            obj.values.each { |k| return false unless json_object?(String) }
+            obj.values.each { |v| return false unless json_object?(v) }
           end
           true
         when Array
@@ -210,6 +232,60 @@ module Cenit
         else
           [Integer, Float, String, TrueClass, FalseClass, Boolean, NilClass].any? { |klass| obj.is_a?(klass) }
         end
+      end
+
+      def array_hash_merge(val1, val2, options = {}, &block)
+        if val1.is_a?(Array) && val2.is_a?(Array)
+          if options[:array_uniq]
+            (val2 + val1).uniq(&block)
+          else
+            val1 + val2
+          end
+        elsif val1.is_a?(Hash) && val2.is_a?(Hash)
+          val1.deep_merge(val2) { |_, val1, val2| array_hash_merge(val1, val2) }
+        else
+          val2
+        end
+      end
+
+      def json_value_of(value)
+        return value unless value.is_a?(String)
+        if value.blank?
+          nil
+        elsif value.start_with?('"') && value.end_with?('"')
+          value[1..value.length - 2]
+        elsif v = JSON.parse(value) rescue nil
+          v
+        elsif value == 'true'
+          true
+        elsif value == 'false'
+          false
+        elsif (v = value.to_i).to_s == value
+          v
+        elsif (v = value.to_f).to_s == value
+          v
+        else
+          value
+        end
+      end
+
+      def abs_uri(base_uri, uri)
+        uri = URI.parse(uri.to_s)
+        return uri.to_s unless uri.relative?
+
+        base_uri = URI.parse(base_uri.to_s)
+        uri = uri.to_s.split('/')
+        path = base_uri.path.split('/')
+        begin
+          path.pop
+        end while uri[0] == '..' ? uri.shift && true : false
+
+        path = (path + uri).join('/')
+
+        uri = URI.parse(path)
+        uri.scheme = base_uri.scheme
+        uri.host = base_uri.host
+        uri.to_s
       end
     end
   end

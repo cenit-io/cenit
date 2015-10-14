@@ -99,8 +99,8 @@ en:
         done: "converted"
         submit: "Convert"
         bulk_link: "Convert selected %{model_label_plural}"
-      delete_schema:
-        title: "Delete Schema '%{object_label}'"
+      delete_validator:
+        title: "Delete %{model_label} '%{object_label}'"
         menu: "Delete"
         breadcrumb: "Delete"
       delete_library:
@@ -154,6 +154,9 @@ en:
         fill_parameters: "Please fill the following parameters to pull the collection"
         update_warning: "The following objects will be updated"
         ready: "Ready to pull!"
+        nothing_to_pull: "Nothing to pull from here"
+        fixed_errors_header: "The following errors where fixed when pulling the collection"
+        missing_parameters: "Missing parameters"
       retry_notification:
         title: "Retry"
         menu: "Retry"
@@ -182,3 +185,25 @@ en:
         title: "Delete %{model_label} '%{object_label}'"
         menu: "Delete"
         breadcrumb: "Delete"
+      process_flow:
+        title: "Process"
+        menu: "Process"
+        done: "processed"
+      build_gem:
+        title: "Build Gem"
+        menu: "Build Gem"
+        done: "build"
+      run:
+        title: "Run"
+        menu: "Run"
+        submit: "Run"
+        breadcrumb: "Run"
+        done: "run"
+      user_info:
+        title: "My Profile"
+        menu: "My Profile"
+        breadcrumb: "My Profile"
+      authorize:
+        title: "Authorize"
+        menu: "Authorize"
+        breadcrumb: "Authorize"

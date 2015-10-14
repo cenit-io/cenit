@@ -16,7 +16,7 @@ module RailsAdmin
         end
 
         register_instance_option :visible do
-          authorized? && !bindings[:object].loaded?
+          authorized? && (obj = bindings[:object]) && !obj.loaded?
         end
 
         register_instance_option :controller do
@@ -35,8 +35,7 @@ module RailsAdmin
                 else
                   flash[:error] = ''.html_safe
                   report[:errors].each do |data_type, errors|
-                    flash[:error] += "<strong>Model '#{data_type.title}' could not be loaded</strong>".html_safe
-                    flash[:error] += %(<br>- #{errors.join('<br>- ')}<br>).html_safe
+                    do_flash(:error, "<strong>Model '#{data_type.title}' could not be loaded</strong>", errors, reset: false)
                   end
                 end
               rescue Exception => ex

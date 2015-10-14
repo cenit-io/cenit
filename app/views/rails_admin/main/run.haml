@@ -1,0 +1,33 @@
+%form{method: 'post', class: 'form-horizontal denser'}
+  -if @object.parameters.present?
+    .fieldset
+      .control-group{class: @error ? 'error' : ''}
+        %label.control-label
+          = 'Input'
+        .controls
+          %textarea{name: 'input', cols: 100, rows: 5}
+            = @input
+          - if @error
+            %span{class: 'help-inline'}
+              = @error
+  -elsif @error
+    - flash[:error] = @error
+  - if @output
+    .fieldset
+      .control-group
+        %label.control-label
+          = 'Output'
+        .controls
+          %textarea{wrap: 'soft', readonly: 'true', cols: 100, rows: 5}
+            = @output
+  .form-actions
+    %button.btn.btn-primary{type: 'submit', name: '_run', :'data-disable-with' => t('admin.actions.run.submit')}
+      - if (@object.parameters.empty? && !@object.try(:need_run_confirmation)) || params[:_run]
+        %i.icon-repeat
+      - else
+        %i{class: @action.try(:link_icon)}
+      = t('admin.actions.run.submit')
+    %span.extra_buttons
+      %button.btn{type: 'submit', name: '_continue', :'data-disable-with' => t('admin.form.cancel')}
+        %i.icon-remove
+        = t('admin.form.cancel')

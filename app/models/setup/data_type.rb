@@ -11,30 +11,35 @@ module Setup
 
     validates_presence_of :model_schema
 
-    before_save :validate_model
+    after_initialize { @validate_model_schema = new_record? }
+    before_validation { self.library = schema.library if schema }
 
-    def library
-      schema && schema.library
-    end
+    before_save :validate_model
 
     def validator
       schema
     end
 
+    def write_attribute(name, value)
+      @validate_model_schema = true if name.to_s == :model_schema.to_s && value != attributes[:model_schema]
+      super
+    end
+
     def validate_model
-      begin
-        puts "Validating schema '#{self.name}'"
-        json_schema, _ = validate_schema
-        fail Exception, 'defines invalid property name: _type' if object_schema?(json_schema) &&json_schema['properties']['_type']
-        check_id_property(json_schema)
-        self.title = json_schema['title'] || self.name if title.blank?
-        puts "Schema '#{self.name}' validation successful!"
-      rescue Exception => ex
-        #TODO Remove raise
-        #raise ex
-        puts "ERROR: #{errors.add(:model_schema, ex.message).to_s}"
+      if @validate_model_schema
+        begin
+          json_schema, _ = validate_schema
+          fail Exception, 'defines invalid property name: _type' if object_schema?(json_schema) &&json_schema['properties']['_type']
+          check_id_property(json_schema)
+          self.title = json_schema['title'] || self.name if title.blank?
+        rescue Exception => ex
+          #TODO Remove raise
+          #raise ex
+          errors.add(:model_schema, ex.message)
+        end
+        @collection_data_type = nil
+        @validate_model_schema = false
       end
-      @collection_data_type = nil
       errors.blank?
     end
 
@@ -63,15 +68,14 @@ module Setup
       json = JSON.parse(self.model_schema, :object_class => MultKeyHash)
       if json['type'] == 'object'
         check_schema(json, self.name, defined_types=[], embedded_refs={}, json)
-        puts "Defined types #{defined_types}"
-        puts "Embedded references #{embedded_refs}"
       end
       [json, embedded_refs]
     end
 
     def check_schema(json, name, defined_types, embedded_refs, root_schema)
-      if ref = json['$ref']
-        embedded_refs[ref] = check_embedded_ref(ref, root_schema) if ref.start_with?('#')
+      if refs = json['$ref']
+        refs = [refs] unless refs.is_a?(Array)
+        refs.each { |ref| embedded_refs[ref] = check_embedded_ref(ref, root_schema) if ref.start_with?('#') }
       elsif json['type'].nil? || json['type'].eql?('object')
         raise Exception.new("defines multiple properties with name '#{json.mult_key_def.first.to_s}'") if json.mult_key_def.present?
         defined_types << name
@@ -80,12 +84,14 @@ module Setup
           raise Exception.new('properties specification is invalid') unless properties.is_a?(MultKeyHash)
           raise Exception.new("defines multiple properties with name '#{properties.mult_key_def.first.to_s}'") if properties.mult_key_def.present?
           properties.each do |property_name, property_spec|
-            check_property_name(property_name)
-            raise Exception.new("specification of property '#{property_name}' is not valid") unless property_spec.is_a?(Hash)
-            if defined_types.include?(camelized_property_name = "#{name}::#{property_name.camelize}") && !(property_spec['$ref'] || 'object'.eql?(property_spec['type']))
-              raise Exception.new("'#{name.underscore}' already defines #{property_name} (use #/[definitions|properties]/#{property_name} instead)")
+            unless property_name == '$ref'
+              check_property_name(property_name)
+              raise Exception.new("specification of property '#{property_name}' is not valid") unless property_spec.is_a?(Hash)
+              if defined_types.include?(camelized_property_name = "#{name}::#{property_name.camelize}") && !(property_spec['$ref'] || 'object'.eql?(property_spec['type']))
+                raise Exception.new("'#{name.underscore}' already defines #{property_name} (use #/[definitions|properties]/#{property_name} instead)")
+              end
+              check_schema(property_spec, camelized_property_name, defined_types, embedded_refs, root_schema)
             end
-            check_schema(property_spec, camelized_property_name, defined_types, embedded_refs, root_schema)
           end
         end
         check_requires(json)
@@ -240,8 +246,9 @@ module Setup
             value_schema = schema['properties']['value'] || {}
             value_schema = base_schema.deep_merge(value_schema)
             schema['properties']['value'] = value_schema.merge('title' => 'Value', 'xml' => {'content' => true})
+            (schema['xml'] ||= {})['content_property'] = 'value'
           else
-            schema = base_schema.deep_merge(schema) { |key, val1, val2| array_hash_merge(val1, val2) }
+            schema = base_schema.deep_merge(schema) { |key, val1, val2| Cenit::Utility.array_hash_merge(val1, val2) }
           end
         end
       end
@@ -252,6 +259,9 @@ module Setup
       return klass unless created && klass.is_a?(Class)
 
       root ||= klass
+      unless mongoff_models = klass.instance_variable_get(:@mongoff_models)
+        klass.instance_variable_set(:@mongoff_models, mongoff_models = {})
+      end
 
       embedded_refs.each do |path, model_name|
         puts "Loading embedded ref #{path} -> #{model_name}"
@@ -288,6 +298,7 @@ module Setup
 
       if properties = schema['properties']
         raise Exception.new('properties definition is invalid') unless properties.is_a?(Hash)
+        properties = merge_schema(properties)
         schema['properties'].each do |property_name, property_desc|
           raise Exception.new("property '#{property_name}' definition is invalid") unless property_desc.is_a?(Hash)
           check_property_name(property_name)
@@ -300,51 +311,52 @@ module Setup
 
           while still_trying && ref = property_desc['$ref'] # property type contains a reference
             still_trying = false
-            if ref.start_with?('#') # an embedded reference
-              raise Exception.new("referencing embedded reference #{ref}") if referenced
-              property_type = check_embedded_ref(ref, schema, root.model_access_name)
-              if type_model = find_constant(property_type)
-                if type_model.is_a?(Class)
-                  v = "embeds_one :#{property_name}, class_name: '#{type_model.to_s}', inverse_of: :#{relation_name(model_name, property_name)}"
-                  reflect(type_model, "embedded_in :#{relation_name(model_name, property_name)}, class_name: '#{model_name}', inverse_of: :#{property_name}")
-                  nested << property_name
-                else
-                  v = "field :#{property_name}"
-                  validations << "validates_schema_of :#{property_name}, model: #{type_model}"
-                  unless mongoff_models = klass.instance_variable_get(:@mongoff_models)
-                    klass.instance_variable_set(:@mongoff_models, mongoff_models = {})
-                  end
-                  mongoff_models[property_name] = type_model
-                end
-              else
-                raise Exception.new("refers to an invalid JSON reference '#{ref}'")
-              end
-            else # an external reference
-              if MONGO_TYPES.include?(ref)
-                v = "field :#{property_name}, type: #{ref}"
-              else
-                if type_model = (find_or_load_model(report, ref) || find_constant(ref))
-                  unless type_model.is_a?(Class)
-                    #is a Mongoff model
-                    property_desc.delete('$ref')
-                    property_desc = property_desc.merge(JSON.parse(type_model.data_type.model_schema))
-                    type_model.affects_to(klass)
-                    still_trying = true
+            if ref.is_a?(String)
+              if ref.start_with?('#') # an embedded reference
+                raise Exception.new("referencing embedded reference #{ref}") if referenced
+                property_type = check_embedded_ref(ref, schema, root.model_access_name)
+                if type_model = find_constant(property_type)
+                  if type_model.is_a?(Class)
+                    v = "embeds_one :#{property_name}, class_name: '#{type_model.to_s}', inverse_of: :#{relation_name(model_name, property_name)}"
+                    reflect(type_model, "embedded_in :#{relation_name(model_name, property_name)}, class_name: '#{model_name}', inverse_of: :#{property_name}")
+                    nested << property_name
                   else
-                    if referenced
-                      v = "belongs_to :#{property_name}, class_name: '#{type_model.to_s}', inverse_of: nil"
-                      type_model.affects_to(klass)
-                    else
-                      v = "embeds_one :#{property_name}, class_name: '#{type_model.to_s}', inverse_of: :#{relation_name(model_name, property_name)}"
-                      reflect(type_model, "embedded_in :#{relation_name(model_name, property_name)}, class_name: '#{model_name}', inverse_of: :#{property_name}")
-                      #type_model.affects_to(klass)
-                      nested << property_name
-                    end
+                    v = "field :#{property_name}"
+                    validations << "validates_schema_of :#{property_name}, model: #{type_model}"
+                    mongoff_models[property_name] = type_model
                   end
                 else
-                  raise Exception.new("contains an unresolved reference: '#{ref}'")
+                  raise Exception.new("refers to an invalid JSON reference '#{ref}'")
+                end
+              else # an external reference
+                if MONGO_TYPES.include?(ref)
+                  v = "field :#{property_name}, type: #{ref}"
+                else
+                  if type_model = (find_or_load_model(report, ref) || find_constant(ref))
+                    unless type_model.is_a?(Class)
+                      #is a Mongoff model
+                      property_desc.delete('$ref')
+                      property_desc = property_desc.merge(JSON.parse(type_model.data_type.model_schema))
+                      type_model.affects_to(klass)
+                      still_trying = true
+                    else
+                      if referenced
+                        v = "belongs_to :#{property_name}, class_name: '#{type_model.to_s}', inverse_of: nil"
+                        type_model.affects_to(klass)
+                      else
+                        v = "embeds_one :#{property_name}, class_name: '#{type_model.to_s}', inverse_of: :#{relation_name(model_name, property_name)}"
+                        reflect(type_model, "embedded_in :#{relation_name(model_name, property_name)}, class_name: '#{model_name}', inverse_of: :#{property_name}")
+                        #type_model.affects_to(klass)
+                        nested << property_name
+                      end
+                    end
+                  else
+                    raise Exception.new("contains an unresolved reference: '#{ref}'")
+                  end
                 end
               end
+            else
+              property_desc = merge_schema(property_desc, expand_extends: false)
             end
           end
 
@@ -386,7 +398,7 @@ module Setup
         end
       end
 
-      nested.each { |n| reflect(klass, "accepts_nested_attributes_for :#{n}") }
+      nested.each { |n| reflect(klass, "accepts_nested_attributes_for :#{n}, allow_destroy: true") }
 
       puts "Parsing #{klass.schema_name} done!"
       klass
@@ -409,6 +421,9 @@ module Setup
 
     def process_non_ref(report, property_name, property_desc, klass, root, nested=[], enums={}, validations=[], required=[])
 
+      unless mongoff_models = klass.instance_variable_get(:@mongoff_models)
+        klass.instance_variable_set(:@mongoff_models, mongoff_models = {})
+      end
       property_desc = merge_schema(property_desc, expand_extends: false)
       model_name = klass.model_access_name
       still_trying = true
@@ -427,7 +442,7 @@ module Setup
           items_desc = merge_schema(items_desc, expand_extends: false) if items_desc['type'] || items_desc['properties']
           r = nil
           ir = ''
-          if (ref = items_desc['$ref']) && (!ref.start_with?('#') && property_desc['referenced'])
+          if (ref = items_desc['$ref']).is_a?(String) && (!ref.start_with?('#') && property_desc['referenced'])
             if (type_model = (find_or_load_model(report, property_type = ref) || find_constant(ref))).is_a?(Class)
               property_type = type_model.model_access_name
               r = :has_and_belongs_to_many
@@ -438,7 +453,7 @@ module Setup
             end
           else
             r = :embeds_many
-            if ref
+            if ref.is_a?(String)
               raise Exception.new("referencing embedded reference #{ref}") if property_desc['referenced']
               property_type = ref.start_with?('#') ? check_embedded_ref(ref, nil, root.to_s).singularize : ref
               type_model = find_or_load_model(report, property_type) || find_constant(property_type)
@@ -481,13 +496,16 @@ module Setup
             else # is a Mongoff Model
               v = "field :#{property_name}"
               validations << "validates_schema_of :#{property_name}, model: #{property_type}"
-              unless mongoff_models = klass.instance_variable_get(:@mongoff_models)
-                klass.instance_variable_set(:@mongoff_models, mongoff_models = {})
-              end
               mongoff_models[property_name] = type_model
             end
           end
           unless v
+            mongoff_models[property_name] = Mongoff::Model.for(data_type: self,
+                                                               name: property_name.camelize,
+                                                               parent: klass,
+                                                               schema: property_desc,
+                                                               cache: false,
+                                                               modelable: false)
             if property_type
               v = "field :#{property_name}, type: #{property_type}"
               v += ", default: \'#{property_desc['default']}\'" if property_desc['default']

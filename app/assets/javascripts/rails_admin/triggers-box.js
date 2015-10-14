@@ -11,6 +11,29 @@
             }
         },
 
+        update_triggers_menu: function() {
+            if (typeof fields != 'undefined') {
+                $("#triggers_box").html('');
+                var triggers_options = '';
+                if (fields != null) {
+                    for (var i = 0; i < fields.length; i++) {
+                        var field = fields[i];
+                        var options = '';
+                        for (var j = 0; j < field[2].length; j++) {
+                            options += "<option value=&quot;" + field[2][j] + "&quot;>" + field[2][j] + "</option> ";
+                        }
+                        triggers_options += '<li> <a data-field-label="' + field[0] + '" data-field-name="' + field[1] + '" data-field-options="' + options + '" data-field-type="' + field[3] + '" data-field-value="" href="#">' + field[0] + '</a></li>';
+                    }
+                    $("#triggers").html(triggers_options);
+                    $.triggers.load_defaults();
+                    $("#add_trigger").removeClass('disabled');
+                } else {
+                    $("#add_trigger").addClass('disabled');
+                }
+            }
+            $("#triggers").hide();
+        },
+
         load_defaults: function () {
             for (var p in default_triggers) {
                 for (var i = 0; i < fields.length; i++) {
@@ -37,8 +60,8 @@
         append: function (field_label, field_name, field_type, field_value, field_operator, field_options, index) {
 //            var value_name = 'a[triggers][' + field_name + '][v]';
 //            var operator_name = 'a[triggers][' + field_name + '][o]';
-            var value_name = 'setup_observer[triggers][' + field_name + '][' + index + '][v]';
-            var operator_name = 'setup_observer[triggers][' + field_name + '][' + index + '][o]';
+            var value_name = model_name + '[' + model_field_name + '][' + field_name + '][' + index + '][v]';
+            var operator_name = model_name + '[' + model_field_name + '][' + field_name + '][' + index + '][o]';
             var common_options = '<option ' + (field_operator == "_not_null" ? 'selected="selected"' : '') + ' value="_not_null">' + RailsAdmin.I18n.t("is_present") + '</option>' +
                 '<option ' + (field_operator == "_null" ? 'selected="selected"' : '') + ' value="_null" >' + RailsAdmin.I18n.t("is_blank") + '</option>' +
                 '<option ' + (field_operator == "_change" ? 'selected="selected"' : '') + ' value="_change"  >' + RailsAdmin.I18n.t("change") + '</option>' +
@@ -167,26 +190,11 @@
     });
 
     $(document).on('change', "#setup_observer_data_type_id", function (e) {
-        if (typeof fields != 'undefined') {
-            $("#triggers_box").html('');
-            var triggers_options = '';
-            if (fields != null) {
-                for (var i = 0; i < fields.length; i++) {
-                    var field = fields[i];
-                    var options = '';
-                    for (var j = 0; j < field[2].length; j++) {
-                        options += "<option value=&quot;" + field[2][j] + "&quot;>" + field[2][j] + "</option> ";
-                    }
-                    triggers_options += '<li> <a data-field-label="' + field[0] + '" data-field-name="' + field[1] + '" data-field-options="' + options + '" data-field-type="' + field[3] + '" data-field-value="" href="#">' + field[0] + '</a></li>';
-                }
-                $("#triggers").html(triggers_options);
-                $.triggers.load_defaults();
-                $("#add_trigger").removeClass('disabled');
-            } else {
-                $("#add_trigger").addClass('disabled');
-            }
-        }
-        $("#triggers").hide();
+        $.triggers.update_triggers_menu();
+    });
+
+    $(document).on('change', "#setup_flow_translator_id", function (e) {
+        $.triggers.update_triggers_menu();
     });
 
     $(document).on('click', "#add_trigger", function (e) {
@@ -195,15 +203,15 @@
         }
     });
 
-    $(document).on('click', "#new_setup_observer", function (e) {
+    $(document).on('click', ".pjax", function (e) {
         $("#triggers").hide();
     });
 
-    $(document).on('click', "#edit_setup_observer", function (e) {
+    $(document).on('click', ".control", function (e) {
         $("#triggers").hide();
     });
 
-    $(document).on('click', "#setup_observer_triggers_field", function (e) {
+    $(document).on('click', ".controls", function (e) {
         $("#triggers").hide();
     });
 })(jQuery);

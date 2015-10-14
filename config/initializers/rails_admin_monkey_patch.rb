@@ -172,7 +172,7 @@ module RailsAdmin
           data_type.reload
           schema = model.schema
           model_data_type = data_type.model.eql?(model) ? data_type : nil
-          title = model_data_type ? model_data_type.title : model.title
+          title = (model_data_type && model_data_type.title) || model.title
           {navigation_label: nil,
            visible: false,
            label: title}.each do |option, value|
@@ -187,7 +187,8 @@ module RailsAdmin
             properties['created_at'] = properties['updated_at'] = {'type' => 'string', 'format' => 'date-time', 'visible' => false}
             properties.each do |property, property_schema|
               if field =
-                if model.property_model(property).is_a?(Mongoff::Model)
+                if (property_model = model.property_model(property)).is_a?(Mongoff::Model) &&
+                  !%w(integer number string boolean).include?(property_model.schema['type'])
                   rails_admin_model.field(property, :json_schema)
                 else
                   begin
@@ -278,7 +279,19 @@ module RailsAdmin
     end
   end
 
+  module ApplicationHelper
+
+    def edit_user_link
+      return nil unless authorized?(:show, _current_user.class, _current_user) && _current_user.respond_to?(:email)
+      return nil unless abstract_model = RailsAdmin.config(_current_user.class).abstract_model
+      return nil unless show_action = RailsAdmin::Config::Actions.find(:show, controller: controller, abstract_model: abstract_model, object: _current_user)
+      link_to _current_user.email, url_for(action: show_action.action_name, model_name: abstract_model.to_param, id: _current_user.id, controller: 'rails_admin/main')
+    end
+
+  end
+
   class MainController
+
     def sanitize_params_for!(action, model_config = @model_config, target_params = params[@abstract_model.param_key])
       return unless target_params.present?
       fields = model_config.send(action).with(controller: self, view: view_context, object: @object).fields.select do |field|
@@ -306,6 +319,40 @@ module RailsAdmin
         format.html { render whereto, status: :not_acceptable }
         format.js { render whereto, layout: false, status: :not_acceptable }
       end
+    end
+
+    def do_flash(flash_key, header, messages, options = {})
+      do_flash_on(flash, flash_key, header, messages, options)
+    end
+
+    def do_flash_now(flash_key, header, messages, options = {})
+      do_flash_on(flash.now, flash_key, header, messages, options)
+    end
+
+    def do_flash_on(flash_hash, flash_key, header, messages, options = {})
+      options = (options || {}).reverse_merge(reset: true)
+      if options[:reset] || flash_hash[flash_key].nil?
+        flash_hash[flash_key] = header.html_safe
+      else
+        flash_hash[flash_key] += header.html_safe
+      end
+      max_message_count = options[:max] || 5
+      max_message_length = 500
+      max_length = 1500
+      messages = [messages] unless messages.is_a?(Enumerable)
+      msgs = messages[0..max_message_count].collect { |msg| msg.length < max_message_length ? msg : msg[0..max_message_length] + '...' }
+      count = 0
+      flash_message = ''
+      msgs.each do |msg|
+        if flash_message.length < max_length
+          flash_message += "<br>- #{msg}".html_safe
+          count += 1
+        end
+      end
+      if (count = messages.length - count) > 0
+        flash_hash[flash_key] += "<br>- and another #{count}.".html_safe
+      end
+      flash_hash[flash_key] = flash_message.html_safe
     end
   end
 

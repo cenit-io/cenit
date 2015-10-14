@@ -1,26 +1,11 @@
 module Xsd
   class Container < AttributedTag
+    include BoundedTag
 
-    attr_reader :max_occurs
-    attr_reader :min_occurs
     attr_reader :elements
 
-    def initialize(parent, attributes)
+    def initialize(args)
       super
-      _, max_occurs = attributes.detect { |a| a[0] == 'maxOccurs' }
-      @max_occurs =
-        if max_occurs
-          max_occurs == 'unbounded' ? :unbounded : max_occurs.to_i
-        else
-          1
-        end
-      _, min_occurs = attributes.detect { |a| a[0] == 'minOccurs' }
-      @min_occurs =
-        if min_occurs
-          min_occurs == 'unbounded' ? 0 : min_occurs.to_i
-        else
-          1
-        end
       @elements = []
     end
 
@@ -30,11 +15,16 @@ module Xsd
 
     %w{sequence choice all}.each do |container_tag|
       class_eval("def #{container_tag}_start(attributes = [])
-          Xsd::#{container_tag.capitalize}.new(self, attributes)
+          Xsd::#{container_tag.capitalize}.new(parent: self, attributes: attributes)
         end
       def when_#{container_tag}_end(container)
         @elements << container
       end")
+    end
+
+    def any_start(attributes = [])
+      @elements << Xsd::Any.new(parent: self, attributes: attributes)
+      nil
     end
 
     def to_json_schema

@@ -20,26 +20,25 @@ module RailsAdmin
         register_instance_option :controller do
           proc do
 
+            schemas = {}
+            data_types_count = 0
+            saved_schemas_ids = []
             if params[:_save] && data = params[:forms_import_schema_data]
               library = Setup::Library.where(id: data[:library_id]).first
               file = data[:file]
               base_uri = data[:base_uri]
               if (@object = Forms::ImportSchemaData.new(library: library, file: file, base_uri: base_uri)).valid?
                 if (i = (name = file.original_filename).rindex('.')) && name.from(i) == '.zip'
-                  schemas = []
-                  with_missing_includes = {}
                   begin
                     Zip::InputStream.open(StringIO.new(file.read)) do |zis|
                       while @object.errors.blank? && entry = zis.get_next_entry
                         if (schema = entry.get_input_stream.read).present?
-                          entry_uri = base_uri.blank? ? entry.name : "#{base_uri}/#{entry.name}"
-                          schema = Setup::Schema.new(library: library, uri: entry_uri, schema: schema)
-                          if schema.save
-                            schemas << schema
-                          elsif schema.include_missing?
-                            with_missing_includes[entry.name] = schema
-                          else
-                            @object.errors.add(:file, "contains invalid schema in zip entry #{entry.name}: #{schema.errors.full_messages.join(', ')}")
+                          uri = base_uri.blank? ? entry.name : "#{base_uri}/#{entry.name}"
+                          schemas[entry.name] = schema = Setup::Schema.new(library: library, uri: uri, schema: schema)
+                          begin
+                            schema.parse_schema
+                          rescue Exception => ex
+                            @object.errors.add(:file, "contains invalid schema #{entry.name}: #{ex.message}")
                           end
                         end
                       end
@@ -47,45 +46,44 @@ module RailsAdmin
                   rescue Exception => ex
                     @object.errors.add(:file, "Zip file format error: #{ex.message}")
                   end
-                  while @object.errors.blank? && with_missing_includes.present?
-                    with_missing_includes.each do |entry_name, schema|
-                      next if @object.errors.present?
-                      if schema.save
-                        schemas << schema
-                      elsif !schema.include_missing?
-                        @object.errors.add(:file, "contains invalid schema in zip entry #{entry_name}: #{schema.errors.full_messages.join(', ')}")
-                      end
-                    end
-                    unless with_missing_includes.size == with_missing_includes.delete_if { |_, schema| !schema.include_missing? }.size
-                      with_missing_includes.each do |entry_name, schema|
-                        @object.errors.add(:file, "contains invalid schema in zip entry #{entry_name}: #{schema.errors.full_messages.join(', ')}")
-                      end
-                    end
-                  end
-                  if @object.errors.blank?
-                    dts = 0;
-                    schemas.each { |schema| dts += schema.data_types.size }
-                    flash[:success] = "#{schemas.length} schemas and #{dts} data types successfully imported"
-                    redirect_to back_or_index
-                  else
-                    schemas.each(&:delete)
-                  end
                 else
-                  schema = Setup::Schema.new(library: library, uri: (base_uri.blank? ? file.original_filename : base_uri), schema: file.read)
-                  if schema.save
-                    redirect_to_on_success
-                  else
-                    @object.errors.add(:file, "is not a invalid schema: #{schema.errors.full_messages.join(', ')}")
-                  end
+                  uri = base_uri.blank? ? file.original_filename : base_uri
+                  schemas[uri] = Setup::Schema.new(library: library, uri: uri, schema: file.read)
                 end
               end
+              data_type_optimizer = Setup::DataTypeOptimizer.new_optimizer
+              library.set_schemas_scope(schemas.values)
+              schemas.values.each(&:bind_includes)
+              new_schemas_attributes = []
+              schemas.each do |entry_name, schema|
+                next unless @object.errors.blank?
+                if schema.save_data_types && schema.validates_configuration
+                  data_types_count += schema.data_types.size
+                  saved_schemas_ids << schema.id
+                  new_schemas_attributes << schema.attributes
+                else
+                  @object.errors.add(:file, "contains invalid schema #{entry_name}: #{schema.errors.full_messages.join(', ')}")
+                end
+              end
+              data_type_optimizer.save_data_types.each { |error| @object.errors.add(:file, error) }
+              begin
+                Setup::Schema.collection.insert(new_schemas_attributes)
+              rescue Exception => ex
+                @object.errors.add(:file, "schemas could not be saved: #{ex.message}")
+              end if @object.errors.blank? && new_schemas_attributes.present?
             end
 
-            @object ||= Forms::ImportSchemaData.new
-            @model_config = RailsAdmin::Config.model(Forms::ImportSchemaData)
-            if @object.errors.present?
-              flash.now[:error] = t('admin.flash.error', name: @model_config.label, action: t("admin.actions.#{@action.key}.done").html_safe).html_safe
-              flash.now[:error] += %(<br>- #{@object.errors.full_messages.join('<br>- ')}).html_safe
+            if @object && @object.errors.blank?
+              flash[:success] = "#{schemas.size} schemas and #{data_types_count} data types successfully imported"
+              redirect_to back_or_index
+            else
+              Setup::Schema.all.any_in(id: saved_schemas_ids).delete_all
+              Setup::DataType.all.any_in(schema_id: saved_schemas_ids).delete_all
+              @object ||= Forms::ImportSchemaData.new
+              @model_config = RailsAdmin::Config.model(Forms::ImportSchemaData)
+              if @object.errors.present?
+                do_flash(:error, t('admin.flash.error', name: @model_config.label, action: t("admin.actions.#{@action.key}.done").html_safe), @object.errors.full_messages)
+              end
             end
 
           end

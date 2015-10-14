@@ -5,6 +5,7 @@ module Mongoff
 
     attr_reader :orm_model
     attr_reader :document
+    attr_reader :fields
 
     def initialize(model, document = nil, new_record = true)
       @orm_model = model
@@ -26,10 +27,6 @@ module Mongoff
 
     def id
       self[:_id]
-    end
-
-    def schema
-      orm_model.schema
     end
 
     def is_a?(model)
@@ -142,6 +139,10 @@ module Mongoff
       else
         super
       end
+    end
+
+    def auto_save_references_for?(relation)
+      false
     end
 
     protected

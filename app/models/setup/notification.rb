@@ -2,6 +2,8 @@ module Setup
   class Notification
     include CenitScoped
 
+    BuildInDataType.regist(self)
+
     Setup::Models.exclude_actions_for self, :new, :edit, :update
 
     belongs_to :flow, class_name: Setup::Flow.to_s, inverse_of: nil
@@ -12,7 +14,7 @@ module Setup
     field :exception_message, type: String
 
     def can_retry?
-      exception_message.present?
+      (message && exception_message).present?
     end
 
     def retry

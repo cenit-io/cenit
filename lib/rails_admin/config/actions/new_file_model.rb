@@ -35,8 +35,7 @@ module RailsAdmin
               @file_model.instance_variable_set(:@_selecting_library, @file_model.library.blank?)
               @model_config = file_model_config
               if params[:_save] && @file_model.errors.present?
-                flash.now[:error] = t('admin.flash.error', name: @model_config.label, action: t("admin.actions.#{@action.key}.done").html_safe).html_safe
-                flash.now[:error] += %(<br>- #{@file_model.errors.full_messages.join('<br>- ')}).html_safe
+                do_flash(:error, t('admin.flash.error', name: @model_config.label, action: t("admin.actions.#{@action.key}.done").html_safe), @file_model.errors.full_messages)
               end
             end
 

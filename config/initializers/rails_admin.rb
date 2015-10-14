@@ -12,7 +12,7 @@
  RailsAdmin::Config::Actions::DeleteAll,
  RailsAdmin::Config::Actions::TranslatorUpdate,
  RailsAdmin::Config::Actions::Convert,
- RailsAdmin::Config::Actions::DeleteSchema,
+ RailsAdmin::Config::Actions::DeleteValidator,
  RailsAdmin::Config::Actions::DeleteLibrary,
  RailsAdmin::Config::Actions::SimpleShare,
  RailsAdmin::Config::Actions::BulkShare,
@@ -21,9 +21,14 @@
  RailsAdmin::Config::Actions::NewFileModel,
  RailsAdmin::Config::Actions::UploadFile,
  RailsAdmin::Config::Actions::DownloadFile,
- RailsAdmin::Config::Actions::DeleteDataType].each { |a| RailsAdmin::Config::Actions.register(a) }
+ RailsAdmin::Config::Actions::DeleteDataType,
+ RailsAdmin::Config::Actions::ProcessFlow,
+ RailsAdmin::Config::Actions::BuildGem,
+ RailsAdmin::Config::Actions::Run,
+ RailsAdmin::Config::Actions::Authorize].each { |a| RailsAdmin::Config::Actions.register(a) }
 
 RailsAdmin::Config::Actions.register(:export, RailsAdmin::Config::Actions::EdiExport)
+RailsAdmin::Config::Fields::Types.register(RailsAdmin::Config::Fields::Types::JsonValue)
 RailsAdmin::Config::Fields::Types.register(RailsAdmin::Config::Fields::Types::JsonSchema)
 {
   config: {
@@ -41,8 +46,6 @@ RailsAdmin.config do |config|
   ## == PaperTrail ==
   # config.audit_with :paper_trail, 'User', 'PaperTrail::Version' # PaperTrail >= 3.0.0
 
-  config.excluded_models += [Account, Setup::Validator]
-
   ### More at https://github.com/sferik/rails_admin/wiki/Base-configuration
   config.authenticate_with do
     warden.authenticate! scope: :user
@@ -53,10 +56,10 @@ RailsAdmin.config do |config|
 
   config.actions do
     dashboard # mandatory
-    memory_usage
-    disk_usage
+    # memory_usage
+    # disk_usage
     index # mandatory
-    new { except [Setup::Event, Role] }
+    new { except [Setup::Event] }
     new_file_model
     import
     import_schema
@@ -66,25 +69,29 @@ RailsAdmin.config do |config|
     #  only 'Setup::DataType'
     #end
     export
-    bulk_delete { except [Role] }
+    bulk_delete
     show
-    edit { except [Role] }
+    run
+    edit
     simple_share
     bulk_share
+    build_gem
     pull_collection
     upload_file
     download_file
     load_model
     shutdown_model
+    process_flow
+    authorize
     delete_data_type
-    delete { except [Role] }
-    delete_schema
+    delete
+    delete_validator
     delete_library
     #show_in_app
     send_to_flow
     test_transformation
     switch_navigation
-    delete_all { except [Role] }
+    delete_all
     data_type
     retry_notification
 
@@ -96,14 +103,8 @@ RailsAdmin.config do |config|
     end
   end
 
-  config.model Role do
-    weight -20
-    navigation_label 'Account'
-    show do
-      field :name
-      field :_id
-    end
-    fields :name
+  config.model Setup::Validator do
+    visible false
   end
 
   config.model Setup::Library do
@@ -117,10 +118,12 @@ RailsAdmin.config do |config|
 
     edit do
       field :name
+      field :slug
     end
 
     show do
       field :name
+      field :slug
       field :schemas
       field :file_data_types
 
@@ -131,11 +134,11 @@ RailsAdmin.config do |config|
       #field :updater
     end
 
-    fields :name, :schemas, :file_data_types
+    fields :name, :slug, :schemas, :file_data_types
   end
 
   config.model Setup::Schema do
-    object_label_method { :on_library_title }
+    object_label_method { :custom_title }
     navigation_label 'Data Definitions'
     register_instance_option(:after_form_partials) do
       %w(shutdown_and_reload)
@@ -196,15 +199,17 @@ RailsAdmin.config do |config|
   config.model Setup::Model do
     label 'Data type'
     label_plural 'Data types'
-    object_label_method { :on_library_title }
+    object_label_method { :custom_title }
     navigation_label 'Data Definitions'
     weight -17
 
     configure :title do
       pretty_value do
-        bindings[:object].on_library_title
+        bindings[:object].custom_title
       end
     end
+
+    configure :slug
 
     configure :validator, :text do
       pretty_value do
@@ -225,10 +230,15 @@ RailsAdmin.config do |config|
       read_only true
     end
 
+    edit do
+      field :title
+    end
+
     list do
       field :title
       field :validator
       field :name
+      field :slug
       field :used_memory do
         pretty_value do
           unless max = bindings[:controller].instance_variable_get(:@max_used_memory)
@@ -243,6 +253,7 @@ RailsAdmin.config do |config|
     show do
       field :title
       field :name
+      field :slug
       field :activated
       field :validator
       field :model_schema do
@@ -272,13 +283,14 @@ RailsAdmin.config do |config|
   config.model Setup::EdiValidator do
     label 'EDI Validators'
     navigation_label 'Data Definitions'
-    edit do
-      field :name
-      field :schema
-      field :content_type do
 
-      end
-    end
+    fields :name, :schema, :content_type
+  end
+
+  config.model Setup::AlgorithmValidator do
+    navigation_label 'Data Definitions'
+
+    fields :name, :algorithm
   end
 
   config.model Setup::FileDataType do
@@ -303,14 +315,18 @@ RailsAdmin.config do |config|
       field :validator do
         inline_add false
         inline_edit false
+        associated_collection_scope do
+          Proc.new { |scope| scope.any_in(_type: [Setup::Schema.to_s, Setup::EdiValidator.to_s]) }
+        end
       end
+      field :validators
     end
     fields :name, :library, :validator
   end
 
   config.model Setup::DataType do
     visible false
-    object_label_method { :on_library_title }
+    object_label_method { :custom_title }
     navigation_label 'Data Definitions'
     weight -17
 
@@ -329,7 +345,7 @@ RailsAdmin.config do |config|
       group :model_definition
       help ''
       pretty_value do
-        bindings[:object].on_library_title
+        bindings[:object].custom_title
       end
     end
 
@@ -438,6 +454,11 @@ RailsAdmin.config do |config|
       group :parameters
       visible { bindings[:view]._current_user.has_role? :admin }
     end
+    configure :oauth2_authorization do
+      group :parameters
+      inline_edit false
+      visible { bindings[:view]._current_user.has_role? :admin }
+    end
 
     show do
       field :name
@@ -449,6 +470,7 @@ RailsAdmin.config do |config|
       field :parameters
       field :headers
       field :template_parameters
+      field :oauth2_authorization
 
       field :_id
       field :created_at
@@ -457,7 +479,7 @@ RailsAdmin.config do |config|
       #field :updater
     end
 
-    fields :name, :url, :parameters, :headers, :template_parameters, :key, :token
+    fields :name, :url, :parameters, :headers, :template_parameters, :oauth2_authorization, :key, :token
   end
 
   config.model Setup::Parameter do
@@ -507,7 +529,7 @@ RailsAdmin.config do |config|
     configure :path, :string do
       help "Requiered. Path of the webhook relative to connection URL."
       html_attributes do
-        {maxlength: 50, size: 50}
+        {maxlength: 255, size: 100}
       end
     end
     group :parameters do
@@ -575,13 +597,19 @@ RailsAdmin.config do |config|
         inline_edit false
         inline_add false
       end
-      field :translator
+      field :translator do
+        help 'Required'
+      end
       field :custom_data_type do
         inline_edit false
         inline_add false
         visible do
-          if (f = bindings[:object]).translator.present? && f.translator.data_type.nil?
+          if (f = bindings[:object]).custom_data_type.present?
+            f.nil_data_type = false
+          end
+          if f.translator.present? && f.translator.data_type.nil? && !f.nil_data_type
             f.instance_variable_set(:@selecting_data_type, f.custom_data_type = f.event && f.event.try(:data_type)) unless f.data_type
+            f.nil_data_type = f.translator.type == :Export && (params = (controller = bindings[:controller]).params) && (params = params[controller.abstract_model.param_key]) && params[:custom_data_type_id].blank? && params.keys.include?(:custom_data_type_id.to_s)
             true
           else
             false
@@ -598,10 +626,36 @@ RailsAdmin.config do |config|
             'Data type'
           end
         end
-        help 'Required'
+        help do
+          if bindings[:object].nil_data_type
+            ''
+          elsif (translator = bindings[:object].translator) && [:Export, :Conversion].include?(translator.type)
+            'Optional'
+          else
+            'Required'
+          end
+        end
+      end
+      field :nil_data_type do
+        visible { bindings[:object].nil_data_type }
+        label do
+          if (translator = bindings[:object].translator)
+            if [:Export, :Conversion].include?(translator.type)
+              'No source data type'
+            else
+              'No target data type'
+            end
+          else
+            'No data type'
+          end
+        end
       end
       field :data_type_scope do
-        visible { (f = bindings[:object]).translator.present? && f.translator.type != :Import && f.data_type && !f.instance_variable_get(:@selecting_data_type) }
+        visible do
+          bindings[:controller].instance_variable_set(:@_data_type, bindings[:object].data_type)
+          bindings[:controller].instance_variable_set(:@_update_field, 'translator_id')
+          (f = bindings[:object]).translator.present? && f.translator.type != :Import && f.data_type && !f.instance_variable_get(:@selecting_data_type)
+        end
         label do
           if (translator = bindings[:object].translator)
             if [:Export, :Conversion].include?(translator.type)
@@ -615,19 +669,24 @@ RailsAdmin.config do |config|
         end
         help 'Required'
       end
+      field :scope_filter do
+        visible { bindings[:object].scope_symbol == :filtered }
+        partial 'form_triggers'
+        help false
+      end
       field :lot_size do
-        visible { (f = bindings[:object]).translator.present? && f.translator.type == :Export && f.data_type_scope && f.scope_symbol != :event_source }
+        visible { (f = bindings[:object]).translator.present? && f.translator.type == :Export && !f.nil_data_type && f.data_type_scope && f.scope_symbol != :event_source }
       end
       field :webhook do
-        visible { (translator = bindings[:object].translator) && (translator.type == :Import || (translator.type == :Export && bindings[:object].data_type_scope.present?)) }
+        visible { (translator = (f = bindings[:object]).translator) && (translator.type == :Import || (translator.type == :Export && (bindings[:object].data_type_scope.present? || f.nil_data_type))) }
         help 'Required'
       end
       field :connection_role do
-        visible { (translator = bindings[:object].translator) && (translator.type == :Import || (translator.type == :Export && bindings[:object].data_type_scope.present?)) }
-        help 'Required'
+        visible { (translator = (f = bindings[:object]).translator) && (translator.type == :Import || (translator.type == :Export && (bindings[:object].data_type_scope.present? || f.nil_data_type))) }
+        help 'Optional'
       end
       field :response_translator do
-        visible { (translator = bindings[:object].translator) && translator.type == :Export && bindings[:object].ready_to_save? }
+        visible { (translator = (f = bindings[:object]).translator) && (translator.type == :Export && (bindings[:object].data_type_scope.present? || f.nil_data_type)) && f.ready_to_save? }
         associated_collection_scope do
           Proc.new { |scope|
             scope.where(type: :Import)
@@ -641,7 +700,7 @@ RailsAdmin.config do |config|
         help ''
       end
       field :discard_events do
-        visible { bindings[:object].response_translator.present? && bindings[:object].ready_to_save? }
+        visible { (((obj = bindings[:object]).translator && obj.translator.type == :Import) || obj.response_translator.present?) && bindings[:object].ready_to_save? }
         help "Events won't be fired for created or updated records if checked"
       end
       field :active do
@@ -688,7 +747,7 @@ RailsAdmin.config do |config|
       field :name
       field :data_type do
         associated_collection_scope do
-          bindings[:controller].instance_variable_set(:@_data_type, data_type = bindings[:object].data_type)
+          data_type = bindings[:object].data_type
           Proc.new { |scope|
             if data_type
               scope.where(id: data_type.id)
@@ -699,7 +758,11 @@ RailsAdmin.config do |config|
         end
       end
       field :triggers do
-        visible { bindings[:object].data_type.present? }
+        visible do
+          bindings[:controller].instance_variable_set(:@_data_type, data_type = bindings[:object].data_type)
+          bindings[:controller].instance_variable_set(:@_update_field, 'data_type_id')
+          data_type.present?
+        end
         partial 'form_triggers'
         help false
       end
@@ -803,6 +866,7 @@ RailsAdmin.config do |config|
 
       field :style do
         visible { bindings[:object].type.present? }
+        help 'Required'
       end
 
       field :bulk_source do
@@ -875,7 +939,11 @@ RailsAdmin.config do |config|
       field :style
       field :mime_type
       field :file_extension
-      field :transformation
+      field :transformation do
+        pretty_value do
+          "<pre><code class='ruby'>#{value}</code></pre>".html_safe
+        end
+      end
       field :source_exporter
       field :target_importer
       field :discard_chained_records
@@ -890,17 +958,49 @@ RailsAdmin.config do |config|
     fields :name, :type, :style, :transformation
   end
 
+  config.model Setup::SharedName do
+    visible { false }
+    navigation_label 'Collections'
+    fields :name, :owners
+  end
+
+  config.model Script do
+    navigation_label 'Administration'
+
+    edit do
+      field :name
+      field :description
+      field :code, :code_mirror
+    end
+
+    show do
+      field :name
+      field :description
+      field :code do
+        pretty_value do
+          "<pre><code class='ruby'>#{value}</code></pre>".html_safe
+        end
+      end
+    end
+
+    fields :name, :description, :code
+  end
+
   config.model Setup::SharedCollection do
     register_instance_option(:discard_submit_buttons) do
       !(a = bindings[:action]) || a.key != :edit
     end
     navigation_label 'Collections'
+    object_label_method { :versioned_name }
     weight -19
     edit do
       field :image do
         visible { !bindings[:object].new_record? }
       end
       field :name
+      field :shared_version
+      field :authors
+      field :summary
       field :description
       field :source_collection do
         visible { !((source_collection = bindings[:object].source_collection) && source_collection.new_record?) }
@@ -931,7 +1031,7 @@ RailsAdmin.config do |config|
             ids = ''
             [value].flatten.select(&:present?).collect do |associated|
               ids += "<option value=#{associated.id} selected=true/>"
-              amc = polymorphic? ? RailsAdmin.config(associated) : associated_model_config # perf optimization for non-polymorphic associations
+              amc = polymorphic? ? RailsAdmin.config(associated) : associated_model_config
               am = amc.abstract_model
               wording = associated.send(amc.object_label_method)
               can_see = !am.embedded? && (show_action = v.action(:show, am, associated))
@@ -953,28 +1053,85 @@ RailsAdmin.config do |config|
           }
         end
       end
+      field :dependencies do
+        inline_add false
+        read_only do
+          !bindings[:object].instance_variable_get(:@_selecting_connections)
+        end
+        help do
+          nil
+        end
+        pretty_value do
+          if bindings[:object].dependencies.present?
+            v = bindings[:view]
+            ids = ''
+            [value].flatten.select(&:present?).collect do |associated|
+              ids += "<option value=#{associated.id} selected=true/>"
+              amc = polymorphic? ? RailsAdmin.config(associated) : associated_model_config
+              am = amc.abstract_model
+              wording = associated.send(amc.object_label_method)
+              can_see = !am.embedded? && (show_action = v.action(:show, am, associated))
+              can_see ? v.link_to(wording, v.url_for(action: show_action.action_name, model_name: am.to_param, id: associated.id), class: 'pjax') : wording
+            end.to_sentence.html_safe +
+              v.select_tag("#{bindings[:controller].instance_variable_get(:@model_config).abstract_model.param_key}[dependency_ids][]", ids.html_safe, multiple: true, style: 'display:none').html_safe
+          else
+            'No dependencies selected'.html_safe
+          end
+        end
+        visible do
+          !(obj = bindings[:object]).instance_variable_get(:@_selecting_collection)
+        end
+      end
       field :pull_parameters do
         visible do
-          !(obj = bindings[:object]).instance_variable_get(:@_selecting_collection) &&
+          if !(obj = bindings[:object]).instance_variable_get(:@_selecting_collection) &&
             !obj.instance_variable_get(:@_selecting_connections) &&
-            obj.enum_for_pull_parameters.present?
+            (pull_parameters_enum = obj.enum_for_pull_parameters).present?
+            bindings[:controller].instance_variable_set(:@shared_parameter_enum, pull_parameters_enum)
+            true
+          else
+            false
+          end
         end
       end
     end
     show do
       field :image
-      field :name
+      field :name do
+        pretty_value do
+          bindings[:object].versioned_name
+        end
+      end
       field :category
+      field :summary
       field :description
+      field :authors
+      field :dependencies
 
+      field :_id
       field :created_at
-      field :creator
       field :updated_at
     end
-    fields :image, :name, :category, :creator, :description
+    list do
+      field :image
+      field :name do
+        pretty_value do
+          bindings[:object].versioned_name
+        end
+      end
+      field :category
+      field :authors
+      field :summary
+      field :dependencies
+    end
+  end
+
+  config.model Setup::CollectionAuthor do
+    object_label_method { :label }
   end
 
   config.model Setup::CollectionPullParameter do
+    object_label_method { :label }
     field :label
     field :parameter, :enum do
       enum do
@@ -1007,6 +1164,8 @@ RailsAdmin.config do |config|
       field :translators
       field :events
       field :libraries
+      field :custom_validators
+      field :algorithms
       field :webhooks
       field :connections
 
@@ -1016,6 +1175,341 @@ RailsAdmin.config do |config|
       field :updated_at
       #field :updater
     end
-    fields :image, :name, :flows, :connection_roles, :translators, :events, :libraries, :webhooks, :connections
+    fields :image, :name, :flows, :connection_roles, :translators, :events, :libraries, :custom_validators, :algorithms, :webhooks, :connections
+  end
+
+  config.model Setup::CustomValidator do
+    visible false
+  end
+
+  config.model Setup::Integration do
+    edit do
+      field :name
+      field :pull_connection
+      field :pull_event do
+        inline_add { false }
+        inline_edit { false }
+      end
+      field :data_type
+      field :receiver_connection
+    end
+    show do
+      field :name
+      field :pull_connection
+      field :pull_flow
+      field :pull_event
+      field :pull_translator
+      field :data_type
+      field :send_translator
+      field :send_flow
+      field :receiver_connection
+    end
+    fields :name, :pull_connection, :pull_flow, :pull_event, :pull_translator, :data_type, :send_translator, :send_flow, :receiver_connection
+  end
+
+  config.model Setup::Algorithm do
+    object_label_method { :custom_title }
+    edit do
+      field :name_space
+      field :name
+      field :description
+      field :parameters
+      field :code, :code_mirror
+      field :call_links do
+        visible { bindings[:object].call_links.present? }
+      end
+    end
+    show do
+      field :name_space
+      field :name
+      field :description
+      field :parameters
+      field :code do
+        pretty_value do
+          "<pre><code class='ruby'>#{value}</code></pre>".html_safe
+        end
+      end
+    end
+    fields :name_space, :name, :description, :parameters, :call_links
+  end
+
+  config.model Setup::CallLink do
+    edit do
+      field :name do
+        read_only true
+        help { nil }
+        label 'Call name'
+      end
+      field :link do
+        inline_add false
+        inline_edit false
+        help { nil }
+      end
+    end
+    fields :name, :link
+  end
+
+  config.model Role do
+    navigation_label 'Administration'
+    fields :name, :users
+  end
+
+  config.model User do
+    navigation_label 'Administration'
+    object_label_method { :label }
+
+    group :credentials do
+      label 'Credentials'
+      active true
+    end
+
+    group :activity do
+      label 'Activity'
+      active true
+    end
+
+    configure :name
+    configure :email
+    configure :roles
+    configure :password do
+      group :credentials
+    end
+    configure :password_confirmation do
+      group :credentials
+    end
+    configure :key do
+      group :credentials
+    end
+    configure :authentication_token do
+      group :credentials
+    end
+    configure :confirmed_at do
+      group :activity
+    end
+    configure :sign_in_count do
+      group :activity
+    end
+    configure :current_sign_in_at do
+      group :activity
+    end
+    configure :last_sign_in_at do
+      group :activity
+    end
+    configure :current_sign_in_ip do
+      group :activity
+    end
+    configure :last_sign_in_ip do
+      group :activity
+    end
+
+    edit do
+      field :name
+      field :email do
+        visible { User.current.super_admin? }
+      end
+      field :roles do
+        visible { User.current.super_admin? }
+      end
+      field :password do
+        visible { User.current.super_admin? }
+      end
+      field :password_confirmation do
+        visible { User.current.super_admin? }
+      end
+      field :key do
+        visible { !bindings[:object].new_record? && User.current.super_admin? }
+      end
+      field :authentication_token do
+        visible { !bindings[:object].new_record? && User.current.super_admin? }
+      end
+      field :confirmed_at do
+        visible { !bindings[:object].new_record? && User.current.super_admin? }
+      end
+      field :sign_in_count do
+        visible { !bindings[:object].new_record? && User.current.super_admin? }
+      end
+      field :current_sign_in_at do
+        visible { !bindings[:object].new_record? && User.current.super_admin? }
+      end
+      field :last_sign_in_at do
+        visible { !bindings[:object].new_record? && User.current.super_admin? }
+      end
+      field :current_sign_in_ip do
+        visible { !bindings[:object].new_record? && User.current.super_admin? }
+      end
+      field :last_sign_in_ip do
+        visible { !bindings[:object].new_record? && User.current.super_admin? }
+      end
+    end
+
+    show do
+      field :name
+      field :email
+      field :roles
+      field :key
+      field :authentication_token
+      field :sign_in_count
+      field :current_sign_in_at
+      field :last_sign_in_at
+      field :current_sign_in_ip
+      field :last_sign_in_ip
+    end
+  end
+
+  config.model Account do
+    navigation_label 'Administration'
+    object_label_method { :label }
+
+    fields :name, :owner, :tenant_account, :number, :users
+  end
+
+  config.model Setup::SharedName do
+    navigation_label 'Administration'
+
+    fields :name, :owners
+  end
+
+  config.model CenitToken do
+    navigation_label 'Administration'
+  end
+
+  config.model TkAptcha do
+    navigation_label 'Administration'
+  end
+
+  config.model Setup::BaseOauthProvider do
+    navigation_label 'OAuth'
+
+    fields :name, :response_type, :authorization_endpoint, :token_endpoint, :token_method, :parameters, :clients
+  end
+
+  config.model Setup::OauthProvider do
+    fields :name, :response_type, :authorization_endpoint, :token_endpoint, :token_method, :request_token_endpoint, :parameters, :clients
+  end
+
+  config.model Setup::Oauth2Provider do
+    fields :name, :response_type, :authorization_endpoint, :token_endpoint, :token_method, :parameters, :clients, :scope_separator, :scopes
+  end
+
+  config.model Setup::OauthParameter do
+    navigation_label 'OAuth'
+    object_label_method { :to_s }
+    fields :key, :value
+  end
+
+  config.model Setup::OauthClient do
+    navigation_label 'OAuth'
+
+    fields :name, :provider, :identifier, :secret
+  end
+
+  config.model Setup::Oauth2Scope do
+    navigation_label 'OAuth'
+
+    fields :name, :description, :provider
+  end
+
+  config.model Setup::BaseOauthAuthorization do
+    label 'Authorizations'
+    fields :name, :provider, :client
+  end
+
+  config.model Setup::OauthAuthorization do
+    edit do
+      field :name
+      field :provider do
+        inline_add false
+        inline_edit false
+        associated_collection_scope do
+          provider = (obj = bindings[:object]) && obj.provider
+          Proc.new { |scope|
+            if provider
+              scope.any_in(id: provider.id, _type: Setup::OauthProvider.to_s)
+            else
+              scope
+            end
+          }
+        end
+      end
+      field :client do
+        inline_add false
+        inline_edit false
+        visible do
+          if ((obj = bindings[:object]) && obj.provider).present?
+            obj.client = obj.provider.clients.first if obj.client.blank?
+            true
+          else
+            false
+          end
+        end
+        associated_collection_scope do
+          provider = ((obj = bindings[:object]) && obj.provider) || nil
+          Proc.new { |scope|
+            if provider
+              scope.where(provider_id: provider.id)
+            else
+              scope
+            end
+          }
+        end
+      end
+    end
+
+  end
+
+  config.model Setup::Oauth2Authorization do
+    edit do
+      field :name
+      field :provider do
+        inline_add false
+        inline_edit false
+        associated_collection_scope do
+          provider = (obj = bindings[:object]) && obj.provider
+          Proc.new { |scope|
+            if provider
+              scope.any_in(id: provider.id, _type: Setup::Oauth2Provider.to_s)
+            else
+              scope
+            end
+          }
+        end
+      end
+      field :client do
+        inline_add false
+        inline_edit false
+        visible do
+          if ((obj = bindings[:object]) && obj.provider).present?
+            obj.client = obj.provider.clients.first if obj.client.blank?
+            true
+          else
+            false
+          end
+        end
+        associated_collection_scope do
+          provider = ((obj = bindings[:object]) && obj.provider) || nil
+          Proc.new { |scope|
+            if provider
+              scope.where(provider_id: provider.id)
+            else
+              scope
+            end
+          }
+        end
+      end
+      field :scopes do
+        visible { ((obj = bindings[:object]) && obj.provider).present? }
+        associated_collection_scope do
+          provider = ((obj = bindings[:object]) && obj.provider) || nil
+          Proc.new { |scope|
+            if provider
+              scope.where(provider_id: provider.id)
+            else
+              scope
+            end
+          }
+        end
+      end
+    end
+
   end
 end

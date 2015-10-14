@@ -1,11 +1,11 @@
 module Setup
   class Collection
     include CenitScoped
+    include CollectionName
 
-    BuildInDataType.regist(self).embedding(:flows, :connection_roles, :translators, :events, :libraries, :webhooks, :connections).excluding(:image)
+    BuildInDataType.regist(self).embedding(:flows, :connection_roles, :translators, :events, :libraries, :custom_validators, :algorithms, :webhooks, :connections).excluding(:image)
 
     mount_uploader :image, CenitImageUploader
-    field :name, type: String
 
     has_and_belongs_to_many :flows, class_name: Setup::Flow.to_s, inverse_of: nil
     has_and_belongs_to_many :connection_roles, class_name: Setup::ConnectionRole.to_s, inverse_of: nil
@@ -13,11 +13,14 @@ module Setup
     has_and_belongs_to_many :translators, class_name: Setup::Translator.to_s, inverse_of: nil
     has_and_belongs_to_many :events, class_name: Setup::Event.to_s, inverse_of: nil
     has_and_belongs_to_many :libraries, class_name: Setup::Library.to_s, inverse_of: nil
+    has_and_belongs_to_many :custom_validators, class_name: Setup::CustomValidator.to_s, inverse_of: nil
+    has_and_belongs_to_many :algorithms, class_name: Setup::Algorithm.to_s, inverse_of: nil
 
 
     has_and_belongs_to_many :webhooks, class_name: Setup::Webhook.to_s, inverse_of: nil
     has_and_belongs_to_many :connections, class_name: Setup::Connection.to_s, inverse_of: nil
 
+    validates_uniqueness_of :name
 
     before_save :check_dependencies
 
@@ -28,14 +31,14 @@ module Setup
           translator: translators,
           webhook: webhooks,
           connection_role: connection_roles,
-          translator: translators
+          response_translator: translators
         }.each do |key, association|
           unless (value = flow.send(key)).nil? || association.detect { |v| v == value }
             association << value
           end
         end
         [:custom_data_type, :response_data_type].each do |key|
-          unless (data_type = flow.send(key)).nil? || ((lib = data_type.schema.library) && libraries.detect { |v| v == lib })
+          unless (data_type = flow.send(key)).nil? || ((lib = data_type.validator.try(:library)) && libraries.detect { |v| v == lib })
             libraries << lib
           end
         end
@@ -46,7 +49,7 @@ module Setup
       end
       translators.each do |translator|
         [:source_data_type, :target_data_type].each do |key|
-          unless (data_type = translator.send(key)).nil? || ((lib = data_type.schema.library) && libraries.detect { |v| v == lib })
+          unless (data_type = translator.send(key)).nil? || ((lib = data_type.validator.try(:library)) && libraries.detect { |v| v == lib })
             libraries << lib
           end
         end
@@ -57,10 +60,13 @@ module Setup
         end
       end
       events.each do |event|
-        if event.is_a?(Setup::Observer) && (data_type = event.data_type) && !((lib = data_type.schema.library) && libraries.detect { |v| v == lib })
+        if event.is_a?(Setup::Observer) && (data_type = event.data_type) && !((lib = data_type.validator.try(:library)) && libraries.detect { |v| v == lib })
           libraries << lib
         end
       end
+      visited_algs = Set.new
+      algorithms.each { |alg| alg.for_each_call(visited_algs) }
+      self.algorithms = visited_algs.to_a
     end
   end
 end
