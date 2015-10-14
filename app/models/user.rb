@@ -6,7 +6,6 @@ class User
   rolify
 
   belongs_to :account, inverse_of: :users, class_name: Account.name
-  before_validation { self.account ||= Account.current }
   scope :by_account, -> { where(account: Account.current ) }
 
   # Include default devise modules. Others available are:
@@ -41,6 +40,9 @@ class User
   field :doorkeeper_access_token, type: String
 
   before_save :ensure_token
+  before_create { self.account ||= Account.current }
+  after_create { self.account ||= Account.current || Account.create_with_owner(owner: self) }
+  
   validates_uniqueness_of :token
 
   def self.find_or_initialize_for_doorkeeper_oauth(oauth_data)
