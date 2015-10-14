@@ -70,7 +70,8 @@ class User
 
   def self.find_or_initialize_for_doorkeeper_oauth(oauth_data)
     user = User.where(email: oauth_data.info.email).first
-    user ||= User.new(email: oauth_data.info.email, password: Devise.friendly_token[0, 20], confirmed_at: Time.now)
+    user ||= User.new(email: oauth_data.info.email, password: Devise.friendly_token[0, 20])
+    user.confirmed_at ||= Time.now
     user.doorkeeper_uid = oauth_data.uid
     user
   end
