@@ -1,0 +1,28 @@
+<table>
+  <tr>
+    <td>
+      <%= link_to 'http://www.cenitsaas.com', 'CenitHub', :class => 'navbar-brand' %>
+    </td>
+  </tr>
+  <tr>
+    <td>
+      <p class="lede">
+        Welcome <%= @email %>!
+      </p>
+      <p>
+        We need to confirm your email address.
+      </p>
+      <p>
+        To complete the sign-up process, please click the link below and sign-in with your credentials:
+      </p>
+      <p>
+        <%= link_to 'Confirm account', confirmation_url(@resource, confirmation_token: @token) %>
+      </p>
+      <p>
+        Thank you for sign-up in CenitHub!
+      </p>
+    </td>
+    <td class="expander"></td>
+  </tr>
+</table>
+
