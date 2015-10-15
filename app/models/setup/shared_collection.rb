@@ -155,8 +155,8 @@ module Setup
         next if key == 'name'
         hash = values.inject({}) do |hash, item|
           name =
-            if name = item['name_space']
-              {name_space: name, name: item['name']}
+            if name = item['namespace']
+              {namespace: name, name: item['name']}
             else
               item['name']
             end

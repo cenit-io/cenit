@@ -286,20 +286,22 @@ RailsAdmin.config do |config|
   end
 
   config.model Setup::EdiValidator do
+    object_label_method { :custom_title }
     label 'EDI Validators'
     navigation_label 'Data Definitions'
 
-    fields :name, :schema_data_type, :content_type
+    fields :namespace, :name, :schema_data_type, :content_type
   end
 
   config.model Setup::AlgorithmValidator do
+    object_label_method { :custom_title }
     navigation_label 'Data Definitions'
 
-    fields :name, :algorithm
+    fields :namespace, :name, :algorithm
   end
 
   config.model Setup::FileDataType do
-
+    object_label_method { :custom_title }
     group :content do
       label 'Content'
     end
@@ -307,6 +309,12 @@ RailsAdmin.config do |config|
     group :behavior do
       label 'Behavior'
       active false
+    end
+
+    configure :title do
+      pretty_value do
+        bindings[:object].custom_title
+      end
     end
 
     configure :library do
@@ -498,6 +506,7 @@ RailsAdmin.config do |config|
   end
 
   config.model Setup::Connection do
+    object_label_method { :custom_title }
     weight -15
     configure :name, :string do
       help 'Requiered.'
@@ -550,6 +559,7 @@ RailsAdmin.config do |config|
     end
 
     show do
+      field :namespace
       field :name
       field :url
 
@@ -568,7 +578,7 @@ RailsAdmin.config do |config|
       #field :updater
     end
 
-    fields :name, :url, :parameters, :headers, :template_parameters, :oauth2_authorization, :key, :token
+    fields :namespace, :name, :url, :parameters, :headers, :template_parameters, :oauth2_authorization, :key, :token
   end
 
   config.model Setup::Parameter do
@@ -580,6 +590,7 @@ RailsAdmin.config do |config|
   end
 
   config.model Setup::ConnectionRole do
+    object_label_method { :custom_title }
     weight -14
     configure :name, :string do
       help 'Requiered.'
@@ -594,11 +605,13 @@ RailsAdmin.config do |config|
       nested_form false
     end
     modal do
+      field :namespace
       field :name
       field :webhooks
       field :connections
     end
     show do
+      field :namespace
       field :name
       field :webhooks
       field :connections
@@ -609,10 +622,11 @@ RailsAdmin.config do |config|
       field :updated_at
       #field :updater
     end
-    fields :name, :webhooks, :connections
+    fields :namespace, :name, :webhooks, :connections
   end
 
   config.model Setup::Webhook do
+    object_label_method { :custom_title }
     weight -13
 
     configure :path, :string do
@@ -635,6 +649,7 @@ RailsAdmin.config do |config|
     end
 
     show do
+      field :namespace
       field :name
       field :purpose
       field :path
@@ -650,7 +665,7 @@ RailsAdmin.config do |config|
       field :updated_at
       #field :updater
     end
-    fields :name, :purpose, :path, :method, :parameters, :headers, :template_parameters
+    fields :namespace, :name, :purpose, :path, :method, :parameters, :headers, :template_parameters
   end
 
   config.model Setup::Task do
@@ -715,10 +730,12 @@ RailsAdmin.config do |config|
   end
 
   config.model Setup::Flow do
+    object_label_method { :custom_title }
     register_instance_option(:form_synchronized) do
       [:custom_data_type, :data_type_scope, :lot_size, :connection_role, :webhook, :response_translator, :response_data_type]
     end
     edit do
+      field :namespace
       field :name
       field :event do
         inline_edit false
@@ -840,6 +857,7 @@ RailsAdmin.config do |config|
     end
 
     show do
+      field :namespace
       field :name
       field :event
       field :translator
@@ -851,15 +869,18 @@ RailsAdmin.config do |config|
       #field :updater
     end
 
-    fields :name, :event, :translator
+    fields :namespace, :name, :event, :translator
   end
 
   config.model Setup::Event do
+    object_label_method { :custom_title }
     edit do
+      field :namespace
       field :name
     end
 
     show do
+      field :namespace
       field :name
       field :last_trigger_timestamps
 
@@ -870,11 +891,13 @@ RailsAdmin.config do |config|
       #field :updater
     end
 
-    fields :name, :last_trigger_timestamps
+    fields :namespace, :name, :last_trigger_timestamps
   end
 
   config.model Setup::Observer do
+    object_label_method { :custom_title }
     edit do
+      field :namespace
       field :name
       field :data_type do
         associated_collection_scope do
@@ -900,6 +923,7 @@ RailsAdmin.config do |config|
     end
 
     show do
+      field :namespace
       field :name
       field :data_type
       field :triggers
@@ -912,11 +936,13 @@ RailsAdmin.config do |config|
       #field :updater
     end
 
-    fields :name, :data_type, :triggers, :last_trigger_timestamps
+    fields :namespace, :name, :data_type, :triggers, :last_trigger_timestamps
   end
 
   config.model Setup::Scheduler do
+    object_label_method { :custom_title }
     edit do
+      field :namespace
       field :name
       field :scheduling_method
       field :expression do
@@ -953,6 +979,7 @@ RailsAdmin.config do |config|
     end
 
     show do
+      field :namespace
       field :name
       field :expression
       field :last_trigger_timestamps
@@ -964,14 +991,16 @@ RailsAdmin.config do |config|
       #field :updater
     end
 
-    fields :name, :scheduling_method, :expression, :last_trigger_timestamps
+    fields :namespace, :name, :scheduling_method, :expression, :last_trigger_timestamps
   end
 
   config.model Setup::Translator do
+    object_label_method { :custom_title }
     register_instance_option(:form_synchronized) do
       [:source_data_type, :target_data_type, :transformation, :target_importer, :source_exporter, :discard_chained_records]
     end
     edit do
+      field :namespace
       field :name
 
       field :type
@@ -1061,6 +1090,7 @@ RailsAdmin.config do |config|
     end
 
     show do
+      field :namespace
       field :name
       field :type
       field :source_data_type
@@ -1086,7 +1116,7 @@ RailsAdmin.config do |config|
       #field :updater
     end
 
-    fields :name, :type, :style, :transformation
+    fields :namespace, :name, :type, :style, :transformation
   end
 
   config.model Setup::SharedName do
@@ -1341,7 +1371,7 @@ RailsAdmin.config do |config|
   config.model Setup::Algorithm do
     object_label_method { :custom_title }
     edit do
-      field :name_space
+      field :namespace
       field :name
       field :description
       field :parameters
@@ -1351,7 +1381,7 @@ RailsAdmin.config do |config|
       end
     end
     show do
-      field :name_space
+      field :namespace
       field :name
       field :description
       field :parameters
@@ -1360,8 +1390,9 @@ RailsAdmin.config do |config|
           "<pre><code class='ruby'>#{value}</code></pre>".html_safe
         end
       end
+      field :_id
     end
-    fields :name_space, :name, :description, :parameters, :call_links
+    fields :namespace, :name, :description, :parameters, :call_links
   end
 
   config.model Setup::CallLink do
