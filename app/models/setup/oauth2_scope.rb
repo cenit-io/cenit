@@ -1,6 +1,7 @@
 module Setup
   class Oauth2Scope
     include CenitUnscoped
+    include CrossTenancy
     include CustomTitle
 
     Setup::Models.exclude_actions_for self, :all

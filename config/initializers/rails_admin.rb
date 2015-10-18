@@ -1527,7 +1527,7 @@ RailsAdmin.config do |config|
     navigation_label 'Administration'
     object_label_method { :label }
 
-    fields :name, :owner, :tenant_account, :number, :users
+    fields :_id, :name, :owner, :tenant_account, :number, :users
   end
 
   config.model Setup::SharedName do
@@ -1567,17 +1567,47 @@ RailsAdmin.config do |config|
   end
 
   config.model Setup::BaseOauthProvider do
+    object_label_method { :custom_title }
+    label 'Provider'
     navigation_label 'OAuth'
 
-    fields :name, :response_type, :authorization_endpoint, :token_endpoint, :token_method, :parameters, :clients
+    configure :tenant do
+      visible { User.current.super_admin?}
+    end
+
+    configure :shared do
+      visible { User.current.super_admin?}
+    end
+
+    fields :namespace, :name, :response_type, :authorization_endpoint, :token_endpoint, :token_method, :parameters, :clients, :tenant, :shared
   end
 
   config.model Setup::OauthProvider do
-    fields :name, :response_type, :authorization_endpoint, :token_endpoint, :token_method, :request_token_endpoint, :parameters, :clients
+    object_label_method { :custom_title }
+
+    configure :tenant do
+      visible { User.current.super_admin?}
+    end
+
+    configure :shared do
+      visible { User.current.super_admin?}
+    end
+
+    fields :namespace, :name, :response_type, :authorization_endpoint, :token_endpoint, :token_method, :request_token_endpoint, :parameters, :clients, :tenant, :shared
   end
 
   config.model Setup::Oauth2Provider do
-    fields :name, :response_type, :authorization_endpoint, :token_endpoint, :token_method, :parameters, :clients, :scope_separator, :scopes
+    object_label_method { :custom_title }
+
+    configure :tenant do
+      visible { User.current.super_admin?}
+    end
+
+    configure :shared do
+      visible { User.current.super_admin?}
+    end
+
+    fields :namespace, :name, :response_type, :authorization_endpoint, :token_endpoint, :token_method, :parameters, :clients, :scope_separator, :scopes, :tenant, :shared
   end
 
   config.model Setup::OauthParameter do
@@ -1587,15 +1617,53 @@ RailsAdmin.config do |config|
   end
 
   config.model Setup::OauthClient do
+    object_label_method { :custom_title }
     navigation_label 'OAuth'
 
-    fields :name, :provider, :identifier, :secret
+    configure :tenant do
+      visible { User.current.super_admin?}
+    end
+
+    configure :shared do
+      visible { User.current.super_admin?}
+    end
+    
+    configure :identifier do
+      pretty_value do
+        if User.current.super_admin? || User.current.eql?(bindings[:object].creator)
+          value
+        else
+          '<i class="icon-ban-circle"/>'.html_safe
+        end
+      end
+    end
+
+    configure :secret do
+      pretty_value do
+        if User.current.super_admin? || User.current.eql?(bindings[:object].creator)
+          value
+        else
+          '<i class="icon-ban-circle"/>'.html_safe
+        end
+      end
+    end
+
+    fields :namespace, :name, :provider, :identifier, :secret, :tenant, :shared
   end
 
   config.model Setup::Oauth2Scope do
+    object_label_method { :custom_title }
     navigation_label 'OAuth'
 
-    fields :name, :description, :provider
+    configure :tenant do
+      visible { User.current.super_admin?}
+    end
+
+    configure :shared do
+      visible { User.current.super_admin?}
+    end
+
+    fields :provider, :name, :description, :tenant, :shared
   end
 
   config.model Setup::BaseOauthAuthorization do

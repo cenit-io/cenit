@@ -2,6 +2,7 @@ module Setup
   class OauthClient
     include CenitUnscoped
     include CenitReservedNamespace
+    include CrossTenancy
 
     Setup::Models.exclude_actions_for self, :all
 

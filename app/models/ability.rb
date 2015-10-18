@@ -7,6 +7,16 @@ class Ability
 
       can([:show, :edit], User) { |u| u.eql?(user) }
 
+      @@oauth_models = [Setup::BaseOauthProvider,
+                        Setup::OauthProvider,
+                        Setup::Oauth2Provider,
+                        Setup::OauthClient,
+                        Setup::Oauth2Scope]
+
+      can [:index, :create], @@oauth_models
+      can(:show, @@oauth_models) { |record| record.creator.super_admin? || record.creator.account_id.eql?(user.account_id) }
+      can([:destroy, :edit], @@oauth_models, tenant_id: user.account_id)
+
       if user.super_admin?
         can :manage,
             [
