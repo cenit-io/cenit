@@ -4,7 +4,7 @@ module Setup
 
     Setup::Models.exclude_actions_for self, :all
 
-    BuildInDataType.regist(self).referenced_by(:name)
+    BuildInDataType.regist(self).referenced_by(:namespace, :name)
 
     field :request_token_endpoint, type: String
 

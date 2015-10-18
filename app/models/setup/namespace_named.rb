@@ -13,8 +13,14 @@ module Setup
       validates_length_in_presence_of :namespace, maximum: 255
       validates_uniqueness_of :name, scope: :namespace
 
-      before_save { self.namespace = '' if namespace.nil? }
-
+      before_save do
+        if namespace.nil?
+          self.namespace = ''
+        else
+          self.namespace = namespace.strip
+        end
+        self.name = name.to_s.strip
+      end
     end
 
     def scope_title

@@ -1,12 +1,12 @@
 module Setup
   class BaseOauthProvider
     include CenitUnscoped
+    include CenitReservedNamespace
 
     Setup::Models.exclude_actions_for self, :all
 
-    BuildInDataType.regist(self).referenced_by(:name)
+    BuildInDataType.regist(self).referenced_by(:namespace, :name)
 
-    field :name, type: String
     field :response_type, type: String
     field :authorization_endpoint, type: String
     field :token_endpoint, type: String
