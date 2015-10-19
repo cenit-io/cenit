@@ -49,6 +49,10 @@ en:
         title: "Data type"
         menu: "Data type"
         breadcrumb: "Data type"
+      records:
+        title: "Records"
+        menu: "Records"
+        breadcrumb: "Records"
       import:
         title: "Import"
         menu: "Import"
