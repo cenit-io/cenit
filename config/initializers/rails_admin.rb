@@ -62,7 +62,7 @@ RailsAdmin.config do |config|
     # memory_usage
     # disk_usage
     index # mandatory
-    new { except [Setup::Event, Setup::DataType, Setup::BaseOauthAuthorization] }
+    new { except [Setup::Event, Setup::DataType, Setup::BaseOauthAuthorization, Setup::BaseOauthProvider] }
     import
     import_schema
     translator_update
