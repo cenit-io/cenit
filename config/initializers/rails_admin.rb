@@ -375,6 +375,7 @@ RailsAdmin.config do |config|
       field :library
       field :title
       field :name
+      field :slug
       field :validators
       field :schema_data_type
       field :records_methods
@@ -384,6 +385,7 @@ RailsAdmin.config do |config|
     list do
       field :title
       field :name
+      field :slug
       field :validators
       field :schema_data_type
       field :used_memory do
@@ -400,6 +402,7 @@ RailsAdmin.config do |config|
     show do
       field :title
       field :name
+      field :slug
       field :activated
       field :validators
       field :schema_data_type
@@ -470,6 +473,7 @@ RailsAdmin.config do |config|
       field :library
       field :title
       field :name
+      field :slug
       field :schema, :json_schema
       field :records_methods
       field :data_type_methods
@@ -478,6 +482,7 @@ RailsAdmin.config do |config|
     list do
       field :title
       field :name
+      field :slug
       field :used_memory do
         pretty_value do
           unless max = bindings[:controller].instance_variable_get(:@max_used_memory)
@@ -492,6 +497,7 @@ RailsAdmin.config do |config|
     show do
       field :title
       field :name
+      field :slug
       field :activated
       field :schema do
         pretty_value do

@@ -13,9 +13,8 @@ GIT
     cenit_cmd (0.0.6)
       thor (~> 0.14)
 
-GIT
-  remote: https://github.com/openjaf/rails_admin_dynamic_charts.git
-  revision: 055343c7d35224aa6816370c50b3263337d7b29a
+PATH
+  remote: ../rails_admin_dynamic_charts
   specs:
     rails_admin_dynamic_charts (0.0.1)
       chartkick (> 0)

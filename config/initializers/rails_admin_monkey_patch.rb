@@ -2,6 +2,7 @@ require 'rails_admin/config'
 require 'rails_admin/main_controller'
 require 'rails_admin/config/fields/types/carrierwave'
 require 'rails_admin/adapters/mongoid'
+require 'rails_admin/lib/mongoff_abstract_model'
 
 module RailsAdmin
 
@@ -281,6 +282,19 @@ module RailsAdmin
 
   module ApplicationHelper
 
+    def wording_for(label, action = @action, abstract_model = @abstract_model, object = @object)
+      model_config = abstract_model.try(:config)
+      object = abstract_model && object && object.is_a?(abstract_model.model) ? object : nil rescue nil
+      action = RailsAdmin::Config::Actions.find(action.to_sym) if action.is_a?(Symbol) || action.is_a?(String)
+
+      capitalize_first_letter I18n.t(
+                                "admin.actions.#{action.i18n_key}.#{label}",
+                                model_label: model_config && model_config.label,
+                                model_label_plural: model_config && model_config.label_plural,
+                                object_label: model_config && object.try(model_config.object_label_method),
+                              )
+    end
+
     def edit_user_link
       return nil unless authorized?(:show, _current_user.class, _current_user) && _current_user.respond_to?(:email)
       return nil unless abstract_model = RailsAdmin.config(_current_user.class).abstract_model
@@ -394,6 +408,40 @@ module RailsAdmin
           scope.desc field_name
         end
       end
+    end
+  end
+
+  class ApplicationController
+
+    def get_model
+      @model_name = to_model_name(name = params[:model_name].to_s)
+      unless @abstract_model = RailsAdmin::AbstractModel.new(@model_name)
+        if (slugs = name.to_s.split('~')).size == 2
+          if (library = Setup::Library.where(slug: slugs[0]).first)
+            data_type = Setup::DataType.where(library: library, slug: slugs[1]).first
+          end
+        else
+          data_type = Setup::DataType.where(id: name.from(2)).first if name.start_with?('dt')
+        end
+        if data_type
+
+          abstract_model_class =
+            if (model = data_type.records_model).is_a?(Class)
+              RailsAdmin::AbstractModel
+            else
+              RailsAdmin::MongoffAbstractModel
+            end
+          @abstract_model = abstract_model_class.new(model)
+        end
+      end
+
+      fail(RailsAdmin::ModelNotFound) if @abstract_model.nil? || (@model_config = @abstract_model.config).excluded?
+
+      @properties = @abstract_model.properties
+    end
+
+    def get_object
+      fail(RailsAdmin::ObjectNotFound) unless (@object = @abstract_model.get(params[:id]))
     end
   end
 end
