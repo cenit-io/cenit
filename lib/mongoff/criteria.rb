@@ -14,12 +14,20 @@ module Mongoff
       query.count
     end
 
+    def size
+      count
+    end
+
     def query
       q = model.collection.find(selector)
       options.each do |option, criterion|
         q = q.send(option, criterion)
       end
       q
+    end
+
+    def size
+      count
     end
 
     def size
