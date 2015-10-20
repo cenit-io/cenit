@@ -22,6 +22,10 @@ module Mongoff
       q
     end
 
+    def size
+      count
+    end
+
     def each(*args, &blk)
       query.each do |document|
         m =
