@@ -6,7 +6,6 @@ module Mongoff
     include Setup::InstanceAffectRelation
     include Setup::InstanceModelParser
     include MetadataAccess
-    include Queryable
 
     EMPTY_SCHEMA = {}.freeze
 
@@ -140,12 +139,13 @@ module Mongoff
       end
     end
 
-    def all(criteria = {})
-      find(criteria)
-    end
-
     def method_missing(symbol, *args)
-      query_for(self, collection, symbol, *args) || super
+      criteria = Mongoff::Criteria.new(self)
+      if criteria.respond_to?(symbol)
+        criteria.send(symbol, *args)
+      else
+        super
+      end
     end
 
     def eql?(obj)
@@ -177,7 +177,7 @@ module Mongoff
         (schema = (field_metadata[:schema] ||= property_schema(field)))['referenced']
         return ("#{field}_id" + ('s' if schema['type'] == 'array').to_s).to_sym
       end
-      field
+      field.to_s == 'id' ? :_id : field
     end
 
     def to_string(value)

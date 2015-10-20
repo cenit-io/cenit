@@ -82,7 +82,7 @@ module Mongoff
         else
           mongo_type_for(schema)
         end
-      elsif field_or_schema.to_s == '_id'
+      elsif %w(id _id).include?(str = field_or_schema.to_s) || str.end_with?('_id')
         BSON::ObjectId
       else
         nil

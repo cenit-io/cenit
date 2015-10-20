@@ -28,7 +28,14 @@ module Api::V1
               limit = nil if limit == 0
             end
             items = klass.where(@criteria)
-            items = items.sort(sort_key => asc ? 1 : -1) if sort_key
+            if sort_key
+              items =
+                if asc
+                  items.ascending(sort_key)
+                else
+                  items.descending(sort_key)
+                end
+            end
             items = items.limit(limit) if limit
             items
           else
