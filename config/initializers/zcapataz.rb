@@ -42,8 +42,6 @@ Capataz.config do
 
   allow_for [Class, Mongoff::Model], [:where, :all, :new_sign, :digest, :now]
 
-  allow_for [Mongoid::Criteria, Mongoff::Criteria], Enumerable.instance_methods(false) + Origin::Queryable.instance_methods(false)
-
   deny_for [Setup::DynamicRecord, Mongoff::Record], ->(instance, method) do
     return false if [:id, :to_json, :to_edi, :to_hash, :to_xml, :to_params, :[], :[]=, :save].include?(method)
     return false if [:data].include?(method) && instance.is_a?(Mongoff::GridFs::FileFormatter)

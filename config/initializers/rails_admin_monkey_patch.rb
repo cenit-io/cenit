@@ -20,6 +20,38 @@ module RailsAdmin
           @@system_models.insert((i = @@system_models.find_index { |e| e > model.to_s }) ? i : @@system_models.length, model.to_s)
         end
       end
+
+      def model(entity, &block)
+        key = nil
+        model_class =
+          if entity.is_a?(Mongoff::Model) || entity.is_a?(Mongoff::Record) || entity.is_a?(RailsAdmin::MongoffAbstractModel)
+            RailsAdmin::MongoffModelConfig
+          else
+            key =
+              if entity.is_a?(RailsAdmin::AbstractModel)
+                entity.model.try(:name).try :to_sym
+              elsif entity.is_a?(Class)
+                entity.name.to_sym
+              elsif entity.is_a?(String) || entity.is_a?(Symbol)
+                entity.to_sym
+              else
+                entity.class.name.to_sym
+              end
+            RailsAdmin::Config::LazyModel
+          end
+
+        if block
+          model = model_class.new(entity, &block)
+          @registry[key] = model if key
+        elsif key
+          unless model = @registry[key]
+            @registry[key] = model = model_class.new(entity)
+          end
+        else
+          model = model_class.new(entity)
+        end
+        model
+      end
     end
 
     module Actions
@@ -119,6 +151,11 @@ module RailsAdmin
   end
 
   class AbstractModel
+
+    def embedded_in?(abstract_model = nil)
+      embedded?
+    end
+
     class << self
 
       def update_model_config(loaded_models, removed_models=[], models_to_reset=Set.new)
@@ -402,11 +439,26 @@ module RailsAdmin
         when Symbol
           field_name = options[:sort].to_s
         end
-        if options[:sort_reverse]
-          scope.asc field_name
+        if field_name.present?
+          if options[:sort_reverse]
+            scope.asc field_name
+          else
+            scope.desc field_name
+          end
         else
-          scope.desc field_name
+          scope
         end
+      end
+
+      def parse_collection_name(column)
+        collection_name = column[0..i = column.rindex('.') - 1]
+        column_name = column.from(i + 2)
+        if [:embeds_one, :embeds_many].include?(model.relations[collection_name].try(:macro).try(:to_sym))
+          [table_name, column]
+        else
+          [collection_name, column_name]
+        end
+        [collection_name, column_name]
       end
     end
   end
@@ -424,7 +476,6 @@ module RailsAdmin
           data_type = Setup::DataType.where(id: name.from(2)).first if name.start_with?('dt')
         end
         if data_type
-
           abstract_model_class =
             if (model = data_type.records_model).is_a?(Class)
               RailsAdmin::AbstractModel

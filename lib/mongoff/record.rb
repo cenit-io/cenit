@@ -3,14 +3,15 @@ module Mongoff
     include Edi::Filler
     include Edi::Formatter
     include RecordsMethods
+    include ActiveModel::ForbiddenAttributesProtection
 
     attr_reader :orm_model
     attr_reader :document
     attr_reader :fields
 
-    def initialize(model, document = nil, new_record = true)
+    def initialize(model, attributes = nil, new_record = true)
       @orm_model = model
-      @document = document || BSON::Document.new
+      @document = BSON::Document.new
       @document[:_id] ||= BSON::ObjectId.new unless model.property_schema(:_id)
       @fields = {}
       @new_record = new_record || false
@@ -19,11 +20,23 @@ module Mongoff
           self[property] = value
         end
       end
+      assign_attributes(attributes)
     end
 
     def attributes
       prepare_attributes
       document
+    end
+
+    def assign_attributes(attrs = nil)
+      attrs ||= {}
+      if !attrs.empty?
+        attrs = sanitize_for_mass_assignment(attrs)
+        attrs.each_pair do |key, value|
+          self[key] = value
+        end
+      end
+      yield self if block_given?
     end
 
     def id
@@ -32,7 +45,7 @@ module Mongoff
 
     def is_a?(model)
       if model.is_a?(Mongoff::Model)
-        orm_model == model
+        orm_model.eql?(model)
       else
         super
       end
@@ -44,6 +57,10 @@ module Mongoff
 
     def new_record?
       @new_record
+    end
+
+    def persisted?
+      !new_record? && !destroyed?
     end
 
     def destroyed?
@@ -90,7 +107,7 @@ module Mongoff
       attribute_key = orm_model.attribute_key(field, model: property_model = orm_model.property_model(field))
       if (value = (@fields[field] || document[attribute_key])).is_a?(BSON::Document) && property_model
         @fields[field] = Record.new(property_model, value)
-      elsif value.is_a?(::Array) && property_model
+      elsif value.is_a?(::Array) && property_model.modelable?
         @fields[field] ||= RecordArray.new(property_model, value, field != attribute_key)
       else
         value
@@ -99,6 +116,14 @@ module Mongoff
 
     def []=(field, value)
       field = :_id if %w(id _id).include?(field.to_s)
+      if !orm_model.property?(field) && association = nested_attributes_property(field)
+        fail "invalid attributes format #{value}" unless value.is_a?(Hash)
+        unless associated = self[association]
+          self[association] = associated = orm_model.property_model(association).new
+        end
+        associated.assign_attributes(value)
+        return associated
+      end
       @fields.delete(field)
       attribute_key = orm_model.attribute_key(field, field_metadata = {})
       property_model = field_metadata[:model]
@@ -111,7 +136,7 @@ module Mongoff
         document[attribute_key] = value.attributes if attribute_key == field
       elsif !value.is_a?(Hash) && value.is_a?(Enumerable)
         document[attribute_key] = attr_array = []
-        if property_model
+        if property_model && property_model.modelable?
           @fields[field] = field_array = RecordArray.new(property_model, attr_array, attribute_key != field)
           value.each do |v|
             field_array << v
@@ -119,7 +144,7 @@ module Mongoff
           end
         else
           value.each do |v|
-            raise Exception.new("invalid value #{v}") unless Cenit::Utility.json_object?(v, recursive: true)
+            fail "invalid value #{v}" unless Cenit::Utility.json_object?(v, recursive: true)
             attr_array << v
           end
         end unless value.empty?
@@ -129,7 +154,14 @@ module Mongoff
     end
 
     def respond_to?(*args)
-      super || orm_model.property?(args.first.to_s) || orm_model.data_type.records_methods.any? { |alg| alg.name == symbol.to_s }
+      super ||
+        begin
+          method = args.first.to_s
+          property = (assigning = method.end_with?('=')) ? method.chop : method
+          orm_model.property?(property) ||
+            orm_model.data_type.records_methods.any? { |alg| alg.name == method } ||
+            nested_attributes_property(property).present?
+        end
     end
 
     def method_missing(symbol, *args)
@@ -146,22 +178,33 @@ module Mongoff
       end
     end
 
+    def nested_attributes_property(property)
+      property = property.to_s
+      if property.end_with?('_attributes')
+        property = property.to(property.rindex('_') - 1)
+        (orm_model.property_model?(property) && property) || nil
+      else
+        nil
+      end
+    end
+
+    # def to_s #TODO !!!
+    #   'eje'
+    # end
+
     protected
 
     def prepare_attributes
       document[:_type] = orm_model.to_s if orm_model.reflectable?
       @fields.each do |field, value|
-        unless document[field]
+        nested = (association = orm_model.associations[field]) && association.nested?
+        if nested || document[field].nil?
+          nested = (association = orm_model.associations[field]) && association.nested?
           attribute_key = orm_model.attribute_key(field)
           if value.is_a?(RecordArray)
-            document[attribute_key] = array = []
-            value.each do |v|
-              v.prepare_attributes if v.is_a?(Record)
-              array << v.id
-            end
+            document[attribute_key] = value.collect { |v| nested ? v.attributes : v.id }
           else
-            value.prepare_attributes if value.is_a?(Record)
-            document[attribute_key] = value.id
+            document[attribute_key] = nested ? value.attributes : value.id
           end
         end
       end

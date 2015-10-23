@@ -49,7 +49,11 @@ module Mongoff
     end
 
     def property?(property)
-      properties_schemas.has_key?(property)
+      properties_schemas.has_key?(property.to_s)
+    end
+
+    def requires?(property)
+      (require = schema['require']) && require.include?(property)
     end
 
     MONGO_TYPE_MAP = {
@@ -85,7 +89,7 @@ module Mongoff
       elsif %w(id _id).include?(str = field_or_schema.to_s) || str.end_with?('_id')
         BSON::ObjectId
       else
-        nil
+        NilClass
       end
     end
 

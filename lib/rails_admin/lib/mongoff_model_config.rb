@@ -1,13 +1,42 @@
 module RailsAdmin
-  class MongoffModelConfig
 
-    def initialize(mongoff_abstract_model)
-      @abtarct_model = mongoff_abstract_model
-      @model = mongoff_abstract_model.model
+  class MongoffModelConfig < RailsAdmin::Config::Model
+
+    def initialize(mongoff_entity)
+      super(RailsAdmin::MongoffAbstractModel.abstract_model_for(mongoff_entity))
+      @model = @abstract_model.model
+      @parent = self
+
+      (abstract_model.properties + abstract_model.associations).each do |property|
+        type = property.is_a?(RailsAdmin::MongoffAssociation) ? nil : property.type
+        configure property.name, type do
+          visible { property.visible? }
+          label { property.name.to_s.titleize }
+          filterable { property.filterable? }
+          required { property.required? }
+          valid_length { {} }
+          if property.is_a?(RailsAdmin::MongoffAssociation)
+            pretty_value do
+              v = bindings[:view]
+              [value].flatten.select(&:present?).collect do |associated|
+                amc = polymorphic? ? RailsAdmin.config(associated) : associated_model_config # perf optimization for non-polymorphic associations
+                am = amc.abstract_model
+                wording = associated.send(amc.object_label_method)
+                can_see = !am.embedded_in?(bindings[:controller].instance_variable_get(:@abstract_model)) && (show_action = v.action(:show, am, associated))
+                can_see ? v.link_to(wording, v.url_for(action: show_action.action_name, model_name: am.to_param, id: associated.id), class: 'pjax') : wording
+              end.to_sentence.html_safe
+            end
+          end
+        end
+      end
+
+      object_label_method do
+        @object_label_method ||= Config.label_methods.detect { |method| target.property?(method) } || :to_s
+      end
     end
 
-    def abstract_model
-      @abtarct_model
+    def parent
+      self
     end
 
     def target
@@ -26,36 +55,12 @@ module RailsAdmin
       label.pluralize
     end
 
-    def object_label_method
-      :to_s
-    end
-
-    def list
-      unless @list
-        @list = OpenStruct.new
-        @list.fields = []
-        @list.scopes = []
-        @list.define_singleton_method(:with) { |args| self }
-        @list.visible_fields = []
-        @list.filters = []
-      end
-      @list
-    end
-
-    def with(*args)
+    def root
       self
     end
 
     def visible?
       true
-    end
-
-    def method_missing(method, *args, &block)
-      target.send(method, *args, &block)
-    end
-
-    def respond_to?(method, include_private = false)
-      super || target.respond_to?(method, include_private)
     end
   end
 end
