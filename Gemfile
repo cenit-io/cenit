@@ -66,7 +66,7 @@ gem 'mongoid-history'
 gem 'mongoid-audit', '~> 1.0.0'
 
 # charts
-gem 'rails_admin_dynamic_charts', path: '../rails_admin_dynamic_charts'
+gem 'rails_admin_dynamic_charts', git: 'https://github.com/openjaf/rails_admin_dynamic_charts.git'
 gem 'chartkick'
 gem 'descriptive_statistics'
 
