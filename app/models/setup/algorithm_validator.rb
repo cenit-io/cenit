@@ -2,7 +2,7 @@ module Setup
   class AlgorithmValidator < CustomValidator
     include CenitScoped
 
-    BuildInDataType.regist(self).referenced_by(:name)
+    BuildInDataType.regist(self).referenced_by(:namespace, :name)
 
     belongs_to :algorithm, class_name: Setup::Algorithm.to_s, inverse_of: nil
 

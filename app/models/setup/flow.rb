@@ -3,12 +3,11 @@ require 'nokogiri'
 module Setup
   class Flow < ReqRejValidator
     include CenitScoped
-    include DynamicValidators
+    include NamespaceNamed
     include TriggersFormatter
 
-    BuildInDataType.regist(self).referenced_by(:name).excluding(:response_attachments)
+    BuildInDataType.regist(self).referenced_by(:namespace, :name).excluding(:response_attachments)
 
-    field :name, type: String
     field :active, type: Boolean, default: :true
     field :response_attachments, type: Boolean, default: :false
     field :discard_events, type: Boolean
@@ -30,7 +29,6 @@ module Setup
 
     field :last_trigger_timestamps, type: Time
 
-    validates_uniqueness_of :name
     validates_numericality_in_presence_of :lot_size, greater_than_or_equal_to: 1
     before_save :validates_configuration
 

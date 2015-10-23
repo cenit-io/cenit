@@ -6,7 +6,6 @@ module Mongoff
     include Setup::InstanceAffectRelation
     include Setup::InstanceModelParser
     include MetadataAccess
-    include Queryable
 
     EMPTY_SCHEMA = {}.freeze
 
@@ -25,8 +24,8 @@ module Mongoff
       @data_type_id.is_a?(Setup::DataType) ? @data_type_id : Setup::DataType.where(id: @data_type_id).first
     end
 
-    def new
-      record_class.new(self)
+    def new(attributes = {})
+      record_class.new(self, attributes)
     end
 
     def record_class
@@ -61,9 +60,9 @@ module Mongoff
     end
 
     def model_schema?(schema)
-      schema = schema['items'] if schema['type'] == 'array' && schema['items']
+      schema = schema['items'] if schema.is_a?(Hash) && schema['type'] == 'array' && schema['items']
       schema = data_type.merge_schema(schema)
-      schema['type'] == 'object' && !schema['properties'].nil?
+      schema.is_a?(Hash) && schema['type'] == 'object' && !schema['properties'].nil?
     end
 
     def property_model?(property)
@@ -107,6 +106,24 @@ module Mongoff
       properties
     end
 
+    def associations
+      unless @associations
+        @associations = {}.with_indifferent_access
+        properties_schemas.each do |property, property_schema|
+          if model.model_schema?(property_schema)
+            macro =
+              if property_schema['type'] == 'array'
+                property_schema['referenced'] ? :has_and_belongs_to_many : :embeds_many
+              else
+                property_schema['referenced'] ? :belongs_to : :embeds_one
+              end
+            @associations[property.to_sym] = Mongoff::Association.new(self, property, macro)
+          end
+        end
+      end
+      @associations
+    end
+
     def for_each_association(&block)
       properties_schemas.each do |property, schema|
         block.yield(name: property, embedded: !schema['referenced']) if property_model?(property)
@@ -140,12 +157,13 @@ module Mongoff
       end
     end
 
-    def all(criteria = {})
-      find(criteria)
-    end
-
     def method_missing(symbol, *args)
-      query_for(self, collection, symbol, *args) || super
+      criteria = Mongoff::Criteria.new(self)
+      if criteria.respond_to?(symbol)
+        criteria.send(symbol, *args)
+      else
+        super
+      end
     end
 
     def eql?(obj)
@@ -177,7 +195,7 @@ module Mongoff
         (schema = (field_metadata[:schema] ||= property_schema(field)))['referenced']
         return ("#{field}_id" + ('s' if schema['type'] == 'array').to_s).to_sym
       end
-      field
+      field.to_s == 'id' ? :_id : field
     end
 
     def to_string(value)
@@ -211,7 +229,7 @@ module Mongoff
         else
           @mongo_types[field_or_schema] ||= mongo_type_for(field_or_schema)
         end
-      if value.is_a?(type)
+      if type && value.is_a?(type)
         value
       else
         convert(type, value)
