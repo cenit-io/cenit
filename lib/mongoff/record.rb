@@ -86,7 +86,17 @@ module Mongoff
           orm_model.collection.insert(attributes)
           @new_record = false
         else
-          orm_model.collection.find(_id: id).update('$set' => attributes)
+          query = orm_model.collection.find(_id: id)
+          set = attributes
+          unset = {}
+          if doc = query.first
+            doc.keys.each { |key| unset[key] = '' unless set.has_key?(key) }
+          end
+          update = {'$set' => set}
+          if unset.present?
+            update['$unset'] = unset
+          end
+          query.update(update)
         end
         Model.after_save.call(self)
       rescue Exception => ex
@@ -118,10 +128,15 @@ module Mongoff
       field = :_id if %w(id _id).include?(field.to_s)
       if !orm_model.property?(field) && association = nested_attributes_property(field)
         fail "invalid attributes format #{value}" unless value.is_a?(Hash)
-        unless associated = self[association]
-          self[association] = associated = orm_model.property_model(association).new
+        if (value.delete('_destroy')).present?
+          associated = self[association]
+          self[association] = nil
+        else
+          unless associated = self[association]
+            self[association] = associated = orm_model.property_model(association).new
+          end
+          associated.assign_attributes(value)
         end
-        associated.assign_attributes(value)
         return associated
       end
       @fields.delete(field)
