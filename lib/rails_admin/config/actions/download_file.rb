@@ -5,7 +5,7 @@ module RailsAdmin
 
         register_instance_option :visible? do
           if authorized?
-            model = bindings[:abstract_model].model_name.constantize rescue nil
+            model = bindings[:abstract_model].model rescue nil
             model.try(:data_type).is_a?(Setup::FileDataType)
           else
             false

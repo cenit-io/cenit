@@ -1,14 +1,11 @@
 module Setup
   class Validator
     include CenitScoped
+    include NamespaceNamed
 
-    BuildInDataType.regist(self).referenced_by(:name)
+    BuildInDataType.regist(self).referenced_by(:namespace, :name)
 
-    Setup::Models.exclude_actions_for self, :bulk_delete, :delete, :delete_all
-
-    field :name, type: String
-
-    validates_uniqueness_of :name
+    Setup::Models.exclude_actions_for self
 
     before_save :validates_configuration
 

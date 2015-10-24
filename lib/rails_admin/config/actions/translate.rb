@@ -6,7 +6,7 @@ module RailsAdmin
 
         register_instance_option :visible? do
           if authorized?
-            model = bindings[:abstract_model].model_name.constantize rescue nil
+            model = bindings[:abstract_model].model rescue nil
             model.try(:data_type).present?
           else
             false
@@ -24,13 +24,14 @@ module RailsAdmin
         register_instance_option :controller do
           proc do
 
+            @model_config = RailsAdmin::Config.model(Forms::TranslatorSelector)
             @bulk_ids = params.delete(:bulk_ids)
             translator_type = @action.class.translator_type
 
             if model = @abstract_model.model_name.constantize rescue nil
               data_type = model.data_type
               data_type_selector = data_type.is_a?(Setup::BuildInDataType) ? nil : data_type
-              if data = params[:forms_translator_selector]
+              if data = params[@model_config.abstract_model.param_key]
                 translator = Setup::Translator.where(id: data[:translator_id]).first
                 if (@object = Forms::TranslatorSelector.new(
                   translator_type: translator_type,
@@ -65,7 +66,7 @@ module RailsAdmin
                 bulk_source: (@bulk_ids.nil? && (model.nil? || model.count != 1)) || (@bulk_ids && @bulk_ids.size != 1),
                 data_type: data_type_selector,
                 translator: translator)
-              @model_config = RailsAdmin::Config.model(Forms::TranslatorSelector)
+
               if @object.errors.present?
                 do_flash_now(:error, 'There are errors in the export data specification', @object.errors.full_messages)
               end

@@ -31,7 +31,7 @@ module Setup
       model.to_s.split('::').last.underscore
     end
 
-    def model_schema
+    def schema
       @schema ||= build_schema
     end
 
@@ -122,7 +122,8 @@ module Setup
         String => {'type' => 'string'},
         Symbol => {'type' => 'string'},
         Time => {'type' => 'string', 'format' => 'time'},
-        nil => {}
+        nil => {},
+        Object => {}
       }.freeze
 
     def excluded?(name)
@@ -188,7 +189,7 @@ module Setup
         end
       end
       schema = @to_merge.merge(schema) if @to_merge
-      schema.to_json
+      schema
     end
 
     def json_schema_type(mongoid_type)
@@ -207,6 +208,7 @@ class String
       gsub(/([a-z])(\d|[A-Z])/, '\1 \2').
       gsub(/(\d)([a-z]|[A-Z])/, '\1 \2').
       tr('_', ' ').
-      tr('-', ' ')
+      tr('-', ' ').
+      capitalize
   end
 end

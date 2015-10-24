@@ -4,12 +4,12 @@ module RailsAdmin
       class Import < RailsAdmin::Config::Actions::Base
 
         register_instance_option :except do
-          [Setup::Schema, Setup::Model]
+          [Setup::Schema, Setup::DataType]
         end
 
         register_instance_option :visible? do
           if authorized?
-            model = bindings[:abstract_model].model_name.constantize rescue nil
+            model = bindings[:abstract_model].model rescue nil
             model.try(:data_type)
           else
             false
@@ -30,7 +30,7 @@ module RailsAdmin
             selector_config = RailsAdmin::Config.model(Forms::ImportTranslatorSelector)
             render_form = true
             form_object = nil
-            if model = @abstract_model.model_name.constantize rescue nil
+            if model = @abstract_model.model rescue nil
               data_type_selector = model.data_type
               data_type_selector = nil if data_type_selector.is_a?(Setup::BuildInDataType)
               if data = params[selector_config.abstract_model.param_key]

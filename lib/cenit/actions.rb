@@ -17,7 +17,7 @@ module Cenit
           if data = pull_data[relation.name.to_s]
             invariant_data[relation.name.to_s] = invariant_names = Set.new
             data.each do |item|
-              criteria = {name_space: item['name_space'], name: item['name']}
+              criteria = {namespace: item['namespace'], name: item['name']}
               criteria.delete_if { |_, value| value.nil? }
               if record = relation.klass.where(criteria).first
                 if record.share_hash.eql?(item)
@@ -41,10 +41,10 @@ module Cenit
                 end
               end
             end
-            if data_type_data = library_data['file_data_types']
-              library.file_data_types.each do |file_data_type|
-                if file_data_type_data = data_type_data.detect { |dt| dt['name'] == file_data_type.name }
-                  file_data_type_data['id'] = file_data_type.id.to_s
+            if data_types_data = library_data['data_types']
+              library.data_types.each do |data_type|
+                if data_type_data = data_types_data.detect { |dt| dt['name'] == data_type.name }
+                  data_type_data['id'] = data_type.id.to_s
                 end
               end
             end
@@ -55,7 +55,7 @@ module Cenit
 
         invariant_data.each do |key, invariant_names|
           pull_data[key].delete_if do |item|
-            criteria = {name_space: item['name_space'], name: item['name']}
+            criteria = {namespace: item['namespace'], name: item['name']}
             criteria.delete_if { |_, value| value.nil? }
             invariant_names.include?(criteria)
           end
@@ -83,15 +83,10 @@ module Cenit
             begin
               collection.name = BSON::ObjectId.new.to_s
             end while Setup::Collection.where(name: collection.name).present?
-            Cenit::Utility.bind_references(collection, skip_error_report: true)
-            collection.libraries.each { |lib| lib.run_after_initialized }
-            collection.libraries.each { |lib| lib.schemas.each(&:bind_includes) }
-            collection.libraries.each { |lib| lib.schemas.each(&:run_after_initialized) }
-            unless Cenit::Utility.save(collection, create_collector: create_collector = Set.new, saved_collector: saved = Set.new) &&
-              (errors = Setup::DataTypeOptimizer.save_data_types).blank?
+            unless Cenit::Utility.save(collection, create_collector: create_collector = Set.new, saved_collector: saved = Set.new)
               collection.errors.full_messages.each { |msg| errors << msg }
               collection.errors.clear
-              if Cenit::Utility.save(collection, {create_collector: create_collector}) && Setup::DataTypeOptimizer.save_data_types.blank?
+              if Cenit::Utility.save(collection, {create_collector: create_collector})
                 pull_request[:fixed_errors] = errors
                 errors = []
               else
@@ -105,6 +100,7 @@ module Cenit
             if errors.blank?
               Setup::Collection.where(name: shared_collection.name).delete
               collection.name = shared_collection.name
+              collection.image = shared_collection.image if shared_collection.image.present?
               collection.save
               pull_data = pull_request.delete(:pull_data)
               pull_request[:created_records] = collection.inspect_json(inspecting: :id, inspect_scope: create_collector).reject { |_, value| !value.is_a?(Enumerable) }

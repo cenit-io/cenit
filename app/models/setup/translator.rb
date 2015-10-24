@@ -1,14 +1,14 @@
 module Setup
   class Translator < ReqRejValidator
     include CenitScoped
+    include NamespaceNamed
 
-    BuildInDataType.regist(self).referenced_by(:name)
+    BuildInDataType.regist(self).referenced_by(:namespace, :name)
 
-    field :name, type: String
     field :type, type: Symbol
 
-    belongs_to :source_data_type, class_name: Setup::Model.to_s, inverse_of: nil
-    belongs_to :target_data_type, class_name: Setup::Model.to_s, inverse_of: nil
+    belongs_to :source_data_type, class_name: Setup::DataType.to_s, inverse_of: nil
+    belongs_to :target_data_type, class_name: Setup::DataType.to_s, inverse_of: nil
 
     field :discard_events, type: Boolean
     field :style, type: String
@@ -24,7 +24,6 @@ module Setup
 
     field :discard_chained_records, type: Boolean
 
-    validates_uniqueness_of :name
     before_save :validates_configuration, :validates_transformation
 
     def validates_configuration

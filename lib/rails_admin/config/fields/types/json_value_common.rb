@@ -16,7 +16,7 @@ module RailsAdmin
           end
 
           def parse_input(params)
-            params[name] = Cenit::Utility.json_value_of(params[name])
+            params[name] = Cenit::Utility.json_value_of(params[name]) if params.has_key?(name)
           end
         end
       end

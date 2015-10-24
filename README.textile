@@ -2,12 +2,12 @@
 
 h1. Cenit Hub
 
-h2. What is 
+h2. What is?
 
 Cenit is an open source social platform as a service for data and business integration. It makes possible 
 the automation of all operational processes, connecting legacy apps and internet services.
 
-h2. Why were doing this 
+h2. Why were doing this?
 
 A common story for companies is the blending of solutions around its core business value. 
 Features developed by them, third-party's adaptations and other SaaS to facilitate operations. 
@@ -22,7 +22,7 @@ h2. General Feature
 
 * 100% Open Source platform as a service (Open-PaaS).
 * Hub with a great design that provides powerful yet simple abstractions, making a complex problem tractable.
-* Primary concepts are: Data Type, Webhook, Flow, Event, Connection and Transform.
+* Primary concepts are: Data Type/File, Flow, Event, API Connection and Transform.
 * Dynamic load schemas: XSD, JSON and EDI grammars.
 * Powerful transform to translates and modified any formats to any format.
 * Full Stack HTTP API and incremental API's helper libraries in several languages.
@@ -39,6 +39,7 @@ h1. Join us
 * Github project: https://github.com/openjaf/cenit
 * Email: support@cenitsaas.com
 * Website: http://www.cenitsaas.com
+
 
 
 h2. Frameworks and Tools.
@@ -122,7 +123,7 @@ Now visit /data, for enter in data you need sing in before. If you don't have us
 If you want unavailable 'sing up' change user model.
 
 <pre>
-go to http://localhost:3000/data
+go to http://localhost:3000
 </pre>
 
 If you have some trouble for enter in /data check that mondodb is running.
@@ -137,386 +138,7 @@ If RabbitMQ is well installed when you run rails server then you can see:
 
 You should see something like 
 
-<img src="app/assets/images/cenit_demo_integration_1.png" alt="Cenit Demo Integration image 1" />
-
-h3. Create two Spree Store Endpoints.
-
-h4. Create Hub Demo Store 1
-
-Clone the github openjaf/hub-demo-store repo.
-
-<pre>
-$ git clone https://github.com/openjaf/hub-demo-store
-</pre>
-
-Change folder name to hub-demo-store-1 and move to folder.
-
-<pre>
-$ mv hub-demo-store hub-demo-store-1
-$ cd hub-demo-store-1
-</pre>
-
-Change branch to cenit.
-
-<pre>
-$ git checkout -b cenit origin/cenit
-</pre>
-
-Ensure stay in 'cenit' branch
-
-<pre>
-$ git branch
-> *cenit
-</pre>
-
-Ensure that 'cenit' branch is updated.
-
-<pre>
-$ git pull origin cenit
-> Already up-to-date.
-</pre>
-
-Run the bundle install command to install the required gems on your computer:
-
-<pre>
-$ bundle install
-</pre>
-
-Add database.yml file to config/ 
-
-<pre>
-development:
-  adapter: sqlite3
-  database: db/development.sqlite3
-  pool: 5
-  timeout: 5000
-test:
-  adapter: sqlite3
-  database: db/test.sqlite3
-  pool: 5
-  timeout: 5000
-production:
-  adapter: sqlite3
-  database: db/production.sqlite3
-  pool: 5
-  timeout: 5000
-</pre>	
-
-Create db, run migrations and load seed data.
-
-<pre>
-$ rake db:create; rake db:migrate; rake db:seed
-</pre>
-
-Run hub-demo-store-1 by port 3001
-
-<pre>
-$ rails s -p 3001
-</pre>
-
-
-h4. Create Hub Demo Store 2
-
-Clone the github openjaf/hub-demo-store repo.
-
-<pre>
-$ git clone https://github.com/openjaf/hub-demo-store
-</pre>
-
-Change folder name to hub-demo-store-2 and move to folder.
-
-<pre>
-$ mv hub-demo-store hub-demo-store-2
-$ cd hub-demo-store-2
-</pre>
-
-Change branch to cenit.
-
-<pre>
-$ git checkout -b cenit origin/cenit
-</pre>
-
-Ensure stay in 'cenit' branch
-
-<pre>
-$ git branch
-> *cenit
-</pre>
-
-Ensure that 'cenit' branch is updated.
-
-<pre>
-$ git pull origin cenit
-> Already up-to-date.
-</pre>
-
-Run the bundle install command to install the required gems on your computer:
-
-<pre>
-$ bundle install
-</pre>
-
-Create database.yml.
-
-<pre>
-vim config/database.yml	
-</pre>	 
-
-Copy here you config
-
-<pre>
-development:
-  adapter: sqlite3
-  database: db/development.sqlite3
-  pool: 5
-  timeout: 5000
-test:
-  adapter: sqlite3
-  database: db/test.sqlite3
-  pool: 5
-  timeout: 5000
-production:
-  adapter: sqlite3
-  database: db/production.sqlite3
-  pool: 5
-  timeout: 5000
-</pre>	
-
-Create db, run migrations and load seed data.
-
-<pre>
-$ rake db:create; rake db:migrate; rake db:seed
-</pre>
-
-Run hub-demo-store-1 by port 3002
-
-<pre>
-$ rails s -p 3002
-</pre>
-
-h3. Add configurations and conections to Cenit Hub
-
-Move to cenit hub folder
-
-<pre>
-$ cd ../cenit
-</pre>
-
-Stop the web server by port 3000
-
-<pre>
-Ctrl + c
-</pre>	
-
-Run rails console
-
-<pre>
-$ rails console
-</pre>	
-
-Add webhooks for Product Object at this moment only 'add_product' and 'update_product'.
-
-<pre>
-$ w_add = Setup::Webhook.create!({:name => 'Add Product', :path => 'add_product'})
-$ w_upd = Setup::Webhook.create!({:name => 'Update Product', :path => 'update_product'})
-</pre>
-
-Add conection configurations to Store I and Store II   
-
-<pre>
-$ c_one = Setup::Connection.create!({:name => 'Store I', :url => 'http://localhost:3001/wombat', :store => '3001', :token => 'tresmiluno'})
-$ c_one.webhooks = [w_add, w_upd]
-$ c_one.save
-
-$ c_two = Setup::Connection.create!({:name => 'Store II', :url => 'http://localhost:3002/wombat', :store => '3002', :token => 'tresmildos'})
-$ c_two.webhooks = [w_add, w_upd]
-$ c_two.save
-</pre>
-
-Stop rails console
-
-<pre>
-Ctrl + c
-</pre>	
-
-Run cenit hub by port: 3000
-
-<pre>
-$ rails s -p 3000
-</pre> 
-
-h3. Add configurations to Endpoints
-
-h4. Add configurations to Hub Demo Store 1
-
-Move to hub-demo-store-1
-
-<pre>
-$ cd ../hub-demo-store-1	
-</pre>	
-
-Stop the web server by port 3001
-
-<pre>
-Ctrl + c
-</pre>
-
-Edit file hub-demo-store-1/config/initializers/wombat.rb
-
-<pre>
-Spree::Wombat::Config.configure do |config|
-   config.connection_id = "3001"
-   config.connection_token = "tresmiluno"
-   config.push_objects = ["Spree::Order", "Spree::Product"]
-   config.payload_builder = {
-     "Spree::Order" => {:serializer => "Spree::Wombat::OrderSerializer", :root => "orders"},
-     "Spree::Product" => {:serializer => "Spree::Wombat::ProductSerializer", :root => "products"},
-   }
-   config.push_url = "http://localhost:3000/cenit"
-   config.enable_auto_push = true
-end
-</pre>
-
-Run hub-demo-store-1 by port 3001
-
-<pre>
-$ rails s -p 3001
-</pre>
-
-h4. Add configurations to Hub Demo Store 2
-
-Move to hub-demo-store-2
-
-<pre>
-$ cd ../hub-demo-store-2	
-</pre>	
-
-Stop the web server by port 3002
-
-<pre>
-Ctrl + c
-</pre>
-
-Edit file hub-demo-store-2/config/initializers/wombat.rb
-
-<pre>
-Spree::Wombat::Config.configure do |config|
-	config.connection_id = "3002"
-	config.connection_token = "tresmildos"
-	config.push_objects = ["Spree::Order", "Spree::Product"]
-	config.payload_builder = {
-	 "Spree::Order" => {:serializer => "Spree::Wombat::OrderSerializer", :root => "orders"},
-	 "Spree::Product" => {:serializer => "Spree::Wombat::ProductSerializer", :root => "products"},
-	}
-	config.push_url = "http://localhost:3000/cenit"
-	config.enable_auto_push = true
-end
-</pre>	
-
-Run hub-demo-store-2 by port 3002
-
-<pre>
-$ rails s -p 3002
-</pre>
-
-h3. Running the first example
-
-At the bigining you don't have any product in the Cenit Hub
-<img src="app/assets/images/cenit_demo_integration_1.png" alt="Cenit Demo Integration image 1" />
-
-Go to browser and visit products in the admin panel of Hub Demo Store 1.
-
-<pre>
-# go to http://localhost:3001/admin/products
-</pre>
-
-Enter the credentials
-
-<pre>
-# user: spree@example.com
-# pass: spree123
-</pre>
-
-Create a new product in the product form with the next values.
-
-<pre>
-Product name: 'Product 1'
-Sku: '111'
-Price: 100
-Shipping Category: Default	
-<pre>	
-
-<img src="app/assets/images/cenit_demo_integration_2.png" alt="Cenit Demo Integration image 2" />
-
-When you make clic in the button 'create', after save in the database the product,  this will be send it to Cenit Hub,, through a Push API /add_product that is a HTTP Post request.
-
-The Cenit Hub will process the HTTP Post request, and it will create a new product in the MongoDB. 
-
-Now you can visit /data in Cenit Hub and check that the product was saved.
-
-<pre>
-go to http://localhost:3000/data 
-</pre>	
-
-<img src="app/assets/images/cenit_demo_integration_3.png" alt="Cenit Demo Integration image 3" />
-
-<img src="app/assets/images/cenit_demo_integration_4.png" alt="Cenit Demo Integration image 4" />
-
-After save the new product, then will be sent a internal message using RabbitMQ because a new product was created and is required notify the rest of endpoint(s).
- 
-When the rabbitMQ message had been processed, the Cenit call the webhook /add_product for each conection, in this case will be send a request HTTP Post /add_product to Hub Demo Store II.
-
-The Store II will process the HTTP Post request, and it will create a new product in your DB.
-
-You can visit the other Storefront and check that the product was saved too.
-
-<pre>
-go to http://localhost:3002
-</pre>
-
-<img src="app/assets/images/cenit_demo_integration_5.png" alt="Cenit Demo Integration image 5" />
-
-Now goes to the admin in Hub Demo Store II, and modified the product name.
-
-<pre>
-Product name: 'Product 111'
-</pre>	
-	
-<img src="app/assets/images/cenit_demo_integration_6.png" alt="Cenit Demo Integration image 6" />	
-
-When you click the button 'update', after save in the databse the product will be send to Cenit Hub, throgth a Push API /add_product that is a HTTP Post request.
-
-Now you can visit /data in Cenit Hub and check that the product modification was saved.
-
-
-<pre>
-go to http://localhost:3000/data 
-</pre>	
-
-<img src="app/assets/images/cenit_demo_integration_6.png" alt="Cenit Demo Integration image 6" />	
-
-After save the new product, then will be sent a internal message using RabbitMQ because a product was updated and is required notify the rest of endpoint(s).
- 
-When the rabbitMQ message had been processed, the Cenit call the webhook /update_product for each conection, in this case will be send a request HTTP Post /update_product to Hub Demo Store I.
-
-The Store I will process the HTTP Post request, and it will create a new product in your DB.
-
-You can visit the other Storefront and check that the product was saved too.
-
-<img src="app/assets/images/cenit_demo_integration_7.png" alt="Cenit Demo Integration image 7" />
-
-Then like a last prove, go to Cenit Hub and modified a product in data.
-
-<pre>
-Product name: 'Product 111 111'
-</pre>	
-
-<img src="app/assets/images/cenit_demo_integration_9.png" alt="Cenit Demo Integration image 9" />
-
-How you spec  and both endpoint will be updated too.
-
-<img src="app/assets/images/cenit_demo_integration_10.png" alt="Cenit Demo Integration image 10" />
-<img src="app/assets/images/cenit_demo_integration_11.png" alt="Cenit Demo Integration image 11" />
+<img src="app/assets/images/cenithub-admin.png" alt="Cenithub Admin" />
 
 h2. Dependencies
 
@@ -601,7 +223,7 @@ If you choose to create a GitHub repository, the generator will prompt you for a
 
 h4. Troubleshooting
 
-Other problems? Check the "issues"https://github.com/openjaf/cenit.
+Other problems? Check the "issues" https://github.com/openjaf/cenit.
 
 h3. Edit the README
 
@@ -765,6 +387,7 @@ Thank you for improvements to the application:
 * "Miguel Sancho":https://github.com/sanchojaf
 * "Maykell Sanchez":https://github.com/kellsaro
 * "Maikel Arcia":https://github.com/macarci
+* "Asnioby Hdez":https://github.com/asnioby
 
 h2. MIT License
 

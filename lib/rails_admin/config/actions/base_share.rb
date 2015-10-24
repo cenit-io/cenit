@@ -16,7 +16,8 @@ module RailsAdmin
               sanitize_params_for!(:create, shared_collection_config, shared_params)
             end
             shared = false
-            collection = Cenit::Actions.build_collection(@object || params.delete(:bulk_ids), @abstract_model.model_name)
+            @bulk_ids = params.delete(:bulk_ids)
+            collection = Cenit::Actions.build_collection(@object || @bulk_ids, @abstract_model.model_name)
             if params[:_restart].nil? && shared_params
               @shared_collection = Setup::SharedCollection.new(shared_params.to_hash.merge(image: collection.image))
               @shared_collection.source_collection = collection

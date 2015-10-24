@@ -27,7 +27,7 @@ module Edi
         unless (primary_field_option = options[:primary_field]).nil? || primary_field_option.is_a?(Symbol)
           options[:primary_field] = primary_field_option.to_s.to_sym
         end
-        do_parse_json(data_type, data_type.records_model, content, options, (record && record.orm_model.schema) || (model && model.schema) || data_type.merged_schema, nil, record)
+        do_parse_json(data_type, data_type.records_model, content.with_indifferent_access, options, (record && record.orm_model.schema) || (model && model.schema) || data_type.merged_schema, nil, record)
       end
 
       def parse_xml(data_type, content, options={}, record=nil)
@@ -104,6 +104,7 @@ module Edi
             end
           end
         end
+        record.try(:run_after_initialized)
         record
       end
 
@@ -250,6 +251,7 @@ module Edi
             fail "Can not assign #{json} as simple content to #{data_type.name}"
           end
         end
+        record.try(:run_after_initialized)
         record
       end
 
@@ -405,6 +407,7 @@ module Edi
 
         report[:segments] << [segment, record]
 
+        record.try(:run_after_initialized)
         return [json, start, record]
       end
     end

@@ -1,10 +1,10 @@
 module RailsAdmin
   module Config
     module Actions
-      class RetryNotification < RailsAdmin::Config::Actions::Base
+      class RetryTask < RailsAdmin::Config::Actions::Base
 
         register_instance_option :only do
-          [Setup::Notification]
+          [Setup::Task, Setup::FlowExecution, Setup::DataTypeGeneration, Setup::DataTypeExpansion]
         end
 
         register_instance_option :visible? do

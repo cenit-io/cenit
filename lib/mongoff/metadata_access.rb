@@ -29,7 +29,7 @@ module Mongoff
     end
 
     def properties_schemas
-      @properties_schemas ||= ((schema = self.schema)['type'] == 'object' && schema['properties']) || {}
+      @properties_schemas ||= ((schema = self.schema).is_a?(Hash) && schema['type'] == 'object' && schema['properties']) || {}
     end
 
     def simple_properties_schemas
@@ -49,7 +49,11 @@ module Mongoff
     end
 
     def property?(property)
-      properties_schemas.has_key?(property)
+      properties_schemas.has_key?(property.to_s)
+    end
+
+    def requires?(property)
+      (require = schema['require']) && require.include?(property)
     end
 
     MONGO_TYPE_MAP = {
@@ -66,7 +70,7 @@ module Mongoff
       },
       object: Hash,
       array: Array,
-      nil => Hash
+      nil => NilClass
     }.with_indifferent_access
 
     def mongo_type_for(field_or_schema)
@@ -82,10 +86,10 @@ module Mongoff
         else
           mongo_type_for(schema)
         end
-      elsif field_or_schema.to_s == '_id'
+      elsif %w(id _id).include?(str = field_or_schema.to_s) || str.end_with?('_id')
         BSON::ObjectId
       else
-        nil
+        NilClass
       end
     end
 

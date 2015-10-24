@@ -3,19 +3,19 @@ require 'nokogiri'
 module Setup
   class Flow < ReqRejValidator
     include CenitScoped
-    include DynamicValidators
+    include NamespaceNamed
     include TriggersFormatter
 
-    BuildInDataType.regist(self).referenced_by(:name)
+    BuildInDataType.regist(self).referenced_by(:namespace, :name).excluding(:response_attachments)
 
-    field :name, type: String
     field :active, type: Boolean, default: :true
+    field :response_attachments, type: Boolean, default: :false
     field :discard_events, type: Boolean
 
     belongs_to :event, class_name: Setup::Event.to_s, inverse_of: nil
 
     belongs_to :translator, class_name: Setup::Translator.to_s, inverse_of: nil
-    belongs_to :custom_data_type, class_name: Setup::Model.to_s, inverse_of: nil
+    belongs_to :custom_data_type, class_name: Setup::DataType.to_s, inverse_of: nil
     field :nil_data_type, type: Boolean
     field :data_type_scope, type: String
     field :scope_filter, type: String
@@ -25,11 +25,10 @@ module Setup
     belongs_to :connection_role, class_name: Setup::ConnectionRole.to_s, inverse_of: nil
 
     belongs_to :response_translator, class_name: Setup::Translator.to_s, inverse_of: nil
-    belongs_to :response_data_type, class_name: Setup::Model.to_s, inverse_of: nil
+    belongs_to :response_data_type, class_name: Setup::DataType.to_s, inverse_of: nil
 
     field :last_trigger_timestamps, type: Time
 
-    validates_uniqueness_of :name
     validates_numericality_in_presence_of :lot_size, greater_than_or_equal_to: 1
     before_save :validates_configuration
 
@@ -125,20 +124,20 @@ module Setup
       if executing_id.present? && !(adjacency_list = execution_graph[executing_id] ||= []).include?(id.to_s)
         adjacency_list << id.to_s
       end
-      if cycle = cyclic_execution(execution_graph, executing_id)
-        cycle = cycle.collect { |id| ((flow = Setup::Flow.where(id: id).first) && flow.name) || id }
-        Setup::Notification.create(flow: self, exception_message: "Cyclic flow execution: #{cycle.join(' -> ')}")
-      else
-        message = options.merge(flow_id: id.to_s, tirgger_flow_id: executing_id, execution_graph: execution_graph).to_json
-        if Cenit.asynchronous_flow_processing
-          Cenit::Rabbit.send_to_rabbitmq(message)
+      result =
+        if cycle = cyclic_execution(execution_graph, executing_id)
+          cycle = cycle.collect { |id| ((flow = Setup::Flow.where(id: id).first) && flow.name) || id }
+          Setup::Notification.create(message: "Cyclic flow execution: #{cycle.join(' -> ')}")
         else
-          Cenit::Rabbit.process_message(message)
+          Cenit::Rabbit.enqueue(task: Setup::FlowExecution,
+                                flow_id: id.to_s,
+                                tirgger_flow_id: executing_id,
+                                execution_graph: execution_graph)
         end
-      end
       puts "Flow processing jon '#{self.name}' done!"
       self.last_trigger_timestamps = DateTime.now
       save
+      result
     end
 
     def translate(message, &block)
@@ -150,7 +149,7 @@ module Setup
           flow_execution.pop
         end
       else
-        yield(exception_message: "translator can't be blank")
+        yield(message: "Flow translator can't be blank")
       end
     end
 
@@ -170,13 +169,17 @@ module Setup
 
     def simple_translate(message, &block)
       begin
-        if obj_id = message[:source_id]
-          translator.run(object: data_type.records_model.where(id: obj_id).first, discard_events: discard_events)
-        elsif  object_ids = source_ids_from(message)
-          data_type.records_model.any_in(id: object_ids).each { |obj| translator.run(object: obj, discard_events: discard_events) }
-        end
+        objects =
+          if obj_id = message[:source_id]
+            data_type.records_model.where(id: obj_id)
+          elsif  object_ids = source_ids_from(message)
+            data_type.records_model.any_in(id: object_ids)
+          else
+            data_type.records_model.all
+          end
+        objects.each { |obj| translator.run(object: obj, discard_events: discard_events) }
       rescue Exception => ex
-        block.yield(exception_message: ex.message) if block
+        block.yield(message: ex.message) if block
       end
     end
 
@@ -212,10 +215,11 @@ module Setup
                          discard_events: discard_events,
                          parameters: template_parameters,
                          headers: http_response.headers) if http_response.code == 200
-          response = http_response.to_json rescue http_response.headers.to_json
-          block.yield(response: response, exception_message: (200...299).include?(http_response.code) ? nil : 'Unsuccessful') if block
+          block.yield(message: {response_code: http_response.code}.to_json,
+                      type: (200...299).include?(http_response.code) ? :notice : :error,
+                      attachment: attachment_from(http_response)) if block.present?
         rescue Exception => ex
-          block.yield(response: http_response.to_json, exception_message: ex.message) if block
+          block.yield(message: {error: ex.message}.to_json, attachment: attachment_from(http_response)) if block
         end
       end
     end
@@ -275,18 +279,27 @@ module Setup
               }.merge(connection.conformed_headers(template_parameters)).merge(webhook.conformed_headers(template_parameters))
             begin
               http_response = HTTMultiParty.send(webhook.method, conformed_url + '/' + conformed_path, {body: body, headers: headers})
-              block.yield(response: http_response.to_json, exception_message: (200...299).include?(http_response.code) ? nil : 'Unsuccessful') if block.present?
+              block.yield(message: {response_code: http_response.code}.to_json,
+                          type: (200...299).include?(http_response.code) ? :notice : :error,
+                          attachment: attachment_from(http_response)) if block.present?
               if response_translator #&& http_response.code == 200
                 response_translator.run(translation_options.merge(target_data_type: response_translator.data_type || response_data_type, data: http_response.body))
               end
             rescue Exception => ex
-              block.yield(exception_message: ex.message) if block
+              block.yield(message: ex.message) if block
             end
           else
-            block.yield(exception_message: "Invalid translation result type: #{translation_result.class}") if block
+            block.yield(message: "Invalid translation result type: #{translation_result.class}") if block
           end
         end
       end
+    end
+
+    def attachment_from(http_response)
+      {
+        contentType: http_response.content_type,
+        body: http_response.body
+      } if response_attachments && http_response
     end
 
     def source_ids_from(message)

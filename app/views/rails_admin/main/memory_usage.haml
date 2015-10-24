@@ -1,5 +1,5 @@
 :ruby
-  model_config = RailsAdmin::Config.model(Setup::Model)
+  model_config = RailsAdmin::Config.model(Setup::DataType)
   abstract_model = model_config.abstract_model
   require 'rails_admin/config/fields/types/datetime.rb'
   query = params[:query]
@@ -12,7 +12,7 @@
   description = model_config.description
   properties = [{name: :title, label: 'Model'}, {name: :used_memory, label: 'Used memory'}]
 
-%h4="Total memory usage: #{number_to_human_size(Setup::Model.all.inject(0) { |sum, model| sum + model.used_memory })}"
+%h4="Total memory usage: #{number_to_human_size(Setup::DataType.all.inject(0) { |sum, model| sum + model.used_memory })}"
 
 #list
   = form_tag(memory_usage_path(params.except(*%w[page f query])), method: :get, class: 'pjax-form form-inline') do

@@ -1,12 +1,13 @@
 module Setup
   class BaseOauthProvider
     include CenitUnscoped
+    include CenitReservedNamespace
+    include CrossTenancy
 
     Setup::Models.exclude_actions_for self, :all
 
-    BuildInDataType.regist(self).referenced_by(:name)
+    BuildInDataType.regist(self).referenced_by(:namespace, :name)
 
-    field :name, type: String
     field :response_type, type: String
     field :authorization_endpoint, type: String
     field :token_endpoint, type: String
@@ -22,22 +23,24 @@ module Setup
 
     accepts_nested_attributes_for :parameters, allow_destroy: true
 
+    before_save :check_instance_type
+
+    def check_instance_type
+      if self.is_a?(Setup::OauthProvider) || self.is_a?(Setup::Oauth2Provider)
+        true
+      else
+        errors.add(:base, 'A provider must be of type Oauth or Oauth2')
+        false
+      end
+    end
+
+
     def response_type_enum
       ['code']
     end
 
     def token_method_enum
       %w(POST GET)
-    end
-
-    def create_http_client(authorization, options = {})
-      @session = options.delete(:session)
-    end
-
-    def base_options
-      options = {redirect_uri: "#{Cenit.oauth2_callback_site}/oauth2/callback"}
-      parameters.each { |parameter| options[parameter.key.to_sym] = parameter.value }
-      options
     end
   end
 end

@@ -5,6 +5,7 @@ require "action_controller/railtie"
 require "action_mailer/railtie"
 # require "active_resource/railtie"
 require "sprockets/railtie"
+require "raml_parser"
 
 # Require the gems listed in Gemfile, including any gems
 # you've limited to :test, :development, or :production.
@@ -35,16 +36,15 @@ module Cenit
 
         Account.current = account
 
-        Setup::Model.update_all(model_update_options)
+        Setup::DataType.update_all(model_update_options)
 
         unless Cenit.deactivate_models
-          Setup::Schema.all.each do |schema|
-            puts "Loading schema #{schema.uri}"
-            schema.load_models
+          models = Set.new
+          Setup::SchemaDataType.activated.each do |data_type|
+            models += data_type.load_models[:loaded]
           end
-          models = []
-          Setup::FileDataType.all.each do |file_data_type|
-            models << file_data_type.load_model if file_data_type.activated
+          Setup::FileDataType.activated.each do |file_data_type|
+            models << file_data_type.load_model
           end
           RailsAdmin::AbstractModel.update_model_config(models)
         end
