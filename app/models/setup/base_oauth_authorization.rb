@@ -1,12 +1,11 @@
 module Setup
   class BaseOauthAuthorization
     include CenitScoped
+    include NamespaceNamed
 
     Setup::Models.exclude_actions_for self, :all
 
-    BuildInDataType.regist(self).referenced_by(:name).excluding(:refresh_token, :bearer_token)
-
-    field :name, type: String
+    BuildInDataType.regist(self).with(:name, :provider, :client).referenced_by(:namespace, :name)
 
     belongs_to :provider, class_name: Setup::BaseOauthProvider.to_s, inverse_of: nil
     belongs_to :client, class_name: Setup::OauthClient.to_s, inverse_of: nil
@@ -16,6 +15,7 @@ module Setup
     field :authorized_at, type: Time
 
     validates_presence_of :name, :provider, :client
+    validates_uniqueness_of :name
 
     before_save :check_instance_type
 

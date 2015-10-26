@@ -1,7 +1,7 @@
 module Api::V1
   class ApiController < ApplicationController
     before_action :authorize_account, :save_request_data, except: [:new_account, :cors_check]
-    before_action :find_item, only: [:show, :destroy, :pull, :run, :content, :raml]
+    before_action :find_item, only: [:show, :destroy, :pull, :run]
     before_action :authorize_action, except: [:new_account, :cors_check, :push]
     rescue_from Exception, :with => :exception_handler
     respond_to :json
@@ -73,7 +73,7 @@ module Api::V1
     end
 
     def push
-      response = i
+      response =
         {
           success: success_report = Hash.new { |h, k| h[k] = [] },
           errors: broken_report = Hash.new { |h, k| h[k] = [] }
@@ -303,8 +303,8 @@ module Api::V1
     def get_data_type_by_slug(slug)
       if slug
         @data_types[slug] ||=
-            if @library_slug == 'setup'
-              Setup::BuildInDataType["Setup::#{slug.camelize}"]
+          if @library_slug == 'setup'
+            Setup::BuildInDataType["Setup::#{slug.camelize}"]
           else
             if @library_id.nil?
               lib = Setup::Library.where(slug: @library_slug).first

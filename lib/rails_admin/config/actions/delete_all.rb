@@ -5,7 +5,7 @@ module RailsAdmin
 
         register_instance_option :visible? do
           if authorized?
-            model = bindings[:abstract_model].model_name.constantize rescue nil
+            model = bindings[:abstract_model].model rescue nil
             model && model.all.size > 0
           else
             false
@@ -23,7 +23,7 @@ module RailsAdmin
         register_instance_option :controller do
           proc do
 
-            if model = @abstract_model.model_name.constantize rescue nil
+            if model = @abstract_model.model rescue nil
               @model_label_plural =
                 if data_type = model.try(:data_type)
                   data_type.title.downcase.pluralize

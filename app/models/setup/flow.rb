@@ -3,13 +3,13 @@ require 'nokogiri'
 module Setup
   class Flow < ReqRejValidator
     include CenitScoped
-    include DynamicValidators
+    include NamespaceNamed
     include TriggersFormatter
 
-    BuildInDataType.regist(self).referenced_by(:name)
+    BuildInDataType.regist(self).referenced_by(:namespace, :name).excluding(:response_attachments)
 
-    field :name, type: String
     field :active, type: Boolean, default: :true
+    field :response_attachments, type: Boolean, default: :false
     field :discard_events, type: Boolean
 
     belongs_to :event, class_name: Setup::Event.to_s, inverse_of: nil
@@ -29,7 +29,6 @@ module Setup
 
     field :last_trigger_timestamps, type: Time
 
-    validates_uniqueness_of :name
     validates_numericality_in_presence_of :lot_size, greater_than_or_equal_to: 1
     before_save :validates_configuration
 
@@ -82,18 +81,18 @@ module Setup
 
     def reject_message(field = nil)
       case field
-        when :custom_data_type
-          'is not allowed since translator already defines a data type'
-        when :data_type_scope
-          'is not allowed for import translators'
-        when :response_data_type
-          response_translator.present? ? 'is not allowed since response translator already defines a data type' : "can't be defined until response translator"
-        when :discard_events
-          "can't be defined until response translator"
-        when :lot_size, :response_translator
-          'is not allowed for non export translators'
-        else
-          super
+      when :custom_data_type
+        'is not allowed since translator already defines a data type'
+      when :data_type_scope
+        'is not allowed for import translators'
+      when :response_data_type
+        response_translator.present? ? 'is not allowed since response translator already defines a data type' : "can't be defined until response translator"
+      when :discard_events
+        "can't be defined until response translator"
+      when :lot_size, :response_translator
+        'is not allowed for non export translators'
+      else
+        super
       end
     end
 
@@ -126,15 +125,15 @@ module Setup
         adjacency_list << id.to_s
       end
       result =
-          if cycle = cyclic_execution(execution_graph, executing_id)
-            cycle = cycle.collect { |id| ((flow = Setup::Flow.where(id: id).first) && flow.name) || id }
-            Setup::Notification.create(message: "Cyclic flow execution: #{cycle.join(' -> ')}")
-          else
-            Cenit::Rabbit.enqueue(task: Setup::FlowExecution,
-                                  flow_id: id.to_s,
-                                  tirgger_flow_id: executing_id,
-                                  execution_graph: execution_graph)
-          end
+        if cycle = cyclic_execution(execution_graph, executing_id)
+          cycle = cycle.collect { |id| ((flow = Setup::Flow.where(id: id).first) && flow.name) || id }
+          Setup::Notification.create(message: "Cyclic flow execution: #{cycle.join(' -> ')}")
+        else
+          Cenit::Rabbit.enqueue(task: Setup::FlowExecution,
+                                flow_id: id.to_s,
+                                tirgger_flow_id: executing_id,
+                                execution_graph: execution_graph)
+        end
       puts "Flow processing jon '#{self.name}' done!"
       self.last_trigger_timestamps = DateTime.now
       save
@@ -171,13 +170,13 @@ module Setup
     def simple_translate(message, &block)
       begin
         objects =
-            if obj_id = message[:source_id]
-              data_type.records_model.where(id: obj_id)
-            elsif  object_ids = source_ids_from(message)
-              data_type.records_model.any_in(id: object_ids)
-            else
-              data_type.records_model.all
-            end
+          if obj_id = message[:source_id]
+            data_type.records_model.where(id: obj_id)
+          elsif  object_ids = source_ids_from(message)
+            data_type.records_model.any_in(id: object_ids)
+          else
+            data_type.records_model.all
+          end
         objects.each { |obj| translator.run(object: obj, discard_events: discard_events) }
       rescue Exception => ex
         block.yield(message: ex.message) if block
@@ -233,21 +232,21 @@ module Setup
         common_result = nil
         the_connections.each do |connection|
           translation_options =
-              {
-                  object_ids: object_ids,
-                  source_data_type: data_type,
-                  offset: offset,
-                  limit: limit,
-                  discard_events: discard_events,
-                  parameters: template_parameters = webhook_template_parameters.dup
-              }
+            {
+              object_ids: object_ids,
+              source_data_type: data_type,
+              offset: offset,
+              limit: limit,
+              discard_events: discard_events,
+              parameters: template_parameters = webhook_template_parameters.dup
+            }
           translation_result =
-              if connection.template_parameters.present?
-                template_parameters.reverse_merge!(connection.template_parameters_hash)
-                translator.run(translation_options)
-              else
-                common_result ||= translator.run(translation_options)
-              end || ''
+            if connection.template_parameters.present?
+              template_parameters.reverse_merge!(connection.template_parameters_hash)
+              translator.run(translation_options)
+            else
+              common_result ||= translator.run(translation_options)
+            end || ''
           if [Hash, String].include?(translation_result.class)
             url_parameter = connection.conformed_parameters(template_parameters).merge(webhook.conformed_parameters(template_parameters)).to_param
             if url_parameter.present?
@@ -259,25 +258,25 @@ module Setup
               body = {}
               translation_result.each do |key, content|
                 body[key] =
-                    if content.is_a?(String) || content.respond_to?(:read)
-                      content
-                    elsif content.is_a?(Hash)
-                      UploadIO.new(StringIO.new(content[:data]), content[:contentType], content[:filename])
-                    else
-                      content.to_s
-                    end
+                  if content.is_a?(String) || content.respond_to?(:read)
+                    content
+                  elsif content.is_a?(Hash)
+                    UploadIO.new(StringIO.new(content[:data]), content[:contentType], content[:filename])
+                  else
+                    content.to_s
+                  end
               end
             end
             template_parameters.reverse_merge!(
-                url: conformed_url = connection.conformed_url(template_parameters),
-                path: conformed_path = webhook.conformed_path(template_parameters) + url_parameter,
-                method: webhook.method,
-                body: body
+              url: conformed_url = connection.conformed_url(template_parameters),
+              path: conformed_path = webhook.conformed_path(template_parameters) + url_parameter,
+              method: webhook.method,
+              body: body
             )
             headers =
-                {
-                    'Content-Type' => translator.mime_type
-                }.merge(connection.conformed_headers(template_parameters)).merge(webhook.conformed_headers(template_parameters))
+              {
+                'Content-Type' => translator.mime_type
+              }.merge(connection.conformed_headers(template_parameters)).merge(webhook.conformed_headers(template_parameters))
             begin
               http_response = HTTMultiParty.send(webhook.method, conformed_url + '/' + conformed_path, {body: body, headers: headers})
               block.yield(message: {response_code: http_response.code}.to_json,
@@ -300,7 +299,7 @@ module Setup
       {
         contentType: http_response.content_type,
         body: http_response.body
-      } if http_response
+      } if response_attachments && http_response
     end
 
     def source_ids_from(message)

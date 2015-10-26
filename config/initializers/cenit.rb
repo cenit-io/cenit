@@ -3,7 +3,7 @@ require 'cenit/config'
 Cenit.config do
 
   #Deactivate models on cenit startup
-  deactivate_models true
+  deactivate_models false
 
   #Use this option to setup an external service
   service_url ENV['SERVICE_URL']
@@ -15,7 +15,7 @@ Cenit.config do
   captcha_length 5
 
   #Process flow messages asynchronous
-  asynchronous_flow_execution true
+  asynchronous_flow_execution false
 
   #Generate data types asynchronous
   asynchronous_data_type_generation true

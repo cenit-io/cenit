@@ -15,10 +15,11 @@ module Cenit
 
     def options
       @options ||=
-          {
-              service_url: 'http://localhost:3000', #TODO Automatize default service url
-              service_schema_path: '/schema'
-          }
+        {
+          service_url: 'http://localhost:3000', #TODO Automatize default service url
+          service_schema_path: '/schema',
+          reserved_namespaces: ['', 'cenit']
+        }
     end
 
     def [](option)

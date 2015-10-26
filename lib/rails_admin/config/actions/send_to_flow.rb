@@ -5,7 +5,7 @@ module RailsAdmin
 
         register_instance_option :visible? do
           if authorized?
-            model = bindings[:abstract_model].model_name.constantize rescue nil
+            model = bindings[:abstract_model].model rescue nil
             if model.present? && model.respond_to?(:data_type)
               data_type = model.data_type
               #TODO Set send to flow action visible only if there is a flow

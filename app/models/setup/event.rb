@@ -1,15 +1,13 @@
 module Setup
   class Event
     include CenitScoped
+    include NamespaceNamed
 
     Setup::Models.exclude_actions_for self
 
-    BuildInDataType.regist(self).with(:name).referenced_by(:name)
+    BuildInDataType.regist(self).with(:name).referenced_by(:namespace, :name)
 
-    field :name, type: String
     field :last_trigger_timestamps, type: DateTime
-
-    validates_uniqueness_of :name
 
     before_save :check_instance_type
 

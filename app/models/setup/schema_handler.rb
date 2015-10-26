@@ -171,12 +171,12 @@ module Setup
               end
             else
               case existing_value = sch[key]
-                when Hash
-                  if value.is_a?(Hash)
-                    value = existing_value.deep_merge(value) { |_, val1, val2| Cenit::Utility.array_hash_merge(val1, val2) }
-                  end
-                when Array
-                  value = value + existing_value if value.is_a?(Array)
+              when Hash
+                if value.is_a?(Hash)
+                  value = existing_value.deep_merge(value) { |_, val1, val2| Cenit::Utility.array_hash_merge(val1, val2) }
+                end
+              when Array
+                value = value + existing_value if value.is_a?(Array)
               end
               sch[key] = value
             end

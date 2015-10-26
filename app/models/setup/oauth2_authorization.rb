@@ -4,7 +4,7 @@ module Setup
 
     Setup::Models.exclude_actions_for self, :all
 
-    BuildInDataType.regist(self).referenced_by(:name).excluding(:refresh_token, :bearer_token)
+    BuildInDataType.regist(self).with(:name, :provider, :client).referenced_by(:namespace, :name)
 
     has_and_belongs_to_many :scopes, class_name: Setup::Oauth2Scope.to_s, inverse_of: nil
 
@@ -41,11 +41,11 @@ module Setup
       token = http_client.auth_code.get_token(params[:code], token_params)
       self.token_type = token.params['token_type']
       self.authorized_at =
-          if time = token.params['created_at']
-            Time.at(time)
-          else
-            Time.now
-          end
+        if time = token.params['created_at']
+          Time.at(time)
+        else
+          Time.now
+        end
       self.access_token = token.token
       self.token_span = token.expires_in
       self.refresh_token = token.refresh_token

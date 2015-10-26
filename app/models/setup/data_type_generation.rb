@@ -3,7 +3,7 @@ module Setup
 
     BuildInDataType.regist(self)
 
-    Setup::Models.exclude_actions_for self, :new, :edit, :update, :delete_all
+    Setup::Models.exclude_actions_for self, :new, :edit, :translator_update, :import, :convert, :delete_all
 
     def run(message)
       message = message.with_indifferent_access
@@ -26,12 +26,12 @@ module Setup
           data_type_schemas.each do |name, schema|
             data_type = Setup::SchemaDataType.new(name: name, schema: schema, library_id: library_id)
             data_type_schemas[name] =
-                if data_type.validate_model
-                  new_data_types_attributes << data_type.attributes
-                  data_type.id
-                else
-                  nil
-                end
+              if data_type.validate_model
+                new_data_types_attributes << data_type.attributes
+                data_type.id
+              else
+                nil
+              end
           end
           Setup::DataType.collection.insert(new_data_types_attributes)
         end
@@ -45,14 +45,14 @@ module Setup
     class << self
       def data_type_schemas(source, options = {})
         options[:schemas] = schemas =
-            case source
-              when nil # All schemas
-                Setup::Schema.all
-              when Array # bulk schema ids
-                Setup::Schema.any_in(id: source)
-              else
-                [source]
-            end
+          case source
+          when nil # All schemas
+            Setup::Schema.all
+          when Array # bulk schema ids
+            Setup::Schema.any_in(id: source)
+          else
+            [source]
+          end
         schemas = schemas.to_a
         libraries_schemas = Hash.new { |h, k| h[k] = [] }
         libraries = {}

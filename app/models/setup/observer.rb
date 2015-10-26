@@ -2,7 +2,7 @@ module Setup
   class Observer < Event
     include TriggersFormatter
 
-    BuildInDataType.regist(self).referenced_by(:name).excluding(:last_trigger_timestamps).including(:data_type)
+    BuildInDataType.regist(self).referenced_by(:namespace, :name).excluding(:last_trigger_timestamps).including(:data_type)
 
     belongs_to :data_type, class_name: Setup::DataType.to_s, inverse_of: :events
     field :triggers, type: String

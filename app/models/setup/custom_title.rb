@@ -7,7 +7,7 @@ module Setup
 
     def custom_title
       title = try(:title) || try(:name) || to_s
-      if scoped_title = scope_title
+      if (scoped_title = scope_title).present?
         "#{scoped_title} | #{title}"
       else
         title

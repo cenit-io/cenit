@@ -4,7 +4,7 @@ module Setup
 
     BuildInDataType.regist(self)
 
-    Setup::Models.exclude_actions_for self, :new, :edit, :update, :delete_all
+    Setup::Models.exclude_actions_for self, :new, :edit, :translator_update, :import, :convert, :delete_all
 
 
     field :message, type: Hash
@@ -61,11 +61,9 @@ module Setup
           temporary_file.binmode
           temporary_file.write(readable)
           temporary_file.rewind
-          readable = temporary_file
+          readable = Cenit::Utility::Proxy.new(temporary_file, original_filename: attachment[:filename], contentType: attachment[:contentType])
         end
         notification.attachment = readable
-        notification.attachment.filename = attachment[:filename] if attachment[:filename]
-        #notification.attachment.content_type = attachment[:contentType] if attachment[:contentType]
       end
       if notification.save
         notifications << notification

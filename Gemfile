@@ -19,7 +19,6 @@ gem 'haml-rails'
 gem 'figaro'
 gem 'unicorn', require: false
 gem 'raml_parser', git: 'https://github.com/asnioby/raml_parser', branch: 'develop'
-#gem 'raml_ruby', git: 'https://github.com/asnioby/raml_ruby'
 
 group :doc do
   gem 'sdoc', require: false
@@ -72,7 +71,6 @@ gem 'chartkick'
 gem 'descriptive_statistics'
 
 gem 'httparty'
-#gem 'httmultiparty', git: 'https://github.com/jwagener/httmultiparty.git'
 gem 'bunny', '~> 0.9.1'
 gem 'json-schema'
 gem 'nokogiri'

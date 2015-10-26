@@ -7,26 +7,36 @@ class Ability
 
       can([:show, :edit], User) { |u| u.eql?(user) }
 
+      @@oauth_models = [Setup::BaseOauthProvider,
+                        Setup::OauthProvider,
+                        Setup::Oauth2Provider,
+                        Setup::OauthClient,
+                        Setup::Oauth2Scope]
+
+      can [:index, :create], @@oauth_models
+      can(:show, @@oauth_models) { |record| record.creator.super_admin? || record.creator.account_id.eql?(user.account_id) }
+      can([:destroy, :edit], @@oauth_models, tenant_id: user.account_id)
+
       if user.super_admin?
         can :manage,
             [
-                Role,
-                User,
-                Account,
-                Setup::SharedName,
-                Setup::BaseOauthProvider,
-                Setup::OauthProvider,
-                Setup::Oauth2Provider,
-                Setup::OauthClient,
-                Setup::Oauth2Scope,
-                Setup::BaseOauthAuthorization,
-                Setup::OauthAuthorization,
-                Setup::Oauth2Authorization,
-                Setup::OauthParameter,
-                CenitToken,
-                TkAptcha,
-                Script,
-                Setup::Raml
+              Role,
+              User,
+              Account,
+              Setup::SharedName,
+              Setup::BaseOauthProvider,
+              Setup::OauthProvider,
+              Setup::Oauth2Provider,
+              Setup::OauthClient,
+              Setup::Oauth2Scope,
+              Setup::BaseOauthAuthorization,
+              Setup::OauthAuthorization,
+              Setup::Oauth2Authorization,
+              Setup::OauthParameter,
+              CenitToken,
+              TkAptcha,
+              Script,
+              Setup::Raml
             ]
         can :import, Setup::SharedCollection
         can :destroy, [Setup::SharedCollection, Setup::DataType, Setup::Task]
@@ -44,34 +54,34 @@ class Ability
       can :edi_export, Setup::SharedCollection
 
       @@setup_map ||=
-          begin
-            hash = {}
-            non_root = []
-            RailsAdmin::Config::Actions.all.each do |action|
-              unless action.root?
-                if models = action.only
-                  models = [models] unless models.is_a?(Enumerable)
-                  hash[action.authorization_key] = Set.new(models)
-                else
-                  non_root << action
-                end
+        begin
+          hash = {}
+          non_root = []
+          RailsAdmin::Config::Actions.all.each do |action|
+            unless action.root?
+              if models = action.only
+                models = [models] unless models.is_a?(Enumerable)
+                hash[action.authorization_key] = Set.new(models)
+              else
+                non_root << action
               end
             end
-            Setup::Models.each do |model, excluded_actions|
-              non_root.each do |action|
-                models = (hash[key = action.authorization_key] ||= Set.new)
-                models << model if relevant_rules_for_match(action.authorization_key, model).empty? && !(excluded_actions.include?(:all) || excluded_actions.include?(action.key))
-              end
-            end
-            new_hash = {}
-            hash.each do |key, models|
-              a = (new_hash[models] ||= [])
-              a << key
-            end
-            hash = {}
-            new_hash.each { |models, keys| hash[keys] = models.to_a }
-            hash
           end
+          Setup::Models.each do |model, excluded_actions|
+            non_root.each do |action|
+              models = (hash[key = action.authorization_key] ||= Set.new)
+              models << model if relevant_rules_for_match(action.authorization_key, model).empty? && !(excluded_actions.include?(:all) || excluded_actions.include?(action.key))
+            end
+          end
+          new_hash = {}
+          hash.each do |key, models|
+            a = (new_hash[models] ||= [])
+            a << key
+          end
+          hash = {}
+          new_hash.each { |models, keys| hash[keys] = models.to_a }
+          hash
+        end
 
       @@setup_map.each { |keys, models| can keys, models }
 

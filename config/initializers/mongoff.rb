@@ -4,23 +4,32 @@ Mongoff::Model.config do
 
   base_schema do
     {
-        'type' => 'object',
-        'properties' => {
-            'created_at' => {
-                'type' => 'string',
-                'format' => 'date-time',
-                'edi' => {
-                    'discard' => true
-                }
-            },
-            'updated_at' => {
-                'type' => 'string',
-                'format' => 'date-time',
-                'edi' => {
-                    'discard' => true
-                }
-            }
+      'type' => 'object',
+      'properties' => {
+        'created_at' => {
+          'type' => 'string',
+          'format' => 'date-time',
+          'edi' => {
+            'discard' => true
+          },
+          'visible' => false
+        },
+        'updated_at' => {
+          'type' => 'string',
+          'format' => 'date-time',
+          'edi' => {
+            'discard' => true
+          },
+          'visible' => false
+        },
+        '_type' => {
+          'type' => 'string',
+          'edi' => {
+            'discard' => true
+          },
+          'visible' => false
         }
+      }
     }
   end
 

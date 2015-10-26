@@ -57,7 +57,7 @@ module Setup
 
     def collection_data_type
       @collection_data_type ||=
-          ((base = schema['extends']) && base.is_a?(String) && (base = find_data_type(base)) && base.collection_data_type) || self
+        ((base = schema['extends']) && base.is_a?(String) && (base = find_data_type(base)) && base.collection_data_type) || self
     end
 
     def data_type_collection_name

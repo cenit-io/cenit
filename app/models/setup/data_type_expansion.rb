@@ -3,19 +3,19 @@ module Setup
 
     BuildInDataType.regist(self)
 
-    Setup::Models.exclude_actions_for self, :new, :edit, :update, :delete_all
+    Setup::Models.exclude_actions_for self, :new, :edit, :translator_update, :import, :convert, :delete_all
 
     def run(message)
       message = message.with_indifferent_access
       data_types =
-          case source = message[:source]
-            when nil # All data types
-              Setup::SchemaDataType.all
-            when Array # bulk schema ids
-              Setup::SchemaDataType.any_in(id: source)
-            else
-              [source]
-          end
+        case source = message[:source]
+        when nil # All data types
+          Setup::SchemaDataType.all
+        when Array # bulk schema ids
+          Setup::SchemaDataType.any_in(id: source)
+        else
+          [source]
+        end
       data_types.each do |data_type|
         next if data_type.nil?
         segments = {}
