@@ -7,7 +7,7 @@
  RailsAdmin::Config::Actions::SwitchNavigation,
  RailsAdmin::Config::Actions::DataType,
  RailsAdmin::Config::Actions::Import,
- #RailsAdmin::Config::Actions::EdiExport,
+ RailsAdmin::Config::Actions::EdiExport,
  RailsAdmin::Config::Actions::ImportSchema,
  RailsAdmin::Config::Actions::DeleteAll,
  RailsAdmin::Config::Actions::TranslatorUpdate,
@@ -1675,10 +1675,12 @@ RailsAdmin.config do |config|
     show do
       field :api_name
       field :api_version
+      field :repo
       field :raml_doc
+      field :raml_references
     end
 
-    fields :api_name, :api_version, :raml_doc, :raml_references
+    fields :api_name, :api_version, :repo, :raml_doc, :raml_references
   end
 
   config.model Setup::RamlReference do

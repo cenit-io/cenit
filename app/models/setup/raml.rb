@@ -8,6 +8,7 @@ module Setup
 
     field :api_name, type: String
     field :api_version, type: String
+    field :repo, type: String
     field :raml_doc, type: String
     embeds_many :raml_references, class_name: Setup::RamlReference.to_s, inverse_of: :raml
     accepts_nested_attributes_for :raml_references, allow_destroy: true

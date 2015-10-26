@@ -19,13 +19,15 @@ Cenit::Application.routes.draw do
 
   namespace :api do
     namespace :v1 do
-      get  '/public/:model/:api_name/:api_version/*path', to: 'api#raml'
+      get  '/public/:model', to: 'api#index', library: 'setup'
+      get  '/public/:model/:id/*path(.:format)', to: 'api#raml', library: 'setup', defaults: { format: 'raml' }
+      #get  '/public/:model/:api_name/:api_version/*path(.:format)', to: 'api#raml', library: 'setup', defaults: { format: 'raml' }, :constraints => {:api_version => /[.]+/}
       post '/setup/account', to: 'api#new_account'
       post '/:library/push', to: 'api#push'
       post '/:library/:model', to: 'api#create'
-      get '/:library/:model', to: 'api#index'
-      get '/:library/:model/:id', to: 'api#show'
-      get '/:library/:model/:id/:field', to: 'api#content'
+      get '/:library/:model', to: 'api#index', defaults: { format: 'json' }
+      get '/:library/:model/:id', to: 'api#show', defaults: { format: 'json' }
+      get '/:library/:model/:id/:view', to: 'api#content', defaults: { format: 'json' }
       delete '/:library/:model/:id', to: 'api#destroy'
       post '/:library/:model/:id/pull', to: 'api#pull'
       post '/:library/:model/:id/run', to: 'api#run'

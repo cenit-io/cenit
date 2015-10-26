@@ -13,7 +13,7 @@ class FileController < ApplicationController
     if model &&
         (record = model.where(id: params[:id]).first)
       if Ability.new(current_user).can?(:show, record)
-        if (uploader = record.try(params[:field])).is_a?(CarrierWave::Uploader::Base) &&
+        if (uploader = record.try(params[:view])).is_a?(CarrierWave::Uploader::Base) &&
             (uploader = find_version(uploader, file_path)) &&
             content = uploader.read
           send_data content, type: uploader.file.content_type, disposition: 'inline'
