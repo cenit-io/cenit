@@ -193,7 +193,7 @@ module Mongoff
     def attribute_key(field, field_metadata = {})
       if (field_metadata[:model] ||= property_model(field)) &&
         (schema = (field_metadata[:schema] ||= property_schema(field)))['referenced']
-        return ("#{field}_id" + ('s' if schema['type'] == 'array').to_s).to_sym
+        return "#{field}_id" + ('s' if schema['type'] == 'array').to_s
       end
       field.to_s == 'id' ? :_id : field
     end
@@ -208,7 +208,7 @@ module Mongoff
     end
 
     CONVERSION = {
-      BSON::ObjectId => ->(value) { BSON::ObjectId.from_string(value.to_s) },
+      BSON::ObjectId => ->(value) { BSON::ObjectId.from_string(value.to_s) rescue nil },
       BSON::Binary => ->(value) { BSON::Binary.new(value.to_s) },
       Boolean => ->(value) { value.to_s.to_boolean },
       String => ->(value) { value.to_s },
@@ -339,10 +339,11 @@ module Mongoff
 
     private
 
-    def check_referenced_schema(schema)
-      if (ref = schema['$ref']).is_a?(String) &&
-        (schema.size == 1 || (schema.size == 2 && schema.has_key?('referenced'))) &&
-        (property_dt = data_type.find_data_type(ref))
+    def check_referenced_schema(schema, check_for_array = true)
+      if schema.is_a?(Hash) &&
+        (((ref = schema['$ref']).is_a?(String) && (schema.size == 1 || (schema.size == 2 && schema.has_key?('referenced')))) ||
+        (schema['type'] == 'array' && (items=schema['items']) && (schema.size == 2 || (schema.size == 3 && schema.has_key?('referenced'))) && items.size == 1 && (ref = items['$ref']).is_a?(String))) &&
+        (property_dt ||= data_type.find_data_type(ref))
         [ref, property_dt]
       else
         [nil, nil]

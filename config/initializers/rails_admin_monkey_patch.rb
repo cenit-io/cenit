@@ -148,6 +148,20 @@ module RailsAdmin
         end
       end
     end
+
+    module Fields
+
+      class Association
+
+        def value
+          if (v = bindings[:object].send(association.name)).is_a?(Enumerable)
+            v.to_a
+          else
+            v
+          end
+        end
+      end
+    end
   end
 
   class AbstractModel
