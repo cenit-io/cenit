@@ -67,6 +67,7 @@ GEM
     builder (3.2.2)
     bunny (0.9.8)
       amq-protocol (>= 1.6.0)
+    byebug (6.0.2)
     cancan (1.6.10)
     capistrano (3.2.1)
       i18n
@@ -455,6 +456,7 @@ DEPENDENCIES
   bson_ext
   builder
   bunny (~> 0.9.1)
+  byebug
   cancan
   capistrano (~> 3.2.1)
   capistrano-bundler

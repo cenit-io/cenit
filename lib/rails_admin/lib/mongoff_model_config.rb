@@ -31,9 +31,9 @@ module RailsAdmin
         end
       end
 
-      object_label_method do
-        @object_label_method ||= Config.label_methods.detect { |method| target.property?(method) } || :to_s
-      end
+      navigation_label { target.data_type.navigation_label }
+
+      object_label_method { @object_label_method ||= Config.label_methods.detect { |method| target.property?(method) } || :to_s }
     end
 
     def parent

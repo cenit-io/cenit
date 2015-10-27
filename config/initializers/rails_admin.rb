@@ -88,6 +88,7 @@ RailsAdmin.config do |config|
     simple_expand
     bulk_expand
     records
+    switch_navigation
     simple_delete_data_type
     bulk_delete_data_type
     delete
@@ -95,7 +96,6 @@ RailsAdmin.config do |config|
     #show_in_app
     send_to_flow
     test_transformation
-    switch_navigation
     delete_all
     data_type
     retry_task
