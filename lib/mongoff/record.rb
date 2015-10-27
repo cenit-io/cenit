@@ -136,11 +136,13 @@ module Mongoff
         else
           value = [value]
           [self[association.name]]
-        end.each { |associated| associates[associated.to_hash(only: :id)['id']] = associated }
+        end.each do |associated|
+          associates[associated.to_hash(only: :id)['id']] = associated
+        end
         new_associates = []
         value.each do |attributes|
           unless (attributes.delete('_destroy')).present?
-            unless associated = associates[attributes['_id']]
+            unless associated = associates[attributes['id'] || attributes['_id']]
               associated = association.klass.new
             end
             associated.assign_attributes(attributes)
@@ -157,16 +159,18 @@ module Mongoff
           end
         return new_associates
       end
-      @fields.delete(field)
       attribute_key = orm_model.attribute_key(field, field_metadata = {})
       field_metadata_2 = {}
       attribute_assigning = !orm_model.property?(attribute_key) && attribute_key == field &&
         (field = orm_model.properties.detect { |property| orm_model.attribute_key(property, field_metadata_2 = {}) == attribute_key }).present?
-      if field
-        field_metadata = field_metadata_2
-      else
-        field = attribute_key
-      end
+      field =
+        if field
+          field_metadata = field_metadata_2 if field_metadata.blank?
+          field
+        else
+          attribute_key
+        end.to_sym
+      @fields.delete(field)
       property_model = field_metadata[:model]
       property_schema = field_metadata[:schema] || orm_model.property_schema(field)
       if value.nil?
@@ -178,7 +182,7 @@ module Mongoff
       elsif !value.is_a?(Hash) && value.is_a?(Enumerable)
         document[attribute_key] = attr_array = []
         if !attribute_assigning && property_model && property_model.modelable?
-          @fields[field] = field_array = RecordArray.new(property_model, attr_array, attribute_key != field)
+          @fields[field] = field_array = RecordArray.new(property_model, attr_array, attribute_key != field.to_s)
           value.each do |v|
             field_array << v
           end

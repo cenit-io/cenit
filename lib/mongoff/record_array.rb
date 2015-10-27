@@ -26,7 +26,7 @@ module Mongoff
     end
 
     def each(*args, &blk)
-      @records.each { |record| yield record }
+      @records.each { |record| yield record if record } #TODO Sanitize for broken ids
     end
 
     def [](*several_variants)
