@@ -83,7 +83,7 @@ class Ability
           hash
         end
 
-      @@setup_map.each { |keys, models| can keys, models }
+      @@setup_map.each { |keys, models| cannot Cenit.excluded_actions, models; can keys, models }
 
       models = Setup::SchemaDataType.where(model_loaded: true).collect(&:model)
       models.delete(nil)

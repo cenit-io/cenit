@@ -40,4 +40,6 @@ Cenit.config do
 
   #HTTP Proxy Password
   http_proxy_password ENV['HTTP-PROXY-PASSWORD']
+
+  excluded_actions ENV['EXCLUDED_ACTIONS']
 end
