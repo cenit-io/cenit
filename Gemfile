@@ -38,7 +38,7 @@ group :development, :test do
   gem 'rspec-rails'
   gem 'rails_layout'
   gem 'ffaker'
-  gem 'byebug'
+  # gem 'byebug'
   gem 'rubocop'
 end
 
@@ -64,7 +64,7 @@ gem 'mongoid-history'
 gem 'mongoid-audit', '~> 1.0.0'
 
 # charts
-gem 'rails_admin_dynamic_charts', git: 'https://github.com/openjaf/rails_admin_dynamic_charts.git'
+gem 'rails_admin_dynamic_charts', path: '../rails_admin_dynamic_charts'
 gem 'chartkick'
 gem 'descriptive_statistics'
 
