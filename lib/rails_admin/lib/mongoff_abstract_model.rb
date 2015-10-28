@@ -90,10 +90,6 @@ end
 module Mongoff
   class Model
 
-    def accessible_by(ability, action = :index)
-      all
-    end
-
     def model_name
       @model_name ||= ActiveModel::Name.new(nil, nil, data_type.name)
     end

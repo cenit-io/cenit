@@ -1,3 +1,5 @@
+require 'cancan/model_adapters/mongoff_adapter'
+
 class Ability
   include CanCan::Ability
 

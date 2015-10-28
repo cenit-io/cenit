@@ -157,6 +157,10 @@ module Mongoff
       end
     end
 
+    def unscoped
+      all
+    end
+
     def method_missing(symbol, *args)
       criteria = Mongoff::Criteria.new(self)
       if criteria.respond_to?(symbol)
@@ -188,6 +192,10 @@ module Mongoff
       else
         false
       end
+    end
+
+    def <=(model)
+      submodel_of?(model)
     end
 
     def attribute_key(field, field_metadata = {})
