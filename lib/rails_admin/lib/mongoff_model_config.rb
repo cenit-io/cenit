@@ -16,6 +16,7 @@ module RailsAdmin
           required { property.required? }
           valid_length { {} }
           if property.is_a?(RailsAdmin::MongoffAssociation)
+            # associated_collection_cache_all true
             pretty_value do
               v = bindings[:view]
               [value].flatten.select(&:present?).collect do |associated|
@@ -30,9 +31,9 @@ module RailsAdmin
         end
       end
 
-      object_label_method do
-        @object_label_method ||= Config.label_methods.detect { |method| target.property?(method) } || :to_s
-      end
+      navigation_label { target.data_type.navigation_label }
+
+      object_label_method { @object_label_method ||= Config.label_methods.detect { |method| target.property?(method) } || :to_s }
     end
 
     def parent

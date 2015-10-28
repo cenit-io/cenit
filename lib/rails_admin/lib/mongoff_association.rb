@@ -14,7 +14,7 @@ module RailsAdmin
     end
 
     def nested_options
-      {allow_destroy: true}
+      [:embeds_one, :embeds_many].include?(macro.to_sym) ? {allow_destroy: true} : nil
     end
 
     def association?

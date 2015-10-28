@@ -25,8 +25,6 @@ group :doc do
 end
 
 group :development do
-  gem 'better_errors'
-  gem 'binding_of_caller', platforms: [:mri_21]
   gem 'capistrano', '~> 3.2.1'
   gem 'capistrano-unicorn-nginx', '~> 3.2.0'
   gem 'capistrano-bundler'

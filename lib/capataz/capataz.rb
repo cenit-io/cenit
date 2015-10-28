@@ -1,4 +1,7 @@
+require 'parser/current'
+
 module Capataz
+
 
   class << self
 

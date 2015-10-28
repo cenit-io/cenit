@@ -148,6 +148,20 @@ module RailsAdmin
         end
       end
     end
+
+    module Fields
+
+      class Association
+
+        def value
+          if (v = bindings[:object].send(association.name)).is_a?(Enumerable)
+            v.to_a
+          else
+            v
+          end
+        end
+      end
+    end
   end
 
   class AbstractModel
@@ -341,6 +355,21 @@ module RailsAdmin
       link_to text, url_for(action: show_action.action_name, model_name: abstract_model.to_param, id: _current_user.id, controller: 'rails_admin/main')
     end
 
+    def main_navigation
+      nodes_stack = RailsAdmin::Config.visible_models(controller: controller) +
+        Setup::DataType.where(show_navigation_link: true, model_loaded: false).collect { |data_type| RailsAdmin.config(data_type.records_model) }
+      node_model_names = nodes_stack.collect { |c| c.abstract_model.model_name }
+
+      nodes_stack.group_by(&:navigation_label).collect do |navigation_label, nodes|
+
+        nodes = nodes.select { |n| n.parent.nil? || !n.parent.to_s.in?(node_model_names) }
+        li_stack = navigation nodes_stack, nodes
+
+        label = navigation_label || t('admin.misc.navigation')
+
+        %(<li class='nav-header'>#{capitalize_first_letter label}</li>#{li_stack}) if li_stack.present?
+      end.join.html_safe
+    end
   end
 
   class MainController
