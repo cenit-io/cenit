@@ -154,8 +154,10 @@ module Cenit
 
 
           obj = GemSynchronizer.new Cenit.github_shared_collections_home,
-                                    {login: Cenit.github_shared_collections_user,
-                                     password:Cenit.github_shared_collections_pass }
+                                    {
+                                      login: Cenit.github_shared_collections_user,
+                                      password: Cenit.github_shared_collections_pass
+                                    }
           begin
             obj.github_update! file
           rescue Exception => ex

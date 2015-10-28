@@ -4,8 +4,12 @@ require 'zlib'
 require 'set'
 require 'forwardable'
 require 'digest/sha1'
+require 'rubygems'
+require 'open-uri'
+require 'zip'
 
 module Cenit
+
   class GemSynchronizer
     extend Forwardable
 
@@ -18,7 +22,7 @@ module Cenit
 
     private
 
-    def get_data(file)
+    def get_data_from_gem(file)
       version = ''
       name = ''
       files_Contents = {}
@@ -53,6 +57,46 @@ module Cenit
           end
         end
       end
+      {
+        contents: Tuple3.new(name, version, files_Contents),
+        hashes: files_SHAs
+      }
+    end
+
+    def get_data_from_github(file_name)
+
+      url = 'https://github.com/' + @home + file_name + '/archive/master.zip'
+
+      begin
+        gem = open(url).read
+      rescue => e
+        return false
+      end
+
+      file = Tempfile.new(file_name)
+      file.binmode
+      file.write(gem)
+      file.rewind
+
+      version = ''
+      name = ''
+      files_Contents = {}
+      files_SHAs = {}
+
+      Zip::File.open(file) do |zip_file|
+        zip_file.each do |entry2|
+          if entry2.file?
+            entry2_content = entry2.get_input_stream.read || ''
+            ds = entry2.name.split('/')
+            # d1 = ds[0][0..(ds[0].size()-8)]
+            fname = ds[1..-1].join('/')
+            files_Contents[fname] = entry2_content
+            files_SHAs[fname] = Digest::SHA1.hexdigest(entry2_content)
+          end
+        end
+      end
+
+      file.close
 
       {
         contents: Tuple3.new(name, version, files_Contents),
@@ -62,7 +106,6 @@ module Cenit
 
     # Doing: (content.size) github requests
     def delete_contents(name, content, commit_msg)
-      puts 'deleting'
       repo = @home + name
       content.each do |path, content1|
         blob_sha1 = @github.create_blob(repo, Base64.encode64(content1), 'base64')
@@ -99,11 +142,13 @@ module Cenit
       @ref = 'heads/master'
     end
 
-    def github_update! (current, previous = nil)
-      if previous
-        current_data = get_data(current)
-        previous_data = get_data(previous)
-        actual = current_data[:contents]
+    def github_update! (gem_file)
+      current_data = get_data_from_gem(gem_file)
+      previous_data = get_data_from_github(current_data[:contents][:name])
+      actual = current_data[:contents]
+
+      if previous_data
+        
         actual_hashes = current_data[:hashes]
 
         anterior = previous_data[:contents]
@@ -125,9 +170,6 @@ module Cenit
         end
 
       else # Create repo and push
-        current_data = get_data(current)
-        actual = current_data[:contents]
-
         if remaining_rest_ops > actual.files.size + 6
           @github.create_repository(actual.name, {:auto_init => true})
           push_contents(actual)
