@@ -7,7 +7,7 @@ module RailsAdmin
 
         register_instance_option :visible? do
           if authorized?
-            model = bindings[:abstract_model].model_name.constantize rescue nil
+            model = bindings[:abstract_model].model rescue nil
             model.try(:data_type).is_a?(Setup::FileDataType)
           else
             false
@@ -28,7 +28,7 @@ module RailsAdmin
             upload_file_config = RailsAdmin::Config.model(Forms::UploadFile)
             errors = []
 
-            if model = @abstract_model.model_name.constantize rescue nil
+            if model = @abstract_model.model rescue nil
               if (data_type = model.try(:data_type)).is_a?(Setup::FileDataType)
                 if params[:_upload]
                   data = params[upload_file_config.abstract_model.param_key]

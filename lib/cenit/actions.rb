@@ -17,7 +17,7 @@ module Cenit
           if data = pull_data[relation.name.to_s]
             invariant_data[relation.name.to_s] = invariant_names = Set.new
             data.each do |item|
-              criteria = {name_space: item['name_space'], name: item['name']}
+              criteria = {namespace: item['namespace'], name: item['name']}
               criteria.delete_if { |_, value| value.nil? }
               if record = relation.klass.where(criteria).first
                 if record.share_hash.eql?(item)
@@ -55,7 +55,7 @@ module Cenit
 
         invariant_data.each do |key, invariant_names|
           pull_data[key].delete_if do |item|
-            criteria = {name_space: item['name_space'], name: item['name']}
+            criteria = {namespace: item['namespace'], name: item['name']}
             criteria.delete_if { |_, value| value.nil? }
             invariant_names.include?(criteria)
           end
@@ -100,6 +100,7 @@ module Cenit
             if errors.blank?
               Setup::Collection.where(name: shared_collection.name).delete
               collection.name = shared_collection.name
+              collection.image = shared_collection.image if shared_collection.image.present?
               collection.save
               pull_data = pull_request.delete(:pull_data)
               pull_request[:created_records] = collection.inspect_json(inspecting: :id, inspect_scope: create_collector).reject { |_, value| !value.is_a?(Enumerable) }
@@ -145,7 +146,23 @@ module Cenit
       def store(shared_collection)
         return false unless shared_collection.save
         if Cenit.share_on_github
+          file_name, gem = Cenit::Actions.build_gem(shared_collection)
+          file = Tempfile.new(file_name)
+          file.binmode
+          file.write(gem)
+          file.rewind
 
+
+          obj = GemSynchronizer.new Cenit.github_shared_collections_home,
+                                    {login: Cenit.github_shared_collections_user,
+                                     password:Cenit.github_shared_collections_pass }
+          begin
+            obj.github_update! file
+          rescue Exception => ex
+            Setup::Notification.create(message: ex.message)
+          end
+
+          file.close
         end
         if Cenit.share_on_ruby_gems
 

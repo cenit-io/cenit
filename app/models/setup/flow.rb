@@ -3,12 +3,11 @@ require 'nokogiri'
 module Setup
   class Flow < ReqRejValidator
     include CenitScoped
-    include DynamicValidators
+    include NamespaceNamed
     include TriggersFormatter
 
-    BuildInDataType.regist(self).referenced_by(:name).excluding(:response_attachments)
+    BuildInDataType.regist(self).referenced_by(:namespace, :name).excluding(:response_attachments)
 
-    field :name, type: String
     field :active, type: Boolean, default: :true
     field :response_attachments, type: Boolean, default: :false
     field :discard_events, type: Boolean
@@ -30,7 +29,6 @@ module Setup
 
     field :last_trigger_timestamps, type: Time
 
-    validates_uniqueness_of :name
     validates_numericality_in_presence_of :lot_size, greater_than_or_equal_to: 1
     before_save :validates_configuration
 
@@ -120,7 +118,7 @@ module Setup
       event || translator
     end
 
-    def process(options={})
+    def process(message={})
       puts "Flow processing on '#{self.name}': #{}"
       executing_id, execution_graph = (Thread.current[:flow_execution] ||= []).last || [nil, {}]
       if executing_id.present? && !(adjacency_list = execution_graph[executing_id] ||= []).include?(id.to_s)
@@ -131,10 +129,10 @@ module Setup
           cycle = cycle.collect { |id| ((flow = Setup::Flow.where(id: id).first) && flow.name) || id }
           Setup::Notification.create(message: "Cyclic flow execution: #{cycle.join(' -> ')}")
         else
-          Cenit::Rabbit.enqueue(task: Setup::FlowExecution,
-                                flow_id: id.to_s,
-                                tirgger_flow_id: executing_id,
-                                execution_graph: execution_graph)
+          Cenit::Rabbit.enqueue message.merge(task: Setup::FlowExecution,
+                                              flow_id: id.to_s,
+                                              tirgger_flow_id: executing_id,
+                                              execution_graph: execution_graph)
         end
       puts "Flow processing jon '#{self.name}' done!"
       self.last_trigger_timestamps = DateTime.now

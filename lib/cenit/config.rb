@@ -13,11 +13,20 @@ module Cenit
       options
     end
 
+    def excluded_actions(*args)
+      if args.length == 0
+        options[:excluded_actions]
+      else
+        self[:excluded_actions] = args[0].to_s.split(' ').collect(&:to_sym)
+      end
+    end
+
     def options
       @options ||=
         {
           service_url: 'http://localhost:3000', #TODO Automatize default service url
-          service_schema_path: '/schema'
+          service_schema_path: '/schema',
+          reserved_namespaces: ['', 'cenit']
         }
     end
 

@@ -6,7 +6,7 @@ Capataz.config do
 
   deny_invoke_of :require, :new, :create, :class, :eval, :class_eval, :instance_eval, :instance_variable_set, :instance_variable_get, :constants, :const_get, :const_set, :constantize
 
-  allowed_constants RamlParser::Parser, YAML, Psych, JSON, Array, Hash, Nokogiri, Nokogiri::XML, Time, Base64, Digest, Digest::MD5, SecureRandom, Setup, Setup::Library, Setup::Schema, Setup::Raml, Setup::RamlReference, Setup::DataType, File, URI, OpenSSL, OpenSSL::Digest, OpenSSL::HMAC
+  allowed_constants Psych, JSON, Array, Hash, Nokogiri, Nokogiri::XML, Time, Base64, Digest, Digest::MD5, SecureRandom, Setup, Setup::Library, Setup::Schema, Setup::SchemaDataType, OpenSSL, OpenSSL::Digest, OpenSSL::HMAC
 
   allow_on JSON, [:parse, :pretty_generate]
 
@@ -41,8 +41,6 @@ Capataz.config do
   end + [:name, :slug, :to_json, :to_edi, :to_hash, :to_xml, :to_params, :records_model]).flatten
 
   allow_for [Class, Mongoff::Model], [:where, :all, :new_sign, :digest, :now]
-
-  allow_for [Mongoid::Criteria, Mongoff::Criteria], Enumerable.instance_methods(false) + Origin::Queryable.instance_methods(false)
 
   deny_for [Setup::DynamicRecord, Mongoff::Record], ->(instance, method) do
     return false if [:id, :to_json, :to_edi, :to_hash, :to_xml, :to_params, :[], :[]=, :save].include?(method)

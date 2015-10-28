@@ -17,7 +17,7 @@ gem 'rabl'
 gem 'builder'
 gem 'haml-rails'
 gem 'figaro'
-gem 'unicorn', require: false
+gem 'unicorn'
 gem 'raml_parser', git: 'https://github.com/asnioby/raml_parser', branch: 'develop'
 
 group :doc do
@@ -25,8 +25,6 @@ group :doc do
 end
 
 group :development do
-  gem 'better_errors'
-  gem 'binding_of_caller', platforms: [:mri_21]
   gem 'capistrano', '~> 3.2.1'
   gem 'capistrano-unicorn-nginx', '~> 3.2.0'
   gem 'capistrano-bundler'
@@ -95,3 +93,4 @@ gem 'captcha'
 gem 'httmultiparty'
 
 gem 'oauth2'
+gem "octokit"

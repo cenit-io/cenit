@@ -28,7 +28,7 @@ module Mongoff
           @data ||=
               begin
                 data = ''
-                chunks.sort(n: 1).each { |chunk| data << chunk.data.data }
+                chunks.ascending(:n).each { |chunk| data << chunk.data.data }
                 data
               end
         end
