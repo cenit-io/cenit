@@ -8,7 +8,7 @@ GIT
 
 GIT
   remote: https://github.com/openjaf/cenit_cmd.git
-  revision: 6581aa12d7153cd0a588b0762d99519189899bfb
+  revision: 525fa92456057e39d549ce99e5e44a7453a6b95a
   specs:
     cenit_cmd (0.0.6)
       thor (~> 0.14)
