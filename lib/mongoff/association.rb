@@ -17,8 +17,12 @@ module Mongoff
       @nested ||= !model.property_schema(name)['referenced']
     end
 
-    def method_missing(*args)
+    def inverse_of
       nil
+    end
+
+    def many?
+      @many ||= macro.to_s =~ /many/
     end
   end
 end

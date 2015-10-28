@@ -4,6 +4,7 @@ require 'mongoff/record'
 require 'mongoff/criteria'
 require 'rails_admin/lib/mongoff_model_config'
 require 'rails_admin/lib/mongoff_property'
+require 'rails_admin/lib/mongoff_association'
 
 module RailsAdmin
   class MongoffAbstractModel < AbstractModel
@@ -32,7 +33,25 @@ module RailsAdmin
     end
 
     def embedded_in?(abstract_model = nil)
-      abstract_model.nil? || model.parent == abstract_model.model
+      abstract_model.nil? ||
+        begin
+          @embeddors ||= Set.new
+          @not_embeddors ||= Set.new
+          if @embeddors.include?(abstract_model)
+            true
+          elsif @not_embeddors.include?(abstract_model)
+            false
+          elsif abstract_model.model.properties.any? do |property|
+            abstract_model.model.property_model(property).eql?(model) &&
+              ((referenced = abstract_model.model.property_schema(property)['referenced']).nil? || !referenced)
+          end
+            @embeddors << abstract_model
+            true
+          else
+            @not_embeddors << abstract_model
+            false
+          end
+        end
     end
 
     def properties
@@ -50,7 +69,10 @@ module RailsAdmin
     class << self
 
       def new(m)
-        (Thread.current[:mongoff_abstract_models] ||= {})[m.to_s] ||= old_new(m)
+        unless mongoff_abstract_models = Thread.current[:mongoff_abstract_models]
+          Thread.current[:mongoff_abstract_models] = mongoff_abstract_models = {}
+        end
+        mongoff_abstract_models[m.to_s] ||= old_new(m)
       end
 
       def abstract_model_for(mongoff_entity)
@@ -67,10 +89,6 @@ end
 
 module Mongoff
   class Model
-
-    def accessible_by(ability, action = :index)
-      all
-    end
 
     def model_name
       @model_name ||= ActiveModel::Name.new(nil, nil, data_type.name)

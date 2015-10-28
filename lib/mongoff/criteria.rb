@@ -18,6 +18,10 @@ module Mongoff
       count
     end
 
+    def to_ary
+      to_a
+    end
+
     def query
       q = model.collection.find(selector)
       options.each do |option, criterion|

@@ -13,6 +13,14 @@ module Cenit
       options
     end
 
+    def excluded_actions(*args)
+      if args.length == 0
+        options[:excluded_actions]
+      else
+        self[:excluded_actions] = args[0].to_s.split(' ').collect(&:to_sym)
+      end
+    end
+
     def options
       @options ||=
         {
