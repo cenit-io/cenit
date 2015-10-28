@@ -38,7 +38,8 @@ class Ability
               CenitToken,
               TkAptcha,
               Script,
-              Setup::Raml
+              Setup::Raml,
+              Setup::RamlReference
             ]
         can :import, Setup::SharedCollection
         can :destroy, [Setup::SharedCollection, Setup::DataType, Setup::Task]
@@ -85,7 +86,10 @@ class Ability
           hash
         end
 
-      @@setup_map.each { |keys, models| cannot Cenit.excluded_actions, models; can keys, models }
+      @@setup_map.each do |keys, models|
+        cannot Cenit.excluded_actions, models unless user.super_admin?
+        can keys, models
+      end
 
       models = Setup::SchemaDataType.where(model_loaded: true).collect(&:model)
       models.delete(nil)
@@ -98,7 +102,7 @@ class Ability
       can [:index, :show, :upload_file, :download_file, :destroy, :import, :edi_export, :delete_all, :send_to_flow, :data_type], file_models
 
     else
-      can [:index, :show], [Setup::SharedCollection, Setup::Raml]
+      can [:index, :show], [Setup::SharedCollection, Setup::Raml, Setup::RamlReference]
     end
 
   end
