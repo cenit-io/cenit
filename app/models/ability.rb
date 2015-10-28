@@ -38,7 +38,8 @@ class Ability
               CenitToken,
               TkAptcha,
               Script,
-              Setup::Raml
+              Setup::Raml,
+              Setup::RamlReference
             ]
         can :import, Setup::SharedCollection
         can :destroy, [Setup::SharedCollection, Setup::DataType, Setup::Task]
@@ -98,7 +99,7 @@ class Ability
       can [:index, :show, :upload_file, :download_file, :destroy, :import, :edi_export, :delete_all, :send_to_flow, :data_type], file_models
 
     else
-      can [:index, :show], [Setup::SharedCollection, Setup::Raml]
+      can [:index, :show], [Setup::SharedCollection, Setup::Raml, Setup::RamlReference]
     end
 
   end

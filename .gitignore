@@ -38,5 +38,4 @@ config/deploy.rb
 .idea
 Gemfile.lock
 config/secret.yml
-app/models/forms/translator_selector.rb
 

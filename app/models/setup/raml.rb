@@ -4,7 +4,7 @@ module Setup
 
     Setup::Models.exclude_actions_for self, :new, :edit, :translator_update, :convert, :send_to_flow, :delete_all, :import
 
-    BuildInDataType.regist(self).referenced_by(:api_name, :api_version)
+    BuildInDataType.regist(self).referenced_by(:api)
 
     field :api_name, type: String
     field :api_version, type: String
@@ -21,6 +21,9 @@ module Setup
       raml_references.each { |p| hash[p.path] = p.content.to_s }
       hash
     end
+    def raml_title
+      api_name + " | " + api_version
+    end
 
     def build_hash
       ref = self.ref_hash
@@ -33,6 +36,15 @@ module Setup
       Psych.load self.raml_doc
     end
 
+    def extend_path (base_path,raml)
+      Psych.add_domain_type 'include', 'include' do |_, value|
+        path = value.gsub(/^(\/)/i, "") || value
+        base_path + "/" + path
+      end
+      hash = Psych.load raml
+      hash.to_yaml
+    end
+
     def raml_parse
       ::RamlParser::Parser.parse_hash self.build_hash
     end
@@ -43,6 +55,19 @@ module Setup
       map_library model
       map_schema model
       map_resource model
+    end
+
+    def to_zip
+      base_path = api_name + "/" + api_version
+      buffer = Zip::OutputStream.write_buffer do |zio|
+        zio.put_next_entry("#{base_path}/#{api_name}.raml")
+        zio.write self.extend_path(base_path, self.raml_doc)
+        ref_hash.each do |path, content|
+          zio.put_next_entry base_path + "/" + path
+          zio.write (is_yaml?(path) ? self.extend_path(base_path, content) : content)
+        end
+      end
+      { filename: self.raml_title + ".zip", content: buffer.string }
     end
 
     private

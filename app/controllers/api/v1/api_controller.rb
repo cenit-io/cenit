@@ -1,7 +1,7 @@
 module Api::V1
   class ApiController < ApplicationController
     before_action :authorize_account, :save_request_data, except: [:new_account, :cors_check]
-    before_action :find_item, only: [:show, :destroy, :pull, :run]
+    before_action :find_item, only: [:show, :destroy, :pull, :run, :raml_zip, :raml]
     before_action :authorize_action, except: [:new_account, :cors_check, :push]
     rescue_from Exception, :with => :exception_handler
     respond_to :json
@@ -56,6 +56,15 @@ module Api::V1
         end
     end
 
+    def raml_zip
+      if (@item)
+        zip = @item.to_zip()
+        send_data(zip[:content], :type => 'application/zip', :filename => zip[:filename])
+      else
+        render json: {error: 'No model found'}, status: :not_found
+      end
+    end
+
     def show
       if @item.orm_model.data_type.is_a?(Setup::FileDataType)
         send_data @item.data, filename: @item[:filename], type: @item[:contentType]
@@ -103,8 +112,8 @@ module Api::V1
     def create
       response =
           {
-              success: success_report = Hash.new { |h, k| h[k] = [] },
-              errors: broken_report = Hash.new { |h, k| h[k] = [] }
+              success: success_report = {},
+              errors: broken_report = {}
           }
       @payload.each do |root, message|
         if data_type = @payload.data_type_for(root)
@@ -112,10 +121,10 @@ module Api::V1
           message.each do |item|
             if (record = data_type.send(@payload.create_method,
                                         @payload.process_item(item, data_type),
-                                        options = @payload.create_options)).errors.blank?
-              success_report[root.pluralize] << record.inspect_json(include_id: :id, inspect_scope: options[:create_collector])
+                                        options = @payload.create_options.merge(primary_field: @primary_field))).errors.blank?
+              success_report[root] = record.inspect_json(include_id: :id, inspect_scope: options[:create_collector])
             else
-              broken_report[root] << {errors: record.errors.full_messages, item: item}
+              broken_report[root] = {errors: record.errors.full_messages, item: item}
             end
           end
         else
@@ -258,6 +267,8 @@ module Api::V1
             get_data_type(@model).is_a?(Setup::FileDataType) ? :upload_file : :create
           when 'raml'
               :show
+          when 'raml_zip'
+              :show
           else
             @_action_name.to_sym
           end
@@ -276,9 +287,9 @@ module Api::V1
     end
     
     def cors_header
-      headers['Access-Control-Allow-Origin'] = request.headers['Origin'] || '*'
+      headers['Access-Control-Allow-Origin'] = request.headers['Origin']
       headers['Access-Control-Allow-Credentials'] = false
-      headers['Access-Control-Allow-Headers'] = 'Origin, X-Requested-With, Content-Type, accept, x-user-access-token, X-User-Access-Token, X-Hub-Store, X-Hub-Access-Token'
+      headers['Access-Control-Allow-Headers'] = 'Origin, X-Requested-With, Accept, Content-Type, X-User-Access-Key, X-User-Access-Token'
       headers['Access-Control-Allow-Methods'] = 'POST, GET, PUT, DELETE, OPTIONS'
       headers['Access-Control-Max-Age'] = '1728000'
     end
