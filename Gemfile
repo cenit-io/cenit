@@ -93,3 +93,4 @@ gem 'captcha'
 gem 'httmultiparty'
 
 gem 'oauth2'
+gem "octokit"
