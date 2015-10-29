@@ -258,9 +258,11 @@ module Api::V1
         action_symbol =
           case @_action_name
           when 'push'
-            get_data_type(@model).is_a?(Setup::FileDataType) ? :upload_file : :create
+            get_data_type(@model).is_a?(Setup::FileDataType) ? :upload_file : :new
           when 'raml'
             :show
+          when 'create'
+            :new
           else
             @_action_name.to_sym
           end
