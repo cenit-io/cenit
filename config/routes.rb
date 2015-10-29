@@ -26,7 +26,7 @@ Cenit::Application.routes.draw do
       #get  '/public/:model/:api_name/:api_version/*path(.:format)', to: 'api#raml', library: 'setup', defaults: { format: 'raml' }, :constraints => {:api_version => /[.]+/}
       post '/setup/account', to: 'api#new_account'
       post '/:library/push', to: 'api#push'
-      post '/:library/:model', to: 'api#create'
+      post '/:library/:model', to: 'api#new'
       get '/:library/:model', to: 'api#index', defaults: { format: 'json' }
       get '/:library/:model/:id', to: 'api#show', defaults: { format: 'json' }
       get '/:library/:model/:id/:view', to: 'api#content', defaults: { format: 'json' }
