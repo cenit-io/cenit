@@ -28,20 +28,21 @@
  RailsAdmin::Config::Actions::SimpleGenerate,
  RailsAdmin::Config::Actions::BulkGenerate,
  RailsAdmin::Config::Actions::SimpleExpand,
- RailsAdmin::Config::Actions::BulkExpand].each { |a| RailsAdmin::Config::Actions.register(a) }
+ RailsAdmin::Config::Actions::BulkExpand,
+ RailsAdmin::Config::Actions::Records].each { |a| RailsAdmin::Config::Actions.register(a) }
 
 RailsAdmin::Config::Actions.register(:export, RailsAdmin::Config::Actions::EdiExport)
 RailsAdmin::Config::Fields::Types.register(RailsAdmin::Config::Fields::Types::JsonValue)
 RailsAdmin::Config::Fields::Types.register(RailsAdmin::Config::Fields::Types::JsonSchema)
 {
-    config: {
-        mode: 'css',
-        theme: 'neo',
-    },
-    assets: {
-        mode: '/assets/codemirror/modes/css.js',
-        theme: '/assets/codemirror/themes/neo.css',
-    }
+  config: {
+    mode: 'css',
+    theme: 'neo',
+  },
+  assets: {
+    mode: '/assets/codemirror/modes/css.js',
+    theme: '/assets/codemirror/themes/neo.css',
+  }
 }.each { |option, configuration| RailsAdmin::Config::Fields::Types::CodeMirror.register_instance_option(option) { configuration } }
 
 RailsAdmin.config do |config|
@@ -62,7 +63,7 @@ RailsAdmin.config do |config|
     # memory_usage
     # disk_usage
     index # mandatory
-    new { except [Setup::Event, Setup::DataType, Setup::BaseOauthAuthorization] }
+    new { except [Setup::Event, Setup::DataType, Setup::BaseOauthAuthorization, Setup::BaseOauthProvider] }
     import
     import_schema
     translator_update
@@ -86,6 +87,8 @@ RailsAdmin.config do |config|
     bulk_generate
     simple_expand
     bulk_expand
+    records
+    switch_navigation
     simple_delete_data_type
     bulk_delete_data_type
     delete
@@ -93,7 +96,6 @@ RailsAdmin.config do |config|
     #show_in_app
     send_to_flow
     test_transformation
-    switch_navigation
     delete_all
     data_type
     retry_task
@@ -176,13 +178,13 @@ RailsAdmin.config do |config|
       field :schema do
         pretty_value do
           pretty_value =
-              if json = JSON.parse(value) rescue nil
-                "<code class='json'>#{JSON.pretty_generate(json)}</code>"
-              elsif xml = Nokogiri::XML(value) rescue nil
-                "<code class='xml'>#{xml.to_xml}</code>"
-              else
-                value
-              end
+            if json = JSON.parse(value) rescue nil
+              "<code class='json'>#{JSON.pretty_generate(json)}</code>"
+            elsif xml = Nokogiri::XML(value) rescue nil
+              "<code class='xml'>#{xml.to_xml}</code>"
+            else
+              value
+            end
           "<pre>#{pretty_value}</pre>".html_safe
         end
       end
@@ -267,11 +269,11 @@ RailsAdmin.config do |config|
       field :schema do
         pretty_value do
           pretty_value =
-              if json = JSON.pretty_generate(value) rescue nil
-                "<code class='json'>#{json}</code>"
-              else
-                value
-              end
+            if json = JSON.pretty_generate(value) rescue nil
+              "<code class='json'>#{json}</code>"
+            else
+              value
+            end
           "<pre>#{pretty_value}</pre>".html_safe
         end
       end
@@ -286,20 +288,22 @@ RailsAdmin.config do |config|
   end
 
   config.model Setup::EdiValidator do
+    object_label_method { :custom_title }
     label 'EDI Validators'
     navigation_label 'Data Definitions'
 
-    fields :name, :schema_data_type, :content_type
+    fields :namespace, :name, :schema_data_type, :content_type
   end
 
   config.model Setup::AlgorithmValidator do
+    object_label_method { :custom_title }
     navigation_label 'Data Definitions'
 
-    fields :name, :algorithm
+    fields :namespace, :name, :algorithm
   end
 
   config.model Setup::FileDataType do
-
+    object_label_method { :custom_title }
     group :content do
       label 'Content'
     end
@@ -307,6 +311,12 @@ RailsAdmin.config do |config|
     group :behavior do
       label 'Behavior'
       active false
+    end
+
+    configure :title do
+      pretty_value do
+        bindings[:object].custom_title
+      end
     end
 
     configure :library do
@@ -365,6 +375,7 @@ RailsAdmin.config do |config|
       field :library
       field :title
       field :name
+      field :slug
       field :validators
       field :schema_data_type
       field :records_methods
@@ -374,6 +385,7 @@ RailsAdmin.config do |config|
     list do
       field :title
       field :name
+      field :slug
       field :validators
       field :schema_data_type
       field :used_memory do
@@ -390,6 +402,7 @@ RailsAdmin.config do |config|
     show do
       field :title
       field :name
+      field :slug
       field :activated
       field :validators
       field :schema_data_type
@@ -460,6 +473,7 @@ RailsAdmin.config do |config|
       field :library
       field :title
       field :name
+      field :slug
       field :schema, :json_schema
       field :records_methods
       field :data_type_methods
@@ -468,6 +482,7 @@ RailsAdmin.config do |config|
     list do
       field :title
       field :name
+      field :slug
       field :used_memory do
         pretty_value do
           unless max = bindings[:controller].instance_variable_get(:@max_used_memory)
@@ -482,6 +497,7 @@ RailsAdmin.config do |config|
     show do
       field :title
       field :name
+      field :slug
       field :activated
       field :schema do
         pretty_value do
@@ -498,6 +514,7 @@ RailsAdmin.config do |config|
   end
 
   config.model Setup::Connection do
+    object_label_method { :custom_title }
     weight -15
     configure :name, :string do
       help 'Requiered.'
@@ -550,6 +567,7 @@ RailsAdmin.config do |config|
     end
 
     show do
+      field :namespace
       field :name
       field :url
 
@@ -568,7 +586,7 @@ RailsAdmin.config do |config|
       #field :updater
     end
 
-    fields :name, :url, :parameters, :headers, :template_parameters, :oauth2_authorization, :key, :token
+    fields :namespace, :name, :url, :parameters, :headers, :template_parameters, :oauth2_authorization, :key, :token
   end
 
   config.model Setup::Parameter do
@@ -580,6 +598,7 @@ RailsAdmin.config do |config|
   end
 
   config.model Setup::ConnectionRole do
+    object_label_method { :custom_title }
     weight -14
     configure :name, :string do
       help 'Requiered.'
@@ -594,11 +613,13 @@ RailsAdmin.config do |config|
       nested_form false
     end
     modal do
+      field :namespace
       field :name
       field :webhooks
       field :connections
     end
     show do
+      field :namespace
       field :name
       field :webhooks
       field :connections
@@ -609,10 +630,11 @@ RailsAdmin.config do |config|
       field :updated_at
       #field :updater
     end
-    fields :name, :webhooks, :connections
+    fields :namespace, :name, :webhooks, :connections
   end
 
   config.model Setup::Webhook do
+    object_label_method { :custom_title }
     weight -13
 
     configure :path, :string do
@@ -635,6 +657,7 @@ RailsAdmin.config do |config|
     end
 
     show do
+      field :namespace
       field :name
       field :purpose
       field :path
@@ -650,7 +673,7 @@ RailsAdmin.config do |config|
       field :updated_at
       #field :updater
     end
-    fields :name, :purpose, :path, :method, :parameters, :headers, :template_parameters
+    fields :namespace, :name, :purpose, :path, :method, :parameters, :headers, :template_parameters
   end
 
   config.model Setup::Task do
@@ -684,14 +707,14 @@ RailsAdmin.config do |config|
     configure :type do
       pretty_value do
         color =
-            case bindings[:object].type
-              when :notice
-                'blue'
-              when :warning
-                'orange'
-              else
-                'red'
-            end
+          case bindings[:object].type
+          when :notice
+            'blue'
+          when :warning
+            'orange'
+          else
+            'red'
+          end
         "<label style='color:#{color}'>#{value.to_s.capitalize}</label>".html_safe
       end
     end
@@ -699,14 +722,14 @@ RailsAdmin.config do |config|
     configure :message do
       pretty_value do
         color =
-            case bindings[:object].type
-              when :notice
-                'blue'
-              when :warning
-                'orange'
-              else
-                'red'
-            end
+          case bindings[:object].type
+          when :notice
+            'blue'
+          when :warning
+            'orange'
+          else
+            'red'
+          end
         "<label style='color:#{color}'>#{value}</label>".html_safe
       end
     end
@@ -715,10 +738,12 @@ RailsAdmin.config do |config|
   end
 
   config.model Setup::Flow do
+    object_label_method { :custom_title }
     register_instance_option(:form_synchronized) do
       [:custom_data_type, :data_type_scope, :lot_size, :connection_role, :webhook, :response_translator, :response_data_type]
     end
     edit do
+      field :namespace
       field :name
       field :event do
         inline_edit false
@@ -840,6 +865,7 @@ RailsAdmin.config do |config|
     end
 
     show do
+      field :namespace
       field :name
       field :event
       field :translator
@@ -851,15 +877,18 @@ RailsAdmin.config do |config|
       #field :updater
     end
 
-    fields :name, :event, :translator
+    fields :namespace, :name, :event, :translator
   end
 
   config.model Setup::Event do
+    object_label_method { :custom_title }
     edit do
+      field :namespace
       field :name
     end
 
     show do
+      field :namespace
       field :name
       field :last_trigger_timestamps
 
@@ -870,11 +899,13 @@ RailsAdmin.config do |config|
       #field :updater
     end
 
-    fields :name, :last_trigger_timestamps
+    fields :namespace, :name, :last_trigger_timestamps
   end
 
   config.model Setup::Observer do
+    object_label_method { :custom_title }
     edit do
+      field :namespace
       field :name
       field :data_type do
         associated_collection_scope do
@@ -900,6 +931,7 @@ RailsAdmin.config do |config|
     end
 
     show do
+      field :namespace
       field :name
       field :data_type
       field :triggers
@@ -912,37 +944,39 @@ RailsAdmin.config do |config|
       #field :updater
     end
 
-    fields :name, :data_type, :triggers, :last_trigger_timestamps
+    fields :namespace, :name, :data_type, :triggers, :last_trigger_timestamps
   end
 
   config.model Setup::Scheduler do
+    object_label_method { :custom_title }
     edit do
+      field :namespace
       field :name
       field :scheduling_method
       field :expression do
         visible { bindings[:object].scheduling_method.present? }
         label do
           case bindings[:object].scheduling_method
-            when :Once
-              'Date and time'
-            when :Periodic
-              'Duration'
-            when :CRON
-              'CRON Expression'
-            else
-              'Expression'
+          when :Once
+            'Date and time'
+          when :Periodic
+            'Duration'
+          when :CRON
+            'CRON Expression'
+          else
+            'Expression'
           end
         end
         help do
           case bindings[:object].scheduling_method
-            when :Once
-              'Select a date and a time'
-            when :Periodic
-              'Type a time duration'
-            when :CRON
-              'Type a CRON Expression'
-            else
-              'Expression'
+          when :Once
+            'Select a date and a time'
+          when :Periodic
+            'Type a time duration'
+          when :CRON
+            'Type a CRON Expression'
+          else
+            'Expression'
           end
         end
         partial { bindings[:object].scheduling_method == :Once ? 'form_datetime_wrapper' : 'form_text' }
@@ -953,6 +987,7 @@ RailsAdmin.config do |config|
     end
 
     show do
+      field :namespace
       field :name
       field :expression
       field :last_trigger_timestamps
@@ -964,14 +999,16 @@ RailsAdmin.config do |config|
       #field :updater
     end
 
-    fields :name, :scheduling_method, :expression, :last_trigger_timestamps
+    fields :namespace, :name, :scheduling_method, :expression, :last_trigger_timestamps
   end
 
   config.model Setup::Translator do
+    object_label_method { :custom_title }
     register_instance_option(:form_synchronized) do
       [:source_data_type, :target_data_type, :transformation, :target_importer, :source_exporter, :discard_chained_records]
     end
     edit do
+      field :namespace
       field :name
 
       field :type
@@ -1040,11 +1077,11 @@ RailsAdmin.config do |config|
         associated_collection_scope do
           translator = bindings[:object]
           source_data_type =
-              if translator.source_exporter
-                translator.source_exporter.target_data_type
-              else
-                translator.source_data_type
-              end
+            if translator.source_exporter
+              translator.source_exporter.target_data_type
+            else
+              translator.source_data_type
+            end
           target_data_type = bindings[:object].target_data_type
           Proc.new { |scope|
             scope = scope.all(type: :Conversion,
@@ -1061,6 +1098,7 @@ RailsAdmin.config do |config|
     end
 
     show do
+      field :namespace
       field :name
       field :type
       field :source_data_type
@@ -1086,7 +1124,7 @@ RailsAdmin.config do |config|
       #field :updater
     end
 
-    fields :name, :type, :style, :transformation
+    fields :namespace, :name, :type, :style, :transformation
   end
 
   config.model Setup::SharedName do
@@ -1168,7 +1206,7 @@ RailsAdmin.config do |config|
               can_see = !am.embedded? && (show_action = v.action(:show, am, associated))
               can_see ? v.link_to(wording, v.url_for(action: show_action.action_name, model_name: am.to_param, id: associated.id), class: 'pjax') : wording
             end.to_sentence.html_safe +
-                v.select_tag("#{bindings[:controller].instance_variable_get(:@model_config).abstract_model.param_key}[connection_ids][]", ids.html_safe, multiple: true, style: 'display:none').html_safe
+              v.select_tag("#{bindings[:controller].instance_variable_get(:@model_config).abstract_model.param_key}[connection_ids][]", ids.html_safe, multiple: true, style: 'display:none').html_safe
           else
             'No connection selected'.html_safe
           end
@@ -1204,7 +1242,7 @@ RailsAdmin.config do |config|
               can_see = !am.embedded? && (show_action = v.action(:show, am, associated))
               can_see ? v.link_to(wording, v.url_for(action: show_action.action_name, model_name: am.to_param, id: associated.id), class: 'pjax') : wording
             end.to_sentence.html_safe +
-                v.select_tag("#{bindings[:controller].instance_variable_get(:@model_config).abstract_model.param_key}[dependency_ids][]", ids.html_safe, multiple: true, style: 'display:none').html_safe
+              v.select_tag("#{bindings[:controller].instance_variable_get(:@model_config).abstract_model.param_key}[dependency_ids][]", ids.html_safe, multiple: true, style: 'display:none').html_safe
           else
             'No dependencies selected'.html_safe
           end
@@ -1216,8 +1254,8 @@ RailsAdmin.config do |config|
       field :pull_parameters do
         visible do
           if !(obj = bindings[:object]).instance_variable_get(:@_selecting_collection) &&
-              !obj.instance_variable_get(:@_selecting_connections) &&
-              (pull_parameters_enum = obj.enum_for_pull_parameters).present?
+            !obj.instance_variable_get(:@_selecting_connections) &&
+            (pull_parameters_enum = obj.enum_for_pull_parameters).present?
             bindings[:controller].instance_variable_set(:@shared_parameter_enum, pull_parameters_enum)
             true
           else
@@ -1341,7 +1379,7 @@ RailsAdmin.config do |config|
   config.model Setup::Algorithm do
     object_label_method { :custom_title }
     edit do
-      field :name_space
+      field :namespace
       field :name
       field :description
       field :parameters
@@ -1351,7 +1389,7 @@ RailsAdmin.config do |config|
       end
     end
     show do
-      field :name_space
+      field :namespace
       field :name
       field :description
       field :parameters
@@ -1360,8 +1398,9 @@ RailsAdmin.config do |config|
           "<pre><code class='ruby'>#{value}</code></pre>".html_safe
         end
       end
+      field :_id
     end
-    fields :name_space, :name, :description, :parameters, :call_links
+    fields :namespace, :name, :description, :parameters, :call_links
   end
 
   config.model Setup::CallLink do
@@ -1496,7 +1535,7 @@ RailsAdmin.config do |config|
     navigation_label 'Administration'
     object_label_method { :label }
 
-    fields :name, :owner, :tenant_account, :number, :users
+    fields :_id, :name, :owner, :tenant_account, :number, :users
   end
 
   config.model Setup::SharedName do
@@ -1536,17 +1575,47 @@ RailsAdmin.config do |config|
   end
 
   config.model Setup::BaseOauthProvider do
+    object_label_method { :custom_title }
+    label 'Provider'
     navigation_label 'OAuth'
 
-    fields :name, :response_type, :authorization_endpoint, :token_endpoint, :token_method, :parameters, :clients
+    configure :tenant do
+      visible { User.current.super_admin? }
+    end
+
+    configure :shared do
+      visible { User.current.super_admin? }
+    end
+
+    fields :namespace, :name, :response_type, :authorization_endpoint, :token_endpoint, :token_method, :parameters, :clients, :tenant, :shared
   end
 
   config.model Setup::OauthProvider do
-    fields :name, :response_type, :authorization_endpoint, :token_endpoint, :token_method, :request_token_endpoint, :parameters, :clients
+    object_label_method { :custom_title }
+
+    configure :tenant do
+      visible { User.current.super_admin? }
+    end
+
+    configure :shared do
+      visible { User.current.super_admin? }
+    end
+
+    fields :namespace, :name, :response_type, :authorization_endpoint, :token_endpoint, :token_method, :request_token_endpoint, :parameters, :clients, :tenant, :shared
   end
 
   config.model Setup::Oauth2Provider do
-    fields :name, :response_type, :authorization_endpoint, :token_endpoint, :token_method, :parameters, :clients, :scope_separator, :scopes
+    object_label_method { :custom_title }
+
+    configure :tenant do
+      visible { User.current.super_admin? }
+    end
+
+    configure :shared do
+      visible { User.current.super_admin? }
+    end
+
+    fields :namespace, :name, :response_type, :authorization_endpoint, :token_endpoint, :token_method, :parameters, :clients, :scope_separator, :scopes, :tenant, :shared
   end
 
   config.model Setup::OauthParameter do
@@ -1556,15 +1625,53 @@ RailsAdmin.config do |config|
   end
 
   config.model Setup::OauthClient do
+    object_label_method { :custom_title }
     navigation_label 'OAuth'
 
-    fields :name, :provider, :identifier, :secret
+    configure :tenant do
+      visible { User.current.super_admin? }
+    end
+
+    configure :shared do
+      visible { User.current.super_admin? }
+    end
+
+    configure :identifier do
+      pretty_value do
+        if User.current.super_admin? || User.current.eql?(bindings[:object].creator)
+          value
+        else
+          '<i class="icon-ban-circle"/>'.html_safe
+        end
+      end
+    end
+
+    configure :secret do
+      pretty_value do
+        if User.current.super_admin? || User.current.eql?(bindings[:object].creator)
+          value
+        else
+          '<i class="icon-ban-circle"/>'.html_safe
+        end
+      end
+    end
+
+    fields :namespace, :name, :provider, :identifier, :secret, :tenant, :shared
   end
 
   config.model Setup::Oauth2Scope do
+    object_label_method { :custom_title }
     navigation_label 'OAuth'
 
-    fields :name, :description, :provider
+    configure :tenant do
+      visible { User.current.super_admin? }
+    end
+
+    configure :shared do
+      visible { User.current.super_admin? }
+    end
+
+    fields :provider, :name, :description, :tenant, :shared
   end
 
   config.model Setup::BaseOauthAuthorization do
@@ -1679,11 +1786,20 @@ RailsAdmin.config do |config|
     show do
       field :api_name
       field :api_version
+      field :repo
       field :raml_doc
       field :raml_references
     end
 
-    fields :api_name, :api_version
+    edit do
+      field :api_name
+      field :api_version
+      field :repo
+      field :raml_doc
+      field :raml_references
+    end
+
+    fields :api_name, :api_version, :repo
   end
 
   config.model Setup::RamlReference do

@@ -1,17 +1,17 @@
 module Setup
   class Webhook
     include CenitScoped
+    include NamespaceNamed
     include Setup::Enum
     include ParametersCommon
 
-    BuildInDataType.regist(self).referenced_by(:name).excluding(:connection_roles)
+    BuildInDataType.regist(self).referenced_by(:namespace, :name).excluding(:connection_roles)
 
     embeds_many :parameters, class_name: Setup::Parameter.to_s, inverse_of: :webhook
     embeds_many :headers, class_name: Setup::Parameter.to_s, inverse_of: :webhook
 
     embeds_many :template_parameters, class_name: Setup::Parameter.to_s, inverse_of: :webhook
 
-    field :name, type: String
     field :path, type: String
     field :purpose, type: String, default: :send
     field :method, type: String, default: :post
@@ -20,8 +20,7 @@ module Setup
       [:get, :post, :put, :delete, :patch, :copy, :head, :options, :link, :unlink, :purge, :lock, :unlock, :propfind]
     end
 
-    validates_presence_of :name, :path, :purpose
-    validates_uniqueness_of :name
+    validates_presence_of :path, :purpose
 
     accepts_nested_attributes_for :parameters, :headers, :template_parameters, allow_destroy: true
 

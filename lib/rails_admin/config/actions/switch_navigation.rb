@@ -4,7 +4,7 @@ module RailsAdmin
       class SwitchNavigation < RailsAdmin::Config::Actions::Base
 
         register_instance_option :only do
-          Setup::DataType
+          [Setup::DataType, Setup::SchemaDataType, Setup::FileDataType]
         end
 
         register_instance_option :member do
@@ -16,25 +16,25 @@ module RailsAdmin
         end
 
         register_instance_option :visible do
-          authorized? && bindings[:object] && bindings[:object].is_a?(Class)
+          authorized? && bindings[:object].records_model.modelable?
         end
 
         register_instance_option :controller do
           proc do
-            if (model = @object.model)
+            if (model = @object.records_model).modelable?
               @object.show_navigation_link = !@object.show_navigation_link
               @object.save
-              RailsAdmin::AbstractModel.update_model_config(model)
+              RailsAdmin::AbstractModel.update_model_config(model) if model.is_a?(Class)
               flash[:success] =
                 if @object.show_navigation_link
-                  "Model #{@object.title} added to navigation links"
+                  "Data type #{@object.custom_title} added to navigation links"
                 else
-                  "Model #{@object.title} removed from navigation links"
+                  "Data type #{@object.custom_title} removed from navigation links"
                 end
             else
-              flash[:success] = "Model #{@object.title} is not loaded"
+              flash[:error] = "Model #{@object.title} is not an object model"
             end
-            redirect_to rails_admin.show_path(model_name: Setup::DataType.to_s.underscore.gsub('/', '~'), id: @object.id)
+            redirect_to rails_admin.show_path(model_name: @object.class.to_s.underscore.gsub('/', '~'), id: @object.id)
           end
         end
 

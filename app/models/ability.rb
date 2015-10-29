@@ -1,3 +1,5 @@
+require 'cancan/model_adapters/mongoff_adapter'
+
 class Ability
   include CanCan::Ability
 
@@ -6,6 +8,16 @@ class Ability
       can :access, :rails_admin # only allow admin users to access Rails Admin
 
       can([:show, :edit], User) { |u| u.eql?(user) }
+
+      @@oauth_models = [Setup::BaseOauthProvider,
+                        Setup::OauthProvider,
+                        Setup::Oauth2Provider,
+                        Setup::OauthClient,
+                        Setup::Oauth2Scope]
+
+      can [:index, :create], @@oauth_models
+      can(:show, @@oauth_models) { |record| record.creator.super_admin? || record.creator.account_id.eql?(user.account_id) }
+      can([:destroy, :edit], @@oauth_models, tenant_id: user.account_id)
 
       if user.super_admin?
         can :manage,
@@ -26,7 +38,8 @@ class Ability
               CenitToken,
               TkAptcha,
               Script,
-              Setup::Raml
+              Setup::Raml,
+              Setup::RamlReference
             ]
         can :import, Setup::SharedCollection
         can :destroy, [Setup::SharedCollection, Setup::DataType, Setup::Task]
@@ -73,7 +86,10 @@ class Ability
           hash
         end
 
-      @@setup_map.each { |keys, models| can keys, models }
+      @@setup_map.each do |keys, models|
+        cannot Cenit.excluded_actions, models unless user.super_admin?
+        can keys, models
+      end
 
       models = Setup::SchemaDataType.where(model_loaded: true).collect(&:model)
       models.delete(nil)
@@ -86,7 +102,7 @@ class Ability
       can [:index, :show, :upload_file, :download_file, :destroy, :import, :edi_export, :delete_all, :send_to_flow, :data_type], file_models
 
     else
-      can [:index, :show], [Setup::SharedCollection, Setup::Raml]
+      can [:index, :show], [Setup::SharedCollection, Setup::Raml, Setup::RamlReference]
     end
 
   end

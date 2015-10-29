@@ -42,6 +42,8 @@ class User
 
   field :doorkeeper_uid, type: String
   field :doorkeeper_access_token, type: String
+  field :doorkeeper_refresh_token, type: String
+  field :doorkeeper_expires_at, type: Integer
 
   field :name, type: String
   mount_uploader :picture, ImageUploader
@@ -86,6 +88,8 @@ class User
 
   def update_doorkeeper_credentials(oauth_data)
     self.doorkeeper_access_token = oauth_data.credentials.token
+    self.doorkeeper_refresh_token = oauth_data.credentials.refresh_token
+    self.doorkeeper_expires_at = oauth_data.credentials.expires_at
   end
 
   def ensure_token

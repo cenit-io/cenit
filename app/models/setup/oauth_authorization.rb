@@ -4,8 +4,7 @@ module Setup
 
     Setup::Models.exclude_actions_for self, :all
 
-    BuildInDataType.regist(self).referenced_by(:name).excluding(:refresh_token, :bearer_token)
-
+    BuildInDataType.regist(self).with(:name, :provider, :client).referenced_by(:namespace, :name)
 
     field :access_token_secret, type: String
     field :realm, type: String

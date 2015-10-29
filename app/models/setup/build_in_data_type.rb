@@ -208,6 +208,7 @@ class String
       gsub(/([a-z])(\d|[A-Z])/, '\1 \2').
       gsub(/(\d)([a-z]|[A-Z])/, '\1 \2').
       tr('_', ' ').
-      tr('-', ' ')
+      tr('-', ' ').
+      capitalize
   end
 end

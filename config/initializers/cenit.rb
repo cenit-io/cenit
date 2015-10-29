@@ -2,8 +2,16 @@ require 'cenit/config'
 
 Cenit.config do
 
+  share_on_github true
+
+  github_shared_collections_home ENV['GITHUB_SHARED_COLLECTIONS_HOME']
+
+  github_shared_collections_user ENV['GITHUB_SHARED_COLLECTIONS_USER']
+
+  github_shared_collections_pass ENV['GITHUB_SHARED_COLLECTIONS_PASS']
+
   #Deactivate models on cenit startup
-  deactivate_models true
+  deactivate_models false
 
   #Use this option to setup an external service
   service_url ENV['SERVICE_URL']
@@ -15,7 +23,7 @@ Cenit.config do
   captcha_length 5
 
   #Process flow messages asynchronous
-  asynchronous_flow_execution true
+  asynchronous_flow_execution false
 
   #Generate data types asynchronous
   asynchronous_data_type_generation true
@@ -40,4 +48,6 @@ Cenit.config do
 
   #HTTP Proxy Password
   http_proxy_password ENV['HTTP-PROXY-PASSWORD']
+
+  excluded_actions ENV['EXCLUDED_ACTIONS']
 end

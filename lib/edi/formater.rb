@@ -158,7 +158,8 @@ module Edi
       data_type = record.orm_model.data_type
       model = record.orm_model
       schema = model.schema
-      json = (referenced = referenced && schema['referenced_by']) ? {'_reference' => true} : {}
+      key_properties = schema['referenced_by'] || []
+      json = (referenced = referenced && key_properties.present?) ? {'_reference' => true} : {}
       return nil if options[:stack].include?(record)
       if !referenced
         return nil if options[:inspected_records].include?(record)
@@ -181,7 +182,7 @@ module Edi
         else
           next if property_schema['virtual'] ||
             ((property_schema['edi'] || {})['discard'] && !(included_anyway = options[:including_discards])) ||
-            (can_be_referenced && referenced && !referenced.include?(property_name)) ||
+            (can_be_referenced && referenced && !key_properties.include?(property_name)) ||
             options[:ignore].include?(name.to_sym) ||
             (options[:only] && !options[:only].include?(name.to_sym) && !included_anyway)
         end
@@ -197,17 +198,17 @@ module Edi
           else
             new_value = nil
           end
-          store(json, name, new_value, options)
+          store(json, name, new_value, options, key_properties.include?(property_name))
         when 'object'
           sub_record = record.send(property_name)
           next if inspecting && (scope = options[:inspect_scope]) && !scope.include?(sub_record)
           value = record_to_hash(sub_record, options, can_be_referenced && property_schema['referenced'] && !property_schema['export_embedded'], property_model)
-          store(json, name, value, options)
+          store(json, name, value, options, key_properties.include?(property_name))
         else
           if (value = record.send(property_name)).nil?
             value = property_schema['default']
           end
-          store(json, name, value, options) #TODO Default values should came from record attributes
+          store(json, name, value, options, key_properties.include?(property_name)) #TODO Default values should came from record attributes
         end
       end
       if !options[:inspecting] && !json['_reference'] && enclosed_model && !record.orm_model.eql?(enclosed_model) && !options[:ignore].include?(:_type) && (!options[:only] || options[:only].include?(:_type))
@@ -221,18 +222,18 @@ module Edi
       end
     end
 
-    def store(json, key, value, options)
+    def store(json, key, value, options, store_anyway = false)
       if options[:nqnames]
         key = key.to_s.split(':').last
       end
       if value.nil?
-        json[key] = nil if options[:include_null]
+        json[key] = nil if store_anyway || options[:include_null]
       else
         if value.is_a?(Array) || value.is_a?(Hash)
-          json[key] = value if value.present? || options[:include_blanks] || options[:include_empty]
+          json[key] = value if store_anyway ||  value.present? || options[:include_blanks] || options[:include_empty]
         else
           value = value.to_s if value.is_a?(BSON::ObjectId)
-          json[key] = json_value(value) if !(value.nil? || value.try(:empty?)) || options[:include_blanks] #TODO String blanks!
+          json[key] = json_value(value) if store_anyway || !(value.nil? || value.try(:empty?)) || options[:include_blanks] #TODO String blanks!
         end
       end
     end

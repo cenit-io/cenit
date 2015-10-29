@@ -4,7 +4,7 @@ module Setup
 
     BuildInDataType.regist(self)
 
-    Setup::Models.exclude_actions_for self, :new, :edit, :update, :delete_all
+    Setup::Models.exclude_actions_for self, :new, :edit, :translator_update, :import, :convert, :delete_all
 
 
     field :message, type: Hash
