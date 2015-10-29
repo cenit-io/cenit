@@ -1,12 +1,12 @@
 module Setup
   class OauthClient
     include CenitUnscoped
-    include CenitReservedNamespace
+    include MandatoryNamespace
     include CrossTenancy
 
     Setup::Models.exclude_actions_for self, :all
 
-    BuildInDataType.regist(self).referenced_by(:namespace, :name)
+    BuildInDataType.regist(self).referenced_by(:namespace, :name).excluding(:identifier, :secret)
 
     belongs_to :provider, class_name: Setup::BaseOauthProvider.to_s, inverse_of: :clients
 

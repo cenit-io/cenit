@@ -1,7 +1,7 @@
 module Setup
   class BaseOauthProvider
     include CenitUnscoped
-    include CenitReservedNamespace
+    include MandatoryNamespace
     include CrossTenancy
 
     Setup::Models.exclude_actions_for self, :all
