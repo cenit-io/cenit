@@ -374,7 +374,7 @@ module Api::V1
         end.new(controller: self,
                 message: @webhook_body,
                 content_type: request.content_type)
-      @criteria = params.to_hash.with_indifferent_access.reject { |key, _| %w(controller action library model id field path format view only ignore primary_field pretty include_root).include?(key) }
+      @criteria = params.to_hash.with_indifferent_access.reject { |key, _| %w(controller action library model id field path format view api only ignore primary_field pretty include_root).include?(key) }
     end
 
     private
