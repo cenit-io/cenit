@@ -109,7 +109,7 @@ module Api::V1
       render json: response
     end
 
-    def create
+    def new
       response =
           {
               success: success_report = {},
@@ -264,7 +264,7 @@ module Api::V1
         action_symbol =
           case @_action_name
           when 'push'
-            get_data_type(@model).is_a?(Setup::FileDataType) ? :upload_file : :create
+            get_data_type(@model).is_a?(Setup::FileDataType) ? :upload_file : :new
           when 'raml'
               :show
           when 'raml_zip'
