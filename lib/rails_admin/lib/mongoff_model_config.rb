@@ -49,7 +49,7 @@ module RailsAdmin
     end
 
     def label
-      target.data_type.title
+      target.data_type.title.to_s
     end
 
     def label_plural

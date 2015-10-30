@@ -1,17 +1,13 @@
 module Api::V1
   class ApiController < ApplicationController
     before_action :authorize_account, :save_request_data, except: [:new_account, :cors_check]
-    before_action :find_item, only: [:show, :destroy, :pull, :run]
+    before_action :find_item, only: [:show, :destroy, :pull, :run, :raml_zip, :raml]
     before_action :authorize_action, except: [:new_account, :cors_check, :push]
     rescue_from Exception, :with => :exception_handler
     respond_to :json
-
+    
     def cors_check
-      headers['Access-Control-Allow-Origin'] = request.headers['Origin']
-      headers['Access-Control-Allow-Credentials'] = false
-      headers['Access-Control-Allow-Headers'] = 'Origin, X-Requested-With, Accept, Content-Type, X-User-Access-Key, X-User-Access-Token'
-      headers['Access-Control-Allow-Methods'] = 'POST, GET, PUT, DELETE, OPTIONS'
-      headers['Access-Control-Max-Age'] = '1728000'
+      self.cors_header
       render :text => '', :content_type => 'text/plain'
     end
 
@@ -41,21 +37,38 @@ module Api::V1
           else
             klass.all
           end
-        render json: @items.map { |item| {((model = (hash = item.inspect_json(include_id: true)).delete('_type')) ? model.downcase : @model) => hash} }
+          option = {}
+          option[:only] = @only if @only
+          option[:ignore] = @ignore if @ignore
+          option[:include_id] = true
+            items_data = @items.map do |item|
+                            hash = item.to_hash(option)
+                            hash.delete('_type')
+                            @view.nil? ? hash : hash[@view]
+                        end
+        render json: { @model => items_data}
+        # render json: @items.map { |item| {((model = (hash = item.inspect_json(include_id: true)).delete('_type')) ? model.downcase : @model) => hash} }
       else
         render json: {error: 'no model found'}, status: :not_found
       end
     end
 
     def raml
-      if (klass = self.klass) && (@items = klass.where(@criteria).first)
-        if (@path == "root.raml")
-          render text: @items.to_hash['raml_doc']
+        if (@item && @path && @path.downcase == "root.raml")
+            render text: @item.to_hash['raml_doc']
+        elsif @path
+          render text: @item.ref_hash[@path]
         else
-          render text: @items.ref_hash[@path]
+          render json: {error: 'No model found'}, status: :not_found
         end
+    end
+
+    def raml_zip
+      if (@item)
+        zip = @item.to_zip()
+        send_data(zip[:content], :type => 'application/zip', :filename => zip[:filename])
       else
-        render json: {error: 'no model found'}, status: :not_found
+        render json: {error: 'No model found'}, status: :not_found
       end
     end
 
@@ -63,16 +76,16 @@ module Api::V1
       if @item.orm_model.data_type.is_a?(Setup::FileDataType)
         send_data @item.data, filename: @item[:filename], type: @item[:contentType]
       else
-        render json: {@model => @item.to_hash}
+        option = {}
+        option[:only] = @only if @only
+        option[:ignore] = @ignore if @ignore
+        option[:include_id] = true
+        render json: @view.nil? ? @item.to_hash(option) : @item.to_hash(option)[@view]
       end
     end
 
     def content
-      if @item.orm_model.data_type.is_a?(Setup::FileDataType)
-        send_data @item.data, filename: @item[:filename], type: @item[:contentType]
-      else
-        render text: @item.to_hash[@field]
-      end
+      render json: @view.nil? ? @item.to_hash : {@view => @item.to_hash[@view]}
     end
 
     def push
@@ -103,11 +116,11 @@ module Api::V1
       render json: response
     end
 
-    def create
+    def new
       response =
           {
-              success: success_report = Hash.new { |h, k| h[k] = [] },
-              errors: broken_report = Hash.new { |h, k| h[k] = [] }
+              success: success_report = {},
+              errors: broken_report = {}
           }
       @payload.each do |root, message|
         if data_type = @payload.data_type_for(root)
@@ -115,10 +128,10 @@ module Api::V1
           message.each do |item|
             if (record = data_type.send(@payload.create_method,
                                         @payload.process_item(item, data_type),
-                                        options = @payload.create_options)).errors.blank?
-              success_report[root.pluralize] << record.inspect_json(include_id: :id, inspect_scope: options[:create_collector])
+                                        options = @payload.create_options.merge(primary_field: @primary_field))).errors.blank?
+              success_report[root] = record.inspect_json(include_id: :id, inspect_scope: options[:create_collector])
             else
-              broken_report[root] << {errors: record.errors.full_messages, item: item}
+              broken_report[root] = {errors: record.errors.full_messages, item: item}
             end
           end
         else
@@ -260,9 +273,9 @@ module Api::V1
           when 'push'
             get_data_type(@model).is_a?(Setup::FileDataType) ? :upload_file : :new
           when 'raml'
-            :show
-          when 'create'
-            :new
+              :show
+          when 'raml_zip'
+              :show
           else
             @_action_name.to_sym
           end
@@ -279,11 +292,11 @@ module Api::V1
       cors_header
       true
     end
-
+    
     def cors_header
-      headers['Access-Control-Allow-Origin'] = request.headers['Origin'] || '*'
+      headers['Access-Control-Allow-Origin'] = request.headers['Origin']
       headers['Access-Control-Allow-Credentials'] = false
-      headers['Access-Control-Allow-Headers'] = 'Origin, X-Requested-With, Content-Type, accept, x-user-access-token, X-User-Access-Token'
+      headers['Access-Control-Allow-Headers'] = 'Origin, X-Requested-With, Accept, Content-Type, X-User-Access-Key, X-User-Access-Token'
       headers['Access-Control-Allow-Methods'] = 'POST, GET, PUT, DELETE, OPTIONS'
       headers['Access-Control-Max-Age'] = '1728000'
     end
@@ -346,11 +359,16 @@ module Api::V1
       @data_types ||= {}
       @request_id = request.uuid
       @webhook_body = request.body.read
-      @library_slug = params[:library] || 'setup'
+      @library_slug = params[:library]
       @library_id = nil
       @model = params[:model]
-      @field = params[:field] if params[:field]
-      @format = params[:format] if params[:format]
+      @only = params[:only].split(',') if params[:only]
+      @ignore = params[:ignore].split(',') if params[:ignore]
+      @primary_field = params[:primary_field]
+      @include_root = params[:include_root]
+      @pretty = params[:pretty]
+      @view = params[:view]
+      @format = params[:format]
       @path = "#{params[:path]}.#{params[:format]}" if params[:path] && params[:format]
       @payload =
         case request.content_type
@@ -363,7 +381,7 @@ module Api::V1
         end.new(controller: self,
                 message: @webhook_body,
                 content_type: request.content_type)
-      @criteria = params.to_hash.with_indifferent_access.reject { |key, _| %w(controller action library model id field path format ).include?(key) }
+      @criteria = params.to_hash.with_indifferent_access.reject { |key, _| %w(controller action library model id field path format view api only ignore primary_field pretty include_root).include?(key) }
     end
 
     private
