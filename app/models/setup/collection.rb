@@ -74,6 +74,7 @@ module Setup
         if data_type.is_a?(Setup::FileDataType)
           check_data_type_dependencies(data_type.schema_data_type, algorithms)
           data_type.validators.each do |validator|
+            custom_validators << validator if validator.is_a?(Setup::CustomValidator) && custom_validators.none? { |v| v == validator }
             check_data_type_dependencies(validator.try(:schema_data_type), algorithms)
             if algorithm = validator.try(:algorithm)
               algorithms << algorithm
