@@ -428,11 +428,7 @@ RailsAdmin.config do |config|
       %w(shutdown_and_reload)
     end
 
-    configure :title do
-      pretty_value do
-        bindings[:object].custom_title
-      end
-    end
+    configure :title
 
     configure :name do
       read_only { !bindings[:object].new_record? }
@@ -480,6 +476,7 @@ RailsAdmin.config do |config|
     end
 
     list do
+      field :library
       field :title
       field :name
       field :slug
@@ -495,6 +492,7 @@ RailsAdmin.config do |config|
     end
 
     show do
+      field :library
       field :title
       field :name
       field :slug

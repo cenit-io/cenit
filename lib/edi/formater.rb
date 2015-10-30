@@ -160,9 +160,8 @@ module Edi
       schema = model.schema
       key_properties = schema['referenced_by'] || []
       json = (referenced = referenced && key_properties.present?) ? {'_reference' => true} : {}
-      return nil if options[:stack].include?(record)
       if !referenced
-        return nil if options[:inspected_records].include?(record)
+        return nil if options[:inspected_records].include?(record) || options[:stack].include?(record)
         options[:inspected_records] << record
       end
       options[:stack] << record
