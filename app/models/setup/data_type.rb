@@ -64,10 +64,15 @@ module Setup
 
     def validates_configuration
       [:records_methods, :data_type_methods].each do |methods|
+        by_name = Hash.new { |h, k| h[k] = 0 }
         send(methods).each do |method|
+          h[method.name] += 1
           if method.parameters.count == 0
             errors.add(methods, "contains algorithm taking no parameter: #{method.custom_title} (at less one parameter is required)")
           end
+        end
+        if (duplicated_names = by_name.select { |_, count| count > 1 }.keys).present?
+          errors.add(methods, "contains algorithms with the same name: #{duplicated_names.to_sentence}")
         end
       end
       errors.blank?
