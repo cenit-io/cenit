@@ -188,7 +188,7 @@ module Setup
           end
         end
       end
-      schema = @to_merge.merge(schema) if @to_merge
+      schema = @to_merge.deep_merge(schema) if @to_merge
       schema
     end
 
