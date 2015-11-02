@@ -17,7 +17,15 @@ module Cenit
       if args.length == 0
         options[:excluded_actions]
       else
-        self[:excluded_actions] = args[0].to_s.split(' ').collect(&:to_sym)
+        self[:excluded_actions] = args.flatten.collect(&:to_s).join(' ').split(' ').collect(&:to_sym)
+      end
+    end
+
+    def reserved_namespaces(*args)
+      if args.length == 0
+        options[:reserved_namespaces]
+      else
+        self[:reserved_namespaces] = (options[:reserved_namespaces] + args[0].flatten.collect(&:to_s).collect(&:downcase)).uniq
       end
     end
 
@@ -26,7 +34,7 @@ module Cenit
         {
           service_url: 'http://localhost:3000', #TODO Automatize default service url
           service_schema_path: '/schema',
-          reserved_namespaces: ['', 'cenit']
+          reserved_namespaces: %w(cenit default)
         }
     end
 

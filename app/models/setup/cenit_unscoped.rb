@@ -10,10 +10,10 @@ module Setup
     included do
       Setup::Models.regist(self)
 
-      def share_hash
-        to_hash(ignore: [:id, :number, :token])
-      end
     end
 
+    def share_hash
+      to_hash(ignore: [:id, :number, :token])
+    end
   end
 end

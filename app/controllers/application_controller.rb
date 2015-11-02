@@ -21,10 +21,12 @@ class ApplicationController < ActionController::Base
       opts[:refresh_token] = current_user.doorkeeper_refresh_token
       opts[:expires_at] = current_user.doorkeeper_expires_at
     end
-    @token ||= OAuth2::AccessToken.new(doorkeeper_oauth_client, current_user.doorkeeper_access_token, opts )if current_user
+    @token ||= OAuth2::AccessToken.new(doorkeeper_oauth_client, current_user.doorkeeper_access_token, opts) if current_user
   end
 
-  around_filter :scope_current_account, :optimize_data_type_handling
+  around_filter :scope_current_account, :clean_thread_cache, :optimize_data_type_handling
+
+  after_action :clean_thread_cache
 
   protected
 
@@ -37,6 +39,16 @@ class ApplicationController < ActionController::Base
   def optimize_data_type_handling
     do_optimize_data_type_handling
     yield
+  end
+
+  def clean_thread_cache
+    [
+      :optimizer,
+      :flow_execution,
+      :mongoff_models,
+      :mongoff_abstract_models
+    ].each { |sym| Thread.current[sym] = nil }
+    yield if block_given?
   end
 
   def scope_current_account

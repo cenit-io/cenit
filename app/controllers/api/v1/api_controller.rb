@@ -24,7 +24,14 @@ module Api::V1
               limit = nil if limit == 0
             end
             items = klass.where(@criteria)
-            items = items.sort(sort_key => asc ? 1 : -1) if sort_key
+            if sort_key
+              items =
+                if asc
+                  items.ascending(sort_key)
+                else
+                  items.descending(sort_key)
+                end
+            end
             items = items.limit(limit) if limit
             items
           else
@@ -35,7 +42,7 @@ module Api::V1
           option[:ignore] = @ignore if @ignore
           option[:include_id] = true
             items_data = @items.map do |item|
-                            hash = item.to_hash(option)
+                            hash = item.default_hash(option)
                             hash.delete('_type')
                             @view.nil? ? hash : hash[@view]
                         end
@@ -255,6 +262,7 @@ module Api::V1
         token = request.headers['X-Hub-Access-Token']
         Account.set_current_with_connection(key, token) if key || token
       end
+      User.current = user || Account.current.owner
       true
     end
 
