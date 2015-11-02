@@ -14,12 +14,17 @@ module Setup
       validates_uniqueness_of :name, scope: :namespace
 
       before_save do
-        if namespace.nil?
-          self.namespace = ''
-        else
-          self.namespace = namespace.strip
-        end
+        self.namespace =
+          if namespace.nil?
+            ''
+          else
+            namespace.strip
+          end
         self.name = name.to_s.strip
+        unless User.current.super_admin?
+          errors.add(:namespace, 'is reserved') if Cenit.reserved_namespaces.include?(namespace.downcase)
+        end
+        errors.blank?
       end
     end
 

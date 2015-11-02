@@ -96,6 +96,9 @@ module Setup
       else
         false
       end
+    rescue Exception => ex
+      errors.add(:base, ex.message)
+      false
     end
 
     def ensure_shared_name

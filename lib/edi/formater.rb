@@ -15,7 +15,7 @@ module Edi
       output.join(seg_sep)
     end
 
-    def to_hash(options={})
+    def default_hash(options={})
       include_id = options[:include_id]
       [:ignore, :only, :embedding, :inspecting].each do |option|
         value = (options[option] || [])
@@ -32,6 +32,10 @@ module Edi
       options.delete(:stack)
       hash = {self.orm_model.data_type.slug => hash} if options[:include_root]
       hash
+    end
+
+    def to_hash(options={})
+      default_hash(options)
     end
 
     def to_json(options={})
@@ -160,9 +164,8 @@ module Edi
       schema = model.schema
       key_properties = schema['referenced_by'] || []
       json = (referenced = referenced && key_properties.present?) ? {'_reference' => true} : {}
-      return nil if options[:stack].include?(record)
       if !referenced
-        return nil if options[:inspected_records].include?(record)
+        return nil if options[:inspected_records].include?(record) || options[:stack].include?(record)
         options[:inspected_records] << record
       end
       options[:stack] << record
@@ -230,7 +233,7 @@ module Edi
         json[key] = nil if store_anyway || options[:include_null]
       else
         if value.is_a?(Array) || value.is_a?(Hash)
-          json[key] = value if store_anyway ||  value.present? || options[:include_blanks] || options[:include_empty]
+          json[key] = value if store_anyway || value.present? || options[:include_blanks] || options[:include_empty]
         else
           value = value.to_s if value.is_a?(BSON::ObjectId)
           json[key] = json_value(value) if store_anyway || !(value.nil? || value.try(:empty?)) || options[:include_blanks] #TODO String blanks!
