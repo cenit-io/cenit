@@ -3,7 +3,15 @@ module Setup
     include CenitScoped
     include CollectionName
 
-    BuildInDataType.regist(self).embedding(:flows, :connection_roles, :translators, :events, :libraries, :custom_validators, :algorithms, :webhooks, :connections).excluding(:image)
+    BuildInDataType.regist(self).embedding(:flows,
+                                           :connection_roles,
+                                           :translators,
+                                           :events,
+                                           :libraries,
+                                           :custom_validators,
+                                           :algorithms,
+                                           :webhooks,
+                                           :connections).excluding(:image)
 
     mount_uploader :image, AccountImageUploader
 
@@ -19,6 +27,10 @@ module Setup
 
     has_and_belongs_to_many :webhooks, class_name: Setup::Webhook.to_s, inverse_of: nil
     has_and_belongs_to_many :connections, class_name: Setup::Connection.to_s, inverse_of: nil
+
+    embeds_many :data, class_name: Setup::CollectionData.to_s, inverse_of: :setup_collection
+
+    accepts_nested_attributes_for :data, allow_destroy: true
 
     validates_uniqueness_of :name
 
@@ -59,6 +71,7 @@ module Setup
       end
       events.each { |event| check_data_type_dependencies(event.data_type, algorithms) if event.is_a?(Setup::Observer) }
       libraries.each { |library| library.data_types.each { |data_type| check_data_type_dependencies(data_type, algorithms) } }
+      data.each { |collection_data| check_data_type_dependencies(collection_data.data_type, algorithms) }
       visited_algs = Set.new
       algorithms.each { |alg| alg.for_each_call(visited_algs) }
       self.algorithms = visited_algs.to_a

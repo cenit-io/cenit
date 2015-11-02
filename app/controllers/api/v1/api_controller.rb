@@ -42,7 +42,7 @@ module Api::V1
           option[:ignore] = @ignore if @ignore
           option[:include_id] = true
             items_data = @items.map do |item|
-                            hash = item.to_hash(option)
+                            hash = item.default_hash(option)
                             hash.delete('_type')
                             @view.nil? ? hash : hash[@view]
                         end
