@@ -2,7 +2,8 @@ module Api::V1
   class ApiController < ApplicationController
     before_action :authorize_account, :save_request_data, except: [:new_account, :cors_check]
     before_action :find_item, only: [:show, :destroy, :pull, :run, :raml_zip, :raml]
-    before_action :authorize_action, except: [:new_account, :cors_check, :push]
+    before_action :authorize_action, except: [:auth, :new_account, :cors_check, :push]
+    before_action :authorize_account, only: [:auth]
     rescue_from Exception, :with => :exception_handler
     respond_to :json
     
@@ -179,7 +180,13 @@ module Api::V1
     end
 
     def auth
-      head :no_content
+      if Account.current
+        self.cors_header
+        render json: {status: "Sucess Auth"}, status: 200
+      else
+        self.cors_header
+        render json: {status: "Error Auth"}, status: 401
+      end
     end
 
     def new_account
@@ -287,7 +294,7 @@ module Api::V1
     end
     
     def cors_header
-      headers['Access-Control-Allow-Origin'] = request.headers['Origin']
+      headers['Access-Control-Allow-Origin'] = request.headers['Origin'] || 'http://localhost:3000'
       headers['Access-Control-Allow-Credentials'] = false
       headers['Access-Control-Allow-Headers'] = 'Origin, X-Requested-With, Accept, Content-Type, X-User-Access-Key, X-User-Access-Token'
       headers['Access-Control-Allow-Methods'] = 'POST, GET, PUT, DELETE, OPTIONS'
