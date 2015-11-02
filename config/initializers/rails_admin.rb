@@ -188,7 +188,7 @@ RailsAdmin.config do |config|
           "<pre>#{pretty_value}</pre>".html_safe
         end
       end
-      field :data_type
+      field :schema_data_type
 
       field :_id
       field :created_at
