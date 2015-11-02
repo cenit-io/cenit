@@ -4,7 +4,7 @@ module Setup
 
     Setup::Models.exclude_actions_for self, :new, :edit, :translator_update, :convert, :send_to_flow, :delete_all, :import
 
-    BuildInDataType.regist(self).referenced_by(:api)
+    BuildInDataType.regist(self).referenced_by(:api_name, :api_version)
 
     field :api_name, type: String
     field :api_version, type: String
