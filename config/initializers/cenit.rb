@@ -2,6 +2,14 @@ require 'cenit/config'
 
 Cenit.config do
 
+  share_on_github true
+
+  github_shared_collections_home ENV['GITHUB_SHARED_COLLECTIONS_HOME']
+
+  github_shared_collections_user ENV['GITHUB_SHARED_COLLECTIONS_USER']
+
+  github_shared_collections_pass ENV['GITHUB_SHARED_COLLECTIONS_PASS']
+
   #Deactivate models on cenit startup
   deactivate_models false
 

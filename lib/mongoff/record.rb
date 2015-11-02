@@ -116,7 +116,7 @@ module Mongoff
 
     def [](field)
       attribute_key = orm_model.attribute_key(field, model: property_model = orm_model.property_model(field))
-      if (value = (@fields[field] || document[attribute_key])).is_a?(BSON::Document) && property_model
+      if (value = (@fields[field] || document[attribute_key])).is_a?(BSON::Document) && property_model && property_model.modelable?
         @fields[field] = Record.new(property_model, value)
       elsif property_model && property_model.modelable? && orm_model.property_schema(field)['type'] == 'array'
         @fields[field] ||= RecordArray.new(property_model, value, field != attribute_key)

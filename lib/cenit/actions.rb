@@ -146,7 +146,25 @@ module Cenit
       def store(shared_collection)
         return false unless shared_collection.save
         if Cenit.share_on_github
+          file_name, gem = Cenit::Actions.build_gem(shared_collection)
+          file = Tempfile.new(file_name)
+          file.binmode
+          file.write(gem)
+          file.rewind
 
+
+          obj = GemSynchronizer.new Cenit.github_shared_collections_home,
+                                    {
+                                      login: Cenit.github_shared_collections_user,
+                                      password: Cenit.github_shared_collections_pass
+                                    }
+          begin
+            obj.github_update! file
+          rescue Exception => ex
+            Setup::Notification.create(message: ex.message)
+          end
+
+          file.close
         end
         if Cenit.share_on_ruby_gems
 

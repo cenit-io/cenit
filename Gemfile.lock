@@ -262,6 +262,8 @@ GEM
       multi_json (~> 1.3)
       multi_xml (~> 0.5)
       rack (~> 1.2)
+    octokit (4.1.1)
+      sawyer (~> 0.6.0, >= 0.5.3)
     omniauth (1.2.2)
       hashie (>= 1.2, < 4)
       rack (~> 1.0)
@@ -385,6 +387,9 @@ GEM
       sass (~> 3.2.2)
       sprockets (~> 2.8, < 3.0)
       sprockets-rails (~> 2.0)
+    sawyer (0.6.0)
+      addressable (~> 2.3.5)
+      faraday (~> 0.8, < 0.10)
     sdoc (0.4.1)
       json (~> 1.7, >= 1.7.7)
       rdoc (~> 4.0)
@@ -495,6 +500,7 @@ DEPENDENCIES
   nokogiri
   oauth
   oauth2
+  octokit
   omniauth
   omniauth-oauth2
   parser
@@ -524,4 +530,4 @@ DEPENDENCIES
   wannabe_bool
 
 BUNDLED WITH
-   1.10.4
+   1.10.6

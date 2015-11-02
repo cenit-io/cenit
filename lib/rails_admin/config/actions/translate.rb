@@ -28,7 +28,7 @@ module RailsAdmin
             @bulk_ids = params.delete(:bulk_ids)
             translator_type = @action.class.translator_type
 
-            if model = @abstract_model.model_name.constantize rescue nil
+            if model = @abstract_model.model rescue nil
               data_type = model.data_type
               data_type_selector = data_type.is_a?(Setup::BuildInDataType) ? nil : data_type
               if data = params[@model_config.abstract_model.param_key]

@@ -428,11 +428,7 @@ RailsAdmin.config do |config|
       %w(shutdown_and_reload)
     end
 
-    configure :title do
-      pretty_value do
-        bindings[:object].custom_title
-      end
-    end
+    configure :title
 
     configure :name do
       read_only { !bindings[:object].new_record? }
@@ -480,6 +476,7 @@ RailsAdmin.config do |config|
     end
 
     list do
+      field :library
       field :title
       field :name
       field :slug
@@ -495,6 +492,7 @@ RailsAdmin.config do |config|
     end
 
     show do
+      field :library
       field :title
       field :name
       field :slug
@@ -1322,9 +1320,64 @@ RailsAdmin.config do |config|
     fields :label, :parameter
   end
 
+  config.model Setup::CollectionData do
+    object_label_method { :label }
+  end
+
   config.model Setup::Collection do
     navigation_label 'Collections'
     weight -19
+
+    group :setup do
+      label 'Setup objects'
+      active true
+    end
+
+    group :data do
+      label 'Data'
+      active false
+    end
+
+    configure :flows do
+      group :setup
+    end
+
+    configure :connection_roles do
+      group :setup
+    end
+
+    configure :translators do
+      group :setup
+    end
+
+    configure :events do
+      group :setup
+    end
+
+    configure :libraries do
+      group :setup
+    end
+
+    configure :custom_validators do
+      group :setup
+    end
+
+    configure :algorithms do
+      group :setup
+    end
+
+    configure :webhooks do
+      group :setup
+    end
+
+    configure :connections do
+      group :setup
+    end
+
+    configure :data do
+      group :data
+    end
+
     show do
       field :image
       field :name
@@ -1337,6 +1390,7 @@ RailsAdmin.config do |config|
       field :algorithms
       field :webhooks
       field :connections
+      field :data
 
       field :_id
       field :created_at
@@ -1344,7 +1398,7 @@ RailsAdmin.config do |config|
       field :updated_at
       #field :updater
     end
-    fields :image, :name, :flows, :connection_roles, :translators, :events, :libraries, :custom_validators, :algorithms, :webhooks, :connections
+    fields :image, :name, :flows, :connection_roles, :translators, :events, :libraries, :custom_validators, :algorithms, :webhooks, :connections, :data
   end
 
   config.model Setup::CustomValidator do
