@@ -2,7 +2,10 @@ module Setup
   class CollectionData
     include CenitScoped
 
-    BuildInDataType.regist(self).and('properties' => {'records' => {'type' => 'array'}})
+    BuildInDataType.regist(self).excluding(:data_type).and('properties' => {'name' => {'type' => 'string'},
+                                                                            'library' => {'$ref' => Setup::Library.to_s,
+                                                                                          'referenced' => true},
+                                                                            'records' => {'type' => 'array'}})
 
     embedded_in :setup_collection, class_name: Setup::Collection.to_s, inverse_of: :data
 
@@ -12,6 +15,14 @@ module Setup
 
     def label
       data_type && data_type.custom_title
+    end
+
+    def name
+      data_type && data_type.name
+    end
+
+    def library
+      data_type && data_type.library
     end
 
     def records
@@ -31,7 +42,7 @@ module Setup
 
     class << self
       def stored_properties_on(record)
-        %w(data_type records)
+        %w(name library records)
       end
     end
   end
