@@ -3,7 +3,7 @@ require 'stringio'
 module Setup
   class FileDataType < DataType
 
-    BuildInDataType.regist(self).referenced_by(:name, :library).with(:title, :name, :_type, :validators, :schema_data_type).including(:library)
+    BuildInDataType.regist(self).referenced_by(:name, :library).with(:title, :name,:slug, :_type, :validators, :schema_data_type).including(:library)
 
     belongs_to :library, class_name: Setup::Library.to_s, inverse_of: :file_data_types
     has_and_belongs_to_many :validators, class_name: Setup::Validator.to_s, inverse_of: nil
