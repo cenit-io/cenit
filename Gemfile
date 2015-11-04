@@ -1,15 +1,15 @@
 source 'https://rubygems.org'
 
-ruby '2.1.2'
-gem 'rails', '4.1.4'
-gem 'sass-rails', '~> 4.0.3'
-gem 'uglifier', '>= 1.3.0'
-gem 'coffee-rails', '~> 4.0.0'
+ruby '2.2.1'
+gem 'rails'
+gem 'sass-rails'
+gem 'uglifier'
+gem 'coffee-rails'
 gem 'jquery-rails'
 gem 'bootstrap-sass'
 gem 'turbolinks'
 gem 'therubyracer', platforms: :ruby
-gem 'jbuilder', '~> 1.0.1'
+gem 'jbuilder'
 gem 'devise'
 gem 'omniauth'
 gem 'omniauth-oauth2'
@@ -25,12 +25,12 @@ group :doc do
 end
 
 group :development do
-  gem 'capistrano', '~> 3.2.1'
-  gem 'capistrano-unicorn-nginx', '~> 3.2.0'
+  gem 'capistrano'
+  gem 'capistrano-unicorn-nginx'
   gem 'capistrano-bundler'
-  gem 'capistrano-rails', '~> 1.1.0'
+  gem 'capistrano-rails'
   gem 'capistrano-rails-console'
-  gem 'capistrano-rvm', '~> 0.1.1'
+  gem 'capistrano-rvm'
 end
 
 group :development, :test do
@@ -49,7 +49,7 @@ group :test do
   gem 'selenium-webdriver'
   gem 'simplecov'
   gem 'coveralls'
-  gem 'poltergeist', '1.5.0'
+  gem 'poltergeist'
 end
 
 group :production do
@@ -57,7 +57,7 @@ group :production do
   gem 'rails_12factor'
 end
 
-gem 'mongoid'
+gem 'mongoid', '4.0.0'
 gem 'bson_ext'
 gem 'rails_admin', '0.6.5'
 gem 'mongoid-history'
@@ -69,7 +69,7 @@ gem 'chartkick'
 gem 'descriptive_statistics'
 
 gem 'httparty'
-gem 'bunny', '~> 0.9.1'
+gem 'bunny'
 gem 'json-schema'
 gem 'nokogiri'
 gem 'cancan'
@@ -94,3 +94,7 @@ gem 'httmultiparty'
 
 gem 'oauth2'
 gem "octokit"
+
+gem 'delayed_job'
+gem 'daemons'
+gem 'delayed_job_mongoid'

@@ -193,10 +193,14 @@ module Cenit
       end
 
       def deep_remove(hash, key)
-        hash.is_a?(Hash) ? hash.inject({}) do |h, (k, v)|
-          h[k] = deep_remove(v, key) unless k == key
-          h
-        end : hash
+        if hash.is_a?(Hash)
+          hash.inject({}) do |h, (k, v)|
+            h[k] = deep_remove(v, key) unless k == key
+            h
+          end
+        else
+          hash
+        end
       end
 
       def memory_usage_of(model)
