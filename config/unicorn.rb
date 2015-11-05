@@ -43,24 +43,9 @@ after_fork do |server, worker|
   defined?(ActiveRecord::Base) and ActiveRecord::Base.establish_connection
   defined?(Rails) and Rails.cache.respond_to?(:reconnect) and Rails.cache.reconnect
 
-  unless server.instance_variable_get(:@rabbit_listener_started)
-    puts 'RABBIT LISTENER STARTED'
-    Thread.new {
-      conn = Bunny.new(:automatically_recover => false)
-      conn.start
-
-      ch = conn.create_channel
-      q = ch.queue('cenit')
-
-      begin
-        q.subscribe(block: true) do |delivery_info, properties, body|
-          Cenit::Rabbit.process_message(body)
-        end
-      rescue Interrupt => _
-        conn.close
-        exit(0)
-      end
-    }
+  if Cenit.multiple_unicorn_consumers || !server.instance_variable_get(:@rabbit_listener_started)
+    puts "RABBIT LISTENER STARTED ON #{worker}"
+    Cenit::Rabbit.start_consumer
     server.instance_variable_set(:@rabbit_listener_started, true)
   end
 end

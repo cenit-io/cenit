@@ -94,7 +94,3 @@ gem 'httmultiparty'
 
 gem 'oauth2'
 gem "octokit"
-
-gem 'delayed_job'
-gem 'daemons'
-gem 'delayed_job_mongoid'

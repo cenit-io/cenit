@@ -19,7 +19,7 @@ module RailsAdmin
             @options = Forms::ExpandOptions.new(options_params)
             result = nil
             begin
-              result = Cenit::Rabbit.enqueue(@options.attributes.merge(source: source, task: Setup::DataTypeExpansion))
+              result = Setup::DataTypeExpansion.process(@options.attributes.merge(source: source))
             rescue Exception => ex
               do_flash(:error, 'Error expanding data type:', ex.message)
             end if params[:_expand]

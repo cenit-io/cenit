@@ -33,17 +33,15 @@ module Setup
     end
 
     def execute
-      begin
-        self.status = :running
-        notify(type: :notice, message: "Task ##{id} started at #{Time.now}")
-        run(message.merge(task: self))
-        self.progress = 100
-        self.status = :completed
-        notify(type: :notice, message: "Task ##{id} completed at #{Time.now}")
-      rescue Exception => ex
-        self.status = :failed
-        notify(message: "Task ##{id} failed at #{Time.now}: #{ex.message}")
-      end
+      self.status = :running
+      notify(type: :notice, message: "Task ##{id} started at #{Time.now}")
+      run(message.merge(task: self))
+      self.progress = 100
+      self.status = :completed
+      notify(type: :notice, message: "Task ##{id} completed at #{Time.now}")
+    rescue Exception => ex
+      self.status = :failed
+      notify(message: "Task ##{id} failed at #{Time.now}: #{ex.message}")
     end
 
     def run(message)
@@ -81,6 +79,12 @@ module Setup
         self.status = :retrying
         self.retries += 1
         notify(type: :notice, message: "Task ##{id} retried at #{Time.now}")
+        Cenit::Rabbit.enqueue(message.merge(task: self))
+      end
+    end
+
+    class << self
+      def process(message = {})
         Cenit::Rabbit.enqueue(message.merge(task: self))
       end
     end
