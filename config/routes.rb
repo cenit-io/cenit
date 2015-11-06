@@ -19,6 +19,7 @@ Cenit::Application.routes.draw do
 
   namespace :api do
     namespace :v1 do
+      post '/auth/ping', to: 'api#auth'
       get  '/public/:model', to: 'api#index', library: 'setup'
       get  '/public/:model/:id(.:format)', to: 'api#show', library: 'setup', defaults: { format: 'json' }, constraints: {format: /(json)/}
       get  '/public/:model/:id(.:format)', to: 'api#raml_zip', library: 'setup', constraints: {format: /(zip)/}
@@ -33,7 +34,7 @@ Cenit::Application.routes.draw do
       delete '/:library/:model/:id', to: 'api#destroy'
       post '/:library/:model/:id/pull', to: 'api#pull'
       post '/:library/:model/:id/run', to: 'api#run'
-      post '/auth', to: 'api#auth'
+      match '/auth', to: 'api#auth', via: [:head]
       match '/*path', to: 'api#cors_check', via: [:options]
      end
   end

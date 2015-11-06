@@ -4,7 +4,7 @@ module Setup
 
     Setup::Models.exclude_actions_for self, :new, :edit, :translator_update, :convert, :send_to_flow, :delete_all, :import
 
-    BuildInDataType.regist(self).referenced_by(:api_name, :api_version)
+    BuildInDataType.regist(self).referenced_by(:api_name,:api_version)
 
     field :api_name, type: String
     field :api_version, type: String
@@ -61,10 +61,10 @@ module Setup
       base_path = api_name + "/" + api_version
       buffer = Zip::OutputStream.write_buffer do |zio|
         zio.put_next_entry("#{base_path}/#{api_name}.raml")
-        zio.write self.extend_path(base_path, self.raml_doc)
+        zio.write self.raml_doc
         ref_hash.each do |path, content|
           zio.put_next_entry base_path + "/" + path
-          zio.write (is_yaml?(path) ? self.extend_path(base_path, content) : content)
+          zio.write content
         end
       end
       { filename: self.raml_title + ".zip", content: buffer.string }

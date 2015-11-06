@@ -1860,7 +1860,7 @@ RailsAdmin.config do |config|
       field :raml_references
     end
 
-    fields :api_name, :api_version, :repo
+    fields :api_name, :api_version, :repo, :raml_doc, :raml_references
   end
 
   config.model Setup::RamlReference do
