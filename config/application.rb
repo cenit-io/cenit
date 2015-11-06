@@ -52,6 +52,8 @@ module Cenit
           RailsAdmin::AbstractModel.update_model_config(models)
         end
 
+        Setup::Task.all.any_in(status: Setup::Task::RUNNING_STATUS).update_all(status: :broken)
+
       end
 
       Account.current = nil

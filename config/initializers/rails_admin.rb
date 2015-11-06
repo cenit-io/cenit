@@ -706,6 +706,8 @@ RailsAdmin.config do |config|
       pretty_value do
         color =
           case bindings[:object].type
+          when :info
+            'green'
           when :notice
             'blue'
           when :warning
@@ -721,6 +723,8 @@ RailsAdmin.config do |config|
       pretty_value do
         color =
           case bindings[:object].type
+          when :info
+            'green'
           when :notice
             'blue'
           when :warning

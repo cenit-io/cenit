@@ -15,6 +15,8 @@ module Setup
 
     has_many :notifications, class_name: Setup::Notification.to_s, inverse_of: :task, dependent: :destroy
 
+    belongs_to :thread_token, class_name: CenitToken.to_s, inverse_of: nil
+
     validates_inclusion_of :status, in: ->(t) { t.status_enum }
     validates_numericality_of :progress, greater_than_or_equal_to: 0, less_than_or_equal_to: 100
 
@@ -29,19 +31,36 @@ module Setup
     end
 
     def status_enum
-      [:pending, :running, :failed, :completed, :retrying]
+      [:pending, :running, :failed, :completed, :retrying, :broken]
+    end
+
+    RUNNING_STATUS = [:running, :retrying]
+
+    def runnin_status?
+      RUNNING_STATUS.include?(status)
+    end
+
+    def running?
+       runnin_status? &&
+        thread_token.present? &&
+        Thread.list.any? { |thread| thread[:task_token] == thread_token.token }
     end
 
     def execute
-      self.status = :running
-      notify(type: :notice, message: "Task ##{id} started at #{Time.now}")
-      run(message.merge(task: self))
-      self.progress = 100
-      self.status = :completed
-      notify(type: :notice, message: "Task ##{id} completed at #{Time.now}")
+      if running?
+        notify(message: "Executing task ##{id} at #{Time.now} but it is already running")
+      else
+        notify(message: "Restarting task ##{id} at #{Time.now}", type: :notice) if runnin_status?
+        thread_token.destroy if thread_token.present?
+        self.thread_token = CenitToken.create
+        Thread.current[:task_token] = thread_token.token
+        notify(type: :info, message: "Task ##{id} started at #{Time.now}")
+        run(message.merge(task: self))
+        self.progress = 100
+        finish(:completed, "Task ##{id} completed at #{Time.now}", :info)
+      end
     rescue Exception => ex
-      self.status = :failed
-      notify(message: "Task ##{id} failed at #{Time.now}: #{ex.message}")
+      finish(:failed, "Task ##{id} failed at #{Time.now}: #{ex.message}", :error)
     end
 
     def run(message)
@@ -71,7 +90,7 @@ module Setup
     end
 
     def can_retry?
-      status == :completed || status == :failed
+      !running?
     end
 
     def retry
@@ -87,6 +106,16 @@ module Setup
       def process(message = {})
         Cenit::Rabbit.enqueue(message.merge(task: self))
       end
+    end
+
+    private
+
+    def finish(status, message, message_type)
+      self.status = status
+      thread_token.destroy if thread_token.present?
+      self.thread_token = nil
+      Thread.current[:task_token] = nil
+      notify(type: message_type, message: message)
     end
   end
 end

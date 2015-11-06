@@ -52,11 +52,7 @@ module Cenit
           begin
             task_class, task, report = detask(message)
             if task ||= task_class && task_class.create(message: message)
-              if task.status == :running
-                task.notify(message: "Can't be executed because is already running")
-              else
-                task.execute
-              end
+              task.execute
             else
               Setup::Notification.create(message: report)
             end
@@ -82,10 +78,10 @@ module Cenit
           ch.prefetch(1)
 
           begin
-            q.subscribe(block: true, ack: true) do |delivery_info, properties, body|
+            q.subscribe(block: true, manual_ack: true) do |delivery_info, properties, body|
               begin
                 Cenit::Rabbit.process_message(body)
-                ch.ack(delivery_info.delivery_tag) #TODO ack is deprecated
+                ch.ack(delivery_info.delivery_tag)
               rescue Exception => ex
                 Setup::Notification.create(message: "Error (#{ex.message}) consuming message: #{body}")
               end
