@@ -295,7 +295,10 @@ module Setup
     end
 
     def attachment_from(http_response)
+      file_extension = ((types =MIME::Types[http_response.content_type]).present? &&
+        (ext = types.first.extensions.first).present? && '.' + ext) || ''
       {
+        filename: http_response.object_id.to_s + file_extension,
         contentType: http_response.content_type,
         body: http_response.body
       } if response_attachments && http_response
