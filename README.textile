@@ -9,8 +9,7 @@ the automation of all operational processes, connecting legacy apps and internet
 
 h2. Why were doing this?
 
-A common story for companies is the blending of solutions around its core business value. 
-Features developed by them, third-party's adaptations and other SaaS to facilitate operations. 
+A common story for companies is the blending of solutions around its core business value. Features developed by them, third-party's adaptations and other SaaS to facilitate operations. 
 
 Once grown enough a new expansion requires a huge integration effort. But available integration 
 solutions are heavy process. Some of them also need B2B transactions using complex EDI standards 
@@ -118,7 +117,7 @@ Then take this value and put it in config/initializers/secret_token.rb:
 Cenit::Application.config.secret_key_base = 'bla' # replace this
 </pre>
 
-Now visit /data, for enter in data you need sing in before. If you don't have user yet, clic in sing up. 
+Now visit /data, for enter in data you need sign in before. If you don't have user yet, clic in sing up. 
 
 If you want unavailable 'sing up' change user model.
 
