@@ -19,7 +19,7 @@ module Setup
     before_save { self.message = message.to(150) + '...' if message.length > 100 }
 
     def type_enum
-      [:error, :warning, :notice]
+      [:error, :warning, :notice, :info]
     end
 
     def label
