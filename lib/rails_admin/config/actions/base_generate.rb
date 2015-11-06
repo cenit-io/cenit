@@ -23,7 +23,7 @@ module RailsAdmin
             @options = Forms::GenerateOptions.new(options_params)
             result = nil
             begin
-              result = Cenit::Rabbit.enqueue(@options.attributes.merge(source: source, task: Setup::DataTypeGeneration))
+              result = Setup::DataTypeGeneration.process(@options.attributes.merge(source: source))
             rescue Exception => ex
               do_flash(:error, 'Error generating data types:', ex.message)
             end if params[:_generate]
@@ -38,11 +38,12 @@ module RailsAdmin
                 conflicting_data_types += Setup::DataType.any_in(name: h.keys).to_a
               end unless Cenit.asynchronous_data_type_generation
               @new_data_types_count -= conflicting_data_types.length
-              @options.instance_variable_set(:@_to_override, conflicting_data_types)
-              @object.instance_variable_set(:@_to_override, conflicting_data_types)
-              report = Setup::DataType.shutdown(conflicting_data_types, report_only: true)
-              @object.instance_variable_set(:@_to_shutdown, report[:destroyed].collect(&:data_type).uniq) if report[:destroyed]
-              @object.instance_variable_set(:@_to_reload, report[:affected].collect(&:data_type).uniq) if report[:affected]
+              if @object
+                @object.instance_variable_set(:@_to_override, conflicting_data_types)
+                report = Setup::DataType.shutdown(conflicting_data_types, report_only: true)
+                @object.instance_variable_set(:@_to_shutdown, report[:destroyed].collect(&:data_type).uniq) if report[:destroyed]
+                @object.instance_variable_set(:@_to_reload, report[:affected].collect(&:data_type).uniq) if report[:affected]
+              end
               @model_config = options_config
               render :generate
             end

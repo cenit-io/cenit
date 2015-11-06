@@ -23,7 +23,7 @@ Cenit.config do
   captcha_length 5
 
   #Process flow messages asynchronous
-  asynchronous_flow_execution false
+  asynchronous_flow_execution true
 
   #Generate data types asynchronous
   asynchronous_data_type_generation true
@@ -50,4 +50,6 @@ Cenit.config do
   http_proxy_password ENV['HTTP-PROXY-PASSWORD']
 
   excluded_actions ENV['EXCLUDED_ACTIONS']
+
+  multiple_unicorn_consumers true
 end

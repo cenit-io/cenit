@@ -34,6 +34,7 @@
 RailsAdmin::Config::Actions.register(:export, RailsAdmin::Config::Actions::EdiExport)
 RailsAdmin::Config::Fields::Types.register(RailsAdmin::Config::Fields::Types::JsonValue)
 RailsAdmin::Config::Fields::Types.register(RailsAdmin::Config::Fields::Types::JsonSchema)
+RailsAdmin::Config::Fields::Types.register(RailsAdmin::Config::Fields::Types::StorageFile)
 {
   config: {
     mode: 'css',
@@ -188,7 +189,7 @@ RailsAdmin.config do |config|
           "<pre>#{pretty_value}</pre>".html_safe
         end
       end
-      field :data_type
+      field :schema_data_type
 
       field :_id
       field :created_at
@@ -706,6 +707,8 @@ RailsAdmin.config do |config|
       pretty_value do
         color =
           case bindings[:object].type
+          when :info
+            'green'
           when :notice
             'blue'
           when :warning
@@ -721,6 +724,8 @@ RailsAdmin.config do |config|
       pretty_value do
         color =
           case bindings[:object].type
+          when :info
+            'green'
           when :notice
             'blue'
           when :warning
@@ -731,6 +736,8 @@ RailsAdmin.config do |config|
         "<label style='color:#{color}'>#{value}</label>".html_safe
       end
     end
+
+    configure :attachment, :storage_file
 
     fields :type, :message, :attachment, :task
   end
@@ -1863,6 +1870,55 @@ RailsAdmin.config do |config|
       field :content
     end
     fields :path, :content
+  end
+
+  config.model Setup::Storage do
+    object_label_method { :label }
+
+    configure :filename do
+      label 'File name'
+      pretty_value { bindings[:object].storage_name }
+    end
+
+    configure :length do
+      label 'Size'
+      pretty_value do
+        unless max = bindings[:controller].instance_variable_get(:@max_length)
+          bindings[:controller].instance_variable_set(:@max_length, max = bindings[:controller].instance_variable_get(:@objects).collect { |storage| storage.length }.max)
+        end
+        (bindings[:view].render partial: 'used_memory_bar', locals: {max: max, value: bindings[:object].length}).html_safe
+      end
+    end
+
+    configure :storer_model do
+      label 'Model'
+      pretty_value do
+        v = bindings[:view]
+        amc = RailsAdmin.config(value)
+        am = amc.abstract_model
+        wording = amc.navigation_label + ' > ' + amc.label
+        can_see = !am.embedded? && (index_action = v.action(:index, am))
+        can_see ? v.link_to(amc.label, v.url_for(action: index_action.action_name, model_name: am.to_param), class: 'pjax') : wording
+      end
+    end
+
+    configure :storer_object do
+      label 'Object'
+      pretty_value do
+        v = bindings[:view]
+        amc = RailsAdmin.config(value.class)
+        am = amc.abstract_model
+        wording = value.send(amc.object_label_method)
+        can_see = !am.embedded? && (show_action = v.action(:show, am, value))
+        can_see ? v.link_to(wording, v.url_for(action: show_action.action_name, model_name: am.to_param, id: value.id), class: 'pjax') : wording
+      end
+    end
+
+    configure :storer_property do
+      label 'Property'
+    end
+
+    fields :storer_model, :storer_object, :storer_property, :filename, :contentType, :length
   end
 
 end

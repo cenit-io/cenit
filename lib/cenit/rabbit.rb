@@ -10,10 +10,13 @@ module Cenit
       def enqueue(message)
         message = message.with_indifferent_access
         task_class, task, report = detask(message)
-        if task_class
+        if task_class || task
           task ||= task_class.create(message: message)
           if Cenit.send('asynchronous_' + task_class.to_s.split('::').last.underscore)
             message[:task_id] = task.id.to_s
+            if token = message[:token]
+              CenitToken.where(token: token).delete_all
+            end
             message[:token] = CenitToken.create(data: {account_id: Account.current.id.to_s}).token
             conn = Bunny.new(automatically_recover: false)
             conn.start
@@ -44,16 +47,12 @@ module Cenit
           account = nil
         end
         if Account.current.nil? || (message_token.present? && Account.current != account)
-          Setup::Notification.create(message: "Invalid message #{message}")
+          Setup::Notification.create(message: "Can not determine account for message: #{message}")
         else
           begin
             task_class, task, report = detask(message)
             if task ||= task_class && task_class.create(message: message)
-              if task.status == :running
-                task.notify(message: "Can't be executed because is already running")
-              else
-                task.execute
-              end
+              task.execute
             else
               Setup::Notification.create(message: report)
             end
@@ -65,6 +64,33 @@ module Cenit
             end
           end
         end
+      rescue Exception => ex
+        Setup::Notification.create(message: "Error (#{ex.message}) processing message: #{message}")
+      end
+
+      def start_consumer
+        Thread.new {
+          conn = Bunny.new(automatically_recover: true)
+          conn.start
+
+          ch = conn.create_channel
+          q = ch.queue('cenit')
+          ch.prefetch(1)
+
+          begin
+            q.subscribe(block: true, manual_ack: true) do |delivery_info, properties, body|
+              begin
+                Cenit::Rabbit.process_message(body)
+                ch.ack(delivery_info.delivery_tag)
+              rescue Exception => ex
+                Setup::Notification.create(message: "Error (#{ex.message}) consuming message: #{body}")
+              end
+            end
+          rescue Exception => ex
+            Setup::Notification.create(message: "Error on rabbit consumer: #{ex.message}")
+            conn.close
+          end
+        }
       end
 
       private

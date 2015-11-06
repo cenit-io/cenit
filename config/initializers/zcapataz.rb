@@ -24,7 +24,7 @@ Capataz.config do
 
   allow_for [Mongoff::Model], [:where, :all]
 
-  allow_for [Setup::Raml], [:ref_hash, :raml_parse, :build_hash, :map_collection]
+  allow_for [Setup::Raml], [:ref_hash, :raml_parse, :build_hash, :map_collection, :id, :to_json, :to_edi, :to_hash, :to_xml]
 
   allow_for [Class], [:where, :all, :new_sign, :digest, :hexdigest, :id]
 

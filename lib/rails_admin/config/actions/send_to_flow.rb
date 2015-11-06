@@ -44,7 +44,7 @@ module RailsAdmin
               redirect_to back_or_index
             else
               @flow_options = []
-              model = @abstract_model.model_name.constantize rescue nil
+              model = @abstract_model.model rescue nil
               if model.present? && model.respond_to?(:data_type)
                 model_data_type = model.data_type
                 flows = Setup::Flow.all.select { |flow| flow.translator && flow.translator.type != :Import && flow.data_type == model_data_type }

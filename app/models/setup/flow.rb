@@ -129,10 +129,9 @@ module Setup
           cycle = cycle.collect { |id| ((flow = Setup::Flow.where(id: id).first) && flow.name) || id }
           Setup::Notification.create(message: "Cyclic flow execution: #{cycle.join(' -> ')}")
         else
-          Cenit::Rabbit.enqueue message.merge(task: Setup::FlowExecution,
-                                              flow_id: id.to_s,
-                                              tirgger_flow_id: executing_id,
-                                              execution_graph: execution_graph)
+          Setup::FlowExecution.process message.merge(flow_id: id.to_s,
+                                                     tirgger_flow_id: executing_id,
+                                                     execution_graph: execution_graph)
         end
       puts "Flow processing jon '#{self.name}' done!"
       self.last_trigger_timestamps = DateTime.now
@@ -172,7 +171,7 @@ module Setup
         objects =
           if obj_id = message[:source_id]
             data_type.records_model.where(id: obj_id)
-          elsif  object_ids = source_ids_from(message)
+          elsif object_ids = source_ids_from(message)
             data_type.records_model.any_in(id: object_ids)
           else
             data_type.records_model.all
@@ -296,7 +295,10 @@ module Setup
     end
 
     def attachment_from(http_response)
+      file_extension = ((types =MIME::Types[http_response.content_type]).present? &&
+        (ext = types.first.extensions.first).present? && '.' + ext) || ''
       {
+        filename: http_response.object_id.to_s + file_extension,
         contentType: http_response.content_type,
         body: http_response.body
       } if response_attachments && http_response

@@ -1,4 +1,5 @@
 require 'cancan/model_adapters/mongoff_adapter'
+require 'setup/storage'
 
 class Ability
   include CanCan::Ability
@@ -42,10 +43,10 @@ class Ability
               Setup::RamlReference
             ]
         can :import, Setup::SharedCollection
-        can :destroy, [Setup::SharedCollection, Setup::DataType, Setup::Task]
+        can :destroy, [Setup::SharedCollection, Setup::DataType, Setup::Task, Setup::Storage]
       else
         cannot :access, Setup::SharedName
-        cannot :destroy, [Setup::SharedCollection, Setup::Raml]
+        cannot :destroy, [Setup::SharedCollection, Setup::Raml, Setup::Storage]
         can(:destroy, Setup::Task) { |task| task.status != :running }
       end
 
@@ -71,6 +72,7 @@ class Ability
             end
           end
           Setup::Models.each do |model, excluded_actions|
+            puts model
             non_root.each do |action|
               models = (hash[key = action.authorization_key] ||= Set.new)
               models << model if relevant_rules_for_match(action.authorization_key, model).empty? && !(excluded_actions.include?(:all) || excluded_actions.include?(action.key))
