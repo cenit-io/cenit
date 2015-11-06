@@ -117,7 +117,7 @@ Then take this value and put it in config/initializers/secret_token.rb:
 Cenit::Application.config.secret_key_base = 'bla' # replace this
 </pre>
 
-Now visit /data, for enter in data you need sign in before. If you don't have user yet, clic in sing up. 
+Now visit /data, for enter in data you need sign in before. If you don't have user yet, clic in sign up. 
 
 If you want unavailable 'sing up' change user model.
 
