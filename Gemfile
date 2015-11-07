@@ -12,7 +12,7 @@ gem 'therubyracer', platforms: :ruby
 gem 'jbuilder'
 gem 'devise'
 gem 'omniauth'
-gem 'omniauth-oauth2'
+gem 'omniauth-oauth2', '~> 1.3.1'
 gem 'rabl'
 gem 'builder'
 gem 'haml-rails'
