@@ -37,15 +37,10 @@ module RailsAdmin
                 translator = Setup::Translator.where(id: data[:translator_id]).first
                 if (form_object = Forms::ImportTranslatorSelector.new(translator: translator, data_type: data_type_selector, data: data[:data])).valid?
                   begin
-                    translator.run(target_data_type: model.data_type, data: data[:data])
-                    redirect_to_on_success
+                    do_flash_process_result Setup::DataImport.process(translator_id: translator.id, data_type_id: model.data_type.id, data: data[:data])
                     render_form = false
-                  rescue Setup::TransformingObjectException => ex
-                    @object = ex.object
-                    handle_save_error
                   rescue Exception => ex
-                    raise ex
-                    form_object.errors.add(:data, ex.message)
+                    flash[:error] = ex.message
                   end
                 end
               end
@@ -58,6 +53,8 @@ module RailsAdmin
               if @object.errors.present?
                 do_flash(:error, 'There are errors in the import data specification', @object.errors.full_messages)
               end
+            else
+              redirect_to_on_success
             end
 
           end

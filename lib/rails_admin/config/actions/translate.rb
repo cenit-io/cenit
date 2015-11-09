@@ -45,8 +45,6 @@ module RailsAdmin
                                                                        bulk_ids: @bulk_ids,
                                                                        data_type_id: data_type.id)
                     done = true
-                  rescue Setup::TransformingObjectException => ex
-                    do_flash(:error, "Error updating object with id=#{ex.object.id}", ex.object.errors.full_messages)
                   rescue Exception => ex
                     flash[:error] = ex.message
                   end

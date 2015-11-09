@@ -28,6 +28,9 @@ Cenit.config do
   #Generate data types asynchronous
   asynchronous_data_type_generation true
 
+  #Execute translator asynchronous
+  asynchronous_translation true
+
   #Expand data types asynchronous
   asynchronous_data_type_expansion true
 

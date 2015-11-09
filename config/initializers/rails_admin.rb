@@ -705,6 +705,12 @@ RailsAdmin.config do |config|
     fields :translator, :description, :retries, :progress, :status, :notifications
   end
 
+  config.model Setup::DataImport do
+    navigation_label 'Monitor'
+    object_label_method { :to_s }
+    fields :translator, :data, :description, :retries, :progress, :status, :notifications
+  end
+
   config.model Setup::Notification do
     navigation_label 'Monitor'
     object_label_method { :label }
@@ -1904,7 +1910,7 @@ RailsAdmin.config do |config|
         am = amc.abstract_model
         wording = amc.navigation_label + ' > ' + amc.label
         can_see = !am.embedded? && (index_action = v.action(:index, am))
-        can_see ? v.link_to(amc.label, v.url_for(action: index_action.action_name, model_name: am.to_param), class: 'pjax') : wording
+        (can_see ? v.link_to(amc.label, v.url_for(action: index_action.action_name, model_name: am.to_param), class: 'pjax') : wording).html_safe
       end
     end
 
@@ -1916,7 +1922,7 @@ RailsAdmin.config do |config|
         am = amc.abstract_model
         wording = value.send(amc.object_label_method)
         can_see = !am.embedded? && (show_action = v.action(:show, am, value))
-        can_see ? v.link_to(wording, v.url_for(action: show_action.action_name, model_name: am.to_param, id: value.id), class: 'pjax') : wording
+        (can_see ? v.link_to(wording, v.url_for(action: show_action.action_name, model_name: am.to_param, id: value.id), class: 'pjax') : wording).html_safe
       end
     end
 
