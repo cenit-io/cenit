@@ -24,44 +24,39 @@ module RailsAdmin
         register_instance_option :controller do
           proc do
 
-            @model_config = RailsAdmin::Config.model(Forms::TranslatorSelector)
+            @model_config = RailsAdmin::Config.model(Forms::Translation)
             @bulk_ids = params.delete(:bulk_ids)
             translator_type = @action.class.translator_type
+            done = false
 
             if model = @abstract_model.model rescue nil
               data_type = model.data_type
               data_type_selector = data_type.is_a?(Setup::BuildInDataType) ? nil : data_type
               if data = params[@model_config.abstract_model.param_key]
                 translator = Setup::Translator.where(id: data[:translator_id]).first
-                if (@object = Forms::TranslatorSelector.new(
+                if (@object = Forms::Translation.new(
                   translator_type: translator_type,
                   bulk_source: (@bulk_ids.nil? && model.count != 1) || (@bulk_ids && @bulk_ids.size != 1),
                   data_type: data_type_selector,
                   translator: translator)).valid?
 
                   begin
-                    translation = @action.class.translate(translator: translator,
-                                                          bulk_ids: @bulk_ids,
-                                                          model: model,
-                                                          data_type: data_type)
-                    ok = true
+                    do_flash_process_result Setup::Translation.process(translator_id: translator.id,
+                                                                       bulk_ids: @bulk_ids,
+                                                                       data_type_id: data_type.id)
+                    done = true
                   rescue Setup::TransformingObjectException => ex
                     do_flash(:error, "Error updating object with id=#{ex.object.id}", ex.object.errors.full_messages)
                   rescue Exception => ex
-                    raise ex
                     flash[:error] = ex.message
                   end
                 end
               end
             end
-            if ok
-              @action.class.done(controller: self,
-                                 translation: translation,
-                                 back_or_index: back_or_index,
-                                 data_type: data_type,
-                                 translator: translator)
+            if done
+              redirect_to back_or_index
             else
-              @object ||= Forms::TranslatorSelector.new(
+              @object ||= Forms::Translation.new(
                 translator_type: translator_type,
                 bulk_source: (@bulk_ids.nil? && (model.nil? || model.count != 1)) || (@bulk_ids && @bulk_ids.size != 1),
                 data_type: data_type_selector,
@@ -84,14 +79,6 @@ module RailsAdmin
 
           def translator_type
             nil
-          end
-
-          def translate(options)
-            nil
-          end
-
-          def done(options)
-            options[:controller].redirect_to options[:back_or_index]
           end
 
           def disable_buttons?

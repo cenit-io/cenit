@@ -66,6 +66,7 @@ en:
         breadcrumb: "Export"
         submit: "Export"
         done: "exported"
+        doing: "execution"
         bulk_link: "Export selected %{model_label_plural}"
       import_schema:
         title: "Import"
@@ -99,6 +100,7 @@ en:
         menu: "Update"
         breadcrumb: "Update"
         done: "updated"
+        doing: "execution"
         submit: "Update"
         bulk_link: "Update selected %{model_label_plural}"
       convert:
@@ -106,6 +108,7 @@ en:
         menu: "Convert"
         breadcrumb: "Convert"
         done: "converted"
+        doing: "execution"
         submit: "Convert"
         bulk_link: "Convert selected %{model_label_plural}"
       delete_validator:

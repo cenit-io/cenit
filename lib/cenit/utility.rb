@@ -15,15 +15,17 @@ module Cenit
       end
 
       def method_missing(symbol, *args)
-        if @obj.respond_to?(symbol)
+        if @attributes.has_key?(symbol)
+          @attributes[symbol]
+        elsif @obj.respond_to?(symbol)
           @obj.send(symbol)
         else
-          @attributes[symbol] || super
+          super
         end
       end
 
       def respond_to?(*args)
-        @obj.respond_to?(*args) || @attributes[args[0]] || super
+        @attributes.has_key?(args[0]) || @obj.respond_to?(*args) || super
       end
     end
 

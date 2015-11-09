@@ -102,6 +102,10 @@ module Setup
       end
     end
 
+    def finish_attachment
+      nil
+    end
+
     class << self
       def process(message = {})
         Cenit::Rabbit.enqueue(message.merge(task: self))
@@ -115,7 +119,7 @@ module Setup
       thread_token.destroy if thread_token.present?
       self.thread_token = nil
       Thread.current[:task_token] = nil
-      notify(type: message_type, message: message)
+      notify(type: message_type, message: message, attachment: finish_attachment)
     end
   end
 end

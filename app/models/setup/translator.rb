@@ -269,8 +269,14 @@ module Setup
     attr_reader :object
 
     def initialize(object)
-      super "Error transforming object #{object}"
+      msg =
+        if object.new_record?
+          "Creating object of type #{object.orm_model.data_type.custom_title}: "
+        else
+          "Transforming object #{object.id} of type #{object.orm_model.data_type.custom_title}: "
+        end + object.errors.full_messages.to_sentence
       @object = object
+      super(msg)
     end
   end
 end

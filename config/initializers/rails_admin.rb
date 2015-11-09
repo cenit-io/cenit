@@ -699,6 +699,12 @@ RailsAdmin.config do |config|
     fields :description, :retries, :progress, :status, :notifications
   end
 
+  config.model Setup::Translation do
+    navigation_label 'Monitor'
+    object_label_method { :to_s }
+    fields :translator, :description, :retries, :progress, :status, :notifications
+  end
+
   config.model Setup::Notification do
     navigation_label 'Monitor'
     object_label_method { :label }
