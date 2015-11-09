@@ -11,7 +11,7 @@ module Setup
     def translate_export(message)
       if (result = translator.run(object_ids: object_ids_from(message), source_data_type: data_type_from(message))) &&
         Cenit::Utility.json_object?(result)
-        file_name = "#{data_type.title.underscore}_#{DateTime.now.strftime('%Y-%m-%d_%Hh%Mm%S')}"
+        file_name = "#{data_type.title.collectionize}_#{DateTime.now.strftime('%Y-%m-%d_%Hh%Mm%S')}"
         file_name += ".#{translator.file_extension}" if translator.file_extension.present?
         @attachment =
           {
