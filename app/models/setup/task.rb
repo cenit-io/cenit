@@ -1,6 +1,7 @@
 module Setup
   class Task
     include CenitScoped
+    include ClassHierarchyAware
 
     BuildInDataType.regist(self)
 

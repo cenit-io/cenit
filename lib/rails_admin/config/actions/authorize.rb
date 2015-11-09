@@ -5,7 +5,7 @@ module RailsAdmin
       class Authorize < RailsAdmin::Config::Actions::Base
 
         register_instance_option :only do
-          [Setup::BaseOauthAuthorization, Setup::OauthAuthorization, Setup::Oauth2Authorization]
+          Setup::BaseOauthAuthorization.class_hierarchy
         end
 
 
