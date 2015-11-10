@@ -3,6 +3,10 @@ module RailsAdmin
     module Actions
       class Import < RailsAdmin::Config::Actions::Base
 
+        register_instance_option :except do
+          Setup::Schema
+        end
+
         register_instance_option :visible? do
           if authorized?
             model = bindings[:abstract_model].model rescue nil
@@ -50,7 +54,7 @@ module RailsAdmin
                 do_flash(:error, 'There are errors in the import data specification', @object.errors.full_messages)
               end
             else
-              redirect_to_on_success
+              redirect_to back_or_index
             end
 
           end

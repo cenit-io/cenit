@@ -60,6 +60,7 @@ en:
         file_content_label: "File content"
         submit: "Import"
         done: "created"
+        doing: "import"
       edi_export:
         title: "Export"
         menu: "Export"
@@ -75,6 +76,7 @@ en:
         file_content_label: "File content"
         submit: "Import"
         done: "created"
+        doing: "import"
       delete_all:
         title: "Delete all"
         menu: "Delete all"

@@ -28,8 +28,14 @@ Cenit.config do
   #Generate data types asynchronous
   asynchronous_data_type_generation true
 
-  #Execute translator asynchronous
+  #Execute translations asynchronous
   asynchronous_translation true
+
+  #Execute data import asynchronous
+  asynchronous_data_import true
+
+  #Execute schemas import asynchronous
+  asynchronous_schemas_import true
 
   #Expand data types asynchronous
   asynchronous_data_type_expansion true

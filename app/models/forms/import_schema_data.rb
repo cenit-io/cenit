@@ -3,10 +3,10 @@ module Forms
     include Mongoid::Document
 
     belongs_to :library, class_name: Setup::Library.to_s
-    field :file, type: String
+    field :data, type: String
     field :base_uri, type: String
 
-    validates_presence_of :library, :file
+    validates_presence_of :library, :data
 
     rails_admin do
       visible false
@@ -17,7 +17,7 @@ module Forms
           inline_edit false
         end
 
-        field :file do
+        field :data do
           render do
             bindings[:form].file_field(self.name, self.html_attributes.reverse_merge(data: {fileupload: true}))
           end
