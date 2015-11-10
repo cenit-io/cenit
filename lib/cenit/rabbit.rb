@@ -21,12 +21,9 @@ module Cenit
               CenitToken.where(token: token).delete_all
             end
             message[:token] = CenitToken.create(data: {account_id: Account.current.id.to_s}).token
-            conn = Bunny.new(automatically_recover: false)
-            conn.start
-            ch = conn.create_channel
-            q = ch.queue('cenit')
-            ch.default_exchange.publish(message.to_json, routing_key: q.name)
-            conn.close
+            channel_mutex.lock
+            channel.default_exchange.publish(message.to_json, routing_key: queue.name)
+            channel_mutex.unlock
           else
             message[:task] = task
             process_message(message)
@@ -71,16 +68,18 @@ module Cenit
         Setup::Notification.create(message: "Error (#{ex.message}) processing message: #{message}")
       end
 
-      attr_reader :connection, :chanel, :queue
+      attr_reader :connection, :channel, :queue, :channel_mutex
 
       def init
         unless @connection
           @connection = Bunny.new(automatically_recover: true)
           @connection.start
 
-          @chanel = @connection.create_channel
-          @queue = @chanel.queue('cenit')
-          @chanel.prefetch(1)
+          @channel = @connection.create_channel
+          @queue = @channel.queue('cenit')
+          @channel.prefetch(1)
+
+          @channel_mutex = Mutex.new
         end
       end
 
@@ -89,7 +88,7 @@ module Cenit
         queue.subscribe(manual_ack: true) do |delivery_info, properties, body|
           begin
             Cenit::Rabbit.process_message(body)
-            chanel.ack(delivery_info.delivery_tag)
+            channel.ack(delivery_info.delivery_tag)
           rescue Exception => ex
             Setup::Notification.create(message: "Error (#{ex.message}) consuming message: #{body}")
           end
