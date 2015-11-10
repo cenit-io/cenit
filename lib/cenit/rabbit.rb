@@ -11,7 +11,10 @@ module Cenit
         message = message.with_indifferent_access
         task_class, task, report = detask(message)
         if task_class || task
-          task ||= task_class.create(message: message)
+          unless task
+            task = task_class.create(message: message)
+            task.save
+          end
           if Cenit.send('asynchronous_' + task_class.to_s.split('::').last.underscore)
             message[:task_id] = task.id.to_s
             if token = message[:token]
@@ -68,29 +71,31 @@ module Cenit
         Setup::Notification.create(message: "Error (#{ex.message}) processing message: #{message}")
       end
 
+      attr_reader :connection, :chanel, :queue
+
+      def init
+        unless @connection
+          @connection = Bunny.new(automatically_recover: true)
+          @connection.start
+
+          @chanel = @connection.create_channel
+          @queue = @chanel.queue('cenit')
+          @chanel.prefetch(1)
+        end
+      end
+
       def start_consumer
-        Thread.new {
-          conn = Bunny.new(automatically_recover: true)
-          conn.start
-
-          ch = conn.create_channel
-          q = ch.queue('cenit')
-          ch.prefetch(1)
-
+        init
+        queue.subscribe(manual_ack: true) do |delivery_info, properties, body|
           begin
-            q.subscribe(block: true, manual_ack: true) do |delivery_info, properties, body|
-              begin
-                Cenit::Rabbit.process_message(body)
-                ch.ack(delivery_info.delivery_tag)
-              rescue Exception => ex
-                Setup::Notification.create(message: "Error (#{ex.message}) consuming message: #{body}")
-              end
-            end
+            Cenit::Rabbit.process_message(body)
+            chanel.ack(delivery_info.delivery_tag)
           rescue Exception => ex
-            Setup::Notification.create(message: "Error on rabbit consumer: #{ex.message}")
-            conn.close
+            Setup::Notification.create(message: "Error (#{ex.message}) consuming message: #{body}")
           end
-        }
+        end
+      rescue Exception => ex
+        Setup::Notification.create(message: "Error subscribing rabbit consumer: #{ex.message}")
       end
 
       private
