@@ -25,6 +25,10 @@ module Mongoff
       array.count
     end
 
+    def empty?
+      @records.empty?
+    end
+
     def each(*args, &blk)
       @records.each { |record| yield record if record } #TODO Sanitize for broken ids
     end

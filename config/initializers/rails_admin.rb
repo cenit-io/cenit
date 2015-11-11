@@ -29,7 +29,8 @@
  RailsAdmin::Config::Actions::BulkGenerate,
  RailsAdmin::Config::Actions::SimpleExpand,
  RailsAdmin::Config::Actions::BulkExpand,
- RailsAdmin::Config::Actions::Records].each { |a| RailsAdmin::Config::Actions.register(a) }
+ RailsAdmin::Config::Actions::Records,
+ RailsAdmin::Config::Actions::SwitchScheduler].each { |a| RailsAdmin::Config::Actions.register(a) }
 
 RailsAdmin::Config::Actions.register(:export, RailsAdmin::Config::Actions::EdiExport)
 RailsAdmin::Config::Fields::Types.register(RailsAdmin::Config::Fields::Types::JsonValue)
@@ -90,6 +91,7 @@ RailsAdmin.config do |config|
     bulk_expand
     records
     switch_navigation
+    switch_scheduler
     simple_delete_data_type
     bulk_delete_data_type
     delete
@@ -697,6 +699,18 @@ RailsAdmin.config do |config|
     navigation_label 'Monitor'
     object_label_method { :to_s }
     fields :description, :retries, :progress, :status, :notifications
+  end
+
+  config.model Setup::Translation do
+    navigation_label 'Monitor'
+    object_label_method { :to_s }
+    fields :translator, :description, :retries, :progress, :status, :notifications
+  end
+
+  config.model Setup::DataImport do
+    navigation_label 'Monitor'
+    object_label_method { :to_s }
+    fields :translator, :data, :description, :retries, :progress, :status, :notifications
   end
 
   config.model Setup::Notification do
@@ -1898,7 +1912,7 @@ RailsAdmin.config do |config|
         am = amc.abstract_model
         wording = amc.navigation_label + ' > ' + amc.label
         can_see = !am.embedded? && (index_action = v.action(:index, am))
-        can_see ? v.link_to(amc.label, v.url_for(action: index_action.action_name, model_name: am.to_param), class: 'pjax') : wording
+        (can_see ? v.link_to(amc.label, v.url_for(action: index_action.action_name, model_name: am.to_param), class: 'pjax') : wording).html_safe
       end
     end
 
@@ -1910,7 +1924,7 @@ RailsAdmin.config do |config|
         am = amc.abstract_model
         wording = value.send(amc.object_label_method)
         can_see = !am.embedded? && (show_action = v.action(:show, am, value))
-        can_see ? v.link_to(wording, v.url_for(action: show_action.action_name, model_name: am.to_param, id: value.id), class: 'pjax') : wording
+        (can_see ? v.link_to(wording, v.url_for(action: show_action.action_name, model_name: am.to_param, id: value.id), class: 'pjax') : wording).html_safe
       end
     end
 

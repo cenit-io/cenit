@@ -30,7 +30,7 @@ module Setup
       library && library.name
     end
 
-    def validates_configuration
+    before_validation do
       self.name = "#{library.name} | #{uri}" unless name.present?
       self.schema = schema.strip
       self.schema_type =
@@ -39,7 +39,6 @@ module Setup
         else
           :xml_schema
         end
-      super
     end
 
     def cenit_ref_schema(options = {})

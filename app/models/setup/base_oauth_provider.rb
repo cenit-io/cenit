@@ -3,6 +3,7 @@ module Setup
     include CenitUnscoped
     include MandatoryNamespace
     include CrossTenancy
+    include ClassHierarchyAware
 
     Setup::Models.exclude_actions_for self, :all
 
