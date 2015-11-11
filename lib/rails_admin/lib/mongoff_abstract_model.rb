@@ -110,6 +110,10 @@ module Mongoff
       relations[name.to_sym]
     end
 
+    def to_key
+      nil
+    end
+
   end
 
   class Record
@@ -123,6 +127,10 @@ module Mongoff
 
     def associations
       self.class.associations
+    end
+
+    def to_model
+      orm_model
     end
   end
 

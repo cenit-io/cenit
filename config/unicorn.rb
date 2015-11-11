@@ -43,9 +43,12 @@ after_fork do |server, worker|
   defined?(ActiveRecord::Base) and ActiveRecord::Base.establish_connection
   defined?(Rails) and Rails.cache.respond_to?(:reconnect) and Rails.cache.reconnect
 
-  if Cenit.multiple_unicorn_consumers || !server.instance_variable_get(:@rabbit_listener_started)
-    puts "RABBIT LISTENER STARTED ON #{worker}"
+  if Cenit.multiple_unicorn_consumers || !(rabbit_listener_started = server.instance_variable_get(:@rabbit_listener_started))
     Cenit::Rabbit.start_consumer
+    unless rabbit_listener_started
+      Cenit::Rabbit.start_scheduler
+      Setup::Scheduler.activated.each(&:start)
+    end
     server.instance_variable_set(:@rabbit_listener_started, true)
   end
 end

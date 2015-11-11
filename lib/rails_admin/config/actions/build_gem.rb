@@ -4,7 +4,7 @@ module RailsAdmin
       class BuildGem < RailsAdmin::Config::Actions::Base
 
         register_instance_option :only do
-          [Setup::SharedCollection]
+          Setup::SharedCollection
         end
 
         register_instance_option :member do

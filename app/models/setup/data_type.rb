@@ -6,6 +6,7 @@ module Setup
     include Slug
     include CustomTitle
     include Mongoff::DataTypeMethods
+    include ClassHierarchyAware
 
     Setup::Models.exclude_actions_for self, :update, :bulk_delete, :delete, :delete_all
 

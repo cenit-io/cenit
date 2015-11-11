@@ -1,6 +1,7 @@
 module Setup
   class Task
     include CenitScoped
+    include ClassHierarchyAware
 
     BuildInDataType.regist(self)
 
@@ -16,6 +17,7 @@ module Setup
     has_many :notifications, class_name: Setup::Notification.to_s, inverse_of: :task, dependent: :destroy
 
     belongs_to :thread_token, class_name: CenitToken.to_s, inverse_of: nil
+    belongs_to :scheduler, class_name: Setup::Scheduler.to_s, inverse_of: nil
 
     validates_inclusion_of :status, in: ->(t) { t.status_enum }
     validates_numericality_of :progress, greater_than_or_equal_to: 0, less_than_or_equal_to: 100
@@ -102,6 +104,10 @@ module Setup
       end
     end
 
+    def finish_attachment
+      nil
+    end
+
     class << self
       def process(message = {})
         Cenit::Rabbit.enqueue(message.merge(task: self))
@@ -115,7 +121,7 @@ module Setup
       thread_token.destroy if thread_token.present?
       self.thread_token = nil
       Thread.current[:task_token] = nil
-      notify(type: message_type, message: message)
+      notify(type: message_type, message: message, attachment: finish_attachment)
     end
   end
 end
