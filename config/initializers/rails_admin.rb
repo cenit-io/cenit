@@ -29,7 +29,8 @@
  RailsAdmin::Config::Actions::BulkGenerate,
  RailsAdmin::Config::Actions::SimpleExpand,
  RailsAdmin::Config::Actions::BulkExpand,
- RailsAdmin::Config::Actions::Records].each { |a| RailsAdmin::Config::Actions.register(a) }
+ RailsAdmin::Config::Actions::Records,
+ RailsAdmin::Config::Actions::SwitchScheduler].each { |a| RailsAdmin::Config::Actions.register(a) }
 
 RailsAdmin::Config::Actions.register(:export, RailsAdmin::Config::Actions::EdiExport)
 RailsAdmin::Config::Fields::Types.register(RailsAdmin::Config::Fields::Types::JsonValue)
@@ -90,6 +91,7 @@ RailsAdmin.config do |config|
     bulk_expand
     records
     switch_navigation
+    switch_scheduler
     simple_delete_data_type
     bulk_delete_data_type
     delete

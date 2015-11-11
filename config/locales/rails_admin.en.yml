@@ -45,6 +45,15 @@ en:
           title: "Hide navigation link"
           menu: "Hide navigation link"
           breadcrumb: "Hide navigation link"
+      switch_scheduler:
+        activate:
+          title: "Activate"
+          menu: "Activate"
+          breadcrumb: "Activate"
+        deactivate:
+          title: "Deactivate"
+          menu: "Deactivate"
+          breadcrumb: "Deactivate"
       data_type:
         title: "Data type"
         menu: "Data type"

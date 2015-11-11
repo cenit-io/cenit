@@ -17,6 +17,7 @@ module Setup
     has_many :notifications, class_name: Setup::Notification.to_s, inverse_of: :task, dependent: :destroy
 
     belongs_to :thread_token, class_name: CenitToken.to_s, inverse_of: nil
+    belongs_to :scheduler, class_name: Setup::Scheduler.to_s, inverse_of: nil
 
     validates_inclusion_of :status, in: ->(t) { t.status_enum }
     validates_numericality_of :progress, greater_than_or_equal_to: 0, less_than_or_equal_to: 100

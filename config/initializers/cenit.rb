@@ -61,4 +61,8 @@ Cenit.config do
   excluded_actions ENV['EXCLUDED_ACTIONS']
 
   multiple_unicorn_consumers true
+
+  min_scheduler_interval 60
+
+  scheduler_lookup_interval 10
 end
