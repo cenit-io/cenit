@@ -103,6 +103,12 @@ module Cenit
         end
       end
 
+      def close
+        if connection
+          connection.close
+        end
+      end
+
       def start_consumer
         init
         queue.subscribe(manual_ack: true) do |delivery_info, properties, body|
@@ -144,13 +150,14 @@ module Cenit
           (delayed_messages = Setup::DelayedMessage.where(:publish_at.lte => Time.now)).each do |delayed_message|
             if (token = CenitToken.where(token: delayed_message.token).first) &&
               (account = Account.where(id: token.data[:account_id]).first)
-              Thread.current[:current_account] = account
+              Account.current = account
               if delayed_message.scheduler_id.nil? || Setup::Scheduler.where(id: delayed_message.scheduler_id).present?
-                channel.default_exchange.publish(msg, routing_key: queue.name)
+                channel.default_exchange.publish(delayed_message.message, routing_key: queue.name)
+                delayed_message.destroy
               end
             end
           end
-          delayed_messages.delete_all if delayed_messages.present?
+          # delayed_messages.destroy_all if delayed_messages.present? TODO Optimize here!
         end
         puts 'RABBIT SCHEDULER STARTED'
       end

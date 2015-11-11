@@ -29,6 +29,9 @@ class Account
 
     def current=(account)
       Thread.current[:current_account] = account
+      if User.respond_to?(:current=) #TODO Optimize here!
+        User.current = account ? account.owner : nil
+      end
     end
 
     def create_with_owner(params={})
