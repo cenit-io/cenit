@@ -72,7 +72,6 @@ class Ability
             end
           end
           Setup::Models.each do |model, excluded_actions|
-            puts model
             non_root.each do |action|
               models = (hash[key = action.authorization_key] ||= Set.new)
               models << model if relevant_rules_for_match(action.authorization_key, model).empty? && !(excluded_actions.include?(:all) || excluded_actions.include?(action.key))

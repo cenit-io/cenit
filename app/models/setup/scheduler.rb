@@ -17,14 +17,19 @@ module Setup
       when :Once
         errors.add(:expression, 'is not a valid date-time') unless !(DateTime.parse(exp) rescue nil)
       when :Periodic
-        errors.add(:expression, 'is not a valid interval') unless exp =~ /\A[1-9][0-9]*(s|m|h|d)\Z/
+        if exp =~ /\A[1-9][0-9]*(s|m|h|d)\Z/
+          if interval < (min = Cenit.min_scheduler_interval || 60)
+            self.expression = "#{min}s"
+          end
+        else
+          errors.add(:expression, 'is not a valid interval')
+        end
       when :CRON
         #TODO Validate CRON Expression
         #errors.add(:expression, 'is not a valid CRON expression') unless exp =~ /\A(0|[1-5][0-9]?|[6-9]|\*) (0|1[0-9]?|2[0-3]?|[3-9]|\*) ([1-2][0-9]?|3[0-1]?|[4-9]|\*)  (1[0-2]?|[2-9]|\*) (\*)\Z/
       else
         errors.add(:scheduling_method, 'is not a valid scheduling method')
       end
-      errors.add(:expression, 'is too short') if interval < (Cenit.min_scheduler_interval || 60)
     end
 
     def scheduling_method_enum
