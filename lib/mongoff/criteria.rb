@@ -101,7 +101,12 @@ module Mongoff
 
       def initialize(model, field)
         @model = model
-        @field = model.properties.detect { |key| model.attribute_key(key).to_s == field } || field.to_sym
+        @field =
+          if field = 'id'
+            :_id
+          else
+            model.properties.detect { |key| model.attribute_key(key).to_s == field } || field.to_sym
+          end
       end
 
       def localized?
