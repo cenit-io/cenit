@@ -60,22 +60,22 @@ module Edi
         element.attribute_nodes.each do |attr|
           if property = model.property_for(attr.name)
             value =
-                if model.property_model(property).schema['type'] == 'array'
-                  attr.value.split(' ')
-                else
-                  attr.value
-                end
+              if model.property_model(property).schema['type'] == 'array'
+                attr.value.split(' ')
+              else
+                attr.value
+              end
             record.send("#{property}=", value)
           end
         end
         if content_property
           content =
-              if element.children.empty?
-                element.content
-              else
-                element.namespaces.each { |ns, value| element[ns] = value }
-                Hash.from_xml(element.to_xml).values.first
-              end
+            if element.children.empty?
+              element.content
+            else
+              element.namespaces.each { |ns, value| element[ns] = value }
+              Hash.from_xml(element.to_xml).values.first
+            end
           record.send("#{content_property}=", content)
         else
           elements = element.element_children.to_a
@@ -110,10 +110,17 @@ module Edi
 
       def do_parse_json(data_type, model, json, options, json_schema, record=nil, new_record=nil)
         updating = false
-        primary_field = options.delete(:primary_field) || :id
+        primary_fields = options.delete(:primary_field) || json['_primary'] || [:id]
+        primary_fields = [primary_fields] unless primary_fields.is_a?(Array)
+        primary_fields = primary_fields.collect(&:to_sym)
         unless record ||= new_record
           if model && model.modelable?
-            if record = (!options[:ignore].include?(primary_field) && (field_value = json.is_a?(Hash) && json[primary_field.to_s]) && model.where(primary_field => field_value).first)
+            if json.is_a?(Hash) &&
+              options[:ignore].none? { |ignored_field| primary_fields.include?(ignored_field) } &&
+              (criteria = json.select { |key, _| primary_fields.include?(key.to_sym) }).size == primary_fields.count
+              record = model.where(criteria).first
+            end
+            if record
               updating = true
             else
               (record = model.new).instance_variable_set(:@dynamically_created, true)
@@ -139,61 +146,61 @@ module Edi
               property_model = model.property_model(property_name)
               taken_items << property_name if json.has_key?(name)
               case property_schema['type']
-                when 'array'
-                  next unless updating | (association = record.send(property_name)).blank?
-                  items_schema = data_type.merge_schema(property_schema['items'] || {})
-                  unless !resetting.include?(property_name) && (options[:add_only] || (association && property_schema['referenced']))
-                    record.send("#{property_name}=", [])
-                    association = record.send(property_name)
-                  end
-                  if property_value = json[name]
-                    property_value = [property_value] unless property_value.is_a?(Array)
-                    persist = property_model && property_model.persistable?
-                    property_value.each do |sub_value|
-                      if persist && sub_value['_reference']
-                        sub_value = Cenit::Utility.deep_remove(sub_value, '_reference')
-                        record.instance_variable_set(:@_references, references = {}) unless references = record.instance_variable_get(:@_references)
-                        (references[property_name] ||= []) << {model: property_model, criteria: sub_value}
-                        if sub_value = Cenit::Utility.find_record(association, sub_value)
-                          association.delete(sub_value)
-                        end
-                      else
-                        if !association.include?(sub_value = do_parse_json(data_type, property_model, sub_value, options, items_schema))
-                          association << sub_value
-                        end
+              when 'array'
+                next unless updating | (association = record.send(property_name)).blank?
+                items_schema = data_type.merge_schema(property_schema['items'] || {})
+                unless !resetting.include?(property_name) && (options[:add_only] || (association && property_schema['referenced']))
+                  record.send("#{property_name}=", [])
+                  association = record.send(property_name)
+                end
+                if property_value = json[name]
+                  property_value = [property_value] unless property_value.is_a?(Array)
+                  persist = property_model && property_model.persistable?
+                  property_value.each do |sub_value|
+                    if persist && sub_value['_reference']
+                      sub_value = Cenit::Utility.deep_remove(sub_value, '_reference')
+                      record.instance_variable_set(:@_references, references = {}) unless references = record.instance_variable_get(:@_references)
+                      (references[property_name] ||= []) << {model: property_model, criteria: sub_value}
+                      if sub_value = Cenit::Utility.find_record(association, sub_value)
+                        association.delete(sub_value)
+                      end
+                    else
+                      if !association.include?(sub_value = do_parse_json(data_type, property_model, sub_value, options, items_schema))
+                        association << sub_value
                       end
                     end
                   end
-                when 'object'
-                  next unless updating || record.send(property_name).nil?
-                  unless (property_value = json[name]).nil?
-                    if property_value.is_a?(Hash) &&property_value['_reference']
-                      record.send("#{property_name}=", nil)
-                      property_value = Cenit::Utility.deep_remove(property_value, '_reference')
-                      record.instance_variable_set(:@_references, references = {}) unless references = record.instance_variable_get(:@_references)
-                      references[property_name] = {model: property_model, criteria: property_value}
-                    else
-                      record.send("#{property_name}=", do_parse_json(data_type, property_model, property_value, options, property_schema))
-                    end
+                end
+              when 'object'
+                next unless updating || record.send(property_name).nil?
+                unless (property_value = json[name]).nil?
+                  if property_value.is_a?(Hash) &&property_value['_reference']
+                    record.send("#{property_name}=", nil)
+                    property_value = Cenit::Utility.deep_remove(property_value, '_reference')
+                    record.instance_variable_set(:@_references, references = {}) unless references = record.instance_variable_get(:@_references)
+                    references[property_name] = {model: property_model, criteria: property_value}
                   else
-                    record.send("#{property_name}=", nil) unless options[:add_only]
+                    record.send("#{property_name}=", do_parse_json(data_type, property_model, property_value, options, property_schema))
                   end
                 else
-                  next if (updating && (property_name == '_id' || name == primary_field.to_s))
-                  unless (property_value = json[name]).nil?
-                    record.send("#{property_name}=", property_value)
-                  end
+                  record.send("#{property_name}=", nil) unless options[:add_only]
+                end
+              else
+                next if (updating && (property_name == '_id' || primary_fields.include?(name.to_sym)))
+                unless (property_value = json[name]).nil?
+                  record.send("#{property_name}=", property_value)
+                end
               end
             end if taken_items.size < json.size
             phase += 1
           end
 
           if (sub_model = json['_type']) &&
-              sub_model.is_a?(String) &&
-              (sub_model = sub_model.start_with?('self[') ? (json.send(:eval, sub_model) rescue nil) : sub_model) &&
-              (data_type = data_type.find_data_type(sub_model)) &&
-              (sub_model = data_type.records_model) &&
-              !sub_model.eql?(model)
+            sub_model.is_a?(String) &&
+            (sub_model = sub_model.start_with?('self[') ? (json.send(:eval, sub_model) rescue nil) : sub_model) &&
+            (data_type = data_type.find_data_type(sub_model)) &&
+            (sub_model = data_type.records_model) &&
+            !sub_model.eql?(model)
             sub_record = (updating ? record : sub_model.new)
             json_schema['properties'].keys.each do |property_name|
               if value = record.send(property_name)
@@ -263,11 +270,11 @@ module Edi
         segment_sep ||= report[:segment_separator]
         json_schema = data_type.merge_schema(json_schema)
         seg_id = (edi_options = json_schema['edi'] || {})['segment'] ||
-            if (record_data_type = record.orm_model.data_type) != data_type
-              record_data_type.name
-            else
-              options[:enclosed_property] || data_type.name
-            end
+          if (record_data_type = record.orm_model.data_type) != data_type
+            record_data_type.name
+          else
+            options[:enclosed_property] || data_type.name
+          end
         if !edi_options['virtual']
           return [nil, start, nil] unless start < content.length && content[start, seg_id.length] == seg_id
           if (fields_count = model.properties_schemas.count { |property, schema| !model.property_model?(property) && (!schema['edi'] || !schema['edi']['discard']) }) == 0
@@ -388,11 +395,11 @@ module Edi
         end
 
         if (sub_model = json['_type']) &&
-            sub_model.is_a?(String) &&
-            (sub_model = sub_model.start_with?('self[') ? (json.send(:eval, sub_model) rescue nil) : sub_model) &&
-            (data_type = data_type.find_data_type(sub_model)) &&
-            (sub_model = data_type.records_model) &&
-            !sub_model.eql?(model)
+          sub_model.is_a?(String) &&
+          (sub_model = sub_model.start_with?('self[') ? (json.send(:eval, sub_model) rescue nil) : sub_model) &&
+          (data_type = data_type.find_data_type(sub_model)) &&
+          (sub_model = data_type.records_model) &&
+          !sub_model.eql?(model)
           sub_record = sub_model.new
           json_schema['properties'].each do |property_name, property_schema|
             if value = record.send(property_name)
