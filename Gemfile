@@ -38,7 +38,7 @@ group :development, :test do
   gem 'rspec-rails'
   gem 'rails_layout'
   gem 'ffaker'
-  gem 'byebug'
+  # gem 'byebug'
   gem 'rubocop'
 end
 

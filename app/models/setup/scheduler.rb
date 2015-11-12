@@ -7,6 +7,8 @@ module Setup
     field :expression, type: String
     field :activated, type: Boolean, default: false
 
+    has_many :delayed_messages, class_name: Setup::DelayedMessage.to_s, inverse_of: :scheduler, dependent: :destroy
+
     validates_presence_of :name, :scheduling_method
 
     scope :activated, -> { where(activated: true) }
@@ -60,7 +62,10 @@ module Setup
     end
 
     def deactivate
-      update(activated: false) unless deactivated? #TODO Delete delayed messages by scheduler id
+      unless deactivated?
+        update(activated: false)
+        delayed_messages.delete_all
+      end
     end
 
     def interval
