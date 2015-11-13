@@ -1161,7 +1161,7 @@ RailsAdmin.config do |config|
     edit do
       field :name
       field :description
-      field :code#, :code_mirror
+      field :code #, :code_mirror
     end
 
     show do
@@ -1461,7 +1461,7 @@ RailsAdmin.config do |config|
       field :name
       field :description
       field :parameters
-      field :code#, :code_mirror
+      field :code #, :code_mirror
       field :call_links do
         visible { bindings[:object].call_links.present? }
       end
@@ -1628,7 +1628,7 @@ RailsAdmin.config do |config|
     edit do
       field :name
       field :description
-      field :code#, :code_mirror
+      field :code #, :code_mirror
     end
 
     show do
@@ -1936,6 +1936,14 @@ RailsAdmin.config do |config|
     end
 
     fields :storer_model, :storer_object, :storer_property, :filename, :contentType, :length
+  end
+
+  config.model Setup::DelayedMessage do
+    navigation_label 'Administration'
+  end
+
+  config.model Setup::SystemNotification do
+    navigation_label 'Administration'
   end
 
 end
