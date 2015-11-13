@@ -1,5 +1,5 @@
-//= require rails_admin/d3
-//= require rails_admin/highcharts
+// require rails_admin/d3
+// require rails_admin/highcharts
 //= require rails_admin/triggers-box
 //= require rails_admin/test-flow-transformation
 //= require rails_admin/highlight_js/highlight.pack.js

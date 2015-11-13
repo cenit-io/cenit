@@ -3,7 +3,7 @@ require 'stringio'
 module Setup
   class FileDataType < DataType
 
-    BuildInDataType.regist(self).referenced_by(:name, :library).with(:title, :name,:slug, :_type, :validators, :schema_data_type).including(:library)
+    BuildInDataType.regist(self).referenced_by(:name, :library).with(:title, :name, :slug, :_type, :validators, :schema_data_type).including(:library)
 
     belongs_to :library, class_name: Setup::Library.to_s, inverse_of: :file_data_types
     has_and_belongs_to_many :validators, class_name: Setup::Validator.to_s, inverse_of: nil
@@ -173,7 +173,10 @@ module Setup
       extend ActiveSupport::Concern
 
       Setup::DataType.to_include_in_models.each do |module_to_include|
-        include(module_to_include) unless include?(module_to_include) || [Mongoid::Timestamps, RailsAdminDynamicCharts::Datetime].include?(module_to_include)
+        include(module_to_include) unless include?(module_to_include) ||
+          [
+            Mongoid::Timestamps#, RailsAdminDynamicCharts::Datetime
+          ].include?(module_to_include)
       end
 
       include Mongoff::GridFs::FileFormatter

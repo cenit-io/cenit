@@ -46,7 +46,7 @@ module Setup
         end
       end
       begin
-        Setup::Schema.collection.insert(new_schemas_attributes)
+        Setup::Schema.collection.insert_many(new_schemas_attributes)
       rescue Exception => ex
         errors << "Schemas could not be saved: #{ex.message}"
       end if errors.blank? && new_schemas_attributes.present?
