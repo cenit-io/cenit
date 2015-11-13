@@ -10,9 +10,9 @@
     .fieldset
       - @object.pull_parameters.each do |pull_parameter|
         .control-group{class: (error = missing_parameters.include?(pull_parameter.id.to_s)) ? 'error' : ''}
-          %label.control-label
+          %label.col-sm-2.control-label
             = pull_parameter.label
-          .controls
+          .col-sm-10.controls
             %input{type: 'text', size: 50, name: "pull_parameters[#{pull_parameter.id}]", value:  pull_parameters[pull_parameter.id.to_s]}
             - if error
               %span{class: 'help-inline'}
@@ -25,24 +25,28 @@
     .fieldset
       - updated_records.each do |key, records|
         .control-group
-          %label.control-label
+          %label.col-sm-2.control-label
             = key.titleize
-          .controls
+          .col-sm-10.controls
             - am = RailsAdmin::Config.model(records.first.class).abstract_model
-            = records.collect { |record| link_to(record.try(:custom_title) || record.name, url_for(action: action(:show, am, record).action_name, model_name: record.class.to_s, id: record.id), class: 'pjax') }.to_sentence.html_safe
+            - count = 0
+            = records.collect { |record| count +=1; link_to(record.try(:custom_title) || record.name, url_for(action: action(:show, am, record).action_name, model_name: record.class.to_s, id: record.id), class: 'pjax') }.to_sentence.html_safe
+            %p.help-block
+              = "#{count} #{key.titleize.downcase.pluralize}"
   - if ready
     %h4=  pull_data.any? { |key, _| key != 'name' } ? t('admin.actions.pull_collection.ready') : t('admin.actions.pull_collection.nothing_to_pull')
-  .form-actions
-    - if pull_data.any? && (pull_data['name'].nil? || pull_data.size > 1)
-      %button.btn.btn-primary{type: 'submit', name: '_pull', :'data-disable-with' => t('admin.actions.pull_collection.submit')}
-        %i{class: @action.try(:link_icon)}
-        = t('admin.actions.pull_collection.submit')
-      %span.extra_buttons
-        %button.btn{type: 'submit', name: '_continue', :'data-disable-with' => t('admin.form.cancel')}
-          %i.icon-remove
-          = t('admin.form.cancel')
-    - else
-      %span.extra_buttons
-        %button.btn{type: 'submit', name: '_continue', :'data-disable-with' => t('admin.form.ok')}
-          %i.icon-ok
-          = t('admin.form.ok')
+  .form-group.form-actions
+    .col-sm-offset-2.col-sm-10
+      - if pull_data.any? && (pull_data['name'].nil? || pull_data.size > 1)
+        %button.btn.btn-primary{type: 'submit', name: '_pull', :'data-disable-with' => t('admin.actions.pull_collection.submit')}
+          %i{class: @action.try(:link_icon)}
+          = t('admin.actions.pull_collection.submit')
+        %span.extra_buttons
+          %button.btn{type: 'submit', name: '_continue', :'data-disable-with' => t('admin.form.cancel')}
+            %i.icon-remove
+            = t('admin.form.cancel')
+      - else
+        %span.extra_buttons
+          %button.btn{type: 'submit', name: '_continue', :'data-disable-with' => t('admin.form.ok')}
+            %i.icon-ok
+            = t('admin.form.ok')
