@@ -60,6 +60,7 @@ module RailsAdmin
         register_instance_option :controller do
           proc do
 
+            #Patch
             if request.get? || params[:_restart] # NEW
 
               @object = @abstract_model.new
@@ -85,6 +86,7 @@ module RailsAdmin
                 @object.send("#{name}=", value)
               end
 
+              #Patch
               if params[:_next].nil? && @object.save
                 @auditing_adapter && @auditing_adapter.create_object(@object, @abstract_model, _current_user)
                 respond_to do |format|
@@ -116,6 +118,7 @@ module RailsAdmin
 
               @object.set_attributes(form_attributes = params[@abstract_model.param_key])
 
+              #Patch
               if synchronized_fields = @model_config.try(:form_synchronized)
                 params_to_check = {}
                 model_config.send(action).with(controller: self, view: view_context, object: @object).fields.each do |field|
@@ -154,6 +157,7 @@ module RailsAdmin
       class Association
 
         def value
+          #Patch
           if (v = bindings[:object].send(association.name)).is_a?(Enumerable)
             v.to_a
           else
@@ -335,6 +339,7 @@ module RailsAdmin
 
     def wording_for(label, action = @action, abstract_model = @abstract_model, object = @object)
       model_config = abstract_model.try(:config)
+      #Patch
       object = abstract_model && object && object.is_a?(abstract_model.model) ? object : nil rescue nil
       action = RailsAdmin::Config::Actions.find(action.to_sym) if action.is_a?(Symbol) || action.is_a?(String)
 
@@ -347,16 +352,23 @@ module RailsAdmin
     end
 
     def edit_user_link
-      return nil unless authorized?(:show, _current_user.class, _current_user) && _current_user.respond_to?(:email)
+      return nil unless _current_user.respond_to?(:email)
       return nil unless abstract_model = RailsAdmin.config(_current_user.class).abstract_model
-      return nil unless show_action = RailsAdmin::Config::Actions.find(:show, controller: controller, abstract_model: abstract_model, object: _current_user)
-      text = _current_user.name
-      text = _current_user.email if text.blank?
-      link_to text, url_for(action: show_action.action_name, model_name: abstract_model.to_param, id: _current_user.id, controller: 'rails_admin/main')
+      return nil unless (edit_action = RailsAdmin::Config::Actions.find(:edit, controller: controller, abstract_model: abstract_model, object: _current_user)).try(:authorized?)
+      link_to url_for(action: edit_action.action_name, model_name: abstract_model.to_param, id: _current_user.id, controller: 'rails_admin/main') do
+        html = []
+        html << image_tag(_current_user.picture.icon.url, alt: '') if _current_user.picture.present?
+        # Patch
+        text = _current_user.name
+        # Patch
+        text = _current_user.email if text.blank?
+        html << content_tag(:span, text)
+        html.join.html_safe
+      end
     end
 
     def main_navigation
-      nodes_stack = RailsAdmin::Config.visible_models(controller: controller) +
+      nodes_stack = RailsAdmin::Config.visible_models(controller: controller) + #Patch
         Setup::DataType.where(show_navigation_link: true, model_loaded: false).collect { |data_type| RailsAdmin.config(data_type.records_model) }
       node_model_names = nodes_stack.collect { |c| c.abstract_model.model_name }
 
@@ -376,6 +388,7 @@ module RailsAdmin
 
     def sanitize_params_for!(action, model_config = @model_config, target_params = params[@abstract_model.param_key])
       return unless target_params.present?
+      #Patch
       fields = model_config.send(action).with(controller: self, view: view_context, object: @object).fields.select do |field|
         !(field.properties.is_a?(RailsAdmin::Adapters::Mongoid::Property) && field.properties.property.is_a?(Mongoid::Fields::ForeignKey))
       end
@@ -392,6 +405,7 @@ module RailsAdmin
     end
 
     def handle_save_error(whereto = :new)
+      #Patch
       if @object && @object.errors.present?
         flash.now[:error] = t('admin.flash.error', name: @model_config.label, action: t("admin.actions.#{@action.key}.done").html_safe).html_safe
         flash.now[:error] += %(<br>- #{@object.errors.full_messages.join('<br>- ')}).html_safe
@@ -460,6 +474,7 @@ module RailsAdmin
 
         case options[:sort]
         when String
+          #Patch
           collection_name = (sort = options[:sort])[0..i = sort.rindex('.') - 1]
           field_name = sort.from(i + 2)
           if collection_name && collection_name != table_name
@@ -468,6 +483,7 @@ module RailsAdmin
         when Symbol
           field_name = options[:sort].to_s
         end
+        #Patch
         if field_name.present?
           if options[:sort_reverse]
             scope.asc field_name
@@ -480,6 +496,7 @@ module RailsAdmin
       end
 
       def parse_collection_name(column)
+        #Patch
         collection_name = column[0..i = column.rindex('.') - 1]
         column_name = column.from(i + 2)
         if [:embeds_one, :embeds_many].include?(model.relations[collection_name].try(:macro).try(:to_sym))
@@ -495,6 +512,7 @@ module RailsAdmin
   class ApplicationController
 
     def get_model
+      #Patch
       @model_name = to_model_name(name = params[:model_name].to_s)
       unless @abstract_model = RailsAdmin::AbstractModel.new(@model_name)
         if (slugs = name.to_s.split('~')).size == 2
@@ -518,10 +536,6 @@ module RailsAdmin
       fail(RailsAdmin::ModelNotFound) if @abstract_model.nil? || (@model_config = @abstract_model.config).excluded?
 
       @properties = @abstract_model.properties
-    end
-
-    def get_object
-      fail(RailsAdmin::ObjectNotFound) unless (@object = @abstract_model.get(params[:id]))
     end
   end
 end
