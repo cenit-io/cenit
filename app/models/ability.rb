@@ -40,12 +40,14 @@ class Ability
               TkAptcha,
               Script,
               Setup::Raml,
-              Setup::RamlReference
+              Setup::RamlReference,
+              Setup::DelayedMessage,
+              Setup::SystemNotification
             ]
         can :import, Setup::SharedCollection
         can :destroy, [Setup::SharedCollection, Setup::DataType, Setup::Task, Setup::Storage]
       else
-        cannot :access, Setup::SharedName
+        cannot :access, [Setup::SharedName, Setup::DelayedMessage, Setup::SystemNotification]
         cannot :destroy, [Setup::SharedCollection, Setup::Raml, Setup::Storage]
         can(:destroy, Setup::Task) { |task| task.status != :running }
       end
