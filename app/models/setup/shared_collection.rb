@@ -22,7 +22,7 @@ module Setup
     embeds_many :pull_parameters, class_name: Setup::CollectionPullParameter.to_s, inverse_of: :shared_collection
     has_and_belongs_to_many :dependencies, class_name: Setup::SharedCollection.to_s, inverse_of: nil
 
-    field :data, type: Hash
+    field :data
 
     before_validation do
       authors << Setup::CollectionAuthor.new(name: ::User.current.name, email: ::User.current.email) if authors.empty?
@@ -37,7 +37,20 @@ module Setup
     accepts_nested_attributes_for :authors, allow_destroy: true
     accepts_nested_attributes_for :pull_parameters, allow_destroy: true
 
-    before_save :check_dependencies, :validate_configuration, :ensure_shared_name, :save_source_collection, :categorize
+    before_save :check_dependencies, :validate_configuration, :ensure_shared_name, :save_source_collection, :categorize, :on_saving
+
+    def read_attribute(name)
+      value = super
+      if name.to_s == 'data' && value.is_a?(String)
+        attributes['data'] = value = JSON.parse(value) rescue value
+      end
+      value
+    end
+
+    def on_saving
+      attributes['data'] = attributes['data'].to_json unless attributes['data'].is_a?(String)
+      true
+    end
 
     def check_dependencies
       for_each_dependence([self]) do |dependence, stack|
