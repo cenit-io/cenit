@@ -127,11 +127,15 @@ module Cenit
       end
 
       def start_scheduler
-        init
+        init if Cenit.asynchronous_flow_execution
         @scheduler_job = Rufus::Scheduler.new.interval "#{Cenit.scheduler_lookup_interval}s" do
           messages_present = false
           (delayed_messages = Setup::DelayedMessage.where(:publish_at.lte => Time.now)).each do |delayed_message|
+           if Cenit.asynchronous_flow_execution
             channel.default_exchange.publish(delayed_message.message, routing_key: queue.name)
+           else
+            process_message(delayed_message.message)
+           end
             messages_present = true
           end
           begin
