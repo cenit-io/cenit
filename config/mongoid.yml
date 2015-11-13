@@ -1,11 +1,11 @@
 development:
-  # Configure available database sessions. (required)
-  sessions:
+  # Configure available database clients. (required)
+  clients:
     # Defines the default session. (required)
     default:
       # Defines the name of the default database that Mongoid can connect to.
       # (required).
-      database: rails4_mongoid_development #cenit_development
+      database: cenit_development
       # Provides the hosts the default session can connect to. Must be an array
       # of host:port pairs. (required)
       hosts:	
@@ -63,7 +63,7 @@ development:
     # Ensure all times are UTC in the app side. (default: false)
     # use_utc: false
 test:
-  sessions:
+  clients:
     default:
       database: cenithub_test
       hosts:
@@ -77,7 +77,7 @@ test:
 
 production:
   # uri: <%= ENV['MONGOHQ_URL'] %>
-  sessions:
+  clients:
     default:
       database: cenit_development
       hosts:

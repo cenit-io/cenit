@@ -84,7 +84,7 @@ module Mongoff
       begin
         Model.before_save.call(self)
         if new_record?
-          orm_model.collection.insert(attributes)
+          orm_model.collection.insert_one(attributes)
           @new_record = false
         else
           query = orm_model.collection.find(_id: id)
@@ -97,7 +97,7 @@ module Mongoff
           if unset.present?
             update['$unset'] = unset
           end
-          query.update(update)
+          query.update_one(update)
         end
         Model.after_save.call(self)
       rescue Exception => ex
@@ -108,7 +108,7 @@ module Mongoff
 
     def destroy
       begin
-        orm_model.where(id: id).remove
+        orm_model.where(id: id).delete_one
       rescue
       end
       @destroyed = true

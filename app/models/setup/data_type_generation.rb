@@ -33,7 +33,7 @@ module Setup
                 nil
               end
           end
-          Setup::DataType.collection.insert(new_data_types_attributes)
+          Setup::DataType.collection.insert_many(new_data_types_attributes)
         end
       end
       Setup::Schema.any_in(id: data_type_names.keys).each do |schema|
