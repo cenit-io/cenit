@@ -38,7 +38,6 @@ group :development, :test do
   gem 'rspec-rails'
   gem 'rails_layout'
   gem 'ffaker'
-  # gem 'byebug'
   gem 'rubocop'
 end
 
@@ -57,14 +56,14 @@ group :production do
   gem 'rails_12factor'
 end
 
-gem 'mongoid', '4.0.0'
+gem 'mongoid'
 gem 'bson_ext'
-gem 'rails_admin', '0.6.5'
+gem 'rails_admin'
 gem 'mongoid-history'
-gem 'mongoid-audit', '~> 1.0.0'
+gem 'mongoid-audit'
 
 # charts
-gem 'rails_admin_dynamic_charts', git: 'https://github.com/openjaf/rails_admin_dynamic_charts.git'
+# gem 'rails_admin_dynamic_charts', git: 'https://github.com/openjaf/rails_admin_dynamic_charts.git'
 gem 'chartkick'
 gem 'descriptive_statistics'
 

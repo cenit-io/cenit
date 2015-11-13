@@ -143,16 +143,16 @@ module Mongoff
     end
 
     def delete_all
-      all_collections_names.each { |name| Mongoid::Sessions.default[name.to_sym].drop }
+      all_collections_names.each { |name| Mongoid.default_client[name.to_sym].drop }
     end
 
     def collection
-      Mongoid::Sessions.default[collection_name]
+      Mongoid.default_client[collection_name]
     end
 
     def storage_size(scale = 1)
       data_type.all_data_type_storage_collections_names.inject(0) do |size, name|
-        s = Mongoid::Sessions.default.command(collstats: name, scale: scale)['size'] rescue 0
+        s = Mongoid.default_client.command(collstats: name, scale: scale)['size'] rescue 0
         size + s
       end
     end
@@ -162,12 +162,18 @@ module Mongoff
     end
 
     def method_missing(symbol, *args)
-      criteria = Mongoff::Criteria.new(self)
-      if criteria.respond_to?(symbol)
-        criteria.send(symbol, *args)
+      @criteria ||= Mongoff::Criteria.new(self)
+      if @criteria.respond_to?(symbol)
+        @criteria.send(symbol, *args)
       else
         super
       end
+    ensure
+      @criteria = nil
+    end
+
+    def respond_to?(*args)
+      super || ((@criteria = Mongoff::Criteria.new(self)) && @criteria.respond_to?(args[0]))
     end
 
     def eql?(obj)

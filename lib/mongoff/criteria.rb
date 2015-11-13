@@ -102,7 +102,7 @@ module Mongoff
       def initialize(model, field)
         @model = model
         @field =
-          if field = 'id'
+          if field == 'id'
             :_id
           else
             model.properties.detect { |key| model.attribute_key(key).to_s == field } || field.to_sym
