@@ -45,6 +45,15 @@ en:
           title: "Hide navigation link"
           menu: "Hide navigation link"
           breadcrumb: "Hide navigation link"
+      switch_scheduler:
+        activate:
+          title: "Activate"
+          menu: "Activate"
+          breadcrumb: "Activate"
+        deactivate:
+          title: "Deactivate"
+          menu: "Deactivate"
+          breadcrumb: "Deactivate"
       data_type:
         title: "Data type"
         menu: "Data type"
@@ -60,12 +69,14 @@ en:
         file_content_label: "File content"
         submit: "Import"
         done: "created"
+        doing: "import"
       edi_export:
         title: "Export"
         menu: "Export"
         breadcrumb: "Export"
         submit: "Export"
         done: "exported"
+        doing: "execution"
         bulk_link: "Export selected %{model_label_plural}"
       import_schema:
         title: "Import"
@@ -74,6 +85,7 @@ en:
         file_content_label: "File content"
         submit: "Import"
         done: "created"
+        doing: "import"
       delete_all:
         title: "Delete all"
         menu: "Delete all"
@@ -99,6 +111,7 @@ en:
         menu: "Update"
         breadcrumb: "Update"
         done: "updated"
+        doing: "execution"
         submit: "Update"
         bulk_link: "Update selected %{model_label_plural}"
       convert:
@@ -106,6 +119,7 @@ en:
         menu: "Convert"
         breadcrumb: "Convert"
         done: "converted"
+        doing: "execution"
         submit: "Convert"
         bulk_link: "Convert selected %{model_label_plural}"
       delete_validator:

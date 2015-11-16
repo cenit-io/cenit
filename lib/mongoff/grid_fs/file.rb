@@ -70,15 +70,15 @@ module Mongoff
         [:filename, :contentType].each { |property| self[property] = options[property] unless self[property].present? }
         if errors.blank? && super
           if new_chunks_ids
-            chunks.remove_all
-            chunk_model.where(id: {'$in' => new_chunks_ids}).update_all('$set' => {files_id: id})
+            chunks.delete_many
+            chunk_model.all.any_in(id: new_chunks_ids).update_many('$set' => {files_id: id})
           end
         end
         errors.blank?
       end
 
       def destroy
-        chunks.remove_all
+        chunks.delete_many
         super
       end
 

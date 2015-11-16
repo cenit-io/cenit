@@ -124,6 +124,18 @@ module Mongoff
     def associations
       self.class.associations
     end
+
+    def to_model
+      self
+    end
+
+    def model_name
+      orm_model.model_name
+    end
+
+    def to_key
+      [id]
+    end
   end
 
   class Criteria

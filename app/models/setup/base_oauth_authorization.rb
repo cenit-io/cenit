@@ -2,6 +2,7 @@ module Setup
   class BaseOauthAuthorization
     include CenitScoped
     include NamespaceNamed
+    include ClassHierarchyAware
 
     Setup::Models.exclude_actions_for self, :all
 

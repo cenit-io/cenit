@@ -40,12 +40,14 @@ class Ability
               TkAptcha,
               Script,
               Setup::Raml,
-              Setup::RamlReference
+              Setup::RamlReference,
+              Setup::DelayedMessage,
+              Setup::SystemNotification
             ]
         can :import, Setup::SharedCollection
         can :destroy, [Setup::SharedCollection, Setup::DataType, Setup::Task, Setup::Storage]
       else
-        cannot :access, Setup::SharedName
+        cannot :access, [Setup::SharedName, Setup::DelayedMessage, Setup::SystemNotification]
         cannot :destroy, [Setup::SharedCollection, Setup::Raml, Setup::Storage]
         can(:destroy, Setup::Task) { |task| task.status != :running }
       end
@@ -72,7 +74,6 @@ class Ability
             end
           end
           Setup::Models.each do |model, excluded_actions|
-            puts model
             non_root.each do |action|
               models = (hash[key = action.authorization_key] ||= Set.new)
               models << model if relevant_rules_for_match(action.authorization_key, model).empty? && !(excluded_actions.include?(:all) || excluded_actions.include?(action.key))

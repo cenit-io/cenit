@@ -28,6 +28,15 @@ Cenit.config do
   #Generate data types asynchronous
   asynchronous_data_type_generation true
 
+  #Execute translations asynchronous
+  asynchronous_translation true
+
+  #Execute data import asynchronous
+  asynchronous_data_import true
+
+  #Execute schemas import asynchronous
+  asynchronous_schemas_import true
+
   #Expand data types asynchronous
   asynchronous_data_type_expansion true
 
@@ -52,4 +61,10 @@ Cenit.config do
   excluded_actions ENV['EXCLUDED_ACTIONS']
 
   multiple_unicorn_consumers true
+
+  min_scheduler_interval 60
+
+  scheduler_lookup_interval 10
+
+  default_delay 60
 end

@@ -4,7 +4,7 @@ module RailsAdmin
       class SwitchNavigation < RailsAdmin::Config::Actions::Base
 
         register_instance_option :only do
-          [Setup::DataType, Setup::SchemaDataType, Setup::FileDataType]
+          Setup::DataType.class_hierarchy
         end
 
         register_instance_option :member do

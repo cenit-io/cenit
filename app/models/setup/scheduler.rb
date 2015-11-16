@@ -5,9 +5,13 @@ module Setup
 
     field :scheduling_method, type: Symbol
     field :expression, type: String
-    field :scheduler_id, type: Integer
+    field :activated, type: Boolean, default: false
+
+    has_many :delayed_messages, class_name: Setup::DelayedMessage.to_s, inverse_of: :scheduler, dependent: :destroy
 
     validates_presence_of :name, :scheduling_method
+
+    scope :activated, -> { where(activated: true) }
 
     validate do
       errors.add(:expression, "can't be blank") unless exp = expression
@@ -15,7 +19,13 @@ module Setup
       when :Once
         errors.add(:expression, 'is not a valid date-time') unless !(DateTime.parse(exp) rescue nil)
       when :Periodic
-        errors.add(:expression, 'is not a valid interval') unless exp =~ /\A[1-9][0-9]*(s|m|h|d)\Z/
+        if exp =~ /\A[1-9][0-9]*(s|m|h|d)\Z/
+          if interval < (min = Cenit.min_scheduler_interval || 60)
+            self.expression = "#{min}s"
+          end
+        else
+          errors.add(:expression, 'is not a valid interval')
+        end
       when :CRON
         #TODO Validate CRON Expression
         #errors.add(:expression, 'is not a valid CRON expression') unless exp =~ /\A(0|[1-5][0-9]?|[6-9]|\*) (0|1[0-9]?|2[0-3]?|[3-9]|\*) ([1-2][0-9]?|3[0-1]?|[4-9]|\*)  (1[0-2]?|[2-9]|\*) (\*)\Z/
@@ -24,90 +34,67 @@ module Setup
       end
     end
 
-    before_save :configure_scheduler
-    after_save :start
-    before_destroy :stop
-
     def scheduling_method_enum
-      [:Once, :Periodic, :CRON]
+      [:Periodic] #[:Once, :Periodic, :CRON]
     end
 
-    def rufus_method
-      case scheduling_method
-      when :Once then :at
-      when :Periodic then :every
-      when :CRON then :cron
-      else
-        nil
-      end
+    def activated?
+      activated.present?
     end
 
-    def ready_to_save?
-      scheduling_method.present?
+    def deactivated?
+      !activated?
     end
 
-    def can_be_restarted?
-      ready_to_save?
-    end
-
-    def configure_scheduler
-      unless started? && Setup::Scheduler.mutex_for(self).owned? # triggering
-        stop
-        scheduler = Rufus::Scheduler.new
-        self.scheduler_id = scheduler.object_id
-        puts "Scheduler #{name} configured!"
-        self.name = "Scheduler #{scheduler_id}" unless name
-        scheduler
-      end
-    end
-
-    def scheduler_instance
-      if scheduler = ObjectSpace._id2ref(scheduler_id) rescue nil
-        scheduler
-      else
-        configure_scheduler
-      end
-    end
-
-    def started?
-      scheduler = ObjectSpace._id2ref(scheduler_id) rescue nil
-      scheduler.is_a?(Rufus::Scheduler) && scheduler.instance_variable_get(:@started_on_cenit)
+    def activate
+      start unless activated?
     end
 
     def start
-      unless started?
-        (scheduler = scheduler_instance).instance_variable_set(:@started_on_cenit, true)
-        scheduler.send(rufus_method, expression) do
-          Setup::Scheduler.lookup(self)
+      Setup::Flow.where(event: self).each do |flow|
+        if (flows_executions = Setup::FlowExecution.where(flow: flow, scheduler: self)).present?
+          flows_executions.each { |flow_execution| flow_execution.retry if flow_execution.can_retry? }
+        else
+          flow.process(scheduler: self)
         end
-        puts "Scheduler #{name} started..."
+      end
+      update(activated: true)
+    end
+
+    def deactivate
+      unless deactivated?
+        update(activated: false)
+        delayed_messages.delete_all
       end
     end
 
-    def stop
-      begin
-        if scheduler_id && (scheduler = ObjectSpace._id2ref(scheduler_id)).is_a?(Rufus::Scheduler)
-          scheduler.stop
-          puts "Scheduler #{name} stoped!"
-        end
-      rescue
-        puts "No scheduler instance detected for #{name}"
+    def interval
+      case scheduling_method
+      when :Once
+        Time.now - DateTime.parse(expression) rescue 0
+      when :Periodic
+        case expression.to_s.last
+        when 's'
+          1
+        when 'm'
+          60
+        when 'h'
+          60 * 60
+        when 'd'
+          24 * 60 * 60
+        else
+          0
+        end * expression.to_s.chop.to_i
+      when :CRON
+        #TODO Next CRON Time
+        0
+      else
+        0
       end
-      self.scheduler_id = nil
     end
 
-    def self.lookup(scheduler_event)
-      (mutex = mutex_for(scheduler_event)).lock
-      puts "TRIGGERING #{scheduler_event.name}..."
-      Setup::Flow.where(event: scheduler_event).each { |f| f.process }
-      scheduler_event.last_trigger_timestamps = DateTime.now
-      scheduler_event.save
-      mutex.unlock
-    end
-
-    def self.mutex_for(scheduler)
-      @mutexs ||= Hash.new { |hash, key| hash[key] = Mutex.new }
-      @mutexs[scheduler.id.to_s] if scheduler.is_a?(Setup::Scheduler)
+    def next_time
+      Time.now + interval
     end
   end
 end

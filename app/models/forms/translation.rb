@@ -1,5 +1,5 @@
 module Forms
-  class TranslatorSelector
+  class Translation
     include Mongoid::Document
 
     field :translator_type, type: Symbol

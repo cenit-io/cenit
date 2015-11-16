@@ -25,6 +25,7 @@ stdout_path "#{shared_dir}/log/unicorn.#{app_name}.stdout.log"
 pid "#{shared_dir}/pids/unicorn.#{app_name}.pid"
 
 before_fork do |server, worker|
+  Cenit::Rabbit.close
   defined?(ActiveRecord::Base) and ActiveRecord::Base.connection.disconnect!
   old_pid = "#{server.config[:pid]}.oldbin"
   if File.exists?(old_pid) && server.pid != old_pid
@@ -43,9 +44,12 @@ after_fork do |server, worker|
   defined?(ActiveRecord::Base) and ActiveRecord::Base.establish_connection
   defined?(Rails) and Rails.cache.respond_to?(:reconnect) and Rails.cache.reconnect
 
-  if Cenit.multiple_unicorn_consumers || !server.instance_variable_get(:@rabbit_listener_started)
-    puts "RABBIT LISTENER STARTED ON #{worker}"
+  if Cenit.multiple_unicorn_consumers || worker.nr  == 0
     Cenit::Rabbit.start_consumer
+    if worker.nr == 0
+      Cenit::Rabbit.start_scheduler
+      Setup::Scheduler.activated.each(&:start)
+    end
     server.instance_variable_set(:@rabbit_listener_started, true)
   end
 end

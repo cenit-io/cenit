@@ -113,7 +113,7 @@ module Api::V1
       end
       response.delete(:success) if success_report.blank?
       response.delete(:errors) if broken_report.blank?
-      render json: response
+      render json: response, status: 202
     end
 
     def new

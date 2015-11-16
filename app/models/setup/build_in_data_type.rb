@@ -31,6 +31,10 @@ module Setup
       model.to_s.split('::').last.underscore
     end
 
+    def id
+      model.to_s
+    end
+
     def schema
       @schema ||= build_schema
     end

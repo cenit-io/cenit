@@ -9,21 +9,39 @@ module Cenit
 
       def enqueue(message)
         message = message.with_indifferent_access
+        asynchronous_message = message.delete(:asynchronous).present? |
+          (scheduler = message.delete(:scheduler)).present? |
+          (publish_at = message.delete(:publish_at))
         task_class, task, report = detask(message)
         if task_class || task
-          task ||= task_class.create(message: message)
-          if Cenit.send('asynchronous_' + task_class.to_s.split('::').last.underscore)
-            message[:task_id] = task.id.to_s
+          if task
+            task_class = task.class
+            if task.scheduler.present?
+              scheduler = task.scheduler
+            end
+          else
+            task = task_class.create(message: message, scheduler: scheduler)
+            task.save
+          end
+          asynchronous_message ||= Cenit.send('asynchronous_' + task_class.to_s.split('::').last.underscore)
+          if scheduler || publish_at || asynchronous_message
             if token = message[:token]
-              CenitToken.where(token: token).delete_all
+              begin
+                CenitToken.where(token: token).delete
+              rescue Exception => ex
+                puts "Error deleting token #{token}"
+              end
             end
             message[:token] = CenitToken.create(data: {account_id: Account.current.id.to_s}).token
-            conn = Bunny.new(automatically_recover: false)
-            conn.start
-            ch = conn.create_channel
-            q = ch.queue('cenit')
-            ch.default_exchange.publish(message.to_json, routing_key: q.name)
-            conn.close
+            message[:task_id] = task.id.to_s
+            message = message.to_json
+            if scheduler || publish_at
+              Setup::DelayedMessage.create(message: message, publish_at: publish_at, scheduler: scheduler)
+            else
+              channel_mutex.lock
+              channel.default_exchange.publish(message, routing_key: queue.name)
+              channel_mutex.unlock
+            end
           else
             message[:task] = task
             process_message(message)
@@ -63,34 +81,66 @@ module Cenit
               Setup::Notification.create(message: "Can not execute task for message: #{message}")
             end
           end
+          if task && (scheduler = task.scheduler) && scheduler.activated?
+            message[:task] = task
+            enqueue(message)
+          end
         end
       rescue Exception => ex
         Setup::Notification.create(message: "Error (#{ex.message}) processing message: #{message}")
       end
 
+      attr_reader :connection, :channel, :queue, :channel_mutex
+
+      def init
+        unless @connection
+          @connection = Bunny.new(automatically_recover: true)
+          @connection.start
+
+          @channel = @connection.create_channel
+          @queue = @channel.queue('cenit')
+          @channel.prefetch(1)
+
+          @channel_mutex = Mutex.new
+        end
+      end
+
+      def close
+        if connection
+          connection.close
+        end
+      end
+
       def start_consumer
-        Thread.new {
-          conn = Bunny.new(automatically_recover: true)
-          conn.start
-
-          ch = conn.create_channel
-          q = ch.queue('cenit')
-          ch.prefetch(1)
-
+        init
+        queue.subscribe(manual_ack: true) do |delivery_info, properties, body|
           begin
-            q.subscribe(block: true, manual_ack: true) do |delivery_info, properties, body|
-              begin
-                Cenit::Rabbit.process_message(body)
-                ch.ack(delivery_info.delivery_tag)
-              rescue Exception => ex
-                Setup::Notification.create(message: "Error (#{ex.message}) consuming message: #{body}")
-              end
-            end
+            Cenit::Rabbit.process_message(body)
+            channel.ack(delivery_info.delivery_tag)
           rescue Exception => ex
-            Setup::Notification.create(message: "Error on rabbit consumer: #{ex.message}")
-            conn.close
+            Setup::Notification.create(message: "Error (#{ex.message}) consuming message: #{body}")
           end
-        }
+        end
+        puts 'RABBIT CONSUMER STARTED'
+      rescue Exception => ex
+        Setup::Notification.create(message: "Error subscribing rabbit consumer: #{ex.message}")
+      end
+
+      def start_scheduler
+        init
+        @scheduler_job = Rufus::Scheduler.new.interval "#{Cenit.scheduler_lookup_interval}s" do
+          messages_present = false
+          (delayed_messages = Setup::DelayedMessage.where(:publish_at.lte => Time.now)).each do |delayed_message|
+            channel.default_exchange.publish(delayed_message.message, routing_key: queue.name)
+            messages_present = true
+          end
+          begin
+            delayed_messages.destroy_all
+          rescue Exception => ex
+            puts "Error deleting delayed messages: #{ex.message}"
+          end if messages_present
+        end
+        puts 'RABBIT SCHEDULER STARTED'
       end
 
       private

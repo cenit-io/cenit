@@ -15,7 +15,7 @@ Cenit::Application.routes.draw do
   get 'schema', to: 'schema#index'
   get 'captcha', to: 'captcha#index'
   get 'captcha/:token', to: 'captcha#index'
-  get '/file/:model/:field/:id/:file', to: 'file#index'
+  get '/file/:model/:field/:id/*file(.:format)', to: 'file#index'
 
   namespace :api do
     namespace :v1 do
