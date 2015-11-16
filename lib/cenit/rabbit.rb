@@ -115,10 +115,13 @@ module Cenit
         init
         queue.subscribe(manual_ack: true) do |delivery_info, properties, body|
           begin
+            Account.current = nil
             Cenit::Rabbit.process_message(body)
             channel.ack(delivery_info.delivery_tag)
           rescue Exception => ex
             Setup::Notification.create(message: "Error (#{ex.message}) consuming message: #{body}")
+          ensure
+            Account.current = nil
           end
         end
         puts 'RABBIT CONSUMER STARTED'
