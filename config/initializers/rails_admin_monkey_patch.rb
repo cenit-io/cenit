@@ -403,6 +403,12 @@ module RailsAdmin
       end
     end
 
+    def check_for_cancel
+      #Patch
+      return unless params[:_continue] || (params[:bulk_action] && !params[:bulk_ids] && !params[:object_ids])
+      redirect_to(back_or_index, notice: t('admin.flash.noaction'))
+    end
+
     def handle_save_error(whereto = :new)
       #Patch
       if @object && @object.errors.present?

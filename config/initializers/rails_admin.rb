@@ -1,7 +1,6 @@
 [RailsAdmin::Config::Actions::MemoryUsage,
  RailsAdmin::Config::Actions::DiskUsage,
  RailsAdmin::Config::Actions::SendToFlow,
- RailsAdmin::Config::Actions::TestTransformation,
  RailsAdmin::Config::Actions::LoadModel,
  RailsAdmin::Config::Actions::ShutdownModel,
  RailsAdmin::Config::Actions::SwitchNavigation,
@@ -101,7 +100,6 @@ RailsAdmin.config do |config|
     delete_library
     #show_in_app
     send_to_flow
-    test_transformation
     delete_all
     data_type
     retry_task
@@ -257,6 +255,7 @@ RailsAdmin.config do |config|
       field :name
       field :slug
       field :used_memory do
+        visible { Cenit.dynamic_model_loading? }
         pretty_value do
           unless max = bindings[:controller].instance_variable_get(:@max_used_memory)
             bindings[:controller].instance_variable_set(:@max_used_memory, max = Setup::DataType.fields[:used_memory.to_s].type.new(Setup::DataType.max(:used_memory)))
@@ -395,6 +394,7 @@ RailsAdmin.config do |config|
       field :validators
       field :schema_data_type
       field :used_memory do
+        visible { Cenit.dynamic_model_loading? }
         pretty_value do
           unless max = bindings[:controller].instance_variable_get(:@max_used_memory)
             bindings[:controller].instance_variable_set(:@max_used_memory, max = Setup::SchemaDataType.fields[:used_memory.to_s].type.new(Setup::SchemaDataType.max(:used_memory)))
@@ -447,9 +447,9 @@ RailsAdmin.config do |config|
         bindings[:object].instance_variable_set(:@_to_reload, reload)
         {cols: '74', rows: '15'}
       end
-      pretty_value do
-        "<pre><code class='json'>#{JSON.pretty_generate(value)}</code></pre>".html_safe
-      end
+      # pretty_value do
+      #   "<pre><code class='json'>#{JSON.pretty_generate(value)}</code></pre>".html_safe
+      # end
     end
 
     configure :storage_size, :decimal do
@@ -487,6 +487,7 @@ RailsAdmin.config do |config|
       field :name
       field :slug
       field :used_memory do
+        visible { Cenit.dynamic_model_loading? }
         pretty_value do
           unless max = bindings[:controller].instance_variable_get(:@max_used_memory)
             bindings[:controller].instance_variable_set(:@max_used_memory, max = Setup::SchemaDataType.fields[:used_memory.to_s].type.new(Setup::SchemaDataType.max(:used_memory)))
@@ -1161,7 +1162,7 @@ RailsAdmin.config do |config|
     edit do
       field :name
       field :description
-      field :code #, :code_mirror
+      field :code, :code_mirror
     end
 
     show do
@@ -1461,7 +1462,7 @@ RailsAdmin.config do |config|
       field :name
       field :description
       field :parameters
-      field :code #, :code_mirror
+      field :code, :code_mirror
       field :call_links do
         visible { bindings[:object].call_links.present? }
       end
@@ -1628,7 +1629,7 @@ RailsAdmin.config do |config|
     edit do
       field :name
       field :description
-      field :code #, :code_mirror
+      field :code, :code_mirror
     end
 
     show do

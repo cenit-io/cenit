@@ -24,17 +24,20 @@ module RailsAdmin
         register_instance_option :controller do
           proc do
 
-            @model_config = RailsAdmin::Config.model(Forms::Translation)
             @bulk_ids = params.delete(:bulk_ids)
+            if object_ids = params.delete(:object_ids)
+              @bulk_ids = object_ids
+            end
+            translation_config = RailsAdmin::Config.model(Forms::Translation)
             translator_type = @action.class.translator_type
             done = false
 
             if model = @abstract_model.model rescue nil
               data_type = model.data_type
               data_type_selector = data_type.is_a?(Setup::BuildInDataType) ? nil : data_type
-              if data = params[@model_config.abstract_model.param_key]
+              if data = params[translation_config.abstract_model.param_key]
                 translator = Setup::Translator.where(id: data[:translator_id]).first
-                if (@object = Forms::Translation.new(
+                if (@form_object = Forms::Translation.new(
                   translator_type: translator_type,
                   bulk_source: (@bulk_ids.nil? && model.count != 1) || (@bulk_ids && @bulk_ids.size != 1),
                   data_type: data_type_selector,
@@ -54,16 +57,17 @@ module RailsAdmin
             if done
               redirect_to back_or_index
             else
-              @object ||= Forms::Translation.new(
+              @model_config = translation_config
+              @form_object ||= Forms::Translation.new(
                 translator_type: translator_type,
                 bulk_source: (@bulk_ids.nil? && (model.nil? || model.count != 1)) || (@bulk_ids && @bulk_ids.size != 1),
                 data_type: data_type_selector,
                 translator: translator)
 
-              if @object.errors.present?
-                do_flash_now(:error, 'There are errors in the export data specification', @object.errors.full_messages)
+              if @form_object.errors.present?
+                do_flash_now(:error, 'There are errors in the export data specification', @form_object.errors.full_messages)
               end
-              render :translate
+              render :form
             end
 
           end

@@ -20,13 +20,14 @@ module RailsAdmin
         register_instance_option :controller do
           proc do
 
-            form_config = RailsAdmin::Config.model(Forms::ImportSchemaData)
+            form_config = RailsAdmin::Config.model(Forms::ImportSchema)
             if params[:_save] && message = params[form_config.abstract_model.param_key]
               do_flash_process_result Setup::SchemasImport.process(message)
               redirect_to back_or_index
             else
-              @object = Forms::ImportSchemaData.new
+              @form_object = Forms::ImportSchema.new
               @model_config = form_config
+              render :form
             end
 
           end

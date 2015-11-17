@@ -1,5 +1,5 @@
 module Forms
-  class ImportSchemaData
+  class ImportSchema
     include Mongoid::Document
 
     belongs_to :library, class_name: Setup::Library.to_s
@@ -10,7 +10,7 @@ module Forms
 
     rails_admin do
       visible false
-
+      register_instance_option(:discard_submit_buttons) { true }
       edit do
 
         field :library do

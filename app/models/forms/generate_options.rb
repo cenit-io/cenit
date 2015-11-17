@@ -6,6 +6,10 @@ module Forms
 
     rails_admin do
       visible false
+      register_instance_option(:discard_submit_buttons) { true }
+      register_instance_option(:after_form_partials) do
+        %w(shutdown_and_reload)
+      end
       edit do
         field :override_data_types do
           visible do
