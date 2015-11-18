@@ -19,7 +19,7 @@ config/deploy
 *.swo
 Gemfile.lock
 config/mongoid.yml
-
+public/assets/
 ## Environment normalisation:
 .bundle/
 config/deploy.rb

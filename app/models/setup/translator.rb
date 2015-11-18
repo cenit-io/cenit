@@ -97,7 +97,7 @@ module Setup
       # 'xml.rabl' => {Setup::Transformation::ActionViewTransform => [:Export]},
       # 'xml.builder' => {Setup::Transformation::ActionViewTransform => [:Export]},
       # 'html.haml' => {Setup::Transformation::ActionViewTransform => [:Export]},
-      # 'html.erb' => {Setup::Transformation::ActionViewTransform => [:Export]},
+       'html.erb' => {Setup::Transformation::ActionViewTransform => [:Export]},
       # 'csv.erb' => {Setup::Transformation::ActionViewTransform => [:Export]},
       # 'js.erb' => {Setup::Transformation::ActionViewTransform => [:Export]},
       # 'text.erb' => {Setup::Transformation::ActionViewTransform => [:Export]},
