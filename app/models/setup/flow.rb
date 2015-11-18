@@ -30,7 +30,8 @@ module Setup
     field :last_trigger_timestamps, type: Time
 
     validates_numericality_in_presence_of :lot_size, greater_than_or_equal_to: 1
-    before_save :validates_configuration
+    before_save :validates_configuration, :check_scheduler
+    after_save :schedule_task
 
     def validates_configuration
       format_triggers_on(:scope_filter) if scope_filter.present?
@@ -153,6 +154,19 @@ module Setup
     end
 
     private
+
+    def check_scheduler
+      if @scheduler_checked.nil?
+        @scheduler_checked = changed_attributes.has_key?(:event_id.to_s) && event.is_a?(Setup::Scheduler)
+      else
+        @scheduler_checked = false
+      end
+      true
+    end
+
+    def schedule_task
+      process(scheduler: event) if @scheduler_checked && event.activated
+    end
 
     def cyclic_execution(execution_graph, start_id, cycle=[])
       if cycle.include?(start_id)

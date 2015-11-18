@@ -33,7 +33,7 @@ module Setup
     end
 
     def status_enum
-      [:pending, :running, :failed, :completed, :retrying, :broken]
+      [:pending, :running, :failed, :completed, :retrying, :broken, :unscheduled]
     end
 
     RUNNING_STATUS = [:running, :retrying]
@@ -67,6 +67,10 @@ module Setup
 
     def run(message)
       fail NotImplementedError
+    end
+
+    def unschedule
+      finish(:unscheduled, "Task ##{id} unscheduled at #{Time.now}", :warning)
     end
 
     def notify(attributes)
