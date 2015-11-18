@@ -1076,6 +1076,7 @@ RailsAdmin.config do |config|
 
       field :transformation, :code_mirror do
         visible { bindings[:object].style.present? && bindings[:object].style != 'chain' }
+        help { 'Required' }
         html_attributes do
           {cols: '74', rows: '15'}
         end
@@ -1159,19 +1160,10 @@ RailsAdmin.config do |config|
   config.model Script do
     navigation_label 'Administration'
 
-    edit do
-      field :name
-      field :description
-      field :code, :code_mirror
-    end
-
-    show do
-      field :name
-      field :description
-      field :code do
-        pretty_value do
-          "<pre><code class='ruby'>#{value}</code></pre>".html_safe
-        end
+    configure :code, :code_mirror do
+      help { 'Required' }
+      pretty_value do
+        "<pre><code class='ruby'>#{value}</code></pre>".html_safe
       end
     end
 
@@ -1462,7 +1454,9 @@ RailsAdmin.config do |config|
       field :name
       field :description
       field :parameters
-      field :code, :code_mirror
+      field :code, :code_mirror do
+        help { 'Required' }
+      end
       field :call_links do
         visible { bindings[:object].call_links.present? }
       end
