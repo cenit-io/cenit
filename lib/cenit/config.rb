@@ -13,6 +13,10 @@ module Cenit
       options
     end
 
+    def dynamic_model_loading?
+      !excluded_actions.include?(:load_model)
+    end
+
     def excluded_actions(*args)
       if args.length == 0
         options[:excluded_actions]

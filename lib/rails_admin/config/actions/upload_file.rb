@@ -30,10 +30,10 @@ module RailsAdmin
 
             if model = @abstract_model.model rescue nil
               if (data_type = model.try(:data_type)).is_a?(Setup::FileDataType)
-                if params[:_upload]
+                if params[:_save]
                   data = params[upload_file_config.abstract_model.param_key]
                   file = data && data[:file]
-                  if (@upload_file = Forms::UploadFile.new(file: file)).valid?
+                  if (@form_object = Forms::UploadFile.new(file: file)).valid?
                     begin
                       if data_type.validators.present? && file.original_filename.end_with?('.zip')
                         begin
@@ -67,13 +67,14 @@ module RailsAdmin
             end
 
             if errors
-              @upload_file ||= Forms::UploadFile.new
+              @form_object ||= Forms::UploadFile.new
               @model_config = upload_file_config
-              errors += @upload_file.errors.full_messages
+              errors += @form_object.errors.full_messages
               if errors.present?
                 errors = errors.collect { |error| error.encode('UTF-8', invalid: :replace, undef: :replace) }
                 do_flash(:error, t('admin.flash.error', name: @model_config.label, action: t("admin.actions.#{@action.key}.done").html_safe), errors)
               end
+              render :form
             else
               redirect_to back_or_index
             end

@@ -36,17 +36,17 @@
   - if ready
     %h4=  pull_data.any? { |key, _| key != 'name' } ? t('admin.actions.pull_collection.ready') : t('admin.actions.pull_collection.nothing_to_pull')
   .form-group.form-actions
-    .col-sm-offset-2.col-sm-10
-      - if pull_data.any? && (pull_data['name'].nil? || pull_data.size > 1)
-        %button.btn.btn-primary{type: 'submit', name: '_pull', :'data-disable-with' => t('admin.actions.pull_collection.submit')}
-          %i{class: @action.try(:link_icon)}
-          = t('admin.actions.pull_collection.submit')
-        %span.extra_buttons
-          %button.btn{type: 'submit', name: '_continue', :'data-disable-with' => t('admin.form.cancel')}
-            %i.icon-remove
-            = t('admin.form.cancel')
-      - else
-        %span.extra_buttons
-          %button.btn{type: 'submit', name: '_continue', :'data-disable-with' => t('admin.form.ok')}
-            %i.icon-ok
-            = t('admin.form.ok')
+  .col-sm-offset-2.col-sm-10
+    - if pull_data.any? && (pull_data['name'].nil? || pull_data.size > 1)
+      %button.btn.btn-primary{type: 'submit', name: '_pull', :'data-disable-with' => t('admin.actions.pull.submit')}
+        %i{class: @action.try(:link_icon)}
+        = t('admin.actions.pull.submit')
+      %span.extra_buttons
+        %button.btn{type: 'submit', name: '_continue', :'data-disable-with' => t('admin.form.cancel')}
+          %i.icon-remove
+          = t('admin.form.cancel')
+    - else
+      %span.extra_buttons
+        %button.btn{type: 'submit', name: '_continue', :'data-disable-with' => t('admin.form.ok')}
+          %i.icon-ok
+          = t('admin.form.ok')
