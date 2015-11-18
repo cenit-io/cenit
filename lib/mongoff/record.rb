@@ -115,6 +115,7 @@ module Mongoff
     end
 
     def [](field)
+      field = field.to_sym
       attribute_key = orm_model.attribute_key(field, model: property_model = orm_model.property_model(field))
       if (value = (@fields[field] || document[attribute_key])).is_a?(BSON::Document) && property_model && property_model.modelable?
         @fields[field] = Record.new(property_model, value)
