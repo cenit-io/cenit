@@ -34,8 +34,10 @@ module Forms
 
     rails_admin do
       visible false
+      register_instance_option(:discard_submit_buttons) { true }
       edit do
         field :translator do
+          associated_collection_cache_all { true }
           associated_collection_scope do
             data_type = bindings[:object].try(:data_type)
             bulk_source = bindings[:object].try(:bulk_source)
