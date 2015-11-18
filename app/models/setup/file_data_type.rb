@@ -174,7 +174,7 @@ module Setup
       Setup::DataType.to_include_in_models.each do |module_to_include|
         include(module_to_include) unless include?(module_to_include) ||
           [
-            Mongoid::Timestamps#, RailsAdminDynamicCharts::Datetime
+            Mongoid::Timestamps #, RailsAdminDynamicCharts::Datetime
           ].include?(module_to_include)
       end
 

@@ -7,11 +7,8 @@ module Forms
     validates_presence_of :file
 
     rails_admin do
-      register_instance_option(:discard_submit_buttons) do
-        true
-      end
       visible false
-
+      register_instance_option(:discard_submit_buttons) { true }
       edit do
 
         field :file do

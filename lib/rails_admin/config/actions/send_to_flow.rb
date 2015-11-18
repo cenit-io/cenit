@@ -30,29 +30,38 @@ module RailsAdmin
         register_instance_option :controller do
           proc do
 
-            @bulk_ids = params[:bulk_ids]
-
-            if params[:send_data]
-              if (flow_id = params[:flow_id]).present?
-                if (flow = Setup::Flow.where(id: flow_id).first).present?
-                  flow.process(object_ids: @bulk_ids)
-                  flash[:notice] = "Models were send to flow '#{flow.name}'"
-                else
-                  flash[:error] = "Flow with id '#{flow_id}' not found"
+            @bulk_ids = params.delete(:bulk_ids)
+            if object_ids = params.delete(:object_ids)
+              @bulk_ids = object_ids
+            end
+            selector_config = RailsAdmin::Config.model(Forms::FlowSelector)
+            render_form = true
+            if model = @abstract_model.model rescue nil
+              data_type_selector = model.data_type
+              data_type_selector = nil if data_type_selector.is_a?(Setup::BuildInDataType)
+              if select_data = params[selector_config.abstract_model.param_key]
+                flow = Setup::Flow.where(id: select_data[:flow_id]).first
+                if (@form_object = Forms::FlowSelector.new(flow: flow, data_type: data_type_selector)).valid?
+                  begin
+                    do_flash_process_result flow.process(object_ids: @bulk_ids)
+                    render_form = false
+                  rescue Exception => ex
+                    flash[:error] = ex.message
+                  end
                 end
               end
-              redirect_to back_or_index
-            else
-              @flow_options = []
-              model = @abstract_model.model rescue nil
-              if model.present? && model.respond_to?(:data_type)
-                model_data_type = model.data_type
-                flows = Setup::Flow.all.select { |flow| flow.translator && flow.translator.type != :Import && flow.data_type == model_data_type }
-                @flow_options = flows.collect { |f| [f.name, f.id] }
-              end
-              render @action.template_name
             end
+            if render_form
+              @form_object ||= Forms::FlowSelector.new(data_type: data_type_selector)
+              @model_config = selector_config
+              if @form_object.errors.present?
+                do_flash_now(:error, 'There are errors selecting the flow', @form_object.errors.full_messages)
+              end
 
+              render :form
+            else
+              redirect_to back_or_index
+            end
           end
         end
 
