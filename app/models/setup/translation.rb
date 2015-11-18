@@ -36,17 +36,21 @@ module Setup
     end
 
     def simple_translate(message)
-      objects = objects_from(message)
-      if task = message[:task]
-        objects_count = objects.count
-      end
-      processed = 0.0
-      objects.each do |object|
-        translator.run(object: object)
-        if task
-          processed += 1
-          task.progress = processed / objects_count * 100
-          task.save
+      if translator.source_handler
+        translator.run(object_ids: object_ids_from(message))
+      else
+        objects = objects_from(message)
+        if task = message[:task]
+          objects_count = objects.count
+        end
+        processed = 0.0
+        objects.each do |object|
+          translator.run(object: object)
+          if task
+            processed += 1
+            task.progress = processed / objects_count * 100
+            task.save
+          end
         end
       end
     end

@@ -1074,6 +1074,11 @@ RailsAdmin.config do |config|
         help { "Extensions for #{bindings[:object].mime_type}" }
       end
 
+      field :source_handler do
+        visible { (t = bindings[:object]).style.present? && (t.type == :Update || (t.type == :Conversion &&  t.style == 'ruby')) }
+        help { 'Handle sources on transformation' }
+      end
+
       field :transformation, :code_mirror do
         visible { bindings[:object].style.present? && bindings[:object].style != 'chain' }
         help { 'Required' }
