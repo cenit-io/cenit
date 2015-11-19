@@ -181,7 +181,7 @@ module Mongoff
         @fields[field] = value
         document[attribute_key] = value.attributes if attribute_key == field
       elsif !value.is_a?(Hash) && value.is_a?(Enumerable)
-        document[attribute_key] = attr_array = []
+        attr_array = []
         if !attribute_assigning && property_model && property_model.modelable?
           @fields[field] = field_array = RecordArray.new(property_model, attr_array, attribute_key != field.to_s)
           value.each do |v|
@@ -196,6 +196,7 @@ module Mongoff
             attr_array << v
           end
         end unless value.empty?
+        document[attribute_key] = attr_array
       else
         document[field] = orm_model.mongo_value(value, property_schema.present? ? property_schema : field)
       end
