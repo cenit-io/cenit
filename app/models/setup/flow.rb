@@ -243,7 +243,9 @@ module Setup
       webhook_template_parameters = webhook.template_parameters_hash
       0.step(max, limit) do |offset|
         common_result = nil
+        connections_missing = true
         the_connections.each do |connection|
+          connections_missing = false
           translation_options =
             {
               object_ids: object_ids,
@@ -305,6 +307,7 @@ module Setup
             block.yield(message: "Invalid translation result type: #{translation_result.class}") if block
           end
         end
+        block.yield(message: "No connections available", type: :warning) if connections_missing && block
       end
     end
 
