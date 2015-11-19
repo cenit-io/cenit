@@ -476,7 +476,9 @@ RailsAdmin.config do |config|
       field :title
       field :name
       field :slug
-      field :schema, :json_schema
+      field :schema, :json_schema do
+        help { 'Required'}
+      end
       field :records_methods
       field :data_type_methods
     end
