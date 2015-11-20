@@ -49,11 +49,24 @@ module RailsAdmin
     end
 
     def label
-      target.data_type.title.to_s
+      contextualized_label
     end
 
     def label_plural
-      label.pluralize
+      contextualized_label_plural
+    end
+
+    def contextualized_label(context = nil)
+      case context
+      when nil
+        target.data_type.title
+      else
+        target.data_type.custom_title
+      end
+    end
+
+    def contextualized_label_plural(context = nil)
+      contextualized_label(context).pluralize
     end
 
     def root

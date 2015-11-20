@@ -53,7 +53,7 @@ module Mongoff
     end
 
     def requires?(property)
-      (require = schema['require']) && require.include?(property)
+      (require = schema['required']) && require.include?(property.to_s)
     end
 
     MONGO_TYPE_MAP = {
