@@ -9,7 +9,7 @@ module Setup
     protected
 
     def translate_export(message)
-      if (result = translator.run(object_ids: object_ids_from(message), source_data_type: data_type_from(message))) &&
+      if (result = translator.run(object_ids: object_ids_from(message), source_data_type: data_type_from(message), task: self)) &&
         Cenit::Utility.json_object?(result)
         file_name = "#{data_type.title.collectionize}_#{DateTime.now.strftime('%Y-%m-%d_%Hh%Mm%S')}"
         file_name += ".#{translator.file_extension}" if translator.file_extension.present?
@@ -37,20 +37,16 @@ module Setup
 
     def simple_translate(message)
       if translator.source_handler
-        translator.run(object_ids: object_ids_from(message))
+        translator.run(object_ids: object_ids_from(message), task: self)
       else
         objects = objects_from(message)
-        if task = message[:task]
-          objects_count = objects.count
-        end
+        objects_count = objects.count
         processed = 0.0
         objects.each do |object|
-          translator.run(object: object)
-          if task
-            processed += 1
-            task.progress = processed / objects_count * 100
-            task.save
-          end
+          translator.run(object: object, task: self)
+          processed += 1
+          self.progress = processed / objects_count * 100
+          save
         end
       end
     end

@@ -477,7 +477,7 @@ RailsAdmin.config do |config|
       field :name
       field :slug
       field :schema, :json_schema do
-        help { 'Required'}
+        help { 'Required' }
       end
       field :records_methods
       field :data_type_methods
@@ -686,37 +686,64 @@ RailsAdmin.config do |config|
   config.model Setup::Task do
     navigation_label 'Monitor'
     object_label_method { :to_s }
-    fields :description, :retries, :progress, :status, :notifications
+    configure :attempts_succeded, :text do
+      label 'Attempts/Succedded'
+    end
+    fields :description, :attempts_succeded, :retries, :progress, :status, :notifications
   end
 
   config.model Setup::FlowExecution do
     navigation_label 'Monitor'
     object_label_method { :to_s }
-    fields :flow, :description, :retries, :progress, :status, :notifications
+    configure :attempts_succeded, :text do
+      label 'Attempts/Succedded'
+    end
+    fields :flow, :description, :attempts_succeded, :retries, :progress, :status, :notifications
   end
 
   config.model Setup::DataTypeGeneration do
     navigation_label 'Monitor'
     object_label_method { :to_s }
-    fields :description, :retries, :progress, :status, :notifications
+    configure :attempts_succeded, :text do
+      label 'Attempts/Succedded'
+    end
+    fields :description, :attempts_succeded, :retries, :progress, :status, :notifications
   end
 
   config.model Setup::DataTypeExpansion do
     navigation_label 'Monitor'
     object_label_method { :to_s }
-    fields :description, :retries, :progress, :status, :notifications
+    configure :attempts_succeded, :text do
+      label 'Attempts/Succedded'
+    end
+    fields :description, :attempts_succeded, :retries, :progress, :status, :notifications
   end
 
   config.model Setup::Translation do
     navigation_label 'Monitor'
     object_label_method { :to_s }
-    fields :translator, :description, :retries, :progress, :status, :notifications
+    configure :attempts_succeded, :text do
+      label 'Attempts/Succedded'
+    end
+    fields :translator, :description, :attempts_succeded, :retries, :progress, :status, :notifications
   end
 
   config.model Setup::DataImport do
     navigation_label 'Monitor'
     object_label_method { :to_s }
-    fields :translator, :data, :description, :retries, :progress, :status, :notifications
+    configure :attempts_succeded, :text do
+      label 'Attempts/Succedded'
+    end
+    fields :translator, :data, :description, :attempts_succeded, :retries, :progress, :status, :notifications
+  end
+
+  config.model Setup::SchemasImport do
+    navigation_label 'Monitor'
+    object_label_method { :to_s }
+    configure :attempts_succeded, :text do
+      label 'Attempts/Succedded'
+    end
+    fields :library, :base_uri, :data, :description, :attempts_succeded, :retries, :progress, :status, :notifications
   end
 
   config.model Setup::Notification do
@@ -1077,7 +1104,7 @@ RailsAdmin.config do |config|
       end
 
       field :source_handler do
-        visible { (t = bindings[:object]).style.present? && (t.type == :Update || (t.type == :Conversion &&  t.style == 'ruby')) }
+        visible { (t = bindings[:object]).style.present? && (t.type == :Update || (t.type == :Conversion && t.style == 'ruby')) }
         help { 'Handle sources on transformation' }
       end
 
