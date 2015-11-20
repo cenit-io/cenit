@@ -7,20 +7,20 @@ module Setup
     field :expression, type: String
     field :activated, type: Boolean, default: false
 
-    has_many :delayed_messages, class_name: Setup::DelayedMessage.to_s, inverse_of: :scheduler, dependent: :destroy
+    has_many :delayed_messages, class_name: Setup::DelayedMessage.to_s, inverse_of: :scheduler
 
     validates_presence_of :name, :scheduling_method
 
     scope :activated, -> { where(activated: true) }
 
     validate do
-      errors.add(:expression, "can't be blank") unless exp = expression
+      errors.add(:expression, "can't be blank") unless (exp = expression).present?
       case scheduling_method
       when :Once
         errors.add(:expression, 'is not a valid date-time') unless !(DateTime.parse(exp) rescue nil)
       when :Periodic
         if exp =~ /\A[1-9][0-9]*(s|m|h|d)\Z/
-          if interval < (min = Cenit.min_scheduler_interval || 60)
+          if interval < (min = (Cenit.min_scheduler_interval || 60))
             self.expression = "#{min}s"
           end
         else
@@ -32,10 +32,24 @@ module Setup
       else
         errors.add(:scheduling_method, 'is not a valid scheduling method')
       end
+      errors.blank?
     end
+
+    before_save do
+      @activation_status_changed = changed_attributes.has_key?(:activated.to_s)
+      true
+    end
+
+    after_save { (activated ? start : stop) if @activation_status_changed }
+
+    before_destroy { stop }
 
     def scheduling_method_enum
       [:Periodic] #[:Once, :Periodic, :CRON]
+    end
+
+    def ready_to_save?
+      scheduling_method.present?
     end
 
     def activated?
@@ -46,10 +60,6 @@ module Setup
       !activated?
     end
 
-    def activate
-      start unless activated?
-    end
-
     def start
       Setup::Flow.where(event: self).each do |flow|
         if (flows_executions = Setup::FlowExecution.where(flow: flow, scheduler: self)).present?
@@ -58,14 +68,18 @@ module Setup
           flow.process(scheduler: self)
         end
       end
-      update(activated: true)
+    end
+
+    def stop
+      delayed_messages.update_all(unscheduled: true)
+    end
+
+    def activate
+      update(activated: true) unless activated?
     end
 
     def deactivate
-      unless deactivated?
-        update(activated: false)
-        delayed_messages.delete_all
-      end
+      update(activated: false) unless deactivated?
     end
 
     def interval
@@ -73,18 +87,7 @@ module Setup
       when :Once
         Time.now - DateTime.parse(expression) rescue 0
       when :Periodic
-        case expression.to_s.last
-        when 's'
-          1
-        when 'm'
-          60
-        when 'h'
-          60 * 60
-        when 'd'
-          24 * 60 * 60
-        else
-          0
-        end * expression.to_s.chop.to_i
+        expression.to_s.to_seconds_interval
       when :CRON
         #TODO Next CRON Time
         0
@@ -96,5 +99,23 @@ module Setup
     def next_time
       Time.now + interval
     end
+  end
+end
+
+
+class String
+  def to_seconds_interval
+    case last
+    when 's'
+      1
+    when 'm'
+      60
+    when 'h'
+      60 * 60
+    when 'd'
+      24 * 60 * 60
+    else
+      0
+    end * chop.to_i
   end
 end

@@ -32,6 +32,8 @@ Capataz.config do
 
   allow_for [Mongoid::Criteria, Mongoff::Criteria], Enumerable.instance_methods(false) + Origin::Queryable.instance_methods(false)
 
+  allow_for Setup::Task, [:state, :resume_in, :run_again, :progress, :progress=, :update]
+
   allow_for Setup::DataType, ((%w(_json _xml _edi) + ['']).collect do |format|
                              %w(create new create!).collect do |action|
                                if action.end_with?('!')

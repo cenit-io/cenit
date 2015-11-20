@@ -17,6 +17,8 @@ module Setup
     field :file_extension, type: String
     field :bulk_source, type: Boolean, default: false
 
+    field :source_handler, type: Boolean
+
     field :transformation, type: String
 
     belongs_to :source_exporter, class_name: Setup::Translator.to_s, inverse_of: nil
@@ -34,8 +36,9 @@ module Setup
       when :Import, :Update
         rejects(:source_data_type, :mime_type, :file_extension, :bulk_source, :source_exporter, :target_importer, :discard_chained_records)
         requires(:transformation)
+        rejects(:source_handler) if type == :Import
       when :Export
-        rejects(:target_data_type, :source_exporter, :target_importer, :discard_chained_records)
+        rejects(:target_data_type, :source_handler, :source_exporter, :target_importer, :discard_chained_records)
         requires(:transformation)
         if bulk_source && NON_BULK_SOURCE_STYLES.include?(style)
           errors.add(:bulk_source, "is not allowed with '#{style}' style")
@@ -52,9 +55,11 @@ module Setup
         end
       when :Conversion
         rejects(:mime_type, :file_extension, :bulk_source)
-        requires(:source_data_type, :target_data_type)
+        requires(:source_data_type)
+        requires(:target_data_type) unless source_handler
         if style == 'chain'
           requires(:source_exporter, :target_importer)
+          rejects(:source_handler)
           if errors.blank?
             errors.add(:source_exporter, "can't be applied to #{source_data_type.title}") unless source_exporter.apply_to_source?(source_data_type)
             errors.add(:target_importer, "can't be applied to #{target_data_type.title}") unless target_importer.apply_to_target?(target_data_type)
@@ -63,6 +68,7 @@ module Setup
         else
           requires(:transformation)
           rejects(:source_exporter, :target_importer)
+          rejects(:source_handler) unless style == 'ruby'
         end
       end
       errors.blank?
@@ -97,7 +103,7 @@ module Setup
       # 'xml.rabl' => {Setup::Transformation::ActionViewTransform => [:Export]},
       # 'xml.builder' => {Setup::Transformation::ActionViewTransform => [:Export]},
       # 'html.haml' => {Setup::Transformation::ActionViewTransform => [:Export]},
-       'html.erb' => {Setup::Transformation::ActionViewTransform => [:Export]},
+      'html.erb' => {Setup::Transformation::ActionViewTransform => [:Export]},
       # 'csv.erb' => {Setup::Transformation::ActionViewTransform => [:Export]},
       # 'js.erb' => {Setup::Transformation::ActionViewTransform => [:Export]},
       # 'text.erb' => {Setup::Transformation::ActionViewTransform => [:Export]},
@@ -194,25 +200,26 @@ module Setup
       {target_data_type: data_type, targets: Set.new}
     end
 
-    def context_options_for_export(options)
+    def source_options(options, source_key_options)
       if data_type = source_data_type || options[:source_data_type]
         model = data_type.records_model
         offset = options[:offset] || 0
         limit = options[:limit]
         source_options =
-          if bulk_source
+          if source_key_options[:bulk]
             {
-              sources: if object_ids = options[:object_ids]
-                         model.any_in(id: (limit ? object_ids[offset, limit] : object_ids.from(offset))).to_enum
-                       else
-                         enum = (limit ? model.limit(limit) : model.all).skip(offset).to_enum
-                         options[:object_ids] = enum.collect { |obj| obj.id.is_a?(BSON::ObjectId) ? obj.id.to_s : obj.id }
-                         enum
-                       end
+              source_key_options[:sources_key] || :sources =>
+                if object_ids = options[:object_ids]
+                  model.any_in(id: (limit ? object_ids[offset, limit] : object_ids.from(offset))).to_enum
+                else
+                  enum = (limit ? model.limit(limit) : model.all).skip(offset).to_enum
+                  options[:object_ids] = enum.collect { |obj| obj.id.is_a?(BSON::ObjectId) ? obj.id.to_s : obj.id }
+                  enum
+                end
             }
           else
             {
-              source:
+              source_key_options[:source_key] || :source =>
                 begin
                   obj = options[:object] || ((id = (options[:object_id] || (options[:object_ids] && options[:object_ids][offset]))) && model.where(id: id).first) || model.all.skip(offset).first
                   options[:object_ids] = [obj.id.is_a?(BSON::ObjectId) ? obj.id.to_s : obj.id] unless options[:object_ids] || obj.nil?
@@ -226,12 +233,20 @@ module Setup
       end
     end
 
+    def context_options_for_export(options)
+      source_options(options, bulk: bulk_source)
+    end
+
     def context_options_for_update(options)
-      {target: options[:object]}
+      source_options(options, bulk: source_handler, sources_key: :targets, source_key: :target)
     end
 
     def context_options_for_conversion(options)
-      {source: options[:object], target: style == 'chain' ? nil : target_data_type.records_model.new}
+      if source_handler
+        source_options(options, bulk: true)
+      else
+        {source: options[:object], target: style == 'chain' ? nil : target_data_type.records_model.new}
+      end
     end
 
     def after_run_update(options)

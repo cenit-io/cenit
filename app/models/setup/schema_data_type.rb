@@ -7,8 +7,6 @@ module Setup
 
     field :schema
 
-    validates_presence_of :schema
-
     def read_attribute(name)
       value = super
       if name.to_s == 'schema' && value.is_a?(String)
@@ -35,7 +33,9 @@ module Setup
     end
 
     def validate_model
-      if schema_changed?
+      if schema.blank?
+        errors.add(:schema, "can't be blank")
+      elsif schema_changed?
         begin
           json_schema, _ = validate_schema
           fail Exception, 'defines invalid property name: _type' if object_schema?(json_schema) &&json_schema['properties']['_type']

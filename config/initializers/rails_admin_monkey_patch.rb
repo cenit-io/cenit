@@ -54,6 +54,17 @@ module RailsAdmin
       end
     end
 
+    class Model
+
+      def contextualized_label(context = nil)
+        label
+      end
+
+      def contextualized_label_plural(context = nil)
+        label_plural
+      end
+    end
+
     module Actions
 
       class New
@@ -345,8 +356,8 @@ module RailsAdmin
 
       capitalize_first_letter I18n.t(
                                 "admin.actions.#{action.i18n_key}.#{label}",
-                                model_label: model_config && model_config.label,
-                                model_label_plural: model_config && model_config.label_plural,
+                                model_label: model_config && model_config.contextualized_label(label),
+                                model_label_plural: model_config && model_config.contextualized_label_plural(label),
                                 object_label: model_config && object.try(model_config.object_label_method),
                               )
     end
