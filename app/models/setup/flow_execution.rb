@@ -13,7 +13,7 @@ module Setup
 
     def run(message)
       if flow = Setup::Flow.where(id: flow_id = message[:flow_id]).first
-        flow.translate(message) { |notification_attributes| notify(notification_attributes) }
+        flow.translate(message.merge(task: self)) { |notification_attributes| notify(notification_attributes) }
       else
         fail "Flow with id #{flow_id} not found"
       end

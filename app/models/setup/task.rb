@@ -12,7 +12,10 @@ module Setup
     field :description, type: String
     field :status, type: Symbol, default: :pending
     field :progress, type: Float, default: 0
+    field :attempts, type: Integer, default: 0
+    field :succeded, type: Integer, default: 0
     field :retries, type: Integer, default: 0
+    field :state, type: Hash, default: {}
 
     has_many :notifications, class_name: Setup::Notification.to_s, inverse_of: :task, dependent: :destroy
 
@@ -33,17 +36,21 @@ module Setup
     end
 
     def status_enum
-      [:pending, :running, :failed, :completed, :retrying, :broken, :unscheduled]
+      [:pending, :running, :failed, :completed, :retrying, :broken, :unscheduled, :paused]
     end
 
-    RUNNING_STATUS = [:running, :retrying]
+    def attempts_succeded
+      "#{attempts}/#{succeded}"
+    end
+
+    RUNNING_STATUS = [:running, :retrying, :paused]
 
     def runnin_status?
       RUNNING_STATUS.include?(status)
     end
 
     def running?
-       runnin_status? &&
+      runnin_status? &&
         thread_token.present? &&
         Thread.list.any? { |thread| thread[:task_token] == thread_token.token }
     end
@@ -52,14 +59,24 @@ module Setup
       if running?
         notify(message: "Executing task ##{id} at #{Time.now} but it is already running")
       else
-        notify(message: "Restarting task ##{id} at #{Time.now}", type: :notice) if runnin_status?
         thread_token.destroy if thread_token.present?
         self.thread_token = CenitToken.create
         Thread.current[:task_token] = thread_token.token
-        notify(type: :info, message: "Task ##{id} started at #{Time.now}")
-        run(message.merge(task: self))
-        self.progress = 100
-        finish(:completed, "Task ##{id} completed at #{Time.now}", :info)
+        if runnin_status?
+          notify(message: "Restarting task ##{id} at #{Time.now}", type: :notice)
+        else
+          self.attempts += 1
+          notify(type: :info, message: "Task ##{id} started at #{Time.now}")
+        end
+        self.retries += 1 if status == :retrying
+        run(message)
+        if resuming_later?
+          finish(:paused, "Task ##{id} paused at #{Time.now}", :notice)
+        else
+          self.state = {}
+          self.progress = 100
+          finish(:completed, "Task ##{id} completed at #{Time.now}", :info)
+        end
       end
     rescue Exception => ex
       finish(:failed, "Task ##{id} failed at #{Time.now}: #{ex.message}", :error)
@@ -92,6 +109,7 @@ module Setup
         notifications << notification
         save
       end
+    ensure
       temporary_file.close if temporary_file
     end
 
@@ -101,15 +119,37 @@ module Setup
 
     def retry
       if can_retry?
-        self.status = :retrying
-        self.retries += 1
-        notify(type: :notice, message: "Task ##{id} retried at #{Time.now}")
+        self.status = (status == :failed ? :retrying : :pending)
+        notify(type: :notice, message: "Task ##{id} executed at #{Time.now}")
         Cenit::Rabbit.enqueue(message.merge(task: self))
       end
     end
 
     def finish_attachment
       nil
+    end
+
+    def resuming_later?
+      @resuming_later
+    end
+
+    def resume_in(interval)
+      fail 'Resume later is already invoked for these task' if @resuming_later
+      @resuming_later = true
+      @resume_in =
+        if interval.is_a?(Integer)
+          interval
+        else
+          interval.to_s.to_seconds_interval
+        end
+    end
+
+    def run_again
+      resume_in(0)
+    end
+
+    def resume_interval
+      @resume_in
     end
 
     class << self
@@ -125,6 +165,10 @@ module Setup
       thread_token.destroy if thread_token.present?
       self.thread_token = nil
       Thread.current[:task_token] = nil
+      if status == :completed
+        self.succeded += 1
+        self.retries = 0
+      end
       notify(type: message_type, message: message, attachment: finish_attachment)
     end
   end

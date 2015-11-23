@@ -87,18 +87,7 @@ module Setup
       when :Once
         Time.now - DateTime.parse(expression) rescue 0
       when :Periodic
-        case expression.to_s.last
-        when 's'
-          1
-        when 'm'
-          60
-        when 'h'
-          60 * 60
-        when 'd'
-          24 * 60 * 60
-        else
-          0
-        end * expression.to_s.chop.to_i
+        expression.to_s.to_seconds_interval
       when :CRON
         #TODO Next CRON Time
         0
@@ -110,5 +99,23 @@ module Setup
     def next_time
       Time.now + interval
     end
+  end
+end
+
+
+class String
+  def to_seconds_interval
+    case last
+    when 's'
+      1
+    when 'm'
+      60
+    when 'h'
+      60 * 60
+    when 'd'
+      24 * 60 * 60
+    else
+      0
+    end * chop.to_i
   end
 end

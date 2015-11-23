@@ -85,8 +85,11 @@ module Cenit
               Setup::Notification.create(message: "Can not execute task for message: #{message}")
             end
           end
-          if task && (scheduler = task.scheduler) && scheduler.activated?
+          if task && (task.resuming_later? || ((scheduler = task.scheduler) && scheduler.activated?))
             message[:task] = task
+            if resume_interval = task.resume_interval
+              message[:publish_at] = Time.now + resume_interval
+            end
             enqueue(message)
           end
         end
