@@ -8,6 +8,7 @@ module Setup
 
     field :message, type: String
     field :publish_at, type: DateTime
+    field :unscheduled, type: Boolean
 
     belongs_to :scheduler, class_name: Setup::Scheduler.to_s, inverse_of: :delayed_messages
 

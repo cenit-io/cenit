@@ -10,7 +10,6 @@ module Setup
     field :code, type: String
     embeds_many :call_links, class_name: Setup::CallLink.to_s, inverse_of: :algorithm
 
-    validates_presence_of :code, :description
     validates_format_of :name, with: /\A[a-z]([a-z]|\_|\d)*\Z/
 
     accepts_nested_attributes_for :parameters, allow_destroy: true
@@ -19,23 +18,28 @@ module Setup
     before_save :validate_code
 
     def validate_code
-      Capataz.rewrite(code, halt_on_error: false, logs: logs = {}, locals: parameters.collect { |p| p.name })
-      if logs[:errors].present?
-        logs[:errors].each { |msg| errors.add(:code, msg) }
-        self.call_links = []
+      if code.blank?
+        errors.add(:code, "can't be blank")
       else
-        links = []
-        (logs[:self_sends] || []).each do |call_name|
-          if call_link = call_links.where(name: call_name).first
-            links << call_link
-          else
-            links << Setup::CallLink.new(name: call_name)
+        Capataz.rewrite(code, halt_on_error: false, logs: logs = {}, locals: parameters.collect { |p| p.name })
+        if logs[:errors].present?
+          logs[:errors].each { |msg| errors.add(:code, msg) }
+          self.call_links = []
+        else
+          links = []
+          (logs[:self_sends] || []).each do |call_name|
+            if call_link = call_links.where(name: call_name).first
+              links << call_link
+            else
+              links << Setup::CallLink.new(name: call_name)
+            end
           end
+          # self.call_links.clear if self.call_links.present? TODO !!!
+          self.call_links = links
+          do_link
         end
-        # self.call_links.clear if self.call_links.present? TODO !!!
-        self.call_links = links
-        do_link
       end
+      errors.blank?
     end
 
     def do_link

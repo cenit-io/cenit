@@ -52,7 +52,7 @@ module Cenit
         end
       end
 
-      def process_message(message)
+      def process_message(message, headers = {})
         message = JSON.parse(message) unless message.is_a?(Hash)
         message = message.with_indifferent_access
         message_token = message.delete(:token)
@@ -69,10 +69,14 @@ module Cenit
         else
           begin
             task_class, task, report = detask(message)
-            if task ||= task_class && task_class.create(message: message)
-              task.execute
+            if headers[:unscheduled.to_s]
+              task.unschedule if task
             else
-              Setup::Notification.create(message: report)
+              if task ||= task_class && task_class.create(message: message)
+                task.execute
+              else
+                Setup::Notification.create(message: report)
+              end
             end
           rescue Exception => ex
             if task
@@ -81,8 +85,11 @@ module Cenit
               Setup::Notification.create(message: "Can not execute task for message: #{message}")
             end
           end
-          if task && (scheduler = task.scheduler) && scheduler.activated?
+          if task && (task.resuming_later? || ((scheduler = task.scheduler) && scheduler.activated?))
             message[:task] = task
+            if resume_interval = task.resume_interval
+              message[:publish_at] = Time.now + resume_interval
+            end
             enqueue(message)
           end
         end
@@ -116,7 +123,7 @@ module Cenit
         queue.subscribe(manual_ack: true) do |delivery_info, properties, body|
           begin
             Account.current = nil
-            Cenit::Rabbit.process_message(body)
+            Cenit::Rabbit.process_message(body, properties[:headers] || {})
             channel.ack(delivery_info.delivery_tag)
           rescue Exception => ex
             Setup::Notification.create(message: "Error (#{ex.message}) consuming message: #{body}")
@@ -133,8 +140,10 @@ module Cenit
         init
         @scheduler_job = Rufus::Scheduler.new.interval "#{Cenit.scheduler_lookup_interval}s" do
           messages_present = false
-          (delayed_messages = Setup::DelayedMessage.where(:publish_at.lte => Time.now)).each do |delayed_message|
-            channel.default_exchange.publish(delayed_message.message, routing_key: queue.name)
+          (delayed_messages = Setup::DelayedMessage.all.or(:publish_at.lte => Time.now).or(unscheduled: true)).each do |delayed_message|
+            publish_options = {routing_key: queue.name}
+            publish_options[:headers] = {unscheduled: true} if delayed_message.unscheduled
+            channel.default_exchange.publish(delayed_message.message, publish_options)
             messages_present = true
           end
           begin

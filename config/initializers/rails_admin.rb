@@ -476,7 +476,9 @@ RailsAdmin.config do |config|
       field :title
       field :name
       field :slug
-      field :schema, :json_schema
+      field :schema, :json_schema do
+        help { 'Required' }
+      end
       field :records_methods
       field :data_type_methods
     end
@@ -684,37 +686,64 @@ RailsAdmin.config do |config|
   config.model Setup::Task do
     navigation_label 'Monitor'
     object_label_method { :to_s }
-    fields :description, :retries, :progress, :status, :notifications
+    configure :attempts_succeded, :text do
+      label 'Attempts/Succedded'
+    end
+    fields :description, :attempts_succeded, :retries, :progress, :status, :notifications
   end
 
   config.model Setup::FlowExecution do
     navigation_label 'Monitor'
     object_label_method { :to_s }
-    fields :flow, :description, :retries, :progress, :status, :notifications
+    configure :attempts_succeded, :text do
+      label 'Attempts/Succedded'
+    end
+    fields :flow, :description, :attempts_succeded, :retries, :progress, :status, :notifications
   end
 
   config.model Setup::DataTypeGeneration do
     navigation_label 'Monitor'
     object_label_method { :to_s }
-    fields :description, :retries, :progress, :status, :notifications
+    configure :attempts_succeded, :text do
+      label 'Attempts/Succedded'
+    end
+    fields :description, :attempts_succeded, :retries, :progress, :status, :notifications
   end
 
   config.model Setup::DataTypeExpansion do
     navigation_label 'Monitor'
     object_label_method { :to_s }
-    fields :description, :retries, :progress, :status, :notifications
+    configure :attempts_succeded, :text do
+      label 'Attempts/Succedded'
+    end
+    fields :description, :attempts_succeded, :retries, :progress, :status, :notifications
   end
 
   config.model Setup::Translation do
     navigation_label 'Monitor'
     object_label_method { :to_s }
-    fields :translator, :description, :retries, :progress, :status, :notifications
+    configure :attempts_succeded, :text do
+      label 'Attempts/Succedded'
+    end
+    fields :translator, :description, :attempts_succeded, :retries, :progress, :status, :notifications
   end
 
   config.model Setup::DataImport do
     navigation_label 'Monitor'
     object_label_method { :to_s }
-    fields :translator, :data, :description, :retries, :progress, :status, :notifications
+    configure :attempts_succeded, :text do
+      label 'Attempts/Succedded'
+    end
+    fields :translator, :data, :description, :attempts_succeded, :retries, :progress, :status, :notifications
+  end
+
+  config.model Setup::SchemasImport do
+    navigation_label 'Monitor'
+    object_label_method { :to_s }
+    configure :attempts_succeded, :text do
+      label 'Attempts/Succedded'
+    end
+    fields :library, :base_uri, :data, :description, :attempts_succeded, :retries, :progress, :status, :notifications
   end
 
   config.model Setup::Notification do
@@ -1074,8 +1103,14 @@ RailsAdmin.config do |config|
         help { "Extensions for #{bindings[:object].mime_type}" }
       end
 
+      field :source_handler do
+        visible { (t = bindings[:object]).style.present? && (t.type == :Update || (t.type == :Conversion && t.style == 'ruby')) }
+        help { 'Handle sources on transformation' }
+      end
+
       field :transformation, :code_mirror do
         visible { bindings[:object].style.present? && bindings[:object].style != 'chain' }
+        help { 'Required' }
         html_attributes do
           {cols: '74', rows: '15'}
         end
@@ -1159,19 +1194,10 @@ RailsAdmin.config do |config|
   config.model Script do
     navigation_label 'Administration'
 
-    edit do
-      field :name
-      field :description
-      field :code, :code_mirror
-    end
-
-    show do
-      field :name
-      field :description
-      field :code do
-        pretty_value do
-          "<pre><code class='ruby'>#{value}</code></pre>".html_safe
-        end
+    configure :code, :code_mirror do
+      help { 'Required' }
+      pretty_value do
+        "<pre><code class='ruby'>#{value}</code></pre>".html_safe
       end
     end
 
@@ -1462,7 +1488,9 @@ RailsAdmin.config do |config|
       field :name
       field :description
       field :parameters
-      field :code, :code_mirror
+      field :code, :code_mirror do
+        help { 'Required' }
+      end
       field :call_links do
         visible { bindings[:object].call_links.present? }
       end

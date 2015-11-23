@@ -6,7 +6,12 @@ class Script
   field :description, type: String
   field :code, type: String
 
-  validates_presence_of :name, :description, :code
+  validates_presence_of :name, :description
+
+  before_save do
+    errors.add(:code, "can't be blank") if code.blank?
+    errors.blank?
+  end
 
   def parameters
     []

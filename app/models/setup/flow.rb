@@ -30,7 +30,8 @@ module Setup
     field :last_trigger_timestamps, type: Time
 
     validates_numericality_in_presence_of :lot_size, greater_than_or_equal_to: 1
-    before_save :validates_configuration
+    before_save :validates_configuration, :check_scheduler
+    after_save :schedule_task
 
     def validates_configuration
       format_triggers_on(:scope_filter) if scope_filter.present?
@@ -154,6 +155,19 @@ module Setup
 
     private
 
+    def check_scheduler
+      if @scheduler_checked.nil?
+        @scheduler_checked = changed_attributes.has_key?(:event_id.to_s) && event.is_a?(Setup::Scheduler)
+      else
+        @scheduler_checked = false
+      end
+      true
+    end
+
+    def schedule_task
+      process(scheduler: event) if @scheduler_checked && event.activated
+    end
+
     def cyclic_execution(execution_graph, start_id, cycle=[])
       if cycle.include?(start_id)
         cycle << start_id
@@ -167,19 +181,18 @@ module Setup
     end
 
     def simple_translate(message, &block)
-      begin
-        objects =
-          if obj_id = message[:source_id]
-            data_type.records_model.where(id: obj_id)
-          elsif object_ids = source_ids_from(message)
-            data_type.records_model.any_in(id: object_ids)
-          else
-            data_type.records_model.all
-          end
-        objects.each { |obj| translator.run(object: obj, discard_events: discard_events) }
-      rescue Exception => ex
-        block.yield(message: ex.message) if block
+      object_ids = ((obj_id = message[:source_id]) && [obj_id]) || source_ids_from(message)
+      if translator.source_handler
+        translator.run(object_ids: object_ids, discard_events: discard_events, task: message[:task])
+      else
+        if objects_ids
+          data_type.records_model.any_in(id: object_ids)
+        else
+          data_type.records_model.all
+        end.each { |obj| translator.run(object: obj, discard_events: discard_events, task: message[:task]) }
       end
+    rescue Exception => ex
+      block.yield(message: ex.message) if block
     end
 
     def translate_conversion(message, &block)
@@ -190,7 +203,7 @@ module Setup
       simple_translate(message, &block)
     end
 
-    def translate_import(_, &block)
+    def translate_import(message, &block)
       webhook_template_parameters = webhook.template_parameters_hash
       the_connections.each do |connection|
         begin
@@ -213,7 +226,8 @@ module Setup
                          data: http_response.body,
                          discard_events: discard_events,
                          parameters: template_parameters,
-                         headers: http_response.headers) if http_response.code == 200
+                         headers: http_response.headers,
+                         task: message[:task]) if http_response.code == 200
           block.yield(message: {response_code: http_response.code}.to_json,
                       type: (200...299).include?(http_response.code) ? :notice : :error,
                       attachment: attachment_from(http_response)) if block.present?
@@ -237,7 +251,8 @@ module Setup
               offset: offset,
               limit: limit,
               discard_events: discard_events,
-              parameters: template_parameters = webhook_template_parameters.dup
+              parameters: template_parameters = webhook_template_parameters.dup,
+              task: message[:task]
             }
           translation_result =
             if connection.template_parameters.present?
