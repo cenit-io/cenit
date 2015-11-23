@@ -1215,8 +1215,12 @@ RailsAdmin.config do |config|
       field :image do
         visible { !bindings[:object].new_record? }
       end
-      field :name
-      field :shared_version
+      field :name do
+        required { true }
+      end
+      field :shared_version do
+        required { true }
+      end
       field :authors
       field :summary
       field :description
@@ -1274,7 +1278,7 @@ RailsAdmin.config do |config|
       field :dependencies do
         inline_add false
         read_only do
-          !bindings[:object].instance_variable_get(:@_selecting_connections)
+          !bindings[:object].instance_variable_get(:@_selecting_dependencies)
         end
         help do
           nil
