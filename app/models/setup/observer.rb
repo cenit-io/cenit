@@ -2,12 +2,11 @@ module Setup
   class Observer < Event
     include TriggersFormatter
 
-    BuildInDataType.regist(self).referenced_by(:namespace, :name).excluding(:last_trigger_timestamps).including(:data_type)
+    BuildInDataType.regist(self).referenced_by(:namespace, :name).including(:data_type)
 
     belongs_to :data_type, class_name: Setup::DataType.to_s, inverse_of: :events
+    belongs_to :trigger_evaluator, class_name: Setup::Algorithm.to_s, inverse_of: nil
     field :triggers, type: String
-
-    validates_presence_of :data_type, :triggers
 
     before_save :format_triggers, :check_name
 
@@ -24,7 +23,11 @@ module Setup
     end
 
     def triggers_apply_to?(obj_now, obj_before = nil)
-      field_triggers_apply_to?(:triggers, obj_now, obj_before)
+      if triggers
+        field_triggers_apply_to?(:triggers, obj_now, obj_before)
+      else
+        trigger_evaluator.run([obj_now, obj_before]).present?
+      end
     end
 
     class << self
@@ -39,7 +42,18 @@ module Setup
     private
 
     def format_triggers
-      format_triggers_on(:triggers)
+      if data_type.blank?
+        errors.add(:data_type, "can't be blank")
+      elsif triggers.present? && trigger_evaluator.present?
+        errors.add(:base, 'Can not define both triggers and evaluator')
+      elsif triggers.present?
+        format_triggers_on(:triggers, true)
+      elsif trigger_evaluator.present?
+        errors.add(:trigger_evaluator, 'should receive two paramters') unless trigger_evaluator.parameters.count == 2
+      else
+        errors.add(:base, 'Triggers or evaluator missing')
+      end
+      errors.blank?
     end
 
     def check_name
