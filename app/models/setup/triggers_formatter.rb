@@ -7,6 +7,7 @@ module Setup
         hash = JSON.parse(json)
         hash.delete('_')
         if required && hash.blank?
+          send("#{field}=", nil)
           errors.add(field, "can't be blank")
           return false
         end

@@ -19,21 +19,22 @@ module RailsAdmin
             @bulk_ids = params.delete(:bulk_ids)
             collection = Cenit::Actions.build_collection(@object || @bulk_ids, @abstract_model.model_name)
             if params[:_restart].nil? && shared_params
-              @shared_collection = Setup::SharedCollection.new(shared_params.to_hash.merge(image: collection.image))
-              @shared_collection.source_collection = collection
-              shared = params[:_share] && Cenit::Actions.store(@shared_collection)
+              @form_object = Setup::SharedCollection.new(shared_params.to_hash.merge(image: collection.image))
+              @form_object.source_collection = collection
+              shared = params[:_save] && Cenit::Actions.store(@form_object)
             end
             if shared
               redirect_to back_or_index
             else
-              @shared_collection ||= Setup::SharedCollection.new(image: collection.image, name: collection.name, source_collection: collection)
-              @shared_collection.instance_variable_set(:@_selecting_connections, collection.connections.present? && (!shared_params || shared_params[:connection_ids].blank?))
-              @shared_parameter_enum = @shared_collection.enum_for_pull_parameters
+              @form_object ||= Setup::SharedCollection.new(image: collection.image, name: collection.name, source_collection: collection)
+              @form_object.instance_variable_set(:@_selecting_connections, collection.connections.present? && (!shared_params || params[:_restart]))
+              @form_object.instance_variable_set(:@_selecting_dependencies, !shared_params || params[:_restart])
+              @shared_parameter_enum = @form_object.enum_for_pull_parameters
               @model_config = shared_collection_config
-              if params[:_share] && @shared_collection.errors.present?
-                do_flash(:error, t('admin.flash.error', name: @model_config.label, action: t("admin.actions.#{@action.key}.done").html_safe), @shared_collection.errors.full_messages)
+              if params[:_save] && @form_object.errors.present?
+                do_flash(:error, t('admin.flash.error', name: @model_config.label, action: t("admin.actions.#{@action.key}.done").html_safe), @form_object.errors.full_messages)
               end
-              render :share
+              render :form
             end
           end
         end

@@ -942,7 +942,6 @@ RailsAdmin.config do |config|
     show do
       field :namespace
       field :name
-      field :last_trigger_timestamps
 
       field :_id
       field :created_at
@@ -951,7 +950,7 @@ RailsAdmin.config do |config|
       #field :updater
     end
 
-    fields :namespace, :name, :last_trigger_timestamps
+    fields :namespace, :name
   end
 
   config.model Setup::Observer do
@@ -960,6 +959,8 @@ RailsAdmin.config do |config|
       field :namespace
       field :name
       field :data_type do
+        inline_add false
+        inline_edit false
         associated_collection_scope do
           data_type = bindings[:object].data_type
           Proc.new { |scope|
@@ -970,12 +971,21 @@ RailsAdmin.config do |config|
             end
           }
         end
+        help 'Required'
+      end
+      field :trigger_evaluator do
+        visible { (obj = bindings[:object]).data_type.blank? || obj.trigger_evaluator.present? || obj.triggers.nil?}
+        associated_collection_scope do
+          Proc.new { |scope|
+            scope.where(:parameters.with_size => 2)
+          }
+        end
       end
       field :triggers do
         visible do
           bindings[:controller].instance_variable_set(:@_data_type, data_type = bindings[:object].data_type)
           bindings[:controller].instance_variable_set(:@_update_field, 'data_type_id')
-          data_type.present?
+          data_type.present? && !bindings[:object].trigger_evaluator.present?
         end
         partial 'form_triggers'
         help false
@@ -987,7 +997,7 @@ RailsAdmin.config do |config|
       field :name
       field :data_type
       field :triggers
-      field :last_trigger_timestamps
+      field :trigger_evaluator
 
       field :_id
       field :created_at
@@ -996,7 +1006,7 @@ RailsAdmin.config do |config|
       #field :updater
     end
 
-    fields :namespace, :name, :data_type, :triggers, :last_trigger_timestamps
+    fields :namespace, :name, :data_type, :triggers, :trigger_evaluator
   end
 
   config.model Setup::Scheduler do
@@ -1042,7 +1052,6 @@ RailsAdmin.config do |config|
       field :namespace
       field :name
       field :expression
-      field :last_trigger_timestamps
 
       field :_id
       field :created_at
@@ -1051,7 +1060,7 @@ RailsAdmin.config do |config|
       #field :updater
     end
 
-    fields :namespace, :name, :scheduling_method, :expression, :last_trigger_timestamps
+    fields :namespace, :name, :scheduling_method, :expression
   end
 
   config.model Setup::Translator do
@@ -1215,8 +1224,12 @@ RailsAdmin.config do |config|
       field :image do
         visible { !bindings[:object].new_record? }
       end
-      field :name
-      field :shared_version
+      field :name do
+        required { true }
+      end
+      field :shared_version do
+        required { true }
+      end
       field :authors
       field :summary
       field :description
@@ -1274,7 +1287,7 @@ RailsAdmin.config do |config|
       field :dependencies do
         inline_add false
         read_only do
-          !bindings[:object].instance_variable_get(:@_selecting_connections)
+          !bindings[:object].instance_variable_get(:@_selecting_dependencies)
         end
         help do
           nil
