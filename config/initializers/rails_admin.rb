@@ -59,9 +59,6 @@ RailsAdmin.config do |config|
   config.audit_with :mongoid_audit
   config.authorize_with :cancan
 
-  config.excluded_models << Setup::Raml
-  config.excluded_models << Setup::RamlReference
-
   config.actions do
     dashboard # mandatory
     # memory_usage
