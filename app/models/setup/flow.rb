@@ -185,7 +185,7 @@ module Setup
       if translator.source_handler
         translator.run(object_ids: object_ids, discard_events: discard_events, task: message[:task])
       else
-        if objects_ids
+        if object_ids
           data_type.records_model.any_in(id: object_ids)
         else
           data_type.records_model.all
