@@ -224,7 +224,7 @@ module Mongoff
     CONVERSION = {
       BSON::ObjectId => ->(value) { BSON::ObjectId.from_string(value.to_s) rescue nil },
       BSON::Binary => ->(value) { BSON::Binary.new(value.to_s) },
-      Boolean => ->(value) { value.to_s.to_boolean },
+      Boolean => ->(value) { value.to_s.to_b },
       String => ->(value) { value.to_s },
       Integer => ->(value) { value.to_s.to_i },
       Float => ->(value) { value.to_s.to_f },
