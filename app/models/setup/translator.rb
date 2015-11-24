@@ -201,7 +201,8 @@ module Setup
     end
 
     def source_options(options, source_key_options)
-      if data_type = source_data_type || options[:source_data_type]
+      data_type_key = source_key_options[:data_type_key] || :source_data_type
+      if data_type = send(data_type_key) || options[:data_type]
         model = data_type.records_model
         offset = options[:offset] || 0
         limit = options[:limit]
@@ -238,7 +239,7 @@ module Setup
     end
 
     def context_options_for_update(options)
-      source_options(options, bulk: source_handler, sources_key: :targets, source_key: :target)
+      source_options(options, data_type_key: :target_data_type, bulk: source_handler, sources_key: :targets, source_key: :target)
     end
 
     def context_options_for_conversion(options)

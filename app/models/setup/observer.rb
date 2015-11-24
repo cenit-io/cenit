@@ -25,6 +25,8 @@ module Setup
     def triggers_apply_to?(obj_now, obj_before = nil)
       if triggers
         field_triggers_apply_to?(:triggers, obj_now, obj_before)
+      elsif trigger_evaluator.parameters.count == 1
+        trigger_evaluator.run(obj_now).present?
       else
         trigger_evaluator.run([obj_now, obj_before]).present?
       end
@@ -49,7 +51,9 @@ module Setup
       elsif triggers.present?
         format_triggers_on(:triggers, true)
       elsif trigger_evaluator.present?
-        errors.add(:trigger_evaluator, 'should receive two paramters') unless trigger_evaluator.parameters.count == 2
+        unless trigger_evaluator.parameters.count == 2 || trigger_evaluator.parameters.count == 1
+          errors.add(:trigger_evaluator, 'should receive one or two paramters')
+        end
       else
         errors.add(:base, 'Triggers or evaluator missing')
       end

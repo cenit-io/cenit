@@ -792,7 +792,7 @@ RailsAdmin.config do |config|
   config.model Setup::Flow do
     object_label_method { :custom_title }
     register_instance_option(:form_synchronized) do
-      [:custom_data_type, :data_type_scope, :lot_size, :connection_role, :webhook, :response_translator, :response_data_type]
+      [:custom_data_type, :data_type_scope, :scope_filter, :scope_evaluator, :lot_size, :connection_role, :webhook, :response_translator, :response_data_type]
     end
     edit do
       field :namespace
@@ -877,6 +877,17 @@ RailsAdmin.config do |config|
         visible { bindings[:object].scope_symbol == :filtered }
         partial 'form_triggers'
         help false
+      end
+      field :scope_evaluator do
+        inline_add false
+        inline_edit false
+        visible { bindings[:object].scope_symbol == :evaluation }
+        associated_collection_scope do
+          Proc.new { |scope|
+            scope.where(:parameters.with_size => 1)
+          }
+        end
+        help 'Required'
       end
       field :lot_size do
         visible { (f = bindings[:object]).translator.present? && f.translator.type == :Export && !f.nil_data_type && f.data_type_scope && f.scope_symbol != :event_source }
@@ -977,7 +988,7 @@ RailsAdmin.config do |config|
         visible { (obj = bindings[:object]).data_type.blank? || obj.trigger_evaluator.present? || obj.triggers.nil?}
         associated_collection_scope do
           Proc.new { |scope|
-            scope.where(:parameters.with_size => 2)
+            scope.all.or(:parameters.with_size => 1).or(:parameters.with_size => 2)
           }
         end
       end
