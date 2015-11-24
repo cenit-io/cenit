@@ -8,8 +8,6 @@ module Setup
 
     BuildInDataType.regist(self).with(:name).referenced_by(:namespace, :name)
 
-    field :last_trigger_timestamps, type: DateTime
-
     before_save :check_instance_type
 
     def check_instance_type

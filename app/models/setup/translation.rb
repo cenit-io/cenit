@@ -43,7 +43,7 @@ module Setup
         objects_count = objects.count
         processed = 0.0
         objects.each do |object|
-          translator.run(object: object, task: self)
+          translator.run(object: object, task: self, data_type: data_type_from(message))
           processed += 1
           self.progress = processed / objects_count * 100
           save

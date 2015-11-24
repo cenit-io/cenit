@@ -13,7 +13,11 @@ module Setup
 
     def run(message)
       if flow = Setup::Flow.where(id: flow_id = message[:flow_id]).first
-        flow.translate(message.merge(task: self)) { |notification_attributes| notify(notification_attributes) }
+        if flow.active
+          flow.translate(message.merge(task: self)) { |notification_attributes| notify(notification_attributes) }
+        else
+          fail Setup::Task::Broken, "Flow '#{flow.custom_title}' is not active and can not be processed"
+        end
       else
         fail "Flow with id #{flow_id} not found"
       end

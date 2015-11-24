@@ -19,6 +19,7 @@ module Setup
     field :nil_data_type, type: Boolean
     field :data_type_scope, type: String
     field :scope_filter, type: String
+    belongs_to :scope_evaluator, class_name: Setup::Algorithm.to_s, inverse_of: nil
     field :lot_size, type: Integer
 
     belongs_to :webhook, class_name: Setup::Webhook.to_s, inverse_of: nil
@@ -43,13 +44,20 @@ module Setup
           rejects(:custom_data_type)
         end
         if translator.type == :Import
-          rejects(:data_type_scope)
+          rejects(:data_type_scope, :scope_filter, :scope_evaluator)
         else
           requires(:data_type_scope) unless translator.type == :Export && data_type.nil?
-          if scope_symbol == :filtered
+          case scope_symbol
+          when :filtered
             format_triggers_on(:scope_filter, true)
-          else
+            rejects(:scope_evaluator)
+          when :evaluation
+            unless requires(:scope_evaluator)
+              errors.add(:scope_evaluator, 'must receive one parameter') unless scope_evaluator.parameters.count == 1
+            end
             rejects(:scope_filter)
+          else
+            rejects(:scope_filter, :scope_evaluator)
           end
         end
         if [:Import, :Export].include?(translator.type)
@@ -107,6 +115,7 @@ module Setup
         enum << 'Event source' if event && event.try(:data_type) == data_type
         enum << "All #{data_type.title.downcase.pluralize}"
         enum << 'Filter'
+        enum << 'Evaluator'
       end
       enum
     end
@@ -185,7 +194,7 @@ module Setup
       if translator.source_handler
         translator.run(object_ids: object_ids, discard_events: discard_events, task: message[:task])
       else
-        if objects_ids
+        if object_ids
           data_type.records_model.any_in(id: object_ids)
         else
           data_type.records_model.all
@@ -328,6 +337,8 @@ module Setup
         [id]
       elsif scope_symbol == :filtered
         data_type.records_model.all.select { |record| field_triggers_apply_to?(:scope_filter, record) }.collect(&:id)
+      elsif scope_symbol == :evaluation
+        data_type.records_model.all.select { |record| scope_evaluator.run(record).present? }.collect(&:id)
       else
         nil
       end
@@ -339,6 +350,8 @@ module Setup
           :event_source
         elsif data_type_scope.start_with?('Filter')
           :filtered
+        elsif data_type_scope.start_with?('Eval')
+          :evaluation
         else
           :all
         end

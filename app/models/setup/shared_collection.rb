@@ -39,6 +39,14 @@ module Setup
 
     before_save :check_dependencies, :validate_configuration, :ensure_shared_name, :save_source_collection, :categorize, :on_saving
 
+    def ready_to_save?
+      !(@_selecting_connections || @_selecting_dependencies)
+    end
+
+    def can_be_restarted?
+      ready_to_save?
+    end
+
     def read_attribute(name)
       value = super
       if name.to_s == 'data' && value.is_a?(String)

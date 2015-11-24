@@ -3,10 +3,19 @@
 
   .form-group.form-actions
     .col-sm-offset-2.col-sm-10
-      %button.btn.btn-primary{type: 'submit', name: '_save', (@action.class.try(:disable_buttons?) ? :'data-disable-with' : nil) => wording_for(:menu, @action)}
-        %i{class: @action.try(:link_icon)}
-        = wording_for(:menu, @action)
+      - if (save_buttons = @form_object.try(:ready_to_save?)) || save_buttons.nil?
+        %button.btn.btn-primary{type: 'submit', name: '_save', (@action.class.try(:disable_buttons?) ? :'data-disable-with' : nil) => wording_for(:menu, @action)}
+          %i{class: @action.try(:link_icon)}
+          = wording_for(:menu, @action)
+      - else
+        %button.btn.btn-info{type: 'submit', name: '_next', :'data-disable-with' => t('admin.actions.new_wizard.next')}
+          %i.icon-forward
+          = t('admin.actions.new_wizard.next')
       %span.extra_buttons
+        - if @form_object.try(:can_be_restarted?)
+          %button.btn.btn-info{type: 'submit', name: '_restart', :'data-disable-with' => t('admin.actions.new_wizard.restart')}
+            %i.icon-repeat
+            = t('admin.actions.new_wizard.restart')
         %button.btn{type: 'submit', name: '_continue', (@action.class.try(:disable_buttons?) ? :'data-disable-with' : nil) => t('admin.form.cancel')}
           %i.icon-remove
           = t('admin.form.cancel')
