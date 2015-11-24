@@ -202,7 +202,7 @@ module Setup
 
     def source_options(options, source_key_options)
       data_type_key = source_key_options[:data_type_key] || :source_data_type
-      if data_type = send(data_type_key) || options[:data_type]
+      if data_type = send(data_type_key) || options[data_type_key] || options[:data_type]
         model = data_type.records_model
         offset = options[:offset] || 0
         limit = options[:limit]
