@@ -66,6 +66,7 @@ module Setup
           notify(message: "Restarting task ##{id} at #{Time.now}", type: :notice)
         else
           self.attempts += 1
+          self.progress = 0
           notify(type: :info, message: "Task ##{id} started at #{Time.now}")
         end
         self.retries += 1 if status == :retrying
@@ -79,7 +80,11 @@ module Setup
         end
       end
     rescue Exception => ex
-      finish(:failed, "Task ##{id} failed at #{Time.now}: #{ex.message}", :error)
+      if ex.is_a?(Task::Exception)
+        finish(ex.status, ex.message, ex.message_type)
+      else
+        finish(:failed, "Task ##{id} failed at #{Time.now}: #{ex.message}", :error)
+      end
     end
 
     def run(message)
@@ -155,6 +160,28 @@ module Setup
     class << self
       def process(message = {})
         Cenit::Rabbit.enqueue(message.merge(task: self))
+      end
+    end
+
+    class Exception < ::Exception
+
+      def initialize(msg, options = {})
+        super(msg)
+        @options = options || {}
+      end
+
+      def status
+        @options[:status] || :failed
+      end
+
+      def message_type
+        @options[:message_type] || :error
+      end
+    end
+
+    class Broken < Exception
+      def initialize(msg)
+        super(msg, status: :broken, message_type: :warning)
       end
     end
 
