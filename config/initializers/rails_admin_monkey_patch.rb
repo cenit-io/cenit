@@ -161,6 +161,31 @@ module RailsAdmin
           end
         end
       end
+
+      class Dashboard
+        register_instance_option :controller do
+          proc do
+            @history = @auditing_adapter && @auditing_adapter.latest || []
+            if @action.statistics?
+              @abstract_models = RailsAdmin::Config.visible_models(controller: self).collect(&:abstract_model)
+
+              @most_recent_changes = {}
+              @count = {}
+              @max = 0
+              @abstract_models.each do |t|
+                scope = @authorization_adapter && @authorization_adapter.query(:index, t)
+                current_count = t.count({}, scope)
+                @max = current_count > @max ? current_count : @max
+                @count[t.model.name] = current_count
+                next unless t.properties.detect { |c| c.name == :updated_at }
+                # Patch
+                # @most_recent_changes[t.model.name] = t.first(sort: "#{t.table_name}.updated_at").try(:updated_at)
+              end
+            end
+            render @action.template_name, status: (flash[:error].present? ? :not_found : 200)
+          end
+        end
+      end
     end
 
     module Fields

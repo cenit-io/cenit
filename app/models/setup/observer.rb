@@ -30,6 +30,9 @@ module Setup
       else
         trigger_evaluator.run([obj_now, obj_before]).present?
       end
+    rescue Exception => ex
+      Setup::Notification.create(message: ex.message)
+      false
     end
 
     class << self
