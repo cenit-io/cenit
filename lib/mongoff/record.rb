@@ -138,7 +138,7 @@ module Mongoff
           value = [value]
           [self[association.name]]
         end.each do |associated|
-          associates[associated.to_hash(only: :id)['id']] = associated
+          associates[associated.to_hash(only: :id)['id']] = associated if associated
         end
         new_associates = []
         value.each do |attributes|
