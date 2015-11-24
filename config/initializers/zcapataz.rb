@@ -47,7 +47,7 @@ Capataz.config do
   allow_for [Class], [:where, :all, :new_sign, :digest, :now]
 
   deny_for [Setup::DynamicRecord, Mongoff::Record], ->(instance, method) do
-    return false if [:id, :to_json, :to_edi, :to_hash, :to_xml, :to_params, :[], :[]=, :save, :all, :where, :records_model].include?(method)
+    return false if [:id, :to_json, :to_edi, :to_hash, :to_xml, :to_params, :[], :[]=, :save, :all, :where, :records_model, :nil?, :==].include?(method)
     return false if [:data].include?(method) && instance.is_a?(Mongoff::GridFs::FileFormatter)
     if (method = method.to_s).end_with?('=')
       method = method.chop
