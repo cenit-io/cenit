@@ -233,6 +233,16 @@ RailsAdmin.config do |config|
       read_only true
     end
 
+    configure :before_save_callbacks do
+      group :behavior
+      inline_add false
+      associated_collection_scope do
+        Proc.new { |scope|
+          scope.where(:parameters.with_size => 1)
+        }
+      end
+    end
+
     configure :records_methods do
       group :behavior
       inline_add false
@@ -245,6 +255,7 @@ RailsAdmin.config do |config|
 
     edit do
       field :title
+      field :before_save_callbacks
       field :records_methods
       field :data_type_methods
     end
@@ -365,6 +376,16 @@ RailsAdmin.config do |config|
       inline_edit false
     end
 
+    configure :before_save_callbacks do
+      group :behavior
+      inline_add false
+      associated_collection_scope do
+        Proc.new { |scope|
+          scope.where(:parameters.with_size => 1)
+        }
+      end
+    end
+
     configure :records_methods do
       group :behavior
       inline_add false
@@ -382,6 +403,7 @@ RailsAdmin.config do |config|
       field :slug
       field :validators
       field :schema_data_type
+      field :before_save_callbacks
       field :records_methods
       field :data_type_methods
     end
@@ -460,6 +482,16 @@ RailsAdmin.config do |config|
       end
     end
 
+    configure :before_save_callbacks do
+      group :behavior
+      inline_add false
+      associated_collection_scope do
+        Proc.new { |scope|
+          scope.where(:parameters.with_size => 1)
+        }
+      end
+    end
+
     configure :records_methods do
       group :behavior
       inline_add false
@@ -478,6 +510,7 @@ RailsAdmin.config do |config|
       field :schema, :json_schema do
         help { 'Required' }
       end
+      field :before_save_callbacks
       field :records_methods
       field :data_type_methods
     end

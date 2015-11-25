@@ -82,24 +82,25 @@ module Mongoff
         errors.add(:base, error[:message])
       end
       begin
-        Model.before_save.call(self)
-        if new_record?
-          orm_model.collection.insert_one(attributes)
-          @new_record = false
-        else
-          query = orm_model.collection.find(_id: id)
-          set = attributes
-          unset = {}
-          if doc = query.first
-            doc.keys.each { |key| unset[key] = '' unless set.has_key?(key) }
+        if Model.before_save.call(self) && before_save_callbacks
+          if new_record?
+            orm_model.collection.insert_one(attributes)
+            @new_record = false
+          else
+            query = orm_model.collection.find(_id: id)
+            set = attributes
+            unset = {}
+            if doc = query.first
+              doc.keys.each { |key| unset[key] = '' unless set.has_key?(key) }
+            end
+            update = {'$set' => set}
+            if unset.present?
+              update['$unset'] = unset
+            end
+            query.update_one(update)
           end
-          update = {'$set' => set}
-          if unset.present?
-            update['$unset'] = unset
-          end
-          query.update_one(update)
+          Model.after_save.call(self)
         end
-        Model.after_save.call(self)
       rescue Exception => ex
         errors.add(:base, ex.message)
       end if errors.blank?
@@ -261,6 +262,15 @@ module Mongoff
           end
         end
       end
+    end
+
+    def before_save_callbacks
+      success = true
+      orm_model.data_type.before_save_callbacks.each do |callback|
+        next unless success
+        success = success && callback.run(self).present?
+      end
+      success
     end
   end
 end
