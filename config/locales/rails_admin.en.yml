@@ -70,7 +70,7 @@ en:
         submit: "Import"
         done: "created"
         doing: "import"
-      edi_export:
+      bulk_export:
         title: "Export"
         menu: "Export"
         breadcrumb: "Export"
@@ -78,6 +78,13 @@ en:
         done: "exported"
         doing: "execution"
         bulk_link: "Export selected %{model_label_plural}"
+      simple_export:
+        title: "Export"
+        menu: "Export"
+        breadcrumb: "Export"
+        submit: "Export"
+        done: "exported"
+        doing: "execution"
       import_schema:
         title: "Import"
         menu: "Import"

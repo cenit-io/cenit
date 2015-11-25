@@ -13,10 +13,6 @@ module RailsAdmin
           end
         end
 
-        register_instance_option :collection do
-          true
-        end
-
         register_instance_option :http_methods do
           [:get, :post]
         end
@@ -24,7 +20,7 @@ module RailsAdmin
         register_instance_option :controller do
           proc do
 
-            @bulk_ids = params.delete(:bulk_ids)
+            @bulk_ids = (@object && [@object.id]) || params.delete(:bulk_ids)
             if object_ids = params.delete(:object_ids)
               @bulk_ids = object_ids
             end
@@ -73,10 +69,6 @@ module RailsAdmin
           end
         end
 
-        register_instance_option :bulkable? do
-          true
-        end
-
         class << self
 
           def translator_type
@@ -87,8 +79,8 @@ module RailsAdmin
             true
           end
         end
-      end
 
+      end
     end
   end
 end
