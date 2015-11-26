@@ -60,12 +60,14 @@ RailsAdmin.config do |config|
   config.audit_with :mongoid_audit
   config.authorize_with :cancan
 
+  config.excluded_models << Setup::BaseOauthAuthorization
+
   config.actions do
     dashboard # mandatory
     # memory_usage
     # disk_usage
     index # mandatory
-    new { except [Setup::Event, Setup::DataType, Setup::BaseOauthAuthorization, Setup::BaseOauthProvider] }
+    new { except [Setup::Event, Setup::DataType, Setup::Authorization, Setup::BaseOauthProvider] }
     import
     import_schema
     translator_update
@@ -555,20 +557,11 @@ RailsAdmin.config do |config|
   config.model Setup::Connection do
     object_label_method { :custom_title }
     weight -15
-    configure :name, :string do
-      help 'Requiered.'
-      html_attributes do
-        {maxlength: 30, size: 30}
-      end
-    end
-    configure :url do
-      html_attributes do
-        {cols: '50', rows: '1'}
-      end
-    end
+
     group :credentials do
-      label "Credentials"
+      label 'Credentials'
     end
+
     configure :key, :string do
       visible { bindings[:view]._current_user.has_role? :admin }
       html_attributes do
@@ -576,6 +569,7 @@ RailsAdmin.config do |config|
       end
       group :credentials
     end
+
     configure :token, :text do
       visible { bindings[:view]._current_user.has_role? :admin }
       html_attributes do
@@ -584,8 +578,19 @@ RailsAdmin.config do |config|
       group :credentials
     end
 
+    configure :authorization do
+      group :credentials
+      inline_edit false
+      visible { bindings[:view]._current_user.has_role? :admin }
+    end
+
+    configure :authorization_handler do
+      group :credentials
+      visible { bindings[:view]._current_user.has_role? :admin }
+    end
+
     group :parameters do
-      label "Parameters & Headers"
+      label 'Parameters & Headers'
     end
     configure :parameters do
       group :parameters
@@ -599,11 +604,6 @@ RailsAdmin.config do |config|
       group :parameters
       visible { bindings[:view]._current_user.has_role? :admin }
     end
-    configure :oauth2_authorization do
-      group :parameters
-      inline_edit false
-      visible { bindings[:view]._current_user.has_role? :admin }
-    end
 
     show do
       field :namespace
@@ -612,11 +612,12 @@ RailsAdmin.config do |config|
 
       field :key
       field :token
+      field :authorization
+      field :authorization_handler
 
       field :parameters
       field :headers
       field :template_parameters
-      field :oauth2_authorization
 
       field :_id
       field :created_at
@@ -625,7 +626,7 @@ RailsAdmin.config do |config|
       #field :updater
     end
 
-    fields :namespace, :name, :url, :parameters, :headers, :template_parameters, :oauth2_authorization, :key, :token
+    fields :namespace, :name, :url, :key, :token, :authorization, :authorization_handler, :parameters, :headers, :template_parameters
   end
 
   config.model Setup::Parameter do
@@ -1017,7 +1018,7 @@ RailsAdmin.config do |config|
         help 'Required'
       end
       field :trigger_evaluator do
-        visible { (obj = bindings[:object]).data_type.blank? || obj.trigger_evaluator.present? || obj.triggers.nil?}
+        visible { (obj = bindings[:object]).data_type.blank? || obj.trigger_evaluator.present? || obj.triggers.nil? }
         associated_collection_scope do
           Proc.new { |scope|
             scope.all.or(:parameters.with_size => 1).or(:parameters.with_size => 2)
@@ -1837,13 +1838,15 @@ RailsAdmin.config do |config|
     fields :provider, :name, :description, :tenant, :shared
   end
 
-  config.model Setup::BaseOauthAuthorization do
-    label 'Authorizations'
-    fields :name, :provider, :client
+  config.model Setup::Authorization do
+    fields :namespace, :name
   end
 
   config.model Setup::OauthAuthorization do
+    parent Setup::Authorization
+
     edit do
+      field :namespace
       field :name
       field :provider do
         inline_add false
@@ -1883,10 +1886,51 @@ RailsAdmin.config do |config|
       end
     end
 
+    group :credentials do
+      label 'Credentials'
+    end
+
+    configure :access_token do
+      group :credentials
+    end
+
+    configure :token_span do
+      group :credentials
+    end
+
+    configure :authorized_at do
+      group :credentials
+    end
+
+    configure :access_token_secret do
+      group :credentials
+    end
+
+    configure :realm do
+      group :credentials
+    end
+
+    show do
+      field :namespace
+      field :name
+      field :provider
+      field :client
+
+      field :access_token
+      field :access_token_secret
+      field :realm
+      field :token_span
+      field :authorized_at
+    end
+
+    fields :namespace, :name, :provider, :client
   end
 
   config.model Setup::Oauth2Authorization do
+    parent Setup::Authorization
+
     edit do
+      field :namespace
       field :name
       field :provider do
         inline_add false
@@ -1939,6 +1983,44 @@ RailsAdmin.config do |config|
       end
     end
 
+    group :credentials do
+      label 'Credentials'
+    end
+
+    configure :access_token do
+      group :credentials
+    end
+
+    configure :token_span do
+      group :credentials
+    end
+
+    configure :authorized_at do
+      group :credentials
+    end
+
+    configure :refresh_token do
+      group :credentials
+    end
+
+    configure :token_type do
+      group :credentials
+    end
+
+    show do
+      field :namespace
+      field :name
+      field :provider
+      field :client
+      field :scopes
+
+      field :token_type
+      field :access_token
+      field :token_span
+      field :authorized_at
+    end
+
+    fields :namespace, :name, :provider, :client, :scopes
   end
 
   config.model Setup::Raml do

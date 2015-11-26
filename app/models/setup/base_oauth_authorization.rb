@@ -1,12 +1,12 @@
 module Setup
-  class BaseOauthAuthorization
+  class BaseOauthAuthorization < Setup::Authorization
     include CenitScoped
-    include NamespaceNamed
-    include ClassHierarchyAware
+
+    abstract_class true
 
     Setup::Models.exclude_actions_for self, :all
 
-    BuildInDataType.regist(self).with(:name, :provider, :client).referenced_by(:namespace, :name)
+    BuildInDataType.regist(self).with(:namespace, :name, :provider, :client).referenced_by(:namespace, :name)
 
     belongs_to :provider, class_name: Setup::BaseOauthProvider.to_s, inverse_of: nil
     belongs_to :client, class_name: Setup::OauthClient.to_s, inverse_of: nil
@@ -15,19 +15,10 @@ module Setup
     field :token_span, type: BigDecimal
     field :authorized_at, type: Time
 
-    validates_presence_of :name, :provider, :client
-    validates_uniqueness_of :name
+    validates_presence_of :provider, :client
 
-    before_save :check_instance_type
-
-    def check_instance_type
-      if self.is_a?(Setup::OauthAuthorization) || self.is_a?(Setup::Oauth2Authorization)
-        true
-      else
-        errors.add(:base, 'An authorization must be of type Oauth or Oauth2')
-        false
-      end
-    end
+    auth_headers Authorization: ->(auth) { auth.token_type + ' ' + auth.access_token }
+    auth_template_parameters access_token: :access_token
 
     def ready_to_save?
       provider.present?

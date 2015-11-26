@@ -32,7 +32,7 @@ class Ability
               Setup::Oauth2Provider,
               Setup::OauthClient,
               Setup::Oauth2Scope,
-              Setup::BaseOauthAuthorization,
+              Setup::Authorization,
               Setup::OauthAuthorization,
               Setup::Oauth2Authorization,
               Setup::OauthParameter,

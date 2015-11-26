@@ -5,9 +5,11 @@ module Setup
     include CrossTenancy
     include ClassHierarchyAware
 
+    abstract_class true
+
     Setup::Models.exclude_actions_for self, :all
 
-    BuildInDataType.regist(self).referenced_by(:namespace, :name)
+    BuildInDataType.regist(self).referenced_by(:namespace, :name).excluding(:tenant)
 
     field :response_type, type: String
     field :authorization_endpoint, type: String
@@ -23,18 +25,6 @@ module Setup
     validates_inclusion_of :token_method, in: ->(provider) { provider.token_method_enum }
 
     accepts_nested_attributes_for :parameters, allow_destroy: true
-
-    before_save :check_instance_type
-
-    def check_instance_type
-      if self.is_a?(Setup::OauthProvider) || self.is_a?(Setup::Oauth2Provider)
-        true
-      else
-        errors.add(:base, 'A provider must be of type Oauth or Oauth2')
-        false
-      end
-    end
-
 
     def response_type_enum
       ['code']

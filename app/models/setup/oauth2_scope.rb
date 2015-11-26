@@ -6,7 +6,7 @@ module Setup
 
     Setup::Models.exclude_actions_for self, :all
 
-    BuildInDataType.regist(self).referenced_by(:name, :provider)
+    BuildInDataType.regist(self).referenced_by(:name, :provider).excluding(:tenant)
 
     field :name, type: String
     field :description, type: String

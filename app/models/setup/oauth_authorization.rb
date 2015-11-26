@@ -4,10 +4,12 @@ module Setup
 
     Setup::Models.exclude_actions_for self, :all
 
-    BuildInDataType.regist(self).with(:name, :provider, :client).referenced_by(:namespace, :name)
+    BuildInDataType.regist(self).with(:namespace, :name, :provider, :client).referenced_by(:namespace, :name)
 
     field :access_token_secret, type: String
     field :realm, type: String
+
+    auth_template_parameters access_token_secret: :access_token_secret
 
     def callback_key
       :oauth_callback

@@ -6,7 +6,7 @@ module Setup
 
     Setup::Models.exclude_actions_for self, :all
 
-    BuildInDataType.regist(self).referenced_by(:namespace, :name).excluding(:identifier, :secret)
+    BuildInDataType.regist(self).referenced_by(:namespace, :name).excluding(:tenant, :identifier, :secret)
 
     belongs_to :provider, class_name: Setup::BaseOauthProvider.to_s, inverse_of: :clients
 
