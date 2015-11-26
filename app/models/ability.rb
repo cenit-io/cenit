@@ -16,9 +16,8 @@ class Ability
                         Setup::OauthClient,
                         Setup::Oauth2Scope]
 
-      can [:index, :create], @@oauth_models
-      can(:show, @@oauth_models) { |record| record.creator.super_admin? || record.creator.account_id.eql?(user.account_id) }
-      can([:destroy, :edit], @@oauth_models, tenant_id: user.account_id)
+      can [:index, :show, :create, :import, :convert, :edi_export, :simple_export], @@oauth_models
+      can([:destroy, :edit], @@oauth_models) { |record| user.super_admin? || record.creator.account_id.eql?(user.account_id) }
 
       if user.super_admin?
         can :manage,

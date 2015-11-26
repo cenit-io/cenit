@@ -1745,6 +1745,8 @@ RailsAdmin.config do |config|
 
     configure :tenant do
       visible { User.current.super_admin? }
+      read_only { true }
+      help ''
     end
 
     configure :shared do
@@ -1759,6 +1761,8 @@ RailsAdmin.config do |config|
 
     configure :tenant do
       visible { User.current.super_admin? }
+      read_only { true }
+      help ''
     end
 
     configure :shared do
@@ -1773,6 +1777,8 @@ RailsAdmin.config do |config|
 
     configure :tenant do
       visible { User.current.super_admin? }
+      read_only { true }
+      help ''
     end
 
     configure :shared do
@@ -1794,6 +1800,8 @@ RailsAdmin.config do |config|
 
     configure :tenant do
       visible { User.current.super_admin? }
+      read_only { true }
+      help ''
     end
 
     configure :shared do
@@ -1802,20 +1810,20 @@ RailsAdmin.config do |config|
 
     configure :identifier do
       pretty_value do
-        if User.current.super_admin? || User.current.eql?(bindings[:object].creator)
+        if User.current.super_admin? || Account.current.users.collect(&:id).include?(bindings[:object].creator_id)
           value
         else
-          '<i class="icon-ban-circle"/>'.html_safe
+          '<i class="icon-lock"/>'.html_safe
         end
       end
     end
 
     configure :secret do
       pretty_value do
-        if User.current.super_admin? || User.current.eql?(bindings[:object].creator)
+        if User.current.super_admin? || Account.current.users.collect(&:id).include?(bindings[:object].creator_id)
           value
         else
-          '<i class="icon-ban-circle"/>'.html_safe
+          '<i class="icon-lock"/>'.html_safe
         end
       end
     end
@@ -1829,6 +1837,8 @@ RailsAdmin.config do |config|
 
     configure :tenant do
       visible { User.current.super_admin? }
+      read_only { true }
+      help ''
     end
 
     configure :shared do

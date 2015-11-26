@@ -4,7 +4,7 @@ module Setup
 
     Setup::Models.exclude_actions_for self, :all
 
-    BuildInDataType.regist(self).referenced_by(:namespace, :name).excluding(:tenant)
+    BuildInDataType.regist(self).referenced_by(:namespace, :name).excluding(:shared)
 
     has_many :scopes, class_name: Setup::Oauth2Scope.to_s, inverse_of: :provider
 
