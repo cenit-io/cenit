@@ -8,6 +8,8 @@ module Setup
     include Mongoff::DataTypeMethods
     include ClassHierarchyAware
 
+    abstract_class true
+
     Setup::Models.exclude_actions_for self, :update, :bulk_delete, :delete, :delete_all
 
     BuildInDataType.regist(self).referenced_by(:name, :library).including(:slug)
@@ -52,17 +54,9 @@ module Setup
 
     scope :activated, -> { where(activated: true) }
 
-    before_save :check_instance_type, :validates_configuration, :on_saving
-    after_save :on_saved
+    before_save :validates_configuration, :on_saving
 
-    def check_instance_type
-      if self.is_a?(Setup::SchemaDataType) || self.is_a?(Setup::FileDataType)
-        true
-      else
-        errors.add(:base, 'A data type must be of type Schema or File')
-        false
-      end
-    end
+    after_save :on_saved
 
     def validates_configuration
       invalid_algorithms = []
