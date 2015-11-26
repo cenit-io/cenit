@@ -29,9 +29,10 @@
  RailsAdmin::Config::Actions::SimpleExpand,
  RailsAdmin::Config::Actions::BulkExpand,
  RailsAdmin::Config::Actions::Records,
- RailsAdmin::Config::Actions::SwitchScheduler].each { |a| RailsAdmin::Config::Actions.register(a) }
+ RailsAdmin::Config::Actions::SwitchScheduler,
+ RailsAdmin::Config::Actions::SimpleExport].each { |a| RailsAdmin::Config::Actions.register(a) }
 
-RailsAdmin::Config::Actions.register(:export, RailsAdmin::Config::Actions::EdiExport)
+RailsAdmin::Config::Actions.register(:export, RailsAdmin::Config::Actions::BulkExport)
 RailsAdmin::Config::Fields::Types.register(RailsAdmin::Config::Fields::Types::JsonValue)
 RailsAdmin::Config::Fields::Types.register(RailsAdmin::Config::Fields::Types::JsonSchema)
 RailsAdmin::Config::Fields::Types.register(RailsAdmin::Config::Fields::Types::StorageFile)
@@ -58,9 +59,6 @@ RailsAdmin.config do |config|
   config.current_user_method { current_user }
   config.audit_with :mongoid_audit
   config.authorize_with :cancan
-
-  config.excluded_models << Setup::Raml
-  config.excluded_models << Setup::RamlReference
 
   config.actions do
     dashboard # mandatory
@@ -94,6 +92,7 @@ RailsAdmin.config do |config|
     records
     switch_navigation
     switch_scheduler
+    simple_export
     simple_delete_data_type
     bulk_delete_data_type
     delete
@@ -234,6 +233,16 @@ RailsAdmin.config do |config|
       read_only true
     end
 
+    configure :before_save_callbacks do
+      group :behavior
+      inline_add false
+      associated_collection_scope do
+        Proc.new { |scope|
+          scope.where(:parameters.with_size => 1)
+        }
+      end
+    end
+
     configure :records_methods do
       group :behavior
       inline_add false
@@ -246,6 +255,7 @@ RailsAdmin.config do |config|
 
     edit do
       field :title
+      field :before_save_callbacks
       field :records_methods
       field :data_type_methods
     end
@@ -366,6 +376,16 @@ RailsAdmin.config do |config|
       inline_edit false
     end
 
+    configure :before_save_callbacks do
+      group :behavior
+      inline_add false
+      associated_collection_scope do
+        Proc.new { |scope|
+          scope.where(:parameters.with_size => 1)
+        }
+      end
+    end
+
     configure :records_methods do
       group :behavior
       inline_add false
@@ -383,6 +403,7 @@ RailsAdmin.config do |config|
       field :slug
       field :validators
       field :schema_data_type
+      field :before_save_callbacks
       field :records_methods
       field :data_type_methods
     end
@@ -461,6 +482,16 @@ RailsAdmin.config do |config|
       end
     end
 
+    configure :before_save_callbacks do
+      group :behavior
+      inline_add false
+      associated_collection_scope do
+        Proc.new { |scope|
+          scope.where(:parameters.with_size => 1)
+        }
+      end
+    end
+
     configure :records_methods do
       group :behavior
       inline_add false
@@ -479,6 +510,7 @@ RailsAdmin.config do |config|
       field :schema, :json_schema do
         help { 'Required' }
       end
+      field :before_save_callbacks
       field :records_methods
       field :data_type_methods
     end
