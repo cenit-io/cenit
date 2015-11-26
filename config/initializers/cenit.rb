@@ -64,7 +64,7 @@ Cenit.config do
 
   min_scheduler_interval 60
 
-  scheduler_lookup_interval 600
+  scheduler_lookup_interval 60
 
   default_delay 60
 end
