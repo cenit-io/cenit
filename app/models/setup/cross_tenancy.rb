@@ -6,7 +6,7 @@ module Setup
 
     included do
 
-      BuildInDataType.regist(self).excluding(:shared)
+      BuildInDataType.regist(self).excluding(:shared, :tenant)
 
       field :shared, type: Boolean
       belongs_to :tenant, class_name: Account.to_s, inverse_of: nil
@@ -20,15 +20,10 @@ module Setup
         true
       end
 
-      default_scope -> { User.current.super_admin? ? all : any_of({shared: true}, {creator_id: { '$in' => Account.current.users.collect(&:id)}}) }
+      default_scope -> { User.current.super_admin? ? all : any_of({shared: true}, {creator_id: {'$in' => Account.current.users.collect(&:id)}}) }
 
       def read_attribute(name)
-        value = super
-        if !BuildInDataType[self.class].protecting?(name) || Account.current == creator.account || User.current.super_admin?
-          value
-        else
-          nil
-        end
+        (!(value = super).nil? && (!BuildInDataType[self.class].protecting?(name) || Account.current == creator.account || User.current.super_admin?) && value)|| nil
       end
 
     end

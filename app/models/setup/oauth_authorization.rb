@@ -2,8 +2,6 @@ module Setup
   class OauthAuthorization < Setup::BaseOauthAuthorization
     include CenitScoped
 
-    Setup::Models.exclude_actions_for self, :all
-
     BuildInDataType.regist(self).with(:namespace, :name, :provider, :client).referenced_by(:namespace, :name)
 
     field :access_token_secret, type: String
@@ -22,7 +20,7 @@ module Setup
       options[:request_token_url] ||= provider.request_token_endpoint
       options[:authorize_url] ||= provider.authorization_endpoint
       options[:access_token_url] ||= provider.token_endpoint
-      OAuth::Consumer.new(client.identifier, client.secret, options)
+      OAuth::Consumer.new(client.attributes[:identifier], client.attributes[:secret], options)
     end
 
     def authorize_url(params)

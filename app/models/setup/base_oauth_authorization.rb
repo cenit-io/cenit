@@ -4,8 +4,6 @@ module Setup
 
     abstract_class true
 
-    Setup::Models.exclude_actions_for self, :all
-
     BuildInDataType.regist(self).with(:namespace, :name, :provider, :client).referenced_by(:namespace, :name)
 
     belongs_to :provider, class_name: Setup::BaseOauthProvider.to_s, inverse_of: nil

@@ -163,16 +163,19 @@ module Cenit
               values_to_save.each do |value|
                 unless saved.include?(value)
                   new_record = value.new_record?
-                  if value.save(options)
-                    if new_record || value.instance_variable_get(:@dynamically_created)
-                      value.instance_variable_set(:@dynamically_created, true)
-                      options[:create_collector] << value if options[:create_collector]
+                  if value.changed?
+                    if value.save(options)
+                      if new_record || value.instance_variable_get(:@dynamically_created)
+                        value.instance_variable_set(:@dynamically_created, true)
+                        options[:create_collector] << value if options[:create_collector]
+                      else
+                        options[:update_collector] << value if options[:update_collector]
+                      end
+                      saved << value
                     else
-                      options[:update_collector] << value if options[:update_collector]
+                      return false
                     end
                     saved << value
-                  else
-                    return false
                   end
                 end
               end unless relation[:embedded]

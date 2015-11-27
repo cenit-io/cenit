@@ -22,6 +22,7 @@ module Mongoff
       end
       assign_attributes(attributes)
       Cenit::Utility.for_each_node_starting_at(self) { |record| record.instance_variable_set(:@new_record, false) } unless @new_record
+      @changed = false
     end
 
     def attributes
@@ -127,7 +128,12 @@ module Mongoff
       end
     end
 
+    def changed?
+      @changed
+    end
+
     def []=(field, value)
+      @changed = true
       field = :_id if %w(id _id).include?(field.to_s)
       if !orm_model.property?(field) && association = nested_attributes_association(field)
         fail "invalid attributes format #{value}" unless value.is_a?(Hash)

@@ -6,9 +6,7 @@ module Setup
 
     abstract_class true
 
-    Setup::Models.exclude_actions_for self
-
-    BuildInDataType.regist(self).referenced_by(:namespace, :name)
+      BuildInDataType.regist(self).referenced_by(:namespace, :name)
 
     def method_missing(symbol, *args)
       if [:each_header, :each_template_parameter].include?(symbol) && block_given?

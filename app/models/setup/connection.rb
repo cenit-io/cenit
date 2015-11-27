@@ -57,11 +57,11 @@ module Setup
     end
 
     def other_headers_each(&block)
-      authorization.each_header(&block) if authorization_handler && block
+      authorization.each_header(&block) if !authorization_handler && block
     end
 
     def other_template_parameters_each(&block)
-      authorization.each_template_parameter(&block) if !authorization_handler && block
+      authorization.each_template_parameter(&block) if authorization_handler && block
     end
 
     private

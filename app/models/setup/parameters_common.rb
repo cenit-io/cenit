@@ -29,7 +29,7 @@ module Setup
       unless templates = instance_variable_get(var = "@_#{field}_templates".to_sym)
         templates = {}
         send(field).each { |p| templates[p.key] = Liquid::Template.parse(p.value) }
-        try("other_#{field}_each") { |key, value| templates[key] = Liquid::Template.parse(value) }
+        try("other_#{field}_each".to_sym) { |key, value| templates[key] = Liquid::Template.parse(value) }
         instance_variable_set(var, templates)
       end
       hash = {}

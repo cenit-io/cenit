@@ -17,7 +17,7 @@ class Ability
                         Setup::Oauth2Scope]
 
       can [:index, :show, :create, :import, :convert, :edi_export, :simple_export], @@oauth_models
-      can([:destroy, :edit], @@oauth_models) { |record| user.super_admin? || record.creator.account_id.eql?(user.account_id) }
+      can([:destroy, :edit], @@oauth_models) { |record| user.super_admin? || ((creator = record.creator) && creator.account_id.eql?(user.account_id)) }
 
       if user.super_admin?
         can :manage,
@@ -26,15 +26,6 @@ class Ability
               User,
               Account,
               Setup::SharedName,
-              Setup::BaseOauthProvider,
-              Setup::OauthProvider,
-              Setup::Oauth2Provider,
-              Setup::OauthClient,
-              Setup::Oauth2Scope,
-              Setup::Authorization,
-              Setup::OauthAuthorization,
-              Setup::Oauth2Authorization,
-              Setup::OauthParameter,
               CenitToken,
               TkAptcha,
               Script,

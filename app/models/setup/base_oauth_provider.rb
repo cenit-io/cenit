@@ -7,8 +7,6 @@ module Setup
 
     abstract_class true
 
-    Setup::Models.exclude_actions_for self, :all
-
     BuildInDataType[self].referenced_by(:namespace, :name)
 
     field :response_type, type: String

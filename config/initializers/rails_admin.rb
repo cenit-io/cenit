@@ -1482,6 +1482,22 @@ RailsAdmin.config do |config|
       group :setup
     end
 
+    configure :authorizations do
+      group :setup
+    end
+
+    configure :oauth_providers do
+      group :setup
+    end
+
+    configure :oauth_clients do
+      group :setup
+    end
+
+    configure :oauth2_scopes do
+      group :setup
+    end
+
     configure :data do
       group :data
     end
@@ -1498,6 +1514,10 @@ RailsAdmin.config do |config|
       field :algorithms
       field :webhooks
       field :connections
+      field :authorizations
+      field :oauth_providers
+      field :oauth_clients
+      field :oauth2_scopes
       field :data
 
       field :_id
@@ -1506,7 +1526,7 @@ RailsAdmin.config do |config|
       field :updated_at
       #field :updater
     end
-    fields :image, :name, :flows, :connection_roles, :translators, :events, :libraries, :custom_validators, :algorithms, :webhooks, :connections, :data
+    fields :image, :name, :flows, :connection_roles, :translators, :events, :libraries, :custom_validators, :algorithms, :webhooks, :connections, :authorizations, :oauth_providers, :oauth_clients, :oauth2_scopes, :data
   end
 
   config.model Setup::CustomValidator do
@@ -1769,7 +1789,7 @@ RailsAdmin.config do |config|
       visible { User.current.super_admin? }
     end
 
-    fields :namespace, :name, :response_type, :authorization_endpoint, :token_endpoint, :token_method, :request_token_endpoint, :parameters, :clients, :tenant, :shared
+    fields :namespace, :name, :response_type, :authorization_endpoint, :token_endpoint, :token_method, :request_token_endpoint, :parameters, :tenant, :shared
   end
 
   config.model Setup::Oauth2Provider do
@@ -1785,7 +1805,7 @@ RailsAdmin.config do |config|
       visible { User.current.super_admin? }
     end
 
-    fields :namespace, :name, :response_type, :authorization_endpoint, :token_endpoint, :token_method, :parameters, :clients, :scope_separator, :scopes, :tenant, :shared
+    fields :namespace, :name, :response_type, :authorization_endpoint, :token_endpoint, :token_method, :parameters, :scope_separator, :tenant, :shared
   end
 
   config.model Setup::OauthParameter do
