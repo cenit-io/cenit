@@ -4,9 +4,7 @@ module Setup
     include MandatoryNamespace
     include CrossTenancy
 
-    Setup::Models.exclude_actions_for self, :all
-
-    BuildInDataType.regist(self).referenced_by(:namespace, :name).excluding(:identifier, :secret)
+    BuildInDataType[self].referenced_by(:namespace, :name).protecting(:identifier, :secret)
 
     belongs_to :provider, class_name: Setup::BaseOauthProvider.to_s, inverse_of: :clients
 

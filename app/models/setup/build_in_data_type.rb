@@ -43,6 +43,14 @@ module Setup
       BuildInDataType.build_ins[ref]
     end
 
+    def protecting?(field)
+      (@protecting || []).include?(field.to_s)
+    end
+
+    def protecting(*fields)
+      store_fields(:@protecting, *fields)
+    end
+
     def embedding(*fields)
       store_fields(:@embedding, *fields)
     end
@@ -79,7 +87,7 @@ module Setup
     class << self
 
       def [](ref)
-        build_ins[ref]
+        build_ins[ref.to_s]
       end
 
       def build_ins
@@ -192,6 +200,7 @@ module Setup
           end
         end
       end
+      schema['protected'] = @protecting if @protecting.present?
       schema = @to_merge.deep_merge(schema) if @to_merge
       schema
     end

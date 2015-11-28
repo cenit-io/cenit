@@ -8,6 +8,8 @@ module Setup
     include Mongoff::DataTypeMethods
     include ClassHierarchyAware
 
+    abstract_class true
+
     Setup::Models.exclude_actions_for self, :update, :bulk_delete, :delete, :delete_all
 
     BuildInDataType.regist(self).referenced_by(:name, :library).including(:slug)
@@ -41,6 +43,7 @@ module Setup
 
     belongs_to :library, class_name: Setup::Library.to_s, inverse_of: :data_types
 
+    has_and_belongs_to_many :before_save_callbacks, class_name: Setup::Algorithm.to_s, inverse_of: nil
     has_and_belongs_to_many :records_methods, class_name: Setup::Algorithm.to_s, inverse_of: nil
     has_and_belongs_to_many :data_type_methods, class_name: Setup::Algorithm.to_s, inverse_of: nil
 
@@ -51,19 +54,16 @@ module Setup
 
     scope :activated, -> { where(activated: true) }
 
-    before_save :check_instance_type, :validates_configuration, :on_saving
+    before_save :validates_configuration, :on_saving
+
     after_save :on_saved
 
-    def check_instance_type
-      if self.is_a?(Setup::SchemaDataType) || self.is_a?(Setup::FileDataType)
-        true
-      else
-        errors.add(:base, 'A data type must be of type Schema or File')
-        false
-      end
-    end
-
     def validates_configuration
+      invalid_algorithms = []
+      before_save_callbacks.each { |algorithm| invalid_algorithms << algorithm unless algorithm.parameters.count == 1 }
+      if invalid_algorithms.present?
+        errors.add(:before_save_callbacks, "algorithms should receive just one parameter: #{invalid_algorithms.collect(&:custom_title).to_sentence}")
+      end
       [:records_methods, :data_type_methods].each do |methods|
         by_name = Hash.new { |h, k| h[k] = 0 }
         send(methods).each do |method|

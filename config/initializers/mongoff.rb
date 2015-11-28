@@ -40,6 +40,7 @@ Mongoff::Model.config do
     elsif record.orm_model.observable?
       record.instance_variable_set(:@_obj_before, record.orm_model.where(id: record.id).first)
     end
+    true
   end
 
   after_save ->(record) do
