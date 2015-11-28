@@ -2,7 +2,7 @@ require 'cenit/config'
 
 Cenit.config do
 
-  share_on_github true
+  share_on_github false
 
   github_shared_collections_home ENV['GITHUB_SHARED_COLLECTIONS_HOME']
 
@@ -64,7 +64,7 @@ Cenit.config do
 
   min_scheduler_interval 60
 
-  scheduler_lookup_interval 60
+  scheduler_lookup_interval 30
 
   default_delay 60
 end

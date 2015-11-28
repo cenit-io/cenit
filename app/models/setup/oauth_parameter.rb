@@ -2,8 +2,6 @@ module Setup
   class OauthParameter
     include CenitUnscoped
 
-    Setup::Models.exclude_actions_for self, :all
-
     BuildInDataType.regist(self)
 
     field :key, type: String
