@@ -11,7 +11,11 @@ module Setup
                                            :custom_validators,
                                            :algorithms,
                                            :webhooks,
-                                           :connections).excluding(:image)
+                                           :connections,
+                                           :authorizations,
+                                           :oauth_providers,
+                                           :oauth_clients,
+                                           :oauth2_scopes).excluding(:image)
 
     mount_uploader :image, AccountImageUploader
 
@@ -24,9 +28,13 @@ module Setup
     has_and_belongs_to_many :custom_validators, class_name: Setup::CustomValidator.to_s, inverse_of: nil
     has_and_belongs_to_many :algorithms, class_name: Setup::Algorithm.to_s, inverse_of: nil
 
-
     has_and_belongs_to_many :webhooks, class_name: Setup::Webhook.to_s, inverse_of: nil
     has_and_belongs_to_many :connections, class_name: Setup::Connection.to_s, inverse_of: nil
+
+    has_and_belongs_to_many :authorizations, class_name: Setup::Authorization.to_s, inverse_of: nil
+    has_and_belongs_to_many :oauth_providers, class_name: Setup::BaseOauthProvider.to_s, inverse_of: nil
+    has_and_belongs_to_many :oauth_clients, class_name: Setup::OauthClient.to_s, inverse_of: nil
+    has_and_belongs_to_many :oauth2_scopes, class_name: Setup::Oauth2Scope.to_s, inverse_of: nil
 
     embeds_many :data, class_name: Setup::CollectionData.to_s, inverse_of: :setup_collection
 
@@ -57,6 +65,27 @@ module Setup
         connection_role.webhooks.each { |webhook| webhooks << webhook unless webhooks.any? { |v| v == webhook } }
         connection_role.connections.each { |connection| connections << connection unless connections.any? { |v| v == connection } }
       end
+      connections.each do |connection|
+        unless (authorization = connection.authorization).nil? || authorizations.any? { |a| a == authorization }
+          authorizations << authorization
+        end
+      end
+      authorizations.each do |authorization|
+        if authorization.is_a?(Setup::BaseOauthAuthorization)
+          {
+            provider: :oauth_providers,
+            client: :oauth_clients
+          }.each do |property, collector_name|
+            collector = send(collector_name)
+            unless (obj = authorization.send(property)).shared
+              collector << obj unless collector.any? { |o| o == obj }
+            end
+          end
+          if authorization.is_a?(Setup::Oauth2Authorization)
+            authorization.scopes.each { |scope| oauth2_scopes << scope unless oauth2_scopes.any? { |s| s == scope } }
+          end
+        end
+      end
       translators = Set.new(self.translators)
       self.translators.each do |translator|
         [:source_exporter, :target_importer].each do |key|
@@ -75,6 +104,13 @@ module Setup
       visited_algs = Set.new
       algorithms.each { |alg| alg.for_each_call(visited_algs) }
       self.algorithms = visited_algs.to_a
+      [:oauth_providers, :oauth_clients].each do |shared_collector|
+        if (shared_objs = (collector = send(shared_collector)).where(shared: true)).present?
+          errors.add(:base, "Shared #{shared_collector.to_s.gsub('_', ' ')} are not allowed: #{shared_objs.collect(&:custom_title).to_sentence}")
+          shared_objs.each { |obj| collector.delete(obj) }
+        end
+      end
+      errors.blank?
     end
 
     private

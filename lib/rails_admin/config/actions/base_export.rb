@@ -2,7 +2,7 @@ module RailsAdmin
   module Config
     module Actions
 
-      class EdiExport < RailsAdmin::Config::Actions::Translate
+      class BaseExport < RailsAdmin::Config::Actions::Translate
 
         class << self
 
