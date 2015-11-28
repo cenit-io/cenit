@@ -4,6 +4,14 @@ module RailsAdmin
 
       class TranslatorUpdate < RailsAdmin::Config::Actions::Translate
 
+        register_instance_option :collection do
+          true
+        end
+
+        register_instance_option :bulkable? do
+          true
+        end
+
         class << self
 
           def translator_type
@@ -20,7 +28,6 @@ module RailsAdmin
         end
 
       end
-
     end
   end
 end

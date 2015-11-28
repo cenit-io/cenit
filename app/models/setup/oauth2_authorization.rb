@@ -2,9 +2,7 @@ module Setup
   class Oauth2Authorization < Setup::BaseOauthAuthorization
     include CenitScoped
 
-    Setup::Models.exclude_actions_for self, :all
-
-    BuildInDataType.regist(self).with(:name, :provider, :client).referenced_by(:namespace, :name)
+    BuildInDataType.regist(self).with(:namespace, :name, :provider, :client, :scopes).referenced_by(:namespace, :name)
 
     has_and_belongs_to_many :scopes, class_name: Setup::Oauth2Scope.to_s, inverse_of: nil
 
@@ -16,7 +14,7 @@ module Setup
     end
 
     def create_http_client(options = {})
-      http_client = OAuth2::Client.new(client.identifier, client.secret, options)
+      http_client = OAuth2::Client.new(client.attributes[:identifier], client.attributes[:secret], options)
       if http_proxy = Cenit.http_proxy
         http_client.connection.proxy(http_proxy)
       end
