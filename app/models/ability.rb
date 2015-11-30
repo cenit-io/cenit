@@ -8,6 +8,7 @@ class Ability
     if user
       can :access, :rails_admin # only allow admin users to access Rails Admin
 
+      can([:show, :edit], Account) { |a| a.eql?(user.account) }
       can([:show, :edit], User) { |u| u.eql?(user) }
 
       @@oauth_models = [Setup::BaseOauthProvider,
