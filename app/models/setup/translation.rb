@@ -13,17 +13,18 @@ module Setup
         Cenit::Utility.json_object?(result)
         file_name = "#{data_type.title.collectionize}_#{DateTime.now.strftime('%Y-%m-%d_%Hh%Mm%S')}"
         file_name += ".#{translator.file_extension}" if translator.file_extension.present?
-        @attachment =
-          {
-            filename: file_name,
-            contentType: translator.mime_type || 'application/octet-stream',
-            body: case result
-                  when Hash, Array
-                    JSON.pretty_generate(result)
-                  else
-                    result.to_s
-                  end
-          }
+        notify(type: :notice,
+               message: "'#{translator.custom_title}' export result",
+               attachment: {
+                 filename: file_name,
+                 contentType: translator.mime_type || 'application/octet-stream',
+                 body: case result
+                       when Hash, Array
+                         JSON.pretty_generate(result)
+                       else
+                         result.to_s
+                       end
+               })
       end
     end
 

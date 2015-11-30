@@ -99,8 +99,7 @@ module Setup
       attachment = attributes.delete(:attachment)
       notification = Setup::Notification.new(attributes)
       temporary_file = nil
-      if attachment
-        readable = attachment[:body]
+      if attachment && (readable = attachment[:body]).present?
         if readable.is_a?(String)
           temporary_file = Tempfile.new('file_')
           temporary_file.binmode
@@ -112,8 +111,8 @@ module Setup
       end
       if notification.save
         notifications << notification
+        save
       end
-      save
     ensure
       temporary_file.close if temporary_file
     end
