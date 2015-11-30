@@ -783,6 +783,8 @@ RailsAdmin.config do |config|
     navigation_label 'Monitor'
     object_label_method { :label }
 
+    configure :created_at
+
     configure :type do
       pretty_value do
         color =
@@ -819,7 +821,7 @@ RailsAdmin.config do |config|
 
     configure :attachment, :storage_file
 
-    fields :type, :message, :attachment, :task
+    fields :created_at, :type, :message, :attachment, :task
   end
 
   config.model Setup::Flow do
@@ -1625,6 +1627,9 @@ RailsAdmin.config do |config|
     configure :name
     configure :email
     configure :roles
+    configure :account do
+      read_only { true }
+    end
     configure :password do
       group :credentials
     end
@@ -1664,6 +1669,10 @@ RailsAdmin.config do |config|
       end
       field :roles do
         visible { User.current.super_admin? }
+      end
+      field :account do
+        label { User.current.super_admin? ? 'Account' : 'Account settings'}
+        help { nil }
       end
       field :password do
         visible { User.current.super_admin? }
@@ -1719,7 +1728,29 @@ RailsAdmin.config do |config|
     navigation_label 'Administration'
     object_label_method { :label }
 
-    fields :_id, :name, :owner, :tenant_account, :number, :users
+    configure :_id do
+      visible { User.current.super_admin? }
+    end
+    configure :name do
+      visible { User.current.super_admin? }
+    end
+    configure :owner do
+      read_only { !User.current.super_admin? }
+      help {  nil }
+    end
+    configure :tenant_account do
+      visible { User.current.super_admin? }
+    end
+    configure :number do
+      visible { User.current.super_admin? }
+    end
+    configure :users do
+      visible { User.current.super_admin? }
+    end
+    configure :notification_level
+
+
+    fields :_id, :name, :owner, :tenant_account, :number, :users, :notification_level
   end
 
   config.model Setup::SharedName do
