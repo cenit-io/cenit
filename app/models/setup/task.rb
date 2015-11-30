@@ -112,8 +112,8 @@ module Setup
       end
       if notification.save
         notifications << notification
-        save
       end
+      save
     ensure
       temporary_file.close if temporary_file
     end
