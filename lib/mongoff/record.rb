@@ -274,7 +274,19 @@ module Mongoff
       success = true
       orm_model.data_type.before_save_callbacks.each do |callback|
         next unless success
-        success = success && callback.run(self).present?
+        success &&=
+          begin
+            callback.run(self).present?
+          rescue Exception => ex
+            obj_msg =
+              if new_record?
+                'creating record'
+              else
+                "updating record with ID '#{id}'"
+              end
+            Setup::Notification.create(message: "Error #{obj_msg} with type ' #{orm_model.data_type.custom_title}', running before save callback '#{callback.custom_title}': #{ex.message}")
+            false
+          end
       end
       success
     end

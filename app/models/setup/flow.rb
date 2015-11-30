@@ -303,7 +303,14 @@ module Setup
                 'Content-Type' => translator.mime_type
               }.merge(connection.conformed_headers(template_parameters)).merge(webhook.conformed_headers(template_parameters))
             begin
-              http_response = HTTMultiParty.send(webhook.method, conformed_url + '/' + conformed_path, {body: body, headers: headers})
+              block.yield(message: {
+                            method: webhook.method,
+                            url: url = conformed_url + '/' + conformed_path,
+                            headers: headers
+                          }.to_json,
+                          type: :notice,
+                          attachment: body) if block.present?
+              http_response = HTTMultiParty.send(webhook.method, url, {body: body, headers: headers})
               block.yield(message: {response_code: http_response.code}.to_json,
                           type: (200...299).include?(http_response.code) ? :notice : :error,
                           attachment: attachment_from(http_response)) if block.present?
