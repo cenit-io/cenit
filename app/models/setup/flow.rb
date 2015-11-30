@@ -309,7 +309,9 @@ module Setup
                             headers: headers
                           }.to_json,
                           type: :notice,
-                          attachment: body) if block.present?
+                          attachment: {
+                            body: body
+                          }) if block.present?
               http_response = HTTMultiParty.send(webhook.method, url, {body: body, headers: headers})
               block.yield(message: {response_code: http_response.code}.to_json,
                           type: (200...299).include?(http_response.code) ? :notice : :error,
