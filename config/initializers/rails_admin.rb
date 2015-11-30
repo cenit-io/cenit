@@ -965,6 +965,7 @@ RailsAdmin.config do |config|
     show do
       field :namespace
       field :name
+      field :active
       field :event
       field :translator
 
@@ -975,7 +976,7 @@ RailsAdmin.config do |config|
       #field :updater
     end
 
-    fields :namespace, :name, :event, :translator
+    fields :namespace, :name, :active, :event, :translator
   end
 
   config.model Setup::Event do
