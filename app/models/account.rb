@@ -9,6 +9,23 @@ class Account
 
   belongs_to :tenant_account, class_name: Account.to_s, inverse_of: nil
 
+  field :notification_level, type: Symbol, default: :warning
+
+  validates_inclusion_of :notification_level, in: ->(a) { a.notification_level_enum }
+
+  before_save :inspect_updated_fields
+
+  def inspect_updated_fields
+    changed_attributes.keys.each do |attr|
+      reset_attribute!(attr) unless %w(notification_level).include?(attr)
+    end unless new_record? || (user = User.current).nil? || user.super_admin?
+    true
+  end
+
+  def notification_level_enum
+    Setup::Notification.type_enum
+  end
+
   def label
     owner.present? ? owner.label : Account.to_s + '#' + id.to_s
   end

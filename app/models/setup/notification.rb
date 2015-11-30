@@ -16,12 +16,24 @@ module Setup
     validates_presence_of :type, :message
     validates_inclusion_of :type, in: ->(n) { n.type_enum }
 
+    before_save :check_notification_level
+
+    def check_notification_level
+     (a = Account.current).nil? || type_enum.index(type) <= type_enum.index(a.notification_level)
+    end
+
     def type_enum
-      [:error, :warning, :notice, :info]
+      Setup::Notification.type_enum
     end
 
     def label
       "[#{type.to_s.capitalize}] #{message.length > 100 ? message.to(100) + '...' : message}"
+    end
+
+    class << self
+      def type_enum
+        [:error, :warning, :notice, :info]
+      end
     end
   end
 end
