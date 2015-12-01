@@ -193,13 +193,23 @@ module Setup
     def simple_translate(message, &block)
       object_ids = ((obj_id = message[:source_id]) && [obj_id]) || source_ids_from(message)
       if translator.source_handler
-        translator.run(object_ids: object_ids, discard_events: discard_events, task: message[:task])
+        begin
+          translator.run(object_ids: object_ids, discard_events: discard_events, task: message[:task])
+        rescue Exception => ex
+          fail "Error source handling translation of records of type '#{data_type.custom_title}' with '#{translator.custom_title}': #{ex.message}"
+        end
       else
         if object_ids
           data_type.records_model.any_in(id: object_ids)
         else
           data_type.records_model.all
-        end.each { |obj| translator.run(object: obj, discard_events: discard_events, task: message[:task]) }
+        end.each do |obj|
+          begin
+            translator.run(object: obj, discard_events: discard_events, task: message[:task])
+          rescue Exception => ex
+            fail "Error translating record with ID '#{obj.id}' of type '#{data_type.custom_title}' when executing '#{translator.custom_title}': #{ex.message}"
+          end
+        end
       end
     rescue Exception => ex
       block.yield(message: ex.message) if block
