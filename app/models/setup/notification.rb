@@ -19,7 +19,11 @@ module Setup
     before_save :check_notification_level
 
     def check_notification_level
-     (a = Account.current).nil? || type_enum.index(type) <= type_enum.index(a.notification_level)
+     @skip_notification_level || (a = Account.current).nil? || type_enum.index(type) <= type_enum.index(a.notification_level)
+    end
+
+    def skip_notification_level(skip)
+      @skip_notification_level = skip
     end
 
     def type_enum
