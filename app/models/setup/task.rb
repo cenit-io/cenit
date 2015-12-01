@@ -97,7 +97,9 @@ module Setup
 
     def notify(attributes)
       attachment = attributes.delete(:attachment)
+      skip = attributes.delete(:skip_notification_level)
       notification = Setup::Notification.new(attributes)
+      notification.skip_notification_level(skip)
       temporary_file = nil
       if attachment && (readable = attachment[:body]).present?
         if readable.is_a?(String)
@@ -111,8 +113,8 @@ module Setup
       end
       if notification.save
         notifications << notification
-        save
       end
+      save
     ensure
       temporary_file.close if temporary_file
     end
