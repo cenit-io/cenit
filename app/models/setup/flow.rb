@@ -6,10 +6,11 @@ module Setup
     include NamespaceNamed
     include TriggersFormatter
 
-    BuildInDataType.regist(self).referenced_by(:namespace, :name).excluding(:response_attachments)
+    BuildInDataType.regist(self).referenced_by(:namespace, :name).excluding(:notify_response, :notify_request)
 
     field :active, type: Boolean, default: :true
-    field :response_attachments, type: Boolean, default: :false
+    field :notify_request, type: Boolean, default: :false
+    field :notify_response, type: Boolean, default: :false
     field :discard_events, type: Boolean
 
     belongs_to :event, class_name: Setup::Event.to_s, inverse_of: nil
@@ -228,8 +229,19 @@ module Setup
           if url_parameter.present?
             url_parameter = '?' + url_parameter
           end
+          url = conformed_url + '/' + conformed_path + url_parameter
+          block.yield(message: JSON.pretty_generate(method: webhook.method,
+                                                    url: url,
+                                                    headers: headers),
+                      type: :notice,
+                      skip_notification_level: notify_request) if block.present?
 
-          http_response = HTTParty.send(webhook.method, conformed_url + '/' + conformed_path + url_parameter, headers: headers)
+          http_response = HTTParty.send(webhook.method, url, headers: headers)
+
+          block.yield(message: {response_code: http_response.code}.to_json,
+                      type: (200...299).include?(http_response.code) ? :notice : :error,
+                      attachment: attachment_from(http_response),
+                      skip_notification_level: notify_response) if block.present?
 
           translator.run(target_data_type: data_type,
                          data: http_response.body,
@@ -237,9 +249,7 @@ module Setup
                          parameters: template_parameters,
                          headers: http_response.headers,
                          task: message[:task]) if http_response.code == 200
-          block.yield(message: {response_code: http_response.code}.to_json,
-                      type: (200...299).include?(http_response.code) ? :notice : :error,
-                      attachment: attachment_from(http_response)) if block.present?
+
         rescue Exception => ex
           block.yield(message: {error: ex.message}.to_json, attachment: attachment_from(http_response)) if block
         end
@@ -304,19 +314,20 @@ module Setup
               }.merge(connection.conformed_headers(template_parameters)).merge(webhook.conformed_headers(template_parameters))
             begin
               url = conformed_url + '/' + conformed_path
-              # block.yield(message: {
-              #               method: webhook.method,
-              #               url: url,
-              #               headers: headers
-              #             }.to_json,
-              #             type: :notice,
-              #             attachment: {
-              #               body: body
-              #             }) if body.present? && block.present?
+              block.yield(message: JSON.pretty_generate(method: webhook.method,
+                                                        url: url,
+                                                        headers: headers),
+                          type: :notice,
+                          attachment: Setup::Translation.attachment_for(data_type, translator, body),
+                          skip_notification_level: notify_request) if block.present?
+
               http_response = HTTMultiParty.send(webhook.method, url, {body: body, headers: headers})
+
               block.yield(message: {response_code: http_response.code}.to_json,
                           type: (200...299).include?(http_response.code) ? :notice : :error,
-                          attachment: attachment_from(http_response)) if block.present?
+                          attachment: attachment_from(http_response),
+                          skip_notification_level: notify_response) if block.present?
+
               if response_translator #&& http_response.code == 200
                 response_translator.run(translation_options.merge(target_data_type: response_translator.data_type || response_data_type, data: http_response.body))
               end
@@ -338,7 +349,7 @@ module Setup
         filename: http_response.object_id.to_s + file_extension,
         contentType: http_response.content_type,
         body: http_response.body
-      } if response_attachments && http_response
+      } if notify_response && http_response
     end
 
     def source_ids_from(message)
