@@ -5,7 +5,7 @@ module Setup
 
     BuildInDataType.regist(self)
 
-    Setup::Models.exclude_actions_for self, :new, :edit, :translator_update, :import, :convert, :delete_all
+    Setup::Models.exclude_actions_for self, :new, :edit, :translator_update, :import, :convert, :send_to_flow
 
 
     field :message, type: Hash
@@ -36,14 +36,16 @@ module Setup
     end
 
     def status_enum
-      [:pending, :running, :failed, :completed, :retrying, :broken, :unscheduled, :paused]
+      STATUS
     end
 
     def attempts_succeded
       "#{attempts}/#{succeded}"
     end
 
+    STATUS = [:pending, :running, :failed, :completed, :retrying, :broken, :unscheduled, :paused]
     RUNNING_STATUS = [:running, :retrying, :paused]
+    NOT_RUNNING_STATUS = STATUS.reject { |status| RUNNING_STATUS.include?(status) }
 
     def runnin_status?
       RUNNING_STATUS.include?(status)
@@ -159,8 +161,15 @@ module Setup
     end
 
     class << self
+
       def process(message = {})
         Cenit::Rabbit.enqueue(message.merge(task: self))
+      end
+
+      def destroy_conditions
+        {
+          'status' => { '$in' => Setup::Task::NOT_RUNNING_STATUS },
+          'scheduler_id' => { '$in' => Setup::Scheduler.where(activated: false).collect(&:id) + [nil] }}
       end
     end
 

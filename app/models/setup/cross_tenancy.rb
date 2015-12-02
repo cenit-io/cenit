@@ -8,6 +8,8 @@ module Setup
 
       BuildInDataType.regist(self).excluding(:shared, :tenant)
 
+      Setup::Models.exclude_actions_for self, :import, :translator_update, :convert, :send_to_flow, :new #TODO remove :new from excluded actions when fixing references sharing problem
+
       field :shared, type: Boolean
       belongs_to :tenant, class_name: Account.to_s, inverse_of: nil
 
@@ -20,12 +22,11 @@ module Setup
         true
       end
 
-      default_scope -> { User.current.super_admin? ? all : any_of({shared: true}, {creator_id: {'$in' => Account.current.users.collect(&:id)}}) }
+      default_scope -> { User.current.super_admin? ? all : any_of({shared: true}, {tenant_id: Account.current.id}) }
+    end
 
-      def read_attribute(name)
-        (!(value = super).nil? && (!BuildInDataType[self.class].protecting?(name) || Account.current == creator.account || User.current.super_admin?) && value)|| nil
-      end
-
+    def read_attribute(name)
+      (!(value = super).nil? && (!BuildInDataType[self.class].protecting?(name) || Account.current == creator.account || User.current.super_admin?) && value)|| nil
     end
   end
 end

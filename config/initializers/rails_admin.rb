@@ -722,7 +722,7 @@ RailsAdmin.config do |config|
     configure :attempts_succeded, :text do
       label 'Attempts/Succedded'
     end
-    fields :description, :attempts_succeded, :retries, :progress, :status, :notifications
+    fields :description, :scheduler, :attempts_succeded, :retries, :progress, :status, :notifications
   end
 
   config.model Setup::FlowExecution do
@@ -731,7 +731,7 @@ RailsAdmin.config do |config|
     configure :attempts_succeded, :text do
       label 'Attempts/Succedded'
     end
-    fields :flow, :description, :attempts_succeded, :retries, :progress, :status, :notifications
+    fields :flow, :description, :scheduler, :attempts_succeded, :retries, :progress, :status, :notifications
   end
 
   config.model Setup::DataTypeGeneration do
@@ -740,7 +740,7 @@ RailsAdmin.config do |config|
     configure :attempts_succeded, :text do
       label 'Attempts/Succedded'
     end
-    fields :description, :attempts_succeded, :retries, :progress, :status, :notifications
+    fields :description, :scheduler, :attempts_succeded, :retries, :progress, :status, :notifications
   end
 
   config.model Setup::DataTypeExpansion do
@@ -749,7 +749,7 @@ RailsAdmin.config do |config|
     configure :attempts_succeded, :text do
       label 'Attempts/Succedded'
     end
-    fields :description, :attempts_succeded, :retries, :progress, :status, :notifications
+    fields :description, :scheduler, :attempts_succeded, :retries, :progress, :status, :notifications
   end
 
   config.model Setup::Translation do
@@ -758,7 +758,7 @@ RailsAdmin.config do |config|
     configure :attempts_succeded, :text do
       label 'Attempts/Succedded'
     end
-    fields :translator, :description, :attempts_succeded, :retries, :progress, :status, :notifications
+    fields :translator, :description, :scheduler, :attempts_succeded, :retries, :progress, :status, :notifications
   end
 
   config.model Setup::DataImport do
@@ -767,7 +767,7 @@ RailsAdmin.config do |config|
     configure :attempts_succeded, :text do
       label 'Attempts/Succedded'
     end
-    fields :translator, :data, :description, :attempts_succeded, :retries, :progress, :status, :notifications
+    fields :translator, :data, :description, :scheduler, :attempts_succeded, :retries, :progress, :status, :notifications
   end
 
   config.model Setup::SchemasImport do
@@ -776,7 +776,7 @@ RailsAdmin.config do |config|
     configure :attempts_succeded, :text do
       label 'Attempts/Succedded'
     end
-    fields :library, :base_uri, :data, :description, :attempts_succeded, :retries, :progress, :status, :notifications
+    fields :library, :base_uri, :data, :description, :scheduler, :attempts_succeded, :retries, :progress, :status, :notifications
   end
 
   config.model Setup::Notification do
@@ -1676,7 +1676,7 @@ RailsAdmin.config do |config|
         visible { User.current.super_admin? }
       end
       field :account do
-        label { User.current.super_admin? ? 'Account' : 'Account settings'}
+        label { User.current.super_admin? ? 'Account' : 'Account settings' }
         help { nil }
       end
       field :password do
@@ -1741,7 +1741,7 @@ RailsAdmin.config do |config|
     end
     configure :owner do
       read_only { !User.current.super_admin? }
-      help {  nil }
+      help { nil }
     end
     configure :tenant_account do
       visible { User.current.super_admin? }
@@ -2143,24 +2143,28 @@ RailsAdmin.config do |config|
     configure :storer_model do
       label 'Model'
       pretty_value do
-        v = bindings[:view]
-        amc = RailsAdmin.config(value)
-        am = amc.abstract_model
-        wording = amc.navigation_label + ' > ' + amc.label
-        can_see = !am.embedded? && (index_action = v.action(:index, am))
-        (can_see ? v.link_to(amc.label, v.url_for(action: index_action.action_name, model_name: am.to_param), class: 'pjax') : wording).html_safe
+        if value
+          v = bindings[:view]
+          amc = RailsAdmin.config(value)
+          am = amc.abstract_model
+          wording = amc.navigation_label + ' > ' + amc.label
+          can_see = !am.embedded? && (index_action = v.action(:index, am))
+          (can_see ? v.link_to(amc.label, v.url_for(action: index_action.action_name, model_name: am.to_param), class: 'pjax') : wording).html_safe
+        end
       end
     end
 
     configure :storer_object do
       label 'Object'
       pretty_value do
-        v = bindings[:view]
-        amc = RailsAdmin.config(value.class)
-        am = amc.abstract_model
-        wording = value.send(amc.object_label_method)
-        can_see = !am.embedded? && (show_action = v.action(:show, am, value))
-        (can_see ? v.link_to(wording, v.url_for(action: show_action.action_name, model_name: am.to_param, id: value.id), class: 'pjax') : wording).html_safe
+        if value
+          v = bindings[:view]
+          amc = RailsAdmin.config(value.class)
+          am = amc.abstract_model
+          wording = value.send(amc.object_label_method)
+          can_see = !am.embedded? && (show_action = v.action(:show, am, value))
+          (can_see ? v.link_to(wording, v.url_for(action: show_action.action_name, model_name: am.to_param, id: value.id), class: 'pjax') : wording).html_safe
+        end
       end
     end
 
@@ -2168,7 +2172,9 @@ RailsAdmin.config do |config|
       label 'Property'
     end
 
-    fields :storer_model, :storer_object, :storer_property, :filename, :contentType, :length
+    configure :chunks
+
+    fields :storer_model, :storer_object, :storer_property, :filename, :contentType, :length, :chunks
   end
 
   config.model Setup::DelayedMessage do
