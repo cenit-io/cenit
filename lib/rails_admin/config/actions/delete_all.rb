@@ -4,12 +4,7 @@ module RailsAdmin
       class DeleteAll < RailsAdmin::Config::Actions::Base
 
         register_instance_option :visible? do
-          if authorized?
-            model = bindings[:abstract_model].model rescue nil
-            model && model.all.size > 0
-          else
-            false
-          end
+          authorized? && bindings[:controller].list_entries(bindings[:abstract_model].config, :destroy).size > 0
         end
 
         register_instance_option :collection do
@@ -30,12 +25,13 @@ module RailsAdmin
                 else
                   @abstract_model.pretty_name.downcase.pluralize
                 end
-              @total = model.all.size
+              scope = list_entries(@abstract_model.config, :destroy)
+              @total = scope.size
               if params[:delete]
                 if (model.singleton_method(:before_destroy) rescue nil)
-                  model.all.each(&:destroy)
+                  scope.each(&:destroy)
                 else
-                  model.delete_all
+                  scope.delete_all
                 end
                 flash[:success] = "#{@total} #{@abstract_model.pretty_name.downcase.pluralize} successfully deleted"
                 redirect_to back_or_index
