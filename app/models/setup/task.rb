@@ -64,14 +64,17 @@ module Setup
         thread_token.destroy if thread_token.present?
         self.thread_token = CenitToken.create
         Thread.current[:task_token] = thread_token.token
+        if status == :retrying
+          self.retries += 1
+        end
         if runnin_status?
           notify(message: "Restarting task ##{id} at #{Time.now}", type: :notice)
         else
           self.attempts += 1
           self.progress = 0
+          self.status = :running
           notify(type: :info, message: "Task ##{id} started at #{Time.now}")
         end
-        self.retries += 1 if status == :retrying
         run(message)
         if resuming_later?
           finish(:paused, "Task ##{id} paused at #{Time.now}", :notice)
@@ -168,8 +171,8 @@ module Setup
 
       def destroy_conditions
         {
-          'status' => { '$in' => Setup::Task::NOT_RUNNING_STATUS },
-          'scheduler_id' => { '$in' => Setup::Scheduler.where(activated: false).collect(&:id) + [nil] }}
+          'status' => {'$in' => Setup::Task::NOT_RUNNING_STATUS},
+          'scheduler_id' => {'$in' => Setup::Scheduler.where(activated: false).collect(&:id) + [nil]}}
       end
     end
 
