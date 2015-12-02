@@ -19,7 +19,7 @@ module Setup
           step_size = scope.count / progress_step
           step_count = 0
           scope.each do |record|
-            record.destroy
+            record.destroy unless record == self
             step_count += 1
             if step_count >= step_size
               step_count = 0
