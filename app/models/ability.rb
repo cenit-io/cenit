@@ -40,12 +40,13 @@ class Ability
               Setup::SystemNotification
             ]
         can :import, Setup::SharedCollection
-        can :destroy, [Setup::SharedCollection, Setup::DataType, Setup::Task, Setup::Storage]
+        can :destroy, [Setup::SharedCollection, Setup::DataType, Setup::Storage]
       else
         cannot :access, [Setup::SharedName, Setup::DelayedMessage, Setup::SystemNotification]
         cannot :destroy, [Setup::SharedCollection, Setup::Raml, Setup::Storage]
-        can :destroy, Setup::Task, Setup::Task.destroy_conditions
       end
+
+      can :destroy, Setup::Task, Setup::Task.destroy_conditions
 
       can RailsAdmin::Config::Actions.all(:root).collect(&:authorization_key)
 

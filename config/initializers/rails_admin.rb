@@ -30,7 +30,8 @@
  RailsAdmin::Config::Actions::BulkExpand,
  RailsAdmin::Config::Actions::Records,
  RailsAdmin::Config::Actions::SwitchScheduler,
- RailsAdmin::Config::Actions::SimpleExport].each { |a| RailsAdmin::Config::Actions.register(a) }
+ RailsAdmin::Config::Actions::SimpleExport,
+ RailsAdmin::Config::Actions::Schedule].each { |a| RailsAdmin::Config::Actions.register(a) }
 
 RailsAdmin::Config::Actions.register(:export, RailsAdmin::Config::Actions::BulkExport)
 RailsAdmin::Config::Fields::Types.register(RailsAdmin::Config::Fields::Types::JsonValue)
@@ -95,6 +96,8 @@ RailsAdmin.config do |config|
     switch_navigation
     switch_scheduler
     simple_export
+    schedule
+    retry_task
     simple_delete_data_type
     bulk_delete_data_type
     delete
@@ -103,7 +106,6 @@ RailsAdmin.config do |config|
     send_to_flow
     delete_all
     data_type
-    retry_task
 
     # history_index do
     #   only [Setup::DataType, Setup::Webhook, Setup::Flow, Setup::Schema, Setup::Event, Setup::Connection, Setup::ConnectionRole, Setup::Library]

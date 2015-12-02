@@ -128,6 +128,17 @@ module Setup
       !running?
     end
 
+    def can_schedule?
+      can_retry? && scheduler.nil?
+    end
+
+    def schedule(scheduler)
+      if can_schedule?
+        self.scheduler = scheduler
+        self.retry
+      end
+    end
+
     def retry
       if can_retry?
         self.status = (status == :failed ? :retrying : :pending)
@@ -172,7 +183,8 @@ module Setup
       def destroy_conditions
         {
           'status' => {'$in' => Setup::Task::NOT_RUNNING_STATUS},
-          'scheduler_id' => {'$in' => Setup::Scheduler.where(activated: false).collect(&:id) + [nil]}}
+          'scheduler_id' => {'$in' => Setup::Scheduler.where(activated: false).collect(&:id) + [nil]}
+        }
       end
     end
 

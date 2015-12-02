@@ -61,6 +61,7 @@ module Setup
     end
 
     def start
+      Setup::Task.where(scheduler: self).each { |task| task.retry if task.can_retry? }
       Setup::Flow.where(event: self).each do |flow|
         if (flows_executions = Setup::FlowExecution.where(flow: flow, scheduler: self)).present?
           flows_executions.each { |flow_execution| flow_execution.retry if flow_execution.can_retry? }
