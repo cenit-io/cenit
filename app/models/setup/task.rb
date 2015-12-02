@@ -79,7 +79,7 @@ module Setup
           finish(:completed, "Task ##{id} completed at #{Time.now}", :info)
         end
       end
-    rescue Exception => ex
+    rescue ::Exception => ex
       if ex.is_a?(Task::Exception)
         finish(ex.status, ex.message, ex.message_type)
       else
