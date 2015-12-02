@@ -13,7 +13,8 @@ module Setup
         Cenit::Utility.json_object?(result)
         notify(type: :notice,
                message: "'#{translator.custom_title}' export result",
-               attachment: Setup::Translation.attachment_for(data_type, translator, result))
+               attachment: Setup::Translation.attachment_for(data_type, translator, result),
+               skip_notification_level: message[:skip_notification_level])
       end
     end
 
