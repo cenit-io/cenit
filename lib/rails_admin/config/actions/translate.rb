@@ -42,7 +42,8 @@ module RailsAdmin
                   begin
                     do_flash_process_result Setup::Translation.process(translator_id: translator.id,
                                                                        bulk_ids: @bulk_ids,
-                                                                       data_type_id: data_type.id)
+                                                                       data_type_id: data_type.id,
+                                                                       skip_notification_level: true)
                     done = true
                   rescue Exception => ex
                     flash[:error] = ex.message

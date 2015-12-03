@@ -194,6 +194,12 @@ en:
         breadcrumb: "Retry"
         submit: "Retry"
         done: "retried"
+      schedule:
+        title: "Schedule"
+        menu: "Schedule"
+        breadcrumb: "Schedule"
+        submit: "Schedule"
+        done: "scheduled"
       new_file_model:
         title: "New File Data Type"
         menu: "Add new"
