@@ -1727,44 +1727,44 @@ RailsAdmin.config do |config|
       field :picture
       field :name
       field :email do
-        visible { User.current.super_admin? }
+        visible { Account.current.super_admin? }
       end
       field :roles do
-        visible { User.current.super_admin? }
+        visible { Account.current.super_admin? }
       end
       field :account do
-        label { User.current.super_admin? ? 'Account' : 'Account settings' }
+        label { Account.current.super_admin? ? 'Account' : 'Account settings' }
         help { nil }
       end
       field :password do
-        visible { User.current.super_admin? }
+        visible { Account.current.super_admin? }
       end
       field :password_confirmation do
-        visible { User.current.super_admin? }
+        visible { Account.current.super_admin? }
       end
       field :key do
-        visible { !bindings[:object].new_record? && User.current.super_admin? }
+        visible { !bindings[:object].new_record? && Account.current.super_admin? }
       end
       field :authentication_token do
-        visible { !bindings[:object].new_record? && User.current.super_admin? }
+        visible { !bindings[:object].new_record? && Account.current.super_admin? }
       end
       field :confirmed_at do
-        visible { !bindings[:object].new_record? && User.current.super_admin? }
+        visible { !bindings[:object].new_record? && Account.current.super_admin? }
       end
       field :sign_in_count do
-        visible { !bindings[:object].new_record? && User.current.super_admin? }
+        visible { !bindings[:object].new_record? && Account.current.super_admin? }
       end
       field :current_sign_in_at do
-        visible { !bindings[:object].new_record? && User.current.super_admin? }
+        visible { !bindings[:object].new_record? && Account.current.super_admin? }
       end
       field :last_sign_in_at do
-        visible { !bindings[:object].new_record? && User.current.super_admin? }
+        visible { !bindings[:object].new_record? && Account.current.super_admin? }
       end
       field :current_sign_in_ip do
-        visible { !bindings[:object].new_record? && User.current.super_admin? }
+        visible { !bindings[:object].new_record? && Account.current.super_admin? }
       end
       field :last_sign_in_ip do
-        visible { !bindings[:object].new_record? && User.current.super_admin? }
+        visible { !bindings[:object].new_record? && Account.current.super_admin? }
       end
     end
 
@@ -1791,23 +1791,23 @@ RailsAdmin.config do |config|
     object_label_method { :label }
 
     configure :_id do
-      visible { User.current.super_admin? }
+      visible { Account.current.super_admin? }
     end
     configure :name do
-      visible { User.current.super_admin? }
+      visible { Account.current.super_admin? }
     end
     configure :owner do
-      read_only { !User.current.super_admin? }
+      read_only { !Account.current.super_admin? }
       help { nil }
     end
     configure :tenant_account do
-      visible { User.current.super_admin? }
+      visible { Account.current.super_admin? }
     end
     configure :number do
-      visible { User.current.super_admin? }
+      visible { Account.current.super_admin? }
     end
     configure :users do
-      visible { User.current.super_admin? }
+      visible { Account.current.super_admin? }
     end
     configure :notification_level
 
@@ -1857,13 +1857,13 @@ RailsAdmin.config do |config|
     navigation_label 'OAuth'
 
     configure :tenant do
-      visible { User.current.super_admin? }
+      visible { Account.current.super_admin? }
       read_only { true }
       help ''
     end
 
     configure :shared do
-      visible { User.current.super_admin? }
+      visible { Account.current.super_admin? }
     end
 
     fields :namespace, :name, :response_type, :authorization_endpoint, :token_endpoint, :token_method, :parameters, :clients, :tenant, :shared
@@ -1873,13 +1873,13 @@ RailsAdmin.config do |config|
     object_label_method { :custom_title }
 
     configure :tenant do
-      visible { User.current.super_admin? }
+      visible { Account.current.super_admin? }
       read_only { true }
       help ''
     end
 
     configure :shared do
-      visible { User.current.super_admin? }
+      visible { Account.current.super_admin? }
     end
 
     fields :namespace, :name, :response_type, :authorization_endpoint, :token_endpoint, :token_method, :request_token_endpoint, :parameters, :tenant, :shared
@@ -1889,13 +1889,13 @@ RailsAdmin.config do |config|
     object_label_method { :custom_title }
 
     configure :tenant do
-      visible { User.current.super_admin? }
+      visible { Account.current.super_admin? }
       read_only { true }
       help ''
     end
 
     configure :shared do
-      visible { User.current.super_admin? }
+      visible { Account.current.super_admin? }
     end
 
     fields :namespace, :name, :response_type, :authorization_endpoint, :token_endpoint, :token_method, :parameters, :scope_separator, :tenant, :shared
@@ -1912,18 +1912,18 @@ RailsAdmin.config do |config|
     navigation_label 'OAuth'
 
     configure :tenant do
-      visible { User.current.super_admin? }
+      visible { Account.current.super_admin? }
       read_only { true }
       help ''
     end
 
     configure :shared do
-      visible { User.current.super_admin? }
+      visible { Account.current.super_admin? }
     end
 
     configure :identifier do
       pretty_value do
-        if User.current.super_admin? || Account.current.users.collect(&:id).include?(bindings[:object].creator_id)
+        if Account.current.super_admin? || Account.current.users.collect(&:id).include?(bindings[:object].creator_id)
           value
         else
           '<i class="icon-lock"/>'.html_safe
@@ -1933,7 +1933,7 @@ RailsAdmin.config do |config|
 
     configure :secret do
       pretty_value do
-        if User.current.super_admin? || Account.current.users.collect(&:id).include?(bindings[:object].creator_id)
+        if Account.current.super_admin? || Account.current.users.collect(&:id).include?(bindings[:object].creator_id)
           value
         else
           '<i class="icon-lock"/>'.html_safe
@@ -1949,13 +1949,13 @@ RailsAdmin.config do |config|
     navigation_label 'OAuth'
 
     configure :tenant do
-      visible { User.current.super_admin? }
+      visible { Account.current.super_admin? }
       read_only { true }
       help ''
     end
 
     configure :shared do
-      visible { User.current.super_admin? }
+      visible { Account.current.super_admin? }
     end
 
     fields :provider, :name, :description, :tenant, :shared

@@ -16,17 +16,17 @@ module Setup
       before_save do
         changed_attributes.keys.each do |attr|
           reset_attribute!(attr) if %w(shared).include?(attr)
-        end unless User.current.super_admin?
+        end unless Account.current.super_admin?
         self.tenant_id = creator.account_id if tenant_id.nil?
         self.shared = false if shared.nil? || !tenant.owner.super_admin?
         true
       end
 
-      default_scope -> { User.current.super_admin? ? all : any_of({shared: true}, {tenant_id: Account.current.id}) }
+      default_scope -> { Account.current.super_admin? ? all : any_of({shared: true}, {tenant_id: Account.current.id}) }
     end
 
     def read_attribute(name)
-      (!(value = super).nil? && (!BuildInDataType[self.class].protecting?(name) || Account.current == creator.account || User.current.super_admin?) && value)|| nil
+      (!(value = super).nil? && (!BuildInDataType[self.class].protecting?(name) || Account.current == creator.account || Account.current.super_admin?) && value)|| nil
     end
   end
 end
