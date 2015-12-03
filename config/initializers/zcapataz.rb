@@ -22,7 +22,7 @@ Capataz.config do
 
   allow_on RamlParser::Parser, [:parse_hash, :parse_doc]
 
-  allow_for ActionView::Base, []
+  allow_for ActionView::Base, [:escape_javascript, :j]
 
   allow_for [Mongoff::Model], [:where, :all]
 
