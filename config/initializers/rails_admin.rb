@@ -30,7 +30,8 @@
  RailsAdmin::Config::Actions::BulkExpand,
  RailsAdmin::Config::Actions::Records,
  RailsAdmin::Config::Actions::SwitchScheduler,
- RailsAdmin::Config::Actions::SimpleExport].each { |a| RailsAdmin::Config::Actions.register(a) }
+ RailsAdmin::Config::Actions::SimpleExport,
+ RailsAdmin::Config::Actions::Schedule].each { |a| RailsAdmin::Config::Actions.register(a) }
 
 RailsAdmin::Config::Actions.register(:export, RailsAdmin::Config::Actions::BulkExport)
 RailsAdmin::Config::Fields::Types.register(RailsAdmin::Config::Fields::Types::JsonValue)
@@ -95,6 +96,8 @@ RailsAdmin.config do |config|
     switch_navigation
     switch_scheduler
     simple_export
+    schedule
+    retry_task
     simple_delete_data_type
     bulk_delete_data_type
     delete
@@ -103,7 +106,6 @@ RailsAdmin.config do |config|
     send_to_flow
     delete_all
     data_type
-    retry_task
 
     # history_index do
     #   only [Setup::DataType, Setup::Webhook, Setup::Flow, Setup::Schema, Setup::Event, Setup::Connection, Setup::ConnectionRole, Setup::Library]
@@ -722,7 +724,10 @@ RailsAdmin.config do |config|
     configure :attempts_succeded, :text do
       label 'Attempts/Succedded'
     end
-    fields :description, :attempts_succeded, :retries, :progress, :status, :notifications
+    edit do
+      field :description
+    end
+    fields :description, :scheduler, :attempts_succeded, :retries, :progress, :status, :notifications
   end
 
   config.model Setup::FlowExecution do
@@ -731,7 +736,10 @@ RailsAdmin.config do |config|
     configure :attempts_succeded, :text do
       label 'Attempts/Succedded'
     end
-    fields :flow, :description, :attempts_succeded, :retries, :progress, :status, :notifications
+    edit do
+      field :description
+    end
+    fields :flow, :description, :scheduler, :attempts_succeded, :retries, :progress, :status, :notifications
   end
 
   config.model Setup::DataTypeGeneration do
@@ -740,7 +748,10 @@ RailsAdmin.config do |config|
     configure :attempts_succeded, :text do
       label 'Attempts/Succedded'
     end
-    fields :description, :attempts_succeded, :retries, :progress, :status, :notifications
+    edit do
+      field :description
+    end
+    fields :description, :scheduler, :attempts_succeded, :retries, :progress, :status, :notifications
   end
 
   config.model Setup::DataTypeExpansion do
@@ -749,7 +760,10 @@ RailsAdmin.config do |config|
     configure :attempts_succeded, :text do
       label 'Attempts/Succedded'
     end
-    fields :description, :attempts_succeded, :retries, :progress, :status, :notifications
+    edit do
+      field :description
+    end
+    fields :description, :scheduler, :attempts_succeded, :retries, :progress, :status, :notifications
   end
 
   config.model Setup::Translation do
@@ -758,7 +772,10 @@ RailsAdmin.config do |config|
     configure :attempts_succeded, :text do
       label 'Attempts/Succedded'
     end
-    fields :translator, :description, :attempts_succeded, :retries, :progress, :status, :notifications
+    edit do
+      field :description
+    end
+    fields :translator, :description, :scheduler, :attempts_succeded, :retries, :progress, :status, :notifications
   end
 
   config.model Setup::DataImport do
@@ -767,7 +784,7 @@ RailsAdmin.config do |config|
     configure :attempts_succeded, :text do
       label 'Attempts/Succedded'
     end
-    fields :translator, :data, :description, :attempts_succeded, :retries, :progress, :status, :notifications
+    fields :translator, :data, :description, :scheduler, :attempts_succeded, :retries, :progress, :status, :notifications
   end
 
   config.model Setup::SchemasImport do
@@ -776,7 +793,47 @@ RailsAdmin.config do |config|
     configure :attempts_succeded, :text do
       label 'Attempts/Succedded'
     end
-    fields :library, :base_uri, :data, :description, :attempts_succeded, :retries, :progress, :status, :notifications
+    edit do
+      field :description
+    end
+    fields :library, :base_uri, :data, :description, :scheduler, :attempts_succeded, :retries, :progress, :status, :notifications
+  end
+
+  config.model Setup::Deletion do
+    navigation_label 'Monitor'
+    object_label_method { :to_s }
+    configure :attempts_succeded, :text do
+      label 'Attempts/Succedded'
+    end
+    configure :deletion_model do
+      label 'Model'
+      pretty_value do
+        if value
+          v = bindings[:view]
+          amc = RailsAdmin.config(value)
+          am = amc.abstract_model
+          wording = amc.navigation_label + ' > ' + amc.label
+          can_see = !am.embedded? && (index_action = v.action(:index, am))
+          (can_see ? v.link_to(amc.contextualized_label(:menu), v.url_for(action: index_action.action_name, model_name: am.to_param), class: 'pjax') : wording).html_safe
+        end
+      end
+    end
+    edit do
+      field :description
+    end
+    fields :deletion_model, :description, :scheduler, :attempts_succeded, :retries, :progress, :status, :notifications
+  end
+
+  config.model Setup::AlgorithmExecution do
+    navigation_label 'Monitor'
+    object_label_method { :to_s }
+    configure :attempts_succeded, :text do
+      label 'Attempts/Succedded'
+    end
+    edit do
+      field :description
+    end
+    fields :algorithm, :description, :scheduler, :attempts_succeded, :retries, :progress, :status, :notifications
   end
 
   config.model Setup::Notification do
@@ -1111,7 +1168,7 @@ RailsAdmin.config do |config|
       #field :updater
     end
 
-    fields :namespace, :name, :scheduling_method, :expression
+    fields :namespace, :name, :scheduling_method, :expression, :activated
   end
 
   config.model Setup::Translator do
@@ -1670,44 +1727,44 @@ RailsAdmin.config do |config|
       field :picture
       field :name
       field :email do
-        visible { User.current.super_admin? }
+        visible { Account.current.super_admin? }
       end
       field :roles do
-        visible { User.current.super_admin? }
+        visible { Account.current.super_admin? }
       end
       field :account do
-        label { User.current.super_admin? ? 'Account' : 'Account settings'}
+        label { Account.current.super_admin? ? 'Account' : 'Account settings' }
         help { nil }
       end
       field :password do
-        visible { User.current.super_admin? }
+        visible { Account.current.super_admin? }
       end
       field :password_confirmation do
-        visible { User.current.super_admin? }
+        visible { Account.current.super_admin? }
       end
       field :key do
-        visible { !bindings[:object].new_record? && User.current.super_admin? }
+        visible { !bindings[:object].new_record? && Account.current.super_admin? }
       end
       field :authentication_token do
-        visible { !bindings[:object].new_record? && User.current.super_admin? }
+        visible { !bindings[:object].new_record? && Account.current.super_admin? }
       end
       field :confirmed_at do
-        visible { !bindings[:object].new_record? && User.current.super_admin? }
+        visible { !bindings[:object].new_record? && Account.current.super_admin? }
       end
       field :sign_in_count do
-        visible { !bindings[:object].new_record? && User.current.super_admin? }
+        visible { !bindings[:object].new_record? && Account.current.super_admin? }
       end
       field :current_sign_in_at do
-        visible { !bindings[:object].new_record? && User.current.super_admin? }
+        visible { !bindings[:object].new_record? && Account.current.super_admin? }
       end
       field :last_sign_in_at do
-        visible { !bindings[:object].new_record? && User.current.super_admin? }
+        visible { !bindings[:object].new_record? && Account.current.super_admin? }
       end
       field :current_sign_in_ip do
-        visible { !bindings[:object].new_record? && User.current.super_admin? }
+        visible { !bindings[:object].new_record? && Account.current.super_admin? }
       end
       field :last_sign_in_ip do
-        visible { !bindings[:object].new_record? && User.current.super_admin? }
+        visible { !bindings[:object].new_record? && Account.current.super_admin? }
       end
     end
 
@@ -1734,23 +1791,23 @@ RailsAdmin.config do |config|
     object_label_method { :label }
 
     configure :_id do
-      visible { User.current.super_admin? }
+      visible { Account.current.super_admin? }
     end
     configure :name do
-      visible { User.current.super_admin? }
+      visible { Account.current.super_admin? }
     end
     configure :owner do
-      read_only { !User.current.super_admin? }
-      help {  nil }
+      read_only { !Account.current.super_admin? }
+      help { nil }
     end
     configure :tenant_account do
-      visible { User.current.super_admin? }
+      visible { Account.current.super_admin? }
     end
     configure :number do
-      visible { User.current.super_admin? }
+      visible { Account.current.super_admin? }
     end
     configure :users do
-      visible { User.current.super_admin? }
+      visible { Account.current.super_admin? }
     end
     configure :notification_level
 
@@ -1800,13 +1857,13 @@ RailsAdmin.config do |config|
     navigation_label 'OAuth'
 
     configure :tenant do
-      visible { User.current.super_admin? }
+      visible { Account.current.super_admin? }
       read_only { true }
       help ''
     end
 
     configure :shared do
-      visible { User.current.super_admin? }
+      visible { Account.current.super_admin? }
     end
 
     fields :namespace, :name, :response_type, :authorization_endpoint, :token_endpoint, :token_method, :parameters, :clients, :tenant, :shared
@@ -1816,13 +1873,13 @@ RailsAdmin.config do |config|
     object_label_method { :custom_title }
 
     configure :tenant do
-      visible { User.current.super_admin? }
+      visible { Account.current.super_admin? }
       read_only { true }
       help ''
     end
 
     configure :shared do
-      visible { User.current.super_admin? }
+      visible { Account.current.super_admin? }
     end
 
     fields :namespace, :name, :response_type, :authorization_endpoint, :token_endpoint, :token_method, :request_token_endpoint, :parameters, :tenant, :shared
@@ -1832,13 +1889,13 @@ RailsAdmin.config do |config|
     object_label_method { :custom_title }
 
     configure :tenant do
-      visible { User.current.super_admin? }
+      visible { Account.current.super_admin? }
       read_only { true }
       help ''
     end
 
     configure :shared do
-      visible { User.current.super_admin? }
+      visible { Account.current.super_admin? }
     end
 
     fields :namespace, :name, :response_type, :authorization_endpoint, :token_endpoint, :token_method, :parameters, :scope_separator, :tenant, :shared
@@ -1855,18 +1912,18 @@ RailsAdmin.config do |config|
     navigation_label 'OAuth'
 
     configure :tenant do
-      visible { User.current.super_admin? }
+      visible { Account.current.super_admin? }
       read_only { true }
       help ''
     end
 
     configure :shared do
-      visible { User.current.super_admin? }
+      visible { Account.current.super_admin? }
     end
 
     configure :identifier do
       pretty_value do
-        if User.current.super_admin? || Account.current.users.collect(&:id).include?(bindings[:object].creator_id)
+        if Account.current.super_admin? || Account.current.users.collect(&:id).include?(bindings[:object].creator_id)
           value
         else
           '<i class="icon-lock"/>'.html_safe
@@ -1876,7 +1933,7 @@ RailsAdmin.config do |config|
 
     configure :secret do
       pretty_value do
-        if User.current.super_admin? || Account.current.users.collect(&:id).include?(bindings[:object].creator_id)
+        if Account.current.super_admin? || Account.current.users.collect(&:id).include?(bindings[:object].creator_id)
           value
         else
           '<i class="icon-lock"/>'.html_safe
@@ -1892,13 +1949,13 @@ RailsAdmin.config do |config|
     navigation_label 'OAuth'
 
     configure :tenant do
-      visible { User.current.super_admin? }
+      visible { Account.current.super_admin? }
       read_only { true }
       help ''
     end
 
     configure :shared do
-      visible { User.current.super_admin? }
+      visible { Account.current.super_admin? }
     end
 
     fields :provider, :name, :description, :tenant, :shared
@@ -2143,24 +2200,28 @@ RailsAdmin.config do |config|
     configure :storer_model do
       label 'Model'
       pretty_value do
-        v = bindings[:view]
-        amc = RailsAdmin.config(value)
-        am = amc.abstract_model
-        wording = amc.navigation_label + ' > ' + amc.label
-        can_see = !am.embedded? && (index_action = v.action(:index, am))
-        (can_see ? v.link_to(amc.label, v.url_for(action: index_action.action_name, model_name: am.to_param), class: 'pjax') : wording).html_safe
+        if value
+          v = bindings[:view]
+          amc = RailsAdmin.config(value)
+          am = amc.abstract_model
+          wording = amc.navigation_label + ' > ' + amc.label
+          can_see = !am.embedded? && (index_action = v.action(:index, am))
+          (can_see ? v.link_to(amc.label, v.url_for(action: index_action.action_name, model_name: am.to_param), class: 'pjax') : wording).html_safe
+        end
       end
     end
 
     configure :storer_object do
       label 'Object'
       pretty_value do
-        v = bindings[:view]
-        amc = RailsAdmin.config(value.class)
-        am = amc.abstract_model
-        wording = value.send(amc.object_label_method)
-        can_see = !am.embedded? && (show_action = v.action(:show, am, value))
-        (can_see ? v.link_to(wording, v.url_for(action: show_action.action_name, model_name: am.to_param, id: value.id), class: 'pjax') : wording).html_safe
+        if value
+          v = bindings[:view]
+          amc = RailsAdmin.config(value.class)
+          am = amc.abstract_model
+          wording = value.send(amc.object_label_method)
+          can_see = !am.embedded? && (show_action = v.action(:show, am, value))
+          (can_see ? v.link_to(wording, v.url_for(action: show_action.action_name, model_name: am.to_param, id: value.id), class: 'pjax') : wording).html_safe
+        end
       end
     end
 
@@ -2168,7 +2229,9 @@ RailsAdmin.config do |config|
       label 'Property'
     end
 
-    fields :storer_model, :storer_object, :storer_property, :filename, :contentType, :length
+    configure :chunks
+
+    fields :storer_model, :storer_object, :storer_property, :filename, :contentType, :length, :chunks
   end
 
   config.model Setup::DelayedMessage do

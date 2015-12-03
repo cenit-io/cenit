@@ -100,6 +100,7 @@ en:
         are_you_sure: "Are you sure you want to delete all the %{model_label_plural}?"
         will_be_deleted: "objects will be deleted"
         done: "deleted"
+        doing: "deletion"
       new_wizard:
         title: "New"
         menu: "Add new"
@@ -194,6 +195,12 @@ en:
         breadcrumb: "Retry"
         submit: "Retry"
         done: "retried"
+      schedule:
+        title: "Schedule"
+        menu: "Schedule"
+        breadcrumb: "Schedule"
+        submit: "Schedule"
+        done: "scheduled"
       new_file_model:
         title: "New File Data Type"
         menu: "Add new"
@@ -236,6 +243,7 @@ en:
         submit: "Run"
         breadcrumb: "Run"
         done: "run"
+        doing: "execution"
       user_info:
         title: "My Profile"
         menu: "My Profile"
