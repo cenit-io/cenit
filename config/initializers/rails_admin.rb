@@ -724,6 +724,9 @@ RailsAdmin.config do |config|
     configure :attempts_succeded, :text do
       label 'Attempts/Succedded'
     end
+    edit do
+      field :description
+    end
     fields :description, :scheduler, :attempts_succeded, :retries, :progress, :status, :notifications
   end
 
@@ -732,6 +735,9 @@ RailsAdmin.config do |config|
     object_label_method { :to_s }
     configure :attempts_succeded, :text do
       label 'Attempts/Succedded'
+    end
+    edit do
+      field :description
     end
     fields :flow, :description, :scheduler, :attempts_succeded, :retries, :progress, :status, :notifications
   end
@@ -742,6 +748,9 @@ RailsAdmin.config do |config|
     configure :attempts_succeded, :text do
       label 'Attempts/Succedded'
     end
+    edit do
+      field :description
+    end
     fields :description, :scheduler, :attempts_succeded, :retries, :progress, :status, :notifications
   end
 
@@ -751,6 +760,9 @@ RailsAdmin.config do |config|
     configure :attempts_succeded, :text do
       label 'Attempts/Succedded'
     end
+    edit do
+      field :description
+    end
     fields :description, :scheduler, :attempts_succeded, :retries, :progress, :status, :notifications
   end
 
@@ -759,6 +771,9 @@ RailsAdmin.config do |config|
     object_label_method { :to_s }
     configure :attempts_succeded, :text do
       label 'Attempts/Succedded'
+    end
+    edit do
+      field :description
     end
     fields :translator, :description, :scheduler, :attempts_succeded, :retries, :progress, :status, :notifications
   end
@@ -778,6 +793,9 @@ RailsAdmin.config do |config|
     configure :attempts_succeded, :text do
       label 'Attempts/Succedded'
     end
+    edit do
+      field :description
+    end
     fields :library, :base_uri, :data, :description, :scheduler, :attempts_succeded, :retries, :progress, :status, :notifications
   end
 
@@ -787,7 +805,23 @@ RailsAdmin.config do |config|
     configure :attempts_succeded, :text do
       label 'Attempts/Succedded'
     end
-    fields :description, :scheduler, :attempts_succeded, :retries, :progress, :status, :notifications
+    configure :deletion_model do
+      label 'Model'
+      pretty_value do
+        if value
+          v = bindings[:view]
+          amc = RailsAdmin.config(value)
+          am = amc.abstract_model
+          wording = amc.navigation_label + ' > ' + amc.label
+          can_see = !am.embedded? && (index_action = v.action(:index, am))
+          (can_see ? v.link_to(amc.contextualized_label(:menu), v.url_for(action: index_action.action_name, model_name: am.to_param), class: 'pjax') : wording).html_safe
+        end
+      end
+    end
+    edit do
+      field :description
+    end
+    fields :deletion_model, :description, :scheduler, :attempts_succeded, :retries, :progress, :status, :notifications
   end
 
   config.model Setup::Notification do
@@ -1122,7 +1156,7 @@ RailsAdmin.config do |config|
       #field :updater
     end
 
-    fields :namespace, :name, :scheduling_method, :expression
+    fields :namespace, :name, :scheduling_method, :expression, :activated
   end
 
   config.model Setup::Translator do

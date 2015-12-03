@@ -5,7 +5,7 @@ module Setup
 
     BuildInDataType.regist(self)
 
-    Setup::Models.exclude_actions_for self, :new, :edit, :translator_update, :import, :convert, :send_to_flow
+    Setup::Models.exclude_actions_for self, :new, :translator_update, :import, :convert, :send_to_flow
 
 
     field :message, type: Hash
@@ -129,7 +129,7 @@ module Setup
     end
 
     def can_schedule?
-      can_retry? && scheduler.nil?
+      can_retry?
     end
 
     def schedule(scheduler)

@@ -44,6 +44,10 @@ module Setup
 
     before_destroy { stop }
 
+    def custom_title
+      super + ' [' + (activated? ? 'on' : 'off') + ']'
+    end
+
     def scheduling_method_enum
       [:Periodic] #[:Once, :Periodic, :CRON]
     end

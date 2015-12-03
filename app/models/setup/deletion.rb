@@ -3,16 +3,18 @@ module Setup
 
     BuildInDataType.regist(self)
 
-    def run(message)
-      unless model_name = message[:model_name]
-        fail 'Model name missing'
-      end
+    def deletion_model
+      model_name = message[:model_name.to_s]
       unless model = model_name.constantize rescue nil
-        if model.name.start_with?('Dt') && data_type = Setup::DataType.where(id: name.from(2)).first
+        if model_name.start_with?('Dt') && data_type = Setup::DataType.where(id: model_name.from(2)).first
           model = data_type.records_model
         end
       end
-      if model
+      model
+    end
+
+    def run(message)
+      if model = deletion_model
         scope = model.where(message[:selector])
         if (model.singleton_method(:before_destroy) rescue nil)
           progress_step = 10
@@ -28,7 +30,7 @@ module Setup
             end
           end
         else
-          scope.delete_all
+          scope.delete_many
         end
       else
         fail "Can not determine records model from name '#{model_name}'"
