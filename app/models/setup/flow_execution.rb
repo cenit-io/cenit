@@ -8,7 +8,7 @@ module Setup
     belongs_to :flow, class_name: Setup::Flow.to_s, inverse_of: nil
 
     before_save do
-      self.flow = Setup::Flow.where(id: message['flow_id']).first if flow.blank?
+      self.flow = Setup::Flow.where(id: message['flow_id']).first
     end
 
     def run(message)

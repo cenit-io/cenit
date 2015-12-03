@@ -13,6 +13,10 @@ module Setup
     field :contentType, type: String
     field :length, type: Integer
 
+    before_destroy do
+      Mongoid.default_client[(Account.tenant_collection_prefix + '.chunks').to_sym].find(files_id: id).delete_many
+    end
+
     def storage_name
       name_components.last
     end
