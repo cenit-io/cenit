@@ -27,6 +27,8 @@ module Setup
 
     before_save { self.description = auto_description if description.blank? }
 
+    before_destroy { NOT_RUNNING_STATUS.include?(status) }
+
     def auto_description
       to_s
     end

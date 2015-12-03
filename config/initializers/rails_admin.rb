@@ -824,6 +824,18 @@ RailsAdmin.config do |config|
     fields :deletion_model, :description, :scheduler, :attempts_succeded, :retries, :progress, :status, :notifications
   end
 
+  config.model Setup::AlgorithmExecution do
+    navigation_label 'Monitor'
+    object_label_method { :to_s }
+    configure :attempts_succeded, :text do
+      label 'Attempts/Succedded'
+    end
+    edit do
+      field :description
+    end
+    fields :algorithm, :description, :scheduler, :attempts_succeded, :retries, :progress, :status, :notifications
+  end
+
   config.model Setup::Notification do
     navigation_label 'Monitor'
     object_label_method { :label }

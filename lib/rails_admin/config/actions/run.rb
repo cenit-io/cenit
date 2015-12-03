@@ -18,9 +18,15 @@ module RailsAdmin
         register_instance_option :controller do
           proc do
 
-            if (@object.parameters.empty? && !@object.try(:need_run_confirmation)) || params[:_run]
+            if params[:_run]
               begin
-                @output = @object.run(@input = params.delete(:input))
+                if params[:background].present?
+                  do_flash_process_result Setup::AlgorithmExecution.process(algorithm_id: @object.id,
+                                                                            input: params.delete(:input),
+                                                                            skip_notification_level: true)
+                else
+                  @output = @object.run(@input = params.delete(:input))
+                end
               rescue Exception => ex
                 @error = ex.message
               end
