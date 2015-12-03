@@ -1,6 +1,8 @@
-"!https://codeclimate.com/github/openjaf/cenit/badges/gpa.svg!":https://codeclimate.com/github/openjaf/cenit
+"!https://badges.gitter.im/Join%20Chat.svg!":https://gitter.im/openjaf/cenit?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge "!https://codeclimate.com/github/openjaf/cenit/badges/gpa.svg!":https://codeclimate.com/github/openjaf/cenit
 
 h1. Cenit Hub
+
+!https://badges.gitter.im/Join%20Chat.svg(Join the chat at https://gitter.im/openjaf/cenit)!:https://gitter.im/openjaf/cenit?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge
 
 h2. What is?
 

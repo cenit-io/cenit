@@ -40,6 +40,9 @@ Cenit.config do
   #Expand data types asynchronous
   asynchronous_data_type_expansion true
 
+  #Delete records asynchronous
+  asynchronous_deletion true
+
   #oauth2 callback site
   oauth2_callback_site ENV['OAUTH2_CALLBACK_SITE']
 
@@ -66,5 +69,5 @@ Cenit.config do
 
   scheduler_lookup_interval 60
 
-  default_delay 60
+  default_delay 30
 end

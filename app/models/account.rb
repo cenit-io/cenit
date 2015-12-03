@@ -18,7 +18,7 @@ class Account
   def inspect_updated_fields
     changed_attributes.keys.each do |attr|
       reset_attribute!(attr) unless %w(notification_level).include?(attr)
-    end unless new_record? || (user = User.current).nil? || user.super_admin?
+    end unless new_record? || Account.current.super_admin?
     true
   end
 
@@ -37,6 +37,10 @@ class Account
   def generate_number(options = {})
     options[:prefix] ||= 'A'
     super(options)
+  end
+
+  def super_admin?
+    owner && owner.super_admin?
   end
 
   class << self

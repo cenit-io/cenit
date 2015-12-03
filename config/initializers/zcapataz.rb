@@ -8,7 +8,7 @@ Capataz.config do
 
   allowed_constants Psych, JSON, URI, File, Array, Hash, Nokogiri, Nokogiri::XML, Time, Base64, Digest, Digest::MD5,
                     SecureRandom, Setup, Setup::DataType, Setup::Library, Setup::Schema, Setup::SchemaDataType, OpenSSL,
-                    OpenSSL::Digest, OpenSSL::HMAC
+                    OpenSSL::Digest, OpenSSL::HMAC, Setup::Task, Setup::Task::RUNNING_STATUS, Setup::Task::NOT_RUNNING_STATUS
 
   allow_on JSON, [:parse, :pretty_generate]
 
@@ -22,6 +22,10 @@ Capataz.config do
 
   allow_on RamlParser::Parser, [:parse_hash, :parse_doc]
 
+  allow_on Setup::Task::RUNNING_STATUS, [:include?]
+
+  allow_on Setup::Task::NOT_RUNNING_STATUS, [:include?]
+
   allow_for ActionView::Base, []
 
   allow_for [Mongoff::Model], [:where, :all]
@@ -30,9 +34,11 @@ Capataz.config do
 
   allow_for [Class], [:where, :all, :new_sign, :digest, :hexdigest, :id]
 
-  allow_for [Mongoid::Criteria, Mongoff::Criteria], Enumerable.instance_methods(false) + Origin::Queryable.instance_methods(false)
+  allow_for [Mongoid::Criteria, Mongoff::Criteria], Enumerable.instance_methods(false) + Origin::Queryable.instance_methods(false) + [:each]
 
-  allow_for Setup::Task, [:state, :resume_in, :run_again, :progress, :progress=, :update]
+  allow_for Setup::Task, [:status, :scheduler, :state, :resume_in, :run_again, :progress, :progress=, :update, :destroy]
+
+  allow_for Setup::Scheduler, [:activated?]
 
   allow_for Setup::DataType, ((%w(_json _xml _edi) + ['']).collect do |format|
                              %w(create new create!).collect do |action|

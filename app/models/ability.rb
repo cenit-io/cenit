@@ -17,8 +17,12 @@ class Ability
                         Setup::OauthClient,
                         Setup::Oauth2Scope]
 
-      can [:index, :show, :create, :import, :convert, :edi_export, :simple_export], @@oauth_models
-      can([:destroy, :edit], @@oauth_models) { |record| user.super_admin? || ((creator = record.creator) && creator.account_id.eql?(user.account_id)) }
+      can [:index, :show, :edi_export, :simple_export], @@oauth_models
+      if user.super_admin?
+        can [:destroy, :edit], @@oauth_models
+      else
+        can [:destroy, :edit], @@oauth_models, tenant_id: Account.current.id
+      end
 
       if user.super_admin?
         can :manage,
@@ -36,12 +40,13 @@ class Ability
               Setup::SystemNotification
             ]
         can :import, Setup::SharedCollection
-        can :destroy, [Setup::SharedCollection, Setup::DataType, Setup::Task, Setup::Storage]
+        can :destroy, [Setup::SharedCollection, Setup::DataType, Setup::Storage]
       else
         cannot :access, [Setup::SharedName, Setup::DelayedMessage, Setup::SystemNotification]
         cannot :destroy, [Setup::SharedCollection, Setup::Raml, Setup::Storage]
-        can(:destroy, Setup::Task) { |task| task.status != :running }
       end
+
+      can :destroy, Setup::Task, Setup::Task.destroy_conditions
 
       can RailsAdmin::Config::Actions.all(:root).collect(&:authorization_key)
 
