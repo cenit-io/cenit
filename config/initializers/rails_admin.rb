@@ -1847,10 +1847,6 @@ RailsAdmin.config do |config|
     navigation_label 'Administration'
   end
 
-  config.model TkAptcha do
-    navigation_label 'Administration'
-  end
-
   config.model Setup::BaseOauthProvider do
     object_label_method { :custom_title }
     label 'Provider'

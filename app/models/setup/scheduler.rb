@@ -65,10 +65,16 @@ module Setup
     end
 
     def start
-      Setup::Task.where(scheduler: self).each { |task| task.retry if task.can_retry? }
+      retryed_tasks_ids = Set.new
+      Setup::Task.where(scheduler: self).each do |task|
+        if task.can_retry?
+          task.retry
+          retryed_tasks_ids << task.id
+        end
+      end
       Setup::Flow.where(event: self).each do |flow|
         if (flows_executions = Setup::FlowExecution.where(flow: flow, scheduler: self)).present?
-          flows_executions.each { |flow_execution| flow_execution.retry if flow_execution.can_retry? }
+          flows_executions.each { |flow_execution| flow_execution.retry if !retryed_tasks_ids.include?(flow_execution.id) && flow_execution.can_retry? }
         else
           flow.process(scheduler: self)
         end
