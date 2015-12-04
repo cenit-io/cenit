@@ -32,7 +32,6 @@ class Ability
               Account,
               Setup::SharedName,
               CenitToken,
-              TkAptcha,
               Script,
               Setup::Raml,
               Setup::RamlReference,
