@@ -1,0 +1,3 @@
+class ThreadToken < CenitToken
+
+end

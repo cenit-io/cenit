@@ -19,7 +19,7 @@ module Setup
 
     has_many :notifications, class_name: Setup::Notification.to_s, inverse_of: :task, dependent: :destroy
 
-    belongs_to :thread_token, class_name: CenitToken.to_s, inverse_of: nil
+    belongs_to :thread_token, class_name: ThreadToken.to_s, inverse_of: nil
     belongs_to :scheduler, class_name: Setup::Scheduler.to_s, inverse_of: nil
 
     validates_inclusion_of :status, in: ->(t) { t.status_enum }
@@ -64,7 +64,7 @@ module Setup
         notify(message: "Executing task ##{id} at #{Time.now} but it is already running")
       else
         thread_token.destroy if thread_token.present?
-        self.thread_token = CenitToken.create
+        self.thread_token = ThreadToken.create
         Thread.current[:task_token] = thread_token.token
         if status == :retrying
           self.retries += 1

@@ -49,8 +49,7 @@ class User
   mount_uploader :picture, ImageUploader
 
   before_save :ensure_token
-  before_create { self.account ||= Account.current }
-  after_create { self.account ||= Account.current || Account.create_with_owner(owner: self) }
+  before_create { self.account ||= Account.current || Account.create_with_owner(owner: self)}
   
   validates_uniqueness_of :token
   before_save :ensure_token, :inspect_updated_fields
