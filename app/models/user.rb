@@ -66,7 +66,7 @@ class User
   def inspect_updated_fields
     changed_attributes.keys.each do |attr|
       reset_attribute!(attr) unless %w(name picture).include?(attr)
-    end unless new_record? || Account.current.super_admin?
+    end unless new_record? || (Account.current && Account.current.super_admin?)
     true
   end
 
