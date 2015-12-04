@@ -1,12 +1,8 @@
-class TkAptcha
-  include Mongoid::Document
-  include Mongoid::Timestamps
+class CaptchaToken < CenitToken
 
-  field :token, type: String
   field :email, type: String
   field :code, type: String
   field :count, type: Integer
-  field :data, type: Hash
 
   before_save :ensure_token, :generate_code
 

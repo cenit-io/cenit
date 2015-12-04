@@ -3,9 +3,8 @@ class Oauth2CallbackController < ApplicationController
   def index
     redirect_path = rails_admin.index_path(Setup::BaseOauthAuthorization.to_s.underscore.gsub('/', '~'))
     error = params[:error]
-    if (cenit_token = CenitToken.where(token: params[:state] || session[:oauth_state]).first) &&
-      (Account.current = Account.where(id: cenit_token.data[:account_id]).first) &&
-      (authorization = Setup::BaseOauthAuthorization.where(id: cenit_token.data[:authorization_id]).first)
+    if (cenit_token = OauthAuthorizationToken.where(token: params[:state] || session[:oauth_state]).first) &&
+      cenit_token.set_current_account && (authorization = cenit_token.authorization)
       begin
         params[:cenit_token] = cenit_token
         authorization.request_token(params)
