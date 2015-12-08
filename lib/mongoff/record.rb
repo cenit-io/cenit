@@ -101,6 +101,7 @@ module Mongoff
             query.update_one(update)
           end
           Model.after_save.call(self)
+
         end
       rescue Exception => ex
         errors.add(:base, ex.message)
@@ -119,10 +120,18 @@ module Mongoff
     def [](field)
       field = field.to_sym
       attribute_key = orm_model.attribute_key(field, model: property_model = orm_model.property_model(field))
-      if (value = (@fields[field] || document[attribute_key])).is_a?(BSON::Document) && property_model && property_model.modelable?
-        @fields[field] = Record.new(property_model, value)
-      elsif property_model && property_model.modelable? && orm_model.property_schema(field)['type'] == 'array'
-        @fields[field] ||= RecordArray.new(property_model, value, field != attribute_key)
+      value = @fields[field] || document[attribute_key]
+      if property_model && property_model.modelable?
+        @fields[field] ||=
+          if (association = orm_model.associations[field.to_s]).many?
+            RecordArray.new(property_model, value, association.referenced?)
+          else
+            if association.referenced?
+              property_model.find(value)
+            else
+              Record.new(property_model, value)
+            end
+          end
       else
         value
       end
@@ -205,7 +214,7 @@ module Mongoff
         end unless value.empty?
         document[attribute_key] = attr_array
       else
-        document[field] = orm_model.mongo_value(value, property_schema.present? ? property_schema : field)
+        document[attribute_key || field] = orm_model.mongo_value(value, field, property_schema)
       end
     end
 

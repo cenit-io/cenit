@@ -13,8 +13,16 @@ module Mongoff
       @klass ||= model.property_model(name)
     end
 
+    def referenced?
+      if @referenced.nil?
+        @referenced = model.property_schema(name)['referenced']
+      else
+        @referenced
+      end
+    end
+
     def nested?
-      @nested ||= !model.property_schema(name)['referenced']
+      !referenced?
     end
 
     def inverse_of
@@ -23,6 +31,10 @@ module Mongoff
 
     def many?
       @many ||= macro.to_s =~ /many/
+    end
+
+    def foreign_key
+      nested? ? nil : model.attribute_key(name)
     end
   end
 end
