@@ -9,7 +9,6 @@ module Setup
 
     included do
       Setup::Models.regist(self)
-
     end
 
     def share_hash

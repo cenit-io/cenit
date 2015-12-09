@@ -73,20 +73,18 @@ module Mongoff
       nil => NilClass
     }.with_indifferent_access
 
-    def mongo_type_for(field_or_schema)
-      if field_or_schema.is_a?(Hash)
-        key = field_or_schema['type']
+    def mongo_type_for(field, schema, property_model = nil)
+      property_model ||= property_model(field) if field
+      schema ||= property_schema(field)
+      if property_model && schema['referenced']
+        property_model.mongo_type_for(:id, nil) #TODO Set schema parameter default to nil
+      elsif schema
+        key = schema['type']
         if (type = MONGO_TYPE_MAP[key]).is_a?(Hash)
-          type = type['format'][field_or_schema['format']] || type['default']
+          type = type['format'][schema['format']] || type['default']
         end
         type
-      elsif schema = property_schema(field_or_schema)
-        if property_model?(field_or_schema) && schema['referenced']
-          BSON::ObjectId #TODO when array schema
-        else
-          mongo_type_for(schema)
-        end
-      elsif %w(id _id).include?(str = field_or_schema.to_s) || str.end_with?('_id')
+      elsif %w(id _id).include?(str = field.to_s) || str.end_with?('_id')
         BSON::ObjectId
       else
         NilClass
@@ -94,11 +92,11 @@ module Mongoff
     end
 
     def type_symbol_for(schema)
-      mongo_type_for(schema).to_s.downcase.to_sym
+      mongo_type_for(nil, schema).to_s.downcase.to_sym
     end
 
     def simple_properties_mongo_types
-      (hash = simple_properties_schemas).each { |property, schema| hash[property] = mongo_type_for(schema) }
+      (hash = simple_properties_schemas).each { |property, schema| hash[property] = mongo_type_for(property, schema) }
       hash
     end
 

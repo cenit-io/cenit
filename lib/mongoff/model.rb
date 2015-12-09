@@ -236,12 +236,12 @@ module Mongoff
       NilClass => ->(value) { Cenit::Utility.json_object?(value) ? value : nil }
     }
 
-    def mongo_value(value, field_or_schema)
+    def mongo_value(value, field, schema = nil)
       type =
-        if !caching? || field_or_schema.is_a?(Hash)
-          mongo_type_for(field_or_schema)
+        if !caching? || schema
+          mongo_type_for(field, schema)
         else
-          @mongo_types[field_or_schema] ||= mongo_type_for(field_or_schema)
+          @mongo_types[field] ||= mongo_type_for(field, schema)
         end
       if type && value.is_a?(type)
         value

@@ -108,11 +108,12 @@ module Setup
       options[:silent] = true if options[:silent].nil?
       references = Set.new
       merging = true
+      merged = false
       while merging
         merging = false
         if (options[:expand_extends].nil? && options[:only_overriders].nil?) || options[:expand_extends]
           while base_model = schema.delete('extends')
-            merging = true
+            merged = merging = true
             base_model = find_ref_schema(base_model) if base_model.is_a?(String)
             base_model = do_merge_schema(base_model)
             if schema['type'] == 'object' && base_model['type'] != 'object'
@@ -131,7 +132,7 @@ module Setup
           end
         elsif options[:only_overriders]
           while base_model = schema.delete('extends') || options.delete(:extends)
-            merging = true
+            merged = merging = true
             base_model = find_ref_schema(base_model) if base_model.is_a?(String)
             base_model = do_merge_schema(base_model)
             schema['extends'] = base_model['extends'] if base_model['extends']
@@ -145,7 +146,7 @@ module Setup
           end
         end
         while refs = schema['$ref']
-          merging = true
+          merged = merging = true
           refs = [refs] unless refs.is_a?(Array)
           refs.each do |ref|
             if references.include?(ref)
@@ -184,7 +185,9 @@ module Setup
           schema = sch
         end
       end
-      schema.each { |key, val| schema[key] = do_merge_schema(val, options) if val.is_a?(Hash) } if options[:recursive]
+      if options[:recursive] || (options[:until_merge] && !merged)
+        schema.each { |key, val| schema[key] = do_merge_schema(val, options) if val.is_a?(Hash) }
+      end
       schema
     end
   end
