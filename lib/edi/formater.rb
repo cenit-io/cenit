@@ -16,18 +16,7 @@ module Edi
     end
 
     def default_hash(options={})
-      include_id = options[:include_id]
-      [:ignore, :only, :embedding, :inspecting].each do |option|
-        value = (options[option] || [])
-        value = [value] unless value.is_a?(Enumerable)
-        value = value.select { |p| p.is_a?(Symbol) || p.is_a?(String) }.collect(&:to_sym)
-        options[option] = value
-        include_id ||= (value.include?(:id) || value.include?(:_id)) if include_id.nil? && option != :ignore
-      end
-      [:only, :inspecting].each { |option| options.delete(option) if options[option].empty? }
-      options[:inspected_records] = Set.new
-      options[:stack] = []
-      options[:include_id] = include_id.present?
+      prepare_options(options)
       hash = record_to_hash(self, options)
       options.delete(:stack)
       hash = {self.orm_model.data_type.slug => hash} if options[:include_root]
@@ -44,6 +33,7 @@ module Edi
     end
 
     def to_xml_element(options = {})
+      prepare_options(options)
       unless xml_doc = options[:xml_doc]
         options[:xml_doc] = xml_doc = Nokogiri::XML::Document.new
       end
@@ -61,6 +51,21 @@ module Edi
     alias_method :inspect_json, :to_hash
 
     private
+
+    def prepare_options(options)
+      include_id = options[:include_id]
+      [:ignore, :only, :embedding, :inspecting].each do |option|
+        value = (options[option] || [])
+        value = [value] unless value.is_a?(Enumerable)
+        value = value.select { |p| p.is_a?(Symbol) || p.is_a?(String) }.collect(&:to_sym)
+        options[option] = value
+        include_id ||= (value.include?(:id) || value.include?(:_id)) if include_id.nil? && option != :ignore
+      end
+      [:only, :inspecting].each { |option| options.delete(option) if options[option].empty? }
+      options[:inspected_records] = Set.new
+      options[:stack] = []
+      options[:include_id] = include_id.present?
+    end
 
     def split_name(name)
       name = (tokens = name.split(':')).pop
@@ -80,6 +85,14 @@ module Edi
         name = property_schema['edi']['segment'] if property_schema['edi']
         name ||= property_name
         property_model = record.orm_model.property_model(property_name)
+        if inspecting = options[:inspecting] #TODO Factorize for all format formatting
+          next unless (property_model || inspecting.include?(name.to_sym))
+        else
+          next if property_schema['virtual'] ||
+            ((property_schema['edi'] || {})['discard'] && !(included_anyway = options[:including_discards])) ||
+            options[:ignore].include?(name.to_sym) ||
+            (options[:only] && !options[:only].include?(name.to_sym) && !included_anyway)
+        end
         case property_schema['type']
         when 'array'
           property_value = record.send(property_name)

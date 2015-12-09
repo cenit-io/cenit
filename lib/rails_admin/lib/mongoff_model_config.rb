@@ -8,7 +8,8 @@ module RailsAdmin
       @parent = self
 
       (abstract_model.properties + abstract_model.associations).each do |property|
-        type = property.is_a?(RailsAdmin::MongoffAssociation) ? nil : property.type
+        type = property.type
+        type = (type.to_s + '_association').to_sym if property.is_a?(RailsAdmin::MongoffAssociation)
         configure property.name, type do
           visible { property.visible? }
           label { property.name.to_s.titleize }
