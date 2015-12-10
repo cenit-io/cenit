@@ -49,7 +49,7 @@ module Setup
         # result
         # end
 
-        def preprocess_erb_html(transformation, options)
+        def preprocess_erb(transformation, options)
           pattern = /(<%=?)(.*?)(%>)/
           rb = []
           gs = Gensym.new
@@ -68,9 +68,13 @@ module Setup
           marks.each_with_index do |mark, i|
             res = res.gsub(mark.to_s, rw[i][0..(-(mark.to_s.length + 3))])
           end
-          
+
           res
         end
+
+        alias_method :preprocess_erb_html, :preprocess_erb
+
+        alias_method :preprocess_erb_js, :preprocess_erb
 
       end
     end
