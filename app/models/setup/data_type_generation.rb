@@ -33,6 +33,11 @@ module Setup
                 nil
               end
           end
+          new_data_types_attributes.each do |attrs|
+            unless (sch = attrs['schema']).is_a?(String)
+              attrs['schema'] = sch.to_json
+            end
+          end
           Setup::DataType.collection.insert_many(new_data_types_attributes)
         end
       end
