@@ -19,7 +19,7 @@ module Setup
     end
 
     def check_id_property(json_schema)
-      return unless json_schema['type'] == 'object' && !(properties = json_schema['properties']).nil?
+      return json_schema unless json_schema['type'] == 'object' && !(properties = json_schema['properties']).nil?
       _id, id = properties.delete('_id'), properties.delete('id')
       fail Exception, 'Defining both id and _id' if _id && id
       if _id ||= id
