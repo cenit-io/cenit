@@ -185,9 +185,13 @@ module Setup
           schema = sch
         end
       end
-      if options[:recursive] || (options[:until_merge] && !merged)
-        schema.each { |key, val| schema[key] = do_merge_schema(val, options) if val.is_a?(Hash) }
-      end
+      schema.each do |key, val|
+        if val.is_a?(Hash)
+          schema[key] = do_merge_schema(val, options)
+        elsif val.is_a?(Array)
+          schema[key] = val.collect { |sub_val| sub_val.is_a?(Hash) ? do_merge_schema(sub_val, options) : sub_val }
+        end
+      end if options[:recursive] || (options[:until_merge] && !merged)
       schema
     end
   end
