@@ -22,11 +22,11 @@ Capataz.config do
 
   allow_on RamlParser::Parser, [:parse_hash, :parse_doc]
 
+  allow_for ActionView::Base, [:escape_javascript, :j]
+
   allow_on Setup::Task::RUNNING_STATUS, [:include?]
 
   allow_on Setup::Task::NOT_RUNNING_STATUS, [:include?]
-
-  allow_for ActionView::Base, []
 
   allow_for [Mongoff::Model], [:where, :all]
 
