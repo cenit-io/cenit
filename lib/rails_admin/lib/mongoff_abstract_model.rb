@@ -58,7 +58,9 @@ module RailsAdmin
       unless @properties
         @properties = []
         model.properties.each do |property|
-          unless model.property_model?(property)
+          if a = associations.detect { |a| a.name == property.to_sym }
+            @properties << RailsAdmin::MongoffProperty.new(a.association.foreign_key, model, 'type' => 'string', 'visible' => false) unless a.association.nested?
+          else
             @properties << RailsAdmin::MongoffProperty.new(property, model)
           end
         end
@@ -158,6 +160,11 @@ module Mongoff
 
     def limit_value
       super || total_count
+    end
+
+    def includes(*args)
+      #For eager load mongoid compatibility which is not supported on mongoff
+      self
     end
   end
 end

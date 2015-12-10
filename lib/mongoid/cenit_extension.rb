@@ -18,9 +18,9 @@ module Mongoid
 
       include Mongoff::MetadataAccess
 
-      def mongo_value(value, field_or_schema)
-        return value unless field_or_schema.is_a?(String) || field_or_schema.is_a?(Symbol)
-        if (property_model = property_model(field_or_schema)).is_a?(Mongoff::Model)
+      def mongo_value(value, field, schema = nil)
+        return value unless field
+        if (property_model = property_model(field)).is_a?(Mongoff::Model)
           property_model.mongo_value(value, property_model.schema)
         else
           value
