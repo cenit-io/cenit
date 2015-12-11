@@ -128,8 +128,10 @@ module Mongoff
           else
             if association.referenced?
               property_model.find(value)
-            else
+            elsif value
               Record.new(property_model, value)
+            else
+              nil
             end
           end
       else
