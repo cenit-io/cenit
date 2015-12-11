@@ -701,7 +701,6 @@ RailsAdmin.config do |config|
     show do
       field :namespace
       field :name
-      field :purpose
       field :path
       field :method
 
@@ -715,7 +714,7 @@ RailsAdmin.config do |config|
       field :updated_at
       #field :updater
     end
-    fields :namespace, :name, :purpose, :path, :method, :parameters, :headers, :template_parameters
+    fields :namespace, :name, :path, :method, :parameters, :headers, :template_parameters
   end
 
   config.model Setup::Task do

@@ -1,7 +1,6 @@
 FactoryGirl.define do
   factory :add_product_flow, class: Setup::Flow do
     name 'Add Product'
-    purpose 'send'
     active true
 
     association(:webhook, factory: :add_product_webhook)
@@ -15,7 +14,6 @@ FactoryGirl.define do
 
   factory :update_product_flow, class: Setup::Flow do
     name 'Update Product'
-    purpose 'send'
     active true
 
     association(:webhook, factory: :update_product_webhook)
