@@ -275,7 +275,7 @@ module Mongoff
           if value.is_a?(RecordArray)
             document[attribute_key] = value.collect { |v| nested ? v.attributes : v.id }
           else
-            document[attribute_key] = nested ? value.attributes : value.id
+            document[attribute_key] = nested ? value.attributes : value.id unless value.nil?
           end
         end
       end
