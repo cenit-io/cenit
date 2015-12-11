@@ -128,6 +128,8 @@ module Mongoff
           else
             if association.referenced?
               property_model.find(value)
+            elsif value
+              Record.new(property_model, value)
             else
               nil
             end
@@ -273,7 +275,7 @@ module Mongoff
           if value.is_a?(RecordArray)
             document[attribute_key] = value.collect { |v| nested ? v.attributes : v.id }
           else
-            document[attribute_key] = nested ? value.attributes : value.id unless value.nil?
+            document[attribute_key] = nested ? value.attributes : value.id
           end
         end
       end
