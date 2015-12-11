@@ -22,13 +22,13 @@ Capataz.config do
 
   allow_on RamlParser::Parser, [:parse_hash, :parse_doc]
 
+  allow_for ActionView::Base, [:escape_javascript, :j]
+
   allow_on Setup::Task::RUNNING_STATUS, [:include?]
 
   allow_on Setup::Task::NOT_RUNNING_STATUS, [:include?]
 
-  allow_for ActionView::Base, []
-
-  allow_for [Mongoff::Model], [:where, :all]
+  allow_for [Mongoff::Model], [:where, :all, :data_type]
 
   allow_for [Setup::Raml],  [:id, :name, :slug, :to_json, :to_edi, :to_hash, :to_xml, :to_params, :records_model, :ref_hash, :raml_parse, :build_hash, :map_collection]
 
@@ -48,12 +48,12 @@ Capataz.config do
                                  "#{action}_from#{format}"
                                end
                              end + [:create_from]
-                           end + [:name, :slug, :to_json, :to_edi, :to_hash, :to_xml, :to_params, :records_model]).flatten
+                           end + [:name, :slug, :to_json, :to_edi, :to_hash, :to_xml, :to_params, :records_model, :library, :library_id]).flatten
 
-  allow_for [Class], [:where, :all, :new_sign, :digest, :now]
+  allow_for [Class], [:where, :all, :new_sign, :digest, :now, :data_type]
 
   deny_for [Setup::DynamicRecord, Mongoff::Record], ->(instance, method) do
-    return false if [:id, :to_json, :to_edi, :to_hash, :to_xml, :to_params, :[], :[]=, :save, :all, :where, :records_model, :nil?, :==, :errors].include?(method)
+    return false if [:id, :to_json, :to_edi, :to_hash, :to_xml, :to_xml_element, :to_params, :[], :[]=, :save, :all, :where, :orm_model, :nil?, :==, :errors].include?(method)
     return false if [:data].include?(method) && instance.is_a?(Mongoff::GridFs::FileFormatter)
     if (method = method.to_s).end_with?('=')
       method = method.chop
