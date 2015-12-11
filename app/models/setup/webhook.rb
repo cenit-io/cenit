@@ -3,6 +3,7 @@ module Setup
     include CenitScoped
     include NamespaceNamed
     include ParametersCommon
+    include AuthorizationHandler
 
     BuildInDataType.regist(self).referenced_by(:namespace, :name).excluding(:connection_roles)
 

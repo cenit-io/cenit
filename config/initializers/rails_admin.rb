@@ -679,21 +679,40 @@ RailsAdmin.config do |config|
     object_label_method { :custom_title }
     weight -13
 
+    group :credentials do
+      label 'Credentials'
+    end
+
+    configure :authorization do
+      group :credentials
+      inline_edit false
+      visible { bindings[:view]._current_user.has_role? :admin }
+    end
+
+    configure :authorization_handler do
+      group :credentials
+      visible { bindings[:view]._current_user.has_role? :admin }
+    end
+
+    group :parameters do
+      label 'Parameters & Headers'
+    end
+
     configure :path, :string do
-      help "Requiered. Path of the webhook relative to connection URL."
+      help 'Requiered. Path of the webhook relative to connection URL.'
       html_attributes do
         {maxlength: 255, size: 100}
       end
     end
-    group :parameters do
-      label "Add Parameters"
-    end
+
     configure :parameters do
       group :parameters
     end
+
     configure :headers do
       group :parameters
     end
+
     configure :template_parameters do
       group :parameters
     end
@@ -703,6 +722,9 @@ RailsAdmin.config do |config|
       field :name
       field :path
       field :method
+
+      field :authorization
+      field :authorization_handler
 
       field :parameters
       field :headers
@@ -714,7 +736,7 @@ RailsAdmin.config do |config|
       field :updated_at
       #field :updater
     end
-    fields :namespace, :name, :path, :method, :parameters, :headers, :template_parameters
+    fields :namespace, :name, :path, :method, :authorization, :authorization_handler, :parameters, :headers, :template_parameters
   end
 
   config.model Setup::Task do
