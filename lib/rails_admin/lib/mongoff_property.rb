@@ -23,7 +23,7 @@ module RailsAdmin
 
     def type
       case @schema['type']
-      when 'array', 'object'
+      when 'array', 'object', nil
         :json_value
       when 'number'
         :decimal
