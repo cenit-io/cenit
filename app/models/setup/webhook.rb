@@ -71,21 +71,12 @@ module Setup
         common_submitter_body = (body_caller = body_argument.respond_to?(:call)) ? nil : body_argument
         common_template_parameters = nil
         connections.each do |connection|
+          template_parameters = template_parameters_hash.dup
+          template_parameters.reverse_merge!(connection.template_parameters_hash) if connection.template_parameters.present?
           submitter_body =
-            if connection.template_parameters.present?
-              template_parameters = template_parameters_hash.dup
-              template_parameters.reverse_merge!(connection.template_parameters_hash)
-              if body_caller
-                body_argument.call(template_parameters)
-              else
-                common_submitter_body
-              end
+            if body_caller
+              body_argument.call(template_parameters)
             else
-              unless common_template_parameters
-                common_template_parameters = template_parameters_hash.dup
-                common_submitter_body = body_argument.call(common_template_parameters) unless body_argument.nil?
-              end
-              template_parameters = common_template_parameters
               common_submitter_body
             end
           submitter_body = '' if body_argument && submitter_body.nil?
@@ -150,6 +141,7 @@ module Setup
                                               skip_notification_level: options[:skip_notification_level] || options[:notify_response])
 
               if block
+                http_response = ResponseProxy.new(http_response)
                 last_response =
                   case block.arity
                   when 1
@@ -183,6 +175,25 @@ module Setup
         }
       else
         nil
+      end
+    end
+
+    class ResponseProxy
+
+      def initialize(response)
+        @response = response
+      end
+
+      def code
+        @response.code
+      end
+
+      def body
+        @response.body
+      end
+
+      def headers
+        @response.headers.to_hash
       end
     end
   end
