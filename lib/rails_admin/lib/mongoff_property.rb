@@ -47,6 +47,10 @@ module RailsAdmin
       end
     end
 
+    def enum
+      @schema['enum']
+    end
+
     def length
       (length_validation_lookup || 255) if type == :string
     end
