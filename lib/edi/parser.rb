@@ -108,7 +108,7 @@ module Edi
         record
       end
 
-      def do_parse_json(data_type, model, json, options, json_schema, record=nil, new_record=nil)
+      def do_parse_json(data_type, model, json, options, json_schema, record=nil, new_record=nil, container = nil)
         updating = false
         primary_fields = options.delete(:primary_field) || (json .is_a?(Hash) && json['_primary']) || [:id]
         primary_fields = [primary_fields] unless primary_fields.is_a?(Array)
@@ -118,7 +118,7 @@ module Edi
             if json.is_a?(Hash) &&
               options[:ignore].none? { |ignored_field| primary_fields.include?(ignored_field) } &&
               (criteria = json.select { |key, _| primary_fields.include?(key.to_sym) }).size == primary_fields.count
-              record = model.where(criteria).first
+              record = container ? container.detect { |item| Cenit::Utility.match?(item, criteria) } : model.where(criteria).first
             end
             if record
               updating = true
@@ -165,7 +165,7 @@ module Edi
                         association.delete(sub_value)
                       end
                     else
-                      if !association.include?(sub_value = do_parse_json(data_type, property_model, sub_value, options, items_schema))
+                      if !association.include?(sub_value = do_parse_json(data_type, property_model, sub_value, options, items_schema, nil, nil, association))
                         association << sub_value
                       end
                     end
@@ -174,7 +174,7 @@ module Edi
               when 'object'
                 next unless updating || record.send(property_name).nil?
                 unless (property_value = json[name]).nil?
-                  if property_value.is_a?(Hash) &&property_value['_reference']
+                  if property_value.is_a?(Hash) && property_value['_reference']
                     record.send("#{property_name}=", nil)
                     property_value = Cenit::Utility.deep_remove(property_value, '_reference')
                     record.instance_variable_set(:@_references, references = {}) unless references = record.instance_variable_get(:@_references)
@@ -245,7 +245,7 @@ module Edi
                       association.delete(sub_value)
                     end
                   else
-                    if !association.include?(sub_value = do_parse_json(data_type, property_model, sub_value, options, items_schema))
+                    if !association.include?(sub_value = do_parse_json(data_type, property_model, sub_value, options, items_schema, nil, nil, association))
                       association << sub_value
                     end
                   end

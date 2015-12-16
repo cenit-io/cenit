@@ -42,7 +42,7 @@ module Setup
         self.pull_translator = pull_flow.translator
         unless pull_flow.webhook.present?
           name = uniq_name("Get #{data_type.custom_title}", Setup::Webhook)
-          pull_flow.webhook = Setup::Webhook.create(name: name, purpose: :receive, method: :get, path: data_type.name.underscore.downcase)
+          pull_flow.webhook = Setup::Webhook.create(name: name, method: :get, path: data_type.name.underscore.downcase)
           pull_flow.webhook.instance_variable_set(:@dynamically_created, true)
         end
         pull_flow.connection_role = connection_role_for(pull_connection, pull_flow.webhook) unless pull_flow.connection_role.present?
@@ -63,7 +63,7 @@ module Setup
         send_flow.data_type_scope = 'Event source' if send_flow.event.is_a?(Setup::Observer) && send_flow.event.data_type == send_flow.translator.data_type
         unless send_flow.webhook.present?
           name = uniq_name("Send #{data_type.custom_title}", Setup::Webhook)
-          send_flow.webhook = Setup::Webhook.create(name: name, purpose: :send, method: :post, path: "send_#{data_type.name.underscore.downcase}")
+          send_flow.webhook = Setup::Webhook.create(name: name, method: :post, path: "send_#{data_type.name.underscore.downcase}")
           send_flow.webhook.instance_variable_set(:@dynamically_created, true)
         end
         send_flow.connection_role = connection_role_for(receiver_connection, send_flow.webhook) unless send_flow.connection_role.present?
