@@ -30,7 +30,11 @@ module Setup
             end
           end
         else
-          scope.delete_many
+          if scope.is_a?(Mongoid::Criteria) then
+            scope.delete_all
+          else
+            scope.delete_many
+          end
         end
       else
         fail "Can not determine records model from name '#{model_name}'"
