@@ -103,27 +103,10 @@ module Setup
     end
 
     def notify(attributes)
-      attachment = attributes.delete(:attachment)
-      skip = attributes.delete(:skip_notification_level)
-      notification = Setup::Notification.new(attributes)
-      notification.skip_notification_level(skip)
-      temporary_file = nil
-      if attachment && (readable = attachment[:body]).present?
-        if readable.is_a?(String)
-          temporary_file = Tempfile.new('file_')
-          temporary_file.binmode
-          temporary_file.write(readable)
-          temporary_file.rewind
-          readable = Cenit::Utility::Proxy.new(temporary_file, original_filename: attachment[:filename], contentType: attachment[:contentType])
-        end
-        notification.attachment = readable
-      end
-      if notification.save
+      if notification = Setup::Notification.create_with(attributes)
         notifications << notification
       end
       save
-    ensure
-      temporary_file.close if temporary_file
     end
 
     def can_retry?
@@ -184,8 +167,8 @@ module Setup
 
       def destroy_conditions
         {
-          'status' => {'$in' => Setup::Task::NOT_RUNNING_STATUS},
-          'scheduler_id' => {'$in' => Setup::Scheduler.where(activated: false).collect(&:id) + [nil]}
+          'status' => { '$in' => Setup::Task::NOT_RUNNING_STATUS },
+          'scheduler_id' => { '$in' => Setup::Scheduler.where(activated: false).collect(&:id) + [nil] }
         }
       end
     end

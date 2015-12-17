@@ -224,131 +224,54 @@ module Setup
     end
 
     def translate_import(message, &block)
-      webhook_template_parameters = webhook.template_parameters_hash
-      the_connections.each do |connection|
-        begin
-          template_parameters = webhook_template_parameters.dup
-          if connection.template_parameters.present?
-            template_parameters.reverse_merge!(connection.template_parameters_hash)
-          end
-
-          headers = connection.conformed_headers(template_parameters).merge(webhook.conformed_headers(template_parameters))
-          conformed_url = connection.conformed_url(template_parameters)
-          conformed_path = webhook.conformed_path(template_parameters)
-          url_parameter = connection.conformed_parameters(template_parameters).merge(webhook.conformed_parameters(template_parameters)).to_param
-          if url_parameter.present?
-            url_parameter = '?' + url_parameter
-          end
-          url = conformed_url + '/' + conformed_path + url_parameter
-          block.yield(message: JSON.pretty_generate(method: webhook.method,
-                                                    url: url,
-                                                    headers: headers),
-                      type: :notice,
-                      skip_notification_level: notify_request) if block.present?
-
-          http_response = HTTParty.send(webhook.method, url, headers: headers)
-
-          block.yield(message: {response_code: http_response.code}.to_json,
-                      type: (200...299).include?(http_response.code) ? :notice : :error,
-                      attachment: attachment_from(http_response),
-                      skip_notification_level: notify_response) if block.present?
-
-          translator.run(target_data_type: data_type,
-                         data: http_response.body,
-                         discard_events: discard_events,
-                         parameters: template_parameters,
-                         headers: http_response.headers,
-                         task: message[:task]) if http_response.code == 200
-
-        rescue Exception => ex
-          block.yield(message: {error: ex.message}.to_json, attachment: attachment_from(http_response)) if block
-        end
+      webhook.with_role(connection_role).submit(notify_request: notify_request,
+                                                notify_response: notify_response) do |response, template_parameters|
+        translator.run(target_data_type: data_type,
+                       data: response.body,
+                       discard_events: discard_events,
+                       parameters: template_parameters,
+                       headers: response.headers,
+                       task: message[:task]) if response.code == 200
       end
     end
 
     def translate_export(message, &block)
       limit = translator.bulk_source ? lot_size || 1000 : 1
       max = ((object_ids = source_ids_from(message)) ? object_ids.size : data_type.count) - (scope_symbol ? 1 : 0)
-      webhook_template_parameters = webhook.template_parameters_hash
+      translation_options = nil
+      connections_present = true
       0.step(max, limit) do |offset|
-        common_result = nil
-        connections_missing = true
-        the_connections.each do |connection|
-          connections_missing = false
-          translation_options =
-            {
-              object_ids: object_ids,
-              source_data_type: data_type,
-              offset: offset,
-              limit: limit,
-              discard_events: discard_events,
-              parameters: template_parameters = webhook_template_parameters.dup,
-              task: message[:task]
-            }
-          translation_result =
-            if connection.template_parameters.present?
-              template_parameters.reverse_merge!(connection.template_parameters_hash)
-              translator.run(translation_options)
-            else
-              common_result ||= translator.run(translation_options)
-            end || ''
-          if [Hash, String].include?(translation_result.class)
-            url_parameter = connection.conformed_parameters(template_parameters).merge(webhook.conformed_parameters(template_parameters)).to_param
-            if url_parameter.present?
-              url_parameter = '?' + url_parameter
-            end
-            if translation_result.is_a?(String)
-              body = translation_result
-            else
-              body = {}
-              translation_result.each do |key, content|
-                body[key] =
-                  if content.is_a?(String) || content.respond_to?(:read)
-                    content
-                  elsif content.is_a?(Hash)
-                    UploadIO.new(StringIO.new(content[:data]), content[:contentType], content[:filename])
-                  else
-                    content.to_s
-                  end
-              end
-            end
-            template_parameters.reverse_merge!(
-              url: conformed_url = connection.conformed_url(template_parameters),
-              path: conformed_path = webhook.conformed_path(template_parameters) + url_parameter,
-              method: webhook.method,
-              body: body
-            )
-            headers =
+        next unless connections_present
+        verbose_response =
+          webhook.with_role(connection_role).submit ->(template_parameters) {
+            translation_options =
               {
-                'Content-Type' => translator.mime_type
-              }.merge(connection.conformed_headers(template_parameters)).merge(webhook.conformed_headers(template_parameters))
-            begin
-              url = conformed_url + '/' + conformed_path
-              block.yield(message: JSON.pretty_generate(method: webhook.method,
-                                                        url: url,
-                                                        headers: headers),
-                          type: :notice,
-                          attachment: Setup::Translation.attachment_for(data_type, translator, body),
-                          skip_notification_level: notify_request) if block.present?
-
-              http_response = HTTMultiParty.send(webhook.method, url, {body: body, headers: headers})
-
-              block.yield(message: {response_code: http_response.code}.to_json,
-                          type: (200...299).include?(http_response.code) ? :notice : :error,
-                          attachment: attachment_from(http_response),
-                          skip_notification_level: notify_response) if block.present?
-
-              if response_translator #&& http_response.code == 200
-                response_translator.run(translation_options.merge(target_data_type: response_translator.data_type || response_data_type, data: http_response.body))
-              end
-            rescue Exception => ex
-              block.yield(message: ex.message) if block
+                object_ids: object_ids,
+                source_data_type: data_type,
+                offset: offset,
+                limit: limit,
+                discard_events: discard_events,
+                parameters: template_parameters,
+                task: message[:task]
+              }
+            translator.run(translation_options)
+          },
+                                                    contentType: translator.mime_type,
+                                                    notify_request: notify_request,
+                                                    request_attachment: ->(attachment) do
+                                                      attachment[:filename] = ((data_type && data_type.title) || translator.name).collectionize +
+                                                        attachment[:filename] +
+                                                        ((ext = translator.file_extension).present? ? ".#{ext}" : '')
+                                                      attachment
+                                                    end,
+                                                    notify_response: notify_response,
+                                                    verbose_response: true do |response|
+            if response_translator #&& response.code == 200
+              response_translator.run(translation_options.merge(target_data_type: response_translator.data_type || response_data_type, data: response.body))
             end
-          else
-            block.yield(message: "Invalid translation result type: #{translation_result.class}") if block
+            true
           end
-        end
-        block.yield(message: "No connections available", type: :warning) if connections_missing && block
+        connections_present = verbose_response[:connections_present]
       end
     end
 
@@ -391,20 +314,6 @@ module Setup
         end
       else
         nil
-      end
-    end
-
-    def the_connections
-      if connection_role.present?
-        connection_role.connections || []
-      else
-        connections = []
-        Setup::ConnectionRole.all.each do |connection_role|
-          if connection_role.webhooks.include?(webhook)
-            connections = (connections + connection_role.connections.to_a).uniq
-          end
-        end
-        connections
       end
     end
   end

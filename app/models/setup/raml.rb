@@ -155,7 +155,6 @@ module Setup
 
           hooks << {"name" => name,
                     "path" => item.relative_uri.gsub("{", "{{").gsub("}", "}}"),
-                    "purpose" => ["POST", "PUT", "PATCH", "DELETE"].include?(v.method) ? "send" : "receive",
                     "method" => v.method,
                     "parameters" => parameters,
                     "headers" => headers,
