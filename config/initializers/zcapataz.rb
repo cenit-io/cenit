@@ -8,7 +8,8 @@ Capataz.config do
 
   allowed_constants Psych, JSON, URI, File, Array, Hash, Nokogiri, Nokogiri::XML, Time, Base64, Digest, Digest::MD5,
                     SecureRandom, Setup, Setup::DataType, Setup::Library, Setup::Schema, Setup::SchemaDataType, OpenSSL,
-                    OpenSSL::Digest, OpenSSL::HMAC, Setup::Task, Setup::Task::RUNNING_STATUS, Setup::Task::NOT_RUNNING_STATUS
+                    OpenSSL::Digest, OpenSSL::HMAC, Setup::Task, Setup::Task::RUNNING_STATUS, Setup::Task::NOT_RUNNING_STATUS,
+                    Setup::Webhook
 
   allow_on JSON, [:parse, :pretty_generate]
 
@@ -39,6 +40,8 @@ Capataz.config do
   allow_for Setup::Task, [:status, :scheduler, :state, :resume_in, :run_again, :progress, :progress=, :update, :destroy, :notifications]
 
   allow_for Setup::Scheduler, [:activated?]
+
+  allow_for Setup::Webhook::ResponseProxy, [:code, :body, :headers]
 
   allow_for Setup::DataType, ((%w(_json _xml _edi) + ['']).collect do |format|
                              %w(create new create!).collect do |action|
