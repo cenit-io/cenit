@@ -26,11 +26,11 @@ module Mongoff
           end
         else
           @data ||=
-              begin
-                data = ''
-                chunks.ascending(:n).each { |chunk| data << chunk.data.data }
-                data
-              end
+            begin
+              data = ''
+              chunks.ascending(:n).each { |chunk| data << chunk.data.data }
+              data
+            end
         end
 
       end
@@ -46,32 +46,32 @@ module Mongoff
 
       def save(options = {})
         self[:metadata] = options[:metadata] || {}
-        self[:chunkSize] = FileModel::MINIMUM_CHUNK_SIZE if  self[:chunkSize] < FileModel::MINIMUM_CHUNK_SIZE
+        self[:chunkSize] = FileModel::MINIMUM_CHUNK_SIZE if self[:chunkSize] < FileModel::MINIMUM_CHUNK_SIZE
         temporary_file = nil
         new_chunks_ids =
-            if @new_data
-              readable =
-                  if @new_data.is_a?(String)
-                    temporary_file = Tempfile.new('file_')
-                    temporary_file.binmode
-                    temporary_file.write(@new_data)
-                    temporary_file.rewind
-                    Cenit::Utility::Proxy.new(temporary_file, original_filename: filename || options[:filename] || options[:default_filename])
-                  else
-                    @new_data
-                  end
-              if !options[:valid_data] && (file_data_errors = orm_model.data_type.validate_file(self)).present?
-                errors.add(:base, "Invalid file data: #{file_data_errors.to_sentence}")
+          if @new_data
+            readable =
+              if @new_data.is_a?(String)
+                temporary_file = Tempfile.new('file_')
+                temporary_file.binmode
+                temporary_file.write(@new_data)
+                temporary_file.rewind
+                Cenit::Utility::Proxy.new(temporary_file, original_filename: filename || options[:filename] || options[:default_filename])
               else
-                create_temporary_chunks(readable, options)
+                @new_data
               end
+            if !options[:valid_data] && (file_data_errors = orm_model.data_type.validate_file(self)).present?
+              errors.add(:base, "Invalid file data: #{file_data_errors.to_sentence}")
+            else
+              create_temporary_chunks(readable, options)
             end
+          end
         temporary_file.close if temporary_file
         [:filename, :contentType].each { |property| self[property] = options[property] unless self[property].present? }
         if errors.blank? && super
           if new_chunks_ids
             chunks.delete_many
-            chunk_model.all.any_in(id: new_chunks_ids).update_many('$set' => {files_id: id})
+            chunk_model.all.any_in(id: new_chunks_ids).update_many('$set' => { files_id: id })
           end
         end
         errors.blank?
@@ -97,7 +97,9 @@ module Mongoff
 
         reading(readable) do |io|
 
-          self[:filename] = options[:filename] || extract_basename(io).squeeze('/') || options[:default_filename] unless filename.present?
+          unless filename.present?
+            self[:filename] = options[:filename] || extract_basename(io) || options[:default_filename] || 'file'
+          end
           if contentType = options[:contentType] || extract_content_type(self[:filename]) || options[:default_contentType]
             self[:contentType] = contentType
           end unless @custom_contentType
@@ -156,52 +158,52 @@ module Mongoff
       end
 
       def extract_basename(object)
-        file_name =
-            if msg = [
-                :original_path,
-                :original_filename,
-                :path,
-                :filename,
-                :pathname
-            ].detect { |msg| object.respond_to?(msg) }
-              object.send(msg)
-            end
-        file_name ? clean(file_name) : nil
-      end
+        file_name = nil
+        [
+          :original_path,
+          :original_filename,
+          :path,
+          :filename,
+          :pathname,
+          :path,
+          :to_path
+        ].detect { |msg| object.respond_to?(msg) && file_name = object.send(msg) }
+      file_name ? clean(file_name).squeeze('/') : nil
+    end
 
-      def extract_content_type(filename)
-        if mime_type = MIME::Types.type_for(::File.basename(filename.to_s)).first
-          mime_type.to_s
-        else
-          self[:contentType]
+    def extract_content_type(filename)
+      if mime_type = MIME::Types.type_for(::File.basename(filename.to_s)).first
+        mime_type.to_s
+      else
+        self[:contentType]
+      end
+    end
+
+    def clean(path)
+      basename = ::File.basename(path.to_s)
+      CGI.unescape(basename).gsub(%r/[^0-9a-zA-Z_@)(~.-]/, '_').gsub(%r/_+/, '_')
+    end
+
+    def chunking(io, chunk_size, &block)
+      if io.method(:read).arity == 0
+        data = io.read
+        i = 0
+        loop do
+          offset = i * chunk_size
+          length = i + chunk_size < data.size ? chunk_size : data.size - offset
+
+          break if offset >= data.size
+
+          buf = data[offset, length]
+          block.call(buf)
+          i += 1
         end
-      end
-
-      def clean(path)
-        basename = ::File.basename(path.to_s)
-        CGI.unescape(basename).gsub(%r/[^0-9a-zA-Z_@)(~.-]/, '_').gsub(%r/_+/, '_')
-      end
-
-      def chunking(io, chunk_size, &block)
-        if io.method(:read).arity == 0
-          data = io.read
-          i = 0
-          loop do
-            offset = i * chunk_size
-            length = i + chunk_size < data.size ? chunk_size : data.size - offset
-
-            break if offset >= data.size
-
-            buf = data[offset, length]
-            block.call(buf)
-            i += 1
-          end
-        else
-          while ((buf = io.read(chunk_size)) && buf.size > 0)
-            block.call(buf)
-          end
+      else
+        while ((buf = io.read(chunk_size)) && buf.size > 0)
+          block.call(buf)
         end
       end
     end
   end
+end
 end
