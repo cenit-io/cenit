@@ -83,6 +83,7 @@ module Setup
     end
 
     def new_from(string_or_readable, options = {})
+      options.reverse_merge!(default_attributes)
       file = records_model.new
       file.data = string_or_readable
       file
