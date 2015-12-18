@@ -12,7 +12,7 @@ module Setup
 
     Setup::Models.exclude_actions_for self, :update, :bulk_delete, :delete, :delete_all
 
-    BuildInDataType.regist(self).referenced_by(:name, :library).including(:slug)
+    BuildInDataType.regist(self).with(:title, :name, :events, :before_save_callbacks, :records_methods, :data_type_methods).referenced_by(:name, :library).including(:library, :slug)
 
     def self.to_include_in_models
       @to_include_in_models ||= [Setup::DynamicRecord,
