@@ -50,7 +50,7 @@ module Setup
     attr_readonly :name
 
     validates_presence_of :library, :name
-    validates_uniqueness_of :name, scope: :library
+    validates_uniqueness_of :name, scope: :library_id
 
     scope :activated, -> { where(activated: true) }
 
