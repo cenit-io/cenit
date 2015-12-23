@@ -43,7 +43,7 @@ module Api::V1
           option[:include_id] = true
             items_data = @items.map do |item|
                             hash = item.default_hash(option)
-                            hash.delete('_type')
+                            hash.delete('_type') if item.class.eql?(klass)
                             @view.nil? ? hash : hash[@view]
                         end
         render json: { @model => items_data}

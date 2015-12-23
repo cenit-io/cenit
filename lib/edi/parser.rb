@@ -8,7 +8,7 @@ module Edi
         content = content.gsub("\r", '')
         segment_sep = "\n" if (segment_sep = options[:segment_separator]) == :new_line
         raise Exception.new("Record model #{record.orm_model} does not match data type model#{data_type.orm_model}") unless record.nil? || record.orm_model == data_type.records_model
-        json, start, record = do_parse_edi(data_type, model = data_type.records_model, content, model.schema, start, options[:field_separator], segment_sep, report={segments: []}, new_record: record)
+        json, start, record = do_parse_edi(data_type, model = data_type.records_model, content, model.schema, start, options[:field_separator], segment_sep, report={ segments: [] }, new_record: record)
         raise Exception.new("Unexpected input at position #{start}: #{content[start, content.length - start <= 10 ? content.length - 1 : 10]}") if start < content.length
         report[:json] = json
         report[:scan_size] = start
@@ -110,7 +110,7 @@ module Edi
 
       def do_parse_json(data_type, model, json, options, json_schema, record=nil, new_record=nil, container = nil)
         updating = false
-        primary_fields = options.delete(:primary_field) || (json .is_a?(Hash) && json['_primary']) || [:id]
+        primary_fields = options.delete(:primary_field) || (json.is_a?(Hash) && json['_primary']) || [:id]
         primary_fields = [primary_fields] unless primary_fields.is_a?(Array)
         primary_fields = primary_fields.collect(&:to_sym)
         unless record ||= new_record
@@ -118,7 +118,7 @@ module Edi
             if json.is_a?(Hash) &&
               options[:ignore].none? { |ignored_field| primary_fields.include?(ignored_field) } &&
               (criteria = json.select { |key, _| primary_fields.include?(key.to_sym) }).size == primary_fields.count
-              record = container ? container.detect { |item| Cenit::Utility.match?(item, criteria) } : model.where(criteria).first
+              record = (container && container.detect { |item| Cenit::Utility.match?(item, criteria) }) || model.where(criteria).first
             end
             if record
               updating = true
@@ -160,7 +160,7 @@ module Edi
                     if persist && sub_value['_reference']
                       sub_value = Cenit::Utility.deep_remove(sub_value, '_reference')
                       record.instance_variable_set(:@_references, references = {}) unless references = record.instance_variable_get(:@_references)
-                      (references[property_name] ||= []) << {model: property_model, criteria: sub_value}
+                      (references[property_name] ||= []) << { model: property_model, criteria: sub_value }
                       if sub_value = Cenit::Utility.find_record(association, sub_value)
                         association.delete(sub_value)
                       end
@@ -178,7 +178,7 @@ module Edi
                     record.send("#{property_name}=", nil)
                     property_value = Cenit::Utility.deep_remove(property_value, '_reference')
                     record.instance_variable_set(:@_references, references = {}) unless references = record.instance_variable_get(:@_references)
-                    references[property_name] = {model: property_model, criteria: property_value}
+                    references[property_name] = { model: property_model, criteria: property_value }
                   else
                     record.send("#{property_name}=", do_parse_json(data_type, property_model, property_value, options, property_schema))
                   end
@@ -201,13 +201,7 @@ module Edi
             (data_type = data_type.find_data_type(sub_model)) &&
             (sub_model = data_type.records_model) &&
             !sub_model.eql?(model)
-            sub_record = (updating ? record : sub_model.new)
-            json_schema['properties'].keys.each do |property_name|
-              if value = record.send(property_name)
-                sub_record.send("#{property_name}=", value)
-                record.send("#{property_name}=", nil)
-              end
-            end
+            sub_record = record.becomes(sub_model)
             record = do_parse_json(data_type, sub_model, json, options, data_type.merged_schema, sub_record)
           end
         else # Simple content or array
@@ -240,7 +234,7 @@ module Edi
                   if persist && sub_value['_reference']
                     sub_value = Cenit::Utility.deep_remove(sub_value, '_reference')
                     record.instance_variable_set(:@_references, references = {}) unless references = record.instance_variable_get(:@_references)
-                    (references[property_name] ||= []) << {model: property_model, criteria: sub_value}
+                    (references[property_name] ||= []) << { model: property_model, criteria: sub_value }
                     if sub_value = Cenit::Utility.find_record(association, sub_value)
                       association.delete(sub_value)
                     end
@@ -400,13 +394,7 @@ module Edi
           (data_type = data_type.find_data_type(sub_model)) &&
           (sub_model = data_type.records_model) &&
           !sub_model.eql?(model)
-          sub_record = sub_model.new
-          json_schema['properties'].each do |property_name, property_schema|
-            if value = record.send(property_name)
-              sub_record.send("#{property_name}=", value)
-              record.send("#{property_name}=", nil)
-            end
-          end
+          sub_record = record.becomes(sub_model)
           json, start, record = do_parse_edi(data_type, sub_model, content, data_type.merged_schema, start, field_sep, segment_sep, report, record: sub_record, json: json, fields: fields, segment: segment)
         end
 
