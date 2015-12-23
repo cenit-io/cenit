@@ -17,8 +17,11 @@ module Setup
 
     def find_data_type(ref, library_id = self.library_id)
       unless data_type = (hash = @libraries[library_id])[ref]
-        data_type = Setup::DataType.where(name: ref, library_id: library_id).first
-        hash[ref] = data_type
+        if data_type = Setup::DataType.where(name: ref, library_id: library_id).first
+          hash[ref] = data_type
+        elsif (ref = ref.to_s).start_with?('Dt')
+          data_type = Setup::DataType.where(id: ref.from(2)).first
+        end
       end
       data_type
     end

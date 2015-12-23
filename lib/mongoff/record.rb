@@ -61,6 +61,17 @@ module Mongoff
       @new_record
     end
 
+    def becomes(klass)
+      became = klass.new(attributes)
+      became.id = id
+      became.instance_variable_set(:@errors, ActiveModel::Errors.new(became))
+      became.errors.instance_variable_set(:@messages, errors.instance_variable_get(:@messages))
+      became.instance_variable_set(:@new_record, new_record?)
+      became.instance_variable_set(:@destroyed, destroyed?)
+      became._type = klass.to_s
+      became
+    end
+
     def persisted?
       !new_record? && !destroyed?
     end
