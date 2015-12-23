@@ -84,15 +84,25 @@ module Mongoff
       raise Exception.new('Invalid data') unless save(options)
     end
 
+    def validate
+      errors.clear
+      orm_model.fully_validate_against_schema(attributes).each do |error|
+        errors.add(:base, error[:message])
+      end
+    end
+
+    def valid?
+      validate
+      errors.blank?
+    end
+
     def save(options = {})
       errors.clear
       if destroyed?
         errors.add(:base, 'Destroyed record can not be saved')
         return false
       end
-      orm_model.fully_validate_against_schema(attributes).each do |error|
-        errors.add(:base, error[:message])
-      end
+      validate
       begin
         if Model.before_save.call(self) && before_save_callbacks
           if new_record?
@@ -138,7 +148,7 @@ module Mongoff
             RecordArray.new(property_model, value, association.referenced?)
           else
             if association.referenced?
-              property_model.find(value)
+              value && property_model.find(value)
             elsif value
               Record.new(property_model, value)
             else
@@ -206,9 +216,9 @@ module Mongoff
       if value.nil?
         @fields.delete(field)
         document.delete(attribute_key)
-      elsif value.is_a?(Record) || value.class.respond_to?(:data_type)
+      elsif attribute_key == field && (value.is_a?(Record) || value.class.respond_to?(:data_type))
         @fields[field] = value
-        document[attribute_key] = value.attributes if attribute_key == field
+        document[attribute_key] = value.attributes
       elsif !value.is_a?(Hash) && value.is_a?(Enumerable)
         attr_array = []
         if !attribute_assigning && property_model && property_model.modelable?

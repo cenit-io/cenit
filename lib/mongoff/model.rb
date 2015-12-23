@@ -21,7 +21,7 @@ module Mongoff
     end
 
     def data_type
-      @data_type_id.is_a?(Setup::DataType) ? @data_type_id : Setup::DataType.where(id: @data_type_id).first
+      @data_type_id.is_a?(Setup::DataType) || @data_type_id.is_a?(Setup::BuildInDataType) ? @data_type_id : Setup::DataType.where(id: @data_type_id).first
     end
 
     def new(attributes = {})
@@ -222,7 +222,13 @@ module Mongoff
     end
 
     CONVERSION = {
-      BSON::ObjectId => ->(value) { BSON::ObjectId.from_string(value.to_s) rescue nil },
+      BSON::ObjectId => ->(value) do
+        if (id = value.try(:id)).is_a?(BSON::ObjectId)
+          id
+        else
+          BSON::ObjectId.from_string(value.to_s) rescue nil
+        end
+      end,
       BSON::Binary => ->(value) { BSON::Binary.new(value.to_s) },
       Boolean => ->(value) { value.to_s.to_b },
       String => ->(value) { value.to_s },
@@ -356,7 +362,7 @@ module Mongoff
     def check_referenced_schema(schema, check_for_array = true)
       if schema.is_a?(Hash) &&
         (((ref = schema['$ref']).is_a?(String) && (schema.size == 1 || (schema.size == 2 && schema.has_key?('referenced')))) ||
-        (schema['type'] == 'array' && (items=schema['items']) && (schema.size == 2 || (schema.size == 3 && schema.has_key?('referenced'))) && items.size == 1 && (ref = items['$ref']).is_a?(String))) &&
+          (schema['type'] == 'array' && (items=schema['items']) && (schema.size == 2 || (schema.size == 3 && schema.has_key?('referenced'))) && items.size == 1 && (ref = items['$ref']).is_a?(String))) &&
         (property_dt ||= data_type.find_data_type(ref))
         [ref, property_dt]
       else
