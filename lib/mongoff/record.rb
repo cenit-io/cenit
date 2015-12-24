@@ -61,6 +61,17 @@ module Mongoff
       @new_record
     end
 
+    def becomes(klass)
+      became = klass.new(attributes)
+      became.id = id
+      became.instance_variable_set(:@errors, ActiveModel::Errors.new(became))
+      became.errors.instance_variable_set(:@messages, errors.instance_variable_get(:@messages))
+      became.instance_variable_set(:@new_record, new_record?)
+      became.instance_variable_set(:@destroyed, destroyed?)
+      became._type = klass.to_s
+      became
+    end
+
     def persisted?
       !new_record? && !destroyed?
     end
@@ -73,16 +84,38 @@ module Mongoff
       raise Exception.new('Invalid data') unless save(options)
     end
 
+    def validate
+      errors.clear
+      orm_model.fully_validate_against_schema(attributes).each do |error|
+        errors.add(:base, error[:message])
+      end
+      scope = orm_model.all
+      (unique_properties = orm_model.unique_properties).each do |property|
+        unless (value = self[property]).nil?
+          scope = scope.or(property => value)
+        end
+      end
+      scope.each do |record|
+        next if unique_properties.empty? || eql?(record)
+        (taken = unique_properties.select { |p| !(value = self[p]).nil? && value == record[p] }).each { |p| errors.add(p, 'is already taken') }
+        unique_properties.delete_if { |p| taken.include?(p) }
+      end
+    end
+
+    def valid?
+      validate
+      errors.blank?
+    end
+
     def save(options = {})
       errors.clear
       if destroyed?
         errors.add(:base, 'Destroyed record can not be saved')
         return false
       end
-      orm_model.fully_validate_against_schema(attributes).each do |error|
-        errors.add(:base, error[:message])
-      end
+      validate
       begin
+        instance_variable_set(:@discard_event_lookup, true) if options[:discard_events]
         if Model.before_save.call(self) && before_save_callbacks
           if new_record?
             orm_model.collection.insert_one(attributes)
@@ -94,7 +127,7 @@ module Mongoff
             if doc = query.first
               doc.keys.each { |key| unset[key] = '' unless set.has_key?(key) }
             end
-            update = {'$set' => set}
+            update = { '$set' => set }
             if unset.present?
               update['$unset'] = unset
             end
@@ -119,10 +152,20 @@ module Mongoff
     def [](field)
       field = field.to_sym
       attribute_key = orm_model.attribute_key(field, model: property_model = orm_model.property_model(field))
-      if (value = (@fields[field] || document[attribute_key])).is_a?(BSON::Document) && property_model && property_model.modelable?
-        @fields[field] = Record.new(property_model, value)
-      elsif property_model && property_model.modelable? && orm_model.property_schema(field)['type'] == 'array'
-        @fields[field] ||= RecordArray.new(property_model, value, field != attribute_key)
+      value = @fields[field] || document[attribute_key]
+      if property_model && property_model.modelable?
+        @fields[field] ||=
+          if (association = orm_model.associations[field.to_s]).many?
+            RecordArray.new(property_model, value, association.referenced?)
+          else
+            if association.referenced?
+              value && property_model.find(value)
+            elsif value
+              Record.new(property_model, value)
+            else
+              nil
+            end
+          end
       else
         value
       end
@@ -184,9 +227,9 @@ module Mongoff
       if value.nil?
         @fields.delete(field)
         document.delete(attribute_key)
-      elsif value.is_a?(Record) || value.class.respond_to?(:data_type)
+      elsif attribute_key == field && (value.is_a?(Record) || value.class.respond_to?(:data_type))
         @fields[field] = value
-        document[attribute_key] = value.attributes if attribute_key == field
+        document[attribute_key] = value.attributes
       elsif !value.is_a?(Hash) && value.is_a?(Enumerable)
         attr_array = []
         if !attribute_assigning && property_model && property_model.modelable?
@@ -205,7 +248,7 @@ module Mongoff
         end unless value.empty?
         document[attribute_key] = attr_array
       else
-        document[field] = orm_model.mongo_value(value, property_schema.present? ? property_schema : field)
+        document[attribute_key || field] = orm_model.mongo_value(value, field, property_schema)
       end
     end
 
@@ -264,7 +307,7 @@ module Mongoff
           if value.is_a?(RecordArray)
             document[attribute_key] = value.collect { |v| nested ? v.attributes : v.id }
           else
-            document[attribute_key] = nested ? value.attributes : value.id
+            document[attribute_key] = nested ? value.attributes : value.id unless value.nil?
           end
         end
       end

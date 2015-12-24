@@ -30,7 +30,9 @@ module Setup
       library && library.name
     end
 
-    before_validation do
+    before_validation :prepare_configuration
+
+    def prepare_configuration
       self.name = "#{library.name} | #{uri}" unless name.present?
       self.schema = schema.strip
       self.schema_type =
@@ -109,7 +111,7 @@ module Setup
 
     def bind_includes
       unless @includes_binded
-        @parsed_schema.bind_includes(library) unless parse_schema.is_a?(Hash)
+        parse_schema.bind_includes(library) unless parse_schema.is_a?(Hash)
         @includes_binded = true
       end
     end

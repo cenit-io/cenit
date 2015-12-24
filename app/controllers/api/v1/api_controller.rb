@@ -37,13 +37,13 @@ module Api::V1
           else
             klass.all
           end
-          option = {}
+          option = {including: :_type}
           option[:only] = @only if @only
           option[:ignore] = @ignore if @ignore
           option[:include_id] = true
             items_data = @items.map do |item|
                             hash = item.default_hash(option)
-                            hash.delete('_type')
+                            hash.delete('_type') if item.class.eql?(klass)
                             @view.nil? ? hash : hash[@view]
                         end
         render json: { @model => items_data}
@@ -203,7 +203,7 @@ module Api::V1
       status = 406
       response =
         if token = data[:token] || params[:token]
-          if tkaptcha = TkAptcha.where(token: token).first
+          if tkaptcha = CaptchaToken.where(token: token).first
             if code = data[:code] || params[:code]
               if code == tkaptcha.code
                 data.merge!(tkaptcha.data || {}) { |_, left, right| left || right }
@@ -212,13 +212,12 @@ module Api::V1
                 tkaptcha.destroy
                 user =
                   begin
-                    (user = User.new_with_session(data, session)).save
+                    (user = ::User.new(data)).save
                     user
                   rescue
                     user #TODO Handle sending confirmation email error
                   end
                 if user.errors.blank?
-                  Account.create_with_owner(owner: user)
                   status = 200
                   {number: user.number, token: user.authentication_token}
                 else
@@ -237,7 +236,7 @@ module Api::V1
           data[:password] = Devise.friendly_token unless data[:password]
           data[:password_confirmation] = data[:password] unless data[:password_confirmation]
           if (user = User.new(data)).valid?(context: :create)
-            if (tkaptcha = TkAptcha.create(email: data[:email], data: data)).errors.blank?
+            if (tkaptcha = CaptchaToken.create(email: data[:email], data: data)).errors.blank?
               status = 200
               {token: tkaptcha.token}
             else

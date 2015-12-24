@@ -12,7 +12,7 @@
               = @error
   -elsif @error
     - flash[:error] = @error
-  - if @output
+  - if !@output.nil?
     .fieldset
       .control-group
         %label.col-sm-2.control-label

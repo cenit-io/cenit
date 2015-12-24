@@ -70,6 +70,13 @@ en:
         submit: "Import"
         done: "created"
         doing: "import"
+      submit:
+        title: "Submit"
+        menu: "Submit"
+        breadcrumb: "Submit"
+        submit: "Submit"
+        done: "submitted"
+        doing: "submission"
       bulk_export:
         title: "Export"
         menu: "Export"

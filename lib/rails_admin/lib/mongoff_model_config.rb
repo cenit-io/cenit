@@ -8,13 +8,29 @@ module RailsAdmin
       @parent = self
 
       (abstract_model.properties + abstract_model.associations).each do |property|
-        type = property.is_a?(RailsAdmin::MongoffAssociation) ? nil : property.type
+        type = property.type
+        if property.is_a?(RailsAdmin::MongoffAssociation)
+          type = (type.to_s + '_association').to_sym
+        elsif enumeration = property.enum
+          type = :enum
+        end
         configure property.name, type do
           visible { property.visible? }
           label { property.name.to_s.titleize }
           filterable { property.filterable? }
           required { property.required? }
           valid_length { {} }
+          enum { enumeration } if enumeration
+          if title = property.title
+            label { title }
+          end
+          if description = property.description
+            description = (property.required? ? 'Required. ' : 'Optional. ') + description
+            help { description }
+          end
+          if g = property.group
+            group g.to_sym
+          end
           if property.is_a?(RailsAdmin::MongoffAssociation)
             # associated_collection_cache_all true
             pretty_value do

@@ -16,18 +16,7 @@ module Edi
     end
 
     def default_hash(options={})
-      include_id = options[:include_id]
-      [:ignore, :only, :embedding, :inspecting].each do |option|
-        value = (options[option] || [])
-        value = [value] unless value.is_a?(Enumerable)
-        value = value.select { |p| p.is_a?(Symbol) || p.is_a?(String) }.collect(&:to_sym)
-        options[option] = value
-        include_id ||= (value.include?(:id) || value.include?(:_id)) if include_id.nil? && option != :ignore
-      end
-      [:only, :inspecting].each { |option| options.delete(option) if options[option].empty? }
-      options[:inspected_records] = Set.new
-      options[:stack] = []
-      options[:include_id] = include_id.present?
+      prepare_options(options)
       hash = record_to_hash(self, options)
       options.delete(:stack)
       hash = {self.orm_model.data_type.slug => hash} if options[:include_root]
@@ -44,6 +33,7 @@ module Edi
     end
 
     def to_xml_element(options = {})
+      prepare_options(options)
       unless xml_doc = options[:xml_doc]
         options[:xml_doc] = xml_doc = Nokogiri::XML::Document.new
       end
@@ -61,6 +51,21 @@ module Edi
     alias_method :inspect_json, :to_hash
 
     private
+
+    def prepare_options(options)
+      include_id = options[:include_id]
+      [:ignore, :only, :embedding, :inspecting, :including].each do |option|
+        value = (options[option] || [])
+        value = [value] unless value.is_a?(Enumerable)
+        value = value.select { |p| p.is_a?(Symbol) || p.is_a?(String) }.collect(&:to_sym)
+        options[option] = value
+        include_id ||= (value.include?(:id) || value.include?(:_id)) if include_id.nil? && option != :ignore
+      end
+      [:only].each { |option| options.delete(option) if options[option].empty? }
+      options[:inspected_records] = Set.new
+      options[:stack] = []
+      options[:include_id] = include_id.present?
+    end
 
     def split_name(name)
       name = (tokens = name.split(':')).pop
@@ -80,6 +85,14 @@ module Edi
         name = property_schema['edi']['segment'] if property_schema['edi']
         name ||= property_name
         property_model = record.orm_model.property_model(property_name)
+        if inspecting = options[:inspecting].present? #TODO Factorize for all format formatting
+          next unless (property_model || inspecting.include?(name.to_sym))
+        else
+          next if property_schema['virtual'] ||
+            ((property_schema['edi'] || {})['discard'] && !(included_anyway = options[:including_discards])) ||
+            options[:ignore].include?(name.to_sym) ||
+            (options[:only] && !options[:only].include?(name.to_sym) && !included_anyway)
+        end
         case property_schema['type']
         when 'array'
           property_value = record.send(property_name)
@@ -159,7 +172,6 @@ module Edi
 
     def record_to_hash(record, options = {}, referenced = false, enclosed_model = nil)
       return record if Cenit::Utility.json_object?(record)
-      data_type = record.orm_model.data_type
       model = record.orm_model
       schema = model.schema
       key_properties = schema['referenced_by'] || []
@@ -180,11 +192,11 @@ module Edi
           content_property = name
         end
         can_be_referenced = !(options[:embedding_all] || options[:embedding].include?(name.to_sym))
-        if inspecting = options[:inspecting]
-          next unless (property_model || inspecting.include?(name.to_sym))
+        if inspecting = options[:inspecting].present?
+          next unless (property_model || options[:inspecting].include?(name.to_sym))
         else
           next if property_schema['virtual'] ||
-            ((property_schema['edi'] || {})['discard'] && !(included_anyway = options[:including_discards])) ||
+            ((property_schema['edi'] || {})['discard'] && !(included_anyway = options[:including_discards] || options[:including].include?(property_name))) ||
             (can_be_referenced && referenced && !key_properties.include?(property_name)) ||
             options[:ignore].include?(name.to_sym) ||
             (options[:only] && !options[:only].include?(name.to_sym) && !included_anyway)
@@ -196,7 +208,7 @@ module Edi
             new_value = []
             value.each do |sub_record|
               next if inspecting && (scope = options[:inspect_scope]) && !scope.include?(sub_record)
-              new_value << record_to_hash(sub_record, options, referenced_items, property_model)
+              new_value << record_to_hash(sub_record, options, property_model, referenced_items)
             end
           else
             new_value = nil
@@ -205,7 +217,7 @@ module Edi
         when 'object'
           sub_record = record.send(property_name)
           next if inspecting && (scope = options[:inspect_scope]) && !scope.include?(sub_record)
-          value = record_to_hash(sub_record, options, can_be_referenced && property_schema['referenced'] && !property_schema['export_embedded'], property_model)
+          value = record_to_hash(sub_record, options, property_model, can_be_referenced && property_schema['referenced'] && !property_schema['export_embedded'])
           store(json, name, value, options, key_properties.include?(property_name))
         else
           if (value = record.send(property_name)).nil?
@@ -214,8 +226,8 @@ module Edi
           store(json, name, value, options, key_properties.include?(property_name)) #TODO Default values should came from record attributes
         end
       end
-      if !options[:inspecting] && !json['_reference'] && enclosed_model && !record.orm_model.eql?(enclosed_model) && !options[:ignore].include?(:_type) && (!options[:only] || options[:only].include?(:_type))
-        json['_type'] = data_type.name
+      if (options[:inspecting].include?(:_type) || options[:including].include?(:_type) || (enclosed_model && !record.orm_model.eql?(enclosed_model))) && !json['_reference'] && !options[:ignore].include?(:_type) && (!options[:only] || options[:only].include?(:_type))
+        json['_type'] = model.to_s
       end
       options[:stack].pop
       if content_property && json.size == 1 && options[:inline_content] && json.has_key?(content_property) && !json[content_property].is_a?(Hash)

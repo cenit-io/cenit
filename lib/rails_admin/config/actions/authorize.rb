@@ -20,12 +20,9 @@ module RailsAdmin
         register_instance_option :controller do
           proc do
 
-            cenit_token = CenitToken.new(data: {account_id: Account.current.id, authorization_id: @object.id})
-            cenit_token.ensure_token
+            cenit_token = OauthAuthorizationToken.create(authorization: @object)
 
             url = @object.authorize_url(cenit_token: cenit_token)
-
-            cenit_token.save
 
             session[:oauth_state] = cenit_token.token
 

@@ -3,7 +3,7 @@ require 'edi/formater'
 module Setup
   class SchemaDataType < DataType
 
-    BuildInDataType.regist(self).referenced_by(:name, :library).with(:title, :name, :slug,:_type, :schema).including(:library)
+    BuildInDataType.regist(self).referenced_by(:name, :library).with(:title, :name, :slug,:_type, :schema, :events, :before_save_callbacks, :records_methods, :data_type_methods).including(:library)
 
     field :schema
 
@@ -39,7 +39,7 @@ module Setup
         begin
           json_schema, _ = validate_schema
           fail Exception, 'defines invalid property name: _type' if object_schema?(json_schema) &&json_schema['properties']['_type']
-          check_id_property(json_schema)
+          self.schema = check_id_property(JSON.parse(json_schema.to_json))
           self.title = json_schema['title'] || self.name if title.blank?
         rescue Exception => ex
           #TODO Remove raise

@@ -57,9 +57,10 @@ class Account
 
     def create_with_owner(params={})
       account = new(params)
-      if account.save
-        account.owner.roles << ::Role.where(name: :admin).first
-        account.users << account.owner
+      if owner = account.owner
+        owner.roles << ::Role.where(name: :admin).first unless owner.roles.any? { |role| role.name.to_s == :admin.to_s}
+        account.users << owner
+        account.save
       end
       account
     end

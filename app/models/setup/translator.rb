@@ -105,7 +105,7 @@ module Setup
       # 'html.haml' => {Setup::Transformation::ActionViewTransform => [:Export]},
       'html.erb' => {Setup::Transformation::ActionViewTransform => [:Export]},
       # 'csv.erb' => {Setup::Transformation::ActionViewTransform => [:Export]},
-      # 'js.erb' => {Setup::Transformation::ActionViewTransform => [:Export]},
+      'js.erb' => {Setup::Transformation::ActionViewTransform => [:Export]},
       # 'text.erb' => {Setup::Transformation::ActionViewTransform => [:Export]},
       'ruby' => {Setup::Transformation::Ruby => [:Import, :Export, :Update, :Conversion]},
       # 'pdf.prawn' => {Setup::Transformation::PrawnTransform => [:Export]},

@@ -38,6 +38,7 @@ module Setup
       new_schemas_attributes = []
       schemas.each do |entry_name, schema|
         next unless errors.blank?
+        schema.prepare_configuration
         if schema.validates_configuration
           saved_schemas_ids << schema.id
           new_schemas_attributes << schema.attributes

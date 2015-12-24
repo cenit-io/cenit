@@ -25,14 +25,10 @@ module Cenit
           end
           asynchronous_message ||= Cenit.send('asynchronous_' + task_class.to_s.split('::').last.underscore)
           if scheduler || publish_at || asynchronous_message
-            if token = message[:token]
-              begin
-                CenitToken.where(token: token).delete
-              rescue Exception => ex
-                puts "Error deleting token #{token}"
-              end
+            if (token = message[:token]) && token = AccountToken.where(token: token).first
+              token.destroy
             end
-            message[:token] = CenitToken.create(data: {account_id: Account.current.id.to_s}).token
+            message[:token] = AccountToken.create.token
             message[:task_id] = task.id.to_s
             message = message.to_json
             if scheduler || publish_at
@@ -56,10 +52,8 @@ module Cenit
         message = JSON.parse(message) unless message.is_a?(Hash)
         message = message.with_indifferent_access
         message_token = message.delete(:token)
-        if token = CenitToken.where(token: message_token).first
-          if account = Account.where(id: token.data[:account_id]).first
-            Account.current = account if Account.current.nil?
-          end
+        if token = AccountToken.where(token: message_token).first
+          account = token.set_current_account
           token.destroy
         else
           account = nil

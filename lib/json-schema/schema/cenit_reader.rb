@@ -11,6 +11,7 @@ module JSON
       def read(ref)
         #TODO Do it better than this (only for application start up)
         uri = ref.scheme == 'file' ? ref.to_s.split('/').last : ref.to_s
+        uri = uri.chop if uri.end_with?('#')
         if schema = schema_finder.find_ref_schema(uri)
           schema = schema.to_json unless schema.is_a?(String)
           JSON::Schema.new(JSON::Validator.parse(schema), ref)

@@ -33,7 +33,7 @@ module Cenit
       def save(record, options = {})
         saved = options[:saved_collector] || Set.new
         if bind_references(record)
-          if save_references(record, options, saved) && record.save
+          if save_references(record, options, saved) && record.save(options)
             true
           else
             for_each_node_starting_at(record, stack=[]) do |obj|
