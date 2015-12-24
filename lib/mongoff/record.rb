@@ -90,10 +90,14 @@ module Mongoff
         errors.add(:base, error[:message])
       end
       scope = orm_model.all
-      (unique_properties = orm_model.unique_properties).each { |property| scope = scope.or(property => self[property])}
+      (unique_properties = orm_model.unique_properties).each do |property|
+        unless (value = self[property]).nil?
+          scope = scope.or(property => value)
+        end
+      end
       scope.each do |record|
         next if unique_properties.empty? || eql?(record)
-        (taken = unique_properties.select { |p| self[p] == record[p] }).each { |p| errors.add(p, 'is already taken') }
+        (taken = unique_properties.select { |p| !(value = self[p]).nil? && value == record[p] }).each { |p| errors.add(p, 'is already taken') }
         unique_properties.delete_if { |p| taken.include?(p) }
       end
     end
