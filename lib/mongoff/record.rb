@@ -104,6 +104,7 @@ module Mongoff
       end
       validate
       begin
+        instance_variable_set(:@discard_event_lookup, true) if options[:discard_events]
         if Model.before_save.call(self) && before_save_callbacks
           if new_record?
             orm_model.collection.insert_one(attributes)
@@ -115,14 +116,13 @@ module Mongoff
             if doc = query.first
               doc.keys.each { |key| unset[key] = '' unless set.has_key?(key) }
             end
-            update = {'$set' => set}
+            update = { '$set' => set }
             if unset.present?
               update['$unset'] = unset
             end
             query.update_one(update)
           end
           Model.after_save.call(self)
-
         end
       rescue Exception => ex
         errors.add(:base, ex.message)

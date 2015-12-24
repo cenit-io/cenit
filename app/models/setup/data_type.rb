@@ -16,7 +16,7 @@ module Setup
 
     def self.to_include_in_models
       @to_include_in_models ||= [Setup::DynamicRecord,
-                                 Mongoid::Document,
+                                 Mongoid::CenitDocument,
                                  Mongoid::Timestamps,
                                  Setup::SchemaModelAware,
                                  Setup::ClassAffectRelation,
