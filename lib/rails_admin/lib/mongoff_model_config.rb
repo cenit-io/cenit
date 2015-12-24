@@ -21,6 +21,16 @@ module RailsAdmin
           required { property.required? }
           valid_length { {} }
           enum { enumeration } if enumeration
+          if title = property.title
+            label { title }
+          end
+          if description = property.description
+            description = (property.required? ? 'Required. ' : 'Optional. ') + description
+            help { description }
+          end
+          if g = property.group
+            group g.to_sym
+          end
           if property.is_a?(RailsAdmin::MongoffAssociation)
             # associated_collection_cache_all true
             pretty_value do

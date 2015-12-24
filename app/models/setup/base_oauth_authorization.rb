@@ -15,7 +15,7 @@ module Setup
 
     validates_presence_of :provider, :client
 
-    auth_headers Authorization: ->(auth) { auth.token_type + ' ' + auth.access_token }
+    auth_headers Authorization: ->(auth) { auth.token_type.to_s + ' ' + auth.access_token.to_s }
     auth_template_parameters access_token: :access_token
 
     def ready_to_save?

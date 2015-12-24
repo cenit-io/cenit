@@ -1,8 +1,11 @@
+
+require 'mongoid/cenit_extension'
+
 module Setup
   module CenitUnscoped
     extend ActiveSupport::Concern
 
-    include Mongoid::Document
+    include Mongoid::CenitDocument
     include Mongoid::Timestamps
     include Mongoid::CenitExtension
     # include Trackable

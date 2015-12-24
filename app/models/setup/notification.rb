@@ -23,10 +23,10 @@ module Setup
     end
 
     def assign_execution_thread
-      if (thread_token = ThreadToken.where(token: Thread.current[:thread_token]).first) &&
+      if (thread_token = ThreadToken.where(token: Thread.current[:task_token]).first) &&
         task = Setup::Task.where(thread_token: thread_token).first
         self.task = task
-      end unless task.present?
+      end unless self.task.present?
       true
     end
 

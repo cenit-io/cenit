@@ -36,6 +36,10 @@ module Mongoff
       properties_schemas.select { |_, schema| %w(integer number boolean string).include?(schema['type']) }
     end
 
+    def unique_properties
+      (@unique_properties ||= properties.select { |property| property_schema(property)['unique'] }).dup
+    end
+
     def property_schema(property)
       if sch = properties_schemas[property.to_s]
         data_type.merge_schema(sch)

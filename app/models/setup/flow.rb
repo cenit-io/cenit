@@ -224,8 +224,8 @@ module Setup
     end
 
     def translate_import(message, &block)
-      webhook.with_role(connection_role).submit(notify_request: notify_request,
-                                                notify_response: notify_response) do |response, template_parameters|
+      webhook.upon(connection_role).submit(notify_request: notify_request,
+                                           notify_response: notify_response) do |response, template_parameters|
         translator.run(target_data_type: data_type,
                        data: response.body,
                        discard_events: discard_events,
@@ -243,7 +243,7 @@ module Setup
       0.step(max, limit) do |offset|
         next unless connections_present
         verbose_response =
-          webhook.with_role(connection_role).submit ->(template_parameters) {
+          webhook.upon(connection_role).submit ->(template_parameters) {
             translation_options =
               {
                 object_ids: object_ids,
@@ -256,16 +256,16 @@ module Setup
               }
             translator.run(translation_options)
           },
-                                                    contentType: translator.mime_type,
-                                                    notify_request: notify_request,
-                                                    request_attachment: ->(attachment) do
+                                               contentType: translator.mime_type,
+                                               notify_request: notify_request,
+                                               request_attachment: ->(attachment) do
                                                       attachment[:filename] = ((data_type && data_type.title) || translator.name).collectionize +
                                                         attachment[:filename] +
                                                         ((ext = translator.file_extension).present? ? ".#{ext}" : '')
                                                       attachment
                                                     end,
-                                                    notify_response: notify_response,
-                                                    verbose_response: true do |response|
+                                               notify_response: notify_response,
+                                               verbose_response: true do |response|
             if response_translator #&& response.code == 200
               response_translator.run(translation_options.merge(target_data_type: response_translator.data_type || response_data_type, data: response.body))
             end
