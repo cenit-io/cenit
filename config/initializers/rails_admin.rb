@@ -31,7 +31,8 @@
  RailsAdmin::Config::Actions::Records,
  RailsAdmin::Config::Actions::SwitchScheduler,
  RailsAdmin::Config::Actions::SimpleExport,
- RailsAdmin::Config::Actions::Schedule].each { |a| RailsAdmin::Config::Actions.register(a) }
+ RailsAdmin::Config::Actions::Schedule,
+ RailsAdmin::Config::Actions::Submit].each { |a| RailsAdmin::Config::Actions.register(a) }
 
 RailsAdmin::Config::Actions.register(:export, RailsAdmin::Config::Actions::BulkExport)
 RailsAdmin::Config::Fields::Types.register(RailsAdmin::Config::Fields::Types::JsonValue)
@@ -98,6 +99,7 @@ RailsAdmin.config do |config|
     simple_export
     schedule
     retry_task
+    submit
     simple_delete_data_type
     bulk_delete_data_type
     delete
@@ -636,6 +638,8 @@ RailsAdmin.config do |config|
     edit do
       field :key
       field :value
+      field :description
+      field :metadata, :json_value
     end
   end
 
@@ -678,6 +682,8 @@ RailsAdmin.config do |config|
   config.model Setup::Webhook do
     object_label_method { :custom_title }
     weight -13
+
+    configure :metadata, :json_value
 
     group :credentials do
       label 'Credentials'
@@ -722,6 +728,8 @@ RailsAdmin.config do |config|
       field :name
       field :path
       field :method
+      field :description
+      field :metadata, :json_value
 
       field :authorization
       field :authorization_handler
@@ -736,7 +744,7 @@ RailsAdmin.config do |config|
       field :updated_at
       #field :updater
     end
-    fields :namespace, :name, :path, :method, :authorization, :authorization_handler, :parameters, :headers, :template_parameters
+    fields :namespace, :name, :path, :method, :description, :metadata, :authorization, :authorization_handler, :parameters, :headers, :template_parameters
   end
 
   config.model Setup::Task do
@@ -855,6 +863,18 @@ RailsAdmin.config do |config|
       field :description
     end
     fields :algorithm, :description, :scheduler, :attempts_succeded, :retries, :progress, :status, :notifications
+  end
+
+  config.model Setup::Submission do
+    navigation_label 'Monitor'
+    object_label_method { :to_s }
+    configure :attempts_succeded, :text do
+      label 'Attempts/Succedded'
+    end
+    edit do
+      field :description
+    end
+    fields :webhook, :connection, :description, :scheduler, :attempts_succeded, :retries, :progress, :status, :notifications
   end
 
   config.model Setup::Notification do

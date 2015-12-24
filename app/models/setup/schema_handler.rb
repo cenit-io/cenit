@@ -23,7 +23,7 @@ module Setup
       _id, id = properties.delete('_id'), properties.delete('id')
       fail Exception, 'Defining both id and _id' if _id && id
       if _id ||= id
-        naked_id = _id.reject { |k, _| %w(unique title description edi).include?(k) }
+        naked_id = _id.reject { |k, _| %w(unique title description edi format).include?(k) }
         type = naked_id.delete('type')
         fail Exception, "Invalid id property type #{id}" unless naked_id.empty? && (type.nil? || !%w(object array).include?(type))
         json_schema['properties'] = properties = {'_id' => _id.merge('unique' => true,

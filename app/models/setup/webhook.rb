@@ -3,6 +3,7 @@ module Setup
     include CenitScoped
     include NamespaceNamed
     include ParametersCommon
+    include JsonMetadata
     include AuthorizationHandler
 
     BuildInDataType.regist(self).referenced_by(:namespace, :name).excluding(:connection_roles)
@@ -14,6 +15,7 @@ module Setup
 
     field :path, type: String
     field :method, type: String, default: :post
+    field :description, type: String
 
     def method_enum
       [:get, :post, :put, :delete, :patch, :copy, :head, :options, :link, :unlink, :purge, :lock, :unlock, :propfind]
@@ -27,8 +29,8 @@ module Setup
       conform_field_value(:path, options)
     end
 
-    def with_role(connection_role, options = {})
-      @connection_role = connection_role
+    def upon(connections, options = {})
+      @connections = connections
       @connection_role_options = options || {}
       self
     end
@@ -38,8 +40,8 @@ module Setup
         @connections_cache
       else
         connections =
-          if @connection_role
-            @connection_role.connections || []
+          if @connections
+            @connections.is_a?(Setup::Connection) ? [@connections] : (@connections.connections || [])
           else
             connections = []
             Setup::ConnectionRole.all.each do |connection_role|
@@ -81,7 +83,7 @@ module Setup
             end
           submitter_body = '' if body_argument && submitter_body.nil?
           if [NilClass, Hash, String].include?(submitter_body.class)
-            url_parameter = connection.conformed_parameters(template_parameters).merge(conformed_parameters(template_parameters)).to_param
+            url_parameter = connection.conformed_parameters(template_parameters).merge(conformed_parameters(template_parameters)).reject { |_, value| value.blank? }.to_param
             if url_parameter.present?
               url_parameter = '?' + url_parameter
             end
@@ -110,7 +112,7 @@ module Setup
             headers['Content-Type'] = options[:contentType] if options.has_key?(:contentType)
             headers.merge!(connection.conformed_headers(template_parameters)).merge!(conformed_headers(template_parameters))
             begin
-              url = conformed_url + '/' + conformed_path
+              url = conformed_url + ('/' + conformed_path).gsub(/\/+/, '/')
               if body
                 attachment = {
                   filename: DateTime.now.strftime('%Y-%m-%d_%Hh%Mm%S'),
