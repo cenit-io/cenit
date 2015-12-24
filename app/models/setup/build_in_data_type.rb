@@ -11,8 +11,28 @@ module Setup
       @title ||= model.to_s.to_title
     end
 
+    def custom_title
+      title
+    end
+
     def name
       @name ||= model.model_name.to_s
+    end
+
+    def data_type_name
+      model.to_s
+    end
+
+    def records_methods
+      []
+    end
+
+    def data_type_methods
+      []
+    end
+
+    def before_save_callbacks
+      []
     end
 
     def initialize(model)

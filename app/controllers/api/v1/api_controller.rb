@@ -37,7 +37,7 @@ module Api::V1
           else
             klass.all
           end
-          option = {}
+          option = {including: :_type}
           option[:only] = @only if @only
           option[:ignore] = @ignore if @ignore
           option[:include_id] = true
