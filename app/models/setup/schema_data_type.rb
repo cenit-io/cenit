@@ -43,9 +43,9 @@ module Setup
     end
 
     def on_saving
-      if validate_model && super
+      if validate_model && check_indices && super
         attributes['schema'] = attributes['schema'].to_json unless attributes['schema'].is_a?(String)
-        check_indices
+        true
       else
         false
       end
