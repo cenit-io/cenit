@@ -18,9 +18,6 @@ module Setup
           else
             result.to_s
           end
-        if result.present?
-
-        end
         attachment =
           if result.present?
             {

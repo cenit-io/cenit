@@ -5,10 +5,6 @@ module RailsAdmin
 
     include RailsAdmin::MongoffAttributeCommon
 
-    def schema
-      model.schema
-    end
-
     def polymorphic?
       false
     end

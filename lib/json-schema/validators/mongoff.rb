@@ -15,7 +15,7 @@ module JSON
         @attributes['$ref'] = JSON::Schema::MongoffRefAttribute
 
         @formats.merge!('uint32' => JSON::Schema::Uint32Format,
-                        'uint64' => JSON::Schema::Uint32Format)
+                        'uint64' => JSON::Schema::Uint64Format)
 
         @names = ['mongoff']
       end
