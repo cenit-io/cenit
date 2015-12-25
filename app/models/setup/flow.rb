@@ -29,6 +29,8 @@ module Setup
     belongs_to :response_translator, class_name: Setup::Translator.to_s, inverse_of: nil
     belongs_to :response_data_type, class_name: Setup::DataType.to_s, inverse_of: nil
 
+    has_and_belongs_to_many :after_process_callbacks, class_name: Setup::Algorithm.to_s, inverse_of: nil
+
     field :last_trigger_timestamps, type: Time
 
     validates_numericality_in_presence_of :lot_size, greater_than_or_equal_to: 1
@@ -64,7 +66,7 @@ module Setup
         if [:Import, :Export].include?(translator.type)
           requires(:webhook)
         else
-          rejects(:connection_role, :webhook)
+          rejects(:connection_role, :webhook, :notify_request, :notify_response)
         end
 
         if translator.type == :Export
@@ -85,6 +87,9 @@ module Setup
         else
           rejects(:lot_size, :response_translator, :response_data_type)
         end
+      end
+      if (bad_callbacks = after_process_callbacks.select { |c| c.parameters.count != 1 }).present?
+        errors.add(:after_process_callbacks, "contains algorithms with unexpected parameter size: #{bad_callbacks.collect(&:custom_title).to_sentence}")
       end
       errors.blank?
     end
@@ -155,6 +160,13 @@ module Setup
         begin
           (flow_execution = Thread.current[:flow_execution] ||= []) << [id.to_s, message[:execution_graph] || {}]
           send("translate_#{translator.type.to_s.downcase}", message, &block)
+          after_process_callbacks.each do |callback|
+            begin
+              callback.run(message[:task])
+            rescue Exception => ex
+              Setup::Notification.create(message: "Error executing after process callback #{callback.custom_title}: #{ex.message}")
+            end
+          end
         ensure
           flow_execution.pop
         end
@@ -259,11 +271,11 @@ module Setup
                                                contentType: translator.mime_type,
                                                notify_request: notify_request,
                                                request_attachment: ->(attachment) do
-                                                      attachment[:filename] = ((data_type && data_type.title) || translator.name).collectionize +
-                                                        attachment[:filename] +
-                                                        ((ext = translator.file_extension).present? ? ".#{ext}" : '')
-                                                      attachment
-                                                    end,
+                                                 attachment[:filename] = ((data_type && data_type.title) || translator.name).collectionize +
+                                                   attachment[:filename] +
+                                                   ((ext = translator.file_extension).present? ? ".#{ext}" : '')
+                                                 attachment
+                                               end,
                                                notify_response: notify_response,
                                                verbose_response: true do |response|
             if response_translator #&& response.code == 200
