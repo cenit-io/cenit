@@ -43,6 +43,9 @@ Cenit.config do
   #Delete records asynchronous
   asynchronous_deletion true
 
+  #Execute algorithms asynchronous
+  asynchronous_algorithm_execution true
+
   #Process webhook submits asynchronous
   asynchronous_submission true
 

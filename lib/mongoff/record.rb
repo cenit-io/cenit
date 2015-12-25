@@ -85,20 +85,12 @@ module Mongoff
     end
 
     def validate
-      errors.clear
-      orm_model.fully_validate_against_schema(attributes).each do |error|
-        errors.add(:base, error[:message])
-      end
-      scope = orm_model.all
-      (unique_properties = orm_model.unique_properties).each do |property|
-        unless (value = self[property]).nil?
-          scope = scope.or(property => value)
+      unless @vailidated
+        errors.clear
+        orm_model.fully_validate_against_schema(attributes).each do |error|
+          errors.add(:base, error[:message])
         end
-      end
-      scope.each do |record|
-        next if unique_properties.empty? || eql?(record)
-        (taken = unique_properties.select { |p| !(value = self[p]).nil? && value == record[p] }).each { |p| errors.add(p, 'is already taken') }
-        unique_properties.delete_if { |p| taken.include?(p) }
+        @validated = true
       end
     end
 
@@ -177,6 +169,7 @@ module Mongoff
 
     def []=(field, value)
       @changed = true
+      @validated = false
       field = :_id if %w(id _id).include?(field.to_s)
       if !orm_model.property?(field) && association = nested_attributes_association(field)
         fail "invalid attributes format #{value}" unless value.is_a?(Hash)
