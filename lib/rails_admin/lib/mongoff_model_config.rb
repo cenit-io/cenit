@@ -16,7 +16,7 @@ module RailsAdmin
         end
         configure property.name, type do
           visible { property.visible? }
-          label { property.name.to_s.titleize }
+          label { property.name.to_s.to_title }
           filterable { property.filterable? }
           required { property.required? }
           valid_length { {} }
