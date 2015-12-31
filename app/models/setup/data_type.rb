@@ -183,9 +183,7 @@ module Setup
             self.model
           end
       rescue Exception => ex
-        #TODO Delete raise
-        raise ex
-        puts "ERROR: #{errors.add(:schema, ex.message).to_s}"
+        Setup::Notification.create(message: "Error loading models data type models: #{errors.add(:schema, ex.message).to_s}")
         report[:errors][self] = errors.full_messages
         DataType.shutdown(self, options)
       end

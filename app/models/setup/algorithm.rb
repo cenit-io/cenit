@@ -13,7 +13,7 @@ module Setup
     validates_format_of :name, with: /\A[a-z]([a-z]|\_|\d)*\Z/
 
     accepts_nested_attributes_for :parameters, allow_destroy: true
-    accepts_nested_attributes_for :call_links, allow_destroy: true #TODO !!!
+    accepts_nested_attributes_for :call_links, allow_destroy: true
 
     before_save :validate_code
 
@@ -34,7 +34,6 @@ module Setup
               links << Setup::CallLink.new(name: call_name)
             end
           end
-          # self.call_links.clear if self.call_links.present? TODO !!!
           self.call_links = links
           do_link
         end
