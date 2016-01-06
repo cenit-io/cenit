@@ -25,3 +25,19 @@ module OpenSSL
     end
   end
 end
+
+module Nokogiri
+  module XML
+    class Builder
+      def respond_to?(*args)
+        true
+      end
+
+      class NodeBuilder
+        def respond_to?(*args)
+          true
+        end
+      end
+    end
+  end
+end
