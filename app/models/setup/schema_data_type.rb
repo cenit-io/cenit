@@ -65,8 +65,6 @@ module Setup
           self.schema = check_id_property(JSON.parse(json_schema.to_json))
           self.title = json_schema['title'] || self.name if title.blank?
         rescue Exception => ex
-          #TODO Remove raise
-          #raise ex
           errors.add(:schema, ex.message)
         end
         @collection_data_type = nil

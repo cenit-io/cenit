@@ -55,10 +55,11 @@ module Capataz
       return false if @config[:denied_methods].include?(method)
       if options = @config[:instances][instance]
         return false unless allowed_method?(options, instance, method)
-      end
-      @config[:modules].each do |type, options|
-        if instance.is_a?(type)
-          return false unless allowed_method?(options, instance, method)
+      else
+        @config[:modules].each do |type, options|
+          if instance.is_a?(type)
+            return false unless allowed_method?(options, instance, method)
+          end
         end
       end
       instance.respond_to?(*args)
