@@ -45,7 +45,7 @@ module Edi
     def to_xml(options = {})
       element = to_xml_element(options)
       options[:xml_doc] << element
-      options[:xml_doc].to_xml
+      options[:xml_doc].to_xml(options)
     end
 
     alias_method :inspect_json, :to_hash
