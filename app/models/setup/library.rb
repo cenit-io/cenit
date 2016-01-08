@@ -17,19 +17,6 @@ module Setup
 
     after_initialize { @schemas_scope = {} }
 
-    #TODO Delete these method
-    def find_data_type_by_name(name)
-      if data_type = Setup::DataType.where(library: self, name: name).first
-        data_type
-      else
-        if (schema = Setup::Schema.where(library: self, uri: name).first) && schema.data_types.count == 1
-          schema.data_types.last
-        else
-          nil
-        end
-      end
-    end
-
     def run_after_initialized
       set_schemas_scope(schemas)
     end

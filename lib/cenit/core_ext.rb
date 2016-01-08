@@ -25,3 +25,58 @@ module OpenSSL
     end
   end
 end
+
+module OpenSSL
+  module PKey
+    class RSA
+      class << self
+        def new_rsa(*args)
+          args = args.collect { |a| a.capataz_proxy? ? a.capataz_slave : a }
+          new(*args)
+        end
+      end
+    end
+  end
+end
+
+module Xmldsig
+  class SignedDocument
+    class << self
+      def new_document(*args)
+        args = args.collect { |a| a.capataz_proxy? ? a.capataz_slave : a }
+        new(*args)
+      end
+    end
+  end
+end
+
+class StringIO
+  class << self
+    def new_io(*args)
+      args = args.collect { |a| a.capataz_proxy? ? a.capataz_slave : a }
+      new(*args)
+    end
+  end
+end
+
+module Nokogiri
+  module XML
+    class Builder
+      class << self
+        def new_builder(*args)
+          args = args.collect { |a| a.capataz_proxy? ? a.capataz_slave : a }
+          new(*args)
+        end
+      end
+      def respond_to?(*args)
+        true
+      end
+
+      class NodeBuilder
+        def respond_to?(*args)
+          true
+        end
+      end
+    end
+  end
+end

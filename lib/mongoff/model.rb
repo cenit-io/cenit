@@ -207,9 +207,9 @@ module Mongoff
     def attribute_key(field, field_metadata = {})
       if (field_metadata[:model] ||= property_model(field)) &&
         (schema = (field_metadata[:schema] ||= property_schema(field)))['referenced']
-        return "#{field}_id" + ('s' if schema['type'] == 'array').to_s
+        return ("#{field}_id" + (schema['type'] == 'array' ? 's' : '')).to_sym
       end
-      field.to_s == 'id' ? :_id : field
+      field.to_s == 'id' ? :_id : field.to_sym
     end
 
     def to_string(value)
