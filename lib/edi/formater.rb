@@ -19,7 +19,7 @@ module Edi
       prepare_options(options)
       hash = record_to_hash(self, options)
       options.delete(:stack)
-      hash = {self.orm_model.data_type.slug => hash} if options[:include_root]
+      hash = { self.orm_model.data_type.slug => hash } if options[:include_root]
       hash
     end
 
@@ -38,7 +38,13 @@ module Edi
         options[:xml_doc] = xml_doc = Nokogiri::XML::Document.new
       end
       element = record_to_xml_element(data_type = self.orm_model.data_type, self.orm_model.schema, self, xml_doc, nil, options, namespaces = {})
-      namespaces.each { |ns, xmlns| element["xmlns:#{xmlns}"] = ns }
+      namespaces.each do |ns, xmlns|
+        if xmlns.empty?
+          element['xmlns'] = ns
+        else
+          element["xmlns:#{xmlns}"] = ns
+        end
+      end
       element
     end
 
@@ -72,9 +78,36 @@ module Edi
       [tokens.join(':'), name]
     end
 
+    def ns_for(ns, namespaces)
+      letters = true
+      ns = ns.split(':').last.underscore.split('_').collect { |token| (letters &&= token[0] =~ /[[:alpha:]]/) ? token[0] : '' }.join
+      if namespaces.values.include?(ns)
+        i = 1
+        while namespaces.values.include?(nns = ns + i.to_s)
+          i += 1
+        end
+        ns = nns
+      end
+      ns
+    end
+
     def record_to_xml_element(data_type, schema, record, xml_doc, enclosed_property_name, options, namespaces)
       return unless record
-      return Nokogiri::XML({enclosed_property_name => record}.to_xml(dasherize: false)).root.first_element_child if Cenit::Utility.json_object?(record)
+      return Nokogiri::XML({ enclosed_property_name => record }.to_xml(dasherize: false)).root.first_element_child if Cenit::Utility.json_object?(record)
+
+      element_name = schema['edi']['segment'] if schema['edi']
+      element_name ||= enclosed_property_name || record.orm_model.data_type.name
+      ns, element_name = split_name(element_name)
+      unless xmlns = namespaces[ns]
+        xmlns = namespaces[ns] =
+          if namespaces.values.include?('')
+            ns_for(ns, namespaces)
+          else
+            ''
+          end
+      end
+      element_name = xmlns.empty? ? element_name : xmlns + ':' + element_name
+
       required = schema['required'] || []
       attr = {}
       elements = []
@@ -114,16 +147,16 @@ module Edi
               end
             end if property_value
             unless json_objects.empty?
-              elements << Nokogiri::XML({property_name => json_objects}.to_xml(dasherize: false)).root.first_element_child
+              elements << Nokogiri::XML({ property_name => json_objects }.to_xml(dasherize: false)).root.first_element_child
             end
           else
-            elements << Nokogiri::XML({name => property_value}.to_xml(dasherize: false)).root.first_element_child
+            elements << Nokogiri::XML({ name => property_value }.to_xml(dasherize: false)).root.first_element_child
           end
         when 'object'
           if property_model && property_model.modelable?
             elements << record_to_xml_element(data_type, property_schema, record.send(property_name), xml_doc, property_name, options, namespaces)
           else
-            elements << Nokogiri::XML({name => record.send(property_name)}.to_xml(dasherize: false)).root.first_element_child
+            elements << Nokogiri::XML({ name => record.send(property_name) }.to_xml(dasherize: false)).root.first_element_child
           end
         else
           value = property_schema['default'] if (value = record.send(property_name)).nil?
@@ -139,19 +172,12 @@ module Edi
                 raise Exception.new("More than one content property found: '#{content_property}' and '#{property_name}'")
               end
             else
-              elements << Nokogiri::XML({name => value}.to_xml(dasherize: false)).root.first_element_child
+              elements << Nokogiri::XML({ name => value }.to_xml(dasherize: false)).root.first_element_child
             end
           end
         end
       end
-      name = schema['edi']['segment'] if schema['edi']
-      name ||= enclosed_property_name || record.orm_model.data_type.name
-      ns, name = split_name(name)
-      unless xmlns = namespaces[ns]
-        xmlns = namespaces[ns] = "ns#{namespaces.size + 1}"
-      end
-      name = xmlns + ':' + name
-      element = xml_doc.create_element(name, attr)
+      element = xml_doc.create_element(element_name, attr)
       if elements.empty?
         content =
           case content
@@ -175,7 +201,7 @@ module Edi
       model = record.orm_model
       schema = model.schema
       key_properties = schema['referenced_by'] || []
-      json = (referenced = referenced && key_properties.present?) ? {'_reference' => true} : {}
+      json = (referenced = referenced && key_properties.present?) ? { '_reference' => true } : {}
       if !referenced
         return nil if options[:inspected_records].include?(record) || options[:stack].include?(record)
         options[:inspected_records] << record
