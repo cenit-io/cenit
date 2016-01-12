@@ -80,7 +80,8 @@ module Edi
 
     def ns_for(ns, namespaces)
       letters = true
-      ns = ns.split(':').last.underscore.split('_').collect { |token| (letters &&= token[0] =~ /[[:alpha:]]/) ? token[0] : '' }.join
+      ns = ns.split(':').last.split('/').last.underscore.split('_').collect { |token| (letters &&= token[0] =~ /[[:alpha:]]/) ? token[0] : '' }.join
+      ns = 'ns' if ns.blank?
       if namespaces.values.include?(ns)
         i = 1
         while namespaces.values.include?(nns = ns + i.to_s)
