@@ -295,7 +295,6 @@ module Mongoff
       @fields.each do |field, value|
         nested = (association = orm_model.associations[field]) && association.nested?
         if nested || document[field].nil?
-          nested = (association = orm_model.associations[field]) && association.nested?
           attribute_key = orm_model.attribute_key(field)
           if value.is_a?(RecordArray)
             document[attribute_key] = value.collect { |v| nested ? v.attributes : v.id }

@@ -11,13 +11,17 @@ module Setup
       if schema_changed?
         unique_properties = records_model.unique_properties
         indexed_properties = []
-        records_model.collection.indexes.each do |index|
-          next if (indexed_property = index['key'].keys.first) == '_id'
-          if unique_properties.detect { |p| p == indexed_property }
-            indexed_properties << indexed_property
-          else
-            records_model.collection.indexes.drop_one(index['name'])
+        begin
+          records_model.collection.indexes.each do |index|
+            next if (indexed_property = index['key'].keys.first) == '_id'
+            if unique_properties.detect { |p| p == indexed_property }
+              indexed_properties << indexed_property
+            else
+              records_model.collection.indexes.drop_one(index['name'])
+            end
           end
+        rescue
+          # Mongo driver raises an exception if the collection does not exists, nothing to worry about
         end
         unique_properties.reject { |p| indexed_properties.include?(p) }.each do |p|
           begin
@@ -65,8 +69,6 @@ module Setup
           self.schema = check_id_property(JSON.parse(json_schema.to_json))
           self.title = json_schema['title'] || self.name if title.blank?
         rescue Exception => ex
-          #TODO Remove raise
-          #raise ex
           errors.add(:schema, ex.message)
         end
         @collection_data_type = nil

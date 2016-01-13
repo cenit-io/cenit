@@ -34,7 +34,7 @@ module Mongoff
     end
 
     def foreign_key
-      nested? ? nil : model.attribute_key(name)
+      nested? ? nil : model.attribute_key(name).to_s
     end
   end
 end
