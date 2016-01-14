@@ -134,6 +134,7 @@ module Setup
 
               msg = { headers: headers }
               msg[:body] = body if body
+              msg[:timeout] = 120 if true #custom_timeout
               http_response = HTTMultiParty.send(method, url, msg)
               last_response = http_response.body
 
