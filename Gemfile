@@ -19,6 +19,7 @@ gem 'haml-rails'
 gem 'figaro'
 gem 'unicorn', '4.9.0'
 gem 'raml_parser', git: 'https://github.com/asnioby/raml_parser', branch: 'develop'
+gem 'xmldsig'
 
 group :doc do
   gem 'sdoc', require: false
