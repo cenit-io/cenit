@@ -9,6 +9,11 @@ module Setup
     field :refresh_token, type: String
     field :token_type, type: String
 
+    def build_auth_header
+      provider.refresh_token(self)
+      token_type.to_s + ' ' + access_token.to_s
+    end
+
     def callback_key
       :redirect_uri
     end
