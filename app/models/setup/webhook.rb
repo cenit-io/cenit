@@ -74,7 +74,7 @@ module Setup
         common_template_parameters = nil
         connections.each do |connection|
           template_parameters = template_parameters_hash.dup
-          template_parameters.reverse_merge!(connection.template_parameters_hash) if connection.template_parameters.present?
+          template_parameters.reverse_merge!(connection.template_parameters_hash)
           submitter_body =
             if body_caller
               body_argument.call(template_parameters)

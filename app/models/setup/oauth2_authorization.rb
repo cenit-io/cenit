@@ -9,6 +9,8 @@ module Setup
     field :refresh_token, type: String
     field :token_type, type: String
 
+    auth_template_parameters access_token: :access_token
+
     def build_auth_header
       provider.refresh_token(self)
       token_type.to_s + ' ' + access_token.to_s

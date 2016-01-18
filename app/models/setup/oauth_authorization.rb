@@ -7,7 +7,14 @@ module Setup
     field :access_token_secret, type: String
     field :realm, type: String
 
-    auth_template_parameters access_token_secret: :access_token_secret
+    auth_template_parameters oauth_token: :access_token,
+                             oauth_token_secret: :access_token_secret,
+                             consumer_key: ->(a) { a.client && a.client.attributes[:identifier]},
+                             consumer_secret: ->(a) { a.client && a.client.attributes[:secret]}
+
+    def build_auth_header
+      '{% oauth_authorization %}'
+    end
 
     def callback_key
       :oauth_callback

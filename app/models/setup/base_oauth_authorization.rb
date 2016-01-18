@@ -16,7 +16,6 @@ module Setup
     validates_presence_of :provider, :client
 
     auth_headers Authorization: ->(auth) { auth.build_auth_header }
-    auth_template_parameters access_token: :access_token
 
     def authorized?
       authorized_at.present?
