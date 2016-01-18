@@ -109,7 +109,7 @@ module RailsAdmin
               else
                 {}
               end
-            if connection && !%(get delete).include?(webhook.method)
+            if connection && %(get delete).exclude?(webhook.method)
               body_properties =
                 if (consumes = webhook.metadata['consumes']).nil?
                   {
