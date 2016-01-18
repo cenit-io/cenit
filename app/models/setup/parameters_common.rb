@@ -4,7 +4,7 @@ module Setup
     def template_parameters_hash
       hash = {}
       template_parameters.each { |p| hash[p.key] = p.value }
-      try(:other_template_parameters_each) { |key, value| hash[key] = value }
+      try(:inject_other_template_parameters, hash)
       hash
     end
 

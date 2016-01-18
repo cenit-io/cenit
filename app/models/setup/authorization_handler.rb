@@ -29,8 +29,10 @@ module Setup
       authorization.each_header(&block) if authorization && !authorization_handler && block
     end
 
-    def other_template_parameters_each(&block)
-      authorization.each_template_parameter(&block) if authorization && authorization_handler && block
+    def inject_other_template_parameters(hash)
+      authorization.each_template_parameter do |key, value|
+        hash[key] = value unless hash.has_key?(key) && authorization_handler
+      end if authorization
     end
   end
 end
