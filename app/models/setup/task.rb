@@ -25,7 +25,10 @@ module Setup
     validates_inclusion_of :status, in: ->(t) { t.status_enum }
     validates_numericality_of :progress, greater_than_or_equal_to: 0, less_than_or_equal_to: 100
 
-    before_save { self.description = auto_description if description.blank? }
+    before_save do
+      message.delete(:task)
+      self.description = auto_description if description.blank?
+    end
 
     before_destroy { NOT_RUNNING_STATUS.include?(status) }
 

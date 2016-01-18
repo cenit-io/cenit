@@ -17,7 +17,9 @@ module Setup
       if webhook = Setup::Webhook.where(id: webhook_id = message[:webhook_id]).first
         if connection = Setup::Connection.where(id: connection_id = message[:connection_id]).first
           webhook.upon(connection).submit message[:body],
+                                          headers: message[:headers],
                                           parameters: message[:parameters],
+                                          template_parameters: message[:template_parameters],
                                           notify_request: true,
                                           notify_response: true
         else

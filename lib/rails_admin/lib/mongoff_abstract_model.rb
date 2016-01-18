@@ -93,7 +93,7 @@ module Mongoff
   class Model
 
     def model_name
-      @model_name ||= ActiveModel::Name.new(nil, nil, data_type.name)
+      @model_name ||= ActiveModel::Name.new(nil, nil, name)
     end
 
     def human_attribute_name(attribute, options = {})

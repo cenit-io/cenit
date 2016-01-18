@@ -66,7 +66,7 @@ module Setup
         options = args[1] || {}
       end
       last_response = nil
-      template_parameters_hash = self.template_parameters_hash
+      template_parameters_hash = self.template_parameters_hash.merge!(options[:template_parameters] || {})
       verbose_response = options[:verbose_response] ? {} : nil
       if (connections = self.connections).present?
         verbose_response[:connections_present] = true if verbose_response
@@ -83,7 +83,8 @@ module Setup
             end
           submitter_body = '' if body_argument && submitter_body.nil?
           if [NilClass, Hash, String].include?(submitter_body.class)
-            url_parameter = connection.conformed_parameters(template_parameters).merge(conformed_parameters(template_parameters)).reject { |_, value| value.blank? }.to_param
+            parameters = connection.conformed_parameters(template_parameters).merge(conformed_parameters(template_parameters)).merge!(options[:parameters] || {})
+            url_parameter = parameters.reject { |_, value| value.blank? }.to_param
             if url_parameter.present?
               url_parameter = '?' + url_parameter
             end
@@ -110,7 +111,7 @@ module Setup
             template_parameters[:body] = body if body
             headers = {}
             headers['Content-Type'] = options[:contentType] if options.has_key?(:contentType)
-            headers.merge!(connection.conformed_headers(template_parameters)).merge!(conformed_headers(template_parameters))
+            headers.merge!(connection.conformed_headers(template_parameters)).merge!(conformed_headers(template_parameters)).merge!(options[:headers] || {})
             begin
               url = conformed_url + ('/' + conformed_path).gsub(/\/+/, '/')
               if body
