@@ -220,7 +220,7 @@ module Edi
         end
         can_be_referenced = !(options[:embedding_all] || options[:embedding].include?(name.to_sym))
         if inspecting = options[:inspecting].present?
-          next unless (property_model || options[:inspecting].include?(name.to_sym))
+          next unless (property_model || options[:inspecting].include?(name.to_sym)) && (!referenced || key_properties.include?(property_name))
         else
           next if property_schema['virtual'] ||
             ((property_schema['edi'] || {})['discard'] && !(included_anyway = options[:including_discards] || options[:including].include?(property_name))) ||
