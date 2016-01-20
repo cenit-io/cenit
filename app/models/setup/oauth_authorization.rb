@@ -56,8 +56,9 @@ module Setup
         consumer = OAuth::Consumer.new(template_parameters[:consumer_key], template_parameters[:consumer_secret], site: template_parameters[:url], scheme: :header)
         token_hash = {oauth_token: template_parameters[:oauth_token], oauth_token_secret: template_parameters[:oauth_token_secret]}
         access_token =  OAuth::AccessToken.from_hash(consumer, token_hash)
-        template_parameters[:path] = '/' + template_parameters[:path] unless template_parameters[:path].start_with?('/')
-        request = consumer.send(:create_http_request, template_parameters[:method], template_parameters[:path], template_parameters[:body])
+        path = template_parameters[:path] + '?' + template_parameters[:query]
+        path = '/' + path unless path.start_with?('/')
+        request = consumer.send(:create_http_request, template_parameters[:method], path, template_parameters[:body])
         request.content_type = 'application/x-www-form-urlencoded'
         consumer.sign!(request, access_token, {})
         request['authorization']

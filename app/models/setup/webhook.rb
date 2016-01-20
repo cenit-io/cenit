@@ -83,9 +83,6 @@ module Setup
             end
           submitter_body = '' if body_argument && submitter_body.nil?
           if [NilClass, Hash, String].include?(submitter_body.class)
-            parameters = connection.conformed_parameters(template_parameters).merge(conformed_parameters(template_parameters)).merge!(options[:parameters] || {})
-            url_parameter = (url_parameters = parameters.reject { |_, value| value.blank? }).to_param
-            url_parameter = '?' + url_parameter if url_parameter.present?
             if submitter_body.is_a?(Hash)
               body = {}
               submitter_body.each do |key, content|
@@ -103,15 +100,30 @@ module Setup
             end
             template_parameters.reverse_merge!(
               url: conformed_url = connection.conformed_url(template_parameters),
-              path: conformed_path = conformed_path(template_parameters) + url_parameter,
-              method: method,
-              url_parameters: url_parameters
+              path: conformed_path = conformed_path(template_parameters),
+              method: method
             )
             template_parameters[:body] = body if body
+
+            parameters = connection.conformed_parameters(template_parameters).
+              merge(conformed_parameters(template_parameters)).
+              merge!(options[:parameters] || {}).
+              reject { |_, value| value.blank? }
+
+            template_parameters[:query_parameters] = parameters
+            connection.inject_other_parameters(parameters, template_parameters)
+            inject_other_parameters(parameters, template_parameters)
+
+            query = parameters.to_param
+            template_parameters[:query] = query
+
             headers = {}
             headers['Content-Type'] = options[:contentType] if options.has_key?(:contentType)
             headers.merge!(connection.conformed_headers(template_parameters)).merge!(conformed_headers(template_parameters)).merge!(options[:headers] || {})
             begin
+              if query.present?
+                conformed_path += '?' + query
+              end
               url = conformed_url + ('/' + conformed_path).gsub(/\/+/, '/')
               if body
                 attachment = {

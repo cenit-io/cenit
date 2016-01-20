@@ -54,7 +54,7 @@ module Setup
       end
     end
 
-    CONFIG_FIELDS = %w(header template_parameter)
+    CONFIG_FIELDS = %w(header template_parameter parameter)
 
     CONFIG_FIELDS.each { |field| send("auth_#{field.pluralize}", {}) }
   end
