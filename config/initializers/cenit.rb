@@ -76,4 +76,8 @@ Cenit.config do
   scheduler_lookup_interval 60
 
   default_delay 30
+
+  rabbit_mq_user ENV['RABBIT_MQ_USER']
+
+  rabbit_mq_password ENV['RABBIT_MQ_PASSWORD']
 end

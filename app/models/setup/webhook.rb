@@ -66,7 +66,7 @@ module Setup
         options = args[1] || {}
       end
       last_response = nil
-      template_parameters_hash = self.template_parameters_hash
+      template_parameters_hash = self.template_parameters_hash.merge!(options[:template_parameters] || {})
       verbose_response = options[:verbose_response] ? {} : nil
       if (connections = self.connections).present?
         verbose_response[:connections_present] = true if verbose_response
@@ -74,7 +74,7 @@ module Setup
         common_template_parameters = nil
         connections.each do |connection|
           template_parameters = template_parameters_hash.dup
-          template_parameters.reverse_merge!(connection.template_parameters_hash) if connection.template_parameters.present?
+          template_parameters.reverse_merge!(connection.template_parameters_hash)
           submitter_body =
             if body_caller
               body_argument.call(template_parameters)
@@ -83,10 +83,6 @@ module Setup
             end
           submitter_body = '' if body_argument && submitter_body.nil?
           if [NilClass, Hash, String].include?(submitter_body.class)
-            url_parameter = connection.conformed_parameters(template_parameters).merge(conformed_parameters(template_parameters)).reject { |_, value| value.blank? }.to_param
-            if url_parameter.present?
-              url_parameter = '?' + url_parameter
-            end
             if submitter_body.is_a?(Hash)
               body = {}
               submitter_body.each do |key, content|
@@ -104,14 +100,30 @@ module Setup
             end
             template_parameters.reverse_merge!(
               url: conformed_url = connection.conformed_url(template_parameters),
-              path: conformed_path = conformed_path(template_parameters) + url_parameter,
+              path: conformed_path = conformed_path(template_parameters),
               method: method
             )
             template_parameters[:body] = body if body
+
+            parameters = connection.conformed_parameters(template_parameters).
+              merge(conformed_parameters(template_parameters)).
+              merge!(options[:parameters] || {}).
+              reject { |_, value| value.blank? }
+
+            template_parameters[:query_parameters] = parameters
+            connection.inject_other_parameters(parameters, template_parameters)
+            inject_other_parameters(parameters, template_parameters)
+
+            query = parameters.to_param
+            template_parameters[:query] = query
+
             headers = {}
             headers['Content-Type'] = options[:contentType] if options.has_key?(:contentType)
-            headers.merge!(connection.conformed_headers(template_parameters)).merge!(conformed_headers(template_parameters))
+            headers.merge!(connection.conformed_headers(template_parameters)).merge!(conformed_headers(template_parameters)).merge!(options[:headers] || {})
             begin
+              if query.present?
+                conformed_path += '?' + query
+              end
               url = conformed_url + ('/' + conformed_path).gsub(/\/+/, '/')
               if body
                 attachment = {

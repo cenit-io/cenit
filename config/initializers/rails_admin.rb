@@ -32,7 +32,8 @@
  RailsAdmin::Config::Actions::SwitchScheduler,
  RailsAdmin::Config::Actions::SimpleExport,
  RailsAdmin::Config::Actions::Schedule,
- RailsAdmin::Config::Actions::Submit].each { |a| RailsAdmin::Config::Actions.register(a) }
+ RailsAdmin::Config::Actions::Submit,
+ RailsAdmin::Config::Actions::DeleteCollection].each { |a| RailsAdmin::Config::Actions.register(a) }
 
 RailsAdmin::Config::Actions.register(:export, RailsAdmin::Config::Actions::BulkExport)
 RailsAdmin::Config::Fields::Types.register(RailsAdmin::Config::Fields::Types::JsonValue)
@@ -104,6 +105,7 @@ RailsAdmin.config do |config|
     bulk_delete_data_type
     delete
     delete_library
+    delete_collection
     #show_in_app
     send_to_flow
     delete_all
@@ -1939,7 +1941,11 @@ RailsAdmin.config do |config|
       visible { Account.current.super_admin? }
     end
 
-    fields :namespace, :name, :response_type, :authorization_endpoint, :token_endpoint, :token_method, :parameters, :scope_separator, :tenant, :shared
+    configure :refresh_token_algorithm do
+      visible { bindings[:object].refresh_token_strategy == :custom.to_s }
+    end
+
+    fields :namespace, :name, :response_type, :authorization_endpoint, :token_endpoint, :token_method, :parameters, :scope_separator, :refresh_token_strategy, :refresh_token_algorithm, :tenant, :shared
   end
 
   config.model Setup::OauthParameter do
@@ -2182,6 +2188,7 @@ RailsAdmin.config do |config|
       field :access_token
       field :token_span
       field :authorized_at
+      field :refresh_token
     end
 
     fields :namespace, :name, :provider, :client, :scopes

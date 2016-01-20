@@ -21,16 +21,21 @@ module RailsAdmin
             render_form = true
             if model = @abstract_model.model rescue nil
               connection =
-                if data = params[@abstract_model.param_key]
+                if data = params.delete((model_name = @action.class.name.split('::').last + 'Form').underscore)
                   data.permit!
                   connection = Setup::Connection.where(id: data[:connection_id]).first
                 else
                   selecting_connection = true
                   @object.connections.first || Setup::Connection.where(namespace: @object.namespace).first
                 end unless params.delete(:_restart)
-              mongoff_model = Mongoff::Model.for(data_type: model.data_type, schema: Submit.params_schema(@object, selecting_connection ? nil : connection))
+              mongoff_model = Mongoff::Model.for(data_type: model.data_type,
+                                                 schema: Submit.params_schema(@object, selecting_connection ? nil : connection),
+                                                 name: model_name)
               if params.delete(:_save) && (@form_object = mongoff_model.new(data)).valid?
-                do_flash_process_result Setup::Submission.process(webhook_id: @object.id, connection_id: connection.id, parameters: Submit.parameters_from(data), body: data[:body])
+                msg = Submit.params_and_headers_from(@form_object.attributes).merge!(webhook_id: @object.id,
+                                                                                     connection_id: connection.id,
+                                                                                     body: data[:body])
+                do_flash_process_result Setup::Submission.process(msg)
                 render_form = false
               end
             else
@@ -67,14 +72,17 @@ module RailsAdmin
 
         class << self
 
-          def parameters_from(data)
-            parameters = {}
+          def params_and_headers_from(data)
+            params = Hash.new { |h, k| h[k] = {} }
             data.each do |name, value|
               if prefix = %w(header parameter template_parameter).detect { |p| name.to_s.start_with?(p) }
-                parameters[name.from(prefix.length + 1)] = value
+                params[prefix.pluralize][name.from(prefix.length + 1)] = value
               end
             end
-            parameters
+            if (contentType = data['content_type']).present?
+              params['headers']['Content-Type'] = contentType
+            end
+            params
           end
 
           def params_schema(webhook, connection)
@@ -84,10 +92,15 @@ module RailsAdmin
                 [:headers, :parameters, :template_parameters].inject({}) do |hash, params|
                   prefix = params.to_s.singularize
                   h = webhook.send(params).inject({}) do |params_hash, param|
-                    params_hash[property_name = "#{prefix}_#{param.key}"] = ph = (param.metadata || {}).deep_dup.merge!('title' => param.key.capitalize,
-                                                                                                                        'description' => param.description,
-                                                                                                                        'group' => params.to_s)
+                    params_hash[property_name = "#{prefix}_#{param.key}"] =
+                      ph =
+                        (param.metadata || {}).deep_dup.merge!('title' => param.key,
+                                                               'description' => param.description,
+                                                               'group' => params.to_s)
                     ph['type'] ||= 'string'
+                    if value = param.value
+                      ph['default'] = value
+                    end
                     required << property_name if ph.delete('required')
                     params_hash
                   end
@@ -96,16 +109,39 @@ module RailsAdmin
               else
                 {}
               end
-            pararms_properties.merge!('body' => {
-              'type' => 'string',
-              'group' => 'body'
-            }) if connection && !%(get delete).include?(webhook.method)
+            if connection && %(get delete).exclude?(webhook.method)
+              body_properties =
+                if (consumes = webhook.metadata['consumes']).nil?
+                  {
+                    'content_type' => {
+                      'type' => 'string',
+                      'group' => 'body'
+                    }
+                  }
+                else
+                  consumes = [consumes] unless consumes.is_a?(Enumerable)
+                  {
+                    'content_type' => {
+                      'type' => 'string',
+                      'enum' => consumes.collect(&:to_s),
+                      'default' => consumes.first.to_s,
+                      'group' => 'body'
+                    }
+                  }
+                end
+              body_properties['body'] =
+                {
+                  'type' => 'string',
+                  'group' => 'body'
+                }
+              pararms_properties.merge!(body_properties)
+            end
             {
               'type' => 'object',
               'required' => required,
               'properties' => {
                 'connection' => {
-                  '$ref' => 'Setup::Connection',
+                  '$ref' => Setup::Connection.to_s,
                   'referenced' => true
                 }
               }.merge!(pararms_properties)

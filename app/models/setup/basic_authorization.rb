@@ -1,6 +1,7 @@
 module Setup
   class BasicAuthorization < Setup::Authorization
     include CenitScoped
+    include AuthorizationHeader
 
     BuildInDataType.regist(self).with(:namespace, :name).referenced_by(:namespace, :name)
 
@@ -9,10 +10,9 @@ module Setup
 
     validates_presence_of :username, :password
 
-    auth_headers Authorization: ->(auth) { auth.basic_auth }
     auth_template_parameters basic_auth: :basic_auth
 
-    def basic_auth
+    def build_auth_header(template_parameters)
       'basic ' + ::Base64.encode64("#{auth.username}:#{auth.password}").gsub("\n", '')
     end
   end
