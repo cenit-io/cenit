@@ -1,6 +1,7 @@
 module Setup
   class BaseOauthAuthorization < Setup::Authorization
     include CenitScoped
+    include AuthorizationHeader
 
     abstract_class true
 
@@ -15,14 +16,8 @@ module Setup
 
     validates_presence_of :provider, :client
 
-    auth_headers Authorization: ->(auth) { auth.build_auth_header }
-
     def authorized?
       authorized_at.present?
-    end
-
-    def build_auth_header
-      fail NotImplementedError
     end
 
     def ready_to_save?

@@ -84,10 +84,8 @@ module Setup
           submitter_body = '' if body_argument && submitter_body.nil?
           if [NilClass, Hash, String].include?(submitter_body.class)
             parameters = connection.conformed_parameters(template_parameters).merge(conformed_parameters(template_parameters)).merge!(options[:parameters] || {})
-            url_parameter = parameters.reject { |_, value| value.blank? }.to_param
-            if url_parameter.present?
-              url_parameter = '?' + url_parameter
-            end
+            url_parameter = (url_parameters = parameters.reject { |_, value| value.blank? }).to_param
+            url_parameter = '?' + url_parameter if url_parameter.present?
             if submitter_body.is_a?(Hash)
               body = {}
               submitter_body.each do |key, content|
@@ -106,7 +104,8 @@ module Setup
             template_parameters.reverse_merge!(
               url: conformed_url = connection.conformed_url(template_parameters),
               path: conformed_path = conformed_path(template_parameters) + url_parameter,
-              method: method
+              method: method,
+              url_parameters: url_parameters
             )
             template_parameters[:body] = body if body
             headers = {}
