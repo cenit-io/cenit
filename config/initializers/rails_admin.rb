@@ -32,7 +32,8 @@
  RailsAdmin::Config::Actions::SwitchScheduler,
  RailsAdmin::Config::Actions::SimpleExport,
  RailsAdmin::Config::Actions::Schedule,
- RailsAdmin::Config::Actions::Submit].each { |a| RailsAdmin::Config::Actions.register(a) }
+ RailsAdmin::Config::Actions::Submit,
+ RailsAdmin::Config::Actions::DeleteCollection].each { |a| RailsAdmin::Config::Actions.register(a) }
 
 RailsAdmin::Config::Actions.register(:export, RailsAdmin::Config::Actions::BulkExport)
 RailsAdmin::Config::Fields::Types.register(RailsAdmin::Config::Fields::Types::JsonValue)
@@ -104,6 +105,7 @@ RailsAdmin.config do |config|
     bulk_delete_data_type
     delete
     delete_library
+    delete_collection
     #show_in_app
     send_to_flow
     delete_all
@@ -1385,7 +1387,8 @@ RailsAdmin.config do |config|
       end
       field :authors
       field :summary
-      field :description
+      field :description, :froala do
+      end
       field :source_collection do
         visible { !((source_collection = bindings[:object].source_collection) && source_collection.new_record?) }
         inline_edit false
@@ -1488,7 +1491,11 @@ RailsAdmin.config do |config|
       end
       field :category
       field :summary
-      field :description
+      field :description do
+        pretty_value do
+          value.html_safe
+        end
+      end
       field :authors
       field :dependencies
 

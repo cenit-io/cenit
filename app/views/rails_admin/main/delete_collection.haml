@@ -1,0 +1,15 @@
+%form{method: 'delete', class: 'form-horizontal denser', action: url_for(action: @action.action_name)}
+  - if @object.present?
+    %h4{style: 'color:#b94a48'}= t('admin.actions.delete_collection.trash_warning')
+    - Setup::Collection.reflect_on_all_associations(:has_and_belongs_to_many).each do |relation|
+      - if (records = @object.send(relation.name)).present?
+        .control-group
+          %label.col-sm-2.control-label
+            = relation.name.to_s.titleize
+          .col-sm-10.controls
+            - am = RailsAdmin::Config.model(relation.klass).abstract_model
+            - count = 0
+            = records.collect { |record| count +=1; link_to(record.try(:custom_title) || record.name, url_for(action: action(:show, am, record).action_name, model_name: record.class.to_s, id: record.id), class: 'pjax') }.to_sentence.html_safe
+            %p.help-block
+              = "#{count} #{relation.name.to_s.titleize.downcase.pluralize}"
+  = render partial: 'confirmation_controls', locals: {confirmation_name: 'delete'}

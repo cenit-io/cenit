@@ -9,15 +9,25 @@ module Setup
     BuildInDataType.regist(self).referenced_by(:namespace, :name)
 
     def method_missing(symbol, *args)
-      if [:each_header, :each_template_parameter].include?(symbol) && block_given?
-        self.class.send('auth_' + symbol.to_s.from('each_'.length).pluralize).each do |key, value_access|
-          value =
-            if value_access.respond_to?(:call)
-              value_access.call(self)
-            else
-              send(value_access)
-            end
-          yield(key, value)
+      hashes = []
+      if symbol.to_s.start_with?('all_')
+        suffix = symbol.to_s.from('all_'.length).singularize
+        fields.each { |field| hashes << self.class.send('auth_' + field.pluralize) if field.end_with?(suffix) }
+      elsif field = CONFIG_FIELDS.detect { |field| "each_#{field}" == symbol.to_s.singularize }
+        hashes << self.class.send('auth_' + field.pluralize)
+      end if block_given?
+      if hashes.present?
+        args = args.unshift(self)
+        hashes.each do |hash|
+          hash.each do |key, value_access|
+            value =
+              if value_access.respond_to?(:call)
+                value_access.call(*args)
+              else
+                send(value_access)
+              end
+            yield(key, value)
+          end
         end
       else
         super
@@ -27,7 +37,7 @@ module Setup
     class << self
 
       def method_missing(symbol, *args)
-        if [:auth_headers, :auth_template_parameters].include?(symbol)
+        if CONFIG_FIELDS.any? { |field| "auth_#{field.pluralize}" == symbol.to_s }
           ivar = "@#{symbol}".to_sym
           if args.length > 0
             instance_variable_set(ivar, args[0].stringify_keys)
@@ -44,7 +54,8 @@ module Setup
       end
     end
 
-    auth_headers({})
-    auth_template_parameters({})
+    CONFIG_FIELDS = %w(header template_parameter parameter)
+
+    CONFIG_FIELDS.each { |field| send("auth_#{field.pluralize}", {}) }
   end
 end
