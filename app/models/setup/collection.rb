@@ -113,6 +113,10 @@ module Setup
       errors.blank?
     end
 
+    def empty?
+      Setup::Collection.reflect_on_all_associations(:has_and_belongs_to_many).all? { |relation| send(relation.name).empty? }
+    end
+
     private
 
     def check_data_type_dependencies(data_type, algorithms)

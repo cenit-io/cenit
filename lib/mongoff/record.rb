@@ -241,7 +241,8 @@ module Mongoff
         end unless value.empty?
         document[attribute_key] = attr_array
       else
-        document[attribute_key || field] = orm_model.mongo_value(value, field, property_schema)
+        document[attribute_key ||= field] = value = orm_model.mongo_value(value, field, property_schema)
+        document.delete(attribute_key.to_s) unless value || orm_model.requires?(field)
       end
     end
 
