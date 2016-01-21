@@ -1387,7 +1387,8 @@ RailsAdmin.config do |config|
       end
       field :authors
       field :summary
-      field :description
+      field :description, :froala do
+      end
       field :source_collection do
         visible { !((source_collection = bindings[:object].source_collection) && source_collection.new_record?) }
         inline_edit false
@@ -1490,7 +1491,11 @@ RailsAdmin.config do |config|
       end
       field :category
       field :summary
-      field :description
+      field :description do
+        pretty_value do
+          value.html_safe
+        end
+      end
       field :authors
       field :dependencies
 
