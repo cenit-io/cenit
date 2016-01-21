@@ -2194,6 +2194,85 @@ RailsAdmin.config do |config|
     fields :namespace, :name, :provider, :client, :scopes
   end
 
+  config.model Setup::AwsAuthorization do
+
+    edit do
+      field :namespace
+      field :name
+      field :aws_access_key
+      field :aws_secret_key
+      field :seller
+      field :merchant
+      field :markets
+      field :signature_method
+      field :signature_version
+    end
+
+    group :credentials do
+      label 'Credentials'
+    end
+
+    configure :aws_access_key do
+      group :credentials
+    end
+
+    configure :aws_secret_key do
+      group :credentials
+    end
+
+    show do
+      field :namespace
+      field :name
+      field :aws_access_key
+      field :aws_secret_key
+      field :seller
+      field :merchant
+      field :markets
+      field :signature_method
+      field :signature_version
+
+    end
+
+    fields :namespace, :name, :aws_access_key, :aws_secret_key, :seller, :merchant, :markets, :signature_method, :signature_version
+  end
+
+  config.model Setup::BasicAuthorization do
+
+    edit do
+      field :namespace
+      field :name
+      field :username
+      field :password
+    end
+
+    group :credentials do
+      label 'Credentials'
+    end
+
+    configure :username do
+      group :credentials
+    end
+
+    configure :password do
+      group :credentials
+    end
+
+    show do
+      field :namespace
+      field :name
+      field :aws_access_key
+      field :aws_secret_key
+      field :seller
+      field :merchant
+      field :markets
+      field :signature_method
+      field :signature_version
+
+    end
+
+    fields :namespace, :name, :username, :password
+  end
+
   config.model Setup::Raml do
     configure :raml_references do
       visible { bindings[:view]._current_user.has_role? :admin }

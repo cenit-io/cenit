@@ -40,20 +40,20 @@ module Setup
         @connections_cache
       else
         connections =
-          if @connections
-            @connections.is_a?(Setup::Connection) ? [@connections] : (@connections.connections || [])
-          else
-            connections = []
-            Setup::ConnectionRole.all.each do |connection_role|
-              if connection_role.webhooks.include?(self)
-                connections = (connections + connection_role.connections.to_a).uniq
+            if @connections
+              @connections.is_a?(Setup::Connection) ? [@connections] : (@connections.connections || [])
+            else
+              connections = []
+              Setup::ConnectionRole.all.each do |connection_role|
+                if connection_role.webhooks.include?(self)
+                  connections = (connections + connection_role.connections.to_a).uniq
+                end
               end
+              connections
             end
-            connections
-          end
         @connections_cache = connections unless @connection_role_options &&
-          @connection_role_options.has_key?(:cache) &&
-          !@connection_role_options[:cache]
+            @connection_role_options.has_key?(:cache) &&
+            !@connection_role_options[:cache]
         connections
       end
     end
@@ -76,39 +76,39 @@ module Setup
           template_parameters = template_parameters_hash.dup
           template_parameters.reverse_merge!(connection.template_parameters_hash)
           submitter_body =
-            if body_caller
-              body_argument.call(template_parameters)
-            else
-              common_submitter_body
-            end
+              if body_caller
+                body_argument.call(template_parameters)
+              else
+                common_submitter_body
+              end
           submitter_body = '' if body_argument && submitter_body.nil?
           if [NilClass, Hash, String].include?(submitter_body.class)
             if submitter_body.is_a?(Hash)
               body = {}
               submitter_body.each do |key, content|
                 body[key] =
-                  if content.is_a?(String) || content.respond_to?(:read)
-                    content
-                  elsif content.is_a?(Hash)
-                    UploadIO.new(StringIO.new(content[:data]), content[:contentType], content[:filename])
-                  else
-                    content.to_s
-                  end
+                    if content.is_a?(String) || content.respond_to?(:read)
+                      content
+                    elsif content.is_a?(Hash)
+                      UploadIO.new(StringIO.new(content[:data]), content[:contentType], content[:filename])
+                    else
+                      content.to_s
+                    end
               end
             else
               body = submitter_body
             end
             template_parameters.reverse_merge!(
-              url: conformed_url = connection.conformed_url(template_parameters),
-              path: conformed_path = conformed_path(template_parameters),
-              method: method
+                url: conformed_url = connection.conformed_url(template_parameters),
+                path: conformed_path = conformed_path(template_parameters),
+                method: method
             )
             template_parameters[:body] = body if body
 
             parameters = connection.conformed_parameters(template_parameters).
-              merge(conformed_parameters(template_parameters)).
-              merge!(options[:parameters] || {}).
-              reject { |_, value| value.blank? }
+                merge(conformed_parameters(template_parameters)).
+                merge!(options[:parameters] || {}).
+                reject { |_, value| value.blank? }
 
             template_parameters[:query_parameters] = parameters
             connection.inject_other_parameters(parameters, template_parameters)
@@ -119,7 +119,10 @@ module Setup
 
             headers = {}
             headers['Content-Type'] = options[:contentType] if options.has_key?(:contentType)
-            headers.merge!(connection.conformed_headers(template_parameters)).merge!(conformed_headers(template_parameters)).merge!(options[:headers] || {})
+            headers.merge!(connection.conformed_headers(template_parameters)).
+                merge!(conformed_headers(template_parameters)).
+                merge!(options[:headers] || {}).
+                reject! { |_, value| value.nil? }
             begin
               if query.present?
                 conformed_path += '?' + query
@@ -127,9 +130,9 @@ module Setup
               url = conformed_url + ('/' + conformed_path).gsub(/\/+/, '/')
               if body
                 attachment = {
-                  filename: DateTime.now.strftime('%Y-%m-%d_%Hh%Mm%S'),
-                  contentType: options[:contentType] || 'application/octet-stream',
-                  body: body
+                    filename: DateTime.now.strftime('%Y-%m-%d_%Hh%Mm%S'),
+                    contentType: options[:contentType] || 'application/octet-stream',
+                    body: body
                 }
                 if (request_attachment = options[:request_attachment]).respond_to?(:call)
                   attachment = request_attachment.call(attachment)
@@ -144,13 +147,13 @@ module Setup
                                               attachment: attachment,
                                               skip_notification_level: options[:skip_notification_level] || options[:notify_request])
 
-              msg = { headers: headers }
+              msg = {headers: headers}
               msg[:body] = body if body
               msg[:timeout] = 120 if true #custom_timeout
               http_response = HTTMultiParty.send(method, url, msg)
               last_response = http_response.body
 
-              Setup::Notification.create_with(message: { response_code: http_response.code }.to_json,
+              Setup::Notification.create_with(message: {response_code: http_response.code}.to_json,
                                               type: (200...299).include?(http_response.code) ? :notice : :error,
                                               attachment: attachment_from(http_response),
                                               skip_notification_level: options[:skip_notification_level] || options[:notify_response])
@@ -158,12 +161,12 @@ module Setup
               if block
                 http_response = ResponseProxy.new(http_response)
                 last_response =
-                  case block.arity
-                  when 1
-                    block.call(http_response)
-                  when 2
-                    block.call(http_response, template_parameters)
-                  end
+                    case block.arity
+                      when 1
+                        block.call(http_response)
+                      when 2
+                        block.call(http_response, template_parameters)
+                    end
               end
               verbose_response[:last_response] = last_response if verbose_response
             rescue Exception => ex
@@ -182,11 +185,11 @@ module Setup
     def attachment_from(http_response)
       if http_response
         file_extension = ((types =MIME::Types[http_response.content_type]).present? &&
-          (ext = types.first.extensions.first).present? && '.' + ext) || ''
+            (ext = types.first.extensions.first).present? && '.' + ext) || ''
         {
-          filename: http_response.object_id.to_s + file_extension,
-          contentType: http_response.content_type,
-          body: http_response.body
+            filename: http_response.object_id.to_s + file_extension,
+            contentType: http_response.content_type,
+            body: http_response.body
         }
       else
         nil
