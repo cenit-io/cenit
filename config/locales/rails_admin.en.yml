@@ -108,6 +108,13 @@ en:
         will_be_deleted: "objects will be deleted"
         done: "deleted"
         doing: "deletion"
+      delete_collection:
+        title: "Trash collection '%{object_label}'"
+        menu: "Trash collection"
+        breadcrumb: "Trash collection"
+        trash_warning: "The following objects will be destroyed:"
+        done: "trashed"
+        doing: "trashing"
       new_wizard:
         title: "New"
         menu: "Add new"

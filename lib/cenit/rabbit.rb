@@ -95,7 +95,7 @@ module Cenit
 
       def init
         unless @connection
-          @connection = Bunny.new(automatically_recover: true)
+          @connection = Bunny.new(automatically_recover: true, user: Cenit.rabbit_mq_user, password: Cenit.rabbit_mq_password)
           @connection.start
 
           @channel = @connection.create_channel
@@ -104,6 +104,11 @@ module Cenit
 
           @channel_mutex = Mutex.new
         end
+        true
+      rescue Exception => ex
+        Setup::Notification.create(message: msg = "Error connecting with RabbitMQ: #{ex.message}")
+        puts msg
+        false
       end
 
       def close
@@ -113,40 +118,42 @@ module Cenit
       end
 
       def start_consumer
-        init
-        queue.subscribe(manual_ack: true) do |delivery_info, properties, body|
-          begin
-            Account.current = nil
-            Cenit::Rabbit.process_message(body, properties[:headers] || {})
-            channel.ack(delivery_info.delivery_tag)
-          rescue Exception => ex
-            Setup::Notification.create(message: "Error (#{ex.message}) consuming message: #{body}")
-          ensure
-            Account.current = nil
+        if init
+          queue.subscribe(manual_ack: true) do |delivery_info, properties, body|
+            begin
+              Account.current = nil
+              Cenit::Rabbit.process_message(body, properties[:headers] || {})
+              channel.ack(delivery_info.delivery_tag)
+            rescue Exception => ex
+              Setup::Notification.create(message: "Error (#{ex.message}) consuming message: #{body}")
+            ensure
+              Account.current = nil
+            end
           end
+          puts 'RABBIT CONSUMER STARTED'
         end
-        puts 'RABBIT CONSUMER STARTED'
       rescue Exception => ex
         Setup::Notification.create(message: "Error subscribing rabbit consumer: #{ex.message}")
       end
 
       def start_scheduler
-        init
-        @scheduler_job = Rufus::Scheduler.new.interval "#{Cenit.scheduler_lookup_interval}s" do
-          messages_present = false
-          (delayed_messages = Setup::DelayedMessage.all.or(:publish_at.lte => Time.now).or(unscheduled: true)).each do |delayed_message|
-            publish_options = {routing_key: queue.name}
-            publish_options[:headers] = {unscheduled: true} if delayed_message.unscheduled
-            channel.default_exchange.publish(delayed_message.message, publish_options)
-            messages_present = true
+        if init
+          @scheduler_job = Rufus::Scheduler.new.interval "#{Cenit.scheduler_lookup_interval}s" do
+            messages_present = false
+            (delayed_messages = Setup::DelayedMessage.all.or(:publish_at.lte => Time.now).or(unscheduled: true)).each do |delayed_message|
+              publish_options = { routing_key: queue.name }
+              publish_options[:headers] = { unscheduled: true } if delayed_message.unscheduled
+              channel.default_exchange.publish(delayed_message.message, publish_options)
+              messages_present = true
+            end
+            begin
+              delayed_messages.destroy_all
+            rescue Exception => ex
+              puts "Error deleting delayed messages: #{ex.message}"
+            end if messages_present
           end
-          begin
-            delayed_messages.destroy_all
-          rescue Exception => ex
-            puts "Error deleting delayed messages: #{ex.message}"
-          end if messages_present
+          puts 'RABBIT SCHEDULER STARTED'
         end
-        puts 'RABBIT SCHEDULER STARTED'
       end
 
       private
