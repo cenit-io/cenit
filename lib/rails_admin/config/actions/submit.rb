@@ -89,51 +89,47 @@ module RailsAdmin
             required = ['connection']
             pararms_properties =
               if connection
-                [:headers, :parameters, :template_parameters].inject({}) do |hash, params|
-                  prefix = params.to_s.singularize
-                  h = webhook.send(params).inject({}) do |params_hash, param|
-                    params_hash[property_name = "#{prefix}_#{param.key}"] =
-                      ph =
-                        (param.metadata || {}).deep_dup.merge!('title' => param.key,
-                                                               'description' => param.description,
-                                                               'group' => params.to_s)
-                    ph['type'] ||= 'string'
-                    if value = param.value
-                      ph['default'] = value
+                [connection, webhook].inject({}) do |hash, entity|
+                  entity_hash = [:headers, :parameters, :template_parameters].inject({}) do |hash, params|
+                    prefix = params.to_s.singularize
+                    h = entity.send(params).inject({}) do |params_hash, param|
+                      params_hash[property_name = "#{prefix}_#{param.key}"] =
+                        ph =
+                          (param.metadata || {}).deep_dup.merge!('title' => param.key,
+                                                                 'description' => param.description,
+                                                                 'group' => params.to_s)
+                      ph['type'] ||= 'string'
+                      if value = param.value
+                        ph['default'] = value
+                      end
+                      required << property_name if ph.delete('required')
+                      params_hash
                     end
-                    required << property_name if ph.delete('required')
-                    params_hash
+                    hash.merge! h
                   end
-                  hash.merge! h
+                  hash.deep_merge! entity_hash
                 end
               else
                 {}
               end
             if connection && %(get delete).exclude?(webhook.method)
-              body_properties =
-                if (consumes = webhook.metadata['consumes']).nil?
-                  {
-                    'content_type' => {
-                      'type' => 'string',
-                      'group' => 'body'
-                    }
-                  }
-                else
-                  consumes = [consumes] unless consumes.is_a?(Enumerable)
-                  {
-                    'content_type' => {
-                      'type' => 'string',
-                      'enum' => consumes.collect(&:to_s),
-                      'default' => consumes.first.to_s,
-                      'group' => 'body'
-                    }
-                  }
-                end
-              body_properties['body'] =
+              content_type_property =
                 {
                   'type' => 'string',
                   'group' => 'body'
                 }
+              body_properties =
+                {
+                  'content_type' => content_type_property,
+                  'body' => {
+                    'type' => 'string',
+                    'group' => 'body'
+                  }
+                }
+              if consumes = webhook.metadata['consumes']
+                consumes = [consumes] unless consumes.is_a?(Enumerable)
+                content_type_property['default'] = consumes.first.to_s
+              end
               pararms_properties.merge!(body_properties)
             end
             {
