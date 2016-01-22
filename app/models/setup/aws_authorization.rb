@@ -9,6 +9,8 @@ module Setup
     field :seller, type: String
     field :merchant, type: String
     field :markets, type: String
+    field :mws_auth_token, type: String
+    field :version, type: String , default: '2011-01-01'
     field :signature_method, type: String, default: 'HmacSHA256'
     field :signature_version, type: String, default: '2'
 
@@ -23,7 +25,9 @@ module Setup
                     SignatureVersion: :signature_version,
                     AWSAccessKeyId: :aws_access_key,
                     SellerId: ->(auth, template_parameters) { auth.seller_id },
-                    MarketplaceId: :markets,
+                    Marketplace: :markets,
+                    Version: :version,
+                    MWSAuthToken: :mws_auth_token,
                     Signature: ->(auth, template_parameters) { auth.sign(template_parameters) }
 
     auth_template_parameters aws_secret_key: :aws_secret_key
@@ -37,7 +41,7 @@ module Setup
     end
 
     def signature_method_enum
-      ['HmacSHA256']
+      ['HmacSHA256','HmacSHA1']
     end
 
     def signature_version_enum
@@ -54,7 +58,9 @@ module Setup
                                                                        SignatureVersion: signature_version,
                                                                        AWSAccessKeyId: aws_access_key,
                                                                        SellerId: seller_id,
-                                                                       MarketplaceId: markets)
+                                                                       Marketplace: markets,
+                                                                       Version: version,
+                                                                       MWSAuthToken: mws_auth_token,)
 
       template_parameters = template_parameters.merge(query_parameters: qp)
       self.class.sign(template_parameters)
