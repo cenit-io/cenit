@@ -1504,7 +1504,9 @@ RailsAdmin.config do |config|
       field :updated_at
     end
     list do
-      field :image
+      field :image do
+        thumb_method :icon
+      end
       field :name do
         pretty_value do
           bindings[:object].versioned_name
@@ -1642,7 +1644,27 @@ RailsAdmin.config do |config|
       field :updated_at
       #field :updater
     end
-    fields :image, :name, :flows, :connection_roles, :translators, :events, :libraries, :custom_validators, :algorithms, :webhooks, :connections, :authorizations, :oauth_providers, :oauth_clients, :oauth2_scopes, :data
+
+    list do
+      field :image do
+        thumb_method :icon
+      end
+      field :name
+      field :flows
+      field :connection_roles
+      field :translators
+      field :events
+      field :libraries
+      field :custom_validators
+      field :algorithms
+      field :webhooks
+      field :connections
+      field :authorizations
+      field :oauth_providers
+      field :oauth_clients
+      field :oauth2_scopes
+      field :data
+    end
   end
 
   config.model Setup::CustomValidator do
