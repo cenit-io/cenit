@@ -2,6 +2,8 @@
 # The data can then be loaded with the rake db:seed (or created alongside the db with db:setup).
 #
 # Examples:
-#
-#   cities = City.create([{ name: 'Chicago' }, { name: 'Copenhagen' }])
-#   Mayor.create(name: 'Emanuel', city: cities.first)
+
+user = User.create({name: 'admin@cenithub.com', password: 'cenithub123', confirmed_at: Time.now})
+roles = Role.create ([{ name: 'admin' }, { name: 'super_admin'}])
+user.roles << roles
+user.save
