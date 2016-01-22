@@ -85,6 +85,7 @@ gem 'wannabe_bool'
 gem 'parser'
 gem 'oauth'
 gem 'bootstrap-wysihtml5-rails'
+gem "wysiwyg-rails", "~> 1.2.7"
 
 gem 'cenit_cmd', git: 'https://github.com/openjaf/cenit_cmd.git'
 gem 'jeweler'
