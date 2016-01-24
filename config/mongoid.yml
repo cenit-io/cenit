@@ -80,4 +80,5 @@ production:
   clients:
     default:
       database: <%= ENV['DB_PROD'] %>
+      hosts:
         - localhost:27017
