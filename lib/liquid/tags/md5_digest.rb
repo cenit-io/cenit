@@ -1,13 +1,14 @@
 module Liquid
-  class OauthAthorization < CenitBasicTag
+  class Md5Digest < CenitBasicTag
 
-    tag :oauth_authorization
+    tag :md5_digest
 
     def render(context)
       locals = {}
       context.environments.each { |e| locals.merge!(e) }
-      Setup::OauthAuthorization.auth_header(locals)
+      Setup::AwsAuthorization.body_sign(locals[:body])
     end
 
+    
   end
 end

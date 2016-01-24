@@ -79,5 +79,5 @@ production:
   # uri: <%= ENV['MONGOHQ_URL'] %>
   clients:
     default:
-      database: cenit_development
+      database: <%= ENV['DB_PROD'] %>
         - localhost:27017

@@ -85,20 +85,12 @@ module Mongoff
     end
 
     def validate
-      errors.clear
-      orm_model.fully_validate_against_schema(attributes).each do |error|
-        errors.add(:base, error[:message])
-      end
-      scope = orm_model.all
-      (unique_properties = orm_model.unique_properties).each do |property|
-        unless (value = self[property]).nil?
-          scope = scope.or(property => value)
+      unless @vailidated
+        errors.clear
+        orm_model.fully_validate_against_schema(attributes).each do |error|
+          errors.add(:base, error[:message])
         end
-      end
-      scope.each do |record|
-        next if unique_properties.empty? || eql?(record)
-        (taken = unique_properties.select { |p| !(value = self[p]).nil? && value == record[p] }).each { |p| errors.add(p, 'is already taken') }
-        unique_properties.delete_if { |p| taken.include?(p) }
+        @validated = true
       end
     end
 
@@ -177,6 +169,7 @@ module Mongoff
 
     def []=(field, value)
       @changed = true
+      @validated = false
       field = :_id if %w(id _id).include?(field.to_s)
       if !orm_model.property?(field) && association = nested_attributes_association(field)
         fail "invalid attributes format #{value}" unless value.is_a?(Hash)
@@ -248,7 +241,8 @@ module Mongoff
         end unless value.empty?
         document[attribute_key] = attr_array
       else
-        document[attribute_key || field] = orm_model.mongo_value(value, field, property_schema)
+        document[attribute_key ||= field] = value = orm_model.mongo_value(value, field, property_schema)
+        document.delete(attribute_key.to_s) unless value || orm_model.requires?(field)
       end
     end
 
@@ -302,7 +296,6 @@ module Mongoff
       @fields.each do |field, value|
         nested = (association = orm_model.associations[field]) && association.nested?
         if nested || document[field].nil?
-          nested = (association = orm_model.associations[field]) && association.nested?
           attribute_key = orm_model.attribute_key(field)
           if value.is_a?(RecordArray)
             document[attribute_key] = value.collect { |v| nested ? v.attributes : v.id }

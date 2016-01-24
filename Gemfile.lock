@@ -7,6 +7,14 @@ GIT
       activesupport (>= 4.0.0)
 
 GIT
+  remote: https://github.com/benoist/xmldsig
+  revision: c4100b8cbdc3f0e347941e032f3d1b94c955cf8a
+  branch: master
+  specs:
+    xmldsig (0.4.0)
+      nokogiri
+
+GIT
   remote: https://github.com/openjaf/cenit_cmd.git
   revision: b9f3ac98c6e082b2c1b25d74c7ecb55d00ee1511
   specs:
@@ -553,3 +561,4 @@ DEPENDENCIES
   uglifier
   unicorn (= 4.9.0)
   wannabe_bool
+  xmldsig!

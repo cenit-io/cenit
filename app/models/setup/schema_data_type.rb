@@ -3,9 +3,36 @@ require 'edi/formater'
 module Setup
   class SchemaDataType < DataType
 
-    BuildInDataType.regist(self).referenced_by(:name, :library).with(:title, :name, :slug,:_type, :schema, :events, :before_save_callbacks, :records_methods, :data_type_methods).including(:library)
+    BuildInDataType.regist(self).referenced_by(:name, :library).with(:title, :name, :slug, :_type, :schema, :events, :before_save_callbacks, :records_methods, :data_type_methods).including(:library)
 
     field :schema
+
+    def check_indices
+      if schema_changed?
+        unique_properties = records_model.unique_properties
+        indexed_properties = []
+        begin
+          records_model.collection.indexes.each do |index|
+            next if (indexed_property = index['key'].keys.first) == '_id'
+            if unique_properties.detect { |p| p == indexed_property }
+              indexed_properties << indexed_property
+            else
+              records_model.collection.indexes.drop_one(index['name'])
+            end
+          end
+        rescue
+          # Mongo driver raises an exception if the collection does not exists, nothing to worry about
+        end
+        unique_properties.reject { |p| indexed_properties.include?(p) }.each do |p|
+          begin
+            records_model.collection.indexes.create_one({ p => 1 }, unique: true)
+          rescue Exception => ex
+            errors.add(:schema, "with error when creating index for unique property '#{p}': #{ex.message}")
+          end
+        end
+      end
+      errors.blank?
+    end
 
     def read_attribute(name)
       value = super
@@ -20,7 +47,7 @@ module Setup
     end
 
     def on_saving
-      if validate_model && super
+      if validate_model && check_indices && super
         attributes['schema'] = attributes['schema'].to_json unless attributes['schema'].is_a?(String)
         true
       else
@@ -42,8 +69,6 @@ module Setup
           self.schema = check_id_property(JSON.parse(json_schema.to_json))
           self.title = json_schema['title'] || self.name if title.blank?
         rescue Exception => ex
-          #TODO Remove raise
-          #raise ex
           errors.add(:schema, ex.message)
         end
         @collection_data_type = nil
@@ -144,14 +169,14 @@ module Setup
       #raise Exception.new("property name '#{property_name}' is invalid") unless property_name =~ /\A[a-z]+(_|([0-9]|[a-z])+)*\Z/
     end
 
-    RJSON_MAP={'string' => 'String',
-               'integer' => 'Integer',
-               'number' => 'Float',
-               'array' => 'Array',
-               'boolean' => 'Boolean',
-               'date' => 'Date',
-               'time' => 'Time',
-               'date-time' => 'DateTime'}
+    RJSON_MAP={ 'string' => 'String',
+                'integer' => 'Integer',
+                'number' => 'Float',
+                'array' => 'Array',
+                'boolean' => 'Boolean',
+                'date' => 'Date',
+                'time' => 'Time',
+                'date-time' => 'DateTime' }
 
     MONGO_TYPES= %w{Array BigDecimal Boolean Date DateTime Float Hash Integer Range String Symbol Time}
 
@@ -249,7 +274,7 @@ module Setup
             schema['properties'] ||= {}
             value_schema = schema['properties']['value'] || {}
             value_schema = base_schema.deep_merge(value_schema)
-            schema['properties']['value'] = value_schema.merge('title' => 'Value', 'xml' => {'content' => true})
+            schema['properties']['value'] = value_schema.merge('title' => 'Value', 'xml' => { 'content' => true })
             (schema['xml'] ||= {})['content_property'] = 'value'
           else
             schema = base_schema.deep_merge(schema) { |key, val1, val2| Cenit::Utility.array_hash_merge(val1, val2) }

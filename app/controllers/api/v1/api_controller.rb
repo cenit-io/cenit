@@ -5,7 +5,7 @@ module Api::V1
     before_action :authorize_action, except: [:auth, :new_account, :cors_check, :push]
     rescue_from Exception, :with => :exception_handler
     respond_to :json
-    
+
     def cors_check
       self.cors_header
       render :text => '', :content_type => 'text/plain'
@@ -37,30 +37,30 @@ module Api::V1
           else
             klass.all
           end
-          option = {including: :_type}
-          option[:only] = @only if @only
-          option[:ignore] = @ignore if @ignore
-          option[:include_id] = true
-            items_data = @items.map do |item|
-                            hash = item.default_hash(option)
-                            hash.delete('_type') if item.class.eql?(klass)
-                            @view.nil? ? hash : hash[@view]
-                        end
-        render json: { @model => items_data}
+        option = { including: :_type }
+        option[:only] = @only if @only
+        option[:ignore] = @ignore if @ignore
+        option[:include_id] = true
+        items_data = @items.map do |item|
+          hash = item.default_hash(option)
+          hash.delete('_type') if item.class.eql?(klass)
+          @view.nil? ? hash : hash[@view]
+        end
+        render json: { @model => items_data }
         # render json: @items.map { |item| {((model = (hash = item.inspect_json(include_id: true)).delete('_type')) ? model.downcase : @model) => hash} }
       else
-        render json: {error: 'no model found'}, status: :not_found
+        render json: { error: 'no model found' }, status: :not_found
       end
     end
 
     def raml
-        if (@item && @path && @path.downcase == "root.raml")
-            render text: @item.to_hash['raml_doc']
-        elsif @path
-          render text: @item.ref_hash[@path]
-        else
-          render json: {error: 'No model found'}, status: :not_found
-        end
+      if (@item && @path && @path.downcase == "root.raml")
+        render text: @item.to_hash['raml_doc']
+      elsif @path
+        render text: @item.ref_hash[@path]
+      else
+        render json: { error: 'No model found' }, status: :not_found
+      end
     end
 
     def raml_zip
@@ -68,7 +68,7 @@ module Api::V1
         zip = @item.to_zip()
         send_data(zip[:content], :type => 'application/zip', :filename => zip[:filename])
       else
-        render json: {error: 'No model found'}, status: :not_found
+        render json: { error: 'No model found' }, status: :not_found
       end
     end
 
@@ -85,7 +85,7 @@ module Api::V1
     end
 
     def content
-      render json: @view.nil? ? @item.to_hash : {@view => @item.to_hash[@view]}
+      render json: @view.nil? ? @item.to_hash : { @view => @item.to_hash[@view] }
     end
 
     def push
@@ -104,7 +104,7 @@ module Api::V1
                                         options = @payload.create_options)).errors.blank?
               success_report[root.pluralize] << record.inspect_json(include_id: :id, inspect_scope: options[:create_collector])
             else
-              broken_report[root] << {errors: record.errors.full_messages, item: item}
+              broken_report[root] << { errors: record.errors.full_messages, item: item }
             end
           end
         else
@@ -118,10 +118,10 @@ module Api::V1
 
     def new
       response =
-          {
-              success: success_report = {},
-              errors: broken_report = {}
-          }
+        {
+          success: success_report = {},
+          errors: broken_report = {}
+        }
       @payload.each do |root, message|
         if data_type = @payload.data_type_for(root)
           message = [message] unless message.is_a?(Array)
@@ -131,7 +131,7 @@ module Api::V1
                                         options = @payload.create_options.merge(primary_field: @primary_field))).errors.blank?
               success_report[root] = record.inspect_json(include_id: :id, inspect_scope: options[:create_collector])
             else
-              broken_report[root] = {errors: record.errors.full_messages, item: item}
+              broken_report[root] = { errors: record.errors.full_messages, item: item }
             end
           end
         else
@@ -145,10 +145,10 @@ module Api::V1
 
     def destroy
       if Setup::Models.registered?(klass) && Setup::Models.excluded_actions_for(klass).include?(:delete)
-        render json: {status: :not_allowed}
+        render json: { status: :not_allowed }
       else
         @item.destroy
-        render json: {status: :ok}
+        render json: { status: :ok }
       end
     end
 
@@ -157,10 +157,10 @@ module Api::V1
         begin
           render plain: @item.run(@webhook_body)
         rescue Exception => ex
-          render json: {error: ex.message}, status: 406
+          render json: { error: ex.message }, status: 406
         end
       else
-        render json: {status: :not_allowed}, status: 405
+        render json: { status: :not_allowed }, status: 405
       end
     end
 
@@ -173,15 +173,15 @@ module Api::V1
             pull_request.delete(:updated_records)
           elsif updated_records = pull_request[:updated_records]
             updated_records.each do |key, records|
-              updated_records[key] = records.collect { |record| {id: record.id.to_s} }
+              updated_records[key] = records.collect { |record| { id: record.id.to_s } }
             end
           end
           render json: pull_request
         rescue Exception => ex
-          render json: {status: :bad_request}
+          render json: { status: :bad_request }
         end
       else
-        render json: {status: :not_allowed}
+        render json: { status: :not_allowed }
       end
     end
 
@@ -189,10 +189,10 @@ module Api::V1
       authorize_account
       if Account.current
         self.cors_header
-        render json: {status: "Sucess Auth"}, status: 200
+        render json: { status: "Sucess Auth" }, status: 200
       else
         self.cors_header
-        render json: {status: "Error Auth"}, status: 401
+        render json: { status: "Error Auth" }, status: 401
       end
     end
 
@@ -219,18 +219,18 @@ module Api::V1
                   end
                 if user.errors.blank?
                   status = 200
-                  {number: user.number, token: user.authentication_token}
+                  { number: user.number, token: user.authentication_token }
                 else
                   user.errors.to_json
                 end
               else #invalid code
-                {code: ['is not valid']}
+                { code: ['is not valid'] }
               end
             else #code missing
-              {code: ['is missing']}
+              { code: ['is missing'] }
             end
           else #invalid token
-            {token: ['is not valid']}
+            { token: ['is not valid'] }
           end
         elsif data[:email]
           data[:password] = Devise.friendly_token unless data[:password]
@@ -238,7 +238,7 @@ module Api::V1
           if (user = User.new(data)).valid?(context: :create)
             if (tkaptcha = CaptchaToken.create(email: data[:email], data: data)).errors.blank?
               status = 200
-              {token: tkaptcha.token}
+              { token: tkaptcha.token }
             else
               tkaptcha.errors.to_json
             end
@@ -246,7 +246,7 @@ module Api::V1
             user.errors.to_json
           end
         else #bad request
-          {token: ['is missing'], email: ['is missing']}
+          { token: ['is missing'], email: ['is missing'] }
         end
       render json: response, status: status
     end
@@ -280,9 +280,9 @@ module Api::V1
           when 'push'
             get_data_type(@model).is_a?(Setup::FileDataType) ? :upload_file : :new
           when 'raml'
-              :show
+            :show
           when 'raml_zip'
-              :show
+            :show
           else
             @_action_name.to_sym
           end
@@ -294,12 +294,12 @@ module Api::V1
           false
         end
       else
-        render json: {error: 'no model found'}, status: :not_found
+        render json: { error: 'no model found' }, status: :not_found
       end
       cors_header
       true
     end
-    
+
     def cors_header
       headers['Access-Control-Allow-Origin'] = request.headers['Origin'] || 'http://localhost:3000'
       headers['Access-Control-Allow-Credentials'] = false
@@ -316,11 +316,10 @@ module Api::V1
     end
 
     def find_item
-      @item = klass.where(id: params[:id]).first
-      if @item.present?
+      if @item = klass.where(id: params[:id]).first
         true
       else
-        render json: {status: 'item not found'}
+        render json: { status: 'item not found' }, status: :not_found
         false
       end
     end
@@ -335,7 +334,7 @@ module Api::V1
               lib = Setup::Library.where(slug: @library_slug).first
               @library_id = (lib && lib.id) || ''
             end
-            if @library_id.present?
+            if @library_id
               Setup::DataType.where(slug: slug, library_id: @library_id).first
             else
               nil
@@ -414,7 +413,7 @@ module Api::V1
             message: ''
           }.merge(config || {})
         @data_type = (controller = config[:controller]).send(:get_data_type, (@root = controller.request.params[:model] || controller.request.headers['data-type'])) rescue nil
-        @create_options = {create_collector: Set.new}
+        @create_options = { create_collector: Set.new }
         create_options_keys.each { |option| @create_options[option.to_sym] = controller.request[option] }
       end
 

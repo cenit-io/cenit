@@ -1,13 +1,12 @@
 module Liquid
-  class OauthAthorization < CenitBasicTag
+  class AwsSign < CenitBasicTag
 
-    tag :oauth_authorization
+    tag :aws_sign
 
     def render(context)
       locals = {}
       context.environments.each { |e| locals.merge!(e) }
-      Setup::OauthAuthorization.auth_header(locals)
+      Setup::AwsAuthorization.sign(locals)
     end
-
   end
 end

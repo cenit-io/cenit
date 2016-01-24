@@ -32,7 +32,8 @@
  RailsAdmin::Config::Actions::SwitchScheduler,
  RailsAdmin::Config::Actions::SimpleExport,
  RailsAdmin::Config::Actions::Schedule,
- RailsAdmin::Config::Actions::Submit].each { |a| RailsAdmin::Config::Actions.register(a) }
+ RailsAdmin::Config::Actions::Submit,
+ RailsAdmin::Config::Actions::DeleteCollection].each { |a| RailsAdmin::Config::Actions.register(a) }
 
 RailsAdmin::Config::Actions.register(:export, RailsAdmin::Config::Actions::BulkExport)
 RailsAdmin::Config::Fields::Types.register(RailsAdmin::Config::Fields::Types::JsonValue)
@@ -104,6 +105,7 @@ RailsAdmin.config do |config|
     bulk_delete_data_type
     delete
     delete_library
+    delete_collection
     #show_in_app
     send_to_flow
     delete_all
@@ -165,13 +167,13 @@ RailsAdmin.config do |config|
       field :uri do
         read_only { !bindings[:object].new_record? }
         html_attributes do
-          {cols: '74', rows: '1'}
+          { cols: '74', rows: '1' }
         end
       end
 
       field :schema, :code_mirror do
         html_attributes do
-          {cols: '74', rows: '15'}
+          { cols: '74', rows: '15' }
         end
       end
 
@@ -234,7 +236,7 @@ RailsAdmin.config do |config|
         unless max = bindings[:controller].instance_variable_get(:@max_storage_size)
           bindings[:controller].instance_variable_set(:@max_storage_size, max = bindings[:controller].instance_variable_get(:@objects).collect { |data_type| data_type.storage_size }.max)
         end
-        (bindings[:view].render partial: 'used_memory_bar', locals: {max: max, value: bindings[:object].records_model.storage_size}).html_safe
+        (bindings[:view].render partial: 'used_memory_bar', locals: { max: max, value: bindings[:object].records_model.storage_size }).html_safe
       end
       read_only true
     end
@@ -276,7 +278,7 @@ RailsAdmin.config do |config|
           unless max = bindings[:controller].instance_variable_get(:@max_used_memory)
             bindings[:controller].instance_variable_set(:@max_used_memory, max = Setup::DataType.fields[:used_memory.to_s].type.new(Setup::DataType.max(:used_memory)))
           end
-          (bindings[:view].render partial: 'used_memory_bar', locals: {max: max, value: Setup::DataType.fields[:used_memory.to_s].type.new(value)}).html_safe
+          (bindings[:view].render partial: 'used_memory_bar', locals: { max: max, value: Setup::DataType.fields[:used_memory.to_s].type.new(value) }).html_safe
         end
       end
       field :storage_size
@@ -357,7 +359,7 @@ RailsAdmin.config do |config|
         unless max = bindings[:controller].instance_variable_get(:@max_used_memory)
           bindings[:controller].instance_variable_set(:@max_used_memory, max = Setup::SchemaDataType.fields[:used_memory.to_s].type.new(Setup::SchemaDataType.max(:used_memory)))
         end
-        (bindings[:view].render partial: 'used_memory_bar', locals: {max: max, value: Setup::SchemaDataType.fields[:used_memory.to_s].type.new(value)}).html_safe
+        (bindings[:view].render partial: 'used_memory_bar', locals: { max: max, value: Setup::SchemaDataType.fields[:used_memory.to_s].type.new(value) }).html_safe
       end
     end
 
@@ -366,7 +368,7 @@ RailsAdmin.config do |config|
         unless max = bindings[:controller].instance_variable_get(:@max_storage_size)
           bindings[:controller].instance_variable_set(:@max_storage_size, max = bindings[:controller].instance_variable_get(:@objects).collect { |data_type| data_type.records_model.storage_size }.max)
         end
-        (bindings[:view].render partial: 'used_memory_bar', locals: {max: max, value: bindings[:object].records_model.storage_size}).html_safe
+        (bindings[:view].render partial: 'used_memory_bar', locals: { max: max, value: bindings[:object].records_model.storage_size }).html_safe
       end
       read_only true
     end
@@ -426,7 +428,7 @@ RailsAdmin.config do |config|
           unless max = bindings[:controller].instance_variable_get(:@max_used_memory)
             bindings[:controller].instance_variable_set(:@max_used_memory, max = Setup::SchemaDataType.fields[:used_memory.to_s].type.new(Setup::SchemaDataType.max(:used_memory)))
           end
-          (bindings[:view].render partial: 'used_memory_bar', locals: {max: max, value: Setup::SchemaDataType.fields[:used_memory.to_s].type.new(value)}).html_safe
+          (bindings[:view].render partial: 'used_memory_bar', locals: { max: max, value: Setup::SchemaDataType.fields[:used_memory.to_s].type.new(value) }).html_safe
         end
       end
       field :storage_size
@@ -472,7 +474,7 @@ RailsAdmin.config do |config|
         report = bindings[:object].shutdown(report_only: true)
         reload = (report[:reloaded].collect(&:data_type) + report[:destroyed].collect(&:data_type)).uniq
         bindings[:object].instance_variable_set(:@_to_reload, reload)
-        {cols: '74', rows: '15'}
+        { cols: '74', rows: '15' }
       end
       # pretty_value do
       #   "<pre><code class='json'>#{JSON.pretty_generate(value)}</code></pre>".html_safe
@@ -484,7 +486,7 @@ RailsAdmin.config do |config|
         unless max = bindings[:controller].instance_variable_get(:@max_storage_size)
           bindings[:controller].instance_variable_set(:@max_storage_size, max = bindings[:controller].instance_variable_get(:@objects).collect { |data_type| data_type.records_model.storage_size }.max)
         end
-        (bindings[:view].render partial: 'used_memory_bar', locals: {max: max, value: bindings[:object].records_model.storage_size}).html_safe
+        (bindings[:view].render partial: 'used_memory_bar', locals: { max: max, value: bindings[:object].records_model.storage_size }).html_safe
       end
     end
 
@@ -532,7 +534,7 @@ RailsAdmin.config do |config|
           unless max = bindings[:controller].instance_variable_get(:@max_used_memory)
             bindings[:controller].instance_variable_set(:@max_used_memory, max = Setup::SchemaDataType.fields[:used_memory.to_s].type.new(Setup::SchemaDataType.max(:used_memory)))
           end
-          (bindings[:view].render partial: 'used_memory_bar', locals: {max: max, value: Setup::SchemaDataType.fields[:used_memory.to_s].type.new(value)}).html_safe
+          (bindings[:view].render partial: 'used_memory_bar', locals: { max: max, value: Setup::SchemaDataType.fields[:used_memory.to_s].type.new(value) }).html_safe
         end
       end
       field :storage_size
@@ -569,7 +571,7 @@ RailsAdmin.config do |config|
     configure :key, :string do
       visible { bindings[:view]._current_user.has_role? :admin }
       html_attributes do
-        {maxlength: 30, size: 30}
+        { maxlength: 30, size: 30 }
       end
       group :credentials
     end
@@ -577,7 +579,7 @@ RailsAdmin.config do |config|
     configure :token, :text do
       visible { bindings[:view]._current_user.has_role? :admin }
       html_attributes do
-        {cols: '50', rows: '1'}
+        { cols: '50', rows: '1' }
       end
       group :credentials
     end
@@ -649,7 +651,7 @@ RailsAdmin.config do |config|
     configure :name, :string do
       help 'Requiered.'
       html_attributes do
-        {maxlength: 50, size: 50}
+        { maxlength: 50, size: 50 }
       end
     end
     configure :webhooks do
@@ -707,7 +709,7 @@ RailsAdmin.config do |config|
     configure :path, :string do
       help 'Requiered. Path of the webhook relative to connection URL.'
       html_attributes do
-        {maxlength: 255, size: 100}
+        { maxlength: 255, size: 100 }
       end
     end
 
@@ -1048,19 +1050,23 @@ RailsAdmin.config do |config|
         help ''
       end
       field :discard_events do
-        visible { (((obj = bindings[:object]).translator && obj.translator.type == :Import) || obj.response_translator.present?) && bindings[:object].ready_to_save? }
+        visible { (((obj = bindings[:object]).translator && obj.translator.type == :Import) || obj.response_translator.present?) && obj.ready_to_save? }
         help "Events won't be fired for created or updated records if checked"
       end
       field :active do
         visible { bindings[:object].ready_to_save? }
       end
       field :notify_request do
-        visible { bindings[:object].ready_to_save? }
+        visible { (obj = bindings[:object]).translator && [:Import, :Export].include?(obj.translator.type) && obj.ready_to_save? }
         help 'Track request via notifications if checked'
       end
       field :notify_response do
-        visible { bindings[:object].ready_to_save? }
+        visible { (obj = bindings[:object]).translator && [:Import, :Export].include?(obj.translator.type) && obj.ready_to_save? }
         help 'Track responses via notification if checked'
+      end
+      field :after_process_callbacks do
+        visible { bindings[:object].ready_to_save? }
+        help 'Algorithms executed after flow processing, execution state is supplied as argument'
       end
     end
 
@@ -1192,7 +1198,7 @@ RailsAdmin.config do |config|
         end
         partial { bindings[:object].scheduling_method == :Once ? 'form_datetime_wrapper' : 'form_text' }
         html_attributes do
-          {rows: '1'}
+          { rows: '1' }
         end
       end
     end
@@ -1270,7 +1276,7 @@ RailsAdmin.config do |config|
         visible { bindings[:object].style.present? && bindings[:object].style != 'chain' }
         help { 'Required' }
         html_attributes do
-          {cols: '74', rows: '15'}
+          { cols: '74', rows: '15' }
         end
       end
 
@@ -1381,7 +1387,8 @@ RailsAdmin.config do |config|
       end
       field :authors
       field :summary
-      field :description
+      field :description, :froala do
+      end
       field :source_collection do
         visible { !((source_collection = bindings[:object].source_collection) && source_collection.new_record?) }
         inline_edit false
@@ -1484,7 +1491,11 @@ RailsAdmin.config do |config|
       end
       field :category
       field :summary
-      field :description
+      field :description do
+        pretty_value do
+          value.html_safe
+        end
+      end
       field :authors
       field :dependencies
 
@@ -1493,7 +1504,9 @@ RailsAdmin.config do |config|
       field :updated_at
     end
     list do
-      field :image
+      field :image do
+        thumb_method :icon
+      end
       field :name do
         pretty_value do
           bindings[:object].versioned_name
@@ -1631,7 +1644,27 @@ RailsAdmin.config do |config|
       field :updated_at
       #field :updater
     end
-    fields :image, :name, :flows, :connection_roles, :translators, :events, :libraries, :custom_validators, :algorithms, :webhooks, :connections, :authorizations, :oauth_providers, :oauth_clients, :oauth2_scopes, :data
+
+    list do
+      field :image do
+        thumb_method :icon
+      end
+      field :name
+      field :flows
+      field :connection_roles
+      field :translators
+      field :events
+      field :libraries
+      field :custom_validators
+      field :algorithms
+      field :webhooks
+      field :connections
+      field :authorizations
+      field :oauth_providers
+      field :oauth_clients
+      field :oauth2_scopes
+      field :data
+    end
   end
 
   config.model Setup::CustomValidator do
@@ -1935,7 +1968,11 @@ RailsAdmin.config do |config|
       visible { Account.current.super_admin? }
     end
 
-    fields :namespace, :name, :response_type, :authorization_endpoint, :token_endpoint, :token_method, :parameters, :scope_separator, :tenant, :shared
+    configure :refresh_token_algorithm do
+      visible { bindings[:object].refresh_token_strategy == :custom.to_s }
+    end
+
+    fields :namespace, :name, :response_type, :authorization_endpoint, :token_endpoint, :token_method, :parameters, :scope_separator, :refresh_token_strategy, :refresh_token_algorithm, :tenant, :shared
   end
 
   config.model Setup::OauthParameter do
@@ -2178,9 +2215,89 @@ RailsAdmin.config do |config|
       field :access_token
       field :token_span
       field :authorized_at
+      field :refresh_token
     end
 
     fields :namespace, :name, :provider, :client, :scopes
+  end
+
+  config.model Setup::AwsAuthorization do
+
+    edit do
+      field :namespace
+      field :name
+      field :aws_access_key
+      field :aws_secret_key
+      field :seller
+      field :merchant
+      field :markets
+      field :signature_method
+      field :signature_version
+    end
+
+    group :credentials do
+      label 'Credentials'
+    end
+
+    configure :aws_access_key do
+      group :credentials
+    end
+
+    configure :aws_secret_key do
+      group :credentials
+    end
+
+    show do
+      field :namespace
+      field :name
+      field :aws_access_key
+      field :aws_secret_key
+      field :seller
+      field :merchant
+      field :markets
+      field :signature_method
+      field :signature_version
+
+    end
+
+    fields :namespace, :name, :aws_access_key, :aws_secret_key, :seller, :merchant, :markets, :signature_method, :signature_version
+  end
+
+  config.model Setup::BasicAuthorization do
+
+    edit do
+      field :namespace
+      field :name
+      field :username
+      field :password
+    end
+
+    group :credentials do
+      label 'Credentials'
+    end
+
+    configure :username do
+      group :credentials
+    end
+
+    configure :password do
+      group :credentials
+    end
+
+    show do
+      field :namespace
+      field :name
+      field :aws_access_key
+      field :aws_secret_key
+      field :seller
+      field :merchant
+      field :markets
+      field :signature_method
+      field :signature_version
+
+    end
+
+    fields :namespace, :name, :username, :password
   end
 
   config.model Setup::Raml do
@@ -2230,7 +2347,7 @@ RailsAdmin.config do |config|
         unless max = bindings[:controller].instance_variable_get(:@max_length)
           bindings[:controller].instance_variable_set(:@max_length, max = bindings[:controller].instance_variable_get(:@objects).collect { |storage| storage.length }.max)
         end
-        (bindings[:view].render partial: 'used_memory_bar', locals: {max: max, value: bindings[:object].length}).html_safe
+        (bindings[:view].render partial: 'used_memory_bar', locals: { max: max, value: bindings[:object].length }).html_safe
       end
     end
 

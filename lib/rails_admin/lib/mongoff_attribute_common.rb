@@ -1,6 +1,10 @@
 module RailsAdmin
   module MongoffAttributeCommon
 
+    def schema
+      model.property_schema(name)
+    end
+
     def visible?
       !schema.has_key?('visible') || schema['visible'].present?
     end

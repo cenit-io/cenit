@@ -16,7 +16,7 @@ module RailsAdmin
         end
         configure property.name, type do
           visible { property.visible? }
-          label { property.name.to_s.titleize }
+          label { property.name.to_s.to_title }
           filterable { property.filterable? }
           required { property.required? }
           valid_length { {} }
@@ -73,11 +73,15 @@ module RailsAdmin
     end
 
     def contextualized_label(context = nil)
-      case context
-      when nil
-        target.data_type.title
+      if target.parent
+        target.to_s.split('::').last
       else
-        target.data_type.custom_title
+        case context
+        when nil
+          target.data_type.title
+        else
+          target.data_type.custom_title
+        end
       end
     end
 
