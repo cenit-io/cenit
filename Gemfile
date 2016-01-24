@@ -19,7 +19,8 @@ gem 'haml-rails'
 gem 'figaro'
 gem 'unicorn', '4.9.0'
 gem 'raml_parser', git: 'https://github.com/asnioby/raml_parser', branch: 'develop'
-gem 'xmldsig'
+gem 'xmldsig', git: 'https://github.com/benoist/xmldsig', branch: 'master'
+#gem 'xmldsig'
 
 group :doc do
   gem 'sdoc', require: false
@@ -94,3 +95,4 @@ gem 'httmultiparty'
 
 gem 'oauth2'
 gem "octokit"
+gem 'exception_notification'

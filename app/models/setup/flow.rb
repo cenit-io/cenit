@@ -242,8 +242,9 @@ module Setup
                        data: response.body,
                        discard_events: discard_events,
                        parameters: template_parameters,
-                       headers: response.headers,
-                       task: message[:task]) if response.code == 200
+                       headers: response.headers.to_hash,
+                       statusCode: response.code,
+                       task: message[:task]) #if response.code == 200
       end
     end
 
@@ -279,7 +280,10 @@ module Setup
                                                notify_response: notify_response,
                                                verbose_response: true do |response|
             if response_translator #&& response.code == 200
-              response_translator.run(translation_options.merge(target_data_type: response_translator.data_type || response_data_type, data: response.body, headers: response.headers.to_hash, statusCode: response.code))
+              response_translator.run(translation_options.merge(target_data_type: response_translator.data_type || response_data_type,
+                                                                data: response.body,
+                                                                headers: response.headers.to_hash,
+                                                                statusCode: response.code))
             end
             true
           end

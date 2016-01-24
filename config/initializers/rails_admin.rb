@@ -1504,7 +1504,9 @@ RailsAdmin.config do |config|
       field :updated_at
     end
     list do
-      field :image
+      field :image do
+        thumb_method :icon
+      end
       field :name do
         pretty_value do
           bindings[:object].versioned_name
@@ -1642,7 +1644,27 @@ RailsAdmin.config do |config|
       field :updated_at
       #field :updater
     end
-    fields :image, :name, :flows, :connection_roles, :translators, :events, :libraries, :custom_validators, :algorithms, :webhooks, :connections, :authorizations, :oauth_providers, :oauth_clients, :oauth2_scopes, :data
+
+    list do
+      field :image do
+        thumb_method :icon
+      end
+      field :name
+      field :flows
+      field :connection_roles
+      field :translators
+      field :events
+      field :libraries
+      field :custom_validators
+      field :algorithms
+      field :webhooks
+      field :connections
+      field :authorizations
+      field :oauth_providers
+      field :oauth_clients
+      field :oauth2_scopes
+      field :data
+    end
   end
 
   config.model Setup::CustomValidator do
@@ -2197,6 +2219,85 @@ RailsAdmin.config do |config|
     end
 
     fields :namespace, :name, :provider, :client, :scopes
+  end
+
+  config.model Setup::AwsAuthorization do
+
+    edit do
+      field :namespace
+      field :name
+      field :aws_access_key
+      field :aws_secret_key
+      field :seller
+      field :merchant
+      field :markets
+      field :signature_method
+      field :signature_version
+    end
+
+    group :credentials do
+      label 'Credentials'
+    end
+
+    configure :aws_access_key do
+      group :credentials
+    end
+
+    configure :aws_secret_key do
+      group :credentials
+    end
+
+    show do
+      field :namespace
+      field :name
+      field :aws_access_key
+      field :aws_secret_key
+      field :seller
+      field :merchant
+      field :markets
+      field :signature_method
+      field :signature_version
+
+    end
+
+    fields :namespace, :name, :aws_access_key, :aws_secret_key, :seller, :merchant, :markets, :signature_method, :signature_version
+  end
+
+  config.model Setup::BasicAuthorization do
+
+    edit do
+      field :namespace
+      field :name
+      field :username
+      field :password
+    end
+
+    group :credentials do
+      label 'Credentials'
+    end
+
+    configure :username do
+      group :credentials
+    end
+
+    configure :password do
+      group :credentials
+    end
+
+    show do
+      field :namespace
+      field :name
+      field :aws_access_key
+      field :aws_secret_key
+      field :seller
+      field :merchant
+      field :markets
+      field :signature_method
+      field :signature_version
+
+    end
+
+    fields :namespace, :name, :username, :password
   end
 
   config.model Setup::Raml do
