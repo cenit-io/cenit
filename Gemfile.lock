@@ -155,6 +155,9 @@ GEM
     easy_diff (0.0.6)
     erubis (2.7.0)
     eventmachine (1.0.8)
+    exception_notification (4.1.4)
+      actionmailer (~> 4.0)
+      activesupport (~> 4.0)
     execjs (2.6.0)
     factory_girl (4.5.0)
       activesupport (>= 3.0.0)
@@ -514,6 +517,7 @@ DEPENDENCIES
   database_cleaner
   descriptive_statistics
   devise
+  exception_notification
   factory_girl_rails
   ffaker
   figaro
@@ -562,3 +566,6 @@ DEPENDENCIES
   unicorn (= 4.9.0)
   wannabe_bool
   xmldsig!
+
+BUNDLED WITH
+   1.10.6
