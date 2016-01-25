@@ -147,7 +147,7 @@ module Edi
               taken_items << property_name if json.has_key?(name)
               case property_schema['type']
               when 'array'
-                next unless updating | (association = record.send(property_name)).blank?
+                next unless updating or (association = record.send(property_name)).blank?
                 items_schema = data_type.merge_schema(property_schema['items'] || {})
                 unless !resetting.include?(property_name) && (options[:add_only] || (association && property_schema['referenced']))
                   record.send("#{property_name}=", [])
@@ -224,7 +224,7 @@ module Edi
           if content_property
             if json.is_a?(Array)
               fail "Can not assign an array as a simple content to #{data_type.name}" unless property_schema['type'] == 'array'
-              if updating | record.send(content_property).blank?
+              if updating or record.send(content_property).blank?
                 items_schema = data_type.merge_schema(property_schema['items'] || {})
                 record.send("#{content_property}=", [])
                 association = record.send(content_property)
