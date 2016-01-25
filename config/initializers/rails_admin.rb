@@ -63,7 +63,7 @@ RailsAdmin.config do |config|
   config.audit_with :mongoid_audit
   config.authorize_with :cancan
 
-  config.excluded_models << Setup::BaseOauthAuthorization
+  config.excluded_models += [Setup::BaseOauthAuthorization, Setup::AwsAuthorization]
 
   config.actions do
     dashboard # mandatory
@@ -2344,10 +2344,14 @@ RailsAdmin.config do |config|
     configure :length do
       label 'Size'
       pretty_value do
-        unless max = bindings[:controller].instance_variable_get(:@max_length)
-          bindings[:controller].instance_variable_set(:@max_length, max = bindings[:controller].instance_variable_get(:@objects).collect { |storage| storage.length }.max)
+        if objects = bindings[:controller].instance_variable_get(:@objects)
+          unless max = bindings[:controller].instance_variable_get(:@max_length)
+            bindings[:controller].instance_variable_set(:@max_length, max = objects.collect { |storage| storage.length }.max)
+          end
+          (bindings[:view].render partial: 'used_memory_bar', locals: { max: max, value: bindings[:object].length }).html_safe
+        else
+          bindings[:view].number_to_human_size(value)
         end
-        (bindings[:view].render partial: 'used_memory_bar', locals: { max: max, value: bindings[:object].length }).html_safe
       end
     end
 
@@ -2383,9 +2387,7 @@ RailsAdmin.config do |config|
       label 'Property'
     end
 
-    configure :chunks
-
-    fields :storer_model, :storer_object, :storer_property, :filename, :contentType, :length, :chunks
+    fields :storer_model, :storer_object, :storer_property, :filename, :contentType, :length
   end
 
   config.model Setup::DelayedMessage do

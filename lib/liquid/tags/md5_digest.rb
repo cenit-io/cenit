@@ -9,6 +9,5 @@ module Liquid
       Setup::AwsAuthorization.body_sign(locals[:body])
     end
 
-    
   end
 end
