@@ -2,6 +2,8 @@ module Setup
   class AwsAuthorization < Setup::Authorization
     include CenitScoped
 
+    Setup::Models.exclude_actions_for self, :all
+
     BuildInDataType.regist(self).with(:namespace, :name).referenced_by(:namespace, :name)
 
     field :aws_access_key, type: String
