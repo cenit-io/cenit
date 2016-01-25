@@ -39,7 +39,7 @@ module Setup
 
     def validates_configuration
       format_triggers_on(:scope_filter) if scope_filter.present?
-      return false unless ready_to_save?
+      # return false unless ready_to_save?
       unless requires(:name, :translator)
         if translator.data_type.nil?
           requires(:custom_data_type) unless translator.type == :Export && nil_data_type
