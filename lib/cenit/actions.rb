@@ -102,6 +102,9 @@ module Cenit
               collection.name = shared_collection.name
               collection.image = shared_collection.image if shared_collection.image.present?
               collection.save
+              shared_collection.pull_count = 0 if shared_collection.pull_count.nil?
+              shared_collection.pull_count += 1
+              shared_collection.save
               pull_data = pull_request.delete(:pull_data)
               pull_request[:created_records] = collection.inspect_json(inspecting: :id, inspect_scope: create_collector).reject { |_, value| !value.is_a?(Enumerable) }
               pull_request[:pull_data] = pull_data
