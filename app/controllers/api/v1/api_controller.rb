@@ -169,14 +169,16 @@ module Api::V1
         begin
           pull_request = Cenit::Actions.pull(@item, @webhook_body.present? ? JSON.parse(@webhook_body) : {})
           pull_request.each { |key, value| pull_request.delete(key) unless value.present? }
-          if pull_request[:missing_parameters]
+          status = :ok
+          if pull_request[:missing_parameters] or (errors = pull_request[:errors].present?)
             pull_request.delete(:updated_records)
+            status = errors ? 202 : :bad_request
           elsif updated_records = pull_request[:updated_records]
             updated_records.each do |key, records|
               updated_records[key] = records.collect { |record| { id: record.id.to_s } }
             end
           end
-          render json: pull_request
+          render json: pull_request, status: status
         rescue Exception => ex
           render json: { status: :bad_request }
         end
