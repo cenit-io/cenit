@@ -22,6 +22,8 @@ module Setup
     embeds_many :pull_parameters, class_name: Setup::CollectionPullParameter.to_s, inverse_of: :shared_collection
     has_and_belongs_to_many :dependencies, class_name: Setup::SharedCollection.to_s, inverse_of: nil
 
+    field :pull_count, type: Integer
+
     field :data
 
     before_validation do
@@ -57,6 +59,9 @@ module Setup
 
     def on_saving
       attributes['data'] = attributes['data'].to_json unless attributes['data'].is_a?(String)
+      changed_attributes.keys.each do |attr|
+        reset_attribute!(attr) if %w(pull_count).include?(attr)
+      end unless Account.current && Account.current.super_admin?
       true
     end
 

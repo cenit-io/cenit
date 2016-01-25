@@ -1481,6 +1481,9 @@ RailsAdmin.config do |config|
           end
         end
       end
+      field :pull_count do
+        visible { Account.current.super_admin? }
+      end
     end
     show do
       field :image
@@ -1498,6 +1501,7 @@ RailsAdmin.config do |config|
       end
       field :authors
       field :dependencies
+      field :pull_count
 
       field :_id
       field :created_at
@@ -1515,6 +1519,7 @@ RailsAdmin.config do |config|
       field :category
       field :authors
       field :summary
+      field :pull_count
       field :dependencies
     end
   end
