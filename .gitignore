@@ -2,6 +2,7 @@
 *.rbc
 capybara-*.html
 .rspec
+/config/mongoid.yml
 /log
 /tmp
 /db/*.sqlite3
