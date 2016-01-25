@@ -38,7 +38,7 @@ class Ability
               Setup::DelayedMessage,
               Setup::SystemNotification
             ]
-        can :import, Setup::SharedCollection
+        can [:import, :edit], Setup::SharedCollection
         can :destroy, [Setup::SharedCollection, Setup::DataType, Setup::Storage]
       else
         cannot :access, [Setup::SharedName, Setup::DelayedMessage, Setup::SystemNotification]
