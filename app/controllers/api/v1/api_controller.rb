@@ -16,7 +16,7 @@ module Api::V1
         @items =
           if @criteria.present?
             if sort_key = @criteria.delete(:sort_by)
-              asc = @criteria.has_key?(:ascending) | @criteria.has_key?(:asc)
+              asc = @criteria.has_key?(:ascending) or @criteria.has_key?(:asc)
               [:ascending, :asc, :descending, :desc].each { |key| @criteria.delete(key) }
             end
             if limit = @criteria.delete(:limit)
