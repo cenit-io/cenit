@@ -93,6 +93,12 @@ module Setup
       if ex.is_a?(Task::Exception)
         finish(ex.status, ex.message, ex.message_type)
       else
+        @finish_attachment =
+          {
+            filename: 'backtrace.txt',
+            contentType: 'plain/text',
+            body: ex.backtrace.join("\n")
+          }
         finish(:failed, "Task ##{id} failed at #{Time.now}: #{ex.message}", :error)
       end
     end
@@ -105,10 +111,18 @@ module Setup
       finish(:unscheduled, "Task ##{id} unscheduled at #{Time.now}", :warning)
     end
 
-    def notify(attributes)
-      if notification = Setup::Notification.create_with(attributes)
-        notifications << notification
-      end
+    def notify(attrs_or_exception)
+      notification =
+        case attrs_or_exception
+        when Hash
+          Setup::Notification.create_with(attrs_or_exception)
+        when
+        Exception
+          Setup::Notification.create_from(attrs_or_exception)
+        else
+          nil
+        end
+      notifications << notification if notification
       save
     end
 
@@ -135,9 +149,7 @@ module Setup
       end
     end
 
-    def finish_attachment
-      nil
-    end
+    attr_reader :finish_attachment
 
     def resuming_later?
       @resuming_later

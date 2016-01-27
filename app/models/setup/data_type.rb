@@ -310,8 +310,7 @@ module Setup
                   puts "Model #{model.schema_name rescue model.to_s} -> #{model.to_s} reload on parent reload!"
                 end
               rescue Exception => ex
-                raise ex
-                puts "Error deconstantizing  #{model.schema_name rescue model.to_s}"
+                Setup::Notification.create(message: "Error deconstantizing  #{model.schema_name rescue model.to_s}")
                 destroyed_lately << model
               end
               puts "Model #{model.schema_name rescue model.to_s} -> #{model.to_s} reloaded!"
@@ -425,7 +424,7 @@ module Setup
     end
 
     def do_load_model(report)
-      raise NotImplementedError
+      fail NotImplementedError
     end
 
     def merge_report(report, in_to)
