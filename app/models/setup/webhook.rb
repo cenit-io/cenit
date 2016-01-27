@@ -170,7 +170,7 @@ module Setup
               end
               verbose_response[:last_response] = last_response if verbose_response
             rescue Exception => ex
-              Setup::Notification.create(message: ex.message)
+              Setup::Notification.create_from(ex)
             end
           else
             Setup::Notification.create(message: "Invalid submit data type: #{submitter_body.class}")

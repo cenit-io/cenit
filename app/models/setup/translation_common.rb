@@ -22,10 +22,6 @@ module Setup
       end
     end
 
-    def finish_attachment
-      @attachment
-    end
-
     protected
 
     def object_ids_from(message)
