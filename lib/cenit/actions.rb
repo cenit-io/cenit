@@ -164,7 +164,7 @@ module Cenit
           begin
             obj.github_update! file
           rescue Exception => ex
-            Setup::Notification.create(message: ex.message)
+            Setup::Notification.create_from(ex)
           end
 
           file.close

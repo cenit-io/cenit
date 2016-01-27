@@ -54,7 +54,6 @@ module RailsAdmin
                       end
                       errors = nil unless errors.present?
                     rescue Exception => ex
-                      #raise ex
                       errors << ex.message
                     end
                   end
