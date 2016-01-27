@@ -47,6 +47,15 @@ module Setup
         [:error, :warning, :notice, :info]
       end
 
+      def create_from(exception)
+        create_with(message: exception.message,
+                    attachment: {
+                      filename: 'backtrace.txt',
+                      contentType: 'plain/text',
+                      body: exception.backtrace.join("\n")
+                    })
+      end
+
       def create_with(attributes)
         attachment = attributes.delete(:attachment)
         skip = attributes.delete(:skip_notification_level)

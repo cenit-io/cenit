@@ -175,6 +175,22 @@ module Setup
       end
     end
 
+    def scope_symbol
+      if data_type_scope.present?
+        if data_type_scope.start_with?('Event')
+          :event_source
+        elsif data_type_scope.start_with?('Filter')
+          :filtered
+        elsif data_type_scope.start_with?('Eval')
+          :evaluation
+        else
+          :all
+        end
+      else
+        nil
+      end
+    end
+
     private
 
     def check_scheduler
@@ -224,7 +240,7 @@ module Setup
         end
       end
     rescue Exception => ex
-      block.yield(message: ex.message) if block
+      block.yield(ex) if block
     end
 
     def translate_conversion(message, &block)
@@ -312,22 +328,6 @@ module Setup
         data_type.records_model.all.select { |record| field_triggers_apply_to?(:scope_filter, record) }.collect(&:id)
       elsif scope_symbol == :evaluation
         data_type.records_model.all.select { |record| scope_evaluator.run(record).present? }.collect(&:id)
-      else
-        nil
-      end
-    end
-
-    def scope_symbol
-      if data_type_scope.present?
-        if data_type_scope.start_with?('Event')
-          :event_source
-        elsif data_type_scope.start_with?('Filter')
-          :filtered
-        elsif data_type_scope.start_with?('Eval')
-          :evaluation
-        else
-          :all
-        end
       else
         nil
       end

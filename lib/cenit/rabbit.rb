@@ -74,7 +74,7 @@ module Cenit
             end
           rescue Exception => ex
             if task
-              task.notify(message: ex.message)
+              task.notify(ex)
             else
               Setup::Notification.create(message: "Can not execute task for message: #{message}")
             end
@@ -149,7 +149,7 @@ module Cenit
             begin
               delayed_messages.destroy_all
             rescue Exception => ex
-              puts "Error deleting delayed messages: #{ex.message}"
+              Setup::Notification.create_with(message: "Error deleting delayed messages: #{ex.message}")
             end if messages_present
           end
           puts 'RABBIT SCHEDULER STARTED'

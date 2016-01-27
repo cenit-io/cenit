@@ -49,7 +49,6 @@ module RailsAdmin
                   render @action.template_name
                 end
               rescue Exception => ex
-                raise ex
                 flash[:error] = "Error shutdown model '#{@object.title}': #{ex.message}"
               end
             else

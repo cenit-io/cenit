@@ -363,7 +363,6 @@ module RailsAdmin
               collect_models(affected_models, to_reset)
             rescue Exception => ex
               puts "#{self.to_s}: error loading configuration of model #{model.schema_name rescue model.to_s} -> #{ex.message}"
-              #raise ex
             end
           end
         end

@@ -9,7 +9,7 @@ module Setup
         end
 
         def run(options = {})
-          raise NotImplementedError
+          fail NotImplementedError
         end
 
       end
