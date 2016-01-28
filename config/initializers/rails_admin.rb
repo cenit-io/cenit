@@ -2305,39 +2305,6 @@ RailsAdmin.config do |config|
     fields :namespace, :name, :username, :password
   end
 
-  config.model Setup::Raml do
-    configure :raml_references do
-      visible { bindings[:view]._current_user.has_role? :admin }
-    end
-
-    show do
-      field :api_name
-      field :api_version
-      field :repo
-      field :raml_doc
-      field :raml_references
-    end
-
-    edit do
-      field :api_name
-      field :api_version
-      field :repo
-      field :raml_doc
-      field :raml_references
-    end
-
-    fields :api_name, :api_version, :repo, :raml_doc, :raml_references
-  end
-
-  config.model Setup::RamlReference do
-    object_label_method { :to_s }
-    edit do
-      field :path
-      field :content
-    end
-    fields :path, :content
-  end
-
   config.model Setup::Storage do
     object_label_method { :label }
 
