@@ -46,6 +46,14 @@ module RailsAdmin
           end
         end
       end
+      if @model.is_a?(Mongoff::GridFs::FileModel)
+        configure :data, :file_upload do
+          required { bindings[:object].new_record? }
+        end
+        edit do
+          field :data
+        end
+      end
 
       navigation_label { target.data_type.navigation_label }
 
