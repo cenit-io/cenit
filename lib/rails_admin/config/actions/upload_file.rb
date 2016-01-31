@@ -35,7 +35,7 @@ module RailsAdmin
                   file = data && data[:file]
                   if (@form_object = Forms::UploadFile.new(file: file)).valid?
                     begin
-                      if data_type.validators.present? && file.original_filename.end_with?('.zip')
+                      if !data_type.validators.present? && file.original_filename.end_with?('.zip')
                         begin
                           Zip::InputStream.open(StringIO.new(file.read)) do |zis|
                             while entry = zis.get_next_entry
