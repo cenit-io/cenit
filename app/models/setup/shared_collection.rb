@@ -30,8 +30,6 @@ module Setup
       authors << Setup::CollectionAuthor.new(name: ::User.current.name, email: ::User.current.email) if authors.empty?
     end
 
-    attr_readonly :shared_version
-
     validates_presence_of :authors, :summary, :description
     validates_format_of :shared_version, with: /\A(0|[1-9]\d*)(\.(0|[1-9]\d*))*\Z/
     validates_length_of :shared_version, maximum: 255
@@ -60,7 +58,7 @@ module Setup
     def on_saving
       attributes['data'] = attributes['data'].to_json unless attributes['data'].is_a?(String)
       changed_attributes.keys.each do |attr|
-        reset_attribute!(attr) if %w(pull_count).include?(attr)
+        reset_attribute!(attr) if %w(pull_count shared_version).include?(attr)
       end unless Account.current && Account.current.super_admin?
       true
     end
