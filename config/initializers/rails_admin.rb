@@ -16,7 +16,6 @@
  RailsAdmin::Config::Actions::BulkShare,
  RailsAdmin::Config::Actions::Pull,
  RailsAdmin::Config::Actions::RetryTask,
- RailsAdmin::Config::Actions::UploadFile,
  RailsAdmin::Config::Actions::DownloadFile,
  RailsAdmin::Config::Actions::ProcessFlow,
  RailsAdmin::Config::Actions::BuildGem,
@@ -84,7 +83,6 @@ RailsAdmin.config do |config|
     bulk_share
     build_gem
     pull
-    upload_file
     download_file
     load_model
     shutdown_model
