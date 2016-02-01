@@ -60,7 +60,7 @@ end
 
 gem 'mongoid'
 gem 'bson_ext'
-gem 'rails_admin'
+gem 'rails_admin', '~> 0.7.0'
 gem 'mongoid-history'
 gem 'mongoid-audit'
 
@@ -85,8 +85,7 @@ gem 'codemirror-rails'
 gem 'wannabe_bool'
 gem 'parser'
 gem 'oauth'
-gem 'bootstrap-wysihtml5-rails'
-gem "wysiwyg-rails", "~> 1.2.7"
+gem 'bootstrap-wysihtml5-rails', '> 0.3.1.24'
 
 gem 'cenit_cmd', git: 'https://github.com/openjaf/cenit_cmd.git'
 gem 'jeweler'
@@ -96,3 +95,5 @@ gem 'httmultiparty'
 
 gem 'oauth2'
 gem "octokit"
+
+gem 'mime'
