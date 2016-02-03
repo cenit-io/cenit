@@ -46,6 +46,35 @@ module RailsAdmin
           end
         end
       end
+      if @model.is_a?(Mongoff::GridFs::FileModel)
+        configure :data, :file_upload do
+          required { bindings[:object].new_record? }
+        end
+        configure :length do
+          label 'Size'
+          pretty_value do #TODO Factorie these code in custom rails admin field type
+            if objects = bindings[:controller].instance_variable_get(:@objects)
+              unless max = bindings[:controller].instance_variable_get(:@max_length)
+                bindings[:controller].instance_variable_set(:@max_length, max = objects.collect { |storage| storage.length }.max)
+              end
+              (bindings[:view].render partial: 'used_memory_bar', locals: { max: max, value: bindings[:object].length }).html_safe
+            else
+              bindings[:view].number_to_human_size(value)
+            end
+          end
+        end
+        edit do
+          field :data
+        end
+        list do
+          field :filename
+          field :contentType
+          field :uploadDate
+          field :aliases
+          field :metadata
+          field :length
+        end
+      end
 
       navigation_label { target.data_type.navigation_label }
 

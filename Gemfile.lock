@@ -243,6 +243,7 @@ GEM
       nokogiri (>= 1.5.9)
     mail (2.6.3)
       mime-types (>= 1.16, < 3)
+    mime (0.4.3)
     mime-types (2.6.2)
     mimemagic (0.3.0)
     mini_magick (4.3.6)
@@ -487,9 +488,6 @@ GEM
     websocket-driver (0.6.3)
       websocket-extensions (>= 0.1.0)
     websocket-extensions (0.1.2)
-    wysiwyg-rails (1.2.8)
-      font-awesome-rails (>= 4.3.0.0)
-      railties (>= 3.2, < 5.0)
     xpath (2.0.0)
       nokogiri (~> 1.3)
 
@@ -498,7 +496,7 @@ PLATFORMS
 
 DEPENDENCIES
   bootstrap-sass
-  bootstrap-wysihtml5-rails
+  bootstrap-wysihtml5-rails (> 0.3.1.24)
   bson_ext
   builder
   bunny
@@ -533,6 +531,7 @@ DEPENDENCIES
   jquery-rails
   json-schema
   liquid
+  mime
   mini_magick
   mongoid
   mongoid-audit
@@ -550,7 +549,7 @@ DEPENDENCIES
   rabl
   rails
   rails_12factor
-  rails_admin
+  rails_admin (~> 0.7.0)
   rails_layout
   raml_parser!
   rolify
@@ -568,5 +567,4 @@ DEPENDENCIES
   uglifier
   unicorn (= 4.9.0)
   wannabe_bool
-  wysiwyg-rails (~> 1.2.7)
   xmldsig!
