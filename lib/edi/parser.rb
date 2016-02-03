@@ -160,10 +160,11 @@ module Edi
                   property_value.each do |sub_value|
                     if persist && sub_value['_reference']
                       sub_value = Cenit::Utility.deep_remove(sub_value, '_reference')
-                      record.instance_variable_set(:@_references, references = {}) unless references = record.instance_variable_get(:@_references)
-                      (references[property_name] ||= []) << { model: property_model, criteria: sub_value }
-                      if sub_value = Cenit::Utility.find_record(association, sub_value)
-                        association.delete(sub_value)
+                      unless Cenit::Utility.find_record(association, sub_value)
+                        unless references = record.instance_variable_get(:@_references)
+                          record.instance_variable_set(:@_references, references = {})
+                        end
+                        (references[property_name] ||= []) << { model: property_model, criteria: sub_value }
                       end
                     else
                       if !association.include?(sub_value = do_parse_json(data_type, property_model, sub_value, options, items_schema, nil, nil, association))
@@ -235,10 +236,11 @@ module Edi
                 json.each do |sub_value|
                   if persist && sub_value['_reference']
                     sub_value = Cenit::Utility.deep_remove(sub_value, '_reference')
-                    record.instance_variable_set(:@_references, references = {}) unless references = record.instance_variable_get(:@_references)
-                    (references[property_name] ||= []) << { model: property_model, criteria: sub_value }
-                    if sub_value = Cenit::Utility.find_record(association, sub_value)
-                      association.delete(sub_value)
+                    unless Cenit::Utility.find_record(association, sub_value)
+                      unless references = record.instance_variable_get(:@_references)
+                        record.instance_variable_set(:@_references, references = {})
+                      end
+                      (references[property_name] ||= []) << { model: property_model, criteria: sub_value }
                     end
                   else
                     if !association.include?(sub_value = do_parse_json(data_type, property_model, sub_value, options, items_schema, nil, nil, association))
