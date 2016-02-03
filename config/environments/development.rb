@@ -37,6 +37,9 @@ Cenit::Application.configure do
     :password             => ENV['GMAIL_PASSWORD'],
     :authentication       => 'plain',
     :enable_starttls_auto => true  }
+    
+  config.action_mailer.perform_deliveries = true
+  config.action_mailer.raise_delivery_errors = true
   
 end
 
