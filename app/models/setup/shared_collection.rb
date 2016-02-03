@@ -37,7 +37,7 @@ module Setup
     accepts_nested_attributes_for :authors, allow_destroy: true
     accepts_nested_attributes_for :pull_parameters, allow_destroy: true
 
-    before_save :check_dependencies, :validate_configuration, :ensure_shared_name, :save_source_collection, :categorize, :on_saving
+    before_save :check_dependencies, :validate_configuration, :ensure_shared_name, :save_source_collection, :categorize, :sanitize_data, :on_saving
 
     def ready_to_save?
       !(@_selecting_connections || @_selecting_dependencies)
@@ -53,6 +53,23 @@ module Setup
         attributes['data'] = value = JSON.parse(value) rescue value
       end
       value
+    end
+
+    def sanitize_data
+      data = self.data
+      data = JSON.parse(data) unless data.is_a?(Hash)
+      #Stringify parameter values
+      %w(connections webhooks).each do |entry|
+        (data[entry] || []).each do |e|
+          %w(headers parameters template_parameters).each do |params_key|
+            if params = e[params_key]
+              params.each { |param| param['value'] = param['value'].to_s }
+            end
+          end
+        end
+      end
+      self.data = data
+      errors.blank?
     end
 
     def on_saving
@@ -103,10 +120,21 @@ module Setup
         end
         errors.add(:pull_parameters, 'is not valid') if pull_parameters.any? { |pull_parameter| pull_parameter.errors.present? }
       end
-      dependencies_hash_data.each do |entry, dependency_values|
-        next if entry == 'name'
-        if values = hash_data[entry]
-          dependency_values.each { |value| values.delete(value) }
+      hash_data.each do |entry, values|
+        next if entry == 'name' || values.blank?
+        if (dependency_values = dependencies_hash_data[entry]).present?
+          model = "Setup::#{entry.singularize.camelize}".constantize rescue nil
+          if model
+            values.each do |value|
+              criteria = {}
+              model.data_type.get_referenced_by.each do |field|
+                if v = value[field.to_s]
+                  criteria[field.to_s] = v
+                end
+              end
+              values.delete(value) if (dependency_value = dependency_values.detect { |v| Cenit::Utility.match?(v, criteria) }).nil? || value == dependency_value
+            end
+          end
         end
       end
       hash_data.delete_if { |_, values| values.empty? }
@@ -183,7 +211,7 @@ module Setup
         hash = values.inject({}) do |hash, item|
           name =
             if name = item['namespace']
-              {namespace: name, name: item['name']}
+              { namespace: name, name: item['name'] }
             else
               item['name']
             end
