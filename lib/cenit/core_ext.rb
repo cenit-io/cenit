@@ -68,13 +68,66 @@ module Nokogiri
           new(*args)
         end
       end
+
       def respond_to?(*args)
         true
       end
 
       class NodeBuilder
         def respond_to?(*args)
+          MIME::Mail.new
           true
+        end
+      end
+    end
+  end
+end
+
+require 'mime'
+
+module MIME
+  class Mail
+    class << self
+      def new_message(*args)
+        new(*args)
+      end
+    end
+  end
+
+  class Text
+    class << self
+      def new_text(*args)
+        new(*args)
+      end
+    end
+  end
+
+  class Multipart
+    class Mixed
+
+      def attach(entity, params = {})
+        if entity.is_a?(Mongoff::GridFs::File)
+          category, subtype = entity.contentType.split('/')
+          entity =
+            case category
+            when 'audio'
+              MIME::Audio
+            when 'image'
+              MIME::Image
+            when 'text'
+              MIME::Text
+            when 'video'
+              MIME::Video
+            else
+              MIME::Application
+            end.new(entity.data, subtype, { 'Content-Type' => entity.contentType, 'name' => entity.filename })
+        end
+        super
+      end
+
+      class << self
+        def new_message(*args)
+          new(*args)
         end
       end
     end
