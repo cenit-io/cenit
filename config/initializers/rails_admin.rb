@@ -2021,7 +2021,7 @@ RailsAdmin.config do |config|
       end
     end
 
-    fields :namespace, :name, :provider, :identifier, :secret, :tenant, :shared
+    fields :provider, :name, :identifier, :secret, :tenant, :shared
   end
 
   config.model Setup::Oauth2Scope do
@@ -2051,42 +2051,7 @@ RailsAdmin.config do |config|
     edit do
       field :namespace
       field :name
-      field :provider do
-        inline_add false
-        inline_edit false
-        associated_collection_scope do
-          provider = (obj = bindings[:object]) && obj.provider
-          Proc.new { |scope|
-            if provider
-              scope.any_in(id: provider.id)
-            else
-              scope.any_in(_type: Setup::OauthProvider.to_s)
-            end
-          }
-        end
-      end
-      field :client do
-        inline_add false
-        inline_edit false
-        visible do
-          if ((obj = bindings[:object]) && obj.provider).present?
-            obj.client = obj.provider.clients.first if obj.client.blank?
-            true
-          else
-            false
-          end
-        end
-        associated_collection_scope do
-          provider = ((obj = bindings[:object]) && obj.provider) || nil
-          Proc.new { |scope|
-            if provider
-              scope.where(provider_id: provider.id)
-            else
-              scope
-            end
-          }
-        end
-      end
+      field :client
     end
 
     group :credentials do
@@ -2116,7 +2081,6 @@ RailsAdmin.config do |config|
     show do
       field :namespace
       field :name
-      field :provider
       field :client
 
       field :access_token
@@ -2126,7 +2090,7 @@ RailsAdmin.config do |config|
       field :authorized_at
     end
 
-    fields :namespace, :name, :provider, :client
+    fields :namespace, :name, :client
   end
 
   config.model Setup::Oauth2Authorization do
@@ -2135,42 +2099,7 @@ RailsAdmin.config do |config|
     edit do
       field :namespace
       field :name
-      field :provider do
-        inline_add false
-        inline_edit false
-        associated_collection_scope do
-          provider = (obj = bindings[:object]) && obj.provider
-          Proc.new { |scope|
-            if provider
-              scope.any_in(id: provider.id)
-            else
-              scope.any_in(_type: Setup::Oauth2Provider.to_s)
-            end
-          }
-        end
-      end
-      field :client do
-        inline_add false
-        inline_edit false
-        visible do
-          if ((obj = bindings[:object]) && obj.provider).present?
-            obj.client = obj.provider.clients.first if obj.client.blank?
-            true
-          else
-            false
-          end
-        end
-        associated_collection_scope do
-          provider = ((obj = bindings[:object]) && obj.provider) || nil
-          Proc.new { |scope|
-            if provider
-              scope.where(provider_id: provider.id)
-            else
-              scope
-            end
-          }
-        end
-      end
+      field :client
       field :scopes do
         visible { ((obj = bindings[:object]) && obj.provider).present? }
         associated_collection_scope do
@@ -2213,7 +2142,6 @@ RailsAdmin.config do |config|
     show do
       field :namespace
       field :name
-      field :provider
       field :client
       field :scopes
 
@@ -2224,7 +2152,7 @@ RailsAdmin.config do |config|
       field :refresh_token
     end
 
-    fields :namespace, :name, :provider, :client, :scopes
+    fields :namespace, :name, :client, :scopes
   end
 
   config.model Setup::AwsAuthorization do
