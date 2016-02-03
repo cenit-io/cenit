@@ -128,6 +128,14 @@ module Setup
     EXCLUDED_FIELDS = %w{_id created_at updated_at version}
     EXCLUDED_RELATIONS = %w{account creator updater}
 
+    def method_missing(symbol, *args)
+      if symbol.to_s.start_with?('get_') && value = instance_variable_get(:"@#{symbol.to_s.from(4)}")
+        value
+      else
+        super
+      end
+    end
+
     private
 
     def store_fields(instance_variable, *fields)
@@ -143,18 +151,18 @@ module Setup
 
     MONGOID_TYPE_MAP =
       {
-        BSON::ObjectId => {'type' => 'string'},
-        Array => {'type' => 'array'},
-        BigDecimal => {'type' => 'integer'},
-        Mongoid::Boolean => {'type' => 'boolean'},
-        Date => {'type' => 'string', 'format' => 'date'},
-        DateTime => {'type' => 'string', 'format' => 'date-time'},
-        Float => {'type' => 'number'},
-        Hash => {'type' => 'object'},
-        Integer => {'type' => 'integer'},
-        String => {'type' => 'string'},
-        Symbol => {'type' => 'string'},
-        Time => {'type' => 'string', 'format' => 'time'},
+        BSON::ObjectId => { 'type' => 'string' },
+        Array => { 'type' => 'array' },
+        BigDecimal => { 'type' => 'integer' },
+        Mongoid::Boolean => { 'type' => 'boolean' },
+        Date => { 'type' => 'string', 'format' => 'date' },
+        DateTime => { 'type' => 'string', 'format' => 'date-time' },
+        Float => { 'type' => 'number' },
+        Hash => { 'type' => 'object' },
+        Integer => { 'type' => 'integer' },
+        String => { 'type' => 'string' },
+        Symbol => { 'type' => 'string' },
+        Time => { 'type' => 'string', 'format' => 'time' },
         nil => {},
         Object => {}
       }.freeze
@@ -171,7 +179,7 @@ module Setup
 
     def build_schema
       @discarding ||= []
-      schema = {'type' => 'object', 'properties' => properties = {"_id" => {'type' => 'string'}}}
+      schema = { 'type' => 'object', 'properties' => properties = { "_id" => { 'type' => 'string' } } }
       schema[:referenced_by.to_s] = Cenit::Utility.stringfy(@referenced_by) if @referenced_by
       model.fields.each do |field_name, field|
         if !field.is_a?(Mongoid::Fields::ForeignKey) && included?(field_name.to_s)
@@ -203,15 +211,15 @@ module Setup
           property_schema =
             case relation.macro
             when :embeds_one
-              {'$ref' => relation.klass.to_s}
+              { '$ref' => relation.klass.to_s }
             when :embeds_many
-              {'type' => 'array', 'items' => {'$ref' => relation.klass.to_s}}
+              { 'type' => 'array', 'items' => { '$ref' => relation.klass.to_s } }
             when :has_one
-              {'$ref' => relation.klass.to_s, 'referenced' => true, 'export_embedded' => @embedding && @embedding.include?(relation_name)}
+              { '$ref' => relation.klass.to_s, 'referenced' => true, 'export_embedded' => @embedding && @embedding.include?(relation_name) }
             when :belongs_to
-              {'$ref' => relation.klass.to_s, 'referenced' => true, 'export_embedded' => @embedding && @embedding.include?(relation_name)} if (@including && @including.include?(relation_name.to_s)) || relation.inverse_of.nil?
+              { '$ref' => relation.klass.to_s, 'referenced' => true, 'export_embedded' => @embedding && @embedding.include?(relation_name) } if (@including && @including.include?(relation_name.to_s)) || relation.inverse_of.nil?
             when :has_many, :has_and_belongs_to_many
-              {'type' => 'array', 'items' => {'$ref' => relation.klass.to_s}, 'referenced' => true, 'export_embedded' => @embedding && @embedding.include?(relation_name)}
+              { 'type' => 'array', 'items' => { '$ref' => relation.klass.to_s }, 'referenced' => true, 'export_embedded' => @embedding && @embedding.include?(relation_name) }
             end
           if property_schema
             if @discarding.include?(relation_name.to_s)

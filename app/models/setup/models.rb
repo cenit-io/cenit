@@ -4,38 +4,50 @@ module Setup
       include Enumerable
 
       def unregist(model)
-        @models ||= Hash.new { |h, k| h[k] = [] }
-        @models.delete(model)
+        excluded_actions.delete(model)
+        included_actions.delete(model)
       end
 
       def regist(model)
-        @models ||= Hash.new { |h, k| h[k] = [] }
-        @models[model]
+        excluded_actions[model]
       end
 
-      def [](model)
-        @models ||= Hash.new { |h, k| h[k] = [] }
-        @models[model]
-      end
-
-      def count
-        @models ? @models.count : 0
-      end
-
-      def each(&block)
-        @models.each(&block) if @models
+      def each_excluded_action(&block)
+        excluded_actions.each(&block)
       end
 
       def exclude_actions_for(model, *actions)
-        @models[model] += actions
+        excluded_actions[model] += actions
       end
 
       def excluded_actions_for(model)
-        @models[model]
+        excluded_actions[model]
       end
 
       def registered?(model)
-        @models.include?(model)
+        excluded_actions.include?(model)
+      end
+
+      def each_included_action(&block)
+        included_actions.each(&block)
+      end
+
+      def include_actions_for(model, *actions)
+        included_actions[model] += actions
+      end
+
+      def included_actions_for(model)
+        included_actions[model]
+      end
+
+      private
+
+      def excluded_actions
+        @excluded_actions ||= Hash.new { |h, k| h[k] = [] }
+      end
+
+      def included_actions
+        @included_actions ||= Hash.new { |h, k| h[k] = [] }
       end
     end
   end

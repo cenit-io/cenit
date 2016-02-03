@@ -144,12 +144,8 @@ module Api::V1
     end
 
     def destroy
-      if Setup::Models.registered?(klass) && Setup::Models.excluded_actions_for(klass).include?(:delete)
-        render json: { status: :not_allowed }
-      else
         @item.destroy
         render json: { status: :ok }
-      end
     end
 
     def run

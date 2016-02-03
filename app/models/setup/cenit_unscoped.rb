@@ -15,7 +15,7 @@ module Setup
     end
 
     def share_hash
-      to_hash(ignore: [:id, :number, :token])
+      to_hash(ignore: [:id, :number, :token], include_blanks: true)
     end
   end
 end

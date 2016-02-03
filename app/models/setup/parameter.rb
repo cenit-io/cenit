@@ -6,7 +6,7 @@ module Setup
     BuildInDataType.regist(self).with(:key, :value, :description, :metadata)
 
     field :key, type: String
-    field :value, type: String
+    field :value, type: String, default: ''
     field :description, type: String
 
     embedded_in :connection, class_name: Setup::Connection.to_s

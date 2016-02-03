@@ -82,7 +82,7 @@ module Setup
             end
           end
           if authorization.is_a?(Setup::Oauth2Authorization)
-            authorization.scopes.each { |scope| oauth2_scopes << scope unless oauth2_scopes.any? { |s| s == scope } }
+            authorization.scopes.each { |scope| oauth2_scopes << scope unless scope.shared || oauth2_scopes.any? { |s| s == scope } }
           end
         end
       end
@@ -104,7 +104,7 @@ module Setup
       visited_algs = Set.new
       algorithms.each { |alg| alg.for_each_call(visited_algs) }
       self.algorithms = visited_algs.to_a
-      [:oauth_providers, :oauth_clients].each do |shared_collector|
+      [:oauth_providers, :oauth_clients, :oauth2_scopes].each do |shared_collector|
         if (shared_objs = (collector = send(shared_collector)).where(shared: true)).present?
           errors.add(:base, "Shared #{shared_collector.to_s.gsub('_', ' ')} are not allowed: #{shared_objs.collect(&:custom_title).to_sentence}")
           shared_objs.each { |obj| collector.delete(obj) }

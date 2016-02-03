@@ -12,7 +12,7 @@ module Setup
 
     Setup::Models.exclude_actions_for self, :update, :bulk_delete, :delete, :delete_all
 
-    BuildInDataType.regist(self).with(:title, :name, :events, :before_save_callbacks, :records_methods, :data_type_methods).referenced_by(:name, :library).including(:library, :slug)
+    BuildInDataType.regist(self).with(:title, :name, :before_save_callbacks, :records_methods, :data_type_methods).referenced_by(:name, :library).including(:library, :slug)
 
     def self.to_include_in_models
       @to_include_in_models ||= [Setup::DynamicRecord,
@@ -38,8 +38,6 @@ module Setup
     field :used_memory, type: BigDecimal, default: 0
     field :model_loaded, type: Boolean
     field :to_be_destroyed, type: Boolean
-
-    has_many :events, class_name: Setup::Observer.to_s, dependent: :destroy, inverse_of: :data_type
 
     belongs_to :library, class_name: Setup::Library.to_s, inverse_of: :data_types
 
