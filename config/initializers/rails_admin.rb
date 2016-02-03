@@ -2280,7 +2280,7 @@ RailsAdmin.config do |config|
       pretty_value do
         if objects = bindings[:controller].instance_variable_get(:@objects)
           unless max = bindings[:controller].instance_variable_get(:@max_length)
-            bindings[:controller].instance_variable_set(:@max_length, max = objects.collect { |storage| storage.length }.max)
+            bindings[:controller].instance_variable_set(:@max_length, max = objects.collect { |storage| storage.length }.reject(&:nil?).max)
           end
           (bindings[:view].render partial: 'used_memory_bar', locals: { max: max, value: bindings[:object].length }).html_safe
         else

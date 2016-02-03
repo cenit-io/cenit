@@ -35,12 +35,13 @@ module Mongoff
               data
             end
         end
-
       end
 
       def data=(string_or_readable)
         @new_data = string_or_readable
       end
+
+      attr_accessor :encoding
 
       def []=(field, value)
         if field.to_s.to_sym == :data
@@ -56,6 +57,15 @@ module Mongoff
         end
       end
 
+      def decode(data)
+        case encoding
+        when  'base64', 'strict_base64', 'urlsafe_base64'
+          Base64.send(encoding.gsub('base', 'decode'), data)
+        else
+          data
+        end
+      end
+
       def save(options = {})
         self[:metadata] = options[:metadata] || {}
         self[:chunkSize] = FileModel::MINIMUM_CHUNK_SIZE if self[:chunkSize] < FileModel::MINIMUM_CHUNK_SIZE
@@ -66,7 +76,7 @@ module Mongoff
               if @new_data.is_a?(String)
                 temporary_file = Tempfile.new('file_')
                 temporary_file.binmode
-                temporary_file.write(@new_data)
+                temporary_file.write(decode(@new_data))
                 temporary_file.rewind
                 Cenit::Utility::Proxy.new(temporary_file, original_filename: filename || options[:filename] || options[:default_filename])
               else
@@ -77,6 +87,8 @@ module Mongoff
             else
               create_temporary_chunks(readable, options)
             end
+          else
+            errors.add(:data, "can't be nil") if new_record?
           end
         temporary_file.close if temporary_file
         [:filename, :contentType].each { |property| self[property] = options[property] unless self[property].present? }
