@@ -43,7 +43,13 @@ module Mongoff
                                                }
                                              },
                                              metadata: {},
-                                           }
+                                             data: {},
+                                             encoding: {
+                                               type: :string,
+                                               enum: %w(encode64 strict_encode64 urlsafe_encode64)
+                                             }
+                                           },
+                                         required: %w(filename contentType length)
                                        })
 
       attr_reader :chunk_model

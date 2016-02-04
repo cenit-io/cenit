@@ -96,3 +96,5 @@ gem 'httmultiparty'
 gem 'oauth2'
 gem "octokit"
 gem 'exception_notification'
+
+gem 'mime'
