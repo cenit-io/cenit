@@ -132,7 +132,7 @@ module Setup
                   criteria[field.to_s] = v
                 end
               end
-              values.delete(value) if (dependency_value = dependency_values.detect { |v| Cenit::Utility.match?(v, criteria) }).nil? || value == dependency_value
+              values.delete(value) if (dependency_value = dependency_values.detect { |v| Cenit::Utility.match?(v, criteria) }) && value == dependency_value
             end
           end
         end
