@@ -51,6 +51,8 @@ RailsAdmin::Config::Fields::Types.register(RailsAdmin::Config::Fields::Types::St
 
 RailsAdmin.config do |config|
 
+  config.total_columns_width = 900
+
   ## == PaperTrail ==
   # config.audit_with :paper_trail, 'User', 'PaperTrail::Version' # PaperTrail >= 3.0.0
 
@@ -119,6 +121,7 @@ RailsAdmin.config do |config|
 
   config.model Setup::Validator do
     visible false
+    fields :namespace, :name
   end
 
   config.model Setup::Library do
@@ -231,10 +234,14 @@ RailsAdmin.config do |config|
 
     configure :storage_size, :decimal do
       pretty_value do
-        unless max = bindings[:controller].instance_variable_get(:@max_storage_size)
-          bindings[:controller].instance_variable_set(:@max_storage_size, max = bindings[:controller].instance_variable_get(:@objects).collect { |data_type| data_type.storage_size }.max)
+        if objects = bindings[:controller].instance_variable_get(:@objects)
+          unless max = bindings[:controller].instance_variable_get(:@max_storage_size)
+            bindings[:controller].instance_variable_set(:@max_storage_size, max = objects.collect { |data_type| data_type.storage_size }.max)
+          end
+          (bindings[:view].render partial: 'used_memory_bar', locals: { max: max, value: bindings[:object].records_model.storage_size }).html_safe
+        else
+          bindings[:view].number_to_human_size(value)
         end
-        (bindings[:view].render partial: 'used_memory_bar', locals: { max: max, value: bindings[:object].records_model.storage_size }).html_safe
       end
       read_only true
     end
@@ -286,6 +293,7 @@ RailsAdmin.config do |config|
       field :title
       field :name
       field :slug
+      field :storage_size
       field :activated
       field :schema do
         pretty_value do
@@ -363,10 +371,14 @@ RailsAdmin.config do |config|
 
     configure :storage_size, :decimal do
       pretty_value do
-        unless max = bindings[:controller].instance_variable_get(:@max_storage_size)
-          bindings[:controller].instance_variable_set(:@max_storage_size, max = bindings[:controller].instance_variable_get(:@objects).collect { |data_type| data_type.records_model.storage_size }.max)
+        if objects = bindings[:controller].instance_variable_get(:@objects)
+          unless max = bindings[:controller].instance_variable_get(:@max_storage_size)
+            bindings[:controller].instance_variable_set(:@max_storage_size, max = objects.collect { |data_type| data_type.records_model.storage_size }.max)
+          end
+          (bindings[:view].render partial: 'used_memory_bar', locals: { max: max, value: bindings[:object].records_model.storage_size }).html_safe
+        else
+          bindings[:view].number_to_human_size(value)
         end
-        (bindings[:view].render partial: 'used_memory_bar', locals: { max: max, value: bindings[:object].records_model.storage_size }).html_safe
       end
       read_only true
     end
@@ -438,6 +450,7 @@ RailsAdmin.config do |config|
       field :slug
       field :activated
       field :validators
+      field :storage_size
       field :schema_data_type
 
       field :_id
@@ -481,11 +494,16 @@ RailsAdmin.config do |config|
 
     configure :storage_size, :decimal do
       pretty_value do
-        unless max = bindings[:controller].instance_variable_get(:@max_storage_size)
-          bindings[:controller].instance_variable_set(:@max_storage_size, max = bindings[:controller].instance_variable_get(:@objects).collect { |data_type| data_type.records_model.storage_size }.max)
+        if objects = bindings[:controller].instance_variable_get(:@objects)
+          unless max = bindings[:controller].instance_variable_get(:@max_storage_size)
+            bindings[:controller].instance_variable_set(:@max_storage_size, max = objects.collect { |data_type| data_type.storage_size }.max)
+          end
+          (bindings[:view].render partial: 'used_memory_bar', locals: { max: max, value: bindings[:object].records_model.storage_size }).html_safe
+        else
+          bindings[:view].number_to_human_size(value)
         end
-        (bindings[:view].render partial: 'used_memory_bar', locals: { max: max, value: bindings[:object].records_model.storage_size }).html_safe
       end
+      read_only true
     end
 
     configure :before_save_callbacks do
@@ -543,12 +561,16 @@ RailsAdmin.config do |config|
       field :title
       field :name
       field :slug
+      field :storage_size
       field :activated
       field :schema do
         pretty_value do
           "<pre><code class='ruby'>#{JSON.pretty_generate(value)}</code></pre>".html_safe
         end
       end
+      field :before_save_callbacks
+      field :records_methods
+      field :data_type_methods
 
       field :_id
       field :created_at
@@ -567,7 +589,7 @@ RailsAdmin.config do |config|
     end
 
     configure :key, :string do
-      visible { bindings[:view]._current_user.has_role? :admin }
+      visible { User.current.admin? }
       html_attributes do
         { maxlength: 30, size: 30 }
       end
@@ -575,7 +597,7 @@ RailsAdmin.config do |config|
     end
 
     configure :token, :text do
-      visible { bindings[:view]._current_user.has_role? :admin }
+      visible { User.current.admin? }
       html_attributes do
         { cols: '50', rows: '1' }
       end
@@ -585,12 +607,12 @@ RailsAdmin.config do |config|
     configure :authorization do
       group :credentials
       inline_edit false
-      visible { bindings[:view]._current_user.has_role? :admin }
+      visible { User.current.admin? }
     end
 
     configure :authorization_handler do
       group :credentials
-      visible { bindings[:view]._current_user.has_role? :admin }
+      visible { User.current.admin? }
     end
 
     group :parameters do
@@ -598,15 +620,15 @@ RailsAdmin.config do |config|
     end
     configure :parameters do
       group :parameters
-      visible { bindings[:view]._current_user.has_role? :admin }
+      visible { User.current.admin? }
     end
     configure :headers do
       group :parameters
-      visible { bindings[:view]._current_user.has_role? :admin }
+      visible { User.current.admin? }
     end
     configure :template_parameters do
       group :parameters
-      visible { bindings[:view]._current_user.has_role? :admin }
+      visible { User.current.admin? }
     end
 
     show do
@@ -630,16 +652,23 @@ RailsAdmin.config do |config|
       #field :updater
     end
 
-    fields :namespace, :name, :url, :key, :token, :authorization, :authorization_handler, :parameters, :headers, :template_parameters
+    fields :namespace, :name, :url, :key, :token, :authorization
   end
 
   config.model Setup::Parameter do
     object_label_method { :to_s }
+    configure :metadata, :json_value
     edit do
       field :key
       field :value
       field :description
-      field :metadata, :json_value
+      field :metadata
+    end
+    list do
+      field :key
+      field :value
+      field :description
+      field :metadata
     end
   end
 
@@ -692,12 +721,12 @@ RailsAdmin.config do |config|
     configure :authorization do
       group :credentials
       inline_edit false
-      visible { bindings[:view]._current_user.has_role? :admin }
+      visible { User.current.admin? }
     end
 
     configure :authorization_handler do
       group :credentials
-      visible { bindings[:view]._current_user.has_role? :admin }
+      visible { User.current.admin? }
     end
 
     group :parameters do
@@ -744,7 +773,7 @@ RailsAdmin.config do |config|
       field :updated_at
       #field :updater
     end
-    fields :namespace, :name, :path, :method, :description, :metadata, :authorization, :authorization_handler, :parameters, :headers, :template_parameters
+    fields :namespace, :name, :path, :method, :description, :authorization
   end
 
   config.model Setup::Task do
@@ -885,41 +914,32 @@ RailsAdmin.config do |config|
 
     configure :type do
       pretty_value do
-        color =
-          case bindings[:object].type
-          when :info
-            'green'
-          when :notice
-            'blue'
-          when :warning
-            'orange'
-          else
-            'red'
-          end
-        "<label style='color:#{color}'>#{value.to_s.capitalize}</label>".html_safe
+        "<label style='color:#{bindings[:object].color}'>#{value.to_s.capitalize}</label>".html_safe
       end
     end
 
     configure :message do
       pretty_value do
-        color =
-          case bindings[:object].type
-          when :info
-            'green'
-          when :notice
-            'blue'
-          when :warning
-            'orange'
-          else
-            'red'
-          end
-        "<label style='color:#{color}'>#{value}</label>".html_safe
+        "<label style='color:#{bindings[:object].color}'>#{value}</label>".html_safe
       end
     end
 
     configure :attachment, :storage_file
 
-    fields :created_at, :type, :message, :attachment, :task
+    list do
+      field :created_at do
+        visible do
+          if account = Account.current
+            account.notifications_listed_at = Time.now
+          end
+          true
+        end
+      end
+      field :type
+      field :message
+      field :attachment
+      field :task
+    end
   end
 
   config.model Setup::Flow do
@@ -1074,6 +1094,21 @@ RailsAdmin.config do |config|
       field :active
       field :event
       field :translator
+      field :custom_data_type
+      field :data_type_scope
+      field :scope_filter
+      field :scope_evaluator
+      field :lot_size
+
+      field :webhook
+      field :connection_role
+      field :response_translator
+      field :response_data_type
+
+      field :discard_events
+      field :notify_request
+      field :notify_response
+      field :after_process_callbacks
 
       field :_id
       field :created_at
@@ -1527,6 +1562,7 @@ RailsAdmin.config do |config|
 
   config.model Setup::CollectionAuthor do
     object_label_method { :label }
+    fields :name, :email
   end
 
   config.model Setup::CollectionPullParameter do
@@ -1702,6 +1738,10 @@ RailsAdmin.config do |config|
     fields :name, :pull_connection, :pull_flow, :pull_event, :pull_translator, :data_type, :send_translator, :send_flow, :receiver_connection
   end
 
+  config.model Setup::AlgorithmParameter do
+    fields :name, :description
+  end
+
   config.model Setup::Algorithm do
     object_label_method { :custom_title }
     edit do
@@ -1726,6 +1766,7 @@ RailsAdmin.config do |config|
           "<pre><code class='ruby'>#{value}</code></pre>".html_safe
         end
       end
+      field :call_links
       field :_id
     end
     fields :namespace, :name, :description, :parameters, :call_links
@@ -1749,6 +1790,9 @@ RailsAdmin.config do |config|
 
   config.model Role do
     navigation_label 'Administration'
+    configure :users do
+      visible { Account.current.super_admin? }
+    end
     fields :name, :users
   end
 
@@ -1863,7 +1907,22 @@ RailsAdmin.config do |config|
       field :last_sign_in_ip
     end
 
-    fields :picture, :name, :email, :account, :roles, :key, :authentication_token, :authentication_token, :sign_in_count, :current_sign_in_at, :last_sign_in_at, :current_sign_in_ip, :last_sign_in_ip
+    list do
+      field :picture do
+        thumb_method :icon
+      end
+      field :name
+      field :email
+      field :account
+      field :roles
+      field :key
+      field :authentication_token
+      field :sign_in_count
+      field :current_sign_in_at
+      field :last_sign_in_at
+      field :current_sign_in_ip
+      field :last_sign_in_ip
+    end
   end
 
   config.model Account do
@@ -2042,10 +2101,12 @@ RailsAdmin.config do |config|
   end
 
   config.model Setup::Authorization do
+    object_label_method { :custom_title }
     fields :namespace, :name
   end
 
   config.model Setup::OauthAuthorization do
+    object_label_method { :custom_title }
     parent Setup::Authorization
 
     edit do
@@ -2094,6 +2155,7 @@ RailsAdmin.config do |config|
   end
 
   config.model Setup::Oauth2Authorization do
+    object_label_method { :custom_title }
     parent Setup::Authorization
 
     edit do
@@ -2156,7 +2218,7 @@ RailsAdmin.config do |config|
   end
 
   config.model Setup::AwsAuthorization do
-
+    object_label_method { :custom_title }
     edit do
       field :namespace
       field :name
@@ -2198,7 +2260,7 @@ RailsAdmin.config do |config|
   end
 
   config.model Setup::BasicAuthorization do
-
+    object_label_method { :custom_title }
     edit do
       field :namespace
       field :name
@@ -2221,14 +2283,8 @@ RailsAdmin.config do |config|
     show do
       field :namespace
       field :name
-      field :aws_access_key
-      field :aws_secret_key
-      field :seller
-      field :merchant
-      field :markets
-      field :signature_method
-      field :signature_version
-
+      field :username
+      field :password
     end
 
     fields :namespace, :name, :username, :password
@@ -2236,7 +2292,7 @@ RailsAdmin.config do |config|
 
   config.model Setup::Raml do
     configure :raml_references do
-      visible { bindings[:view]._current_user.has_role? :admin }
+      visible { User.current.admin? }
     end
 
     show do

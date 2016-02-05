@@ -10,6 +10,7 @@ class Account
   belongs_to :tenant_account, class_name: Account.to_s, inverse_of: nil
 
   field :notification_level, type: Symbol, default: :warning
+  field :notifications_listed_at, type: DateTime
 
   validates_inclusion_of :notification_level, in: ->(a) { a.notification_level_enum }
 

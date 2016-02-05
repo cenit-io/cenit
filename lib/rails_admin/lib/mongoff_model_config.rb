@@ -35,13 +35,53 @@ module RailsAdmin
             # associated_collection_cache_all true
             pretty_value do
               v = bindings[:view]
-              [value].flatten.select(&:present?).collect do |associated|
+              action = v.instance_variable_get(:@action)
+              if showing = action.is_a?(RailsAdmin::Config::Actions::Show) && !v.instance_variable_get(:@showing)
+                amc = RailsAdmin.config(association.klass)
+              else
                 amc = polymorphic? ? RailsAdmin.config(associated) : associated_model_config # perf optimization for non-polymorphic associations
-                am = amc.abstract_model
-                wording = associated.send(amc.object_label_method)
-                can_see = !am.embedded_in?(bindings[:controller].instance_variable_get(:@abstract_model)) && (show_action = v.action(:show, am, associated))
-                can_see ? v.link_to(wording, v.url_for(action: show_action.action_name, model_name: am.to_param, id: associated.id), class: 'pjax') : wording
-              end.to_sentence.html_safe
+              end
+              am = amc.abstract_model
+              if action.is_a?(RailsAdmin::Config::Actions::Show) && !v.instance_variable_get(:@showing)
+                v.instance_variable_set(:@showing, true)
+                fields = amc.list.with(controller: self, view: v, object: amc.abstract_model.model.new).visible_fields
+                table = <<-HTML
+                    <table class="table table-condensed table-striped">
+                      <thead>
+                        <tr>
+                          #{fields.collect { |field| "<th class=\"#{field.css_class} #{field.type_css_class}\">#{field.label}</th>" }.join}
+                          <th class="last shrink"></th>
+                        <tr>
+                      </thead>
+                      <tbody>
+                  #{[value].flatten.select(&:present?).collect do |associated|
+                  can_see = !am.embedded_in?(bindings[:controller].instance_variable_get(:@abstract_model)) && (show_action = v.action(:show, am, associated))
+                  '<tr class="script_row">' +
+                    fields.collect do |field|
+                      field.bind(object: associated, view: v)
+                      "<td class=\"#{field.css_class} #{field.type_css_class}\" title=\"#{v.strip_tags(associated.to_s)}\">#{field.pretty_value}</td>"
+                    end.join +
+                    '<td class="last links"><ul class="inline list-inline">' +
+                    if can_see
+                      v.menu_for(:member, amc.abstract_model, associated, true)
+                    else
+                      ''
+                    end +
+                    '</ul></td>' +
+                    '</tr>'
+                end.join}
+                      </tbody>
+                    </table>
+                HTML
+                v.instance_variable_set(:@showing, false)
+                table.html_safe
+              else
+                [value].flatten.select(&:present?).collect do |associated|
+                  wording = associated.send(amc.object_label_method)
+                  can_see = !am.embedded_in?(bindings[:controller].instance_variable_get(:@abstract_model)) && (show_action = v.action(:show, am, associated))
+                  can_see ? v.link_to(wording, v.url_for(action: show_action.action_name, model_name: am.to_param, id: associated.id), class: 'pjax') : wording
+                end.to_sentence.html_safe
+              end
             end
           end
         end
