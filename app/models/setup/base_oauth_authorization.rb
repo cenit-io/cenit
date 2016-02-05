@@ -5,27 +5,22 @@ module Setup
 
     abstract_class true
 
-    BuildInDataType.regist(self).with(:namespace, :name, :provider, :client).referenced_by(:namespace, :name)
+    BuildInDataType.regist(self).with(:namespace, :name, :client).referenced_by(:namespace, :name)
 
-    belongs_to :provider, class_name: Setup::BaseOauthProvider.to_s, inverse_of: nil
     belongs_to :client, class_name: Setup::OauthClient.to_s, inverse_of: nil
 
     field :access_token, type: String
     field :token_span, type: BigDecimal
     field :authorized_at, type: Time
 
-    validates_presence_of :provider, :client
+    validates_presence_of :client
+
+    def provider
+      client && client.provider
+    end
 
     def authorized?
       authorized_at.present?
-    end
-
-    def ready_to_save?
-      provider.present?
-    end
-
-    def can_be_restarted?
-      provider.present?
     end
 
     def create_http_client(options = {})
@@ -37,7 +32,7 @@ module Setup
     end
 
     def base_params
-      {callback_key => "#{Cenit.oauth2_callback_site}/oauth2/callback"}
+      { callback_key => "#{Cenit.oauth2_callback_site}/oauth2/callback" }
     end
 
     def authorize_params(params = {})

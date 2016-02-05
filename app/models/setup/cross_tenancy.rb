@@ -22,7 +22,14 @@ module Setup
         true
       end
 
-      default_scope -> { Account.current.super_admin? ? all : any_of({shared: true}, {tenant_id: Account.current.id}) }
+      before_destroy do
+        if shared
+          errors.add(:base, "#{try(:custom_title) || try(:name)} is shared")
+        end
+        errors.blank?
+      end
+
+      default_scope -> { Account.current.super_admin? ? all : any_of({ shared: true }, { tenant_id: Account.current.id }) }
     end
 
     def read_attribute(name)

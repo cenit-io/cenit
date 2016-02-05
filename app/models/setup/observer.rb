@@ -2,9 +2,9 @@ module Setup
   class Observer < Event
     include TriggersFormatter
 
-    BuildInDataType.regist(self).referenced_by(:namespace, :name).including(:data_type)
+    BuildInDataType.regist(self).referenced_by(:namespace, :name)
 
-    belongs_to :data_type, class_name: Setup::DataType.to_s, inverse_of: :events
+    belongs_to :data_type, class_name: Setup::DataType.to_s, inverse_of: nil
     belongs_to :trigger_evaluator, class_name: Setup::Algorithm.to_s, inverse_of: nil
     field :triggers, type: String
 

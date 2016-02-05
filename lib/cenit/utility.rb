@@ -121,10 +121,17 @@ module Cenit
 
       def match?(obj, criteria)
         criteria.each do |property_name, value|
+          property_value =
+            case obj
+            when Hash
+              obj[property_name]
+            else
+              obj.try(property_name)
+            end
           if value.is_a?(Hash)
-            return false unless match?(obj.try(property_name), value)
+            return false unless match?(property_value, value)
           else
-            return false unless obj.try(property_name) == value
+            return false unless property_value == value
           end
         end
         true
@@ -136,7 +143,7 @@ module Cenit
         if orm_model = record.try(:orm_model)
           orm_model.for_each_association do |relation|
             if values = record.send(relation[:name])
-              stack << {record: record, attribute: relation[:name], referenced: !relation[:embedded]} if stack
+              stack << { record: record, attribute: relation[:name], referenced: !relation[:embedded] } if stack
               values = [values] unless values.is_a?(Enumerable)
               values.each { |value| for_each_node_starting_at(value, stack, visited, &block) unless visited.include?(value) }
               stack.pop if stack

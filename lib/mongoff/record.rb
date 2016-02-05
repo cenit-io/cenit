@@ -168,6 +168,7 @@ module Mongoff
     end
 
     def []=(field, value)
+      field = field.to_sym
       @changed = true
       @validated = false
       field = :_id if %w(id _id).include?(field.to_s)
@@ -185,7 +186,7 @@ module Mongoff
         end
         new_associates = []
         value.each do |attributes|
-          unless (attributes.delete('_destroy')).present?
+          unless attributes.delete('_destroy').to_b
             unless associated = associates[attributes['id'] || attributes['_id']]
               associated = association.klass.new
             end
@@ -220,6 +221,7 @@ module Mongoff
       if value.nil?
         @fields.delete(field)
         document.delete(attribute_key)
+        nil
       elsif attribute_key == field && (value.is_a?(Record) || value.class.respond_to?(:data_type))
         @fields[field] = value
         document[attribute_key] = value.attributes
@@ -230,6 +232,7 @@ module Mongoff
           value.each do |v|
             field_array << v
           end
+          field_array
         else
           if property_model && property_model.modelable?
             value = value.collect { |v| property_model.mongo_value(v, :id) }.select(&:present?)
@@ -243,6 +246,7 @@ module Mongoff
       else
         document[attribute_key ||= field] = value = orm_model.mongo_value(value, field, property_schema)
         document.delete(attribute_key.to_s) unless value || orm_model.requires?(field)
+        value
       end
     end
 

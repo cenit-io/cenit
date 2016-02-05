@@ -7,7 +7,10 @@ module Mongoff
       def initialize(model, document = nil, new_record = true)
         raise "Illegal file model #{model}" unless model.is_a?(FileModel)
         super
-        @custom_contentType = false
+      end
+
+      def to_s
+        filename
       end
 
       def chunk_model
@@ -32,16 +35,35 @@ module Mongoff
               data
             end
         end
-
       end
 
       def data=(string_or_readable)
         @new_data = string_or_readable
       end
 
+      attr_accessor :encoding
+
       def []=(field, value)
-        @custom_contentType = true if field == :contentType
-        super
+        if field.to_s.to_sym == :data
+          self.data = value
+        else
+          value = super
+          case :field
+          when :filename
+            @custom_filename = value
+          when :contentType
+            @custom_content_type = value
+          end
+        end
+      end
+
+      def decode(data)
+        case encoding
+        when  'base64', 'strict_base64', 'urlsafe_base64'
+          Base64.send(encoding.gsub('base', 'decode'), data)
+        else
+          data
+        end
       end
 
       def save(options = {})
@@ -54,7 +76,7 @@ module Mongoff
               if @new_data.is_a?(String)
                 temporary_file = Tempfile.new('file_')
                 temporary_file.binmode
-                temporary_file.write(@new_data)
+                temporary_file.write(decode(@new_data))
                 temporary_file.rewind
                 Cenit::Utility::Proxy.new(temporary_file, original_filename: filename || options[:filename] || options[:default_filename])
               else
@@ -65,6 +87,8 @@ module Mongoff
             else
               create_temporary_chunks(readable, options)
             end
+          else
+            errors.add(:data, "can't be nil") if new_record?
           end
         temporary_file.close if temporary_file
         [:filename, :contentType].each { |property| self[property] = options[property] unless self[property].present? }
@@ -97,12 +121,12 @@ module Mongoff
 
         reading(readable) do |io|
 
-          unless filename.present?
-            self[:filename] = options[:filename] || extract_basename(io) || options[:default_filename] || 'file'
+          unless @custom_filename
+            self[:filename] = options[:filename] || extract_basename(io) || self[:filename] || options[:default_filename] || 'file'
           end
-          if contentType = options[:contentType] || extract_content_type(self[:filename]) || options[:default_contentType]
-            self[:contentType] = contentType
-          end unless @custom_contentType
+          unless @custom_content_type
+            self[:contentType] = options[:contentType] || extract_content_type_from_io(io) || extract_content_type(self[:filename]) || options[:default_contentType]
+          end
 
           chunking(io, chunkSize) do |buf|
             md5 << buf
@@ -118,9 +142,9 @@ module Mongoff
             end
           end
 
-          self[:length] ||= length
+          self[:length] = length
           self[:uploadDate] ||= Time.now.utc
-          self[:md5] ||= md5.hexdigest
+          self[:md5] = md5.hexdigest
         end
 
         new_chunks_ids
@@ -168,42 +192,51 @@ module Mongoff
           :path,
           :to_path
         ].detect { |msg| object.respond_to?(msg) && file_name = object.send(msg) }
-      file_name ? clean(file_name).squeeze('/') : nil
-    end
-
-    def extract_content_type(filename)
-      if mime_type = MIME::Types.type_for(::File.basename(filename.to_s)).first
-        mime_type.to_s
-      else
-        self[:contentType]
+        file_name ? clean(file_name).squeeze('/') : nil
       end
-    end
 
-    def clean(path)
-      basename = ::File.basename(path.to_s)
-      CGI.unescape(basename).gsub(%r/[^0-9a-zA-Z_@)(~.-]/, '_').gsub(%r/_+/, '_')
-    end
+      def extract_content_type_from_io(io)
+        content_type= nil
+        [
+          :content_type,
+          :contentType
+        ].detect { |msg| object.respond_to?(msg) && content_type = object.send(msg) }
+        content_type ? clean(content_type).squeeze('/') : nil
+      end
 
-    def chunking(io, chunk_size, &block)
-      if io.method(:read).arity == 0
-        data = io.read
-        i = 0
-        loop do
-          offset = i * chunk_size
-          length = i + chunk_size < data.size ? chunk_size : data.size - offset
-
-          break if offset >= data.size
-
-          buf = data[offset, length]
-          block.call(buf)
-          i += 1
+      def extract_content_type(filename)
+        if mime_type = MIME::Types.type_for(::File.basename(filename.to_s)).first
+          mime_type.to_s
+        else
+          self[:contentType]
         end
-      else
-        while ((buf = io.read(chunk_size)) && buf.size > 0)
-          block.call(buf)
+      end
+
+      def clean(path)
+        basename = ::File.basename(path.to_s)
+        CGI.unescape(basename).gsub(%r/[^0-9a-zA-Z_@)(~.-]/, '_').gsub(%r/_+/, '_')
+      end
+
+      def chunking(io, chunk_size, &block)
+        if io.method(:read).arity == 0
+          data = io.read
+          i = 0
+          loop do
+            offset = i * chunk_size
+            length = i + chunk_size < data.size ? chunk_size : data.size - offset
+
+            break if offset >= data.size
+
+            buf = data[offset, length]
+            block.call(buf)
+            i += 1
+          end
+        else
+          while ((buf = io.read(chunk_size)) && buf.size > 0)
+            block.call(buf)
+          end
         end
       end
     end
   end
-end
 end
