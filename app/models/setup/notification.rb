@@ -42,9 +42,27 @@ module Setup
       "[#{type.to_s.capitalize}] #{message.length > 100 ? message.to(100) + '...' : message}"
     end
 
+    def color
+      Setup::Notification.type_color(type)
+    end
+
     class << self
+
       def type_enum
         [:error, :warning, :notice, :info]
+      end
+
+      def type_color(type)
+        case type
+        when :info
+          'green'
+        when :notice
+          'blue'
+        when :warning
+          'orange'
+        else
+          'red'
+        end
       end
 
       def create_from(exception)

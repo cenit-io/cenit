@@ -467,6 +467,29 @@ module RailsAdmin
       )
     end
 
+    def notifications_link
+      return nil unless account = Account.current
+      return nil unless abstract_model = RailsAdmin.config(Setup::Notification).abstract_model
+      return nil unless (index_action = RailsAdmin::Config::Actions.find(:index, controller: controller, abstract_model: abstract_model)).try(:authorized?)
+      link_to url_for(action: index_action.action_name, model_name: abstract_model.to_param, controller: 'rails_admin/main') do
+        html = '<i class="icon-bell"></i>'
+        counters = Hash.new { |h, k| h[k] = 0 }
+        scope =
+          if from_date = account.notifications_listed_at
+            Setup::Notification.where(:created_at.gte => from_date)
+          else
+            Setup::Notification.all
+          end
+        Setup::Notification.type_enum.each do |type|
+          if (count = scope.where(type: type).count) > 0
+            counters[Setup::Notification.type_color(type)] = count
+          end
+        end
+        counters.each { |color, count| html += "<span class=\"label\" style=\"background:#{color}\">#{count}</span>" }
+        html.html_safe
+      end
+    end
+
     def edit_user_link
       return nil unless _current_user.respond_to?(:email)
       return nil unless abstract_model = RailsAdmin.config(_current_user.class).abstract_model
