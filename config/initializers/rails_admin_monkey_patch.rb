@@ -102,7 +102,7 @@ module RailsAdmin
                 @auditing_adapter && @auditing_adapter.create_object(@object, @abstract_model, _current_user)
                 respond_to do |format|
                   format.html { redirect_to_on_success }
-                  format.js { render json: {id: @object.id.to_s, label: @model_config.with(object: @object).object_label} }
+                  format.js { render json: { id: @object.id.to_s, label: @model_config.with(object: @object).object_label } }
                 end
               else
                 handle_save_error
@@ -150,7 +150,7 @@ module RailsAdmin
                 @auditing_adapter && @auditing_adapter.update_object(@object, @abstract_model, _current_user, changes)
                 respond_to do |format|
                   format.html { redirect_to_on_success }
-                  format.js { render json: {id: @object.id.to_s, label: @model_config.with(object: @object).object_label} }
+                  format.js { render json: { id: @object.id.to_s, label: @model_config.with(object: @object).object_label } }
                 end
               else
                 handle_save_error :edit
@@ -192,6 +192,70 @@ module RailsAdmin
 
       class Association
 
+        register_instance_option :pretty_value do
+          v = bindings[:view]
+          #Patch
+          action = v.instance_variable_get(:@action)
+          values, total = show_values(limit = 40)
+          if action.is_a?(RailsAdmin::Config::Actions::Show) && !v.instance_variable_get(:@showing)
+            v.instance_variable_set(:@showing, true)
+            amc = RailsAdmin.config(association.klass)
+            am = amc.abstract_model
+            count = 0
+            fields = amc.list.with(controller: self, view: v, object: am.new).visible_fields
+            table = <<-HTML
+            <table class="table table-condensed table-striped">
+              <thead>
+                <tr>
+                  #{fields.collect { |field| "<th class=\"#{field.css_class} #{field.type_css_class}\">#{field.label}</th>" }.join}
+                  <th class="last shrink"></th>
+                <tr>
+              </thead>
+              <tbody>
+          #{values.collect do |associated|
+              if count < limit - 5 || limit >= total
+                count += 1
+                can_see = !am.embedded? && (show_action = v.action(:show, am, associated))
+                '<tr class="script_row">' +
+                  fields.collect do |field|
+                    field.bind(object: associated, view: v)
+                    "<td class=\"#{field.css_class} #{field.type_css_class}\" title=\"#{v.strip_tags(associated.to_s)}\">#{field.pretty_value}</td>"
+                  end.join +
+                  '<td class="last links"><ul class="inline list-inline">' +
+                  if can_see
+                    v.menu_for(:member, am, associated, true)
+                  else
+                    ''
+                  end +
+                  '</ul></td>' +
+                  '</tr>'
+              else
+                ''
+              end
+            end.join}
+              </tbody>
+            </table>
+            HTML
+            if multiple?
+              table += "<div class=\"clearfix total-count\">#{total} #{amc.label_plural}"
+              if total > count
+                table += " (showing #{count})"
+              end
+              table += '</div>'
+            end
+            v.instance_variable_set(:@showing, false)
+            table.html_safe
+          else
+            values.collect do |associated|
+              amc = polymorphic? ? RailsAdmin.config(associated) : associated_model_config # perf optimization for non-polymorphic associations
+              am = amc.abstract_model
+              wording = associated.send(amc.object_label_method)
+              can_see = !am.embedded? && (show_action = v.action(:show, am, associated))
+              can_see ? v.link_to(wording, v.url_for(action: show_action.action_name, model_name: am.to_param, id: associated.id), class: 'pjax') : ERB::Util.html_escape(wording)
+            end.to_sentence.html_safe
+          end
+        end
+
         def value
           #Patch
           if (v = bindings[:object].send(association.name)).is_a?(Enumerable)
@@ -199,6 +263,22 @@ module RailsAdmin
           else
             v
           end
+        end
+
+        def show_values(limit = 10)
+          if v = bindings[:object].send(association.name)
+            if v.is_a?(Enumerable)
+              total = v.count
+              v = v.limit(limit) rescue v
+            else
+              v = [v]
+              total = 1
+            end
+          else
+            v = []
+            total = 0
+          end
+          [v, total]
         end
       end
     end
@@ -227,7 +307,7 @@ module RailsAdmin
             Config.remove_model(model)
             if m = all.detect { |m| m.model_name.eql?(model.to_s) }
               all.delete(m)
-              puts "#{self.to_s}: model #{model.schema_name rescue model.to_s} removed!"
+              puts " #{self.to_s}: model #{model.schema_name rescue model.to_s} removed!"
             else
               puts "#{self.to_s}: model #{model.schema_name rescue model.to_s} is not present to be removed!"
             end
@@ -265,9 +345,9 @@ module RailsAdmin
           schema = model.schema
           model_data_type = data_type.model.eql?(model) ? data_type : nil
           title = (model_data_type && model_data_type.title) || model.title
-          {navigation_label: nil,
-           visible: false,
-           label: title}.each do |option, value|
+          { navigation_label: nil,
+            visible: false,
+            label: title }.each do |option, value|
             if model_data_type && model_data_type.respond_to?(option)
               value = model_data_type.send(option)
             end
@@ -276,7 +356,7 @@ module RailsAdmin
             end
           end
           if properties = schema['properties']
-            properties['created_at'] = properties['updated_at'] = {'type' => 'string', 'format' => 'date-time', 'visible' => false}
+            properties['created_at'] = properties['updated_at'] = { 'type' => 'string', 'format' => 'date-time', 'visible' => false }
             properties.each do |property, property_schema|
               if field =
                 if (property_model = model.property_model(property)).is_a?(Mongoff::Model) &&
@@ -291,7 +371,7 @@ module RailsAdmin
                 end
                 property_schema = data_type.merge_schema(property_schema)
                 visible_ok = false
-                {label: 'title', help: 'description', visible: 'visible'}.each do |option, key|
+                { label: 'title', help: 'description', visible: 'visible' }.each do |option, key|
                   unless (value = property_schema[key]).nil?
                     field.register_instance_option option do
                       value
@@ -312,7 +392,7 @@ module RailsAdmin
                     'form_field'
                   end
                   field.register_instance_option :html_attributes do
-                    {size: 50}
+                    { size: 50 }
                   end
                 end
               end
@@ -346,9 +426,9 @@ module RailsAdmin
                 end
                 # referenced relations must be reset if a referenced relation reflects back
                 referenced_to_reset = []
-                {[:belongs_to] => [:has_one, :has_many],
-                 [:has_one, :has_many] => [:belongs_to],
-                 [:has_and_belongs_to_many] => [:has_and_belongs_to_many]}.each do |rks, rkbacks|
+                { [:belongs_to] => [:has_one, :has_many],
+                  [:has_one, :has_many] => [:belongs_to],
+                  [:has_and_belongs_to_many] => [:has_and_belongs_to_many] }.each do |rks, rkbacks|
                   rks.each do |rk|
                     model.reflect_on_all_associations(rk).each do |r|
                       rkbacks.each do |rkback|
@@ -367,6 +447,7 @@ module RailsAdmin
           end
         end
       end
+
     end
   end
 
@@ -379,11 +460,11 @@ module RailsAdmin
       action = RailsAdmin::Config::Actions.find(action.to_sym) if action.is_a?(Symbol) || action.is_a?(String)
 
       capitalize_first_letter I18n.t(
-                                "admin.actions.#{action.i18n_key}.#{label}",
-                                model_label: model_config && model_config.contextualized_label(label),
-                                model_label_plural: model_config && model_config.contextualized_label_plural(label),
-                                object_label: model_config && object.try(model_config.object_label_method),
-                              )
+        "admin.actions.#{action.i18n_key}.#{label}",
+        model_label: model_config && model_config.contextualized_label(label),
+        model_label_plural: model_config && model_config.contextualized_label_plural(label),
+        object_label: model_config && object.try(model_config.object_label_method),
+      )
     end
 
     def edit_user_link
