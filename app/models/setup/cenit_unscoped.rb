@@ -1,4 +1,3 @@
-
 require 'mongoid/cenit_extension'
 
 module Setup
@@ -12,6 +11,10 @@ module Setup
 
     included do
       Setup::Models.regist(self)
+
+      index created_at: -1
+
+      default_scope -> { desc(:created_at) }
     end
 
     def share_hash

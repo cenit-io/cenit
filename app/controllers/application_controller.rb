@@ -60,6 +60,9 @@ class ApplicationController < ActionController::Base
     Account.current = current_user.account if signed_in?
     yield
   ensure
+    if account = Account.current
+      account.save
+    end
     Account.current = nil
   end
 

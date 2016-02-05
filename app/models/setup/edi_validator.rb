@@ -13,7 +13,7 @@ module Setup
     # field :field_separator, type: String
     # field :segment_separator, type: String
 
-    validates_presence_of :schema
+    validates_presence_of :schema_data_type
 
     def content_type
       self[:content_type]
