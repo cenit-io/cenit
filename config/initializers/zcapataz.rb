@@ -9,7 +9,10 @@ Capataz.config do
   allowed_constants Psych, JSON, URI, File, Array, Hash, Nokogiri, Nokogiri::XML,Nokogiri::XML::Builder, Time, Base64, Digest, Digest::MD5,
                     SecureRandom, Setup, Setup::DataType, Setup::Library, Setup::Schema, Setup::SchemaDataType, OpenSSL, OpenSSL::PKey, OpenSSL::PKey::RSA,
                     OpenSSL::Digest, OpenSSL::HMAC, Setup::Task, Setup::Task::RUNNING_STATUS, Setup::Task::NOT_RUNNING_STATUS, Setup::Webhook, Setup::Algorithm,
-                    Xmldsig, Xmldsig::SignedDocument,Zip, Zip::OutputStream, Zip::InputStream, StringIO, MIME::Mail, MIME::Text, MIME::Multipart::Mixed
+                    Xmldsig, Xmldsig::SignedDocument,Zip, Zip::OutputStream, Zip::InputStream, StringIO, MIME::Mail, MIME::Text, MIME::Multipart::Mixed,
+                    Spreadsheet, Spreadsheet::Workbook
+
+  allow_on Spreadsheet::Workbook, [:new_workbook]
 
   allow_on MIME::Multipart::Mixed, [:new_message]
 
