@@ -12,6 +12,7 @@ module Setup
     mount_uploader :attachment, AccountUploader
     belongs_to :task, class_name: Setup::Task.to_s, inverse_of: :notifications
 
+    default_scope -> { desc(:created_at) }
 
     validates_presence_of :type, :message
     validates_inclusion_of :type, in: ->(n) { n.type_enum }
