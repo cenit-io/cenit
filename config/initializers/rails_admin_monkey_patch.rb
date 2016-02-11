@@ -511,15 +511,18 @@ module RailsAdmin
         Setup::DataType.where(show_navigation_link: true, model_loaded: false).collect { |data_type| RailsAdmin.config(data_type.records_model) }
       node_model_names = nodes_stack.collect { |c| c.abstract_model.model_name }
 
+      i = -1
       nodes_stack.group_by(&:navigation_label).collect do |navigation_label, nodes|
         nodes = nodes.select { |n| n.parent.nil? || !n.parent.to_s.in?(node_model_names) }
         li_stack = navigation nodes_stack, nodes
 
         label = navigation_label || t('admin.misc.navigation')
 
-        %(<li class='dropdown-header'>#{capitalize_first_letter label}</li>#{li_stack}) if li_stack.present?
+        i += 1
+        %(<div class='panel panel-default'><div class='panel-heading'><a data-toggle='collapse' data-parent='#main-accordion' href='#main-collapse#{i}' class='panel-title collapse in'>#{capitalize_first_letter label}</a></div><div id='main-collapse#{i}' class='nav nav-pills nav-stacked panel-collapse collapse'>#{li_stack}</div></div>) if li_stack.present?
       end.join.html_safe
     end
+
   end
 
   class MainController

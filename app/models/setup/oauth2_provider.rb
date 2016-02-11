@@ -2,7 +2,7 @@ module Setup
   class Oauth2Provider < Setup::BaseOauthProvider
     include CenitUnscoped
 
-    BuildInDataType.regist(self).referenced_by(:namespace, :name).excluding(:shared)
+    BuildInDataType.regist(self).referenced_by(:namespace, :name).excluding(:shared, :tenant, :clients)
 
     field :scope_separator, type: String
 
@@ -27,7 +27,7 @@ module Setup
     end
 
     def refresh_token_strategy_enum
-      ['Google v4', 'custom', 'none']
+      ['Google v4', 'custom', 'default','none']
     end
 
     def refresh_token(authorization)
@@ -50,10 +50,10 @@ module Setup
       end
     end
 
-    def google_v4_refresh_token(authorization)
+    def default_refresh_token(authorization)
       unless authorization.authorized_at + authorization.token_span > Time.now - 60
         fail "Missing client configuration" unless authorization.client
-        http_response = HTTMultiParty.post('https://www.googleapis.com/oauth2/v4/token',
+        http_response = HTTMultiParty.post(authorization.provider.token_endpoint,
                                            headers: { 'Content-Type' => 'application/x-www-form-urlencoded' },
                                            body: {
                                              grant_type: :refresh_token,
@@ -61,6 +61,32 @@ module Setup
                                              client_id: authorization.client.attributes[:identifier],
                                              client_secret: authorization.client.attributes[:secret]
                                            }.to_param)
+        body = JSON.parse(http_response.body)
+        if http_response.code == 200
+          authorization.authorized_at = Time.now
+          authorization.token_type = body['token_type']
+          authorization.access_token = body['access_token']
+          authorization.token_span = body['expires_in']
+          authorization.save
+        else
+          fail "(response code #{http_response.code} - #{body['error']}) #{body['error_description']}"
+        end
+      end
+    rescue Exception => ex
+      fail "Error refreshing token for #{authorization.custom_title}: #{ex.message}"
+    end
+
+    def google_v4_refresh_token(authorization)
+      unless authorization.authorized_at + authorization.token_span > Time.now - 60
+        fail "Missing client configuration" unless authorization.client
+        http_response = HTTMultiParty.post('https://www.googleapis.com/oauth2/v4/token',
+                                           headers: { 'Content-Type' => 'application/x-www-form-urlencoded' },
+                                           body: {
+                                                      grant_type: :refresh_token,
+                                                      refresh_token: authorization.refresh_token,
+                                                      client_id: authorization.client.attributes[:identifier],
+                                                      client_secret: authorization.client.attributes[:secret]
+                                                    }.to_param)
         body = JSON.parse(http_response.body)
         if http_response.code == 200
           authorization.authorized_at = Time.now

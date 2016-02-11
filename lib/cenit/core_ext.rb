@@ -59,6 +59,17 @@ class StringIO
   end
 end
 
+module Spreadsheet
+  class Workbook
+    class << self
+      def new_workbook(*args)
+        args = args.collect { |a| a.capataz_proxy? ? a.capataz_slave : a }
+        new(*args)
+      end
+    end
+  end
+end
+
 module Nokogiri
   module XML
     class Builder
