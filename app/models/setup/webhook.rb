@@ -82,7 +82,7 @@ module Setup
               common_submitter_body
             end
           submitter_body = '' if body_argument && submitter_body.nil?
-          if [Hash, Array, String].include?(submitter_body.class)
+          if [Hash, Array, String, NilClass].include?(submitter_body.class)
             case submitter_body
             when Hash
               if options[:contentType] == 'application/json'
@@ -156,9 +156,8 @@ module Setup
 
               msg = { headers: headers }
               msg[:body] = body if body
-              msg[:timeout] = 120 if true #custom_timeout
-              http_response = HTTMultiParty.send(method, url, msg)
-              last_response = http_response.body
+              msg[:timeout] = 240 #TODO Custom timeout request
+              msg[:verify] = false #TODO Https varify option by Connection
 
               Setup::Notification.create_with(message: { response_code: http_response.code }.to_json,
                                               type: (200...299).include?(http_response.code) ? :notice : :error,

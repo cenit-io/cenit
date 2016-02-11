@@ -652,7 +652,7 @@ RailsAdmin.config do |config|
       #field :updater
     end
 
-    fields :namespace, :name, :url, :key, :token, :authorization, :parameters, :headers, :template_parameters
+    fields :namespace, :name, :url, :key, :token, :authorization, :authorization_handler, :parameters, :headers, :template_parameters
   end
 
   config.model Setup::Parameter do
@@ -773,7 +773,7 @@ RailsAdmin.config do |config|
       field :updated_at
       #field :updater
     end
-    fields :namespace, :name, :path, :method, :description, :authorization, :parameters, :headers, :template_parameters
+    fields :namespace, :name, :path, :method, :description, :authorization, :authorization_handler, :parameters, :headers, :template_parameters
   end
 
   config.model Setup::Task do
