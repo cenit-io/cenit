@@ -9,7 +9,7 @@ module Setup
 
     def check_indices
       if schema_changed?
-        unique_properties = records_model.unique_properties
+        unique_properties  = records_model.unique_properties
         indexed_properties = []
         begin
           records_model.collection.indexes.each do |index|
@@ -36,8 +36,13 @@ module Setup
 
     def read_attribute(name)
       value = super
-      if name.to_s == 'schema' && value.is_a?(String)
-        attributes['schema'] = value = JSON.parse(value) rescue value
+      if name.to_s == 'schema'
+        case value
+        when String
+          attributes['schema'] = value = JSON.parse(value) rescue value
+        when nil
+          attributes['schema'] = value = {}
+        end
       end
       value
     end
@@ -67,7 +72,7 @@ module Setup
           json_schema, _ = validate_schema
           fail Exception, 'defines invalid property name: _type' if object_schema?(json_schema) &&json_schema['properties']['_type']
           self.schema = check_id_property(JSON.parse(json_schema.to_json))
-          self.title = json_schema['title'] || self.name if title.blank?
+          self.title  = json_schema['title'] || self.name if title.blank?
         rescue Exception => ex
           errors.add(:schema, ex.message)
         end
@@ -169,13 +174,13 @@ module Setup
       #raise Exception.new("property name '#{property_name}' is invalid") unless property_name =~ /\A[a-z]+(_|([0-9]|[a-z])+)*\Z/
     end
 
-    RJSON_MAP={ 'string' => 'String',
-                'integer' => 'Integer',
-                'number' => 'Float',
-                'array' => 'Array',
-                'boolean' => 'Boolean',
-                'date' => 'Date',
-                'time' => 'Time',
+    RJSON_MAP={ 'string'    => 'String',
+                'integer'   => 'Integer',
+                'number'    => 'Float',
+                'array'     => 'Array',
+                'boolean'   => 'Boolean',
+                'date'      => 'Date',
+                'time'      => 'Time',
                 'date-time' => 'DateTime' }
 
     MONGO_TYPES= %w{Array BigDecimal Boolean Date DateTime Float Hash Integer Range String Symbol Time}
@@ -185,9 +190,9 @@ module Setup
     end
 
     def reflect_constant(name, value = nil, parent = nil, base_class = Object)
-      model_name = (parent ? "#{parent.to_s}::" : '') + name
+      model_name    = (parent ? "#{parent.to_s}::" : '') + name
       do_not_create = value == :do_not_create
-      tokens = name.split('::')
+      tokens        = name.split('::')
       constant_name = tokens.pop
 
       base_class ||= Object
@@ -212,10 +217,10 @@ module Setup
       else
         return [nil, false] if do_not_create
         constant = Class.new(base_class) unless value && constant = Mongoff::Model.for(data_type: self,
-                                                                                       name: name,
-                                                                                       parent: parent,
-                                                                                       schema: parent ? value : nil,
-                                                                                       cache: false,
+                                                                                       name:      name,
+                                                                                       parent:    parent,
+                                                                                       schema:    parent ? value : nil,
+                                                                                       cache:     false,
                                                                                        modelable: false)
         parent.const_set(constant_name, constant)
         created = true
@@ -253,7 +258,7 @@ module Setup
 
       schema = merge_schema!(schema, expand_extends: false)
 
-      base_ref = nil
+      base_ref   = nil
       base_model = nil
       if (base_schema = schema.delete('extends')) && base_schema.is_a?(String)
         base_ref = base_schema
@@ -271,10 +276,10 @@ module Setup
           schema = merge_schema!(schema, only_overriders: true, extends: base_ref)
         else
           if schema['type'] == 'object' && base_schema['type'] != 'object'
-            schema['properties'] ||= {}
-            value_schema = schema['properties']['value'] || {}
-            value_schema = base_schema.deep_merge(value_schema)
-            schema['properties']['value'] = value_schema.merge('title' => 'Value', 'xml' => { 'content' => true })
+            schema['properties']                       ||= {}
+            value_schema                               = schema['properties']['value'] || {}
+            value_schema                               = base_schema.deep_merge(value_schema)
+            schema['properties']['value']              = value_schema.merge('title' => 'Value', 'xml' => { 'content' => true })
             (schema['xml'] ||= {})['content_property'] = 'value'
           else
             schema = base_schema.deep_merge(schema) { |key, val1, val2| Cenit::Utility.array_hash_merge(val1, val2) }
@@ -299,10 +304,10 @@ module Setup
         parse_schema(report, model_name, ref_schema, root, klass, :embedded, path)
       end if embedded_refs
 
-      nested = []
-      enums = {}
+      nested      = []
+      enums       = {}
       validations = []
-      required = schema['required'] || []
+      required    = schema['required'] || []
 
       model_name = klass.model_access_name
 
@@ -332,9 +337,9 @@ module Setup
           raise Exception.new("property '#{property_name}' definition is invalid") unless property_desc.is_a?(Hash)
           check_property_name(property_name)
 
-          v = nil
-          still_trying = true
-          referenced = property_desc['referenced']
+          v             = nil
+          still_trying  = true
+          referenced    = property_desc['referenced']
 
           property_desc = merge_schema(property_desc, expand_extends: false) if property_desc['type'] || property_desc['properties']
 
@@ -454,28 +459,28 @@ module Setup
         klass.instance_variable_set(:@mongoff_models, mongoff_models = {})
       end
       property_desc = merge_schema(property_desc, expand_extends: false)
-      model_name = klass.model_access_name
-      still_trying = true
+      model_name    = klass.model_access_name
+      still_trying  = true
 
       while still_trying
-        still_trying = false
+        still_trying  = false
         property_type = property_desc['type']
         if property_type == 'string' && %w{date time date-time}.include?(property_desc['format'])
           property_type = property_desc.delete('format')
         end
         property_type_backup = property_type = RJSON_MAP[property_type] if RJSON_MAP[property_type]
-        v =nil
-        type_model = nil
-        type_model_created = false
+        v                    =nil
+        type_model           = nil
+        type_model_created   = false
         if property_type.eql?('Array') && (items_desc = property_desc['items']).is_a?(Hash)
           items_desc = merge_schema(items_desc, expand_extends: false) if items_desc['type'] || items_desc['properties']
-          r = nil
-          ir = ''
+          r          = nil
+          ir         = ''
           if (ref = items_desc['$ref']).is_a?(String) && (!ref.start_with?('#') && property_desc['referenced'])
             if (type_model = (find_or_load_model(report, property_type = ref) || find_constant(ref))).is_a?(Class)
               property_type = type_model.model_access_name
-              r = :has_and_belongs_to_many
-              ir = ', inverse_of: nil'
+              r             = :has_and_belongs_to_many
+              ir            = ', inverse_of: nil'
               type_model.affects_to(klass)
             elsif type_model.nil?
               raise Exception.new("contains an unresolved reference: '#{ref}'")
@@ -485,10 +490,10 @@ module Setup
             if ref.is_a?(String)
               raise Exception.new("referencing embedded reference #{ref}") if property_desc['referenced']
               property_type = ref.start_with?('#') ? check_embedded_ref(ref, nil, root.to_s).singularize : ref
-              type_model = find_or_load_model(report, property_type) || find_constant(property_type)
+              type_model    = find_or_load_model(report, property_type) || find_constant(property_type)
               property_type = type_model && type_model.model_access_name
             else
-              property_type = (type_model = parse_schema(report, property_name.camelize.singularize, property_desc['items'], root, klass, :embedded, klass.schema_path + "/properties/#{property_name}/items")).model_access_name
+              property_type      = (type_model = parse_schema(report, property_name.camelize.singularize, property_desc['items'], root, klass, :embedded, klass.schema_path + "/properties/#{property_name}/items")).model_access_name
               type_model_created = true
             end
             if type_model.is_a?(Class)
@@ -530,10 +535,10 @@ module Setup
           end
           unless v
             mongoff_models[property_name] = Mongoff::Model.for(data_type: self,
-                                                               name: property_name.camelize,
-                                                               parent: klass,
-                                                               schema: property_desc,
-                                                               cache: false,
+                                                               name:      property_name.camelize,
+                                                               parent:    klass,
+                                                               schema:    property_desc,
+                                                               cache:     false,
                                                                modelable: false)
             if property_type
               v = "field :#{property_name}, type: #{property_type}"

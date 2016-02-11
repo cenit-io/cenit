@@ -23,9 +23,9 @@ Cenit::Application.routes.draw do
       post '/auth/ping', to: 'api#auth'
       get  '/public/:model', to: 'api#index', library: 'setup'
       get  '/public/:model/:id(.:format)', to: 'api#show', library: 'setup', defaults: { format: 'json' }, constraints: {format: /(json)/}
-      get  '/public/:model/:id(.:format)', to: 'api#raml_zip', library: 'setup', constraints: {format: /(zip)/}
-      get  '/public/:model/:id/*path(.:format)', to: 'api#raml', library: 'setup', defaults: { format: 'raml' }
-      #get  '/public/:model/:api_name/:api_version/*path(.:format)', to: 'api#raml', library: 'setup', defaults: { format: 'raml' }, :constraints => {:api_version => /[.]+/}
+      # get  '/public/:model/:id(.:format)', to: 'api#raml_zip', library: 'setup', constraints: {format: /(zip)/}
+      # get  '/public/:model/:id/*path(.:format)', to: 'api#raml', library: 'setup', defaults: { format: 'raml' }
+      # get  '/public/:model/:api_name/:api_version/*path(.:format)', to: 'api#raml', library: 'setup', defaults: { format: 'raml' }, :constraints => {:api_version => /[.]+/}
       post '/setup/account', to: 'api#new_account'
       post '/:library/push', to: 'api#push'
       post '/:library/:model', to: 'api#new'
