@@ -10,10 +10,10 @@ module Setup
 
     validates_presence_of :username, :password
 
-    auth_template_parameters basic_auth: :basic_auth
+    auth_template_parameters basic_auth: :build_auth_header
 
     def build_auth_header(template_parameters)
-      'basic ' + ::Base64.encode64("#{auth.username}:#{auth.password}").gsub("\n", '')
+      'basic ' + ::Base64.encode64("#{username}:#{password}").gsub("\n", '')
     end
   end
 end
