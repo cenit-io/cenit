@@ -95,13 +95,13 @@ module Cenit
         end if references.present?
 
         for_each_node_starting_at(record, stack = []) do |obj|
-          if to_bind = references[obj]
+          if (to_bind = references[obj])
             to_bind.each do |property_name, property_binds|
               is_array = property_binds.is_a?(Array) ? true : (property_binds = [property_binds]; false)
               property_binds.each do |property_bind|
-                if value = Cenit::Utility.find_record(obj.orm_model.property_model(property_name).all, property_bind[:criteria])
+                if (value = Cenit::Utility.find_record(property_bind[:criteria], obj.orm_model.property_model(property_name)))
                   if is_array
-                    if !(association = obj.send(property_name)).include?(value)
+                    unless (association = obj.send(property_name)).include?(value)
                       association << value
                     end
                   else
@@ -192,16 +192,22 @@ module Cenit
         true
       end
 
-      def find_record(scope, conditions)
-        match_conditions = {}
-        conditions.each do |key, value|
-          if value.is_a?(Hash)
-            match_conditions[key] = value
-          else
-            scope = scope.where(key => value)
+      def find_record(conditions, *scopes)
+        scopes.each do |scope|
+          match_conditions = {}
+          conditions.each do |key, value|
+            if value.is_a?(Hash)
+              match_conditions[key] = value
+            elsif scope.respond_to?(:where)
+              scope = scope.where(key => value)
+            else
+              scope = scope.select { |record| record[key] == value }
+            end
           end
+          record = scope.detect { |record| match?(record, match_conditions) }
+          return record if record
         end
-        scope.detect { |record| match?(record, match_conditions) }
+        nil
       end
 
       def deep_remove(hash, key)
