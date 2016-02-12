@@ -652,7 +652,7 @@ RailsAdmin.config do |config|
       #field :updater
     end
 
-    fields :namespace, :name, :url, :key, :token, :authorization
+    fields :namespace, :name, :url, :key, :token, :authorization, :authorization_handler, :parameters, :headers, :template_parameters
   end
 
   config.model Setup::Parameter do
@@ -773,7 +773,7 @@ RailsAdmin.config do |config|
       field :updated_at
       #field :updater
     end
-    fields :namespace, :name, :path, :method, :description, :authorization
+    fields :namespace, :name, :path, :method, :description, :authorization, :authorization_handler, :parameters, :headers, :template_parameters
   end
 
   config.model Setup::Task do
@@ -1713,30 +1713,30 @@ RailsAdmin.config do |config|
     visible false
   end
 
-  config.model Setup::Integration do
-    edit do
-      field :name
-      field :pull_connection
-      field :pull_event do
-        inline_add { false }
-        inline_edit { false }
-      end
-      field :data_type
-      field :receiver_connection
-    end
-    show do
-      field :name
-      field :pull_connection
-      field :pull_flow
-      field :pull_event
-      field :pull_translator
-      field :data_type
-      field :send_translator
-      field :send_flow
-      field :receiver_connection
-    end
-    fields :name, :pull_connection, :pull_flow, :pull_event, :pull_translator, :data_type, :send_translator, :send_flow, :receiver_connection
-  end
+  # config.model Setup::Integration do
+  #   edit do
+  #     field :name
+  #     field :pull_connection
+  #     field :pull_event do
+  #       inline_add { false }
+  #       inline_edit { false }
+  #     end
+  #     field :data_type
+  #     field :receiver_connection
+  #   end
+  #   show do
+  #     field :name
+  #     field :pull_connection
+  #     field :pull_flow
+  #     field :pull_event
+  #     field :pull_translator
+  #     field :data_type
+  #     field :send_translator
+  #     field :send_flow
+  #     field :receiver_connection
+  #   end
+  #   fields :name, :pull_connection, :pull_flow, :pull_event, :pull_translator, :data_type, :send_translator, :send_flow, :receiver_connection
+  # end
 
   config.model Setup::AlgorithmParameter do
     fields :name, :description
@@ -2287,39 +2287,6 @@ RailsAdmin.config do |config|
     end
 
     fields :namespace, :name, :authorized, :username, :password
-  end
-
-  config.model Setup::Raml do
-    configure :raml_references do
-      visible { User.current.admin? }
-    end
-
-    show do
-      field :api_name
-      field :api_version
-      field :repo
-      field :raml_doc
-      field :raml_references
-    end
-
-    edit do
-      field :api_name
-      field :api_version
-      field :repo
-      field :raml_doc
-      field :raml_references
-    end
-
-    fields :api_name, :api_version, :repo, :raml_doc, :raml_references
-  end
-
-  config.model Setup::RamlReference do
-    object_label_method { :to_s }
-    edit do
-      field :path
-      field :content
-    end
-    fields :path, :content
   end
 
   config.model Setup::Storage do

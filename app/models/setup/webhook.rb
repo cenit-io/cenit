@@ -156,7 +156,8 @@ module Setup
 
               msg = { headers: headers }
               msg[:body] = body if body
-              msg[:timeout] = 120 if true #custom_timeout
+              msg[:timeout] = 240 #TODO Custom timeout request
+              msg[:verify] = false #TODO Https varify option by Connection
               http_response = HTTMultiParty.send(method, url, msg)
               last_response = http_response.body
 

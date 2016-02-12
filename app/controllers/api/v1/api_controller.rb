@@ -1,7 +1,7 @@
 module Api::V1
   class ApiController < ApplicationController
     before_action :authorize_account, :save_request_data, except: [:new_account, :cors_check, :auth]
-    before_action :find_item, only: [:show, :destroy, :pull, :run, :raml_zip, :raml]
+    before_action :find_item, only: [:show, :destroy, :pull, :run]
     before_action :authorize_action, except: [:auth, :new_account, :cors_check, :push]
     rescue_from Exception, :with => :exception_handler
     respond_to :json
@@ -50,25 +50,6 @@ module Api::V1
         # render json: @items.map { |item| {((model = (hash = item.inspect_json(include_id: true)).delete('_type')) ? model.downcase : @model) => hash} }
       else
         render json: { error: 'no model found' }, status: :not_found
-      end
-    end
-
-    def raml
-      if (@item && @path && @path.downcase == "root.raml")
-        render text: @item.to_hash['raml_doc']
-      elsif @path
-        render text: @item.ref_hash[@path]
-      else
-        render json: { error: 'No model found' }, status: :not_found
-      end
-    end
-
-    def raml_zip
-      if (@item)
-        zip = @item.to_zip()
-        send_data(zip[:content], :type => 'application/zip', :filename => zip[:filename])
-      else
-        render json: { error: 'No model found' }, status: :not_found
       end
     end
 
@@ -277,10 +258,6 @@ module Api::V1
           case @_action_name
           when 'push'
             get_data_type(@model).is_a?(Setup::FileDataType) ? :upload_file : :new
-          when 'raml'
-            :show
-          when 'raml_zip'
-            :show
           else
             @_action_name.to_sym
           end

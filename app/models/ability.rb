@@ -33,8 +33,6 @@ class Ability
               Setup::SharedName,
               CenitToken,
               Script,
-              Setup::Raml,
-              Setup::RamlReference,
               Setup::DelayedMessage,
               Setup::SystemNotification
             ]
@@ -99,7 +97,7 @@ class Ability
       can :manage, Mongoff::Record
 
     else
-      can [:index, :show], [Setup::SharedCollection, Setup::Raml, Setup::RamlReference]
+      can [:index, :show], [Setup::SharedCollection]
     end
 
   end

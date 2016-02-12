@@ -9,7 +9,10 @@ Capataz.config do
   allowed_constants Psych, JSON, URI, File, Array, Hash, Nokogiri, Nokogiri::XML,Nokogiri::XML::Builder, Time, Base64, Digest, Digest::MD5,
                     SecureRandom, Setup, Setup::DataType, Setup::Library, Setup::Schema, Setup::SchemaDataType, OpenSSL, OpenSSL::PKey, OpenSSL::PKey::RSA,
                     OpenSSL::Digest, OpenSSL::HMAC, Setup::Task, Setup::Task::RUNNING_STATUS, Setup::Task::NOT_RUNNING_STATUS, Setup::Webhook, Setup::Algorithm,
-                    Xmldsig, Xmldsig::SignedDocument,Zip, Zip::OutputStream, Zip::InputStream, StringIO, MIME::Mail, MIME::Text, MIME::Multipart::Mixed
+                    Xmldsig, Xmldsig::SignedDocument,Zip, Zip::OutputStream, Zip::InputStream, StringIO, MIME::Mail, MIME::Text, MIME::Multipart::Mixed,
+                    Spreadsheet, Spreadsheet::Workbook
+
+  allow_on Spreadsheet::Workbook, [:new_workbook]
 
   allow_on MIME::Multipart::Mixed, [:new_message]
 
@@ -45,7 +48,7 @@ Capataz.config do
 
   allow_for [Mongoff::Model], [:where, :all, :data_type]
 
-  allow_for [Setup::Raml],  [:id, :name, :slug, :to_json, :to_edi, :to_hash, :to_xml, :to_params, :records_model, :ref_hash, :raml_parse, :build_hash, :map_collection]
+  # allow_for [Setup::Raml],  [:id, :name, :slug, :to_json, :to_edi, :to_hash, :to_xml, :to_params, :records_model, :ref_hash, :raml_parse, :build_hash, :map_collection]
 
   allow_for [Class], [:where, :all, :new_sign, :digest, :now, :data_type, :hexdigest, :id, :new_rsa, :new_document, :sign, :write_buffer, :put_next_entry, :write, :encode64, :decode64, :urlsafe_encode64, :new_io, :get_input_stream, :open]
 
