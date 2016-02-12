@@ -33,7 +33,7 @@ class ApplicationController < ActionController::Base
   protected
 
   def headers_for_iframe
-    response.headers.delete('X-Frame-Options')
+    response.headers['X-Frame-Options'] = 'ALLOWALL'
   end
 
   def do_optimize_data_type_handling
