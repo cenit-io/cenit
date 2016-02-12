@@ -28,13 +28,7 @@ class ApplicationController < ActionController::Base
 
   after_action :clean_thread_cache
 
-  after_filter :headers_for_iframe
-
   protected
-
-  def headers_for_iframe
-    response.headers['X-Frame-Options'] = 'ALLOWALL'
-  end
 
   def do_optimize_data_type_handling
     Setup::DataTypeOptimizer.new_optimizer
