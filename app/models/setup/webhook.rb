@@ -82,7 +82,7 @@ module Setup
               common_submitter_body
             end
           submitter_body = '' if body_argument && submitter_body.nil?
-          if [Hash, Array, String].include?(submitter_body.class)
+          if [Hash, Array, String, NilClass].include?(submitter_body.class)
             case submitter_body
             when Hash
               if options[:contentType] == 'application/json'
