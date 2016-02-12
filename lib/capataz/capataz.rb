@@ -5,6 +5,14 @@ module Capataz
 
   class << self
 
+    def disable(*args)
+      @disable = args.first.present?
+    end
+
+    def disable?
+      @disable.present?
+    end
+
     def deny_declarations_of(*symbols)
       symbol_array_store(:denied_declarations, symbols)
     end
@@ -92,6 +100,7 @@ module Capataz
     end
 
     def rewrite(code, options = {})
+      return code if Capataz.disable?
       options ||= {}
       options[:halt_on_error] = true if options[:halt_on_error].nil?
       if locals = options[:locals]
