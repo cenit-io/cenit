@@ -1918,10 +1918,6 @@ RailsAdmin.config do |config|
       field :key
       field :authentication_token
       field :sign_in_count
-      field :current_sign_in_at
-      field :last_sign_in_at
-      field :current_sign_in_ip
-      field :last_sign_in_ip
     end
   end
 
@@ -2102,7 +2098,7 @@ RailsAdmin.config do |config|
 
   config.model Setup::Authorization do
     object_label_method { :custom_title }
-    fields :namespace, :name
+    fields :namespace, :name, :authorized
   end
 
   config.model Setup::OauthAuthorization do
@@ -2142,6 +2138,7 @@ RailsAdmin.config do |config|
     show do
       field :namespace
       field :name
+      field :authorized
       field :client
 
       field :access_token
@@ -2151,7 +2148,7 @@ RailsAdmin.config do |config|
       field :authorized_at
     end
 
-    fields :namespace, :name, :client
+    fields :namespace, :name, :authorized, :client
   end
 
   config.model Setup::Oauth2Authorization do
@@ -2204,6 +2201,7 @@ RailsAdmin.config do |config|
     show do
       field :namespace
       field :name
+      field :authorized
       field :client
       field :scopes
 
@@ -2214,7 +2212,7 @@ RailsAdmin.config do |config|
       field :refresh_token
     end
 
-    fields :namespace, :name, :client, :scopes
+    fields :namespace, :name, :authorized, :client, :scopes
   end
 
   config.model Setup::AwsAuthorization do
@@ -2283,11 +2281,12 @@ RailsAdmin.config do |config|
     show do
       field :namespace
       field :name
+      field :authorized
       field :username
       field :password
     end
 
-    fields :namespace, :name, :username, :password
+    fields :namespace, :name, :authorized, :username, :password
   end
 
   config.model Setup::Raml do
