@@ -154,20 +154,21 @@ module Edi
                   record.send("#{property_name}=", [])
                   association = record.send(property_name)
                 end
-                if property_value = json[name]
+                if (property_value = json[name])
                   property_value = [property_value] unless property_value.is_a?(Array)
                   persist = property_model && property_model.persistable?
                   property_value.each do |sub_value|
                     if persist && sub_value['_reference']
                       sub_value = Cenit::Utility.deep_remove(sub_value, '_reference')
-                      unless Cenit::Utility.find_record(association, sub_value)
-                        unless references = record.instance_variable_get(:@_references)
+                      unless Cenit::Utility.find_record(sub_value, association)
+                        unless (references = record.instance_variable_get(:@_references))
                           record.instance_variable_set(:@_references, references = {})
                         end
                         (references[property_name] ||= []) << { model: property_model, criteria: sub_value }
                       end
                     else
-                      if !association.include?(sub_value = do_parse_json(data_type, property_model, sub_value, options, items_schema, nil, nil, association))
+                      sub_value = do_parse_json(data_type, property_model, sub_value, options, items_schema, nil, nil, association)
+                      unless association.include?(sub_value)
                         association << sub_value
                       end
                     end
@@ -175,7 +176,7 @@ module Edi
                 end
               when 'object'
                 next unless updating || record.send(property_name).nil?
-                unless (property_value = json[name]).nil?
+                if (property_value = json[name])
                   if property_value.is_a?(Hash) && property_value['_reference']
                     record.send("#{property_name}=", nil)
                     property_value = Cenit::Utility.deep_remove(property_value, '_reference')
@@ -209,7 +210,7 @@ module Edi
         else # Simple content or array
           content_property = nil
           property_schema = nil
-          if properties = json_schema['properties']
+          if (properties = json_schema['properties'])
             if properties.size == 1
               content_property = properties.keys.first
               property_schema = data_type.merge_schema(properties.values.first)
@@ -236,14 +237,15 @@ module Edi
                 json.each do |sub_value|
                   if persist && sub_value['_reference']
                     sub_value = Cenit::Utility.deep_remove(sub_value, '_reference')
-                    unless Cenit::Utility.find_record(association, sub_value)
-                      unless references = record.instance_variable_get(:@_references)
+                    unless Cenit::Utility.find_record(sub_value, association)
+                      unless (references = record.instance_variable_get(:@_references))
                         record.instance_variable_set(:@_references, references = {})
                       end
                       (references[property_name] ||= []) << { model: property_model, criteria: sub_value }
                     end
                   else
-                    if !association.include?(sub_value = do_parse_json(data_type, property_model, sub_value, options, items_schema, nil, nil, association))
+                    sub_value = do_parse_json(data_type, property_model, sub_value, options, items_schema, nil, nil, association)
+                    unless association.include?(sub_value)
                       association << sub_value
                     end
                   end

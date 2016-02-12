@@ -467,9 +467,23 @@ module RailsAdmin
       )
     end
 
+    def authorizations_link
+      return nil unless (account = Account.current)
+      return nil unless (abstract_model = RailsAdmin.config(Setup::Authorization).abstract_model)
+      return nil unless (index_action = RailsAdmin::Config::Actions.find(:index, controller: controller, abstract_model: abstract_model)).try(:authorized?)
+      link_to url_for(action: index_action.action_name, model_name: abstract_model.to_param, controller: 'rails_admin/main') do
+        html =
+          <<-HTML
+            <i class="icon-check"></i>
+            <span class=\"label\" style=\"background:red;font-size:100%;margin-left:3px\">#{Setup::Authorization.where(authorized: false).count}</span>
+          HTML
+        html.html_safe
+      end
+    end
+
     def notifications_link
-      return nil unless account = Account.current
-      return nil unless abstract_model = RailsAdmin.config(Setup::Notification).abstract_model
+      return nil unless (account = Account.current)
+      return nil unless (abstract_model = RailsAdmin.config(Setup::Notification).abstract_model)
       return nil unless (index_action = RailsAdmin::Config::Actions.find(:index, controller: controller, abstract_model: abstract_model)).try(:authorized?)
       link_to url_for(action: index_action.action_name, model_name: abstract_model.to_param, controller: 'rails_admin/main') do
         html = '<i class="icon-bell"></i>'
@@ -485,7 +499,7 @@ module RailsAdmin
             counters[Setup::Notification.type_color(type)] = count
           end
         end
-        counters.each { |color, count| html += "<span class=\"label\" style=\"background:#{color}\">#{count}</span>" }
+        counters.each { |color, count| html += "<span class=\"label\" style=\"background:#{color};font-size:100%;margin-left:3px\">#{count}</span>" }
         html.html_safe
       end
     end

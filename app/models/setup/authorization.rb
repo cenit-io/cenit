@@ -8,6 +8,10 @@ module Setup
 
     BuildInDataType.regist(self).referenced_by(:namespace, :name)
 
+    field :authorized, type: Boolean
+
+    before_save { self.authorized = authorized?; errors.blank? }
+
     def authorized?
       fail NotImplementedError
     end
@@ -17,7 +21,7 @@ module Setup
       if symbol.to_s.start_with?('all_')
         suffix = symbol.to_s.from('all_'.length).singularize
         fields.each { |field| hashes << self.class.send('auth_' + field.pluralize) if field.end_with?(suffix) }
-      elsif field = CONFIG_FIELDS.detect { |field| "each_#{field}" == symbol.to_s.singularize }
+      elsif (field = CONFIG_FIELDS.detect { |field| "each_#{field}" == symbol.to_s.singularize })
         hashes << self.class.send('auth_' + field.pluralize)
       end if block_given?
       if hashes.present?

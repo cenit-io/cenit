@@ -107,12 +107,23 @@ module RailsAdmin
           field :data
         end
         list do
+          field :_id
           field :filename
           field :contentType
           field :uploadDate
           field :aliases
           field :metadata
           field :length
+        end
+        show do
+          field :_id
+          field :filename
+          field :contentType
+          field :uploadDate
+          field :aliases
+          field :metadata
+          field :length
+          field :md5
         end
       end
 

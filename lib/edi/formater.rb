@@ -40,7 +40,7 @@ module Edi
       element = record_to_xml_element(data_type = self.orm_model.data_type, self.orm_model.schema, self, xml_doc, nil, options, namespaces = {})
       namespaces.each do |ns, xmlns|
         if xmlns.empty?
-          element['xmlns'] = ns
+          element['xmlns'] = ns unless ns.blank?
         else
           element["xmlns:#{xmlns}"] = ns
         end

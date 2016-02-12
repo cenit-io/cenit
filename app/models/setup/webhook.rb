@@ -158,6 +158,8 @@ module Setup
               msg[:body] = body if body
               msg[:timeout] = 240 #TODO Custom timeout request
               msg[:verify] = false #TODO Https varify option by Connection
+              http_response = HTTMultiParty.send(method, url, msg)
+              last_response = http_response.body
 
               Setup::Notification.create_with(message: { response_code: http_response.code }.to_json,
                                               type: (200...299).include?(http_response.code) ? :notice : :error,
