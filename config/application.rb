@@ -69,7 +69,5 @@ module Cenit
         }
     end
 
-    config.action_dispatch.default_headers = config.action_dispatch.default_headers.merge('X-Frame-Options' => 'ALLOWALL')
-
   end
 end
