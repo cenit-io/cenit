@@ -686,7 +686,8 @@ module RailsAdmin
     def get_model
       #Patch
       @model_name = to_model_name(name = params[:model_name].to_s)
-      unless @abstract_model = RailsAdmin::AbstractModel.new(@model_name)
+      data_type = nil
+      unless (@abstract_model = RailsAdmin::AbstractModel.new(@model_name))
         if (slugs = name.to_s.split('~')).size == 2
           if (library = Setup::Library.where(slug: slugs[0]).first)
             data_type = Setup::DataType.where(library: library, slug: slugs[1]).first
@@ -708,6 +709,19 @@ module RailsAdmin
       fail(RailsAdmin::ModelNotFound) if @abstract_model.nil? || (@model_config = @abstract_model.config).excluded?
 
       @properties = @abstract_model.properties
+    end
+
+    def get_object
+      #Patch
+      if (@object = @abstract_model.get(params[:id]))
+        unless @object.is_a?(Mongoff::Record) || @object.class == @abstract_model.model
+          @model_config = RailsAdmin::Config.model(@object.class)
+          @abstract_model = @model_config.abstract_model
+        end
+        @object
+      else
+        fail(RailsAdmin::ObjectNotFound)
+      end
     end
   end
 end

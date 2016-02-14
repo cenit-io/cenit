@@ -2131,6 +2131,9 @@ RailsAdmin.config do |config|
     configure :attempts_succeded, :text do
       label 'Attempts/Succedded'
     end
+    edit do
+      field :description
+    end
     fields :translator, :data, :description, :scheduler, :attempts_succeded, :retries, :progress, :status, :notifications
   end
 
