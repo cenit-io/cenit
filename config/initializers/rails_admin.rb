@@ -1523,6 +1523,11 @@ RailsAdmin.config do |config|
       field :after_process_callbacks do
         visible { bindings[:object].ready_to_save? }
         help 'Algorithms executed after flow processing, execution state is supplied as argument'
+        associated_collection_scope do
+          Proc.new { |scope|
+            scope.where(:parameters.with_size => 1)
+          }
+        end
       end
     end
 
