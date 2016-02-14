@@ -467,16 +467,27 @@ module RailsAdmin
       )
     end
 
+    def tasks_link
+      return nil unless (account = Account.current)
+      return nil unless (abstract_model = RailsAdmin.config(Setup::Task).abstract_model)
+      return nil unless (index_action = RailsAdmin::Config::Actions.find(:index, controller: controller, abstract_model: abstract_model)).try(:authorized?)
+      link_to url_for(action: index_action.action_name, model_name: abstract_model.to_param, controller: 'rails_admin/main') do
+        html = '<i class="icon-tasks"/></i>'
+        #...
+        html.html_safe
+      end
+    end
+
     def authorizations_link
       return nil unless (account = Account.current)
       return nil unless (abstract_model = RailsAdmin.config(Setup::Authorization).abstract_model)
       return nil unless (index_action = RailsAdmin::Config::Actions.find(:index, controller: controller, abstract_model: abstract_model)).try(:authorized?)
       link_to url_for(action: index_action.action_name, model_name: abstract_model.to_param, controller: 'rails_admin/main') do
-        html =
-          <<-HTML
-            <i class="icon-check"></i>
-            <span class=\"label\" style=\"background:red;font-size:100%;margin-left:3px\">#{Setup::Authorization.where(authorized: false).count}</span>
-          HTML
+        html = '<i class="icon-check"></i>'
+        unauthorized_count = Setup::Authorization.where(authorized: false).count
+        if unauthorized_count > 0
+          html += "<span class=\"label\" style=\"background:red;font-size:100%;margin-left:3px\">#{unauthorized_count}</span>"
+        end
         html.html_safe
       end
     end
@@ -489,7 +500,7 @@ module RailsAdmin
         html = '<i class="icon-bell"></i>'
         counters = Hash.new { |h, k| h[k] = 0 }
         scope =
-          if from_date = account.notifications_listed_at
+          if (from_date = account.notifications_listed_at)
             Setup::Notification.where(:created_at.gte => from_date)
           else
             Setup::Notification.all
