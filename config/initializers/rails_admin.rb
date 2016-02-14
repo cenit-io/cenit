@@ -583,7 +583,7 @@ RailsAdmin.config do |config|
   end
 
   config.model Setup::Connection do
-    navigation_label 'Endpoints'
+    navigation_label 'API Connectors'
     object_label_method { :custom_title }
     weight -15
 
@@ -676,7 +676,7 @@ RailsAdmin.config do |config|
   end
 
   config.model Setup::ConnectionRole do
-    navigation_label 'Endpoints'
+    navigation_label 'API Connectors'
     object_label_method { :custom_title }
     weight -14
     configure :name, :string do
@@ -713,7 +713,7 @@ RailsAdmin.config do |config|
   end
 
   config.model Setup::Webhook do
-    navigation_label 'Endpoints'
+    navigation_label 'API Connectors'
     object_label_method { :custom_title }
     weight -13
 
@@ -2001,7 +2001,7 @@ RailsAdmin.config do |config|
     object_label_method { :custom_title }
     label 'Provider'
     weight -4
-    navigation_label 'Oauths'
+    navigation_label 'Security'
 
     configure :tenant do
       visible { Account.current.super_admin? }
@@ -2018,6 +2018,7 @@ RailsAdmin.config do |config|
 
   config.model Setup::OauthProvider do
     object_label_method { :custom_title }
+    label 'OAuth-1 provider'
 
     configure :tenant do
       visible { Account.current.super_admin? }
@@ -2034,6 +2035,7 @@ RailsAdmin.config do |config|
 
   config.model Setup::Oauth2Provider do
     object_label_method { :custom_title }
+    label 'OAuth-2 provider'
 
     configure :tenant do
       visible { Account.current.super_admin? }
@@ -2053,14 +2055,15 @@ RailsAdmin.config do |config|
   end
 
   config.model Setup::OauthParameter do
-    navigation_label 'Oauths'
+    navigation_label 'Security'
     object_label_method { :to_s }
     fields :key, :value
   end
 
   config.model Setup::OauthClient do
     object_label_method { :custom_title }
-    navigation_label 'Oauths'
+    navigation_label 'Security'
+    label 'Client'
     weight -5
 
     configure :tenant do
@@ -2098,8 +2101,9 @@ RailsAdmin.config do |config|
 
   config.model Setup::Oauth2Scope do
     object_label_method { :custom_title }
-    navigation_label 'Oauths'
+    navigation_label 'Security'
     weight -3
+    label 'Scope'
 
     configure :tenant do
       visible { Account.current.super_admin? }
@@ -2115,7 +2119,7 @@ RailsAdmin.config do |config|
   end
 
   config.model Setup::Authorization do
-    navigation_label 'Oauths'
+    navigation_label 'Security'
     weight -1
     object_label_method { :custom_title }
     fields :namespace, :name, :authorized
@@ -2124,6 +2128,8 @@ RailsAdmin.config do |config|
   config.model Setup::OauthAuthorization do
     object_label_method { :custom_title }
     parent Setup::Authorization
+    
+    label 'OAuth-1 authorization'
 
     edit do
       field :namespace
@@ -2174,6 +2180,8 @@ RailsAdmin.config do |config|
   config.model Setup::Oauth2Authorization do
     object_label_method { :custom_title }
     parent Setup::Authorization
+    
+    label 'OAuth-2 authorization'
 
     edit do
       field :namespace
@@ -2278,6 +2286,7 @@ RailsAdmin.config do |config|
   end
 
   config.model Setup::BasicAuthorization do
+    
     object_label_method { :custom_title }
     edit do
       field :namespace
