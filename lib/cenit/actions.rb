@@ -80,6 +80,7 @@ module Cenit
           begin
             collection = Setup::Collection.new
             collection.from_json(pull_request.delete(:collection_data))
+            collection.readme = shared_collection.readme unless shared_collection.readme.blank?
             begin
               collection.name = BSON::ObjectId.new.to_s
             end while Setup::Collection.where(name: collection.name).present?
