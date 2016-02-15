@@ -32,6 +32,12 @@ module Setup
 
     before_destroy { NOT_RUNNING_STATUS.include?(status) }
 
+    def _type_enum
+      classes = Setup::Task.class_hierarchy
+      classes.delete(Setup::Task)
+      classes.collect(&:to_s)
+    end
+
     def auto_description
       to_s
     end

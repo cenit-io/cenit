@@ -40,7 +40,7 @@ class Ability
         can :destroy, [Setup::SharedCollection, Setup::DataType, Setup::Storage]
       else
         cannot :access, [Setup::SharedName, Setup::DelayedMessage, Setup::SystemNotification]
-        cannot :destroy, [Setup::SharedCollection, Setup::Raml, Setup::Storage]
+        cannot :destroy, [Setup::SharedCollection, Setup::Storage]
       end
 
       can :destroy, Setup::Task, Setup::Task.destroy_conditions

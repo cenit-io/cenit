@@ -16,7 +16,7 @@ module RailsAdmin
       end
 
       def new_model(model)
-        if !models_pool.include?(model.to_s)
+        unless models_pool.include?(model.to_s)
           @@system_models.insert((i = @@system_models.find_index { |e| e > model.to_s }) ? i : @@system_models.length, model.to_s)
         end
       end
@@ -44,7 +44,7 @@ module RailsAdmin
           model = model_class.new(entity, &block)
           @registry[key] = model if key
         elsif key
-          unless model = @registry[key]
+          unless (model = @registry[key])
             @registry[key] = model = model_class.new(entity)
           end
         else
@@ -55,6 +55,10 @@ module RailsAdmin
     end
 
     class Model
+
+      register_instance_option :label_navigation do
+        label_plural
+      end
 
       def contextualized_label(context = nil)
         label
@@ -78,7 +82,7 @@ module RailsAdmin
               @authorization_adapter && @authorization_adapter.attributes_for(:new, @abstract_model).each do |name, value|
                 @object.send("#{name}=", value)
               end
-              if object_params = params[@abstract_model.to_param]
+              if (object_params = params[@abstract_model.to_param])
                 @object.set_attributes(@object.attributes.merge(object_params))
               end
               respond_to do |format|
@@ -130,7 +134,7 @@ module RailsAdmin
               @object.set_attributes(form_attributes = params[@abstract_model.param_key])
 
               #Patch
-              if synchronized_fields = @model_config.try(:form_synchronized)
+              if (synchronized_fields = @model_config.try(:form_synchronized))
                 params_to_check = {}
                 model_config.send(action).with(controller: self, view: view_context, object: @object).fields.each do |field|
                   if synchronized_fields.include?(field.name.to_sym)
@@ -266,7 +270,7 @@ module RailsAdmin
         end
 
         def show_values(limit = 10)
-          if v = bindings[:object].send(association.name)
+          if (v = bindings[:object].send(association.name))
             if v.is_a?(Enumerable)
               total = v.count
               v = v.limit(limit) rescue v
@@ -305,7 +309,7 @@ module RailsAdmin
           if model.is_a?(Class)
             Config.reset_model(model)
             Config.remove_model(model)
-            if m = all.detect { |m| m.model_name.eql?(model.to_s) }
+            if (m = all.detect { |m| m.model_name.eql?(model.to_s) })
               all.delete(m)
               puts " #{self.to_s}: model #{model.schema_name rescue model.to_s} removed!"
             else
@@ -467,29 +471,57 @@ module RailsAdmin
       )
     end
 
-    def authorizations_link
-      return nil unless (account = Account.current)
-      return nil unless (abstract_model = RailsAdmin.config(Setup::Authorization).abstract_model)
-      return nil unless (index_action = RailsAdmin::Config::Actions.find(:index, controller: controller, abstract_model: abstract_model)).try(:authorized?)
+    def linking(model)
+      if (account = Account.current) &&
+        (abstract_model = RailsAdmin.config(model).abstract_model) &&
+        (index_action = RailsAdmin::Config::Actions.find(:index, controller: controller, abstract_model: abstract_model)).try(:authorized?)
+        [account, abstract_model, index_action]
+      else
+        [nil, nil, nil]
+      end
+    end
+
+    def tasks_link
+      _, abstract_model, index_action = linking(Setup::Task)
+      return nil unless index_action
       link_to url_for(action: index_action.action_name, model_name: abstract_model.to_param, controller: 'rails_admin/main') do
-        html =
-          <<-HTML
-            <i class="icon-check"></i>
-            <span class=\"label\" style=\"background:red;font-size:100%;margin-left:3px\">#{Setup::Authorization.where(authorized: false).count}</span>
+        html = '<i class="icon-tasks" title="Tasks" rel="tooltip"/></i>'
+        #...
+        html.html_safe
+      end
+    end
+
+    def authorizations_link
+      _, abstract_model, index_action = linking(Setup::Authorization)
+      return nil unless index_action
+      link_to url_for(action: index_action.action_name, model_name: abstract_model.to_param, controller: 'rails_admin/main') do
+        html = '<i class="icon-check"  title="Authorizations" rel="tooltip"></i>'
+        if (unauthorized_count = Setup::Authorization.where(authorized: false).count) > 0
+          label_html = <<-HTML
+            <b class="label rounded label-xs success up" style='border-radius: 500px;
+              position: relative;
+              top: -10px;
+              min-width: 4px;
+              min-height: 4px;
+              display: inline-block;
+              font-size: 9px;
+              background-color: #{Setup::Notification.type_color(:error)}'>#{unauthorized_count}
+            </b>
           HTML
+          html += label_html
+        end
         html.html_safe
       end
     end
 
     def notifications_link
-      return nil unless (account = Account.current)
-      return nil unless (abstract_model = RailsAdmin.config(Setup::Notification).abstract_model)
-      return nil unless (index_action = RailsAdmin::Config::Actions.find(:index, controller: controller, abstract_model: abstract_model)).try(:authorized?)
+      account, abstract_model, index_action = linking(Setup::Notification)
+      return nil unless index_action
       link_to url_for(action: index_action.action_name, model_name: abstract_model.to_param, controller: 'rails_admin/main') do
-        html = '<i class="icon-bell"></i>'
+        html = '<i class="icon-bell" title="Notification" rel="tooltip"></i>'
         counters = Hash.new { |h, k| h[k] = 0 }
         scope =
-          if from_date = account.notifications_listed_at
+          if (from_date = account.notifications_listed_at)
             Setup::Notification.where(:created_at.gte => from_date)
           else
             Setup::Notification.all
@@ -499,26 +531,44 @@ module RailsAdmin
             counters[Setup::Notification.type_color(type)] = count
           end
         end
-        counters.each { |color, count| html += "<span class=\"label\" style=\"background:#{color};font-size:100%;margin-left:3px\">#{count}</span>" }
+        counters.each do |color, count|
+          html +=
+            <<-HTML
+              <b class="label rounded label-xs up" style='border-radius: 500px;
+                position: relative;
+                top: -10px;
+                min-width: 4px;
+                min-height: 4px;
+                display: inline-block;
+                font-size: 9px;
+                background-color: #{color}'>#{count}
+              </b>
+          HTML
+        end
         html.html_safe
       end
     end
 
     def edit_user_link
       return nil unless _current_user.respond_to?(:email)
-      return nil unless abstract_model = RailsAdmin.config(_current_user.class).abstract_model
+      return nil unless (abstract_model = RailsAdmin.config(_current_user.class).abstract_model)
       return nil unless (edit_action = RailsAdmin::Config::Actions.find(:show, controller: controller, abstract_model: abstract_model, object: _current_user)).try(:authorized?)
       link_to url_for(action: edit_action.action_name, model_name: abstract_model.to_param, id: _current_user.id, controller: 'rails_admin/main') do
         html = []
-        html << image_tag(_current_user.picture.icon.url, alt: '') if _current_user.picture.present?
+        if _current_user.picture.present?
+          html << image_tag(_current_user.picture.icon.url, alt: '')
+        elsif _current_user.email.present?
+          html << image_tag("#{(request.ssl? ? 'https://secure' : 'http://www')}.gravatar.com/avatar/#{Digest::MD5.hexdigest _current_user.email}?s=30", alt: '')
+        end
         # Patch
-        text = _current_user.name
+        # text = _current_user.name
         # Patch
         text = _current_user.email if text.blank?
         html << content_tag(:span, text)
         html.join.html_safe
       end
     end
+
 
     def main_navigation
       nodes_stack = RailsAdmin::Config.visible_models(controller: controller) + #Patch
@@ -533,7 +583,26 @@ module RailsAdmin
         label = navigation_label || t('admin.misc.navigation')
 
         i += 1
-        %(<div class='panel panel-default'><div class='panel-heading'><a data-toggle='collapse' data-parent='#main-accordion' href='#main-collapse#{i}' class='panel-title collapse in'>#{capitalize_first_letter label}</a></div><div id='main-collapse#{i}' class='nav nav-pills nav-stacked panel-collapse collapse'>#{li_stack}</div></div>) if li_stack.present?
+        %(<div class='panel panel-default'>
+            <div class='panel-heading'>
+              <a data-toggle='collapse' data-parent='#main-accordion' href='#main-collapse#{i}' class='panel-title collapse in'>#{capitalize_first_letter label}</a>
+            </div>
+            <div id='main-collapse#{i}' class='nav nav-pills nav-stacked panel-collapse collapse'>#{li_stack}
+            </div>
+          </div>) if li_stack.present?
+      end.join.html_safe
+    end
+
+    def navigation(nodes_stack, nodes, level = 0)
+      nodes.collect do |node|
+        model_param = node.abstract_model.to_param
+        url         = url_for(action: :index, controller: 'rails_admin/main', model_name: model_param)
+        level_class = " nav-level-#{level}" if level > 0
+        nav_icon = node.navigation_icon ? %(<i class="#{node.navigation_icon}"></i>).html_safe : ''
+        li = content_tag :li, data: {model: model_param} do
+          link_to nav_icon + capitalize_first_letter(node.label_navigation), url, class: "pjax#{level_class}"
+        end
+        li + navigation(nodes_stack, nodes_stack.select { |n| n.parent.to_s == node.abstract_model.model_name }, level + 1)
       end.join.html_safe
     end
 
@@ -675,7 +744,8 @@ module RailsAdmin
     def get_model
       #Patch
       @model_name = to_model_name(name = params[:model_name].to_s)
-      unless @abstract_model = RailsAdmin::AbstractModel.new(@model_name)
+      data_type = nil
+      unless (@abstract_model = RailsAdmin::AbstractModel.new(@model_name))
         if (slugs = name.to_s.split('~')).size == 2
           if (library = Setup::Library.where(slug: slugs[0]).first)
             data_type = Setup::DataType.where(library: library, slug: slugs[1]).first
@@ -697,6 +767,19 @@ module RailsAdmin
       fail(RailsAdmin::ModelNotFound) if @abstract_model.nil? || (@model_config = @abstract_model.config).excluded?
 
       @properties = @abstract_model.properties
+    end
+
+    def get_object
+      #Patch
+      if (@object = @abstract_model.get(params[:id]))
+        unless @object.is_a?(Mongoff::Record) || @object.class == @abstract_model.model
+          @model_config = RailsAdmin::Config.model(@object.class)
+          @abstract_model = @model_config.abstract_model
+        end
+        @object
+      else
+        fail(RailsAdmin::ObjectNotFound)
+      end
     end
   end
 end
