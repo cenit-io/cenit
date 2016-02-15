@@ -21,7 +21,7 @@ module RailsAdmin
             render_form = true
             if model = @abstract_model.model rescue nil
               connection =
-                if data = params.delete((model_name = @action.class.name.split('::').last + 'Form').underscore)
+                if (data = params.delete((model_name = @action.class.name.split('::').last + 'Form').underscore))
                   data.permit!
                   connection = Setup::Connection.where(id: data[:connection_id]).first
                 else
@@ -32,9 +32,9 @@ module RailsAdmin
                                                  schema: Submit.params_schema(@object, selecting_connection ? nil : connection),
                                                  name: model_name)
               if params.delete(:_save) && (@form_object = mongoff_model.new(data)).valid?
-                msg = Submit.params_and_headers_from(@form_object.attributes).merge!(webhook_id: @object.id,
-                                                                                     connection_id: connection.id,
-                                                                                     body: data[:body])
+                msg = Submit.params_and_headers_from(@form_object).merge!(webhook_id: @object.id,
+                                                                          connection_id: connection.id,
+                                                                          body: data[:body])
                 do_flash_process_result Setup::Submission.process(msg)
                 render_form = false
               end
@@ -45,6 +45,8 @@ module RailsAdmin
               @form_object ||= mongoff_model.new(connection: connection)
               @form_object.define_singleton_method(:ready_to_save?) { !selecting_connection && connection.present? }
               @form_object.define_singleton_method(:can_be_restarted?) { ready_to_save? }
+
+
               @model_config = RailsAdmin::Config.model(mongoff_model)
               @model_config.register_instance_option(:discard_submit_buttons) { true }
               if connection
@@ -72,37 +74,41 @@ module RailsAdmin
 
         class << self
 
-          def params_and_headers_from(data)
+          def params_and_headers_from(object)
             params = Hash.new { |h, k| h[k] = {} }
-            data.each do |name, value|
-              if prefix = %w(header parameter template_parameter).detect { |p| name.to_s.start_with?(p) }
-                params[prefix.pluralize][name.from(prefix.length + 1)] = value
+            object.orm_model.properties_schemas.each do |property, schema|
+              next unless (group = schema['group'])
+              if %w(headers parameters template_parameters).include?(group)
+                params[group][schema['title']] = object[property]
               end
             end
-            if (contentType = data['content_type']).present?
-              params['headers']['Content-Type'] = contentType
+            if (content_type = object['content_type']).present? &&
+              !(params.has_key?('headers') && params['headers'].has_key?('Content-Type'))
+              params['headers']['Content-Type'] = content_type
             end
             params
           end
 
           def params_schema(webhook, connection)
             required = ['connection']
+            content_type_header = false
             pararms_properties =
               if connection
+                c = 0
                 [connection, webhook].inject({}) do |hash, entity|
                   entity_hash = [:headers, :parameters, :template_parameters].inject({}) do |hash, params|
-                    prefix = params.to_s.singularize
                     h = entity.send(params).inject({}) do |params_hash, param|
-                      params_hash[property_name = "#{prefix}_#{param.key}"] =
+                      params_hash[property_name = "property_#{c += 1}"] =
                         ph =
                           (param.metadata || {}).deep_dup.merge!('title' => param.key,
                                                                  'description' => param.description,
                                                                  'group' => params.to_s)
                       ph['type'] ||= 'string'
-                      if value = param.value
+                      if (value = param.value)
                         ph['default'] = value
                       end
                       required << property_name if ph.delete('required')
+                      content_type_header ||= params == :headers && param.key == 'Content-Type'
                       params_hash
                     end
                     hash.merge! h
@@ -112,23 +118,25 @@ module RailsAdmin
               else
                 {}
               end
-            if connection && %(get delete).exclude?(webhook.method)
-              content_type_property =
-                {
-                  'type' => 'string',
-                  'group' => 'body'
-                }
+            if connection && %w(get delete).exclude?(webhook.method)
               body_properties =
                 {
-                  'content_type' => content_type_property,
                   'body' => {
                     'type' => 'string',
                     'group' => 'body'
                   }
                 }
-              if consumes = webhook.metadata['consumes']
-                consumes = [consumes] unless consumes.is_a?(Enumerable)
-                content_type_property['default'] = consumes.first.to_s
+              unless content_type_header
+                content_type_property =
+                  {
+                    'type' => 'string',
+                    'group' => 'body'
+                  }
+                body_properties['content_type'] = content_type_property
+                if (consumes = webhook.metadata['consumes'])
+                  consumes = [consumes] unless consumes.is_a?(Enumerable)
+                  content_type_property['default'] = consumes.first.to_s
+                end
               end
               pararms_properties.merge!(body_properties)
             end

@@ -23,7 +23,7 @@ module Setup
     has_and_belongs_to_many :dependencies, class_name: Setup::SharedCollection.to_s, inverse_of: nil
 
     field :pull_count, type: Integer
-
+    field :readme, type: String
     field :data
 
     before_validation do
@@ -53,6 +53,21 @@ module Setup
         attributes['data'] = value = JSON.parse(value) rescue value
       end
       value
+    end
+
+    def write_attribute(name, value)
+      super
+      case name.to_s
+      when 'data'
+        if (readme = data.delete('readme')).present?
+          self.readme = readme
+        end unless @source_readme
+      when 'source_collection_id'
+        if (readme = source_collection && source_collection.readme).present?
+          @source_readme = true
+          self.readme = readme
+        end
+      end if changed_attributes.has_key?(name)
     end
 
     def sanitize_data
@@ -123,7 +138,7 @@ module Setup
         errors.add(:pull_parameters, 'is not valid') if pull_parameters.any? { |pull_parameter| pull_parameter.errors.present? }
       end
       hash_data.each do |entry, values|
-        next if entry == 'name' || values.blank?
+        next if Setup::Collection::NO_DATA_FIELDS.include?(entry) || values.blank?
         if (dependency_values = dependencies_hash_data[entry]).present?
           model = "Setup::#{entry.singularize.camelize}".constantize rescue nil
           if model
@@ -192,7 +207,7 @@ module Setup
     end
 
     def categorize
-      shared = data.keys.select { |key| key != 'name' }
+      shared = data.keys.select { |key| Setup::Collection::NO_DATA_FIELDS.exclude?(key) }
       self.category =
         shared.length == 1 && %w(libraries translators algorithms).include?(shared[0]) ? shared[0].singularize.capitalize : 'Collection'
       true
@@ -209,10 +224,10 @@ module Setup
     def data_with(parameters = {})
       hash_data = dependencies_data.deep_merge(data) { |_, val1, val2| Cenit::Utility.array_hash_merge(val1, val2) }
       hash_data.each do |key, values|
-        next if key == 'name'
+        next if Setup::Collection::NO_DATA_FIELDS.include?(key)
         hash = values.inject({}) do |hash, item|
           name =
-            if name = item['namespace']
+            if (name = item['namespace'])
               { namespace: name, name: item['name'] }
             else
               item['name']
@@ -222,7 +237,7 @@ module Setup
         hash_data[key] = hash.values.to_a unless hash.size == values.length
       end
       parameters.each do |id, value|
-        if pull_parameter = pull_parameters.where(id: id).first
+        if (pull_parameter = pull_parameters.where(id: id).first)
           pull_parameter.process_on(hash_data, value)
         end
       end

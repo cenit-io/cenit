@@ -6,7 +6,7 @@ module Capataz
   class << self
 
     def disable(*args)
-      @disable = args.first.present?
+      @disable = args.first.to_s.to_b
     end
 
     def disable?
