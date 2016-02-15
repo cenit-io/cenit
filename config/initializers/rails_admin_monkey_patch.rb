@@ -485,7 +485,7 @@ module RailsAdmin
       _, abstract_model, index_action = linking(Setup::Task)
       return nil unless index_action
       link_to url_for(action: index_action.action_name, model_name: abstract_model.to_param, controller: 'rails_admin/main') do
-        html = '<i class="icon-tasks"/></i>'
+        html = '<i class="icon-tasks" title="Tasks" rel="tooltip"/></i>'
         #...
         html.html_safe
       end
