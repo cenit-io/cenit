@@ -483,11 +483,20 @@ module RailsAdmin
       return nil unless (abstract_model = RailsAdmin.config(Setup::Authorization).abstract_model)
       return nil unless (index_action = RailsAdmin::Config::Actions.find(:index, controller: controller, abstract_model: abstract_model)).try(:authorized?)
       link_to url_for(action: index_action.action_name, model_name: abstract_model.to_param, controller: 'rails_admin/main') do
-        html = '<i class="icon-check"></i>'
         unauthorized_count = Setup::Authorization.where(authorized: false).count
-        if unauthorized_count > 0
-          html += "<span class=\"label\" style=\"background:red;font-size:100%;margin-left:3px\">#{unauthorized_count}</span>"
-        end
+        html =
+          <<-HTML
+            <span class="label label-success" title="Authorizations" rel="tooltip">✓</span>
+            <b class="label rounded label-xs success up" style='border-radius: 500px;
+              position: relative;
+              top: -10px;
+              min-width: 4px;
+              min-height: 4px;
+              display: inline-block;
+              font-size: 9px;
+              background-color: #{Setup::Notification.type_color(:info)}'>#{Setup::Authorization.where(authorized: true).count}
+            </b>
+          HTML
         html.html_safe
       end
     end
@@ -497,7 +506,7 @@ module RailsAdmin
       return nil unless (abstract_model = RailsAdmin.config(Setup::Notification).abstract_model)
       return nil unless (index_action = RailsAdmin::Config::Actions.find(:index, controller: controller, abstract_model: abstract_model)).try(:authorized?)
       link_to url_for(action: index_action.action_name, model_name: abstract_model.to_param, controller: 'rails_admin/main') do
-        html = '<i class="icon-bell"></i>'
+        html = '<i class="icon-bell" title="Notification" rel="tooltip"></i>'
         counters = Hash.new { |h, k| h[k] = 0 }
         scope =
           if (from_date = account.notifications_listed_at)
@@ -510,7 +519,20 @@ module RailsAdmin
             counters[Setup::Notification.type_color(type)] = count
           end
         end
-        counters.each { |color, count| html += "<span class=\"label\" style=\"background:#{color};font-size:100%;margin-left:3px\">#{count}</span>" }
+        counters.each do |color, count|
+          html +=
+            <<-HTML
+              <b class="label rounded label-xs up" style='border-radius: 500px;
+                position: relative;
+                top: -10px;
+                min-width: 4px;
+                min-height: 4px;
+                display: inline-block;
+                font-size: 9px;
+                background-color: #{color}'>#{count}
+              </b>
+            HTML
+        end
         html.html_safe
       end
     end
@@ -521,15 +543,20 @@ module RailsAdmin
       return nil unless (edit_action = RailsAdmin::Config::Actions.find(:show, controller: controller, abstract_model: abstract_model, object: _current_user)).try(:authorized?)
       link_to url_for(action: edit_action.action_name, model_name: abstract_model.to_param, id: _current_user.id, controller: 'rails_admin/main') do
         html = []
-        html << image_tag(_current_user.picture.icon.url, alt: '') if _current_user.picture.present?
+        if _current_user.picture.present?
+          html << image_tag(_current_user.picture.icon.url, alt: '')
+        elsif _current_user.email.present?
+          html << image_tag("#{(request.ssl? ? 'https://secure' : 'http://www')}.gravatar.com/avatar/#{Digest::MD5.hexdigest _current_user.email}?s=30", alt: '')
+        end
         # Patch
-        text = _current_user.name
+        # text = _current_user.name
         # Patch
         text = _current_user.email if text.blank?
         html << content_tag(:span, text)
         html.join.html_safe
       end
     end
+
 
     def main_navigation
       nodes_stack = RailsAdmin::Config.visible_models(controller: controller) + #Patch
@@ -544,7 +571,13 @@ module RailsAdmin
         label = navigation_label || t('admin.misc.navigation')
 
         i += 1
-        %(<div class='panel panel-default'><div class='panel-heading'><a data-toggle='collapse' data-parent='#main-accordion' href='#main-collapse#{i}' class='panel-title collapse in'>#{capitalize_first_letter label}</a></div><div id='main-collapse#{i}' class='nav nav-pills nav-stacked panel-collapse collapse'>#{li_stack}</div></div>) if li_stack.present?
+        %(<div class='panel panel-default'>
+            <div class='panel-heading'>
+              <a data-toggle='collapse' data-parent='#main-accordion' href='#main-collapse#{i}' class='panel-title collapse in'>#{capitalize_first_letter label}</a>
+            </div>
+            <div id='main-collapse#{i}' class='nav nav-pills nav-stacked panel-collapse collapse'>#{li_stack}
+            </div>
+          </div>) if li_stack.present?
       end.join.html_safe
     end
 
