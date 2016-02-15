@@ -56,6 +56,10 @@ module RailsAdmin
 
     class Model
 
+      register_instance_option :label_navigation do
+        label_plural
+      end
+
       def contextualized_label(context = nil)
         label
       end
@@ -586,6 +590,19 @@ module RailsAdmin
             <div id='main-collapse#{i}' class='nav nav-pills nav-stacked panel-collapse collapse'>#{li_stack}
             </div>
           </div>) if li_stack.present?
+      end.join.html_safe
+    end
+
+    def navigation(nodes_stack, nodes, level = 0)
+      nodes.collect do |node|
+        model_param = node.abstract_model.to_param
+        url         = url_for(action: :index, controller: 'rails_admin/main', model_name: model_param)
+        level_class = " nav-level-#{level}" if level > 0
+        nav_icon = node.navigation_icon ? %(<i class="#{node.navigation_icon}"></i>).html_safe : ''
+        li = content_tag :li, data: {model: model_param} do
+          link_to nav_icon + capitalize_first_letter(node.label_navigation), url, class: "pjax#{level_class}"
+        end
+        li + navigation(nodes_stack, nodes_stack.select { |n| n.parent.to_s == node.abstract_model.model_name }, level + 1)
       end.join.html_safe
     end
 

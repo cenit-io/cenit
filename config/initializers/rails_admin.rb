@@ -1174,7 +1174,7 @@ RailsAdmin.config do |config|
     fields :namespace, :name, :path, :method, :description, :authorization, :authorization_handler
   end
 
-  #Wrokflows
+  #Workflows
 
   config.model Setup::Flow do
     navigation_label 'Workflows'
@@ -1690,7 +1690,7 @@ RailsAdmin.config do |config|
 
   config.model Setup::OauthClient do
     navigation_label 'Security'
-    label 'OAuth Client'
+    label 'OAuth client'
     weight -100
     object_label_method { :custom_title }
 
@@ -1748,8 +1748,10 @@ RailsAdmin.config do |config|
 
   config.model Setup::OauthProvider do
     weight -89
-    label 'OAuth 1.0'
-    label_plural 'OAuth 1.0'
+    label 'OAuth 1.0 provider'
+    register_instance_option :label_navigation do
+      'OAuth 1.0'
+    end
     object_label_method { :custom_title }
 
     configure :tenant do
@@ -1767,8 +1769,10 @@ RailsAdmin.config do |config|
 
   config.model Setup::Oauth2Provider do
     weight -88
-    label 'OAuth 2.0'
-    label_plural 'OAuth 2.0'
+    label 'OAuth 2.0 provider'
+    register_instance_option :label_navigation do
+      'OAuth 2.0'
+    end
     object_label_method { :custom_title }
 
     configure :tenant do
@@ -1797,7 +1801,7 @@ RailsAdmin.config do |config|
   config.model Setup::Oauth2Scope do
     navigation_label 'Security'
     weight -87
-    label 'OAuth 2.0 Scope'
+    label 'OAuth 2.0 scope'
     object_label_method { :custom_title }
 
     configure :tenant do
@@ -1822,8 +1826,9 @@ RailsAdmin.config do |config|
 
   config.model Setup::BasicAuthorization do
     weight -49
-    label 'Basic'
-    label_plural 'Basic'
+    register_instance_option :label_navigation do
+      'Basic'
+    end
     object_label_method { :custom_title }
     edit do
       field :namespace
@@ -1857,8 +1862,10 @@ RailsAdmin.config do |config|
 
   config.model Setup::OauthAuthorization do
     weight -45
-    label 'OAuth 1.0'
-    label_plural 'OAuth 1.0'
+    label 'OAuth 1.0 authorization'
+    register_instance_option :label_navigation do
+      'OAuth 1.0'
+    end
     object_label_method { :custom_title }
     parent Setup::Authorization
 
@@ -1910,8 +1917,10 @@ RailsAdmin.config do |config|
 
   config.model Setup::Oauth2Authorization do
     weight -40
-    label 'OAuth 2.0'
-    label_plural 'OAuth 2.0'
+    label 'OAuth 2.0 authorization'
+    register_instance_option :label_navigation do
+      'OAuth 2.0'
+    end
     object_label_method { :custom_title }
     parent Setup::Authorization
 
