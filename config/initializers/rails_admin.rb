@@ -64,7 +64,7 @@ RailsAdmin.config do |config|
   config.audit_with :mongoid_audit
   config.authorize_with :cancan
 
-  config.excluded_models += [Setup::BaseOauthAuthorization, Setup::AwsAuthorization]
+  config.excluded_models += [Setup::BaseOauthAuthorization, Setup::AwsAuthorization, Setup::Raml]
 
   config.actions do
     dashboard # mandatory
