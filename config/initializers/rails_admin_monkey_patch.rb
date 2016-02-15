@@ -467,11 +467,23 @@ module RailsAdmin
       )
     end
 
+    def tasks_link
+      return nil unless (account = Account.current)
+      return nil unless (abstract_model = RailsAdmin.config(Setup::Task).abstract_model)
+      return nil unless (index_action = RailsAdmin::Config::Actions.find(:index, controller: controller, abstract_model: abstract_model)).try(:authorized?)
+      link_to url_for(action: index_action.action_name, model_name: abstract_model.to_param, controller: 'rails_admin/main') do
+        html = '<i class="icon-tasks"/></i>'
+        #...
+        html.html_safe
+      end
+    end
+
     def authorizations_link
       return nil unless (account = Account.current)
       return nil unless (abstract_model = RailsAdmin.config(Setup::Authorization).abstract_model)
       return nil unless (index_action = RailsAdmin::Config::Actions.find(:index, controller: controller, abstract_model: abstract_model)).try(:authorized?)
       link_to url_for(action: index_action.action_name, model_name: abstract_model.to_param, controller: 'rails_admin/main') do
+        unauthorized_count = Setup::Authorization.where(authorized: false).count
         html =
           <<-HTML
             <span class="label label-success" title="Authorizations" rel="tooltip">✓</span>
@@ -497,7 +509,7 @@ module RailsAdmin
         html = '<i class="icon-bell" title="Notification" rel="tooltip"></i>'
         counters = Hash.new { |h, k| h[k] = 0 }
         scope =
-          if from_date = account.notifications_listed_at
+          if (from_date = account.notifications_listed_at)
             Setup::Notification.where(:created_at.gte => from_date)
           else
             Setup::Notification.all
@@ -507,8 +519,8 @@ module RailsAdmin
             counters[Setup::Notification.type_color(type)] = count
           end
         end
-        counters.each do |color, count| 
-          html += 
+        counters.each do |color, count|
+          html +=
             <<-HTML
               <b class="label rounded label-xs up" style='border-radius: 500px;
                 position: relative;
@@ -707,7 +719,8 @@ module RailsAdmin
     def get_model
       #Patch
       @model_name = to_model_name(name = params[:model_name].to_s)
-      unless @abstract_model = RailsAdmin::AbstractModel.new(@model_name)
+      data_type = nil
+      unless (@abstract_model = RailsAdmin::AbstractModel.new(@model_name))
         if (slugs = name.to_s.split('~')).size == 2
           if (library = Setup::Library.where(slug: slugs[0]).first)
             data_type = Setup::DataType.where(library: library, slug: slugs[1]).first
@@ -729,6 +742,19 @@ module RailsAdmin
       fail(RailsAdmin::ModelNotFound) if @abstract_model.nil? || (@model_config = @abstract_model.config).excluded?
 
       @properties = @abstract_model.properties
+    end
+
+    def get_object
+      #Patch
+      if (@object = @abstract_model.get(params[:id]))
+        unless @object.is_a?(Mongoff::Record) || @object.class == @abstract_model.model
+          @model_config = RailsAdmin::Config.model(@object.class)
+          @abstract_model = @model_config.abstract_model
+        end
+        @object
+      else
+        fail(RailsAdmin::ObjectNotFound)
+      end
     end
   end
 end

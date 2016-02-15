@@ -3,7 +3,7 @@ module Setup
     extend ActiveSupport::Concern
 
     included do
-      field :metadata
+      field :metadata, default: {}
 
       before_save do
         if (metadata = attributes['metadata']).is_a?(Hash)
