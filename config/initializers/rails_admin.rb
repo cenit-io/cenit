@@ -125,8 +125,8 @@ RailsAdmin.config do |config|
   end
 
   config.model Setup::Library do
-    navigation_label 'Data Definitions'
-    weight -16
+    navigation_label 'Data'
+    weight -18
 
     configure :name do
       read_only { !bindings[:object].new_record? }
@@ -156,8 +156,8 @@ RailsAdmin.config do |config|
 
   config.model Setup::Schema do
     object_label_method { :custom_title }
-    navigation_label 'Data Definitions'
-    weight -18
+    navigation_label 'Data'
+    weight -17
 
     edit do
       field :library do
@@ -213,11 +213,11 @@ RailsAdmin.config do |config|
   end
 
   config.model Setup::DataType do
+    navigation_label 'Data'
     label 'Data type'
     label_plural 'Data types'
     object_label_method { :custom_title }
-    navigation_label 'Data Definitions'
-    weight -17
+    weight -14
 
     group :behavior do
       label 'Behavior'
@@ -318,15 +318,17 @@ RailsAdmin.config do |config|
 
   config.model Setup::EdiValidator do
     object_label_method { :custom_title }
-    label 'EDI Validators'
-    navigation_label 'Data Definitions'
+    label 'EDI validators'
+    navigation_label 'Data'
+    weight -15
 
     fields :namespace, :name, :schema_data_type, :content_type
   end
 
   config.model Setup::AlgorithmValidator do
     object_label_method { :custom_title }
-    navigation_label 'Data Definitions'
+    navigation_label 'Data'
+    weight -16
 
     fields :namespace, :name, :algorithm
   end
@@ -468,7 +470,7 @@ RailsAdmin.config do |config|
     end
 
     object_label_method { :custom_title }
-    navigation_label 'Data Definitions'
+    navigation_label 'Data'
     weight -17
     register_instance_option(:after_form_partials) do
       %w(shutdown_and_reload)
@@ -581,6 +583,7 @@ RailsAdmin.config do |config|
   end
 
   config.model Setup::Connection do
+    navigation_label 'API Connectors'
     object_label_method { :custom_title }
     weight -15
 
@@ -673,6 +676,7 @@ RailsAdmin.config do |config|
   end
 
   config.model Setup::ConnectionRole do
+    navigation_label 'API Connectors'
     object_label_method { :custom_title }
     weight -14
     configure :name, :string do
@@ -709,6 +713,7 @@ RailsAdmin.config do |config|
   end
 
   config.model Setup::Webhook do
+    navigation_label 'API Connectors'
     object_label_method { :custom_title }
     weight -13
 
@@ -777,7 +782,7 @@ RailsAdmin.config do |config|
   end
 
   config.model Setup::Task do
-    navigation_label 'Monitor'
+    navigation_label 'Monitors'
     object_label_method { :to_s }
     configure :attempts_succeded, :text do
       label 'Attempts/Succedded'
@@ -789,7 +794,7 @@ RailsAdmin.config do |config|
   end
 
   config.model Setup::FlowExecution do
-    navigation_label 'Monitor'
+    navigation_label 'Monitors'
     object_label_method { :to_s }
     configure :attempts_succeded, :text do
       label 'Attempts/Succedded'
@@ -801,7 +806,7 @@ RailsAdmin.config do |config|
   end
 
   config.model Setup::DataTypeGeneration do
-    navigation_label 'Monitor'
+    navigation_label 'Monitors'
     object_label_method { :to_s }
     configure :attempts_succeded, :text do
       label 'Attempts/Succedded'
@@ -813,7 +818,7 @@ RailsAdmin.config do |config|
   end
 
   config.model Setup::DataTypeExpansion do
-    navigation_label 'Monitor'
+    navigation_label 'Monitors'
     object_label_method { :to_s }
     configure :attempts_succeded, :text do
       label 'Attempts/Succedded'
@@ -825,7 +830,7 @@ RailsAdmin.config do |config|
   end
 
   config.model Setup::Translation do
-    navigation_label 'Monitor'
+    navigation_label 'Monitors'
     object_label_method { :to_s }
     configure :attempts_succeded, :text do
       label 'Attempts/Succedded'
@@ -837,7 +842,7 @@ RailsAdmin.config do |config|
   end
 
   config.model Setup::DataImport do
-    navigation_label 'Monitor'
+    navigation_label 'Monitors'
     object_label_method { :to_s }
     configure :attempts_succeded, :text do
       label 'Attempts/Succedded'
@@ -846,7 +851,7 @@ RailsAdmin.config do |config|
   end
 
   config.model Setup::SchemasImport do
-    navigation_label 'Monitor'
+    navigation_label 'Monitors'
     object_label_method { :to_s }
     configure :attempts_succeded, :text do
       label 'Attempts/Succedded'
@@ -858,7 +863,7 @@ RailsAdmin.config do |config|
   end
 
   config.model Setup::Deletion do
-    navigation_label 'Monitor'
+    navigation_label 'Monitors'
     object_label_method { :to_s }
     configure :attempts_succeded, :text do
       label 'Attempts/Succedded'
@@ -883,7 +888,7 @@ RailsAdmin.config do |config|
   end
 
   config.model Setup::AlgorithmExecution do
-    navigation_label 'Monitor'
+    navigation_label 'Monitors'
     object_label_method { :to_s }
     configure :attempts_succeded, :text do
       label 'Attempts/Succedded'
@@ -895,7 +900,7 @@ RailsAdmin.config do |config|
   end
 
   config.model Setup::Submission do
-    navigation_label 'Monitor'
+    navigation_label 'Monitors'
     object_label_method { :to_s }
     configure :attempts_succeded, :text do
       label 'Attempts/Succedded'
@@ -907,7 +912,7 @@ RailsAdmin.config do |config|
   end
 
   config.model Setup::Notification do
-    navigation_label 'Monitor'
+    navigation_label 'Monitors'
     object_label_method { :label }
 
     configure :created_at
@@ -943,7 +948,10 @@ RailsAdmin.config do |config|
   end
 
   config.model Setup::Flow do
+    navigation_label 'Workflows'
     object_label_method { :custom_title }
+    weight -10
+    
     register_instance_option(:form_synchronized) do
       [:custom_data_type, :data_type_scope, :scope_filter, :scope_evaluator, :lot_size, :connection_role, :webhook, :response_translator, :response_data_type]
     end
@@ -1121,6 +1129,8 @@ RailsAdmin.config do |config|
   end
 
   config.model Setup::Event do
+    navigation_label 'Workflows'
+    weight -9
     object_label_method { :custom_title }
     edit do
       field :namespace
@@ -1252,6 +1262,8 @@ RailsAdmin.config do |config|
   end
 
   config.model Setup::Translator do
+    navigation_label 'Workflows'
+    weight -8
     object_label_method { :custom_title }
     register_instance_option(:form_synchronized) do
       [:source_data_type, :target_data_type, :transformation, :target_importer, :source_exporter, :discard_chained_records]
@@ -1407,7 +1419,7 @@ RailsAdmin.config do |config|
     end
     navigation_label 'Collections'
     object_label_method { :versioned_name }
-    weight -19
+    weight -20
     edit do
       field :image do
         visible { !bindings[:object].new_record? }
@@ -1594,6 +1606,8 @@ RailsAdmin.config do |config|
 
   config.model Setup::Collection do
     navigation_label 'Collections'
+    label 'Installed collection'
+    label_plural 'Installed collections'
     weight -19
 
     group :setup do
@@ -1743,6 +1757,7 @@ RailsAdmin.config do |config|
   end
 
   config.model Setup::Algorithm do
+    navigation_label 'Workflows'
     object_label_method { :custom_title }
     edit do
       field :namespace
@@ -1985,7 +2000,8 @@ RailsAdmin.config do |config|
   config.model Setup::BaseOauthProvider do
     object_label_method { :custom_title }
     label 'Provider'
-    navigation_label 'OAuth'
+    weight -4
+    navigation_label 'Security'
 
     configure :tenant do
       visible { Account.current.super_admin? }
@@ -2002,6 +2018,7 @@ RailsAdmin.config do |config|
 
   config.model Setup::OauthProvider do
     object_label_method { :custom_title }
+    label 'OAuth-1 provider'
 
     configure :tenant do
       visible { Account.current.super_admin? }
@@ -2018,6 +2035,7 @@ RailsAdmin.config do |config|
 
   config.model Setup::Oauth2Provider do
     object_label_method { :custom_title }
+    label 'OAuth-2 provider'
 
     configure :tenant do
       visible { Account.current.super_admin? }
@@ -2037,14 +2055,16 @@ RailsAdmin.config do |config|
   end
 
   config.model Setup::OauthParameter do
-    navigation_label 'OAuth'
+    navigation_label 'Security'
     object_label_method { :to_s }
     fields :key, :value
   end
 
   config.model Setup::OauthClient do
     object_label_method { :custom_title }
-    navigation_label 'OAuth'
+    navigation_label 'Security'
+    label 'Client'
+    weight -5
 
     configure :tenant do
       visible { Account.current.super_admin? }
@@ -2081,7 +2101,9 @@ RailsAdmin.config do |config|
 
   config.model Setup::Oauth2Scope do
     object_label_method { :custom_title }
-    navigation_label 'OAuth'
+    navigation_label 'Security'
+    weight -3
+    label 'Scope'
 
     configure :tenant do
       visible { Account.current.super_admin? }
@@ -2097,6 +2119,8 @@ RailsAdmin.config do |config|
   end
 
   config.model Setup::Authorization do
+    navigation_label 'Security'
+    weight -1
     object_label_method { :custom_title }
     fields :namespace, :name, :authorized
   end
@@ -2104,6 +2128,8 @@ RailsAdmin.config do |config|
   config.model Setup::OauthAuthorization do
     object_label_method { :custom_title }
     parent Setup::Authorization
+    
+    label 'OAuth-1 authorization'
 
     edit do
       field :namespace
@@ -2154,6 +2180,8 @@ RailsAdmin.config do |config|
   config.model Setup::Oauth2Authorization do
     object_label_method { :custom_title }
     parent Setup::Authorization
+    
+    label 'OAuth-2 authorization'
 
     edit do
       field :namespace
@@ -2258,6 +2286,7 @@ RailsAdmin.config do |config|
   end
 
   config.model Setup::BasicAuthorization do
+    
     object_label_method { :custom_title }
     edit do
       field :namespace
@@ -2290,6 +2319,7 @@ RailsAdmin.config do |config|
   end
 
   config.model Setup::Storage do
+    navigation_label 'Monitors'
     object_label_method { :label }
 
     configure :filename do
@@ -2352,6 +2382,10 @@ RailsAdmin.config do |config|
 
   config.model Setup::SystemNotification do
     navigation_label 'Administration'
+  end
+  
+  config.model Setup::Raml do
+    visible false
   end
 
 end
