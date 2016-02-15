@@ -16,7 +16,7 @@ module RailsAdmin
       end
 
       def new_model(model)
-        if !models_pool.include?(model.to_s)
+        unless models_pool.include?(model.to_s)
           @@system_models.insert((i = @@system_models.find_index { |e| e > model.to_s }) ? i : @@system_models.length, model.to_s)
         end
       end
@@ -44,7 +44,7 @@ module RailsAdmin
           model = model_class.new(entity, &block)
           @registry[key] = model if key
         elsif key
-          unless model = @registry[key]
+          unless (model = @registry[key])
             @registry[key] = model = model_class.new(entity)
           end
         else
@@ -78,7 +78,7 @@ module RailsAdmin
               @authorization_adapter && @authorization_adapter.attributes_for(:new, @abstract_model).each do |name, value|
                 @object.send("#{name}=", value)
               end
-              if object_params = params[@abstract_model.to_param]
+              if (object_params = params[@abstract_model.to_param])
                 @object.set_attributes(@object.attributes.merge(object_params))
               end
               respond_to do |format|
@@ -130,7 +130,7 @@ module RailsAdmin
               @object.set_attributes(form_attributes = params[@abstract_model.param_key])
 
               #Patch
-              if synchronized_fields = @model_config.try(:form_synchronized)
+              if (synchronized_fields = @model_config.try(:form_synchronized))
                 params_to_check = {}
                 model_config.send(action).with(controller: self, view: view_context, object: @object).fields.each do |field|
                   if synchronized_fields.include?(field.name.to_sym)
@@ -266,7 +266,7 @@ module RailsAdmin
         end
 
         def show_values(limit = 10)
-          if v = bindings[:object].send(association.name)
+          if (v = bindings[:object].send(association.name))
             if v.is_a?(Enumerable)
               total = v.count
               v = v.limit(limit) rescue v
@@ -305,7 +305,7 @@ module RailsAdmin
           if model.is_a?(Class)
             Config.reset_model(model)
             Config.remove_model(model)
-            if m = all.detect { |m| m.model_name.eql?(model.to_s) }
+            if (m = all.detect { |m| m.model_name.eql?(model.to_s) })
               all.delete(m)
               puts " #{self.to_s}: model #{model.schema_name rescue model.to_s} removed!"
             else
@@ -467,10 +467,19 @@ module RailsAdmin
       )
     end
 
+    def linking(model)
+      if (account = Account.current) &&
+        (abstract_model = RailsAdmin.config(model).abstract_model) &&
+        (index_action = RailsAdmin::Config::Actions.find(:index, controller: controller, abstract_model: abstract_model)).try(:authorized?)
+        [account, abstract_model, index_action]
+      else
+        [nil, nil, nil]
+      end
+    end
+
     def tasks_link
-      return nil unless (account = Account.current)
-      return nil unless (abstract_model = RailsAdmin.config(Setup::Task).abstract_model)
-      return nil unless (index_action = RailsAdmin::Config::Actions.find(:index, controller: controller, abstract_model: abstract_model)).try(:authorized?)
+      _, abstract_model, index_action = linking(Setup::Task)
+      return nil unless index_action
       link_to url_for(action: index_action.action_name, model_name: abstract_model.to_param, controller: 'rails_admin/main') do
         html = '<i class="icon-tasks"/></i>'
         #...
@@ -479,14 +488,12 @@ module RailsAdmin
     end
 
     def authorizations_link
-      return nil unless (account = Account.current)
-      return nil unless (abstract_model = RailsAdmin.config(Setup::Authorization).abstract_model)
-      return nil unless (index_action = RailsAdmin::Config::Actions.find(:index, controller: controller, abstract_model: abstract_model)).try(:authorized?)
+      _, abstract_model, index_action = linking(Setup::Authorization)
+      return nil unless index_action
       link_to url_for(action: index_action.action_name, model_name: abstract_model.to_param, controller: 'rails_admin/main') do
-        unauthorized_count = Setup::Authorization.where(authorized: false).count
-        html =
-          <<-HTML
-            <span class="label label-success" title="Authorizations" rel="tooltip">✓</span>
+        html = '<i class="icon-check"  title="Authorizations" rel="tooltip"></i>'
+        if (unauthorized_count = Setup::Authorization.where(authorized: false).count) > 0
+          label_html = <<-HTML
             <b class="label rounded label-xs success up" style='border-radius: 500px;
               position: relative;
               top: -10px;
@@ -494,17 +501,18 @@ module RailsAdmin
               min-height: 4px;
               display: inline-block;
               font-size: 9px;
-              background-color: #{Setup::Notification.type_color(:info)}'>#{Setup::Authorization.where(authorized: true).count}
+              background-color: #{Setup::Notification.type_color(:error)}'>#{unauthorized_count}
             </b>
           HTML
+          html += label_html
+        end
         html.html_safe
       end
     end
 
     def notifications_link
-      return nil unless (account = Account.current)
-      return nil unless (abstract_model = RailsAdmin.config(Setup::Notification).abstract_model)
-      return nil unless (index_action = RailsAdmin::Config::Actions.find(:index, controller: controller, abstract_model: abstract_model)).try(:authorized?)
+      account, abstract_model, index_action = linking(Setup::Notification)
+      return nil unless index_action
       link_to url_for(action: index_action.action_name, model_name: abstract_model.to_param, controller: 'rails_admin/main') do
         html = '<i class="icon-bell" title="Notification" rel="tooltip"></i>'
         counters = Hash.new { |h, k| h[k] = 0 }
@@ -531,7 +539,7 @@ module RailsAdmin
                 font-size: 9px;
                 background-color: #{color}'>#{count}
               </b>
-            HTML
+          HTML
         end
         html.html_safe
       end
@@ -539,7 +547,7 @@ module RailsAdmin
 
     def edit_user_link
       return nil unless _current_user.respond_to?(:email)
-      return nil unless abstract_model = RailsAdmin.config(_current_user.class).abstract_model
+      return nil unless (abstract_model = RailsAdmin.config(_current_user.class).abstract_model)
       return nil unless (edit_action = RailsAdmin::Config::Actions.find(:show, controller: controller, abstract_model: abstract_model, object: _current_user)).try(:authorized?)
       link_to url_for(action: edit_action.action_name, model_name: abstract_model.to_param, id: _current_user.id, controller: 'rails_admin/main') do
         html = []
