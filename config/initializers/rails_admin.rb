@@ -122,7 +122,8 @@ RailsAdmin.config do |config|
   #Collections
 
   config.model Setup::SharedCollection do
-    weight -60
+    weight -600
+    label 'Shared Collection'
     register_instance_option(:discard_submit_buttons) do
       !(a = bindings[:action]) || a.key != :edit
     end
@@ -321,7 +322,7 @@ RailsAdmin.config do |config|
 
   config.model Setup::Collection do
     navigation_label 'Collections'
-    label 'Installed collection'
+    label 'Installed Collection'
     group :setup do
       label 'Setup objects'
       active true
@@ -470,7 +471,7 @@ RailsAdmin.config do |config|
 
   config.model Setup::Library do
     navigation_label 'Data'
-    weight -50
+    weight -500
 
     configure :name do
       read_only { !bindings[:object].new_record? }
@@ -499,11 +500,11 @@ RailsAdmin.config do |config|
   end
 
   config.model Setup::DataType do
+    navigation_label 'Data'
+    weight -450
     label 'Data type'
     label_plural 'Data types'
-    visible false
     object_label_method { :custom_title }
-    navigation_label 'Data'
 
     group :behavior do
       label 'Behavior'
@@ -605,7 +606,7 @@ RailsAdmin.config do |config|
 
   config.model Setup::SchemaDataType do
     navigation_label 'Data'
-    weight -49
+    weight -449
     object_label_method { :custom_title }
 
     register_instance_option(:after_form_partials) do
@@ -725,7 +726,7 @@ RailsAdmin.config do |config|
 
   config.model Setup::FileDataType do
     navigation_label 'Data'
-    weight -48
+    weight -448
     object_label_method { :custom_title }
     group :content do
       label 'Content'
@@ -856,7 +857,8 @@ RailsAdmin.config do |config|
   end
 
   config.model Setup::Validator do
-    visible false
+    navigation_label 'Data'
+    weight -490
     fields :namespace, :name
   end
 
@@ -865,8 +867,8 @@ RailsAdmin.config do |config|
   end
 
   config.model Setup::Schema do
-    navigation_label 'Data'
-    weight -47
+    parent Setup::Validator
+    weight -489
     object_label_method { :custom_title }
 
     edit do
@@ -922,24 +924,24 @@ RailsAdmin.config do |config|
     fields :library, :uri, :schema_data_type
   end
 
+  config.model Setup::EdiValidator do
+    parent Setup::Validator
+    weight -488
+    object_label_method { :custom_title }
+    label 'EDI Validators'
+
+    fields :namespace, :name, :schema_data_type, :content_type
+    end
+
   config.model Setup::AlgorithmValidator do
-    navigation_label 'Data'
-    weight -46
+    parent Setup::Validator
+    weight -487
     object_label_method { :custom_title }
 
     fields :namespace, :name, :algorithm
   end
 
-  config.model Setup::EdiValidator do
-    navigation_label 'Data'
-    weight -45
-    object_label_method { :custom_title }
-    label 'EDI Validators'
-
-    fields :namespace, :name, :schema_data_type, :content_type
-  end
-
-  #Endpoints
+  #API Connectors
 
   config.model Setup::Parameter do
     object_label_method { :to_s }
@@ -959,8 +961,8 @@ RailsAdmin.config do |config|
   end
 
   config.model Setup::Connection do
-    navigation_label 'Endpoints'
-    weight -40
+    navigation_label 'API Connectors'
+    weight -400
     object_label_method { :custom_title }
 
     group :credentials do
@@ -1050,8 +1052,8 @@ RailsAdmin.config do |config|
   end
 
   config.model Setup::ConnectionRole do
-    navigation_label 'Endpoints'
-    weight -39
+    navigation_label 'API Connectors'
+    weight -309
     object_label_method { :custom_title }
 
     configure :name, :string do
@@ -1088,8 +1090,8 @@ RailsAdmin.config do |config|
   end
 
   config.model Setup::Webhook do
-    navigation_label 'Endpoints'
-    weight -38
+    navigation_label 'API Connectors'
+    weight -308
     object_label_method { :custom_title }
 
     configure :metadata, :json_value
@@ -1172,215 +1174,11 @@ RailsAdmin.config do |config|
     fields :namespace, :name, :path, :method, :description, :authorization, :authorization_handler
   end
 
-  config.model Setup::Authorization do
-    navigation_label 'Endpoints'
-    weight -37
-    object_label_method { :custom_title }
-    fields :namespace, :name, :authorized
-    visible false
-  end
-
-  config.model Setup::BasicAuthorization do
-    navigation_label 'Endpoints'
-    weight -36
-    object_label_method { :custom_title }
-    edit do
-      field :namespace
-      field :name
-      field :username
-      field :password
-    end
-
-    group :credentials do
-      label 'Credentials'
-    end
-
-    configure :username do
-      group :credentials
-    end
-
-    configure :password do
-      group :credentials
-    end
-
-    show do
-      field :namespace
-      field :name
-      field :authorized
-      field :username
-      field :password
-    end
-
-    fields :namespace, :name, :authorized, :username, :password
-  end
-
-  config.model Setup::OauthAuthorization do
-    navigation_label 'Endpoints'
-    weight -35
-    object_label_method { :custom_title }
-    parent Setup::Authorization
-
-    edit do
-      field :namespace
-      field :name
-      field :client
-    end
-
-    group :credentials do
-      label 'Credentials'
-    end
-
-    configure :access_token do
-      group :credentials
-    end
-
-    configure :token_span do
-      group :credentials
-    end
-
-    configure :authorized_at do
-      group :credentials
-    end
-
-    configure :access_token_secret do
-      group :credentials
-    end
-
-    configure :realm do
-      group :credentials
-    end
-
-    show do
-      field :namespace
-      field :name
-      field :authorized
-      field :client
-
-      field :access_token
-      field :access_token_secret
-      field :realm
-      field :token_span
-      field :authorized_at
-    end
-
-    fields :namespace, :name, :authorized, :client
-  end
-
-  config.model Setup::Oauth2Authorization do
-    navigation_label 'Endpoints'
-    weight -34
-    object_label_method { :custom_title }
-    parent Setup::Authorization
-
-    edit do
-      field :namespace
-      field :name
-      field :client
-      field :scopes do
-        visible { ((obj = bindings[:object]) && obj.provider).present? }
-        associated_collection_scope do
-          provider = ((obj = bindings[:object]) && obj.provider) || nil
-          Proc.new { |scope|
-            if provider
-              scope.where(provider_id: provider.id)
-            else
-              scope
-            end
-          }
-        end
-      end
-    end
-
-    group :credentials do
-      label 'Credentials'
-    end
-
-    configure :access_token do
-      group :credentials
-    end
-
-    configure :token_span do
-      group :credentials
-    end
-
-    configure :authorized_at do
-      group :credentials
-    end
-
-    configure :refresh_token do
-      group :credentials
-    end
-
-    configure :token_type do
-      group :credentials
-    end
-
-    show do
-      field :namespace
-      field :name
-      field :authorized
-      field :client
-      field :scopes
-
-      field :token_type
-      field :access_token
-      field :token_span
-      field :authorized_at
-      field :refresh_token
-    end
-
-    fields :namespace, :name, :authorized, :client, :scopes
-  end
-
-  config.model Setup::AwsAuthorization do
-    navigation_label 'Endpoints'
-    weight -33
-    object_label_method { :custom_title }
-    edit do
-      field :namespace
-      field :name
-      field :aws_access_key
-      field :aws_secret_key
-      field :seller
-      field :merchant
-      field :markets
-      field :signature_method
-      field :signature_version
-    end
-
-    group :credentials do
-      label 'Credentials'
-    end
-
-    configure :aws_access_key do
-      group :credentials
-    end
-
-    configure :aws_secret_key do
-      group :credentials
-    end
-
-    show do
-      field :namespace
-      field :name
-      field :aws_access_key
-      field :aws_secret_key
-      field :seller
-      field :merchant
-      field :markets
-      field :signature_method
-      field :signature_version
-
-    end
-
-    fields :namespace, :name, :aws_access_key, :aws_secret_key, :seller, :merchant, :markets, :signature_method, :signature_version
-  end
-
   #Wrokflows
 
   config.model Setup::Flow do
     navigation_label 'Workflows'
-    weight -30
+    weight -300
     object_label_method { :custom_title }
     register_instance_option(:form_synchronized) do
       [:custom_data_type, :data_type_scope, :scope_filter, :scope_evaluator, :lot_size, :connection_role, :webhook, :response_translator, :response_data_type]
@@ -1565,7 +1363,7 @@ RailsAdmin.config do |config|
 
   config.model Setup::Event do
     navigation_label 'Workflows'
-    weight -29
+    weight -209
     object_label_method { :custom_title }
     visible false
     edit do
@@ -1589,7 +1387,7 @@ RailsAdmin.config do |config|
 
   config.model Setup::Observer do
     navigation_label 'Workflows'
-    weight -28
+    weight -208
     label 'Data event'
     object_label_method { :custom_title }
     edit do
@@ -1648,8 +1446,7 @@ RailsAdmin.config do |config|
 
   config.model Setup::Scheduler do
     navigation_label 'Workflows'
-    weight -27
-    label 'Scheduler event'
+    weight -207
     object_label_method { :custom_title }
     edit do
       field :namespace
@@ -1703,9 +1500,29 @@ RailsAdmin.config do |config|
     fields :namespace, :name, :scheduling_method, :expression, :activated
   end
 
+  config.model Setup::AlgorithmParameter do
+    fields :name, :description
+  end
+
+  config.model Setup::CallLink do
+    edit do
+      field :name do
+        read_only true
+        help { nil }
+        label 'Call name'
+      end
+      field :link do
+        inline_add false
+        inline_edit false
+        help { nil }
+      end
+    end
+    fields :name, :link
+  end
+
   config.model Setup::Translator do
     navigation_label 'Workflows'
-    weight -26
+    weight -206
     object_label_method { :custom_title }
     register_instance_option(:form_synchronized) do
       [:source_data_type, :target_data_type, :transformation, :target_importer, :source_exporter, :discard_chained_records]
@@ -1836,29 +1653,9 @@ RailsAdmin.config do |config|
     fields :namespace, :name, :type, :style, :transformation
   end
 
-  config.model Setup::AlgorithmParameter do
-    fields :name, :description
-  end
-
-  config.model Setup::CallLink do
-    edit do
-      field :name do
-        read_only true
-        help { nil }
-        label 'Call name'
-      end
-      field :link do
-        inline_add false
-        inline_edit false
-        help { nil }
-      end
-    end
-    fields :name, :link
-  end
-
   config.model Setup::Algorithm do
     navigation_label 'Workflows'
-    weight -25
+    weight -205
     object_label_method { :custom_title }
     edit do
       field :namespace
@@ -1889,11 +1686,12 @@ RailsAdmin.config do |config|
     fields :namespace, :name, :description, :parameters, :call_links
   end
 
-  #OAuths
+  #Security
 
   config.model Setup::OauthClient do
-    navigation_label 'OAuths'
-    weight -20
+    navigation_label 'Security'
+    label 'OAuth Client'
+    weight -100
     object_label_method { :custom_title }
 
     configure :tenant do
@@ -1930,10 +1728,10 @@ RailsAdmin.config do |config|
   end
 
   config.model Setup::BaseOauthProvider do
-    navigation_label 'OAuths'
+    navigation_label 'Security'
+    weight -90
     object_label_method { :custom_title }
     label 'Provider'
-    visible false
 
     configure :tenant do
       visible { Account.current.super_admin? }
@@ -1949,8 +1747,9 @@ RailsAdmin.config do |config|
   end
 
   config.model Setup::OauthProvider do
-    navigation_label 'OAuths'
-    weight -19
+    weight -89
+    label 'OAuth 1.0'
+    label_plural 'OAuth 1.0'
     object_label_method { :custom_title }
 
     configure :tenant do
@@ -1967,8 +1766,9 @@ RailsAdmin.config do |config|
   end
 
   config.model Setup::Oauth2Provider do
-    navigation_label 'OAuths'
-    weight -18
+    weight -88
+    label 'OAuth 2.0'
+    label_plural 'OAuth 2.0'
     object_label_method { :custom_title }
 
     configure :tenant do
@@ -1995,8 +1795,9 @@ RailsAdmin.config do |config|
   end
 
   config.model Setup::Oauth2Scope do
-    navigation_label 'OAuths'
-    weight -17
+    navigation_label 'Security'
+    weight -87
+    label 'OAuth 2.0 Scope'
     object_label_method { :custom_title }
 
     configure :tenant do
@@ -2012,11 +1813,216 @@ RailsAdmin.config do |config|
     fields :provider, :name, :description, :tenant, :shared
   end
 
+  config.model Setup::Authorization do
+    navigation_label 'Security'
+    weight -50
+    object_label_method { :custom_title }
+    fields :namespace, :name, :authorized
+  end
+
+  config.model Setup::BasicAuthorization do
+    weight -49
+    label 'Basic'
+    label_plural 'Basic'
+    object_label_method { :custom_title }
+    edit do
+      field :namespace
+      field :name
+      field :username
+      field :password
+    end
+
+    group :credentials do
+      label 'Credentials'
+    end
+
+    configure :username do
+      group :credentials
+    end
+
+    configure :password do
+      group :credentials
+    end
+
+    show do
+      field :namespace
+      field :name
+      field :authorized
+      field :username
+      field :password
+    end
+
+    fields :namespace, :name, :authorized, :username, :password
+  end
+
+  config.model Setup::OauthAuthorization do
+    weight -45
+    label 'OAuth 1.0'
+    label_plural 'OAuth 1.0'
+    object_label_method { :custom_title }
+    parent Setup::Authorization
+
+    edit do
+      field :namespace
+      field :name
+      field :client
+    end
+
+    group :credentials do
+      label 'Credentials'
+    end
+
+    configure :access_token do
+      group :credentials
+    end
+
+    configure :token_span do
+      group :credentials
+    end
+
+    configure :authorized_at do
+      group :credentials
+    end
+
+    configure :access_token_secret do
+      group :credentials
+    end
+
+    configure :realm do
+      group :credentials
+    end
+
+    show do
+      field :namespace
+      field :name
+      field :authorized
+      field :client
+
+      field :access_token
+      field :access_token_secret
+      field :realm
+      field :token_span
+      field :authorized_at
+    end
+
+    fields :namespace, :name, :authorized, :client
+  end
+
+  config.model Setup::Oauth2Authorization do
+    weight -40
+    label 'OAuth 2.0'
+    label_plural 'OAuth 2.0'
+    object_label_method { :custom_title }
+    parent Setup::Authorization
+
+    edit do
+      field :namespace
+      field :name
+      field :client
+      field :scopes do
+        visible { ((obj = bindings[:object]) && obj.provider).present? }
+        associated_collection_scope do
+          provider = ((obj = bindings[:object]) && obj.provider) || nil
+          Proc.new { |scope|
+            if provider
+              scope.where(provider_id: provider.id)
+            else
+              scope
+            end
+          }
+        end
+      end
+    end
+
+    group :credentials do
+      label 'Credentials'
+    end
+
+    configure :access_token do
+      group :credentials
+    end
+
+    configure :token_span do
+      group :credentials
+    end
+
+    configure :authorized_at do
+      group :credentials
+    end
+
+    configure :refresh_token do
+      group :credentials
+    end
+
+    configure :token_type do
+      group :credentials
+    end
+
+    show do
+      field :namespace
+      field :name
+      field :authorized
+      field :client
+      field :scopes
+
+      field :token_type
+      field :access_token
+      field :token_span
+      field :authorized_at
+      field :refresh_token
+    end
+
+    fields :namespace, :name, :authorized, :client, :scopes
+  end
+
+  config.model Setup::AwsAuthorization do
+    weight -35
+    object_label_method { :custom_title }
+    edit do
+      field :namespace
+      field :name
+      field :aws_access_key
+      field :aws_secret_key
+      field :seller
+      field :merchant
+      field :markets
+      field :signature_method
+      field :signature_version
+    end
+
+    group :credentials do
+      label 'Credentials'
+    end
+
+    configure :aws_access_key do
+      group :credentials
+    end
+
+    configure :aws_secret_key do
+      group :credentials
+    end
+
+    show do
+      field :namespace
+      field :name
+      field :aws_access_key
+      field :aws_secret_key
+      field :seller
+      field :merchant
+      field :markets
+      field :signature_method
+      field :signature_version
+
+    end
+
+    fields :namespace, :name, :aws_access_key, :aws_secret_key, :seller, :merchant, :markets, :signature_method, :signature_version
+  end
+
   #Monitors
 
   config.model Setup::Notification do
     navigation_label 'Monitors'
-    weight -10
+    weight -20
     object_label_method { :label }
 
     configure :created_at
@@ -2053,7 +2059,7 @@ RailsAdmin.config do |config|
 
   config.model Setup::Task do
     navigation_label 'Monitors'
-    weight -9
+    weight -18
     object_label_method { :to_s }
     configure :attempts_succeded, :text do
       label 'Attempts/Succedded'
@@ -2209,7 +2215,7 @@ RailsAdmin.config do |config|
 
   config.model Setup::Storage do
     navigation_label 'Monitors'
-    weight -8
+    weight -15
     object_label_method { :label }
 
     configure :filename do
