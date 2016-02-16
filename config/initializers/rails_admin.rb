@@ -64,7 +64,7 @@ RailsAdmin.config do |config|
   config.audit_with :mongoid_audit
   config.authorize_with :cancan
 
-  config.excluded_models += [Setup::BaseOauthAuthorization, Setup::AwsAuthorization]
+  config.excluded_models += [Setup::BaseOauthAuthorization, Setup::AwsAuthorization, Setup::Raml]
 
   config.actions do
     dashboard # mandatory
@@ -391,13 +391,12 @@ RailsAdmin.config do |config|
 
     edit do
       field :image
-      field :readme, :froala
-      # do
-      #   config_options toolbar: { fa: true },
-      #                  html: true,
-      #                  parserRules: { tags: { p: 1 } }
-      #   visible { Account.current.super_admin? }
-      # end
+      field :readme, :wysihtml5 do
+        config_options toolbar: { fa: true },
+                       html: true,
+                       parserRules: { tags: { p: 1 } }
+        visible { Account.current.super_admin? }
+      end
       field :name
       field :flows
       field :connection_roles
