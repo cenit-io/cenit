@@ -9,3 +9,17 @@ $(document).on('rails_admin.dom_ready', function() {
      hljs.highlightBlock(block);
    });
 });
+
+$(function(){
+    $('#main-accordion .panel-heading a.panel-title').click(function(){
+        var parent = $(this).parent().parent();
+        if ($(parent).hasClass('active'))
+            $(parent).removeClass('active');
+        else {
+            $(parent).addClass('active');
+            $(parent).siblings().each(function () {
+                $(this).removeClass('active');
+            });
+        }
+    });
+});
