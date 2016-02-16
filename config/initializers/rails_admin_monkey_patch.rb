@@ -577,35 +577,57 @@ module RailsAdmin
 
       i = -1
       nodes_stack.group_by(&:navigation_label).collect do |navigation_label, nodes|
+        i += 1
+        html_id = "main-collapse#{i}"
+
         nodes = nodes.select { |n| n.parent.nil? || !n.parent.to_s.in?(node_model_names) }
-        li_stack = navigation nodes_stack, nodes
+        li_stack = navigation nodes_stack, nodes, html_id
 
         label = navigation_label || t('admin.misc.navigation')
 
-        i += 1
         %(<div class='panel panel-default'>
             <div class='panel-heading'>
-              <a data-toggle='collapse' data-parent='#main-accordion' href='#main-collapse#{i}' class='panel-title collapse in'>#{capitalize_first_letter label}</a>
+              <a data-toggle='collapse' data-parent='#main-accordion' href='##{html_id}' class='panel-title collapse in collapsed'>
+                #{capitalize_first_letter label}
+              </a>
             </div>
-            <div id='main-collapse#{i}' class='nav nav-pills nav-stacked panel-collapse collapse'>#{li_stack}
-            </div>
+            #{li_stack}
           </div>) if li_stack.present?
       end.join.html_safe
     end
 
-    def navigation(nodes_stack, nodes, level = 0)
-      nodes.collect do |node|
-        model_param = node.abstract_model.to_param
-        url         = url_for(action: :index, controller: 'rails_admin/main', model_name: model_param)
-        level_class = " nav-level-#{level}" if level > 0
-        nav_icon = node.navigation_icon ? %(<i class="#{node.navigation_icon}"></i>).html_safe : ''
-        li = content_tag :li, data: {model: model_param} do
-          link_to nav_icon + capitalize_first_letter(node.label_navigation), url, class: "pjax#{level_class}"
-        end
-        li + navigation(nodes_stack, nodes_stack.select { |n| n.parent.to_s == node.abstract_model.model_name }, level + 1)
-      end.join.html_safe
-    end
+    def navigation(nodes_stack, nodes, html_id)
+      if not nodes.present?
+        return
+      end
+      i = -1
+      ("<div id='#{html_id}' class='nav nav-pills nav-stacked panel-collapse collapse'>" +
+          nodes.collect do |node|
+        i += 1
+        stack_id = "#{html_id}-sub#{i}"
 
+        children = nodes_stack.select { |n| n.parent.to_s == node.abstract_model.model_name }
+        if children.present?
+          # level_class = ''
+
+          # nav_icon = node.navigation_icon ? %(<i class="#{node.navigation_icon}"></i>).html_safe : ''
+          li = %(<div class='panel panel-default'>
+            <div class='panel-heading'>
+              <a data-toggle='collapse' data-parent='##{html_id}' href='##{stack_id}' class='panel-title collapse in collapsed'>
+                #{capitalize_first_letter node.label_navigation}
+              </a>
+            </div>)
+          li + navigation(nodes_stack, children, stack_id) + '</div>'
+        else
+          model_param = node.abstract_model.to_param
+          url         = url_for(action: :index, controller: 'rails_admin/main', model_name: model_param)
+          nav_icon = node.navigation_icon ? %(<i class="#{node.navigation_icon}"></i>).html_safe : ''
+          content_tag :li, data: {model: model_param} do
+            link_to nav_icon + capitalize_first_letter(node.label_navigation), url, class: 'pjax'
+          end
+        end
+      end.join + '</div>').html_safe
+    end
   end
 
   class MainController

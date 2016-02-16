@@ -1,1 +1,99 @@
+@import "bootstrap/bootstrap-tour.min";
+
 @import "rails_admin/custom/github";
+
+
+.sidebar-nav {
+  background-color: #fff!important;
+}
+
+ul#main-accordion {
+  padding: 6px;
+}
+
+.panel-heading {
+  padding: 0;
+}
+
+.panel-heading>a{
+  padding:10px 15px;
+}
+
+ul#main-accordion a {
+  font-size: 1.5rem;
+  color: rgba(0, 0, 0, 0.87);
+  text-decoration: none;
+}
+
+ul#main-accordion .panel {
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+}
+
+ul#main-accordion>.panel>.panel-heading {
+  background-color: transparent;
+}
+
+ul#main-accordion>.panel .panel .panel-heading {
+  background-color: rgba(0,0,0,0.065);
+  border-radius: 0;
+}
+
+ul#main-accordion>.panel.active>.panel-heading {
+  background-color: #0cc2aa !important;
+  border-radius: 3px;
+}
+ul#main-accordion>.panel.active>.panel-heading a {
+  color: rgba(255, 255, 255, 0.87);
+}
+
+ul#main-accordion .panel.active {
+  background-color: rgba(0, 0, 0, 0.065);
+}
+
+ul#main-accordion>.panel.active .panel.active>.panel-heading {
+  background-color: transparent;
+}
+
+ul#main-accordion a:hover,
+ul#main-accordion a:focus,
+ul#main-accordion a:active,
+ul#main-accordion li.active>a {
+  text-decoration: none;
+}
+
+ul#main-accordion div>a:hover,
+ul#main-accordion li>a:hover,
+ul#main-accordion li>a:focus,
+ul#main-accordion li>a:active,
+ul#main-accordion li.active>a {
+  background-color: rgba(0, 0, 0, 0.065);
+}
+
+ul#main-accordion>.panel>.panel-collapse a,
+ul#main-accordion>.panel>.panel-collapse>.panel>.panel-heading a {
+  padding-left: 2rem;
+}
+
+ul#main-accordion>.panel>.panel-collapse>.panel li>a
+ {
+  padding-left: 4rem;
+}
+
+//ul#main-accordion .panel-heading:hover,
+//ul#main-accordion li:hover{
+//  background-color: rgba(0, 0, 0, 0.065);
+//}
+
+.panel-heading .panel-title:after {
+  /* symbol for "opening" panels */
+  font: normal normal normal 14px/1 FontAwesome;  /* essential for enabling glyphicon */
+  content: "\f0d8";    /* adjust as needed, taken from bootstrap.css */
+  float: right;        /* adjust as needed */
+//  color: rgba(0, 0, 0, 0.875);         /* adjust as needed */
+}
+.panel-heading .panel-title.collapsed:after {
+  /* symbol for "collapsed" panels */
+  content: "\f0d7";    /* adjust as needed, taken from bootstrap.css */
+}
