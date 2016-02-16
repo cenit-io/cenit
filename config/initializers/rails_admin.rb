@@ -391,13 +391,12 @@ RailsAdmin.config do |config|
 
     edit do
       field :image
-      field :readme, :froala
-      # do
-      #   config_options toolbar: { fa: true },
-      #                  html: true,
-      #                  parserRules: { tags: { p: 1 } }
-      #   visible { Account.current.super_admin? }
-      # end
+      field :readme, :wysihtml5 do
+        config_options toolbar: { fa: true },
+                       html: true,
+                       parserRules: { tags: { p: 1 } }
+        visible { Account.current.super_admin? }
+      end
       field :name
       field :flows
       field :connection_roles
