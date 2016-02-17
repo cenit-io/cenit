@@ -6,6 +6,8 @@ en:
       processed: "%{name} %{action} have been processed"
       click_here: "(click here for details)"
     actions:
+      tour:
+        title: "Take Tour"
       dashboard:
         title: "Administration"
       send_to_flow:
