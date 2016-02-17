@@ -322,7 +322,9 @@ RailsAdmin.config do |config|
 
   config.model Setup::Collection do
     navigation_label 'Collections'
-    label 'Installed Collection'
+    register_instance_option :label_navigation do
+      'My Collections'
+    end
     group :setup do
       label 'Setup objects'
       active true
@@ -418,7 +420,17 @@ RailsAdmin.config do |config|
       field :image
       field :readme do
         pretty_value do
-          value.html_safe
+          begin
+            template = value.gsub('&lt;%', '<%').gsub('%&gt;', '%>').gsub('%3C%', '<%').gsub('%%3E', '%>')
+            Setup::Transformation::ActionViewTransform.run(transformation: template,
+                                                           style: 'html.erb',
+                                                           base_url: bindings[:controller].request.base_url,
+                                                           user_key: User.current.number,
+                                                           user_token: User.current.token,
+                                                           collection: bindings[:object])
+          rescue Exception => ex
+            value
+          end.html_safe
         end
       end
       field :name
@@ -903,10 +915,10 @@ RailsAdmin.config do |config|
           v =
             if json = JSON.parse(value) rescue nil
               "<code class='json'>#{JSON.pretty_generate(json).gsub('<', '&lt;').gsub('>', '&gt;')}</code>"
-            elsif xml = Nokogiri::XML(value) rescue nil
+            elsif (xml = Nokogiri::XML(value)).errors.blank?
               "<code class='xml'>#{xml.to_xml.gsub('<', '&lt;').gsub('>', '&gt;')}</code>"
             else
-              value
+              "<code>#{value}</code>"
             end
           "<pre>#{v}</pre>".html_safe
         end
@@ -930,7 +942,7 @@ RailsAdmin.config do |config|
     label 'EDI Validators'
 
     fields :namespace, :name, :schema_data_type, :content_type
-    end
+  end
 
   config.model Setup::AlgorithmValidator do
     parent Setup::Validator
