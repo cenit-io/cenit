@@ -1376,7 +1376,6 @@ RailsAdmin.config do |config|
     navigation_label 'Workflows'
     weight -209
     object_label_method { :custom_title }
-    visible false
     edit do
       field :namespace
       field :name
@@ -1397,7 +1396,6 @@ RailsAdmin.config do |config|
   end
 
   config.model Setup::Observer do
-    navigation_label 'Workflows'
     weight -208
     label 'Data event'
     object_label_method { :custom_title }
@@ -1456,7 +1454,6 @@ RailsAdmin.config do |config|
   end
 
   config.model Setup::Scheduler do
-    navigation_label 'Workflows'
     weight -207
     object_label_method { :custom_title }
     edit do
