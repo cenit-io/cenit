@@ -49,6 +49,23 @@ RailsAdmin::Config::Fields::Types.register(RailsAdmin::Config::Fields::Types::St
   }
 }.each { |option, configuration| RailsAdmin::Config::Fields::Types::CodeMirror.register_instance_option(option) { configuration } }
 
+module RailsAdmin
+
+  module Config
+
+    class << self
+
+      def navigation(label, options)
+        navigation_options[label.to_s] = options
+      end
+
+      def navigation_options
+        @nav_options ||= {}
+      end
+    end
+  end
+end
+
 RailsAdmin.config do |config|
 
   config.total_columns_width = 900
@@ -120,6 +137,8 @@ RailsAdmin.config do |config|
   end
 
   #Collections
+
+  config.navigation 'Collections', fa_icon: 'cubes'
 
   config.model Setup::SharedCollection do
     weight -600
@@ -479,6 +498,8 @@ RailsAdmin.config do |config|
   end
 
   #Data
+
+  config.navigation 'Data', fa_icon: 'database'
 
   config.model Setup::Library do
     navigation_label 'Data'
@@ -954,6 +975,8 @@ RailsAdmin.config do |config|
 
   #API Connectors
 
+  config.navigation 'API Connectors', fa_icon: 'sitemap'
+
   config.model Setup::Parameter do
     object_label_method { :to_s }
     configure :metadata, :json_value
@@ -1186,6 +1209,8 @@ RailsAdmin.config do |config|
   end
 
   #Workflows
+
+  config.navigation 'Workflows', fa_icon: 'cogs'
 
   config.model Setup::Flow do
     navigation_label 'Workflows'
@@ -1696,6 +1721,8 @@ RailsAdmin.config do |config|
 
   #Security
 
+  config.navigation 'Security', fa_icon: 'key'
+
   config.model Setup::OauthClient do
     navigation_label 'Security'
     label 'OAuth client'
@@ -2037,6 +2064,8 @@ RailsAdmin.config do |config|
 
   #Monitors
 
+  config.navigation 'Monitors', fa_icon: 'heartbeat'
+
   config.model Setup::Notification do
     navigation_label 'Monitors'
     weight -20
@@ -2290,6 +2319,8 @@ RailsAdmin.config do |config|
   end
 
   #Administration
+
+  config.navigation 'Administration', fa_icon: 'wrench'
 
   config.model User do
     weight -1
