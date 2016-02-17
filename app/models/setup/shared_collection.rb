@@ -161,6 +161,7 @@ module Setup
           ::User.current.name = authors.first.name
           ::User.current.save
         end
+        self.readme = source_collection.readme if readme.blank? && source_collection
         true
       else
         false
