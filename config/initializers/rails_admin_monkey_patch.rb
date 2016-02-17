@@ -585,10 +585,13 @@ module RailsAdmin
 
         label = navigation_label || t('admin.misc.navigation')
 
+        icon_class = ((opts = RailsAdmin::Config.navigation_options[label]) && opts[:fa_icon]) || 'icon-question-sign'
+
         %(<div class='panel panel-default'>
             <div class='panel-heading'>
               <a data-toggle='collapse' data-parent='#main-accordion' href='##{html_id}' class='panel-title collapse in collapsed'>
                 <span class='nav-caret'><i class='fa fa-caret-down'></i></span>
+                <span class='nav-icon'><i class='fa fa-#{icon_class}'></i></span>
                 <span class='nav-caption'>#{capitalize_first_letter label}</span>
               </a>
             </div>
@@ -603,40 +606,40 @@ module RailsAdmin
       end
       i = -1
       ("<div id='#{html_id}' class='nav nav-pills nav-stacked panel-collapse collapse'>" +
-          nodes.collect do |node|
-        i += 1
-        stack_id = "#{html_id}-sub#{i}"
-        model_count = node.abstract_model.model.all.count
+        nodes.collect do |node|
+          i += 1
+          stack_id = "#{html_id}-sub#{i}"
+          model_count = node.abstract_model.model.all.count
 
-        children = nodes_stack.select { |n| n.parent.to_s == node.abstract_model.model_name }
-        if children.present?
-          # level_class = ''
+          children = nodes_stack.select { |n| n.parent.to_s == node.abstract_model.model_name }
+          if children.present?
+            # level_class = ''
 
-          # nav_icon = node.navigation_icon ? %(<i class="#{node.navigation_icon}"></i>).html_safe : ''
-          li = %(<div class='panel panel-default'>
+            # nav_icon = node.navigation_icon ? %(<i class="#{node.navigation_icon}"></i>).html_safe : ''
+            li = %(<div class='panel panel-default'>
             <div class='panel-heading'>
               <a data-toggle='collapse' data-parent='##{html_id}' href='##{stack_id}' class='panel-title collapse in collapsed'>
                 <span class='nav-caret'><i class='fa fa-caret-down'></i></span>
                 <span class='nav-caption'>#{capitalize_first_letter node.label_navigation}</span>
               </a>
             </div>)
-          li + navigation(nodes_stack, children, stack_id) + '</div>'
-        else
-          model_param = node.abstract_model.to_param
-          url         = url_for(action: :index, controller: 'rails_admin/main', model_name: model_param)
-          nav_icon = node.navigation_icon ? %(<i class="#{node.navigation_icon}"></i>).html_safe : ''
-          content_tag :li, data: {model: model_param} do
-            link_to url, class: 'pjax' do
-              rc = ""
-              if model_count>0
-                rc += "<span class='nav-amount'>#{model_count}</span>"
+            li + navigation(nodes_stack, children, stack_id) + '</div>'
+          else
+            model_param = node.abstract_model.to_param
+            url = url_for(action: :index, controller: 'rails_admin/main', model_name: model_param)
+            nav_icon = node.navigation_icon ? %(<i class="#{node.navigation_icon}"></i>).html_safe : ''
+            content_tag :li, data: { model: model_param } do
+              link_to url, class: 'pjax' do
+                rc = ""
+                if model_count>0
+                  rc += "<span class='nav-amount'>#{model_count}</span>"
+                end
+                rc += "<span class='nav-caption'>#{capitalize_first_letter node.label_navigation}</span>"
+                rc.html_safe
               end
-              rc += "<span class='nav-caption'>#{capitalize_first_letter node.label_navigation}</span>"
-              rc.html_safe
             end
           end
-        end
-      end.join + '</div>').html_safe
+        end.join + '</div>').html_safe
     end
   end
 

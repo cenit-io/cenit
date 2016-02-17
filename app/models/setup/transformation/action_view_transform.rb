@@ -50,6 +50,7 @@ module Setup
         # end
 
         def preprocess_erb(transformation, options)
+          return transformation if Capataz.disable?
           pattern = /(<%=?)(.*?)(%>)/
           rb = []
           gs = Gensym.new
@@ -65,7 +66,7 @@ module Setup
           rw = Capataz.rewrite(rb_src, locals: lcls)
           rw = rw.split(/\n/)[(lcls.length)..-1]
 
-          marks.each_with_index do |mark, i|
+          marks.to_enum.with_index.reverse_each do |mark, i|
             res = res.gsub(mark.to_s, rw[i][0..(-(mark.to_s.length + 3))])
           end
 

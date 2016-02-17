@@ -193,7 +193,8 @@ module Cenit
       end
 
       def find_record(conditions, *scopes)
-        scopes.each do |scope|
+        scopes.each do |original_scope|
+          scope = original_scope
           match_conditions = {}
           conditions.each do |key, value|
             if value.is_a?(Hash)
@@ -205,7 +206,7 @@ module Cenit
             end
           end
           record = scope.detect { |record| match?(record, match_conditions) }
-          return record if record
+          return original_scope.detect { |item| item == record } if record
         end
         nil
       end
