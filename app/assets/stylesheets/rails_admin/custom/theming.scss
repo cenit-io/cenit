@@ -2,6 +2,11 @@
 
 @import "rails_admin/custom/github";
 
+.navbar-brand img {
+  max-height: 100%;
+  width: auto;
+  padding-bottom: 4px;
+}
 
 .sidebar-nav {
   background-color: #fff!important;
