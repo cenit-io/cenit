@@ -81,19 +81,36 @@ ul#main-accordion>.panel>.panel-collapse>.panel li>a
   padding-left: 4rem;
 }
 
-//ul#main-accordion .panel-heading:hover,
-//ul#main-accordion li:hover{
-//  background-color: rgba(0, 0, 0, 0.065);
-//}
-
-.panel-heading .panel-title:after {
-  /* symbol for "opening" panels */
-  font: normal normal normal 14px/1 FontAwesome;  /* essential for enabling glyphicon */
-  content: "\f0d8";    /* adjust as needed, taken from bootstrap.css */
-  float: right;        /* adjust as needed */
-//  color: rgba(0, 0, 0, 0.875);         /* adjust as needed */
+ul#main-accordion .nav-caret {
+  float: right;
+  margin-left: 1rem;
 }
-.panel-heading .panel-title.collapsed:after {
-  /* symbol for "collapsed" panels */
-  content: "\f0d7";    /* adjust as needed, taken from bootstrap.css */
+
+ul#main-accordion .nav-amount {
+  float: right;
+  margin-left: 1rem;
+  line-height: 1;
+  padding: 1px 4px;
+  border-radius: 4px;
+  background-color: #d9edf7 !important;
+  border: solid 1px #bce8f1;
+  color: #31708f !important;
+  font-weight: bold;
+  font-size: 10.5px;
+}
+
+ul#main-accordion .nav-caret i {
+  transition: transform 0.3s ease-in-out;
+  -webkit-transition: transform 0.3s ease-in-out;
+  -ms-transition: transform 0.3s ease-in-out;
+  -moz-transition: transform 0.3s ease-in-out;
+  -o-transition: transform 0.3s ease-in-out;
+}
+
+ul#main-accordion .panel.active>.panel-heading .nav-caret i {
+  transform: rotate(180deg);
+  -webkit-transform: rotate(180deg);
+  -ms-transform: rotate(180deg);
+  -moz-transform: rotate(180deg);
+  -o-transform: rotate(180deg);
 }
