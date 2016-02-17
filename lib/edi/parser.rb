@@ -52,13 +52,13 @@ module Edi
             next if content_property
             property_model = model.property_model(property)
             property_schema = property_model.schema
-            if xml_opts = property_schema['xml'] || {}
+            if (xml_opts = property_schema['xml'] || {})
               content_property = property if xml_opts['content']
             end
           end
         end
         element.attribute_nodes.each do |attr|
-          if property = model.property_for(attr.name)
+          if (property = model.property_for(attr.name))
             value =
               if model.property_model(property).schema['type'] == 'array'
                 attr.value.split(' ')
@@ -80,21 +80,21 @@ module Edi
         else
           elements = element.element_children.to_a
           elements.each do |sub_element|
-            if property = model.property_for(qualify_name(sub_element))
+            if (property = model.property_for(qualify_name(sub_element)))
               property_model = model.property_model(property)
               property_schema = model.property_schema(property)
               if property_model.modelable?
                 if property_schema['type'] == 'array'
                   property_schema = property_model.schema
-                  unless association = record.send(property)
+                  unless (association = record.send(property))
                     record.send("#{property}=", [])
                     association = record.send(property)
                   end
-                  if sub_record = do_parse_xml(data_type, property_model, sub_element, options, property_schema, nil, nil, property)
+                  if (sub_record = do_parse_xml(data_type, property_model, sub_element, options, property_schema, nil, nil, property))
                     association << sub_record
                   end
                 else # type 'object'
-                  if sub_record = do_parse_xml(data_type, property_model, sub_element, options, property_schema, nil, nil, property)
+                  if (sub_record = do_parse_xml(data_type, property_model, sub_element, options, property_schema, nil, nil, property))
                     record.send("#{property}=", sub_record)
                   end
                 end
@@ -118,10 +118,15 @@ module Edi
             if json.is_a?(Hash) &&
               options[:ignore].none? { |ignored_field| primary_fields.include?(ignored_field) } &&
               (criteria = json.select { |key, _| primary_fields.include?(key.to_sym) }).size == primary_fields.count
-              record = (container && container.detect { |item| Cenit::Utility.match?(item, criteria) }) || model.where(criteria).first
+              record = (container && (Cenit::Utility.find_record(criteria, container) || container.detect { |item| Cenit::Utility.match?(item, criteria) })) || model.where(criteria).first
             end
             if record
               updating = true
+              unless model == record.orm_model
+                model = record.orm_model
+                data_type = model.data_type
+                json_schema = data_type.merged_schema
+              end
             else
               (record = model.new).instance_variable_set(:@dynamically_created, true)
             end

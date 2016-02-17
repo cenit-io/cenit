@@ -49,6 +49,23 @@ RailsAdmin::Config::Fields::Types.register(RailsAdmin::Config::Fields::Types::St
   }
 }.each { |option, configuration| RailsAdmin::Config::Fields::Types::CodeMirror.register_instance_option(option) { configuration } }
 
+module RailsAdmin
+
+  module Config
+
+    class << self
+
+      def navigation(label, options)
+        navigation_options[label.to_s] = options
+      end
+
+      def navigation_options
+        @nav_options ||= {}
+      end
+    end
+  end
+end
+
 RailsAdmin.config do |config|
 
   config.total_columns_width = 900
@@ -120,6 +137,8 @@ RailsAdmin.config do |config|
   end
 
   #Collections
+
+  config.navigation 'Collections', fa_icon: 'cubes'
 
   config.model Setup::SharedCollection do
     weight -600
@@ -322,7 +341,9 @@ RailsAdmin.config do |config|
 
   config.model Setup::Collection do
     navigation_label 'Collections'
-    label 'Installed Collection'
+    register_instance_option :label_navigation do
+      'My Collections'
+    end
     group :setup do
       label 'Setup objects'
       active true
@@ -418,7 +439,17 @@ RailsAdmin.config do |config|
       field :image
       field :readme do
         pretty_value do
-          value.html_safe
+          begin
+            template = value.gsub('&lt;%', '<%').gsub('%&gt;', '%>').gsub('%3C%', '<%').gsub('%%3E', '%>')
+            Setup::Transformation::ActionViewTransform.run(transformation: template,
+                                                           style: 'html.erb',
+                                                           base_url: bindings[:controller].request.base_url,
+                                                           user_key: User.current.number,
+                                                           user_token: User.current.token,
+                                                           collection: bindings[:object])
+          rescue Exception => ex
+            value
+          end.html_safe
         end
       end
       field :name
@@ -467,6 +498,8 @@ RailsAdmin.config do |config|
   end
 
   #Data
+
+  config.navigation 'Data', fa_icon: 'database'
 
   config.model Setup::Library do
     navigation_label 'Data'
@@ -903,10 +936,10 @@ RailsAdmin.config do |config|
           v =
             if json = JSON.parse(value) rescue nil
               "<code class='json'>#{JSON.pretty_generate(json).gsub('<', '&lt;').gsub('>', '&gt;')}</code>"
-            elsif xml = Nokogiri::XML(value) rescue nil
+            elsif (xml = Nokogiri::XML(value)).errors.blank?
               "<code class='xml'>#{xml.to_xml.gsub('<', '&lt;').gsub('>', '&gt;')}</code>"
             else
-              value
+              "<code>#{value}</code>"
             end
           "<pre>#{v}</pre>".html_safe
         end
@@ -930,7 +963,7 @@ RailsAdmin.config do |config|
     label 'EDI Validators'
 
     fields :namespace, :name, :schema_data_type, :content_type
-    end
+  end
 
   config.model Setup::AlgorithmValidator do
     parent Setup::Validator
@@ -941,6 +974,8 @@ RailsAdmin.config do |config|
   end
 
   #API Connectors
+
+  config.navigation 'API Connectors', fa_icon: 'sitemap'
 
   config.model Setup::Parameter do
     object_label_method { :to_s }
@@ -1175,6 +1210,8 @@ RailsAdmin.config do |config|
 
   #Workflows
 
+  config.navigation 'Workflows', fa_icon: 'cogs'
+
   config.model Setup::Flow do
     navigation_label 'Workflows'
     weight -300
@@ -1364,7 +1401,6 @@ RailsAdmin.config do |config|
     navigation_label 'Workflows'
     weight -209
     object_label_method { :custom_title }
-    visible false
     edit do
       field :namespace
       field :name
@@ -1385,7 +1421,6 @@ RailsAdmin.config do |config|
   end
 
   config.model Setup::Observer do
-    navigation_label 'Workflows'
     weight -208
     label 'Data event'
     object_label_method { :custom_title }
@@ -1444,7 +1479,6 @@ RailsAdmin.config do |config|
   end
 
   config.model Setup::Scheduler do
-    navigation_label 'Workflows'
     weight -207
     object_label_method { :custom_title }
     edit do
@@ -1686,6 +1720,8 @@ RailsAdmin.config do |config|
   end
 
   #Security
+
+  config.navigation 'Security', fa_icon: 'key'
 
   config.model Setup::OauthClient do
     navigation_label 'Security'
@@ -2028,6 +2064,8 @@ RailsAdmin.config do |config|
 
   #Monitors
 
+  config.navigation 'Monitors', fa_icon: 'heartbeat'
+
   config.model Setup::Notification do
     navigation_label 'Monitors'
     weight -20
@@ -2281,6 +2319,8 @@ RailsAdmin.config do |config|
   end
 
   #Administration
+
+  config.navigation 'Administration', fa_icon: 'wrench'
 
   config.model User do
     weight -1
