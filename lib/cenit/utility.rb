@@ -206,7 +206,10 @@ module Cenit
             end
           end
           record = scope.detect { |record| match?(record, match_conditions) }
-          return original_scope.detect { |item| item == record } if record
+          if record
+            return original_scope.detect { |item| item == record } if original_scope.respond_to?(:detect)
+            return record
+          end
         end
         nil
       end
