@@ -196,13 +196,13 @@ module Setup
     end
 
     def context_options_for_import(options)
-      raise Exception.new('Target data type not defined') unless data_type = target_data_type || options[:target_data_type]
+      raise Exception.new('Target data type not defined') unless (data_type = target_data_type || options[:target_data_type])
       {target_data_type: data_type, targets: Set.new}
     end
 
     def source_options(options, source_key_options)
       data_type_key = source_key_options[:data_type_key] || :source_data_type
-      if data_type = send(data_type_key) || options[data_type_key] || options[:data_type]
+      if (data_type = send(data_type_key) || options[data_type_key] || options[:data_type])
         model = data_type.records_model
         offset = options[:offset] || 0
         limit = options[:limit]
@@ -210,7 +210,7 @@ module Setup
           if source_key_options[:bulk]
             {
               source_key_options[:sources_key] || :sources =>
-                if object_ids = options[:object_ids]
+                if (object_ids = options[:object_ids])
                   model.any_in(id: (limit ? object_ids[offset, limit] : object_ids.from(offset))).to_enum
                 else
                   enum = (limit ? model.limit(limit) : model.all).skip(offset).to_enum
@@ -251,7 +251,7 @@ module Setup
     end
 
     def after_run_update(options)
-      if target = options[:object]
+      if (target = options[:object])
         target.instance_variable_set(:@discard_event_lookup, options[:discard_events])
         raise TransformingObjectException.new(target) unless Cenit::Utility.save(target)
       end
@@ -259,7 +259,7 @@ module Setup
     end
 
     def after_run_conversion(options)
-      return unless target = options[:target]
+      return unless (target = options[:target])
       if options[:save_result].blank? || options[:save_result]
         target.instance_variable_set(:@discard_event_lookup, options[:discard_events])
         raise TransformingObjectException.new(target) unless Cenit::Utility.save(target)
