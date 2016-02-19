@@ -14,13 +14,17 @@ module Cenit
         invariant_data = {}
 
         Setup::Collection.reflect_on_all_associations(:has_and_belongs_to_many).each do |relation|
-          if data = pull_data[relation.name.to_s]
+          if (data = pull_data[relation.name.to_s])
             invariant_data[relation.name.to_s] = invariant_names = Set.new
             data.each do |item|
-              criteria = {namespace: item['namespace'], name: item['name']}
+              criteria = { namespace: item['namespace'], name: item['name'] }
               criteria.delete_if { |_, value| value.nil? }
-              if record = relation.klass.where(criteria).first
-                if record.share_hash.eql?(item)
+              if (record = relation.klass.where(criteria).first)
+                record_hash = Cenit::Utility.stringfy(record.share_hash)
+                if item['_type']
+                  record_hash['_type'] = record.class.to_s unless record_hash['_type']
+                end
+                if Cenit::Utility.eql_content?(record_hash, item)
                   invariant_names << criteria
                 else
                   updated_records[relation.name.to_s] << record
@@ -33,17 +37,17 @@ module Cenit
 
         libraries_id = (data = pull_data['libraries']) ? data.collect { |item| item['id'] } : []
         Setup::Library.any_in(id: libraries_id).each do |library|
-          if library_data = data.detect { |item| item['name'] == library.name }
-            if schemas_data = library_data['schemas']
+          if (library_data = data.detect { |item| item['name'] == library.name })
+            if (schemas_data = library_data['schemas'])
               library.schemas.each do |schema|
-                if schema_data = schemas_data.detect { |sch| sch['uri'] == schema.uri }
+                if (schema_data = schemas_data.detect { |sch| sch['uri'] == schema.uri })
                   schema_data['id'] = schema.id.to_s
                 end
               end
             end
-            if data_types_data = library_data['data_types']
+            if (data_types_data = library_data['data_types'])
               library.data_types.each do |data_type|
-                if data_type_data = data_types_data.detect { |dt| dt['name'] == data_type.name }
+                if (data_type_data = data_types_data.detect { |dt| dt['name'] == data_type.name })
                   data_type_data['id'] = data_type.id.to_s
                 end
               end
@@ -55,7 +59,7 @@ module Cenit
 
         invariant_data.each do |key, invariant_names|
           pull_data[key].delete_if do |item|
-            criteria = {namespace: item['namespace'], name: item['name']}
+            criteria = { namespace: item['namespace'], name: item['name'] }
             criteria.delete_if { |_, value| value.nil? }
             invariant_names.include?(criteria)
           end
@@ -79,21 +83,23 @@ module Cenit
         if pull_request[:missing_parameters].blank?
           begin
             collection = Setup::Collection.new
-            collection.from_json(pull_request.delete(:collection_data))
+            collection.from_json(pull_request.delete(:collection_data)) #TODO Optimize using pull data
             collection.readme = shared_collection.readme unless shared_collection.readme.blank?
             collection.events.each { |e| e[:activated] = false if e.is_a?(Setup::Scheduler) && e.new_record? }
             begin
               collection.name = BSON::ObjectId.new.to_s
             end while Setup::Collection.where(name: collection.name).present?
-            unless Cenit::Utility.save(collection, create_collector: create_collector = Set.new, saved_collector: saved = Set.new)
+            unless Cenit::Utility.save(collection, bind_references: { if: ->(r) { r.instance_variable_get(:@_edi_parsed) } },
+                                       create_collector: (create_collector = Set.new),
+                                       saved_collector: (saved = Set.new))
               collection.errors.full_messages.each { |msg| errors << msg }
               collection.errors.clear
-              if Cenit::Utility.save(collection, {create_collector: create_collector})
+              if Cenit::Utility.save(collection, { create_collector: create_collector })
                 pull_request[:fixed_errors] = errors
                 errors = []
               else
                 saved.each do |obj|
-                  if obj = obj.reload rescue nil
+                  if (obj = (obj.reload rescue nil))
                     obj.delete
                   end
                 end
@@ -111,7 +117,7 @@ module Cenit
               pull_data = pull_request.delete(:pull_data)
               pull_request[:created_records] = collection.inspect_json(inspecting: :id, inspect_scope: create_collector).reject { |_, value| !value.is_a?(Enumerable) }
               pull_request[:pull_data] = pull_data
-              pull_request[:collection] = {id: collection.id.to_s}
+              pull_request[:collection] = { id: collection.id.to_s }
             end
           rescue Exception => ex
             errors << ex.message
