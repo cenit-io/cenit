@@ -134,22 +134,31 @@ module Setup
       event || translator
     end
 
-    def process(message={})
-      puts "Flow processing on '#{self.name}': #{}"
+    def join_process(message={})
+      if (task_token = Thread.current[:task_token]) &&
+        (thread_token = ThreadToken.where(token: task_token).first) &&
+        (current_task = Task.where(thread_token: thread_token).first)
+        process(message) do |task|
+          task.join(current_task)
+        end
+      else
+        process(message)
+      end
+    end
+
+    def process(message={}, &block)
       executing_id, execution_graph = (Thread.current[:flow_execution] ||= []).last || [nil, {}]
       if executing_id.present? && !(adjacency_list = execution_graph[executing_id] ||= []).include?(id.to_s)
         adjacency_list << id.to_s
       end
       result =
-        if cycle = cyclic_execution(execution_graph, executing_id)
+        if (cycle = cyclic_execution(execution_graph, executing_id))
           cycle = cycle.collect { |id| ((flow = Setup::Flow.where(id: id).first) && flow.name) || id }
           Setup::Notification.create(message: "Cyclic flow execution: #{cycle.join(' -> ')}")
         else
-          Setup::FlowExecution.process message.merge(flow_id: id.to_s,
-                                                     tirgger_flow_id: executing_id,
-                                                     execution_graph: execution_graph)
+          message = message.merge(flow_id: id.to_s, tirgger_flow_id: executing_id, execution_graph: execution_graph)
+          Setup::FlowExecution.process(message, &block)
         end
-      puts "Flow processing jon '#{self.name}' done!"
       self.last_trigger_timestamps = DateTime.now
       save
       result
