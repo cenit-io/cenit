@@ -578,18 +578,19 @@ module RailsAdmin
       i = -1
       nodes_stack.group_by(&:navigation_label).collect do |navigation_label, nodes|
         i += 1
-        html_id = "main-collapse#{i}"
+        collapse_id = "main-collapse#{i}"
 
         nodes = nodes.select { |n| n.parent.nil? || !n.parent.to_s.in?(node_model_names) }
-        li_stack = navigation nodes_stack, nodes, html_id
+        li_stack = navigation nodes_stack, nodes, collapse_id
 
         label = navigation_label || t('admin.misc.navigation')
+        html_id = "main-#{label.underscore.gsub(' ', '-')}"
 
         icon_class = ((opts = RailsAdmin::Config.navigation_options[label]) && opts[:fa_icon]) || 'icon-question-sign'
 
-        %(<div class='panel panel-default'>
+        %(<div id='#{html_id}' class='panel panel-default'>
             <div class='panel-heading'>
-              <a data-toggle='collapse' data-parent='#main-accordion' href='##{html_id}' class='panel-title collapse in collapsed'>
+              <a data-toggle='collapse' data-parent='#main-accordion' href='##{collapse_id}' class='panel-title collapse in collapsed'>
                 <span class='nav-caret'><i class='fa fa-caret-down'></i></span>
                 <span class='nav-icon'><i class='fa fa-#{icon_class}'></i></span>
                 <span class='nav-caption'>#{capitalize_first_letter label}</span>
