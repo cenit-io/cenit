@@ -69,7 +69,7 @@ module Setup
       create = true
       @creation_listeners.each { |listener| create &&= listener.try(:before_create, record) } if @creation_listeners
       if create
-        Cenit::Utility.save(record, options)
+        Cenit::Utility.save(record, options.merge(bind_references: { if: ->(r) { r.instance_variable_get(:@_edi_parsed) } }))
         @creation_listeners.each { |listener| listener.try(:after_create, record) } if @creation_listeners
       end
       record
