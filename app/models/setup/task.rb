@@ -7,7 +7,6 @@ module Setup
 
     Setup::Models.exclude_actions_for self, :new, :translator_update, :import, :convert, :send_to_flow
 
-
     field :message, type: Hash
     field :description, type: String
     field :status, type: Symbol, default: :pending
@@ -21,6 +20,9 @@ module Setup
 
     belongs_to :thread_token, class_name: ThreadToken.to_s, inverse_of: nil
     belongs_to :scheduler, class_name: Setup::Scheduler.to_s, inverse_of: nil
+
+    has_and_belongs_to_many :joining_tasks, class_name: Setup::Task.to_s, inverse_of: nil
+
 
     validates_inclusion_of :status, in: ->(t) { t.status_enum }
     validates_numericality_of :progress, greater_than_or_equal_to: 0, less_than_or_equal_to: 100
@@ -107,6 +109,12 @@ module Setup
           }
         finish(:failed, "Task ##{id} failed at #{Time.now}: #{ex.message}", :error)
       end
+    ensure
+      reload
+      if joining_tasks.present?
+        joining_tasks.each { |task| task.retry }
+        joining_tasks.nullify
+      end
     end
 
     def run(message)
@@ -180,10 +188,19 @@ module Setup
       @resume_in
     end
 
+    def join(task)
+      task.joining_tasks << self
+      @joining = true
+    end
+
+    def joining?
+      @joining.to_b
+    end
+
     class << self
 
-      def process(message = {})
-        Cenit::Rabbit.enqueue(message.merge(task: self))
+      def process(message = {}, &block)
+        Cenit::Rabbit.enqueue(message.merge(task: self), &block)
       end
 
       def destroy_conditions

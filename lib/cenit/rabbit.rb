@@ -7,7 +7,7 @@ module Cenit
 
     class << self
 
-      def enqueue(message)
+      def enqueue(message, &block)
         message = message.with_indifferent_access
         asynchronous_message = message.delete(:asynchronous).present? |
           (scheduler = message.delete(:scheduler)).present? |
@@ -23,9 +23,10 @@ module Cenit
             task = task_class.create(message: message, scheduler: scheduler)
             task.save
           end
+          block.call(task) if block
           asynchronous_message ||= Cenit.send('asynchronous_' + task_class.to_s.split('::').last.underscore)
           if scheduler || publish_at || asynchronous_message
-            if (token = message[:token]) && token = AccountToken.where(token: token).first
+            if (token = message[:token]) && (token = AccountToken.where(token: token).first)
               token.destroy
             end
             message[:token] = AccountToken.create.token
@@ -34,9 +35,11 @@ module Cenit
             if scheduler || publish_at
               Setup::DelayedMessage.create(message: message, publish_at: publish_at, scheduler: scheduler)
             else
-              channel_mutex.lock
-              channel.default_exchange.publish(message, routing_key: queue.name)
-              channel_mutex.unlock
+              unless task.joining?
+                channel_mutex.lock
+                channel.default_exchange.publish(message, routing_key: queue.name)
+                channel_mutex.unlock
+              end
             end
           else
             message[:task] = task
@@ -52,7 +55,7 @@ module Cenit
         message = JSON.parse(message) unless message.is_a?(Hash)
         message = message.with_indifferent_access
         message_token = message.delete(:token)
-        if token = AccountToken.where(token: message_token).first
+        if (token = AccountToken.where(token: message_token).first)
           account = token.set_current_account
           token.destroy
         else
@@ -81,7 +84,7 @@ module Cenit
           end
           if task && (task.resuming_later? || ((scheduler = task.scheduler) && scheduler.activated?))
             message[:task] = task
-            if resume_interval = task.resume_interval
+            if (resume_interval = task.resume_interval)
               message[:publish_at] = Time.now + resume_interval
             end
             enqueue(message)

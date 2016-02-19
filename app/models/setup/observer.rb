@@ -39,7 +39,7 @@ module Setup
       def lookup(obj_now, obj_before = nil)
         where(data_type: obj_now.orm_model.data_type).each do |e|
           next unless e.triggers_apply_to?(obj_now, obj_before)
-          Setup::Flow.where(active: true, event: e).each { |f| f.process(source_id: obj_now.id.to_s) }
+          Setup::Flow.where(active: true, event: e).each { |f| f.join_process(source_id: obj_now.id.to_s) }
         end
       end
     end
