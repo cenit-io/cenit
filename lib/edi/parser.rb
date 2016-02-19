@@ -155,8 +155,8 @@ module Edi
                 association = record.send(property_name)
                 next unless updating || association.blank?
                 items_schema = data_type.merge_schema(property_schema['items'] || {})
-                unless !resetting.include?(property_name) && (options[:add_only] || (association && property_schema['referenced']))
-                  record.send("#{property_name}=", [])
+                if resetting.include?(property_name) || !options[:add_only]
+                  record.send("#{property_name}=", []) unless association.blank?
                   association = record.send(property_name)
                 end
                 if (property_value = json[name])
@@ -264,6 +264,7 @@ module Edi
           end
         end
         record.try(:run_after_initialized)
+        record.instance_variable_set(:@_edi_parsed, true)
         record
       end
 
