@@ -32,11 +32,11 @@ module Cenit
     class << self
       def save(record, options = {})
         saved = options[:saved_collector] || Set.new
-        if bind_references(record)
+        if bind_references(record, options.delete(:bind_references))
           if save_references(record, options, saved) && record.save(options)
             true
           else
-            for_each_node_starting_at(record, stack=[]) do |obj|
+            for_each_node_starting_at(record, stack: stack=[]) do |obj|
               obj.errors.each do |attribute, error|
                 attr_ref = "#{obj.orm_model.data_type.title}" +
                   ((name = obj.try(:name)) || (name = obj.try(:title)) ? " #{name} on attribute " : "'s '") +
@@ -53,7 +53,7 @@ module Cenit
               saved << obj if obj.instance_variable_get(:@dynamically_created)
             end
             saved.each do |obj|
-              if obj = obj.reload rescue nil
+              if (obj = (obj.reload rescue nil))
                 obj.delete
               end
             end unless options.has_key?(:saved_collector)
@@ -65,20 +65,21 @@ module Cenit
       end
 
       def bind_references(record, options = {})
+        options ||= {}
         references = {}
-        for_each_node_starting_at(record) do |obj|
-          if record_refs = obj.instance_variable_get(:@_references)
+        for_each_node_starting_at(record, options) do |obj|
+          if (record_refs = obj.instance_variable_get(:@_references))
             references[obj] = record_refs
           end
         end
-        for_each_node_starting_at(record) do |obj|
+        options.delete(:visited).each do |obj|
           references.each do |obj_waiting, to_bind|
             to_bind.each do |property_name, property_binds|
               is_array = property_binds.is_a?(Array) ? true : (property_binds = [property_binds]; false)
               property_binds.each do |property_bind|
                 if obj.is_a?(property_bind[:model]) && match?(obj, property_bind[:criteria])
                   if is_array
-                    unless array_property = obj_waiting.send(property_name)
+                    unless (array_property = obj_waiting.send(property_name))
                       obj_waiting.send("#{property_name}=", array_property = [])
                     end
                     array_property << obj
@@ -94,28 +95,31 @@ module Cenit
           end
         end if references.present?
 
-        for_each_node_starting_at(record, stack = []) do |obj|
-          if (to_bind = references[obj])
-            to_bind.each do |property_name, property_binds|
-              is_array = property_binds.is_a?(Array) ? true : (property_binds = [property_binds]; false)
-              property_binds.each do |property_bind|
-                if (value = Cenit::Utility.find_record(property_bind[:criteria], obj.orm_model.property_model(property_name)))
-                  if is_array
-                    unless (association = obj.send(property_name)).include?(value)
-                      association << value
+        if references.present?
+          options[:stack] = stack = []
+          for_each_node_starting_at(record, options) do |obj|
+            if (to_bind = references[obj])
+              to_bind.each do |property_name, property_binds|
+                is_array = property_binds.is_a?(Array) ? true : (property_binds = [property_binds]; false)
+                property_binds.each do |property_bind|
+                  if (value = Cenit::Utility.find_record(property_bind[:criteria], obj.orm_model.property_model(property_name)))
+                    if is_array
+                      unless (association = obj.send(property_name)).include?(value)
+                        association << value
+                      end
+                    else
+                      obj.send("#{property_name}=", value)
                     end
-                  else
-                    obj.send("#{property_name}=", value)
+                  elsif !options[:skip_error_report]
+                    message = "reference not found with criteria #{property_bind[:criteria].to_json}"
+                    obj.errors.add(property_name, message)
+                    stack.each { |node| node[:record].errors.add(node[:attribute], message) }
                   end
-                elsif !options[:skip_error_report]
-                  message = "reference not found with criteria #{property_bind[:criteria].to_json}"
-                  obj.errors.add(property_name, message)
-                  stack.each { |node| node[:record].errors.add(node[:attribute], message) }
                 end
               end
             end
           end
-        end if references.present?
+        end
         record.errors.blank?
       end
 
@@ -137,15 +141,25 @@ module Cenit
         true
       end
 
-      def for_each_node_starting_at(record, stack = nil, visited = Set.new, &block)
+      def for_each_node_starting_at(record, options = {}, &block)
+        stack = options[:stack]
+        unless (visited = options[:visited])
+          visited = options[:visited] = Set.new
+        end
         visited << record
         block.yield(record) if block
-        if orm_model = record.try(:orm_model)
+        if (orm_model = record.try(:orm_model))
           orm_model.for_each_association do |relation|
-            if values = record.send(relation[:name])
+            if (values = record.send(relation[:name]))
               stack << { record: record, attribute: relation[:name], referenced: !relation[:embedded] } if stack
               values = [values] unless values.is_a?(Enumerable)
-              values.each { |value| for_each_node_starting_at(value, stack, visited, &block) unless visited.include?(value) }
+              values.each do |value|
+                next if visited.include?(value)
+                if (if_opt = options[:if])
+                  next unless if_opt.call(value)
+                end
+                for_each_node_starting_at(value, options, &block)
+              end
               stack.pop if stack
             end
           end
@@ -155,10 +169,10 @@ module Cenit
       def save_references(record, options, saved, visited = Set.new)
         return true if visited.include?(record)
         visited << record
-        if model = record.try(:orm_model)
+        if (model = record.try(:orm_model))
           model.for_each_association do |relation|
             next if Setup::BuildInDataType::EXCLUDED_RELATIONS.include?(relation[:name].to_s)
-            if values = record.send(relation[:name])
+            if (values = record.send(relation[:name]))
               values = [values] unless values.is_a?(Enumerable)
               values_to_save = []
               values.each do |value|
@@ -207,7 +221,9 @@ module Cenit
           end
           record = scope.detect { |record| match?(record, match_conditions) }
           if record
-            return original_scope.detect { |item| item == record } if original_scope.respond_to?(:detect)
+            if original_scope.respond_to?(:detect) && (o_r = original_scope.detect { |item| item == record })
+              return o_r
+            end
             return record
           end
         end
@@ -312,6 +328,24 @@ module Cenit
         uri.scheme = base_uri.scheme
         uri.host = base_uri.host
         uri.to_s
+      end
+
+      def eql_content?(a, b)
+        case a
+        when Hash
+          return false unless b.is_a?(Hash)
+          a.each do |key, value|
+            return false unless eql_content?(value, b[key])
+          end
+        when Array
+          return false unless b.is_a?(Array) && a.length == b.length
+          a.each do |a_value|
+            return false unless b.any? { |b_value| eql_content?(a_value, b_value) }
+          end
+        else
+          return a.eql?(b)
+        end
+        true
       end
     end
   end

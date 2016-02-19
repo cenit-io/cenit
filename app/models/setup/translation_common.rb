@@ -11,7 +11,7 @@ module Setup
     end
 
     def run(message)
-      if translator = Setup::Translator.where(id: translator_id = message[:translator_id]).first
+      if (translator = Setup::Translator.where(id: (translator_id = message[:translator_id])).first)
         begin
           send('translate_' + translator.type.to_s.downcase, message)
         rescue ::Exception => ex

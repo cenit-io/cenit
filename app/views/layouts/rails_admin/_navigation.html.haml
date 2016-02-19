@@ -6,6 +6,8 @@
       %span.icon-bar
       %span.icon-bar
     %a.navbar-brand.pjax{href: dashboard_path}
-      = 'CenitHub'
+      %span
+        %img{ src: '/assets/logo_cenitsaas_web.png'}
+      %span= 'CenitHub'
   .collapse.navbar-collapse#secondary-navigation
     = render partial: 'layouts/rails_admin/secondary_navigation'

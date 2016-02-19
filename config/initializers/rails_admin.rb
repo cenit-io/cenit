@@ -537,6 +537,7 @@ RailsAdmin.config do |config|
     label 'Data type'
     label_plural 'Data types'
     object_label_method { :custom_title }
+    visible false
 
     group :behavior do
       label 'Behavior'
@@ -890,6 +891,7 @@ RailsAdmin.config do |config|
 
   config.model Setup::Validator do
     navigation_label 'Data'
+    label 'Schemas & Validators'
     weight -490
     fields :namespace, :name
   end
@@ -1401,6 +1403,8 @@ RailsAdmin.config do |config|
     navigation_label 'Workflows'
     weight -209
     object_label_method { :custom_title }
+    visible false
+
     edit do
       field :namespace
       field :name
@@ -1421,6 +1425,7 @@ RailsAdmin.config do |config|
   end
 
   config.model Setup::Observer do
+    navigation_label 'Workflows'
     weight -208
     label 'Data event'
     object_label_method { :custom_title }
@@ -1479,6 +1484,7 @@ RailsAdmin.config do |config|
   end
 
   config.model Setup::Scheduler do
+    navigation_label 'Workflows'
     weight -207
     object_label_method { :custom_title }
     edit do
