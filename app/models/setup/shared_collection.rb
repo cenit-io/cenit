@@ -161,7 +161,9 @@ module Setup
           ::User.current.name = authors.first.name
           ::User.current.save
         end
-        self.readme = source_collection.readme if readme.blank? && source_collection
+        if (data_readme = hash_data.delete('readme')) && readme.blank?
+          self.readme = data_readme
+        end
         true
       else
         false
