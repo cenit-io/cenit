@@ -121,6 +121,12 @@ module Setup
       Setup::Collection.reflect_on_all_associations(:has_and_belongs_to_many).all? { |relation| send(relation.name).empty? }
     end
 
+    class << self
+      def find_by_id(*args)
+        where(name: args[0]).first
+      end
+    end
+
     private
 
     def check_data_type_dependencies(data_type, algorithms)
