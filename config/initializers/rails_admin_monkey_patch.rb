@@ -813,9 +813,10 @@ module RailsAdmin
           @abstract_model = @model_config.abstract_model
         end
         @object
-      else
-        fail(RailsAdmin::ObjectNotFound)
+      elsif (model = @abstract_model.model)
+        @object = model.try(:find_by_id, params[:id])
       end
+      @object || fail(RailsAdmin::ObjectNotFound)
     end
   end
 end

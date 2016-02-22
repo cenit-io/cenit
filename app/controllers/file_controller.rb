@@ -3,7 +3,7 @@ class FileController < ApplicationController
   def index
     file_path = request.path.from(request.path.index('/', 1))
     model = nil
-    if model_desc = params[:model]
+    if (model_desc = params[:model])
       model = Object
       model_desc.split('~').each do |token|
         next unless model
@@ -15,7 +15,7 @@ class FileController < ApplicationController
       if Ability.new(current_user).can?(:show, record)
         if (uploader = record.try(params[:field])).is_a?(CarrierWave::Uploader::Base) &&
           (uploader = find_version(uploader, file_path)) &&
-          content = uploader.read
+          (content = uploader.read)
           send_data content, type: uploader.file.content_type, disposition: 'inline'
         else
           not_found
@@ -32,10 +32,10 @@ class FileController < ApplicationController
 
   def find_version(uploader, path)
     if uploader.path == path
-      return uploader
+      uploader
     else
       uploader.versions.values.each do |uploader_version|
-        if uploader = find_version(uploader_version, path)
+        if (uploader = find_version(uploader_version, path))
           return uploader
         end
       end

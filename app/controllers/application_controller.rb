@@ -49,6 +49,7 @@ class ApplicationController < ActionController::Base
       :mongoff_abstract_models
     ].each { |sym| Thread.current[sym] = nil }
     yield if block_given?
+    Account.current = nil
   end
 
   def scope_current_account
@@ -63,7 +64,6 @@ class ApplicationController < ActionController::Base
     if account = Account.current
       account.save
     end
-    Account.current = nil
   end
 
   def after_sign_out_path_for(resource_or_scope)
