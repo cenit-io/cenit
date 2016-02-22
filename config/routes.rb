@@ -39,4 +39,6 @@ Cenit::Application.routes.draw do
       match '/*path', to: 'api#cors_check', via: [:options]
      end
   end
+
+  get '/data/:model_name/*id', to: 'rails_admin/main#show'
 end

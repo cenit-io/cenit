@@ -287,6 +287,23 @@ module Setup
       enum
     end
 
+    class << self
+
+      def find_by_id(*args)
+        name = (args[0] || '').split('-')
+        version = name.pop
+        if name.empty?
+          name = version
+          version = nil
+        else
+          name = name.join('-')
+        end
+        criteria = { name: name }
+        criteria[:shared_version] = version if version
+        where(criteria).desc(:shared_version).first
+      end
+    end
+
     protected
 
     def collect_dependencies_pull_parameters(hash = {})
