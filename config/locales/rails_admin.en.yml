@@ -9,7 +9,7 @@ en:
       tour:
         title: "Take Tour"
       dashboard:
-        title: "Administration"
+        title: "Dashboard"
       send_to_flow:
         title: "Send %{model_label_plural} to flow"
         menu: "Send to flow"
