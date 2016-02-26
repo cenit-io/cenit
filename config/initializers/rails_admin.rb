@@ -344,70 +344,74 @@ RailsAdmin.config do |config|
     register_instance_option :label_navigation do
       'My Collections'
     end
-    group :setup do
-      label 'Setup objects'
-      active true
-    end
 
-    group :data do
-      label 'Data'
-      active false
-    end
+    group :workflows
 
     configure :flows do
-      group :setup
-    end
-
-    configure :connection_roles do
-      group :setup
-    end
-
-    configure :translators do
-      group :setup
+      group :workflows
     end
 
     configure :events do
-      group :setup
+      group :workflows
     end
 
-    configure :libraries do
-      group :setup
-    end
-
-    configure :custom_validators do
-      group :setup
+    configure :translators do
+      group :workflows
     end
 
     configure :algorithms do
-      group :setup
+      group :workflows
     end
 
-    configure :webhooks do
-      group :setup
+
+    group :api_connectors do
+      label 'API Connectors'
+      active true
     end
 
     configure :connections do
-      group :setup
+      group :api_connectors
     end
 
-    configure :authorizations do
-      group :setup
+    configure :webhooks do
+      group :api_connectors
     end
 
-    configure :oauth_providers do
-      group :setup
+    configure :connection_roles do
+      group :api_connectors
     end
 
-    configure :oauth_clients do
-      group :setup
-    end
 
-    configure :oauth2_scopes do
-      group :setup
+    group :data
+
+    configure :libraries do
+      group :data
     end
 
     configure :data do
       group :data
+    end
+
+    configure :custom_validators do
+      group :data
+    end
+
+    group :security
+
+    configure :authorizations do
+      group :security
+    end
+
+    configure :oauth_providers do
+      group :security
+    end
+
+    configure :oauth_clients do
+      group :security
+    end
+
+    configure :oauth2_scopes do
+      group :security
     end
 
     edit do
@@ -1084,7 +1088,7 @@ RailsAdmin.config do |config|
       #field :updater
     end
 
-    fields :namespace, :name, :url, :key, :token, :authorization, :authorization_handler
+    fields :namespace, :name, :url, :key, :token, :authorization
   end
 
   config.model Setup::ConnectionRole do
@@ -1207,7 +1211,7 @@ RailsAdmin.config do |config|
       field :updated_at
       #field :updater
     end
-    fields :namespace, :name, :path, :method, :description, :authorization, :authorization_handler
+    fields :namespace, :name, :path, :method, :description, :authorization
   end
 
   #Workflows
@@ -1784,7 +1788,7 @@ RailsAdmin.config do |config|
       visible { Account.current.super_admin? }
     end
 
-    fields :namespace, :name, :response_type, :authorization_endpoint, :token_endpoint, :token_method, :parameters, :clients, :tenant, :shared
+    fields :namespace, :name, :response_type, :authorization_endpoint, :token_endpoint, :token_method, :tenant, :shared
   end
 
   config.model Setup::OauthProvider do
