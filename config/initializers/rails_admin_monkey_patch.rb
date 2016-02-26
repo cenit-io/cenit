@@ -550,23 +550,43 @@ module RailsAdmin
     end
 
     def edit_user_link
-      return nil unless _current_user.respond_to?(:email)
-      return nil unless (abstract_model = RailsAdmin.config(_current_user.class).abstract_model)
-      return nil unless (edit_action = RailsAdmin::Config::Actions.find(:show, controller: controller, abstract_model: abstract_model, object: _current_user)).try(:authorized?)
-      link_to url_for(action: edit_action.action_name, model_name: abstract_model.to_param, id: _current_user.id, controller: 'rails_admin/main') do
+      # Patch
+      inspecting = false
+      current_user =
+        if (current_account = Account.current) && current_account.super_admin? && current_account.tenant_account
+          account_abstract_model = RailsAdmin.config(Account).abstract_model
+          inspect_action = RailsAdmin::Config::Actions.find(:inspect, controller: controller, abstract_model: account_abstract_model, object: current_account.tenant_account)
+          inspecting = inspect_action.try(:authorized?)
+          current_account.tenant_account.owner
+        else
+          _current_user
+        end
+      return nil unless current_user.respond_to?(:email)
+      return nil unless (abstract_model = RailsAdmin.config(current_user.class).abstract_model)
+      return nil unless (edit_action = RailsAdmin::Config::Actions.find(:show, controller: controller, abstract_model: abstract_model, object: current_user)).try(:authorized?)
+      link = link_to url_for(action: edit_action.action_name, model_name: abstract_model.to_param, id: current_user.id, controller: 'rails_admin/main') do
         html = []
-        if _current_user.picture.present?
-          html << image_tag(_current_user.picture.icon.url, alt: '')
-        elsif _current_user.email.present?
-          html << image_tag("#{(request.ssl? ? 'https://secure' : 'http://www')}.gravatar.com/avatar/#{Digest::MD5.hexdigest _current_user.email}?s=30", alt: '')
+        unless inspecting
+          if current_user.picture.present?
+            html << image_tag(current_user.picture.icon.url, alt: '')
+          elsif current_user.email.present?
+            html << image_tag("#{(request.ssl? ? 'https://secure' : 'http://www')}.gravatar.com/avatar/#{Digest::MD5.hexdigest current_user.email}?s=30", alt: '')
+          end
         end
         # Patch
         # text = _current_user.name
         # Patch
-        text = _current_user.email if text.blank?
+        text = current_user.email if text.blank?
         html << content_tag(:span, text)
         html.join.html_safe
       end
+      if inspecting
+        link = [link]
+        link << link_to(url_for(action: inspect_action.action_name, model_name: account_abstract_model.to_param, id: current_account.tenant_account.id, controller: 'rails_admin/main')) do
+          '<i class="icon-eye-close" style="color: red"></i>'.html_safe
+        end
+      end
+      link
     end
 
 

@@ -32,7 +32,8 @@
  RailsAdmin::Config::Actions::SimpleExport,
  RailsAdmin::Config::Actions::Schedule,
  RailsAdmin::Config::Actions::Submit,
- RailsAdmin::Config::Actions::DeleteCollection].each { |a| RailsAdmin::Config::Actions.register(a) }
+ RailsAdmin::Config::Actions::DeleteCollection,
+ RailsAdmin::Config::Actions::Inspect].each { |a| RailsAdmin::Config::Actions.register(a) }
 
 RailsAdmin::Config::Actions.register(:export, RailsAdmin::Config::Actions::BulkExport)
 RailsAdmin::Config::Fields::Types.register(RailsAdmin::Config::Fields::Types::JsonValue)
@@ -118,6 +119,7 @@ RailsAdmin.config do |config|
     schedule
     retry_task
     submit
+    inspect
     simple_delete_data_type
     bulk_delete_data_type
     delete

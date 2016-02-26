@@ -292,3 +292,12 @@ en:
         breadcrumb: "Expand"
         bulk_link: "Expand selected %{model_label_plural}"
         doing: "expansion"
+      inspect:
+        in:
+          title: "Inspect"
+          menu: "Inspect"
+          breadcrumb: "Inspect"
+        out:
+          title: "Leave"
+          menu: "Leave"
+          breadcrumb: "Leave"
