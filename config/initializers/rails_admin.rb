@@ -1869,7 +1869,12 @@ RailsAdmin.config do |config|
     navigation_label 'Security'
     weight -50
     object_label_method { :custom_title }
-    fields :namespace, :name, :authorized
+    configure :status do
+      pretty_value do
+        "<span class=\"label label-#{bindings[:object].status_class}\">#{value.to_s.capitalize}</span>".html_safe
+      end
+    end
+    fields :namespace, :name, :status
     show_in_dashboard { false }
   end
 
@@ -1879,6 +1884,13 @@ RailsAdmin.config do |config|
       'Basic'
     end
     object_label_method { :custom_title }
+
+    configure :status do
+      pretty_value do
+        "<span class=\"label label-#{bindings[:object].status_class}\">#{value.to_s.capitalize}</span>".html_safe
+      end
+    end
+
     edit do
       field :namespace
       field :name
@@ -1901,12 +1913,12 @@ RailsAdmin.config do |config|
     show do
       field :namespace
       field :name
-      field :authorized
+      field :status
       field :username
       field :password
     end
 
-    fields :namespace, :name, :authorized, :username, :password
+    fields :namespace, :name, :status, :username, :password
   end
 
   config.model Setup::OauthAuthorization do
@@ -1917,6 +1929,12 @@ RailsAdmin.config do |config|
     end
     object_label_method { :custom_title }
     parent Setup::Authorization
+
+    configure :status do
+      pretty_value do
+        "<span class=\"label label-#{bindings[:object].status_class}\">#{value.to_s.capitalize}</span>".html_safe
+      end
+    end
 
     edit do
       field :namespace
@@ -1951,7 +1969,7 @@ RailsAdmin.config do |config|
     show do
       field :namespace
       field :name
-      field :authorized
+      field :status
       field :client
 
       field :access_token
@@ -1961,7 +1979,7 @@ RailsAdmin.config do |config|
       field :authorized_at
     end
 
-    fields :namespace, :name, :authorized, :client
+    fields :namespace, :name, :status, :client
   end
 
   config.model Setup::Oauth2Authorization do
@@ -1972,6 +1990,12 @@ RailsAdmin.config do |config|
     end
     object_label_method { :custom_title }
     parent Setup::Authorization
+
+    configure :status do
+      pretty_value do
+        "<span class=\"label label-#{bindings[:object].status_class}\">#{value.to_s.capitalize}</span>".html_safe
+      end
+    end
 
     edit do
       field :namespace
@@ -2019,7 +2043,7 @@ RailsAdmin.config do |config|
     show do
       field :namespace
       field :name
-      field :authorized
+      field :status
       field :client
       field :scopes
 
@@ -2030,12 +2054,19 @@ RailsAdmin.config do |config|
       field :refresh_token
     end
 
-    fields :namespace, :name, :authorized, :client, :scopes
+    fields :namespace, :name, :status, :client, :scopes
   end
 
   config.model Setup::AwsAuthorization do
     weight -35
     object_label_method { :custom_title }
+
+    configure :status do
+      pretty_value do
+        "<span class=\"label label-#{bindings[:object].status_class}\">#{value.to_s.capitalize}</span>".html_safe
+      end
+    end
+
     edit do
       field :namespace
       field :name
