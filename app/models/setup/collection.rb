@@ -93,7 +93,7 @@ module Setup
       translators = Set.new(self.translators)
       self.translators.each do |translator|
         [:source_exporter, :target_importer].each do |key|
-          if t = translator.send(key)
+          if (t = translator.send(key))
             translators << t
           end
         end
@@ -139,7 +139,7 @@ module Setup
           data_type.validators.each do |validator|
             custom_validators << validator if validator.is_a?(Setup::CustomValidator) && custom_validators.none? { |v| v == validator }
             check_data_type_dependencies(validator.try(:schema_data_type), algorithms)
-            if algorithm = validator.try(:algorithm)
+            if (algorithm = validator.try(:algorithm))
               algorithms << algorithm
             end
           end

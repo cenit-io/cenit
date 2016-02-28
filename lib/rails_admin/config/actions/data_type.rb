@@ -24,7 +24,7 @@ module RailsAdmin
           proc do
 
             model = abstract_model.model rescue nil
-            if model && data_type = model.data_type
+            if model && (data_type = model.data_type)
               redirect_to rails_admin.show_path(model_name: data_type.class.to_s.underscore.gsub('/', '~'), id: data_type.id.to_s)
             else
               redirect_to back_or_index
