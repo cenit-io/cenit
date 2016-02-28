@@ -200,11 +200,13 @@ en:
         submit: "Pull"
         done: "pulled"
         fill_parameters: "Please fill the following parameters to pull the collection"
+        create_warning: "The following objects will be created"
         update_warning: "The following objects will be updated"
         ready: "Ready to pull!"
         nothing_to_pull: "Nothing to pull from here"
         fixed_errors_header: "The following errors where fixed when pulling the collection"
         missing_parameters: "Missing parameters"
+        uptodate: "Your %{collection} collection is already synchronized with %{shared_collection}"
       retry_task:
         title: "Retry"
         menu: "Retry"
