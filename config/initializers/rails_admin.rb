@@ -900,6 +900,7 @@ RailsAdmin.config do |config|
     label 'Schemas & Validators'
     weight -490
     fields :namespace, :name
+    show_in_dashboard { false }
   end
 
   config.model Setup::CustomValidator do
@@ -1869,6 +1870,7 @@ RailsAdmin.config do |config|
     weight -50
     object_label_method { :custom_title }
     fields :namespace, :name, :authorized
+    show_in_dashboard { false }
   end
 
   config.model Setup::BasicAuthorization do

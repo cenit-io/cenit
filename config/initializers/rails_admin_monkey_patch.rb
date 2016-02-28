@@ -56,6 +56,10 @@ module RailsAdmin
 
     class Model
 
+      register_instance_option :show_in_dashboard do
+        true
+      end
+
       register_instance_option :label_navigation do
         label_plural
       end
@@ -171,7 +175,10 @@ module RailsAdmin
           proc do
             @history = @auditing_adapter && @auditing_adapter.latest || []
             if @action.statistics?
-              @abstract_models = RailsAdmin::Config.visible_models(controller: self).collect(&:abstract_model)
+              @abstract_models = RailsAdmin::Config.visible_models(controller: self).select(&:show_in_dashboard).collect(&:abstract_model).select do |absm|
+                ((model = absm.model) rescue nil) &&
+                  (model.is_a?(Mongoff::Model) || model.include?(AccountScoped))
+              end
 
               @most_recent_changes = {}
               @count = {}
@@ -710,7 +717,7 @@ module RailsAdmin
           amc = RailsAdmin.config(obj)
           am = amc.abstract_model
           wording = obj.send(amc.object_label_method)
-          if show_action = view_context.action(:show, am, obj)
+          if (show_action = view_context.action(:show, am, obj))
             wording + ' ' + view_context.link_to(t('admin.flash.click_here'), view_context.url_for(action: show_action.action_name, model_name: am.to_param, id: obj.id), class: 'pjax')
           else
             wording
