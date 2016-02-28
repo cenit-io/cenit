@@ -196,6 +196,10 @@ module RailsAdmin
             render @action.template_name, status: (flash[:error].present? ? :not_found : 200)
           end
         end
+
+        register_instance_option :link_icon do
+          'fa fa-dashboard'
+        end
       end
     end
 
@@ -613,13 +617,20 @@ module RailsAdmin
         label = navigation_label || t('admin.misc.navigation')
         html_id = "main-#{label.underscore.gsub(' ', '-')}"
 
-        icon_class = ((opts = RailsAdmin::Config.navigation_options[label]) && opts[:fa_icon]) || 'icon-question-sign'
+        icon = ((opts = RailsAdmin::Config.navigation_options[label]) && opts[:icon]) || 'icon-question-sign'
+        icon =
+          case icon
+          when Symbol
+            render partial: icon.to_s
+          else
+            "<i class='#{icon}'></i>"
+          end
 
         %(<div id='#{html_id}' class='panel panel-default'>
             <div class='panel-heading'>
               <a data-toggle='collapse' data-parent='#main-accordion' href='##{collapse_id}' class='panel-title collapse in collapsed'>
                 <span class='nav-caret'><i class='fa fa-caret-down'></i></span>
-                <span class='nav-icon'><i class='fa fa-#{icon_class}'></i></span>
+                <span class='nav-icon'>#{icon}</i></span>
                 <span class='nav-caption'>#{capitalize_first_letter label}</span>
               </a>
             </div>

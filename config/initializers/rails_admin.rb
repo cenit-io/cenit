@@ -140,7 +140,7 @@ RailsAdmin.config do |config|
 
   #Collections
 
-  config.navigation 'Collections', fa_icon: 'cubes'
+  config.navigation 'Collections', icon: 'fa fa-cubes'
 
   config.model Setup::SharedCollection do
     weight -600
@@ -505,7 +505,7 @@ RailsAdmin.config do |config|
 
   #Data
 
-  config.navigation 'Data', fa_icon: 'database'
+  config.navigation 'Data', icon: 'fa fa-database'
 
   config.model Setup::Library do
     navigation_label 'Data'
@@ -984,7 +984,7 @@ RailsAdmin.config do |config|
 
   #API Connectors
 
-  config.navigation 'API Connectors', fa_icon: 'sitemap'
+  config.navigation 'API Connectors', icon: :api_connectors
 
   config.model Setup::Parameter do
     object_label_method { :to_s }
@@ -1219,7 +1219,7 @@ RailsAdmin.config do |config|
 
   #Workflows
 
-  config.navigation 'Workflows', fa_icon: 'cogs'
+  config.navigation 'Workflows', icon: 'fa fa-cogs'
 
   config.model Setup::Flow do
     navigation_label 'Workflows'
@@ -1734,7 +1734,7 @@ RailsAdmin.config do |config|
 
   #Security
 
-  config.navigation 'Security', fa_icon: 'key'
+  config.navigation 'Security', icon: 'fa fa-shield'
 
   config.model Setup::OauthClient do
     navigation_label 'Security'
@@ -2078,7 +2078,7 @@ RailsAdmin.config do |config|
 
   #Monitors
 
-  config.navigation 'Monitors', fa_icon: 'heartbeat'
+  config.navigation 'Monitors', icon: 'fa fa-heartbeat'
 
   config.model Setup::Notification do
     navigation_label 'Monitors'
@@ -2334,7 +2334,7 @@ RailsAdmin.config do |config|
 
   #Administration
 
-  config.navigation 'Administration', fa_icon: 'wrench'
+  config.navigation 'Administration', icon: 'fa fa-wrench'
 
   config.model User do
     weight -1
