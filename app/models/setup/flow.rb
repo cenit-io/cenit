@@ -31,8 +31,6 @@ module Setup
 
     has_and_belongs_to_many :after_process_callbacks, class_name: Setup::Algorithm.to_s, inverse_of: nil
 
-    field :last_trigger_timestamps, type: Time
-
     validates_numericality_in_presence_of :lot_size, greater_than_or_equal_to: 1
     before_save :validates_configuration, :check_scheduler
     after_save :schedule_task
@@ -159,7 +157,6 @@ module Setup
           message = message.merge(flow_id: id.to_s, tirgger_flow_id: executing_id, execution_graph: execution_graph)
           Setup::FlowExecution.process(message, &block)
         end
-      self.last_trigger_timestamps = DateTime.now
       save
       result
     end
