@@ -620,7 +620,7 @@ module RailsAdmin
         label = navigation_label || t('admin.misc.navigation')
         html_id = "main-#{label.underscore.gsub(' ', '-')}"
 
-        icon = ((opts = RailsAdmin::Config.navigation_options[label]) && opts[:icon]) || 'icon-question-sign'
+        icon = ((opts = RailsAdmin::Config.navigation_options[label]) && opts[:icon]) || 'fa fa-cube'
         icon =
           case icon
           when Symbol
