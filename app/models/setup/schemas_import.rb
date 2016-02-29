@@ -4,7 +4,7 @@ module Setup
 
     BuildInDataType.regist(self)
 
-    Setup::Models.exclude_actions_for self, :new, :edit, :translator_update, :import, :convert, :delete_all
+    Setup::Models.exclude_actions_for self, :copy, :new, :edit, :translator_update, :import, :convert, :delete_all
 
     belongs_to :library, class_name: Setup::Library.to_s, inverse_of: nil
     field :base_uri, type: String, default: ''

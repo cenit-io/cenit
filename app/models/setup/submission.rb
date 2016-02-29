@@ -3,7 +3,7 @@ module Setup
 
     BuildInDataType.regist(self)
 
-    Setup::Models.exclude_actions_for self, :new, :edit, :translator_update, :import, :convert, :delete_all
+    Setup::Models.exclude_actions_for self, :copy, :new, :edit, :translator_update, :import, :convert, :delete_all
 
     belongs_to :webhook, class_name: Setup::Webhook.to_s, inverse_of: nil
     belongs_to :connection, class_name: Setup::Connection.to_s, inverse_of: nil

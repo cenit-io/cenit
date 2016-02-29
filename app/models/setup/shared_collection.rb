@@ -4,7 +4,7 @@ module Setup
     include Trackable
     include CollectionName
 
-    Setup::Models.exclude_actions_for self, :new, :edit, :translator_update, :convert, :send_to_flow, :delete_all, :delete, :import
+    Setup::Models.exclude_actions_for self, :copy, :new, :edit, :translator_update, :convert, :send_to_flow, :delete_all, :delete, :import
 
     BuildInDataType.regist(self).with(:name, :shared_version, :authors, :summary, :description, :pull_parameters, :dependencies, :data, :readme).referenced_by(:name, :shared_version)
 

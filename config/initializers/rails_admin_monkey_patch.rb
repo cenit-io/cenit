@@ -82,7 +82,10 @@ module RailsAdmin
             #Patch
             if request.get? || params[:_restart] # NEW
 
-              @object = @abstract_model.new
+              unless (attrs = params[:attributes] || {}).is_a?(Hash)
+                attrs = JSON.parse(attrs) rescue {}
+              end
+              @object = @abstract_model.new(attrs)
               @authorization_adapter && @authorization_adapter.attributes_for(:new, @abstract_model).each do |name, value|
                 @object.send("#{name}=", value)
               end

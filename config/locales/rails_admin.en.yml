@@ -303,3 +303,7 @@ en:
           title: "Leave"
           menu: "Leave"
           breadcrumb: "Leave"
+      copy:
+        title: "Copy"
+        menu: "Copy"
+        breadcrumb: "Copy"

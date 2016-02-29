@@ -33,7 +33,8 @@
  RailsAdmin::Config::Actions::Schedule,
  RailsAdmin::Config::Actions::Submit,
  RailsAdmin::Config::Actions::DeleteCollection,
- RailsAdmin::Config::Actions::Inspect].each { |a| RailsAdmin::Config::Actions.register(a) }
+ RailsAdmin::Config::Actions::Inspect,
+ RailsAdmin::Config::Actions::Copy].each { |a| RailsAdmin::Config::Actions.register(a) }
 
 RailsAdmin::Config::Actions.register(:export, RailsAdmin::Config::Actions::BulkExport)
 RailsAdmin::Config::Fields::Types.register(RailsAdmin::Config::Fields::Types::JsonValue)
@@ -99,6 +100,7 @@ RailsAdmin.config do |config|
     show
     run
     edit
+    copy
     simple_share
     bulk_share
     build_gem

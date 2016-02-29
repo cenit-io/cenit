@@ -8,7 +8,7 @@ module Setup
 
       BuildInDataType.regist(self).excluding(:shared, :tenant)
 
-      Setup::Models.exclude_actions_for self, :import, :translator_update, :convert, :send_to_flow, :new #TODO remove :new from excluded actions when fixing references sharing problem
+      Setup::Models.exclude_actions_for self, :import, :translator_update, :convert, :send_to_flow, :copy, :new #TODO remove :new and :copy from excluded actions when fixing references sharing problem
 
       field :shared, type: Boolean
       belongs_to :tenant, class_name: Account.to_s, inverse_of: nil
