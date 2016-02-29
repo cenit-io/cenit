@@ -37,7 +37,11 @@ module Setup
     accepts_nested_attributes_for :authors, allow_destroy: true
     accepts_nested_attributes_for :pull_parameters, allow_destroy: true
 
-    before_save :check_dependencies, :validate_configuration, :ensure_shared_name, :save_source_collection, :categorize, :sanitize_data, :on_saving
+    before_save :check_ready, :check_dependencies, :validate_configuration, :ensure_shared_name, :save_source_collection, :categorize, :sanitize_data, :on_saving
+
+    def check_ready
+      ready_to_save?
+    end
 
     def ready_to_save?
       !(@_selecting_connections || @_selecting_dependencies)
@@ -119,7 +123,7 @@ module Setup
     def validate_configuration
       hash_data = (source_collection.present? && source_collection.share_hash) || data || {}
       [hash_data, hash_data['connection_roles']].flatten.each do |hash|
-        if values = hash['connections']
+        if (values = hash['connections'])
           values.delete_if { |source_connection| !connections.detect { |c| c.name == source_connection['name'] } }
         end if hash
       end if connections.present?
@@ -145,7 +149,7 @@ module Setup
             values.each do |value|
               criteria = {}
               model.data_type.get_referenced_by.each do |field|
-                if v = value[field.to_s]
+                if (v = value[field.to_s])
                   criteria[field.to_s] = v
                 end
               end
@@ -174,7 +178,7 @@ module Setup
     end
 
     def ensure_shared_name
-      if shared_name = Setup::SharedName.where(name: name).first
+      if (shared_name = Setup::SharedName.where(name: name).first)
         if shared_name.owners.include?(creator)
           self.shared_name = shared_name
           validate_version
@@ -182,7 +186,7 @@ module Setup
           errors.add(:name, 'is already taken')
         end
       elsif errors.blank?
-        if self.shared_name = Setup::SharedName.create(name: name)
+        if (self.shared_name = Setup::SharedName.create(name: name))
           validate_version
         else
           errors.add(:name, 'is already taken')
@@ -192,7 +196,7 @@ module Setup
     end
 
     def validate_version
-      if new_record? && major_version = orm_model.where(name: name).descending(:shared_version).first
+      if new_record? && (major_version = orm_model.where(name: name).descending(:shared_version).first)
         errors.add(:shared_version, "must be greater than #{major_version.shared_version}") if shared_version <= major_version.shared_version
       end
     end

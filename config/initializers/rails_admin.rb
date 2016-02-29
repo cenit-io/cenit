@@ -154,9 +154,7 @@ RailsAdmin.config do |config|
     object_label_method { :versioned_name }
 
     edit do
-      field :image do
-        visible { !bindings[:object].new_record? }
-      end
+      field :image
       field :name do
         required { true }
       end
@@ -188,7 +186,7 @@ RailsAdmin.config do |config|
       field :connections do
         inline_add false
         read_only do
-          !bindings[:object].instance_variable_get(:@_selecting_connections)
+          !((v = bindings[:object].instance_variable_get(:@_selecting_connections)).nil? || v)
         end
         help do
           nil
@@ -224,7 +222,7 @@ RailsAdmin.config do |config|
       field :dependencies do
         inline_add false
         read_only do
-          !bindings[:object].instance_variable_get(:@_selecting_dependencies)
+          !((v = bindings[:object].instance_variable_get(:@_selecting_dependencies)).nil? || v)
         end
         help do
           nil
@@ -265,7 +263,7 @@ RailsAdmin.config do |config|
       field :pull_count do
         visible { Account.current.super_admin? }
       end
-      field :readme, :wysihtml5 do
+      field :readme do
         visible do
           !(obj = bindings[:object]).instance_variable_get(:@_selecting_collection) &&
             !obj.instance_variable_get(:@_selecting_connections)
@@ -420,10 +418,7 @@ RailsAdmin.config do |config|
 
     edit do
       field :image
-      field :readme, :wysihtml5 do
-        config_options toolbar: { fa: true },
-                       html: true,
-                       parserRules: { tags: { p: 1 } }
+      field :readme do
         visible { Account.current.super_admin? }
       end
       field :name
