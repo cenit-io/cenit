@@ -100,7 +100,7 @@ module Cenit
           end
         end
 
-        [collection_data, pull_data, updated_records].each { |hash| hash.each_key { |key| hash.delete(key) if hash[key].empty? } }
+        [collection_data, pull_data, updated_records].each { |hash| hash.each_key { |key| hash.delete(key) if hash[key].blank? } }
 
         {
           pull_parameters: pull_parameters,
