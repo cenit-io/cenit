@@ -93,6 +93,7 @@ gem 'github_api'
 gem 'captcha'
 gem 'httmultiparty'
 
+gem "doorkeeper-mongodb", github: "doorkeeper-gem/doorkeeper-mongodb"
 gem 'oauth2'
 gem "octokit"
 gem 'exception_notification'

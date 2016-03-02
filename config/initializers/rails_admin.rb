@@ -338,7 +338,8 @@ RailsAdmin.config do |config|
   config.model Setup::CollectionData do
     object_label_method { :label }
   end
-
+  
+  
   config.model Setup::Collection do
     navigation_label 'Collections'
     register_instance_option :label_navigation do
@@ -1766,6 +1767,24 @@ RailsAdmin.config do |config|
     end
 
     fields :provider, :name, :identifier, :secret, :tenant, :shared
+  end
+  
+  config.model Doorkeeper::Application do
+    navigation_label 'Security'
+    label 'Applications'
+    fields :name, :uid, :secret, :redirect_uri
+  end
+  
+  config.model Doorkeeper::AccessGrant do
+    navigation_label 'Security'
+    label 'AccessGrant'
+    fields :token, :expires_in, :redirect_uri, :revoked_at
+  end
+  
+  config.model Doorkeeper::AccessToken do
+    navigation_label 'Security'
+    label 'AccessToken'
+    fields :token,:refresh_token, :expires_in, :revoked_at
   end
 
   config.model Setup::BaseOauthProvider do
