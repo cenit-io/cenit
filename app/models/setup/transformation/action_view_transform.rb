@@ -37,7 +37,7 @@ module Setup
         end
 
         def run_rabl(options = {})
-          Rabl::Renderer.new(options[:transformation], nil, {format: options[:format], locals: options}).render
+          Rabl::Renderer.new(options[:transformation], nil, { format: options[:format], locals: options }).render
         end
 
         def run_haml(options = {})
@@ -51,16 +51,19 @@ module Setup
 
         def preprocess_erb(transformation, options)
           return transformation if Capataz.disable?
-          pattern = /(<%=?)(.*?)(%>)/
+          pattern = /(<%=?)(.*?)(%>)/m
           rb = []
           gs = Gensym.new
           marks = []
-          res = transformation.gsub(pattern) {
+          res = transformation.gsub(pattern) do
+            match_1 = Regexp.last_match[1]
+            match_2 = Regexp.last_match[2]
+            match_3 = Regexp.last_match[3]
             mark = gs.gen
             marks << mark.to_sym
-            rb << Regexp.last_match[2] + " ; #{mark}"
-            Regexp.last_match[1] + mark + Regexp.last_match[3]
-          }
+            rb << match_2.strip.gsub(/\n/, ';').squeeze(';') + " ; #{mark}"
+            match_1 + mark + match_3
+          end
           rb_src = rb.join("\r\n")
           lcls = options.keys.to_a + marks
           rw = Capataz.rewrite(rb_src, locals: lcls)
