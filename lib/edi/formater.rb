@@ -203,7 +203,7 @@ module Edi
       schema = model.schema
       key_properties = schema['referenced_by'] || []
       json = (referenced = referenced && key_properties.present?) ? { '_reference' => true } : {}
-      if !referenced
+      unless referenced
         return nil if options[:inspected_records].include?(record) || options[:stack].include?(record)
         options[:inspected_records] << record
       end
@@ -219,7 +219,7 @@ module Edi
           content_property = name
         end
         can_be_referenced = !(options[:embedding_all] || options[:embedding].include?(name.to_sym))
-        if inspecting = options[:inspecting].present?
+        if (inspecting = options[:inspecting].present?)
           next unless (property_model || options[:inspecting].include?(name.to_sym)) && (!referenced || key_properties.include?(property_name))
         else
           next if property_schema['virtual'] ||
@@ -231,7 +231,7 @@ module Edi
         case property_schema['type']
         when 'array'
           referenced_items = can_be_referenced && property_schema['referenced'] && !property_schema['export_embedded']
-          if value = record.send(property_name)
+          if (value = record.send(property_name))
             new_value = []
             value.each do |sub_record|
               next if inspecting && (scope = options[:inspect_scope]) && !scope.include?(sub_record)
@@ -274,7 +274,7 @@ module Edi
         if value.is_a?(Array) || value.is_a?(Hash)
           json[key] = value if store_anyway || value.present? || options[:include_blanks] || options[:include_empty]
         else
-          value = value.to_s if value.is_a?(BSON::ObjectId)
+          value = value.to_s if [BSON::ObjectId, Symbol].any? { |klass| value.is_a?(klass) }
           json[key] = json_value(value) if store_anyway || !(value.nil? || value.try(:empty?)) || options[:include_blanks] #TODO String blanks!
         end
       end

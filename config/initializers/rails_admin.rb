@@ -163,11 +163,6 @@ RailsAdmin.config do |config|
       end
       field :authors
       field :summary
-      field :description, :wysihtml5 do
-        config_options toolbar: { fa: true },
-                       html: true,
-                       parserRules: { tags: { p: 1 } }
-      end
       field :source_collection do
         visible { !((source_collection = bindings[:object].source_collection) && source_collection.new_record?) }
         inline_edit false
