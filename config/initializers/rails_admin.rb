@@ -277,11 +277,25 @@ RailsAdmin.config do |config|
           bindings[:object].versioned_name
         end
       end
-      field :category
-      field :summary
-      field :description do
+      field :summary do
         pretty_value do
           value.html_safe
+        end
+      end
+      field :readme do
+        pretty_value do
+          begin
+            template = value.gsub('&lt;%', '<%').gsub('%&gt;', '%>').gsub('%3C%', '<%').gsub('%%3E', '%>')
+            Setup::Transformation::ActionViewTransform.run(transformation: template,
+                                                           style: 'html.erb',
+                                                           base_url: bindings[:controller].request.base_url,
+                                                           user_key: User.current.number,
+                                                           user_token: User.current.token,
+                                                           collection: nil,
+                                                           shared_collection: bindings[:object])
+          rescue Exception => ex
+            value
+          end.html_safe
         end
       end
       field :authors
@@ -301,7 +315,6 @@ RailsAdmin.config do |config|
           bindings[:object].versioned_name
         end
       end
-      field :category
       field :authors
       field :summary
       field :pull_count
@@ -449,7 +462,8 @@ RailsAdmin.config do |config|
                                                            base_url: bindings[:controller].request.base_url,
                                                            user_key: User.current.number,
                                                            user_token: User.current.token,
-                                                           collection: bindings[:object])
+                                                           collection: bindings[:object],
+                                                           shared_collection: nil)
           rescue Exception => ex
             value
           end.html_safe
