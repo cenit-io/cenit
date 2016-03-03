@@ -16,6 +16,14 @@ module Setup
       fail NotImplementedError
     end
 
+    def status
+      authorized? ? :authorized : :unauthorized
+    end
+
+    def status_class
+      authorized? ? :success : :danger
+    end
+
     def method_missing(symbol, *args)
       hashes = []
       if symbol.to_s.start_with?('all_')

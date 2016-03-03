@@ -56,6 +56,10 @@ module RailsAdmin
 
     class Model
 
+      register_instance_option :show_in_dashboard do
+        true
+      end
+
       register_instance_option :label_navigation do
         label_plural
       end
@@ -78,7 +82,10 @@ module RailsAdmin
             #Patch
             if request.get? || params[:_restart] # NEW
 
-              @object = @abstract_model.new
+              unless (attrs = params[:attributes] || {}).is_a?(Hash)
+                attrs = JSON.parse(attrs) rescue {}
+              end
+              @object = @abstract_model.new(attrs)
               @authorization_adapter && @authorization_adapter.attributes_for(:new, @abstract_model).each do |name, value|
                 @object.send("#{name}=", value)
               end
@@ -171,7 +178,10 @@ module RailsAdmin
           proc do
             @history = @auditing_adapter && @auditing_adapter.latest || []
             if @action.statistics?
-              @abstract_models = RailsAdmin::Config.visible_models(controller: self).collect(&:abstract_model)
+              @abstract_models = RailsAdmin::Config.visible_models(controller: self).select(&:show_in_dashboard).collect(&:abstract_model).select do |absm|
+                ((model = absm.model) rescue nil) &&
+                  (model.is_a?(Mongoff::Model) || model.include?(AccountScoped))
+              end
 
               @most_recent_changes = {}
               @count = {}
@@ -188,6 +198,10 @@ module RailsAdmin
             end
             render @action.template_name, status: (flash[:error].present? ? :not_found : 200)
           end
+        end
+
+        register_instance_option :link_icon do
+          'fa fa-dashboard'
         end
       end
     end
@@ -550,23 +564,43 @@ module RailsAdmin
     end
 
     def edit_user_link
-      return nil unless _current_user.respond_to?(:email)
-      return nil unless (abstract_model = RailsAdmin.config(_current_user.class).abstract_model)
-      return nil unless (edit_action = RailsAdmin::Config::Actions.find(:show, controller: controller, abstract_model: abstract_model, object: _current_user)).try(:authorized?)
-      link_to url_for(action: edit_action.action_name, model_name: abstract_model.to_param, id: _current_user.id, controller: 'rails_admin/main') do
+      # Patch
+      inspecting = false
+      current_user =
+        if (current_account = Account.current) && current_account.super_admin? && current_account.tenant_account
+          account_abstract_model = RailsAdmin.config(Account).abstract_model
+          inspect_action = RailsAdmin::Config::Actions.find(:inspect, controller: controller, abstract_model: account_abstract_model, object: current_account.tenant_account)
+          inspecting = inspect_action.try(:authorized?)
+          current_account.tenant_account.owner
+        else
+          _current_user
+        end
+      return nil unless current_user.respond_to?(:email)
+      return nil unless (abstract_model = RailsAdmin.config(current_user.class).abstract_model)
+      return nil unless (edit_action = RailsAdmin::Config::Actions.find(:show, controller: controller, abstract_model: abstract_model, object: current_user)).try(:authorized?)
+      link = link_to url_for(action: edit_action.action_name, model_name: abstract_model.to_param, id: current_user.id, controller: 'rails_admin/main') do
         html = []
-        if _current_user.picture.present?
-          html << image_tag(_current_user.picture.icon.url, alt: '')
-        elsif _current_user.email.present?
-          html << image_tag("#{(request.ssl? ? 'https://secure' : 'http://www')}.gravatar.com/avatar/#{Digest::MD5.hexdigest _current_user.email}?s=30", alt: '')
+        unless inspecting
+          if current_user.picture.present?
+            html << image_tag(current_user.picture.icon.url, alt: '')
+          elsif current_user.email.present?
+            html << image_tag("#{(request.ssl? ? 'https://secure' : 'http://www')}.gravatar.com/avatar/#{Digest::MD5.hexdigest current_user.email}?s=30", alt: '')
+          end
         end
         # Patch
         # text = _current_user.name
         # Patch
-        text = _current_user.email if text.blank?
+        text = current_user.email if text.blank?
         html << content_tag(:span, text)
         html.join.html_safe
       end
+      if inspecting
+        link = [link]
+        link << link_to(url_for(action: inspect_action.action_name, model_name: account_abstract_model.to_param, id: current_account.tenant_account.id, controller: 'rails_admin/main')) do
+          '<i class="icon-eye-close" style="color: red"></i>'.html_safe
+        end
+      end
+      link
     end
 
 
@@ -586,13 +620,20 @@ module RailsAdmin
         label = navigation_label || t('admin.misc.navigation')
         html_id = "main-#{label.underscore.gsub(' ', '-')}"
 
-        icon_class = ((opts = RailsAdmin::Config.navigation_options[label]) && opts[:fa_icon]) || 'icon-question-sign'
+        icon = ((opts = RailsAdmin::Config.navigation_options[label]) && opts[:icon]) || 'fa fa-cube'
+        icon =
+          case icon
+          when Symbol
+            render partial: icon.to_s
+          else
+            "<i class='#{icon}'></i>"
+          end
 
         %(<div id='#{html_id}' class='panel panel-default'>
             <div class='panel-heading'>
               <a data-toggle='collapse' data-parent='#main-accordion' href='##{collapse_id}' class='panel-title collapse in collapsed'>
                 <span class='nav-caret'><i class='fa fa-caret-down'></i></span>
-                <span class='nav-icon'><i class='fa fa-#{icon_class}'></i></span>
+                <span class='nav-icon'>#{icon}</i></span>
                 <span class='nav-caption'>#{capitalize_first_letter label}</span>
               </a>
             </div>
@@ -690,7 +731,7 @@ module RailsAdmin
           amc = RailsAdmin.config(obj)
           am = amc.abstract_model
           wording = obj.send(amc.object_label_method)
-          if show_action = view_context.action(:show, am, obj)
+          if (show_action = view_context.action(:show, am, obj))
             wording + ' ' + view_context.link_to(t('admin.flash.click_here'), view_context.url_for(action: show_action.action_name, model_name: am.to_param, id: obj.id), class: 'pjax')
           else
             wording

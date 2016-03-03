@@ -109,7 +109,7 @@ module Edi
       end
 
       def do_parse_json(data_type, model, json, options, json_schema, record=nil, new_record=nil, container = nil)
-        updating = false
+        updating = (record.nil? && new_record.nil?) || options[:add_only]
         primary_fields = options.delete(:primary_field) || (json.is_a?(Hash) && json['_primary']) || [:id]
         primary_fields = [primary_fields] unless primary_fields.is_a?(Array)
         primary_fields = primary_fields.collect(&:to_sym)
@@ -185,7 +185,7 @@ module Edi
                   if property_value.is_a?(Hash) && property_value['_reference']
                     record.send("#{property_name}=", nil)
                     property_value = Cenit::Utility.deep_remove(property_value, '_reference')
-                    record.instance_variable_set(:@_references, references = {}) unless references = record.instance_variable_get(:@_references)
+                    record.instance_variable_set(:@_references, references = {}) unless (references = record.instance_variable_get(:@_references))
                     references[property_name] = { model: property_model, criteria: property_value }
                   else
                     record.send("#{property_name}=", do_parse_json(data_type, property_model, property_value, options, property_schema))

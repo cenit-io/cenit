@@ -12,7 +12,7 @@ module RailsAdmin
           proc do
 
             shared_collection_config = RailsAdmin::Config.model(Setup::SharedCollection)
-            if shared_params = params.delete(shared_collection_config.abstract_model.param_key)
+            if (shared_params = params.delete(shared_collection_config.abstract_model.param_key))
               sanitize_params_for!(:create, shared_collection_config, shared_params)
             end
             shared = false

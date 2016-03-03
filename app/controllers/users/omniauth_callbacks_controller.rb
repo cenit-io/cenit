@@ -13,7 +13,7 @@ class Users::OmniauthCallbacksController < Devise::OmniauthCallbacksController
       if (redirect_path = state['redirect_path'])
         sign_in @user, :event => :authentication
         if (msg = state['flash_message'])
-          flash[:info] = msg
+          flash[:info] = msg.html_safe
         end
         redirect_to redirect_path
       else

@@ -129,7 +129,7 @@ module Setup
     EXCLUDED_RELATIONS = %w{account creator updater}
 
     def method_missing(symbol, *args)
-      if symbol.to_s.start_with?('get_') && value = instance_variable_get(:"@#{symbol.to_s.from(4)}")
+      if symbol.to_s.start_with?('get_') && (value = instance_variable_get(:"@#{symbol.to_s.from(4)}"))
         value
       else
         super
@@ -188,7 +188,7 @@ module Setup
             (properties[field_name]['edi'] ||= {})['discard'] = true
           end
           if json_type.nil? || json_type == 'object' || json_type == 'array'
-            unless mongoff_models = model.instance_variable_get(:@mongoff_models)
+            unless (mongoff_models = model.instance_variable_get(:@mongoff_models))
               model.instance_variable_set(:@mongoff_models, mongoff_models = {})
             end
             mongoff_models[field_name] = Mongoff::Model.for(data_type: self,
@@ -207,7 +207,7 @@ module Setup
                                         :belongs_to,
                                         :has_many,
                                         :has_and_belongs_to_many).each do |relation|
-        if included?(relation_name = relation.name.to_s)
+        if included?((relation_name = relation.name.to_s))
           property_schema =
             case relation.macro
             when :embeds_one

@@ -25,12 +25,12 @@ module RailsAdmin
 
             @pull_request = Cenit::Actions.pull_request(@object, pull_parameters: params[:pull_parameters])
             if @pull_request[:missing_parameters].blank? && params[:_pull]
-              @pull_request = Cenit::Actions.pull(@object, @pull_request)
+              @pull_request = Cenit::Actions.pull(@object, @pull_request) if @pull_request[:collection_data].present?
               if (errors = @pull_request[:errors]).blank?
                 if (errors = @pull_request[:fixed_errors])
                   do_flash(:notice, t('admin.actions.pull_collection.fixed_errors_header'), errors)
                 end
-                collection = Setup::Collection.where(@pull_request[:collection]).first
+                collection = Setup::Collection.where(name: @object.name).first
                 if collection
                   flash[:success] = t('admin.flash.successful', name: @model_config.label, action: t("admin.actions.#{@action.key}.done"))
                   redirect_to rails_admin.show_path(model_name: collection.class.to_s.underscore.gsub('/', '~'), id: collection.id)
