@@ -109,7 +109,7 @@ module Edi
       end
 
       def do_parse_json(data_type, model, json, options, json_schema, record=nil, new_record=nil, container = nil)
-        updating = (record.nil? && new_record.nil?) || options[:add_only]
+        updating = !(record.nil? && new_record.nil?) || options[:add_only]
         primary_fields = options.delete(:primary_field) || (json.is_a?(Hash) && json['_primary']) || [:id]
         primary_fields = [primary_fields] unless primary_fields.is_a?(Array)
         primary_fields = primary_fields.collect(&:to_sym)
