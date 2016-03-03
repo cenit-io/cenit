@@ -3,6 +3,7 @@
 - new_records = @pull_request[:new_records]
 - updated_records = @pull_request[:updated_records]
 - pull_data = @pull_request[:pull_data]
+- limit = 10
 %form{method: 'post', class: 'form-horizontal denser'}
   - uptodate = true
   - if @object.pull_parameters.present?
@@ -29,10 +30,12 @@
           %label.col-sm-2.control-label
             = key.titleize
           .col-sm-10.controls
-            - count = 0
-            = records.collect { |record| count +=1; (ns = record['namespace']) ? "'#{ns} | #{record['name']}'" : "'#{record['name']}'" }.to_sentence.html_safe
+            - a = []
+            - records.each { |record| next if a.length > limit; a << ((ns = record['namespace']) ? "'#{ns} | #{record['name']}'" : "'#{record['name']}'") }
+            - a << "#{t('admin.actions.pull.another')} #{records.count - a.length}" if a.length < records.count
+            = a.to_sentence.html_safe
             %p.help-block
-              = "#{count} #{key.titleize.downcase.pluralize}"
+              = "#{records.count} #{key.titleize.downcase.pluralize}"
   - unless updated_records.blank?
     - uptodate = false
     %h4{style: 'color:#b94a48'}= t('admin.actions.pull.update_warning')
@@ -43,10 +46,12 @@
             = key.titleize
           .col-sm-10.controls
             - am = RailsAdmin::Config.model(records.first.class).abstract_model
-            - count = 0
-            = records.collect { |record| count +=1; link_to(record.try(:custom_title) || record.name, url_for(action: action(:show, am, record).action_name, model_name: record.class.to_s, id: record.id), class: 'pjax') }.to_sentence.html_safe
+            - a = []
+            - records.each { |record| next if a.length > limit; a << link_to(record.try(:custom_title) || record.name, url_for(action: action(:show, am, record).action_name, model_name: record.class.to_s, id: record.id), class: 'pjax') }
+            - a << "#{t('admin.actions.pull.another')} #{records.count - a.length}" if a.length < records.count
+            = a.to_sentence.html_safe
             %p.help-block
-              = "#{count} #{key.titleize.downcase.pluralize}"
+              = "#{records.count} #{key.titleize.downcase.pluralize}"
   - if uptodate
     - collection_link = link_to(@object.name, rails_admin.show_path(model_name: Setup::Collection.to_s.underscore.gsub('/', '~'), id: @object.name), class: 'pjax')
     %h4=  t('admin.actions.pull.uptodate', collection: collection_link, shared_collection: @object.versioned_name).html_safe
@@ -54,7 +59,7 @@
   .col-sm-offset-2.col-sm-10
     - if uptodate
       %span.extra_buttons
-        %button.btn{type: 'submit', name: '_continue', :'data-disable-with' => t('admin.form.ok')}
+        %button.btn{type: 'submit', name: '_pull', :'data-disable-with' => t('admin.form.ok')}
           %i.icon-ok
           = t('admin.form.ok')
     - else

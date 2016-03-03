@@ -207,6 +207,7 @@ en:
         fixed_errors_header: "The following errors where fixed when pulling the collection"
         missing_parameters: "Missing parameters"
         uptodate: "Your %{collection} collection is already synchronized with %{shared_collection}"
+        another: "another"
       retry_task:
         title: "Retry"
         menu: "Retry"
