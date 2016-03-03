@@ -43,7 +43,7 @@ module RailsAdmin
         end
 
         register_instance_option :link_icon do
-          bindings[:object].show_navigation_link ? 'icon-eye-close' : 'icon-eye-open'
+          bindings[:object].show_navigation_link ? 'fa fa-unlink' : 'fa fa-link'
         end
 
         register_instance_option :pjax? do

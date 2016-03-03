@@ -26,7 +26,9 @@ module Setup
     validates_uniqueness_of :token
 
     def ensure_token
-      self.token ||= generate_token
+      if new_record? || token.blank?
+        self.token = generate_token
+      end
     end
 
     def generate_number(options = {})

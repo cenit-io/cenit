@@ -1,12 +1,14 @@
 - missing_parameters = @pull_request[:missing_parameters]
 - pull_parameters = @pull_request[:pull_parameters]
+- new_records = @pull_request[:new_records]
 - updated_records = @pull_request[:updated_records]
 - pull_data = @pull_request[:pull_data]
+- limit = 10
 %form{method: 'post', class: 'form-horizontal denser'}
-  - ready = true
+  - uptodate = true
   - if @object.pull_parameters.present?
-    - ready = false
-    %h4= t('admin.actions.pull_collection.fill_parameters')
+    - uptodate = false
+    %h4= t('admin.actions.pull.fill_parameters')
     .fieldset
       - @object.pull_parameters.each do |pull_parameter|
         .control-group{class: (error = missing_parameters.include?(pull_parameter.id.to_s)) ? 'error' : ''}
@@ -19,9 +21,24 @@
                 = "can't be blank"
             %p.help-block
               = 'Required'
+  - unless new_records.blank?
+    - uptodate = false
+    %h4{style: 'color:#b94a48'}= t('admin.actions.pull.create_warning')
+    .fieldset
+      - new_records.each do |key, records|
+        .control-group
+          %label.col-sm-2.control-label
+            = key.titleize
+          .col-sm-10.controls
+            - a = []
+            - records.each { |record| next if a.length > limit; a << ((ns = record['namespace']) ? "'#{ns} | #{record['name']}'" : "'#{record['name']}'") }
+            - a << "#{t('admin.actions.pull.another')} #{records.count - a.length}" if a.length < records.count
+            = a.to_sentence.html_safe
+            %p.help-block
+              = "#{records.count} #{key.titleize.downcase.pluralize}"
   - unless updated_records.blank?
-    - ready = false
-    %h4{style: 'color:#b94a48'}= t('admin.actions.pull_collection.update_warning')
+    - uptodate = false
+    %h4{style: 'color:#b94a48'}= t('admin.actions.pull.update_warning')
     .fieldset
       - updated_records.each do |key, records|
         .control-group
@@ -29,15 +46,23 @@
             = key.titleize
           .col-sm-10.controls
             - am = RailsAdmin::Config.model(records.first.class).abstract_model
-            - count = 0
-            = records.collect { |record| count +=1; link_to(record.try(:custom_title) || record.name, url_for(action: action(:show, am, record).action_name, model_name: record.class.to_s, id: record.id), class: 'pjax') }.to_sentence.html_safe
+            - a = []
+            - records.each { |record| next if a.length > limit; a << link_to(record.try(:custom_title) || record.name, url_for(action: action(:show, am, record).action_name, model_name: record.class.to_s, id: record.id), class: 'pjax') }
+            - a << "#{t('admin.actions.pull.another')} #{records.count - a.length}" if a.length < records.count
+            = a.to_sentence.html_safe
             %p.help-block
-              = "#{count} #{key.titleize.downcase.pluralize}"
-  - if ready
-    %h4=  pull_data.any? { |key, _| key != 'name' } ? t('admin.actions.pull_collection.ready') : t('admin.actions.pull_collection.nothing_to_pull')
+              = "#{records.count} #{key.titleize.downcase.pluralize}"
+  - if uptodate
+    - collection_link = link_to(@object.name, rails_admin.show_path(model_name: Setup::Collection.to_s.underscore.gsub('/', '~'), id: @object.name), class: 'pjax')
+    %h4=  t('admin.actions.pull.uptodate', collection: collection_link, shared_collection: @object.versioned_name).html_safe
   .form-group.form-actions
   .col-sm-offset-2.col-sm-10
-    - if pull_data.any? && (pull_data['name'].nil? || pull_data.size > 1)
+    - if uptodate
+      %span.extra_buttons
+        %button.btn{type: 'submit', name: '_pull', :'data-disable-with' => t('admin.form.ok')}
+          %i.icon-ok
+          = t('admin.form.ok')
+    - else
       %button.btn.btn-primary{type: 'submit', name: '_pull', :'data-disable-with' => t('admin.actions.pull.submit')}
         %i{class: @action.try(:link_icon)}
         = t('admin.actions.pull.submit')
@@ -45,8 +70,3 @@
         %button.btn{type: 'submit', name: '_continue', :'data-disable-with' => t('admin.form.cancel')}
           %i.icon-remove
           = t('admin.form.cancel')
-    - else
-      %span.extra_buttons
-        %button.btn{type: 'submit', name: '_continue', :'data-disable-with' => t('admin.form.ok')}
-          %i.icon-ok
-          = t('admin.form.ok')

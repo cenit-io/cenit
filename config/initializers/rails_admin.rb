@@ -32,7 +32,9 @@
  RailsAdmin::Config::Actions::SimpleExport,
  RailsAdmin::Config::Actions::Schedule,
  RailsAdmin::Config::Actions::Submit,
- RailsAdmin::Config::Actions::DeleteCollection].each { |a| RailsAdmin::Config::Actions.register(a) }
+ RailsAdmin::Config::Actions::DeleteCollection,
+ RailsAdmin::Config::Actions::Inspect,
+ RailsAdmin::Config::Actions::Copy].each { |a| RailsAdmin::Config::Actions.register(a) }
 
 RailsAdmin::Config::Actions.register(:export, RailsAdmin::Config::Actions::BulkExport)
 RailsAdmin::Config::Fields::Types.register(RailsAdmin::Config::Fields::Types::JsonValue)
@@ -98,6 +100,7 @@ RailsAdmin.config do |config|
     show
     run
     edit
+    copy
     simple_share
     bulk_share
     build_gem
@@ -118,6 +121,7 @@ RailsAdmin.config do |config|
     schedule
     retry_task
     submit
+    inspect
     simple_delete_data_type
     bulk_delete_data_type
     delete
@@ -138,7 +142,7 @@ RailsAdmin.config do |config|
 
   #Collections
 
-  config.navigation 'Collections', fa_icon: 'cubes'
+  config.navigation 'Collections', icon: 'fa fa-cubes'
 
   config.model Setup::SharedCollection do
     weight -600
@@ -150,9 +154,7 @@ RailsAdmin.config do |config|
     object_label_method { :versioned_name }
 
     edit do
-      field :image do
-        visible { !bindings[:object].new_record? }
-      end
+      field :image
       field :name do
         required { true }
       end
@@ -184,7 +186,7 @@ RailsAdmin.config do |config|
       field :connections do
         inline_add false
         read_only do
-          !bindings[:object].instance_variable_get(:@_selecting_connections)
+          !((v = bindings[:object].instance_variable_get(:@_selecting_connections)).nil? || v)
         end
         help do
           nil
@@ -220,7 +222,7 @@ RailsAdmin.config do |config|
       field :dependencies do
         inline_add false
         read_only do
-          !bindings[:object].instance_variable_get(:@_selecting_dependencies)
+          !((v = bindings[:object].instance_variable_get(:@_selecting_dependencies)).nil? || v)
         end
         help do
           nil
@@ -261,7 +263,7 @@ RailsAdmin.config do |config|
       field :pull_count do
         visible { Account.current.super_admin? }
       end
-      field :readme, :wysihtml5 do
+      field :readme do
         visible do
           !(obj = bindings[:object]).instance_variable_get(:@_selecting_collection) &&
             !obj.instance_variable_get(:@_selecting_connections)
@@ -275,11 +277,25 @@ RailsAdmin.config do |config|
           bindings[:object].versioned_name
         end
       end
-      field :category
-      field :summary
-      field :description do
+      field :summary do
         pretty_value do
           value.html_safe
+        end
+      end
+      field :readme do
+        pretty_value do
+          begin
+            template = value.gsub('&lt;%', '<%').gsub('%&gt;', '%>').gsub('%3C%', '<%').gsub('%%3E', '%>')
+            Setup::Transformation::ActionViewTransform.run(transformation: template,
+                                                           style: 'html.erb',
+                                                           base_url: bindings[:controller].request.base_url,
+                                                           user_key: User.current.number,
+                                                           user_token: User.current.token,
+                                                           collection: nil,
+                                                           shared_collection: bindings[:object])
+          rescue Exception => ex
+            value
+          end.html_safe
         end
       end
       field :authors
@@ -299,7 +315,6 @@ RailsAdmin.config do |config|
           bindings[:object].versioned_name
         end
       end
-      field :category
       field :authors
       field :summary
       field :pull_count
@@ -344,78 +359,79 @@ RailsAdmin.config do |config|
     register_instance_option :label_navigation do
       'My Collections'
     end
-    group :setup do
-      label 'Setup objects'
-      active true
-    end
 
-    group :data do
-      label 'Data'
-      active false
-    end
+    group :workflows
 
     configure :flows do
-      group :setup
-    end
-
-    configure :connection_roles do
-      group :setup
-    end
-
-    configure :translators do
-      group :setup
+      group :workflows
     end
 
     configure :events do
-      group :setup
+      group :workflows
     end
 
-    configure :libraries do
-      group :setup
-    end
-
-    configure :custom_validators do
-      group :setup
+    configure :translators do
+      group :workflows
     end
 
     configure :algorithms do
-      group :setup
+      group :workflows
     end
 
-    configure :webhooks do
-      group :setup
+
+    group :api_connectors do
+      label 'API Connectors'
+      active true
     end
 
     configure :connections do
-      group :setup
+      group :api_connectors
     end
 
-    configure :authorizations do
-      group :setup
+    configure :webhooks do
+      group :api_connectors
     end
 
-    configure :oauth_providers do
-      group :setup
+    configure :connection_roles do
+      group :api_connectors
     end
 
-    configure :oauth_clients do
-      group :setup
-    end
 
-    configure :oauth2_scopes do
-      group :setup
+    group :data
+
+    configure :libraries do
+      group :data
     end
 
     configure :data do
       group :data
     end
 
+    configure :custom_validators do
+      group :data
+    end
+
+    group :security
+
+    configure :authorizations do
+      group :security
+    end
+
+    configure :oauth_providers do
+      group :security
+    end
+
+    configure :oauth_clients do
+      group :security
+    end
+
+    configure :oauth2_scopes do
+      group :security
+    end
+
     edit do
       field :image
-      field :readme, :wysihtml5 do
-        config_options toolbar: { fa: true },
-                       html: true,
-                       parserRules: { tags: { p: 1 } }
+      field :readme do
         visible { Account.current.super_admin? }
       end
       field :name
@@ -446,7 +462,8 @@ RailsAdmin.config do |config|
                                                            base_url: bindings[:controller].request.base_url,
                                                            user_key: User.current.number,
                                                            user_token: User.current.token,
-                                                           collection: bindings[:object])
+                                                           collection: bindings[:object],
+                                                           shared_collection: nil)
           rescue Exception => ex
             value
           end.html_safe
@@ -499,7 +516,7 @@ RailsAdmin.config do |config|
 
   #Data
 
-  config.navigation 'Data', fa_icon: 'database'
+  config.navigation 'Data', icon: 'fa fa-database'
 
   config.model Setup::Library do
     navigation_label 'Data'
@@ -894,6 +911,7 @@ RailsAdmin.config do |config|
     label 'Schemas & Validators'
     weight -490
     fields :namespace, :name
+    show_in_dashboard { false }
   end
 
   config.model Setup::CustomValidator do
@@ -977,7 +995,7 @@ RailsAdmin.config do |config|
 
   #API Connectors
 
-  config.navigation 'API Connectors', fa_icon: 'sitemap'
+  config.navigation 'API Connectors', icon: :api_connectors
 
   config.model Setup::Parameter do
     object_label_method { :to_s }
@@ -1084,7 +1102,7 @@ RailsAdmin.config do |config|
       #field :updater
     end
 
-    fields :namespace, :name, :url, :key, :token, :authorization, :authorization_handler
+    fields :namespace, :name, :url, :key, :token, :authorization
   end
 
   config.model Setup::ConnectionRole do
@@ -1207,12 +1225,12 @@ RailsAdmin.config do |config|
       field :updated_at
       #field :updater
     end
-    fields :namespace, :name, :path, :method, :description, :authorization, :authorization_handler
+    fields :namespace, :name, :path, :method, :description, :authorization
   end
 
   #Workflows
 
-  config.navigation 'Workflows', fa_icon: 'cogs'
+  config.navigation 'Workflows', icon: 'fa fa-cogs'
 
   config.model Setup::Flow do
     navigation_label 'Workflows'
@@ -1727,7 +1745,7 @@ RailsAdmin.config do |config|
 
   #Security
 
-  config.navigation 'Security', fa_icon: 'key'
+  config.navigation 'Security', icon: 'fa fa-shield'
 
   config.model Setup::OauthClient do
     navigation_label 'Security'
@@ -1784,7 +1802,7 @@ RailsAdmin.config do |config|
       visible { Account.current.super_admin? }
     end
 
-    fields :namespace, :name, :response_type, :authorization_endpoint, :token_endpoint, :token_method, :parameters, :clients, :tenant, :shared
+    fields :namespace, :name, :response_type, :authorization_endpoint, :token_endpoint, :token_method, :tenant, :shared
   end
 
   config.model Setup::OauthProvider do
@@ -1862,7 +1880,13 @@ RailsAdmin.config do |config|
     navigation_label 'Security'
     weight -50
     object_label_method { :custom_title }
-    fields :namespace, :name, :authorized
+    configure :status do
+      pretty_value do
+        "<span class=\"label label-#{bindings[:object].status_class}\">#{value.to_s.capitalize}</span>".html_safe
+      end
+    end
+    fields :namespace, :name, :status
+    show_in_dashboard { false }
   end
 
   config.model Setup::BasicAuthorization do
@@ -1871,6 +1895,13 @@ RailsAdmin.config do |config|
       'Basic'
     end
     object_label_method { :custom_title }
+
+    configure :status do
+      pretty_value do
+        "<span class=\"label label-#{bindings[:object].status_class}\">#{value.to_s.capitalize}</span>".html_safe
+      end
+    end
+
     edit do
       field :namespace
       field :name
@@ -1893,12 +1924,12 @@ RailsAdmin.config do |config|
     show do
       field :namespace
       field :name
-      field :authorized
+      field :status
       field :username
       field :password
     end
 
-    fields :namespace, :name, :authorized, :username, :password
+    fields :namespace, :name, :status, :username, :password
   end
 
   config.model Setup::OauthAuthorization do
@@ -1909,6 +1940,12 @@ RailsAdmin.config do |config|
     end
     object_label_method { :custom_title }
     parent Setup::Authorization
+
+    configure :status do
+      pretty_value do
+        "<span class=\"label label-#{bindings[:object].status_class}\">#{value.to_s.capitalize}</span>".html_safe
+      end
+    end
 
     edit do
       field :namespace
@@ -1943,7 +1980,7 @@ RailsAdmin.config do |config|
     show do
       field :namespace
       field :name
-      field :authorized
+      field :status
       field :client
 
       field :access_token
@@ -1953,7 +1990,7 @@ RailsAdmin.config do |config|
       field :authorized_at
     end
 
-    fields :namespace, :name, :authorized, :client
+    fields :namespace, :name, :status, :client
   end
 
   config.model Setup::Oauth2Authorization do
@@ -1964,6 +2001,12 @@ RailsAdmin.config do |config|
     end
     object_label_method { :custom_title }
     parent Setup::Authorization
+
+    configure :status do
+      pretty_value do
+        "<span class=\"label label-#{bindings[:object].status_class}\">#{value.to_s.capitalize}</span>".html_safe
+      end
+    end
 
     edit do
       field :namespace
@@ -2011,7 +2054,7 @@ RailsAdmin.config do |config|
     show do
       field :namespace
       field :name
-      field :authorized
+      field :status
       field :client
       field :scopes
 
@@ -2022,12 +2065,19 @@ RailsAdmin.config do |config|
       field :refresh_token
     end
 
-    fields :namespace, :name, :authorized, :client, :scopes
+    fields :namespace, :name, :status, :client, :scopes
   end
 
   config.model Setup::AwsAuthorization do
     weight -35
     object_label_method { :custom_title }
+
+    configure :status do
+      pretty_value do
+        "<span class=\"label label-#{bindings[:object].status_class}\">#{value.to_s.capitalize}</span>".html_safe
+      end
+    end
+
     edit do
       field :namespace
       field :name
@@ -2070,7 +2120,7 @@ RailsAdmin.config do |config|
 
   #Monitors
 
-  config.navigation 'Monitors', fa_icon: 'heartbeat'
+  config.navigation 'Monitors', icon: 'fa fa-heartbeat'
 
   config.model Setup::Notification do
     navigation_label 'Monitors'
@@ -2326,7 +2376,7 @@ RailsAdmin.config do |config|
 
   #Administration
 
-  config.navigation 'Administration', fa_icon: 'wrench'
+  config.navigation 'Administration', icon: 'fa fa-wrench'
 
   config.model User do
     weight -1

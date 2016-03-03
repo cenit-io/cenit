@@ -9,29 +9,66 @@ module Cenit
         pull_parameters = options[:pull_parameters] || {}
         missing_parameters = []
         shared_collection.pull_parameters.each { |pull_parameter| missing_parameters << pull_parameter.id.to_s unless pull_parameters[pull_parameter.id.to_s].present? }
+
+        new_records = Hash.new { |h, k| h[k] = [] }
         updated_records = Hash.new { |h, k| h[k] = [] }
+
         pull_data = shared_collection.data_with(pull_parameters)
+
         invariant_data = {}
 
+        collection_data = { '_reset' => resetting = [] }
+        unless (collection = Setup::Collection.where(name: shared_collection.name).first) && (collection.readme == shared_collection.readme)
+          collection_data['readme'] = shared_collection.readme
+          resetting << 'readme'
+        end
+
         Setup::Collection.reflect_on_all_associations(:has_and_belongs_to_many).each do |relation|
-          if (data = pull_data[relation.name.to_s])
-            invariant_data[relation.name.to_s] = invariant_names = Set.new
-            data.each do |item|
-              criteria = { namespace: item['namespace'], name: item['name'] }
-              criteria.delete_if { |_, value| value.nil? }
-              if (record = relation.klass.where(criteria).first)
-                record_hash = Cenit::Utility.stringfy(record.share_hash)
-                if item['_type']
-                  record_hash['_type'] = record.class.to_s unless record_hash['_type']
+          entry = relation.name.to_s
+          if (items = pull_data[entry])
+            invariant_data[entry] = invariant_names = Set.new
+            invariant_on_collection = 0
+            refs =
+              items.collect do |item|
+                criteria = {}
+                relation.klass.data_type.get_referenced_by.each { |field| criteria[field.to_s] = item[field.to_s] }
+                criteria.delete_if { |_, value| value.nil? }
+                unless (on_collection = (record = collection && collection.send(relation.name).where(criteria).first))
+                  record = relation.klass.where(criteria).first
                 end
-                if Cenit::Utility.eql_content?(record_hash, item)
-                  invariant_names << criteria
+                if record
+                  record_hash = Cenit::Utility.stringfy(record.share_hash)
+                  if item['_type']
+                    record_hash['_type'] = record.class.to_s unless record_hash['_type']
+                  end
+                  if Cenit::Utility.eql_content?(record_hash, item)
+                    invariant_names << criteria
+                    invariant_on_collection += 1 if on_collection
+                    item = criteria
+                    item['_reference'] = true
+                  else
+                    updated_records[entry] << record
+                  end
+                  item['id'] = record.id.to_s
                 else
-                  updated_records[relation.name.to_s] << record
+                  new_records[entry] << item
                 end
-                item['id'] = record.id.to_s
+                item
               end
+            unless (collection && collection.send(relation.name).count == invariant_on_collection) && (invariant_on_collection == items.size)
+              collection_data[entry] = refs
+              resetting << entry
             end
+          elsif collection && collection.send(relation.name).present?
+            resetting << entry
+          end
+        end
+
+        if resetting.present?
+          if collection
+            updated_records['collections'] << collection
+          else
+            new_records['collections'] << { 'name' => shared_collection.name }
           end
         end
 
@@ -55,8 +92,6 @@ module Cenit
           end
         end
 
-        collection_data = pull_data.deep_dup
-
         invariant_data.each do |key, invariant_names|
           pull_data[key].delete_if do |item|
             criteria = { namespace: item['namespace'], name: item['name'] }
@@ -65,10 +100,11 @@ module Cenit
           end
         end
 
-        [collection_data, pull_data, updated_records].each { |hash| hash.each_key { |key| hash.delete(key) if hash[key].empty? } }
+        [collection_data, pull_data, updated_records].each { |hash| hash.each_key { |key| hash.delete(key) if hash[key].blank? } }
 
         {
           pull_parameters: pull_parameters,
+          new_records: new_records,
           updated_records: updated_records,
           missing_parameters: missing_parameters,
           pull_data: pull_data,
@@ -82,9 +118,11 @@ module Cenit
         errors = []
         if pull_request[:missing_parameters].blank?
           begin
-            collection = Setup::Collection.new
-            collection.from_json(pull_request.delete(:collection_data)) #TODO Optimize using pull data
-            collection.readme = shared_collection.readme unless shared_collection.readme.blank?
+            collection = Setup::Collection.where(name: shared_collection.name).first
+            attrs = (collection && collection.attributes.deep_dup) || {}
+            attrs.delete('_id')
+            collection = Setup::Collection.new(attrs)
+            collection.from_json(pull_request.delete(:collection_data), add_only: true)
             collection.events.each { |e| e[:activated] = false if e.is_a?(Setup::Scheduler) && e.new_record? }
             begin
               collection.name = BSON::ObjectId.new.to_s
