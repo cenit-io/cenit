@@ -128,6 +128,7 @@ module Edi
                 json_schema = data_type.merged_schema
               end
             else
+              updating = false
               (record = model.new).instance_variable_set(:@dynamically_created, true)
             end
           else
@@ -194,7 +195,7 @@ module Edi
                   record.send("#{property_name}=", nil) unless options[:add_only]
                 end
               else
-                next if (updating && (property_name == '_id' || primary_fields.include?(name.to_sym)))
+                next if updating && ((property_name == '_id' || primary_fields.include?(name.to_sym)) && !record.send(property_name).nil?)
                 unless (property_value = json[name]).nil?
                   record.send("#{property_name}=", property_value)
                 end
