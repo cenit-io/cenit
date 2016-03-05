@@ -130,8 +130,7 @@ module Setup
         case attrs_or_exception
         when Hash
           Setup::Notification.create_with(attrs_or_exception)
-        when
-        Exception
+        when Exception, StandardError
           Setup::Notification.create_from(attrs_or_exception)
         else
           nil
