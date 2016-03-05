@@ -34,7 +34,8 @@
  RailsAdmin::Config::Actions::Submit,
  RailsAdmin::Config::Actions::DeleteCollection,
  RailsAdmin::Config::Actions::Inspect,
- RailsAdmin::Config::Actions::Copy].each { |a| RailsAdmin::Config::Actions.register(a) }
+ RailsAdmin::Config::Actions::Copy,
+ RailsAdmin::Config::Actions::Cancel].each { |a| RailsAdmin::Config::Actions.register(a) }
 
 RailsAdmin::Config::Actions.register(:export, RailsAdmin::Config::Actions::BulkExport)
 RailsAdmin::Config::Fields::Types.register(RailsAdmin::Config::Fields::Types::JsonValue)
@@ -122,6 +123,7 @@ RailsAdmin.config do |config|
     retry_task
     submit
     inspect
+    cancel
     simple_delete_data_type
     bulk_delete_data_type
     delete
@@ -2583,4 +2585,29 @@ RailsAdmin.config do |config|
     navigation_label 'Administration'
   end
 
+  config.model RabbitConsumer do
+    navigation_label 'Administration'
+    object_label_method { :to_s }
+
+    configure :task_id do
+      pretty_value do
+        if (executor = (obj = bindings[:object]).executor) && (task = obj.executing_task)
+          v = bindings[:view]
+          amc = RailsAdmin.config(task.class)
+          am = amc.abstract_model
+          wording = task.send(amc.object_label_method)
+          amc = RailsAdmin.config(Account)
+          am = amc.abstract_model
+          if (inspect_action = v.action(:inspect, am, executor))
+            task_path = v.show_path(model_name: task.class.to_s.underscore.gsub('/', '~'), id: task.id.to_s)
+            v.link_to(wording, v.url_for(action: inspect_action.action_name, model_name: am.to_param, id: executor.id, params: { return_to: task_path }))
+          else
+            wording
+          end.html_safe
+        end
+      end
+    end
+
+    fields :created_at, :tag, :executor, :task_id, :alive
+  end
 end

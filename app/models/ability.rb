@@ -40,6 +40,7 @@ class Ability
             ]
         can [:import, :edit], Setup::SharedCollection
         can :destroy, [Setup::SharedCollection, Setup::DataType, Setup::Storage]
+        can [:index, :show, :cancel], RabbitConsumer
       else
         cannot :access, [Setup::SharedName, Setup::DelayedMessage, Setup::SystemNotification]
         cannot :destroy, [Setup::SharedCollection, Setup::Storage]

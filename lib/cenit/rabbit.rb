@@ -51,7 +51,7 @@ module Cenit
         end
       end
 
-      def process_message(message, headers = {})
+      def process_message(message, options = {})
         message = JSON.parse(message) unless message.is_a?(Hash)
         message = message.with_indifferent_access
         message_token = message.delete(:token)
@@ -65,11 +65,15 @@ module Cenit
           Setup::Notification.create(message: "Can not determine account for message: #{message}")
         else
           begin
+            rabbit_consumer = nil
             task_class, task, report = detask(message)
-            if headers[:unscheduled.to_s]
+            if options[:unscheduled.to_s]
               task.unschedule if task
             else
               if task ||= task_class && task_class.create(message: message)
+                if (rabbit_consumer = options[:rabbit_consumer] || RabbitConsumer.where(tag: options[:consumer_tag]).first)
+                  rabbit_consumer.update(executor_id: account.id, task_id: task.id)
+                end
                 task.execute
               else
                 Setup::Notification.create(message: report)
@@ -81,6 +85,8 @@ module Cenit
             else
               Setup::Notification.create(message: "Can not execute task for message: #{message}")
             end
+          ensure
+            rabbit_consumer.update(executor_id: nil, task_id: nil) if rabbit_consumer
           end
           if task && (task.resuming_later? || ((scheduler = task.scheduler) && scheduler.activated?))
             message[:task] = task
@@ -97,15 +103,21 @@ module Cenit
       attr_reader :connection, :channel, :queue, :channel_mutex
 
       def init
-        unless @connection
-          @connection = Bunny.new(automatically_recover: true, user: Cenit.rabbit_mq_user, password: Cenit.rabbit_mq_password)
-          @connection.start
+        if @connection.nil? || @channel.nil? || @channel.closed?
+          unless @connection
+            @connection = Bunny.new(automatically_recover: true,
+                                    user: Cenit.rabbit_mq_user,
+                                    password: Cenit.rabbit_mq_password)
+            connection.start
+          end
 
-          @channel = @connection.create_channel
-          @queue = @channel.queue('cenit')
+          @channel ||= connection.create_channel
+          @channel.open if @channel.closed?
           @channel.prefetch(1)
 
-          @channel_mutex = Mutex.new
+          @queue ||= @channel.queue('cenit')
+
+          @channel_mutex ||= Mutex.new
         end
         true
       rescue Exception => ex
@@ -117,23 +129,33 @@ module Cenit
       def close
         if connection
           connection.close
+          @connection = nil
         end
       end
 
       def start_consumer
         if init
-          queue.subscribe(manual_ack: true) do |delivery_info, properties, body|
-            begin
-              Account.current = nil
-              Cenit::Rabbit.process_message(body, properties[:headers] || {})
-              channel.ack(delivery_info.delivery_tag)
-            rescue Exception => ex
-              Setup::Notification.create(message: "Error (#{ex.message}) consuming message: #{body}")
-            ensure
-              Account.current = nil
+          new_rabbit_consumer = RabbitConsumer.create(tag: channel.generate_consumer_tag('cenit'))
+          new_consumer = queue.subscribe(consumer_tag: new_rabbit_consumer.tag, manual_ack: true) do |delivery_info, properties, body|
+            consumer = delivery_info.consumer
+            if (rabbit_consumer = RabbitConsumer.where(tag: consumer.consumer_tag).first)
+              begin
+                Account.current = nil
+                options = (properties[:headers] || {}).merge(rabbit_consumer: rabbit_consumer)
+                Cenit::Rabbit.process_message(body, options)
+              rescue Exception => ex
+                Setup::Notification.create(message: "Error (#{ex.message}) consuming message: #{body}")
+              ensure
+                Account.current = nil
+              end unless rabbit_consumer.cancelled?
+            else
+              Setup::Notification.create(message: "Rabbit consumer with tag '#{consumer.consumer_tag}' not found")
             end
+            channel.reject(delivery_info.delivery_tag, true) unless rabbit_consumer && !rabbit_consumer.cancelled?
+            channel.ack(delivery_info.delivery_tag)
+            consumer.cancel if rabbit_consumer && rabbit_consumer.cancelled?
           end
-          puts 'RABBIT CONSUMER STARTED'
+          puts "RABBIT CONSUMER '#{new_consumer.consumer_tag}' STARTED"
         end
       rescue Exception => ex
         Setup::Notification.create(message: "Error subscribing rabbit consumer: #{ex.message}")

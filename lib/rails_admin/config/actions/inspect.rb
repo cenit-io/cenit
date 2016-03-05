@@ -30,7 +30,7 @@ module RailsAdmin
             else
               flash[:error] = 'Not authorized'
             end
-            redirect_to rails_admin.show_path(model_name: Account.to_s.underscore.gsub('/', '~'), id: @object.id)
+            redirect_to params[:return_to] || rails_admin.show_path(model_name: Account.to_s.underscore.gsub('/', '~'), id: @object.id)
           end
         end
 

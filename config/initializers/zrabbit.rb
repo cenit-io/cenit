@@ -1,3 +1,7 @@
+require 'rabbit_consumer'
+
+RabbitConsumer.delete_all
+
 unless ENV['UNICORN_CENIT_SERVER'].to_b
   Cenit::Application.config.after_initialize do
     Cenit::Rabbit.start_consumer
