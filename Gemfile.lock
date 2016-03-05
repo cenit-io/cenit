@@ -1,4 +1,11 @@
 GIT
+  remote: git://github.com/doorkeeper-gem/doorkeeper-mongodb.git
+  revision: 432fab9457054ef71b4bae839bf033a15a99b204
+  specs:
+    doorkeeper-mongodb (3.0.0)
+      doorkeeper (>= 3.0.0)
+
+GIT
   remote: https://github.com/asnioby/raml_parser
   revision: 9cba7e93251ef0ae67164f1079e961d62d1c0231
   branch: develop
@@ -144,6 +151,8 @@ GEM
     docile (1.1.5)
     domain_name (0.5.25)
       unf (>= 0.0.5, < 1.0.0)
+    doorkeeper (3.1.0)
+      railties (>= 3.2)
     easy_diff (0.0.6)
     erubis (2.7.0)
     eventmachine (1.0.8)
@@ -515,6 +524,7 @@ DEPENDENCIES
   database_cleaner
   descriptive_statistics
   devise
+  doorkeeper-mongodb!
   exception_notification
   factory_girl_rails
   ffaker
@@ -566,3 +576,6 @@ DEPENDENCIES
   unicorn (= 4.9.0)
   wannabe_bool
   xmldsig
+
+BUNDLED WITH
+   1.10.6
