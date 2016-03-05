@@ -54,7 +54,6 @@ after_fork do |server, worker|
       end
       Account.current = nil
     end
-    server.instance_variable_set(:@rabbit_listener_started, true)
   end
 end
 
