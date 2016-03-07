@@ -37,7 +37,11 @@ module Cenit
             else
               unless task.joining?
                 channel_mutex.lock
-                channel.default_exchange.publish(message, routing_key: queue.name)
+                if channel.closed?
+                  Setup::DelayedMessage.create(message: message)
+                else
+                  channel.default_exchange.publish(message, routing_key: queue.name)
+                end
                 channel_mutex.unlock
               end
             end
@@ -100,9 +104,10 @@ module Cenit
         Setup::Notification.create(message: "Error (#{ex.message}) processing message: #{message}")
       end
 
-      attr_reader :connection, :channel, :queue, :channel_mutex
+      attr_reader :connection, :channel, :queue
 
       def init
+        channel_mutex.lock
         if @connection.nil? || @channel.nil? || @channel.closed?
           unless @connection
             @connection = Bunny.new(automatically_recover: true,
@@ -116,14 +121,18 @@ module Cenit
           @channel.prefetch(1)
 
           @queue ||= @channel.queue('cenit')
-
-          @channel_mutex ||= Mutex.new
         end
         true
       rescue Exception => ex
         Setup::Notification.create(message: msg = "Error connecting with RabbitMQ: #{ex.message}")
         puts msg
         false
+      ensure
+        channel_mutex.unlock
+      end
+
+      def channel_mutex
+        @channel_mutex ||= Mutex.new
       end
 
       def close
@@ -135,7 +144,8 @@ module Cenit
 
       def start_consumer
         if init
-          new_rabbit_consumer = RabbitConsumer.create(tag: channel.generate_consumer_tag('cenit'))
+          new_rabbit_consumer = RabbitConsumer.create(channel: "#{connection.host}:#{connection.local_port} (#{channel.id})",
+                                                      tag: channel.generate_consumer_tag('cenit'))
           new_consumer = queue.subscribe(consumer_tag: new_rabbit_consumer.tag, manual_ack: true) do |delivery_info, properties, body|
             consumer = delivery_info.consumer
             if (rabbit_consumer = RabbitConsumer.where(tag: consumer.consumer_tag).first)
@@ -153,7 +163,9 @@ module Cenit
             end
             channel.reject(delivery_info.delivery_tag, true) unless rabbit_consumer && !rabbit_consumer.cancelled?
             channel.ack(delivery_info.delivery_tag)
+            channel_mutex.lock #channel might be closed
             consumer.cancel if rabbit_consumer && rabbit_consumer.cancelled?
+            channel_mutex.unlock
           end
           puts "RABBIT CONSUMER '#{new_consumer.consumer_tag}' STARTED"
         end
@@ -164,18 +176,22 @@ module Cenit
       def start_scheduler
         if init
           @scheduler_job = Rufus::Scheduler.new.interval "#{Cenit.scheduler_lookup_interval}s" do
-            messages_present = false
-            (delayed_messages = Setup::DelayedMessage.all.or(:publish_at.lte => Time.now).or(unscheduled: true)).each do |delayed_message|
-              publish_options = { routing_key: queue.name }
-              publish_options[:headers] = { unscheduled: true } if delayed_message.unscheduled
-              channel.default_exchange.publish(delayed_message.message, publish_options)
-              messages_present = true
+            channel_mutex.lock
+            unless channel.closed?
+              messages_present = false
+              (delayed_messages = Setup::DelayedMessage.all.or(:publish_at.lte => Time.now).or(unscheduled: true)).each do |delayed_message|
+                publish_options = { routing_key: queue.name }
+                publish_options[:headers] = { unscheduled: true } if delayed_message.unscheduled
+                channel.default_exchange.publish(delayed_message.message, publish_options)
+                messages_present = true
+              end
+              begin
+                delayed_messages.destroy_all
+              rescue Exception => ex
+                Setup::Notification.create_with(message: "Error deleting delayed messages: #{ex.message}")
+              end if messages_present
             end
-            begin
-              delayed_messages.destroy_all
-            rescue Exception => ex
-              Setup::Notification.create_with(message: "Error deleting delayed messages: #{ex.message}")
-            end if messages_present
+            channel_mutex.unlock
           end
           puts 'RABBIT SCHEDULER STARTED'
         end
@@ -192,17 +208,16 @@ module Cenit
         when Setup::Task
           task_class = task.class
         when String
-          unless task_class = task.constantize rescue nil
-            report = "Invalid task class name: #{task}"
-          end
+          task_class = task.constantize rescue nil
+          report = "Invalid task class name: #{task}" unless task_class
           task = nil
         else
           task_class = nil
           if task
             report = "Invalid task argument: #{task}"
             task = nil
-          elsif id = message.delete(:task_id)
-            if task = Setup::Task.where(id: id).first
+          elsif (id = message.delete(:task_id))
+            if (task = Setup::Task.where(id: id).first)
               task_class = task.class
             else
               report = "Task with ID '#{id}' not found"

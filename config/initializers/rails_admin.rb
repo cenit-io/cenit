@@ -2608,6 +2608,6 @@ RailsAdmin.config do |config|
       end
     end
 
-    fields :created_at, :tag, :executor, :task_id, :alive
+    fields :created_at, :channel, :tag, :executor, :task_id, :alive
   end
 end

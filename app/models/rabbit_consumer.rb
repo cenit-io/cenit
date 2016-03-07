@@ -2,6 +2,7 @@ class RabbitConsumer
   include Mongoid::Document
   include Mongoid::Timestamps
 
+  field :channel, type: String
   field :tag, type: String
   field :task_id
   field :alive, type: Boolean, default: true
