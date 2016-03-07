@@ -1,3 +1,5 @@
+require 'capataz/hash_proxy'
+
 class BasicObject
   def capataz_proxy?
     false
