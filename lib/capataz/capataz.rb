@@ -1,5 +1,4 @@
 require 'parser/current'
-require 'capataz/proxy'
 
 module Capataz
 
