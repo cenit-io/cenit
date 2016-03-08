@@ -1,12 +1,4 @@
 GIT
-  remote: https://github.com/asnioby/raml_parser
-  revision: 9cba7e93251ef0ae67164f1079e961d62d1c0231
-  branch: develop
-  specs:
-    raml_parser (0.2.5)
-      activesupport (>= 4.0.0)
-
-GIT
   remote: https://github.com/openjaf/cenit_cmd.git
   revision: b9f3ac98c6e082b2c1b25d74c7ecb55d00ee1511
   specs:
@@ -548,7 +540,6 @@ DEPENDENCIES
   rails_12factor
   rails_admin (~> 0.7.0)
   rails_layout
-  raml_parser!
   rolify
   rspec-rails
   rubocop
