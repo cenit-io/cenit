@@ -824,8 +824,8 @@ module RailsAdmin
       data_type = nil
       unless (@abstract_model = RailsAdmin::AbstractModel.new(@model_name))
         if (slugs = name.to_s.split('~')).size == 2
-          if (library = Setup::Library.where(slug: slugs[0]).first)
-            data_type = Setup::DataType.where(library: library, slug: slugs[1]).first
+          if (ns = Setup::Namespace.where(slug: slugs[0]).first)
+            data_type = Setup::DataType.where(namespace: ns, slug: slugs[1]).first
           end
         else
           data_type = Setup::DataType.where(id: name.from(2)).first if name.start_with?('dt')

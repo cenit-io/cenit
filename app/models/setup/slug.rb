@@ -12,7 +12,7 @@ module Setup
 
       def validate_slug
         unless slug.present?
-          candidate = name.squeeze(' ').gsub(' ', '_')
+          candidate = name.blank? ? 'default' : name.squeeze(' ').gsub(' ', '_')
           i = candidate.length - 1
           while i >= 0 && candidate[i] =~ /\A\.|[a-z]|[A-Z]|\d|_\Z/
             i -= 1

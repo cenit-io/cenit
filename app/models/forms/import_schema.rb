@@ -2,24 +2,26 @@ module Forms
   class ImportSchema
     include Mongoid::Document
 
-    belongs_to :library, class_name: Setup::Library.to_s
+    field :namespace, type: String
     field :data, type: String
     field :base_uri, type: String
 
-    validates_presence_of :library, :data
+    validates_presence_of :namespace, :data
 
     rails_admin do
       visible false
       register_instance_option(:discard_submit_buttons) { true }
       edit do
 
-        field :library do
-          inline_edit false
+        field :namespace, :enum do
+          enum do
+            Setup::Namespace.all.collect(&:name)
+          end
         end
 
         field :data do
           render do
-            bindings[:form].file_field(self.name, self.html_attributes.reverse_merge(data: {fileupload: true}))
+            bindings[:form].file_field(self.name, self.html_attributes.reverse_merge(data: { fileupload: true }))
           end
         end
 

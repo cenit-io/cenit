@@ -210,13 +210,13 @@ module Setup
     end
 
     def category_enum
-      %w(Collection Library Translator Algorithm)
+      %w(Collection Translator Algorithm)
     end
 
     def categorize
       shared = data.keys.select { |key| Setup::Collection::NO_DATA_FIELDS.exclude?(key) }
       self.category =
-        shared.length == 1 && %w(libraries translators algorithms).include?(shared[0]) ? shared[0].singularize.capitalize : 'Collection'
+        shared.length == 1 && %w(translators algorithms).include?(shared[0]) ? shared[0].singularize.capitalize : 'Collection'
       true
     end
 

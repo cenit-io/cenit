@@ -11,7 +11,7 @@ Capataz.config do
   deny_invoke_of :require, :new, :create, :class, :eval, :class_eval, :instance_eval, :instance_variable_set, :instance_variable_get, :constants, :const_get, :const_set, :constantize
 
   allowed_constants Psych, JSON, URI, File, Array, Hash, Nokogiri, Nokogiri::XML,Nokogiri::XML::Builder, Time, Base64, Digest, Digest::MD5,
-                    SecureRandom, Setup, Setup::DataType, Setup::Library, Setup::Schema, Setup::SchemaDataType, OpenSSL, OpenSSL::PKey, OpenSSL::PKey::RSA,
+                    SecureRandom, Setup, Setup::DataType, Setup::Schema, Setup::SchemaDataType, OpenSSL, OpenSSL::PKey, OpenSSL::PKey::RSA,
                     OpenSSL::Digest, OpenSSL::HMAC, Setup::Task, Setup::Task::RUNNING_STATUS, Setup::Task::NOT_RUNNING_STATUS, Setup::Webhook, Setup::Algorithm,
                     Xmldsig, Xmldsig::SignedDocument,Zip, Zip::OutputStream, Zip::InputStream, StringIO, MIME::Mail, MIME::Text, MIME::Multipart::Mixed,
                     Spreadsheet, Spreadsheet::Workbook
@@ -35,8 +35,6 @@ Capataz.config do
   allow_on  StringIO, [:new_io]
 
   allow_on File, [:dirname, :basename]
-
-  allow_on RamlParser::Parser, [:parse_hash, :parse_doc]
 
   allow_on Xmldsig::SignedDocument, [:new_document, :sign]
 
@@ -72,7 +70,7 @@ Capataz.config do
                                  "#{action}_from#{format}"
                                end
                              end + [:create_from]
-                           end + [:name, :slug, :to_json, :to_edi, :to_hash, :to_xml, :to_params, :records_model, :library, :library_id]).flatten
+                           end + [:name, :slug, :to_json, :to_edi, :to_hash, :to_xml, :to_params, :records_model, :namespace]).flatten
 
   deny_for [Setup::DynamicRecord, Mongoff::Record], ->(instance, method) do
     return false if [:id, :to_json, :to_edi, :to_hash, :to_xml, :to_xml_element, :to_params, :[], :[]=, :save, :all, :where, :orm_model, :nil?, :==, :errors].include?(method)
