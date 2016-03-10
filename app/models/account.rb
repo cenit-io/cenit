@@ -58,8 +58,8 @@ class Account
 
     def create_with_owner(params={})
       account = new(params)
-      if owner = account.owner
-        owner.roles << ::Role.where(name: :admin).first unless owner.roles.any? { |role| role.name.to_s == :admin.to_s}
+      if (owner = account.owner)
+        owner.roles << ::Role.where(name: :admin).first unless owner.roles.any? { |role| role.name.to_s == :admin.to_s }
         account.users << owner
         account.save
       end
@@ -76,22 +76,27 @@ class Account
       self.current = nil
     end
 
-    def tenant_collection_prefix(sep = '')
+    def tenant_collection_prefix(options = {})
+      sep = options[:separator] || ''
       if current.present?
         acc_id =
-          if (user = current.owner) && user.super_admin? && current.tenant_account.present?
-            current.tenant_account.id
-          else
-            current.id
-          end
+          (options[:account] && options[:account].id) ||
+            options[:account_id] ||
+            if (user = current.owner) && user.super_admin? && current.tenant_account.present?
+              current.tenant_account.id
+            else
+              current.id
+            end
         "acc#{acc_id}#{sep}"
       else
         ''
       end
     end
 
-    def tenant_collection_name(model_name, sep='_')
-      tenant_collection_prefix(sep) + model_name.collectionize
+    def tenant_collection_name(model_name, options = {})
+      model_name = model_name.to_s
+      options[:separator] ||= '_'
+      tenant_collection_prefix(options) + model_name.collectionize
     end
 
     def data_type_collection_name(data_type)

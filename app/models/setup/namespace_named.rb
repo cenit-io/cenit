@@ -10,8 +10,8 @@ module Setup
       field :name, type: String, default: ''
 
       validates_presence_of :name
-      validates_length_in_presence_of :namespace, maximum: 255
       validates_uniqueness_of :name, scope: :namespace
+      validates_inclusion_of :namespace, in: ->(nsn) { nsn.namespace_enum }
 
       before_save do
         self.namespace =
@@ -28,8 +28,22 @@ module Setup
       end
     end
 
+    def namespace_enum
+      Setup::Namespace.all.collect(&:name)
+    end
+
     def scope_title
       namespace
+    end
+
+    def namespace_ns
+      @namespace_ns = Setup::Namespace.where(name: namespace).first if @namespace_ns.nil? || @namespace_ns.name != namespace
+      @namespace_ns
+    end
+
+    def namespace_ns=(namespace_ns)
+      @namespace_ns = namespace_ns
+      self.namespace = namespace_ns.name if namespace != namespace_ns.name
     end
   end
 end

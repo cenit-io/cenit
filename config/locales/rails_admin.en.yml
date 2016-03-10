@@ -308,3 +308,9 @@ en:
         title: "Copy"
         menu: "Copy"
         breadcrumb: "Copy"
+      cancel:
+        title: "Cancel '%{object_label}'"
+        menu: "Cancel"
+        breadcrumb: "Cancel"
+        you_are_requesting: "You are requesting to cancel the %{model_name}"
+        done: "cancelled"

@@ -19,10 +19,6 @@ module RailsAdmin
           end
         end
 
-        register_instance_option :except do
-          Setup::Library
-        end
-
         register_instance_option :link_icon do
           'icon-cog'
         end

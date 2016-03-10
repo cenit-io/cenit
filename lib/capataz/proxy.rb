@@ -1,3 +1,4 @@
+
 class BasicObject
   def capataz_proxy?
     false

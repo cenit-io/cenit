@@ -109,7 +109,7 @@ module Edi
       end
 
       def do_parse_json(data_type, model, json, options, json_schema, record=nil, new_record=nil, container = nil)
-        updating = (record.nil? && new_record.nil?) || options[:add_only]
+        updating = !(record.nil? && new_record.nil?) || options[:add_only]
         primary_fields = options.delete(:primary_field) || (json.is_a?(Hash) && json['_primary']) || [:id]
         primary_fields = [primary_fields] unless primary_fields.is_a?(Array)
         primary_fields = primary_fields.collect(&:to_sym)
@@ -128,6 +128,7 @@ module Edi
                 json_schema = data_type.merged_schema
               end
             else
+              updating = false
               (record = model.new).instance_variable_set(:@dynamically_created, true)
             end
           else
@@ -194,7 +195,7 @@ module Edi
                   record.send("#{property_name}=", nil) unless options[:add_only]
                 end
               else
-                next if (updating && (property_name == '_id' || primary_fields.include?(name.to_sym)))
+                next if updating && ((property_name == '_id' || primary_fields.include?(name.to_sym)) && !record.send(property_name).nil?)
                 unless (property_value = json[name]).nil?
                   record.send("#{property_name}=", property_value)
                 end

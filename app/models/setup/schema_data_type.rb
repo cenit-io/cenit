@@ -3,7 +3,7 @@ require 'edi/formater'
 module Setup
   class SchemaDataType < DataType
 
-    BuildInDataType.regist(self).referenced_by(:name, :library).with(:title, :name, :slug, :_type, :schema, :events, :before_save_callbacks, :records_methods, :data_type_methods).including(:library)
+    BuildInDataType.regist(self).referenced_by(:namespace, :name).with(:namespace, :name, :title, :slug, :_type, :schema, :events, :before_save_callbacks, :records_methods, :data_type_methods)
 
     field :schema
 
