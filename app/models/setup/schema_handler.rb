@@ -49,16 +49,12 @@ module Setup
       do_merge_schema(schema, options)
     end
 
-    def find_data_type(ref, library_id = self.library_id)
-      if optimizer = Setup::DataTypeOptimizer.optimizer
-        optimizer.find_data_type(ref, library_id)
+    def find_data_type(ref, ns = self.namespace)
+      if (optimizer = Setup::DataTypeOptimizer.optimizer)
+        optimizer.find_data_type(ref, ns)
       else
         nil
       end
-    end
-
-    def library_id
-      nil
     end
 
     def find_ref_schema(ref, root_schema = schema)
@@ -112,7 +108,7 @@ module Setup
       while merging
         merging = false
         if (options[:expand_extends].nil? && options[:only_overriders].nil?) || options[:expand_extends]
-          while base_model = schema.delete('extends')
+          while (base_model = schema.delete('extends'))
             merged = merging = true
             base_model = find_ref_schema(base_model) if base_model.is_a?(String)
             base_model = do_merge_schema(base_model)

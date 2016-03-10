@@ -1,6 +1,7 @@
 module Setup
   class DataType
     include CenitScoped
+    include NamespaceNamed
     include SchemaHandler
     include DataTypeParser
     include Slug
@@ -12,7 +13,7 @@ module Setup
 
     Setup::Models.exclude_actions_for self, :update, :bulk_delete, :delete, :delete_all
 
-    BuildInDataType.regist(self).with(:title, :name, :before_save_callbacks, :records_methods, :data_type_methods).referenced_by(:name, :library).including(:library, :slug)
+    BuildInDataType.regist(self).with(:title, :name, :before_save_callbacks, :records_methods, :data_type_methods).referenced_by(:namespace, :name).including(:slug)
 
     def self.to_include_in_models
       @to_include_in_models ||= [Setup::DynamicRecord,
@@ -31,7 +32,6 @@ module Setup
     end
 
     field :title, type: String
-    field :name, type: String
 
     field :activated, type: Boolean, default: false
     field :show_navigation_link, type: Boolean
@@ -47,8 +47,11 @@ module Setup
 
     attr_readonly :name
 
-    validates_presence_of :library, :name
-    validates_uniqueness_of :name, scope: :library_id
+    validates_presence_of :namespace
+
+    before_save do
+      self.library = Setup::Library.where(name: namespace).first
+    end
 
     scope :activated, -> { where(activated: true) }
 
@@ -106,10 +109,6 @@ module Setup
 
     before_destroy do
       !(records_model.try(:delete_all) rescue true) || true
-    end
-
-    def scope_title
-      library && library.name
     end
 
     def subtype?
@@ -208,7 +207,7 @@ module Setup
     end
 
     def navigation_label
-      library && library.name
+      namespace
     end
 
     def create_default_events
@@ -218,15 +217,11 @@ module Setup
       end
     end
 
-    def find_data_type(ref, library_id = self.library_id)
+    def find_data_type(ref, ns = namespace)
       super ||
-        Setup::DataType.where(library_id: library_id, name: ref).first ||
+        Setup::DataType.where(namespace: ns, name: ref).first ||
         ((ref = ref.to_s).start_with?('Dt') && Setup::DataType.where(id: ref.from(2)).first) ||
         nil
-    end
-
-    def library_id
-      self[:library_id]
     end
 
     def report_shutdown(report)
@@ -241,7 +236,7 @@ module Setup
     end
 
     def method_missing(symbol, *args)
-      if method = data_type_methods.detect { |alg| alg.name == symbol.to_s }
+      if (method = data_type_methods.detect { |alg| alg.name == symbol.to_s })
         args.unshift(self)
         method.reload
         method.run(args)
@@ -418,7 +413,7 @@ module Setup
     protected
 
     def slug_taken?(slug)
-      Setup::DataType.where(slug: slug, library: library).present?
+      Setup::DataType.where(slug: slug, namespace: namespace).present?
     end
 
     def do_load_model(report)
@@ -431,9 +426,8 @@ module Setup
 
     def deconstantize(constant_name, report = {})
       report.reverse_merge!(:destroyed => Set.new, :affected => Set.new)
-      if constant = constant_name.constantize rescue nil
-        do_deconstantize(constant, report)
-      end
+      constant = constant_name.constantize rescue nil
+      do_deconstantize(constant, report) if constant
       report
     end
 

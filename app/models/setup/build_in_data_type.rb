@@ -8,6 +8,10 @@ module Setup
 
     attr_reader :model
 
+    def namespace
+      Setup.to_s
+    end
+
     def title
       @title ||= model.to_s.to_title
     end
@@ -60,7 +64,7 @@ module Setup
       @schema ||= build_schema
     end
 
-    def find_data_type(ref, library_id = self.library_id)
+    def find_data_type(ref, ns = namespace)
       BuildInDataType.build_ins[ref]
     end
 

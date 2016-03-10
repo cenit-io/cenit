@@ -7,7 +7,7 @@ module Setup
     include Setup::FormatValidator
     include CustomTitle
 
-    BuildInDataType.regist(self).with(:uri, :schema).embedding(:data_types).including(:library).referenced_by(:library, :uri)
+    BuildInDataType.regist(self).with(:namespace, :uri, :schema).referenced_by(:namespace, :uri)
 
     belongs_to :library, class_name: Setup::Library.to_s, inverse_of: :schemas
 
@@ -17,26 +17,26 @@ module Setup
 
     belongs_to :schema_data_type, class_name: Setup::SchemaDataType.to_s, inverse_of: nil
 
-    attr_readonly :library, :uri
+    attr_readonly :uri
 
-    validates_presence_of :library, :uri, :schema
-    validates_uniqueness_of :uri, scope: :library
+    validates_presence_of :uri, :schema
+    validates_uniqueness_of :uri, scope: :namespace
+
+    before_save do
+      self.library = Setup::Library.where(name: namespace).first
+    end
 
     def title
       uri
     end
 
-    def scope_title
-      library && library.name
-    end
-
     before_validation :prepare_configuration
 
     def prepare_configuration
-      self.name = "#{library.name} | #{uri}" unless name.present?
+      self.name = uri unless name.present?
       self.schema = schema.strip
       self.schema_type =
-        if (schema.start_with?('{') || self.schema.start_with?('['))
+        if schema.start_with?('{') || self.schema.start_with?('[')
           :json_schema
         else
           :xml_schema
@@ -74,10 +74,8 @@ module Setup
     def find_ref_schema(ref)
       if ref == uri
         self
-      elsif schm = Setup::Schema.where(library_id: library_id, uri: ref).first
-        schm.schema
-      elsif data = Setup::Schema.where(library_id: library_id, name: ref).first
-        data_type.schema
+      elsif (sch = Setup::Schema.where(namespace: namespace, uri: ref).first)
+        sch.schema
       else
         nil
       end
@@ -111,7 +109,7 @@ module Setup
 
     def bind_includes
       unless @includes_binded
-        parse_schema.bind_includes(library) unless parse_schema.is_a?(Hash)
+        parse_schema.bind_includes(namespace_ns) unless parse_schema.is_a?(Hash)
         @includes_binded = true
       end
     end
@@ -148,7 +146,7 @@ module Setup
           attr.value = options[:service_url].to_s + options[:service_schema_path] + '?' +
             {
               key: Account.current.owner.unique_key,
-              library_id: library.id.to_s,
+              ns: namespace,
               uri: Cenit::Utility.abs_uri(uri, attr.value)
             }.to_param
         end

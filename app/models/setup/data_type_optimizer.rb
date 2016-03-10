@@ -2,22 +2,22 @@ module Setup
   class DataTypeOptimizer
 
     def initialize
-      @libraries = Hash.new { |h, k| h[k] = {} }
+      @nss = Hash.new { |h, k| h[k] = {} }
     end
 
     def regist_data_types(data_types)
       data_types = [data_types] unless data_types.is_a?(Enumerable)
-      if data_type = data_types.first
-        hash = @libraries[data_type.library.id]
-        data_types.each do |data_type|
-          hash[data_type.name] = data_type unless hash.has_key?(data_type.name)
+      if (data_type = data_types.first)
+        hash = @nss[data_type.namespace]
+        data_types.each do |dt|
+          hash[dt.name] = dt unless hash.has_key?(dt.name)
         end
       end
     end
 
-    def find_data_type(ref, library_id = self.library_id)
-      unless data_type = (hash = @libraries[library_id])[ref]
-        if data_type = Setup::DataType.where(name: ref, library_id: library_id).first
+    def find_data_type(ref, ns = self.namespace)
+      unless (data_type = (hash = @nss[ns])[ref])
+        if (data_type = Setup::DataType.where(namespace: ns, name: ref).first)
           hash[ref] = data_type
         elsif (ref = ref.to_s).start_with?('Dt')
           data_type = Setup::DataType.where(id: ref.from(2)).first
@@ -27,17 +27,17 @@ module Setup
     end
 
     def optimize
-      data_types = @libraries.values.collect { |hash| hash.values.to_a }.flatten
-      while data_type = data_types.shift
+      data_types = @nss.values.collect { |hash| hash.values.to_a }.flatten
+      while (data_type = data_types.shift)
         segments = {}
         refs = Set.new
         schema = data_type.merged_schema(ref_collector: refs)
-        if schema['type'] == 'object' && properties = schema['properties']
+        if schema['type'] == 'object' && (properties = schema['properties'])
           properties = data_type.merge_schema(properties, ref_collector: refs)
           properties.each do |property_name, property_schema|
             property_segment = nil
             property_schema = data_type.merge_schema(property_schema, ref_collector: refs)
-            if property_schema['type'] == 'array' && items = property_schema['items']
+            if property_schema['type'] == 'array' && (items = property_schema['items'])
               property_schema['items'] = items = data_type.merge_schema(items, ref_collector: refs)
               if (edi_opts = items['edi']) && edi_opts.has_key?('segment')
                 property_segment = edi_opts['segment']
@@ -62,7 +62,7 @@ module Setup
       optimize
       new_attributes = []
       valid = true
-      @libraries.each_value do |data_types_hash|
+      @nss.each_value do |data_types_hash|
         data_types_hash.each_value do |data_type|
           dt_valid = true
           if (dt_valid = data_type.valid?(:create)) && valid
@@ -96,7 +96,7 @@ module Setup
       end
 
       def save_data_types
-        if o = optimizer
+        if (o = optimizer)
           o.save_data_types
         end
       end
