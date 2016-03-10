@@ -24,7 +24,6 @@ module Cenit
         end
 
         Setup::Collection.reflect_on_all_associations(:has_and_belongs_to_many).each do |relation|
-          next if relation.klass == Setup::Library
           entry = relation.name.to_s
           if (items = pull_data[entry])
             invariant_data[entry] = invariant_names = Set.new

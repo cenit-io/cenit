@@ -39,8 +39,6 @@ module Setup
     field :model_loaded, type: Boolean
     field :to_be_destroyed, type: Boolean
 
-    belongs_to :library, class_name: Setup::Library.to_s, inverse_of: :data_types
-
     has_and_belongs_to_many :before_save_callbacks, class_name: Setup::Algorithm.to_s, inverse_of: nil
     has_and_belongs_to_many :records_methods, class_name: Setup::Algorithm.to_s, inverse_of: nil
     has_and_belongs_to_many :data_type_methods, class_name: Setup::Algorithm.to_s, inverse_of: nil
@@ -48,10 +46,6 @@ module Setup
     attr_readonly :name
 
     validates_presence_of :namespace
-
-    before_save do
-      self.library = Setup::Library.where(name: namespace).first
-    end
 
     scope :activated, -> { where(activated: true) }
 

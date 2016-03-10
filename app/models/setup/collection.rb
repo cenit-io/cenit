@@ -36,7 +36,6 @@ module Setup
     has_and_belongs_to_many :webhooks, class_name: Setup::Webhook.to_s, inverse_of: nil
     has_and_belongs_to_many :connections, class_name: Setup::Connection.to_s, inverse_of: nil
 
-    has_and_belongs_to_many :libraries, class_name: Setup::Library.to_s, inverse_of: nil
     has_and_belongs_to_many :data_types, class_name: Setup::DataType.to_s, inverse_of: nil
     has_and_belongs_to_many :schemas, class_name: Setup::Schema.to_s, inverse_of: nil
     has_and_belongs_to_many :custom_validators, class_name: Setup::CustomValidator.to_s, inverse_of: nil
