@@ -11,7 +11,6 @@
  RailsAdmin::Config::Actions::DeleteAll,
  RailsAdmin::Config::Actions::TranslatorUpdate,
  RailsAdmin::Config::Actions::Convert,
- RailsAdmin::Config::Actions::DeleteLibrary,
  RailsAdmin::Config::Actions::SimpleShare,
  RailsAdmin::Config::Actions::BulkShare,
  RailsAdmin::Config::Actions::Pull,
@@ -84,7 +83,7 @@ RailsAdmin.config do |config|
   config.audit_with :mongoid_audit
   config.authorize_with :cancan
 
-  config.excluded_models += [Setup::BaseOauthAuthorization, Setup::AwsAuthorization, Setup::Raml]
+  config.excluded_models += [Setup::BaseOauthAuthorization, Setup::AwsAuthorization]
 
   config.actions do
     dashboard # mandatory
@@ -127,7 +126,6 @@ RailsAdmin.config do |config|
     simple_delete_data_type
     bulk_delete_data_type
     delete
-    delete_library
     delete_collection
     #show_in_app
     send_to_flow
@@ -135,10 +133,10 @@ RailsAdmin.config do |config|
     data_type
 
     # history_index do
-    #   only [Setup::DataType, Setup::Webhook, Setup::Flow, Setup::Schema, Setup::Event, Setup::Connection, Setup::ConnectionRole, Setup::Library]
+    #   only [Setup::DataType, Setup::Webhook, Setup::Flow, Setup::Schema, Setup::Event, Setup::Connection, Setup::ConnectionRole]
     # end
     # history_show do
-    #   only [Setup::DataType, Setup::Webhook, Setup::Flow, Setup::Schema, Setup::Event, Setup::Connection, Setup::ConnectionRole, Setup::Notification, Setup::Library]
+    #   only [Setup::DataType, Setup::Webhook, Setup::Flow, Setup::Schema, Setup::Event, Setup::Connection, Setup::ConnectionRole, Setup::Notification]
     # end
   end
 
@@ -396,7 +394,11 @@ RailsAdmin.config do |config|
 
     group :data
 
-    configure :libraries do
+    configure :data_types do
+      group :data
+    end
+
+    configure :schemas do
       group :data
     end
 
@@ -436,7 +438,8 @@ RailsAdmin.config do |config|
       field :connection_roles
       field :translators
       field :events
-      field :libraries
+      field :data_types
+      field :schemas
       field :custom_validators
       field :algorithms
       field :webhooks
@@ -471,7 +474,8 @@ RailsAdmin.config do |config|
       field :connection_roles
       field :translators
       field :events
-      field :libraries
+      field :data_types
+      field :schemas
       field :custom_validators
       field :algorithms
       field :webhooks
@@ -498,7 +502,8 @@ RailsAdmin.config do |config|
       field :connection_roles
       field :translators
       field :events
-      field :libraries
+      field :data_types
+      field :schemas
       field :custom_validators
       field :algorithms
       field :webhooks
@@ -511,39 +516,15 @@ RailsAdmin.config do |config|
     end
   end
 
+  config.model Setup::Namespace  do
+    navigation_label 'Collections'
+
+    fields :name, :slug
+  end
+
   #Data
 
   config.navigation 'Data', icon: 'fa fa-database'
-
-  config.model Setup::Library do
-    navigation_label 'Data'
-    weight -500
-
-    configure :name do
-      read_only { !bindings[:object].new_record? }
-      help ''
-    end
-
-    edit do
-      field :name
-      field :slug
-    end
-
-    show do
-      field :name
-      field :slug
-      field :schemas
-      field :data_types
-
-      field :_id
-      field :created_at
-      #field :creator
-      field :updated_at
-      #field :updater
-    end
-
-    fields :name, :slug, :schemas, :data_types
-  end
 
   config.model Setup::DataType do
     navigation_label 'Data'
@@ -718,7 +699,7 @@ RailsAdmin.config do |config|
     end
 
     edit do
-      field :library
+      field :namespace
       field :title
       field :name
       field :slug
@@ -731,7 +712,7 @@ RailsAdmin.config do |config|
     end
 
     list do
-      field :library
+      field :namespace
       field :title
       field :name
       field :slug
@@ -748,7 +729,7 @@ RailsAdmin.config do |config|
     end
 
     show do
-      field :library
+      field :namespace
       field :title
       field :name
       field :slug
@@ -790,18 +771,6 @@ RailsAdmin.config do |config|
       end
     end
 
-    configure :library do
-      associated_collection_scope do
-        library = (obj = bindings[:object]).library
-        Proc.new { |scope|
-          if library
-            scope.where(id: library.id)
-          else
-            scope
-          end
-        }
-      end
-    end
     configure :used_memory do
       pretty_value do
         unless max = bindings[:controller].instance_variable_get(:@max_used_memory)
@@ -857,7 +826,7 @@ RailsAdmin.config do |config|
     end
 
     edit do
-      field :library
+      field :namespace
       field :title
       field :name
       field :slug
@@ -921,9 +890,8 @@ RailsAdmin.config do |config|
     object_label_method { :custom_title }
 
     edit do
-      field :library do
+      field :namespace do
         read_only { !bindings[:object].new_record? }
-        inline_edit false
       end
 
       field :uri do
@@ -946,7 +914,7 @@ RailsAdmin.config do |config|
     end
 
     show do
-      field :library
+      field :namespace
       field :uri
       field :schema do
         pretty_value do
@@ -970,7 +938,7 @@ RailsAdmin.config do |config|
       #field :updater
 
     end
-    fields :library, :uri, :schema_data_type
+    fields :namespace, :uri, :schema_data_type
   end
 
   config.model Setup::EdiValidator do
@@ -2257,7 +2225,7 @@ RailsAdmin.config do |config|
     edit do
       field :description
     end
-    fields :library, :base_uri, :data, :description, :scheduler, :attempts_succeded, :retries, :progress, :status, :notifications
+    fields :namespace, :base_uri, :data, :description, :scheduler, :attempts_succeded, :retries, :progress, :status, :notifications
   end
 
   config.model Setup::Deletion do

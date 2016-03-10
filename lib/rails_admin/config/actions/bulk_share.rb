@@ -5,7 +5,7 @@ module RailsAdmin
       class BulkShare < RailsAdmin::Config::Actions::BaseShare
 
         register_instance_option :only do
-          [Setup::Library, Setup::Translator, Setup::Algorithm]
+          [Setup::Translator, Setup::Algorithm]
         end
 
         register_instance_option :collection do

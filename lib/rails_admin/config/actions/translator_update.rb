@@ -20,7 +20,7 @@ module RailsAdmin
         end
 
         register_instance_option :except do
-          [Setup::Library, Setup::DataType]
+          [Setup::DataType]
         end
 
         register_instance_option :link_icon do

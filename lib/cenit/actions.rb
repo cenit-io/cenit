@@ -72,26 +72,6 @@ module Cenit
           end
         end
 
-        libraries_id = (data = pull_data['libraries']) ? data.collect { |item| item['id'] } : []
-        Setup::Library.any_in(id: libraries_id).each do |library|
-          if (library_data = data.detect { |item| item['name'] == library.name })
-            if (schemas_data = library_data['schemas'])
-              library.schemas.each do |schema|
-                if (schema_data = schemas_data.detect { |sch| sch['uri'] == schema.uri })
-                  schema_data['id'] = schema.id.to_s
-                end
-              end
-            end
-            if (data_types_data = library_data['data_types'])
-              library.data_types.each do |data_type|
-                if (data_type_data = data_types_data.detect { |dt| dt['name'] == data_type.name })
-                  data_type_data['id'] = data_type.id.to_s
-                end
-              end
-            end
-          end
-        end
-
         invariant_data.each do |key, invariant_names|
           pull_data[key].delete_if do |item|
             criteria = { namespace: item['namespace'], name: item['name'] }
@@ -117,12 +97,23 @@ module Cenit
         pull_request = pull_request(shared_collection, pull_request) if pull_request[:pull_data].nil?
         errors = []
         if pull_request[:missing_parameters].blank?
+          created_nss_ids = []
           begin
+            collection_data = pull_request.delete(:collection_data)
+            (collection_data['namespaces'] || []).each do |ns_hash|
+              next if ns_hash.has_key?('id')
+              if (ns = Setup::Namespace.create(ns_hash)).errors.blank?
+                ns_hash['id'] = ns.id.to_s
+                created_nss_ids << ns.id
+              else
+                fail "Error creating namespace for #{ns_hash.to_json}: #{ns.errors.full_messages.to_sentence}"
+              end
+            end
             collection = Setup::Collection.where(name: shared_collection.name).first
             attrs = (collection && collection.attributes.deep_dup) || {}
             attrs.delete('_id')
             collection = Setup::Collection.new(attrs)
-            collection.from_json(pull_request.delete(:collection_data), add_only: true)
+            collection.from_json(collection_data, add_only: true)
             collection.events.each { |e| e[:activated] = false if e.is_a?(Setup::Scheduler) && e.new_record? }
             begin
               collection.name = BSON::ObjectId.new.to_s
@@ -160,7 +151,10 @@ module Cenit
           rescue Exception => ex
             errors << ex.message
           end
-          pull_request[:errors] = errors unless errors.blank?
+          unless errors.blank?
+            Setup::Namespace.all.any_in(id: created_nss_ids.to_a).delete_all
+            pull_request[:errors] = errors
+          end
         end
         pull_request
       end
