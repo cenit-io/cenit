@@ -140,9 +140,6 @@ RailsAdmin.config do |config|
     # end
   end
 
-  config.model Setup::Library do
-    visible false
-  end
   #Collections
 
   config.navigation 'Collections', icon: 'fa fa-cubes'
