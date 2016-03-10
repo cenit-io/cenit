@@ -107,7 +107,7 @@ module Setup
         check_data_type_dependencies(translator.target_data_type, algorithms)
       end
       events.each { |event| check_data_type_dependencies(event.data_type, algorithms) if event.is_a?(Setup::Observer) }
-      libraries.each { |library| library.data_types.each { |data_type| check_data_type_dependencies(data_type, algorithms) } }
+      data_types.each { |data_type| check_data_type_dependencies(data_type, algorithms) }
       data.each { |collection_data| check_data_type_dependencies(collection_data.data_type, algorithms) }
       visited_algs = Set.new
       algorithms.each { |alg| alg.for_each_call(visited_algs) }
@@ -141,7 +141,6 @@ module Setup
 
     def check_data_type_dependencies(data_type, algorithms)
       if data_type
-        libraries << data_type.library unless libraries.any? { |lib| lib == data_type.library }
         algorithms.merge(data_type.before_save_callbacks)
         algorithms.merge(data_type.records_methods)
         algorithms.merge(data_type.data_type_methods)
