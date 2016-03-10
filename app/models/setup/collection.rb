@@ -3,11 +3,13 @@ module Setup
     include CenitScoped
     include CollectionName
 
-    BuildInDataType.regist(self).embedding(:flows,
+    BuildInDataType.regist(self).embedding(:namespaces,
+                                           :flows,
                                            :connection_roles,
                                            :translators,
                                            :events,
-                                           :libraries,
+                                           :data_types,
+                                           :schemas,
                                            :custom_validators,
                                            :algorithms,
                                            :webhooks,
@@ -23,24 +25,27 @@ module Setup
 
     NO_DATA_FIELDS = %w(name readme)
 
-    has_and_belongs_to_many :flows, class_name: Setup::Flow.to_s, inverse_of: nil
-    has_and_belongs_to_many :connection_roles, class_name: Setup::ConnectionRole.to_s, inverse_of: nil
+    has_and_belongs_to_many :namespaces, class_name: Setup::Namespace.to_s, inverse_of: nil
 
+    has_and_belongs_to_many :flows, class_name: Setup::Flow.to_s, inverse_of: nil
     has_and_belongs_to_many :translators, class_name: Setup::Translator.to_s, inverse_of: nil
     has_and_belongs_to_many :events, class_name: Setup::Event.to_s, inverse_of: nil
-    has_and_belongs_to_many :libraries, class_name: Setup::Library.to_s, inverse_of: nil
-    has_and_belongs_to_many :custom_validators, class_name: Setup::CustomValidator.to_s, inverse_of: nil
     has_and_belongs_to_many :algorithms, class_name: Setup::Algorithm.to_s, inverse_of: nil
 
+    has_and_belongs_to_many :connection_roles, class_name: Setup::ConnectionRole.to_s, inverse_of: nil
     has_and_belongs_to_many :webhooks, class_name: Setup::Webhook.to_s, inverse_of: nil
     has_and_belongs_to_many :connections, class_name: Setup::Connection.to_s, inverse_of: nil
+
+    has_and_belongs_to_many :libraries, class_name: Setup::Library.to_s, inverse_of: nil
+    has_and_belongs_to_many :data_types, class_name: Setup::DataType.to_s, inverse_of: nil
+    has_and_belongs_to_many :schemas, class_name: Setup::Schema.to_s, inverse_of: nil
+    has_and_belongs_to_many :custom_validators, class_name: Setup::CustomValidator.to_s, inverse_of: nil
+    embeds_many :data, class_name: Setup::CollectionData.to_s, inverse_of: :setup_collection
 
     has_and_belongs_to_many :authorizations, class_name: Setup::Authorization.to_s, inverse_of: nil
     has_and_belongs_to_many :oauth_providers, class_name: Setup::BaseOauthProvider.to_s, inverse_of: nil
     has_and_belongs_to_many :oauth_clients, class_name: Setup::OauthClient.to_s, inverse_of: nil
     has_and_belongs_to_many :oauth2_scopes, class_name: Setup::Oauth2Scope.to_s, inverse_of: nil
-
-    embeds_many :data, class_name: Setup::CollectionData.to_s, inverse_of: :setup_collection
 
     accepts_nested_attributes_for :data, allow_destroy: true
 
@@ -114,11 +119,17 @@ module Setup
           shared_objs.each { |obj| collector.delete(obj) }
         end
       end
+      nss = Set.new
+      reflect_on_all_associations(:has_and_belongs_to_many).each do |relation|
+        next unless relation.klass.include?(Setup::NamespaceNamed)
+        nss += send(relation.name).distinct(:namespace)
+      end
+      self.namespaces = Setup::Namespace.all.any_in(name: nss.to_a)
       errors.blank?
     end
 
     def empty?
-      Setup::Collection.reflect_on_all_associations(:has_and_belongs_to_many).all? { |relation| send(relation.name).empty? }
+      reflect_on_all_associations(:has_and_belongs_to_many).all? { |relation| send(relation.name).empty? }
     end
 
     class << self
@@ -132,6 +143,7 @@ module Setup
     def check_data_type_dependencies(data_type, algorithms)
       if data_type
         libraries << data_type.library unless libraries.any? { |lib| lib == data_type.library }
+        algorithms.merge(data_type.before_save_callbacks)
         algorithms.merge(data_type.records_methods)
         algorithms.merge(data_type.data_type_methods)
         if data_type.is_a?(Setup::FileDataType)

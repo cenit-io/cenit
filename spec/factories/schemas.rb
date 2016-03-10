@@ -1,7 +1,6 @@
 FactoryGirl.define do
   factory :product_schema, class:  Setup::Schema do
-    uri 'Product' 
-    association(:library, factory: :sample_library)
+    uri 'Product'
 
     schema do 
       base_path = File.join(Rails.root, 'lib', 'jsons')

@@ -6,11 +6,11 @@ module Setup
 
     Setup::Models.exclude_actions_for self, :copy, :new, :edit, :translator_update, :import, :convert, :delete_all
 
-    belongs_to :library, class_name: Setup::Library.to_s, inverse_of: nil
+    field :namespace, type: String
     field :base_uri, type: String, default: ''
 
     before_save do
-      self.library = Setup::Library.where(id: message[:library_id]).first if library.blank?
+      self.namespace = message[:namespace] if namespace.blank?
       self.base_uri = message[:base_uri].to_s
     end
 
@@ -21,10 +21,10 @@ module Setup
       if (i = (name = data.path).rindex('.')) && name.from(i) == '.zip'
         begin
           Zip::InputStream.open(StringIO.new(data.read)) do |zis|
-            while errors.blank? && entry = zis.get_next_entry
+            while errors.blank? && (entry = zis.get_next_entry)
               if (schema = entry.get_input_stream.read).present?
                 uri = base_uri.blank? ? entry.name : "#{base_uri}/#{entry.name}"
-                schemas[entry.name] = Setup::Schema.new(library: library, uri: uri, schema: schema)
+                schemas[entry.name] = Setup::Schema.new(namespace: namespace, uri: uri, schema: schema)
               end
             end
           end
@@ -33,7 +33,7 @@ module Setup
         end
       else
         uri = base_uri.blank? ? data.path.split('/').last : base_uri
-        schemas[uri] = Setup::Schema.new(library: library, uri: uri, schema: data.read)
+        schemas[uri] = Setup::Schema.new(namespace: namespace, uri: uri, schema: data.read)
       end
       new_schemas_attributes = []
       schemas.each do |entry_name, schema|
