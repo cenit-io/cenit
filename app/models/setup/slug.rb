@@ -14,10 +14,17 @@ module Setup
         unless slug.present?
           candidate = name.blank? ? 'default' : name.squeeze(' ').gsub(' ', '_')
           i = candidate.length - 1
-          while i >= 0 && candidate[i] =~ /\A\.|[a-z]|[A-Z]|\d|_\Z/
-            i -= 1
+          while candidate.length > 0 && i == candidate.length - 1
+            while i >= 0 && candidate[i] =~ /\A\.|[a-z]|[A-Z]|\d|_\Z/
+              i -= 1
+            end
+            if i == candidate.length - 1
+              candidate = candidate.to(i-1)
+              i = candidate.length - 1
+            end
           end
           candidate = candidate.from(i + 1)
+          candidate = 'default' if candidate.empty?
           if (candidate = candidate.split('.')).length > 1
             candidate.pop
             candidate = candidate.last

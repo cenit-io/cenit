@@ -9,8 +9,6 @@ module Setup
 
     BuildInDataType.regist(self).with(:namespace, :uri, :schema).referenced_by(:namespace, :uri)
 
-    belongs_to :library, class_name: Setup::Library.to_s, inverse_of: :schemas
-
     field :uri, type: String
     field :schema, type: String
     field :schema_type, type: Symbol
@@ -21,10 +19,6 @@ module Setup
 
     validates_presence_of :uri, :schema
     validates_uniqueness_of :uri, scope: :namespace
-
-    before_save do
-      self.library = Setup::Library.where(name: namespace).first
-    end
 
     def title
       uri
