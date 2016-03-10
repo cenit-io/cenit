@@ -310,7 +310,8 @@ module Api::V1
               @ns_name = (ns && ns.name) || ''
             end
             if @ns_name
-              Setup::DataType.where(namespace: @ns_name, slug: slug).first
+              Setup::DataType.where(namespace: @ns_name, slug: slug).first ||
+                Setup::DataType.where(namespace: @ns_name, slug: slug.singularize).first
             else
               nil
             end
@@ -321,7 +322,7 @@ module Api::V1
     end
 
     def get_data_type(root)
-      get_data_type_by_slug(root.singularize) if root
+      get_data_type_by_slug(root) if root
     end
 
     def get_model(root)
