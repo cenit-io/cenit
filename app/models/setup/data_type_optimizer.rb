@@ -80,7 +80,7 @@ module Setup
         end
       end
       if valid && new_attributes.present?
-        Setup::SchemaDataType.collection.insert_many(new_attributes)
+        Setup::JsonDataType.collection.insert_many(new_attributes)
       end
       errors
     end

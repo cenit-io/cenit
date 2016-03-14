@@ -13,7 +13,7 @@ module Setup
     field :schema, type: String
     field :schema_type, type: Symbol
 
-    belongs_to :schema_data_type, class_name: Setup::SchemaDataType.to_s, inverse_of: nil
+    belongs_to :schema_data_type, class_name: Setup::JsonDataType.to_s, inverse_of: nil
 
     attr_readonly :uri
 
