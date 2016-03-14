@@ -2079,12 +2079,15 @@ RailsAdmin.config do |config|
       field :status
       field :client
       field :scopes
+      field :id_token
 
       field :token_type
       field :access_token
       field :token_span
       field :authorized_at
       field :refresh_token
+
+      field :id
     end
 
     fields :namespace, :name, :status, :client, :scopes
