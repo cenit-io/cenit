@@ -6,7 +6,7 @@ module Setup
     BuildInDataType.regist(self).referenced_by(:namespace, :name).with(:namespace, :name, :title, :slug, :_type, :validators, :schema_data_type, :events, :before_save_callbacks, :records_methods, :data_type_methods)
 
     has_and_belongs_to_many :validators, class_name: Setup::Validator.to_s, inverse_of: nil
-    belongs_to :schema_data_type, class_name: Setup::SchemaDataType.to_s, inverse_of: nil
+    belongs_to :schema_data_type, class_name: Setup::JsonDataType.to_s, inverse_of: nil
 
     before_save :validate_configuration
 

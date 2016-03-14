@@ -19,7 +19,7 @@ namespace :sample do
     Setup::Webhook.unscoped.destroy_all
     puts 'All Webhook Deleted.'
 
-    Setup::SchemaDataType.unscoped.destroy_all
+    Setup::JsonDataType.unscoped.destroy_all
     puts 'All DataType Deleted.'
 
     Setup::Schema.unscoped.destroy_all
@@ -97,12 +97,12 @@ namespace :sample do
       end
 
 
-      product_data_type = Setup::SchemaDataType.where(name: 'Product').first
+      product_data_type = Setup::JsonDataType.where(name: 'Product').first
       next if product_data_type.nil?
       product_model = product_data_type.load_model
       next if product_model.nil?
 
-      order_data_type = Setup::SchemaDataType.where(name: 'Order').first
+      order_data_type = Setup::JsonDataType.where(name: 'Order').first
       next if order_data_type.nil?
       order_model = order_data_type.load_model
       next if order_model.nil?

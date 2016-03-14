@@ -26,7 +26,7 @@ module Setup
 
     def records
       case data_type
-      when Setup::SchemaDataType
+      when Setup::JsonDataType
         data_type.records_model.all.collect { |record| record.to_hash(ignore: :id) }
       when Setup::FileDataType
         data_type.records_model.all.collect do |record|

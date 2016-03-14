@@ -10,10 +10,10 @@ Capataz.config do
 
   deny_invoke_of :require, :new, :create, :class, :eval, :class_eval, :instance_eval, :instance_variable_set, :instance_variable_get, :constants, :const_get, :const_set, :constantize
 
-  allowed_constants Psych, JSON, URI, File, Array, Hash, Nokogiri, Nokogiri::XML,Nokogiri::XML::Builder, Time, Base64, Digest, Digest::MD5,
-                    SecureRandom, Setup, Setup::Namespace, Setup::DataType, Setup::Schema, Setup::SchemaDataType, OpenSSL, OpenSSL::PKey, OpenSSL::PKey::RSA,
+  allowed_constants Psych, JSON, URI, File, Array, Hash, Nokogiri, Nokogiri::XML, Nokogiri::XML::Builder, Time, Base64, Digest, Digest::MD5,
+                    SecureRandom, Setup, Setup::Namespace, Setup::DataType, Setup::Schema, OpenSSL, OpenSSL::PKey, OpenSSL::PKey::RSA,
                     OpenSSL::Digest, OpenSSL::HMAC, Setup::Task, Setup::Task::RUNNING_STATUS, Setup::Task::NOT_RUNNING_STATUS, Setup::Webhook, Setup::Algorithm,
-                    Xmldsig, Xmldsig::SignedDocument,Zip, Zip::OutputStream, Zip::InputStream, StringIO, MIME::Mail, MIME::Text, MIME::Multipart::Mixed,
+                    Xmldsig, Xmldsig::SignedDocument, Zip, Zip::OutputStream, Zip::InputStream, StringIO, MIME::Mail, MIME::Text, MIME::Multipart::Mixed,
                     Spreadsheet, Spreadsheet::Workbook
 
   allow_on Spreadsheet::Workbook, [:new_workbook]
