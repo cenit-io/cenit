@@ -498,20 +498,76 @@ RailsAdmin.config do |config|
         thumb_method :icon
       end
       field :name
-      field :flows
-      field :connection_roles
-      field :translators
-      field :events
-      field :data_types
-      field :schemas
-      field :custom_validators
-      field :algorithms
-      field :webhooks
-      field :connections
-      field :authorizations
-      field :oauth_providers
-      field :oauth_clients
-      field :oauth2_scopes
+      field :flows do
+        pretty_value do
+          value.count > 0 ? value.count : '-'
+        end
+      end
+      field :connection_roles do
+        pretty_value do
+          value.count > 0 ? value.count : '-'
+        end
+      end
+      field :translators do
+        pretty_value do
+          value.count > 0 ? value.count : '-'
+        end
+      end
+      field :events do
+        pretty_value do
+          value.count > 0 ? value.count : '-'
+        end
+      end
+      field :data_types do
+        pretty_value do
+          value.count > 0 ? value.count : '-'
+        end
+      end
+      field :schemas do
+        pretty_value do
+          value.count > 0 ? value.count : '-'
+        end
+      end
+      field :custom_validators do
+        pretty_value do
+          value.count > 0 ? value.count : '-'
+        end
+      end
+      field :algorithms do
+        pretty_value do
+          value.count > 0 ? value.count : '-'
+        end
+      end
+      field :webhooks do
+        pretty_value do
+          value.count > 0 ? value.count : '-'
+        end
+      end
+      field :connections do
+        pretty_value do
+          value.count > 0 ? value.count : '-'
+        end
+      end
+      field :authorizations do
+        pretty_value do
+          value.count > 0 ? value.count : '-'
+        end
+      end
+      field :oauth_providers do
+        pretty_value do
+          value.count > 0 ? value.count : '-'
+        end
+      end
+      field :oauth_clients do
+        pretty_value do
+          value.count > 0 ? value.count : '-'
+        end
+      end
+      field :oauth2_scopes do
+        pretty_value do
+          value.count > 0 ? value.count : '-'
+        end
+      end
       field :data
     end
   end
