@@ -12,14 +12,14 @@ module Api::V1
     end
 
     def index
-      if klass = self.klass
+      if (klass = self.klass)
         @items =
           if @criteria.present?
-            if sort_key = @criteria.delete(:sort_by)
+            if (sort_key = @criteria.delete(:sort_by))
               asc = @criteria.has_key?(:ascending) or @criteria.has_key?(:asc)
               [:ascending, :asc, :descending, :desc].each { |key| @criteria.delete(key) }
             end
-            if limit = @criteria.delete(:limit)
+            if (limit = @criteria.delete(:limit))
               limit = limit.to_s.to_i
               limit = nil if limit == 0
             end
@@ -82,7 +82,7 @@ module Api::V1
           message.each do |item|
             if (record = data_type.send(@payload.create_method,
                                         @payload.process_item(item, data_type),
-                                        options = @payload.create_options)).errors.blank?
+                                        (options = @payload.create_options))).errors.blank?
               success_report[root.pluralize] << record.inspect_json(include_id: :id, inspect_scope: options[:create_collector])
             else
               broken_report[root] << { errors: record.errors.full_messages, item: item }
@@ -104,12 +104,12 @@ module Api::V1
           errors: broken_report = {}
         }
       @payload.each do |root, message|
-        if data_type = @payload.data_type_for(root)
+        if (data_type = @payload.data_type_for(root))
           message = [message] unless message.is_a?(Array)
           message.each do |item|
             if (record = data_type.send(@payload.create_method,
                                         @payload.process_item(item, data_type),
-                                        options = @payload.create_options.merge(primary_field: @primary_field))).errors.blank?
+                                        (options = @payload.create_options.merge(primary_field: @primary_field)))).errors.blank?
               success_report[root] = record.inspect_json(include_id: :id, inspect_scope: options[:create_collector])
             else
               broken_report[root] = { errors: record.errors.full_messages, item: item }
@@ -150,7 +150,7 @@ module Api::V1
           if pull_request[:missing_parameters] or (errors = pull_request[:errors].present?)
             pull_request.delete(:updated_records)
             status = errors ? 202 : :bad_request
-          elsif updated_records = pull_request[:updated_records]
+          elsif (updated_records = pull_request[:updated_records])
             updated_records.each do |key, records|
               updated_records[key] = records.collect { |record| { id: record.id.to_s } }
             end
@@ -181,9 +181,9 @@ module Api::V1
       data.reverse_merge!(email: params[:email], password: pwd = params[:password], password_confirmation: params[:password_confirmation] || pwd)
       status = 406
       response =
-        if token = data[:token] || params[:token]
-          if tkaptcha = CaptchaToken.where(token: token).first
-            if code = data[:code] || params[:code]
+        if (token = data[:token] || params[:token])
+          if (tkaptcha = CaptchaToken.where(token: token).first)
+            if (code = data[:code] || params[:code])
               if code == tkaptcha.code
                 data.merge!(tkaptcha.data || {}) { |_, left, right| left || right }
                 data[:password] = Devise.friendly_token unless data[:password]
@@ -291,7 +291,7 @@ module Api::V1
     end
 
     def find_item
-      if @item = klass.where(id: params[:id]).first
+      if (@item = klass.where(id: params[:id]).first)
         true
       else
         render json: { status: 'item not found' }, status: :not_found
@@ -302,15 +302,16 @@ module Api::V1
     def get_data_type_by_slug(slug)
       if slug
         @data_types[slug] ||=
-          if @library_slug == 'setup'
+          if @ns_slug == 'setup'
             Setup::BuildInDataType["Setup::#{slug.camelize}"]
           else
-            if @library_id.nil?
-              lib = Setup::Library.where(slug: @library_slug).first
-              @library_id = (lib && lib.id) || ''
+            if @ns_name.nil?
+              ns = Setup::Namespace.where(slug: @ns_slug).first
+              @ns_name = (ns && ns.name) || ''
             end
-            if @library_id
-              Setup::DataType.where(slug: slug, library_id: @library_id).first
+            if @ns_name
+              Setup::DataType.where(namespace: @ns_name, slug: slug).first ||
+                Setup::DataType.where(namespace: @ns_name, slug: slug.singularize).first
             else
               nil
             end
@@ -321,11 +322,11 @@ module Api::V1
     end
 
     def get_data_type(root)
-      get_data_type_by_slug(root.singularize) if root
+      get_data_type_by_slug(root) if root
     end
 
     def get_model(root)
-      if data_type = get_data_type(root)
+      if (data_type = get_data_type(root))
         data_type.records_model
       else
         nil
@@ -340,8 +341,8 @@ module Api::V1
       @data_types ||= {}
       @request_id = request.uuid
       @webhook_body = request.body.read
-      @library_slug = params[:library]
-      @library_id = nil
+      @ns_slug = params[:ns]
+      @ns_name = nil
       @model = params[:model]
       @only = params[:only].split(',') if params[:only]
       @ignore = params[:ignore].split(',') if params[:ignore]
@@ -362,7 +363,7 @@ module Api::V1
         end.new(controller: self,
                 message: @webhook_body,
                 content_type: request.content_type)
-      @criteria = params.to_hash.with_indifferent_access.reject { |key, _| %w(controller action library model id field path format view api only ignore primary_field pretty include_root).include?(key) }
+      @criteria = params.to_hash.with_indifferent_access.reject { |key, _| %w(controller action ns model id field path format view api only ignore primary_field pretty include_root).include?(key) }
     end
 
     private

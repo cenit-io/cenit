@@ -5,7 +5,6 @@ require "action_controller/railtie"
 require "action_mailer/railtie"
 # require "active_resource/railtie"
 require "sprockets/railtie"
-require "raml_parser"
 
 # Require the gems listed in Gemfile, including any gems
 # you've limited to :test, :development, or :production.
@@ -29,7 +28,7 @@ module Cenit
 
     config.after_initialize do
 
-      model_update_options = {model_loaded: false, used_memory: 0}
+      model_update_options = { model_loaded: false, used_memory: 0 }
       if Cenit.deactivate_models
         model_update_options[:activated] = false
         model_update_options[:show_navigation_link] = false
@@ -43,7 +42,7 @@ module Cenit
 
         unless Cenit.deactivate_models
           models = Set.new
-          Setup::SchemaDataType.activated.each do |data_type|
+          Setup::JsonDataType.activated.each do |data_type|
             models += data_type.load_models[:loaded]
           end
           Setup::FileDataType.activated.each do |file_data_type|
@@ -59,14 +58,14 @@ module Cenit
 
       Account.current = nil
     end
-    
+
     if Rails.env.production?
       Rails.application.config.middleware.use ExceptionNotification::Rack,
-        :email => {
-          :email_prefix => "[Cenit Error #{Rails.env}] ",
-          :sender_address => %{"notifier" <#{ENV['NOTIFIER_EMAIL']}>},
-          :exception_recipients => ENV['EXCEPTION_RECIPIENTS'].split(',')
-        }
+                                              :email => {
+                                                :email_prefix => "[Cenit Error #{Rails.env}] ",
+                                                :sender_address => %{"notifier" <#{ENV['NOTIFIER_EMAIL']}>},
+                                                :exception_recipients => ENV['EXCEPTION_RECIPIENTS'].split(',')
+                                              }
     end
 
   end

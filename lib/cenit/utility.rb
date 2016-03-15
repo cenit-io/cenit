@@ -111,9 +111,13 @@ module Cenit
                       obj.send("#{property_name}=", value)
                     end
                   elsif !options[:skip_error_report]
-                    message = "reference not found with criteria #{property_bind[:criteria].to_json}"
+                    message = "#{property_bind[:model]} reference not found with criteria #{property_bind[:criteria].to_json}"
                     obj.errors.add(property_name, message)
-                    stack.each { |node| node[:record].errors.add(node[:attribute], message) }
+                    message = "#{obj.class} on attribute #{property_name} #{message}"
+                    stack.reverse_each do |node|
+                      message = "#{node[:record].class} '#{node[:record].name}' on attribute #{node[:attribute]} -> #{message}"
+                      node[:record].errors.add(node[:attribute], message)
+                    end
                   end
                 end
               end
@@ -167,7 +171,7 @@ module Cenit
       end
 
       def save_references(record, options, saved, visited = Set.new)
-        return true if visited.include?(record)
+        return true if !record.changed? || visited.include?(record)
         visited << record
         if (model = record.try(:orm_model))
           model.for_each_association do |relation|
@@ -333,7 +337,7 @@ module Cenit
       def eql_content?(a, b)
         case a
         when Hash
-          return false unless b.is_a?(Hash)
+          return false unless b.is_a?(Hash) && a.size == b.size
           a.each do |key, value|
             return false unless eql_content?(value, b[key])
           end

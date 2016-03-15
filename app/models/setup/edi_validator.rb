@@ -5,7 +5,7 @@ module Setup
 
     BuildInDataType.regist(self).referenced_by(:namespace, :name)
 
-    belongs_to :schema_data_type, class_name: Setup::SchemaDataType.to_s, inverse_of: nil
+    belongs_to :schema_data_type, class_name: Setup::JsonDataType.to_s, inverse_of: nil
 
     field :content_type, type: String
 

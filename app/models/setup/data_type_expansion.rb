@@ -10,9 +10,9 @@ module Setup
       data_types =
         case source = message[:source]
         when nil # All data types
-          Setup::SchemaDataType.all
+          Setup::JsonDataType.all
         when Array # bulk schema ids
-          Setup::SchemaDataType.any_in(id: source)
+          Setup::JsonDataType.any_in(id: source)
         else
           [source]
         end

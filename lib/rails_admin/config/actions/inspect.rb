@@ -4,7 +4,7 @@ module RailsAdmin
       class Inspect < RailsAdmin::Config::Actions::Base
 
         register_instance_option :only do
-          Account
+          [Account, User]
         end
 
         register_instance_option :member do
@@ -24,13 +24,18 @@ module RailsAdmin
 
         register_instance_option :controller do
           proc do
-            if (current_account = Account.current) && (current_user = User.current) && current_user.super_admin?
-              current_account.tenant_account = (current_account.tenant_account == @object) ? nil : @object
-              current_account.save
+            if (account = @object.is_a?(Account) ? @object : @object.account)
+              if (current_account = Account.current) && (current_user = User.current) && current_user.super_admin?
+                current_account.tenant_account = (current_account.tenant_account == account) ? nil : account
+                current_account.save
+              else
+                flash[:error] = 'Not authorized'
+              end
+              redirect_to params[:return_to] || rails_admin.show_path(model_name: Account.to_s.underscore.gsub('/', '~'), id: account.id)
             else
-              flash[:error] = 'Not authorized'
+              flash[:error] = "No account for #{@object}"
+              redirect_to back_or_index
             end
-            redirect_to params[:return_to] || rails_admin.show_path(model_name: Account.to_s.underscore.gsub('/', '~'), id: @object.id)
           end
         end
 

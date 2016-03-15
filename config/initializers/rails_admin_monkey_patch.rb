@@ -566,22 +566,31 @@ module RailsAdmin
     def edit_user_link
       # Patch
       inspecting = false
+      account_config = nil
+      account_abstract_model = nil
+      inspect_action = nil
       current_user =
         if (current_account = Account.current) && current_account.super_admin? && current_account.tenant_account
-          account_abstract_model = RailsAdmin.config(Account).abstract_model
+          account_abstract_model = (account_config = RailsAdmin.config(Account)).abstract_model
           inspect_action = RailsAdmin::Config::Actions.find(:inspect, controller: controller, abstract_model: account_abstract_model, object: current_account.tenant_account)
           inspecting = inspect_action.try(:authorized?)
           current_account.tenant_account.owner
         else
           _current_user
         end
-      return nil unless current_user.respond_to?(:email)
-      return nil unless (abstract_model = RailsAdmin.config(current_user.class).abstract_model)
-      return nil unless (edit_action = RailsAdmin::Config::Actions.find(:show, controller: controller, abstract_model: abstract_model, object: current_user)).try(:authorized?)
+      abstract_model = (user_config = RailsAdmin.config(current_user.class)).abstract_model if current_user
+      edit_action = RailsAdmin::Config::Actions.find(:show, controller: controller, abstract_model: abstract_model, object: current_user) if abstract_model
+      unless current_user && abstract_model && edit_action
+        user_config = account_config
+        abstract_model = account_abstract_model
+        edit_action = inspect_action
+        current_user = current_account.tenant_account || current_account
+      end
+      return nil unless current_user && abstract_model && edit_action
       link = link_to url_for(action: edit_action.action_name, model_name: abstract_model.to_param, id: current_user.id, controller: 'rails_admin/main') do
         html = []
         unless inspecting
-          if current_user.picture.present?
+          if current_user && current_user.picture.present? && abstract_model && edit_action
             html << image_tag(current_user.picture.icon.url, alt: '')
           elsif current_user.email.present?
             html << image_tag("#{(request.ssl? ? 'https://secure' : 'http://www')}.gravatar.com/avatar/#{Digest::MD5.hexdigest current_user.email}?s=30", alt: '')
@@ -590,7 +599,7 @@ module RailsAdmin
         # Patch
         # text = _current_user.name
         # Patch
-        text = current_user.email if text.blank?
+        text = current_user.send(user_config.object_label_method)
         html << content_tag(:span, text)
         html.join.html_safe
       end
@@ -824,8 +833,8 @@ module RailsAdmin
       data_type = nil
       unless (@abstract_model = RailsAdmin::AbstractModel.new(@model_name))
         if (slugs = name.to_s.split('~')).size == 2
-          if (library = Setup::Library.where(slug: slugs[0]).first)
-            data_type = Setup::DataType.where(library: library, slug: slugs[1]).first
+          if (ns = Setup::Namespace.where(slug: slugs[0]).first)
+            data_type = Setup::DataType.where(namespace: ns.name, slug: slugs[1]).first
           end
         else
           data_type = Setup::DataType.where(id: name.from(2)).first if name.start_with?('dt')
