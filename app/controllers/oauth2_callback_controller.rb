@@ -9,7 +9,12 @@ class Oauth2CallbackController < ApplicationController
         params[:cenit_token] = cenit_token
         authorization.request_token(params)
         authorization.save
-        redirect_path = rails_admin.show_path(model_name: authorization.class.to_s.underscore.gsub('/', '~'), id: authorization.id.to_s)
+        redirect_path =
+          if (app = cenit_token.application) && (ns = Setup::Namespace.where(name: app.namespace).first)
+            "/app/#{ns.slug}/#{app.slug}/authorization/#{authorization.id}"
+          else
+            rails_admin.show_path(model_name: authorization.class.to_s.underscore.gsub('/', '~'), id: authorization.id.to_s)
+          end
       rescue Exception => ex
         error = ex.message
       end

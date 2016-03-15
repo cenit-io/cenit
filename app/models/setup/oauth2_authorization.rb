@@ -8,6 +8,7 @@ module Setup
 
     field :refresh_token, type: String
     field :token_type, type: String
+    field :id_token, type: String
 
     auth_template_parameters access_token: :access_token
 
@@ -46,7 +47,7 @@ module Setup
       token = http_client.auth_code.get_token(params[:code], token_params)
       self.token_type = token.params['token_type']
       self.authorized_at =
-        if time = token.params['created_at']
+        if (time = token.params['created_at'])
           Time.at(time)
         else
           Time.now
@@ -54,6 +55,7 @@ module Setup
       self.access_token = token.token
       self.token_span = token.expires_in
       self.refresh_token = token.refresh_token
+      self.id_token = token.params['id_token']
     end
 
   end
