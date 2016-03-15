@@ -498,20 +498,76 @@ RailsAdmin.config do |config|
         thumb_method :icon
       end
       field :name
-      field :flows
-      field :connection_roles
-      field :translators
-      field :events
-      field :data_types
-      field :schemas
-      field :custom_validators
-      field :algorithms
-      field :webhooks
-      field :connections
-      field :authorizations
-      field :oauth_providers
-      field :oauth_clients
-      field :oauth2_scopes
+      field :flows do
+        pretty_value do
+          value.count > 0 ? value.count : '-'
+        end
+      end
+      field :connection_roles do
+        pretty_value do
+          value.count > 0 ? value.count : '-'
+        end
+      end
+      field :translators do
+        pretty_value do
+          value.count > 0 ? value.count : '-'
+        end
+      end
+      field :events do
+        pretty_value do
+          value.count > 0 ? value.count : '-'
+        end
+      end
+      field :data_types do
+        pretty_value do
+          value.count > 0 ? value.count : '-'
+        end
+      end
+      field :schemas do
+        pretty_value do
+          value.count > 0 ? value.count : '-'
+        end
+      end
+      field :custom_validators do
+        pretty_value do
+          value.count > 0 ? value.count : '-'
+        end
+      end
+      field :algorithms do
+        pretty_value do
+          value.count > 0 ? value.count : '-'
+        end
+      end
+      field :webhooks do
+        pretty_value do
+          value.count > 0 ? value.count : '-'
+        end
+      end
+      field :connections do
+        pretty_value do
+          value.count > 0 ? value.count : '-'
+        end
+      end
+      field :authorizations do
+        pretty_value do
+          value.count > 0 ? value.count : '-'
+        end
+      end
+      field :oauth_providers do
+        pretty_value do
+          value.count > 0 ? value.count : '-'
+        end
+      end
+      field :oauth_clients do
+        pretty_value do
+          value.count > 0 ? value.count : '-'
+        end
+      end
+      field :oauth2_scopes do
+        pretty_value do
+          value.count > 0 ? value.count : '-'
+        end
+      end
       field :data
     end
   end
@@ -632,9 +688,10 @@ RailsAdmin.config do |config|
     fields :title, :name, :used_memory
   end
 
-  config.model Setup::SchemaDataType do
+  config.model Setup::JsonDataType do
     navigation_label 'Data'
     weight -449
+    label 'JSON Data Type'
     object_label_method { :custom_title }
 
     register_instance_option(:after_form_partials) do
@@ -720,9 +777,9 @@ RailsAdmin.config do |config|
         visible { Cenit.dynamic_model_loading? }
         pretty_value do
           unless max = bindings[:controller].instance_variable_get(:@max_used_memory)
-            bindings[:controller].instance_variable_set(:@max_used_memory, max = Setup::SchemaDataType.fields[:used_memory.to_s].type.new(Setup::SchemaDataType.max(:used_memory)))
+            bindings[:controller].instance_variable_set(:@max_used_memory, max = Setup::JsonDataType.fields[:used_memory.to_s].type.new(Setup::JsonDataType.max(:used_memory)))
           end
-          (bindings[:view].render partial: 'used_memory_bar', locals: { max: max, value: Setup::SchemaDataType.fields[:used_memory.to_s].type.new(value) }).html_safe
+          (bindings[:view].render partial: 'used_memory_bar', locals: { max: max, value: Setup::JsonDataType.fields[:used_memory.to_s].type.new(value) }).html_safe
         end
       end
       field :storage_size
@@ -774,9 +831,9 @@ RailsAdmin.config do |config|
     configure :used_memory do
       pretty_value do
         unless max = bindings[:controller].instance_variable_get(:@max_used_memory)
-          bindings[:controller].instance_variable_set(:@max_used_memory, max = Setup::SchemaDataType.fields[:used_memory.to_s].type.new(Setup::SchemaDataType.max(:used_memory)))
+          bindings[:controller].instance_variable_set(:@max_used_memory, max = Setup::JsonDataType.fields[:used_memory.to_s].type.new(Setup::JsonDataType.max(:used_memory)))
         end
-        (bindings[:view].render partial: 'used_memory_bar', locals: { max: max, value: Setup::SchemaDataType.fields[:used_memory.to_s].type.new(value) }).html_safe
+        (bindings[:view].render partial: 'used_memory_bar', locals: { max: max, value: Setup::JsonDataType.fields[:used_memory.to_s].type.new(value) }).html_safe
       end
     end
 
@@ -847,9 +904,9 @@ RailsAdmin.config do |config|
         visible { Cenit.dynamic_model_loading? }
         pretty_value do
           unless max = bindings[:controller].instance_variable_get(:@max_used_memory)
-            bindings[:controller].instance_variable_set(:@max_used_memory, max = Setup::SchemaDataType.fields[:used_memory.to_s].type.new(Setup::SchemaDataType.max(:used_memory)))
+            bindings[:controller].instance_variable_set(:@max_used_memory, max = Setup::JsonDataType.fields[:used_memory.to_s].type.new(Setup::JsonDataType.max(:used_memory)))
           end
-          (bindings[:view].render partial: 'used_memory_bar', locals: { max: max, value: Setup::SchemaDataType.fields[:used_memory.to_s].type.new(value) }).html_safe
+          (bindings[:view].render partial: 'used_memory_bar', locals: { max: max, value: Setup::JsonDataType.fields[:used_memory.to_s].type.new(value) }).html_safe
         end
       end
       field :storage_size

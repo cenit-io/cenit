@@ -42,7 +42,7 @@ module Cenit
 
         unless Cenit.deactivate_models
           models = Set.new
-          Setup::SchemaDataType.activated.each do |data_type|
+          Setup::JsonDataType.activated.each do |data_type|
             models += data_type.load_models[:loaded]
           end
           Setup::FileDataType.activated.each do |file_data_type|
