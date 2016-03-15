@@ -1,3 +1,5 @@
+require 'cenit/heroku_client'
+
 class Account
   include Mongoid::Document
   include NumberGenerator
@@ -6,6 +8,7 @@ class Account
   has_many :users, class_name: User.to_s, inverse_of: :account
 
   field :name, type: String
+  field :meta, type: Hash, default: {}
 
   belongs_to :tenant_account, class_name: Account.to_s, inverse_of: nil
 
@@ -14,13 +17,30 @@ class Account
 
   validates_inclusion_of :notification_level, in: ->(a) { a.notification_level_enum }
 
-  before_save :inspect_updated_fields
+  before_save :inspect_updated_fields, :init_heroku_db
 
   def inspect_updated_fields
     changed_attributes.keys.each do |attr|
       reset_attribute!(attr) unless %w(notification_level).include?(attr)
     end unless new_record? || Account.current.super_admin?
     true
+  end
+
+  def init_heroku_db
+    if new_record?
+      heroku_name = "hub-#{id.to_s}"
+      puts "Setting up HerokuClient with name '#{heroku_name}'"
+      app = HerokuClient::App.create(heroku_name)
+      if app
+        puts 'HerokuApp created successfully... on to addon now'
+        if app.add_addon(ENV['HEROKU_MONGOPLAN'] || 'mongolab:sandbox')
+          puts 'Addon created succesfully... getting config variables'
+          meta['db_name'] = heroku_name
+          meta['db_uri'] = app.get_variable(ENV['HEROKU_MONGOVAR'] || 'MONGOLAB_URI')
+          puts "Final metadata collected: #{meta}"
+        end
+      end
+    end
   end
 
   def notification_level_enum
