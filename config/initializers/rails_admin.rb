@@ -572,7 +572,7 @@ RailsAdmin.config do |config|
     end
   end
 
-  config.model Setup::Namespace  do
+  config.model Setup::Namespace do
     navigation_label 'Collections'
 
     fields :name, :slug
@@ -1763,6 +1763,20 @@ RailsAdmin.config do |config|
       field :_id
     end
     fields :namespace, :name, :description, :parameters, :call_links
+  end
+
+  config.model Setup::Action do
+    navigation_label 'Workflows'
+    weight -202
+    object_label_method { :to_s }
+  end
+
+  config.model Setup::Application do
+    navigation_label 'Workflows'
+    weight -201
+    object_label_method { :custom_title }
+    visible { Account.current.super_admin? }
+    fields :namespace, :name, :slug, :actions
   end
 
   #Security
