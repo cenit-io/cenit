@@ -9,6 +9,10 @@ module Setup
 
     belongs_to :client, class_name: Setup::OauthClient.to_s, inverse_of: nil
 
+    embeds_many :parameters, class_name: Setup::OauthParameter.to_s, inverse_of: :authorization
+
+    accepts_nested_attributes_for :parameters, allow_destroy: true
+
     field :access_token, type: String
     field :token_span, type: BigDecimal
     field :authorized_at, type: Time
@@ -37,7 +41,7 @@ module Setup
 
     def authorize_params(params = {})
       params = base_params.merge(params)
-      provider.parameters.each { |parameter| params[parameter.key.to_sym] = parameter.value }
+      parameters.each { |parameter| params[parameter.key.to_sym] = parameter.value }
       params
     end
 

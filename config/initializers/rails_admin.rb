@@ -1859,7 +1859,7 @@ RailsAdmin.config do |config|
       visible { Account.current.super_admin? }
     end
 
-    fields :namespace, :name, :response_type, :authorization_endpoint, :token_endpoint, :token_method, :request_token_endpoint, :parameters, :tenant, :shared
+    fields :namespace, :name, :response_type, :authorization_endpoint, :token_endpoint, :token_method, :request_token_endpoint, :tenant, :shared
   end
 
   config.model Setup::Oauth2Provider do
@@ -1884,7 +1884,7 @@ RailsAdmin.config do |config|
       visible { bindings[:object].refresh_token_strategy == :custom.to_s }
     end
 
-    fields :namespace, :name, :response_type, :authorization_endpoint, :token_endpoint, :token_method, :parameters, :scope_separator, :refresh_token_strategy, :refresh_token_algorithm, :tenant, :shared
+    fields :namespace, :name, :response_type, :authorization_endpoint, :token_endpoint, :token_method, :scope_separator, :refresh_token_strategy, :refresh_token_algorithm, :tenant, :shared
   end
 
   config.model Setup::OauthParameter do
@@ -1987,6 +1987,7 @@ RailsAdmin.config do |config|
       field :namespace
       field :name
       field :client
+      field :parameters
     end
 
     group :credentials do
@@ -2018,6 +2019,7 @@ RailsAdmin.config do |config|
       field :name
       field :status
       field :client
+      field :parameters
 
       field :access_token
       field :access_token_secret
@@ -2061,6 +2063,7 @@ RailsAdmin.config do |config|
           }
         end
       end
+      field :parameters
     end
 
     group :credentials do
@@ -2093,8 +2096,9 @@ RailsAdmin.config do |config|
       field :status
       field :client
       field :scopes
-      field :id_token
+      field :parameters
 
+      field :id_token
       field :token_type
       field :access_token
       field :token_span
