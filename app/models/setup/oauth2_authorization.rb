@@ -6,15 +6,18 @@ module Setup
 
     has_and_belongs_to_many :scopes, class_name: Setup::Oauth2Scope.to_s, inverse_of: nil
 
-    field :refresh_token, type: String
     field :token_type, type: String
+    field :refresh_token, type: String
     field :id_token, type: String
 
     auth_template_parameters access_token: :access_token
 
+    def ready_to_save?
+      client.present?
+    end
     def build_auth_header(template_parameters)
       provider.refresh_token(self)
-      token_type.to_s + ' ' + access_token.to_s
+      ((token_type || 'OAuth').to_s + ' ' + access_token.to_s).strip #TODO For Facebook that do not use token type
     end
 
     def callback_key

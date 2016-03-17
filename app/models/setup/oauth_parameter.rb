@@ -7,7 +7,7 @@ module Setup
     field :key, type: String
     field :value, type: String
 
-    embedded_in :provider, class_name: Setup::BaseOauthProvider.to_s, inverse_of: :parameters
+    embedded_in :authorization, class_name: Setup::BaseOauthAuthorization.to_s, inverse_of: :parameters
 
     validates_presence_of :key
 
