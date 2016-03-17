@@ -27,17 +27,13 @@ class Account
   end
 
   def init_heroku_db
-    if new_record?
+    if env['HEROKU_MLAB'] && new_record?
       heroku_name = "hub-#{id.to_s}"
-      puts "Setting up HerokuClient with name '#{heroku_name}'"
       app = HerokuClient::App.create(heroku_name)
       if app
-        puts 'HerokuApp created successfully... on to addon now'
         if app.add_addon(ENV['HEROKU_MONGOPLAN'] || 'mongolab:sandbox')
-          puts 'Addon created succesfully... getting config variables'
           meta['db_name'] = heroku_name
           meta['db_uri'] = app.get_variable(ENV['HEROKU_MONGOVAR'] || 'MONGOLAB_URI')
-          puts "Final metadata collected: #{meta}"
         end
       end
     end

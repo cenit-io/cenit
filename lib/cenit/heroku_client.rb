@@ -5,17 +5,11 @@ module HerokuClient
     class << self
 
       def post(url, options)
-        puts "[POST] #{url} ? #{options} ...",
-        rc = HTTMultiParty.post(url, options)
-        puts rc.code
-        rc
+        HTTMultiParty.post(url, options)
       end
 
       def get(url, options)
-        puts "[GET] #{url}...",
-        rc = HTTMultiParty.get(url, options)
-        puts rc.code
-        rc
+        HTTMultiParty.get(url, options)
       end
 
       def client_collection_name
@@ -52,7 +46,7 @@ module HerokuClient
         if doc && (doc[:expire] > Time.now)
           @token = doc[:token]
         else
-          @token = 'bff0fa72-8054-49ef-bbb6-dcaa8da41b90' # refresh_token
+          @token = ENV['HEROKU_TOKEN'] || refresh_token
         end
 
         @token
