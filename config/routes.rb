@@ -39,6 +39,6 @@ Cenit::Application.routes.draw do
 
   get '/data/:model_name/*id', to: 'rails_admin/main#show'
 
-  get 'app/:ns/:app_slug', to: 'app#index'
-  get 'app/:ns/:app_slug/*path', to: 'app#index'
+  match 'app/:ns/:app_slug' => 'app#index', via: [:all]
+  match 'app/:ns/:app_slug/*path' => 'app#index', via: [:all]
 end

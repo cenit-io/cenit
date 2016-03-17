@@ -11,6 +11,7 @@ module Setup
 
     belongs_to :algorithm, class_name: Setup::Algorithm.to_s, inverse_of: nil
 
+    validates_presence_of :method, :path, :algorithm
     validates_length_of :path, maximum: 255
 
     def method_enum
@@ -18,8 +19,10 @@ module Setup
     end
 
     attr_reader :path_params
+    attr_reader :request_path
 
     def match?(path)
+      @request_path = path
       @path_params = {}
       tokens = self.path.split('/').from(1)
       path_tokens = path.split('/')
@@ -40,7 +43,9 @@ module Setup
     end
 
     def run(control)
-      algorithm.run([control, path_params])
+      params = [control]
+      params << path_params if algorithm.parameters.size > 1
+      algorithm.run(params)
     end
 
     def to_s
