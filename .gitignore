@@ -37,6 +37,7 @@ config/deploy.rb
 .ruby-gemset
 .ruby-version
 .idea
+.rbenv*
 Gemfile.lock
 config/secret.yml
 
