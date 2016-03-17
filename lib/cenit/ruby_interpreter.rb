@@ -8,7 +8,7 @@ module Cenit
     end
 
     def method_missing(symbol, *args, &block)
-      if @options[:linking_algorithms] && algorithm = @algorithms[symbol]
+      if @options[:linking_algorithms] && (algorithm = @algorithms[symbol])
         instance_eval "define_singleton_method(:#{symbol},
         ->(#{(params = algorithm.parameters.collect { |p| p.name }).join(', ')}) {
           #{Capataz.rewrite(algorithm.code, locals: params, self_linker: algorithm, self_send_prefixer: @prefixer)}
