@@ -2,7 +2,7 @@ module Setup
   class Oauth2Authorization < Setup::BaseOauthAuthorization
     include CenitScoped
 
-    BuildInDataType.regist(self).with(:namespace, :name, :provider, :client, :scopes).referenced_by(:namespace, :name)
+    BuildInDataType.regist(self).with(:namespace, :name, :provider, :client, :parameters, :scopes).referenced_by(:namespace, :name)
 
     has_and_belongs_to_many :scopes, class_name: Setup::Oauth2Scope.to_s, inverse_of: nil
 
