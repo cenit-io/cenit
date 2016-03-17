@@ -19,6 +19,16 @@ module Setup
 
     validates_presence_of :client
 
+    def expires_at
+      authorized_at && token_span && authorized_at + token_span
+    end
+
+    def expires_in
+      if (expires_at = self.expires_at)
+        expires_at - Time.now
+      end
+    end
+
     def provider
       client && client.provider
     end

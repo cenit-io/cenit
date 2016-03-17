@@ -2046,12 +2046,18 @@ RailsAdmin.config do |config|
       end
     end
 
+    configure :expires_in do
+      pretty_value do
+        "#{value}s" if value
+      end
+    end
+
     edit do
       field :namespace
       field :name
       field :client
       field :scopes do
-        visible { ((obj = bindings[:object]) && obj.provider).present? }
+        visible { bindings[:object].ready_to_save? }
         associated_collection_scope do
           provider = ((obj = bindings[:object]) && obj.provider) || nil
           Proc.new { |scope|
@@ -2063,7 +2069,9 @@ RailsAdmin.config do |config|
           }
         end
       end
-      field :parameters
+      field :parameters do
+        visible { bindings[:object].ready_to_save? }
+      end
     end
 
     group :credentials do
@@ -2097,6 +2105,8 @@ RailsAdmin.config do |config|
       field :client
       field :scopes
       field :parameters
+
+      field :expires_in
 
       field :id_token
       field :token_type
