@@ -39,6 +39,8 @@ module Cenit
 
       Account.all.each do |account|
 
+        next if account.meta.present?
+
         Account.current = account
 
         Setup::DataType.update_all(model_update_options)
