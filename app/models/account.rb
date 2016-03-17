@@ -27,7 +27,7 @@ class Account
   end
 
   def init_heroku_db
-    if env['HEROKU_MLAB'] && new_record?
+    if ENV['HEROKU_MLAB'] && new_record?
       heroku_name = "hub-#{id.to_s}"
       app = HerokuClient::App.create(heroku_name)
       if app
