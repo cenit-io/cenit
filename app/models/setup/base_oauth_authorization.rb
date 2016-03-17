@@ -5,7 +5,7 @@ module Setup
 
     abstract_class true
 
-    BuildInDataType.regist(self).with(:namespace, :name, :client).referenced_by(:namespace, :name)
+    BuildInDataType.regist(self).with(:namespace, :name, :client, :parameters).referenced_by(:namespace, :name)
 
     belongs_to :client, class_name: Setup::OauthClient.to_s, inverse_of: nil
 
