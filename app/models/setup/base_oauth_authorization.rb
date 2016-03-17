@@ -5,15 +5,29 @@ module Setup
 
     abstract_class true
 
-    BuildInDataType.regist(self).with(:namespace, :name, :client).referenced_by(:namespace, :name)
+    BuildInDataType.regist(self).with(:namespace, :name, :client, :parameters).referenced_by(:namespace, :name)
 
     belongs_to :client, class_name: Setup::OauthClient.to_s, inverse_of: nil
+
+    embeds_many :parameters, class_name: Setup::OauthParameter.to_s, inverse_of: :authorization
+
+    accepts_nested_attributes_for :parameters, allow_destroy: true
 
     field :access_token, type: String
     field :token_span, type: BigDecimal
     field :authorized_at, type: Time
 
     validates_presence_of :client
+
+    def expires_at
+      authorized_at && token_span && authorized_at + token_span
+    end
+
+    def expires_in
+      if (expires_at = self.expires_at)
+        expires_at - Time.now
+      end
+    end
 
     def provider
       client && client.provider
@@ -37,7 +51,7 @@ module Setup
 
     def authorize_params(params = {})
       params = base_params.merge(params)
-      provider.parameters.each { |parameter| params[parameter.key.to_sym] = parameter.value }
+      parameters.each { |parameter| params[parameter.key.to_sym] = parameter.value }
       params
     end
 

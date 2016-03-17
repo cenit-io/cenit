@@ -572,7 +572,7 @@ RailsAdmin.config do |config|
     end
   end
 
-  config.model Setup::Namespace  do
+  config.model Setup::Namespace do
     navigation_label 'Collections'
 
     fields :name, :slug
@@ -1765,6 +1765,20 @@ RailsAdmin.config do |config|
     fields :namespace, :name, :description, :parameters, :call_links
   end
 
+  config.model Setup::Action do
+    navigation_label 'Workflows'
+    weight -202
+    object_label_method { :to_s }
+  end
+
+  config.model Setup::Application do
+    navigation_label 'Workflows'
+    weight -201
+    object_label_method { :custom_title }
+    visible { Account.current.super_admin? }
+    fields :namespace, :name, :slug, :actions
+  end
+
   #Security
 
   config.navigation 'Security', icon: 'fa fa-shield'
@@ -1845,7 +1859,7 @@ RailsAdmin.config do |config|
       visible { Account.current.super_admin? }
     end
 
-    fields :namespace, :name, :response_type, :authorization_endpoint, :token_endpoint, :token_method, :request_token_endpoint, :parameters, :tenant, :shared
+    fields :namespace, :name, :response_type, :authorization_endpoint, :token_endpoint, :token_method, :request_token_endpoint, :tenant, :shared
   end
 
   config.model Setup::Oauth2Provider do
@@ -1870,7 +1884,7 @@ RailsAdmin.config do |config|
       visible { bindings[:object].refresh_token_strategy == :custom.to_s }
     end
 
-    fields :namespace, :name, :response_type, :authorization_endpoint, :token_endpoint, :token_method, :parameters, :scope_separator, :refresh_token_strategy, :refresh_token_algorithm, :tenant, :shared
+    fields :namespace, :name, :response_type, :authorization_endpoint, :token_endpoint, :token_method, :scope_separator, :refresh_token_strategy, :refresh_token_algorithm, :tenant, :shared
   end
 
   config.model Setup::OauthParameter do
@@ -1973,6 +1987,7 @@ RailsAdmin.config do |config|
       field :namespace
       field :name
       field :client
+      field :parameters
     end
 
     group :credentials do
@@ -2004,6 +2019,7 @@ RailsAdmin.config do |config|
       field :name
       field :status
       field :client
+      field :parameters
 
       field :access_token
       field :access_token_secret
@@ -2030,12 +2046,18 @@ RailsAdmin.config do |config|
       end
     end
 
+    configure :expires_in do
+      pretty_value do
+        "#{value}s" if value
+      end
+    end
+
     edit do
       field :namespace
       field :name
       field :client
       field :scopes do
-        visible { ((obj = bindings[:object]) && obj.provider).present? }
+        visible { bindings[:object].ready_to_save? }
         associated_collection_scope do
           provider = ((obj = bindings[:object]) && obj.provider) || nil
           Proc.new { |scope|
@@ -2046,6 +2068,9 @@ RailsAdmin.config do |config|
             end
           }
         end
+      end
+      field :parameters do
+        visible { bindings[:object].ready_to_save? }
       end
     end
 
@@ -2079,12 +2104,18 @@ RailsAdmin.config do |config|
       field :status
       field :client
       field :scopes
+      field :parameters
 
+      field :expires_in
+
+      field :id_token
       field :token_type
       field :access_token
       field :token_span
       field :authorized_at
       field :refresh_token
+
+      field :id
     end
 
     fields :namespace, :name, :status, :client, :scopes

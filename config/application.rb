@@ -28,6 +28,9 @@ module Cenit
 
     config.after_initialize do
 
+      puts 'DELETING OLD Consumers'
+      RabbitConsumer.delete_all
+
       model_update_options = { model_loaded: false, used_memory: 0 }
       if Cenit.deactivate_models
         model_update_options[:activated] = false
@@ -35,6 +38,8 @@ module Cenit
       end
 
       Account.all.each do |account|
+
+        next if account.meta.present?
 
         Account.current = account
 

@@ -42,7 +42,7 @@ module Setup
     end
 
     def custom_refresh_token(authorization)
-      if alg = refresh_token_algorithm
+      if (alg = refresh_token_algorithm)
         alg.run(authorization)
         authorization.save
       else
@@ -52,7 +52,7 @@ module Setup
 
     def default_refresh_token(authorization)
       unless authorization.authorized_at + authorization.token_span > Time.now - 60
-        fail "Missing client configuration" unless authorization.client
+        fail 'Missing client configuration' unless authorization.client
         http_response = HTTMultiParty.post(authorization.provider.token_endpoint,
                                            headers: { 'Content-Type' => 'application/x-www-form-urlencoded' },
                                            body: {
@@ -78,7 +78,7 @@ module Setup
 
     def google_v4_refresh_token(authorization)
       unless authorization.authorized_at + authorization.token_span > Time.now - 60
-        fail "Missing client configuration" unless authorization.client
+        fail 'Missing client configuration' unless authorization.client
         http_response = HTTMultiParty.post('https://www.googleapis.com/oauth2/v4/token',
                                            headers: { 'Content-Type' => 'application/x-www-form-urlencoded' },
                                            body: {

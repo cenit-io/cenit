@@ -2,18 +2,22 @@ module Setup
   class Oauth2Authorization < Setup::BaseOauthAuthorization
     include CenitScoped
 
-    BuildInDataType.regist(self).with(:namespace, :name, :provider, :client, :scopes).referenced_by(:namespace, :name)
+    BuildInDataType.regist(self).with(:namespace, :name, :provider, :client, :parameters, :scopes).referenced_by(:namespace, :name)
 
     has_and_belongs_to_many :scopes, class_name: Setup::Oauth2Scope.to_s, inverse_of: nil
 
-    field :refresh_token, type: String
     field :token_type, type: String
+    field :refresh_token, type: String
+    field :id_token, type: String
 
     auth_template_parameters access_token: :access_token
 
+    def ready_to_save?
+      client.present?
+    end
     def build_auth_header(template_parameters)
       provider.refresh_token(self)
-      token_type.to_s + ' ' + access_token.to_s
+      ((token_type || 'OAuth').to_s + ' ' + access_token.to_s).strip #TODO For Facebook that do not use token type
     end
 
     def callback_key
@@ -46,14 +50,15 @@ module Setup
       token = http_client.auth_code.get_token(params[:code], token_params)
       self.token_type = token.params['token_type']
       self.authorized_at =
-        if time = token.params['created_at']
+        if (time = token.params['created_at'])
           Time.at(time)
         else
           Time.now
         end
       self.access_token = token.token
       self.token_span = token.expires_in
-      self.refresh_token = token.refresh_token
+      self.refresh_token = token.refresh_token if token.refresh_token
+      self.id_token = token.params['id_token']
     end
 
   end
