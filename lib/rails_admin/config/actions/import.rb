@@ -37,8 +37,8 @@ module RailsAdmin
                 translator = Setup::Translator.where(id: data[:translator_id]).first
                 if (@form_object = Forms::ImportTranslator.new(translator: translator, data_type: data_type_selector, file: (file = data[:file]), data: (data = data[:data]))).valid?
                   begin
-                    do_flash_process_result Setup::DataImport.process(translator_id: translator.id, data_type_id: model.data_type.id, data: file.read) if file
-                    do_flash_process_result Setup::DataImport.process(translator_id: translator.id, data_type_id: model.data_type.id, data: data) if data
+                    do_flash_process_result Setup::DataImport.process(translator_id: translator.id, data_type_id: model.data_type.id, data: file.read) if file.present?
+                    do_flash_process_result Setup::DataImport.process(translator_id: translator.id, data_type_id: model.data_type.id, data: data) if data.present?
                     render_form = false
                   rescue Exception => ex
                     flash[:error] = ex.message
