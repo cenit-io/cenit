@@ -57,7 +57,7 @@ module Setup
         end
       self.access_token = token.token
       self.token_span = token.expires_in
-      self.refresh_token = token.refresh_token
+      self.refresh_token = token.refresh_token if token.refresh_token
       self.id_token = token.params['id_token']
     end
 
