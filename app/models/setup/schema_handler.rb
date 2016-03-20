@@ -50,7 +50,7 @@ module Setup
     end
 
     def find_data_type(ref, ns = self.namespace)
-      if (optimizer = Setup::DataTypeOptimizer.optimizer)
+      if (optimizer = Setup::Optimizer.optimizer)
         optimizer.find_data_type(ref, ns)
       else
         nil
@@ -61,7 +61,7 @@ module Setup
       if ref.start_with?('#')
         get_embedded_schema(ref, root_schema)[1] rescue nil
       else
-        if data_type = find_data_type(ref)
+        if (data_type = find_data_type(ref))
           data_type.schema
         else
           nil

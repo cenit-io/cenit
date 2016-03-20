@@ -31,7 +31,7 @@ class ApplicationController < ActionController::Base
   protected
 
   def do_optimize_data_type_handling
-    Setup::DataTypeOptimizer.new_optimizer
+    Setup::Optimizer.new_optimizer
   end
 
   private
@@ -42,12 +42,7 @@ class ApplicationController < ActionController::Base
   end
 
   def clean_thread_cache
-    [
-      :optimizer,
-      :flow_execution,
-      :mongoff_models,
-      :mongoff_abstract_models
-    ].each { |sym| Thread.current[sym] = nil }
+    Thread.current.keys.each { |key| Thread.current[key] = nil if key.to_s.start_with?('[cenit]') }
     yield if block_given?
     Account.current = nil
   end
@@ -61,7 +56,7 @@ class ApplicationController < ActionController::Base
     Account.current = current_user.account if signed_in?
     yield
   ensure
-    if account = Account.current
+    if (account = Account.current)
       account.save
     end
   end

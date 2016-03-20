@@ -1,5 +1,5 @@
 module Setup
-  class DataTypeOptimizer
+  class Optimizer
 
     def initialize
       @nss = Hash.new { |h, k| h[k] = {} }
@@ -88,11 +88,15 @@ module Setup
     class << self
 
       def optimizer
-        Thread.current[:optimizer]
+        Thread.current[thread_key]
       end
 
       def new_optimizer
-        Thread.current[:optimizer] = Setup::DataTypeOptimizer.new
+        Thread.current[thread_key] = Setup::Optimizer.new
+      end
+
+      def thread_key
+        "[cenit]#{to_s}"
       end
 
       def save_data_types
