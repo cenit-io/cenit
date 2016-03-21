@@ -5,6 +5,7 @@ module Setup
     include CenitScoped
     include NamespaceNamed
     include TriggersFormatter
+    include ThreadAware
 
     BuildInDataType.regist(self).referenced_by(:namespace, :name).excluding(:notify_response, :notify_request)
 
@@ -145,7 +146,7 @@ module Setup
     end
 
     def process(message={}, &block)
-      executing_id, execution_graph = (Thread.current[:flow_execution] ||= []).last || [nil, {}]
+      executing_id, execution_graph = (Thread.current[thread_key] ||= []).last || [nil, {}]
       if executing_id.present? && !(adjacency_list = execution_graph[executing_id] ||= []).include?(id.to_s)
         adjacency_list << id.to_s
       end
@@ -164,7 +165,7 @@ module Setup
     def translate(message, &block)
       if translator.present?
         begin
-          (flow_execution = Thread.current[:flow_execution] ||= []) << [id.to_s, message[:execution_graph] || {}]
+          (flow_execution = Thread.current[thread_key] ||= []) << [id.to_s, message[:execution_graph] || {}]
           send("translate_#{translator.type.to_s.downcase}", message, &block)
           after_process_callbacks.each do |callback|
             begin
@@ -324,7 +325,7 @@ module Setup
     end
 
     def source_ids_from(message)
-      if object_ids = message[:object_ids]
+      if (object_ids = message[:object_ids])
         object_ids
       elsif scope_symbol.nil?
         []
