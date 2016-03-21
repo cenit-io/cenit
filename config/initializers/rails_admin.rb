@@ -37,9 +37,13 @@
  RailsAdmin::Config::Actions::Cancel].each { |a| RailsAdmin::Config::Actions.register(a) }
 
 RailsAdmin::Config::Actions.register(:export, RailsAdmin::Config::Actions::BulkExport)
-RailsAdmin::Config::Fields::Types.register(RailsAdmin::Config::Fields::Types::JsonValue)
-RailsAdmin::Config::Fields::Types.register(RailsAdmin::Config::Fields::Types::JsonSchema)
-RailsAdmin::Config::Fields::Types.register(RailsAdmin::Config::Fields::Types::StorageFile)
+[
+  RailsAdmin::Config::Fields::Types::JsonValue,
+  RailsAdmin::Config::Fields::Types::JsonSchema,
+  RailsAdmin::Config::Fields::Types::StorageFile,
+  RailsAdmin::Config::Fields::Types::EnumEdit
+].each { |f| RailsAdmin::Config::Fields::Types.register(f) }
+
 {
   config: {
     mode: 'css',
@@ -595,6 +599,8 @@ RailsAdmin.config do |config|
       active false
     end
 
+    configure :namespace, :enum_edit
+
     configure :title do
       pretty_value do
         bindings[:object].custom_title
@@ -685,7 +691,7 @@ RailsAdmin.config do |config|
       field :updated_at
       #field :updater
     end
-    fields :title, :name, :used_memory
+    fields :namespace, :title, :name, :used_memory
   end
 
   config.model Setup::JsonDataType do
@@ -756,7 +762,7 @@ RailsAdmin.config do |config|
     end
 
     edit do
-      field :namespace
+      field :namespace, :enum_edit
       field :title
       field :name
       field :slug
@@ -933,6 +939,7 @@ RailsAdmin.config do |config|
     navigation_label 'Data'
     label 'Schemas & Validators'
     weight -490
+    configure :namespace, :enum_edit
     fields :namespace, :name
     show_in_dashboard { false }
   end
@@ -945,6 +952,8 @@ RailsAdmin.config do |config|
     parent Setup::Validator
     weight -489
     object_label_method { :custom_title }
+
+    configure :namespace, :enum_edit
 
     edit do
       field :namespace do
@@ -1003,6 +1012,7 @@ RailsAdmin.config do |config|
     weight -488
     object_label_method { :custom_title }
     label 'EDI Validators'
+    configure :namespace, :enum_edit
 
     fields :namespace, :name, :schema_data_type, :content_type
   end
@@ -1011,6 +1021,7 @@ RailsAdmin.config do |config|
     parent Setup::Validator
     weight -487
     object_label_method { :custom_title }
+    configure :namespace, :enum_edit
 
     fields :namespace, :name, :algorithm
   end
@@ -1040,6 +1051,8 @@ RailsAdmin.config do |config|
     navigation_label 'API Connectors'
     weight -400
     object_label_method { :custom_title }
+
+    configure :namespace, :enum_edit
 
     group :credentials do
       label 'Credentials'
@@ -1132,6 +1145,7 @@ RailsAdmin.config do |config|
     weight -309
     object_label_method { :custom_title }
 
+    configure :namespace, :enum_edit
     configure :name, :string do
       help 'Requiered.'
       html_attributes do
@@ -1170,6 +1184,7 @@ RailsAdmin.config do |config|
     weight -308
     object_label_method { :custom_title }
 
+    configure :namespace, :enum_edit
     configure :metadata, :json_value
 
     group :credentials do
@@ -1261,6 +1276,9 @@ RailsAdmin.config do |config|
     register_instance_option(:form_synchronized) do
       [:custom_data_type, :data_type_scope, :scope_filter, :scope_evaluator, :lot_size, :connection_role, :webhook, :response_translator, :response_data_type]
     end
+
+    configure :namespace, :enum_edit
+
     edit do
       field :namespace
       field :name
@@ -1445,6 +1463,8 @@ RailsAdmin.config do |config|
     object_label_method { :custom_title }
     visible false
 
+    configure :namespace, :enum_edit
+
     edit do
       field :namespace
       field :name
@@ -1469,6 +1489,9 @@ RailsAdmin.config do |config|
     weight -208
     label 'Data event'
     object_label_method { :custom_title }
+
+    configure :namespace, :enum_edit
+
     edit do
       field :namespace
       field :name
@@ -1527,6 +1550,9 @@ RailsAdmin.config do |config|
     navigation_label 'Workflows'
     weight -207
     object_label_method { :custom_title }
+
+    configure :namespace, :enum_edit
+
     edit do
       field :namespace
       field :name
@@ -1606,6 +1632,9 @@ RailsAdmin.config do |config|
     register_instance_option(:form_synchronized) do
       [:source_data_type, :target_data_type, :transformation, :target_importer, :source_exporter, :discard_chained_records]
     end
+
+    configure :namespace, :enum_edit
+
     edit do
       field :namespace
       field :name
@@ -1736,6 +1765,9 @@ RailsAdmin.config do |config|
     navigation_label 'Workflows'
     weight -205
     object_label_method { :custom_title }
+
+    configure :namespace, :enum_edit
+
     edit do
       field :namespace
       field :name
@@ -1776,7 +1808,8 @@ RailsAdmin.config do |config|
     weight -201
     object_label_method { :custom_title }
     visible { Account.current.super_admin? }
-    fields :namespace, :name, :slug, :actions
+    configure :namespace, :enum_edit
+    fields :namespace, :name, :slug, :parameters, :actions
   end
 
   #Security
@@ -1838,6 +1871,8 @@ RailsAdmin.config do |config|
       visible { Account.current.super_admin? }
     end
 
+    configure :namespace, :enum_edit
+
     fields :namespace, :name, :response_type, :authorization_endpoint, :token_endpoint, :token_method, :tenant, :shared
   end
 
@@ -1858,6 +1893,8 @@ RailsAdmin.config do |config|
     configure :shared do
       visible { Account.current.super_admin? }
     end
+
+    configure :namespace, :enum_edit
 
     fields :namespace, :name, :response_type, :authorization_endpoint, :token_endpoint, :token_method, :request_token_endpoint, :tenant, :shared
   end
@@ -1883,6 +1920,8 @@ RailsAdmin.config do |config|
     configure :refresh_token_algorithm do
       visible { bindings[:object].refresh_token_strategy == :custom.to_s }
     end
+
+    configure :namespace, :enum_edit
 
     fields :namespace, :name, :response_type, :authorization_endpoint, :token_endpoint, :token_method, :scope_separator, :refresh_token_strategy, :refresh_token_algorithm, :tenant, :shared
   end
@@ -1921,6 +1960,7 @@ RailsAdmin.config do |config|
         "<span class=\"label label-#{bindings[:object].status_class}\">#{value.to_s.capitalize}</span>".html_safe
       end
     end
+    configure :namespace, :enum_edit
     fields :namespace, :name, :status
     show_in_dashboard { false }
   end
@@ -1937,6 +1977,8 @@ RailsAdmin.config do |config|
         "<span class=\"label label-#{bindings[:object].status_class}\">#{value.to_s.capitalize}</span>".html_safe
       end
     end
+
+    configure :namespace, :enum_edit
 
     edit do
       field :namespace
@@ -1976,6 +2018,8 @@ RailsAdmin.config do |config|
     end
     object_label_method { :custom_title }
     parent Setup::Authorization
+
+    configure :namespace, :enum_edit
 
     configure :status do
       pretty_value do
@@ -2039,6 +2083,8 @@ RailsAdmin.config do |config|
     end
     object_label_method { :custom_title }
     parent Setup::Authorization
+
+    configure :namespace, :enum_edit
 
     configure :status do
       pretty_value do
@@ -2124,6 +2170,8 @@ RailsAdmin.config do |config|
   config.model Setup::AwsAuthorization do
     weight -35
     object_label_method { :custom_title }
+
+    configure :namespace, :enum_edit
 
     configure :status do
       pretty_value do
@@ -2307,6 +2355,7 @@ RailsAdmin.config do |config|
     navigation_label 'Monitors'
     visible false
     object_label_method { :to_s }
+    configure :namespace, :enum_edit
     configure :attempts_succeded, :text do
       label 'Attempts/Succedded'
     end

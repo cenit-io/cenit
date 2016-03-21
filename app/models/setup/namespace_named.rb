@@ -11,7 +11,6 @@ module Setup
 
       validates_presence_of :name
       validates_uniqueness_of :name, scope: :namespace
-      validates_inclusion_of :namespace, in: ->(nsn) { nsn.namespace_enum }
 
       before_save do
         self.namespace =
@@ -26,10 +25,16 @@ module Setup
         # end TODO Delete comment
         errors.blank?
       end
+
+      after_save do
+        Setup::Optimizer.regist_ns(namespace)
+      end
     end
 
     def namespace_enum
-      Setup::Namespace.all.collect(&:name)
+      enum = Setup::Namespace.all.collect(&:name)
+      enum << namespace unless enum.include?(namespace)
+      enum
     end
 
     def scope_title

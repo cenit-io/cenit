@@ -6,6 +6,7 @@ module Mongoff
     include Setup::InstanceAffectRelation
     include Setup::InstanceModelParser
     include MetadataAccess
+    include ThreadAware
 
     EMPTY_SCHEMA = {}.freeze
 
@@ -187,7 +188,7 @@ module Mongoff
     def submodel_of?(model)
       return true if eql?(model) || (@base_model && @base_model.submodel_of?(model))
       base_model =
-        if base_data_type = data_type.find_data_type(data_type.schema['extends'])
+        if (base_data_type = data_type.find_data_type(data_type.schema['extends']))
           Model.for(data_type: base_data_type, cache: caching?)
         else
           nil
@@ -313,10 +314,10 @@ module Mongoff
 
       def for(options = {})
         model_name = options[:name]
-        cache_model = (cache_models = Thread.current[:mongoff_models] ||= {})[model_name]
-        unless data_type = (options[:data_type] || (cache_model && cache_model.data_type))
+        cache_model = (cache_models = Thread.current[thread_key] ||= {})[model_name]
+        unless (data_type = (options[:data_type] || (cache_model && cache_model.data_type)))
           raise Exception.new('name or data type required') unless model_name
-          unless data_type = Setup::DataType.for_name(model_name.split('::').first)
+          unless (data_type = Setup::DataType.for_name(model_name.split('::').first))
             raise Exception.new("unknown data type for #{model_name}")
           end
         end
@@ -336,7 +337,7 @@ module Mongoff
       @data_type_id = (data_type.is_a?(Setup::BuildInDataType) || options[:cache]) ? data_type : data_type.id.to_s
       @name = options[:name] || data_type.data_type_name
       @parent = options[:parent]
-      unless @persistable = (@schema = options[:schema]).nil?
+      unless (@persistable = (@schema = options[:schema]).nil?)
         @schema = data_type.merge_schema(@schema, root_schema: options[:root_schema])
       end
       @modelable = options[:modelable]
@@ -352,7 +353,7 @@ module Mongoff
 
     def proto_schema
       sch = data_type.merged_schema #(recursive: caching?)
-      if properties = sch['properties']
+      if (properties = sch['properties'])
         sch[properties] = data_type.merge_schema(properties)
       end
       sch
