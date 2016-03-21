@@ -50,11 +50,7 @@ module Setup
     end
 
     def find_data_type(ref, ns = self.namespace)
-      if (optimizer = Setup::Optimizer.optimizer)
-        optimizer.find_data_type(ref, ns)
-      else
-        nil
-      end
+      Setup::Optimizer.find_data_type(ref, ns)
     end
 
     def find_ref_schema(ref, root_schema = schema)
