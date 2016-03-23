@@ -19,7 +19,8 @@ module RailsAdmin
           proc do
 
             render_form = true
-            if model = @abstract_model.model rescue nil
+            model = @abstract_model.model rescue nil
+            if model
               connection =
                 if (data = params.delete((model_name = @action.class.name.split('::').last + 'Form').underscore))
                   data.permit!
@@ -57,7 +58,7 @@ module RailsAdmin
                 end
               end unless selecting_connection
               if @form_object.errors.present?
-                do_flash(:error, 'There are errors in the import data specification', @form_object.errors.full_messages)
+                do_flash(:error, 'There are errors in the submission data specification', @form_object.errors.full_messages)
               end
 
               render :form

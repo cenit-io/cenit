@@ -2,6 +2,7 @@ module Setup
   class BaseOauthAuthorization < Setup::Authorization
     include CenitScoped
     include AuthorizationHeader
+    include Parameters
 
     abstract_class true
 
@@ -9,9 +10,7 @@ module Setup
 
     belongs_to :client, class_name: Setup::OauthClient.to_s, inverse_of: nil
 
-    embeds_many :parameters, class_name: Setup::OauthParameter.to_s, inverse_of: :authorization
-
-    accepts_nested_attributes_for :parameters, allow_destroy: true
+    parameters :parameters
 
     field :access_token, type: String
     field :token_span, type: BigDecimal
@@ -62,6 +61,24 @@ module Setup
 
     def authorize_url(params)
       fail NotImplementedError
+    end
+
+    def request_token!(params)
+      request_token(params)
+      save
+    end
+
+    def request_token(params)
+      fail NotImplementedError
+    end
+
+    def cancel!
+      cancel
+      save
+    end
+
+    def cancel
+      self.access_token = self.token_span = self.authorized_at = nil
     end
   end
 end
