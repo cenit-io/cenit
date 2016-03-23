@@ -40,6 +40,12 @@ module Setup
         included_actions[model]
       end
 
+      def each(&block)
+        set = Set.new(@excluded_actions.keys)
+        @included_actions.each_key { |m| set << m }
+        set.each(&block)
+      end
+
       private
 
       def excluded_actions

@@ -314,3 +314,10 @@ en:
         breadcrumb: "Cancel"
         you_are_requesting: "You are requesting to cancel the %{model_name}"
         done: "cancelled"
+      configure:
+        title: "Configure"
+        menu: "Configure"
+        breadcrumb: "Configure"
+        submit: "Configure"
+        done: "configured"
+        doing: "configuring"
