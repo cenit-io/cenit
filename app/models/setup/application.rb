@@ -11,10 +11,28 @@ module Setup
 
     accepts_nested_attributes_for :actions, :application_parameters, allow_destroy: true
 
-    field :configuration_attributes, type: Hash, default: {}
+    field :configuration_attributes, type: Hash
+
+    before_save do
+      if @config
+        self.configuration_attributes = @config.attributes
+      end
+    end
 
     def configuration
-      @config ||= configuration_model.new(configuration_attributes)
+      @config ||= (configuration_attributes ? configuration_model.new(configuration_attributes) : nil)
+    end
+
+    def configuration=(data)
+      unless data.is_a?(Hash)
+        data =
+          if data.is_a?(String)
+            JSON.parse(data)
+          else
+            data.try(:to_json) || {}
+          end
+      end
+      @config = configuration_model.new_from_json(data)
     end
 
     def configuration_schema
@@ -45,6 +63,11 @@ module Setup
         %w(actions application_parameters).each { |f| stored << f if record.send(f).present? }
         stored << 'configuration'
         stored
+      end
+
+      def for_each_association(&block)
+        super
+        block.yield(name: :configuration, embedded: false)
       end
     end
   end

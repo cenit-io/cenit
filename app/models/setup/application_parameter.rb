@@ -27,11 +27,12 @@ module Setup
           }
         else
           {
-            '$ref': Setup::Collection.reflect_on_association(type.to_s.downcase.gsub(' ', '_').pluralize).klass.to_s,
-            referenced: true
+            '$ref': Setup::Collection.reflect_on_association(type.to_s.downcase.gsub(' ', '_').pluralize).klass.to_s
           }
-        end
-      (many ? { type: 'array', items: sch } : sch).stringify_keys
+        end.stringify_keys
+      sch = (many ? { type: 'array', items: sch } : sch)
+      sch[:referenced] = true unless %w(integer number boolean string).include?(type)
+      sch.stringify_keys
     end
   end
 end

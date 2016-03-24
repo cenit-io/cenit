@@ -32,7 +32,7 @@ module Mongoff
 
     def assign_attributes(attrs = nil)
       attrs ||= {}
-      if !attrs.empty?
+      unless attrs.empty?
         attrs = sanitize_for_mass_assignment(attrs)
         attrs.each_pair do |key, value|
           self[key] = value
@@ -116,7 +116,7 @@ module Mongoff
             query = orm_model.collection.find(_id: id)
             set = attributes
             unset = {}
-            if doc = query.first
+            if (doc = query.first)
               doc.keys.each { |key| unset[key] = '' unless set.has_key?(key) }
             end
             update = { '$set' => set }
@@ -129,7 +129,7 @@ module Mongoff
         end
       rescue Exception => ex
         errors.add(:base, ex.message)
-      end if errors.blank?
+      end if orm_model.persistable? && errors.blank?
       errors.blank?
     end
 
@@ -172,7 +172,7 @@ module Mongoff
       @changed = true
       @validated = false
       field = :_id if %w(id _id).include?(field.to_s)
-      if !orm_model.property?(field) && association = nested_attributes_association(field)
+      if !orm_model.property?(field) && (association = nested_attributes_association(field))
         fail "invalid attributes format #{value}" unless value.is_a?(Hash)
         associates = {}
         if association.many?
@@ -187,7 +187,7 @@ module Mongoff
         new_associates = []
         value.each do |attributes|
           unless attributes.delete('_destroy').to_b
-            unless associated = associates[attributes['id'] || attributes['_id']]
+            unless (associated = associates[attributes['id'] || attributes['_id']])
               associated = association.klass.new
             end
             associated.assign_attributes(attributes)
