@@ -24,35 +24,26 @@ class ApplicationController < ActionController::Base
     @token ||= OAuth2::AccessToken.new(doorkeeper_oauth_client, current_user.doorkeeper_access_token, opts) if current_user
   end
 
-  around_filter :scope_current_account, :clean_thread_cache, :optimize_data_type_handling
-
-  after_action :clean_thread_cache
+  around_filter :scope_current_account
 
   protected
 
-  def do_optimize_data_type_handling
-    Setup::DataTypeOptimizer.new_optimizer
+  def do_optimize
+    Setup::Optimizer.save_namespaces
   end
 
   private
 
-  def optimize_data_type_handling
-    do_optimize_data_type_handling
-    yield
+  def optimize
+    do_optimize
   end
 
   def clean_thread_cache
-    [
-      :optimizer,
-      :flow_execution,
-      :mongoff_models,
-      :mongoff_abstract_models
-    ].each { |sym| Thread.current[sym] = nil }
-    yield if block_given?
-    Account.current = nil
+    Thread.current.keys.each { |key| Thread.current[key] = nil if key.to_s.start_with?('[cenit]') }
   end
 
   def scope_current_account
+    clean_thread_cache
     if current_user && current_user.account.nil?
       current_user.add_role(:admin) unless current_user.has_role?(:admin)
       current_user.account = Account.create_with_owner(owner: current_user)
@@ -61,9 +52,12 @@ class ApplicationController < ActionController::Base
     Account.current = current_user.account if signed_in?
     yield
   ensure
-    if account = Account.current
+    optimize
+    if (account = Account.current)
       account.save
+      Account.current = nil
     end
+    clean_thread_cache
   end
 
   def after_sign_out_path_for(resource_or_scope)

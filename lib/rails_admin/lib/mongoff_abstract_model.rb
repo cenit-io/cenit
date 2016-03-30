@@ -10,6 +10,7 @@ module RailsAdmin
   class MongoffAbstractModel < AbstractModel
 
     include RailsAdmin::Adapters::Mongoid
+    include ThreadAware
 
     def initialize(mongoff_model)
       @model = mongoff_model
@@ -58,7 +59,7 @@ module RailsAdmin
       unless @properties
         @properties = []
         model.properties.each do |property|
-          if a = associations.detect { |a| a.name == property.to_sym }
+          if (a = associations.detect { |a| a.name == property.to_sym })
             @properties << RailsAdmin::MongoffProperty.new(a.association.foreign_key, model, 'type' => 'string', 'visible' => false) unless a.association.nested?
           else
             @properties << RailsAdmin::MongoffProperty.new(property, model)
@@ -71,8 +72,8 @@ module RailsAdmin
     class << self
 
       def new(m)
-        unless mongoff_abstract_models = Thread.current[:mongoff_abstract_models]
-          Thread.current[:mongoff_abstract_models] = mongoff_abstract_models = {}
+        unless (mongoff_abstract_models = Thread.current[thread_key])
+          Thread.current[thread_key] = mongoff_abstract_models = {}
         end
         mongoff_abstract_models[m.to_s] ||= old_new(m)
       end
@@ -96,7 +97,7 @@ module Mongoff
       @model_name ||= ActiveModel::Name.new(nil, nil, name)
     end
 
-    def human_attribute_name(attribute, options = {})
+    def human_attribute_name(attribute, _ = {})
       attribute.to_s.titleize
     end
 
@@ -162,7 +163,7 @@ module Mongoff
       super || total_count
     end
 
-    def includes(*args)
+    def includes(*_)
       #For eager load mongoid compatibility which is not supported on mongoff
       self
     end
