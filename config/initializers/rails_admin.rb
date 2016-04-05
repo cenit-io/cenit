@@ -1,40 +1,43 @@
-[RailsAdmin::Config::Actions::MemoryUsage,
- RailsAdmin::Config::Actions::DiskUsage,
- RailsAdmin::Config::Actions::SendToFlow,
- RailsAdmin::Config::Actions::LoadModel,
- RailsAdmin::Config::Actions::ShutdownModel,
- RailsAdmin::Config::Actions::SwitchNavigation,
- RailsAdmin::Config::Actions::DataType,
- RailsAdmin::Config::Actions::Import,
- #RailsAdmin::Config::Actions::EdiExport,
- RailsAdmin::Config::Actions::ImportSchema,
- RailsAdmin::Config::Actions::DeleteAll,
- RailsAdmin::Config::Actions::TranslatorUpdate,
- RailsAdmin::Config::Actions::Convert,
- RailsAdmin::Config::Actions::SimpleShare,
- RailsAdmin::Config::Actions::BulkShare,
- RailsAdmin::Config::Actions::Pull,
- RailsAdmin::Config::Actions::RetryTask,
- RailsAdmin::Config::Actions::DownloadFile,
- RailsAdmin::Config::Actions::ProcessFlow,
- RailsAdmin::Config::Actions::BuildGem,
- RailsAdmin::Config::Actions::Run,
- RailsAdmin::Config::Actions::Authorize,
- RailsAdmin::Config::Actions::SimpleDeleteDataType,
- RailsAdmin::Config::Actions::BulkDeleteDataType,
- RailsAdmin::Config::Actions::SimpleGenerate,
- RailsAdmin::Config::Actions::BulkGenerate,
- RailsAdmin::Config::Actions::SimpleExpand,
- RailsAdmin::Config::Actions::BulkExpand,
- RailsAdmin::Config::Actions::Records,
- RailsAdmin::Config::Actions::SwitchScheduler,
- RailsAdmin::Config::Actions::SimpleExport,
- RailsAdmin::Config::Actions::Schedule,
- RailsAdmin::Config::Actions::Submit,
- RailsAdmin::Config::Actions::DeleteCollection,
- RailsAdmin::Config::Actions::Inspect,
- RailsAdmin::Config::Actions::Copy,
- RailsAdmin::Config::Actions::Cancel].each { |a| RailsAdmin::Config::Actions.register(a) }
+[
+  RailsAdmin::Config::Actions::MemoryUsage,
+  RailsAdmin::Config::Actions::DiskUsage,
+  RailsAdmin::Config::Actions::SendToFlow,
+  RailsAdmin::Config::Actions::LoadModel,
+  RailsAdmin::Config::Actions::ShutdownModel,
+  RailsAdmin::Config::Actions::SwitchNavigation,
+  RailsAdmin::Config::Actions::DataType,
+  RailsAdmin::Config::Actions::Import,
+  #RailsAdmin::Config::Actions::EdiExport,
+  RailsAdmin::Config::Actions::ImportSchema,
+  RailsAdmin::Config::Actions::DeleteAll,
+  RailsAdmin::Config::Actions::TranslatorUpdate,
+  RailsAdmin::Config::Actions::Convert,
+  RailsAdmin::Config::Actions::SimpleShare,
+  RailsAdmin::Config::Actions::BulkShare,
+  RailsAdmin::Config::Actions::Pull,
+  RailsAdmin::Config::Actions::RetryTask,
+  RailsAdmin::Config::Actions::DownloadFile,
+  RailsAdmin::Config::Actions::ProcessFlow,
+  RailsAdmin::Config::Actions::BuildGem,
+  RailsAdmin::Config::Actions::Run,
+  RailsAdmin::Config::Actions::Authorize,
+  RailsAdmin::Config::Actions::SimpleDeleteDataType,
+  RailsAdmin::Config::Actions::BulkDeleteDataType,
+  RailsAdmin::Config::Actions::SimpleGenerate,
+  RailsAdmin::Config::Actions::BulkGenerate,
+  RailsAdmin::Config::Actions::SimpleExpand,
+  RailsAdmin::Config::Actions::BulkExpand,
+  RailsAdmin::Config::Actions::Records,
+  RailsAdmin::Config::Actions::SwitchScheduler,
+  RailsAdmin::Config::Actions::SimpleExport,
+  RailsAdmin::Config::Actions::Schedule,
+  RailsAdmin::Config::Actions::Submit,
+  RailsAdmin::Config::Actions::DeleteCollection,
+  RailsAdmin::Config::Actions::Inspect,
+  RailsAdmin::Config::Actions::Copy,
+  RailsAdmin::Config::Actions::Cancel,
+  RailsAdmin::Config::Actions::Configure
+].each { |a| RailsAdmin::Config::Actions.register(a) }
 
 RailsAdmin::Config::Actions.register(:export, RailsAdmin::Config::Actions::BulkExport)
 [
@@ -104,6 +107,7 @@ RailsAdmin.config do |config|
     show
     run
     edit
+    configure
     copy
     simple_share
     bulk_share
@@ -1034,13 +1038,13 @@ RailsAdmin.config do |config|
     object_label_method { :to_s }
     configure :metadata, :json_value
     edit do
-      field :key
+      field :name
       field :value
       field :description
       field :metadata
     end
     list do
-      field :key
+      field :name
       field :value
       field :description
       field :metadata
@@ -1809,7 +1813,7 @@ RailsAdmin.config do |config|
     object_label_method { :custom_title }
     visible { Account.current.super_admin? }
     configure :namespace, :enum_edit
-    fields :namespace, :name, :slug, :parameters, :actions
+    fields :namespace, :name, :slug, :actions, :application_parameters
   end
 
   #Security
@@ -1924,12 +1928,6 @@ RailsAdmin.config do |config|
     configure :namespace, :enum_edit
 
     fields :namespace, :name, :response_type, :authorization_endpoint, :token_endpoint, :token_method, :scope_separator, :refresh_token_strategy, :refresh_token_algorithm, :tenant, :shared
-  end
-
-  config.model Setup::OauthParameter do
-    navigation_label 'OAuth'
-    object_label_method { :to_s }
-    fields :key, :value
   end
 
   config.model Setup::Oauth2Scope do

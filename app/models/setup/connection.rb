@@ -5,12 +5,11 @@ module Setup
     include NumberGenerator
     include ParametersCommon
     include AuthorizationHandler
+    include Parameters
 
     BuildInDataType.regist(self).referenced_by(:namespace, :name).excluding(:connection_roles)
 
-    embeds_many :parameters, class_name: Setup::Parameter.to_s, inverse_of: :connection
-    embeds_many :headers, class_name: Setup::Parameter.to_s, inverse_of: :connection
-    embeds_many :template_parameters, class_name: Setup::Parameter.to_s, inverse_of: :connection
+    parameters :parameters, :headers, :template_parameters
 
     devise :database_authenticatable
 
@@ -19,8 +18,6 @@ module Setup
     field :token, type: String
 
     after_initialize :ensure_token
-
-    accepts_nested_attributes_for :parameters, :headers, :template_parameters, allow_destroy: true
 
     validates_presence_of :url, :key, :token
     validates_uniqueness_of :token
