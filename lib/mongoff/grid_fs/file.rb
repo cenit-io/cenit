@@ -48,7 +48,7 @@ module Mongoff
           self.data = value
         else
           value = super
-          case :field
+          case field
           when :filename
             @custom_filename = value
           when :contentType
@@ -59,7 +59,7 @@ module Mongoff
 
       def decode(data)
         case encoding
-        when  'base64', 'strict_base64', 'urlsafe_base64'
+        when 'base64', 'strict_base64', 'urlsafe_base64'
           Base64.send(encoding.gsub('base', 'decode'), data)
         else
           data
@@ -74,7 +74,15 @@ module Mongoff
           if @new_data
             readable =
               if @new_data.is_a?(String)
-                temporary_file = Tempfile.new('file_')
+                ext =
+                  if (content_type = options[:content_type] || self.contentType) &&
+                    (types = MIME::Types[content_type]).present? &&
+                    (type = types.detect { |t| t.extensions.present? })
+                    type.extensions.first
+                  else
+                    ''
+                  end
+                temporary_file = Tempfile.new(['file_', ".#{ext}"])
                 temporary_file.binmode
                 temporary_file.write(decode(@new_data))
                 temporary_file.rewind
