@@ -27,7 +27,7 @@ module Capataz
       unless Capataz.allows_invocation_of(method_name = node.children[1])
         report_error("invoking method #{method_name} is not allowed")
       end
-      if left = node.children[0]
+      if (left = node.children[0])
         capatize(left)
       elsif node.type == :send
         unless @self_linker.link?(method_name)
