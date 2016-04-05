@@ -14,9 +14,9 @@ module Setup
     end
 
     def run(message)
-      if webhook = Setup::Webhook.where(id: webhook_id = message[:webhook_id]).first
-        if connection = Setup::Connection.where(id: connection_id = message[:connection_id]).first
-          webhook.upon(connection).submit message[:body],
+      if( webhook = Setup::Webhook.where(id: webhook_id = message[:webhook_id]).first)
+        if (connection = Setup::Connection.where(id: connection_id = message[:connection_id]).first)
+          webhook.with(connection).submit message[:body],
                                           headers: message[:headers],
                                           parameters: message[:parameters],
                                           template_parameters: message[:template_parameters],
