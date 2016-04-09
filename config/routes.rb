@@ -1,8 +1,7 @@
 Cenit::Application.routes.draw do
-  mount RailsAdmin::Engine => '/data', as: 'rails_admin'
+  mount RailsAdmin::Engine => '/', as: 'rails_admin'
 
   root to: 'rails_admin/main#dashboard'
-  # root to: 'home#index'
 
   get 'explore/:api', to: 'api#explore', as: :explore_api
   post 'write/:api', to: 'api#write', as: :write_api
