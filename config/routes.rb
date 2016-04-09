@@ -3,7 +3,7 @@ Cenit::Application.routes.draw do
     get 'sign_out', to: 'users/sessions#destroy', as: :destroy_user_session
   end
   
-  mount RailsAdmin::Engine => '/data', as: 'rails_admin'
+  mount RailsAdmin::Engine => '/', as: 'rails_admin'
 
   root to: 'rails_admin/main#dashboard'
 
