@@ -2,7 +2,7 @@ module Setup
   class OauthAuthorization < Setup::BaseOauthAuthorization
     include CenitScoped
 
-    BuildInDataType.regist(self).with(:namespace, :name, :provider, :client).referenced_by(:namespace, :name)
+    BuildInDataType.regist(self).with(:namespace, :name, :provider, :client, :parameters).referenced_by(:namespace, :name)
 
     field :access_token_secret, type: String
     field :realm, type: String
@@ -20,7 +20,7 @@ module Setup
     end
 
     def create_http_client(options = {})
-      if http_proxy = Cenit.http_proxy
+      if (http_proxy = Cenit.http_proxy)
         options[:proxy] ||= http_proxy
       end
       options[:request_token_url] ||= provider.request_token_endpoint

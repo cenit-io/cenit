@@ -8,7 +8,7 @@ FactoryGirl.define do
 
     # ensure product_schema and product_data_type will be created
     before(:create) { create(:product_schema) if Setup::Schema.where(uri: 'Product').count == 0 }
-    data_type { Setup::SchemaDataType.where(name: 'Product').first }
+    data_type { Setup::JsonDataType.where(name: 'Product').first }
     event { Setup::Event.where(name: "Product on created_at").first }
   end
 
@@ -21,7 +21,7 @@ FactoryGirl.define do
 
     # ensure product_schema and product_data_type will be created
     before(:create) { create(:product_schema) if Setup::Schema.where(uri: 'Product').count == 0 }
-    data_type { Setup::SchemaDataType.where(name: 'Product').first }
+    data_type { Setup::JsonDataType.where(name: 'Product').first }
     event { Setup::Event.where(name: "Product on updated_at").first }
   end
 end

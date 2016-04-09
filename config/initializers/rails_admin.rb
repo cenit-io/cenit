@@ -1,45 +1,52 @@
-[RailsAdmin::Config::Actions::MemoryUsage,
- RailsAdmin::Config::Actions::DiskUsage,
- RailsAdmin::Config::Actions::SendToFlow,
- RailsAdmin::Config::Actions::LoadModel,
- RailsAdmin::Config::Actions::ShutdownModel,
- RailsAdmin::Config::Actions::SwitchNavigation,
- RailsAdmin::Config::Actions::DataType,
- RailsAdmin::Config::Actions::Import,
- #RailsAdmin::Config::Actions::EdiExport,
- RailsAdmin::Config::Actions::ImportSchema,
- RailsAdmin::Config::Actions::DeleteAll,
- RailsAdmin::Config::Actions::TranslatorUpdate,
- RailsAdmin::Config::Actions::Convert,
- RailsAdmin::Config::Actions::SimpleShare,
- RailsAdmin::Config::Actions::BulkShare,
- RailsAdmin::Config::Actions::Pull,
- RailsAdmin::Config::Actions::RetryTask,
- RailsAdmin::Config::Actions::DownloadFile,
- RailsAdmin::Config::Actions::ProcessFlow,
- RailsAdmin::Config::Actions::BuildGem,
- RailsAdmin::Config::Actions::Run,
- RailsAdmin::Config::Actions::Authorize,
- RailsAdmin::Config::Actions::SimpleDeleteDataType,
- RailsAdmin::Config::Actions::BulkDeleteDataType,
- RailsAdmin::Config::Actions::SimpleGenerate,
- RailsAdmin::Config::Actions::BulkGenerate,
- RailsAdmin::Config::Actions::SimpleExpand,
- RailsAdmin::Config::Actions::BulkExpand,
- RailsAdmin::Config::Actions::Records,
- RailsAdmin::Config::Actions::SwitchScheduler,
- RailsAdmin::Config::Actions::SimpleExport,
- RailsAdmin::Config::Actions::Schedule,
- RailsAdmin::Config::Actions::Submit,
- RailsAdmin::Config::Actions::DeleteCollection,
- RailsAdmin::Config::Actions::Inspect,
- RailsAdmin::Config::Actions::Copy,
- RailsAdmin::Config::Actions::Cancel].each { |a| RailsAdmin::Config::Actions.register(a) }
+[
+  RailsAdmin::Config::Actions::MemoryUsage,
+  RailsAdmin::Config::Actions::DiskUsage,
+  RailsAdmin::Config::Actions::SendToFlow,
+  RailsAdmin::Config::Actions::LoadModel,
+  RailsAdmin::Config::Actions::ShutdownModel,
+  RailsAdmin::Config::Actions::SwitchNavigation,
+  RailsAdmin::Config::Actions::DataType,
+  RailsAdmin::Config::Actions::Import,
+  #RailsAdmin::Config::Actions::EdiExport,
+  RailsAdmin::Config::Actions::ImportSchema,
+  RailsAdmin::Config::Actions::DeleteAll,
+  RailsAdmin::Config::Actions::TranslatorUpdate,
+  RailsAdmin::Config::Actions::Convert,
+  RailsAdmin::Config::Actions::SimpleShare,
+  RailsAdmin::Config::Actions::BulkShare,
+  RailsAdmin::Config::Actions::Pull,
+  RailsAdmin::Config::Actions::RetryTask,
+  RailsAdmin::Config::Actions::DownloadFile,
+  RailsAdmin::Config::Actions::ProcessFlow,
+  RailsAdmin::Config::Actions::BuildGem,
+  RailsAdmin::Config::Actions::Run,
+  RailsAdmin::Config::Actions::Authorize,
+  RailsAdmin::Config::Actions::SimpleDeleteDataType,
+  RailsAdmin::Config::Actions::BulkDeleteDataType,
+  RailsAdmin::Config::Actions::SimpleGenerate,
+  RailsAdmin::Config::Actions::BulkGenerate,
+  RailsAdmin::Config::Actions::SimpleExpand,
+  RailsAdmin::Config::Actions::BulkExpand,
+  RailsAdmin::Config::Actions::Records,
+  RailsAdmin::Config::Actions::SwitchScheduler,
+  RailsAdmin::Config::Actions::SimpleExport,
+  RailsAdmin::Config::Actions::Schedule,
+  RailsAdmin::Config::Actions::Submit,
+  RailsAdmin::Config::Actions::DeleteCollection,
+  RailsAdmin::Config::Actions::Inspect,
+  RailsAdmin::Config::Actions::Copy,
+  RailsAdmin::Config::Actions::Cancel,
+  RailsAdmin::Config::Actions::Configure
+].each { |a| RailsAdmin::Config::Actions.register(a) }
 
 RailsAdmin::Config::Actions.register(:export, RailsAdmin::Config::Actions::BulkExport)
-RailsAdmin::Config::Fields::Types.register(RailsAdmin::Config::Fields::Types::JsonValue)
-RailsAdmin::Config::Fields::Types.register(RailsAdmin::Config::Fields::Types::JsonSchema)
-RailsAdmin::Config::Fields::Types.register(RailsAdmin::Config::Fields::Types::StorageFile)
+[
+  RailsAdmin::Config::Fields::Types::JsonValue,
+  RailsAdmin::Config::Fields::Types::JsonSchema,
+  RailsAdmin::Config::Fields::Types::StorageFile,
+  RailsAdmin::Config::Fields::Types::EnumEdit
+].each { |f| RailsAdmin::Config::Fields::Types.register(f) }
+
 {
   config: {
     mode: 'css',
@@ -100,6 +107,7 @@ RailsAdmin.config do |config|
     show
     run
     edit
+    configure
     copy
     simple_share
     bulk_share
@@ -498,25 +506,81 @@ RailsAdmin.config do |config|
         thumb_method :icon
       end
       field :name
-      field :flows
-      field :connection_roles
-      field :translators
-      field :events
-      field :data_types
-      field :schemas
-      field :custom_validators
-      field :algorithms
-      field :webhooks
-      field :connections
-      field :authorizations
-      field :oauth_providers
-      field :oauth_clients
-      field :oauth2_scopes
+      field :flows do
+        pretty_value do
+          value.count > 0 ? value.count : '-'
+        end
+      end
+      field :connection_roles do
+        pretty_value do
+          value.count > 0 ? value.count : '-'
+        end
+      end
+      field :translators do
+        pretty_value do
+          value.count > 0 ? value.count : '-'
+        end
+      end
+      field :events do
+        pretty_value do
+          value.count > 0 ? value.count : '-'
+        end
+      end
+      field :data_types do
+        pretty_value do
+          value.count > 0 ? value.count : '-'
+        end
+      end
+      field :schemas do
+        pretty_value do
+          value.count > 0 ? value.count : '-'
+        end
+      end
+      field :custom_validators do
+        pretty_value do
+          value.count > 0 ? value.count : '-'
+        end
+      end
+      field :algorithms do
+        pretty_value do
+          value.count > 0 ? value.count : '-'
+        end
+      end
+      field :webhooks do
+        pretty_value do
+          value.count > 0 ? value.count : '-'
+        end
+      end
+      field :connections do
+        pretty_value do
+          value.count > 0 ? value.count : '-'
+        end
+      end
+      field :authorizations do
+        pretty_value do
+          value.count > 0 ? value.count : '-'
+        end
+      end
+      field :oauth_providers do
+        pretty_value do
+          value.count > 0 ? value.count : '-'
+        end
+      end
+      field :oauth_clients do
+        pretty_value do
+          value.count > 0 ? value.count : '-'
+        end
+      end
+      field :oauth2_scopes do
+        pretty_value do
+          value.count > 0 ? value.count : '-'
+        end
+      end
       field :data
     end
   end
 
-  config.model Setup::Namespace  do
+  config.model Setup::Namespace do
     navigation_label 'Collections'
 
     fields :name, :slug
@@ -538,6 +602,8 @@ RailsAdmin.config do |config|
       label 'Behavior'
       active false
     end
+
+    configure :namespace, :enum_edit
 
     configure :title do
       pretty_value do
@@ -629,12 +695,13 @@ RailsAdmin.config do |config|
       field :updated_at
       #field :updater
     end
-    fields :title, :name, :used_memory
+    fields :namespace, :title, :name, :used_memory
   end
 
-  config.model Setup::SchemaDataType do
+  config.model Setup::JsonDataType do
     navigation_label 'Data'
     weight -449
+    label 'JSON Data Type'
     object_label_method { :custom_title }
 
     register_instance_option(:after_form_partials) do
@@ -699,7 +766,7 @@ RailsAdmin.config do |config|
     end
 
     edit do
-      field :namespace
+      field :namespace, :enum_edit
       field :title
       field :name
       field :slug
@@ -720,9 +787,9 @@ RailsAdmin.config do |config|
         visible { Cenit.dynamic_model_loading? }
         pretty_value do
           unless max = bindings[:controller].instance_variable_get(:@max_used_memory)
-            bindings[:controller].instance_variable_set(:@max_used_memory, max = Setup::SchemaDataType.fields[:used_memory.to_s].type.new(Setup::SchemaDataType.max(:used_memory)))
+            bindings[:controller].instance_variable_set(:@max_used_memory, max = Setup::JsonDataType.fields[:used_memory.to_s].type.new(Setup::JsonDataType.max(:used_memory)))
           end
-          (bindings[:view].render partial: 'used_memory_bar', locals: { max: max, value: Setup::SchemaDataType.fields[:used_memory.to_s].type.new(value) }).html_safe
+          (bindings[:view].render partial: 'used_memory_bar', locals: { max: max, value: Setup::JsonDataType.fields[:used_memory.to_s].type.new(value) }).html_safe
         end
       end
       field :storage_size
@@ -774,9 +841,9 @@ RailsAdmin.config do |config|
     configure :used_memory do
       pretty_value do
         unless max = bindings[:controller].instance_variable_get(:@max_used_memory)
-          bindings[:controller].instance_variable_set(:@max_used_memory, max = Setup::SchemaDataType.fields[:used_memory.to_s].type.new(Setup::SchemaDataType.max(:used_memory)))
+          bindings[:controller].instance_variable_set(:@max_used_memory, max = Setup::JsonDataType.fields[:used_memory.to_s].type.new(Setup::JsonDataType.max(:used_memory)))
         end
-        (bindings[:view].render partial: 'used_memory_bar', locals: { max: max, value: Setup::SchemaDataType.fields[:used_memory.to_s].type.new(value) }).html_safe
+        (bindings[:view].render partial: 'used_memory_bar', locals: { max: max, value: Setup::JsonDataType.fields[:used_memory.to_s].type.new(value) }).html_safe
       end
     end
 
@@ -847,9 +914,9 @@ RailsAdmin.config do |config|
         visible { Cenit.dynamic_model_loading? }
         pretty_value do
           unless max = bindings[:controller].instance_variable_get(:@max_used_memory)
-            bindings[:controller].instance_variable_set(:@max_used_memory, max = Setup::SchemaDataType.fields[:used_memory.to_s].type.new(Setup::SchemaDataType.max(:used_memory)))
+            bindings[:controller].instance_variable_set(:@max_used_memory, max = Setup::JsonDataType.fields[:used_memory.to_s].type.new(Setup::JsonDataType.max(:used_memory)))
           end
-          (bindings[:view].render partial: 'used_memory_bar', locals: { max: max, value: Setup::SchemaDataType.fields[:used_memory.to_s].type.new(value) }).html_safe
+          (bindings[:view].render partial: 'used_memory_bar', locals: { max: max, value: Setup::JsonDataType.fields[:used_memory.to_s].type.new(value) }).html_safe
         end
       end
       field :storage_size
@@ -876,6 +943,7 @@ RailsAdmin.config do |config|
     navigation_label 'Data'
     label 'Schemas & Validators'
     weight -490
+    configure :namespace, :enum_edit
     fields :namespace, :name
     show_in_dashboard { false }
   end
@@ -888,6 +956,8 @@ RailsAdmin.config do |config|
     parent Setup::Validator
     weight -489
     object_label_method { :custom_title }
+
+    configure :namespace, :enum_edit
 
     edit do
       field :namespace do
@@ -946,6 +1016,7 @@ RailsAdmin.config do |config|
     weight -488
     object_label_method { :custom_title }
     label 'EDI Validators'
+    configure :namespace, :enum_edit
 
     fields :namespace, :name, :schema_data_type, :content_type
   end
@@ -954,6 +1025,7 @@ RailsAdmin.config do |config|
     parent Setup::Validator
     weight -487
     object_label_method { :custom_title }
+    configure :namespace, :enum_edit
 
     fields :namespace, :name, :algorithm
   end
@@ -966,13 +1038,13 @@ RailsAdmin.config do |config|
     object_label_method { :to_s }
     configure :metadata, :json_value
     edit do
-      field :key
+      field :name
       field :value
       field :description
       field :metadata
     end
     list do
-      field :key
+      field :name
       field :value
       field :description
       field :metadata
@@ -983,6 +1055,8 @@ RailsAdmin.config do |config|
     navigation_label 'API Connectors'
     weight -400
     object_label_method { :custom_title }
+
+    configure :namespace, :enum_edit
 
     group :credentials do
       label 'Credentials'
@@ -1075,6 +1149,7 @@ RailsAdmin.config do |config|
     weight -309
     object_label_method { :custom_title }
 
+    configure :namespace, :enum_edit
     configure :name, :string do
       help 'Requiered.'
       html_attributes do
@@ -1113,6 +1188,7 @@ RailsAdmin.config do |config|
     weight -308
     object_label_method { :custom_title }
 
+    configure :namespace, :enum_edit
     configure :metadata, :json_value
 
     group :credentials do
@@ -1204,6 +1280,9 @@ RailsAdmin.config do |config|
     register_instance_option(:form_synchronized) do
       [:custom_data_type, :data_type_scope, :scope_filter, :scope_evaluator, :lot_size, :connection_role, :webhook, :response_translator, :response_data_type]
     end
+
+    configure :namespace, :enum_edit
+
     edit do
       field :namespace
       field :name
@@ -1388,6 +1467,8 @@ RailsAdmin.config do |config|
     object_label_method { :custom_title }
     visible false
 
+    configure :namespace, :enum_edit
+
     edit do
       field :namespace
       field :name
@@ -1412,6 +1493,9 @@ RailsAdmin.config do |config|
     weight -208
     label 'Data event'
     object_label_method { :custom_title }
+
+    configure :namespace, :enum_edit
+
     edit do
       field :namespace
       field :name
@@ -1470,6 +1554,9 @@ RailsAdmin.config do |config|
     navigation_label 'Workflows'
     weight -207
     object_label_method { :custom_title }
+
+    configure :namespace, :enum_edit
+
     edit do
       field :namespace
       field :name
@@ -1549,6 +1636,9 @@ RailsAdmin.config do |config|
     register_instance_option(:form_synchronized) do
       [:source_data_type, :target_data_type, :transformation, :target_importer, :source_exporter, :discard_chained_records]
     end
+
+    configure :namespace, :enum_edit
+
     edit do
       field :namespace
       field :name
@@ -1679,6 +1769,9 @@ RailsAdmin.config do |config|
     navigation_label 'Workflows'
     weight -205
     object_label_method { :custom_title }
+
+    configure :namespace, :enum_edit
+
     edit do
       field :namespace
       field :name
@@ -1706,6 +1799,21 @@ RailsAdmin.config do |config|
       field :_id
     end
     fields :namespace, :name, :description, :parameters, :call_links
+  end
+
+  config.model Setup::Action do
+    navigation_label 'Workflows'
+    weight -202
+    object_label_method { :to_s }
+  end
+
+  config.model Setup::Application do
+    navigation_label 'Workflows'
+    weight -201
+    object_label_method { :custom_title }
+    visible { Account.current.super_admin? }
+    configure :namespace, :enum_edit
+    fields :namespace, :name, :slug, :actions, :application_parameters
   end
 
   #Security
@@ -1767,6 +1875,8 @@ RailsAdmin.config do |config|
       visible { Account.current.super_admin? }
     end
 
+    configure :namespace, :enum_edit
+
     fields :namespace, :name, :response_type, :authorization_endpoint, :token_endpoint, :token_method, :tenant, :shared
   end
 
@@ -1788,7 +1898,9 @@ RailsAdmin.config do |config|
       visible { Account.current.super_admin? }
     end
 
-    fields :namespace, :name, :response_type, :authorization_endpoint, :token_endpoint, :token_method, :request_token_endpoint, :parameters, :tenant, :shared
+    configure :namespace, :enum_edit
+
+    fields :namespace, :name, :response_type, :authorization_endpoint, :token_endpoint, :token_method, :request_token_endpoint, :tenant, :shared
   end
 
   config.model Setup::Oauth2Provider do
@@ -1813,13 +1925,9 @@ RailsAdmin.config do |config|
       visible { bindings[:object].refresh_token_strategy == :custom.to_s }
     end
 
-    fields :namespace, :name, :response_type, :authorization_endpoint, :token_endpoint, :token_method, :parameters, :scope_separator, :refresh_token_strategy, :refresh_token_algorithm, :tenant, :shared
-  end
+    configure :namespace, :enum_edit
 
-  config.model Setup::OauthParameter do
-    navigation_label 'OAuth'
-    object_label_method { :to_s }
-    fields :key, :value
+    fields :namespace, :name, :response_type, :authorization_endpoint, :token_endpoint, :token_method, :scope_separator, :refresh_token_strategy, :refresh_token_algorithm, :tenant, :shared
   end
 
   config.model Setup::Oauth2Scope do
@@ -1850,6 +1958,7 @@ RailsAdmin.config do |config|
         "<span class=\"label label-#{bindings[:object].status_class}\">#{value.to_s.capitalize}</span>".html_safe
       end
     end
+    configure :namespace, :enum_edit
     fields :namespace, :name, :status
     show_in_dashboard { false }
   end
@@ -1866,6 +1975,8 @@ RailsAdmin.config do |config|
         "<span class=\"label label-#{bindings[:object].status_class}\">#{value.to_s.capitalize}</span>".html_safe
       end
     end
+
+    configure :namespace, :enum_edit
 
     edit do
       field :namespace
@@ -1906,6 +2017,8 @@ RailsAdmin.config do |config|
     object_label_method { :custom_title }
     parent Setup::Authorization
 
+    configure :namespace, :enum_edit
+
     configure :status do
       pretty_value do
         "<span class=\"label label-#{bindings[:object].status_class}\">#{value.to_s.capitalize}</span>".html_safe
@@ -1916,6 +2029,7 @@ RailsAdmin.config do |config|
       field :namespace
       field :name
       field :client
+      field :parameters
     end
 
     group :credentials do
@@ -1947,6 +2061,7 @@ RailsAdmin.config do |config|
       field :name
       field :status
       field :client
+      field :parameters
 
       field :access_token
       field :access_token_secret
@@ -1967,9 +2082,17 @@ RailsAdmin.config do |config|
     object_label_method { :custom_title }
     parent Setup::Authorization
 
+    configure :namespace, :enum_edit
+
     configure :status do
       pretty_value do
         "<span class=\"label label-#{bindings[:object].status_class}\">#{value.to_s.capitalize}</span>".html_safe
+      end
+    end
+
+    configure :expires_in do
+      pretty_value do
+        "#{value}s" if value
       end
     end
 
@@ -1978,7 +2101,7 @@ RailsAdmin.config do |config|
       field :name
       field :client
       field :scopes do
-        visible { ((obj = bindings[:object]) && obj.provider).present? }
+        visible { bindings[:object].ready_to_save? }
         associated_collection_scope do
           provider = ((obj = bindings[:object]) && obj.provider) || nil
           Proc.new { |scope|
@@ -1989,6 +2112,9 @@ RailsAdmin.config do |config|
             end
           }
         end
+      end
+      field :parameters do
+        visible { bindings[:object].ready_to_save? }
       end
     end
 
@@ -2022,12 +2148,18 @@ RailsAdmin.config do |config|
       field :status
       field :client
       field :scopes
+      field :parameters
 
+      field :expires_in
+
+      field :id_token
       field :token_type
       field :access_token
       field :token_span
       field :authorized_at
       field :refresh_token
+
+      field :id
     end
 
     fields :namespace, :name, :status, :client, :scopes
@@ -2036,6 +2168,8 @@ RailsAdmin.config do |config|
   config.model Setup::AwsAuthorization do
     weight -35
     object_label_method { :custom_title }
+
+    configure :namespace, :enum_edit
 
     configure :status do
       pretty_value do
@@ -2219,6 +2353,7 @@ RailsAdmin.config do |config|
     navigation_label 'Monitors'
     visible false
     object_label_method { :to_s }
+    configure :namespace, :enum_edit
     configure :attempts_succeded, :text do
       label 'Attempts/Succedded'
     end

@@ -28,6 +28,9 @@ module Cenit
 
     config.after_initialize do
 
+      puts 'DELETING OLD Consumers'
+      RabbitConsumer.delete_all
+
       model_update_options = { model_loaded: false, used_memory: 0 }
       if Cenit.deactivate_models
         model_update_options[:activated] = false
@@ -36,13 +39,15 @@ module Cenit
 
       Account.all.each do |account|
 
+        next if account.meta.present?
+
         Account.current = account
 
         Setup::DataType.update_all(model_update_options)
 
         unless Cenit.deactivate_models
           models = Set.new
-          Setup::SchemaDataType.activated.each do |data_type|
+          Setup::JsonDataType.activated.each do |data_type|
             models += data_type.load_models[:loaded]
           end
           Setup::FileDataType.activated.each do |file_data_type|

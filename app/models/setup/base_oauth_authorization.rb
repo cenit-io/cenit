@@ -2,18 +2,31 @@ module Setup
   class BaseOauthAuthorization < Setup::Authorization
     include CenitScoped
     include AuthorizationHeader
+    include Parameters
 
     abstract_class true
 
-    BuildInDataType.regist(self).with(:namespace, :name, :client).referenced_by(:namespace, :name)
+    BuildInDataType.regist(self).with(:namespace, :name, :client, :parameters).referenced_by(:namespace, :name)
 
     belongs_to :client, class_name: Setup::OauthClient.to_s, inverse_of: nil
+
+    parameters :parameters
 
     field :access_token, type: String
     field :token_span, type: BigDecimal
     field :authorized_at, type: Time
 
     validates_presence_of :client
+
+    def expires_at
+      authorized_at && token_span && authorized_at + token_span
+    end
+
+    def expires_in
+      if (expires_at = self.expires_at)
+        expires_at - Time.now
+      end
+    end
 
     def provider
       client && client.provider
@@ -37,7 +50,7 @@ module Setup
 
     def authorize_params(params = {})
       params = base_params.merge(params)
-      provider.parameters.each { |parameter| params[parameter.key.to_sym] = parameter.value }
+      parameters.each { |parameter| params[parameter.key.to_sym] = parameter.value }
       params
     end
 
@@ -48,6 +61,24 @@ module Setup
 
     def authorize_url(params)
       fail NotImplementedError
+    end
+
+    def request_token!(params)
+      request_token(params)
+      save
+    end
+
+    def request_token(params)
+      fail NotImplementedError
+    end
+
+    def cancel!
+      cancel
+      save
+    end
+
+    def cancel
+      self.access_token = self.token_span = self.authorized_at = nil
     end
   end
 end

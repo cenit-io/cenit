@@ -5,11 +5,11 @@ module Setup
     module ClassMethods
 
       def data_type_id
-        @data_type_id ||= Setup::SchemaDataType.all.first.id
+        @data_type_id ||= Setup::JsonDataType.all.first.id
       end
 
       def data_type
-        Setup::SchemaDataType.where(id: data_type_id).first
+        Setup::JsonDataType.where(id: data_type_id).first
       end
     end
   end

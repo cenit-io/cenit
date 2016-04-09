@@ -1,5 +1,5 @@
 module Setup
-  class DataTypeOptimizer
+  class Optimizer
 
     def initialize
       @nss = Hash.new { |h, k| h[k] = {} }
@@ -8,17 +8,17 @@ module Setup
     def regist_data_types(data_types)
       data_types = [data_types] unless data_types.is_a?(Enumerable)
       if (data_type = data_types.first)
-        hash = @nss[data_type.namespace]
+        ns_hash = @nss[data_type.namespace]
         data_types.each do |dt|
-          hash[dt.name] = dt unless hash.has_key?(dt.name)
+          ns_hash[dt.name] = dt unless ns_hash.has_key?(dt.name)
         end
       end
     end
 
     def find_data_type(ref, ns = self.namespace)
-      unless (data_type = (hash = @nss[ns])[ref])
+      unless (data_type = (ns_hash = @nss[ns])[ref])
         if (data_type = Setup::DataType.where(namespace: ns, name: ref).first)
-          hash[ref] = data_type
+          ns_hash[ref] = data_type
         elsif (ref = ref.to_s).start_with?('Dt')
           data_type = Setup::DataType.where(id: ref.from(2)).first
         end
@@ -27,7 +27,7 @@ module Setup
     end
 
     def optimize
-      data_types = @nss.values.collect { |hash| hash.values.to_a }.flatten
+      data_types = @nss.values.collect { |ns_hash| ns_hash.values.to_a }.flatten
       while (data_type = data_types.shift)
         segments = {}
         refs = Set.new
@@ -80,26 +80,41 @@ module Setup
         end
       end
       if valid && new_attributes.present?
-        Setup::SchemaDataType.collection.insert_many(new_attributes)
+        Setup::JsonDataType.collection.insert_many(new_attributes)
       end
       errors
+    end
+
+    def registered_nss
+      @registered_nss ||= Set.new
+    end
+
+    def regist_ns(ns)
+      registered_nss << ns
+    end
+
+    def save_namespaces
+      if registered_nss.present?
+        existing_nss = Setup::Namespace.any_in(name: registered_nss.to_a).distinct(:name)
+        registered_nss.each { |ns| Setup::Namespace.create(name: ns) unless existing_nss.include?(ns) }
+      end
     end
 
     class << self
 
       def optimizer
-        Thread.current[:optimizer]
+        Thread.current[thread_key]
       end
 
-      def new_optimizer
-        Thread.current[:optimizer] = Setup::DataTypeOptimizer.new
+      def instance
+        Thread.current[thread_key] ||= Setup::Optimizer.new
       end
 
-      def save_data_types
-        if (o = optimizer)
-          o.save_data_types
-        end
+      def thread_key
+        "[cenit]#{to_s}"
       end
+
+      delegate(*Setup::Optimizer.instance_methods(false), to: :instance)
     end
   end
 end
