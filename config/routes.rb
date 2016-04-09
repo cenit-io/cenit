@@ -1,14 +1,14 @@
 Cenit::Application.routes.draw do
+  devise_for :users, controllers: { omniauth_callbacks: 'users/omniauth_callbacks' } do
+    get 'sign_out', to: 'users/sessions#destroy', as: :destroy_user_session
+  end
+  
   mount RailsAdmin::Engine => '/', as: 'rails_admin'
 
   root to: 'rails_admin/main#dashboard'
 
   get 'explore/:api', to: 'api#explore', as: :explore_api
   post 'write/:api', to: 'api#write', as: :write_api
-  
-  devise_for :users, controllers: { omniauth_callbacks: 'users/omniauth_callbacks' } do
-    get 'sign_out', to: 'users/sessions#destroy', as: :destroy_user_session
-  end
 
   get 'oauth/callback', to: 'oauth2_callback#index'
   get 'oauth2/callback', to: 'oauth2_callback#index'
