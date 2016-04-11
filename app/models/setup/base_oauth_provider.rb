@@ -1,8 +1,7 @@
 module Setup
   class BaseOauthProvider
-    include CenitUnscoped
-    include MandatoryNamespace
     include CrossTenancy
+    include MandatoryNamespace
     include ClassHierarchyAware
 
     abstract_class true

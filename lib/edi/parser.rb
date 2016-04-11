@@ -27,7 +27,7 @@ module Edi
         unless (primary_field_option = options[:primary_field]).nil? || primary_field_option.is_a?(Symbol)
           options[:primary_field] = primary_field_option.to_s.to_sym
         end
-        do_parse_json(data_type, data_type.records_model, content.with_indifferent_access, options, (record && record.orm_model.schema) || (model && model.schema) || data_type.merged_schema, nil, record)
+        do_parse_json(data_type, model || data_type.records_model, content.with_indifferent_access, options, (record && record.orm_model.schema) || (model && model.schema) || data_type.merged_schema, nil, record)
       end
 
       def parse_xml(data_type, content, options={}, record=nil)
@@ -307,7 +307,7 @@ module Edi
                 puts 'End of content reached no segment separator needs to be inferred'
               end
             else
-              if next_seg_property = model.properties_schemas.keys.detect { |property| model.property_model?(property) }
+              if (next_seg_property = model.properties_schemas.keys.detect { |property| model.property_model?(property) })
                 next_seg_schema = model.property_model(next_seg_property).schema
                 next_seg_schema = data_type.merge_schema(next_seg_schema)
                 raise Exception.new('Can not infers segment separator without EDI segment metadata in next sub-segment schema') unless next_seg_schema['edi'] && next_seg_id = next_seg_schema['edi']['segment']

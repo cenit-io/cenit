@@ -9,10 +9,14 @@ module Cenit
 
     def method_missing(symbol, *args, &block)
       if @options[:linking_algorithms] && (algorithm = @algorithms[symbol])
-        instance_eval "define_singleton_method(:#{symbol},
+        if algorithm.is_a?(Proc)
+          define_singleton_method(symbol, algorithm)
+        else
+          instance_eval "define_singleton_method(:#{symbol},
         ->(#{(params = algorithm.parameters.collect { |p| p.name }).join(', ')}) {
           #{Capataz.rewrite(algorithm.code, locals: params, self_linker: algorithm, self_send_prefixer: @prefixer)}
         })"
+        end
         send(symbol, *args, &block)
       else
         super
@@ -36,7 +40,9 @@ module Cenit
       else
         fail "Options hash expected as third argument but #{@options.class} found"
       end
-      code = Capataz.rewrite(code, locals: locals.keys, self_linker: @options[:self_linker], self_send_prefixer: @prefixer = Prefixer.new(self))
+      code = Capataz.rewrite(code, locals: locals.keys,
+                             self_linker: @options[:self_linker],
+                             self_send_prefixer: @prefixer = Prefixer.new(self))
       locals.each { |local, _| code = "#{local} = ::Capataz.handle(locals[:#{local}])\r\n" + code }
       instance_eval(code)
     end

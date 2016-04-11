@@ -1,0 +1,2 @@
+
+CrossOrigin.config :shared

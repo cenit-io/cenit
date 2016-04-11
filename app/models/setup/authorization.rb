@@ -3,6 +3,7 @@ module Setup
     include CenitScoped
     include NamespaceNamed
     include ClassHierarchyAware
+    include JsonMetadata
 
     abstract_class true
 

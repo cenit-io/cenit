@@ -18,8 +18,7 @@ module Setup
       [:get, :post, :put, :delete, :patch, :copy, :head, :options, :link, :unlink, :purge, :lock, :unlock, :propfind]
     end
 
-    attr_reader :path_params
-    attr_reader :request_path
+    attr_reader :path_params, :request_path, :control
 
     def match?(path)
       @request_path = path
@@ -43,9 +42,30 @@ module Setup
     end
 
     def run(control)
+      @control = control
       params = [control]
-      params << path_params if algorithm.parameters.size > 1
-      algorithm.run(params)
+      params << control.action.params if algorithm.parameters.size > 1
+      algorithm.with_linker(self).run(params)
+    end
+
+    def link?(call_symbol)
+      algorithm.link?(call_symbol) || control[call_symbol]
+    end
+
+    def link(call_symbol)
+      unless (alg =algorithm.link(call_symbol))
+        alg =
+          if (record = control[call_symbol]).is_a?(Setup::Algorithm)
+            record
+          else
+            -> { record }
+          end
+      end
+      alg
+    end
+
+    def linker_id
+      'a' + id.to_s
     end
 
     def to_s

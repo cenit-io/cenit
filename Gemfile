@@ -97,3 +97,5 @@ gem "octokit"
 gem 'exception_notification'
 
 gem 'mime'
+
+gem 'cross_origin'

@@ -64,12 +64,14 @@ module Cenit
       Account.current = nil
     end
 
-    if Rails.env.production?
+    if Rails.env.production? &&
+      (notifier_email = ENV['NOTIFIER_EMAIL']) &&
+      (exception_recipients = ENV['EXCEPTION_RECIPIENTS'])
       Rails.application.config.middleware.use ExceptionNotification::Rack,
-                                              :email => {
-                                                :email_prefix => "[Cenit Error #{Rails.env}] ",
-                                                :sender_address => %{"notifier" <#{ENV['NOTIFIER_EMAIL']}>},
-                                                :exception_recipients => ENV['EXCEPTION_RECIPIENTS'].split(',')
+                                              email: {
+                                                email_prefix: "[Cenit Error #{Rails.env}] ",
+                                                sender_address: %{"notifier" <#{notifier_email}>},
+                                                exception_recipients: exception_recipients.split(',')
                                               }
     end
 

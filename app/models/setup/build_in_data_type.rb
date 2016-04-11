@@ -234,7 +234,7 @@ module Setup
         end
       end
       schema['protected'] = @protecting if @protecting.present?
-      schema = @to_merge.deep_merge(schema) if @to_merge
+      schema = schema.deep_reverse_merge(@to_merge) if @to_merge
       schema
     end
 
