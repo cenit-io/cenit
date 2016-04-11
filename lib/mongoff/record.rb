@@ -222,9 +222,9 @@ module Mongoff
         @fields.delete(field)
         document.delete(attribute_key)
         nil
-      elsif attribute_key == field && (value.is_a?(Record) || value.class.respond_to?(:data_type))
+      elsif value.is_a?(Record) || value.class.respond_to?(:data_type)
         @fields[field] = value
-        document[attribute_key] = value.attributes
+        document[attribute_key] = attribute_key == field ? value.attributes : value.id
       elsif !value.is_a?(Hash) && value.is_a?(Enumerable)
         attr_array = []
         if !attribute_assigning && property_model && property_model.modelable?

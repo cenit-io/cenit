@@ -212,7 +212,7 @@ module Mongoff
     end
 
     def attribute_key(field, field_metadata = {})
-      if ((field_metadata[:model] ||= property_model(field)) || field_metadata.delete(:model)) &&
+      if (field_metadata[:model] ||= property_model(field)) &&
         (schema = (field_metadata[:schema] ||= property_schema(field)))['referenced']
         ((schema['type'] == 'array') ? field.to_s.singularize + '_ids' : "#{field}_id").to_sym
       else
@@ -381,7 +381,7 @@ module Mongoff
     private
 
     def check_referenced_schema(schema, check_for_array = true)
-      if schema.is_a?(Hash) && (schema = schema.reject { |key, _| %w(title description edi).include?(key) })
+      if schema.is_a?(Hash) && (schema = schema.reject { |key, _| %w(title description edi group).include?(key) })
         (((ref = schema['$ref']).is_a?(String) && (schema.size == 1 || (schema.size == 2 && schema.has_key?('referenced')))) ||
           (schema['type'] == 'array' && (items=schema['items']) &&
             (schema.size == 2 || (schema.size == 3 && schema.has_key?('referenced'))) &&
