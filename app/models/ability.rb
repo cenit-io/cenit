@@ -21,7 +21,7 @@ class Ability
 
       can [:index, :show, :edi_export, :simple_export], @@oauth_models
       if user.super_admin?
-        can [:destroy, :edit, :create, :import], @@oauth_models
+        can [:destroy, :edit, :create, :import, :cross_share], @@oauth_models
       else
         can [:destroy, :edit], @@oauth_models, tenant_id: Account.current.id
       end
@@ -34,6 +34,7 @@ class Ability
               Account,
               Setup::SharedName,
               CenitToken,
+              ApplicationId,
               Script,
               Setup::DelayedMessage,
               Setup::SystemNotification

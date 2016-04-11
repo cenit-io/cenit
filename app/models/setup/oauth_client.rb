@@ -1,6 +1,5 @@
 module Setup
   class OauthClient
-    include CenitUnscoped
     include CrossTenancy
     include CustomTitle
 
