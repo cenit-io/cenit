@@ -31,15 +31,16 @@ module RailsAdmin
           proc do
 
             @bulk_ids = params.delete(:bulk_ids)
-            if object_ids = params.delete(:object_ids)
+            if (object_ids = params.delete(:object_ids))
               @bulk_ids = object_ids
             end
             selector_config = RailsAdmin::Config.model(Forms::FlowSelector)
             render_form = true
-            if model = @abstract_model.model rescue nil
+            model = @abstract_model.model rescue nil
+            if model
               data_type_selector = model.data_type
               data_type_selector = nil if data_type_selector.is_a?(Setup::BuildInDataType)
-              if select_data = params[selector_config.abstract_model.param_key]
+              if (select_data = params[selector_config.abstract_model.param_key])
                 flow = Setup::Flow.where(id: select_data[:flow_id]).first
                 if (@form_object = Forms::FlowSelector.new(flow: flow, data_type: data_type_selector)).valid?
                   begin
