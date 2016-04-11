@@ -10,7 +10,7 @@ module Setup
     field :code, type: String
     embeds_many :call_links, class_name: Setup::CallLink.to_s, inverse_of: :algorithm
 
-    validates_format_of :name, with: /\A[a-z]([a-z]|\_|\d)*\Z/
+    validates_format_of :name, with: /\A[a-z]([a-z]|_|\d)*\Z/
 
     accepts_nested_attributes_for :parameters, allow_destroy: true
     accepts_nested_attributes_for :call_links, allow_destroy: true
@@ -28,7 +28,7 @@ module Setup
         else
           links = []
           (logs[:self_sends] || []).each do |call_name|
-            if call_link = call_links.where(name: call_name).first
+            if (call_link = call_links.where(name: call_name).first)
               links << call_link
             else
               links << Setup::CallLink.new(name: call_name)
@@ -45,13 +45,20 @@ module Setup
       call_links.each { |call_link| call_link.do_link }
     end
 
+    attr_accessor :self_linker
+
+    def with_linker(linker)
+      self.self_linker = linker
+      self
+    end
+
     def run(input)
       input = Cenit::Utility.json_value_of(input)
       input = [input] unless input.is_a?(Array)
       args = {}
       parameters.each { |parameter| args[parameter.name] = input.shift }
       do_link
-      Cenit::RubyInterpreter.run(code, args, self_linker: self)
+      Cenit::RubyInterpreter.run(code, args, self_linker: self_linker || self)
     end
 
     def link?(call_symbol)
@@ -59,7 +66,7 @@ module Setup
     end
 
     def link(call_symbol)
-      if call_link = call_links.where(name: call_symbol).first
+      if (call_link = call_links.where(name: call_symbol).first)
         call_link.do_link
       else
         nil

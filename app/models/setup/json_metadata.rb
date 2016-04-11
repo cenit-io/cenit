@@ -15,7 +15,8 @@ module Setup
     def read_attribute(name)
       value = super
       if name.to_s == 'metadata' && value.is_a?(String)
-        attributes['schema'] = value = JSON.parse(value) rescue value
+        attributes['metadata'] = JSON.parse(value) rescue value
+        value = attributes['metadata']
       end
       value
     end

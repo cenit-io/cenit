@@ -13,10 +13,30 @@ module Setup
 
     field :configuration_attributes, type: Hash
 
+    belongs_to :application_id, class_name: ApplicationId.to_s, inverse_of: nil
+    field :secret_token, type: String
+
+    attr_readonly :secret_token
+
     before_save do
       if @config
         self.configuration_attributes = @config.attributes
       end
+      params = application_parameters.sort_by(&:name).sort_by(&:group)
+      self.application_parameters = params
+
+      self.application_id ||= ApplicationId.create
+      self.secret_token ||= Devise.friendly_token(60)
+
+      errors.blank?
+    end
+
+    def identifier
+      application_id && application_id.identifier
+    end
+
+    def authentication_method
+      configuration.authentication_method.to_s.underscore.gsub(/ +/, '_').to_sym
     end
 
     def configuration
@@ -39,7 +59,15 @@ module Setup
       schema =
         {
           type: 'object',
-          properties: properties = {}
+          properties: properties = {
+            authentication_method: {
+              type: 'string',
+              enum: ['User credentials', 'Application ID'],
+              group: 'Security',
+              default: 'User credentials'
+            }.stringify_keys
+          }.stringify_keys,
+        required: %w(authentication_method)
         }
       application_parameters.each { |p| properties[p.name] = p.schema }
       schema.stringify_keys
