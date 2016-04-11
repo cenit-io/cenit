@@ -6,15 +6,25 @@ class Oauth2CallbackController < ApplicationController
     if (cenit_token = OauthAuthorizationToken.where(token: params[:state] || session[:oauth_state]).first) &&
       cenit_token.set_current_account && (authorization = cenit_token.authorization)
       begin
-        params[:cenit_token] = cenit_token
-        authorization.request_token(params)
-        authorization.save
+        authorization.metadata[:redirect_token] = redirect_token = Devise.friendly_token
         redirect_path =
           if (app = cenit_token.application) && (ns = Setup::Namespace.where(name: app.namespace).first)
-            "/app/#{ns.slug}/#{app.slug}/authorization/#{authorization.id}"
+            "/app/#{ns.slug}/#{app.slug}/authorization/#{authorization.id}?redirect_token=#{redirect_token}&" +
+              case app.authentication_method
+              when :application_id
+                "client_id=#{app.identifier}"
+              else
+                "X-User-Access-Key=#{Account.current.owner.number}&X-User-Access-Token=#{Account.current.owner.token}"
+              end
           else
-            rails_admin.show_path(model_name: authorization.class.to_s.underscore.gsub('/', '~'), id: authorization.id.to_s)
+            rails_admin.show_path(model_name: authorization.class.to_s.underscore.gsub('/', '~'), id: authorization.id.to_s) + "?redirect_token=#{redirect_token}"
           end
+        if params[:code]
+          params[:cenit_token] = cenit_token
+          authorization.request_token!(params)
+        else
+          authorization.cancel!
+        end
       rescue Exception => ex
         error = ex.message
       end

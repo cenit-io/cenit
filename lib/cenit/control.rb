@@ -4,13 +4,22 @@ module Cenit
     def initialize(app, controller, action)
       @app = app
       @controller = controller
+      @cenit_action = action
       @action = Struct.new(http_method: action.method,
                            path: action.request_path,
-                           params: controller.request.query_parameters.merge(action.path_params),
+                           params: controller.request.params.merge(action.path_params).with_indifferent_access,
                            query_parameters: controller.request.query_parameters,
                            body: controller.request.body,
                            content_type: controller.request.content_type,
                            content_length: controller.request.content_length)
+    end
+
+    def identifier
+      app.identifier
+    end
+
+    def secret_token
+      app.secret_token
     end
 
     def render(*args)
@@ -47,12 +56,23 @@ module Cenit
       end
     end
 
+    def app_params
+      unless @app_params
+        @app_params = {}
+        @app.parameters.each { |p| @app_params[p.name] = p.value }
+      end
+      @app_params
+    end
+
+    def [](param)
+      @app.configuration[param]
+    end
+
     attr_reader :action
 
     private
 
-    attr_reader :app
-    attr_reader :controller
+    attr_reader :app, :controller, :cenit_action
 
     class Struct
       def initialize(hash)

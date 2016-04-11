@@ -14,8 +14,10 @@ Capataz.config do
                     SecureRandom, Setup, Setup::Namespace, Setup::DataType, Setup::Schema, OpenSSL, OpenSSL::PKey, OpenSSL::PKey::RSA,
                     OpenSSL::Digest, OpenSSL::HMAC, Setup::Task, Setup::Task::RUNNING_STATUS, Setup::Task::NOT_RUNNING_STATUS, Setup::Webhook, Setup::Algorithm,
                     Xmldsig, Xmldsig::SignedDocument, Zip, Zip::OutputStream, Zip::InputStream, StringIO, MIME::Mail, MIME::Text, MIME::Multipart::Mixed,
-                    Spreadsheet, Spreadsheet::Workbook, Setup::Oauth2Authorization, JWT
+                    Spreadsheet, Spreadsheet::Workbook, Setup::Authorization, Setup::Connection, Devise
 
+  allow_on Devise, [:friendly_token]
+  
   allow_on Spreadsheet::Workbook, [:new_workbook]
 
   allow_on MIME::Multipart::Mixed, [:new_message]
@@ -52,7 +54,7 @@ Capataz.config do
 
   # allow_for [Setup::Raml],  [:id, :name, :slug, :to_json, :to_edi, :to_hash, :to_xml, :to_params, :records_model, :ref_hash, :raml_parse, :build_hash, :map_collection]
 
-  allow_for [Class], [:where, :all, :new_sign, :digest, :now, :data_type, :hexdigest, :id, :new_rsa, :new_document, :sign, :write_buffer, :put_next_entry, :write, :encode64, :decode64, :urlsafe_encode64, :new_io, :get_input_stream, :open]
+  allow_for [Class], [:where, :all, :new_sign, :digest, :now, :data_type, :hexdigest, :id, :new_rsa, :new_document, :sign, :write_buffer, :put_next_entry, :write, :encode64, :decode64, :urlsafe_encode64, :new_io, :get_input_stream, :open] + Setup::Webhook.method_enum
 
   allow_for [Mongoid::Criteria, Mongoff::Criteria], Enumerable.instance_methods(false) + Origin::Queryable.instance_methods(false) + [:each, :present?, :blank?]
 
@@ -60,7 +62,7 @@ Capataz.config do
 
   allow_for Setup::Scheduler, [:activated?]
 
-  allow_for Setup::Webhook::ResponseProxy, [:code, :body, :headers]
+  allow_for Setup::Webhook::ResponseProxy, [:code, :body, :headers, :content_type]
 
   allow_for Setup::DataType, ((%w(_json _xml _edi) + ['']).collect do |format|
                              %w(create new create!).collect do |action|
@@ -73,7 +75,7 @@ Capataz.config do
                            end + [:name, :slug, :to_json, :to_edi, :to_hash, :to_xml, :to_params, :records_model, :namespace]).flatten
 
   deny_for [Setup::DynamicRecord, Mongoff::Record], ->(instance, method) do
-    return false if [:id, :to_json, :to_edi, :to_hash, :to_xml, :to_xml_element, :to_params, :[], :[]=, :save, :all, :where, :orm_model, :nil?, :==, :errors].include?(method)
+    return false if [:id, :to_json, :to_edi, :to_hash, :to_xml, :to_xml_element, :to_params, :from_json, :from_xml, :from_edi, :[], :[]=, :save, :all, :where, :orm_model, :nil?, :==, :errors, :destroy].include?(method)
     return false if instance.orm_model.data_type.records_methods.any? { |alg| alg.name == method.to_s }
     return false if [:data].include?(method) && instance.is_a?(Mongoff::GridFs::FileFormatter)
     if (method = method.to_s).end_with?('=')

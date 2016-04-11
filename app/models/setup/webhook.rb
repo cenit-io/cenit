@@ -5,25 +5,21 @@ module Setup
     include ParametersCommon
     include JsonMetadata
     include AuthorizationHandler
+    include Parameters
 
     BuildInDataType.regist(self).referenced_by(:namespace, :name).excluding(:connection_roles)
-
-    embeds_many :parameters, class_name: Setup::Parameter.to_s, inverse_of: :webhook
-    embeds_many :headers, class_name: Setup::Parameter.to_s, inverse_of: :webhook
-
-    embeds_many :template_parameters, class_name: Setup::Parameter.to_s, inverse_of: :webhook
 
     field :path, type: String
     field :method, type: String, default: :post
     field :description, type: String
 
+    parameters :parameters, :headers, :template_parameters
+
     def method_enum
-      [:get, :post, :put, :delete, :patch, :copy, :head, :options, :link, :unlink, :purge, :lock, :unlock, :propfind]
+      self.class.method_enum
     end
 
     validates_presence_of :path
-
-    accepts_nested_attributes_for :parameters, :headers, :template_parameters, allow_destroy: true
 
     def conformed_path(options = {})
       conform_field_value(:path, options)
@@ -33,6 +29,18 @@ module Setup
       @connections = connections
       @connection_role_options = options || {}
       self
+    end
+
+    def with(options)
+      if options.is_a?(Setup::Connection) || options.is_a?(Setup::ConnectionRole)
+        upon(options)
+      else
+        super
+      end
+    end
+
+    def and(options)
+      with(options)
     end
 
     def connections
@@ -73,6 +81,9 @@ module Setup
         common_submitter_body = (body_caller = body_argument.respond_to?(:call)) ? nil : body_argument
         common_template_parameters = nil
         connections.each do |connection|
+          if (auth = using_authorization)
+            connection = connection.with(auth)
+          end
           template_parameters = template_parameters_hash.dup
           template_parameters.reverse_merge!(connection.template_parameters_hash)
           submitter_body =
@@ -121,7 +132,7 @@ module Setup
             connection.inject_other_parameters(parameters, template_parameters)
             inject_other_parameters(parameters, template_parameters)
 
-            query = parameters.to_param
+            query = parameters.plain_query
             template_parameters[:query] = query
 
             headers = {}
@@ -134,7 +145,7 @@ module Setup
               if query.present?
                 conformed_path += '?' + query
               end
-              url = conformed_url + ('/' + conformed_path).gsub(/\/+/, '/')
+              url = conformed_url.gsub(/\/+\Z/, '') + ('/' + conformed_path).gsub(/\/+/, '/')
               if body
                 attachment = {
                   filename: DateTime.now.strftime('%Y-%m-%d_%Hh%Mm%S'),
@@ -204,6 +215,12 @@ module Setup
       end
     end
 
+    class << self
+      def method_enum
+        [:get, :post, :put, :delete, :patch, :copy, :head, :options, :link, :unlink, :purge, :lock, :unlock, :propfind]
+      end
+    end
+
     class ResponseProxy
 
       def initialize(response)
@@ -220,6 +237,10 @@ module Setup
 
       def headers
         @response.headers.to_hash
+      end
+
+      def content_type
+        @response.content_type
       end
     end
   end

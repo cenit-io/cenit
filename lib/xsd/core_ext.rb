@@ -17,7 +17,7 @@ class String
     if key = Xsd::BUILD_IN_TYPES.keys.detect { |key| end_with?(key) }
       Xsd::BUILD_IN_TYPES[key]
     else
-      {'$ref' => self}
+      { '$ref' => self }
     end
   end
 
@@ -29,5 +29,17 @@ class String
       tr('_', ' ').
       tr('-', ' ').
       capitalize
+  end
+end
+
+class Hash
+  def deep_reverse_merge(other)
+    merge(other) do |_, left, right|
+      if left.is_a?(Hash) && right.is_a?(Hash)
+        left.deep_reverse_merge(right)
+      else
+        left || right
+      end
+    end
   end
 end

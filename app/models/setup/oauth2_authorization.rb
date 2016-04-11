@@ -12,9 +12,15 @@ module Setup
 
     auth_template_parameters access_token: :access_token
 
+    def cancel
+      self.id_token = nil
+      super
+    end
+
     def ready_to_save?
       client.present?
     end
+
     def build_auth_header(template_parameters)
       provider.refresh_token(self)
       ((token_type || 'OAuth').to_s + ' ' + access_token.to_s).strip #TODO For Facebook that do not use token type
@@ -26,7 +32,7 @@ module Setup
 
     def create_http_client(options = {})
       http_client = OAuth2::Client.new(client.attributes[:identifier], client.attributes[:secret], options)
-      if http_proxy = Cenit.http_proxy
+      if (http_proxy = Cenit.http_proxy)
         http_client.connection.proxy(http_proxy)
       end
       http_client

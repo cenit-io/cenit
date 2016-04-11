@@ -10,10 +10,14 @@ module Setup
       before_save :check_authorization
     end
 
+    def using_authorization
+      @auth || authorization
+    end
+
     def check_authorization
-      if authorization.present?
-        field = authorization_handler ? :template_parameters : :headers
-        auth_params = authorization.class.send("auth_#{field}")
+      if using_authorization.present?
+        field = using_authorization_handler ? :template_parameters : :headers
+        auth_params = using_authorization.class.send("auth_#{field}")
         conflicting_keys = send(field).select { |p| auth_params.has_key?(p.key) }.collect(&:key)
         if conflicting_keys.present?
           label = 'authorization ' + field.to_s.gsub('_', ' ')
@@ -26,19 +30,28 @@ module Setup
     end
 
     def other_headers_each(template_parameters, &block)
-      authorization.each_header(template_parameters, &block) if authorization && !authorization_handler && block
+      using_authorization.each_header(template_parameters, &block) if using_authorization && !authorization_handler && block
     end
 
     def inject_other_parameters(hash, template_parameters)
-      authorization.each_parameter(template_parameters) do |key, value|
+      using_authorization.each_parameter(template_parameters) do |key, value|
         hash[key] = value unless hash.has_key?(key)
-      end if authorization
+      end if using_authorization
     end
 
     def inject_template_parameters(hash)
-      authorization.each_template_parameter do |key, value|
-        hash[key] = value unless hash.has_key?(key) && authorization_handler
+      using_authorization.each_template_parameter do |key, value|
+        hash[key] = value unless hash.has_key?(key) && using_authorization_handler
       end if authorization
+    end
+
+    def with(options)
+      if options.is_a?(Setup::Authorization)
+        @auth = options
+        self
+      else
+        super
+      end
     end
   end
 end

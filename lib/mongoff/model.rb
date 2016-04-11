@@ -102,7 +102,13 @@ module Mongoff
 
     def stored_properties_on(record)
       properties = Set.new
-      record.document.each_key { |field| properties << field.to_s if property?(field) }
+      record.document.each_key do |field|
+        if property?(field)
+          properties << field.to_s
+        elsif (field = property_for_attribute(field.to_s))
+          properties << field.to_s
+        end
+      end
       record.fields.each_key { |field| properties << field.to_s }
       properties
     end
@@ -211,6 +217,19 @@ module Mongoff
         ((schema['type'] == 'array') ? field.to_s.singularize + '_ids' : "#{field}_id").to_sym
       else
         field.to_s == 'id' ? :_id : field.to_sym
+      end
+    end
+
+    def property_for_attribute(name)
+      if property?(name)
+        name
+      else
+        name = name.gsub(/_id(s)?\Z/, '')
+        if property?(name)
+          name
+        else
+          nil
+        end
       end
     end
 
@@ -362,7 +381,7 @@ module Mongoff
     private
 
     def check_referenced_schema(schema, check_for_array = true)
-      if schema.is_a?(Hash) && (schema = schema.reject { |key, _| %w(title description edi).include?(key) })
+      if schema.is_a?(Hash) && (schema = schema.reject { |key, _| %w(title description edi group).include?(key) })
         (((ref = schema['$ref']).is_a?(String) && (schema.size == 1 || (schema.size == 2 && schema.has_key?('referenced')))) ||
           (schema['type'] == 'array' && (items=schema['items']) &&
             (schema.size == 2 || (schema.size == 3 && schema.has_key?('referenced'))) &&

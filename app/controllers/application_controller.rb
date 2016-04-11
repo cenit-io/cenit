@@ -55,7 +55,7 @@ class ApplicationController < ActionController::Base
     optimize
     if (account = Account.current)
       account.save
-      Account.current = nil
+      # Account.current = nil
     end
     clean_thread_cache
   end

@@ -1,6 +1,5 @@
 module Setup
   class Oauth2Scope
-    include CenitUnscoped
     include CrossTenancy
     include CustomTitle
 

@@ -186,13 +186,20 @@ en:
         menu: "Share"
         breadcrumb: "Share"
         submit: "Share"
-        done: "created"
+        done: "shared"
       simple_share:
         title: "Share %{model_label} '%{object_label}'"
         menu: "Share"
         breadcrumb: "Share"
         submit: "Share"
-        done: "created"
+        done: "shared"
+      cross_share:
+        title: "Cross share %{model_label_plural}"
+        bulk_link: "Cross share selected %{model_label_plural}"
+        menu: "Cross share"
+        breadcrumb: "Cross share"
+        submit: "Cross share"
+        done: "cross shared"
       pull:
         title: "Pull Collection '%{object_label}'"
         menu: "Pull"
@@ -314,3 +321,10 @@ en:
         breadcrumb: "Cancel"
         you_are_requesting: "You are requesting to cancel the %{model_name}"
         done: "cancelled"
+      configure:
+        title: "Configure"
+        menu: "Configure"
+        breadcrumb: "Configure"
+        submit: "Configure"
+        done: "configured"
+        doing: "configuring"
