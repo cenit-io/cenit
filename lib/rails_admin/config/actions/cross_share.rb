@@ -3,9 +3,9 @@ module RailsAdmin
     module Actions
       class CrossShare < RailsAdmin::Config::Actions::Base
 
-        # register_instance_option :only do
-        #   [Setup::OauthClient, Setup::Oauth2Scope] + Setup::BaseOauthProvider.class_hierarchy
-        # end
+        register_instance_option :only do
+          [Setup::OauthClient, Setup::Oauth2Scope] + Setup::BaseOauthProvider.class_hierarchy
+        end
 
         register_instance_option :collection do
           true
