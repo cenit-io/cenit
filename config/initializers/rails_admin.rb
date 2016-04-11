@@ -2764,7 +2764,4 @@ RailsAdmin.config do |config|
 
     fields :created_at, :account, :identifier
   end
-
-  config.model Setup::A
-  config.model Setup::B
 end
