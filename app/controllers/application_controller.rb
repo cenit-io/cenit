@@ -43,6 +43,7 @@ class ApplicationController < ActionController::Base
   end
 
   def scope_current_account
+    Account.current = nil
     clean_thread_cache
     if current_user && current_user.account.nil?
       current_user.add_role(:admin) unless current_user.has_role?(:admin)
@@ -55,7 +56,6 @@ class ApplicationController < ActionController::Base
     optimize
     if (account = Account.current)
       account.save
-      # Account.current = nil
     end
     clean_thread_cache
   end
@@ -63,4 +63,9 @@ class ApplicationController < ActionController::Base
   def after_sign_out_path_for(resource_or_scope)
     ENV['SING_OUT_URL'] || root_path
   end
+
+  after_filter do
+    Account.current = nil
+  end
+
 end
