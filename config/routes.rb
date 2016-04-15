@@ -1,15 +1,12 @@
 Cenit::Application.routes.draw do
-  mount RailsAdmin::Engine => '/data', as: 'rails_admin'
-
-  root to: 'rails_admin/main#dashboard'
-  # root to: 'home#index'
-
-  get 'explore/:api', to: 'api#explore', as: :explore_api
-  post 'write/:api', to: 'api#write', as: :write_api
-  
   devise_for :users, controllers: { omniauth_callbacks: 'users/omniauth_callbacks' } do
     get 'sign_out', to: 'users/sessions#destroy', as: :destroy_user_session
   end
+  
+  root to: 'rails_admin/main#dashboard'
+
+  get 'explore/:api', to: 'api#explore', as: :explore_api
+  post 'write/:api', to: 'api#write', as: :write_api
 
   get 'oauth/callback', to: 'oauth2_callback#index'
   get 'oauth2/callback', to: 'oauth2_callback#index'
@@ -37,8 +34,10 @@ Cenit::Application.routes.draw do
      end
   end
 
-  get '/data/:model_name/*id', to: 'rails_admin/main#show'
-
   match 'app/:ns/:app_slug' => 'app#index', via: [:all]
   match 'app/:ns/:app_slug/*path' => 'app#index', via: [:all]
+
+  mount RailsAdmin::Engine => '/', as: 'rails_admin'
+
+  get '/:model_name/*id', to: 'rails_admin/main#show'
 end

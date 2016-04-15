@@ -61,7 +61,7 @@ module Capataz
       fail ArgumentError if args.length == 0
       method = args[0].is_a?(Symbol) ? args[0] : args[0].to_s.to_sym
       return false if @config[:denied_methods].include?(method)
-      if options = @config[:instances][instance]
+      if (options = @config[:instances][instance])
         return false unless allowed_method?(options, instance, method)
       else
         @config[:modules].each do |type, options|
@@ -103,7 +103,7 @@ module Capataz
       return code if Capataz.disable?
       options ||= {}
       options[:halt_on_error] = true if options[:halt_on_error].nil?
-      if locals = options[:locals]
+      if (locals = options[:locals])
         locals = [locals] unless locals.is_a?(Enumerable)
         locals.each { |local| code = "#{local} ||= nil\r\n" + code }
       end

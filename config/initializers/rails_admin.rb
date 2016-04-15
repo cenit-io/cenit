@@ -36,7 +36,8 @@
   RailsAdmin::Config::Actions::Inspect,
   RailsAdmin::Config::Actions::Copy,
   RailsAdmin::Config::Actions::Cancel,
-  RailsAdmin::Config::Actions::Configure
+  RailsAdmin::Config::Actions::Configure,
+  RailsAdmin::Config::Actions::CrossShare
 ].each { |a| RailsAdmin::Config::Actions.register(a) }
 
 RailsAdmin::Config::Actions.register(:export, RailsAdmin::Config::Actions::BulkExport)
@@ -47,16 +48,27 @@ RailsAdmin::Config::Actions.register(:export, RailsAdmin::Config::Actions::BulkE
   RailsAdmin::Config::Fields::Types::EnumEdit
 ].each { |f| RailsAdmin::Config::Fields::Types.register(f) }
 
-{
-  config: {
+RailsAdmin::Config::Fields::Types::CodeMirror.register_instance_option :js_location do
+  bindings[:view].asset_path('codemirror.js')
+end
+
+RailsAdmin::Config::Fields::Types::CodeMirror.register_instance_option :css_location do
+  bindings[:view].asset_path('codemirror.css')
+end
+
+RailsAdmin::Config::Fields::Types::CodeMirror.register_instance_option :config do
+  {
     mode: 'css',
     theme: 'neo',
-  },
-  assets: {
-    mode: '/assets/codemirror/modes/css.js',
-    theme: '/assets/codemirror/themes/neo.css',
   }
-}.each { |option, configuration| RailsAdmin::Config::Fields::Types::CodeMirror.register_instance_option(option) { configuration } }
+end
+
+RailsAdmin::Config::Fields::Types::CodeMirror.register_instance_option :assets do
+  {
+    mode: bindings[:view].asset_path('codemirror/modes/css.js'),
+    theme: bindings[:view].asset_path('codemirror/themes/neo.css'),
+  }
+end
 
 module RailsAdmin
 
@@ -111,6 +123,7 @@ RailsAdmin.config do |config|
     copy
     simple_share
     bulk_share
+    cross_share
     build_gem
     pull
     download_file
@@ -596,7 +609,7 @@ RailsAdmin.config do |config|
     label 'Data type'
     label_plural 'Data types'
     object_label_method { :custom_title }
-    visible false
+    visible true
 
     group :behavior do
       label 'Behavior'
@@ -1813,7 +1826,20 @@ RailsAdmin.config do |config|
     object_label_method { :custom_title }
     visible { Account.current.super_admin? }
     configure :namespace, :enum_edit
-    fields :namespace, :name, :slug, :actions, :application_parameters
+    configure :identifier
+    edit do
+      field :namespace
+      field :name
+      field :slug
+      field :actions
+      field :application_parameters
+    end
+    fields :namespace, :name, :slug, :identifier, :secret_token, :actions, :application_parameters
+  end
+
+  config.model Setup::ApplicationParameter do
+    navigation_label 'Workflows'
+    configure :group, :enum_edit
   end
 
   #Security
@@ -1832,13 +1858,13 @@ RailsAdmin.config do |config|
       help ''
     end
 
-    configure :shared do
+    configure :origin do
       visible { Account.current.super_admin? }
     end
 
     configure :identifier do
       pretty_value do
-        if Account.current.super_admin? || Account.current.users.collect(&:id).include?(bindings[:object].creator_id)
+        if Account.current.id == bindings[:object].tenant_id
           value
         else
           '<i class="icon-lock"/>'.html_safe
@@ -1848,7 +1874,7 @@ RailsAdmin.config do |config|
 
     configure :secret do
       pretty_value do
-        if Account.current.super_admin? || Account.current.users.collect(&:id).include?(bindings[:object].creator_id)
+        if Account.current.id == bindings[:object].tenant_id
           value
         else
           '<i class="icon-lock"/>'.html_safe
@@ -1856,7 +1882,7 @@ RailsAdmin.config do |config|
       end
     end
 
-    fields :provider, :name, :identifier, :secret, :tenant, :shared
+    fields :provider, :name, :identifier, :secret, :tenant, :origin
   end
 
   config.model Setup::BaseOauthProvider do
@@ -1871,13 +1897,13 @@ RailsAdmin.config do |config|
       help ''
     end
 
-    configure :shared do
+    configure :origin do
       visible { Account.current.super_admin? }
     end
 
     configure :namespace, :enum_edit
 
-    fields :namespace, :name, :response_type, :authorization_endpoint, :token_endpoint, :token_method, :tenant, :shared
+    fields :namespace, :name, :response_type, :authorization_endpoint, :token_endpoint, :token_method, :tenant, :origin
   end
 
   config.model Setup::OauthProvider do
@@ -1894,13 +1920,13 @@ RailsAdmin.config do |config|
       help ''
     end
 
-    configure :shared do
+    configure :origin do
       visible { Account.current.super_admin? }
     end
 
     configure :namespace, :enum_edit
 
-    fields :namespace, :name, :response_type, :authorization_endpoint, :token_endpoint, :token_method, :request_token_endpoint, :tenant, :shared
+    fields :namespace, :name, :response_type, :authorization_endpoint, :token_endpoint, :token_method, :request_token_endpoint, :tenant, :origin
   end
 
   config.model Setup::Oauth2Provider do
@@ -1917,7 +1943,7 @@ RailsAdmin.config do |config|
       help ''
     end
 
-    configure :shared do
+    configure :origin do
       visible { Account.current.super_admin? }
     end
 
@@ -1927,7 +1953,7 @@ RailsAdmin.config do |config|
 
     configure :namespace, :enum_edit
 
-    fields :namespace, :name, :response_type, :authorization_endpoint, :token_endpoint, :token_method, :scope_separator, :refresh_token_strategy, :refresh_token_algorithm, :tenant, :shared
+    fields :namespace, :name, :response_type, :authorization_endpoint, :token_endpoint, :token_method, :scope_separator, :refresh_token_strategy, :refresh_token_algorithm, :tenant, :origin
   end
 
   config.model Setup::Oauth2Scope do
@@ -1942,11 +1968,11 @@ RailsAdmin.config do |config|
       help ''
     end
 
-    configure :shared do
+    configure :origin do
       visible { Account.current.super_admin? }
     end
 
-    fields :provider, :name, :description, :tenant, :shared
+    fields :provider, :name, :description, :tenant, :origin
   end
 
   config.model Setup::Authorization do
@@ -1959,7 +1985,8 @@ RailsAdmin.config do |config|
       end
     end
     configure :namespace, :enum_edit
-    fields :namespace, :name, :status
+    configure :metadata, :json_value
+    fields :namespace, :name, :status, :metadata
     show_in_dashboard { false }
   end
 
@@ -1977,12 +2004,14 @@ RailsAdmin.config do |config|
     end
 
     configure :namespace, :enum_edit
+    configure :metadata, :json_value
 
     edit do
       field :namespace
       field :name
       field :username
       field :password
+      field :metadata
     end
 
     group :credentials do
@@ -2003,6 +2032,7 @@ RailsAdmin.config do |config|
       field :status
       field :username
       field :password
+      field :metadata
     end
 
     fields :namespace, :name, :status, :username, :password
@@ -2018,6 +2048,7 @@ RailsAdmin.config do |config|
     parent Setup::Authorization
 
     configure :namespace, :enum_edit
+    configure :metadata, :json_value
 
     configure :status do
       pretty_value do
@@ -2030,6 +2061,7 @@ RailsAdmin.config do |config|
       field :name
       field :client
       field :parameters
+      field :metadata
     end
 
     group :credentials do
@@ -2062,6 +2094,7 @@ RailsAdmin.config do |config|
       field :status
       field :client
       field :parameters
+      field :metadata
 
       field :access_token
       field :access_token_secret
@@ -2083,6 +2116,7 @@ RailsAdmin.config do |config|
     parent Setup::Authorization
 
     configure :namespace, :enum_edit
+    configure :metadata, :json_value
 
     configure :status do
       pretty_value do
@@ -2116,6 +2150,7 @@ RailsAdmin.config do |config|
       field :parameters do
         visible { bindings[:object].ready_to_save? }
       end
+      field :metadata
     end
 
     group :credentials do
@@ -2149,6 +2184,7 @@ RailsAdmin.config do |config|
       field :client
       field :scopes
       field :parameters
+      field :metadata
 
       field :expires_in
 
@@ -2159,10 +2195,16 @@ RailsAdmin.config do |config|
       field :authorized_at
       field :refresh_token
 
-      field :id
+      field :_id
     end
 
-    fields :namespace, :name, :status, :client, :scopes
+    list do
+      field :namespace
+      field :name
+      field :status
+      field :client
+      field :scopes
+    end
   end
 
   config.model Setup::AwsAuthorization do
@@ -2170,6 +2212,7 @@ RailsAdmin.config do |config|
     object_label_method { :custom_title }
 
     configure :namespace, :enum_edit
+    configure :metadata, :json_value
 
     configure :status do
       pretty_value do
@@ -2187,6 +2230,7 @@ RailsAdmin.config do |config|
       field :markets
       field :signature_method
       field :signature_version
+      field :metadata
     end
 
     group :credentials do
@@ -2211,6 +2255,7 @@ RailsAdmin.config do |config|
       field :markets
       field :signature_method
       field :signature_version
+      field :metadata
 
     end
 
@@ -2712,5 +2757,11 @@ RailsAdmin.config do |config|
     end
 
     fields :created_at, :channel, :tag, :executor, :task_id, :alive
+  end
+
+  config.model ApplicationId do
+    navigation_label 'Administration'
+
+    fields :created_at, :account, :identifier
   end
 end

@@ -34,7 +34,7 @@ module RailsAdmin
               flash[:error] = 'Error loading model'
             end
             if render_form
-              @form_object ||= @object.configuration
+              @form_object ||= @object.configuration || mongoff_model.new
               @model_config.register_instance_option(:discard_submit_buttons) { true }
               if @form_object.errors.present?
                 do_flash(:error, 'There are errors in the configuration data specification', @form_object.errors.full_messages)

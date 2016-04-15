@@ -11,7 +11,7 @@ module RailsAdmin
         type = property.type
         if property.is_a?(RailsAdmin::MongoffAssociation)
           type = (type.to_s + '_association').to_sym
-        elsif enumeration = property.enum
+        elsif (enumeration = property.enum)
           type = :enum
         end
         configure property.name, type do
@@ -21,22 +21,22 @@ module RailsAdmin
           required { property.required? }
           valid_length { {} }
           enum { enumeration } if enumeration
-          if title = property.title
+          if (title = property.title)
             label { title }
           end
-          if description = property.description
+          if (description = property.description)
             description = (property.required? ? 'Required. ' : 'Optional. ') + description
             help { description }
           end
-          if g = property.group
-            group g.to_sym
+          unless (g = property.group.to_s.gsub(/ +/, '_').underscore.to_sym).blank?
+            group g
           end
           if property.is_a?(RailsAdmin::MongoffAssociation)
             # associated_collection_cache_all true
             pretty_value do
               v = bindings[:view]
               action = v.instance_variable_get(:@action)
-              if showing = action.is_a?(RailsAdmin::Config::Actions::Show) && !v.instance_variable_get(:@showing)
+              if (showing = action.is_a?(RailsAdmin::Config::Actions::Show) && !v.instance_variable_get(:@showing))
                 amc = RailsAdmin.config(association.klass)
               else
                 amc = polymorphic? ? RailsAdmin.config(associated) : associated_model_config # perf optimization for non-polymorphic associations

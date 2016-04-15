@@ -1,3 +1,15 @@
+class Hash
+
+  def plain_query(namespace = nil)
+    collect do |key, value|
+      unless (value.is_a?(Hash) || value.is_a?(Array)) && value.empty?
+        value.to_query(namespace ? "#{namespace}[#{key}]" : key)
+      end
+    end.compact * '&'
+  end
+
+end
+
 module Enumerable
 
   def to_xml_array(options = {})
