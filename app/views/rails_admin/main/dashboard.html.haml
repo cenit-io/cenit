@@ -1,3 +1,37 @@
+#usage-blocks.blocks.clearfix
+  #tasks-overview.col-sm-4
+    .block
+      .icon
+        %i.icon-tasks
+      .caption
+        %h4 Tasks summary
+        %h6 Extra data here
+  #auths-overview.col-sm-4
+    .block
+      .icon
+        %i.icon-check
+      .caption
+        %h4 Authorizations summary
+        %h6 Extra data here
+  #notif-overview.col-sm-4
+    .block
+      .icon
+        %i.icon-bell
+      .caption
+        %h4 Notifications summary
+        %h6 Extra data here
+
+#collections-blocks.blocks.clearfix
+  #favorite-collections.col-sm-12.col-lg-4
+    .block
+      %h4 My favorite collections
+  #trending-collections.col-sm-6.col-lg-4
+    .block
+      %h4 Trending collections
+  #latest-collections.col-sm-6.col-lg-4
+    .block
+      %h4 Latest collections
+
 - if @abstract_models
   %table.table.table-condensed.table-striped
     %thead

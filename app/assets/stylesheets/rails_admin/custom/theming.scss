@@ -123,3 +123,62 @@ ul#main-accordion .panel.active>.panel-heading .nav-caret i {
 ul#main-accordion .nav-icon {
   margin-right: 1rem;
 }
+
+/* Dashboard overview*/
+.blocks {
+  margin-bottom: 24px;
+}
+
+.blocks .block {
+  border: solid 1px;
+  border-radius: 1px;
+  padding: 0 10px;
+}
+
+.block .icon,
+.block .caption {
+  display: inline-block;
+  vertical-align: middle;
+  padding: 5px;
+}
+
+.block .icon i {
+  font-size: 32px;
+}
+
+#tasks-overview .block {
+  background-color: #93f299;
+  border-color: #63e96c;
+}
+
+#tasks-overview .icon i {
+  color: #00be0c;
+}
+
+#auths-overview .block {
+  background-color: #94c3ea;
+  border-color: #65a5da;
+}
+
+#auths-overview .icon i {
+  color: #0a5a9c;
+}
+
+#notif-overview .block {
+  background-color: #ae9aec;
+  border-color: #896dde;
+}
+
+#notif-overview .icon i {
+  color: #3611a6;
+}
+
+.block .caption h4 {
+  margin-bottom: 2px;
+}
+
+.block .caption h6 {
+  margin-top: 0;
+  font-weight: lighter;
+  color: #777;
+}
