@@ -57,7 +57,7 @@ module Setup
       self.token_type = token.params['token_type']
       self.authorized_at =
         if (time = token.params['created_at'])
-          Time.at(time)
+          time.is_a?(String) ? Time.parse(time) : Time.at(time.to_i)
         else
           Time.now
         end
