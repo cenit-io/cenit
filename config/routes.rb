@@ -8,8 +8,9 @@ Cenit::Application.routes.draw do
   get 'explore/:api', to: 'api#explore', as: :explore_api
   post 'write/:api', to: 'api#write', as: :write_api
 
-  get 'oauth/callback', to: 'oauth2_callback#index'
-  get 'oauth2/callback', to: 'oauth2_callback#index'
+  match 'oauth/authorize', to: 'oauth#index', via: [:get, :post]
+  get 'oauth/callback', to: 'oauth#callback'
+  get 'oauth2/callback', to: 'oauth#callback'
   get 'schema', to: 'schema#index'
   get 'captcha', to: 'captcha#index'
   get 'captcha/:token', to: 'captcha#index'
