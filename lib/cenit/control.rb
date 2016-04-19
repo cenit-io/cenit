@@ -68,6 +68,10 @@ module Cenit
       @app.configuration[param]
     end
 
+    def access_token_for(auth)
+      fail NotImplementedError
+    end
+
     attr_reader :action
 
     private
