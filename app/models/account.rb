@@ -94,19 +94,14 @@ class Account
 
     def tenant_collection_prefix(options = {})
       sep = options[:separator] || ''
-      if current.present?
-        acc_id =
-          (options[:account] && options[:account].id) ||
-            options[:account_id] ||
-            if (user = current.owner) && user.super_admin? && current.tenant_account.present?
-              current.tenant_account.id
-            else
-              current.id
-            end
-        "acc#{acc_id}#{sep}"
-      else
-        ''
-      end
+      acc_id =
+        (options[:account] && options[:account].id) ||
+          options[:account_id] ||
+          (current &&
+            (((user = current.owner) && user.super_admin? && current.tenant_account.present?) ?
+              current.tenant_account.id :
+              current.id))
+      acc_id ? "acc#{acc_id}#{sep}" : ''
     end
 
     def tenant_collection_name(model_name, options = {})
