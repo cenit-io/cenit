@@ -2262,6 +2262,13 @@ RailsAdmin.config do |config|
     fields :namespace, :name, :aws_access_key, :aws_secret_key, :seller, :merchant, :markets, :signature_method, :signature_version
   end
 
+  config.model Setup::OauthAccessGrant do
+    navigation_label 'Security'
+    weight -32
+
+    fields :created_at, :application_id, :scope
+  end
+
   #Monitors
 
   config.navigation 'Monitors', icon: 'fa fa-heartbeat'
