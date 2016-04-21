@@ -11,15 +11,15 @@
       .icon
         %i.icon-check
       .caption
-        %h4 Authorizations summary
-        %h6 Extra data here
+        %h4 #{Setup::Authorization.all.count} authorizations registered
+        %h6 #{Setup::Authorization.where(authorized: false).count} unauthorized
   #notif-overview.col-sm-4
     .block
       .icon
         %i.icon-bell
       .caption
-        %h4 Notifications summary
-        %h6 Extra data here
+        %h4 #{Setup::Notification.dashboard_related()[:total]} new notifications
+        %h6 #{Setup::Notification.dashboard_related()[Setup::Notification.type_color(:warning)]} warnings and #{Setup::Notification.dashboard_related()[Setup::Notification.type_color(:error)]} errors
 
 #collections-blocks.blocks.clearfix
   #favorite-collections.col-sm-12.col-lg-4
