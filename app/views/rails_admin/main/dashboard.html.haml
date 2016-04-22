@@ -4,34 +4,64 @@
       .icon
         %i.icon-tasks
       .caption
-        %h4 Tasks summary
-        %h6 Extra data here
+        %h4 #{number_to_human(Setup::Task.any_in(status: Setup::Task::RUNNING_STATUS).count)} running tasks
+        -if (value = Setup::Task.where(status: :failed).count) > 0
+          - value = number_to_human(value)
+          - label = 'failed'
+        -elsif (value = Setup::Task.where(status: :broken).count) > 0
+          - value = number_to_human(value)
+          - label = 'broken'
+        -elsif (value = Setup::Task.where(status: :unscheduled).count) > 0
+          - value = number_to_human(value)
+          - label = 'unscheduled'
+        -elsif (value = Setup::Task.where(status: :pending).count) > 0
+          - value = number_to_human(value)
+          - label = 'pending'
+        -else
+          - value = 'All'
+          - label = 'good'
+        %h6 #{value} #{label}
   #auths-overview.col-sm-4
     .block
       .icon
         %i.icon-check
       .caption
-        %h4 #{Setup::Authorization.all.count} authorizations registered
-        %h6 #{Setup::Authorization.where(authorized: false).count} unauthorized
+        %h4 #{number_to_human(Setup::Authorization.all.count)} authorizations
+        -if (value = Setup::Authorization.where(authorized: false).count) > 0
+          - value = number_to_human(value)
+          - label = 'unauthorized'
+        -else
+          - value = 'All'
+          - label = 'good'
+        %h6 #{value} #{label}
   #notif-overview.col-sm-4
     .block
       .icon
         %i.icon-bell
       .caption
-        %h4 #{Setup::Notification.dashboard_related()[:total]} new notifications
-        %h6 #{Setup::Notification.dashboard_related()[Setup::Notification.type_color(:warning)]} warnings and #{Setup::Notification.dashboard_related()[Setup::Notification.type_color(:error)]} errors
+        %h4 #{number_to_human(Setup::Notification.dashboard_related()[:total])} notifications
+        -if (value = Setup::Notification.dashboard_related()[Setup::Notification.type_color(:error)]) > 0
+          - value = number_to_human(value)
+          - label = 'errors'
+        -elsif (value = Setup::Notification.dashboard_related()[Setup::Notification.type_color(:warning)]) > 0
+          - value = number_to_human(value)
+          - label = 'warnings'
+        -else
+          - value = 'All'
+          - label = 'good'
+        %h6 #{value} #{label}
 
-#collections-blocks.blocks.clearfix
-  #favorite-collections.col-sm-12.col-lg-4
-    .block
-      %h4 My favorite collections
-  #trending-collections.col-sm-6.col-lg-4
-    .block
-      %h4 Trending collections
-  #latest-collections.col-sm-6.col-lg-4
-    .block
-      %h4 Latest collections
-
+-##collections-blocks.blocks.clearfix
+-#  #favorite-collections.col-sm-12.col-lg-4
+-#    .block
+-#      %h4 My favorite collections
+-#  #trending-collections.col-sm-6.col-lg-4
+-#    .block
+-#      %h4 Trending collections
+-#  #latest-collections.col-sm-6.col-lg-4
+-#    .block
+-#      %h4 Latest collections
+-#
 - if @abstract_models
   %table.table.table-condensed.table-striped
     %thead

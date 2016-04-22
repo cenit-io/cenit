@@ -126,13 +126,16 @@ ul#main-accordion .nav-icon {
 
 /* Dashboard overview*/
 .blocks {
-  margin-bottom: 24px;
+  margin-bottom: 12px;
 }
 
 .blocks .block {
   border: solid 1px;
   border-radius: 1px;
   padding: 0 10px;
+  background-color: #d9edf7;
+  border-color: #94c3ea;
+  margin-bottom: 12px;
 }
 
 .block .icon,
@@ -144,34 +147,40 @@ ul#main-accordion .nav-icon {
 
 .block .icon i {
   font-size: 32px;
+  color: #428bca;
 }
 
-#tasks-overview .block {
-  background-color: #93f299;
-  border-color: #63e96c;
+@media (min-width: 768px) and (max-width: 999px) {
+  .block .icon {
+    display: none;
+  }
 }
-
-#tasks-overview .icon i {
-  color: #00be0c;
-}
-
-#auths-overview .block {
-  background-color: #94c3ea;
-  border-color: #65a5da;
-}
-
-#auths-overview .icon i {
-  color: #0a5a9c;
-}
-
-#notif-overview .block {
-  background-color: #ae9aec;
-  border-color: #896dde;
-}
-
-#notif-overview .icon i {
-  color: #3611a6;
-}
+//#tasks-overview .block {
+//  background-color: #93f299;
+//  border-color: #63e96c;
+//}
+//
+//#tasks-overview .icon i {
+//  color: #00be0c;
+//}
+//
+//#auths-overview .block {
+//  background-color: #94c3ea;
+//  border-color: #65a5da;
+//}
+//
+//#auths-overview .icon i {
+//  color: #0a5a9c;
+//}
+//
+//#notif-overview .block {
+//  background-color: #ae9aec;
+//  border-color: #896dde;
+//}
+//
+//#notif-overview .icon i {
+//  color: #3611a6;
+//}
 
 .block .caption h4 {
   margin-bottom: 2px;
@@ -180,5 +189,6 @@ ul#main-accordion .nav-icon {
 .block .caption h6 {
   margin-top: 0;
   font-weight: lighter;
+  font-size: 14px;
   color: #777;
 }
