@@ -37,7 +37,8 @@
   RailsAdmin::Config::Actions::Copy,
   RailsAdmin::Config::Actions::Cancel,
   RailsAdmin::Config::Actions::Configure,
-  RailsAdmin::Config::Actions::CrossShare
+  RailsAdmin::Config::Actions::CrossShare,
+  RailsAdmin::Config::Actions::Regist
 ].each { |a| RailsAdmin::Config::Actions.register(a) }
 
 RailsAdmin::Config::Actions.register(:export, RailsAdmin::Config::Actions::BulkExport)
@@ -144,6 +145,7 @@ RailsAdmin.config do |config|
     submit
     inspect
     cancel
+    regist
     simple_delete_data_type
     bulk_delete_data_type
     delete
@@ -2769,6 +2771,21 @@ RailsAdmin.config do |config|
   config.model ApplicationId do
     navigation_label 'Administration'
 
-    fields :created_at, :account, :identifier
+    register_instance_option(:discard_submit_buttons) { bindings[:object].instance_variable_get(:@registering) }
+
+    configure :name
+    configure :registered, :boolean
+    configure :redirect_uris, :json_value
+
+    edit do
+      field :oauth_name do
+        visible { bindings[:object].instance_variable_get(:@registering) }
+      end
+      field :redirect_uris do
+        visible { bindings[:object].instance_variable_get(:@registering) }
+      end
+    end
+
+    fields :created_at, :name, :registered, :account, :identifier
   end
 end
