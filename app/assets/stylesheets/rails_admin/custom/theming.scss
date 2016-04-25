@@ -54,7 +54,7 @@
   z-index: 1000;
   position: absolute;
   left: 250px;
-  width: 0;
+  width: 55px;
   height: 100%;
   margin-left: -250px;
   overflow-y: auto;
@@ -84,11 +84,22 @@
   opacity: 1;
 }
 
+#wrapper #sidebar-wrapper:hover {
+  width: 250px;
+}
+#wrapper #sidebar-wrapper:hover .nav-caret,
+#wrapper #sidebar-wrapper:hover .nav-caption {
+  opacity: 1;
+}
+
+
 #content-wrapper {
-  position: absolute;
   width: 100%;
   overflow-x: hidden;
   background: #fff;
+  position: relative;
+  margin-right: 0;
+  margin-left: 60px;
 }
 
 .xyz{
@@ -96,8 +107,8 @@
 }
 
 #wrapper.toggled #content-wrapper {
-  position: relative;
   margin-right: 0;
+  margin-left: 0;
 }
 
 .fixed-brand{
@@ -173,6 +184,7 @@
     -moz-transition: all 0.5s ease;
     -o-transition: all 0.5s ease;
     transition: all 0.5s ease;
+    margin-left: 0;
   }
 
   #wrapper.toggled #content-wrapper {
