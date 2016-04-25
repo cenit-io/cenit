@@ -134,8 +134,12 @@ ul#main-accordion .nav-icon {
   border-radius: 1px;
   padding: 0 10px;
   background-color: #d9edf7;
-  border-color: #94c3ea;
+  border-color: #d9edf7;
   margin-bottom: 12px;
+}
+
+.blocks .block:hover {
+  border-color: #94c3ea;
 }
 
 .block .icon,
