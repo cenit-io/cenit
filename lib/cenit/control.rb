@@ -73,7 +73,8 @@ module Cenit
       unless (app_id = ApplicationId.where(identifier: auth.client && auth.client.identifier).first)
         fail "Invalid authorization client: #{auth.client.identifier}"
       end
-      if (scope = auth.scopes.collect { |scope| Cenit::Scope.new(scope.name) }.inject(&:merge)).valid?
+      if (scope = auth.scopes.collect { |scope| Cenit::Scope.new(scope.name) }.inject(&:merge)).valid? &&
+        scope.auth?
         OauthAccessToken.for(User.current, app_id, scope)
       else
         fail 'Invalid authorization scope'
