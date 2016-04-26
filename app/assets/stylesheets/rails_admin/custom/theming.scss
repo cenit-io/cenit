@@ -315,3 +315,50 @@ ul#main-accordion .panel-heading .nav-icon {
   display: inline-block;
   text-align: center;
 }
+
+/* Dashboard overview*/
+.blocks {
+  margin-bottom: 12px;
+}
+
+.blocks .block {
+  border: solid 1px;
+  border-radius: 1px;
+  padding: 0 10px;
+  background-color: #d9edf7;
+  border-color: #bce8f1;
+  margin-bottom: 12px;
+}
+
+.blocks .block:hover {
+  border-color: #94c3ea;
+}
+
+.block .icon,
+.block .caption {
+  display: inline-block;
+  vertical-align: middle;
+  padding: 5px;
+}
+
+.block .icon i {
+  font-size: 32px;
+  color: #31708f;
+}
+
+@media (min-width: 768px) and (max-width: 999px) {
+  .block .icon {
+    display: none;
+  }
+}
+
+.block .caption h4 {
+  margin-bottom: 2px;
+}
+
+.block .caption h6 {
+  margin-top: 0;
+  font-weight: lighter;
+  font-size: 14px;
+  color: #777;
+}
