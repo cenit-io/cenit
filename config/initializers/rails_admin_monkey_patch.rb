@@ -71,6 +71,10 @@ module RailsAdmin
       def contextualized_label_plural(context = nil)
         label_plural
       end
+
+      register_instance_option :extra_associations do
+        []
+      end
     end
 
     module Actions
@@ -210,6 +214,10 @@ module RailsAdmin
 
       class Association
 
+        register_instance_option :list_fields do
+          nil
+        end
+
         register_instance_option :pretty_value do
           v = bindings[:view]
           #Patch
@@ -221,6 +229,9 @@ module RailsAdmin
             am = amc.abstract_model
             count = 0
             fields = amc.list.with(controller: self, view: v, object: am.new).visible_fields
+            if (listing = list_fields)
+              fields = fields.select { |f| listing.include?(f.name.to_s) }
+            end
             table = <<-HTML
             <table class="table table-condensed table-striped">
               <thead>
@@ -232,8 +243,9 @@ module RailsAdmin
               <tbody>
           #{values.collect do |associated|
               if count < limit - 5 || limit >= total
+                associated.instance_pending_references(*fields)
                 count += 1
-                can_see = !am.embedded? && (show_action = v.action(:show, am, associated))
+                can_see = !am.embedded? && !associated.new_record? && (show_action = v.action(:show, am, associated))
                 '<tr class="script_row">' +
                   fields.collect do |field|
                     field.bind(object: associated, view: v)
@@ -284,10 +296,12 @@ module RailsAdmin
         end
 
         def show_values(limit = 10)
-          if (v = bindings[:object].send(association.name))
+          if (v = bindings[:object].try(association.name, limit: limit) || bindings[:object].send(association.name))
             if v.is_a?(Enumerable)
-              total = v.count
-              v = v.limit(limit) rescue v
+              total = v.size
+              if total > limit
+                v = v.limit(limit) rescue v
+              end
             else
               v = [v]
               total = 1
@@ -833,6 +847,12 @@ module RailsAdmin
           [collection_name, column_name]
         end
         [collection_name, column_name]
+      end
+
+      def associations
+        model.relations.values.collect do |association|
+          Association.new(association, model)
+        end + config.extra_associations
       end
     end
   end
