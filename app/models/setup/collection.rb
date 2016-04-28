@@ -85,12 +85,12 @@ module Setup
             client: :oauth_clients
           }.each do |property, collector_name|
             collector = send(collector_name)
-            unless (obj = authorization.send(property)).shared
+            unless (obj = authorization.send(property)).shared?
               collector << obj unless collector.any? { |o| o == obj }
             end
           end
           if authorization.is_a?(Setup::Oauth2Authorization)
-            authorization.scopes.each { |scope| oauth2_scopes << scope unless scope.shared || oauth2_scopes.any? { |s| s == scope } }
+            authorization.scopes.each { |scope| oauth2_scopes << scope unless scope.shared? || oauth2_scopes.any? { |s| s == scope } }
           end
         end
       end
