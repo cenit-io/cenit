@@ -14,7 +14,6 @@
     #loading.label.label-warning{style: 'display:none; position:fixed; right:20px; bottom:20px; z-index:100000'}= t('admin.loading')
     %nav.navbar.navbar-default.navbar-fixed-top
       = render "layouts/rails_admin/navigation"
-    -#.container-fluid
     #wrapper
       - if Cenit.hide_admin_navigation
         .content{:'data-pjax-container' => true}= render template: 'layouts/rails_admin/pjax'
@@ -22,6 +21,6 @@
         #sidebar-wrapper
           = render "layouts/rails_admin/sidebar_navigation"
         #content-wrapper
-          .container-fluid.xyz
-            .row
-              .content{:'data-pjax-container' => true}= render template: 'layouts/rails_admin/pjax'
+          .xyz
+            -#.row
+            .content{:'data-pjax-container' => true}= render template: 'layouts/rails_admin/pjax'
