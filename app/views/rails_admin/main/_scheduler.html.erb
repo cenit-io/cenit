@@ -1,0 +1,102 @@
+
+<input type="hidden" id="setup_scheduler_expression1" name="setup_scheduler[expression1]">
+
+<div class="form-inline">
+  <div>
+<label>Days of the Week </label>
+
+<% days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'] %>
+
+<div class="checkboxes form-inline">
+  <% days.each do |d| %>
+      <div class="checkbox">
+        <label><input type="checkbox"><br><span>
+         <%= d %>
+        </span></label></div>
+  <% end %>
+</div>
+  </div>
+
+  <div>
+<label>Week in the month</label>
+
+<% week_month = ['First', 'Second', 'Last'] %>
+
+<div class="checkboxes form-inline">
+  <% week_month.each do |d| %>
+      <div class="checkbox">
+        <label><input type="checkbox"><br><span>
+         <%= d %>
+        </span></label></div>
+  <% end %>
+</div>
+  </div>
+
+</div>
+
+
+<label>Days of the Month</label>
+
+<div class="form-inline">
+  <input type="text">
+
+  <select class="form-control input-sm" id="sel1">
+    <option>Every day</option>
+
+    <% daysn = [3, 4, 6, 12] %>
+    <% daysn.each do |d| %>
+        <option>Every <%= d %> days</option>
+    <% end %>
+
+    <option>First day</option>
+    <option>Last day</option>
+
+  </select>
+</div>
+
+
+<label>Months </label>
+
+<div class="form-inline">
+  <input type="text">
+
+  <select class="form-control input-sm" id="sel1">
+    <option>Every month</option>
+
+    <% months = [2, 3, 4, 6] %>
+    <% months.each do |d| %>
+        <option>Every <%= d %> months</option>
+    <% end %>
+
+  </select>
+</div>
+
+
+<label>Hours</label>
+
+<div class="form-inline">
+  <input type="text">
+
+  <select class="form-control input-sm" id="sel1">
+    <option>Every hour</option>
+    <% hours = [2, 3, 4, 6, 12] %>
+    <% hours.each do |d| %>
+        <option>Every <%= d %> hours</option>
+    <% end %>
+  </select>
+</div>
+
+
+<label>Minutes</label>
+
+<div class="form-inline">
+  <input type="text">
+
+  <select class="form-control input-sm" id="sel1">
+    <option>Every minute</option>
+    <% minutes = [2, 4, 5, 10, 15, 20, 30] %>
+    <% minutes.each do |d| %>
+        <option>Every <%= d %> minutes</option>
+    <% end %>
+  </select>
+</div>

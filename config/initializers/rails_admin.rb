@@ -1574,8 +1574,18 @@ RailsAdmin.config do |config|
       field :namespace
       field :name
       field :scheduling_method
+
+      field :expression1 do
+
+        visible { bindings[:object].scheduling_method == :Compound }
+
+        label "Schedule"
+        partial :scheduler
+
+      end
+
       field :expression do
-        visible { bindings[:object].scheduling_method.present? }
+        visible { bindings[:object].scheduling_method == :Periodic }
         label do
           case bindings[:object].scheduling_method
           when :Once

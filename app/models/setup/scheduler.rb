@@ -1,10 +1,16 @@
 module Setup
   class Scheduler < Event
 
-    BuildInDataType.regist(self).with(:namespace, :name, :scheduling_method, :expression, :activated).referenced_by(:namespace, :name)
+    BuildInDataType.regist(self)
+        .with(:namespace, :name,
+              :scheduling_method,
+              :expression, :expression1,
+              :activated)
+        .referenced_by(:namespace, :name)
 
     field :scheduling_method, type: Symbol
     field :expression, type: String
+    field :expression1, type: String
     field :activated, type: Boolean, default: false
 
     has_many :delayed_messages, class_name: Setup::DelayedMessage.to_s, inverse_of: :scheduler
@@ -14,23 +20,26 @@ module Setup
     scope :activated, -> { where(activated: true) }
 
     validate do
-      errors.add(:expression, "can't be blank") unless (exp = expression).present?
+      # errors.add(:expression, "can't be blank") unless (exp = expression).present?
+
       case scheduling_method
-      when :Once
-        errors.add(:expression, 'is not a valid date-time') unless !(DateTime.parse(exp) rescue nil)
-      when :Periodic
-        if exp =~ /\A[1-9][0-9]*(s|m|h|d)\Z/
-          if interval < (min = (Cenit.min_scheduler_interval || 60))
-            self.expression = "#{min}s"
+        when :Once
+          errors.add(:expression, 'is not a valid date-time') unless !(DateTime.parse(exp) rescue nil)
+        when :Periodic
+          if exp =~ /\A[1-9][0-9]*(s|m|h|d)\Z/
+            if interval < (min = (Cenit.min_scheduler_interval || 60))
+              self.expression = "#{min}s"
+            end
+          else
+            errors.add(:expression, 'is not a valid interval')
           end
+        when :CRON
+          #TODO Validate CRON Expression
+          #errors.add(:expression, 'is not a valid CRON expression') unless exp =~ /\A(0|[1-5][0-9]?|[6-9]|\*) (0|1[0-9]?|2[0-3]?|[3-9]|\*) ([1-2][0-9]?|3[0-1]?|[4-9]|\*)  (1[0-2]?|[2-9]|\*) (\*)\Z/
+        when :Compound
+
         else
-          errors.add(:expression, 'is not a valid interval')
-        end
-      when :CRON
-        #TODO Validate CRON Expression
-        #errors.add(:expression, 'is not a valid CRON expression') unless exp =~ /\A(0|[1-5][0-9]?|[6-9]|\*) (0|1[0-9]?|2[0-3]?|[3-9]|\*) ([1-2][0-9]?|3[0-1]?|[4-9]|\*)  (1[0-2]?|[2-9]|\*) (\*)\Z/
-      else
-        errors.add(:scheduling_method, 'is not a valid scheduling method')
+          errors.add(:scheduling_method, 'is not a valid scheduling method')
       end
       errors.blank?
     end
@@ -49,7 +58,7 @@ module Setup
     end
 
     def scheduling_method_enum
-      [:Periodic] #[:Once, :Periodic, :CRON]
+      [:Compound, :Periodic] #[:Once, :Periodic, :CRON]
     end
 
     def ready_to_save?
@@ -95,15 +104,17 @@ module Setup
 
     def interval
       case scheduling_method
-      when :Once
-        Time.now - DateTime.parse(expression) rescue 0
-      when :Periodic
-        expression.to_s.to_seconds_interval
-      when :CRON
-        #TODO Next CRON Time
-        0
-      else
-        0
+        when :Once
+          Time.now - DateTime.parse(expression) rescue 0
+        when :Periodic
+          expression.to_s.to_seconds_interval
+        when :CRON
+          #TODO Next CRON Time
+          0
+        when :Compound
+          0
+        else
+          0
       end
     end
 
@@ -117,16 +128,16 @@ end
 class String
   def to_seconds_interval
     case last
-    when 's'
-      1
-    when 'm'
-      60
-    when 'h'
-      60 * 60
-    when 'd'
-      24 * 60 * 60
-    else
-      0
+      when 's'
+        1
+      when 'm'
+        60
+      when 'h'
+        60 * 60
+      when 'd'
+        24 * 60 * 60
+      else
+        0
     end * chop.to_i
   end
 end
