@@ -362,3 +362,61 @@ ul#main-accordion .panel-heading .nav-icon {
   font-size: 14px;
   color: #777;
 }
+
+// Grid styles ... from APIGuru
+#grid-wrapper .panel-heading {
+  padding: 10px 15px;
+}
+
+#grid-wrapper .panel-body-logo {
+  height: 100px;
+  vertical-align: middle;
+  line-height: 90px;
+  padding: 5px;
+}
+
+#grid-wrapper img.logo {
+  background-color: transparent;
+  max-width: 100%;
+  max-height: 100%;
+  padding: 10px;
+}
+
+#grid-wrapper .panel-body-description {
+  margin-top: 15px;
+}
+
+#grid-wrapper .line-clamp {
+  display: block;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  position: relative;
+  line-height: 1.2;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  padding: 0!important;
+}
+
+#grid-wrapper .line-clamp-3 {
+  -webkit-line-clamp: 3;
+  height: calc(1em * 1.2 * 3);
+}
+
+#grid-wrapper .footer-description {
+  font-size: 0.8em;
+  margin-bottom: 0.1em;
+  color: #a2a2a2;
+}
+
+#grid-wrapper .versions > span {
+  display: inline-block;
+  vertical-align: middle;
+}
+
+#grid-wrapper .truncate {
+  max-width: 100px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: inline-block;
+}

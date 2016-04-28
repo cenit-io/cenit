@@ -1,1 +1,36 @@
-%h2 Grid View
+#grid
+  %script
+    jQuery(function($) {
+    $.filters.options.regional = {
+    datePicker: {
+    dateFormat: #{raw I18n.t("admin.misc.filter_date_format", default: I18n.t("admin.misc.filter_date_format", locale: :en)).to_json},
+    dayNames: #{raw RailsAdmin::Config::Fields::Types::Datetime.day_names.to_json},
+    dayNamesShort: #{raw RailsAdmin::Config::Fields::Types::Datetime.abbr_day_names.to_json},
+    dayNamesMin: #{raw RailsAdmin::Config::Fields::Types::Datetime.abbr_day_names.to_json},
+    firstDay: "1",
+    monthNames: #{raw RailsAdmin::Config::Fields::Types::Datetime.month_names.to_json},
+    monthNamesShort: #{raw RailsAdmin::Config::Fields::Types::Datetime.abbr_month_names.to_json}
+    }
+    }
+
+    = @ordered_filter_string
+
+    });
+
+  #grid-wrapper
+    - @objects.each do |object|
+      .col-xs-6.col-sm-4.col-md-3
+        .panel.panel-default.text-center
+          .panel-heading
+            - url = url_for(action: :show, id: object.id)
+            %a{href: url} #{object.name}
+          .panel-body
+            .panel-body-logo.text-center
+              %img.logo{src:object.image}
+            .panel-body-description.line-clamp.line-clamp-3
+              %p #{object.summary || object.description}
+          .panel-footer
+            .footer-description #{object.category}
+            .versions
+              %span.truncate #{object.shared_version}
+
