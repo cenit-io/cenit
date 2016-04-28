@@ -141,3 +141,171 @@ class String
     end * chop.to_i
   end
 end
+
+
+require 'json'
+require 'date'
+
+class SchedulerTimePointsCalculator
+
+  def amount_of_days(year, month)
+    res = {
+        1 => 31, 3 => 31,
+        5 => 31, 7 => 31,
+        8 => 31, 10 => 31,
+        12 => 31,
+    }
+    res = res[month]
+    if not res
+      dt = Time.gm(year, month+1, 1)
+      res = (dt-1).day
+    end
+    res
+  end
+
+
+  def thow_first_days(year, dd, m)
+    res = []
+    one_day = 60*60*24
+    d1 = Time.gm(year, m, 1)
+    d2 = Time.gm(year, m, 21)
+    sunday = d1 + ((7 + dd - d1.wday) % 7) * one_day
+    while sunday < d2
+      res << sunday.day
+      sunday += one_day * 7
+    end
+    res
+  end
+
+  def all_days(year, dd, m)
+    res = []
+    one_day = 60*60*24
+    d1 = Time.gm(year, m, 1)
+    d2 = Time.gm(year, m, amount_of_days(year, m))
+    sunday = d1 + ((7 + dd - d1.wday) % 7) * one_day
+    while sunday < d2
+      res << sunday.day
+      sunday += one_day * 7
+    end
+    res
+  end
+
+  def last_day(year, dd, m)
+    one_day = 60*60*24
+    d1 = Time.gm(year, m, amount_of_days(year, m))
+    while d1.wday != dd
+      d1 -= one_day
+    end
+    d1
+  end
+
+  def thow_last_days(year, dd, m)
+    res = []
+    one_day = 60*60*24
+    d1 = Time.gm(year, m, amount_of_days(year, m))
+    d2 = Time.gm(year, m, amount_of_days(year, m) - 14)
+    sunday = last_day(year, dd, m)
+
+    while sunday > d2
+      res << sunday.day
+      sunday -= one_day * 7
+    end
+    res
+  end
+
+  def days
+    months_days = @conf["months_days"]
+    weeks_days = @conf["weeks_days"]
+    if weeks_days == [] and months_days == []
+      months_days = [1]
+    else
+      # weeks_days exists!
+      if months_days == []
+        # Obtener los dias de acuerdo a la(s) semana(s)
+        month = @solution[0]
+        weeks_month = @conf["weeks_month"]
+
+        if weeks_month.length > 0
+          weeks_month.each do |wm|
+            if wm > 0
+              # firsts one
+              months_days += weeks_days.collect do |wd|
+                thow_first_days(@year, wd, month)[wm-1]
+              end
+            else
+              # lasts one
+              months_days += weeks_days.collect do |wd|
+                thow_last_days(@year, wd, month)[wm.abs - 1]
+              end
+            end
+          end
+        else
+          months_days = weeks_days.collect do |wd|
+            all_days(@year, wd, month)
+          end
+          months_days.flatten
+        end
+
+      end
+    end
+    months_days
+  end
+
+  def hours
+    res = @conf["hours"]
+    if res == []
+      res = [0]
+    end
+    res
+  end
+
+  def minutes
+    res = @conf["minutes"]
+    if res == []
+      res = [0]
+    end
+    res
+  end
+
+  def months
+    res = @conf["months"]
+    if res == []
+      res = [1]
+    end
+    res
+
+  end
+
+  def initialize(conf, year)
+    @conf = conf
+    @actions = [->() { months }, ->() { days }, ->() { hours }, ->() { minutes }]
+    @year = year
+  end
+
+  def run
+    @solution = [0, 0, 0, 0]
+    @v = []
+    backtracking(0)
+    @v
+  end
+
+  private
+
+  def report_solution
+    @v << DateTime.strptime(
+        "#{@solution[0]}-#{@solution[1]}-#{@year} #{@solution[2]}:#{@solution[3]}",
+        '%m-%d-%Y %H:%M')
+  end
+
+  def backtracking(k)
+    if k > 3
+      report_solution()
+    else
+      @actions[k].call.each { |e|
+        @solution[k] = e
+        backtracking(k+1)
+      }
+    end
+  end
+
+end
