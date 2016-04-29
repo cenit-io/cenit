@@ -14,7 +14,7 @@
   - if _current_user
     - if (user_link = edit_user_link)
       - user_link = [user_link] unless user_link.is_a?(Enumerable)
-      %li.edit_user_root_link= user_link.shift
+      %li.edit_user_root_link{style: 'padding-right:5px'}= user_link.shift
       - user_link.each do |link|
         %li= link
     - if logout_path.present?

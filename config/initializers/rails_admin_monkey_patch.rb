@@ -243,7 +243,7 @@ module RailsAdmin
               <tbody>
           #{values.collect do |associated|
               if count < limit - 5 || limit >= total
-                associated.instance_pending_references(*fields)
+                associated.try(:instance_pending_references, *fields)
                 count += 1
                 can_see = !am.embedded? && !associated.new_record? && (show_action = v.action(:show, am, associated))
                 '<tr class="script_row">' +
@@ -603,6 +603,11 @@ module RailsAdmin
       return nil unless current_user && abstract_model && edit_action
       link = link_to url_for(action: edit_action.action_name, model_name: abstract_model.to_param, id: current_user.id, controller: 'rails_admin/main') do
         html = []
+        # Patch
+        # text = _current_user.name
+        # Patch
+        text = current_user.send(user_config.object_label_method)
+        html << content_tag(:span, text, style: 'padding-right:5px')
         unless inspecting
           if current_user && current_user.picture.present? && abstract_model && edit_action
             html << image_tag(current_user.picture.icon.url, alt: '')
@@ -610,11 +615,6 @@ module RailsAdmin
             html << image_tag("#{(request.ssl? ? 'https://secure' : 'http://www')}.gravatar.com/avatar/#{Digest::MD5.hexdigest current_user.email}?s=30", alt: '')
           end
         end
-        # Patch
-        # text = _current_user.name
-        # Patch
-        text = current_user.send(user_config.object_label_method)
-        html << content_tag(:span, text)
         html.join.html_safe
       end
       if inspecting
