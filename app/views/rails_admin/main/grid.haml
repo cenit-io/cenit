@@ -1,3 +1,75 @@
+:ruby
+  require 'rails_admin/config/fields/types/datetime.rb'
+  query = params[:query]
+  params = request.params.except(:authenticity_token, :action, :controller, :utf8, :bulk_export, :_pjax)
+  params.delete(:query) if params[:query].blank?
+  params.delete(:sort_reverse) unless params[:sort_reverse] == 'true'
+  sort_reverse = params[:sort_reverse]
+  sort = params[:sort]
+  params.delete(:sort) if params[:sort] == @model_config.list.sort_by.to_s
+
+  export_action = RailsAdmin::Config::Actions.find(:export, { controller: self.controller, abstract_model: @abstract_model })
+  export_action = nil unless export_action && authorized?(export_action.authorization_key, @abstract_model)
+
+  description = RailsAdmin.config(@abstract_model.model_name).description
+  properties = @model_config.list.with(controller: self.controller, view: self, object: @abstract_model.model.new).visible_fields
+  # columns paginate
+  @filterable_fields = @model_config.list.fields.select(&:filterable?)
+  sets = get_column_sets(properties)
+  properties = sets[params[:set].to_i] || []
+  other_left = ((params[:set].to_i - 1) >= 0) && sets[params[:set].to_i - 1].present?
+  other_right = sets[params[:set].to_i + 1].present?
+  @index = 0
+  @ordered_filters = (params[:f] || @model_config.list.filters).inject({}) { |memo, filter|
+    field_name = filter.is_a?(Array) ? filter.first : filter
+  (filter.is_a?(Array) ? filter.last : { (@index += 1) => { "v" => '' } }) .each do |index, filter_hash|
+      unless filter_hash['disabled']
+        memo[index] = { field_name => filter_hash }
+      else
+        params[:f].delete(field_name)
+      end
+    end
+    memo
+  }.to_a.sort_by(&:first)
+
+  @ordered_filter_string = @ordered_filters.map do |duplet|
+    filter_index = duplet[0]
+    filter_for_field = duplet[1]
+    filter_name = filter_for_field.keys.first
+    filter_hash = filter_for_field.values.first
+    field = @filterable_fields.find{ |field| field.name == filter_name.to_sym }
+    unless field
+      fail "#{filter_name} is not currently filterable; filterable fields are #{@filterable_fields.map(&:name).join(', ')}"
+    end
+    field_options = case field.type
+    when :enum
+      options_for_select(field.with(object: @abstract_model.model.new).enum, filter_hash['v'])
+    else
+      ''
+    end
+    %{
+      $.filters.append(#{field.label.to_json}, #{field.name.to_json}, #{field.type.to_json}, #{filter_hash['v'].to_json}, #{filter_hash['o'].to_json}, #{field_options.to_json}, #{filter_index.to_json});
+    }
+  end.join.html_safe if @ordered_filters
+
+
+= content_for :contextual_tabs do
+  = bulk_menu
+  - if @filterable_fields.present?
+    %li.dropdown{style: 'float:right'}
+      %a.dropdown-toggle{href: '#', :'data-toggle' => "dropdown"}
+        = t('admin.misc.add_filter')
+        %b.caret
+      %ul.dropdown-menu#filters{style: 'left:auto; right:0;'}
+        - @filterable_fields.each do |field|
+          - field_options = case field.type
+          - when :enum
+            - options_for_select(field.with(object: @abstract_model.model.new).enum)
+          - else
+            - ''
+          %li
+            %a{href: '#', :"data-field-label" => field.label, :"data-field-name" => field.name, :"data-field-options" => field_options.html_safe, :"data-field-type" => field.type, :"data-field-value" => ""}= capitalize_first_letter(field.label)
+
 #grid
   %script
     jQuery(function($) {
@@ -17,6 +89,28 @@
 
     });
 
+  = form_tag(grid_path(params.except(*%w[page f query])), method: :get, class: "pjax-form form-inline") do
+    .well
+      %span#filters_box
+      %hr.filters_box{style: "display:#{@ordered_filters.empty? ? 'none' : 'block'}"}
+      .input-group
+        %input.form-control.input-small{name: "query", type: "search", value: query, placeholder: t("admin.misc.filter")}
+        %span.input-group-btn
+          %button.btn.btn-primary{type: "submit", :'data-disable-with' => "<i class='icon-white icon-refresh'></i> ".html_safe + t("admin.misc.refresh")}
+            %i.icon-white.icon-refresh
+            = t("admin.misc.refresh")
+          %button#remove_filter.btn.btn-info{title: "Reset filters"}
+            %i.icon-white.icon-remove
+      - if export_action
+        %span{style: 'float:right'}= link_to wording_for(:link, export_action), export_path(params.except('set').except('page')), class: 'btn btn-info'
+
+  - unless @model_config.list.scopes.empty?
+    %ul.nav.nav-tabs#scope_selector
+      - @model_config.list.scopes.each_with_index do |scope, index|
+        - scope = '_all' if scope.nil?
+        %li{class: "#{'active' if scope.to_s == params[:scope] || (params[:scope].blank? && index == 0)}"}
+          %a{href: grid_path(params.merge(scope: scope, page: nil)), class: 'pjax'}= I18n.t("admin.scopes.#{@abstract_model.to_param}.#{scope}", default: I18n.t("admin.scopes.#{scope}", default: scope.to_s.titleize))
+
   #grid-wrapper
     - @objects.each do |object|
       .col-xs-6.col-sm-4.col-md-3
@@ -32,8 +126,18 @@
             .panel-body-logo.text-center
               %img.logo{src:object.image}
             .panel-body-description.line-clamp.line-clamp-3
-              %p #{object.summary || object.description}
+              %p #{object.summary.html_safe}
           .panel-footer
             .footer-description #{object.category}
             .versions
               %span.truncate #{object.shared_version}
+
+    - if @objects.respond_to?(:total_count)
+      - total_count = @objects.total_count.to_i
+      .row
+        .col-md-6= paginate(@objects, theme: 'twitter-bootstrap', remote: true)
+      .row
+        .col-md-6= link_to(t("admin.misc.show_all"), grid_path(params.merge(all: true)), class: "show-all btn btn-default clearfix pjax") unless total_count > 100 || total_count <= @objects.to_a.size
+      .clearfix.total-count= "#{total_count} #{@model_config.pluralize(total_count).downcase}"
+    - else
+      .clearfix.total-count= "#{@objects.size} #{@model_config.pluralize(@objects.size).downcase}"
