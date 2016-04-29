@@ -1984,6 +1984,8 @@ RailsAdmin.config do |config|
     navigation_label 'Workflows'
     weight -202
     object_label_method { :to_s }
+
+    fields :method, :path, :algorithm
   end
 
   config.model Setup::Application do
@@ -2006,6 +2008,8 @@ RailsAdmin.config do |config|
   config.model Setup::ApplicationParameter do
     navigation_label 'Workflows'
     configure :group, :enum_edit
+
+    fields :name, :type, :many, :group, :description
   end
 
   #Security
