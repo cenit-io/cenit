@@ -328,6 +328,13 @@ en:
         submit: "Configure"
         done: "configured"
         doing: "configuring"
+      regist:
+        title: "Regist"
+        menu: "Regist"
+        breadcrumb: "Regist"
+        submit: "Regist"
+        done: "registered"
+        doing: "registering"
       grid:
         title: "Grid View"
         menu: "Grid"

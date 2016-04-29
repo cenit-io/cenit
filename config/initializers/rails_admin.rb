@@ -38,6 +38,7 @@
   RailsAdmin::Config::Actions::Cancel,
   RailsAdmin::Config::Actions::Configure,
   RailsAdmin::Config::Actions::CrossShare,
+  RailsAdmin::Config::Actions::Regist,
   RailsAdmin::Config::Actions::Grid
 ].each { |a| RailsAdmin::Config::Actions.register(a) }
 
@@ -146,6 +147,7 @@ RailsAdmin.config do |config|
     submit
     inspect
     cancel
+    regist
     simple_delete_data_type
     bulk_delete_data_type
     delete
@@ -176,8 +178,28 @@ RailsAdmin.config do |config|
     navigation_label 'Collections'
     object_label_method { :versioned_name }
 
+    extra_associations do
+      Setup::Collection.reflect_on_all_associations(:has_and_belongs_to_many).collect do |association|
+        association = association.dup
+        association[:name] = "data_#{association.name}".to_sym
+        RailsAdmin::Adapters::Mongoid::Association.new(association, abstract_model.model)
+      end
+    end
+
+    group :collections
+    group :workflows
+    group :api_connectors do
+      label 'API Connectors'
+      active true
+    end
+    group :data
+    group :security
+
+
     edit do
-      field :image
+      field :image do
+        visible { !bindings[:object].instance_variable_get(:@sharing) }
+      end
       field :name do
         required { true }
       end
@@ -320,6 +342,128 @@ RailsAdmin.config do |config|
       field :dependencies
       field :pull_count
 
+      field :data_namespaces do
+        group :collections
+        label 'Namespaces'
+        list_fields do
+          %w(name slug)
+        end
+      end
+
+      field :data_flows do
+        group :workflows
+        label 'Flows'
+        list_fields do
+          %w(namespace name) #TODO Inlude a description field on Flow model
+        end
+      end
+
+      field :data_translators do
+        group :workflows
+        label 'Translators'
+        list_fields do
+          %w(namespace name type style)
+        end
+      end
+
+      field :data_events do
+        group :workflows
+        label 'Events'
+        list_fields do
+          %w(namespace name _type)
+        end
+      end
+
+      field :data_algorithms do
+        group :workflows
+        label 'Algorithms'
+        list_fields do
+          %w(namespace name description)
+        end
+      end
+
+      field :data_connection_roles do
+        group :api_connectors
+        label 'Connection roles'
+        list_fields do
+          %w(namespace name)
+        end
+      end
+
+      field :data_webhooks do
+        group :api_connectors
+        label 'Webhooks'
+        list_fields do
+          %w(namespace name path method description)
+        end
+      end
+
+      field :data_connections do
+        group :api_connectors
+        label 'Connections'
+        list_fields do
+          %w(namespace name url)
+        end
+      end
+
+      field :data_data_types do
+        group :data
+        label 'Data types'
+        list_fields do
+          %w(title name slug _type)
+        end
+      end
+
+      field :data_schemas do
+        group :data
+        label 'Schemas'
+        list_fields do
+          %w(namespace uri)
+        end
+      end
+
+      field :data_custom_validators do
+        group :data
+        label 'Custom validators'
+        list_fields do
+          %w(namespace name _type) #TODO Include a description field for Custom Validator model
+        end
+      end
+
+      # field :data_data TODO Include collection data field
+
+      field :data_authorizations do
+        group :security
+        label 'Authorizations'
+        list_fields do
+          %w(namespace name _type)
+        end
+      end
+
+      field :data_oauth_providers do
+        group :security
+        label 'OAuth providers'
+        list_fields do
+          %w(namespace name response_type authorization_endpoint token_endpoint token_method _type)
+        end
+      end
+
+      field :data_oauth_clients do
+        group :security
+        label 'OAuth clients'
+        list_fields do
+          %w(provider name)
+        end
+      end
+
+      field :data_oauth2_scopes do
+        group :security
+        label 'OAuth 2.0 scopes'
+        list_fields do
+          %w(provider name description)
+        end
+      end
+
       field :_id
       field :created_at
       field :updated_at
@@ -413,7 +557,6 @@ RailsAdmin.config do |config|
     configure :connection_roles do
       group :api_connectors
     end
-
 
     group :data
 
@@ -613,6 +756,12 @@ RailsAdmin.config do |config|
     object_label_method { :custom_title }
     visible true
 
+    configure :_type do
+      pretty_value do
+        value.split('::').last.to_title
+      end
+    end
+
     group :behavior do
       label 'Behavior'
       active false
@@ -673,6 +822,7 @@ RailsAdmin.config do |config|
       field :title
       field :name
       field :slug
+      field :_type
       field :used_memory do
         visible { Cenit.dynamic_model_loading? }
         pretty_value do
@@ -689,6 +839,7 @@ RailsAdmin.config do |config|
       field :title
       field :name
       field :slug
+      field :_type
       field :storage_size
       field :activated
       field :schema do
@@ -965,6 +1116,14 @@ RailsAdmin.config do |config|
 
   config.model Setup::CustomValidator do
     visible false
+
+    configure :_type do
+      pretty_value do
+        value.split('::').last.to_title
+      end
+    end
+
+    fields :namespace, :name, :_type
   end
 
   config.model Setup::Schema do
@@ -1484,6 +1643,12 @@ RailsAdmin.config do |config|
 
     configure :namespace, :enum_edit
 
+    configure :_type do
+      pretty_value do
+        value.split('::').last.to_title
+      end
+    end
+
     edit do
       field :namespace
       field :name
@@ -1492,6 +1657,7 @@ RailsAdmin.config do |config|
     show do
       field :namespace
       field :name
+      field :_type
 
       field :_id
       field :created_at
@@ -1500,7 +1666,7 @@ RailsAdmin.config do |config|
       #field :updater
     end
 
-    fields :namespace, :name
+    fields :namespace, :name, :_type
   end
 
   config.model Setup::Observer do
@@ -1820,6 +1986,8 @@ RailsAdmin.config do |config|
     navigation_label 'Workflows'
     weight -202
     object_label_method { :to_s }
+
+    fields :method, :path, :algorithm
   end
 
   config.model Setup::Application do
@@ -1842,6 +2010,8 @@ RailsAdmin.config do |config|
   config.model Setup::ApplicationParameter do
     navigation_label 'Workflows'
     configure :group, :enum_edit
+
+    fields :name, :type, :many, :group, :description
   end
 
   #Security
@@ -1893,6 +2063,12 @@ RailsAdmin.config do |config|
     object_label_method { :custom_title }
     label 'Provider'
 
+    configure :_type do
+      pretty_value do
+        value.split('::').last.to_title
+      end
+    end
+
     configure :tenant do
       visible { Account.current.super_admin? }
       read_only { true }
@@ -1905,7 +2081,7 @@ RailsAdmin.config do |config|
 
     configure :namespace, :enum_edit
 
-    fields :namespace, :name, :response_type, :authorization_endpoint, :token_endpoint, :token_method, :tenant, :origin
+    fields :namespace, :name, :_type, :response_type, :authorization_endpoint, :token_endpoint, :token_method, :tenant, :origin
   end
 
   config.model Setup::OauthProvider do
@@ -1988,7 +2164,12 @@ RailsAdmin.config do |config|
     end
     configure :namespace, :enum_edit
     configure :metadata, :json_value
-    fields :namespace, :name, :status, :metadata
+    configure :_type do
+      pretty_value do
+        value.split('::').last.to_title
+      end
+    end
+    fields :namespace, :name, :status, :_type, :metadata
     show_in_dashboard { false }
   end
 
@@ -2771,6 +2952,21 @@ RailsAdmin.config do |config|
   config.model ApplicationId do
     navigation_label 'Administration'
 
-    fields :created_at, :account, :identifier
+    register_instance_option(:discard_submit_buttons) { bindings[:object].instance_variable_get(:@registering) }
+
+    configure :name
+    configure :registered, :boolean
+    configure :redirect_uris, :json_value
+
+    edit do
+      field :oauth_name do
+        visible { bindings[:object].instance_variable_get(:@registering) }
+      end
+      field :redirect_uris do
+        visible { bindings[:object].instance_variable_get(:@registering) }
+      end
+    end
+
+    fields :created_at, :name, :registered, :account, :identifier
   end
 end

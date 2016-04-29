@@ -1,11 +1,18 @@
 module Cenit
   class Scope
 
-    def initialize(scope)
+    def initialize(scope = '')
+      scope = scope.to_s
       @nss = Set.new
       @data_types = Hash.new { |h, k| h[k] = Set.new }
       scope = scope.to_s.strip
-      @openid, scope = split(scope, %w(openid email address phone offline_access))
+      @openid, scope = split(scope, %w(openid email profile address phone offline_access auth))
+      @offline_access = openid.delete(:offline_access)
+      @auth = openid.delete(:auth)
+      if openid.present? && !openid.include?(:openid)
+        openid.clear
+        fail
+      end
       @methods, scope = split(scope, %w(get post put delete))
       while scope.present?
         ns_begin, ns_end, next_idx =
@@ -52,7 +59,7 @@ module Cenit
     end
 
     def valid?
-      methods.present? && (nss.present? || data_types.present?)
+      openid.present? || (methods.present? && (nss.present? || data_types.present?))
     end
 
     def to_s
@@ -64,42 +71,69 @@ module Cenit
 
     def descriptions
       d = []
-      d << methods.to_sentence + ' records from ' +
-        if nss.present?
-          'namespace' + (nss.size == 1 ? ' ' : 's ') + nss.collect { |ns| space(ns) }.to_sentence
-        else
-          ''
-        end + (nss.present? && data_types.present? ? ', and ' : '') +
-        if data_types.present?
-          'data type' + (data_types.size == 1 ? ' ' : 's ') + data_types.collect { |ns, set| set.collect { |model| "#{space(ns)}::#{space(model)}" } }.flatten.to_sentence
-        else
-          ''
-        end
-      d << 'Do all these on your behalf.' if offline_access?
+      d << 'View your email' if email?
+      d << 'View your basic profile' if profile?
+      if methods.present?
+        d << methods.to_sentence + ' records from ' +
+          if nss.present?
+            'namespace' + (nss.size == 1 ? ' ' : 's ') + nss.collect { |ns| space(ns) }.to_sentence
+          else
+            ''
+          end + (nss.present? && data_types.present? ? ', and ' : '') +
+          if data_types.present?
+            'data type' + (data_types.size == 1 ? ' ' : 's ') + data_types.collect { |ns, set| set.collect { |model| "#{space(ns)}::#{space(model)}" } }.flatten.to_sentence
+          else
+            ''
+          end
+      end
       d
     end
 
+    def auth?
+      auth.present?
+    end
+
     def openid?
-      openid.inlude?(:openid)
+      openid.include?(:openid)
+    end
+
+    def email?
+      openid.include?(:email)
+    end
+
+    def profile?
+      openid.include?(:profile)
     end
 
     def offline_access?
-      openid.include?(:offline_access)
+      offline_access.present?
+    end
+
+    def merge(other)
+      merge = self.class.new
+      merge.instance_variable_set(:@auth, offline_access || other.instance_variable_get(:@auth))
+      merge.instance_variable_set(:@offline_access, offline_access || other.instance_variable_get(:@offline_access))
+      merge.instance_variable_set(:@openid, (openid + other.instance_variable_get(:@openid)).uniq)
+      merge.instance_variable_set(:@methods, (methods + other.instance_variable_get(:@methods)).uniq)
+      merge.instance_variable_set(:@nss, nss + other.instance_variable_get(:@nss))
+      merge.instance_variable_set(:@data_types, data_types.merge(other.instance_variable_get(:@data_types)))
+      merge
     end
 
     private
 
-    attr_reader :openid, :methods, :nss, :data_types
+    attr_reader :auth, :offline_access, :openid, :methods, :nss, :data_types
 
     def space(str)
       str.index(' ') ? "'#{str}'" : str
     end
 
     def split(scope, tokens)
+      scope += ' '
       counters = Hash.new { |h, k| h[k] = 0 }
       while (method = tokens.detect { |m| scope.start_with?("#{m} ") })
         counters[method] += 1
-        scope = scope.from(method.length).strip
+        scope = scope.from(method.length).strip + ' '
       end
       if counters.values.all? { |v| v ==1 }
         [counters.keys.collect(&:to_sym), scope]

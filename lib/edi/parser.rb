@@ -157,7 +157,7 @@ module Edi
                 next unless updating || association.blank?
                 items_schema = data_type.merge_schema(property_schema['items'] || {})
                 if resetting.include?(property_name) || !options[:add_only]
-                  record.send("#{property_name}=", []) unless association.blank?
+                  record.send("#{property_name}=", []) if association.nil? || association.present?
                   association = record.send(property_name)
                 end
                 if (property_value = json[name])
