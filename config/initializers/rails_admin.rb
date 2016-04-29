@@ -989,6 +989,9 @@ RailsAdmin.config do |config|
     navigation_label 'Data'
     weight -448
     object_label_method { :custom_title }
+
+    configure :namespace, :enum_edit
+
     group :content do
       label 'Content'
     end
