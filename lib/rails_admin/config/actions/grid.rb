@@ -4,7 +4,7 @@ module RailsAdmin
       class Grid < RailsAdmin::Config::Actions::Base
 
         register_instance_option :only do
-          Setup::Collection
+          Setup::SharedCollection
         end
 
         register_instance_option :collection do
