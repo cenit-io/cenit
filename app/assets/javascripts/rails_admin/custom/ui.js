@@ -3,11 +3,14 @@
 //= require rails_admin/triggers-box
 //= require rails_admin/test-flow-transformation
 //= require rails_admin/highlight_js/highlight.pack.js
+//= require rails_admin/scheduler
+//= require lodash.min
 
 $(document).on('rails_admin.dom_ready', function() {
   $('pre code').each(function(i, block) {
      hljs.highlightBlock(block);
    });
+  schedulerInit();   
 });
 
 $(function(){

@@ -99,3 +99,5 @@ gem 'exception_notification'
 gem 'mime'
 
 gem 'cross_origin'
+
+gem 'lodash-rails'

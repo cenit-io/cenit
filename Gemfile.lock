@@ -1,8 +1,13 @@
-GIT
-  remote: https://github.com/openjaf/cenit_cmd.git
-  revision: b9f3ac98c6e082b2c1b25d74c7ecb55d00ee1511
+PATH
+  remote: ../cenit_cmd
   specs:
     cenit_cmd (0.0.6)
+      activesupport
+      github_api
+      jeweler
+      json
+      nokogiri
+      rspec
       thor (~> 0.14)
 
 GEM
@@ -224,6 +229,8 @@ GEM
     kgio (2.10.0)
     libv8 (3.16.14.13)
     liquid (3.0.6)
+    lodash-rails (4.6.1)
+      railties (>= 3.1)
     loofah (2.0.3)
       nokogiri (>= 1.5.9)
     mail (2.6.3)
@@ -522,6 +529,7 @@ DEPENDENCIES
   jquery-rails
   json-schema
   liquid
+  lodash-rails
   mime
   mini_magick
   mongoid
@@ -559,3 +567,6 @@ DEPENDENCIES
   unicorn (= 4.9.0)
   wannabe_bool
   xmldsig
+
+BUNDLED WITH
+   1.11.2
