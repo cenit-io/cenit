@@ -126,7 +126,7 @@
             .panel-body-logo.text-center
               %img.logo{src:object.image}
             .panel-body-description.line-clamp.line-clamp-3
-              %p #{object.summary.safe_html || object.description.safe_html}
+              %p #{object.summary.html_safe}
           .panel-footer
             .footer-description #{object.category}
             .versions
