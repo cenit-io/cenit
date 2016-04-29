@@ -540,6 +540,9 @@ RailsAdmin.config do |config|
       group :workflows
     end
 
+    configure :applications do
+      group :workflows
+    end
 
     group :api_connectors do
       label 'API Connectors'
@@ -608,6 +611,7 @@ RailsAdmin.config do |config|
       field :schemas
       field :custom_validators
       field :algorithms
+      field :applications
       field :webhooks
       field :connections
       field :authorizations
@@ -644,6 +648,7 @@ RailsAdmin.config do |config|
       field :schemas
       field :custom_validators
       field :algorithms
+      field :applications
       field :webhooks
       field :connections
       field :authorizations
@@ -700,6 +705,11 @@ RailsAdmin.config do |config|
         end
       end
       field :algorithms do
+        pretty_value do
+          value.count > 0 ? value.count : '-'
+        end
+      end
+      field :applications do
         pretty_value do
           value.count > 0 ? value.count : '-'
         end
