@@ -31,6 +31,7 @@ module Setup
     has_and_belongs_to_many :translators, class_name: Setup::Translator.to_s, inverse_of: nil
     has_and_belongs_to_many :events, class_name: Setup::Event.to_s, inverse_of: nil
     has_and_belongs_to_many :algorithms, class_name: Setup::Algorithm.to_s, inverse_of: nil
+    has_and_belongs_to_many :applications, class_name: Setup::Application.to_s, inverse_of: nil
 
     has_and_belongs_to_many :connection_roles, class_name: Setup::ConnectionRole.to_s, inverse_of: nil
     has_and_belongs_to_many :webhooks, class_name: Setup::Webhook.to_s, inverse_of: nil
@@ -109,6 +110,20 @@ module Setup
       events.each { |event| check_data_type_dependencies(event.data_type, algorithms) if event.is_a?(Setup::Observer) }
       data_types.each { |data_type| check_data_type_dependencies(data_type, algorithms) }
       data.each { |collection_data| check_data_type_dependencies(collection_data.data_type, algorithms) }
+
+      applications.each do |app|
+        app.actions.each { |action| algorithms << action.algorithm }
+        app.application_parameters.each do |app_parameter|
+          if (param_model = app.configuration_model.property_model(app_parameter.name)) &&
+            (item = app.configuration[app_parameter.name]) &&
+            (association = reflect_on_all_associations(:has_and_belongs_to_many).detect { |r| r.klass == param_model }) &&
+            (association = send(association.name)) &&
+            !association.include?(item)
+            association << item
+          end
+        end
+      end
+
       visited_algs = Set.new
       algorithms.each { |alg| alg.for_each_call(visited_algs) }
       self.algorithms = visited_algs.to_a
