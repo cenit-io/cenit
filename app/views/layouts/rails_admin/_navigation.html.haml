@@ -1,15 +1,15 @@
-.container-fluid
+%div
   .navbar-header
     %button.navbar-toggle.collapsed{ type: 'button', data: { toggle: 'collapse', target: '#secondary-navigation' } }
       %span.sr-only= t('admin.toggle_navigation')
       %span.icon-bar
       %span.icon-bar
       %span.icon-bar
-    %a.navbar-brand.pjax{href: dashboard_path}
-      %span
-        %img{ src: image_path('logo_cenitsaas_web.png')}
-      %span= 'CenitHub'
-    %a#sidebar-toggle.btn.btn-default{href: '#'}
+    %a#sidebar-toggle.navbar-brand{href: '#'}
       %i.fa.fa-navicon
+    %a.navbar-brand.pjax{href: dashboard_path}
+      %span.cenit-logo
+        %img{ src: image_path('logo_cenitsaas_web.png')}
+      %span.cenit-hub= 'CenitHub'
   .collapse.navbar-collapse#secondary-navigation
     = render partial: 'layouts/rails_admin/secondary_navigation'
