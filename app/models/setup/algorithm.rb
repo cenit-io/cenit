@@ -81,7 +81,7 @@ module Setup
       unless visited.include?(self)
         visited << self
         block.call(self) if block
-        call_links.each { |call_link| call_link.link.for_each_call(visited, &block) }
+        call_links.each { |call_link| call_link.link.for_each_call(visited, &block) if call_link.link }
       end
     end
   end
