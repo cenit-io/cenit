@@ -8,6 +8,7 @@ module Setup
     field :type, type: String
     field :many, type: Boolean
     field :group, type: String
+    field :description, type: String
 
     embedded_in :application, class_name: Setup::Application.to_s, inverse_of: :application_parameters
 
@@ -39,6 +40,7 @@ module Setup
       sch = (many ? { type: 'array', items: sch } : sch)
       sch[:referenced] = true unless %w(integer number boolean string).include?(type)
       sch[:group] = group if group.present?
+      sch[:description] = description if description.present?
       sch.stringify_keys
     end
   end

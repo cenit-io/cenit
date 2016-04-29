@@ -308,6 +308,22 @@ module Setup
       end
     end
 
+    Setup::Collection.reflect_on_all_associations(:has_and_belongs_to_many).each do |relation|
+      class_eval("def data_#{relation.name}(options = {})
+          items_data = data['#{relation.name}'] || []
+          limit = options[:limit] || items_data.length
+          c = 0
+          items_data.collect do |item_data|
+            if c > limit
+              nil
+            else
+              c += 1
+              #{relation.klass}.new_from_json(item_data)
+            end
+          end
+        end")
+    end
+
     protected
 
     def collect_dependencies_pull_parameters(hash = {})

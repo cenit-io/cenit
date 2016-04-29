@@ -11,7 +11,13 @@ $(document).on('rails_admin.dom_ready', function() {
 });
 
 $(function(){
-    $('#main-accordion .panel-heading a.panel-title').click(function(){
+    $("#sidebar-toggle").click(function(e) {
+        e.preventDefault();
+        $("#wrapper").toggleClass("toggled");
+        $(this).toggleClass("toggled");
+    });
+
+    $('#main-accordion').find('.panel-heading a.panel-title').click(function(){
         var parent = $(this).parent().parent();
         if ($(parent).hasClass('active'))
             $(parent).removeClass('active');

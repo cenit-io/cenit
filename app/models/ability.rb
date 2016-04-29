@@ -22,8 +22,10 @@ class Ability
       can [:index, :show, :edi_export, :simple_export], @@oauth_models
       if user.super_admin?
         can [:destroy, :edit, :create, :import, :cross_share], @@oauth_models
+        can :manage, Setup::Application
       else
         can [:destroy, :edit], @@oauth_models, tenant_id: Account.current.id
+        cannot :access, Setup::Application
       end
 
       if user.super_admin?

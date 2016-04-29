@@ -15,5 +15,13 @@ module Edi
       Edi::Parser.parse_xml(self.orm_model.data_type, data, options, self)
       self
     end
+
+    def instance_pending_references(*fields)
+      return unless (refs = instance_variable_get(:@_references))
+      fields.each do |f|
+        next unless (ref = refs[f.name.to_s])
+        self[f.name] = ref[:model].new_from_json(ref[:criteria])
+      end
+    end
   end
 end
