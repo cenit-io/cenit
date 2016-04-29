@@ -16,7 +16,7 @@ module Setup
 
     def check_authorization
       if using_authorization.present?
-        field = using_authorization_handler ? :template_parameters : :headers
+        field = authorization_handler ? :template_parameters : :headers
         auth_params = using_authorization.class.send("auth_#{field}")
         conflicting_keys = send(field).select { |p| auth_params.has_key?(p.key) }.collect(&:key)
         if conflicting_keys.present?
@@ -41,7 +41,7 @@ module Setup
 
     def inject_template_parameters(hash)
       using_authorization.each_template_parameter do |key, value|
-        hash[key] = value unless hash.has_key?(key) && using_authorization_handler
+        hash[key] = value unless hash.has_key?(key) && authorization_handler
       end if authorization
     end
 

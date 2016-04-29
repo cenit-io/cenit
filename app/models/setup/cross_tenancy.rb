@@ -29,6 +29,10 @@ module Setup
       end
     end
 
+    def shared?
+      origin == :shared
+    end
+
     def read_attribute(name)
       (!(value = super).nil? && (new_record? || !BuildInDataType[self.class].protecting?(name) || Account.current == tenant) && value) || nil
     end

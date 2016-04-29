@@ -5,7 +5,7 @@
             <li><%= error %></li>
         <% end %>
     <% else %>
-        <div style="width: 30%;margin: auto">
+        <div style="width: 50%;margin: auto">
           <div style="margin-top:25px; text-align: center;font-size: x-large">
             <%=
                 if current_user.picture
@@ -22,6 +22,17 @@
             <label style="color: #990000">
               <%= @app_id.name %>
             </label> is requesting access to
+            <% if @scope.auth? %>
+                <label style="color: #990000">
+                  authorize other applications
+                </label>
+            <% end %>
+            <% if @scope.offline_access? %>
+                <label style="color: #990000">
+                  in your behalf
+                </label>
+            <% end %>
+            to
           </div>
 
           <div style="margin-top: 25px; font-size: larger">
