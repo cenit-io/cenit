@@ -38,7 +38,8 @@
   RailsAdmin::Config::Actions::Cancel,
   RailsAdmin::Config::Actions::Configure,
   RailsAdmin::Config::Actions::CrossShare,
-  RailsAdmin::Config::Actions::Regist
+  RailsAdmin::Config::Actions::Regist,
+  RailsAdmin::Config::Actions::Grid
 ].each { |a| RailsAdmin::Config::Actions.register(a) }
 
 RailsAdmin::Config::Actions.register(:export, RailsAdmin::Config::Actions::BulkExport)
@@ -109,6 +110,7 @@ RailsAdmin.config do |config|
     dashboard # mandatory
     # memory_usage
     # disk_usage
+    grid
     index # mandatory
     new { except [Setup::Event, Setup::DataType, Setup::Authorization, Setup::BaseOauthProvider] }
     import

@@ -335,3 +335,7 @@ en:
         submit: "Regist"
         done: "registered"
         doing: "registering"
+      grid:
+        title: "Grid View"
+        menu: "Grid"
+        breadcrumb: "Grid"
