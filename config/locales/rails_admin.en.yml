@@ -328,3 +328,7 @@ en:
         submit: "Configure"
         done: "configured"
         doing: "configuring"
+      grid:
+        title: "Grid View"
+        menu: "Grid"
+        breadcrumb: "Grid"

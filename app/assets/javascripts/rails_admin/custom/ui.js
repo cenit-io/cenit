@@ -17,7 +17,7 @@ $(function(){
         $(this).toggleClass("toggled");
     });
 
-    $('#main-accordion .panel-heading a.panel-title').click(function(){
+    $('#main-accordion').find('.panel-heading a.panel-title').click(function(){
         var parent = $(this).parent().parent();
         if ($(parent).hasClass('active'))
             $(parent).removeClass('active');
@@ -109,5 +109,3 @@ $(function () {
         tour.start(true);
     });
 });
-
-
