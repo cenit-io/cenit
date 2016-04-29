@@ -51,10 +51,10 @@ function schedulerInit() {
                 return $("#week_day_" + e).is(":checked")
             }),
 
-            "weeks_month": _.concat(_.filter(_.range(1, 3), function (e) {
+            "weeks_month": _.concat(
+                _.filter(_.range(1, 3), function (e) {
                     return $("#week_month_" + e).is(":checked")
-                })
-                , _.map(_.filter(_.range(1, 2), function (e) {
+                }), _.map(_.filter(_.range(1, 2), function (e) {
                     return $("#week_month_reverse_" + e).is(":checked")
                 }), function (e) {
                     return e * -1;
@@ -69,7 +69,7 @@ function schedulerInit() {
     }
 
     function updateSchedulerValue() {
-        $("#setup_scheduler_expression1").val(JSON.stringify(createSchedulerValue()));
+        $("#setup_scheduler_advanced_expression").val(JSON.stringify(createSchedulerValue()));
     }
 
 }

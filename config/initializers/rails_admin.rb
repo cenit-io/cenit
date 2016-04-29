@@ -1575,9 +1575,9 @@ RailsAdmin.config do |config|
       field :name
       field :scheduling_method
 
-      field :expression1 do
+      field :advanced_expression do
 
-        visible { bindings[:object].scheduling_method == :Compound }
+        visible { bindings[:object].scheduling_method == :Advanced }
 
         label "Schedule"
         partial :scheduler

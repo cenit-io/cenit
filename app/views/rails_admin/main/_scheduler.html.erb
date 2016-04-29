@@ -1,14 +1,13 @@
 <%
-  dd = JSON.parse(@object.expression1)
-
-  dd["months_days"] = dd["months_days"].to_s.strip[1..-2]
-  dd["months"] = dd["months"].to_s.strip[1..-2]
-  dd["hours"] = dd["hours"].to_s.strip[1..-2]
-  dd["minutes"] = dd["minutes"].to_s.strip[1..-2]
-
+  if @object.advanced_expression != nil
+    dd = JSON.parse(@object.advanced_expression)
+  else
+    dd = {"months_days" => [], "weeks_days" => [], "weeks_month" => [], "months" => [], "hours" => [], "minutes" => []}
+  end
+  ["months_days", "months", "hours", "minutes"].each { |e| dd[e] = dd[e].to_s.strip[1..-2] }
 %>
 
-<input type="hidden" id="setup_scheduler_expression1" name="setup_scheduler[expression1]">
+<input type="hidden" id="setup_scheduler_advanced_expression" name="setup_scheduler[advanced_expression]">
 
 <div class="form-inline">
   <div>
