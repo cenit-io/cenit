@@ -114,10 +114,10 @@ module Setup
     end
 
     def next_time
-      if scheduling_method != :Compound
+      if scheduling_method != :Advanced
         Time.now + interval
       else
-        calculator = SchedulerTimePointsCalculator.new(JSON.parse(advanced_expression), 2016) # TODO: Fixed year!
+        calculator = SchedulerTimePointsCalculator.new(JSON.parse(advanced_expression), DateTime.now.year)
         calculator.run
         calculator.next_time(DateTime.now)
       end

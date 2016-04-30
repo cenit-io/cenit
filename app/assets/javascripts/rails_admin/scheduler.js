@@ -1,5 +1,7 @@
 function schedulerInit() {
 
+    $('#scheduler_tabs').tab();
+
     function fillInput(lbond, ubond, id) {
         var _days = _.range(lbond, ubond, $("#" + id).val())
         $("#" + id + "_input").val(_.join(_days, ", "));
@@ -42,23 +44,23 @@ function schedulerInit() {
                 [] : [Number($(id).val().trim())])
         }
 
-// TODO: Escoger entre "months_days" y "weeks_days"
+        var position_tab = $(".active").attr("id") == "position_tab";
 
         return {
-            "months_days": input_validation("#months_days_input"),
+            "months_days": !position_tab ? input_validation("#months_days_input") : [],
 
-            "weeks_days": _.filter(_.range(0, 7), function (e) {
+            "weeks_days": position_tab ? _.filter(_.range(0, 7), function (e) {
                 return $("#week_day_" + e).is(":checked")
-            }),
+            }) : [],
 
-            "weeks_month": _.concat(
-                _.filter(_.range(1, 3), function (e) {
+            "weeks_month": position_tab ? _.concat(_.filter(_.range(1, 3), function (e) {
                     return $("#week_month_" + e).is(":checked")
-                }), _.map(_.filter(_.range(1, 2), function (e) {
+                }),
+                _.map(_.filter(_.range(1, 2), function (e) {
                     return $("#week_month_reverse_" + e).is(":checked")
                 }), function (e) {
                     return e * -1;
-                })),
+                })) : [],
 
             "months": input_validation("#months_input"),
 
