@@ -12,16 +12,17 @@
 <div id="content">
   <ul id="scheduler_tabs" class="nav nav-tabs" data-tabs="tabs">
 
-    <li class="active" id="position_tab"><a href="#position" data-toggle="tab">
+    <li class=" <%= dd["months_days"].length == 0 ? 'active' : '' %>" id="position_tab"><a href="#position" data-toggle="tab">
       Days by position</a></li>
 
-    <li id="number_tab"><a href="#number" data-toggle="tab">
-      Days by number</a></li>
+    <li class="<%= dd["months_days"].length == 0 ? '' : 'active' %>" id="number_tab">
+      <a href="#number" data-toggle="tab">
+        Days by number</a></li>
 
   </ul>
 
   <div class="tab-content">
-    <div class="tab-pane active" id="position">
+    <div class="tab-pane <%= dd["months_days"].length == 0 ? 'active' : '' %>" id="position">
 
       <div class="form-inline">
         <div class="form-group">
@@ -69,7 +70,7 @@
 
     </div>
 
-    <div class="tab-pane" id="number">
+    <div class="tab-pane <%= dd["months_days"].length == 0 ? '' : 'active' %>" id="number">
 
       <label>Days of the Month</label>
 
