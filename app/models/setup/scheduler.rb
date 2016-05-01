@@ -271,7 +271,8 @@ module Setup
     end
 
     def report_solution
-      @v << Time.new(@year, *@solution, 0)
+      # TODO: To use the user TimeZone
+      @v << Time.new(@year, *@solution, 0, "-04:00")
     end
 
     def backtracking(k)
@@ -285,11 +286,9 @@ module Setup
       end
     end
 
-
     def next_time(tnow)
       @v.select { |e| e > tnow }
           .collect { |e| e - tnow }
-          .select { |e| e > 0 }
           .min
     end
 
