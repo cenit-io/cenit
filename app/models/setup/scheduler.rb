@@ -102,7 +102,7 @@ module Setup
     def interval
       case scheduling_method
         when :Once
-          Time.now - DateTime.parse(expression) rescue 0
+          Time.now - DateTime.parse(expression).to_time rescue 0
         when :Periodic
           expression.to_s.to_seconds_interval
         when :CRON
@@ -117,17 +117,14 @@ module Setup
       if scheduling_method != :Advanced
         Time.now + interval
       else
-        calculator = SchedulerTimePointsCalculator.new(JSON.parse(advanced_expression), DateTime.now.year)
+        calculator = SchedulerTimePointsCalculator.new(JSON.parse(advanced_expression), Time.now.year)
         calculator.run
-        calculator.next_time(DateTime.now)
+        calculator.next_time(Time.now)
       end
     end
 
   end
 
-
-  require 'json'
-  require 'date'
 
   class SchedulerTimePointsCalculator
 
@@ -274,9 +271,7 @@ module Setup
     end
 
     def report_solution
-      @v << DateTime.strptime(
-          "#{@solution[0]}-#{@solution[1]}-#{@year} #{@solution[2]}:#{@solution[3]} #{DateTime.now.zone}",
-          '%m-%d-%Y %H:%M %Z')
+      @v << Time.new(@year, *@solution, 0)
     end
 
     def backtracking(k)
@@ -290,6 +285,7 @@ module Setup
       end
     end
 
+
     def next_time(tnow)
       @v.select { |e| e > tnow }
           .collect { |e| e - tnow }
@@ -298,6 +294,7 @@ module Setup
     end
 
   end
+
 end
 
 
