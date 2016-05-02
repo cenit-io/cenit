@@ -48,6 +48,7 @@ class ApplicationController < ActionController::Base
     if current_user && current_user.account.nil?
       current_user.add_role(:admin) unless current_user.has_role?(:admin)
       current_user.account = Account.create_with_owner(owner: current_user)
+      current_user.core_handling = true
       current_user.save(validate: false)
     end
     Account.current = current_user.account if signed_in?
