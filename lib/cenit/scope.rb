@@ -63,7 +63,9 @@ module Cenit
     end
 
     def to_s
-      (openid.present? ? openid.join(' ') + ' ' : '') +
+      (auth? ? 'auth ' : '') +
+        (offline_access? ? 'offline_access ' : '') +
+        (openid? ? openid.join(' ') + ' ' : '') +
         methods.join(' ') + ' ' +
         nss.collect { |ns| space(ns) }.join(' ') + (nss.present? ? ' ' : '') +
         data_types.collect { |ns, set| set.collect { |model| "#{space(ns)}::#{space(model)}" } }.join(' ')

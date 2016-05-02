@@ -65,8 +65,16 @@ class User
   def inspect_updated_fields
     changed_attributes.keys.each do |attr|
       reset_attribute!(attr) unless %w(name picture).include?(attr)
-    end unless new_record? || (Account.current && Account.current.super_admin?)
+    end unless core_handling? || new_record? || (Account.current && Account.current.super_admin?)
     true
+  end
+
+  def core_handling=(arg)
+    @core_handling = arg.present?
+  end
+
+  def core_handling?
+    @core_handling
   end
 
   def self.find_or_initialize_for_doorkeeper_oauth(oauth_data)
@@ -74,6 +82,7 @@ class User
     user ||= User.new(email: oauth_data.info.email, password: Devise.friendly_token[0, 20])
     user.confirmed_at ||= Time.now
     user.doorkeeper_uid = oauth_data.uid
+    user.core_handling = true
     user
   end
 
