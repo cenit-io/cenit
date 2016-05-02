@@ -37,6 +37,7 @@ class Account
         end
       end
     end
+    true
   end
 
   def notification_level_enum
