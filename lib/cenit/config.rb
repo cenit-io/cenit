@@ -54,6 +54,10 @@ module Cenit
       class_eval(&block) if block
     end
 
+    def respond_to?(*args)
+      super || options.has_key?(args[0])
+    end
+
     def method_missing(symbol, *args)
       if !symbol.to_s.end_with?('=') && ((args.length == 0 && block_given?) || args.length == 1 && !block_given?)
         self[symbol] = block_given? ? yield : args[0]

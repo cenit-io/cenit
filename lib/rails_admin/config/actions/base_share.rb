@@ -29,6 +29,7 @@ module RailsAdmin
               @form_object ||= Setup::SharedCollection.new(image: collection.image, name: collection.name, source_collection: collection)
               @form_object.instance_variable_set(:@_selecting_connections, collection.connections.present? && (!shared_params || params[:_restart]))
               @form_object.instance_variable_set(:@_selecting_dependencies, !shared_params || params[:_restart])
+              @form_object.instance_variable_set(:@sharing, true)
               @shared_parameter_enum = @form_object.enum_for_pull_parameters
               @model_config = shared_collection_config
               if params[:_save] && @form_object.errors.present?
