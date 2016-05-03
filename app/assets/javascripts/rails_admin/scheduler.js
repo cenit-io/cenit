@@ -70,6 +70,10 @@ function schedulerInit() {
         };
     }
 
+    $('a[data-toggle="tab"]').on('shown.bs.tab', function (e) {
+        updateSchedulerValue();
+    });
+
     function updateSchedulerValue() {
         // TODO: Hacerlo cuando se cambie de tab!  
         $("#setup_scheduler_expression").val(JSON.stringify(createSchedulerValue()));
