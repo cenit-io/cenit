@@ -1,0 +1,141 @@
+<%
+  if @object.expression != nil
+    dd = JSON.parse(@object.expression)
+  else
+    dd = {"months_days" => [], "weeks_days" => [], "weeks_month" => [], "months" => [], "hours" => [], "minutes" => []}
+  end
+  ["months_days", "months", "hours", "minutes"].each { |e| dd[e] = dd[e].to_s.strip[1..-2] }
+%>
+
+<input type="hidden" id="setup_scheduler_expression" name="setup_scheduler[expression]">
+
+<div id="content">
+  <ul id="scheduler_tabs" class="nav nav-tabs" data-tabs="tabs">
+
+    <li class=" <%= dd["months_days"].length == 0 ? 'active' : '' %>" id="position_tab"><a href="#position" data-toggle="tab">
+      Days by position</a></li>
+
+    <li class="<%= dd["months_days"].length == 0 ? '' : 'active' %>" id="number_tab">
+      <a href="#number" data-toggle="tab">
+        Days by number</a></li>
+
+  </ul>
+
+  <div class="tab-content">
+    <div class="tab-pane <%= dd["months_days"].length == 0 ? 'active' : '' %>" id="position">
+
+      <div class="form-inline">
+        <div class="form-group">
+          <label>Days of the Week </label>
+
+          <% days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'] %>
+
+          <div class="checkboxes form-inline">
+            <% days.each_with_index do |d, i| %>
+                <div class="checkbox">
+                  <label><input id="week_day_<%= i %>" <%= dd["weeks_days"].include?(i) ? 'checked' : '' %> type="checkbox"><br>
+                    <span><%= d %></span>
+                  </label>
+                </div>
+            <% end %>
+          </div>
+        </div>
+
+        <div class="form-group" style="margin-left: 40px">
+          <label>Week in the month</label>
+
+          <% week_month = ['First', 'Second'] %>
+          <% week_month_reverse = ['Last'] %>
+
+          <div class="checkboxes form-inline">
+
+            <% week_month.each_with_index do |d, i| %>
+                <div class="checkbox">
+                  <label><input id="week_month_<%= i+1 %>" <%= dd["weeks_month"].include?(i+1) ? 'checked' : '' %> type="checkbox"><br><span>
+         <%= d %>
+        </span></label></div>
+            <% end %>
+
+            <% week_month_reverse.each_with_index do |d, i| %>
+                <div class="checkbox">
+                  <label><input id="week_month_reverse_<%= i+1 %>"  <%= dd["weeks_month"].select { |e| e < 0 }.include?(-(i+1)) ? 'checked' : '' %> type="checkbox"><br><span>
+         <%= d %>
+        </span></label></div>
+            <% end %>
+
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+
+    <div class="tab-pane <%= dd["months_days"].length == 0 ? '' : 'active' %>" id="number">
+
+      <label>Days of the Month</label>
+
+      <div class="form-inline">
+        <input type="text" id="months_days_input" value="<%= dd["months_days"] %>">
+
+        <select class="form-control input-sm" id="months_days">
+          <option value="1">Every day</option>
+
+          <% daysn = [3, 4, 6, 12] %>
+          <% daysn.each do |d| %>
+              <option value="<%= d %>">Every <%= d %> days</option>
+          <% end %>
+
+        </select>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+
+
+<label>Months </label>
+
+<div class="form-inline">
+  <input type="text" id="months_input" value="<%= dd["months"] %>">
+
+  <select class="form-control input-sm" id="months">
+    <option value="1">Every month</option>
+
+    <% months = [2, 3, 4, 6] %>
+    <% months.each do |d| %>
+        <option value="<%= d %>">Every <%= d %> months</option>
+    <% end %>
+
+  </select>
+</div>
+
+
+<label>Hours</label>
+
+<div class="form-inline">
+  <input type="text" id="hours_input" value="<%= dd["hours"] %>">
+
+  <select class="form-control input-sm" id="hours">
+    <option value="1">Every hour</option>
+    <% hours = [2, 3, 4, 6, 12] %>
+    <% hours.each do |d| %>
+        <option value="<%= d %>">Every <%= d %> hours</option>
+    <% end %>
+  </select>
+</div>
+
+
+<label>Minutes</label>
+
+<div class="form-inline">
+  <input type="text" id="minutes_input" value="<%= dd["minutes"] %>">
+
+  <select class="form-control input-sm" id="minutes">
+    <option value="1">Every minute</option>
+    <% minutes = [2, 4, 5, 10, 15, 20, 30] %>
+    <% minutes.each do |d| %>
+        <option value="<%= d %>">Every <%= d %> minutes</option>
+    <% end %>
+  </select>
+</div>
