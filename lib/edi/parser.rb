@@ -18,14 +18,30 @@ module Edi
 
       def parse_json(data_type, content, options={}, record=nil, model=nil)
         content = JSON.parse(content) unless content.is_a?(Hash)
-        [:ignore, :reset].each do |opt|
+        p =
+          case (p = options.delete(:primary_fields))
+          when Array
+            p
+          when Enumerable
+            p.to_a
+          else
+            [p]
+          end
+        s =
+          case (s = options[:primary_field] || [])
+          when Array
+            s
+          when Enumerable
+            s.to_a
+          else
+            [s]
+          end
+        options[:primary_field] = s + p
+        [:ignore, :reset, :primary_field].each do |opt|
           val = (options[opt] || [])
           val = [val] unless val.is_a?(Enumerable)
           val = val.select { |p| p.is_a?(Symbol) || p.is_a?(String) }.collect(&:to_sym)
           options[opt] = val
-        end
-        unless (primary_field_option = options[:primary_field]).nil? || primary_field_option.is_a?(Symbol)
-          options[:primary_field] = primary_field_option.to_s.to_sym
         end
         do_parse_json(data_type, model || data_type.records_model, content.with_indifferent_access, options, (record && record.orm_model.schema) || (model && model.schema) || data_type.merged_schema, nil, record)
       end
