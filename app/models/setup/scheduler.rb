@@ -2,8 +2,8 @@ module Setup
   class Scheduler < Event
 
     BuildInDataType.regist(self)
-        .with(:namespace, :name, :scheduling_method, :expression, :activated)
-        .referenced_by(:namespace, :name)
+      .with(:namespace, :name, :scheduling_method, :expression, :activated)
+      .referenced_by(:namespace, :name)
 
     field :scheduling_method, type: Symbol
     field :expression, type: String
@@ -19,24 +19,24 @@ module Setup
       errors.add(:expression, "can't be blank") unless (exp = expression).present?
 
       case scheduling_method
-        when :Once
-          errors.add(:expression, 'is not a valid date-time') unless !(DateTime.parse(exp) rescue nil)
-        when :Periodic
+      when :Once
+        errors.add(:expression, 'is not a valid date-time') unless !(DateTime.parse(exp) rescue nil)
+      when :Periodic
 
-          if exp =~ /\A[1-9][0-9]*(s|m|h|d)\Z/
-            if interval < (min = (Cenit.min_scheduler_interval || 60))
-              self.expression = "#{min}s"
-            end
-          else
-            errors.add(:expression, 'is not a valid interval')
+        if exp =~ /\A[1-9][0-9]*(s|m|h|d)\Z/
+          if interval < (min = (Cenit.min_scheduler_interval || 60))
+            self.expression = "#{min}s"
           end
-        when :CRON
-          #TODO Validate CRON Expression
-          #errors.add(:expression, 'is not a valid CRON expression') unless exp =~ /\A(0|[1-5][0-9]?|[6-9]|\*) (0|1[0-9]?|2[0-3]?|[3-9]|\*) ([1-2][0-9]?|3[0-1]?|[4-9]|\*)  (1[0-2]?|[2-9]|\*) (\*)\Z/
-        when :Advanced
-
         else
-          errors.add(:scheduling_method, 'is not a valid scheduling method')
+          errors.add(:expression, 'is not a valid interval')
+        end
+      when :CRON
+        #TODO Validate CRON Expression
+        #errors.add(:expression, 'is not a valid CRON expression') unless exp =~ /\A(0|[1-5][0-9]?|[6-9]|\*) (0|1[0-9]?|2[0-3]?|[3-9]|\*) ([1-2][0-9]?|3[0-1]?|[4-9]|\*)  (1[0-2]?|[2-9]|\*) (\*)\Z/
+      when :Advanced
+
+      else
+        errors.add(:scheduling_method, 'is not a valid scheduling method')
       end
       errors.blank?
     end
@@ -71,16 +71,17 @@ module Setup
     end
 
     def start
-      retryed_tasks_ids = Set.new
+      return unless next_time
+      retried_tasks_ids = Set.new
       Setup::Task.where(scheduler: self).each do |task|
         if task.can_retry?
-          task.retry
-          retryed_tasks_ids << task.id
+          task.retry(action: :scheduled)
+          retried_tasks_ids << task.id
         end
       end
       Setup::Flow.where(event: self).each do |flow|
         if (flows_executions = Setup::FlowExecution.where(flow: flow, scheduler: self)).present?
-          flows_executions.each { |flow_execution| flow_execution.retry if !retryed_tasks_ids.include?(flow_execution.id) && flow_execution.can_retry? }
+          flows_executions.each { |flow_execution| flow_execution.retry if !retried_tasks_ids.include?(flow_execution.id) && flow_execution.can_retry? }
         else
           flow.process(scheduler: self)
         end
@@ -101,25 +102,25 @@ module Setup
 
     def interval
       case scheduling_method
-        when :Once
-          Time.now - DateTime.parse(expression).to_time rescue 0
-        when :Periodic
-          expression.to_s.to_seconds_interval
-        when :CRON
-          #TODO Next CRON Time
-          0
-        else
-          0
+      when :Once
+        Time.now - DateTime.parse(expression).to_time rescue 0
+      when :Periodic
+        expression.to_s.to_seconds_interval
+      when :CRON
+        #TODO Next CRON Time
+        0
+      else
+        0
       end
     end
 
     def next_time
-      if scheduling_method != :Advanced
-        Time.now + interval
-      else
-        calculator = SchedulerTimePointsCalculator.new(JSON.parse(expression), Time.now.year)
+      if scheduling_method == :Advanced
+        calculator = SchedulerTimePointsCalculator.new(expression, Time.now.year)
         calculator.run
         calculator.next_time(Time.now)
+      else
+        Time.now + interval
       end
     end
 
@@ -130,10 +131,10 @@ module Setup
 
     def amount_of_days(year, month)
       res = {
-          1 => 31, 3 => 31,
-          5 => 31, 7 => 31,
-          8 => 31, 10 => 31,
-          12 => 31,
+        1 => 31, 3 => 31,
+        5 => 31, 7 => 31,
+        8 => 31, 10 => 31,
+        12 => 31,
       }
       res = res[month]
       if not res
@@ -249,7 +250,7 @@ module Setup
     end
 
     def months
-      res = @conf["months"]
+      res = @conf['months']
       if res == []
         res = [1]
       end
@@ -258,6 +259,7 @@ module Setup
     end
 
     def initialize(conf, year)
+      conf = JSON.parse(conf.to_s) unless conf.is_a?(Hash)
       @conf = conf
       @actions = [->() { months }, ->() { days }, ->() { hours }, ->() { minutes }]
       @year = year
@@ -288,8 +290,8 @@ module Setup
 
     def next_time(tnow)
       res = @v.select { |e| e > tnow }
-                .collect { |e| e - tnow }
-      res ? tnow + res : -1
+              .collect { |e| e - tnow }.min
+      res ? tnow + res : nil
     end
 
   end
@@ -300,16 +302,16 @@ end
 class String
   def to_seconds_interval
     case last
-      when 's'
-        1
-      when 'm'
-        60
-      when 'h'
-        60 * 60
-      when 'd'
-        24 * 60 * 60
-      else
-        0
+    when 's'
+      1
+    when 'm'
+      60
+    when 'h'
+      60 * 60
+    when 'd'
+      24 * 60 * 60
+    else
+      0
     end * chop.to_i
   end
 end

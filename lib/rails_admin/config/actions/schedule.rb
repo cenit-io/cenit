@@ -25,7 +25,7 @@ module RailsAdmin
             if @object.can_schedule?
               done = false
               form_config = RailsAdmin::Config.model(Forms::SchedulerSelector)
-              if selector_params = params[form_config.abstract_model.param_key]
+              if (selector_params = params[form_config.abstract_model.param_key])
                 selector_params.permit!
                 if (@form_object = Forms::SchedulerSelector.new(selector_params)).valid?
                   @object.schedule(@form_object.scheduler)
