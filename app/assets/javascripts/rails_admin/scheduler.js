@@ -44,7 +44,7 @@ function schedulerInit() {
                 [] : [Number($(id).val().trim())])
         }
 
-        var position_tab = $("#position").attr('class') != 'tab-pane';
+        var position_tab = $("#position").attr('class').indexOf('active') != -1;
 
         return {
             "months_days": !position_tab ? input_validation("#months_days_input") : [],
@@ -72,7 +72,7 @@ function schedulerInit() {
 
     function updateSchedulerValue() {
         // TODO: Hacerlo cuando se cambie de tab!  
-        $("#setup_scheduler_advanced_expression").val(JSON.stringify(createSchedulerValue()));
+        $("#setup_scheduler_expression").val(JSON.stringify(createSchedulerValue()));
     }
 
 }

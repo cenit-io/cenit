@@ -2,12 +2,11 @@ module Setup
   class Scheduler < Event
 
     BuildInDataType.regist(self)
-        .with(:namespace, :name, :scheduling_method, :expression, :advanced_expression, :activated)
+        .with(:namespace, :name, :scheduling_method, :expression, :activated)
         .referenced_by(:namespace, :name)
 
     field :scheduling_method, type: Symbol
     field :expression, type: String
-    field :advanced_expression, type: String
     field :activated, type: Boolean, default: false
 
     has_many :delayed_messages, class_name: Setup::DelayedMessage.to_s, inverse_of: :scheduler
@@ -17,12 +16,13 @@ module Setup
     scope :activated, -> { where(activated: true) }
 
     validate do
-      # errors.add(:expression, "can't be blank") unless (exp = expression).present?
+      errors.add(:expression, "can't be blank") unless (exp = expression).present?
 
       case scheduling_method
         when :Once
           errors.add(:expression, 'is not a valid date-time') unless !(DateTime.parse(exp) rescue nil)
         when :Periodic
+
           if exp =~ /\A[1-9][0-9]*(s|m|h|d)\Z/
             if interval < (min = (Cenit.min_scheduler_interval || 60))
               self.expression = "#{min}s"
@@ -117,7 +117,7 @@ module Setup
       if scheduling_method != :Advanced
         Time.now + interval
       else
-        calculator = SchedulerTimePointsCalculator.new(JSON.parse(advanced_expression), Time.now.year)
+        calculator = SchedulerTimePointsCalculator.new(JSON.parse(expression), Time.now.year)
         calculator.run
         calculator.next_time(Time.now)
       end
@@ -287,9 +287,9 @@ module Setup
     end
 
     def next_time(tnow)
-      @v.select { |e| e > tnow }
-          .collect { |e| e - tnow }
-          .min
+      res = @v.select { |e| e > tnow }
+                .collect { |e| e - tnow }
+      res ? tnow + res : -1
     end
 
   end

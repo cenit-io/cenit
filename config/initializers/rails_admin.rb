@@ -1,53 +1,53 @@
 [
-  RailsAdmin::Config::Actions::MemoryUsage,
-  RailsAdmin::Config::Actions::DiskUsage,
-  RailsAdmin::Config::Actions::SendToFlow,
-  RailsAdmin::Config::Actions::LoadModel,
-  RailsAdmin::Config::Actions::ShutdownModel,
-  RailsAdmin::Config::Actions::SwitchNavigation,
-  RailsAdmin::Config::Actions::DataType,
-  RailsAdmin::Config::Actions::Import,
-  #RailsAdmin::Config::Actions::EdiExport,
-  RailsAdmin::Config::Actions::ImportSchema,
-  RailsAdmin::Config::Actions::DeleteAll,
-  RailsAdmin::Config::Actions::TranslatorUpdate,
-  RailsAdmin::Config::Actions::Convert,
-  RailsAdmin::Config::Actions::SimpleShare,
-  RailsAdmin::Config::Actions::BulkShare,
-  RailsAdmin::Config::Actions::Pull,
-  RailsAdmin::Config::Actions::RetryTask,
-  RailsAdmin::Config::Actions::DownloadFile,
-  RailsAdmin::Config::Actions::ProcessFlow,
-  RailsAdmin::Config::Actions::BuildGem,
-  RailsAdmin::Config::Actions::Run,
-  RailsAdmin::Config::Actions::Authorize,
-  RailsAdmin::Config::Actions::SimpleDeleteDataType,
-  RailsAdmin::Config::Actions::BulkDeleteDataType,
-  RailsAdmin::Config::Actions::SimpleGenerate,
-  RailsAdmin::Config::Actions::BulkGenerate,
-  RailsAdmin::Config::Actions::SimpleExpand,
-  RailsAdmin::Config::Actions::BulkExpand,
-  RailsAdmin::Config::Actions::Records,
-  RailsAdmin::Config::Actions::SwitchScheduler,
-  RailsAdmin::Config::Actions::SimpleExport,
-  RailsAdmin::Config::Actions::Schedule,
-  RailsAdmin::Config::Actions::Submit,
-  RailsAdmin::Config::Actions::DeleteCollection,
-  RailsAdmin::Config::Actions::Inspect,
-  RailsAdmin::Config::Actions::Copy,
-  RailsAdmin::Config::Actions::Cancel,
-  RailsAdmin::Config::Actions::Configure,
-  RailsAdmin::Config::Actions::CrossShare,
-  RailsAdmin::Config::Actions::Regist,
-  RailsAdmin::Config::Actions::Grid
+    RailsAdmin::Config::Actions::MemoryUsage,
+    RailsAdmin::Config::Actions::DiskUsage,
+    RailsAdmin::Config::Actions::SendToFlow,
+    RailsAdmin::Config::Actions::LoadModel,
+    RailsAdmin::Config::Actions::ShutdownModel,
+    RailsAdmin::Config::Actions::SwitchNavigation,
+    RailsAdmin::Config::Actions::DataType,
+    RailsAdmin::Config::Actions::Import,
+    #RailsAdmin::Config::Actions::EdiExport,
+    RailsAdmin::Config::Actions::ImportSchema,
+    RailsAdmin::Config::Actions::DeleteAll,
+    RailsAdmin::Config::Actions::TranslatorUpdate,
+    RailsAdmin::Config::Actions::Convert,
+    RailsAdmin::Config::Actions::SimpleShare,
+    RailsAdmin::Config::Actions::BulkShare,
+    RailsAdmin::Config::Actions::Pull,
+    RailsAdmin::Config::Actions::RetryTask,
+    RailsAdmin::Config::Actions::DownloadFile,
+    RailsAdmin::Config::Actions::ProcessFlow,
+    RailsAdmin::Config::Actions::BuildGem,
+    RailsAdmin::Config::Actions::Run,
+    RailsAdmin::Config::Actions::Authorize,
+    RailsAdmin::Config::Actions::SimpleDeleteDataType,
+    RailsAdmin::Config::Actions::BulkDeleteDataType,
+    RailsAdmin::Config::Actions::SimpleGenerate,
+    RailsAdmin::Config::Actions::BulkGenerate,
+    RailsAdmin::Config::Actions::SimpleExpand,
+    RailsAdmin::Config::Actions::BulkExpand,
+    RailsAdmin::Config::Actions::Records,
+    RailsAdmin::Config::Actions::SwitchScheduler,
+    RailsAdmin::Config::Actions::SimpleExport,
+    RailsAdmin::Config::Actions::Schedule,
+    RailsAdmin::Config::Actions::Submit,
+    RailsAdmin::Config::Actions::DeleteCollection,
+    RailsAdmin::Config::Actions::Inspect,
+    RailsAdmin::Config::Actions::Copy,
+    RailsAdmin::Config::Actions::Cancel,
+    RailsAdmin::Config::Actions::Configure,
+    RailsAdmin::Config::Actions::CrossShare,
+    RailsAdmin::Config::Actions::Regist,
+    RailsAdmin::Config::Actions::Grid
 ].each { |a| RailsAdmin::Config::Actions.register(a) }
 
 RailsAdmin::Config::Actions.register(:export, RailsAdmin::Config::Actions::BulkExport)
 [
-  RailsAdmin::Config::Fields::Types::JsonValue,
-  RailsAdmin::Config::Fields::Types::JsonSchema,
-  RailsAdmin::Config::Fields::Types::StorageFile,
-  RailsAdmin::Config::Fields::Types::EnumEdit
+    RailsAdmin::Config::Fields::Types::JsonValue,
+    RailsAdmin::Config::Fields::Types::JsonSchema,
+    RailsAdmin::Config::Fields::Types::StorageFile,
+    RailsAdmin::Config::Fields::Types::EnumEdit
 ].each { |f| RailsAdmin::Config::Fields::Types.register(f) }
 
 RailsAdmin::Config::Fields::Types::CodeMirror.register_instance_option :js_location do
@@ -60,15 +60,15 @@ end
 
 RailsAdmin::Config::Fields::Types::CodeMirror.register_instance_option :config do
   {
-    mode: 'css',
-    theme: 'neo',
+      mode: 'css',
+      theme: 'neo',
   }
 end
 
 RailsAdmin::Config::Fields::Types::CodeMirror.register_instance_option :assets do
   {
-    mode: bindings[:view].asset_path('codemirror/modes/css.js'),
-    theme: bindings[:view].asset_path('codemirror/themes/neo.css'),
+      mode: bindings[:view].asset_path('codemirror/modes/css.js'),
+      theme: bindings[:view].asset_path('codemirror/themes/neo.css'),
   }
 end
 
@@ -243,7 +243,7 @@ RailsAdmin.config do |config|
               can_see = !am.embedded? && (show_action = v.action(:show, am, associated))
               can_see ? v.link_to(wording, v.url_for(action: show_action.action_name, model_name: am.to_param, id: associated.id), class: 'pjax') : wording
             end.to_sentence.html_safe +
-              v.select_tag("#{bindings[:controller].instance_variable_get(:@model_config).abstract_model.param_key}[connection_ids][]", ids.html_safe, multiple: true, style: 'display:none').html_safe
+                v.select_tag("#{bindings[:controller].instance_variable_get(:@model_config).abstract_model.param_key}[connection_ids][]", ids.html_safe, multiple: true, style: 'display:none').html_safe
           else
             'No connection selected'.html_safe
           end
@@ -279,7 +279,7 @@ RailsAdmin.config do |config|
               can_see = !am.embedded? && (show_action = v.action(:show, am, associated))
               can_see ? v.link_to(wording, v.url_for(action: show_action.action_name, model_name: am.to_param, id: associated.id), class: 'pjax') : wording
             end.to_sentence.html_safe +
-              v.select_tag("#{bindings[:controller].instance_variable_get(:@model_config).abstract_model.param_key}[dependency_ids][]", ids.html_safe, multiple: true, style: 'display:none').html_safe
+                v.select_tag("#{bindings[:controller].instance_variable_get(:@model_config).abstract_model.param_key}[dependency_ids][]", ids.html_safe, multiple: true, style: 'display:none').html_safe
           else
             'No dependencies selected'.html_safe
           end
@@ -291,8 +291,8 @@ RailsAdmin.config do |config|
       field :pull_parameters do
         visible do
           if !(obj = bindings[:object]).instance_variable_get(:@_selecting_collection) &&
-            !obj.instance_variable_get(:@_selecting_connections) &&
-            (pull_parameters_enum = obj.enum_for_pull_parameters).present?
+              !obj.instance_variable_get(:@_selecting_connections) &&
+              (pull_parameters_enum = obj.enum_for_pull_parameters).present?
             bindings[:controller].instance_variable_set(:@shared_parameter_enum, pull_parameters_enum)
             true
           else
@@ -306,7 +306,7 @@ RailsAdmin.config do |config|
       field :readme do
         visible do
           !(obj = bindings[:object]).instance_variable_get(:@_selecting_collection) &&
-            !obj.instance_variable_get(:@_selecting_connections)
+              !obj.instance_variable_get(:@_selecting_connections)
         end
       end
     end
@@ -793,7 +793,7 @@ RailsAdmin.config do |config|
           unless max = bindings[:controller].instance_variable_get(:@max_storage_size)
             bindings[:controller].instance_variable_set(:@max_storage_size, max = objects.collect { |data_type| data_type.storage_size }.max)
           end
-          (bindings[:view].render partial: 'used_memory_bar', locals: { max: max, value: bindings[:object].records_model.storage_size }).html_safe
+          (bindings[:view].render partial: 'used_memory_bar', locals: {max: max, value: bindings[:object].records_model.storage_size}).html_safe
         else
           bindings[:view].number_to_human_size(value)
         end
@@ -839,7 +839,7 @@ RailsAdmin.config do |config|
           unless max = bindings[:controller].instance_variable_get(:@max_used_memory)
             bindings[:controller].instance_variable_set(:@max_used_memory, max = Setup::DataType.fields[:used_memory.to_s].type.new(Setup::DataType.max(:used_memory)))
           end
-          (bindings[:view].render partial: 'used_memory_bar', locals: { max: max, value: Setup::DataType.fields[:used_memory.to_s].type.new(value) }).html_safe
+          (bindings[:view].render partial: 'used_memory_bar', locals: {max: max, value: Setup::DataType.fields[:used_memory.to_s].type.new(value)}).html_safe
         end
       end
       field :storage_size
@@ -855,11 +855,11 @@ RailsAdmin.config do |config|
       field :schema do
         pretty_value do
           v =
-            if json = JSON.pretty_generate(value) rescue nil
-              "<code class='json'>#{json.gsub('<', '&lt;').gsub('>', '&gt;')}</code>"
-            else
-              value
-            end
+              if json = JSON.pretty_generate(value) rescue nil
+                "<code class='json'>#{json.gsub('<', '&lt;').gsub('>', '&gt;')}</code>"
+              else
+                value
+              end
 
           "<pre>#{v}</pre>".html_safe
         end
@@ -900,7 +900,7 @@ RailsAdmin.config do |config|
         report = bindings[:object].shutdown(report_only: true)
         reload = (report[:reloaded].collect(&:data_type) + report[:destroyed].collect(&:data_type)).uniq
         bindings[:object].instance_variable_set(:@_to_reload, reload)
-        { cols: '74', rows: '15' }
+        {cols: '74', rows: '15'}
       end
       # pretty_value do
       #   "<pre><code class='json'>#{JSON.pretty_generate(value)}</code></pre>".html_safe
@@ -913,7 +913,7 @@ RailsAdmin.config do |config|
           unless max = bindings[:controller].instance_variable_get(:@max_storage_size)
             bindings[:controller].instance_variable_set(:@max_storage_size, max = objects.collect { |data_type| data_type.storage_size }.max)
           end
-          (bindings[:view].render partial: 'used_memory_bar', locals: { max: max, value: bindings[:object].records_model.storage_size }).html_safe
+          (bindings[:view].render partial: 'used_memory_bar', locals: {max: max, value: bindings[:object].records_model.storage_size}).html_safe
         else
           bindings[:view].number_to_human_size(value)
         end
@@ -965,7 +965,7 @@ RailsAdmin.config do |config|
           unless max = bindings[:controller].instance_variable_get(:@max_used_memory)
             bindings[:controller].instance_variable_set(:@max_used_memory, max = Setup::JsonDataType.fields[:used_memory.to_s].type.new(Setup::JsonDataType.max(:used_memory)))
           end
-          (bindings[:view].render partial: 'used_memory_bar', locals: { max: max, value: Setup::JsonDataType.fields[:used_memory.to_s].type.new(value) }).html_safe
+          (bindings[:view].render partial: 'used_memory_bar', locals: {max: max, value: Setup::JsonDataType.fields[:used_memory.to_s].type.new(value)}).html_safe
         end
       end
       field :storage_size
@@ -1022,7 +1022,7 @@ RailsAdmin.config do |config|
         unless max = bindings[:controller].instance_variable_get(:@max_used_memory)
           bindings[:controller].instance_variable_set(:@max_used_memory, max = Setup::JsonDataType.fields[:used_memory.to_s].type.new(Setup::JsonDataType.max(:used_memory)))
         end
-        (bindings[:view].render partial: 'used_memory_bar', locals: { max: max, value: Setup::JsonDataType.fields[:used_memory.to_s].type.new(value) }).html_safe
+        (bindings[:view].render partial: 'used_memory_bar', locals: {max: max, value: Setup::JsonDataType.fields[:used_memory.to_s].type.new(value)}).html_safe
       end
     end
 
@@ -1032,7 +1032,7 @@ RailsAdmin.config do |config|
           unless max = bindings[:controller].instance_variable_get(:@max_storage_size)
             bindings[:controller].instance_variable_set(:@max_storage_size, max = objects.collect { |data_type| data_type.records_model.storage_size }.max)
           end
-          (bindings[:view].render partial: 'used_memory_bar', locals: { max: max, value: bindings[:object].records_model.storage_size }).html_safe
+          (bindings[:view].render partial: 'used_memory_bar', locals: {max: max, value: bindings[:object].records_model.storage_size}).html_safe
         else
           bindings[:view].number_to_human_size(value)
         end
@@ -1095,7 +1095,7 @@ RailsAdmin.config do |config|
           unless max = bindings[:controller].instance_variable_get(:@max_used_memory)
             bindings[:controller].instance_variable_set(:@max_used_memory, max = Setup::JsonDataType.fields[:used_memory.to_s].type.new(Setup::JsonDataType.max(:used_memory)))
           end
-          (bindings[:view].render partial: 'used_memory_bar', locals: { max: max, value: Setup::JsonDataType.fields[:used_memory.to_s].type.new(value) }).html_safe
+          (bindings[:view].render partial: 'used_memory_bar', locals: {max: max, value: Setup::JsonDataType.fields[:used_memory.to_s].type.new(value)}).html_safe
         end
       end
       field :storage_size
@@ -1154,13 +1154,13 @@ RailsAdmin.config do |config|
       field :uri do
         read_only { !bindings[:object].new_record? }
         html_attributes do
-          { cols: '74', rows: '1' }
+          {cols: '74', rows: '1'}
         end
       end
 
       field :schema, :code_mirror do
         html_attributes do
-          { cols: '74', rows: '15' }
+          {cols: '74', rows: '15'}
         end
       end
 
@@ -1176,13 +1176,13 @@ RailsAdmin.config do |config|
       field :schema do
         pretty_value do
           v =
-            if json = JSON.parse(value) rescue nil
-              "<code class='json'>#{JSON.pretty_generate(json).gsub('<', '&lt;').gsub('>', '&gt;')}</code>"
-            elsif (xml = Nokogiri::XML(value)).errors.blank?
-              "<code class='xml'>#{xml.to_xml.gsub('<', '&lt;').gsub('>', '&gt;')}</code>"
-            else
-              "<code>#{value}</code>"
-            end
+              if json = JSON.parse(value) rescue nil
+                "<code class='json'>#{JSON.pretty_generate(json).gsub('<', '&lt;').gsub('>', '&gt;')}</code>"
+              elsif (xml = Nokogiri::XML(value)).errors.blank?
+                "<code class='xml'>#{xml.to_xml.gsub('<', '&lt;').gsub('>', '&gt;')}</code>"
+              else
+                "<code>#{value}</code>"
+              end
           "<pre>#{v}</pre>".html_safe
         end
       end
@@ -1252,7 +1252,7 @@ RailsAdmin.config do |config|
     configure :key, :string do
       visible { User.current.admin? }
       html_attributes do
-        { maxlength: 30, size: 30 }
+        {maxlength: 30, size: 30}
       end
       group :credentials
     end
@@ -1260,7 +1260,7 @@ RailsAdmin.config do |config|
     configure :token, :text do
       visible { User.current.admin? }
       html_attributes do
-        { cols: '50', rows: '1' }
+        {cols: '50', rows: '1'}
       end
       group :credentials
     end
@@ -1340,7 +1340,7 @@ RailsAdmin.config do |config|
     configure :name, :string do
       help 'Requiered.'
       html_attributes do
-        { maxlength: 50, size: 50 }
+        {maxlength: 50, size: 50}
       end
     end
     configure :webhooks do
@@ -1400,7 +1400,7 @@ RailsAdmin.config do |config|
     configure :path, :string do
       help 'Requiered. Path of the webhook relative to connection URL.'
       html_attributes do
-        { maxlength: 255, size: 100 }
+        {maxlength: 255, size: 100}
       end
     end
 
@@ -1756,44 +1756,55 @@ RailsAdmin.config do |config|
       field :name
       field :scheduling_method
 
-      field :advanced_expression do
-
-        visible { bindings[:object].scheduling_method == :Advanced }
-
-        label "Schedule"
-        partial :scheduler
-
-      end
-
       field :expression do
-        visible { bindings[:object].scheduling_method == :Periodic }
+        visible { [:Periodic, :Advanced].include?(bindings[:object].scheduling_method) }
         label do
           case bindings[:object].scheduling_method
-          when :Once
-            'Date and time'
-          when :Periodic
-            'Duration'
-          when :CRON
-            'CRON Expression'
-          else
-            'Expression'
+            when :Once
+              'Date and time'
+            when :Periodic
+              'Duration'
+            when :CRON
+              'CRON Expression'
+            when :Advanced
+              "Schedule"
+            else
+              'Expression'
           end
         end
+
+
         help do
           case bindings[:object].scheduling_method
-          when :Once
-            'Select a date and a time'
-          when :Periodic
-            'Type a time duration'
-          when :CRON
-            'Type a CRON Expression'
-          else
-            'Expression'
+            when :Once
+              'Select a date and a time'
+            when :Periodic
+              'Type a time duration'
+            when :CRON
+              'Type a CRON Expression'
+            when :Advanced
+              "The advanced configuration"
+            else
+              'Expression'
           end
         end
-        partial { bindings[:object].scheduling_method == :Once ? 'form_datetime_wrapper' : 'form_text' }
+
+        partial do
+          case bindings[:object].scheduling_method
+            when :Once
+              'form_datetime_wrapper'
+            when :Periodic
+              'form_text'
+            when :CRON
+              'form_text'
+            when :Advanced
+              :scheduler
+            else
+              'form_text'
+          end
+        end
         html_attributes do
-          { rows: '1' }
+          {rows: '1'}
         end
       end
     end
@@ -1896,7 +1907,7 @@ RailsAdmin.config do |config|
         visible { bindings[:object].style.present? && bindings[:object].style != 'chain' }
         help { 'Required' }
         html_attributes do
-          { cols: '74', rows: '15' }
+          {cols: '74', rows: '15'}
         end
       end
 
@@ -1919,11 +1930,11 @@ RailsAdmin.config do |config|
         associated_collection_scope do
           translator = bindings[:object]
           source_data_type =
-            if translator.source_exporter
-              translator.source_exporter.target_data_type
-            else
-              translator.source_data_type
-            end
+              if translator.source_exporter
+                translator.source_exporter.target_data_type
+              else
+                translator.source_data_type
+              end
           target_data_type = bindings[:object].target_data_type
           Proc.new { |scope|
             scope = scope.all(type: :Conversion,
@@ -2690,7 +2701,7 @@ RailsAdmin.config do |config|
           unless max = bindings[:controller].instance_variable_get(:@max_length)
             bindings[:controller].instance_variable_set(:@max_length, max = objects.collect { |storage| storage.length }.reject(&:nil?).max)
           end
-          (bindings[:view].render partial: 'used_memory_bar', locals: { max: max, value: bindings[:object].length }).html_safe
+          (bindings[:view].render partial: 'used_memory_bar', locals: {max: max, value: bindings[:object].length}).html_safe
         else
           bindings[:view].number_to_human_size(value)
         end
@@ -2961,7 +2972,7 @@ RailsAdmin.config do |config|
           am = amc.abstract_model
           if (inspect_action = v.action(:inspect, am, executor))
             task_path = v.show_path(model_name: task.class.to_s.underscore.gsub('/', '~'), id: task.id.to_s)
-            v.link_to(wording, v.url_for(action: inspect_action.action_name, model_name: am.to_param, id: executor.id, params: { return_to: task_path }))
+            v.link_to(wording, v.url_for(action: inspect_action.action_name, model_name: am.to_param, id: executor.id, params: {return_to: task_path}))
           else
             wording
           end.html_safe

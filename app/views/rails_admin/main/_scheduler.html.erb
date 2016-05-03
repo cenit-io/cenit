@@ -1,13 +1,13 @@
 <%
-  if @object.advanced_expression != nil
-    dd = JSON.parse(@object.advanced_expression)
+  if @object.expression != nil
+    dd = JSON.parse(@object.expression)
   else
     dd = {"months_days" => [], "weeks_days" => [], "weeks_month" => [], "months" => [], "hours" => [], "minutes" => []}
   end
   ["months_days", "months", "hours", "minutes"].each { |e| dd[e] = dd[e].to_s.strip[1..-2] }
 %>
 
-<input type="hidden" id="setup_scheduler_advanced_expression" name="setup_scheduler[advanced_expression]">
+<input type="hidden" id="setup_scheduler_expression" name="setup_scheduler[expression]">
 
 <div id="content">
   <ul id="scheduler_tabs" class="nav nav-tabs" data-tabs="tabs">
