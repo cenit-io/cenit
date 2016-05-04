@@ -53,7 +53,7 @@ Cenit.config do
   oauth2_callback_site ENV['OAUTH2_CALLBACK_SITE']
 
   #HTTP Proxy
-  http_proxy ENV['HTTP-PROXY']
+  http_proxy_address ENV['HTTP-PROXY']
 
   #Hide navigation admin pane
   hide_admin_navigation false

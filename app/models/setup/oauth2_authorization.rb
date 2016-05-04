@@ -22,8 +22,7 @@ module Setup
     end
 
     def build_auth_header(template_parameters)
-      provider.refresh_token(self)
-      ((token_type || 'OAuth').to_s + ' ' + access_token.to_s).strip #TODO For Facebook that do not use token type
+      ((token_type || 'OAuth').to_s + ' ' + fresh_access_token.to_s).strip #TODO For Facebook that do not use token type
     end
 
     def callback_key
@@ -65,6 +64,10 @@ module Setup
       self.token_span = token.expires_in
       self.refresh_token = token.refresh_token if token.refresh_token
       self.id_token = token.params['id_token']
+    end
+
+    def accept_callback?(params)
+      params[:code].present?
     end
 
   end
