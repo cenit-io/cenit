@@ -13,6 +13,7 @@ module Setup
     mount_uploader :image, ImageUploader
     field :name, type: String
     field :shared_version, type: String
+    field :logo_background, type: String
     field :category, type: String
     field :description, type: String
     field :summary, type: String

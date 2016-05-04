@@ -3,10 +3,16 @@ require 'cenit/core_ext'
 module Cenit
   class << self
 
+    def http_proxy
+      if (address = http_proxy_address) && (port = http_proxy_port)
+        "http://#{address}:#{port}"
+      end
+    end
+
     def http_proxy_options
       options = {}
       %w(http_proxy http_proxy_port http_proxy_user http_proxy_password).each do |option|
-        if option_value = send(option)
+        if (option_value = send(option))
           options[option] = option_value
         end
       end

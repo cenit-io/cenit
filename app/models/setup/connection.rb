@@ -49,9 +49,11 @@ module Setup
             uri = URI.parse(url)
             connection = Setup::Connection.new(url: url[0..(url.index(uri.path))])
             webhook = Setup::Webhook.new(method: symbol, path: uri.path)
-            uri.query.split('&').each do |pair|
-              Rack::Utils.parse_nested_query(pair).each do |name, value|
-                webhook.parameters.new(name: name, value: value)
+            if (query = uri.query)
+              query.split('&').each do |pair|
+                Rack::Utils.parse_nested_query(pair).each do |name, value|
+                  webhook.parameters.new(name: name, value: value)
+                end
               end
             end
 

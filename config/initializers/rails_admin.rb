@@ -2117,7 +2117,11 @@ RailsAdmin.config do |config|
 
     configure :namespace, :enum_edit
 
-    fields :namespace, :name, :response_type, :authorization_endpoint, :token_endpoint, :token_method, :request_token_endpoint, :tenant, :origin
+    configure :refresh_token_algorithm do
+      visible { bindings[:object].refresh_token_strategy == :custom.to_s }
+    end
+
+    fields :namespace, :name, :response_type, :authorization_endpoint, :token_endpoint, :token_method, :request_token_endpoint, :refresh_token_strategy, :refresh_token_algorithm, :tenant, :origin
   end
 
   config.model Setup::Oauth2Provider do
@@ -2229,6 +2233,7 @@ RailsAdmin.config do |config|
       field :username
       field :password
       field :metadata
+      field :_id
     end
 
     fields :namespace, :name, :status, :username, :password
@@ -2280,7 +2285,7 @@ RailsAdmin.config do |config|
       group :credentials
     end
 
-    configure :realm do
+    configure :realm_id do
       group :credentials
     end
 
@@ -2291,10 +2296,11 @@ RailsAdmin.config do |config|
       field :client
       field :parameters
       field :metadata
+      field :_id
 
       field :access_token
       field :access_token_secret
-      field :realm
+      field :realm_id
       field :token_span
       field :authorized_at
     end
@@ -2381,6 +2387,7 @@ RailsAdmin.config do |config|
       field :scopes
       field :parameters
       field :metadata
+      field :_id
 
       field :expires_in
 
