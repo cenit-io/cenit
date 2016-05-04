@@ -2,42 +2,28 @@ module Setup
   class Scheduler < Event
 
     BuildInDataType.regist(self)
-      .with(:namespace, :name, :scheduling_method, :expression, :activated)
+      .with(:namespace, :name, :expression, :activated)
       .referenced_by(:namespace, :name)
 
-    field :scheduling_method, type: Symbol
     field :expression, type: String
     field :activated, type: Boolean, default: false
 
     has_many :delayed_messages, class_name: Setup::DelayedMessage.to_s, inverse_of: :scheduler
 
-    validates_presence_of :name, :scheduling_method
+    validates_presence_of :name
 
     scope :activated, -> { where(activated: true) }
 
     validate do
-      errors.add(:expression, "can't be blank") unless (exp = expression).present?
 
-      case scheduling_method
-      when :Once
-        errors.add(:expression, 'is not a valid date-time') unless !(DateTime.parse(exp) rescue nil)
-      when :Periodic
+      begin
 
-        if exp =~ /\A[1-9][0-9]*(s|m|h|d)\Z/
-          if interval < (min = (Cenit.min_scheduler_interval || 60))
-            self.expression = "#{min}s"
-          end
-        else
-          errors.add(:expression, 'is not a valid interval')
-        end
-      when :CRON
-        #TODO Validate CRON Expression
-        #errors.add(:expression, 'is not a valid CRON expression') unless exp =~ /\A(0|[1-5][0-9]?|[6-9]|\*) (0|1[0-9]?|2[0-3]?|[3-9]|\*) ([1-2][0-9]?|3[0-1]?|[4-9]|\*)  (1[0-2]?|[2-9]|\*) (\*)\Z/
-      when :Advanced
+        JSON::Validator.validate!(SCHEDULER_SCHEMA, expression)
 
-      else
-        errors.add(:scheduling_method, 'is not a valid scheduling method')
+      rescue JSON::Schema::ValidationError => e
+        errors.add(:expression, e.message)
       end
+
       errors.blank?
     end
 
@@ -54,12 +40,8 @@ module Setup
       super + ' [' + (activated? ? 'on' : 'off') + ']'
     end
 
-    def scheduling_method_enum
-      [:Periodic, :Advanced] #[:Once, :Periodic, :CRON]
-    end
-
     def ready_to_save?
-      scheduling_method.present?
+      true
     end
 
     def activated?
@@ -100,36 +82,82 @@ module Setup
       update(activated: false) unless deactivated?
     end
 
-    def interval
-      case scheduling_method
-      when :Once
-        Time.now - DateTime.parse(expression).to_time rescue 0
-      when :Periodic
-        expression.to_s.to_seconds_interval
-      when :CRON
-        #TODO Next CRON Time
-        0
-      else
-        0
-      end
+    def next_time
+      calculator = SchedulerTimePointsCalculator.new(expression, Time.now.year)
+      calculator.next_time(Time.now)
     end
 
-    def next_time
-      if scheduling_method == :Advanced
-        calculator = SchedulerTimePointsCalculator.new(expression, Time.now.year)
-        calculator.run
-        calculator.next_time(Time.now)
-      else
-        Time.now + interval
-      end
-    end
+    SCHEDULER_SCHEMA = <<-DATA
+{
+  "type" : "object",
+  "properties": {
+    "periodic_expression": {
+      "type": "string",
+      "pattern": "^[1-9][0-9]*(s|m|h|d)$"
+    },
+    "type": {
+      "type": "string",
+      "enum": ["periodic", "advanced_position", "advanced_number"]
+    },
+    "months_days": {
+      "type": "array",
+      "items":{
+        "type": "integer"
+      },
+      "uniqueItems": true,
+      "maxItems": 31
+    },
+    "weeks_days": {
+      "type": "array",
+      "items":{
+        "type": "integer"
+      },
+      "uniqueItems": true,
+      "maxItems": 7
+    },
+    "weeks_month": {
+      "type": "array",
+      "items":{
+        "type": "integer"
+      },
+      "uniqueItems": true,
+      "maxItems": 3
+    },
+    "months": {
+      "type": "array",
+      "items":{
+        "type": "integer"
+      },
+      "uniqueItems": true,
+      "maxItems": 12
+    },
+    "hours": {
+      "type": "array",
+      "items":{
+        "type": "integer"
+      },
+      "uniqueItems": true,
+      "maxItems": 24
+    },
+    "minutes": {
+      "type": "array",
+      "items":{
+        "type": "integer"
+      },
+      "uniqueItems": true,
+      "maxItems": 60
+    }
+  },
+  "required":["type"]
+}
+    DATA
 
   end
 
 
   class SchedulerTimePointsCalculator
 
-    def amount_of_days(year, month)
+    def amount_of_days_in_the_month(year, month)
       res = {
         1 => 31, 3 => 31,
         5 => 31, 7 => 31,
@@ -162,7 +190,7 @@ module Setup
       res = []
       one_day = 60*60*24
       d1 = Time.gm(year, m, 1)
-      d2 = Time.gm(year, m, amount_of_days(year, m))
+      d2 = Time.gm(year, m, amount_of_days_in_the_month(year, m))
       sunday = d1 + ((7 + dd - d1.wday) % 7) * one_day
       while sunday < d2
         res << sunday.day
@@ -173,7 +201,7 @@ module Setup
 
     def last_day(year, dd, m)
       one_day = 60*60*24
-      d1 = Time.gm(year, m, amount_of_days(year, m))
+      d1 = Time.gm(year, m, amount_of_days_in_the_month(year, m))
       while d1.wday != dd
         d1 -= one_day
       end
@@ -183,8 +211,8 @@ module Setup
     def thow_last_days(year, dd, m)
       res = []
       one_day = 60*60*24
-      d1 = Time.gm(year, m, amount_of_days(year, m))
-      d2 = Time.gm(year, m, amount_of_days(year, m) - 14)
+      d1 = Time.gm(year, m, amount_of_days_in_the_month(year, m))
+      d2 = Time.gm(year, m, amount_of_days_in_the_month(year, m) - 14)
       sunday = last_day(year, dd, m)
 
       while sunday > d2
@@ -195,42 +223,37 @@ module Setup
     end
 
     def days
-
-      months_days = @conf["months_days"]
+      month = @solution[0]
       weeks_days = @conf["weeks_days"]
-      if weeks_days == [] and months_days == []
-        months_days = [1]
-      else
-        # weeks_days exists!
-        if months_days == []
-          # Obtener los dias de acuerdo a la(s) semana(s)
-          month = @solution[0]
-          weeks_month = @conf["weeks_month"]
+      weeks_month = @conf["weeks_month"]
 
-          if weeks_month.length > 0
-            weeks_month.each do |wm|
-              if wm > 0
-                # firsts one
-                months_days += weeks_days.collect do |wd|
-                  thow_first_days(@year, wd, month)[wm-1]
-                end
-              else
-                # lasts one
-                months_days += weeks_days.collect do |wd|
-                  thow_last_days(@year, wd, month)[wm.abs - 1]
-                end
-              end
+      if @conf["type"] == "advanced_position"
+        months_days = []
+        # Obtener los dias de acuerdo a la(s) semana(s)
+        if weeks_month.length > 0
+          weeks_month.each do |wm|
+            if wm > 0
+              # firsts one
+              months_days += weeks_days.collect { |wd| thow_first_days(@year, wd, month)[wm-1] }
+            else
+              # lasts one
+              months_days += weeks_days.collect { |wd| thow_last_days(@year, wd, month)[wm.abs - 1] }
             end
-          else
-            months_days = weeks_days.collect do |wd|
-              all_days(@year, wd, month)
-            end
-            months_days.flatten
           end
-
+        else
+          months_days = weeks_days.collect { |wd| all_days(@year, wd, month) }
+          months_days.flatten!
         end
+      else
+        months_days = @conf["months_days"]
       end
-      months_days
+
+      if months_days == []
+        months_days = [1]
+      end
+
+      _a = amount_of_days_in_the_month(@year, month)
+      months_days.select { |e| e > 0 && e <= _a }
     end
 
     def hours
@@ -238,7 +261,7 @@ module Setup
       if res == []
         res = [0]
       end
-      res
+      res.select { |e| e > -1 && e <= 23 }
     end
 
     def minutes
@@ -246,7 +269,7 @@ module Setup
       if res == []
         res = [0]
       end
-      res
+      res.select { |e| e > -1 && e <= 59 }
     end
 
     def months
@@ -254,8 +277,7 @@ module Setup
       if res == []
         res = [1]
       end
-      res
-
+      res.select { |e| e > 0 && e <= 12 }
     end
 
     def initialize(conf, year)
@@ -273,7 +295,7 @@ module Setup
     end
 
     def report_solution
-      # TODO: To use the user TimeZone
+      # TODO: To use the user's TimeZone
       @v << Time.new(@year, *@solution, 0, "-04:00")
     end
 
@@ -289,11 +311,18 @@ module Setup
     end
 
     def next_time(tnow)
-      res = @v.select { |e| e > tnow }
-              .collect { |e| e - tnow }.min
-      res ? tnow + res : nil
+      if @conf["type"] != "periodic"
+        run
+        res = @v.select { |e| e > tnow }
+                .collect { |e| e - tnow }
+                .min
+        res ? tnow + res : nil
+      else
+        a = @conf["periodic_expression"].to_seconds_interval
+        b = Cenit.min_scheduler_interval || 60
+        tnow + [a, b].max
+      end
     end
-
   end
 
 end

@@ -1,53 +1,53 @@
 [
-    RailsAdmin::Config::Actions::MemoryUsage,
-    RailsAdmin::Config::Actions::DiskUsage,
-    RailsAdmin::Config::Actions::SendToFlow,
-    RailsAdmin::Config::Actions::LoadModel,
-    RailsAdmin::Config::Actions::ShutdownModel,
-    RailsAdmin::Config::Actions::SwitchNavigation,
-    RailsAdmin::Config::Actions::DataType,
-    RailsAdmin::Config::Actions::Import,
-    #RailsAdmin::Config::Actions::EdiExport,
-    RailsAdmin::Config::Actions::ImportSchema,
-    RailsAdmin::Config::Actions::DeleteAll,
-    RailsAdmin::Config::Actions::TranslatorUpdate,
-    RailsAdmin::Config::Actions::Convert,
-    RailsAdmin::Config::Actions::SimpleShare,
-    RailsAdmin::Config::Actions::BulkShare,
-    RailsAdmin::Config::Actions::Pull,
-    RailsAdmin::Config::Actions::RetryTask,
-    RailsAdmin::Config::Actions::DownloadFile,
-    RailsAdmin::Config::Actions::ProcessFlow,
-    RailsAdmin::Config::Actions::BuildGem,
-    RailsAdmin::Config::Actions::Run,
-    RailsAdmin::Config::Actions::Authorize,
-    RailsAdmin::Config::Actions::SimpleDeleteDataType,
-    RailsAdmin::Config::Actions::BulkDeleteDataType,
-    RailsAdmin::Config::Actions::SimpleGenerate,
-    RailsAdmin::Config::Actions::BulkGenerate,
-    RailsAdmin::Config::Actions::SimpleExpand,
-    RailsAdmin::Config::Actions::BulkExpand,
-    RailsAdmin::Config::Actions::Records,
-    RailsAdmin::Config::Actions::SwitchScheduler,
-    RailsAdmin::Config::Actions::SimpleExport,
-    RailsAdmin::Config::Actions::Schedule,
-    RailsAdmin::Config::Actions::Submit,
-    RailsAdmin::Config::Actions::DeleteCollection,
-    RailsAdmin::Config::Actions::Inspect,
-    RailsAdmin::Config::Actions::Copy,
-    RailsAdmin::Config::Actions::Cancel,
-    RailsAdmin::Config::Actions::Configure,
-    RailsAdmin::Config::Actions::CrossShare,
-    RailsAdmin::Config::Actions::Regist,
-    RailsAdmin::Config::Actions::Grid
+  RailsAdmin::Config::Actions::MemoryUsage,
+  RailsAdmin::Config::Actions::DiskUsage,
+  RailsAdmin::Config::Actions::SendToFlow,
+  RailsAdmin::Config::Actions::LoadModel,
+  RailsAdmin::Config::Actions::ShutdownModel,
+  RailsAdmin::Config::Actions::SwitchNavigation,
+  RailsAdmin::Config::Actions::DataType,
+  RailsAdmin::Config::Actions::Import,
+  #RailsAdmin::Config::Actions::EdiExport,
+  RailsAdmin::Config::Actions::ImportSchema,
+  RailsAdmin::Config::Actions::DeleteAll,
+  RailsAdmin::Config::Actions::TranslatorUpdate,
+  RailsAdmin::Config::Actions::Convert,
+  RailsAdmin::Config::Actions::SimpleShare,
+  RailsAdmin::Config::Actions::BulkShare,
+  RailsAdmin::Config::Actions::Pull,
+  RailsAdmin::Config::Actions::RetryTask,
+  RailsAdmin::Config::Actions::DownloadFile,
+  RailsAdmin::Config::Actions::ProcessFlow,
+  RailsAdmin::Config::Actions::BuildGem,
+  RailsAdmin::Config::Actions::Run,
+  RailsAdmin::Config::Actions::Authorize,
+  RailsAdmin::Config::Actions::SimpleDeleteDataType,
+  RailsAdmin::Config::Actions::BulkDeleteDataType,
+  RailsAdmin::Config::Actions::SimpleGenerate,
+  RailsAdmin::Config::Actions::BulkGenerate,
+  RailsAdmin::Config::Actions::SimpleExpand,
+  RailsAdmin::Config::Actions::BulkExpand,
+  RailsAdmin::Config::Actions::Records,
+  RailsAdmin::Config::Actions::SwitchScheduler,
+  RailsAdmin::Config::Actions::SimpleExport,
+  RailsAdmin::Config::Actions::Schedule,
+  RailsAdmin::Config::Actions::Submit,
+  RailsAdmin::Config::Actions::DeleteCollection,
+  RailsAdmin::Config::Actions::Inspect,
+  RailsAdmin::Config::Actions::Copy,
+  RailsAdmin::Config::Actions::Cancel,
+  RailsAdmin::Config::Actions::Configure,
+  RailsAdmin::Config::Actions::CrossShare,
+  RailsAdmin::Config::Actions::Regist,
+  RailsAdmin::Config::Actions::Grid
 ].each { |a| RailsAdmin::Config::Actions.register(a) }
 
 RailsAdmin::Config::Actions.register(:export, RailsAdmin::Config::Actions::BulkExport)
 [
-    RailsAdmin::Config::Fields::Types::JsonValue,
-    RailsAdmin::Config::Fields::Types::JsonSchema,
-    RailsAdmin::Config::Fields::Types::StorageFile,
-    RailsAdmin::Config::Fields::Types::EnumEdit
+  RailsAdmin::Config::Fields::Types::JsonValue,
+  RailsAdmin::Config::Fields::Types::JsonSchema,
+  RailsAdmin::Config::Fields::Types::StorageFile,
+  RailsAdmin::Config::Fields::Types::EnumEdit
 ].each { |f| RailsAdmin::Config::Fields::Types.register(f) }
 
 RailsAdmin::Config::Fields::Types::CodeMirror.register_instance_option :js_location do
@@ -60,15 +60,15 @@ end
 
 RailsAdmin::Config::Fields::Types::CodeMirror.register_instance_option :config do
   {
-      mode: 'css',
-      theme: 'neo',
+    mode: 'css',
+    theme: 'neo',
   }
 end
 
 RailsAdmin::Config::Fields::Types::CodeMirror.register_instance_option :assets do
   {
-      mode: bindings[:view].asset_path('codemirror/modes/css.js'),
-      theme: bindings[:view].asset_path('codemirror/themes/neo.css'),
+    mode: bindings[:view].asset_path('codemirror/modes/css.js'),
+    theme: bindings[:view].asset_path('codemirror/themes/neo.css'),
   }
 end
 
@@ -243,7 +243,7 @@ RailsAdmin.config do |config|
               can_see = !am.embedded? && (show_action = v.action(:show, am, associated))
               can_see ? v.link_to(wording, v.url_for(action: show_action.action_name, model_name: am.to_param, id: associated.id), class: 'pjax') : wording
             end.to_sentence.html_safe +
-                v.select_tag("#{bindings[:controller].instance_variable_get(:@model_config).abstract_model.param_key}[connection_ids][]", ids.html_safe, multiple: true, style: 'display:none').html_safe
+              v.select_tag("#{bindings[:controller].instance_variable_get(:@model_config).abstract_model.param_key}[connection_ids][]", ids.html_safe, multiple: true, style: 'display:none').html_safe
           else
             'No connection selected'.html_safe
           end
@@ -279,7 +279,7 @@ RailsAdmin.config do |config|
               can_see = !am.embedded? && (show_action = v.action(:show, am, associated))
               can_see ? v.link_to(wording, v.url_for(action: show_action.action_name, model_name: am.to_param, id: associated.id), class: 'pjax') : wording
             end.to_sentence.html_safe +
-                v.select_tag("#{bindings[:controller].instance_variable_get(:@model_config).abstract_model.param_key}[dependency_ids][]", ids.html_safe, multiple: true, style: 'display:none').html_safe
+              v.select_tag("#{bindings[:controller].instance_variable_get(:@model_config).abstract_model.param_key}[dependency_ids][]", ids.html_safe, multiple: true, style: 'display:none').html_safe
           else
             'No dependencies selected'.html_safe
           end
@@ -291,8 +291,8 @@ RailsAdmin.config do |config|
       field :pull_parameters do
         visible do
           if !(obj = bindings[:object]).instance_variable_get(:@_selecting_collection) &&
-              !obj.instance_variable_get(:@_selecting_connections) &&
-              (pull_parameters_enum = obj.enum_for_pull_parameters).present?
+            !obj.instance_variable_get(:@_selecting_connections) &&
+            (pull_parameters_enum = obj.enum_for_pull_parameters).present?
             bindings[:controller].instance_variable_set(:@shared_parameter_enum, pull_parameters_enum)
             true
           else
@@ -306,7 +306,7 @@ RailsAdmin.config do |config|
       field :readme do
         visible do
           !(obj = bindings[:object]).instance_variable_get(:@_selecting_collection) &&
-              !obj.instance_variable_get(:@_selecting_connections)
+            !obj.instance_variable_get(:@_selecting_connections)
         end
       end
     end
@@ -855,11 +855,11 @@ RailsAdmin.config do |config|
       field :schema do
         pretty_value do
           v =
-              if json = JSON.pretty_generate(value) rescue nil
-                "<code class='json'>#{json.gsub('<', '&lt;').gsub('>', '&gt;')}</code>"
-              else
-                value
-              end
+            if json = JSON.pretty_generate(value) rescue nil
+              "<code class='json'>#{json.gsub('<', '&lt;').gsub('>', '&gt;')}</code>"
+            else
+              value
+            end
 
           "<pre>#{v}</pre>".html_safe
         end
@@ -1176,13 +1176,13 @@ RailsAdmin.config do |config|
       field :schema do
         pretty_value do
           v =
-              if json = JSON.parse(value) rescue nil
-                "<code class='json'>#{JSON.pretty_generate(json).gsub('<', '&lt;').gsub('>', '&gt;')}</code>"
-              elsif (xml = Nokogiri::XML(value)).errors.blank?
-                "<code class='xml'>#{xml.to_xml.gsub('<', '&lt;').gsub('>', '&gt;')}</code>"
-              else
-                "<code>#{value}</code>"
-              end
+            if json = JSON.parse(value) rescue nil
+              "<code class='json'>#{JSON.pretty_generate(json).gsub('<', '&lt;').gsub('>', '&gt;')}</code>"
+            elsif (xml = Nokogiri::XML(value)).errors.blank?
+              "<code class='xml'>#{xml.to_xml.gsub('<', '&lt;').gsub('>', '&gt;')}</code>"
+            else
+              "<code>#{value}</code>"
+            end
           "<pre>#{v}</pre>".html_safe
         end
       end
@@ -1754,58 +1754,20 @@ RailsAdmin.config do |config|
     edit do
       field :namespace
       field :name
-      field :scheduling_method
 
       field :expression do
-        visible { [:Periodic, :Advanced].include?(bindings[:object].scheduling_method) }
-        label do
-          case bindings[:object].scheduling_method
-            when :Once
-              'Date and time'
-            when :Periodic
-              'Duration'
-            when :CRON
-              'CRON Expression'
-            when :Advanced
-              "Schedule"
-            else
-              'Expression'
-          end
-        end
+        visible true
 
+        label "Schedule"
 
-        help do
-          case bindings[:object].scheduling_method
-            when :Once
-              'Select a date and a time'
-            when :Periodic
-              'Type a time duration'
-            when :CRON
-              'Type a CRON Expression'
-            when :Advanced
-              "The advanced configuration"
-            else
-              'Expression'
-          end
-        end
+        help 'Configure scheduler'
 
-        partial do
-          case bindings[:object].scheduling_method
-            when :Once
-              'form_datetime_wrapper'
-            when :Periodic
-              'form_text'
-            when :CRON
-              'form_text'
-            when :Advanced
-              :scheduler
-            else
-              'form_text'
-          end
-        end
+        partial :scheduler
+
         html_attributes do
           {rows: '1'}
         end
+
       end
     end
 
@@ -1821,7 +1783,7 @@ RailsAdmin.config do |config|
       #field :updater
     end
 
-    fields :namespace, :name, :scheduling_method, :expression, :activated
+    fields :namespace, :name, :expression, :activated
   end
 
   config.model Setup::AlgorithmParameter do
@@ -1930,11 +1892,11 @@ RailsAdmin.config do |config|
         associated_collection_scope do
           translator = bindings[:object]
           source_data_type =
-              if translator.source_exporter
-                translator.source_exporter.target_data_type
-              else
-                translator.source_data_type
-              end
+            if translator.source_exporter
+              translator.source_exporter.target_data_type
+            else
+              translator.source_data_type
+            end
           target_data_type = bindings[:object].target_data_type
           Proc.new { |scope|
             scope = scope.all(type: :Conversion,
