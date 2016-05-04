@@ -26,6 +26,7 @@ module Setup
     field :pull_count, type: Integer
     field :readme, type: String
     field :data
+    field :swagger_json, type: String
 
     before_validation do
       authors << Setup::CollectionAuthor.new(name: ::User.current.name, email: ::User.current.email) if authors.empty?
