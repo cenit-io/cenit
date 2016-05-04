@@ -124,7 +124,7 @@
             %a{href: url} #{object.name}
           .panel-body
             .panel-body-logo.text-center
-              %img.logo{src:object.image}
+              %img.logo{src: object.image || image_path('missing.png')}
             .panel-body-description.line-clamp.line-clamp-3
               %p #{object.summary.html_safe}
           .panel-footer
