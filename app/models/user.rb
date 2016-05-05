@@ -48,6 +48,8 @@ class User
   field :name, type: String
   mount_uploader :picture, ImageUploader
 
+  field :time_zone, type: String
+
   before_save :ensure_token
   before_create { self.account ||= Account.current || Account.create_with_owner(owner: self)}
   
@@ -121,6 +123,10 @@ class User
 
   def super_admin?
     has_role?(:super_admin)
+  end
+
+  def time_zone_enum
+    ActiveSupport::TimeZone.all.collect { |e| "#{e.name} | #{e.formatted_offset}"}
   end
 
 end

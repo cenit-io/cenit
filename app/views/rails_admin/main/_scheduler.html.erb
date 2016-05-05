@@ -29,7 +29,7 @@
 
       <label for="periodic_expression">Duration</label>
       <br>
-      <input id="periodic_expression" value="<%=dd["periodic_expression"]%>" type="text">
+      <input id="periodic_expression" value="<%= dd["periodic_expression"] %>" type="text">
 
     </div>
 
@@ -38,11 +38,12 @@
       <div style="margin-left: 200px" class="btn-group">
         <button type="button" id="type_of_days_btn" value="number" class="btn btn-primary dropdown-toggle"
                 data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-          Days by number
+          Days by <%= ["advanced_number", "periodic"].include?(dd["type"]) ? 'number' : 'position' %>
           <span class="caret"></span>
         </button>
         <ul class="dropdown-menu" id="new_type_of_days_btn">
-          <li id="new_type_of_days_li">Days by position</li>
+          <li id="new_type_of_days_li">Days
+            by <%= ["advanced_number", "periodic"].include?(dd["type"]) ? 'position' : 'number' %></li>
         </ul>
       </div>
 

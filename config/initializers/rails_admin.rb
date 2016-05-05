@@ -2782,6 +2782,11 @@ RailsAdmin.config do |config|
         label { Account.current.super_admin? ? 'Account' : 'Account settings' }
         help { nil }
       end
+
+      field :time_zone do
+        label 'Time Zone'
+      end
+
       field :password do
         visible { Account.current.super_admin? }
       end
@@ -2822,6 +2827,7 @@ RailsAdmin.config do |config|
       field :roles
       field :key
       field :authentication_token
+      field :time_zone
       field :sign_in_count
       field :current_sign_in_at
       field :last_sign_in_at

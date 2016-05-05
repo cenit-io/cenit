@@ -8,6 +8,8 @@ module Setup
     field :expression, type: String
     field :activated, type: Boolean, default: false
 
+    field :time_zone, type: String, default: "+00:00"
+
     has_many :delayed_messages, class_name: Setup::DelayedMessage.to_s, inverse_of: :scheduler
 
     validates_presence_of :name
@@ -29,6 +31,10 @@ module Setup
 
     before_save do
       @activation_status_changed = changed_attributes.has_key?(:activated.to_s)
+      r = User.current.time_zone.split("|")
+      if r.length > 1
+        self.time_zone = r[1].strip
+      end
       true
     end
 
@@ -83,8 +89,8 @@ module Setup
     end
 
     def next_time
-      calculator = SchedulerTimePointsCalculator.new(expression, Time.now.year)
-      calculator.next_time(Time.now)
+      calculator = SchedulerTimePointsCalculator.new(expression, Time.now.year, time_zone)
+      calculator.next_time(Time.zone.now)
     end
 
     SCHEDULER_SCHEMA = <<-DATA
@@ -280,11 +286,12 @@ module Setup
       res.select { |e| e > 0 && e <= 12 }
     end
 
-    def initialize(conf, year)
+    def initialize(conf, year, tz)
       conf = JSON.parse(conf.to_s) unless conf.is_a?(Hash)
       @conf = conf
       @actions = [->() { months }, ->() { days }, ->() { hours }, ->() { minutes }]
       @year = year
+      @tz = tz
     end
 
     def run
@@ -295,8 +302,7 @@ module Setup
     end
 
     def report_solution
-      # TODO: To use the user's TimeZone
-      @v << Time.new(@year, *@solution, 0, "-04:00")
+      @v << Time.new(@year, *@solution, 0, @tz)
     end
 
     def backtracking(k)
