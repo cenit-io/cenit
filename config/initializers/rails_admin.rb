@@ -98,7 +98,7 @@ RailsAdmin.config do |config|
 
   ### More at https://github.com/sferik/rails_admin/wiki/Base-configuration
   config.authenticate_with do
-    warden.authenticate! scope: :user
+    warden.authenticate! scope: :user unless %w(dashboard index show grid).include?(action_name)
   end
   config.current_user_method { current_user }
   config.audit_with :mongoid_audit
@@ -302,7 +302,7 @@ RailsAdmin.config do |config|
         end
       end
       field :pull_count do
-        visible { Account.current.super_admin? }
+        visible { Account.current_super_admin? }
       end
       field :readme do
         visible do
@@ -601,7 +601,7 @@ RailsAdmin.config do |config|
     edit do
       field :image
       field :readme do
-        visible { Account.current.super_admin? }
+        visible { Account.current_super_admin? }
       end
       field :name
       field :flows
@@ -1251,7 +1251,7 @@ RailsAdmin.config do |config|
     end
 
     configure :key, :string do
-      visible { User.current.admin? }
+      visible { User.current_admin? }
       html_attributes do
         { maxlength: 30, size: 30 }
       end
@@ -1259,7 +1259,7 @@ RailsAdmin.config do |config|
     end
 
     configure :token, :text do
-      visible { User.current.admin? }
+      visible { User.current_admin? }
       html_attributes do
         { cols: '50', rows: '1' }
       end
@@ -1269,12 +1269,12 @@ RailsAdmin.config do |config|
     configure :authorization do
       group :credentials
       inline_edit false
-      visible { User.current.admin? }
+      visible { User.current_admin? }
     end
 
     configure :authorization_handler do
       group :credentials
-      visible { User.current.admin? }
+      visible { User.current_admin? }
     end
 
     group :parameters do
@@ -1282,15 +1282,15 @@ RailsAdmin.config do |config|
     end
     configure :parameters do
       group :parameters
-      visible { User.current.admin? }
+      visible { User.current_admin? }
     end
     configure :headers do
       group :parameters
-      visible { User.current.admin? }
+      visible { User.current_admin? }
     end
     configure :template_parameters do
       group :parameters
-      visible { User.current.admin? }
+      visible { User.current_admin? }
     end
 
     edit do
@@ -1386,12 +1386,12 @@ RailsAdmin.config do |config|
     configure :authorization do
       group :credentials
       inline_edit false
-      visible { User.current.admin? }
+      visible { User.current_admin? }
     end
 
     configure :authorization_handler do
       group :credentials
-      visible { User.current.admin? }
+      visible { User.current_admin? }
     end
 
     group :parameters do
@@ -2008,7 +2008,7 @@ RailsAdmin.config do |config|
     navigation_label 'Workflows'
     weight -201
     object_label_method { :custom_title }
-    visible { Account.current.super_admin? }
+    visible { Account.current_super_admin? }
     configure :namespace, :enum_edit
     configure :identifier
     edit do
@@ -2039,13 +2039,13 @@ RailsAdmin.config do |config|
     object_label_method { :custom_title }
 
     configure :tenant do
-      visible { Account.current.super_admin? }
+      visible { Account.current_super_admin? }
       read_only { true }
       help ''
     end
 
     configure :origin do
-      visible { Account.current.super_admin? }
+      visible { Account.current_super_admin? }
     end
 
     configure :identifier do
@@ -2084,13 +2084,13 @@ RailsAdmin.config do |config|
     end
 
     configure :tenant do
-      visible { Account.current.super_admin? }
+      visible { Account.current_super_admin? }
       read_only { true }
       help ''
     end
 
     configure :origin do
-      visible { Account.current.super_admin? }
+      visible { Account.current_super_admin? }
     end
 
     configure :namespace, :enum_edit
@@ -2107,13 +2107,13 @@ RailsAdmin.config do |config|
     object_label_method { :custom_title }
 
     configure :tenant do
-      visible { Account.current.super_admin? }
+      visible { Account.current_super_admin? }
       read_only { true }
       help ''
     end
 
     configure :origin do
-      visible { Account.current.super_admin? }
+      visible { Account.current_super_admin? }
     end
 
     configure :namespace, :enum_edit
@@ -2134,13 +2134,13 @@ RailsAdmin.config do |config|
     object_label_method { :custom_title }
 
     configure :tenant do
-      visible { Account.current.super_admin? }
+      visible { Account.current_super_admin? }
       read_only { true }
       help ''
     end
 
     configure :origin do
-      visible { Account.current.super_admin? }
+      visible { Account.current_super_admin? }
     end
 
     configure :refresh_token_algorithm do
@@ -2159,13 +2159,13 @@ RailsAdmin.config do |config|
     object_label_method { :custom_title }
 
     configure :tenant do
-      visible { Account.current.super_admin? }
+      visible { Account.current_super_admin? }
       read_only { true }
       help ''
     end
 
     configure :origin do
-      visible { Account.current.super_admin? }
+      visible { Account.current_super_admin? }
     end
 
     fields :provider, :name, :description, :tenant, :origin
@@ -2790,44 +2790,44 @@ RailsAdmin.config do |config|
       field :picture
       field :name
       field :email do
-        visible { Account.current.super_admin? }
+        visible { Account.current_super_admin? }
       end
       field :roles do
-        visible { Account.current.super_admin? }
+        visible { Account.current_super_admin? }
       end
       field :account do
-        label { Account.current.super_admin? ? 'Account' : 'Account settings' }
+        label { Account.current_super_admin? ? 'Account' : 'Account settings' }
         help { nil }
       end
       field :password do
-        visible { Account.current.super_admin? }
+        visible { Account.current_super_admin? }
       end
       field :password_confirmation do
-        visible { Account.current.super_admin? }
+        visible { Account.current_super_admin? }
       end
       field :key do
-        visible { !bindings[:object].new_record? && Account.current.super_admin? }
+        visible { !bindings[:object].new_record? && Account.current_super_admin? }
       end
       field :authentication_token do
-        visible { !bindings[:object].new_record? && Account.current.super_admin? }
+        visible { !bindings[:object].new_record? && Account.current_super_admin? }
       end
       field :confirmed_at do
-        visible { !bindings[:object].new_record? && Account.current.super_admin? }
+        visible { !bindings[:object].new_record? && Account.current_super_admin? }
       end
       field :sign_in_count do
-        visible { !bindings[:object].new_record? && Account.current.super_admin? }
+        visible { !bindings[:object].new_record? && Account.current_super_admin? }
       end
       field :current_sign_in_at do
-        visible { !bindings[:object].new_record? && Account.current.super_admin? }
+        visible { !bindings[:object].new_record? && Account.current_super_admin? }
       end
       field :last_sign_in_at do
-        visible { !bindings[:object].new_record? && Account.current.super_admin? }
+        visible { !bindings[:object].new_record? && Account.current_super_admin? }
       end
       field :current_sign_in_ip do
-        visible { !bindings[:object].new_record? && Account.current.super_admin? }
+        visible { !bindings[:object].new_record? && Account.current_super_admin? }
       end
       field :last_sign_in_ip do
-        visible { !bindings[:object].new_record? && Account.current.super_admin? }
+        visible { !bindings[:object].new_record? && Account.current_super_admin? }
       end
     end
 
@@ -2865,23 +2865,23 @@ RailsAdmin.config do |config|
     object_label_method { :label }
 
     configure :_id do
-      visible { Account.current.super_admin? }
+      visible { Account.current_super_admin? }
     end
     configure :name do
-      visible { Account.current.super_admin? }
+      visible { Account.current_super_admin? }
     end
     configure :owner do
-      read_only { !Account.current.super_admin? }
+      read_only { !Account.current_super_admin? }
       help { nil }
     end
     configure :tenant_account do
-      visible { Account.current.super_admin? }
+      visible { Account.current_super_admin? }
     end
     configure :number do
-      visible { Account.current.super_admin? }
+      visible { Account.current_super_admin? }
     end
     configure :users do
-      visible { Account.current.super_admin? }
+      visible { Account.current_super_admin? }
     end
     configure :notification_level
 
@@ -2892,7 +2892,7 @@ RailsAdmin.config do |config|
   config.model Role do
     navigation_label 'Administration'
     configure :users do
-      visible { Account.current.super_admin? }
+      visible { Account.current_super_admin? }
     end
     fields :name, :users
   end

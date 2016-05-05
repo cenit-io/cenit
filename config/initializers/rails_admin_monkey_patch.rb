@@ -182,10 +182,15 @@ module RailsAdmin
           proc do
             @history = @auditing_adapter && @auditing_adapter.latest || []
             if @action.statistics?
-              @abstract_models = RailsAdmin::Config.visible_models(controller: self).select(&:show_in_dashboard).collect(&:abstract_model).select do |absm|
-                ((model = absm.model) rescue nil) &&
-                  (model.is_a?(Mongoff::Model) || model.include?(AccountScoped))
-              end
+              @abstract_models =
+                if current_user
+                  RailsAdmin::Config.visible_models(controller: self).select(&:show_in_dashboard).collect(&:abstract_model).select do |absm|
+                    ((model = absm.model) rescue nil) &&
+                      (model.is_a?(Mongoff::Model) || model.include?(AccountScoped))
+                  end
+                else
+                  [RailsAdmin::Config.model(Setup::SharedCollection).abstract_model]
+                end
 
               @most_recent_changes = {}
               @count = {}

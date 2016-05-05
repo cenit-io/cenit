@@ -99,7 +99,7 @@ module Setup
       attributes['data'] = attributes['data'].to_json unless attributes['data'].is_a?(String)
       changed_attributes.keys.each do |attr|
         reset_attribute!(attr) if %w(shared_version).include?(attr) || (%w(pull_count).include?(attr) && !pulling)
-      end unless Account.current && Account.current.super_admin?
+      end unless Account.current && Account.current_super_admin?
       true
     end
 
