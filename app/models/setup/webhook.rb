@@ -136,7 +136,7 @@ module Setup
             template_parameters[:query] = query
 
             headers = {}
-            headers['Content-Type'] = options[:contentType] if options.has_key?(:contentType)
+            template_parameters[:contentType] = headers['Content-Type'] = options[:contentType] if options.has_key?(:contentType)
             headers.merge!(connection.conformed_headers(template_parameters)).
               merge!(conformed_headers(template_parameters)).
               merge!(options[:headers] || {}).
@@ -169,6 +169,12 @@ module Setup
               msg[:body] = body if body
               msg[:timeout] = 240 #TODO Custom timeout request
               msg[:verify] = false #TODO Https varify option by Connection
+              if (http_proxy = options[:http_proxy_address])
+                msg[:http_proxyaddr] = http_proxy
+              end
+              if (http_proxy_port = options[:http_proxy_port])
+                msg[:http_proxyport] = http_proxy_port
+              end
               http_response = HTTMultiParty.send(method, url, msg)
               last_response = http_response.body
 

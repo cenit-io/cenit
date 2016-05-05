@@ -6,13 +6,14 @@ module Setup
 
     Setup::Models.exclude_actions_for self, :copy, :new, :edit, :translator_update, :convert, :send_to_flow, :delete_all, :delete, :import
 
-    BuildInDataType.regist(self).with(:name, :shared_version, :authors, :summary, :pull_parameters, :dependencies, :data, :readme).referenced_by(:name, :shared_version)
+    BuildInDataType.regist(self).with(:name, :shared_version, :authors, :summary, :pull_parameters, :dependencies, :data, :readme, :swagger_json).referenced_by(:name, :shared_version)
 
     belongs_to :shared_name, class_name: Setup::SharedName.to_s, inverse_of: nil
 
     mount_uploader :image, ImageUploader
     field :name, type: String
     field :shared_version, type: String
+    field :logo_background, type: String
     field :category, type: String
     field :description, type: String
     field :summary, type: String
@@ -25,6 +26,7 @@ module Setup
     field :pull_count, type: Integer
     field :readme, type: String
     field :data
+    field :swagger_json, type: String
 
     before_validation do
       authors << Setup::CollectionAuthor.new(name: ::User.current.name, email: ::User.current.email) if authors.empty?

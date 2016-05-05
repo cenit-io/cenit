@@ -32,6 +32,10 @@ module Setup
       client && client.provider
     end
 
+    def fresh_access_token
+      (p = provider) && p.refresh_token(self)
+    end
+
     def authorized?
       authorized_at.present?
     end
@@ -79,6 +83,10 @@ module Setup
 
     def cancel
       self.access_token = self.token_span = self.authorized_at = nil
+    end
+
+    def accept_callback?(params)
+      fail NotImplementedError
     end
   end
 end

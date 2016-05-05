@@ -64,7 +64,7 @@ Capataz.config do
 
   allow_for Setup::Task, [:status, :scheduler, :state, :resume_in, :run_again, :progress, :progress=, :update, :destroy, :notifications, :notify]
 
-  allow_for Setup::Scheduler, [:activated?]
+  allow_for Setup::Scheduler, [:activated?,  :name, :to_json, :to_edi, :to_hash, :to_xml, :namespace]
 
   allow_for Setup::Webhook::ResponseProxy, [:code, :body, :headers, :content_type]
 

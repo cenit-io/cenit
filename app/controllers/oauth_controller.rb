@@ -57,7 +57,7 @@ class OauthController < ApplicationController
           else
             rails_admin.show_path(model_name: authorization.class.to_s.underscore.gsub('/', '~'), id: authorization.id.to_s) + "?redirect_token=#{redirect_token}"
           end
-        if params[:code]
+        if authorization.accept_callback?(params)
           params[:cenit_token] = cenit_token
           authorization.request_token!(params)
         else
