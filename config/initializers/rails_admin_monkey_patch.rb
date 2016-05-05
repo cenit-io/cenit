@@ -56,6 +56,17 @@ module RailsAdmin
 
     class Model
 
+      Actions.all.each do |action|
+        instance_eval "register_instance_option(:#{action.key}_template_name) { :#{action.key} }"
+        instance_eval "register_instance_option(:#{action.key}_link_icon) { nil }"
+      end
+
+      register_instance_option :template_name do
+        if (action = bindings[:action])
+          send("#{action.key}_template_name")
+        end
+      end
+
       register_instance_option :show_in_dashboard do
         true
       end
@@ -78,6 +89,12 @@ module RailsAdmin
     end
 
     module Actions
+
+      class Base
+        register_instance_option :template_name do
+          ((absm = bindings[:abstract_model]) && absm.config.with(action: self).template_name) || key.to_sym
+        end
+      end
 
       class New
         register_instance_option :controller do
@@ -489,6 +506,24 @@ module RailsAdmin
   end
 
   module ApplicationHelper
+
+    # parent => :root, :collection, :member
+    def menu_for(parent, abstract_model = nil, object = nil, only_icon = false) # perf matters here (no action view trickery)
+      actions = actions(parent, abstract_model, object).select { |a| a.http_methods.include?(:get) }
+      actions.collect do |action|
+        wording = wording_for(:menu, action)
+        #Patch
+        link_icon = (abstract_model && abstract_model.config.send("#{action.key}_link_icon")) || action.link_icon
+        %(
+          <li title="#{wording if only_icon}" rel="#{'tooltip' if only_icon}" class="icon #{action.key}_#{parent}_link #{'active' if current_action?(action)}">
+            <a class="#{action.pjax? ? 'pjax' : ''}" href="#{url_for(action: action.action_name, controller: 'rails_admin/main', model_name: abstract_model.try(:to_param), id: (object.try(:persisted?) && object.try(:id) || nil))}">
+              <i class="#{link_icon}"></i>
+              <span#{only_icon ? " style='display:none'" : ''}>#{wording}</span>
+            </a>
+          </li>
+        )
+      end.join.html_safe
+    end
 
     def wording_for(label, action = @action, abstract_model = @abstract_model, object = @object)
       model_config = abstract_model.try(:config)
