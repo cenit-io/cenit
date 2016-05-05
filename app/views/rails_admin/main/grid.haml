@@ -123,7 +123,7 @@
             - url = url_for(action: :show, id: object.id)
             %a{href: url} #{object.name}
           .panel-body
-            .panel-body-logo.text-center
+            .panel-body-logo.text-center{style: "background-color: #{object.logo_background || 'inherit'}"}
               %img.logo{src: object.image || image_path('missing.png')}
             .panel-body-description.line-clamp.line-clamp-3
               %p #{object.summary.html_safe}

@@ -200,6 +200,7 @@ RailsAdmin.config do |config|
       field :image do
         visible { !bindings[:object].instance_variable_get(:@sharing) }
       end
+      field :logo_background
       field :name do
         required { true }
       end
