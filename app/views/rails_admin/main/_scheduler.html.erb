@@ -29,7 +29,7 @@
 
       <label for="periodic_expression">Duration</label>
       <br>
-      <input id="periodic_expression" value="<%= dd["periodic_expression"] %>" type="text">
+      <input id="periodic_expression" value="<%= dd["periodic_expression"] %>" type="text" placeholder="e.g: 5m" data-toggle="tooltip" title="Amount of time, ending with s-m-h-d for specify time units">
 
     </div>
 
@@ -105,7 +105,7 @@
         <label>Days of the Month</label>
 
         <div class="form-inline">
-          <input type="text" id="months_days_input" value="<%= dd["months_days"] %>">
+          <input type="text" id="months_days_input" value="<%= dd["months_days"] %>"  placeholder="e.g: 2, 5, 6, 9" data-toggle="tooltip" title="Day number (1-31) or list of numbers separated by comma">
 
           <select class="form-control input-sm" id="months_days">
             <option selected disabled value="0">Choose frequency</option>
@@ -126,7 +126,7 @@
       <label>Months </label>
 
       <div class="form-inline">
-        <input type="text" id="months_input" value="<%= dd["months"] %>">
+        <input type="text" id="months_input" value="<%= dd["months"] %>"  placeholder="e.g: 2, 4, 5" data-toggle="tooltip" title="Month number (1-12) or list of numbers separated by comma">
 
         <select class="form-control input-sm" id="months">
           <option selected disabled value="0">Choose frequency</option>
@@ -145,7 +145,7 @@
       <label>Hours</label>
 
       <div class="form-inline">
-        <input type="text" id="hours_input" value="<%= dd["hours"] %>">
+        <input type="text" id="hours_input" value="<%= dd["hours"] %>" placeholder="e.g: 14" data-toggle="tooltip" title="The hour number (0-23) or list of numbers separated by comma">
 
         <select class="form-control input-sm" id="hours">
           <option selected disabled value="0">Choose frequency</option>
@@ -162,7 +162,7 @@
       <label>Minutes</label>
 
       <div class="form-inline">
-        <input type="text" id="minutes_input" value="<%= dd["minutes"] %>">
+        <input type="text" id="minutes_input" value="<%= dd["minutes"] %>"  placeholder="e.g: 20, 45" data-toggle="tooltip" title="The minute number (0-59) or list of numbers separated by comma">
 
         <select class="form-control input-sm" id="minutes">
           <option selected disabled value="0">Choose frequency</option>
