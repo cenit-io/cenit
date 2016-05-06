@@ -127,6 +127,10 @@ class User
     def current_admin?
       current && current.admin?
     end
+
+    def current_super_admin?
+      current && current.super_admin?
+    end
   end
 
 end

@@ -487,11 +487,13 @@ RailsAdmin.config do |config|
   end
 
   config.model Setup::CollectionAuthor do
+    visible false
     object_label_method { :label }
     fields :name, :email
   end
 
   config.model Setup::CollectionPullParameter do
+    visible false
     object_label_method { :label }
     field :label
     field :parameter, :enum do
@@ -515,6 +517,7 @@ RailsAdmin.config do |config|
   end
 
   config.model Setup::CollectionData do
+    visible false
     object_label_method { :label }
   end
 
@@ -767,6 +770,8 @@ RailsAdmin.config do |config|
     label_plural 'Data types'
     object_label_method { :custom_title }
     visible true
+
+    show_in_dashboard false
 
     configure :_type do
       pretty_value do
@@ -1224,6 +1229,7 @@ RailsAdmin.config do |config|
   config.navigation 'API Connectors', icon: :api_connectors
 
   config.model Setup::Parameter do
+    visible false
     object_label_method { :to_s }
     configure :metadata, :json_value
     edit do
@@ -1806,10 +1812,12 @@ RailsAdmin.config do |config|
   end
 
   config.model Setup::AlgorithmParameter do
+    visible false
     fields :name, :description
   end
 
   config.model Setup::CallLink do
+    visible false
     edit do
       field :name do
         read_only true
@@ -1998,6 +2006,7 @@ RailsAdmin.config do |config|
   end
 
   config.model Setup::Action do
+    visible false
     navigation_label 'Workflows'
     weight -202
     object_label_method { :to_s }
@@ -2023,6 +2032,7 @@ RailsAdmin.config do |config|
   end
 
   config.model Setup::ApplicationParameter do
+    visible false
     navigation_label 'Workflows'
     configure :group, :enum_edit
 
@@ -2483,6 +2493,7 @@ RailsAdmin.config do |config|
     weight -20
     object_label_method { :label }
 
+    show_in_dashboard false
     configure :created_at
 
     configure :type do
@@ -2674,6 +2685,7 @@ RailsAdmin.config do |config|
 
   config.model Setup::Storage do
     navigation_label 'Monitors'
+    show_in_dashboard false
     weight -15
     object_label_method { :label }
 
@@ -2738,6 +2750,7 @@ RailsAdmin.config do |config|
   config.model User do
     weight -1
     navigation_label 'Administration'
+    visible { User.current_super_admin? }
     object_label_method { :label }
 
     group :credentials do
@@ -2863,6 +2876,7 @@ RailsAdmin.config do |config|
 
   config.model Account do
     navigation_label 'Administration'
+    visible { User.current_super_admin? }
     object_label_method { :label }
 
     configure :_id do
@@ -2892,6 +2906,7 @@ RailsAdmin.config do |config|
 
   config.model Role do
     navigation_label 'Administration'
+    visible { User.current_super_admin? }
     configure :users do
       visible { Account.current_super_admin? }
     end
@@ -2906,12 +2921,14 @@ RailsAdmin.config do |config|
 
   config.model Setup::SharedName do
     navigation_label 'Administration'
+    visible { User.current_super_admin? }
 
     fields :name, :owners
   end
 
   config.model Script do
     navigation_label 'Administration'
+    visible { User.current_super_admin? }
 
     edit do
       field :name
@@ -2935,18 +2952,22 @@ RailsAdmin.config do |config|
 
   config.model CenitToken do
     navigation_label 'Administration'
+    visible { User.current_super_admin? }
   end
 
   config.model Setup::DelayedMessage do
     navigation_label 'Administration'
+    visible { User.current_super_admin? }
   end
 
   config.model Setup::SystemNotification do
     navigation_label 'Administration'
+    visible { User.current_super_admin? }
   end
 
   config.model RabbitConsumer do
     navigation_label 'Administration'
+    visible { User.current_super_admin? }
     object_label_method { :to_s }
 
     configure :task_id do
@@ -2973,6 +2994,7 @@ RailsAdmin.config do |config|
 
   config.model ApplicationId do
     navigation_label 'Administration'
+    visible { User.current_super_admin? }
 
     register_instance_option(:discard_submit_buttons) { bindings[:object].instance_variable_get(:@registering) }
 
