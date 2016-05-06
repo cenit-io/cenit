@@ -96,27 +96,24 @@ module Setup
         temporary_file.close if temporary_file
       end
 
-      def dashboard_related(account=nil)
-        unless account
-          account = Account.current
-        end
-
+      def dashboard_related(account = Account.current)
         counters = Hash.new { |h, k| h[k] = 0 }
-        scope =
+        if account
+          scope =
             if (from_date = account.notifications_listed_at)
               Setup::Notification.where(:created_at.gte => from_date)
             else
               Setup::Notification.all
             end
-        total_count = 0
-        Setup::Notification.type_enum.each do |type|
-          if (count = scope.where(type: type).count) > 0
-            total_count += count
-            counters[Setup::Notification.type_color(type)] = count
+          total_count = 0
+          Setup::Notification.type_enum.each do |type|
+            if (count = scope.where(type: type).count) > 0
+              total_count += count
+              counters[Setup::Notification.type_color(type)] = count
+            end
           end
+          counters[:total] = total_count
         end
-        counters[:total] = total_count
-
         counters
       end
     end

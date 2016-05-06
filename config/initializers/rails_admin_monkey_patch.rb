@@ -56,6 +56,17 @@ module RailsAdmin
 
     class Model
 
+      Actions.all.each do |action|
+        instance_eval "register_instance_option(:#{action.key}_template_name) { :#{action.key} }"
+        instance_eval "register_instance_option(:#{action.key}_link_icon) { nil }"
+      end
+
+      register_instance_option :template_name do
+        if (action = bindings[:action])
+          send("#{action.key}_template_name")
+        end
+      end
+
       register_instance_option :show_in_dashboard do
         true
       end
@@ -78,6 +89,12 @@ module RailsAdmin
     end
 
     module Actions
+
+      class Base
+        register_instance_option :template_name do
+          ((absm = bindings[:abstract_model]) && absm.config.with(action: self).template_name) || key.to_sym
+        end
+      end
 
       class New
         register_instance_option :controller do
@@ -182,22 +199,36 @@ module RailsAdmin
           proc do
             @history = @auditing_adapter && @auditing_adapter.latest || []
             if @action.statistics?
-              @abstract_models = RailsAdmin::Config.visible_models(controller: self).select(&:show_in_dashboard).collect(&:abstract_model).select do |absm|
-                ((model = absm.model) rescue nil) &&
-                  (model.is_a?(Mongoff::Model) || model.include?(AccountScoped))
-              end
-
+              #Patch
+              @abstract_models =
+                if current_user
+                  RailsAdmin::Config.visible_models(controller: self).select(&:show_in_dashboard).collect(&:abstract_model).select do |absm|
+                    ((model = absm.model) rescue nil) &&
+                      (model.is_a?(Mongoff::Model) || model.include?(AccountScoped))
+                  end
+                else
+                  Setup::Models.collect { |m| RailsAdmin::Config.model(m) }.select(&:visible).select(&:show_in_dashboard).collect(&:abstract_model)
+                end
               @most_recent_changes = {}
               @count = {}
               @max = 0
-              @abstract_models.each do |t|
-                scope = @authorization_adapter && @authorization_adapter.query(:index, t)
-                current_count = t.count({}, scope)
-                @max = current_count > @max ? current_count : @max
-                @count[t.model.name] = current_count
-                next unless t.properties.detect { |c| c.name == :updated_at }
-                # Patch
-                # @most_recent_changes[t.model.name] = t.first(sort: "#{t.table_name}.updated_at").try(:updated_at)
+              #Patch
+              if current_user
+                @abstract_models.each do |t|
+                  scope = @authorization_adapter && @authorization_adapter.query(:index, t)
+                  current_count = t.count({}, scope)
+                  @max = current_count > @max ? current_count : @max
+                  @count[t.model.name] = current_count
+                  # Patch
+                  # next unless t.properties.detect { |c| c.name == :updated_at }
+                  # @most_recent_changes[t.model.name] = t.first(sort: "#{t.table_name}.updated_at").try(:updated_at)
+                end
+              else
+                @abstract_models.each do |absm|
+                  current_count = absm.model.super_count
+                  @max = current_count > @max ? current_count : @max
+                  @count[absm.model.name] = current_count
+                end
               end
             end
             render @action.template_name, status: (flash[:error].present? ? :not_found : 200)
@@ -484,6 +515,24 @@ module RailsAdmin
   end
 
   module ApplicationHelper
+
+    # parent => :root, :collection, :member
+    def menu_for(parent, abstract_model = nil, object = nil, only_icon = false) # perf matters here (no action view trickery)
+      actions = actions(parent, abstract_model, object).select { |a| a.http_methods.include?(:get) }
+      actions.collect do |action|
+        wording = wording_for(:menu, action)
+        #Patch
+        link_icon = (abstract_model && abstract_model.config.send("#{action.key}_link_icon")) || action.link_icon
+        %(
+          <li title="#{wording if only_icon}" rel="#{'tooltip' if only_icon}" class="icon #{action.key}_#{parent}_link #{'active' if current_action?(action)}">
+            <a class="#{action.pjax? ? 'pjax' : ''}" href="#{url_for(action: action.action_name, controller: 'rails_admin/main', model_name: abstract_model.try(:to_param), id: (object.try(:persisted?) && object.try(:id) || nil))}">
+              <i class="#{link_icon}"></i>
+              <span#{only_icon ? " style='display:none'" : ''}>#{wording}</span>
+            </a>
+          </li>
+        )
+      end.join.html_safe
+    end
 
     def wording_for(label, action = @action, abstract_model = @abstract_model, object = @object)
       model_config = abstract_model.try(:config)
