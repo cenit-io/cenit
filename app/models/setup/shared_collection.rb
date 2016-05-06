@@ -6,7 +6,7 @@ module Setup
 
     Setup::Models.exclude_actions_for self, :copy, :new, :edit, :translator_update, :convert, :send_to_flow, :delete_all, :delete, :import
 
-    BuildInDataType.regist(self).with(:name, :shared_version, :authors, :summary, :pull_parameters, :dependencies, :data, :readme).referenced_by(:name, :shared_version)
+    BuildInDataType.regist(self).with(:name, :shared_version, :authors, :summary, :pull_parameters, :dependencies, :data, :readme, :swagger_json).referenced_by(:name, :shared_version)
 
     belongs_to :shared_name, class_name: Setup::SharedName.to_s, inverse_of: nil
 
@@ -26,6 +26,7 @@ module Setup
     field :pull_count, type: Integer
     field :readme, type: String
     field :data
+    field :swagger_json, type: String
 
     before_validation do
       authors << Setup::CollectionAuthor.new(name: ::User.current.name, email: ::User.current.email) if authors.empty?
@@ -98,7 +99,7 @@ module Setup
       attributes['data'] = attributes['data'].to_json unless attributes['data'].is_a?(String)
       changed_attributes.keys.each do |attr|
         reset_attribute!(attr) if %w(shared_version).include?(attr) || (%w(pull_count).include?(attr) && !pulling)
-      end unless Account.current && Account.current.super_admin?
+      end unless Account.current && Account.current_super_admin?
       true
     end
 

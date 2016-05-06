@@ -36,5 +36,19 @@ module Setup
     def read_attribute(name)
       (!(value = super).nil? && (new_record? || !BuildInDataType[self.class].protecting?(name) || Account.current == tenant) && value) || nil
     end
+
+    module ClassMethods
+      def super_count
+        current_account = Account.current
+        Account.current = nil
+        c = Account.count
+        Account.each do |account|
+          Account.current = account
+          c += where(origin: :default).count
+        end
+        Account.current = current_account
+        c
+      end
+    end
   end
 end

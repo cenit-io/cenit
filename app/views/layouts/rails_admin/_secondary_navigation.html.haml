@@ -1,10 +1,15 @@
 %ul.nav.navbar-nav.navbar-right.root_links
-  %li.take-tour
-    %a#take-tour{"href"=> "#"}= t('admin.actions.tour.title')
-  - actions(:root).each do |action|
-    %li
-      %a{href: url_for(action: action.action_name, class: 'pjax')}
-        %i{class: action.link_icon, title: wording_for(:menu, action)}
+  - if _current_user
+    %li.take-tour
+      %a#take-tour{'href'=> '#'}= t('admin.actions.tour.title')
+    - actions(:root).each do |action|
+      %li
+        %a{href: url_for(action: action.action_name, class: 'pjax')}
+          %i{class: action.link_icon, title: wording_for(:menu, action)}
+  - else
+    .a.navbar-btn{style: 'padding-right:20px'}
+      =link_to t('admin.registration.new'), new_registration_path(User), class: 'btn btn-primary'
+      =link_to t('admin.session.new'), new_session_path(User), class: 'btn btn-info'
   - if (t_link = tasks_link)
     %li#action-tasks= t_link
   - if (auth_link = authorizations_link)

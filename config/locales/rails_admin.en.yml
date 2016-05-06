@@ -1,5 +1,9 @@
 en:
   admin:
+    session:
+      new: 'Sign In'
+    registration:
+      new: 'Get Started for FREE'
     js:
       present_and_change: Present & Change
     flash:
@@ -335,7 +339,5 @@ en:
         submit: "Regist"
         done: "registered"
         doing: "registering"
-      grid:
-        title: "Grid View"
-        menu: "Grid"
-        breadcrumb: "Grid"
+      shared_collection_index:
+        menu: "Shared Collections"
