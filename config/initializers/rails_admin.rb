@@ -38,7 +38,8 @@
   RailsAdmin::Config::Actions::Cancel,
   RailsAdmin::Config::Actions::Configure,
   RailsAdmin::Config::Actions::CrossShare,
-  RailsAdmin::Config::Actions::Regist
+  RailsAdmin::Config::Actions::Regist,
+  RailsAdmin::Config::Actions::SharedCollectionIndex
 ].each { |a| RailsAdmin::Config::Actions.register(a) }
 
 RailsAdmin::Config::Actions.register(:export, RailsAdmin::Config::Actions::BulkExport)
@@ -97,7 +98,7 @@ RailsAdmin.config do |config|
 
   ### More at https://github.com/sferik/rails_admin/wiki/Base-configuration
   config.authenticate_with do
-    warden.authenticate! scope: :user unless %w(dashboard index show).include?(action_name)
+    warden.authenticate! scope: :user unless %w(dashboard shared_collection_index index show).include?(action_name)
   end
   config.current_user_method { current_user }
   config.audit_with :mongoid_audit
@@ -109,6 +110,7 @@ RailsAdmin.config do |config|
     dashboard # mandatory
     # memory_usage
     # disk_usage
+    shared_collection_index
     index # mandatory
     new { except [Setup::Event, Setup::DataType, Setup::Authorization, Setup::BaseOauthProvider] }
     import

@@ -102,7 +102,7 @@ class Ability
       can :manage, Mongoff::Record
 
     else
-      can :dashboard
+      can [:dashboard, :shared_collection_index]
       can [:index, :show, :grid, :pull, :simple_export], [Setup::SharedCollection]
     end
 
