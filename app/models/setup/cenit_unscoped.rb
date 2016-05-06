@@ -16,5 +16,11 @@ module Setup
     def share_hash
       to_hash(ignore: [:id, :number, :token], include_blanks: true)
     end
+
+    module ClassMethods
+      def super_count
+        count
+      end
+    end
   end
 end
