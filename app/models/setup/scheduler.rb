@@ -8,7 +8,7 @@ module Setup
     field :expression, type: String
     field :activated, type: Boolean, default: false
 
-    field :time_zone, type: String, default: "+00:00"
+    field :time_zone, type: String, default: "00:00 | +00:00"
 
     has_many :delayed_messages, class_name: Setup::DelayedMessage.to_s, inverse_of: :scheduler
 
