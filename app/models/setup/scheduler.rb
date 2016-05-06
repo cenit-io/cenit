@@ -8,8 +8,6 @@ module Setup
     field :expression, type: String
     field :activated, type: Boolean, default: false
 
-    field :time_zone, type: String, default: "00:00 | +00:00"
-
     has_many :delayed_messages, class_name: Setup::DelayedMessage.to_s, inverse_of: :scheduler
 
     validates_presence_of :name
@@ -31,10 +29,6 @@ module Setup
 
     before_save do
       @activation_status_changed = changed_attributes.has_key?(:activated.to_s)
-      r = User.current.time_zone.split("|")
-      if r.length > 1
-        self.time_zone = r[1].strip
-      end
       true
     end
 
@@ -89,7 +83,12 @@ module Setup
     end
 
     def next_time
-      calculator = SchedulerTimePointsCalculator.new(expression, Time.now.year, time_zone)
+      r = Account.current.time_zone.split("|")
+      tz = "+00:00"
+      if r.length > 1
+        tz = r[1].strip
+      end
+      calculator = SchedulerTimePointsCalculator.new(expression, Time.now.year, tz)
       calculator.next_time(Time.zone.now)
     end
 

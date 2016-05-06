@@ -15,6 +15,8 @@ class Account
   field :notification_level, type: Symbol, default: :warning
   field :notifications_listed_at, type: DateTime
 
+  field :time_zone, type: String
+
   validates_inclusion_of :notification_level, in: ->(a) { a.notification_level_enum }
 
   before_save :inspect_updated_fields, :init_heroku_db
@@ -114,6 +116,11 @@ class Account
     def data_type_collection_name(data_type)
       tenant_collection_name(data_type.data_type_name)
     end
+  end
+
+
+  def time_zone_enum
+    ActiveSupport::TimeZone.all.collect { |e| "#{e.name} | #{e.formatted_offset}" }
   end
 
 end
