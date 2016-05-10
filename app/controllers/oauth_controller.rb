@@ -107,7 +107,7 @@ class OauthController < ApplicationController
       if @scope.is_a?(String)
         @scope = Cenit::Scope.new(@scope)
       end
-      @errors << 'Invalid scope' unless @scope.valid?
+      @errors << 'Invalid scope' unless @scope.nil? || @scope.valid?
     else
       @errors << 'Conent time out' unless (@token = params[:token])
       @consent_action = params[:allow] ? :allow : :deny
