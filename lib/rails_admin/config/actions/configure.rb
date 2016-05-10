@@ -26,7 +26,7 @@ module RailsAdmin
               data = params.delete(@model_config.abstract_model.param_key)
               data.permit! unless data.nil? || params.delete(:_restart)
               if params.delete(:_save) && (@form_object = mongoff_model.new(data)).valid?
-                @object.configuration_attributes = @form_object.attributes
+                @object.configuration!.assign_attributes(@form_object.attributes)
                 @object.save
                 render_form = false
               end

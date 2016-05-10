@@ -43,6 +43,10 @@ module Setup
       @config ||= (configuration_attributes ? configuration_model.new(configuration_attributes) : nil)
     end
 
+    def configuration!
+      @config ||= configuration_model.new(configuration_attributes || {})
+    end
+
     def configuration=(data)
       unless data.is_a?(Hash)
         data =
