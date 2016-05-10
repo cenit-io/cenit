@@ -165,6 +165,7 @@ module Setup
                                               attachment: attachment,
                                               skip_notification_level: options[:skip_notification_level] || options[:notify_request])
 
+              headers.each { |key, value| headers[key] = value.to_s }
               msg = { headers: headers }
               msg[:body] = body if body
               msg[:timeout] = 240 #TODO Custom timeout request
