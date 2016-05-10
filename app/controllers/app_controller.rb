@@ -6,7 +6,8 @@ class AppController < ApplicationController
     if (path = request.path.split('/').from(4).join('/')).empty?
       path = '/'
     end
-    if (action = @app.actions.where(method: request.method.to_s.downcase).detect { |a| a.match?(path) })
+    method = request.method.to_s.downcase.to_sym
+    if (action = @app.actions.detect { |a| a.method == method && a.match?(path) })
       control = Cenit::Control.new(@app, self, action)
       begin
         result = action.run(control)
