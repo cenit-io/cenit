@@ -10,14 +10,17 @@ module Mongoff
       @model = model
       @array = array
       @referenced = referenced
-      @records = array.collect do |item|
-        if item.is_a?(BSON::Document)
+      @records = []
+      array.each do |item|
+        item =
+          if item.is_a?(BSON::Document)
           Record.new(model, item)
         elsif item.is_a?(Mongoff::Record)
           item
         else
-          model.find(item)
-        end
+          model.find(item) rescue nil
+          end
+        @records << item if item
       end
     end
 
