@@ -107,12 +107,16 @@ module Api::V1
         if (data_type = @payload.data_type_for(root))
           message = [message] unless message.is_a?(Array)
           message.each do |item|
-            if (record = data_type.send(@payload.create_method,
-                                        @payload.process_item(item, data_type),
-                                        (options = @payload.create_options.merge(primary_field: @primary_field)))).errors.blank?
-              success_report[root] = record.inspect_json(include_id: :id, inspect_scope: options[:create_collector])
-            else
-              broken_report[root] = { errors: record.errors.full_messages, item: item }
+            begin
+              if (record = data_type.send(@payload.create_method,
+                                          @payload.process_item(item, data_type),
+                                          (options = @payload.create_options.merge(primary_field: @primary_field)))).errors.blank?
+                success_report[root] = record.inspect_json(include_id: :id, inspect_scope: options[:create_collector])
+              else
+                broken_report[root] = { errors: record.errors.full_messages, item: item }
+              end
+            rescue Exception => ex
+              broken_report[root] = { errors: ex.message, item: item }
             end
           end
         else
@@ -125,8 +129,8 @@ module Api::V1
     end
 
     def destroy
-        @item.destroy
-        render json: { status: :ok }
+      @item.destroy
+      render json: { status: :ok }
     end
 
     def run

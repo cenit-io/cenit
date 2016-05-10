@@ -129,6 +129,7 @@ module Edi
         primary_fields = options.delete(:primary_field) || (json.is_a?(Hash) && json['_primary']) || [:id]
         primary_fields = [primary_fields] unless primary_fields.is_a?(Array)
         primary_fields = primary_fields.collect(&:to_sym)
+        primary_fields << :id if primary_fields.empty?
         unless record ||= new_record
           if model && model.modelable?
             if json.is_a?(Hash) &&
