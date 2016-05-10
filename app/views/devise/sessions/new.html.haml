@@ -11,11 +11,11 @@
         - f.hidden_field :return_to, value: return_to
       = f.check_box :remember_me, style: 'display:none', value: '1', checked: 'checked'
       = f.button class: 'btn btn-lg soc-btn soc-google', name: 'with', value: 'google' do
-        %i{class:"fa fa-google-plus"}
+        %i{class:"fa fa-google"}
         %span Google
-      -#= f.button class: 'btn btn-lg soc-btn soc-facebook', name: 'with', value: 'facebook' do
-      -#  %i{class:"fa fa-facebook"}
-      -#  %span Facebook
+      = f.button class: 'btn btn-lg soc-btn soc-facebook', name: 'with', value: 'facebook' do
+        %i{class:"fa fa-facebook"}
+        %span Facebook
       -#= f.button class: 'btn btn-lg soc-btn soc-twitter', name: 'with', value: 'twitter' do
       -#  %i{class:"fa fa-twitter"}
       -#  %span Twitter
