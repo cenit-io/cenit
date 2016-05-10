@@ -24,7 +24,7 @@ class Account
   def inspect_updated_fields
     changed_attributes.keys.each do |attr|
       reset_attribute!(attr) unless %w(notification_level).include?(attr)
-    end unless new_record? || Account.current.super_admin?
+    end unless new_record? || Account.current_super_admin?
     true
   end
 
@@ -73,6 +73,10 @@ class Account
       if User.respond_to?(:current=) #TODO Optimize here!
         User.current = account ? account.owner : nil
       end
+    end
+
+    def current_super_admin?
+      current && current.super_admin?
     end
 
     def create_with_owner(params={})
