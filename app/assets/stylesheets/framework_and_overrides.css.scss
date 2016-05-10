@@ -68,12 +68,21 @@ section {
 
 .user-auth .soc-btn {
   margin: 6px;
-  width: 64px;
+  width: 56px;
   transition: all 0.3s ease;
 }
 
+.user-auth .soc-btn.unused {
+  opacity: 0;
+  width: 0;
+  margin: 0;
+  padding: 0;
+  visibility: collapse;
+}
+
+.user-auth .soc-btn.selected,
 .user-auth .soc-btn:hover {
-  width: 144px;
+  width: 154px;
 }
 
 .user-auth .soc-btn,
@@ -84,17 +93,14 @@ section {
   text-align: left;
 }
 
+.user-auth .soc-btn.selected span,
 .user-auth .soc-btn:hover span {
   opacity: 1;
-  //width: auto;
-  //transform: translateX(0);
   padding-left: 12px;
 }
 
 .user-auth .soc-btn span {
   opacity: 0;
-  //width: 0;
-  //transform: translateX(-100%);
   transition: all 0.3s ease;
 }
 
