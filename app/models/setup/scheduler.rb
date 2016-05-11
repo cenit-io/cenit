@@ -102,7 +102,7 @@ module Setup
     },
     "type": {
       "type": "string",
-      "enum": ["periodic", "advanced_position", "advanced_number"]
+      "enum": ["periodic", "specific_position", "specific_number"]
     },
     "months_days": {
       "type": "array",
@@ -231,8 +231,9 @@ module Setup
       month = @solution[0]
       weeks_days = @conf["weeks_days"]
       weeks_month = @conf["weeks_month"]
+      _a = amount_of_days_in_the_month(@year, month)
 
-      if @conf["type"] == "advanced_position"
+      if @conf["type"] == "specific_position"
         months_days = []
         # Obtener los dias de acuerdo a la(s) semana(s)
         if weeks_month.length > 0
@@ -249,6 +250,7 @@ module Setup
           months_days = weeks_days.collect { |wd| all_days(@year, wd, month) }
           months_days.flatten!
         end
+        months_days << _a if @conf["last_day_in_month"] and not months_days.include?(_a)
       else
         months_days = @conf["months_days"]
       end
@@ -257,7 +259,6 @@ module Setup
         months_days = [1]
       end
 
-      _a = amount_of_days_in_the_month(@year, month)
       months_days.select { |e| e > 0 && e <= _a }
     end
 

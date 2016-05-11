@@ -2,110 +2,55 @@
   if @object.expression != nil
     dd = JSON.parse(@object.expression)
   else
-    dd = {"periodic_expression" => "", "type" => "periodic", "months_days" => [], "weeks_days" => [], "weeks_month" => [], "months" => [], "hours" => [], "minutes" => []}
+    dd = {"periodic_expression" => "", "type" => "periodic", "months_days" => [], "weeks_days" => [], "last_day_in_month" => false, "weeks_month" => [], "months" => [], "hours" => [], "minutes" => []}
   end
   ["months_days", "months", "hours", "minutes"].each { |e| dd[e] = dd[e].to_s.strip[1..-2] }
 %>
 
 <input type="hidden" id="setup_scheduler_expression" name="setup_scheduler[expression]">
 
-<div id="content">
 
-  <ul id="scheduler_tabs" class="nav nav-tabs" data-tabs="tabs">
+<label for="scheduler_kinds">
+  Scheduling method
+</label><select class="form-control" id="scheduler_kinds" style="width: 200px">
+  <option <%= dd["type"] == "periodic" ? 'selected' : '' %>  value="1">Periodic</option>
+  <option <%= dd["type"] == "periodic" ? '' : 'selected' %> value="2">Specific</option>
+</select>
 
-    <li class="<%= dd["type"] == "periodic" ? 'active' : '' %>" id="periodic_tab">
-      <a href="#periodic" data-toggle="tab">
-        Periodic</a></li>
 
-    <li class="" id="advanced_tab">
-      <a href="#advanced" data-toggle="tab">
-        Advanced</a></li>
 
-  </ul>
+<div id="periodic" style="display: <%= dd["type"] == "periodic" ? 'block' : 'none' %> ; margin-top: 20px">
 
-  <div class="tab-content">
+  <label for="periodic_expression">Duration</label>
+  <br>
+  <input id="periodic_expression" value="<%= dd["periodic_expression"] %>" placeholder="e.g: 5m"
+         data-toggle="tooltip" title="Amount of time, ending with s-m-h-d for specify time units" type="text">
 
-    <div class="tab-pane <%= dd["type"] == "periodic" ? 'active' : '' %>" id="periodic">
+</div>
 
-      <label for="periodic_expression">Duration</label>
-      <br>
-      <input id="periodic_expression" value="<%= dd["periodic_expression"] %>" type="text" placeholder="e.g: 5m" data-toggle="tooltip" title="Amount of time, ending with s-m-h-d for specify time units">
 
-    </div>
+<div id="specific" style="display: <%= dd["type"] == "periodic" ? 'none' : 'block' %> ; margin-top: 20px">
 
-    <div class="tab-pane <%= dd["type"] == "periodic" ? '' : 'active' %>" id="advanced">
+  <div id="content">
 
-      <div style="margin-left: 200px" class="btn-group">
-        <button type="button" id="type_of_days_btn" value="number" class="btn btn-primary dropdown-toggle"
-                data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-          Days by <%= ["advanced_number", "periodic"].include?(dd["type"]) ? 'number' : 'position' %>
-          <span class="caret"></span>
-        </button>
-        <ul class="dropdown-menu" id="new_type_of_days_btn">
-          <li id="new_type_of_days_li">Days
-            by <%= ["advanced_number", "periodic"].include?(dd["type"]) ? 'position' : 'number' %></li>
-        </ul>
-      </div>
+    <ul id="specific_tabs" class="nav nav-tabs" data-tabs="tabs">
 
-      <div id="position_scheduler_month_days" style="display: <%= dd["type"] == "advanced_position" ? 'block' : 'none'%> ;">
+      <li class="<%= ['periodic', 'specific_number'].include?(dd["type"]) ? 'active' : '' %>" id="number_tab">
+        <a href="#number" data-toggle="tab">Days by number</a></li>
 
-        <div class="form-inline">
-          <div class="form-group">
-            <label>Days of the Week </label>
+      <li class="<%= ['specific_position'].include?(dd["type"]) ? 'active' : '' %>" id="position_tab">
+        <a href="#position" data-toggle="tab">Days by position</a></li>
 
-            <% days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'] %>
+    </ul>
 
-            <div class="checkboxes form-inline">
-              <% days.each_with_index do |d, i| %>
-                  <div class="checkbox">
-                    <label><input id="week_day_<%= i %>" <%= dd["weeks_days"].include?(i) ? 'checked' : '' %> type="checkbox"><br>
-                      <span><%= d %></span>
-                    </label>
-                  </div>
-              <% end %>
-            </div>
-          </div>
+    <div class="tab-content">
 
-          <div class="form-group" style="margin-left: 40px">
-            <label>Week in the month</label>
+      <div class="tab-pane <%= ['periodic', 'specific_number'].include?(dd["type"]) ? 'active' : '' %>" id="number">
 
-            <% week_month = ['First', 'Second'] %>
-            <% week_month_reverse = ['Last'] %>
-
-            <div class="checkboxes form-inline">
-
-              <% week_month.each_with_index do |d, i| %>
-                  <div class="checkbox">
-                    <label><input id="week_month_<%= i+1 %>" <%= dd["weeks_month"].include?(i+1) ? 'checked' : '' %> type="checkbox"><br><span>
-         <%= d %>
-        </span></label></div>
-              <% end %>
-
-              <% week_month_reverse.each_with_index do |d, i| %>
-                  <div class="checkbox">
-                    <label><input id="week_month_reverse_<%= i+1 %>"  <%= dd["weeks_month"].select { |e| e < 0 }.include?(-(i+1)) ? 'checked' : '' %> type="checkbox"><br><span>
-         <%= d %>
-        </span></label></div>
-              <% end %>
-
-            </div>
-          </div>
-
-        </div>
-
-      </div>
-
-      <div id="number_scheduler_month_days" style="display: <%=
-          if dd["type"] == "advanced_number" then
-            'block'
-          else
-            dd["type"] == "periodic" ? 'block' : 'none'
-          end
-%> ;">
         <label>Days of the Month</label>
 
         <div class="form-inline">
-          <input type="text" id="months_days_input" value="<%= dd["months_days"] %>"  placeholder="e.g: 2, 5, 6, 9" data-toggle="tooltip" title="Day number (1-31) or list of numbers separated by comma">
+          <input type="text" id="months_days_input" value="<%= dd["months_days"] %>" placeholder="e.g: 2, 5, 6, 9" data-toggle="tooltip" title="Day number (1-31) or list of numbers separated by comma">
 
           <select class="form-control input-sm" id="months_days">
             <option selected disabled value="0">Choose frequency</option>
@@ -122,61 +67,129 @@
 
       </div>
 
+      <div class="tab-pane <%= ['specific_position'].include?(dd["type"]) ? 'active' : '' %>" id="position">
 
-      <label>Months </label>
+        <div id="position_scheduler_month_days">
 
-      <div class="form-inline">
-        <input type="text" id="months_input" value="<%= dd["months"] %>"  placeholder="e.g: 2, 4, 5" data-toggle="tooltip" title="Month number (1-12) or list of numbers separated by comma">
+          <div class="form-inline">
+            <div class="form-group">
+              <label>Days of the Week </label>
 
-        <select class="form-control input-sm" id="months">
-          <option selected disabled value="0">Choose frequency</option>
+              <% days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'] %>
 
-          <option value="1">Every month</option>
+              <div class="checkboxes form-inline">
+                <% days.each_with_index do |d, i| %>
+                    <div class="checkbox">
+                      <label><input id="week_day_<%= i %>" <%= dd["weeks_days"].include?(i) ? 'checked' : '' %> type="checkbox"><br>
+                        <span><%= d %></span>
+                      </label>
+                    </div>
+                <% end %>
+              </div>
+            </div>
 
-          <% months = [2, 3, 4, 6] %>
-          <% months.each do |d| %>
-              <option value="<%= d %>">Every <%= d %> months</option>
-          <% end %>
+            <div class="form-group" style="margin-left: 40px">
+              <label>Week</label>
 
-        </select>
-      </div>
+              <% week_month = ['First', 'Second'] %>
+              <% week_month_reverse = ['Last'] %>
 
+              <div class="checkboxes form-inline">
 
-      <label>Hours</label>
+                <% week_month.each_with_index do |d, i| %>
+                    <div class="checkbox">
+                      <label><input id="week_month_<%= i+1 %>" <%= dd["weeks_month"].include?(i+1) ? 'checked' : '' %> type="checkbox"><br><span>
+         <%= d %>
+        </span></label></div>
+                <% end %>
 
-      <div class="form-inline">
-        <input type="text" id="hours_input" value="<%= dd["hours"] %>" placeholder="e.g: 14" data-toggle="tooltip" title="The hour number (0-23) or list of numbers separated by comma">
+                <% week_month_reverse.each_with_index do |d, i| %>
+                    <div class="checkbox">
+                      <label><input id="week_month_reverse_<%= i+1 %>"  <%= dd["weeks_month"].select { |e| e < 0 }.include?(-(i+1)) ? 'checked' : '' %> type="checkbox"><br>
+                        <span><%=d%></span></label>
+                    </div>
+                <% end %>
 
-        <select class="form-control input-sm" id="hours">
-          <option selected disabled value="0">Choose frequency</option>
+              </div>
+            </div>
 
-          <option value="1">Every hour</option>
-          <% hours = [2, 3, 4, 6, 12] %>
-          <% hours.each do |d| %>
-              <option value="<%= d %>">Every <%= d %> hours</option>
-          <% end %>
-        </select>
-      </div>
+            <div class="form-group" style="margin-left: 20px">
+              <label>Day</label>
 
+              <div class="checkboxes form-inline">
 
-      <label>Minutes</label>
+                <div class="checkbox">
+                  <label><input id="last_day_in_month" <%= dd["last_day_in_month"] ? 'checked' : '' %> type="checkbox"><br><span>
+         Last
+        </span></label></div>
 
-      <div class="form-inline">
-        <input type="text" id="minutes_input" value="<%= dd["minutes"] %>"  placeholder="e.g: 20, 45" data-toggle="tooltip" title="The minute number (0-59) or list of numbers separated by comma">
+              </div>
+            </div>
 
-        <select class="form-control input-sm" id="minutes">
-          <option selected disabled value="0">Choose frequency</option>
+          </div>
 
-          <option value="1">Every minute</option>
-          <% minutes = [2, 4, 5, 10, 15, 20, 30] %>
-          <% minutes.each do |d| %>
-              <option value="<%= d %>">Every <%= d %> minutes</option>
-          <% end %>
-        </select>
+        </div>
+
       </div>
 
     </div>
 
   </div>
+
+
+  <label>Months </label>
+
+  <div class="form-inline">
+    <input type="text" id="months_input" value="<%= dd["months"] %>" placeholder="e.g: 2, 4, 5" data-toggle="tooltip" title="Month number (1-12) or list of numbers separated by comma">
+
+    <select class="form-control input-sm" id="months">
+      <option selected disabled value="0">Choose frequency</option>
+
+      <option value="1">Every month</option>
+
+      <% months = [2, 3, 4, 6] %>
+      <% months.each do |d| %>
+          <option value="<%= d %>">Every <%= d %> months</option>
+      <% end %>
+
+    </select>
+  </div>
+
+
+  <label>Hours</label>
+
+  <div class="form-inline">
+    <input type="text" id="hours_input" value="<%= dd["hours"] %>" placeholder="e.g: 14" data-toggle="tooltip" title="The hour number (0-23) or list of numbers separated by comma">
+
+    <select class="form-control input-sm" id="hours">
+      <option selected disabled value="0">Choose frequency</option>
+
+      <option value="1">Every hour</option>
+      <% hours = [2, 3, 4, 6, 12] %>
+      <% hours.each do |d| %>
+          <option value="<%= d %>">Every <%= d %> hours</option>
+      <% end %>
+    </select>
+  </div>
+
+
+  <label>Minutes</label>
+
+  <div class="form-inline">
+    <input type="text" id="minutes_input" value="<%= dd["minutes"] %>" placeholder="e.g: 20, 45" data-toggle="tooltip" title="The minute number (0-59) or list of numbers separated by comma">
+
+    <select class="form-control input-sm" id="minutes">
+      <option selected disabled value="0">Choose frequency</option>
+
+      <option value="1">Every minute</option>
+      <% minutes = [2, 4, 5, 10, 15, 20, 30] %>
+      <% minutes.each do |d| %>
+          <option value="<%= d %>">Every <%= d %> minutes</option>
+      <% end %>
+    </select>
+  </div>
+
+
 </div>
+
 

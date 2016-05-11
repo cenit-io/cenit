@@ -1,6 +1,5 @@
 function schedulerInit() {
-
-    $('#scheduler_tabs').tab();
+    $('#specific_tabs').tab();
 
     function fillInput(lbond, ubond, id) {
         var _days = _.range(lbond, ubond, $("#" + id).val());
@@ -35,6 +34,17 @@ function schedulerInit() {
         updateSchedulerValue();
     });
 
+    $("#scheduler_kinds").change(function (p) {
+        if ($("#scheduler_kinds").val() === "1") {
+            periodic.show();
+            specific.hide();
+        } else {
+            periodic.hide();
+            specific.show();
+        }
+        updateSchedulerValue();
+    });
+
     function createSchedulerValue() {
         function input_validation(id) {
             return $(id).val().indexOf(",") != -1 ?
@@ -44,13 +54,13 @@ function schedulerInit() {
                 [] : [Number($(id).val().trim())])
         }
 
-        var position_tab = type_of_days_btn.val() == "position";
+        var position_tab = $("#position").attr('class').indexOf('active') != -1;
 
-        var periodic_tab = $("#periodic").attr('class').indexOf('active') != -1;
+        var periodic_tab = $("#scheduler_kinds").val() === "1";
 
-        res = {
+        var res = {
 
-            "type": periodic_tab ? "periodic" : "advanced_" + (position_tab ? "position" : "number"),
+            "type": periodic_tab ? "periodic" : "specific_" + (position_tab ? "position" : "number"),
 
             "months_days": input_validation("#months_days_input"),
 
@@ -67,6 +77,8 @@ function schedulerInit() {
                     return e * -1;
                 })),
 
+            "last_day_in_month": $("#last_day_in_month").is(":checked"),
+
             "months": input_validation("#months_input"),
 
             "hours": input_validation("#hours_input"),
@@ -80,36 +92,14 @@ function schedulerInit() {
         return res;
     }
 
-    $('a[data-toggle="tab"]').on('shown.bs.tab', function (e) {
-        updateSchedulerValue();
-    });
-
     var position_scheduler_month_days = $("#position_scheduler_month_days");
     var number_scheduler_month_days = $("#number_scheduler_month_days");
     var type_of_days_btn = $("#type_of_days_btn");
 
-    function invertDaysMonthsTypes() {
-        type_of_days_btn.val(type_of_days_btn.val() == "number" ? "position" : "number");
-        type_of_days_btn.text(type_of_days_btn.val() == "number" ? "Days by number " : "Days by position ");
-        type_of_days_btn.append($("<span class='caret'></span>"));
-        $("#new_type_of_days_li").text(type_of_days_btn.val() == "number" ? "Days by position" : "Days by number");
-        updateDaysMonths();
-    }
+    var periodic = $("#periodic");
+    var specific = $("#specific");
 
-    function updateDaysMonths() {
-        number_scheduler_month_days.hide();
-        position_scheduler_month_days.hide();
-
-        if (type_of_days_btn.val() == "number") {
-            number_scheduler_month_days.show();
-        } else {
-            position_scheduler_month_days.show();
-        }
-
-    }
-
-    $('#new_type_of_days_btn').click(function (e) {
-        invertDaysMonthsTypes();
+    $('a[data-toggle="tab"]').on('shown.bs.tab', function (e) {
         updateSchedulerValue();
     });
 
