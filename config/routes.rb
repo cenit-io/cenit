@@ -11,7 +11,6 @@ Cenit::Application.routes.draw do
 
   match 'oauth/authorize', to: 'oauth#index', via: [:get, :post]
   get 'oauth/callback', to: 'oauth#callback'
-  get 'oauth2/callback', to: 'oauth#callback'
   get 'schema', to: 'schema#index'
   get 'captcha', to: 'captcha#index'
   get 'captcha/:token', to: 'captcha#index'
