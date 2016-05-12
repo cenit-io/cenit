@@ -104,6 +104,7 @@ class Ability
     else
       can [:dashboard, :shared_collection_index]
       can [:index, :show, :grid, :pull, :simple_export], [Setup::SharedCollection]
+      can :index, Setup::Models.all.to_a
     end
 
   end
