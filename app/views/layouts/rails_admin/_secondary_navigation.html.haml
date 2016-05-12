@@ -1,3 +1,21 @@
+- if _current_user
+  %ul#user-nav.nav.navbar-nav.navbar-right
+    %li.dropdown
+      %a.dropdown-toggle{href:"#", role:"button",'data-toggle':"dropdown",'aria-haspopup':"true",'aria-expanded':"false"}
+        = _current_user.email. split
+        %span.caret
+      %ul#user-menu.dropdown-menu
+        - if (user_link = edit_user_link)
+          - user_link = [user_link] unless user_link.is_a?(Enumerable)
+          %li.edit_user_root_link{style: 'padding-right:5px'}= user_link.shift
+          - user_link.each do |link|
+            %li= link
+
+        - if logout_path.present?
+          %li.divider{role:"separator"}
+          .actions.clearfix
+            %li.pull-right= link_to t('admin.misc.log_out'), logout_path, method: logout_method, class: 'btn btn-xs btn-danger'
+
 %ul.nav.navbar-nav.navbar-right.root_links
   - if _current_user
     %li.take-tour
@@ -16,11 +34,3 @@
     %li#action-auth= auth_link
   - if (nlink = notifications_link)
     %li#action-notify= nlink
-  - if _current_user
-    - if (user_link = edit_user_link)
-      - user_link = [user_link] unless user_link.is_a?(Enumerable)
-      %li.edit_user_root_link{style: 'padding-right:5px'}= user_link.shift
-      - user_link.each do |link|
-        %li= link
-    - if logout_path.present?
-      %li= link_to content_tag('span', t('admin.misc.log_out'), class: 'label label-danger'), logout_path, method: logout_method
