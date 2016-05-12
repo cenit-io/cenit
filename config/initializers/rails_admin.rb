@@ -178,6 +178,7 @@ RailsAdmin.config do |config|
     navigation_label 'Collections'
     object_label_method { :versioned_name }
 
+    public_access true
     extra_associations do
       Setup::Collection.reflect_on_all_associations(:has_and_belongs_to_many).collect do |association|
         association = association.dup
@@ -2073,7 +2074,7 @@ RailsAdmin.config do |config|
 
     configure :secret do
       pretty_value do
-        if Account.current.id == bindings[:object].tenant_id
+        if Account.current && Account.current.id == bindings[:object].tenant_id
           value
         else
           '<i class="icon-lock"/>'.html_safe
