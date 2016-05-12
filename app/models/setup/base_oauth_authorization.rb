@@ -49,7 +49,7 @@ module Setup
     end
 
     def base_params
-      { callback_key => "#{Cenit.oauth2_callback_site}/oauth2/callback" }
+      { callback_key => "#{Cenit.oauth2_callback_site}/oauth/callback" }
     end
 
     def authorize_params(params = {})
