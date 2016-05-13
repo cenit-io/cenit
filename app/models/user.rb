@@ -9,9 +9,9 @@ class User
   scope :by_account, -> { where(account: Account.current) }
 
   # Include default devise modules. Others available are:
-  # :recoverable, :rememberable, :confirmable, :lockable, :timeoutable and :omniauthable
+  # :lockable, :timeoutable, :rememberable
 
-  devise :trackable, :validatable, :omniauthable, :database_authenticatable
+  devise :trackable, :validatable, :omniauthable, :database_authenticatable, :recoverable
   devise :registerable unless ENV['UNABLE_REGISTERABLE'].to_b
   devise :confirmable unless ENV['UNABLE_CONFIRMABLE'].to_b
 
