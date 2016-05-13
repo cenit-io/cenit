@@ -8,6 +8,42 @@
   padding-bottom: 4px;
 }
 
+#secondary-navigation .navbar-right {
+  padding-left: 24px;
+}
+
+#user-nav > li.dropdown.open > a {
+  background-color: #ffffff;
+  border: solid 1px rgba(0,0,0,0.15);
+  position: relative;
+}
+
+#user-nav > li.dropdown.open > a:after {
+  display: block;
+  position: absolute;
+  content: " ";
+  background-color: #ffffff;
+  width: 100%;
+  height: 6px;
+  right: 0;
+  bottom: -3px;
+  z-index: 1001;
+}
+
+#user-menu {
+  padding: 12px;
+}
+
+#user-menu .edit_user_root_link img {
+  position: inherit;
+  border: solid 1px rgba(0,0,0,0.15);
+  border-radius: 50%;
+}
+
+#user-menu > li > a {
+  padding: 3px;
+}
+
 /* Toogle styles*/
 
 #sidebar-toggle {
@@ -22,11 +58,6 @@
   -moz-transition: all 0.5s ease;
   -o-transition: all 0.5s ease;
   transition: all 0.5s ease;
-
-  //-webkit-transform: rotate(-90deg);
-  //-moz-transform: rotate(-90deg);
-  //-o-transform: rotate(-90deg);
-  //transform: rotate(-90deg);
 }
 
 #sidebar-toggle.toggled i.fa {
@@ -93,7 +124,6 @@
 #wrapper #sidebar-wrapper:hover .nav-caption {
   opacity: 1;
 }
-
 
 #content-wrapper {
   width: 100%;
