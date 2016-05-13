@@ -9,9 +9,14 @@ en:
     flash:
       processed: "%{name} %{action} have been processed"
       click_here: "(click here for details)"
+    misc:
+      log_out: "Sign out"
+      terms: "Terms of service"
+      tour: "Take Tour"
+      blog: "Read our Blog"
+      docs: "Read our Docs"
+      dir: "Directory"
     actions:
-      tour:
-        title: "Take Tour"
       dashboard:
         title: "Dashboard"
       send_to_flow:
