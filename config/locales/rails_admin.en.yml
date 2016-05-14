@@ -1,9 +1,9 @@
 en:
   admin:
     session:
-      new: 'Sign In'
+      new: 'sign in'
     registration:
-      new: 'Get Started for FREE'
+      new: "free sign up"
     js:
       present_and_change: Present & Change
     flash:
