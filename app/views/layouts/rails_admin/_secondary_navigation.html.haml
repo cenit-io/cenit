@@ -9,11 +9,14 @@
             %span.input-group-btn
               %button.btn.btn-primary
                 %i.fa.fa-search
+  %li
+    %p
+      %a.item{'data-toggle' => "modal",  'href' => "#contact_us", 'data-backdrop' => "false"}= 'Get in touch'
 
 - if _current_user.present?
   %ul#user-nav.nav.navbar-nav.navbar-right
     %li.dropdown
-      %a.dropdown-toggle{href:"#", role:"button",'data-toggle':"dropdown",'aria-haspopup':"true",'aria-expanded':"false"}
+      %a.dropdown-toggle{href: "#", role: "button",'data-toggle': "dropdown",'aria-haspopup': "true", 'aria-expanded': "false"}
         = _current_user.email.split("@")[0]
         %span.caret
       %ul#user-menu.dropdown-menu
@@ -29,6 +32,8 @@
             %small= link_to t('admin.misc.terms'), "https://www.cenithub.com/terms_of_service", class: "text-muted"
           - if logout_path.present?
             %li.pull-right= link_to t('admin.misc.log_out'), logout_path, method: logout_method, class: 'btn btn-xs btn-danger'
+            
+
 
 %ul.nav.navbar-nav.navbar-right.root_links
   - unless _current_user.present?
