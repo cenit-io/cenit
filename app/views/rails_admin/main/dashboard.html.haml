@@ -13,11 +13,9 @@
                 %i.fa.fa-search
     %p
       = 'Try'
-      = link_to 'gmail', index_path(model_name: "setup~shared_collection", query: 'gmail')
-      = ','
-      = link_to 'twilio', index_path(model_name: "setup~shared_collection", query: 'twilio')
-      = 'or'
-      = link_to 'shipstation', index_path(model_name: "setup~shared_collection", query: 'shipstation')
+      = link_to('gmail', index_path(model_name: "setup~shared_collection", query: 'gmail'))+','
+      = link_to('twilio', index_path(model_name: "setup~shared_collection", query: 'twilio'))+' or'
+      = link_to('shipstation', index_path(model_name: "setup~shared_collection", query: 'shipstation'))
 
 -if current_user
   #usage-blocks.blocks.clearfix
