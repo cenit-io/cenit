@@ -17,8 +17,8 @@ en:
       docs: "Read our Docs"
       dir: "Directory"
       shared_collections: find shared collections
-      title_search_shared_collections: Data pipelines to process data between API's
-      sub_title_search_shared_collections: "Search over %{count} shared collections"
+      title_search_shared_collections: Build and share pipelines to process and move data between API's
+      sub_title_search_shared_collections: "Find code and data over %{count} shared collections"
     actions:
       dashboard:
         title: "Dashboard"
