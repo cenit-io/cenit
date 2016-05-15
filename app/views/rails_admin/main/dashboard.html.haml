@@ -1,7 +1,7 @@
 - query = params[:query]
 -unless current_user
   %div.container
-    %h1.label-heading
+    %h3.label-heading
       %small=  t("admin.misc.title_search_shared_collections")
       %p= t("admin.misc.sub_title_search_shared_collections", count: @count[Setup::SharedCollection.name])
       - shared_path = index_path(model_name: "setup~shared_collection", query: query)
