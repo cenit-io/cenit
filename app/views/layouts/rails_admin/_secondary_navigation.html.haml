@@ -1,26 +1,63 @@
-%ul.nav.navbar-nav.navbar-right.root_links
-  - if _current_user
-    %li.take-tour
-      %a#take-tour{'href'=> '#'}= t('admin.actions.tour.title')
-    - actions(:root).each do |action|
-      %li
-        %a{href: url_for(action: action.action_name, class: 'pjax')}
-          %i{class: action.link_icon, title: wording_for(:menu, action)}
-  - else
+- query = params[:query]
+%ul#user-nav.nav.navbar-nav
+  %li
     .a.navbar-btn{style: 'padding-right:20px'}
+      - shared_path = index_path(model_name: "setup~shared_collection")
+      = form_tag(shared_path, method: :get, class: "pjax-form form-inline") do
+        .input-group
+          %input.form-control.btb.btn-default{name: "query", type: "search", value: query, placeholder: t("admin.misc.shared_collections")}
+            %span.input-group-btn
+              %button.btn.btn-primary
+                %i.fa.fa-search
+
+- if _current_user.present?
+  %ul#user-nav.nav.navbar-nav.navbar-right
+    %li.dropdown
+      %a.dropdown-toggle{href:"#", role:"button",'data-toggle':"dropdown",'aria-haspopup':"true",'aria-expanded':"false"}
+        = _current_user.email.split("@")[0]
+        %span.caret
+      %ul#user-menu.dropdown-menu
+        - if (user_link = edit_user_link)
+          - user_link = [user_link] unless user_link.is_a?(Enumerable)
+          %li.edit_user_root_link{style: 'padding-right:5px'}= user_link.shift
+          - user_link.each do |link|
+            %li= link
+
+        %li.divider{role:"separator"}
+        .actions.clearfix
+          %li.terms.pull-left
+            %small= link_to t('admin.misc.terms'), "https://www.cenithub.com/terms_of_service", class: "text-muted"
+          - if logout_path.present?
+            %li.pull-right= link_to t('admin.misc.log_out'), logout_path, method: logout_method, class: 'btn btn-xs btn-danger'
+
+%ul.nav.navbar-nav.navbar-right.root_links
+  - unless _current_user.present?
+    .a.navbar-btn{style: 'padding-right:20px'}
+      =link_to t('admin.session.new'), new_session_path(User), style: 'padding-right:10px'
       =link_to t('admin.registration.new'), new_registration_path(User), class: 'btn btn-primary'
-      =link_to t('admin.session.new'), new_session_path(User), class: 'btn btn-info'
+      
   - if (t_link = tasks_link)
     %li#action-tasks= t_link
   - if (auth_link = authorizations_link)
     %li#action-auth= auth_link
   - if (nlink = notifications_link)
     %li#action-notify= nlink
-  - if _current_user
-    - if (user_link = edit_user_link)
-      - user_link = [user_link] unless user_link.is_a?(Enumerable)
-      %li.edit_user_root_link{style: 'padding-right:5px'}= user_link.shift
-      - user_link.each do |link|
-        %li= link
-    - if logout_path.present?
-      %li= link_to content_tag('span', t('admin.misc.log_out'), class: 'label label-danger'), logout_path, method: logout_method
+
+%ul.nav.navbar-nav.navbar-right.root_links
+  %li
+    %a#take-tour{'href'=> '#'}
+      %i.fa.fa-bus{title: t('admin.misc.tour')}
+  - actions(:root).each do |action|
+    %li
+      =link_to url_for(action: action.action_name, class: 'pjax') do
+        %i{class: action.link_icon, title: wording_for(:menu, action)}
+  %li
+    =link_to 'https://docs.cenithub.com' do
+      %i.fa.fa-file-text{title: t('admin.misc.docs')}
+  %li
+    =link_to 'https://cenithub.com/blog' do
+      %i.fa.fa-newspaper-o{title: t('admin.misc.blog')}
+  - unless _current_user.present?
+    %li
+      =link_to "https://www.cenithub.com/terms_of_service" do
+        %i.fa.fa-institution{title: t('admin.misc.terms')}

@@ -37,7 +37,7 @@ $(function () {
             name: 'anonymous',
             steps: [
                 {
-                    title: "Welcome to CenitHub!",
+                    title: "Welcome to cenit.io!",
                     content: "Thanks for visiting us! Click 'Next' to start the tour.",
                     orphan: true
                 },
