@@ -1,3 +1,15 @@
+- query = params[:query]
+%ul#user-nav.nav.navbar-nav
+  %li
+    .a.navbar-btn{style: 'padding-right:20px'}
+      - shared_path = index_path(model_name: "setup~shared_collection")
+      = form_tag(shared_path, method: :get, class: "pjax-form form-inline") do
+        .input-group
+          %input.form-control.btb.btn-default{name: "query", type: "search", value: query, placeholder: t("admin.misc.shared_collections")}
+            %span.input-group-btn
+              %button.btn.btn-primary
+                %i.fa.fa-search
+
 - if _current_user.present?
   %ul#user-nav.nav.navbar-nav.navbar-right
     %li.dropdown
@@ -34,14 +46,18 @@
 %ul.nav.navbar-nav.navbar-right.root_links
   %li
     %a#take-tour{'href'=> '#'}
-      %i{class:'fa fa-bus', title: t('admin.misc.tour')}
+      %i.fa.fa-bus{title: t('admin.misc.tour')}
   - actions(:root).each do |action|
     %li
       =link_to url_for(action: action.action_name, class: 'pjax') do
         %i{class: action.link_icon, title: wording_for(:menu, action)}
   %li
     =link_to 'https://docs.cenithub.com' do
-      %i{class: 'fa fa-file-text', title: t('admin.misc.docs')}
+      %i.fa.fa-file-text{title: t('admin.misc.docs')}
   %li
     =link_to 'https://cenithub.com/blog' do
-      %i{class: 'fa fa-newspaper-o', title: t('admin.misc.blog')}
+      %i.fa.fa-newspaper-o{title: t('admin.misc.blog')}
+  - unless _current_user.present?
+    %li
+      =link_to "https://www.cenithub.com/terms_of_service" do
+        %i.fa.fa-institution{title: t('admin.misc.terms')}

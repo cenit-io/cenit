@@ -16,6 +16,9 @@ en:
       blog: "Read our Blog"
       docs: "Read our Docs"
       dir: "Directory"
+      shared_collections: find shared collections
+      title_search_shared_collections: Find data and code you can use
+      sub_title_search_shared_collections: "Search over %{count} shared collections"
     actions:
       dashboard:
         title: "Dashboard"
