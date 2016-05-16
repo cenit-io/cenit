@@ -334,8 +334,8 @@ RailsAdmin.config do |config|
             Setup::Transformation::ActionViewTransform.run(transformation: template,
                                                            style: 'html.erb',
                                                            base_url: bindings[:controller].request.base_url,
-                                                           user_key: User.current.number,
-                                                           user_token: User.current.token,
+                                                           user_key: User.current_number,
+                                                           user_token: User.current_token,
                                                            collection: nil,
                                                            shared_collection: bindings[:object])
           rescue Exception => ex
