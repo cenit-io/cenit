@@ -42,7 +42,7 @@ module Setup
 
       def all
         set = Set.new(@excluded_actions.keys)
-        @included_actions.each_key { |m| set << m }
+        @included_actions.each_key { |m| set << m } if @included_actions
         set
       end
 

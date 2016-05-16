@@ -1,3 +1,22 @@
+- query = params[:query]
+-unless current_user
+  %div.container
+    %h3.label-heading
+      %small=  t("admin.misc.title_search_shared_collections")
+      %p= t("admin.misc.sub_title_search_shared_collections", count: @count[Setup::SharedCollection.name])
+      - shared_path = index_path(model_name: "setup~shared_collection", query: query)
+      = form_tag(shared_path, method: :get, class: "pjax-form form-inline") do
+        .input-group.col-xs-12.col-sd-9.col-lg-8
+          %input.form-control.btb.btn-default{name: "query", type: "search", value: query}
+            %span.input-group-btn
+              %button.btn.btn-primary
+                %i.fa.fa-search
+    %p
+      = 'Try'
+      = link_to('gmail', index_path(model_name: "setup~shared_collection", query: 'gmail'))+','
+      = link_to('twilio', index_path(model_name: "setup~shared_collection", query: 'twilio'))+' or'
+      = link_to('shipstation', index_path(model_name: "setup~shared_collection", query: 'shipstation'))
+
 -if current_user
   #usage-blocks.blocks.clearfix
     #tasks-overview.col-sm-4
@@ -73,10 +92,10 @@
               %span.show= capitalize_first_letter(abstract_model.config.label_plural)
           %td
             - count = @count[abstract_model.model.name]
-            - percent = count > 0 ? (@max <= 1 ? count : ((Math.log(count+1) * 100.0) / Math.log(@max+1)).to_i) : -1
+            - percent = percent(count, @max)
             .progress{style: "margin-bottom:0px", class: "progress-#{get_indicator(percent)} #{active && 'active progress-striped'}"  }
-              .progress-bar.animate-width-to{:class => "progress-bar-#{get_indicator(percent)}", :'data-animate-length' => ([1.0, percent].max.to_i * 20), :'data-animate-width-to' => "#{[2.0, percent].max.to_i}%", style: "width:2%"}
-                = @count[abstract_model.model.name]
+              .progress-bar.animate-width-to{:class => "progress-bar-#{get_indicator(percent)}", :'data-animate-length' => animate_width_to(percent), :'data-animate-width-to' => animate_width_to(percent), style: "width:2%"}
+                = count
           %td.links
             %ul.inline.list-inline= menu_for :collection, abstract_model, nil, true
 - if @auditing_adapter && authorized?(:history_index)
