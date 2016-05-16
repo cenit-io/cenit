@@ -2,6 +2,9 @@ module Setup
   class Task
     include CenitScoped
     include ClassHierarchyAware
+    include CrossOrigin::Document
+
+    origins -> { Account.current_super_admin? ? :admin : nil }
 
     BuildInDataType.regist(self)
 
@@ -30,6 +33,10 @@ module Setup
     before_save do
       message.delete(:task)
       self.description = auto_description if description.blank?
+      if scheduler && scheduler.origin != origin
+        errors.add(:scheduler, "with incompatible origin (#{scheduler.origin}), #{origin} origin is expected")
+      end
+      errors.blank?
     end
 
     before_destroy { NOT_RUNNING_STATUS.include?(status) }
@@ -37,6 +44,7 @@ module Setup
     def _type_enum
       classes = Setup::Task.class_hierarchy
       classes.delete(Setup::Task)
+      classes.delete(::ScriptExecution)
       classes.collect(&:to_s)
     end
 
@@ -200,13 +208,6 @@ module Setup
 
       def process(message = {}, &block)
         Cenit::Rabbit.enqueue(message.merge(task: self), &block)
-      end
-
-      def destroy_conditions
-        {
-          'status' => { '$in' => Setup::Task::NOT_RUNNING_STATUS },
-          'scheduler_id' => { '$in' => Setup::Scheduler.where(activated: false).collect(&:id) + [nil] }
-        }
       end
     end
 

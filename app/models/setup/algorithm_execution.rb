@@ -10,7 +10,7 @@ module Setup
     end
 
     def run(message)
-      if algorithm = Setup::Algorithm.where(id: algorithm_id = message[:algorithm_id]).first
+      if (algorithm = Setup::Algorithm.where(id: algorithm_id = message[:algorithm_id]).first)
         result =
           case result = algorithm.run(message[:input])
           when Hash, Array
