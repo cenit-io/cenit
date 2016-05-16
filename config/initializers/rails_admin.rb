@@ -1803,6 +1803,7 @@ RailsAdmin.config do |config|
       field :namespace
       field :name
       field :expression
+      field :origin
 
       field :_id
       field :created_at
@@ -1811,7 +1812,7 @@ RailsAdmin.config do |config|
       #field :updater
     end
 
-    fields :namespace, :name, :scheduling_method, :expression, :activated
+    fields :namespace, :name, :scheduling_method, :expression, :activated, :origin
   end
 
   config.model Setup::AlgorithmParameter do
@@ -3015,5 +3016,18 @@ RailsAdmin.config do |config|
     end
 
     fields :created_at, :name, :registered, :account, :identifier
+  end
+
+  config.model Setup::ScriptExecution do
+    parent { nil }
+    navigation_label 'Administration'
+    object_label_method { :to_s }
+    configure :attempts_succeded, :text do
+      label 'Attempts/Succedded'
+    end
+    edit do
+      field :description
+    end
+    fields :script, :description, :scheduler, :attempts_succeded, :retries, :progress, :status, :notifications
   end
 end

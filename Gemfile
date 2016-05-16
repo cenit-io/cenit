@@ -98,4 +98,4 @@ gem 'exception_notification'
 
 gem 'mime'
 
-gem 'cross_origin'
+gem 'cross_origin', git: 'https://github.com/macarci/cross_origin.git'

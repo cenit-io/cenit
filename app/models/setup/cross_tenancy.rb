@@ -7,6 +7,8 @@ module Setup
 
     included do
 
+      origins :shared
+
       BuildInDataType.regist(self).excluding(:origin, :tenant)
 
       Setup::Models.exclude_actions_for self, :import, :translator_update, :convert, :send_to_flow, :copy, :new, :cross_share #TODO remove :new and :copy from excluded actions when fixing references sharing problem
