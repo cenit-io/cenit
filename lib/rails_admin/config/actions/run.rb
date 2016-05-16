@@ -21,9 +21,15 @@ module RailsAdmin
             if params[:_run]
               begin
                 if params[:background].present?
-                  do_flash_process_result Setup::AlgorithmExecution.process(algorithm_id: @object.id,
-                                                                            input: params.delete(:input),
-                                                                            skip_notification_level: true)
+                  task_class, id_key =
+                    if @abstract_model.model == Setup::Algorithm
+                      [Setup::AlgorithmExecution, :algorithm_id]
+                    else
+                      [::ScriptExecution, :script_id]
+                    end
+                  do_flash_process_result task_class.process(id_key => @object.id,
+                                                             input: params.delete(:input),
+                                                             skip_notification_level: true)
                 else
                   @output = @object.run(@input = params.delete(:input))
                 end

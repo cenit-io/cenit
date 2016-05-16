@@ -4,7 +4,9 @@ module RailsAdmin
       class CrossShare < RailsAdmin::Config::Actions::Base
 
         register_instance_option :only do
-          [Setup::OauthClient, Setup::Oauth2Scope] + Setup::BaseOauthProvider.class_hierarchy
+          [Setup::OauthClient, Setup::Oauth2Scope, Setup::Scheduler] +
+            Setup::BaseOauthProvider.class_hierarchy +
+            Setup::Task.class_hierarchy
         end
 
         register_instance_option :collection do
@@ -30,6 +32,7 @@ module RailsAdmin
             end
             if render_form
               @form_object ||= Forms::CrossOriginSelector.new
+              @form_object.target_model = @abstract_model.model
               @model_config = origin_config
               if @form_object.errors.present?
                 do_flash_now(:error, 'Error selecting origin', @form_object.errors.full_messages)
