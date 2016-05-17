@@ -120,12 +120,11 @@
               %i.fa.fa-ellipsis-v
               %ul.dropdown-menu= menu_for :member, @abstract_model, object
           .panel-heading
-            - url = url_for(action: :show, id: object.id)
-            %a{href: url} #{object.name}
+            =link_to show_path id: object.id do
+              =object.name
           .panel-body
             .panel-body-logo.text-center{style: "background-color: #{object.logo_background || 'inherit'}"}
-
-              %img.logo{src: object.image.present? || image_path('missing.png')}
+              =image_tag object.image.present? ? object.image : 'missing.png', class: 'logo'
             .panel-body-description.line-clamp.line-clamp-3
               %p #{object.summary.html_safe if object.summary.present?}
           .panel-footer
@@ -133,7 +132,7 @@
               #{object.category} - v #{object.shared_version}
             .versions
               %span.truncate
-                =link_to url_for(action: 'pull', controller: 'rails_admin/main', model_name: @abstract_model, id: object.id), title: t('admin.misc.pull') do
+                =link_to pull_path id: object.id do
                   %i.fa.fa-arrow-down
                 -if object.pull_count > 0
                   %span
