@@ -33,7 +33,7 @@ module RailsAdmin
                 entity.model.try(:name).try :to_sym
               when Class
                 entity.name.to_sym
-              when String || Symbol
+              when String, Symbol
                 entity.to_sym
               else
                 entity.class.name.to_sym
