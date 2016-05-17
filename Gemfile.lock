@@ -1,6 +1,6 @@
 GIT
   remote: https://github.com/macarci/cross_origin.git
-  revision: e735a7396a27e4639d7b2d3b4debdd749311cc33
+  revision: c22c12e061541225de5c81fa7254fe0c6957b1f4
   specs:
     cross_origin (0.0.3)
 
