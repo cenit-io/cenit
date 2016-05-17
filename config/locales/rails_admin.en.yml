@@ -19,6 +19,8 @@ en:
       shared_collections: find shared collections
       title_search_shared_collections: Build and share pipelines to process and move data between API's
       sub_title_search_shared_collections: "Find code and data over %{count} shared collections"
+      pull: "Pull"
+      show_all: "Show all"
     actions:
       dashboard:
         title: "Dashboard"
