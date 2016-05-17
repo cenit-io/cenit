@@ -1,9 +1,10 @@
 = javascript_include_tag "auth.js"
 .user-auth.panel.panel-default.text-center
   .panel-heading
-    %span.cenit-logo
-      %img{ src: image_path('logo_cenitsaas_web.png')}
-    %span.cenit-hub= 'cenit.io'
+    = link_to root_path do
+      %span.cenit-logo
+        =image_tag 'logo_cenitsaas_web.png'
+      %span.cenit-hub{style: 'color: black;'}= 'cenit.io'
   .panel-body
     .form-top
       Sign up with
