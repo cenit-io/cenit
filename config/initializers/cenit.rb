@@ -46,6 +46,9 @@ Cenit.config do
   #Execute algorithms asynchronous
   asynchronous_algorithm_execution true
 
+  #Execute scripts asynchronous
+  asynchronous_script_execution true
+
   #Process webhook submits asynchronous
   asynchronous_submission true
 
