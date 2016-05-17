@@ -5,7 +5,7 @@ module RailsAdmin
       class Pull < RailsAdmin::Config::Actions::Base
 
         register_instance_option :pjax? do
-          false
+          true
         end
 
         register_instance_option :only do
