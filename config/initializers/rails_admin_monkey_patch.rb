@@ -28,11 +28,12 @@ module RailsAdmin
             RailsAdmin::MongoffModelConfig
           else
             key =
-              if entity.is_a?(RailsAdmin::AbstractModel)
+              case entity
+              when RailsAdmin::AbstractModel
                 entity.model.try(:name).try :to_sym
-              elsif entity.is_a?(Class)
+              when Class
                 entity.name.to_sym
-              elsif entity.is_a?(String) || entity.is_a?(Symbol)
+              when String, Symbol
                 entity.to_sym
               else
                 entity.class.name.to_sym
@@ -842,7 +843,7 @@ module RailsAdmin
             content_tag :li, data: { model: model_param } do
               link_to url, class: 'pjax' do
                 rc = ""
-                if model_count>0
+                if _current_user.present? && model_count>0
                   rc += "<span class='nav-amount'>#{model_count}</span>"
                 end
                 rc += "<span class='nav-caption'>#{capitalize_first_letter node.label_navigation}</span>"

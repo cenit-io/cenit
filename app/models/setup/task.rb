@@ -79,7 +79,7 @@ module Setup
     end
 
     def execute
-      if running?
+      if running? || !Cenit::Locker.lock(self)
         notify(message: "Executing task ##{id} at #{Time.now} but it is already running")
       else
         thread_token.destroy if thread_token.present?
@@ -123,6 +123,7 @@ module Setup
         joining_tasks.each { |task| task.retry }
         joining_tasks.nullify
       end
+      Cenit::Locker.unlock(self)
     end
 
     def run(message)

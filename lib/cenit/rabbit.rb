@@ -29,9 +29,8 @@ module Cenit
             if (token = message[:token]) && (token = AccountToken.where(token: token).first)
               token.destroy
             end
-            message[:token] = AccountToken.create.token
             message[:task_id] = task.id.to_s
-            message = message.to_json
+            message = AccountToken.create(data: message.to_json).token
             if scheduler || publish_at
               Setup::DelayedMessage.create(message: message, publish_at: publish_at, scheduler: scheduler)
             else
@@ -56,11 +55,14 @@ module Cenit
       end
 
       def process_message(message, options = {})
-        message = JSON.parse(message) unless message.is_a?(Hash)
+        unless message.is_a?(Hash)
+          message = JSON.parse(message) rescue { token: message }
+        end
         message = message.with_indifferent_access
         message_token = message.delete(:token)
         if (token = AccountToken.where(token: message_token).first)
           account = token.set_current_account
+          message = JSON.parse(token.data).with_indifferent_access if token.data
           token.destroy
         else
           account = nil
