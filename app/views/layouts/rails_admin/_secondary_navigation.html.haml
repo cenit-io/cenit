@@ -26,7 +26,7 @@
         %li.divider{role:"separator"}
         .actions.clearfix
           %li.terms.pull-left
-            %small= link_to t('admin.misc.terms'), "https://www.cenithub.com/terms_of_service", class: "text-muted"
+            %small= link_to t('admin.misc.terms'), "http://cenithub.com/terms_of_service", class: "text-muted"
           - if logout_path.present?
             %li.pull-right= link_to t('admin.misc.log_out'), logout_path, method: logout_method, class: 'btn btn-xs btn-danger'
 
@@ -52,12 +52,12 @@
       =link_to url_for(action: action.action_name, class: 'pjax') do
         %i{class: action.link_icon, title: wording_for(:menu, action)}
   %li
-    =link_to 'https://docs.cenithub.com' do
+    =link_to 'http://docs.cenithub.com' do
       %i.fa.fa-file-text{title: t('admin.misc.docs')}
   %li
-    =link_to 'https://cenithub.com/blog' do
+    =link_to 'http://cenithub.com/blog' do
       %i.fa.fa-newspaper-o{title: t('admin.misc.blog')}
   - unless _current_user.present?
     %li
-      =link_to "https://www.cenithub.com/terms_of_service" do
+      =link_to "http://cenithub.com/terms_of_service" do
         %i.fa.fa-institution{title: t('admin.misc.terms')}
