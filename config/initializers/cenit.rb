@@ -83,4 +83,7 @@ Cenit.config do
   rabbit_mq_user ENV['RABBIT_MQ_USER']
 
   rabbit_mq_password ENV['RABBIT_MQ_PASSWORD']
+
+  github_client Cenit::GithubGists.new login: Cenit.github_shared_collections_user, password: Cenit.github_shared_collections_pass
+
 end

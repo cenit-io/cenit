@@ -1988,6 +1988,7 @@ RailsAdmin.config do |config|
       field :code, :code_mirror do
         help { 'Required' }
       end
+      field :gist_visible
       field :call_links do
         visible { bindings[:object].call_links.present? }
       end
@@ -2003,6 +2004,7 @@ RailsAdmin.config do |config|
           "<pre><code class='ruby'>#{v}</code></pre>".html_safe
         end
       end
+      field :gist_visible
       field :call_links
       field :_id
     end
