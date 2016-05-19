@@ -72,7 +72,9 @@
           %h6 #{value} #{label}
 
 - if @abstract_models
-  %table.table.table-condensed.table-striped
+  .dashboard
+    = dashboard_main
+  -#%table.table.table-condensed.table-striped
     %thead
       %tr
         %th.shrink.model-name= t 'admin.table_headers.model_name'
