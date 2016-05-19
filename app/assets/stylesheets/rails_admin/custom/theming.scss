@@ -415,7 +415,7 @@ ul#main-accordion .panel-heading .nav-icon {
 
 #grid-wrapper .options-menu {
   position: absolute;
-  z-index: 1000;
+  z-index: 999;
   top: 4px;
   right: 4px;
 }
@@ -549,4 +549,10 @@ ul#main-accordion .panel-heading .nav-icon {
 
 #grid-wrapper .truncate a {
   display: inline-block;
+}
+
+.dashboard .nav-icon {
+  width: 48px;
+  padding: 0 12px;
+  text-align: center;
 }

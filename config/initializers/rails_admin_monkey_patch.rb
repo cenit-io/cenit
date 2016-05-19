@@ -812,6 +812,46 @@ module RailsAdmin
       end.join.html_safe
     end
 
+    def dashboard_main()
+      nodes_stack =
+        if current_user
+          RailsAdmin::Config.visible_models(controller: controller)
+        else
+          Setup::Models.collect { |m| RailsAdmin::Config.model(m) }.select(&:visible).select(&:show_in_dashboard)
+        end
+
+      node_model_names = nodes_stack.collect { |c| c.abstract_model.model_name }
+
+      html_ = "<table class='table table-condensed table-striped .col-sm-6'>" +
+               '<thead><tr><th class="shrink"></th><th></th><th class="shrink"></th></tr></thead>' +
+      nodes_stack.group_by(&:navigation_label).collect do |navigation_label, nodes|
+        nodes = nodes.select { |n| n.parent.nil? || !n.parent.to_s.in?(node_model_names) }
+        stack = dashboard_navigation nodes_stack, nodes
+
+        label = navigation_label || t('admin.misc.navigation')
+
+        icon = ((opts = RailsAdmin::Config.navigation_options[label]) && opts[:icon]) || 'fa fa-cube'
+        icon =
+          case icon
+          when Symbol
+            render partial: icon.to_s
+          else
+            "<i class='#{icon}'></i>"
+          end
+
+        if stack.present?
+          %(
+              <tbody><tr><td colspan="3"><h3>
+                <span class="nav-icon">#{icon}</span>
+                <span class="nav-caption">#{label}</span>
+              </h3></td></tr>
+            #{stack}
+            </tbody>)
+        end
+      end.join + '</tbody></table>'
+      html_.html_safe
+    end
+
     def navigation(nodes_stack, nodes, html_id)
       if not nodes.present?
         return
@@ -825,9 +865,6 @@ module RailsAdmin
 
           children = nodes_stack.select { |n| n.parent.to_s == node.abstract_model.model_name }
           if children.present?
-            # level_class = ''
-
-            # nav_icon = node.navigation_icon ? %(<i class="#{node.navigation_icon}"></i>).html_safe : ''
             li = %(<div class='panel panel-default'>
             <div class='panel-heading'>
               <a data-toggle='collapse' data-parent='##{html_id}' href='##{stack_id}' class='panel-title collapse in collapsed'>
@@ -853,7 +890,64 @@ module RailsAdmin
           end
         end.join + '</div>').html_safe
     end
+
+    def dashboard_navigation(nodes_stack, nodes)
+      if not nodes.present?
+        return
+      end
+      i = -1
+      ('' +
+          nodes.collect do |node|
+            i += 1
+
+            children = nodes_stack.select { |n| n.parent.to_s == node.abstract_model.model_name }
+            if children.present?
+              li = dashboard_navigation nodes_stack, children
+            else
+              model_param = node.abstract_model.to_param
+              url = url_for(action: :index, controller: 'rails_admin/main', model_name: model_param)
+              content_tag :tr, data: { model: model_param } do
+                rc = '<td>' + link_to(url, class: 'pjax') do
+                  if current_user
+                    # "#{capitalize_first_letter node.label_navigation}"
+                    "#{capitalize_first_letter node.abstract_model.config.label_plural}"
+                  else
+                    "#{capitalize_first_letter node.abstract_model.config.label_plural}"
+                  end
+                end
+                rc += '</td>'
+
+                model_count =
+                  if current_user
+                    node.abstract_model.model.all.count
+                  else
+                    @count[node.abstract_model.model.name]
+                  end
+                pc = percent(model_count, @max)
+                indicator = get_indicator(pc)
+                anim = animate_width_to(pc)
+
+                rc += '<td>'
+                rc += "<div class='progress progress-#{indicator}' style='margin-bottom:0'>"
+                rc += "<div class='animate-width-to progress-bar progress-bar-#{indicator}' data-animate-length='#{anim}' data-animate-width-to='#{anim}' style='width:2%'>"
+                rc += "#{model_count}"
+                rc += '</div>'
+                rc += '</div>'
+                rc += '</td>'
+
+                menu = menu_for(:collection, node.abstract_model, nil, true)
+
+                rc += '<td class="links">'
+                rc += "<ul class='inline list-inline'>#{menu}</ul>"
+                rc += '</td>'
+
+                rc.html_safe
+              end
+            end
+          end.join).html_safe
+    end
   end
+
 
   class MainController
 

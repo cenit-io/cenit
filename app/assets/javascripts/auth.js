@@ -18,7 +18,6 @@ $(function(){
         });
 
         var links = $(parent).find('a');
-        console.log($(links));
         $(links).each(function(){
             $(this).on('click', function(ev){
                 ev.preventDefault();
