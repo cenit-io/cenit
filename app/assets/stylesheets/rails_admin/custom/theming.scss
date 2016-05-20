@@ -174,7 +174,6 @@
 ul#main-accordion {
   padding: 6px;
   overflow: visible;
-  height: calc(100% - 33px);
 }
 
 .panel-heading {
@@ -302,32 +301,9 @@ ul#main-accordion .panel-heading .nav-icon {
 
 .social-links a {
   display: inline-block;
-  font-size: 32px;
+  font-size: 24px !important;
   line-height: 32px;
-}
-
-.social-links .fa-facebook-square {
-  color: #4c69ba;
-}
-
-.social-links .fa-github-square {
-  color: #010101;
-}
-
-.social-links .fa-google-plus-square {
-  color: #dd4b39;
-}
-
-.social-links .fa-linkedin-square {
-  color: #0077b5;
-}
-
-.social-links .fa-twitter-square {
-  color: #1bb5e7;
-}
-
-.social-links .fa-youtube-square {
-  color: #c4302b
+  color: gray !important;
 }
 
 .social-links .cenit-llc {
