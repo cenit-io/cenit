@@ -47,16 +47,17 @@ module Setup
       end
       res = errors.blank?
       if res
+        file_data = {"#{self.namespace} - #{self.name}" => {'content' => self.code}}
         if self.gist_id
           Cenit.github_client.edit_gist(
             self.gist_id,
-            files: {"#{self.namespace} - #{self.name}" => {'content' => self.code}}
+            files: file_data
           )
         else
           r = Cenit.github_client.create_gist(
             description: self.description,
             public: self.gist_visible,
-            files: {"#{self.namespace} - #{self.name}" => {'content' => self.code}}
+            files: file_data
           )
           self.gist_id = r.attrs[:id]
         end
