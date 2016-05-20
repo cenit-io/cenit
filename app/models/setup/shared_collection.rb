@@ -23,10 +23,12 @@ module Setup
     embeds_many :pull_parameters, class_name: Setup::CollectionPullParameter.to_s, inverse_of: :shared_collection
     has_and_belongs_to_many :dependencies, class_name: Setup::SharedCollection.to_s, inverse_of: nil
 
-    field :pull_count, type: Integer
+    field :pull_count, type: Integer, default: 0
     field :readme, type: String
     field :data
     field :swagger_json, type: String
+
+    default_scope -> { desc(:pull_count) }
 
     before_validation do
       authors << Setup::CollectionAuthor.new(name: ::User.current.name, email: ::User.current.email) if authors.empty?
