@@ -11,6 +11,11 @@ $(document).on('rails_admin.dom_ready', function() {
 });
 
 $(function(){
+    if ($(window).width() > 767) {
+        $("#wrapper").addClass('toggled');
+        $("#sidebar-toggle").addClass('toggled');
+    }
+
     $("#sidebar-toggle").click(function(e) {
         e.preventDefault();
         $("#wrapper").toggleClass("toggled");
@@ -19,14 +24,11 @@ $(function(){
 
     $('#main-accordion').find('.panel-heading a.panel-title').click(function(){
         var parent = $(this).parent().parent();
+        $(parent).toggleClass('active');
         if ($(parent).hasClass('active'))
-            $(parent).removeClass('active');
-        else {
-            $(parent).addClass('active');
             $(parent).siblings().each(function () {
                 $(this).removeClass('active');
             });
-        }
     });
 });
 
