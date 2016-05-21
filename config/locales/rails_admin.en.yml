@@ -17,7 +17,7 @@ en:
       docs: "Read our Docs"
       dir: "Directory"
       shared_collections: find shared collections
-      title_search_shared_collections: Build and share pipelines to process and move data between API's
+      title_search_shared_collections: Share flows to process, storage and move data between APIs, EDI and more
       sub_title_search_shared_collections: "Find code and data over %{count} shared collections"
       pull: "Pull"
       show_all: "Show all"
