@@ -63,10 +63,10 @@
       %ul.dropdown-menu#filters{style: 'left:auto; right:0;'}
         - @filterable_fields.each do |field|
           - field_options = case field.type
-          - when :enum
-            - options_for_select(field.with(object: @abstract_model.model.new).enum)
-          - else
-            - ''
+            - when :enum
+              - options_for_select(field.with(object: @abstract_model.model.new).enum)
+            - else
+              - ''
           %li
             %a{href: '#', :"data-field-label" => field.label, :"data-field-name" => field.name, :"data-field-options" => field_options.html_safe, :"data-field-type" => field.type, :"data-field-value" => ""}= capitalize_first_letter(field.label)
 

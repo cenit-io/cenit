@@ -68,7 +68,7 @@
 }
 
 #wrapper {
-  padding-left: 0;
+  padding-left: 55px;
   -webkit-transition: all 0.5s ease;
   -moz-transition: all 0.5s ease;
   -o-transition: all 0.5s ease;
@@ -87,7 +87,7 @@
   top: 50px;
   left: 250px;
   width: 55px;
-  height: 100%;
+  height: calc(100% - 50px);
   margin-left: -250px;
   overflow-y: auto;
   -webkit-transition: all 0.5s ease;
@@ -130,8 +130,8 @@
   overflow-x: hidden;
   background: #fff;
   position: relative;
-  margin-right: 0;
-  margin-left: 60px;
+  padding-left: 15px;
+  padding-right: 15px;
 }
 
 .xyz{
@@ -139,8 +139,7 @@
 }
 
 #wrapper.toggled #content-wrapper {
-  margin-right: 0;
-  margin-left: 0;
+  padding-right: 0;
 }
 
 .fixed-brand{
@@ -169,78 +168,6 @@
   .navbar-header {
     width: 250px;
     padding: 0 6px;
-  }
-
-  #sidebar-toggle i.fa {
-    -webkit-transform: rotate(-90deg);
-    -moz-transform: rotate(-90deg);
-    -o-transform: rotate(-90deg);
-    transform: rotate(-90deg);
-  }
-
-  #sidebar-toggle.toggled i.fa {
-    -webkit-transform: rotate(0deg);
-    -moz-transform: rotate(0deg);
-    -o-transform: rotate(0deg);
-    transform: rotate(0deg);
-  }
-
-  #wrapper {
-    padding-left: 250px;
-  }
-  .fixed-brand{
-    width: 250px;
-  }
-  #wrapper.toggled {
-    padding-left: 0;
-  }
-
-  #sidebar-wrapper {
-    width: 250px;
-  }
-  #sidebar-wrapper .nav-caret,
-  #sidebar-wrapper .nav-caption {
-    opacity: 1;
-  }
-
-  #wrapper.toggled #sidebar-wrapper {
-    width: 55px;
-  }
-  #wrapper.toggled #sidebar-wrapper .nav-caret,
-  #wrapper.toggled #sidebar-wrapper .nav-caption {
-    opacity: 0;
-  }
-
-
-  #wrapper.toggled #sidebar-wrapper:hover {
-    width: 250px;
-  }
-  #wrapper.toggled #sidebar-wrapper:hover .nav-caret,
-  #wrapper.toggled #sidebar-wrapper:hover .nav-caption {
-    opacity: 1;
-  }
-
-  #content-wrapper {
-    position: relative;
-    -webkit-transition: all 0.5s ease;
-    -moz-transition: all 0.5s ease;
-    -o-transition: all 0.5s ease;
-    transition: all 0.5s ease;
-    margin-left: 15px;
-    padding-right: 15px;
-  }
-
-  #wrapper.toggled #content-wrapper {
-    padding-left: 10px;
-    padding-right: 0;
-    position: relative;
-    margin-right: 0;
-    margin-left: 60px;
-    -webkit-transition: all 0.5s ease;
-    -moz-transition: all 0.5s ease;
-    -o-transition: all 0.5s ease;
-    transition: all 0.5s ease;
-    width: auto;
   }
 }
 
@@ -271,16 +198,18 @@ ul#main-accordion .panel {
 
 ul#main-accordion>.panel>.panel-heading {
   border: solid 1px rgba(221, 221, 221, 0.87);
+  border-radius: 4px;
 }
 
 ul#main-accordion>.panel .panel .panel-heading {
   background-color: rgba(0,0,0,0.065);
-  border-radius: 3px;
 }
 
 ul#main-accordion>.panel.active>.panel-heading {
   background-color: #d9edf7 !important;
   border-color: #bce8f1;
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 0;
 }
 ul#main-accordion>.panel.active>.panel-heading a {
   color: #31708f !important;
@@ -361,6 +290,25 @@ ul#main-accordion .panel-heading .nav-icon {
   text-align: center;
 }
 
+.social-links {
+  position: absolute;
+  width: 124px;
+  padding: 6px 0;
+  margin: 0 auto;
+  bottom: 0;
+}
+
+.social-links a {
+  display: inline-block;
+  font-size: 24px !important;
+  line-height: 32px;
+  color: gray !important;
+}
+
+.social-links .cenit-llc {
+  width: 100%;
+}
+
 /* Dashboard overview*/
 .blocks {
   margin-bottom: 12px;
@@ -415,7 +363,7 @@ ul#main-accordion .panel-heading .nav-icon {
 
 #grid-wrapper .options-menu {
   position: absolute;
-  z-index: 1000;
+  z-index: 999;
   top: 4px;
   right: 4px;
 }
@@ -549,4 +497,10 @@ ul#main-accordion .panel-heading .nav-icon {
 
 #grid-wrapper .truncate a {
   display: inline-block;
+}
+
+.dashboard .nav-icon {
+  width: 48px;
+  padding: 0 12px;
+  text-align: center;
 }
