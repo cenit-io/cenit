@@ -1,23 +1,22 @@
 module Haml
+  module Helpers
+
+    def find_and_preserve(input = nil, haml_buffer = haml_buffer, &block)
+      tags = nil
+      tags = haml_buffer.options[:preserve] if haml_buffer && haml_buffer.options.present?
+      return find_and_preserve(capture_haml(&block), input || tags) if block
+      return preserve(input) if tags.nil?
+      re = /<(#{tags.map(&Regexp.method(:escape)).join('|')})([^>]*)>(.*?)(<\/\1>)/im 
+      input.to_s.gsub(re) do |s|
+        s =~ re # Can't rely on $1, etc. existing since Rails' SafeBuffer#gsub is incompatible
+        "<#{$1}#{$2}>#{preserve($3)}</#{$1}>"
+      end
+    end
+  end
+  
   module Filters
     module Base
 
-      # This should be overridden when a filter needs to have access to the Haml
-      # evaluation context. Rather than applying a filter to a string at
-      # compile-time, \{#compile} uses the {Haml::Compiler} instance to compile
-      # the string to Ruby code that will be executed in the context of the
-      # active Haml template.
-      #
-      # Warning: the {Haml::Compiler} interface is neither well-documented
-      # nor guaranteed to be stable.
-      # If you want to make use of it, you'll probably need to look at the
-      # source code and should test your filter when upgrading to new Haml
-      # versions.
-      #
-      # @param compiler [Haml::Compiler] The compiler instance
-      # @param text [String] The text of the filter
-      # @raise [Haml::Error] if none of \{#compile}, \{#render}, and
-      #   \{#render_with_options} are overridden
       def compile(compiler, text)
         filter = self
         compiler.instance_eval do
@@ -37,7 +36,7 @@ module Haml
             # too many.
             text = "\n" + text.sub(/\n"\Z/, "\\n\"")
             push_script <<RUBY.rstrip, :escape_html => false
-find_and_preserve(#{filter.inspect}.render_with_options(#{text}, try('_hamlout').try('options') || {:format => :html5} ))
+find_and_preserve(#{filter.inspect}.render_with_options(#{text}, try(:options) || {format: :html5}  ))
 RUBY
             return
           end
@@ -53,5 +52,6 @@ RUBY
       end
  
     end
+    
   end
 end
