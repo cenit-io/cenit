@@ -387,8 +387,6 @@ Thank you for improvements to the application:
 * "José A. Cruz":https://github.com/jalbertcruz
 * "Maria E. Guirola":https://github.com/maryguirola
 
-
-
 h2. MIT License
 
 "MIT License":http://www.opensource.org/licenses/mit-license
