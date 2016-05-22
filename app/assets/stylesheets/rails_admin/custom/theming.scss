@@ -8,21 +8,43 @@
   padding-bottom: 4px;
 }
 
+.container-fluid {
+  background: #3D4046;
+}
+
 #secondary-navigation .navbar-right {
   padding-left: 24px;
 }
 
+#user-nav li.dropdown a.dropdown-toggle {
+  color: white;
+}
+
 #user-nav > li.dropdown.open > a {
-  background-color: #ffffff;
-  border: solid 1px rgba(0,0,0,0.15);
-  position: relative;
+  color: #3D4046;
+}
+
+a#sign-in-link, a#sign-out-link {
+  font-size: 16px;
+  border: solid 2px;
+  border-color: white;
+  border-radius: 0px;
+  background-color: #ea7400;
+}
+
+ul.root_links li a i{
+  color: white;
+}
+
+a#sign-in-link:hover, a#sign-out-link:hover  {
+  border-color: #ea7400;
+  transition: .5s;
 }
 
 #user-nav > li.dropdown.open > a:after {
   display: block;
   position: absolute;
   content: " ";
-  background-color: #ffffff;
   width: 100%;
   height: 6px;
   right: 0;

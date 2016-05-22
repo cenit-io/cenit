@@ -9,9 +9,13 @@
             %span.input-group-btn
               %button.btn.btn-primary
                 %i.fa.fa-search
+                
+%ul.nav.navbar-nav.navbar-right.root_links{style: 'padding-left: 0px;'}
+  .a.navbar-btn{style: 'padding-right:10px'}
+    %i.fa.fa-navicon{style: 'color: white;font-size: 24px;margin-top: 6px'}
 
-- if _current_user.present?
-  %ul#user-nav.nav.navbar-nav.navbar-right
+- if _current_user.present?  
+  %ul#user-nav.nav.navbar-nav.navbar-right 
     %li.dropdown
       %a.dropdown-toggle{href:"#", role:"button",'data-toggle':"dropdown",'aria-haspopup':"true",'aria-expanded':"false"}
         = _current_user.email.split("@")[0]
@@ -30,34 +34,40 @@
           - if logout_path.present?
             %li.pull-right= link_to t('admin.misc.log_out'), logout_path, method: logout_method, class: 'btn btn-xs btn-danger'
 
-%ul.nav.navbar-nav.navbar-right.root_links
-  - unless _current_user.present?
-    .a.navbar-btn{style: 'padding-right:20px'}
-      =link_to t('admin.session.new'), new_session_path(User), style: 'padding-right:10px'
-      =link_to t('admin.registration.new'), new_registration_path(User), class: 'btn btn-primary'
-      
-  - if (t_link = tasks_link)
-    %li#action-tasks= t_link
-  - if (auth_link = authorizations_link)
-    %li#action-auth= auth_link
-  - if (nlink = notifications_link)
-    %li#action-notify= nlink
+  %ul.nav.navbar-nav.navbar-right.root_links
+    - if (t_link = tasks_link)
+      %li#action-tasks= t_link
+    - if (auth_link = authorizations_link)
+      %li#action-auth= auth_link
+    - if (nlink = notifications_link)
+      %li#action-notify= nlink  
 
-%ul.nav.navbar-nav.navbar-right.root_links
-  %li
-    %a#take-tour{'href'=> '#'}
-      %i.fa.fa-bus{title: t('admin.misc.tour')}
-  - actions(:root).each do |action|
+- else
+
+  %ul.nav.navbar-nav.navbar-right.root_links{style: 'margin-right: 10px;'} 
+    .a.navbar-btn
+      =link_to t('admin.session.new'), new_session_path(User), style: 'color: white; padding-right:5px'
+      =link_to t('admin.registration.new'), new_registration_path(User), class: 'btn btn-primary', id: 'sign-in-link', style: 'padding-right:10px'
+
+ 
+
+
+- if false
+  %ul.nav.navbar-nav.navbar-right.root_links
     %li
-      =link_to url_for(action: action.action_name, class: 'pjax') do
-        %i{class: action.link_icon, title: wording_for(:menu, action)}
-  %li
-    =link_to 'http://docs.cenithub.com' do
-      %i.fa.fa-file-text{title: t('admin.misc.docs')}
-  %li
-    =link_to 'http://cenithub.com/blog' do
-      %i.fa.fa-newspaper-o{title: t('admin.misc.blog')}
-  - unless _current_user.present?
+      %a#take-tour{'href'=> '#'}
+        %i.fa.fa-bus{title: t('admin.misc.tour')}
+    - actions(:root).each do |action|
+      %li
+        =link_to url_for(action: action.action_name, class: 'pjax') do
+          %i{class: action.link_icon, title: wording_for(:menu, action)}
     %li
-      =link_to "http://cenithub.com/terms_of_service" do
-        %i.fa.fa-institution{title: t('admin.misc.terms')}
+      =link_to 'http://docs.cenithub.com' do
+        %i.fa.fa-file-text{title: t('admin.misc.docs')}
+    %li
+      =link_to 'http://cenithub.com/blog' do
+        %i.fa.fa-newspaper-o{title: t('admin.misc.blog')}
+    - unless _current_user.present?
+      %li
+        =link_to "http://cenithub.com/terms_of_service" do
+          %i.fa.fa-institution{title: t('admin.misc.terms')}
