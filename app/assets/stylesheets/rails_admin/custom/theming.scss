@@ -556,3 +556,12 @@ ul#main-accordion .panel-heading .nav-icon {
   padding: 0 12px;
   text-align: center;
 }
+
+.toggle-origin {
+  border: none;
+  background-color: transparent;
+}
+
+.toggle-origin:focus, .toggle-origin:active:focus, .toggle-origin.active:focus {
+  outline: none;
+}
