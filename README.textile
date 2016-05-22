@@ -133,11 +133,7 @@ If RabbitMQ is well installed when you run rails server then you can see:
 
 <pre>
  [*] Waiting for messages. To exit press CTRL+C	
-</pre>	
-
-You should see something like 
-
-<img src="app/assets/images/cenithub-admin.png" alt="Cenithub Admin" />
+</pre>
 
 h2. Dependencies
 
@@ -382,11 +378,16 @@ h4. Contributors
 
 Thank you for improvements to the application:
 
-* "Cesar Lage":https://github.com/kaerdsar
-* "Miguel Sancho":https://github.com/sanchojaf
-* "Maykell Sanchez":https://github.com/kellsaro
 * "Maikel Arcia":https://github.com/macarci
+* "Miguel Sancho":https://github.com/sanchojaf
 * "Asnioby Hdez":https://github.com/asnioby
+* "Cesar Lage":https://github.com/kaerdsar
+* "Daniel H. Bahr":https://github.com/dhbahr
+* "Maykell Sanchez":https://github.com/kellsaro
+* "José A. Cruz":https://github.com/jalbertcruz
+* "Maria E. Guirola":https://github.com/maryguirola
+
+
 
 h2. MIT License
 
