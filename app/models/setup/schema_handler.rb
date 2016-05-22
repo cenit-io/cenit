@@ -28,7 +28,7 @@ module Setup
         else
           nil
         end
-      if object_schema && object_schema['type'] == 'object' && (properties = object_schema['properties'])
+      if object_schema && object_schema.is_a?(Hash) && object_schema['type'] == 'object' && (properties = object_schema['properties'])
 
         # Check #id property
         _id, id = properties.delete('_id'), properties.delete('id')
