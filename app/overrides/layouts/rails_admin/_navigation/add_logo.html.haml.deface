@@ -1,0 +1,10 @@
+/
+  replace 'a.navbar-brand'
+  original 'e7a23dd0db59e7705763b56251c84e5823de06d5'
+
+%a#sidebar-toggle.navbar-brand{href: '#'}
+  %i.fa.fa-navicon  
+= link_to dashboard_path, class: "navbar-brand pjax" do
+  %span.cenit-logo
+    =image_tag 'logo_cenitsaas_web.png'
+  %span.cenit-hub{style: 'color: black;'}= 'cenit.io'
