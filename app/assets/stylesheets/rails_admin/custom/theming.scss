@@ -8,6 +8,13 @@
   padding-bottom: 4px;
 }
 
+ul#main-accordion{
+  z-index: -2;
+  .social-links{
+    z-index: -1;
+  }
+}
+
 .container-fluid {
   background: #3D4046;
 }
