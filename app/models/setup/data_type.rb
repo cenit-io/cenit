@@ -1,6 +1,6 @@
 module Setup
   class DataType
-    include CenitScoped
+    include CrossOriginShared
     include NamespaceNamed
     include SchemaHandler
     include DataTypeParser

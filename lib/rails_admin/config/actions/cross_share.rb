@@ -5,7 +5,8 @@ module RailsAdmin
 
         register_instance_option :only do
           [Setup::OauthClient, Setup::Oauth2Scope, Setup::Scheduler] +
-            Setup::BaseOauthProvider.class_hierarchy
+            Setup::BaseOauthProvider.class_hierarchy +
+            Setup::DataType.class_hierarchy
         end
 
         register_instance_option :collection do
