@@ -30,6 +30,29 @@ $(function(){
                 $(this).removeClass('active');
             });
     });
+
+    $(".drawer-toggle").click(function(e) {
+        e.preventDefault();
+        $("#nav-drawer").toggleClass('open');
+    });
+
+    function getAbsolute() {
+        var outer = $("#nav-drawer").height();
+        var inner = $("#nav-links").height() + $("#social-links").height();
+
+        return outer > inner;
+    }
+
+    $(window).on('resize', function(e){
+        if (getAbsolute()) {
+            $("#social-links").addClass("absolute");
+        } else {
+            $("#social-links").removeClass("absolute");
+        }
+    });
+    if (getAbsolute()) {
+        $("#social-links").addClass("absolute");
+    }
 });
 
 $(function () {

@@ -8,4 +8,4 @@
     =image_tag 'cenit-logo.png'
   %span.cenit-hub{style: 'color: white;'}= 'cenit.io'
 %a#sidebar-toggle.navbar-brand{href: '#'}
-  %i.fa.fa-angle-left{style: 'color: white;'}
+  %i.fa.fa-angle-right{style: 'color: white;'}
