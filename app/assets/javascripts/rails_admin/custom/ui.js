@@ -31,9 +31,10 @@ $(function(){
             });
     });
 
-    $(".drawer-toggle").click(function(e) {
+    $("#drawer-toggle").click(function(e) {
         e.preventDefault();
         $("#nav-drawer").toggleClass('open');
+        $(this).toggleClass("toggled");
     });
 
     function getAbsolute() {
@@ -53,6 +54,22 @@ $(function(){
     if (getAbsolute()) {
         $("#social-links").addClass("absolute");
     }
+
+    $("#search-toggle").click(function(e){
+        parent = $("#navbar-search");
+        if (!$(parent).hasClass('open')) {
+            e.preventDefault();
+            $(parent).addClass('open');
+            $(this).addClass('toggled');
+        } else {
+            query = $(parent).find('input[type="search"]').val();
+            if (query == "") {
+                e.preventDefault();
+                $(parent).removeClass("open");
+            }
+            $(this).removeClass('toggled');
+        }
+    });
 });
 
 $(function () {
