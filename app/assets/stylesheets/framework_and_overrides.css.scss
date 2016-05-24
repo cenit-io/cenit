@@ -88,9 +88,11 @@ section {
 .user-auth .soc-btn,
 .user-auth .soc-btn:focus,
 .user-auth .soc-btn:active,
+.user-auth .soc-btn:active:focus,
 .user-auth .soc-btn:hover {
   color: #ffffff;
   text-align: left;
+  outline: none;
 }
 
 .user-auth .soc-btn.selected span,
@@ -153,4 +155,15 @@ section {
 
 .user-auth .field label {
   font-weight: lighter;
+}
+
+#modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: #000;
+  opacity: 0.25;
+  z-index: 10000;
 }
