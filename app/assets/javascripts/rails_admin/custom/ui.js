@@ -11,6 +11,16 @@ $(document).on('rails_admin.dom_ready', function() {
 });
 
 $(function(){
+    $(".soc-btn").on("click", function(ev){
+        $(this).addClass("selected");
+        $(this).siblings().addClass("unused");
+
+        var overlay = $('<div id="modal-overlay"></div>');
+        overlay.appendTo(document.body);
+    });
+});
+
+$(function(){
     if ($(window).width() > 767) {
         $("#wrapper").addClass('toggled');
         $("#sidebar-toggle").addClass('toggled');
@@ -31,9 +41,10 @@ $(function(){
             });
     });
 
-    $(".drawer-toggle").click(function(e) {
+    $("#drawer-toggle").click(function(e) {
         e.preventDefault();
         $("#nav-drawer").toggleClass('open');
+        $(this).toggleClass("toggled");
     });
 
     function getAbsolute() {
@@ -53,6 +64,22 @@ $(function(){
     if (getAbsolute()) {
         $("#social-links").addClass("absolute");
     }
+
+    $("#search-toggle").click(function(e){
+        var parent = $("#navbar-search");
+        if (!$(parent).hasClass('open')) {
+            e.preventDefault();
+            $(parent).addClass('open');
+            $(this).addClass('toggled');
+        } else {
+            query = $(parent).find('input[type="search"]').val();
+            if (query == "") {
+                e.preventDefault();
+                $(parent).removeClass("open");
+            }
+            $(this).removeClass('toggled');
+        }
+    });
 });
 
 $(function () {
