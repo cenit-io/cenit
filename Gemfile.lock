@@ -128,6 +128,11 @@ GEM
       tins (~> 1.6.0)
     daemons (1.2.3)
     database_cleaner (1.5.1)
+    deface (1.0.2)
+      colorize (>= 0.5.8)
+      nokogiri (~> 1.6.0)
+      polyglot
+      rails (>= 3.1)
     descendants_tracker (0.0.4)
       thread_safe (~> 0.3, >= 0.3.1)
     descriptive_statistics (2.5.1)
@@ -298,6 +303,7 @@ GEM
       cliver (~> 0.3.1)
       multi_json (~> 1.0)
       websocket-driver (>= 0.2.0)
+    polyglot (0.3.5)
     powerpack (0.1.1)
     prawn (2.0.2)
       pdf-core (~> 0.6.0)
@@ -512,6 +518,7 @@ DEPENDENCIES
   coveralls
   cross_origin!
   database_cleaner
+  deface
   descriptive_statistics
   devise
   exception_notification
@@ -564,3 +571,6 @@ DEPENDENCIES
   unicorn (= 4.9.0)
   wannabe_bool
   xmldsig
+
+BUNDLED WITH
+   1.10.6

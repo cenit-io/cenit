@@ -3,7 +3,7 @@ en:
     session:
       new: 'sign in'
     registration:
-      new: "free sign up"
+      new: "try it free"
     js:
       present_and_change: Present & Change
     flash:
@@ -13,11 +13,11 @@ en:
       log_out: "Sign out"
       terms: "Terms of service"
       tour: "Take Tour"
-      blog: "Read our Blog"
-      docs: "Read our Docs"
+      blog: "Blog"
+      docs: "Docs"
       dir: "Directory"
       shared_collections: find shared collections
-      title_search_shared_collections: Build and share pipelines to process and move data between API's
+      title_search_shared_collections: Share flows to process, storage and move data between APIs, EDI and more
       sub_title_search_shared_collections: "Find code and data over %{count} shared collections"
       pull: "Pull"
       show_all: "Show all"
