@@ -11,6 +11,16 @@ $(document).on('rails_admin.dom_ready', function() {
 });
 
 $(function(){
+    $(".soc-btn").on("click", function(ev){
+        $(this).addClass("selected");
+        $(this).siblings().addClass("unused");
+
+        var overlay = $('<div id="modal-overlay"></div>');
+        overlay.appendTo(document.body);
+    });
+});
+
+$(function(){
     if ($(window).width() > 767) {
         $("#wrapper").addClass('toggled');
         $("#sidebar-toggle").addClass('toggled');
@@ -56,7 +66,7 @@ $(function(){
     }
 
     $("#search-toggle").click(function(e){
-        parent = $("#navbar-search");
+        var parent = $("#navbar-search");
         if (!$(parent).hasClass('open')) {
             e.preventDefault();
             $(parent).addClass('open');
