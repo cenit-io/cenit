@@ -243,6 +243,7 @@ module Mongoff
     end
 
     CONVERSION = {
+
       BSON::ObjectId => ->(value) do
         if (id = value.try(:id)).is_a?(BSON::ObjectId)
           id
@@ -250,16 +251,41 @@ module Mongoff
           BSON::ObjectId.from_string(value.to_s) rescue nil
         end
       end,
+
       BSON::Binary => ->(value) { BSON::Binary.new(value.to_s) },
       Boolean => ->(value) { value.to_s.to_b },
-      String => ->(value) { value.to_s },
+
+      String => ->(value) do
+        case value
+        when Array, Hash
+          value.to_json
+        else
+          value.to_s
+        end
+      end,
+
       Integer => ->(value) { value.to_s.to_i },
       Float => ->(value) { value.to_s.to_f },
       Date => ->(value) { Date.parse(value.to_s) rescue nil },
       DateTime => ->(value) { DateTime.parse(value.to_s) rescue nil },
       Time => ->(value) { Time.parse(value.to_s) rescue nil },
-      Hash => ->(value) { JSON.parse(value.to_s) rescue nil },
-      Array => ->(value) { JSON.parse(value.to_s) rescue nil },
+
+      Hash => ->(value) do
+        unless value.is_a?(Hash)
+          value = JSON.parse(value.to_s) rescue nil
+          value = nil unless value.is_a?(Hash)
+        end
+        value
+      end,
+
+      Array => ->(value) do
+        unless value.is_a?(Array)
+          value = JSON.parse(value.to_s) rescue nil
+          value = nil unless value.is_a?(Array)
+        end
+        value
+      end,
+
       NilClass => ->(value) { Cenit::Utility.json_object?(value) ? value : nil }
     }
 
