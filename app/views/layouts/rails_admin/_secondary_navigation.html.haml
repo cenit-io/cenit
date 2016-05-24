@@ -1,15 +1,3 @@
-- query = params[:query]
-%ul#user-nav.nav.navbar-nav
-  %li
-    .a.navbar-btn{style: 'padding-right:20px'}
-      - shared_path = index_path(model_name: "setup~shared_collection")
-      = form_tag(shared_path, method: :get, class: "pjax-form form-inline") do
-        .input-group
-          %input.form-control.btb.btn-default{name: "query", type: "search", value: query, placeholder: t("admin.misc.shared_collections")}
-            %span.input-group-btn
-              %button.btn.btn-primary{style: 'background-color: gray; border-color: gray;'}
-                %i.fa.fa-search
-                
 %ul.nav.navbar-nav.navbar-right.root_links{style: 'padding-left: 5px;'}
   .a.drawer-toggle.navbar-btn{style: 'padding-right:10px'}
     %i.fa.fa-navicon{style: 'color: white;font-size: 24px;margin-top: 6px'}
@@ -81,9 +69,9 @@
 
   %ul.nav.navbar-nav.navbar-right.root_links{style: 'margin-right: 5px;'} 
     .a.navbar-btn
-      =link_to t('admin.session.new'), new_session_path(User), style: 'color: white; padding-right:5px'
       =link_to t('admin.registration.new'), new_registration_path(User), class: 'btn btn-primary', id: 'sign-in-link', style: 'padding-right:10px'
 
- 
+%ul.nav.navbar-nav.navbar-right.root_links{style: 'padding-left: 0px;'}
+  %i.fa.fa-search{style: 'font-size: 22px; color: white; margin-top: 15px'} 
 
 
