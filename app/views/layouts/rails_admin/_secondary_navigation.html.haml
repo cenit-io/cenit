@@ -1,6 +1,6 @@
-%ul.nav.navbar-nav.navbar-right.root_links{style: 'padding-left: 5px;'}
-  .a.drawer-toggle.navbar-btn{style: 'padding-right:10px'}
-    %i.fa.fa-navicon{style: 'color: white;font-size: 24px;margin-top: 6px'}
+%ul.nav.navbar-nav.navbar-right.root_links
+  %button#drawer-toggle.btn.a.navbar-brand.toggle-btn
+    %i.fa.fa-fw.fa-navicon
 
 %ul#nav-drawer
   #nav-links
@@ -71,7 +71,11 @@
     .a.navbar-btn
       =link_to t('admin.registration.new'), new_registration_path(User), class: 'btn btn-primary', id: 'sign-in-link', style: 'padding-right:10px'
 
+- query = params[:query]
 %ul.nav.navbar-nav.navbar-right.root_links{style: 'padding-left: 0px;'}
-  %i.fa.fa-search{style: 'font-size: 22px; color: white; margin-top: 15px'} 
-
-
+  %li#navbar-search
+    - shared_path = index_path(model_name: "setup~shared_collection")
+    = form_tag(shared_path, method: :get, class: 'pjax-form') do
+      %input.navbar-brand{name: "query", type: "search", value: query, placeholder: t("admin.misc.shared_collections")}
+      %button#search-toggle.btn.a.navbar-brand.toggle-btn
+        %i.fa.fa-fw.fa-search
