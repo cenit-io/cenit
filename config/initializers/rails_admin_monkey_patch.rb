@@ -659,7 +659,7 @@ module RailsAdmin
     def tasks_link
       _, abstract_model, index_action = linking(Setup::Task)
       return nil unless index_action
-      link_to url_for(action: index_action.action_name, model_name: abstract_model.to_param, controller: 'rails_admin/main') do
+      link_to url_for(action: index_action.action_name, model_name: abstract_model.to_param, controller: 'rails_admin/main'), class: 'pjax' do
         html = '<i class="icon-tasks" title="Tasks" rel="tooltip"/></i>'
         #...
         html.html_safe
@@ -669,7 +669,7 @@ module RailsAdmin
     def authorizations_link
       _, abstract_model, index_action = linking(Setup::Authorization)
       return nil unless index_action
-      link_to url_for(action: index_action.action_name, model_name: abstract_model.to_param, controller: 'rails_admin/main') do
+      link_to url_for(action: index_action.action_name, model_name: abstract_model.to_param, controller: 'rails_admin/main'), class: 'pjax' do
         html = '<i class="icon-check"  title="Authorizations" rel="tooltip"></i>'
         if (unauthorized_count = Setup::Authorization.where(authorized: false).count) > 0
           label_html = <<-HTML
@@ -692,7 +692,7 @@ module RailsAdmin
     def notifications_link
       account, abstract_model, index_action = linking(Setup::Notification)
       return nil unless index_action
-      link_to url_for(action: index_action.action_name, model_name: abstract_model.to_param, controller: 'rails_admin/main') do
+      link_to url_for(action: index_action.action_name, model_name: abstract_model.to_param, controller: 'rails_admin/main'), class: 'pjax' do
         html = '<i class="icon-bell" title="Notification" rel="tooltip"></i>'
         counters = Hash.new { |h, k| h[k] = 0 }
         scope =
@@ -748,7 +748,7 @@ module RailsAdmin
         current_user = current_account.tenant_account || current_account
       end
       return nil unless current_user && abstract_model && edit_action
-      link = link_to url_for(action: edit_action.action_name, model_name: abstract_model.to_param, id: current_user.id, controller: 'rails_admin/main') do
+      link = link_to url_for(action: edit_action.action_name, model_name: abstract_model.to_param, id: current_user.id, controller: 'rails_admin/main'), class: 'pjax' do
         html = []
         # Patch
         # text = _current_user.name
@@ -766,7 +766,7 @@ module RailsAdmin
       end
       if inspecting
         link = [link]
-        link << link_to(url_for(action: inspect_action.action_name, model_name: account_abstract_model.to_param, id: current_account.tenant_account.id, controller: 'rails_admin/main')) do
+        link << link_to(url_for(action: inspect_action.action_name, model_name: account_abstract_model.to_param, id: current_account.tenant_account.id, controller: 'rails_admin/main'), class: 'pjax') do
           '<i class="icon-eye-close" style="color: red"></i>'.html_safe
         end
       end
