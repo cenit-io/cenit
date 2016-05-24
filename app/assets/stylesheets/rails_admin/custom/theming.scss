@@ -78,10 +78,10 @@ a#sign-in-link:hover, a#sign-out-link:hover  {
 ul#nav-drawer {
   display: block;
   position: fixed;
-  top: 55px;
+  top: 100%;
   left: 100%;
   width: 250px;
-  height: calc(100vh - 55px);
+  height: calc(100vh - 100%);
   background-color: #3D4046;
   transition: all .5s ease-in-out;
   padding: 6px;
@@ -100,6 +100,10 @@ ul#nav-drawer li {
 
 ul#nav-drawer li.last {
   border-bottom: none;
+}
+
+ul#nav-drawer li.first {
+  border-top: solid 1px rgba(255, 255, 255, 0.75);
 }
 
 ul#nav-drawer li a {
@@ -140,7 +144,7 @@ ul#nav-drawer li a span {
 }
 
 #sidebar-toggle.toggled i.fa {
-  transform: rotate(-180deg);
+  transform: rotate(180deg);
 }
 
 #wrapper {
