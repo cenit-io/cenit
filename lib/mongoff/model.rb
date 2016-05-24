@@ -82,7 +82,11 @@ module Mongoff
           ref, property_dt = check_referenced_schema(property_schema)
           model =
             if ref
-              property_dt.records_model
+              if property_dt
+                property_dt.records_model
+              else
+                fail "Data type reference not found: #{ref}"
+              end
             else
               property_schema = data_type.merge_schema(property_schema)
               records_schema =

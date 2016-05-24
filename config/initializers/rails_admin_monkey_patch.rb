@@ -273,59 +273,64 @@ module RailsAdmin
           proc do
             #Patch
             if current_user || model_config.public_access?
-              @objects ||= list_entries
+              begin
+                @objects ||= list_entries
 
-              unless @model_config.list.scopes.empty?
-                if params[:scope].blank?
-                  unless @model_config.list.scopes.first.nil?
-                    @objects = @objects.send(@model_config.list.scopes.first)
+                unless @model_config.list.scopes.empty?
+                  if params[:scope].blank?
+                    unless @model_config.list.scopes.first.nil?
+                      @objects = @objects.send(@model_config.list.scopes.first)
+                    end
+                  elsif @model_config.list.scopes.collect(&:to_s).include?(params[:scope])
+                    @objects = @objects.send(params[:scope].to_sym)
                   end
-                elsif @model_config.list.scopes.collect(&:to_s).include?(params[:scope])
-                  @objects = @objects.send(params[:scope].to_sym)
-                end
-              end
-
-              respond_to do |format|
-                format.html do
-                  render @action.template_name, status: (flash[:error].present? ? :not_found : 200)
                 end
 
-                format.json do
-                  output = begin
-                    if params[:compact]
-                      primary_key_method = @association ? @association.associated_primary_key : @model_config.abstract_model.primary_key
-                      label_method = @model_config.object_label_method
-                      @objects.collect { |o| { id: o.send(primary_key_method).to_s, label: o.send(label_method).to_s } }
+                respond_to do |format|
+                  format.html do
+                    render @action.template_name, status: (flash[:error].present? ? :not_found : 200)
+                  end
+
+                  format.json do
+                    output = begin
+                      if params[:compact]
+                        primary_key_method = @association ? @association.associated_primary_key : @model_config.abstract_model.primary_key
+                        label_method = @model_config.object_label_method
+                        @objects.collect { |o| { id: o.send(primary_key_method).to_s, label: o.send(label_method).to_s } }
+                      else
+                        @objects.to_json(@schema)
+                      end
+                    end
+                    if params[:send_data]
+                      send_data output, filename: "#{params[:model_name]}_#{DateTime.now.strftime('%Y-%m-%d_%Hh%Mm%S')}.json"
                     else
-                      @objects.to_json(@schema)
+                      render json: output, root: false
                     end
                   end
-                  if params[:send_data]
-                    send_data output, filename: "#{params[:model_name]}_#{DateTime.now.strftime('%Y-%m-%d_%Hh%Mm%S')}.json"
-                  else
-                    render json: output, root: false
-                  end
-                end
 
-                format.xml do
-                  output = @objects.to_xml(@schema)
-                  if params[:send_data]
-                    send_data output, filename: "#{params[:model_name]}_#{DateTime.now.strftime('%Y-%m-%d_%Hh%Mm%S')}.xml"
-                  else
-                    render xml: output
+                  format.xml do
+                    output = @objects.to_xml(@schema)
+                    if params[:send_data]
+                      send_data output, filename: "#{params[:model_name]}_#{DateTime.now.strftime('%Y-%m-%d_%Hh%Mm%S')}.xml"
+                    else
+                      render xml: output
+                    end
                   end
-                end
 
-                format.csv do
-                  header, encoding, output = CSVConverter.new(@objects, @schema).to_csv(params[:csv_options])
-                  if params[:send_data]
-                    send_data output,
-                              type: "text/csv; charset=#{encoding}; #{'header=present' if header}",
-                              disposition: "attachment; filename=#{params[:model_name]}_#{DateTime.now.strftime('%Y-%m-%d_%Hh%Mm%S')}.csv"
-                  else
-                    render text: output
+                  format.csv do
+                    header, encoding, output = CSVConverter.new(@objects, @schema).to_csv(params[:csv_options])
+                    if params[:send_data]
+                      send_data output,
+                                type: "text/csv; charset=#{encoding}; #{'header=present' if header}",
+                                disposition: "attachment; filename=#{params[:model_name]}_#{DateTime.now.strftime('%Y-%m-%d_%Hh%Mm%S')}.csv"
+                    else
+                      render text: output
+                    end
                   end
                 end
+              rescue Exception => ex
+                flash[:error] = ex.message
+                redirect_to dashboard_path
               end
             else
               redirect_to new_session_path(User)
@@ -823,32 +828,32 @@ module RailsAdmin
       node_model_names = nodes_stack.collect { |c| c.abstract_model.model_name }
 
       html_ = "<table class='table table-condensed table-striped .col-sm-6'>" +
-               '<thead><tr><th class="shrink"></th><th></th><th class="shrink"></th></tr></thead>' +
-      nodes_stack.group_by(&:navigation_label).collect do |navigation_label, nodes|
-        nodes = nodes.select { |n| n.parent.nil? || !n.parent.to_s.in?(node_model_names) }
-        stack = dashboard_navigation nodes_stack, nodes
+        '<thead><tr><th class="shrink"></th><th></th><th class="shrink"></th></tr></thead>' +
+        nodes_stack.group_by(&:navigation_label).collect do |navigation_label, nodes|
+          nodes = nodes.select { |n| n.parent.nil? || !n.parent.to_s.in?(node_model_names) }
+          stack = dashboard_navigation nodes_stack, nodes
 
-        label = navigation_label || t('admin.misc.navigation')
+          label = navigation_label || t('admin.misc.navigation')
 
-        icon = ((opts = RailsAdmin::Config.navigation_options[label]) && opts[:icon]) || 'fa fa-cube'
-        icon =
-          case icon
-          when Symbol
-            render partial: icon.to_s
-          else
-            "<i class='#{icon}'></i>"
-          end
+          icon = ((opts = RailsAdmin::Config.navigation_options[label]) && opts[:icon]) || 'fa fa-cube'
+          icon =
+            case icon
+            when Symbol
+              render partial: icon.to_s
+            else
+              "<i class='#{icon}'></i>"
+            end
 
-        if stack.present?
-          %(
+          if stack.present?
+            %(
               <tbody><tr><td colspan="3"><h3>
                 <span class="nav-icon">#{icon}</span>
                 <span class="nav-caption">#{label}</span>
               </h3></td></tr>
             #{stack}
             </tbody>)
-        end
-      end.join + '</tbody></table>'
+          end
+        end.join + '</tbody></table>'
       html_.html_safe
     end
 
@@ -897,54 +902,54 @@ module RailsAdmin
       end
       i = -1
       ('' +
-          nodes.collect do |node|
-            i += 1
+        nodes.collect do |node|
+          i += 1
 
-            children = nodes_stack.select { |n| n.parent.to_s == node.abstract_model.model_name }
-            if children.present?
-              li = dashboard_navigation nodes_stack, children
-            else
-              model_param = node.abstract_model.to_param
-              url = url_for(action: :index, controller: 'rails_admin/main', model_name: model_param)
-              content_tag :tr, data: { model: model_param } do
-                rc = '<td>' + link_to(url, class: 'pjax') do
-                  if current_user
-                    # "#{capitalize_first_letter node.label_navigation}"
-                    "#{capitalize_first_letter node.abstract_model.config.label_plural}"
-                  else
-                    "#{capitalize_first_letter node.abstract_model.config.label_plural}"
-                  end
+          children = nodes_stack.select { |n| n.parent.to_s == node.abstract_model.model_name }
+          if children.present?
+            li = dashboard_navigation nodes_stack, children
+          else
+            model_param = node.abstract_model.to_param
+            url = url_for(action: :index, controller: 'rails_admin/main', model_name: model_param)
+            content_tag :tr, data: { model: model_param } do
+              rc = '<td>' + link_to(url, class: 'pjax') do
+                if current_user
+                  # "#{capitalize_first_letter node.label_navigation}"
+                  "#{capitalize_first_letter node.abstract_model.config.label_plural}"
+                else
+                  "#{capitalize_first_letter node.abstract_model.config.label_plural}"
                 end
-                rc += '</td>'
-
-                model_count =
-                  if current_user
-                    node.abstract_model.model.all.count
-                  else
-                    @count[node.abstract_model.model.name]
-                  end
-                pc = percent(model_count, @max)
-                indicator = get_indicator(pc)
-                anim = animate_width_to(pc)
-
-                rc += '<td>'
-                rc += "<div class='progress progress-#{indicator}' style='margin-bottom:0'>"
-                rc += "<div class='animate-width-to progress-bar progress-bar-#{indicator}' data-animate-length='#{anim}' data-animate-width-to='#{anim}' style='width:2%'>"
-                rc += "#{model_count}"
-                rc += '</div>'
-                rc += '</div>'
-                rc += '</td>'
-
-                menu = menu_for(:collection, node.abstract_model, nil, true)
-
-                rc += '<td class="links">'
-                rc += "<ul class='inline list-inline'>#{menu}</ul>"
-                rc += '</td>'
-
-                rc.html_safe
               end
+              rc += '</td>'
+
+              model_count =
+                if current_user
+                  node.abstract_model.model.all.count
+                else
+                  @count[node.abstract_model.model.name]
+                end
+              pc = percent(model_count, @max)
+              indicator = get_indicator(pc)
+              anim = animate_width_to(pc)
+
+              rc += '<td>'
+              rc += "<div class='progress progress-#{indicator}' style='margin-bottom:0'>"
+              rc += "<div class='animate-width-to progress-bar progress-bar-#{indicator}' data-animate-length='#{anim}' data-animate-width-to='#{anim}' style='width:2%'>"
+              rc += "#{model_count}"
+              rc += '</div>'
+              rc += '</div>'
+              rc += '</td>'
+
+              menu = menu_for(:collection, node.abstract_model, nil, true)
+
+              rc += '<td class="links">'
+              rc += "<ul class='inline list-inline'>#{menu}</ul>"
+              rc += '</td>'
+
+              rc.html_safe
             end
-          end.join).html_safe
+          end
+        end.join).html_safe
     end
   end
 
