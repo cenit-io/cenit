@@ -10,7 +10,7 @@
     = value
 = breadcrumb
 - if ['dashboard', 'list-of-shared-collections'].include? @page_name.parameterize
-  - @count = {}
+  - @count ||= {}
   - query = params[:query]
   .content
     .container{style: "margin-bottom: 20px;"}
