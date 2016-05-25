@@ -7,7 +7,6 @@
   %span.cenit-logo
     =image_tag 'cenit-logo.png'
   %span.cenit-hub{style: 'color: white;'}= 'cenit.io'
-%button#sidebar-toggle.btn.a.navbar-brand.toggle-btn
+#sidebar-toggle.a.navbar-brand
   %small
-    %small
-      %i.fa.fa-chevron-right
+    %i.fa.fa-chevron-right{style: 'color: white;'}
