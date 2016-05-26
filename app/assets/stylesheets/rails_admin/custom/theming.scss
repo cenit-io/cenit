@@ -48,6 +48,12 @@ a#sign-in-link:hover, a#sign-out-link:hover  {
   transition: .5s;
 }
 
+#user-nav > li.dropdown.open > a {
+  background-color: white;
+  border-right: solid 1px rgba(0,0,0,0.15);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.175);
+}
+
 #user-nav > li.dropdown.open > a:after {
   display: block;
   position: absolute;
@@ -57,6 +63,7 @@ a#sign-in-link:hover, a#sign-out-link:hover  {
   right: 0;
   bottom: -3px;
   z-index: 1001;
+  background-color: white;
 }
 
 #user-menu {
@@ -73,12 +80,77 @@ a#sign-in-link:hover, a#sign-out-link:hover  {
   padding: 3px;
 }
 
+.toggle-btn {
+  color: white!important;
+  background-color: transparent;
+  padding: 2px 0 0;
+  border-color: transparent;
+  font-size: 24px;
+  line-height: 100%;
+  transition: all .1s ease-in-out;
+  width: 40px;
+}
+
+.toggle-btn:active,
+.toggle-btn:focus,
+.toggle-btn:hover,
+.toggle-btn:active:focus {
+  outline: none;
+  box-shadow: none;
+}
+
+.toggle-btn:hover {
+  color: white!important;
+  border-color: transparent;
+  background-color: transparent;
+  font-size: 28px;
+  padding-top: 0;
+}
+
+#drawer-toggle i.fa,
+#sidebar-toggle i.fa {
+  transition: all 0.5s ease;
+}
+
+#sidebar-toggle.toggled i.fa {
+  transform: rotate(180deg);
+}
+
+#drawer-toggle.toggled i.fa {
+ // transform: rotate(90deg);
+}
+
+/* Serach form styles */
+
+#navbar-search input {
+  transition: all .3s ease-in-out;
+  height: 40px;
+  margin-top: 7px;
+  padding: 0;
+  width: 0;
+  outline: none;
+  border: none;
+  background-color: transparent;
+  font-size: 14px;
+  color: white;
+}
+
+#navbar-search.open input {
+  width: 250px;
+  padding: 6px;
+  border-bottom: solid 2px white;
+}
+
+#navbar-search #search-toggle {
+  margin: 0;
+}
+
 /* Nav Drawer styles*/
 
 ul#nav-drawer {
   display: block;
   position: fixed;
-  top: 100%;
+  top: calc(100% + 1px);
   left: 100%;
   width: 250px;
   height: calc(100vh - 100%);
@@ -100,10 +172,6 @@ ul#nav-drawer li {
 
 ul#nav-drawer li.last {
   border-bottom: none;
-}
-
-ul#nav-drawer li.first {
-  border-top: solid 1px rgba(255, 255, 255, 0.75);
 }
 
 ul#nav-drawer li a {
@@ -131,21 +199,6 @@ ul#nav-drawer li a span {
 }
 
 /* Toogle styles*/
-
-#sidebar-toggle {
-  color: rgba(0, 0, 0, 0.87);
-  margin: 0 1px;
-  width: 48px;
-  text-align: center;
-}
-
-#sidebar-toggle i.fa {
-  transition: all 0.5s ease;
-}
-
-#sidebar-toggle.toggled i.fa {
-  transform: rotate(180deg);
-}
 
 #wrapper {
   padding-left: 55px;
