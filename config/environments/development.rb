@@ -40,9 +40,6 @@ Cenit::Application.configure do
     
   config.action_mailer.perform_deliveries = true
   config.action_mailer.raise_delivery_errors = true
-  
+  # config.deface.enabled = false
 end
 
-DOORKEEPER_APP_ID = ENV['DOORKEEPER_APP_ID']
-DOORKEEPER_APP_SECRET = ENV['DOORKEEPER_APP_SECRET']
-DOORKEEPER_APP_URL = ENV['DOORKEEPER_APP_URL']

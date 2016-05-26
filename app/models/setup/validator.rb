@@ -13,8 +13,12 @@ module Setup
       errors.blank?
     end
 
-    def validate_file_record(data)
+    def validate_data(data)
       fail NotImplementedError
+    end
+
+    def validate_file_record(file)
+      validate_data(file.data)
     end
 
     def data_format
