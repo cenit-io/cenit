@@ -15,6 +15,10 @@ module Setup
       super
     end
 
+    def validate_data(data)
+      fail NotImplementedError
+    end
+
     def validate_file_record(file)
       begin
         algorithm.run(file)

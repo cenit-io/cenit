@@ -69,44 +69,45 @@ module Mongoff
       def save(options = {})
         self[:metadata] = options[:metadata] || {}
         self[:chunkSize] = FileModel::MINIMUM_CHUNK_SIZE if self[:chunkSize] < FileModel::MINIMUM_CHUNK_SIZE
-        temporary_file = nil
-        new_chunks_ids =
-          if @new_data
-            readable =
-              if @new_data.is_a?(String)
-                ext =
-                  if (content_type = options[:content_type] || self.contentType) &&
-                    (types = MIME::Types[content_type]).present? &&
-                    (type = types.detect { |t| t.extensions.present? })
-                    type.extensions.first
-                  else
-                    ''
-                  end
-                temporary_file = Tempfile.new(['file_', ".#{ext}"])
-                temporary_file.binmode
-                temporary_file.write(decode(@new_data))
-                temporary_file.rewind
-                Cenit::Utility::Proxy.new(temporary_file, original_filename: filename || options[:filename] || options[:default_filename])
+        run_callbacks_and do
+          temporary_file = nil
+          new_chunks_ids =
+            if @new_data
+              readable =
+                if @new_data.is_a?(String)
+                  ext =
+                    if (content_type = options[:content_type] || self.contentType) &&
+                      (types = MIME::Types[content_type]).present? &&
+                      (type = types.detect { |t| t.extensions.present? })
+                      type.extensions.first
+                    else
+                      ''
+                    end
+                  temporary_file = Tempfile.new(['file_', ".#{ext}"])
+                  temporary_file.binmode
+                  temporary_file.write(decode(@new_data))
+                  temporary_file.rewind
+                  Cenit::Utility::Proxy.new(temporary_file, original_filename: filename || options[:filename] || options[:default_filename])
+                else
+                  @new_data
+                end
+              if !options[:valid_data] && (file_data_errors = orm_model.data_type.validate_file(self)).present?
+                errors.add(:base, "Invalid file data: #{file_data_errors.to_sentence}")
               else
-                @new_data
+                create_temporary_chunks(readable, options)
               end
-            if !options[:valid_data] && (file_data_errors = orm_model.data_type.validate_file(self)).present?
-              errors.add(:base, "Invalid file data: #{file_data_errors.to_sentence}")
             else
-              create_temporary_chunks(readable, options)
+              errors.add(:data, "can't be nil") if new_record?
             end
-          else
-            errors.add(:data, "can't be nil") if new_record?
-          end
-        temporary_file.close if temporary_file
-        [:filename, :contentType].each { |property| self[property] = options[property] unless self[property].present? }
-        if errors.blank? && super
-          if new_chunks_ids
-            chunks.delete_many
-            chunk_model.all.any_in(id: new_chunks_ids).update_many('$set' => { files_id: id })
+          temporary_file.close if temporary_file
+          [:filename, :contentType].each { |property| self[property] = options[property] unless self[property].present? }
+          if errors.blank? && super
+            if new_chunks_ids
+              chunks.delete_many
+              chunk_model.all.any_in(id: new_chunks_ids).update_many('$set' => { files_id: id })
+            end
           end
         end
-        errors.blank?
       end
 
       def destroy
