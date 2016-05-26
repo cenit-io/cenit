@@ -926,7 +926,7 @@ module RailsAdmin
                 if current_user
                   node.abstract_model.model.all.count
                 else
-                  @count[node.abstract_model.model.name]
+                  @count[node.abstract_model.model.name] || 0
                 end
               pc = percent(model_count, @max)
               indicator = get_indicator(pc)
