@@ -5,7 +5,7 @@
 %ul#nav-drawer
   #nav-links
     %li.first
-      =link_to ENV['PORTAL_URL'] || "http://cenithub.com" do
+      =link_to ENV['PORTAL_URL'] || "http://cenithub.com", target: '_blank' do
         %i.fa.fa-fw.fa-file-text{title: t('admin.misc.overview')}
         %span=t('admin.misc.overview')
     %li
@@ -18,24 +18,24 @@
           %i{class: "#{action.link_icon} fa-fw", title: wording_for(:menu, action)}
           %span=wording_for(:menu, action)
     %li
-      =link_to ENV['DOCS_URL'] || 'http://docs.cenithub.com' do
+      =link_to ENV['DOCS_URL'] || 'http://docs.cenithub.com', target: '_blank' do
         %i.fa.fa-fw.fa-file-text{title: t('admin.misc.docs')}
         %span=t('admin.misc.docs')
     %li
-      =link_to "#{(ENV['PORTAL_URL'] || "http://cenithub.com")}/blog" do
+      =link_to "#{(ENV['PORTAL_URL'] || "http://cenithub.com")}/blog", target: '_blank' do
         %i.fa.fa-fw.fa-newspaper-o{title: t('admin.misc.blog')}
         %span=t('admin.misc.blog')
     %li
-      =link_to "#{(ENV['PORTAL_URL'] || 'http://cenithub.com')}/prices" do
+      =link_to "#{(ENV['PORTAL_URL'] || 'http://cenithub.com')}/prices", target: '_blank' do
         %i.fa.fa-fw.fa-newspaper-o{title: t('admin.misc.prices')}
         %span=t('admin.misc.prices')
     %li
-      =link_to "#{(ENV['PORTAL_URL'] || 'http://cenithub.com')}/directory" do
+      =link_to "#{(ENV['PORTAL_URL'] || 'http://cenithub.com')}/directory", target: '_blank' do
         %i.fa.fa-fw.fa-newspaper-o{title: t('admin.misc.directory')}
         %span=t('admin.misc.directory')
     - unless _current_user.present?
       %li
-        =link_to "#{(ENV['PORTAL_URL'] || 'http://cenithub.com')}/terms_of_service" do
+        =link_to "#{(ENV['PORTAL_URL'] || 'http://cenithub.com')}/terms_of_service", target: '_blank' do
           %i.fa.fa-fw.fa-institution{title: t('admin.misc.terms')}
           %span=t('admin.misc.terms')
   #social-links.text-center.last
@@ -65,7 +65,7 @@
         %li.divider{role:"separator"}
         .actions.clearfix
           %li.terms.pull-left
-            %small= link_to t('admin.misc.terms'), "http://cenithub.com/terms_of_service", class: "text-muted"
+            %small= link_to t('admin.misc.terms'), "#{(ENV['PORTAL_URL'] || 'http://cenithub.com')}/terms_of_service" , class: "text-muted"
           - if logout_path.present?
             %li.pull-right= link_to t('admin.misc.log_out'), logout_path, method: logout_method, class: 'btn btn-xs btn-danger'
 
