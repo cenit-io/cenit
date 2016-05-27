@@ -21,6 +21,8 @@ en:
       sub_title_search_shared_collections: "Find code and data over %{count} shared collections"
       pull: "Pull"
       show_all: "Show all"
+      overview: "Overview"
+      prices: "Prices"
     actions:
       dashboard:
         title: "Dashboard"
