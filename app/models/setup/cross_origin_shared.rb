@@ -4,6 +4,7 @@ module Setup
 
     include CenitScoped
     include CrossOrigin::Document
+    include Trackable
 
     included do
 
@@ -46,6 +47,11 @@ module Setup
     end
 
     module ClassMethods
+
+      def history_trackable_options
+        @history_trackable_options ||= Mongoid::History.trackable_class_options[with(account: nil).collection_name.to_s.singularize.to_sym]
+      end
+
       def super_count
         current_account = Account.current
         Account.current = nil
