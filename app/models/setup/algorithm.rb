@@ -1,6 +1,6 @@
 module Setup
   class Algorithm
-    include CenitScoped
+    include CrossOriginShared
     include NamespaceNamed
 
     BuildInDataType.regist(self).referenced_by(:namespace, :name)
