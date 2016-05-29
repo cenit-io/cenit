@@ -19,7 +19,10 @@ module AccountScoped
 
   module ClassMethods
     def with(options)
-      options = { collection: Account.tenant_collection_name(self, account: options) } if options.is_a?(Account)
+      if (account = options).is_a?(Account) ||
+        (options.is_a?(Hash) && options.has_key?(:account) && ((account = options.delete(:account)) || true))
+        options = { collection: Account.tenant_collection_name(self, account: account) }
+      end
       super
     end
   end
