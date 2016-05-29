@@ -30,6 +30,24 @@ module Setup
       end
     end
 
+    def history_tracker_class
+      tracker_class = Mongoid::History.tracker_class
+      tracker_class.with(collection: "#{collection_name.to_s.singularize}_#{tracker_class.collection_name}")
+    end
+
+    def history_tracks
+      @history_tracks ||= history_tracker_class.where(scope: related_scope, association_chain: association_hash)
+    end
+
+    def track_history_for_action(action)
+      if track_history_for_action?(action)
+        current_version = (send(history_trackable_options[:version_field]) || 0) + 1
+        send("#{history_trackable_options[:version_field]}=", current_version)
+        history_tracker_class.create!(history_tracker_attributes(action.to_sym).merge(version: current_version, action: action.to_s, trackable: self))
+      end
+      clear_trackable_memoization
+    end
+
     def shared?
       origin == :shared
     end
