@@ -47,7 +47,9 @@ RailsAdmin::Config::Actions.register(:export, RailsAdmin::Config::Actions::BulkE
   RailsAdmin::Config::Fields::Types::JsonValue,
   RailsAdmin::Config::Fields::Types::JsonSchema,
   RailsAdmin::Config::Fields::Types::StorageFile,
-  RailsAdmin::Config::Fields::Types::EnumEdit
+  RailsAdmin::Config::Fields::Types::EnumEdit,
+  RailsAdmin::Config::Fields::Types::Model,
+  RailsAdmin::Config::Fields::Types::Record
 ].each { |f| RailsAdmin::Config::Fields::Types.register(f) }
 
 RailsAdmin::Config::Fields::Types::CodeMirror.register_instance_option :js_location do
@@ -157,12 +159,12 @@ RailsAdmin.config do |config|
     delete_all
     data_type
 
-    # history_index do
-    #   only [Setup::DataType, Setup::Webhook, Setup::Flow, Setup::Schema, Setup::Event, Setup::Connection, Setup::ConnectionRole]
-    # end
-    # history_show do
-    #   only [Setup::DataType, Setup::Webhook, Setup::Flow, Setup::Schema, Setup::Event, Setup::Connection, Setup::ConnectionRole, Setup::Notification]
-    # end
+    history_index do
+      only [Setup::Algorithm]
+    end
+    history_show do
+      only [Setup::Algorithm]
+    end
   end
 
   #Collections
@@ -2712,32 +2714,12 @@ RailsAdmin.config do |config|
       end
     end
 
-    configure :storer_model do
+    configure :storer_model, :model do
       label 'Model'
-      pretty_value do
-        if value
-          v = bindings[:view]
-          amc = RailsAdmin.config(value)
-          am = amc.abstract_model
-          wording = amc.navigation_label + ' > ' + amc.label
-          can_see = !am.embedded? && (index_action = v.action(:index, am))
-          (can_see ? v.link_to(amc.label, v.url_for(action: index_action.action_name, model_name: am.to_param), class: 'pjax') : wording).html_safe
-        end
-      end
     end
 
-    configure :storer_object do
+    configure :storer_object, :record do
       label 'Object'
-      pretty_value do
-        if value
-          v = bindings[:view]
-          amc = RailsAdmin.config(value.class)
-          am = amc.abstract_model
-          wording = value.send(amc.object_label_method)
-          can_see = !am.embedded? && (show_action = v.action(:show, am, value))
-          (can_see ? v.link_to(wording, v.url_for(action: show_action.action_name, model_name: am.to_param, id: value.id), class: 'pjax') : wording).html_safe
-        end
-      end
     end
 
     configure :storer_property do
@@ -2747,9 +2729,60 @@ RailsAdmin.config do |config|
     fields :storer_model, :storer_object, :storer_property, :filename, :contentType, :length
   end
 
+  #Configuration
+
+  config.navigation 'Configuration', icon: 'fa fa-wrench'
+
+  config.model Setup::PinnedVersion do
+
+    navigation_label 'Configuration'
+    weight -9
+    object_label_method :to_s
+
+    configure :model, :model
+    configure :record, :record
+
+    edit do
+      field :record_model do
+        label 'Model'
+        help 'Required'
+      end
+
+      Setup::PinnedVersion.models.values.each do |m_data|
+        field m_data[:property] do
+          inline_add false
+          inline_edit false
+          help 'Required'
+          visible { bindings[:object].record_model == m_data[:model_name] }
+        end
+      end
+
+      field :version do
+        help 'Required'
+        visible { bindings[:object].ready_to_save? }
+      end
+    end
+
+    list do
+      field :model
+      field :record
+      field :version
+    end
+
+    show do
+      field :model
+
+      Setup::PinnedVersion.models.values.each do |m_data|
+        field m_data[:property]
+      end
+
+      field :version
+    end
+  end
+
   #Administration
 
-  config.navigation 'Administration', icon: 'fa fa-wrench'
+  config.navigation 'Administration', icon: 'fa fa-user-secret'
 
   config.model User do
     weight -1
