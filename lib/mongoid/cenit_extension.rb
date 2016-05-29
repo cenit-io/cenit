@@ -15,7 +15,7 @@ module Mongoid
     include Document
 
     def save(options = {})
-      instance_variable_set(:@discard_event_lookup, true) if options[:discard_events]
+      instance_variable_set(:@discard_event_lookup, true) if options && options[:discard_events]
       super
     end
   end
