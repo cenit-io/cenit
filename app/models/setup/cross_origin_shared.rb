@@ -52,6 +52,13 @@ module Setup
       origin == :shared
     end
 
+    def account_version
+      if (pin = Setup::PinnedVersion.for(self)) && pin.version < version
+        undo nil, from: pin.version + 1, to: version
+      end
+      self
+    end
+
     def read_attribute(name)
       (!(value = super).nil? &&
 
