@@ -63,10 +63,10 @@
       %ul.dropdown-menu#filters{style: 'left:auto; right:0;'}
         - @filterable_fields.each do |field|
           - field_options = case field.type
-          - when :enum
-            - options_for_select(field.with(object: @abstract_model.model.new).enum)
-          - else
-            - ''
+            - when :enum
+              - options_for_select(field.with(object: @abstract_model.model.new).enum)
+            - else
+              - ''
           %li
             %a{href: '#', :"data-field-label" => field.label, :"data-field-name" => field.name, :"data-field-options" => field_options.html_safe, :"data-field-type" => field.type, :"data-field-value" => ""}= capitalize_first_letter(field.label)
 
@@ -89,7 +89,7 @@
 
     });
 
-  = form_tag(grid_path(params.except(*%w[page f query])), method: :get, class: "pjax-form form-inline") do
+  = form_tag(index_path(params.except(*%w[page f query])), method: :get, class: "pjax-form form-inline") do
     .well
       %span#filters_box
       %hr.filters_box{style: "display:#{@ordered_filters.empty? ? 'none' : 'block'}"}
@@ -109,7 +109,7 @@
       - @model_config.list.scopes.each_with_index do |scope, index|
         - scope = '_all' if scope.nil?
         %li{class: "#{'active' if scope.to_s == params[:scope] || (params[:scope].blank? && index == 0)}"}
-          %a{href: grid_path(params.merge(scope: scope, page: nil)), class: 'pjax'}= I18n.t("admin.scopes.#{@abstract_model.to_param}.#{scope}", default: I18n.t("admin.scopes.#{scope}", default: scope.to_s.titleize))
+          %a{href: index_path(params.merge(scope: scope, page: nil)), class: 'pjax'}= I18n.t("admin.scopes.#{@abstract_model.to_param}.#{scope}", default: I18n.t("admin.scopes.#{scope}", default: scope.to_s.titleize))
 
   #grid-wrapper
     - @objects.each do |object|
@@ -120,24 +120,30 @@
               %i.fa.fa-ellipsis-v
               %ul.dropdown-menu= menu_for :member, @abstract_model, object
           .panel-heading
-            - url = url_for(action: :show, id: object.id)
-            %a{href: url} #{object.name}
+            =link_to show_path id: object.id do
+              =object.name
           .panel-body
             .panel-body-logo.text-center{style: "background-color: #{object.logo_background || 'inherit'}"}
-              %img.logo{src: object.image || image_path('missing.png')}
+              =image_tag object.image.present? ? object.image : 'missing.png', class: 'logo'
             .panel-body-description.line-clamp.line-clamp-3
-              %p #{object.summary.html_safe}
+              %p #{object.summary.html_safe if object.summary.present?}
           .panel-footer
-            .footer-description #{object.category}
+            .footer-description
+              #{object.category} - v #{object.shared_version}
             .versions
-              %span.truncate #{object.shared_version}
+              %span.truncate
+                =link_to pull_path id: object.id do
+                  %i.fa.fa-arrow-down
+                -if object.pull_count > 0
+                  %span
+                    =number_to_human object.pull_count, units: {thousand: 'K', million: 'M', billion: 'G', trillion: 'T'}
 
     - if @objects.respond_to?(:total_count)
       - total_count = @objects.total_count.to_i
       .row
         .col-md-6= paginate(@objects, theme: 'twitter-bootstrap', remote: true)
       .row
-        .col-md-6= link_to(t("admin.misc.show_all"), grid_path(params.merge(all: true)), class: "show-all btn btn-default clearfix pjax") unless total_count > 100 || total_count <= @objects.to_a.size
+        .col-md-6= link_to(t("admin.misc.show_all"), index_path(params.merge(all: true)), class: "show-all btn btn-default clearfix pjax") unless total_count > 100 || total_count <= @objects.to_a.size
       .clearfix.total-count= "#{total_count} #{@model_config.pluralize(total_count).downcase}"
     - else
       .clearfix.total-count= "#{@objects.size} #{@model_config.pluralize(@objects.size).downcase}"

@@ -5,9 +5,8 @@ class Ability
   include CanCan::Ability
 
   def initialize(user)
-    if user
-      can :access, :rails_admin # only allow admin users to access Rails Admin
-
+    can :access, :rails_admin
+    if (@user = user)
       cannot :inspect, Account unless user.super_admin?
 
       can [:show, :edit], Account, id: user.account_id
@@ -49,7 +48,13 @@ class Ability
         cannot :destroy, [Setup::SharedCollection, Setup::Storage]
       end
 
-      can :destroy, Setup::Task, Setup::Task.destroy_conditions
+      task_destroy_conds =
+        {
+          'status' => { '$in' => Setup::Task::NOT_RUNNING_STATUS },
+          'scheduler_id' => { '$in' => Setup::Scheduler.where(activated: false).collect(&:id) + [nil] }
+        }
+      can :destroy, Setup::Task, task_destroy_conds
+
 
       can RailsAdmin::Config::Actions.all(:root).collect(&:authorization_key)
 
@@ -64,7 +69,7 @@ class Ability
           non_root = []
           RailsAdmin::Config::Actions.all.each do |action|
             unless action.root?
-              if models = action.only
+              if (models = action.only)
                 models = [models] unless models.is_a?(Enumerable)
                 hash[action.authorization_key] = Set.new(models)
               else
@@ -103,8 +108,17 @@ class Ability
       can :manage, Mongoff::Record
 
     else
-      can [:index, :show], [Setup::SharedCollection]
+      can [:dashboard, :shared_collection_index]
+      can [:index, :show, :grid, :pull, :simple_export], [Setup::SharedCollection]
+      can :index, Setup::Models.all.to_a
     end
+  end
 
+  def can?(action, subject, *extra_args)
+    if subject == ScriptExecution && @user && !@user.super_admin?
+      false
+    else
+      super
+    end
   end
 end

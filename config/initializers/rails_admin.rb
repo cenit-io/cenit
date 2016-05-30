@@ -39,7 +39,7 @@
   RailsAdmin::Config::Actions::Configure,
   RailsAdmin::Config::Actions::CrossShare,
   RailsAdmin::Config::Actions::Regist,
-  RailsAdmin::Config::Actions::Grid
+  RailsAdmin::Config::Actions::SharedCollectionIndex
 ].each { |a| RailsAdmin::Config::Actions.register(a) }
 
 RailsAdmin::Config::Actions.register(:export, RailsAdmin::Config::Actions::BulkExport)
@@ -98,7 +98,7 @@ RailsAdmin.config do |config|
 
   ### More at https://github.com/sferik/rails_admin/wiki/Base-configuration
   config.authenticate_with do
-    warden.authenticate! scope: :user
+    warden.authenticate! scope: :user unless %w(dashboard shared_collection_index index show).include?(action_name)
   end
   config.current_user_method { current_user }
   config.audit_with :mongoid_audit
@@ -110,7 +110,7 @@ RailsAdmin.config do |config|
     dashboard # mandatory
     # memory_usage
     # disk_usage
-    grid
+    shared_collection_index
     index # mandatory
     new { except [Setup::Event, Setup::DataType, Setup::Authorization, Setup::BaseOauthProvider] }
     import
@@ -178,6 +178,7 @@ RailsAdmin.config do |config|
     navigation_label 'Collections'
     object_label_method { :versioned_name }
 
+    public_access true
     extra_associations do
       Setup::Collection.reflect_on_all_associations(:has_and_belongs_to_many).collect do |association|
         association = association.dup
@@ -185,6 +186,9 @@ RailsAdmin.config do |config|
         RailsAdmin::Adapters::Mongoid::Association.new(association, abstract_model.model)
       end
     end
+
+    index_template_name :shared_collection_grid
+    index_link_icon 'icon-th-large'
 
     group :collections
     group :workflows
@@ -302,7 +306,7 @@ RailsAdmin.config do |config|
         end
       end
       field :pull_count do
-        visible { Account.current.super_admin? }
+        visible { Account.current_super_admin? }
       end
       field :readme do
         visible do
@@ -330,8 +334,8 @@ RailsAdmin.config do |config|
             Setup::Transformation::ActionViewTransform.run(transformation: template,
                                                            style: 'html.erb',
                                                            base_url: bindings[:controller].request.base_url,
-                                                           user_key: User.current.number,
-                                                           user_token: User.current.token,
+                                                           user_key: User.current_number,
+                                                           user_token: User.current_token,
                                                            collection: nil,
                                                            shared_collection: bindings[:object])
           rescue Exception => ex
@@ -486,11 +490,13 @@ RailsAdmin.config do |config|
   end
 
   config.model Setup::CollectionAuthor do
+    visible false
     object_label_method { :label }
     fields :name, :email
   end
 
   config.model Setup::CollectionPullParameter do
+    visible false
     object_label_method { :label }
     field :label
     field :parameter, :enum do
@@ -514,6 +520,7 @@ RailsAdmin.config do |config|
   end
 
   config.model Setup::CollectionData do
+    visible false
     object_label_method { :label }
   end
 
@@ -601,7 +608,7 @@ RailsAdmin.config do |config|
     edit do
       field :image
       field :readme do
-        visible { Account.current.super_admin? }
+        visible { Account.current_super_admin? }
       end
       field :name
       field :flows
@@ -767,6 +774,8 @@ RailsAdmin.config do |config|
     object_label_method { :custom_title }
     visible true
 
+    show_in_dashboard false
+
     configure :_type do
       pretty_value do
         value.split('::').last.to_title
@@ -794,7 +803,7 @@ RailsAdmin.config do |config|
           unless max = bindings[:controller].instance_variable_get(:@max_storage_size)
             bindings[:controller].instance_variable_set(:@max_storage_size, max = objects.collect { |data_type| data_type.storage_size }.max)
           end
-          (bindings[:view].render partial: 'used_memory_bar', locals: {max: max, value: bindings[:object].records_model.storage_size}).html_safe
+          (bindings[:view].render partial: 'used_memory_bar', locals: { max: max, value: bindings[:object].records_model.storage_size }).html_safe
         else
           bindings[:view].number_to_human_size(value)
         end
@@ -840,7 +849,7 @@ RailsAdmin.config do |config|
           unless max = bindings[:controller].instance_variable_get(:@max_used_memory)
             bindings[:controller].instance_variable_set(:@max_used_memory, max = Setup::DataType.fields[:used_memory.to_s].type.new(Setup::DataType.max(:used_memory)))
           end
-          (bindings[:view].render partial: 'used_memory_bar', locals: {max: max, value: Setup::DataType.fields[:used_memory.to_s].type.new(value)}).html_safe
+          (bindings[:view].render partial: 'used_memory_bar', locals: { max: max, value: Setup::DataType.fields[:used_memory.to_s].type.new(value) }).html_safe
         end
       end
       field :storage_size
@@ -901,7 +910,7 @@ RailsAdmin.config do |config|
         report = bindings[:object].shutdown(report_only: true)
         reload = (report[:reloaded].collect(&:data_type) + report[:destroyed].collect(&:data_type)).uniq
         bindings[:object].instance_variable_set(:@_to_reload, reload)
-        {cols: '74', rows: '15'}
+        { cols: '74', rows: '15' }
       end
       # pretty_value do
       #   "<pre><code class='json'>#{JSON.pretty_generate(value)}</code></pre>".html_safe
@@ -914,7 +923,7 @@ RailsAdmin.config do |config|
           unless max = bindings[:controller].instance_variable_get(:@max_storage_size)
             bindings[:controller].instance_variable_set(:@max_storage_size, max = objects.collect { |data_type| data_type.storage_size }.max)
           end
-          (bindings[:view].render partial: 'used_memory_bar', locals: {max: max, value: bindings[:object].records_model.storage_size}).html_safe
+          (bindings[:view].render partial: 'used_memory_bar', locals: { max: max, value: bindings[:object].records_model.storage_size }).html_safe
         else
           bindings[:view].number_to_human_size(value)
         end
@@ -966,7 +975,7 @@ RailsAdmin.config do |config|
           unless max = bindings[:controller].instance_variable_get(:@max_used_memory)
             bindings[:controller].instance_variable_set(:@max_used_memory, max = Setup::JsonDataType.fields[:used_memory.to_s].type.new(Setup::JsonDataType.max(:used_memory)))
           end
-          (bindings[:view].render partial: 'used_memory_bar', locals: {max: max, value: Setup::JsonDataType.fields[:used_memory.to_s].type.new(value)}).html_safe
+          (bindings[:view].render partial: 'used_memory_bar', locals: { max: max, value: Setup::JsonDataType.fields[:used_memory.to_s].type.new(value) }).html_safe
         end
       end
       field :storage_size
@@ -1023,7 +1032,7 @@ RailsAdmin.config do |config|
         unless max = bindings[:controller].instance_variable_get(:@max_used_memory)
           bindings[:controller].instance_variable_set(:@max_used_memory, max = Setup::JsonDataType.fields[:used_memory.to_s].type.new(Setup::JsonDataType.max(:used_memory)))
         end
-        (bindings[:view].render partial: 'used_memory_bar', locals: {max: max, value: Setup::JsonDataType.fields[:used_memory.to_s].type.new(value)}).html_safe
+        (bindings[:view].render partial: 'used_memory_bar', locals: { max: max, value: Setup::JsonDataType.fields[:used_memory.to_s].type.new(value) }).html_safe
       end
     end
 
@@ -1033,7 +1042,7 @@ RailsAdmin.config do |config|
           unless max = bindings[:controller].instance_variable_get(:@max_storage_size)
             bindings[:controller].instance_variable_set(:@max_storage_size, max = objects.collect { |data_type| data_type.records_model.storage_size }.max)
           end
-          (bindings[:view].render partial: 'used_memory_bar', locals: {max: max, value: bindings[:object].records_model.storage_size}).html_safe
+          (bindings[:view].render partial: 'used_memory_bar', locals: { max: max, value: bindings[:object].records_model.storage_size }).html_safe
         else
           bindings[:view].number_to_human_size(value)
         end
@@ -1096,7 +1105,7 @@ RailsAdmin.config do |config|
           unless max = bindings[:controller].instance_variable_get(:@max_used_memory)
             bindings[:controller].instance_variable_set(:@max_used_memory, max = Setup::JsonDataType.fields[:used_memory.to_s].type.new(Setup::JsonDataType.max(:used_memory)))
           end
-          (bindings[:view].render partial: 'used_memory_bar', locals: {max: max, value: Setup::JsonDataType.fields[:used_memory.to_s].type.new(value)}).html_safe
+          (bindings[:view].render partial: 'used_memory_bar', locals: { max: max, value: Setup::JsonDataType.fields[:used_memory.to_s].type.new(value) }).html_safe
         end
       end
       field :storage_size
@@ -1155,13 +1164,13 @@ RailsAdmin.config do |config|
       field :uri do
         read_only { !bindings[:object].new_record? }
         html_attributes do
-          {cols: '74', rows: '1'}
+          { cols: '74', rows: '1' }
         end
       end
 
       field :schema, :code_mirror do
         html_attributes do
-          {cols: '74', rows: '15'}
+          { cols: '74', rows: '15' }
         end
       end
 
@@ -1223,6 +1232,7 @@ RailsAdmin.config do |config|
   config.navigation 'API Connectors', icon: :api_connectors
 
   config.model Setup::Parameter do
+    visible false
     object_label_method { :to_s }
     configure :metadata, :json_value
     edit do
@@ -1251,17 +1261,17 @@ RailsAdmin.config do |config|
     end
 
     configure :key, :string do
-      visible { User.current.admin? }
+      visible { User.current_admin? }
       html_attributes do
-        {maxlength: 30, size: 30}
+        { maxlength: 30, size: 30 }
       end
       group :credentials
     end
 
     configure :token, :text do
-      visible { User.current.admin? }
+      visible { User.current_admin? }
       html_attributes do
-        {cols: '50', rows: '1'}
+        { cols: '50', rows: '1' }
       end
       group :credentials
     end
@@ -1269,12 +1279,12 @@ RailsAdmin.config do |config|
     configure :authorization do
       group :credentials
       inline_edit false
-      visible { User.current.admin? }
+      visible { User.current_admin? }
     end
 
     configure :authorization_handler do
       group :credentials
-      visible { User.current.admin? }
+      visible { User.current_admin? }
     end
 
     group :parameters do
@@ -1282,15 +1292,15 @@ RailsAdmin.config do |config|
     end
     configure :parameters do
       group :parameters
-      visible { User.current.admin? }
+      visible { User.current_admin? }
     end
     configure :headers do
       group :parameters
-      visible { User.current.admin? }
+      visible { User.current_admin? }
     end
     configure :template_parameters do
       group :parameters
-      visible { User.current.admin? }
+      visible { User.current_admin? }
     end
 
     edit do
@@ -1341,7 +1351,7 @@ RailsAdmin.config do |config|
     configure :name, :string do
       help 'Requiered.'
       html_attributes do
-        {maxlength: 50, size: 50}
+        { maxlength: 50, size: 50 }
       end
     end
     configure :webhooks do
@@ -1386,12 +1396,12 @@ RailsAdmin.config do |config|
     configure :authorization do
       group :credentials
       inline_edit false
-      visible { User.current.admin? }
+      visible { User.current_admin? }
     end
 
     configure :authorization_handler do
       group :credentials
-      visible { User.current.admin? }
+      visible { User.current_admin? }
     end
 
     group :parameters do
@@ -1401,7 +1411,7 @@ RailsAdmin.config do |config|
     configure :path, :string do
       help 'Requiered. Path of the webhook relative to connection URL.'
       html_attributes do
-        {maxlength: 255, size: 100}
+        { maxlength: 255, size: 100 }
       end
     end
 
@@ -1755,20 +1765,37 @@ RailsAdmin.config do |config|
     edit do
       field :namespace
       field :name
-
+      field :scheduling_method
       field :expression do
-        visible true
-
-        label "Schedule"
-
-        help 'Configure scheduler'
-
-        partial :scheduler
-
-        html_attributes do
-          {rows: '1'}
+        visible { bindings[:object].scheduling_method.present? }
+        label do
+          case bindings[:object].scheduling_method
+          when :Once
+            'Date and time'
+          when :Periodic
+            'Duration'
+          when :CRON
+            'CRON Expression'
+          else
+            'Expression'
+          end
         end
-
+        help do
+          case bindings[:object].scheduling_method
+          when :Once
+            'Select a date and a time'
+          when :Periodic
+            'Type a time duration'
+          when :CRON
+            'Type a CRON Expression'
+          else
+            'Expression'
+          end
+        end
+        partial { bindings[:object].scheduling_method == :Once ? 'form_datetime_wrapper' : 'form_text' }
+        html_attributes do
+          { rows: '1' }
+        end
       end
     end
 
@@ -1776,6 +1803,7 @@ RailsAdmin.config do |config|
       field :namespace
       field :name
       field :expression
+      field :origin
 
       field :_id
       field :created_at
@@ -1784,14 +1812,16 @@ RailsAdmin.config do |config|
       #field :updater
     end
 
-    fields :namespace, :name, :expression, :activated
+    fields :namespace, :name, :scheduling_method, :expression, :activated, :origin
   end
 
   config.model Setup::AlgorithmParameter do
+    visible false
     fields :name, :description
   end
 
   config.model Setup::CallLink do
+    visible false
     edit do
       field :name do
         read_only true
@@ -1870,7 +1900,7 @@ RailsAdmin.config do |config|
         visible { bindings[:object].style.present? && bindings[:object].style != 'chain' }
         help { 'Required' }
         html_attributes do
-          {cols: '74', rows: '15'}
+          { cols: '74', rows: '15' }
         end
       end
 
@@ -1980,6 +2010,7 @@ RailsAdmin.config do |config|
   end
 
   config.model Setup::Action do
+    visible false
     navigation_label 'Workflows'
     weight -202
     object_label_method { :to_s }
@@ -1991,7 +2022,7 @@ RailsAdmin.config do |config|
     navigation_label 'Workflows'
     weight -201
     object_label_method { :custom_title }
-    visible { Account.current.super_admin? }
+    visible { Account.current_super_admin? }
     configure :namespace, :enum_edit
     configure :identifier
     edit do
@@ -2005,6 +2036,7 @@ RailsAdmin.config do |config|
   end
 
   config.model Setup::ApplicationParameter do
+    visible false
     navigation_label 'Workflows'
     configure :group, :enum_edit
 
@@ -2022,13 +2054,13 @@ RailsAdmin.config do |config|
     object_label_method { :custom_title }
 
     configure :tenant do
-      visible { Account.current.super_admin? }
+      visible { Account.current_super_admin? }
       read_only { true }
       help ''
     end
 
     configure :origin do
-      visible { Account.current.super_admin? }
+      visible { Account.current_super_admin? }
     end
 
     configure :identifier do
@@ -2043,7 +2075,7 @@ RailsAdmin.config do |config|
 
     configure :secret do
       pretty_value do
-        if Account.current.id == bindings[:object].tenant_id
+        if Account.current && Account.current.id == bindings[:object].tenant_id
           value
         else
           '<i class="icon-lock"/>'.html_safe
@@ -2067,13 +2099,13 @@ RailsAdmin.config do |config|
     end
 
     configure :tenant do
-      visible { Account.current.super_admin? }
+      visible { Account.current_super_admin? }
       read_only { true }
       help ''
     end
 
     configure :origin do
-      visible { Account.current.super_admin? }
+      visible { Account.current_super_admin? }
     end
 
     configure :namespace, :enum_edit
@@ -2090,13 +2122,13 @@ RailsAdmin.config do |config|
     object_label_method { :custom_title }
 
     configure :tenant do
-      visible { Account.current.super_admin? }
+      visible { Account.current_super_admin? }
       read_only { true }
       help ''
     end
 
     configure :origin do
-      visible { Account.current.super_admin? }
+      visible { Account.current_super_admin? }
     end
 
     configure :namespace, :enum_edit
@@ -2117,13 +2149,13 @@ RailsAdmin.config do |config|
     object_label_method { :custom_title }
 
     configure :tenant do
-      visible { Account.current.super_admin? }
+      visible { Account.current_super_admin? }
       read_only { true }
       help ''
     end
 
     configure :origin do
-      visible { Account.current.super_admin? }
+      visible { Account.current_super_admin? }
     end
 
     configure :refresh_token_algorithm do
@@ -2142,13 +2174,13 @@ RailsAdmin.config do |config|
     object_label_method { :custom_title }
 
     configure :tenant do
-      visible { Account.current.super_admin? }
+      visible { Account.current_super_admin? }
       read_only { true }
       help ''
     end
 
     configure :origin do
-      visible { Account.current.super_admin? }
+      visible { Account.current_super_admin? }
     end
 
     fields :provider, :name, :description, :tenant, :origin
@@ -2465,6 +2497,7 @@ RailsAdmin.config do |config|
     weight -20
     object_label_method { :label }
 
+    show_in_dashboard false
     configure :created_at
 
     configure :type do
@@ -2656,6 +2689,7 @@ RailsAdmin.config do |config|
 
   config.model Setup::Storage do
     navigation_label 'Monitors'
+    show_in_dashboard false
     weight -15
     object_label_method { :label }
 
@@ -2671,7 +2705,7 @@ RailsAdmin.config do |config|
           unless max = bindings[:controller].instance_variable_get(:@max_length)
             bindings[:controller].instance_variable_set(:@max_length, max = objects.collect { |storage| storage.length }.reject(&:nil?).max)
           end
-          (bindings[:view].render partial: 'used_memory_bar', locals: {max: max, value: bindings[:object].length}).html_safe
+          (bindings[:view].render partial: 'used_memory_bar', locals: { max: max, value: bindings[:object].length }).html_safe
         else
           bindings[:view].number_to_human_size(value)
         end
@@ -2720,6 +2754,7 @@ RailsAdmin.config do |config|
   config.model User do
     weight -1
     navigation_label 'Administration'
+    visible { User.current_super_admin? }
     object_label_method { :label }
 
     group :credentials do
@@ -2773,45 +2808,44 @@ RailsAdmin.config do |config|
       field :picture
       field :name
       field :email do
-        visible { Account.current.super_admin? }
+        visible { Account.current_super_admin? }
       end
       field :roles do
-        visible { Account.current.super_admin? }
+        visible { Account.current_super_admin? }
       end
       field :account do
-        label { Account.current.super_admin? ? 'Account' : 'Account settings' }
+        label { Account.current_super_admin? ? 'Account' : 'Account settings' }
         help { nil }
       end
-
       field :password do
-        visible { Account.current.super_admin? }
+        visible { Account.current_super_admin? }
       end
       field :password_confirmation do
-        visible { Account.current.super_admin? }
+        visible { Account.current_super_admin? }
       end
       field :key do
-        visible { !bindings[:object].new_record? && Account.current.super_admin? }
+        visible { !bindings[:object].new_record? && Account.current_super_admin? }
       end
       field :authentication_token do
-        visible { !bindings[:object].new_record? && Account.current.super_admin? }
+        visible { !bindings[:object].new_record? && Account.current_super_admin? }
       end
       field :confirmed_at do
-        visible { !bindings[:object].new_record? && Account.current.super_admin? }
+        visible { !bindings[:object].new_record? && Account.current_super_admin? }
       end
       field :sign_in_count do
-        visible { !bindings[:object].new_record? && Account.current.super_admin? }
+        visible { !bindings[:object].new_record? && Account.current_super_admin? }
       end
       field :current_sign_in_at do
-        visible { !bindings[:object].new_record? && Account.current.super_admin? }
+        visible { !bindings[:object].new_record? && Account.current_super_admin? }
       end
       field :last_sign_in_at do
-        visible { !bindings[:object].new_record? && Account.current.super_admin? }
+        visible { !bindings[:object].new_record? && Account.current_super_admin? }
       end
       field :current_sign_in_ip do
-        visible { !bindings[:object].new_record? && Account.current.super_admin? }
+        visible { !bindings[:object].new_record? && Account.current_super_admin? }
       end
       field :last_sign_in_ip do
-        visible { !bindings[:object].new_record? && Account.current.super_admin? }
+        visible { !bindings[:object].new_record? && Account.current_super_admin? }
       end
     end
 
@@ -2846,44 +2880,39 @@ RailsAdmin.config do |config|
 
   config.model Account do
     navigation_label 'Administration'
+    visible { User.current_super_admin? }
     object_label_method { :label }
 
     configure :_id do
-      visible { Account.current.super_admin? }
+      visible { Account.current_super_admin? }
     end
     configure :name do
-      visible { Account.current.super_admin? }
+      visible { Account.current_super_admin? }
     end
     configure :owner do
-      read_only { !Account.current.super_admin? }
+      read_only { !Account.current_super_admin? }
       help { nil }
     end
     configure :tenant_account do
-      visible { Account.current.super_admin? }
+      visible { Account.current_super_admin? }
     end
     configure :number do
-      visible { Account.current.super_admin? }
+      visible { Account.current_super_admin? }
     end
     configure :users do
-      visible { Account.current.super_admin? }
+      visible { Account.current_super_admin? }
     end
     configure :notification_level
 
 
     fields :_id, :name, :owner, :tenant_account, :number, :users, :notification_level
-
-    field :time_zone do
-      label 'Time Zone'
-    end
-
-    field :time_zone
-
   end
 
   config.model Role do
     navigation_label 'Administration'
+    visible { User.current_super_admin? }
     configure :users do
-      visible { Account.current.super_admin? }
+      visible { Account.current_super_admin? }
     end
     fields :name, :users
   end
@@ -2896,12 +2925,14 @@ RailsAdmin.config do |config|
 
   config.model Setup::SharedName do
     navigation_label 'Administration'
+    visible { User.current_super_admin? }
 
     fields :name, :owners
   end
 
   config.model Script do
     navigation_label 'Administration'
+    visible { User.current_super_admin? }
 
     edit do
       field :name
@@ -2925,18 +2956,22 @@ RailsAdmin.config do |config|
 
   config.model CenitToken do
     navigation_label 'Administration'
+    visible { User.current_super_admin? }
   end
 
   config.model Setup::DelayedMessage do
     navigation_label 'Administration'
+    visible { User.current_super_admin? }
   end
 
   config.model Setup::SystemNotification do
     navigation_label 'Administration'
+    visible { User.current_super_admin? }
   end
 
   config.model RabbitConsumer do
     navigation_label 'Administration'
+    visible { User.current_super_admin? }
     object_label_method { :to_s }
 
     configure :task_id do
@@ -2950,7 +2985,7 @@ RailsAdmin.config do |config|
           am = amc.abstract_model
           if (inspect_action = v.action(:inspect, am, executor))
             task_path = v.show_path(model_name: task.class.to_s.underscore.gsub('/', '~'), id: task.id.to_s)
-            v.link_to(wording, v.url_for(action: inspect_action.action_name, model_name: am.to_param, id: executor.id, params: {return_to: task_path}))
+            v.link_to(wording, v.url_for(action: inspect_action.action_name, model_name: am.to_param, id: executor.id, params: { return_to: task_path }))
           else
             wording
           end.html_safe
@@ -2963,6 +2998,7 @@ RailsAdmin.config do |config|
 
   config.model ApplicationId do
     navigation_label 'Administration'
+    visible { User.current_super_admin? }
 
     register_instance_option(:discard_submit_buttons) { bindings[:object].instance_variable_get(:@registering) }
 
@@ -2980,5 +3016,18 @@ RailsAdmin.config do |config|
     end
 
     fields :created_at, :name, :registered, :account, :identifier
+  end
+
+  config.model Setup::ScriptExecution do
+    parent { nil }
+    navigation_label 'Administration'
+    object_label_method { :to_s }
+    configure :attempts_succeded, :text do
+      label 'Attempts/Succedded'
+    end
+    edit do
+      field :description
+    end
+    fields :script, :description, :scheduler, :attempts_succeded, :retries, :progress, :status, :notifications
   end
 end

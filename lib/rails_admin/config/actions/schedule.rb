@@ -37,6 +37,7 @@ module RailsAdmin
               else
                 @model_config = form_config
                 @form_object ||= Forms::SchedulerSelector.new(scheduler: @object.scheduler)
+                @form_object.target_task = @object
                 if @object.errors.present?
                   do_flash(:error, "Error scheduling #{@object}", @object.errors.full_messages)
                 end

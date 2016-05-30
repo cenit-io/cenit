@@ -40,10 +40,14 @@ module Setup
         included_actions[model]
       end
 
-      def each(&block)
+      def all
         set = Set.new(@excluded_actions.keys)
-        @included_actions.each_key { |m| set << m }
-        set.each(&block)
+        @included_actions.each_key { |m| set << m } if @included_actions
+        set
+      end
+
+      def each(&block)
+        all.each(&block)
       end
 
       private

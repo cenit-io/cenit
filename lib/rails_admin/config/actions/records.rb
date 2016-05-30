@@ -21,14 +21,20 @@ module RailsAdmin
 
         register_instance_option :controller do
           proc do
-
-            if (model = @object.records_model).modelable?
-              redirect_to rails_admin.index_path(model_name: model.to_s.underscore.gsub('/', '~'))
-            else
-              flash[:error] = "Model #{@object.title} is not an object model"
+            error_msg = nil
+            begin
+              if (model = @object.records_model).modelable?
+                redirect_to rails_admin.index_path(model_name: model.to_s.underscore.gsub('/', '~'))
+              else
+                error_msg = "Model #{@object.title} is not an object model"
+              end
+            rescue Exception => ex
+              error_msg = ex.message
+            end
+            if error_msg
+              flash[:error] = error_msg
               redirect_to back_or_index
             end
-
           end
         end
 

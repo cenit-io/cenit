@@ -1,5 +1,6 @@
 Cenit::Application.routes.draw do
-  devise_for :users, controllers: { omniauth_callbacks: 'users/omniauth_callbacks' } do
+
+  devise_for :users, controllers: { omniauth_callbacks: 'users/omniauth_callbacks', sessions: 'sessions' } do
     get 'sign_out', to: 'users/sessions#destroy', as: :destroy_user_session
   end
   
@@ -10,7 +11,6 @@ Cenit::Application.routes.draw do
 
   match 'oauth/authorize', to: 'oauth#index', via: [:get, :post]
   get 'oauth/callback', to: 'oauth#callback'
-  get 'oauth2/callback', to: 'oauth#callback'
   get 'schema', to: 'schema#index'
   get 'captcha', to: 'captcha#index'
   get 'captcha/:token', to: 'captcha#index'

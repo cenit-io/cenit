@@ -28,6 +28,9 @@ module Cenit
 
     config.after_initialize do
 
+      puts 'Clearing LOCKS'
+      Cenit::Locker.clear
+
       puts 'DELETING OLD Consumers'
       RabbitConsumer.delete_all
 

@@ -10,12 +10,12 @@ module RailsAdmin
         register_instance_option :controller do
           proc do
             @bulk_ids = params.delete(:bulk_ids)
-            if object_ids = params.delete(:object_ids)
+            if (object_ids = params.delete(:object_ids))
               @bulk_ids = object_ids
             end
             source = (@object && [@object.id.to_s]) || @bulk_ids
             options_config = RailsAdmin::Config.model(Forms::ExpandOptions)
-            if options_params = params[options_config.abstract_model.param_key]
+            if (options_params = params[options_config.abstract_model.param_key])
               options_params = options_params.select { |k, _| %w(segment_shortcuts).include?(k.to_s) }.permit!
             else
               options_params = {}
@@ -41,7 +41,7 @@ module RailsAdmin
         end
 
         register_instance_option :link_icon do
-          'icon-road'
+          'icon-zoom-in'
         end
 
         register_instance_option :pjax? do

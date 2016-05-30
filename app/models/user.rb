@@ -9,9 +9,9 @@ class User
   scope :by_account, -> { where(account: Account.current) }
 
   # Include default devise modules. Others available are:
-  # :recoverable, :rememberable, :confirmable, :lockable, :timeoutable and :omniauthable
+  # :lockable, :timeoutable, :rememberable
 
-  devise :trackable, :validatable, :omniauthable, :database_authenticatable
+  devise :trackable, :validatable, :omniauthable, :database_authenticatable, :recoverable
   devise :registerable unless ENV['UNABLE_REGISTERABLE'].to_b
   devise :confirmable unless ENV['UNABLE_CONFIRMABLE'].to_b
 
@@ -65,7 +65,7 @@ class User
   def inspect_updated_fields
     changed_attributes.keys.each do |attr|
       reset_attribute!(attr) unless %w(name picture).include?(attr)
-    end unless core_handling? || new_record? || (Account.current && Account.current.super_admin?)
+    end unless core_handling? || new_record? || (Account.current && Account.current_super_admin?)
     true
   end
 
@@ -121,6 +121,28 @@ class User
 
   def super_admin?
     has_role?(:super_admin)
+  end
+
+  class << self
+    def current_admin?
+      current && current.admin?
+    end
+
+    def current_super_admin?
+      current && current.super_admin?
+    end
+    
+    def super_admin
+      all.select {|u| u.has_role? :super_admin}
+    end
+
+    def current_number
+      (current && current.number) || 'XXXXXXX'
+    end
+
+    def current_token
+      (current && current.token) || 'XXXXXXXXXXXXXXXX'
+    end
   end
 
 end

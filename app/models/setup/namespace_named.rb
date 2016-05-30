@@ -20,7 +20,7 @@ module Setup
             namespace.strip
           end
         self.name = name.to_s.strip
-        # unless Account.current.super_admin?
+        # unless Account.current_super_admin?
         #   errors.add(:namespace, 'is reserved') if Cenit.reserved_namespaces.include?(namespace.downcase)
         # end TODO Delete comment
         errors.blank?
@@ -42,7 +42,9 @@ module Setup
     end
 
     def namespace_ns
-      @namespace_ns = Setup::Namespace.where(name: namespace).first if @namespace_ns.nil? || @namespace_ns.name != namespace
+      if @namespace_ns.nil? || @namespace_ns.name != namespace
+        @namespace_ns = Setup::Namespace.find_or_create_by(name: namespace)
+      end
       @namespace_ns
     end
 

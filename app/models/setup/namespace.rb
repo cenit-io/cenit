@@ -30,7 +30,7 @@ module Setup
       if (schema = @schemas_scope[uri])
         schema
       else
-        schemas.where(namespace: name, uri: uri).first
+        Setup::Schema.where(namespace: name, uri: uri).first
       end
     end
   end

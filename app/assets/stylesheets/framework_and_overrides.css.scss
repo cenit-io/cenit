@@ -34,7 +34,7 @@ img {
 // to make views framework-neutral
 main {
   @extend .container;
-  background-color: #eee;
+  //background-color: #eee;
   padding-bottom: 80px;
   width: 100%;
   margin-top: 51px; // accommodate the navbar
@@ -43,3 +43,127 @@ section {
   @extend .row;
   margin-top: 20px;
   }
+
+
+.user-auth .panel-heading .cenit-logo,
+.user-auth .panel-heading .cenit-hub {
+  display: inline-block;
+  vertical-align: middle;
+  height: 32px;
+  font-size: 32px;
+  line-height: 32px;
+}
+
+.user-auth .panel-heading .cenit-logo img {
+  max-height: 100%;
+  width: auto;
+}
+
+@media(min-width: 480px) {
+  .user-auth {
+    width: 460px;
+    margin: auto;
+  }
+}
+
+.user-auth .soc-btn {
+  margin: 6px;
+  width: 56px;
+  transition: all 0.3s ease;
+}
+
+.user-auth .soc-btn.unused {
+  opacity: 0;
+  width: 0;
+  margin: 0;
+  padding: 0;
+  visibility: collapse;
+}
+
+.user-auth .soc-btn.selected,
+.user-auth .soc-btn:hover {
+  width: 154px;
+}
+
+.user-auth .soc-btn,
+.user-auth .soc-btn:focus,
+.user-auth .soc-btn:active,
+.user-auth .soc-btn:active:focus,
+.user-auth .soc-btn:hover {
+  color: #ffffff;
+  text-align: left;
+  outline: none;
+}
+
+.user-auth .soc-btn.selected span,
+.user-auth .soc-btn:hover span {
+  opacity: 1;
+  padding-left: 12px;
+}
+
+.user-auth .soc-btn span {
+  opacity: 0;
+  transition: all 0.3s ease;
+}
+
+.user-auth .soc-google {
+  background-color: #dd4b39;
+}
+
+.user-auth .soc-facebook {
+  background-color: #4c69ba;
+}
+
+.user-auth .soc-github {
+  background-color: #010101;
+}
+
+.user-auth .soc-twitter {
+  background-color: #1bb5e7;
+}
+
+.user-auth .form-top,
+.user-auth .form-option {
+  color: #adadad;
+  font-size: 1.75em;
+  line-height: 1.75em;
+  position: relative;
+  margin-bottom: 14px;
+}
+
+.user-auth .form-option:before,
+.user-auth .form-option:after {
+  border-top: 1px solid #adadad;
+  content: "";
+  height: 1px;
+  left: 0;
+  position: absolute;
+  top: 50%;
+  width: 45%;
+  z-index: 0;
+}
+
+.user-auth .form-option:before {
+  left: auto;
+  right: 0;
+}
+
+.user-auth .field {
+  margin-bottom: 16px;
+  color: #adadad;
+}
+
+.user-auth .field label {
+  font-weight: lighter;
+}
+
+#modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: #000;
+  opacity: 0.25;
+  z-index: 10000;
+}

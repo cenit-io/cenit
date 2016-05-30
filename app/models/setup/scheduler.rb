@@ -37,7 +37,8 @@ module Setup
     before_destroy { stop }
 
     def custom_title
-      super + ' [' + (activated? ? 'on' : 'off') + ']'
+      super + ' [' + (activated? ? 'on' : 'off') + ']' +
+        (origin == :admin ? ' (ADMIN)' : '')
     end
 
     def ready_to_save?

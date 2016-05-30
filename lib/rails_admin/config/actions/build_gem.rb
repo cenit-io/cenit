@@ -30,7 +30,7 @@ module RailsAdmin
         end
 
         register_instance_option :pjax? do
-          false
+          true
         end
 
         register_instance_option :link_icon do

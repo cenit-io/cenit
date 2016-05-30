@@ -7,6 +7,8 @@ module Setup
 
     included do
 
+      origins :shared
+
       BuildInDataType.regist(self).excluding(:origin, :tenant)
 
       Setup::Models.exclude_actions_for self, :import, :translator_update, :convert, :send_to_flow, :copy, :new, :cross_share #TODO remove :new and :copy from excluded actions when fixing references sharing problem
@@ -35,6 +37,20 @@ module Setup
 
     def read_attribute(name)
       (!(value = super).nil? && (new_record? || !BuildInDataType[self.class].protecting?(name) || Account.current == tenant) && value) || nil
+    end
+
+    module ClassMethods
+      def super_count
+        current_account = Account.current
+        Account.current = nil
+        c = 0
+        Account.each do |account|
+          Account.current = account
+          c += where(origin: :default).count
+        end
+        Account.current = current_account
+        c + where(origin: :shared).count
+      end
     end
   end
 end

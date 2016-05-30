@@ -1,13 +1,29 @@
 en:
   admin:
+    session:
+      new: 'sign in'
+    registration:
+      new: "try it free"
     js:
       present_and_change: Present & Change
     flash:
       processed: "%{name} %{action} have been processed"
       click_here: "(click here for details)"
+    misc:
+      log_out: "Sign out"
+      terms: "Terms of service"
+      tour: "Take Tour"
+      blog: "Blog"
+      docs: "Docs"
+      dir: "Directory"
+      shared_collections: find shared collections
+      title_search_shared_collections: Share flows to process, storage and move data between APIs, EDIs, DBs and more
+      sub_title_search_shared_collections: "Find code and data over %{count} shared collections"
+      pull: "Pull"
+      show_all: "Show all"
+      overview: "Overview"
+      prices: "Prices"
     actions:
-      tour:
-        title: "Take Tour"
       dashboard:
         title: "Dashboard"
       send_to_flow:
@@ -335,7 +351,5 @@ en:
         submit: "Regist"
         done: "registered"
         doing: "registering"
-      grid:
-        title: "Grid View"
-        menu: "Grid"
-        breadcrumb: "Grid"
+      shared_collection_index:
+        menu: "Shared Collections"

@@ -97,7 +97,6 @@ gem "octokit"
 gem 'exception_notification'
 
 gem 'mime'
+gem 'deface'
 
-gem 'cross_origin'
-
-gem 'lodash-rails'
+gem 'cross_origin', git: 'https://github.com/macarci/cross_origin.git'

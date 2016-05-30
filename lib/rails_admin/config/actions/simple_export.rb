@@ -8,6 +8,10 @@ module RailsAdmin
           true
         end
 
+        register_instance_option :pjax? do
+          true
+        end
+
       end
 
     end

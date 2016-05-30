@@ -24,7 +24,7 @@ class Account
   def inspect_updated_fields
     changed_attributes.keys.each do |attr|
       reset_attribute!(attr) unless %w(notification_level).include?(attr)
-    end unless new_record? || Account.current.super_admin?
+    end unless new_record? || Account.current_super_admin?
     true
   end
 
@@ -75,6 +75,10 @@ class Account
       end
     end
 
+    def current_super_admin?
+      current && current.super_admin?
+    end
+
     def create_with_owner(params={})
       account = new(params)
       if (owner = account.owner)
@@ -100,7 +104,9 @@ class Account
       acc_id =
         (options[:account] && options[:account].id) ||
           options[:account_id] ||
-          (current &&
+          (!options.has_key?(:account) &&
+            !options.has_key?(:account_id) &&
+            current &&
             (((user = current.owner) && user.super_admin? && current.tenant_account.present?) ?
               current.tenant_account.id :
               current.id))

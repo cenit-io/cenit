@@ -14,30 +14,62 @@ module Setup
       unless (base_sch = sch.delete('extends')).nil? || (base_sch = find_ref_schema(base_sch)).nil?
         sch = base_sch.deep_merge(sch) { |_, val1, val2| Cenit::Utility.array_hash_merge(val1, val2) }
       end
-      check_id_property(sch)
+      check_properties(sch)
       sch
     end
 
-    def check_id_property(json_schema)
-      return json_schema unless json_schema['type'] == 'object' && !(properties = json_schema['properties']).nil?
-      _id, id = properties.delete('_id'), properties.delete('id')
-      fail Exception, 'Defining both id and _id' if _id && id
-      if _id ||= id
-        naked_id = _id.reject { |k, _| %w(unique title description edi format example enum readOnly default).include?(k) }
-        type = naked_id.delete('type')
-        fail Exception, "Invalid id property type #{id}" unless naked_id.empty? && (type.nil? || !%w(object array).include?(type))
-        json_schema['properties'] = properties = {'_id' => _id.merge('unique' => true,
-                                                                     'title' => 'Id',
-                                                                     'description' => 'Required',
-                                                                     'edi' => {'segment' => 'id'})}.merge(properties)
-        unless (required = json_schema['required']).present?
-          required = json_schema['required'] = []
+    def check_properties(json_schema)
+      object_schema =
+        case json_schema['type']
+        when 'object'
+          json_schema
+        when 'array'
+          json_schema['items']
+        else
+          nil
         end
-        required.delete('_id')
-        required.delete('id')
-        required.unshift('_id')
+      if object_schema && object_schema.is_a?(Hash) && object_schema['type'] == 'object' && (properties = object_schema['properties'])
+
+        # Check #id property
+        _id, id = properties.delete('_id'), properties.delete('id')
+        fail Exception, 'Defining both id and _id' if _id && id
+        if _id ||= id
+          naked_id = _id.reject { |k, _| %w(unique title description edi format example enum readOnly default).include?(k) }
+          type = naked_id.delete('type')
+          fail Exception, "Invalid id property type #{id}" unless naked_id.empty? && (type.nil? || !%w(object array).include?(type))
+          object_schema['properties'] = properties = { '_id' => _id.merge('unique' => true,
+                                                                          'title' => 'Id',
+                                                                          'description' => 'Required',
+                                                                          'edi' => { 'segment' => 'id' }) }.merge(properties)
+          unless (required = object_schema['required']).present?
+            required = object_schema['required'] = []
+          end
+          required.delete('_id')
+          required.delete('id')
+          required.unshift('_id')
+        end
+
+        # Check #object property
+        if properties.has_key?('object')
+          new_properties = {}
+          properties.keys.each do |property|
+            property_schema = properties.delete(property)
+            if property == 'object'
+              c = 1
+              property = 'obj'
+              while new_properties.has_key?(property) || properties.has_key?(property)
+                property = "obj_#{c += 1}"
+              end
+              property_schema['edi'] = { 'segment' => 'object' }
+            end
+            new_properties[property] = property_schema
+          end
+          new_properties.each { |property, schema| properties[property] = schema }
+        end
+
+        # Check recursively
+        properties.each { |_, property_schema| check_properties(property_schema) if property_schema.is_a?(Hash) }
       end
-      properties.each { |_, property_schema| check_id_property(property_schema) if property_schema.is_a?(Hash) }
       json_schema
     end
 
@@ -112,7 +144,7 @@ module Setup
               schema['properties'] ||= {}
               value_schema = schema['properties']['value'] || {}
               value_schema = base_model.deep_merge(value_schema)
-              schema['properties']['value'] = value_schema.merge('title' => 'Value', 'xml' => {'content' => true})
+              schema['properties']['value'] = value_schema.merge('title' => 'Value', 'xml' => { 'content' => true })
               schema['xml'] ||= {}
               schema['xml']['content_property'] = 'value'
             else
@@ -131,7 +163,7 @@ module Setup
             if base_properties = base_model['properties']
               properties = schema['properties'] || {}
               base_properties.reject! { |property_name, _| properties[property_name].nil? }
-              schema = {'properties' => base_properties}.deep_merge(schema) do |_, val1, val2|
+              schema = { 'properties' => base_properties }.deep_merge(schema) do |_, val1, val2|
                 Cenit::Utility.array_hash_merge(val1, val2)
               end unless base_properties.blank?
             end

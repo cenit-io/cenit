@@ -28,11 +28,12 @@ module RailsAdmin
             RailsAdmin::MongoffModelConfig
           else
             key =
-              if entity.is_a?(RailsAdmin::AbstractModel)
+              case entity
+              when RailsAdmin::AbstractModel
                 entity.model.try(:name).try :to_sym
-              elsif entity.is_a?(Class)
+              when Class
                 entity.name.to_sym
-              elsif entity.is_a?(String) || entity.is_a?(Symbol)
+              when String, Symbol
                 entity.to_sym
               else
                 entity.class.name.to_sym
@@ -56,6 +57,21 @@ module RailsAdmin
 
     class Model
 
+      register_instance_option :public_access? do
+        false
+      end
+
+      Actions.all.each do |action|
+        instance_eval "register_instance_option(:#{action.key}_template_name) { :#{action.key} }"
+        instance_eval "register_instance_option(:#{action.key}_link_icon) { nil }"
+      end
+
+      register_instance_option :template_name do
+        if (action = bindings[:action])
+          send("#{action.key}_template_name")
+        end
+      end
+
       register_instance_option :show_in_dashboard do
         true
       end
@@ -78,6 +94,12 @@ module RailsAdmin
     end
 
     module Actions
+
+      class Base
+        register_instance_option :template_name do
+          ((absm = bindings[:abstract_model]) && absm.config.with(action: self).template_name) || key.to_sym
+        end
+      end
 
       class New
         register_instance_option :controller do
@@ -182,22 +204,36 @@ module RailsAdmin
           proc do
             @history = @auditing_adapter && @auditing_adapter.latest || []
             if @action.statistics?
-              @abstract_models = RailsAdmin::Config.visible_models(controller: self).select(&:show_in_dashboard).collect(&:abstract_model).select do |absm|
-                ((model = absm.model) rescue nil) &&
-                  (model.is_a?(Mongoff::Model) || model.include?(AccountScoped))
-              end
-
+              #Patch
+              @abstract_models =
+                if current_user
+                  RailsAdmin::Config.visible_models(controller: self).select(&:show_in_dashboard).collect(&:abstract_model).select do |absm|
+                    ((model = absm.model) rescue nil) &&
+                      (model.is_a?(Mongoff::Model) || model.include?(AccountScoped))
+                  end
+                else
+                  Setup::Models.collect { |m| RailsAdmin::Config.model(m) }.select(&:visible).select(&:show_in_dashboard).collect(&:abstract_model)
+                end
               @most_recent_changes = {}
               @count = {}
               @max = 0
-              @abstract_models.each do |t|
-                scope = @authorization_adapter && @authorization_adapter.query(:index, t)
-                current_count = t.count({}, scope)
-                @max = current_count > @max ? current_count : @max
-                @count[t.model.name] = current_count
-                next unless t.properties.detect { |c| c.name == :updated_at }
-                # Patch
-                # @most_recent_changes[t.model.name] = t.first(sort: "#{t.table_name}.updated_at").try(:updated_at)
+              #Patch
+              if current_user
+                @abstract_models.each do |t|
+                  scope = @authorization_adapter && @authorization_adapter.query(:index, t)
+                  current_count = t.count({}, scope)
+                  @max = current_count > @max ? current_count : @max
+                  @count[t.model.name] = current_count
+                  # Patch
+                  # next unless t.properties.detect { |c| c.name == :updated_at }
+                  # @most_recent_changes[t.model.name] = t.first(sort: "#{t.table_name}.updated_at").try(:updated_at)
+                end
+              else
+                @abstract_models.each do |absm|
+                  current_count = absm.model.super_count
+                  @max = current_count > @max ? current_count : @max
+                  @count[absm.model.name] = current_count
+                end
               end
             end
             render @action.template_name, status: (flash[:error].present? ? :not_found : 200)
@@ -206,6 +242,104 @@ module RailsAdmin
 
         register_instance_option :link_icon do
           'fa fa-dashboard'
+        end
+      end
+
+      class Index < RailsAdmin::Config::Actions::Base
+        RailsAdmin::Config::Actions.register(self)
+
+        register_instance_option :collection do
+          true
+        end
+
+        register_instance_option :http_methods do
+          [:get, :post]
+        end
+
+        register_instance_option :route_fragment do
+          ''
+        end
+
+        register_instance_option :breadcrumb_parent do
+          parent_model = bindings[:abstract_model].try(:config).try(:parent)
+          if (am = parent_model && RailsAdmin.config(parent_model).try(:abstract_model))
+            [:index, am]
+          else
+            [:dashboard]
+          end
+        end
+
+        register_instance_option :controller do
+          proc do
+            #Patch
+            if current_user || model_config.public_access?
+              begin
+                @objects ||= list_entries
+
+                unless @model_config.list.scopes.empty?
+                  if params[:scope].blank?
+                    unless @model_config.list.scopes.first.nil?
+                      @objects = @objects.send(@model_config.list.scopes.first)
+                    end
+                  elsif @model_config.list.scopes.collect(&:to_s).include?(params[:scope])
+                    @objects = @objects.send(params[:scope].to_sym)
+                  end
+                end
+
+                respond_to do |format|
+                  format.html do
+                    render @action.template_name, status: (flash[:error].present? ? :not_found : 200)
+                  end
+
+                  format.json do
+                    output = begin
+                      if params[:compact]
+                        primary_key_method = @association ? @association.associated_primary_key : @model_config.abstract_model.primary_key
+                        label_method = @model_config.object_label_method
+                        @objects.collect { |o| { id: o.send(primary_key_method).to_s, label: o.send(label_method).to_s } }
+                      else
+                        @objects.to_json(@schema)
+                      end
+                    end
+                    if params[:send_data]
+                      send_data output, filename: "#{params[:model_name]}_#{DateTime.now.strftime('%Y-%m-%d_%Hh%Mm%S')}.json"
+                    else
+                      render json: output, root: false
+                    end
+                  end
+
+                  format.xml do
+                    output = @objects.to_xml(@schema)
+                    if params[:send_data]
+                      send_data output, filename: "#{params[:model_name]}_#{DateTime.now.strftime('%Y-%m-%d_%Hh%Mm%S')}.xml"
+                    else
+                      render xml: output
+                    end
+                  end
+
+                  format.csv do
+                    header, encoding, output = CSVConverter.new(@objects, @schema).to_csv(params[:csv_options])
+                    if params[:send_data]
+                      send_data output,
+                                type: "text/csv; charset=#{encoding}; #{'header=present' if header}",
+                                disposition: "attachment; filename=#{params[:model_name]}_#{DateTime.now.strftime('%Y-%m-%d_%Hh%Mm%S')}.csv"
+                    else
+                      render text: output
+                    end
+                  end
+                end
+              rescue Exception => ex
+                flash[:error] = ex.message
+                redirect_to dashboard_path
+              end
+            else
+              redirect_to new_session_path(User)
+            end
+          end
+        end
+
+        register_instance_option :link_icon do
+          'icon-th-list'
         end
       end
     end
@@ -485,6 +619,24 @@ module RailsAdmin
 
   module ApplicationHelper
 
+    # parent => :root, :collection, :member
+    def menu_for(parent, abstract_model = nil, object = nil, only_icon = false) # perf matters here (no action view trickery)
+      actions = actions(parent, abstract_model, object).select { |a| a.http_methods.include?(:get) }
+      actions.collect do |action|
+        wording = wording_for(:menu, action)
+        #Patch
+        link_icon = (abstract_model && abstract_model.config.send("#{action.key}_link_icon")) || action.link_icon
+        %(
+          <li title="#{wording if only_icon}" rel="#{'tooltip' if only_icon}" class="icon #{action.key}_#{parent}_link #{'active' if current_action?(action)}">
+            <a class="#{action.pjax? ? 'pjax' : ''}" href="#{url_for(action: action.action_name, controller: 'rails_admin/main', model_name: abstract_model.try(:to_param), id: (object.try(:persisted?) && object.try(:id) || nil))}">
+              <i class="#{link_icon}"></i>
+              <span#{only_icon ? " style='display:none'" : ''}>#{wording}</span>
+            </a>
+          </li>
+        )
+      end.join.html_safe
+    end
+
     def wording_for(label, action = @action, abstract_model = @abstract_model, object = @object)
       model_config = abstract_model.try(:config)
       #Patch
@@ -512,7 +664,7 @@ module RailsAdmin
     def tasks_link
       _, abstract_model, index_action = linking(Setup::Task)
       return nil unless index_action
-      link_to url_for(action: index_action.action_name, model_name: abstract_model.to_param, controller: 'rails_admin/main') do
+      link_to url_for(action: index_action.action_name, model_name: abstract_model.to_param, controller: 'rails_admin/main'), class: 'pjax' do
         html = '<i class="icon-tasks" title="Tasks" rel="tooltip"/></i>'
         #...
         html.html_safe
@@ -522,7 +674,7 @@ module RailsAdmin
     def authorizations_link
       _, abstract_model, index_action = linking(Setup::Authorization)
       return nil unless index_action
-      link_to url_for(action: index_action.action_name, model_name: abstract_model.to_param, controller: 'rails_admin/main') do
+      link_to url_for(action: index_action.action_name, model_name: abstract_model.to_param, controller: 'rails_admin/main'), class: 'pjax' do
         html = '<i class="icon-check"  title="Authorizations" rel="tooltip"></i>'
         if (unauthorized_count = Setup::Authorization.where(authorized: false).count) > 0
           label_html = <<-HTML
@@ -545,7 +697,7 @@ module RailsAdmin
     def notifications_link
       account, abstract_model, index_action = linking(Setup::Notification)
       return nil unless index_action
-      link_to url_for(action: index_action.action_name, model_name: abstract_model.to_param, controller: 'rails_admin/main') do
+      link_to url_for(action: index_action.action_name, model_name: abstract_model.to_param, controller: 'rails_admin/main'), class: 'pjax' do
         html = '<i class="icon-bell" title="Notification" rel="tooltip"></i>'
         counters = Hash.new { |h, k| h[k] = 0 }
         scope =
@@ -601,7 +753,7 @@ module RailsAdmin
         current_user = current_account.tenant_account || current_account
       end
       return nil unless current_user && abstract_model && edit_action
-      link = link_to url_for(action: edit_action.action_name, model_name: abstract_model.to_param, id: current_user.id, controller: 'rails_admin/main') do
+      link = link_to url_for(action: edit_action.action_name, model_name: abstract_model.to_param, id: current_user.id, controller: 'rails_admin/main'), class: 'pjax' do
         html = []
         # Patch
         # text = _current_user.name
@@ -619,7 +771,7 @@ module RailsAdmin
       end
       if inspecting
         link = [link]
-        link << link_to(url_for(action: inspect_action.action_name, model_name: account_abstract_model.to_param, id: current_account.tenant_account.id, controller: 'rails_admin/main')) do
+        link << link_to(url_for(action: inspect_action.action_name, model_name: account_abstract_model.to_param, id: current_account.tenant_account.id, controller: 'rails_admin/main'), class: 'pjax') do
           '<i class="icon-eye-close" style="color: red"></i>'.html_safe
         end
       end
@@ -665,6 +817,46 @@ module RailsAdmin
       end.join.html_safe
     end
 
+    def dashboard_main()
+      nodes_stack =
+        if current_user
+          RailsAdmin::Config.visible_models(controller: controller)
+        else
+          Setup::Models.collect { |m| RailsAdmin::Config.model(m) }.select(&:visible).select(&:show_in_dashboard)
+        end
+
+      node_model_names = nodes_stack.collect { |c| c.abstract_model.model_name }
+
+      html_ = "<table class='table table-condensed table-striped .col-sm-6'>" +
+        '<thead><tr><th class="shrink"></th><th></th><th class="shrink"></th></tr></thead>' +
+        nodes_stack.group_by(&:navigation_label).collect do |navigation_label, nodes|
+          nodes = nodes.select { |n| n.parent.nil? || !n.parent.to_s.in?(node_model_names) }
+          stack = dashboard_navigation nodes_stack, nodes
+
+          label = navigation_label || t('admin.misc.navigation')
+
+          icon = ((opts = RailsAdmin::Config.navigation_options[label]) && opts[:icon]) || 'fa fa-cube'
+          icon =
+            case icon
+            when Symbol
+              render partial: icon.to_s
+            else
+              "<i class='#{icon}'></i>"
+            end
+
+          if stack.present?
+            %(
+              <tbody><tr><td colspan="3"><h3>
+                <span class="nav-icon">#{icon}</span>
+                <span class="nav-caption">#{label}</span>
+              </h3></td></tr>
+            #{stack}
+            </tbody>)
+          end
+        end.join + '</tbody></table>'
+      html_.html_safe
+    end
+
     def navigation(nodes_stack, nodes, html_id)
       if not nodes.present?
         return
@@ -678,9 +870,6 @@ module RailsAdmin
 
           children = nodes_stack.select { |n| n.parent.to_s == node.abstract_model.model_name }
           if children.present?
-            # level_class = ''
-
-            # nav_icon = node.navigation_icon ? %(<i class="#{node.navigation_icon}"></i>).html_safe : ''
             li = %(<div class='panel panel-default'>
             <div class='panel-heading'>
               <a data-toggle='collapse' data-parent='##{html_id}' href='##{stack_id}' class='panel-title collapse in collapsed'>
@@ -696,7 +885,7 @@ module RailsAdmin
             content_tag :li, data: { model: model_param } do
               link_to url, class: 'pjax' do
                 rc = ""
-                if model_count>0
+                if _current_user.present? && model_count>0
                   rc += "<span class='nav-amount'>#{model_count}</span>"
                 end
                 rc += "<span class='nav-caption'>#{capitalize_first_letter node.label_navigation}</span>"
@@ -706,7 +895,64 @@ module RailsAdmin
           end
         end.join + '</div>').html_safe
     end
+
+    def dashboard_navigation(nodes_stack, nodes)
+      if not nodes.present?
+        return
+      end
+      i = -1
+      ('' +
+        nodes.collect do |node|
+          i += 1
+
+          children = nodes_stack.select { |n| n.parent.to_s == node.abstract_model.model_name }
+          if children.present?
+            li = dashboard_navigation nodes_stack, children
+          else
+            model_param = node.abstract_model.to_param
+            url = url_for(action: :index, controller: 'rails_admin/main', model_name: model_param)
+            content_tag :tr, data: { model: model_param } do
+              rc = '<td>' + link_to(url, class: 'pjax') do
+                if current_user
+                  # "#{capitalize_first_letter node.label_navigation}"
+                  "#{capitalize_first_letter node.abstract_model.config.label_plural}"
+                else
+                  "#{capitalize_first_letter node.abstract_model.config.label_plural}"
+                end
+              end
+              rc += '</td>'
+
+              model_count =
+                if current_user
+                  node.abstract_model.model.all.count
+                else
+                  @count[node.abstract_model.model.name] || 0
+                end
+              pc = percent(model_count, @max)
+              indicator = get_indicator(pc)
+              anim = animate_width_to(pc)
+
+              rc += '<td>'
+              rc += "<div class='progress progress-#{indicator}' style='margin-bottom:0'>"
+              rc += "<div class='animate-width-to progress-bar progress-bar-#{indicator}' data-animate-length='#{anim}' data-animate-width-to='#{anim}' style='width:2%'>"
+              rc += "#{model_count}"
+              rc += '</div>'
+              rc += '</div>'
+              rc += '</td>'
+
+              menu = menu_for(:collection, node.abstract_model, nil, true)
+
+              rc += '<td class="links">'
+              rc += "<ul class='inline list-inline'>#{menu}</ul>"
+              rc += '</td>'
+
+              rc.html_safe
+            end
+          end
+        end.join).html_safe
+    end
   end
+
 
   class MainController
 

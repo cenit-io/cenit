@@ -14,6 +14,21 @@ $(document).on('rails_admin.dom_ready', function() {
 });
 
 $(function(){
+    $(".soc-btn").on("click", function(ev){
+        $(this).addClass("selected");
+        $(this).siblings().addClass("unused");
+
+        var overlay = $('<div id="modal-overlay"></div>');
+        overlay.appendTo(document.body);
+    });
+});
+
+$(function(){
+    if ($(window).width() > 767) {
+        $("#wrapper").addClass('toggled');
+        $("#sidebar-toggle").addClass('toggled');
+    }
+
     $("#sidebar-toggle").click(function(e) {
         e.preventDefault();
         $("#wrapper").toggleClass("toggled");
@@ -22,13 +37,50 @@ $(function(){
 
     $('#main-accordion').find('.panel-heading a.panel-title').click(function(){
         var parent = $(this).parent().parent();
+        $(parent).toggleClass('active');
         if ($(parent).hasClass('active'))
-            $(parent).removeClass('active');
-        else {
-            $(parent).addClass('active');
             $(parent).siblings().each(function () {
                 $(this).removeClass('active');
             });
+    });
+
+    $("#drawer-toggle").click(function(e) {
+        e.preventDefault();
+        $("#nav-drawer").toggleClass('open');
+        $(this).toggleClass("toggled");
+    });
+
+    function getAbsolute() {
+        var outer = $("#nav-drawer").height();
+        var inner = $("#nav-links").height() + $("#social-links").height();
+
+        return outer > inner;
+    }
+
+    $(window).on('resize', function(e){
+        if (getAbsolute()) {
+            $("#social-links").addClass("absolute");
+        } else {
+            $("#social-links").removeClass("absolute");
+        }
+    });
+    if (getAbsolute()) {
+        $("#social-links").addClass("absolute");
+    }
+
+    $("#search-toggle").click(function(e){
+        var parent = $("#navbar-search");
+        if (!$(parent).hasClass('open')) {
+            e.preventDefault();
+            $(parent).addClass('open');
+            $(this).addClass('toggled');
+        } else {
+            query = $(parent).find('input[type="search"]').val();
+            if (query == "") {
+                e.preventDefault();
+                $(parent).removeClass("open");
+            }
+            $(this).removeClass('toggled');
         }
     });
 });
@@ -40,7 +92,7 @@ $(function () {
             name: 'anonymous',
             steps: [
                 {
-                    title: "Welcome to CenitHub!",
+                    title: "Welcome to cenit.io!",
                     content: "Thanks for visiting us! Click 'Next' to start the tour.",
                     orphan: true
                 },
