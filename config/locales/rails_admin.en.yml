@@ -15,7 +15,7 @@ en:
       tour: "Take Tour"
       blog: "Blog"
       docs: "Docs"
-      dir: "Directory"
+      directory: "Directory"
       shared_collections: find shared collections
       title_search_shared_collections: Share flows to process, storage and move data between APIs, EDIs, DBs and more
       sub_title_search_shared_collections: "Find code and data over %{count} shared collections"
