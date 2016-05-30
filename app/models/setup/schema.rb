@@ -38,7 +38,7 @@ module Setup
     end
 
     def cenit_ref_schema(options = {})
-      options = {service_url: Cenit.service_url, service_schema_path: Cenit.service_schema_path}.merge(options)
+      options = { service_url: Cenit.service_url, service_schema_path: Cenit.service_schema_path }.merge(options)
       send("cenit_ref_#{schema_type}", options)
     end
 
@@ -47,12 +47,12 @@ module Setup
     end
 
 
-    def validate_file_record(file)
+    def validate_data(data)
       case schema_type
       when :json_schema
         begin
           JSON::Validator.fully_validate(JSON.parse(schema),
-                                         JSON.parse(file.data),
+                                         JSON.parse(data),
                                          version: :mongoff,
                                          schema_reader: JSON::Schema::CenitReader.new(self),
                                          strict: true)
@@ -61,7 +61,11 @@ module Setup
           [ex.message]
         end
       when :xml_schema
-        Nokogiri::XML::Schema(cenit_ref_schema).validate(Nokogiri::XML(file.data))
+        begin
+          Nokogiri::XML::Schema(cenit_ref_schema).validate(Nokogiri::XML(data))
+        rescue Exception => ex
+          [ex.message]
+        end
       end
     end
 
@@ -121,7 +125,7 @@ module Setup
     private
 
     def parse_json_schema
-      {uri => JSON.parse(self.schema)}
+      { uri => JSON.parse(self.schema) }
     end
 
     def parse_xml_schema

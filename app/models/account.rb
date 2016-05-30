@@ -102,7 +102,9 @@ class Account
       acc_id =
         (options[:account] && options[:account].id) ||
           options[:account_id] ||
-          (current &&
+          (!options.has_key?(:account) &&
+            !options.has_key?(:account_id) &&
+            current &&
             (((user = current.owner) && user.super_admin? && current.tenant_account.present?) ?
               current.tenant_account.id :
               current.id))
