@@ -5,9 +5,8 @@
 
 = link_to dashboard_path, class: "navbar-brand pjax" do
   %span.cenit-logo
-    =image_tag 'cenit-logo.png'
-  %span.cenit-hub{style: 'color: white;'}= 'cenit.io'
-%button#sidebar-toggle.btn.a.navbar-brand.toggle-btn
+    =image_tag 'cenit-logo.png', style: 'max-height: 140%'
+  %span.cenit-hub{style: 'color: white;font-size: 22px;'}= 'cenit.io'
+#sidebar-toggle.a.navbar-brand
   %small
-    %small
-      %i.fa.fa-chevron-right
+    %i.fa.fa-chevron-right{style: 'color: white;'}
