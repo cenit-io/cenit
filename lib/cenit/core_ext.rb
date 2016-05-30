@@ -125,6 +125,11 @@ module Nokogiri
         end
       end
     end
+    class SyntaxError
+      def empty?
+        false
+      end
+    end
   end
 end
 

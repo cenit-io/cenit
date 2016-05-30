@@ -43,7 +43,7 @@ module Cenit
       @options ||=
         {
           service_url: 'http://localhost:3000', #TODO Automatize default service url
-          service_schema_path: '/schema',
+          service_schema_path: '/service/schema',
           reserved_namespaces: %w(cenit default)
         }
     end
