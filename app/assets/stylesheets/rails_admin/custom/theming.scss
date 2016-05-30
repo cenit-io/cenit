@@ -116,11 +116,7 @@ a#sign-in-link:hover, a#sign-out-link:hover  {
   transform: rotate(180deg);
 }
 
-#drawer-toggle.toggled i.fa {
-  transform: rotate(90deg);
-}
-
-/* Serach form styles */
+/* Search form styles */
 
 #navbar-search input {
   transition: all .3s ease-in-out;
