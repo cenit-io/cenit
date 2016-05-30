@@ -38,7 +38,11 @@ module Setup
     end
 
     def cenit_ref_schema(options = {})
-      options = { service_url: Cenit.service_url, service_schema_path: Cenit.service_schema_path }.merge(options)
+      options =
+        {
+          service_url: Cenit.service_url,
+          service_schema_path: Cenit.service_schema_path
+        }.merge(options)
       send("cenit_ref_#{schema_type}", options)
     end
 
@@ -143,7 +147,7 @@ module Setup
         if %w(import include redefine).include?(cursor.name) && (attr = cursor.attributes['schemaLocation'])
           attr.value = options[:service_url].to_s + options[:service_schema_path] + '?' +
             {
-              key: Account.current.owner.unique_key,
+              token: AccountToken.create.token,
               ns: namespace,
               uri: Cenit::Utility.abs_uri(uri, attr.value)
             }.to_param
