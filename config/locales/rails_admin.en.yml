@@ -9,6 +9,7 @@ en:
       new: "try it free"
       sign: 'Already have a user?'
       submit: 'Sign up'
+      terms_preface: 'By signing up you agree with the'
     js:
       present_and_change: Present & Change
     flash:

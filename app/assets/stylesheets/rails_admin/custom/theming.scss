@@ -440,6 +440,7 @@ ul#main-accordion .panel-heading .nav-icon {
 
 .user-auth .soc-btn {
   margin: 0 6px;
+  transition: all .3s ease-in-out;
 }
 
 .user-auth .soc-btn,
@@ -450,6 +451,10 @@ ul#main-accordion .panel-heading .nav-icon {
   color: #ffffff;
   text-align: left;
   outline: none;
+}
+
+.user-auth .soc-btn:hover {
+  transform: scale(1.25);
 }
 
 .user-auth .soc-google {
@@ -486,8 +491,7 @@ ul#main-accordion .panel-heading .nav-icon {
 .user-auth .local-forms {
   position: relative;
   overflow: hidden;
-  height: calc(100% - 80px);
-  min-height: 200px;
+  height: 220px;
 }
 
 .user-auth form.local {
@@ -518,6 +522,15 @@ ul#main-accordion .panel-heading .nav-icon {
 }
 
 .user-auth .actions .btn-xs:hover {
+  color: white;
+  text-decoration: underline;
+}
+
+.user-auth .terms {
+  margin: 8px;
+}
+
+.user-auth .terms a {
   color: white;
 }
 
