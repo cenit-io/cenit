@@ -2,8 +2,13 @@ en:
   admin:
     session:
       new: 'sign in'
+      register: "Don't have a user?"
+      new_title: 'Sign in with'
+      submit: 'Log in'
     registration:
       new: "try it free"
+      sign: 'Already have a user?'
+      submit: 'Sign up'
     js:
       present_and_change: Present & Change
     flash:
@@ -23,6 +28,7 @@ en:
       show_all: "Show all"
       overview: "Overview"
       prices: "Prices"
+      or: 'or'
     actions:
       dashboard:
         title: "Dashboard"

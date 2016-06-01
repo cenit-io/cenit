@@ -83,7 +83,8 @@
       =link_to t('admin.registration.new'), new_registration_path(User), class: 'btn btn-primary', id: 'sign-in-link', style: 'padding-right:10px'
   %ul#sign-drawer.drawer.user-auth
     #sign-links.holder
-      .form-top Sign in with
+      .form-top
+        =t('admin.session.new_title')
       - resource = User.new
       - resource_name = :user
       = form_for(resource, as: resource_name, url: session_path(resource_name), html: { role: 'form', class: 'form-inline' }) do |f|
@@ -98,7 +99,7 @@
           %i{class:"fa fa-fw fa-facebook"}
       - unless ENV['UNABLE_SIGN_IN_AND_SIGN_UP_DEVISE'].to_b
         .form-option
-          or
+          =t('admin.misc.or')
         .local-forms
           = form_for(resource, as: resource_name, url: session_path(resource_name), html: {class: 'local'}) do |f|
             .field.text-justify
@@ -107,8 +108,9 @@
               = f.password_field :password, autocomplete: 'off', class: 'form-control', placeholder: 'Password'
             .actions.clearfix
               %button.btn.btn-primary.pull-right{type:'submit'}
-                Log in
-              %a.btn.btn-xs.pull-left{href: '#'} Don't have a user?
+                =t('admin.session.submit')
+              %a.btn.btn-xs.pull-left{href: '#'}
+                =t('admin.session.register')
 
           = form_for(resource, as: resource_name, url: registration_path(resource_name), html: {class: 'local active'}) do |f|
             .field.text-justify
@@ -119,8 +121,9 @@
               = f.password_field :password_confirmation, autocomplete: 'off', class: 'form-control', placeholder: 'Password confirmation'
             .actions.clearfix
               %button.btn.btn-primary.pull-right{type:'submit'}
-                Sign up
-              %a.btn.btn-xs.pull-left{href: '#'} Already have a user?
+                =t('admin.registration.submit')
+              %a.btn.btn-xs.pull-left{href: '#'}
+                =t('admin.registration.sign')
     .social-links.text-center.last
       =link_to 'https://www.linkedin.com/company/cenit-llc', target: '_blank' do
         %i.fa.fa-fw.fa-linkedin-square
