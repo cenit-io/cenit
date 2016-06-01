@@ -124,6 +124,11 @@
                 =t('admin.registration.submit')
               %a.btn.btn-xs.pull-left{href: '#'}
                 =t('admin.registration.sign')
+            .terms.text-left
+              %small.text-muted
+                =t('admin.registration.terms_preface')
+                =link_to "#{ENV['PORTAL_URL'] || 'https://cenit.io'}/terms_of_service", target: '_blank' do
+                  %span=t('admin.misc.terms')
     .social-links.text-center.last
       =link_to 'https://www.linkedin.com/company/cenit-llc', target: '_blank' do
         %i.fa.fa-fw.fa-linkedin-square
