@@ -29,6 +29,9 @@ module Setup
 
     before_save do
       @activation_status_changed = changed_attributes.has_key?(:activated.to_s)
+      json_exp = JSON.parse(expression)
+      json_exp.reject! { |_, value| value.blank? }
+      self.expression =json_exp.to_json
       true
     end
 

@@ -1,10 +1,12 @@
 <%
-  if @object.expression != nil
-    dd = JSON.parse(@object.expression)
-  else
-    dd = {"periodic_expression" => "", "type" => "periodic", "months_days" => [], "weeks_days" => [], "last_day_in_month" => false, "weeks_month" => [], "months" => [], "hours" => [], "minutes" => []}
-  end
-  ["months_days", "months", "hours", "minutes"].each { |e| dd[e] = dd[e].to_s.strip[1..-2] }
+   dd = Hash.new { |h, k| h[k] = [] }
+   if @object.expression != nil
+     dd.merge!(JSON.parse(@object.expression))
+   else
+     dd['type'] = 'periodic'
+     dd['periodic_expression'] = ''
+   end
+   %w(months_days months hours minutes).each { |e| dd[e] = dd[e].to_s.strip[1..-2] }
 %>
 
 <input type="hidden" id="setup_scheduler_expression" name="setup_scheduler[expression]">
@@ -106,7 +108,7 @@
                 <% week_month_reverse.each_with_index do |d, i| %>
                     <div class="checkbox">
                       <label><input id="week_month_reverse_<%= i+1 %>"  <%= dd["weeks_month"].select { |e| e < 0 }.include?(-(i+1)) ? 'checked' : '' %> type="checkbox"><br>
-                        <span><%=d%></span></label>
+                        <span><%= d %></span></label>
                     </div>
                 <% end %>
 
