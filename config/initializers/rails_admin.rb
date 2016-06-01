@@ -1765,37 +1765,20 @@ RailsAdmin.config do |config|
     edit do
       field :namespace
       field :name
-      field :scheduling_method
+
       field :expression do
-        visible { bindings[:object].scheduling_method.present? }
-        label do
-          case bindings[:object].scheduling_method
-          when :Once
-            'Date and time'
-          when :Periodic
-            'Duration'
-          when :CRON
-            'CRON Expression'
-          else
-            'Expression'
-          end
-        end
-        help do
-          case bindings[:object].scheduling_method
-          when :Once
-            'Select a date and a time'
-          when :Periodic
-            'Type a time duration'
-          when :CRON
-            'Type a CRON Expression'
-          else
-            'Expression'
-          end
-        end
-        partial { bindings[:object].scheduling_method == :Once ? 'form_datetime_wrapper' : 'form_text' }
+        visible true
+
+        label 'Schedule'
+
+        help 'Configure scheduler'
+
+        partial :scheduler
+
         html_attributes do
-          { rows: '1' }
+          {rows: '1'}
         end
+
       end
     end
 
@@ -1803,7 +1786,6 @@ RailsAdmin.config do |config|
       field :namespace
       field :name
       field :expression
-      field :origin
 
       field :_id
       field :created_at
@@ -1812,7 +1794,7 @@ RailsAdmin.config do |config|
       #field :updater
     end
 
-    fields :namespace, :name, :scheduling_method, :expression, :activated, :origin
+    fields :namespace, :name, :expression, :activated
   end
 
   config.model Setup::AlgorithmParameter do
@@ -2903,9 +2885,13 @@ RailsAdmin.config do |config|
       visible { Account.current_super_admin? }
     end
     configure :notification_level
+    configure :time_zone do
+      label 'Time Zone'
+    end
 
 
-    fields :_id, :name, :owner, :tenant_account, :number, :users, :notification_level
+    fields :_id, :name, :owner, :tenant_account, :number, :users, :notification_level, :time_zone
+
   end
 
   config.model Role do
