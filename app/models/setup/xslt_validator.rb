@@ -3,7 +3,7 @@ module Setup
     include CenitScoped
     include CustomTitle
 
-    BuildInDataType.regist(self).with(:namespace).referenced_by(:namespace)
+    BuildInDataType.regist(self).referenced_by(:namespace, :name)
 
     field :xslt, type: String
 
