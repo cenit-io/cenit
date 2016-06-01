@@ -39,7 +39,8 @@
   RailsAdmin::Config::Actions::Configure,
   RailsAdmin::Config::Actions::CrossShare,
   RailsAdmin::Config::Actions::Regist,
-  RailsAdmin::Config::Actions::SharedCollectionIndex
+  RailsAdmin::Config::Actions::SharedCollectionIndex,
+  RailsAdmin::Config::Actions::Gist
 ].each { |a| RailsAdmin::Config::Actions.register(a) }
 
 RailsAdmin::Config::Actions.register(:export, RailsAdmin::Config::Actions::BulkExport)
@@ -148,6 +149,7 @@ RailsAdmin.config do |config|
     inspect
     cancel
     regist
+    gist
     simple_delete_data_type
     bulk_delete_data_type
     delete
@@ -1997,6 +1999,7 @@ RailsAdmin.config do |config|
       field :code, :code_mirror do
         help { 'Required' }
       end
+      field :gist_visible
       field :call_links do
         visible { bindings[:object].call_links.present? }
       end
@@ -2012,10 +2015,11 @@ RailsAdmin.config do |config|
           "<pre><code class='ruby'>#{v}</code></pre>".html_safe
         end
       end
+      field :gist_visible
       field :call_links
       field :_id
     end
-    fields :namespace, :name, :description, :parameters, :call_links
+    fields :namespace, :name, :description, :gist_visible, :parameters, :call_links
   end
 
   config.model Setup::Action do

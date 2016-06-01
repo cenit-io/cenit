@@ -10,12 +10,19 @@ module Setup
     field :code, type: String
     embeds_many :call_links, class_name: Setup::CallLink.to_s, inverse_of: :algorithm
 
+    field :gist_visible, type: Boolean
+    field :gist_id, type: String, default: nil
+
     validates_format_of :name, with: /\A[a-z]([a-z]|_|\d)*\Z/
 
     accepts_nested_attributes_for :parameters, allow_destroy: true
     accepts_nested_attributes_for :call_links, allow_destroy: true
 
     before_save :validate_code
+
+    before_destroy do
+      Cenit.github_client.delete_gist(self.gist_id)
+    end
 
     def validate_code
       if code.blank?
@@ -38,7 +45,24 @@ module Setup
           do_link
         end
       end
-      errors.blank?
+      res = errors.blank?
+      if res
+        file_data = {"#{self.namespace} - #{self.name}" => {'content' => self.code}}
+        if self.gist_id
+          Cenit.github_client.edit_gist(
+            self.gist_id,
+            files: file_data
+          )
+        else
+          r = Cenit.github_client.create_gist(
+            description: self.description,
+            public: self.gist_visible,
+            files: file_data
+          )
+          self.gist_id = r.attrs[:id]
+        end
+      end
+      res
     end
 
     def do_link
