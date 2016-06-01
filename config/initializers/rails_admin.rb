@@ -1208,9 +1208,18 @@ RailsAdmin.config do |config|
     fields :namespace, :uri, :schema_data_type
   end
 
-  config.model Setup::EdiValidator do
+  config.model Setup::XsltValidator do
     parent Setup::Validator
     weight -488
+
+    object_label_method { :custom_title }
+
+    fields :namespace, :name, :xslt
+  end
+
+  config.model Setup::EdiValidator do
+    parent Setup::Validator
+    weight -487
     object_label_method { :custom_title }
     label 'EDI Validators'
     configure :namespace, :enum_edit
@@ -1220,7 +1229,7 @@ RailsAdmin.config do |config|
 
   config.model Setup::AlgorithmValidator do
     parent Setup::Validator
-    weight -487
+    weight -486
     object_label_method { :custom_title }
     configure :namespace, :enum_edit
 
