@@ -80,8 +80,8 @@ module Setup
     end
 
     def next_time
-      r = Account.current.time_zone.split("|")
-      tz = "+00:00"
+      r = Account.current.time_zone.split('|')
+      tz = '+00:00'
       if r.length > 1
         tz = r[1].strip
       end
@@ -156,67 +156,56 @@ module Setup
 
   class SchedulerTimePointsCalculator
 
+    THIRTY_ONE_MONTHS = Set.new [1, 3, 5, 7, 8, 10, 12]
+
     def amount_of_days_in_the_month(year, month)
-      res = {
-        1 => 31, 3 => 31,
-        5 => 31, 7 => 31,
-        8 => 31, 10 => 31,
-        12 => 31,
-      }
-      res = res[month]
-      if not res
-        dt = Time.gm(year, month+1, 1)
-        res = (dt-1).day
+      if THIRTY_ONE_MONTHS.include?(month)
+        31
+      else
+        (Time.gm(year, month + 1, 1) - 1).day
       end
-      res
     end
 
 
-    def thow_first_days(year, dd, m)
+    def weeks_first_days(year, dd, m)
       res = []
-      one_day = 60*60*24
       d1 = Time.gm(year, m, 1)
       d2 = Time.gm(year, m, 21)
-      sunday = d1 + ((7 + dd - d1.wday) % 7) * one_day
+      sunday = d1 + ((7 + dd - d1.wday) % 7) * 1.day
       while sunday < d2
         res << sunday.day
-        sunday += one_day * 7
+        sunday += 1.day * 7
       end
       res
     end
 
     def all_days(year, dd, m)
       res = []
-      one_day = 60*60*24
       d1 = Time.gm(year, m, 1)
       d2 = Time.gm(year, m, amount_of_days_in_the_month(year, m))
-      sunday = d1 + ((7 + dd - d1.wday) % 7) * one_day
+      sunday = d1 + ((7 + dd - d1.wday) % 7) * 1.day
       while sunday < d2
         res << sunday.day
-        sunday += one_day * 7
+        sunday += 1.day * 7
       end
       res
     end
 
     def last_day(year, dd, m)
-      one_day = 60*60*24
       d1 = Time.gm(year, m, amount_of_days_in_the_month(year, m))
       while d1.wday != dd
-        d1 -= one_day
+        d1 -= 1.day
       end
       d1
     end
 
-    def thow_last_days(year, dd, m)
+    def weeks_last_days(year, dd, m)
       res = []
-      one_day = 60*60*24
-      d1 = Time.gm(year, m, amount_of_days_in_the_month(year, m))
       d2 = Time.gm(year, m, amount_of_days_in_the_month(year, m) - 14)
       sunday = last_day(year, dd, m)
-
       while sunday > d2
         res << sunday.day
-        sunday -= one_day * 7
+        sunday -= 1.day * 7
       end
       res
     end
@@ -234,10 +223,10 @@ module Setup
           weeks_month.each do |wm|
             if wm > 0
               # firsts one
-              months_days += weeks_days.collect { |wd| thow_first_days(@year, wd, month)[wm-1] }
+              months_days += weeks_days.collect { |wd| weeks_first_days(@year, wd, month)[wm-1] }
             else
               # lasts one
-              months_days += weeks_days.collect { |wd| thow_last_days(@year, wd, month)[wm.abs - 1] }
+              months_days += weeks_days.collect { |wd| weeks_last_days(@year, wd, month)[wm.abs - 1] }
             end
           end
         else
@@ -249,34 +238,26 @@ module Setup
         months_days = @conf[:months_days]
       end
 
-      if months_days == []
-        months_days = [1]
-      end
+      months_days = [1] if months_days.empty?
 
       months_days.select { |e| e > 0 && e <= _a }
     end
 
     def hours
       res = @conf[:hours]
-      if res == []
-        res = [0]
-      end
+      res = [0] if res.empty?
       res.select { |e| e > -1 && e <= 23 }
     end
 
     def minutes
       res = @conf[:minutes]
-      if res == []
-        res = [0]
-      end
+      res = [0] if res.empty?
       res.select { |e| e > -1 && e <= 59 }
     end
 
     def months
       res = @conf[:months]
-      if res == []
-        res = [1]
-      end
+      res = [1] if res.empty?
       res.select { |e| e > 0 && e <= 12 }
     end
 
@@ -301,7 +282,7 @@ module Setup
 
     def backtracking(k)
       if k > 3
-        report_solution()
+        report_solution
       else
         @actions[k].call.each { |e|
           @solution[k] = e
@@ -310,21 +291,20 @@ module Setup
       end
     end
 
-    def next_time(tnow)
-      if @conf[:type] != 'cyclic'
-        run
-        res = @v.select { |e| e > tnow }
-                .collect { |e| e - tnow }
-                .min
-        res ? tnow + res : nil
-      else
+    def next_time(now)
+      if @conf[:type] == 'cyclic'
         a = @conf[:cyclic_expression].to_seconds_interval
         b = Cenit.min_scheduler_interval || 60
-        tnow + [a, b].max
+        now + [a, b].max
+      else
+        run
+        res = @v.select { |e| e > now }
+                .collect { |e| e - now }
+                .min
+        res ? now + res : nil
       end
     end
   end
-
 end
 
 
