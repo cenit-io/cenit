@@ -89,71 +89,68 @@ module Setup
       calculator.next_time(Time.zone.now)
     end
 
-    SCHEDULER_SCHEMA = <<-DATA
-{
-  "type" : "object",
-  "properties": {
-    "periodic_expression": {
-      "type": "string",
-      "pattern": "^[1-9][0-9]*(s|m|h|d)$"
-    },
-    "type": {
-      "type": "string",
-      "enum": ["periodic", "specific_position", "specific_number"]
-    },
-    "months_days": {
-      "type": "array",
-      "items":{
-        "type": "integer"
+    SCHEMA = {
+      type: 'object',
+      properties: {
+        cyclic_expression: {
+          type: 'string',
+          pattern: '^[1-9][0-9]*(s|m|h|d)$'
+        },
+        type: {
+          type: 'string',
+          enum: %w(cyclic appointed_position appointed_number)
+        },
+        months_days: {
+          type: 'array',
+          items: {
+            type: 'integer'
+          },
+          uniqueItems: true,
+          maxItems: 31
+        },
+        weeks_days: {
+          type: 'array',
+          items: {
+            type: 'integer'
+          },
+          uniqueItems: true,
+          maxItems: 7
+        },
+        weeks_month: {
+          type: 'array',
+          items: {
+            type: 'integer'
+          },
+          uniqueItems: true,
+          maxItems: 3
+        },
+        months: {
+          type: 'array',
+          items: {
+            type: 'integer'
+          },
+          uniqueItems: true,
+          maxItems: 12
+        },
+        hours: {
+          type: 'array',
+          items: {
+            type: 'integer'
+          },
+          uniqueItems: true,
+          maxItems: 24
+        },
+        minutes: {
+          type: 'array',
+          items: {
+            type: 'integer'
+          },
+          uniqueItems: true,
+          maxItems: 60
+        }
       },
-      "uniqueItems": true,
-      "maxItems": 31
-    },
-    "weeks_days": {
-      "type": "array",
-      "items":{
-        "type": "integer"
-      },
-      "uniqueItems": true,
-      "maxItems": 7
-    },
-    "weeks_month": {
-      "type": "array",
-      "items":{
-        "type": "integer"
-      },
-      "uniqueItems": true,
-      "maxItems": 3
-    },
-    "months": {
-      "type": "array",
-      "items":{
-        "type": "integer"
-      },
-      "uniqueItems": true,
-      "maxItems": 12
-    },
-    "hours": {
-      "type": "array",
-      "items":{
-        "type": "integer"
-      },
-      "uniqueItems": true,
-      "maxItems": 24
-    },
-    "minutes": {
-      "type": "array",
-      "items":{
-        "type": "integer"
-      },
-      "uniqueItems": true,
-      "maxItems": 60
-    }
-  },
-  "required":["type"]
-}
-    DATA
-
+      required: ['type']
+    }.to_json
   end
 
 
