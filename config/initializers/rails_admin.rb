@@ -1770,6 +1770,7 @@ RailsAdmin.config do |config|
     object_label_method { :custom_title }
 
     configure :namespace, :enum_edit
+    configure :expression, :json_value
 
     edit do
       field :namespace
