@@ -6,17 +6,16 @@
       %span.cenit-hub{style: 'color: black;'}= 'cenit.io'
     
   .panel-body
-    %h2
-      = 'Forgot your password?'
-      = form_for(resource, as: resource_name, url: password_path(resource_name), html: { method: :post }) do |f|
-        = devise_error_messages!
-        .small
-          .field
-            = f.label :email
-            %br
-            = f.email_field :email, autofocus: true
-          .actions
-            = f.submit "Send me reset password instructions"
+    .form-top
+      = t('admin.forgotten.new_title')
+    = form_for(resource, as: resource_name, url: password_path(resource_name), html: { method: :post }) do |f|
+      = devise_error_messages!
+      .field.text-justify
+        = f.label :email
+        = f.email_field :email, autofocus: true, class: 'form-control'
+      .actions
+        %button.btn.btn-primary.pull-right{type:'submit'}
+          = t('admin.forgotten.new_submit')
   .panel-footer.clearfix
     .pull-left
       = render "devise/shared/links"
