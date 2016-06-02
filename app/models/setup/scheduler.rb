@@ -84,13 +84,8 @@ module Setup
     end
 
     def next_time
-      r = Account.current.time_zone.split('|')
-      tz = '+00:00'
-      if r.length > 1
-        tz = r[1].strip
-      end
-      calculator = SchedulerTimePointsCalculator.new(expression, Time.now.year, tz)
-      calculator.next_time(Time.zone.now)
+      calculator = SchedulerTimePointsCalculator.new(expression, Time.now.year, Account.current.time_zone_offset)
+      (next_time = calculator.next_time(Time.now.utc)) && next_time.localtime
     end
 
     SCHEMA = {
@@ -216,8 +211,8 @@ module Setup
 
     def days
       month = @solution[0]
-      weeks_days = @conf[:weeks_days]
-      weeks_month = @conf[:weeks_month]
+      weeks_days = @conf[:weeks_days] || []
+      weeks_month = @conf[:weeks_month] || []
       _a = amount_of_days_in_the_month(@year, month)
 
       if @conf[:type] == 'appointed_position'
@@ -242,26 +237,26 @@ module Setup
         months_days = @conf[:months_days]
       end
 
-      months_days = [1] if months_days.empty?
+      months_days = [1] if months_days.blank?
 
       months_days.select { |e| e > 0 && e <= _a }
     end
 
     def hours
       res = @conf[:hours]
-      res = [0] if res.empty?
+      res = [0] if res.blank?
       res.select { |e| e > -1 && e <= 23 }
     end
 
     def minutes
       res = @conf[:minutes]
-      res = [0] if res.empty?
+      res = [0] if res.blank?
       res.select { |e| e > -1 && e <= 59 }
     end
 
     def months
       res = @conf[:months]
-      res = [1] if res.empty?
+      res = [1] if res.blank?
       res.select { |e| e > 0 && e <= 12 }
     end
 
