@@ -60,8 +60,11 @@ $(function(){
 
     $('.user-auth .actions .btn-xs').click(function(e){
         e.preventDefault();
+
+        var id = '#' + $(this).attr('id') + '-form';
         var form = $(this).parents('form.local');
-        var sibling = $(form).siblings('form.local');
+        var sibling = $(form).parent().find(id);
+
         $(form).removeClass('active');
         $(sibling).addClass('active');
     });

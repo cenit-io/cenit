@@ -1,15 +1,27 @@
 en:
   admin:
+    placeholders:
+      email: 'Email'
+      password: 'Password'
+      pass_confirm: 'Password confirmation'
     session:
       new: 'sign in'
       register: "Don't have a user?"
       new_title: 'Sign in with'
       submit: 'Log in'
+      forgotten: 'Forgot your password?'
     registration:
       new: "try it free"
+      new_title: 'Sign up with'
       sign: 'Already have a user?'
       submit: 'Sign up'
       terms_preface: 'By signing up you agree with the'
+    forgotten:
+      new_title: 'Forgot your password?'
+      new_submit: 'Send me reset password instructions'
+      short_submit: 'Reset'
+      edit_title: 'Change your password'
+      edit_submit: 'Change my password'
     js:
       present_and_change: Present & Change
     flash:
