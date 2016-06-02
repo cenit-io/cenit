@@ -159,14 +159,14 @@ module Setup
     def schedule(scheduler)
       if can_schedule?
         self.scheduler = scheduler
-        self.retry
+        self.retry(action: 'scheduled')
       end
     end
 
-    def retry
+    def retry(options = {})
       if can_retry?
         self.status = (status == :failed ? :retrying : :pending)
-        notify(type: :notice, message: "Task ##{id} executed at #{Time.now}")
+        notify(type: :notice, message: "Task ##{id} #{options[:action] || 'executed'} at #{Time.now}")
         Cenit::Rabbit.enqueue(message.merge(task: self))
       end
     end

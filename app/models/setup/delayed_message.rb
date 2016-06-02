@@ -16,8 +16,18 @@ module Setup
 
     before_save do
       unless publish_at.present?
-        self.publish_at = (scheduler && scheduler.next_time) || Time.now + (Cenit.default_delay || Cenit.scheduler_lookup_interval || 0)
+        self.publish_at =
+          if (n_time = (scheduler && scheduler.next_time))
+            n_time
+          else
+            if scheduler
+              nil
+            else
+              Time.now + (Cenit.default_delay || Cenit.scheduler_lookup_interval || 0)
+            end
+          end
       end
+      publish_at.present?
     end
   end
 end

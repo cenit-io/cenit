@@ -15,13 +15,15 @@ class Account
   field :notification_level, type: Symbol, default: :warning
   field :notifications_listed_at, type: DateTime
 
+  field :time_zone, type: String
+
   validates_inclusion_of :notification_level, in: ->(a) { a.notification_level_enum }
 
-  before_save :inspect_updated_fields, :init_heroku_db
+  before_save :inspect_updated_fields, :init_heroku_db, :validates_configuration
 
   def inspect_updated_fields
     changed_attributes.keys.each do |attr|
-      reset_attribute!(attr) unless %w(notification_level).include?(attr)
+      reset_attribute!(attr) unless %w(notification_level time_zone).include?(attr)
     end unless new_record? || Account.current_super_admin?
     true
   end
@@ -38,6 +40,17 @@ class Account
       end
     end
     true
+  end
+
+  TIME_ZONE_REGEX = /((\+|-)((1[0-3])|(0\d)):\d\d)/
+
+  def validates_configuration
+    errors.add(:time_zone, 'is not valid') unless TIME_ZONE_REGEX.match(time_zone)
+    errors.blank?
+  end
+
+  def time_zone_offset
+    TIME_ZONE_REGEX.match(time_zone).to_s
   end
 
   def notification_level_enum
@@ -120,6 +133,11 @@ class Account
     def data_type_collection_name(data_type)
       tenant_collection_name(data_type.data_type_name)
     end
+  end
+
+
+  def time_zone_enum
+    ActiveSupport::TimeZone.all.collect { |e| "#{e.name} | #{e.formatted_offset}" }
   end
 
 end
