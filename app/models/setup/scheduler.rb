@@ -24,8 +24,12 @@ module Setup
 
     before_save do
       @activation_status_changed = changed_attributes.has_key?(:activated.to_s)
-      expression.reject! { |_, value| value.blank? }
-      true
+      if expression['type'] == 'cyclic'
+        self.expression = { type: 'cyclic', cyclic_expression: expression['cyclic_expression'] }
+      else
+        expression.reject! { |_, value| value.blank? }
+      end
+      errors.blank?
     end
 
     after_save { (activated ? start : stop) if @activation_status_changed }
