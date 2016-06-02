@@ -15,7 +15,7 @@ class Account
   field :notification_level, type: Symbol, default: :warning
   field :notifications_listed_at, type: DateTime
 
-  field :time_zone, type: String
+  field :time_zone, type: String, default: '+00:00'
 
   validates_inclusion_of :notification_level, in: ->(a) { a.notification_level_enum }
 
