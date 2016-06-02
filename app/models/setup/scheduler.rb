@@ -22,7 +22,7 @@ module Setup
       errors.blank?
     end
 
-    before_save do
+    def check_before_save
       @activation_status_changed = changed_attributes.has_key?(:activated.to_s)
       if expression['type'] == 'cyclic'
         self.expression = { type: 'cyclic', cyclic_expression: expression['cyclic_expression'] }
