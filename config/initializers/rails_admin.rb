@@ -1777,13 +1777,9 @@ RailsAdmin.config do |config|
 
       field :expression do
         visible true
-
-        label 'Schedule'
-
+        label 'Scheduling type'
         help 'Configure scheduler'
-
         partial :scheduler
-
         html_attributes do
           {rows: '1'}
         end

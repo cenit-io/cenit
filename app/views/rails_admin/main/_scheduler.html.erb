@@ -1,10 +1,10 @@
 <%
    dd = Hash.new { |h, k| h[k] = [] }
+   dd['cyclic_expression'] = ''
    if @object.expression != nil
-     dd.merge!(JSON.parse(@object.expression))
+     dd.merge!(@object.expression)
    else
-     dd['type'] = 'periodic'
-     dd['periodic_expression'] = ''
+     dd['type'] = 'cyclic'
    end
    %w(months_days months hours minutes).each { |e| dd[e] = dd[e].to_s.strip[1..-2] }
 %>
@@ -12,42 +12,40 @@
 <input type="hidden" id="setup_scheduler_expression" name="setup_scheduler[expression]">
 
 
-<label for="scheduler_kinds">
-  Scheduling method
-</label><select class="form-control" id="scheduler_kinds" style="width: 200px">
-  <option <%= dd["type"] == "periodic" ? 'selected' : '' %>  value="1">Periodic</option>
-  <option <%= dd["type"] == "periodic" ? '' : 'selected' %> value="2">Specific</option>
+<select class="form-control" id="scheduler_kinds" style="width: 200px">
+  <option <%= dd["type"] == 'cyclic' ? 'selected' : '' %>  value="1">Cyclic</option>
+  <option <%= dd["type"] == 'cyclic' ? '' : 'selected' %> value="2">Appointed</option>
 </select>
 
 
 
-<div id="periodic" style="display: <%= dd["type"] == "periodic" ? 'block' : 'none' %> ; margin-top: 20px">
+<div id="cyclic" style="display: <%= dd["type"] == 'cyclic' ? 'block' : 'none' %> ; margin-top: 20px">
 
-  <label for="periodic_expression">Duration</label>
+  <label for="cyclic_expression">Duration</label>
   <br>
-  <input id="periodic_expression" value="<%= dd["periodic_expression"] %>" placeholder="e.g: 5m"
+  <input id="cyclic_expression" value="<%= dd['cyclic_expression'] %>" placeholder="e.g: 5m"
          data-toggle="tooltip" title="Amount of time, ending with s-m-h-d for specify time units" type="text">
 
 </div>
 
 
-<div id="specific" style="display: <%= dd["type"] == "periodic" ? 'none' : 'block' %> ; margin-top: 20px">
+<div id="appointed" style="display: <%= dd["type"] == 'cyclic' ? 'none' : 'block' %> ; margin-top: 20px">
 
   <div id="content">
 
-    <ul id="specific_tabs" class="nav nav-tabs" data-tabs="tabs">
+    <ul id="appointed_tabs" class="nav nav-tabs" data-tabs="tabs">
 
-      <li class="<%= ['periodic', 'specific_number'].include?(dd["type"]) ? 'active' : '' %>" id="number_tab">
+      <li class="<%= %w(cyclic appointed_number).include?(dd['type']) ? 'active' : '' %>" id="number_tab">
         <a href="#number" data-toggle="tab">Days by number</a></li>
 
-      <li class="<%= ['specific_position'].include?(dd["type"]) ? 'active' : '' %>" id="position_tab">
+      <li class="<%= ['appointed_position'].include?(dd["type"]) ? 'active' : '' %>" id="position_tab">
         <a href="#position" data-toggle="tab">Days by position</a></li>
 
     </ul>
 
     <div class="tab-content">
 
-      <div class="tab-pane <%= ['periodic', 'specific_number'].include?(dd["type"]) ? 'active' : '' %>" id="number">
+      <div class="tab-pane <%= ['cyclic', 'appointed_number'].include?(dd["type"]) ? 'active' : '' %>" id="number">
 
         <label>Days of the Month</label>
 
@@ -69,7 +67,7 @@
 
       </div>
 
-      <div class="tab-pane <%= ['specific_position'].include?(dd["type"]) ? 'active' : '' %>" id="position">
+      <div class="tab-pane <%= ['appointed_position'].include?(dd["type"]) ? 'active' : '' %>" id="position">
 
         <div id="position_scheduler_month_days">
 

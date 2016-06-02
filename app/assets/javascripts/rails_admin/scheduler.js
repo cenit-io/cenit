@@ -1,5 +1,5 @@
 function schedulerInit() {
-    $('#specific_tabs').tab();
+    $('#appointed_tabs').tab();
 
     function fillInput(lbond, ubond, id) {
         var _days = _.range(lbond, ubond, $("#" + id).val());
@@ -36,11 +36,11 @@ function schedulerInit() {
 
     $("#scheduler_kinds").change(function (p) {
         if ($("#scheduler_kinds").val() === "1") {
-            periodic.show();
-            specific.hide();
+            cyclic.show();
+            appointed.hide();
         } else {
-            periodic.hide();
-            specific.show();
+            cyclic.hide();
+            appointed.show();
         }
         updateSchedulerValue();
     });
@@ -56,11 +56,11 @@ function schedulerInit() {
 
         var position_tab = $("#position").attr('class').indexOf('active') != -1;
 
-        var periodic_tab = $("#scheduler_kinds").val() === "1";
+        var cyclic_tab = $("#scheduler_kinds").val() === "1";
 
         var res = {
 
-            "type": periodic_tab ? "periodic" : "specific_" + (position_tab ? "position" : "number"),
+            "type": cyclic_tab ? "cyclic" : "appointed_" + (position_tab ? "position" : "number"),
 
             "months_days": input_validation("#months_days_input"),
 
@@ -86,8 +86,8 @@ function schedulerInit() {
             "minutes": input_validation("#minutes_input")
         };
 
-        if (periodic_tab)
-            res["periodic_expression"] = $("#periodic_expression").val();
+        if (cyclic_tab)
+            res["cyclic_expression"] = $("#cyclic_expression").val();
 
         return res;
     }
@@ -96,8 +96,8 @@ function schedulerInit() {
     var number_scheduler_month_days = $("#number_scheduler_month_days");
     var type_of_days_btn = $("#type_of_days_btn");
 
-    var periodic = $("#periodic");
-    var specific = $("#specific");
+    var cyclic = $("#cyclic");
+    var appointed = $("#appointed");
 
     $('a[data-toggle="tab"]').on('shown.bs.tab', function (e) {
         updateSchedulerValue();

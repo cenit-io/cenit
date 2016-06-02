@@ -1,11 +1,10 @@
 module Setup
   class Scheduler < Event
+    include HashField
 
-    BuildInDataType.regist(self)
-      .with(:namespace, :name, :expression, :activated)
-      .referenced_by(:namespace, :name)
+    BuildInDataType.regist(self).with(:namespace, :name, :expression, :activated).referenced_by(:namespace, :name)
 
-    field :expression, type: String
+    hash_field :expression
     field :activated, type: Boolean, default: false
 
     has_many :delayed_messages, class_name: Setup::DelayedMessage.to_s, inverse_of: :scheduler
@@ -15,23 +14,17 @@ module Setup
     scope :activated, -> { where(activated: true) }
 
     validate do
-
       begin
-
-        JSON::Validator.validate!(SCHEDULER_SCHEMA, expression)
-
+        JSON::Validator.validate!(SCHEMA, expression)
       rescue JSON::Schema::ValidationError => e
         errors.add(:expression, e.message)
       end
-
       errors.blank?
     end
 
     before_save do
       @activation_status_changed = changed_attributes.has_key?(:activated.to_s)
-      json_exp = JSON.parse(expression)
-      json_exp.reject! { |_, value| value.blank? }
-      self.expression =json_exp.to_json
+      expression.reject! { |_, value| value.blank? }
       true
     end
 
@@ -233,13 +226,13 @@ module Setup
 
     def days
       month = @solution[0]
-      weeks_days = @conf["weeks_days"]
-      weeks_month = @conf["weeks_month"]
+      weeks_days = @conf[:weeks_days]
+      weeks_month = @conf[:weeks_month]
       _a = amount_of_days_in_the_month(@year, month)
 
-      if @conf["type"] == "specific_position"
+      if @conf[:type] == 'appointed_position'
         months_days = []
-        # Obtener los dias de acuerdo a la(s) semana(s)
+        # Retrieve days by weeks
         if weeks_month.length > 0
           weeks_month.each do |wm|
             if wm > 0
@@ -254,9 +247,9 @@ module Setup
           months_days = weeks_days.collect { |wd| all_days(@year, wd, month) }
           months_days.flatten!
         end
-        months_days << _a if @conf["last_day_in_month"] and not months_days.include?(_a)
+        months_days << _a if @conf[:last_day_in_month] and not months_days.include?(_a)
       else
-        months_days = @conf["months_days"]
+        months_days = @conf[:months_days]
       end
 
       if months_days == []
@@ -267,7 +260,7 @@ module Setup
     end
 
     def hours
-      res = @conf["hours"]
+      res = @conf[:hours]
       if res == []
         res = [0]
       end
@@ -275,7 +268,7 @@ module Setup
     end
 
     def minutes
-      res = @conf["minutes"]
+      res = @conf[:minutes]
       if res == []
         res = [0]
       end
@@ -283,7 +276,7 @@ module Setup
     end
 
     def months
-      res = @conf['months']
+      res = @conf[:months]
       if res == []
         res = [1]
       end
@@ -292,7 +285,7 @@ module Setup
 
     def initialize(conf, year, tz)
       conf = JSON.parse(conf.to_s) unless conf.is_a?(Hash)
-      @conf = conf
+      @conf = conf.deep_symbolize_keys
       @actions = [->() { months }, ->() { days }, ->() { hours }, ->() { minutes }]
       @year = year
       @tz = tz
@@ -321,14 +314,14 @@ module Setup
     end
 
     def next_time(tnow)
-      if @conf["type"] != "periodic"
+      if @conf[:type] != 'cyclic'
         run
         res = @v.select { |e| e > tnow }
                 .collect { |e| e - tnow }
                 .min
         res ? tnow + res : nil
       else
-        a = @conf["periodic_expression"].to_seconds_interval
+        a = @conf[:cyclic_expression].to_seconds_interval
         b = Cenit.min_scheduler_interval || 60
         tnow + [a, b].max
       end
