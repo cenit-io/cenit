@@ -1,0 +1,114 @@
+- dd = Hash.new { |h, k| h[k] = [] }
+- dd['cyclic_expression'] = ''
+- if @object.expression != nil
+  - dd.merge!(@object.expression)
+- else
+  - dd['type'] = 'cyclic'
+- %w(months_days months hours minutes).each { |e| dd[e] = dd[e].to_s.strip[1..-2] }
+
+%input#setup_scheduler_expression{type:"hidden", name:"setup_scheduler[expression]"}
+
+%select#scheduler_kinds.form-control{style:"width: 200px"}
+  %option{value:"1", selected: dd["type"] == 'cyclic'} Cyclic
+  %option{value:"2", selected: dd["type"] != 'cyclic'} Appointed
+
+#cyclic{style:"display: #{dd['type'] == 'cyclic' ? 'block' : 'none'} ; margin-top: 20px"}
+  %label{for:"cyclic_expression"} Duration
+  %br
+  %input#cyclic_expression{value: dd['cyclic_expression'], placeholder:'e.g: 5m', 'data-toggle':'tooltip', title:'Amount of time, ending with s-m-h-d for specify time units', type:'text'}
+
+#appointed{style: "display: #{dd['type'] == 'cyclic' ? 'none' : 'block'}; margin-top: 20px"}
+  #content
+    %ul#appointed_tabs.nav.nav-tabs{'data-tabs':"tabs"}
+      %li#number_tab{class: %w(cyclic appointed_number).include?(dd['type']) ? 'active' : ''}
+        %a{href:'#number', 'data-toggle':'tab'} Days by number
+
+      %li#position_tab{class: ['appointed_position'].include?(dd["type"]) ? 'active' : ''}
+        %a{href:'#position', 'data-toggle':'tab'} Days by position
+
+    .tab-content
+      #number.tab-pane{class: %w(cyclic appointed_number).include?(dd["type"]) ? 'active' : ''}
+        %label Days of the Month
+        .form-inline
+          %input#months_days_input{type:'text', value:dd['months_days'], placeholder:'e.g: 2, 5, 6, 9', 'data-toggle':'tooltip', title:'Day number (1-31) or list of numbers separated by comma'}
+
+          %select#months_days.form-control.input-sm
+            %option{selected: true, disabled: true, value:'0'} Choose frequency
+            %option{value:'1'} Every day
+            - daysn = [3, 4, 6, 12]
+            - daysn.each do |d|
+              %option{value:(d)}
+                Every #{d} days
+
+      #position.tab-pane{class: 'appointed_position' == dd['type'] ? 'active' : ''}
+        #position_scheduler_month_days
+          %label Days of the Week
+          .form-inline
+            .form-group
+
+              - days = %w(Sun Mon Tue Wed Thu Fri Sat)
+
+              .checkboxes.form-inline
+                - days.each_with_index do |d, i|
+                  .checkbox
+                    %label
+                      %input{id: "week_day_#{i}", type:'checkbox', checked:dd['weeks_days'].include?(i)}
+                      %span #{d}
+
+            .form-group{style: 'margin-left: 40px'}
+              %label Week
+
+              - week_month = %w(First Second)
+              - week_month_reverse = ['Last']
+
+              .checkboxes.form-inline
+                - week_month.each_with_index do |d, i|
+                  .checkbox
+                    %label
+                      %input{id: "week_month_#{i+1}", type:'checkbox', checked:dd['weeks_month'].include?(i+1)}
+                      %span #{d}
+
+                - week_month_reverse.each_with_index do |d, i|
+                  .checkbox
+                    %label
+                      %input{id: "week_month_reverse_#{i+1}", type:'checkbox', checked:dd['weeks_month'].select { |e| e < 0 }.include?(-(i+1))}
+                      %span #{d}
+
+            .form-group{style:"margin-left: 20px"}
+              %label Day
+
+              .checkboxes.form-inline
+                .checkbox
+                  %label
+                    %input#last_day_in_month{checked:dd["last_day_in_month"], type:'checkbox'}
+                    %span Last
+
+  %label Months
+  .form-inline
+    %input#months_input{type:'text', value:dd["months"], placeholder:'e.g: 2, 4, 5', 'data-toggle':'tooltip', title:'Month number (1-12) or list of numbers separated by comma'}
+    %select#months.form-control.input-sm
+      %option{selected: true, disabled:true, value:'0'} Choose frequency
+      %option{value:'1'} Every month
+      - months = [2, 3, 4, 6]
+      - months.each do |d|
+        %option{value: d} Every #{d} months
+
+  %label Hours
+  .form-inline
+    %input#hours_input{type:'text', value: dd['hours'], placeholder:'e.g: 14', 'data-toggle':'tooltip', title:'The hour number (0-23) or list of numbers separated by comma'}
+    %select#hours.form-control.input-sm
+      %option{selected:true, disabled:true, value:'0'} Choose frequency
+      %option{value:'1'} Every hour
+      - hours = [2, 3, 4, 6, 12]
+      - hours.each do |d|
+        %option{value: d} Every #{d} hours
+
+  %label Minutes
+  .form-inline
+    %input#minutes_input{type:'text', value: dd['minutes'], placeholder:'e.g: 20, 45', 'data-toggle':'tooltip', title:'The minute number (0-59) or list of numbers separated by comma'}
+    %select#minutes.form-control.input-sm
+      %option{selected:true, disabled:true, value:'0'} Choose frequency
+      %option{value:'1'} Every minute
+      - minutes = [2, 4, 5, 10, 15, 20, 30]
+      - minutes.each do |d|
+        %option{value: d} Every #{d} minutes
