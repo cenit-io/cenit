@@ -148,7 +148,7 @@ module Mongoff
             RecordArray.new(property_model, value, association.referenced?)
           else
             if association.referenced?
-              value && property_model.find(value)
+              value && property_model.find(value) rescue nil
             elsif value
               Record.new(property_model, value)
             else
