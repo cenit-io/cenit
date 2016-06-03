@@ -3,7 +3,7 @@ module Setup
     include CenitScoped
     include JsonMetadata
 
-    BuildInDataType.regist(self).with(:key, :value, :description, :metadata)
+    BuildInDataType.regist(self).with(:key, :value, :description, :metadata).referenced_by(:key)
 
     field :key, type: String, as: :name
     field :value, type: String, default: ''

@@ -7,14 +7,14 @@ module Mongoff
       unless @properties_by_mane.has_key?(name)
         segment_property = nil
         name_property = nil
-        if (edi_opts = schema['edi']) && segments = edi_opts['segments']
+        if (edi_opts = schema['edi']) && (segments = edi_opts['segments'])
           segment_property = segments[name]
           name_property = name if property?(name)
         else
           properties.each do |property|
             next if segment_property
             schema = property_model(property).schema
-            if ((edi_opts = schema['edi']) && edi_opts['segment'] == name)
+            if (edi_opts = schema['edi']) && edi_opts['segment'] == name
               segment_property = property
             else
               schema = property_schema(property)
@@ -32,6 +32,10 @@ module Mongoff
       @properties_schemas ||= ((schema = self.schema).is_a?(Hash) && schema['type'] == 'object' && schema['properties']) || {}
     end
 
+    def model_properties_schemas
+      properties_schemas.select { |_, schema| (%w(integer number boolean string) + [nil]).exclude?(schema['type']) }
+    end
+
     def simple_properties_schemas
       properties_schemas.select { |_, schema| %w(integer number boolean string).include?(schema['type']) }
     end
@@ -41,7 +45,7 @@ module Mongoff
     end
 
     def property_schema(property)
-      if sch = properties_schemas[property.to_s]
+      if (sch = properties_schemas[property.to_s])
         data_type.merge_schema(sch)
       else
         nil
@@ -88,7 +92,7 @@ module Mongoff
           type = type['format'][schema['format']] || type['default']
         end
         type
-      elsif %w(id _id).include?(str = field.to_s) || str.end_with?('_id')
+      elsif %w(id _id).include?((str = field.to_s)) || str.end_with?('_id')
         BSON::ObjectId
       else
         NilClass
