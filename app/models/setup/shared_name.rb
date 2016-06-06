@@ -6,7 +6,7 @@ module Setup
 
     deny :all
 
-    BuildInDataType.regist(self).with(:name)
+    build_in_data_type.with(:name)
 
     has_and_belongs_to_many :owners, class_name: ::User.to_s, inverse_of: nil
 

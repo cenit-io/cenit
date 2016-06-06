@@ -21,6 +21,10 @@ module Setup
         count
       end
 
+      def build_in_data_type
+        BuildInDataType.regist(self)
+      end
+
       def deny(*args)
         Setup::Models.exclude_actions_for self, *args
       end

@@ -2,7 +2,7 @@ module Setup
   class CollectionPullParameter < ReqRejValidator
     include CenitUnscoped
 
-    BuildInDataType.regist(self)
+    build_in_data_type
 
     field :type, type: Symbol
     field :name, type: String

@@ -7,7 +7,7 @@ module Setup
     include TriggersFormatter
     include ThreadAware
 
-    BuildInDataType.regist(self).referenced_by(:namespace, :name).excluding(:notify_response, :notify_request)
+    build_in_data_type.referenced_by(:namespace, :name).excluding(:notify_response, :notify_request)
 
     field :active, type: Boolean, default: :true
     field :notify_request, type: Boolean, default: :false

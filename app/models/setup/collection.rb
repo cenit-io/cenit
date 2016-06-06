@@ -3,7 +3,7 @@ module Setup
     include CenitScoped
     include CollectionName
 
-    BuildInDataType.regist(self).embedding(:namespaces,
+    build_in_data_type.embedding(:namespaces,
                                            :flows,
                                            :connection_roles,
                                            :translators,

@@ -4,7 +4,7 @@ module Setup
 
     deny :all
 
-    BuildInDataType.regist(self).with(:namespace, :name).referenced_by(:namespace, :name)
+    build_in_data_type.with(:namespace, :name).referenced_by(:namespace, :name)
 
     field :aws_access_key, type: String
     field :aws_secret_key, type: String

@@ -3,7 +3,7 @@ module Setup
     include CrossOriginShared
     include NamespaceNamed
 
-    BuildInDataType.regist(self).referenced_by(:namespace, :name)
+    build_in_data_type.referenced_by(:namespace, :name)
 
     field :description, type: String
     embeds_many :parameters, class_name: Setup::AlgorithmParameter.to_s, inverse_of: :algorithm

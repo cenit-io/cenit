@@ -2,7 +2,7 @@ module Setup
   class PinnedVersion
     include CenitScoped
 
-    Setup::BuildInDataType.regist(self)
+    build_in_data_type
 
     class_attribute :models
 

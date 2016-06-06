@@ -5,7 +5,7 @@ module Setup
 
     # deny :delete, :bulk_delete, :delete_all
 
-    BuildInDataType.regist(self).referenced_by(:name)
+    build_in_data_type.referenced_by(:name)
 
     field :name, type: String
 

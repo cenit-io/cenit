@@ -3,7 +3,7 @@ require 'edi/formater'
 module Setup
   class JsonDataType < DataType
 
-    BuildInDataType.regist(self).referenced_by(:namespace, :name).with(:namespace, :name, :title, :slug, :_type, :schema, :events, :before_save_callbacks, :records_methods, :data_type_methods)
+    build_in_data_type.referenced_by(:namespace, :name).with(:namespace, :name, :title, :slug, :_type, :schema, :events, :before_save_callbacks, :records_methods, :data_type_methods)
 
     field :schema
 

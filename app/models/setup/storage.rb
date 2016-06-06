@@ -4,7 +4,7 @@ module Setup
 
     store_in collection: Proc.new { Account.tenant_collection_prefix + '.files' }
 
-    BuildInDataType.regist(self)
+    build_in_data_type
 
     deny :copy, :new, :edit, :translator_update, :import, :convert, :delete_all, :simple_export
 

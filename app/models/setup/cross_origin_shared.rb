@@ -10,7 +10,7 @@ module Setup
 
       origins :shared
 
-      BuildInDataType.regist(self).excluding(:origin, :tenant)
+      build_in_data_type.excluding(:origin, :tenant)
 
       belongs_to :owner, class_name: User.to_s, inverse_of: nil
 

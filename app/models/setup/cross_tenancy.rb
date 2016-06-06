@@ -9,7 +9,7 @@ module Setup
 
       origins :shared
 
-      BuildInDataType.regist(self).excluding(:origin, :tenant)
+      build_in_data_type.excluding(:origin, :tenant)
 
       deny :import, :translator_update, :convert, :send_to_flow, :copy, :new, :cross_share #TODO remove :new and :copy from excluded actions when fixing references sharing problem
 

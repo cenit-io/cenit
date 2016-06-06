@@ -3,7 +3,7 @@ module Setup
     include CenitScoped
     include NamespaceNamed
 
-    BuildInDataType.regist(self).referenced_by(:namespace, :name)
+    build_in_data_type.referenced_by(:namespace, :name)
 
     Setup::Models.exclude_actions_for self
 

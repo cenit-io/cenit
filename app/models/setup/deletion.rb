@@ -1,7 +1,7 @@
 module Setup
   class Deletion < Setup::Task
 
-    BuildInDataType.regist(self)
+    build_in_data_type
 
     def deletion_model
       model_name = message[:model_name.to_s]

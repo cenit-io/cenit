@@ -3,7 +3,7 @@ module Setup
     include Setup::TranslationCommon
     include Setup::DataUploader
 
-    BuildInDataType.regist(self)
+    build_in_data_type
 
     deny :copy, :new, :edit, :translator_update, :import, :convert, :delete_all
 

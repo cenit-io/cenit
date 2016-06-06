@@ -2,7 +2,7 @@ module Setup
   class ApplicationParameter
     include CenitScoped
 
-    BuildInDataType.regist(self).referenced_by(:name)
+    build_in_data_type.referenced_by(:name)
 
     field :name, type: String
     field :type, type: String

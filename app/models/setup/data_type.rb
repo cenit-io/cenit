@@ -13,7 +13,7 @@ module Setup
 
     deny :update, :bulk_delete, :delete, :delete_all
 
-    BuildInDataType.regist(self).with(:title, :name, :before_save_callbacks, :records_methods, :data_type_methods).referenced_by(:namespace, :name).including(:slug)
+    build_in_data_type.with(:title, :name, :before_save_callbacks, :records_methods, :data_type_methods).referenced_by(:namespace, :name).including(:slug)
 
     def self.to_include_in_models
       @to_include_in_models ||= [Setup::DynamicRecord,

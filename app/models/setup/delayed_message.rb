@@ -4,7 +4,7 @@ module Setup
 
     deny :all
 
-    Setup::BuildInDataType.regist(self)
+    build_in_data_type
 
     field :message, type: String
     field :publish_at, type: DateTime

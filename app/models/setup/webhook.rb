@@ -7,7 +7,7 @@ module Setup
     include AuthorizationHandler
     include Parameters
 
-    BuildInDataType.regist(self).referenced_by(:namespace, :name).excluding(:connection_roles)
+    build_in_data_type.referenced_by(:namespace, :name).excluding(:connection_roles)
 
     field :path, type: String
     field :method, type: String, default: :post

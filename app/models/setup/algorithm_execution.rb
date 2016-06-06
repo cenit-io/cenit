@@ -1,7 +1,7 @@
 module Setup
   class AlgorithmExecution < Setup::Task
 
-    BuildInDataType.regist(self)
+    build_in_data_type
 
     belongs_to :algorithm, class_name: Setup::Algorithm.to_s, inverse_of: nil
 

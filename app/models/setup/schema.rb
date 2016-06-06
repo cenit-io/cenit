@@ -7,7 +7,7 @@ module Setup
     include Setup::FormatValidator
     include CustomTitle
 
-    BuildInDataType.regist(self).with(:namespace, :uri, :schema).referenced_by(:namespace, :uri)
+    build_in_data_type.with(:namespace, :uri, :schema).referenced_by(:namespace, :uri)
 
     field :uri, type: String
     field :schema, type: String
