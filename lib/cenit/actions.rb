@@ -28,10 +28,11 @@ module Cenit
           if (items = pull_data[entry])
             invariant_data[entry] = invariant_names = Set.new
             invariant_on_collection = 0
+            items_data_type = relation.klass.data_type
             refs =
               items.collect do |item|
                 criteria = {}
-                relation.klass.data_type.get_referenced_by.each { |field| criteria[field.to_s] = item[field.to_s] }
+                items_data_type.get_referenced_by.each { |field| criteria[field.to_s] = item[field.to_s] }
                 criteria.delete_if { |_, value| value.nil? }
                 unless (on_collection = (record = collection && collection.send(relation.name).where(criteria).first))
                   record = relation.klass.where(criteria).first
@@ -50,6 +51,7 @@ module Cenit
                     updated_records[entry] << record
                   end
                   item['id'] = record.id.to_s
+                  check_embedded_items(item, relation.klass, record)
                 else
                   new_records[entry] << item
                 end
@@ -214,6 +216,37 @@ module Cenit
 
         end
         true
+      end
+
+      private
+
+      def check_embedded_items(item, item_model, record)
+        item_model.model_properties_schemas.each do |property, schema|
+          next if schema['referenced']
+          next unless (property_value = item[property]) && (property_model = item_model.property_model(property))
+          next unless (property_data_type = property_model.data_type).get_referenced_by.present?
+          if schema['type'] == 'object'
+            if (record_value = record.send(property))
+              criteria = {}
+              property_data_type.get_referenced_by.each { |field| criteria[field.to_s] = property_value[field.to_s] }
+              criteria.delete_if { |_, value| value.nil? }
+              if Cenit::Utility.match?(record_value, criteria)
+                property_value['id'] = record_value.id.to_s
+                check_embedded_items(property_value, property_model, record_value)
+              end
+            end
+          elsif (association = record.send(property).to_a).present?
+            property_value.each do |sub_item|
+              criteria = {}
+              property_data_type.get_referenced_by.each { |field| criteria[field.to_s] = sub_item[field.to_s] }
+              criteria.delete_if { |_, value| value.nil? }
+              if (sub_record = Cenit::Utility.find_record(criteria, association))
+                sub_item['id'] = sub_record.id.to_s
+                check_embedded_items(sub_item, property_model, sub_record)
+              end
+            end
+          end
+        end
       end
     end
   end

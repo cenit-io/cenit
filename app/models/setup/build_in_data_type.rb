@@ -133,8 +133,8 @@ module Setup
     EXCLUDED_RELATIONS = %w{account creator updater}
 
     def method_missing(symbol, *args)
-      if symbol.to_s.start_with?('get_') && (value = instance_variable_get(:"@#{symbol.to_s.from(4)}"))
-        value
+      if symbol.to_s.start_with?('get_')
+        instance_variable_get(:"@#{symbol.to_s.from(4)}")
       else
         super
       end

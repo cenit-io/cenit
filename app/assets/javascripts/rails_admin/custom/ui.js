@@ -4,11 +4,14 @@
 //= require rails_admin/triggers-box
 //= require rails_admin/test-flow-transformation
 //= require rails_admin/highlight_js/highlight.pack.js
+//= require rails_admin/scheduler
+//= require lodash.min
 
 $(document).on('rails_admin.dom_ready', function() {
   $('pre code').each(function(i, block) {
      hljs.highlightBlock(block);
    });
+  schedulerInit();   
 });
 
 $(function(){
@@ -42,10 +45,32 @@ $(function(){
             });
     });
 
-    $("#drawer-toggle").click(function(e) {
+    $("#nav-drawer-toggle").click(function(e) {
         e.preventDefault();
         $("#nav-drawer").toggleClass('open');
         $(this).toggleClass("toggled");
+
+        $("#sign-drawer").removeClass('open');
+    });
+
+    $("#sign-in-link").click(function(e) {
+        e.preventDefault();
+        $("#sign-drawer").toggleClass('open');
+        // $(this).toggleClass("toggled");
+
+        $("#nav-drawer").removeClass('open');
+        $("#nav-drawer-toggle").removeClass("toggled");
+    });
+
+    $('.user-auth .actions .btn-xs').click(function(e){
+        e.preventDefault();
+
+        var id = '#' + $(this).attr('id') + '-form';
+        var form = $(this).parents('form.local');
+        var sibling = $(form).parent().find(id);
+
+        $(form).removeClass('active');
+        $(sibling).addClass('active');
     });
 
     function getAbsolute() {
@@ -57,13 +82,13 @@ $(function(){
 
     $(window).on('resize', function(e){
         if (getAbsolute()) {
-            $("#social-links").addClass("absolute");
+            $(".social-links").addClass("absolute");
         } else {
-            $("#social-links").removeClass("absolute");
+            $(".social-links").removeClass("absolute");
         }
     });
     if (getAbsolute()) {
-        $("#social-links").addClass("absolute");
+        $(".social-links").addClass("absolute");
     }
 
     $("#search-toggle").click(function(e){

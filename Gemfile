@@ -100,3 +100,5 @@ gem 'mime'
 gem 'deface'
 
 gem 'cross_origin', git: 'https://github.com/macarci/cross_origin.git'
+
+gem 'lodash-rails'

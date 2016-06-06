@@ -1,43 +1,35 @@
 module Setup
   class Scheduler < Event
+    include HashField
 
-    BuildInDataType.regist(self).with(:namespace, :name, :scheduling_method, :expression, :activated).referenced_by(:namespace, :name)
+    BuildInDataType.regist(self).with(:namespace, :name, :expression, :activated).referenced_by(:namespace, :name)
 
-    field :scheduling_method, type: Symbol
-    field :expression, type: String
+    hash_field :expression
     field :activated, type: Boolean, default: false
 
     has_many :delayed_messages, class_name: Setup::DelayedMessage.to_s, inverse_of: :scheduler
 
-    validates_presence_of :name, :scheduling_method
+    validates_presence_of :name
 
     scope :activated, -> { where(activated: true) }
 
     validate do
-      errors.add(:expression, "can't be blank") unless (exp = expression).present?
-      case scheduling_method
-      when :Once
-        errors.add(:expression, 'is not a valid date-time') unless !(DateTime.parse(exp) rescue nil)
-      when :Periodic
-        if exp =~ /\A[1-9][0-9]*(s|m|h|d)\Z/
-          if interval < (min = (Cenit.min_scheduler_interval || 60))
-            self.expression = "#{min}s"
-          end
-        else
-          errors.add(:expression, 'is not a valid interval')
-        end
-      when :CRON
-        #TODO Validate CRON Expression
-        #errors.add(:expression, 'is not a valid CRON expression') unless exp =~ /\A(0|[1-5][0-9]?|[6-9]|\*) (0|1[0-9]?|2[0-3]?|[3-9]|\*) ([1-2][0-9]?|3[0-1]?|[4-9]|\*)  (1[0-2]?|[2-9]|\*) (\*)\Z/
-      else
-        errors.add(:scheduling_method, 'is not a valid scheduling method')
+      begin
+        JSON::Validator.validate!(SCHEMA, expression)
+      rescue JSON::Schema::ValidationError => e
+        errors.add(:expression, e.message)
       end
       errors.blank?
     end
 
-    before_save do
+    def check_before_save
       @activation_status_changed = changed_attributes.has_key?(:activated.to_s)
-      true
+      if expression['type'] == 'cyclic'
+        self.expression = { type: 'cyclic', cyclic_expression: expression['cyclic_expression'] }
+      else
+        expression.reject! { |_, value| value.blank? }
+      end
+      errors.blank?
     end
 
     after_save { (activated ? start : stop) if @activation_status_changed }
@@ -49,12 +41,8 @@ module Setup
         (origin == :admin ? ' (ADMIN)' : '')
     end
 
-    def scheduling_method_enum
-      [:Periodic] #[:Once, :Periodic, :CRON]
-    end
-
     def ready_to_save?
-      scheduling_method.present?
+      true
     end
 
     def activated?
@@ -66,16 +54,17 @@ module Setup
     end
 
     def start
-      retryed_tasks_ids = Set.new
+      return unless next_time
+      retried_tasks_ids = Set.new
       Setup::Task.where(scheduler: self).each do |task|
         if task.can_retry?
-          task.retry
-          retryed_tasks_ids << task.id
+          task.retry(action: :scheduled)
+          retried_tasks_ids << task.id
         end
       end
       Setup::Flow.where(event: self).each do |flow|
         if (flows_executions = Setup::FlowExecution.where(flow: flow, scheduler: self)).present?
-          flows_executions.each { |flow_execution| flow_execution.retry if !retryed_tasks_ids.include?(flow_execution.id) && flow_execution.can_retry? }
+          flows_executions.each { |flow_execution| flow_execution.retry if !retried_tasks_ids.include?(flow_execution.id) && flow_execution.can_retry? }
         else
           flow.process(scheduler: self)
         end
@@ -94,22 +83,225 @@ module Setup
       update(activated: false) unless deactivated?
     end
 
-    def interval
-      case scheduling_method
-      when :Once
-        Time.now - DateTime.parse(expression) rescue 0
-      when :Periodic
-        expression.to_s.to_seconds_interval
-      when :CRON
-        #TODO Next CRON Time
-        0
+    def next_time
+      calculator = SchedulerTimePointsCalculator.new(expression, Time.now.year, Account.current.time_zone_offset)
+      (next_time = calculator.next_time(Time.now.utc)) && next_time.localtime
+    end
+
+    SCHEMA = {
+      type: 'object',
+      properties: {
+        cyclic_expression: {
+          type: 'string',
+          pattern: '^[1-9][0-9]*(s|m|h|d)$'
+        },
+        type: {
+          type: 'string',
+          enum: %w(cyclic appointed_position appointed_number)
+        },
+        months_days: {
+          type: 'array',
+          items: {
+            type: 'integer'
+          },
+          uniqueItems: true,
+          maxItems: 31
+        },
+        weeks_days: {
+          type: 'array',
+          items: {
+            type: 'integer'
+          },
+          uniqueItems: true,
+          maxItems: 7
+        },
+        weeks_month: {
+          type: 'array',
+          items: {
+            type: 'integer'
+          },
+          uniqueItems: true,
+          maxItems: 3
+        },
+        months: {
+          type: 'array',
+          items: {
+            type: 'integer'
+          },
+          uniqueItems: true,
+          maxItems: 12
+        },
+        hours: {
+          type: 'array',
+          items: {
+            type: 'integer'
+          },
+          uniqueItems: true,
+          maxItems: 24
+        },
+        minutes: {
+          type: 'array',
+          items: {
+            type: 'integer'
+          },
+          uniqueItems: true,
+          maxItems: 60
+        }
+      },
+      required: ['type']
+    }.to_json
+  end
+
+
+  class SchedulerTimePointsCalculator
+
+    THIRTY_ONE_MONTHS = Set.new [1, 3, 5, 7, 8, 10, 12]
+
+    def amount_of_days_in_the_month(year, month)
+      if THIRTY_ONE_MONTHS.include?(month)
+        31
       else
-        0
+        (Time.gm(year, month + 1, 1) - 1).day
       end
     end
 
-    def next_time
-      Time.now + interval
+
+    def weeks_first_days(year, dd, m)
+      res = []
+      d1 = Time.gm(year, m, 1)
+      d2 = Time.gm(year, m, 21)
+      sunday = d1 + ((7 + dd - d1.wday) % 7) * 1.day
+      while sunday < d2
+        res << sunday.day
+        sunday += 1.day * 7
+      end
+      res
+    end
+
+    def all_days(year, dd, m)
+      res = []
+      d1 = Time.gm(year, m, 1)
+      d2 = Time.gm(year, m, amount_of_days_in_the_month(year, m))
+      sunday = d1 + ((7 + dd - d1.wday) % 7) * 1.day
+      while sunday < d2
+        res << sunday.day
+        sunday += 1.day * 7
+      end
+      res
+    end
+
+    def last_day(year, dd, m)
+      d1 = Time.gm(year, m, amount_of_days_in_the_month(year, m))
+      while d1.wday != dd
+        d1 -= 1.day
+      end
+      d1
+    end
+
+    def weeks_last_days(year, dd, m)
+      res = []
+      d2 = Time.gm(year, m, amount_of_days_in_the_month(year, m) - 14)
+      sunday = last_day(year, dd, m)
+      while sunday > d2
+        res << sunday.day
+        sunday -= 1.day * 7
+      end
+      res
+    end
+
+    def days
+      month = @solution[0]
+      weeks_days = @conf[:weeks_days] || []
+      weeks_month = @conf[:weeks_month] || []
+      _a = amount_of_days_in_the_month(@year, month)
+
+      if @conf[:type] == 'appointed_position'
+        months_days = []
+        # Retrieve days by weeks
+        if weeks_month.length > 0
+          weeks_month.each do |wm|
+            if wm > 0
+              # firsts one
+              months_days += weeks_days.collect { |wd| weeks_first_days(@year, wd, month)[wm-1] }
+            else
+              # lasts one
+              months_days += weeks_days.collect { |wd| weeks_last_days(@year, wd, month)[wm.abs - 1] }
+            end
+          end
+        else
+          months_days = weeks_days.collect { |wd| all_days(@year, wd, month) }
+          months_days.flatten!
+        end
+        months_days << _a if @conf[:last_day_in_month] and not months_days.include?(_a)
+      else
+        months_days = @conf[:months_days]
+      end
+
+      months_days = [1] if months_days.blank?
+
+      months_days.select { |e| e > 0 && e <= _a }
+    end
+
+    def hours
+      res = @conf[:hours]
+      res = [0] if res.blank?
+      res.select { |e| e > -1 && e <= 23 }
+    end
+
+    def minutes
+      res = @conf[:minutes]
+      res = [0] if res.blank?
+      res.select { |e| e > -1 && e <= 59 }
+    end
+
+    def months
+      res = @conf[:months]
+      res = [1] if res.blank?
+      res.select { |e| e > 0 && e <= 12 }
+    end
+
+    def initialize(conf, year, tz)
+      conf = JSON.parse(conf.to_s) unless conf.is_a?(Hash)
+      @conf = conf.deep_symbolize_keys
+      @actions = [->() { months }, ->() { days }, ->() { hours }, ->() { minutes }]
+      @year = year
+      @tz = tz
+    end
+
+    def run
+      @solution = [0, 0, 0, 0]
+      @v = []
+      backtracking(0)
+      @v
+    end
+
+    def report_solution
+      @v << Time.new(@year, *@solution, 0, @tz)
+    end
+
+    def backtracking(k)
+      if k > 3
+        report_solution
+      else
+        @actions[k].call.each { |e|
+          @solution[k] = e
+          backtracking(k+1)
+        }
+      end
+    end
+
+    def next_time(now)
+      if @conf[:type] == 'cyclic'
+        a = @conf[:cyclic_expression].to_seconds_interval
+        b = Cenit.min_scheduler_interval || 60
+        now + [a, b].max
+      else
+        run
+        res = @v.select { |e| e > now }
+                .collect { |e| e - now }
+                .min
+        res ? now + res : nil
+      end
     end
   end
 end

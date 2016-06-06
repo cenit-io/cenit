@@ -143,7 +143,7 @@ a#sign-in-link:hover, a#sign-out-link:hover  {
 
 /* Nav Drawer styles*/
 
-ul#nav-drawer {
+ul.drawer {
   display: block;
   position: fixed;
   top: calc(100% + 1px);
@@ -156,45 +156,45 @@ ul#nav-drawer {
   margin: 0;
 }
 
-ul#nav-drawer.open {
+ul.drawer.open {
   transform: translateX(-250px);
 }
 
-ul#nav-drawer li {
+ul.drawer li {
   display: block;
   padding: 1em;
   border-bottom: solid 1px rgba(255, 255, 255, 0.75);
 }
 
-ul#nav-drawer li.last {
+ul.drawer li.last {
   border-bottom: none;
 }
 
-ul#nav-drawer li a {
+ul.drawer li a {
   font-size: 1.5rem;
   color: white;
   text-decoration: none;
 }
 
-ul#nav-drawer li a span {
+ul.drawer li a span {
   padding-left: 1em;
 }
 
-#social-links.absolute {
+.social-links.absolute {
   position: absolute;
   width: calc(100% - 12px);
   padding: 1em;
   bottom: 0;
 }
 
-#social-links a {
+.social-links a {
   display: inline-block;
   font-size: 24px !important;
   line-height: 32px;
   color: white;
 }
 
-/* Toogle styles*/
+/* Toggle styles*/
 
 #wrapper {
   padding-left: 55px;
@@ -404,6 +404,134 @@ ul#main-accordion .panel-heading .nav-icon {
 
 .social-links .cenit-llc {
   width: 100%;
+}
+
+/* Signin Drawer */
+
+.user-auth {
+  text-align: center;
+  color: #fff;
+}
+
+.user-auth .form-top,
+.user-auth .form-option {
+  font-size: 1.15em;
+  line-height: 1.15em;
+  position: relative;
+  margin: 14px 0;
+}
+
+.user-auth .form-option:before,
+.user-auth .form-option:after {
+  border-top: 1px solid #ffffff;
+  content: "";
+  height: 1px;
+  left: 0;
+  position: absolute;
+  top: 50%;
+  width: 45%;
+  z-index: 0;
+}
+
+.user-auth .form-option:before {
+  left: auto;
+  right: 0;
+}
+
+.user-auth .soc-btn {
+  margin: 0 6px;
+  transition: all .3s ease-in-out;
+}
+
+.user-auth .soc-btn,
+.user-auth .soc-btn:focus,
+.user-auth .soc-btn:active,
+.user-auth .soc-btn:active:focus,
+.user-auth .soc-btn:hover {
+  color: #ffffff;
+  text-align: left;
+  outline: none;
+}
+
+.user-auth .soc-btn:hover {
+  transform: scale(1.25);
+}
+
+.user-auth .soc-google {
+  background-color: #dd4b39;
+}
+
+.user-auth .soc-facebook {
+  background-color: #4c69ba;
+}
+
+.user-auth .soc-github {
+  background-color: #010101;
+}
+
+.user-auth .soc-twitter {
+  background-color: #1bb5e7;
+}
+
+.user-auth .field input.form-control {
+  padding: 6px;
+  outline: none;
+  background-color: transparent!important;
+  color: #fff!important;
+  border: none;
+  border-bottom: solid 2px #ffffff;
+  border-radius: 0;
+}
+
+.user-auth .field input:-webkit-autofill {
+  box-shadow: 0 0 0 1000px #3d4046 inset;
+  -webkit-text-fill-color: white !important;
+}
+
+.user-auth .local-forms {
+  position: relative;
+  overflow: hidden;
+  height: 220px;
+}
+
+.user-auth form.local {
+  width: 100%;
+  transition: all .3s ease-in-out;
+  visibility: hidden;
+  position: absolute;
+  top: 0;
+  transform: translateY(-100%);
+}
+
+.user-auth form.local.active {
+  transform: translateY(0);
+  visibility: visible;
+}
+
+.user-auth .field {
+  padding: 0 12px 8px;
+}
+
+.user-auth .field input.form-control:focus {
+  box-shadow: 0 0 0 1000px #3d4046 inset;
+}
+
+.user-auth .actions .btn-xs {
+  margin-top: 6px;
+  color: white;
+}
+
+.user-auth .actions .btn-xs:hover {
+  color: white;
+  text-decoration: underline;
+}
+
+.user-auth .terms {
+  margin: 8px;
+}
+
+.user-auth .terms a {
+  color: white;
 }
 
 /* Dashboard overview*/

@@ -1,12 +1,12 @@
 %ul.nav.navbar-nav.navbar-right.root_links
-  %button#drawer-toggle.btn.a.navbar-brand.toggle-btn
+  %button#nav-drawer-toggle.btn.a.navbar-brand.toggle-btn
     %i.fa.fa-fw.fa-navicon
 
-%ul#nav-drawer
+%ul#nav-drawer.drawer
   #nav-links
     %li.first
-      =link_to ENV['PORTAL_URL'] || "http://cenithub.com", target: '_blank' do
-        %i.fa.fa-fw.fa-file-text{title: t('admin.misc.overview')}
+      %a{ href: ENV['PORTAL_URL'] || 'http://cenithub.com', target: '_blank' }
+        %i.fa.fa-fw.fa-sticky-note-o{title: t('admin.misc.overview')}
         %span=t('admin.misc.overview')
     %li
       %a#take-tour{'href'=> '#'}
@@ -18,27 +18,26 @@
           %i{class: "#{action.link_icon} fa-fw", title: wording_for(:menu, action)}
           %span=wording_for(:menu, action)
     %li
-      =link_to ENV['DOCS_URL'] || 'http://docs.cenithub.com', target: '_blank' do
+      =link_to "#{ENV['DOCS_URL'] || 'https://cenit.io'}/docs", target: '_blank' do
         %i.fa.fa-fw.fa-file-text{title: t('admin.misc.docs')}
         %span=t('admin.misc.docs')
     %li
-      =link_to "#{(ENV['PORTAL_URL'] || "http://cenithub.com")}/blog", target: '_blank' do
+      =link_to "#{ENV['PORTAL_URL'] || 'https://cenit.io'}/blog", target: '_blank' do
         %i.fa.fa-fw.fa-newspaper-o{title: t('admin.misc.blog')}
         %span=t('admin.misc.blog')
     %li
-      =link_to "#{(ENV['PORTAL_URL'] || 'http://cenithub.com')}/prices", target: '_blank' do
-        %i.fa.fa-fw.fa-newspaper-o{title: t('admin.misc.prices')}
+      =link_to "#{ENV['PORTAL_URL'] || 'https://cenit.io'}/prices", target: '_blank' do
+        %i.fa.fa-fw.fa-credit-card{title: t('admin.misc.prices')}
         %span=t('admin.misc.prices')
     %li
-      =link_to "#{(ENV['PORTAL_URL'] || 'http://cenithub.com')}/directory", target: '_blank' do
-        %i.fa.fa-fw.fa-newspaper-o{title: t('admin.misc.directory')}
+      =link_to "#{ENV['PORTAL_URL'] || 'https://cenit.io'}/directory", target: '_blank' do
+        %i.fa.fa-fw.fa-folder-open-o{title: t('admin.misc.directory')}
         %span=t('admin.misc.directory')
-    - unless _current_user.present?
-      %li
-        =link_to "#{(ENV['PORTAL_URL'] || 'http://cenithub.com')}/terms_of_service", target: '_blank' do
-          %i.fa.fa-fw.fa-institution{title: t('admin.misc.terms')}
-          %span=t('admin.misc.terms')
-  #social-links.text-center.last
+    %li
+      =link_to "#{ENV['PORTAL_URL'] || 'https://cenit.io'}/terms_of_service", target: '_blank' do
+        %i.fa.fa-fw.fa-institution{title: t('admin.misc.terms')}
+        %span=t('admin.misc.terms')
+  .social-links.text-center.last
     =link_to 'https://www.linkedin.com/company/cenit-llc', target: '_blank' do
       %i.fa.fa-fw.fa-linkedin-square
     =link_to 'https://www.youtube.com/channel/UC7JVcEmA3BkiR2SZ_lx5lyA', target: '_blank' do
@@ -50,7 +49,7 @@
         %h5 Cenit, LLC
 
 - if _current_user.present?
-  %ul#user-nav.nav.navbar-nav.navbar-right 
+  %ul#user-nav.nav.navbar-nav.navbar-right
     %li.dropdown
       %a.dropdown-toggle{href:"#", role:"button",'data-toggle':"dropdown",'aria-haspopup':"true",'aria-expanded':"false"}
         = _current_user.email.split("@")[0]
@@ -65,7 +64,7 @@
         %li.divider{role:"separator"}
         .actions.clearfix
           %li.terms.pull-left
-            %small= link_to t('admin.misc.terms'), "#{(ENV['PORTAL_URL'] || 'http://cenithub.com')}/terms_of_service" , class: "text-muted"
+            %small= link_to t('admin.misc.terms'), "#{ENV['PORTAL_URL'] || 'https://cenit.io'}/terms_of_service", class: "text-muted", target: '_blank'
           - if logout_path.present?
             %li.pull-right= link_to t('admin.misc.log_out'), logout_path, method: logout_method, class: 'btn btn-xs btn-danger'
 
@@ -82,6 +81,80 @@
   %ul.nav.navbar-nav.navbar-right.root_links
     .a.navbar-btn
       =link_to t('admin.registration.new'), new_registration_path(User), class: 'btn btn-primary', id: 'sign-in-link', style: 'padding-right:10px'
+  %ul#sign-drawer.drawer.user-auth
+    #sign-links.holder
+      .form-top
+        =t('admin.session.new_title')
+      - resource = User.new
+      - resource_name = :user
+      = form_for(resource, as: resource_name, url: session_path(resource_name), html: { role: 'form', class: 'form-inline' }) do |f|
+        - if (return_to = params[:return_to])
+          - f.hidden_field :return_to, value: return_to
+        = f.check_box :remember_me, style: 'display:none', value: '1', checked: 'checked'
+        = f.button class: 'btn btn-lg soc-btn soc-github', name: 'with', value: 'github' do
+          %i{class:"fa fa-fw fa-github"}
+        = f.button class: 'btn btn-lg soc-btn soc-google', name: 'with', value: 'google' do
+          %i{class:"fa fa-fw fa-google"}
+        = f.button class: 'btn btn-lg soc-btn soc-facebook', name: 'with', value: 'facebook' do
+          %i{class:"fa fa-fw fa-facebook"}
+      - unless ENV['UNABLE_SIGN_IN_AND_SIGN_UP_DEVISE'].to_b
+        .form-option
+          =t('admin.misc.or')
+        .local-forms
+          = form_for(resource, as: resource_name, url: session_path(resource_name), html: {id: 'do-user-form', class: 'local'}) do |f|
+            .field.text-justify
+              = f.email_field :email, autofocus: true, class: 'form-control', placeholder: t('admin.placeholders.email')
+            .field.text-justify
+              = f.password_field :password, autocomplete: 'off', class: 'form-control', placeholder: t('admin.placeholders.password')
+            .actions.clearfix
+              %button.btn.btn-primary.pull-right{type:'submit'}
+                =t('admin.session.submit')
+              %a#no-user.btn.btn-xs.pull-left{href: '#'}
+                =t('admin.session.register')
+              %a#no-pass.btn.btn-xs.pull-left{href: '#'}
+                =t('admin.session.forgotten')
+
+          = form_for(resource, as: resource_name, url: registration_path(resource_name), html: {id: 'no-user-form', class: 'local active'}) do |f|
+            .field.text-justify
+              = f.email_field :email, autofocus: true, class: 'form-control', placeholder: t('admin.placeholders.email')
+            .field.text-justify
+              = f.password_field :password, autocomplete: "off", class: 'form-control', placeholder: t('admin.placeholders.password')
+            .field.text-justify
+              = f.password_field :password_confirmation, autocomplete: 'off', class: 'form-control', placeholder: t('admin.placeholders.pass_confirm')
+            .actions.clearfix
+              %button.btn.btn-primary.pull-right{type:'submit'}
+                =t('admin.registration.submit')
+              %a#do-user.btn.btn-xs.pull-left{href: '#'}
+                =t('admin.registration.sign')
+            .terms.text-left
+              %small.text-muted
+                =t('admin.registration.terms_preface')
+                =link_to "#{ENV['PORTAL_URL'] || 'https://cenit.io'}/terms_of_service", target: '_blank' do
+                  %span=t('admin.misc.terms')
+
+          = form_for(resource, as: resource_name, url: password_path(resource_name), html: {id: 'no-pass-form', class: 'local'}) do |f|
+            .form-top
+              =t('admin.forgotten.new_submit')
+            .field.text-justify
+              = f.email_field :email, autofocus: true, class: 'form-control', placeholder: t('admin.placeholders.email')
+            .actions.clearfix
+              %button.btn.btn-primary.pull-right{type:'submit'}
+                = t('admin.forgotten.short_submit')
+              %a#no-user.btn.btn-xs.pull-left{href: '#'}
+                =t('admin.session.register')
+              %a#do-user.btn.btn-xs.pull-left{href: '#'}
+                =t('admin.registration.sign')
+
+    .social-links.text-center.last
+      =link_to 'https://www.linkedin.com/company/cenit-llc', target: '_blank' do
+        %i.fa.fa-fw.fa-linkedin-square
+      =link_to 'https://www.youtube.com/channel/UC7JVcEmA3BkiR2SZ_lx5lyA', target: '_blank' do
+        %i.fa.fa-fw.fa-youtube-square
+      =link_to 'https://plus.google.com/+Cenitsaas-page', target: '_blank' do
+        %i.fa.fa-fw.fa-google-plus-square
+      .cenit-llc
+        =link_to '/', class: "text-muted" do
+          %h5 Cenit, LLC
 
 - query = params[:query]
 %ul.nav.navbar-nav.navbar-right.root_links{style: 'padding-left: 0px;'}
