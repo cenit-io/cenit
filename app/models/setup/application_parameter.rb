@@ -2,12 +2,12 @@ module Setup
   class ApplicationParameter
     include CenitScoped
 
-    BuildInDataType.regist(self)
+    BuildInDataType.regist(self).referenced_by(:name)
 
     field :name, type: String
     field :type, type: String
     field :many, type: Boolean
-    field :group, type: String
+    field :group, type: String, default: ''
     field :description, type: String
 
     embedded_in :application, class_name: Setup::Application.to_s, inverse_of: :application_parameters

@@ -8,6 +8,7 @@ module Setup
                                            :connection_roles,
                                            :translators,
                                            :events,
+                                           :applications,
                                            :data_types,
                                            :schemas,
                                            :custom_validators,
@@ -86,12 +87,11 @@ module Setup
             client: :oauth_clients
           }.each do |property, collector_name|
             collector = send(collector_name)
-            unless (obj = authorization.send(property)).shared?
-              collector << obj unless collector.any? { |o| o == obj }
-            end
+            obj = authorization.send(property)
+            collector << obj unless collector.any? { |o| o == obj }
           end
           if authorization.is_a?(Setup::Oauth2Authorization)
-            authorization.scopes.each { |scope| oauth2_scopes << scope unless scope.shared? || oauth2_scopes.any? { |s| s == scope } }
+            authorization.scopes.each { |scope| oauth2_scopes << scope unless oauth2_scopes.any? { |s| s == scope } }
           end
         end
       end
@@ -127,18 +127,21 @@ module Setup
       visited_algs = Set.new
       algorithms.each { |alg| alg.for_each_call(visited_algs) }
       self.algorithms = visited_algs.to_a
-      [:oauth_providers, :oauth_clients, :oauth2_scopes].each do |shared_collector|
-        if (shared_objs = (collector = send(shared_collector)).where(shared: true)).present?
-          errors.add(:base, "Shared #{shared_collector.to_s.gsub('_', ' ')} are not allowed: #{shared_objs.collect(&:custom_title).to_sentence}")
-          shared_objs.each { |obj| collector.delete(obj) }
-        end
-      end
+
       nss = Set.new
       reflect_on_all_associations(:has_and_belongs_to_many).each do |relation|
         next unless relation.klass.include?(Setup::NamespaceNamed)
         nss += send(relation.name).distinct(:namespace)
       end
       self.namespaces = Setup::Namespace.all.any_in(name: nss.to_a)
+
+      reflect_on_all_associations(:has_and_belongs_to_many).each do |relation|
+        next unless relation.klass.include?(CrossOrigin::Document)
+        if (shared_objs = (collector = send(relation.name)).where(:origin.nin => [:default])).present?
+          shared_objs.each { |obj| collector.delete(obj) }
+        end
+      end
+
       errors.blank?
     end
 

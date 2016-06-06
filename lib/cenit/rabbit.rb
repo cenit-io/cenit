@@ -10,8 +10,8 @@ module Cenit
       def enqueue(message, &block)
         message = message.with_indifferent_access
         asynchronous_message = message.delete(:asynchronous).present? |
-          (scheduler = message.delete(:scheduler)).present? |
-          (publish_at = message.delete(:publish_at))
+            (scheduler = message.delete(:scheduler)).present? |
+            (publish_at = message.delete(:publish_at))
         task_class, task, report = detask(message)
         if task_class || task
           if task
@@ -182,8 +182,8 @@ module Cenit
             unless channel.closed?
               messages_present = false
               (delayed_messages = Setup::DelayedMessage.all.or(:publish_at.lte => Time.now).or(unscheduled: true)).each do |delayed_message|
-                publish_options = { routing_key: queue.name }
-                publish_options[:headers] = { unscheduled: true } if delayed_message.unscheduled
+                publish_options = {routing_key: queue.name}
+                publish_options[:headers] = {unscheduled: true} if delayed_message.unscheduled
                 channel.default_exchange.publish(delayed_message.message, publish_options)
                 messages_present = true
               end
@@ -204,29 +204,29 @@ module Cenit
       def detask(message)
         report = nil
         case task = message.delete(:task)
-        when Class
-          task_class = task
-          task = nil
-        when Setup::Task
-          task_class = task.class
-        when String
-          task_class = task.constantize rescue nil
-          report = "Invalid task class name: #{task}" unless task_class
-          task = nil
-        else
-          task_class = nil
-          if task
-            report = "Invalid task argument: #{task}"
+          when Class
+            task_class = task
             task = nil
-          elsif (id = message.delete(:task_id))
-            if (task = Setup::Task.where(id: id).first)
-              task_class = task.class
-            else
-              report = "Task with ID '#{id}' not found"
-            end
+          when Setup::Task
+            task_class = task.class
+          when String
+            task_class = task.constantize rescue nil
+            report = "Invalid task class name: #{task}" unless task_class
+            task = nil
           else
-            report = 'Task information is missing'
-          end
+            task_class = nil
+            if task
+              report = "Invalid task argument: #{task}"
+              task = nil
+            elsif (id = message.delete(:task_id))
+              if (task = Setup::Task.where(id: id).first)
+                task_class = task.class
+              else
+                report = "Task with ID '#{id}' not found"
+              end
+            else
+              report = 'Task information is missing'
+            end
         end
         [task_class, task, report]
       end
