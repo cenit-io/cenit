@@ -17,7 +17,7 @@
     %label
       = t('admin.scheduler.months.label')
     .form-inline
-      %input#months_input.form-control{type:'text', value:(dd["months"] or ''), placeholder:'e.g: 2, 4, 5', 'data-toggle':'tooltip', title:'Month number (1-12) or list of numbers separated by comma'}
+      %input#months_input.form-control{type:'text', value: (dd['months'].join ','), placeholder:'e.g: 2, 4, 5', 'data-toggle':'tooltip', title:'Month number (1-12) or list of numbers separated by comma'}
       %select#months.form-control.input-sm
         %option{selected: true, disabled:true, value:'0'}
           =t('admin.scheduler.frequency.manual')
@@ -42,7 +42,7 @@
         .form-inline
           .form-group
             .form-inline
-              %input#months_days_input.form-control{type:'text', value:(dd['months_days'] or ''), placeholder:'e.g: 2, 5, 6, 9', 'data-toggle':'tooltip', title:'Day number (1-31) or list of numbers separated by comma'}
+              %input#months_days_input.form-control{type:'text', value:(dd['months_days'].join ','), placeholder:'e.g: 2, 5, 6, 9', 'data-toggle':'tooltip', title:'Day number (1-31) or list of numbers separated by comma'}
 
               %select#months_days.form-control.input-sm
                 %option{selected: true, disabled: true, value:'0'}
@@ -97,7 +97,7 @@
     %label
       = t('admin.scheduler.hours.label')
     .form-inline
-      %input#hours_input.form-control{type:'text', value: (dd['hours'] or ''), placeholder:'e.g: 14', 'data-toggle':'tooltip', title:'The hour number (0-23) or list of numbers separated by comma'}
+      %input#hours_input.form-control{type:'text', value: (dd['hours'].join ','), placeholder:'e.g: 14', 'data-toggle':'tooltip', title:'The hour number (0-23) or list of numbers separated by comma'}
       %select#hours.form-control.input-sm
         %option{selected:true, disabled:true, value:'0'}
           =t('admin.scheduler.frequency.manual')
@@ -110,7 +110,7 @@
     %label
       = t('admin.scheduler.minutes.label')
     .form-inline
-      %input#minutes_input.form-control{type:'text', value: (dd['minutes'] or ''), placeholder:'e.g: 20, 45', 'data-toggle':'tooltip', title:'The minute number (0-59) or list of numbers separated by comma'}
+      %input#minutes_input.form-control{type:'text', value: (dd['minutes'].join ','), placeholder:'e.g: 20, 45', 'data-toggle':'tooltip', title:'The minute number (0-59) or list of numbers separated by comma'}
       %select#minutes.form-control.input-sm
         %option{selected:true, disabled:true, value:'0'}
           =t('admin.scheduler.frequency.manual')
