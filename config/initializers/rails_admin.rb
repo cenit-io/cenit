@@ -1935,15 +1935,13 @@ RailsAdmin.config do |config|
     list do
       field :namespace
       field :name
-      field :scheduling_method
       field :expression
       field :activated
-      field :origin
       field :created_at
       field :updated_at
     end
 
-    fields :namespace, :name, :scheduling_method, :expression, :activated, :origin
+    fields :namespace, :name, :expression, :activated
   end
 
   config.model Setup::AlgorithmParameter do
