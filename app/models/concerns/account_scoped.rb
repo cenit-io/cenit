@@ -18,10 +18,20 @@ module AccountScoped
   end
 
   module ClassMethods
+
+    def mongoid_root_class
+      @mongoid_root_class ||=
+        begin
+          root = self
+          root = root.superclass while root.superclass.include?(Mongoid::Document)
+          root
+        end
+    end
+
     def with(options)
       if (account = options).is_a?(Account) ||
         (options.is_a?(Hash) && options.has_key?(:account) && ((account = options.delete(:account)) || true))
-        options = { collection: Account.tenant_collection_name(self, account: account) }
+        options = options.merge(collection: Account.tenant_collection_name(mongoid_root_class, account: account))
       end
       super
     end
