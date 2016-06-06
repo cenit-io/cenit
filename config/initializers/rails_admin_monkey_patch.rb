@@ -1133,6 +1133,10 @@ module RailsAdmin
     module MongoidAudit
       class AuditingAdapter
 
+        def version_class_for(object)
+          @version_class.with(collection: "#{object.collection_name.to_s.singularize}_#{@version_class.collection_name}")
+        end
+
         def version_class_with(abstract_model)
           @version_class.with(collection: "#{abstract_model.model.collection_name.to_s.singularize}_#{@version_class.collection_name}")
         end
@@ -1146,7 +1150,7 @@ module RailsAdmin
           end
           model_name = model.model.name
           if object
-            versions = version_class_with(model).where('association_chain.name' => model.model_name, 'association_chain.id' => object.id)
+            versions = version_class_for(object).where('association_chain.name' => model.model_name, 'association_chain.id' => object.id)
           else
             versions = version_class_with(model).where('association_chain.name' => model_name)
           end
