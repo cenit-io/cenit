@@ -115,7 +115,7 @@ class Ability
   end
 
   def can?(action, subject, *extra_args)
-    if subject == ScriptExecution && @user && !@user.super_admin?
+    if subject == ScriptExecution && (@user.nil? || !@user.super_admin?)
       false
     else
       super
