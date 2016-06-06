@@ -372,3 +372,35 @@ en:
         doing: "registering"
       shared_collection_index:
         menu: "Shared Collections"
+    scheduler:
+      cyclic: 'Cyclic'
+      appointed: 'Appointed'
+      duration: 'Duration'
+      last: 'Last'
+      first: 'First'
+      frequency:
+        manual: 'Type manually'
+      months:
+        label: 'Months'
+      weeks:
+        label: 'Weeks'
+        month: 'First Second Third Fourth'
+      days:
+        monthly: 'Days of the Month'
+        weekly: 'Days of the Week'
+        last: 'Last day'
+        label: 'Days'
+        names: 'Sun Mon Tue Wed Thu Fri Sat'
+      hours:
+        label: 'Hours'
+      minutes:
+        label: 'Minutes'
+      every:
+        month: "Every month"
+        months: "Every %{d} months"
+        day: "Every day"
+        days: "Every %{d} days"
+        hour: "Every hour"
+        hours: "Every %{d} hours"
+        minute: "Every minute"
+        minutes: "Every %{d} minutes"
