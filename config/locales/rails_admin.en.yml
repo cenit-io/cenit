@@ -228,7 +228,13 @@ en:
         breadcrumb: "Share"
         submit: "Share"
         done: "shared"
-      cross_share:
+      simple_cross_share:
+        title: "Cross share %{model_label} '%{object_label}'"
+        menu: "Cross share"
+        breadcrumb: "Cross share"
+        submit: "Cross share"
+        done: "cross shared"
+      bulk_cross_share:
         title: "Cross share %{model_label_plural}"
         bulk_link: "Cross share selected %{model_label_plural}"
         menu: "Cross share"

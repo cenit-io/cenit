@@ -37,7 +37,8 @@
   RailsAdmin::Config::Actions::Copy,
   RailsAdmin::Config::Actions::Cancel,
   RailsAdmin::Config::Actions::Configure,
-  RailsAdmin::Config::Actions::CrossShare,
+  RailsAdmin::Config::Actions::SimpleCrossShare,
+  RailsAdmin::Config::Actions::BulkCrossShare,
   RailsAdmin::Config::Actions::Regist,
   RailsAdmin::Config::Actions::SharedCollectionIndex
 ].each { |a| RailsAdmin::Config::Actions.register(a) }
@@ -128,7 +129,8 @@ RailsAdmin.config do |config|
     copy
     simple_share
     bulk_share
-    cross_share
+    simple_cross_share
+    bulk_cross_share
     build_gem
     pull
     download_file

@@ -1,16 +1,17 @@
 module RailsAdmin
   module Config
     module Actions
-      class CrossShare < RailsAdmin::Config::Actions::Base
+      class BaseCrossShare < RailsAdmin::Config::Actions::Base
 
         register_instance_option :only do
-          [Setup::OauthClient, Setup::Oauth2Scope, Setup::Scheduler] +
+          [
+            Setup::OauthClient,
+            Setup::Oauth2Scope,
+            Setup::Scheduler,
+            Setup::Algorithm
+          ] +
             Setup::BaseOauthProvider.class_hierarchy +
             Setup::DataType.class_hierarchy
-        end
-
-        register_instance_option :collection do
-          true
         end
 
         register_instance_option :http_methods do
@@ -24,7 +25,9 @@ module RailsAdmin
             if (origin_data = params[origin_config.abstract_model.param_key]) && origin_data.permit! &&
               (@form_object = Forms::CrossOriginSelector.new(origin_data)).valid?
               criteria = @abstract_model.model.all
-              if (ids = params[:bulk_ids])
+              ids = params[:bulk_ids] || []
+              ids << @object.id if @object
+              if ids.present?
                 criteria = criteria.any_in(id: ids)
               end
               criteria.cross(origin_data['origin'])
@@ -43,10 +46,6 @@ module RailsAdmin
               redirect_to back_or_index
             end
           end
-        end
-
-        register_instance_option :bulkable? do
-          true
         end
 
         register_instance_option :link_icon do
