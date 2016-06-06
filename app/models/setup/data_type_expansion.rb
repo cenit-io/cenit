@@ -3,7 +3,7 @@ module Setup
 
     BuildInDataType.regist(self)
 
-    Setup::Models.exclude_actions_for self, :copy, :new, :edit, :translator_update, :import, :convert, :delete_all
+    deny :copy, :new, :edit, :translator_update, :import, :convert, :delete_all
 
     def run(message)
       message = message.with_indifferent_access

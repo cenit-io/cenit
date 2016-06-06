@@ -4,7 +4,7 @@ module Setup
 
     store_in collection: :setup_notifications
 
-    Setup::Models.exclude_actions_for self, :all
+    deny :all
 
     BuildInDataType.regist(self)
 

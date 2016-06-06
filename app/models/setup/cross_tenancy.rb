@@ -11,7 +11,7 @@ module Setup
 
       BuildInDataType.regist(self).excluding(:origin, :tenant)
 
-      Setup::Models.exclude_actions_for self, :import, :translator_update, :convert, :send_to_flow, :copy, :new, :cross_share #TODO remove :new and :copy from excluded actions when fixing references sharing problem
+      deny :import, :translator_update, :convert, :send_to_flow, :copy, :new, :cross_share #TODO remove :new and :copy from excluded actions when fixing references sharing problem
 
       belongs_to :tenant, class_name: Account.to_s, inverse_of: nil
 

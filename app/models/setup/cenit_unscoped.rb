@@ -20,6 +20,10 @@ module Setup
       def super_count
         count
       end
+
+      def deny(*args)
+        Setup::Models.exclude_actions_for self, *args
+      end
     end
   end
 end

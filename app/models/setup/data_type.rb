@@ -11,7 +11,7 @@ module Setup
 
     abstract_class true
 
-    Setup::Models.exclude_actions_for self, :update, :bulk_delete, :delete, :delete_all
+    deny :update, :bulk_delete, :delete, :delete_all
 
     BuildInDataType.regist(self).with(:title, :name, :before_save_callbacks, :records_methods, :data_type_methods).referenced_by(:namespace, :name).including(:slug)
 

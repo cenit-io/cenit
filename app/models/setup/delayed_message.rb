@@ -2,7 +2,7 @@ module Setup
   class DelayedMessage
     include CenitUnscoped
 
-    Setup::Models.exclude_actions_for self, :all
+    deny :all
 
     Setup::BuildInDataType.regist(self)
 

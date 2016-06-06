@@ -4,7 +4,7 @@ module Setup
     include Trackable
     include CollectionName
 
-    Setup::Models.exclude_actions_for self, :all
+    deny :all
 
     BuildInDataType.regist(self).with(:name)
 

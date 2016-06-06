@@ -4,7 +4,7 @@ module Setup
 
     BuildInDataType.regist(self)
 
-    Setup::Models.exclude_actions_for self, :copy, :new, :edit, :translator_update, :import, :convert
+    deny :copy, :new, :edit, :translator_update, :import, :convert
 
 
     field :type, type: Symbol, default: :error

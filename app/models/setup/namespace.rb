@@ -3,7 +3,7 @@ module Setup
     include CenitScoped
     include Slug
 
-    # Setup::Models.exclude_actions_for self, :delete, :bulk_delete, :delete_all
+    # deny :delete, :bulk_delete, :delete_all
 
     BuildInDataType.regist(self).referenced_by(:name)
 
