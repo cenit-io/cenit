@@ -516,6 +516,12 @@ RailsAdmin.config do |config|
       #field :creator
       field :updated_at
     end
+    list do
+      field :label
+      field :parameter
+      field :created_at
+      field :updated_at
+    end
     fields :label, :parameter
   end
 
@@ -753,12 +759,19 @@ RailsAdmin.config do |config|
         end
       end
       field :data
+      field :created_at
+      field :updated_at
     end
   end
 
   config.model Setup::Namespace do
     navigation_label 'Collections'
-
+    list do
+      field :name
+      field :slug
+      field :created_at
+      field :updated_at
+    end
     fields :name, :slug
   end
 
@@ -853,6 +866,8 @@ RailsAdmin.config do |config|
         end
       end
       field :storage_size
+      field :created_at
+      field :updated_at
     end
 
     show do
@@ -979,6 +994,8 @@ RailsAdmin.config do |config|
         end
       end
       field :storage_size
+      field :created_at
+      field :updated_at
     end
 
     show do
@@ -1109,6 +1126,8 @@ RailsAdmin.config do |config|
         end
       end
       field :storage_size
+      field :created_at
+      field :updated_at
     end
 
     show do
@@ -1134,6 +1153,14 @@ RailsAdmin.config do |config|
     weight -490
     configure :namespace, :enum_edit
     fields :namespace, :name
+    
+    list do
+      field :namespace
+      field :name
+      field :created_at
+      field :updated_at
+    end
+    
     show_in_dashboard { false }
   end
 
@@ -1144,6 +1171,14 @@ RailsAdmin.config do |config|
       pretty_value do
         value.split('::').last.to_title
       end
+    end
+    
+    list do
+      field :namespace
+      field :name
+      field :_type
+      field :created_at
+      field :updated_at
     end
 
     fields :namespace, :name, :_type
@@ -1205,6 +1240,15 @@ RailsAdmin.config do |config|
       #field :updater
 
     end
+    
+    list do
+      field :namespace
+      field :uri
+      field :schema_data_type
+      field :created_at
+      field :updated_at
+    end
+    
     fields :namespace, :uri, :schema_data_type
   end
 
@@ -1213,6 +1257,13 @@ RailsAdmin.config do |config|
     weight -488
 
     object_label_method { :custom_title }
+    
+    list do
+      field :namespace
+      field :xslt
+      field :created_at
+      field :updated_at
+    end
 
     fields :namespace, :name, :xslt
   end
@@ -1223,6 +1274,15 @@ RailsAdmin.config do |config|
     object_label_method { :custom_title }
     label 'EDI Validators'
     configure :namespace, :enum_edit
+    
+    list do
+      field :namespace
+      field :name
+      field :schema_data_type
+      field :content_type
+      field :created_at
+      field :updated_at
+    end
 
     fields :namespace, :name, :schema_data_type, :content_type
   end
@@ -1232,6 +1292,14 @@ RailsAdmin.config do |config|
     weight -486
     object_label_method { :custom_title }
     configure :namespace, :enum_edit
+    
+    list do
+      field :namespace
+      field :name
+      field :algorithm
+      field :created_at
+      field :updated_at
+    end
 
     fields :namespace, :name, :algorithm
   end
@@ -1255,6 +1323,8 @@ RailsAdmin.config do |config|
       field :value
       field :description
       field :metadata
+      field :created_at
+      field :updated_at
     end
   end
 
@@ -1347,6 +1417,17 @@ RailsAdmin.config do |config|
       field :updated_at
       #field :updater
     end
+    
+    list do
+      field :namespace
+      field :name
+      field :url
+      field :key
+      field :token
+      field :authorization
+      field :created_at
+      field :updated_at
+    end
 
     fields :namespace, :name, :url, :key, :token, :authorization
   end
@@ -1387,6 +1468,16 @@ RailsAdmin.config do |config|
       field :updated_at
       #field :updater
     end
+    
+    list do
+      field :namespace
+      field :name
+      field :webhooks
+      field :connections
+      field :created_at
+      field :updated_at
+    end
+    
     fields :namespace, :name, :webhooks, :connections
   end
 
@@ -1473,6 +1564,18 @@ RailsAdmin.config do |config|
       field :updated_at
       #field :updater
     end
+    
+    list do
+      field :namespace
+      field :name
+      field :path
+      field :method
+      field :description
+      field :authorization
+      field :created_at
+      field :updated_at
+    end
+    
     fields :namespace, :name, :path, :method, :description, :authorization
   end
 
@@ -1664,6 +1767,16 @@ RailsAdmin.config do |config|
       field :updated_at
       #field :updater
     end
+    
+    list do
+      field :namespace
+      field :name
+      field :active
+      field :event
+      field :translator
+      field :created_at
+      field :updated_at
+    end
 
     fields :namespace, :name, :active, :event, :translator
   end
@@ -1697,6 +1810,14 @@ RailsAdmin.config do |config|
       #field :creator
       field :updated_at
       #field :updater
+    end
+    
+    list do
+      field :namespace
+      field :name
+      field :_type
+      field :created_at
+      field :updated_at
     end
 
     fields :namespace, :name, :_type
