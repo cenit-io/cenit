@@ -1,0 +1,121 @@
+%input#setup_scheduler_expression.form-control{type:"hidden", name:"setup_scheduler[expression]"}
+
+%select#scheduler_kinds.form-control{style:"width: 200px"}
+  %option{value:"1", selected: dd["type"] == 'cyclic'}
+    =t('admin.scheduler.cyclic')
+  %option{value:"2", selected: dd["type"] != 'cyclic'}
+    =t('admin.scheduler.appointed')
+
+#cyclic{style:"display: #{dd['type'] == 'cyclic' ? 'block' : 'none'} ; margin-top: 20px"}
+  %label{for:"cyclic_expression"}
+    = t('admin.scheduler.duration')
+  %br
+  %input#cyclic_expression.form-control{value: dd['cyclic_expression'], placeholder:'e.g: 5m', 'data-toggle':'tooltip', title:'Amount of time, ending with s-m-h-d for specify time units', type:'text'}
+
+#appointed{style: "display: #{dd['type'] == 'cyclic' ? 'none' : 'block'}; margin-top: 20px"}
+  #content
+    %label
+      = t('admin.scheduler.months.label')
+    .form-inline
+      %input#months_input.form-control{type:'text', value: (dd['months'].join ','), placeholder:'e.g: 2, 4, 5', 'data-toggle':'tooltip', title:'Month number (1-12) or list of numbers separated by comma'}
+      %select#months.form-control.input-sm
+        %option{selected: true, disabled:true, value:'0'}
+          =t('admin.scheduler.frequency.manual')
+        %option{value:'1'}
+          = t('admin.scheduler.every.month')
+        - months = [2, 3, 4, 6]
+        - months.each do |d|
+          %option{value: d}
+            =t('admin.scheduler.every.months', {d: d})
+
+    %ul#appointed_tabs.nav.nav-tabs{'data-tabs':"tabs"}
+      %li#number_tab{class: %w(cyclic appointed_number).include?(dd['type']) ? 'active' : ''}
+        %a{href:'#number', 'data-toggle':'tab'}
+          =t('admin.scheduler.days.monthly')
+
+      %li#position_tab{class: ['appointed_position'].include?(dd["type"]) ? 'active' : ''}
+        %a{href:'#position', 'data-toggle':'tab'}
+          =t('admin.scheduler.days.weekly')
+
+    .tab-content
+      #number.tab-pane{class: %w(cyclic appointed_number).include?(dd["type"]) ? 'active' : ''}
+        .form-inline
+          .form-group
+            .form-inline
+              %input#months_days_input.form-control{type:'text', value:(dd['months_days'].join ','), placeholder:'e.g: 2, 5, 6, 9', 'data-toggle':'tooltip', title:'Day number (1-31) or list of numbers separated by comma'}
+
+              %select#months_days.form-control.input-sm
+                %option{selected: true, disabled: true, value:'0'}
+                  =t('admin.scheduler.frequency.manual')
+                %option{value:'1'}
+                  =t('admin.scheduler.every.day')
+
+                - daysn = [3, 4, 6, 12]
+                - daysn.each do |d|
+                  %option{value:(d)}
+                    =t('admin.scheduler.every.days', {d: d})
+
+
+          .form-group{style:"margin-left: 20px"}
+            .checkboxes.form-inline
+              %label
+                %input#last_day_in_month.form-control{checked:false, type:'checkbox'}
+                %span
+                  =t('admin.scheduler.days.last')
+
+      #position.tab-pane{class: 'appointed_position' == dd['type'] ? 'active' : ''}
+        #position_scheduler_month_days
+          .form-inline
+            .form-group
+              %label
+                = t('admin.scheduler.days.weekly')
+
+              .checkboxes.form-inline
+                - week_days.each_with_index do |d, i|
+                  .checkbox
+                    %label
+                      %input.form-control{id: "week_day_#{i}", type:'checkbox', checked:dd['weeks_days'].include?(i)}
+                      %span #{d}
+
+            .form-group{style: 'margin-left: 40px'}
+              %label
+                = t('admin.scheduler.weeks.label')
+
+              .checkboxes.form-inline
+                - weeks_month.each_with_index do |d, i|
+                  .checkbox
+                    %label
+                      %input.form-control{id: "week_month_#{i+1}", type:'checkbox', checked:dd['weeks_month'].include?(i+1)}
+                      %span #{d}
+
+                .checkbox
+                  %label
+                    %input.form-control{id: "week_month_reverse_1", type:'checkbox', checked:dd['weeks_month'].select { |e| e < 0 }.include?(-(1))}
+                    %span
+                      =t('admin.scheduler.last')
+
+    %label
+      = t('admin.scheduler.hours.label')
+    .form-inline
+      %input#hours_input.form-control{type:'text', value: (dd['hours'].join ','), placeholder:'e.g: 14', 'data-toggle':'tooltip', title:'The hour number (0-23) or list of numbers separated by comma'}
+      %select#hours.form-control.input-sm
+        %option{selected:true, disabled:true, value:'0'}
+          =t('admin.scheduler.frequency.manual')
+        %option{value:'1'}
+          = t('admin.scheduler.every.hour')
+        - hours_span.each do |d|
+          %option{value: d}
+            = t('admin.scheduler.every.hours', {d: d})
+
+    %label
+      = t('admin.scheduler.minutes.label')
+    .form-inline
+      %input#minutes_input.form-control{type:'text', value: (dd['minutes'].join ','), placeholder:'e.g: 20, 45', 'data-toggle':'tooltip', title:'The minute number (0-59) or list of numbers separated by comma'}
+      %select#minutes.form-control.input-sm
+        %option{selected:true, disabled:true, value:'0'}
+          =t('admin.scheduler.frequency.manual')
+        %option{value:'1'}
+          = t('admin.scheduler.every.minute')
+        - minutes_span.each do |d|
+          %option{value: d}
+            = t('admin.scheduler.every.minutes', {d: d})

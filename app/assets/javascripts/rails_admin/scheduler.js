@@ -1,4 +1,11 @@
 function schedulerInit() {
+    var cyclic = $("#cyclic");
+    var appointed = $("#appointed");
+
+    if ((cyclic.length == 0) || (appointed.length == 0)){
+        return;
+    }
+
     $('#appointed_tabs').tab();
 
     function fillInput(lbond, ubond, id) {
@@ -96,10 +103,7 @@ function schedulerInit() {
     var number_scheduler_month_days = $("#number_scheduler_month_days");
     var type_of_days_btn = $("#type_of_days_btn");
 
-    var cyclic = $("#cyclic");
-    var appointed = $("#appointed");
-
-    $('a[data-toggle="tab"]').on('shown.bs.tab', function (e) {
+    appointed.find('a[data-toggle="tab"]').on('shown.bs.tab', function (e) {
         updateSchedulerValue();
     });
 
