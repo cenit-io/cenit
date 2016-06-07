@@ -57,7 +57,7 @@ module Setup
     end
 
     def account_version
-      if (pin = Setup::PinnedVersion.for(self)) && pin.version < version
+      if version && (pin = Setup::PinnedVersion.for(self)) && pin.version < version
         undo nil, from: pin.version + 1, to: version
       end
       self
