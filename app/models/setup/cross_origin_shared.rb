@@ -30,6 +30,10 @@ module Setup
       end
     end
 
+    def track_history?
+      origin == :shared && super
+    end
+
     def history_tracker_class
       tracker_class = Mongoid::History.tracker_class
       tracker_class.with(collection: "#{collection_name.to_s.singularize}_#{tracker_class.collection_name}")

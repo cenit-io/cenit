@@ -160,12 +160,12 @@ RailsAdmin.config do |config|
     send_to_flow
     delete_all
     data_type
-
-    history_index do
-      only [Setup::Algorithm]
-    end
+    #history_index
     history_show do
-      only [Setup::Algorithm]
+      only do
+        [Setup::Algorithm] + Setup::DataType.class_hierarchy
+      end
+      visible { bindings[:object].origin == :shared }
     end
   end
 
