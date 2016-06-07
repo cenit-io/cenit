@@ -12,6 +12,9 @@ module Setup
 
       build_in_data_type.excluding(:origin, :tenant)
 
+      shared_allow :edit
+      shared_deny :delete
+
       belongs_to :owner, class_name: User.to_s, inverse_of: nil
 
       before_save do

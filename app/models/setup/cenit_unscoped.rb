@@ -25,8 +25,20 @@ module Setup
         BuildInDataType.regist(self)
       end
 
-      def deny(*args)
-        Setup::Models.exclude_actions_for self, *args
+      def allow(*actions)
+        Setup::Models.included_actions_for self, *actions
+      end
+
+      def deny(*actions)
+        Setup::Models.excluded_actions_for self, *actions
+      end
+
+      def shared_deny(*actions)
+        Setup::Models.shared_excluded_actions_for self, *actions
+      end
+
+      def shared_allow(*actions)
+        Setup::Models.shared_allowed_actions_for self, *actions
       end
     end
   end

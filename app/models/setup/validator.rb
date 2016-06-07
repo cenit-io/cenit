@@ -5,8 +5,6 @@ module Setup
 
     build_in_data_type.referenced_by(:namespace, :name)
 
-    Setup::Models.exclude_actions_for self
-
     before_save :validates_configuration
 
     def validates_configuration

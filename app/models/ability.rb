@@ -20,7 +20,7 @@ class Ability
 
       can [:index, :show, :edi_export, :simple_export], @@oauth_models
       if user.super_admin?
-        can [:destroy, :edit, :create, :import, :cross_share], @@oauth_models
+        can [:destroy, :edit, :create, :import], @@oauth_models
         can :manage, Setup::Application
       else
         can [:destroy, :edit], @@oauth_models, tenant_id: Account.current.id
@@ -63,15 +63,15 @@ class Ability
       end
       can :edi_export, Setup::SharedCollection
 
-      @@setup_map ||=
+      @@allowed ||=
         begin
-          hash = {}
+          allowed_hash = {}
           non_root = []
           RailsAdmin::Config::Actions.all.each do |action|
             unless action.root?
               if (models = action.only)
                 models = [models] unless models.is_a?(Enumerable)
-                hash[action.authorization_key] = Set.new(models)
+                allowed_hash[action.authorization_key] = Set.new(models)
               else
                 non_root << action
               end
@@ -79,27 +79,64 @@ class Ability
           end
           Setup::Models.each_excluded_action do |model, excluded_actions|
             non_root.each do |action|
-              models = (hash[key = action.authorization_key] ||= Set.new)
+              models = (allowed_hash[key = action.authorization_key] ||= Set.new)
               models << model if relevant_rules_for_match(action.authorization_key, model).empty? && !(excluded_actions.include?(:all) || excluded_actions.include?(action.key))
             end
           end
           Setup::Models.each_included_action do |model, included_actions|
             non_root.each do |action|
-              models = (hash[key = action.authorization_key] ||= Set.new)
+              models = (allowed_hash[key = action.authorization_key] ||= Set.new)
               models << model if included_actions.include?(action.key)
             end
           end
-          new_hash = {}
-          hash.each do |key, models|
-            a = (new_hash[models] ||= [])
-            a << key
+          {
+            each_shared_excluded_action: shared_denied_hash = {},
+            each_shared_allowed_action: shared_allowed_hash = {}
+          }.each do |collector_method, hash|
+            puts collector_method
+            Setup::Models.send(collector_method) do |model, actions|
+              RailsAdmin::Config::Actions.all.each do |action|
+                next if action.root?
+                if actions.include?(action.key)
+                  if (models = (allowed_hash[key = action.authorization_key] ||= Set.new)).any? { |m| m == model || model.subclasses.include?(m) }
+                    models.delete_if { |m| m == model || model.subclasses.include?(m) }
+                    (hash[key] ||= []) << model
+                  end
+                end
+              end
+            end
           end
-          hash = {}
-          new_hash.each { |models, keys| hash[keys] = models.to_a }
-          hash
+          [
+            allowed_hash,
+            shared_denied_hash,
+            shared_allowed_hash
+          ].each do |hash|
+            new_hash = {}
+            hash.each do |key, models|
+              a = (new_hash[models] ||= [])
+              a << key
+            end
+            hash.clear
+            new_hash.each do |models, keys|
+              if (models = models.to_a).present?
+                hash[keys] = models
+              end
+            end
+          end
+          @@shared_denied = shared_denied_hash
+          @@shared_allowed = shared_allowed_hash
+          allowed_hash
         end
 
-      @@setup_map.each do |keys, models|
+      @@shared_denied.each do |keys, models|
+        can keys, models, origin: :default
+      end
+
+      @@shared_allowed.each do |keys, models|
+        can keys, models, { '$or' => [{ 'origin' => 'default' }, { 'creator_id' => user.id }] }
+      end
+
+      @@allowed.each do |keys, models|
         cannot Cenit.excluded_actions, models unless user.super_admin?
         can keys, models
       end

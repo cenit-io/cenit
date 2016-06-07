@@ -2,8 +2,8 @@ module Setup
   class OauthAccessGrant
     include CenitScoped
 
-    Setup::Models.exclude_actions_for(self, :all)
-    Setup::Models.include_actions_for(self, :index, :delete)
+    deny :all
+    allow :index, :delete
 
     belongs_to :application_id, class_name: ApplicationId.to_s, inverse_of: nil
     field :scope, type: String
