@@ -30,7 +30,7 @@ module RailsAdmin
               if ids.present?
                 criteria = criteria.any_in(id: ids)
               end
-              criteria.cross(origin_data['origin'])
+              criteria.with_tracking.cross(origin_data['origin'])
               render_form = false
             end
             if render_form
