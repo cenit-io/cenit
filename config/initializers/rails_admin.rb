@@ -2387,7 +2387,6 @@ RailsAdmin.config do |config|
       field :token_endpoint
       field :token_method
       field :scope_separator
-      field :request_token_endpoint
       field :refresh_token_strategy
       field :refresh_token_algorithm
       field :tenant
