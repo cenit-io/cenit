@@ -229,7 +229,7 @@ module Setup
     end
 
     def versioned_name
-      name + '-' + shared_version
+      "#{name}-#{shared_version}"
     end
 
     def data_with(parameters = {})

@@ -729,3 +729,12 @@ ul#main-accordion .panel-heading .nav-icon {
   padding: 0 12px;
   text-align: center;
 }
+
+/*
+ * Custom RailsAdmin styles
+ ****************************/
+
+#edit_setup_scheduler #appointed .tab-pane.active {
+  border-left: none;
+  margin-left: 15px;
+}

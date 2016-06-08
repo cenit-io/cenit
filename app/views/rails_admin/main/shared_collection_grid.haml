@@ -121,10 +121,11 @@
               %ul.dropdown-menu= menu_for :member, @abstract_model, object
           .panel-heading
             =link_to show_path id: object.id do
-              =object.name
+              =object.name.titleize
           .panel-body
             .panel-body-logo.text-center{style: "background-color: #{object.logo_background || 'inherit'}"}
-              =image_tag object.image.present? ? object.image : 'missing.png', class: 'logo'
+              =link_to show_path id: object.id do 
+                =image_tag object.image.present? ? object.image : 'missing.png', class: 'logo'
             .panel-body-description.line-clamp.line-clamp-3
               %p #{object.summary.html_safe if object.summary.present?}
           .panel-footer
