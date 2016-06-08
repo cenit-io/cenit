@@ -121,7 +121,7 @@ module Setup
             type: 'integer'
           },
           uniqueItems: true,
-          maxItems: 3
+          maxItems: 5
         },
         months: {
           type: 'array',

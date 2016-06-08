@@ -20,6 +20,18 @@ module RailsAdmin
       t('admin.scheduler.weeks.month').split(' ')
     end
 
+    def sch_month_names
+      t('admin.scheduler.months.names').split(' ')
+    end
+
+    def months_span
+      [2, 3, 4, 6]
+    end
+
+    def days_span
+      [2, 3, 5, 7, 14]
+    end
+
     def hours_span
       [2, 3, 4, 6, 12]
     end
