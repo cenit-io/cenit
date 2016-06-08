@@ -734,7 +734,33 @@ ul#main-accordion .panel-heading .nav-icon {
  * Custom RailsAdmin styles
  ****************************/
 
-#edit_setup_scheduler #appointed .tab-pane.active {
-  border-left: none;
-  margin-left: 15px;
+#new_setup_scheduler #appointed #number a.btn,
+#edit_setup_scheduler #appointed #number a.btn {
+  width: 56px;
+}
+
+#new_setup_scheduler #appointed #number .scheduler-opts,
+#edit_setup_scheduler #appointed #number .scheduler-opts {
+  padding-bottom: 6px;
+}
+
+#new_setup_scheduler .label.top,
+#edit_setup_scheduler .label.top {
+  color: #000;
+  margin-top: 12px;
+  max-width: 100%;
+  position: relative;
+  display: block;
+  text-align: left;
+}
+
+#new_setup_scheduler .label.top .right,
+#edit_setup_scheduler .label.top .right {
+  position: absolute;
+  right: 15px;
+}
+
+#new_setup_scheduler .scheduler-opts a.btn,
+#edit_setup_scheduler .scheduler-opts a.btn {
+  transition: all .3s ease-in-out;
 }

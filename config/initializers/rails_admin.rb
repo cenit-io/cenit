@@ -2387,7 +2387,6 @@ RailsAdmin.config do |config|
       field :token_endpoint
       field :token_method
       field :scope_separator
-      field :request_token_endpoint
       field :refresh_token_strategy
       field :refresh_token_algorithm
       field :tenant
@@ -3329,8 +3328,6 @@ RailsAdmin.config do |config|
       field :number
       field :users
       field :notification_level
-      field :created_at
-      field :updated_at
     end
 
     fields :_id, :name, :owner, :tenant_account, :number, :users, :notification_level, :time_zone
