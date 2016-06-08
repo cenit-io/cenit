@@ -379,11 +379,13 @@ en:
       last: 'Last'
       first: 'First'
       frequency:
-        manual: 'Type manually'
+        manual: 'Select manually'
       months:
         label: 'Months'
+        names: 'Jan Feb Mar Apr May Jun Jul Aug Sep Oct Nov Dec'
       weeks:
         label: 'Weeks'
+        monthly: 'Weeks of the Month'
         month: 'First Second Third Fourth'
       days:
         monthly: 'Days of the Month'
