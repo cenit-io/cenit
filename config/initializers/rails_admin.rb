@@ -165,7 +165,7 @@ RailsAdmin.config do |config|
       only do
         [Setup::Algorithm] + Setup::DataType.class_hierarchy
       end
-      visible { bindings[:object].origin == :shared }
+      visible { bindings[:object].try(:shared?) }
     end
   end
 

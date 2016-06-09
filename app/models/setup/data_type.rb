@@ -1,6 +1,6 @@
 module Setup
   class DataType
-    include CrossOriginShared
+    include SharedEditable
     include NamespaceNamed
     include SchemaHandler
     include DataTypeParser
