@@ -19,8 +19,13 @@ module Setup
         before_save do
           check_before_save &&
             field_names.each do |field|
-              if (metadata = attributes[field]).is_a?(Hash)
-                attributes[field] = metadata.to_json
+              if (value = attributes[field]).is_a?(Hash)
+                attributes[field] = value = value.to_json
+              end
+              if (changed_value = changed_attributes[field]) &&
+                (changed_value.is_a?(String) || (changed_value = changed_value.to_json)) &&
+                value == changed_value
+                changed_attributes.delete(field)
               end
             end && errors.blank?
         end
