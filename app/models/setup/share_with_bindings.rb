@@ -13,5 +13,14 @@ module Setup
         super
       end
     end
+
+    module ClassMethods
+
+      def tracked_field?(field, action = :update)
+        field = field.to_s
+        binds.none? { |r| r.foreign_key.to_s == field } && super
+      end
+
+    end
   end
 end
