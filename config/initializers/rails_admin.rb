@@ -1157,14 +1157,14 @@ RailsAdmin.config do |config|
     weight -490
     configure :namespace, :enum_edit
     fields :namespace, :name
-    
+
     list do
       field :namespace
       field :name
       field :created_at
       field :updated_at
     end
-    
+
     show_in_dashboard { false }
   end
 
@@ -1176,7 +1176,7 @@ RailsAdmin.config do |config|
         value.split('::').last.to_title
       end
     end
-    
+
     list do
       field :namespace
       field :name
@@ -1244,7 +1244,7 @@ RailsAdmin.config do |config|
       #field :updater
 
     end
-    
+
     list do
       field :namespace
       field :uri
@@ -1252,7 +1252,7 @@ RailsAdmin.config do |config|
       field :created_at
       field :updated_at
     end
-    
+
     fields :namespace, :uri, :schema_data_type
   end
 
@@ -1261,7 +1261,7 @@ RailsAdmin.config do |config|
     weight -488
 
     object_label_method { :custom_title }
-    
+
     list do
       field :namespace
       field :xslt
@@ -1278,7 +1278,7 @@ RailsAdmin.config do |config|
     object_label_method { :custom_title }
     label 'EDI Validators'
     configure :namespace, :enum_edit
-    
+
     list do
       field :namespace
       field :name
@@ -1296,7 +1296,7 @@ RailsAdmin.config do |config|
     weight -486
     object_label_method { :custom_title }
     configure :namespace, :enum_edit
-    
+
     list do
       field :namespace
       field :name
@@ -1421,7 +1421,7 @@ RailsAdmin.config do |config|
       field :updated_at
       #field :updater
     end
-    
+
     list do
       field :namespace
       field :name
@@ -1472,7 +1472,7 @@ RailsAdmin.config do |config|
       field :updated_at
       #field :updater
     end
-    
+
     list do
       field :namespace
       field :name
@@ -1481,7 +1481,7 @@ RailsAdmin.config do |config|
       field :created_at
       field :updated_at
     end
-    
+
     fields :namespace, :name, :webhooks, :connections
   end
 
@@ -1568,7 +1568,7 @@ RailsAdmin.config do |config|
       field :updated_at
       #field :updater
     end
-    
+
     list do
       field :namespace
       field :name
@@ -1579,7 +1579,7 @@ RailsAdmin.config do |config|
       field :created_at
       field :updated_at
     end
-    
+
     fields :namespace, :name, :path, :method, :description, :authorization
   end
 
@@ -1771,7 +1771,7 @@ RailsAdmin.config do |config|
       field :updated_at
       #field :updater
     end
-    
+
     list do
       field :namespace
       field :name
@@ -1815,7 +1815,7 @@ RailsAdmin.config do |config|
       field :updated_at
       #field :updater
     end
-    
+
     list do
       field :namespace
       field :name
@@ -1885,7 +1885,7 @@ RailsAdmin.config do |config|
       field :updated_at
       #field :updater
     end
-    
+
     list do
       field :namespace
       field :name
@@ -1918,7 +1918,7 @@ RailsAdmin.config do |config|
         help 'Configure scheduler'
         partial :scheduler
         html_attributes do
-          {rows: '1'}
+          { rows: '1' }
         end
 
       end
@@ -1935,7 +1935,7 @@ RailsAdmin.config do |config|
       field :updated_at
       #field :updater
     end
-    
+
     list do
       field :namespace
       field :name
@@ -2103,7 +2103,7 @@ RailsAdmin.config do |config|
       field :updated_at
       #field :updater
     end
-    
+
     list do
       field :namespace
       field :name
@@ -2152,7 +2152,7 @@ RailsAdmin.config do |config|
       field :call_links
       field :_id
     end
-    
+
     list do
       field :namespace
       field :name
@@ -2162,7 +2162,7 @@ RailsAdmin.config do |config|
       field :created_at
       field :updated_at
     end
-    
+
     fields :namespace, :name, :description, :parameters, :call_links
   end
 
@@ -2207,7 +2207,7 @@ RailsAdmin.config do |config|
     visible false
     navigation_label 'Workflows'
     configure :group, :enum_edit
-    
+
     list do
       field :name
       field :type
@@ -2260,7 +2260,7 @@ RailsAdmin.config do |config|
         end
       end
     end
-    
+
     list do
       field :provider
       field :name
@@ -2298,7 +2298,7 @@ RailsAdmin.config do |config|
     end
 
     configure :namespace, :enum_edit
-    
+
     list do
       field :namespace
       field :name
@@ -2339,7 +2339,7 @@ RailsAdmin.config do |config|
     configure :refresh_token_algorithm do
       visible { bindings[:object].refresh_token_strategy == :custom.to_s }
     end
-    
+
     list do
       field :namespace
       field :name
@@ -2382,7 +2382,7 @@ RailsAdmin.config do |config|
     end
 
     configure :namespace, :enum_edit
-    
+
     list do
       field :namespace
       field :name
@@ -2417,7 +2417,7 @@ RailsAdmin.config do |config|
     configure :origin do
       visible { Account.current_super_admin? }
     end
-    
+
     list do
       field :provider
       field :name
@@ -2447,7 +2447,7 @@ RailsAdmin.config do |config|
         value.split('::').last.to_title
       end
     end
-    
+
     list do
       field :namespace
       field :name
@@ -2457,7 +2457,7 @@ RailsAdmin.config do |config|
       field :created_at
       field :updated_at
     end
-    
+
     fields :namespace, :name, :status, :_type, :metadata
     show_in_dashboard { false }
   end
@@ -2507,7 +2507,7 @@ RailsAdmin.config do |config|
       field :metadata
       field :_id
     end
-    
+
     list do
       field :namespace
       field :name
@@ -2586,7 +2586,7 @@ RailsAdmin.config do |config|
       field :token_span
       field :authorized_at
     end
-    
+
     list do
       field :namespace
       field :name
@@ -2753,7 +2753,7 @@ RailsAdmin.config do |config|
       field :signature_version
       field :metadata
     end
-    
+
     list do
       field :namespace
       field :name
@@ -3127,7 +3127,7 @@ RailsAdmin.config do |config|
     configure :storer_property do
       label 'Property'
     end
-    
+
     list do
       field :storer_model
       field :storer_object
@@ -3191,6 +3191,18 @@ RailsAdmin.config do |config|
 
       field :version
     end
+  end
+
+  config.model Setup::Binding do
+    navigation_label 'Configuration'
+    weight -8
+
+    configure :target_model, :model
+    configure :target, :record
+    configure :bind_model, :model
+    configure :bind, :record
+
+    fields :target_model, :target, :bind_model, :bind
   end
 
   #Administration
@@ -3354,7 +3366,7 @@ RailsAdmin.config do |config|
     configure :time_zone do
       label 'Time Zone'
     end
-    
+
     list do
       field :_id
       field :name
@@ -3383,14 +3395,14 @@ RailsAdmin.config do |config|
   config.model Setup::SharedName do
     navigation_label 'Administration'
     visible { User.current_super_admin? }
-    
+
     list do
       field :name
       field :owners
       field :created_at
       field :updated_at
     end
-    
+
     fields :name, :owners
   end
 
@@ -3414,7 +3426,7 @@ RailsAdmin.config do |config|
         end
       end
     end
-    
+
     list do
       field :name
       field :description
@@ -3464,7 +3476,7 @@ RailsAdmin.config do |config|
         end
       end
     end
-    
+
     list do
       field :channel
       field :tag
@@ -3496,7 +3508,7 @@ RailsAdmin.config do |config|
         visible { bindings[:object].instance_variable_get(:@registering) }
       end
     end
-    
+
     list do
       field :channel
       field :name
@@ -3520,7 +3532,7 @@ RailsAdmin.config do |config|
     edit do
       field :description
     end
-    
+
     list do
       field :script
       field :description
@@ -3533,7 +3545,7 @@ RailsAdmin.config do |config|
       field :created_at
       field :updated_at
     end
-    
+
     fields :script, :description, :scheduler, :attempts_succeded, :retries, :progress, :status, :notifications
   end
 end
