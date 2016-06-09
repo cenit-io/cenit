@@ -163,7 +163,11 @@ RailsAdmin.config do |config|
     #history_index
     history_show do
       only do
-        [Setup::Algorithm] + Setup::DataType.class_hierarchy
+        [
+          Setup::Algorithm,
+          Setup::Connection,
+          Setup::Webhook
+        ] + Setup::DataType.class_hierarchy
       end
       visible { bindings[:object].try(:shared?) }
     end

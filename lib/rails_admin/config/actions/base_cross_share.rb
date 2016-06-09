@@ -8,7 +8,9 @@ module RailsAdmin
             Setup::OauthClient,
             Setup::Oauth2Scope,
             Setup::Scheduler,
-            Setup::Algorithm
+            Setup::Algorithm,
+            Setup::Webhook,
+            Setup::Connection
           ] +
             Setup::BaseOauthProvider.class_hierarchy +
             Setup::DataType.class_hierarchy

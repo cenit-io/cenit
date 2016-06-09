@@ -1,6 +1,6 @@
 module Setup
   class Connection
-    include CenitScoped
+    include ShareWithBindings
     include NamespaceNamed
     include NumberGenerator
     include ParametersCommon

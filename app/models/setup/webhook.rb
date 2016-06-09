@@ -1,6 +1,6 @@
 module Setup
   class Webhook
-    include CenitScoped
+    include ShareWithBindings
     include NamespaceNamed
     include ParametersCommon
     include JsonMetadata
