@@ -173,6 +173,10 @@ RailsAdmin.config do |config|
     end
   end
 
+  share_with_bindings_edit = Proc.new do
+    visible { User.current == bindings[:object].creator || !bindings[:object].shared? }
+  end
+
   #Collections
 
   config.navigation 'Collections', icon: 'fa fa-cubes'
@@ -1348,7 +1352,6 @@ RailsAdmin.config do |config|
     end
 
     configure :key, :string do
-      visible { User.current_admin? }
       html_attributes do
         { maxlength: 30, size: 30 }
       end
@@ -1356,7 +1359,6 @@ RailsAdmin.config do |config|
     end
 
     configure :token, :text do
-      visible { User.current_admin? }
       html_attributes do
         { cols: '50', rows: '1' }
       end
@@ -1366,12 +1368,10 @@ RailsAdmin.config do |config|
     configure :authorization do
       group :credentials
       inline_edit false
-      visible { User.current_admin? }
     end
 
     configure :authorization_handler do
       group :credentials
-      visible { User.current_admin? }
     end
 
     group :parameters do
@@ -1379,30 +1379,27 @@ RailsAdmin.config do |config|
     end
     configure :parameters do
       group :parameters
-      visible { User.current_admin? }
     end
     configure :headers do
       group :parameters
-      visible { User.current_admin? }
     end
     configure :template_parameters do
       group :parameters
-      visible { User.current_admin? }
     end
 
     edit do
-      field :namespace
-      field :name
-      field :url
+      field(:namespace, &share_with_bindings_edit)
+      field(:name, &share_with_bindings_edit)
+      field(:url, &share_with_bindings_edit)
 
-      field :key
-      field :token
+      field(:key, &share_with_bindings_edit)
+      field(:token, &share_with_bindings_edit)
       field :authorization
-      field :authorization_handler
+      field(:authorization_handler, &share_with_bindings_edit)
 
-      field :parameters
-      field :headers
-      field :template_parameters
+      field(:parameters, &share_with_bindings_edit)
+      field(:headers, &share_with_bindings_edit)
+      field(:template_parameters, &share_with_bindings_edit)
     end
 
     show do
@@ -1504,12 +1501,10 @@ RailsAdmin.config do |config|
     configure :authorization do
       group :credentials
       inline_edit false
-      visible { User.current_admin? }
     end
 
     configure :authorization_handler do
       group :credentials
-      visible { User.current_admin? }
     end
 
     group :parameters do
@@ -1536,19 +1531,19 @@ RailsAdmin.config do |config|
     end
 
     edit do
-      field :namespace
-      field :name
-      field :path
-      field :method
-      field :description
-      field :metadata, :json_value
+      field(:namespace, &share_with_bindings_edit)
+      field(:name, &share_with_bindings_edit)
+      field(:path, &share_with_bindings_edit)
+      field(:method, &share_with_bindings_edit)
+      field(:description, &share_with_bindings_edit)
+      field(:metadata, :json_value, &share_with_bindings_edit)
 
       field :authorization
-      field :authorization_handler
+      field(:authorization_handler, &share_with_bindings_edit)
 
-      field :parameters
-      field :headers
-      field :template_parameters
+      field(:parameters, &share_with_bindings_edit)
+      field(:headers, &share_with_bindings_edit)
+      field(:template_parameters, &share_with_bindings_edit)
     end
 
     show do
