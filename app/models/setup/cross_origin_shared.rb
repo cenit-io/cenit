@@ -14,12 +14,12 @@ module Setup
 
       shared_deny :delete
 
-      belongs_to :owner, class_name: User.to_s, inverse_of: nil
+      belongs_to :tenant, class_name: Account.to_s, inverse_of: nil
 
       before_save do
         if new_record?
           self.origin = :default
-          self.owner = User.current
+          self.tenant = Account.current
         end
         errors.blank?
       end
@@ -70,9 +70,8 @@ module Setup
 
         (new_record? || !BuildInDataType[self.class].protecting?(name) ||
           (current_user = User.current) &&
-            (current_user == owner ||
-              current_user.account_id == owner.account_id ||
-              (current_user.super_admin? && owner.super_admin?))) &&
+            (current_user.account_id == tenant.id ||
+              (current_user.super_admin? && tenant.super_admin?))) &&
 
         value) || nil
     end
