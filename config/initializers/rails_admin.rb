@@ -166,8 +166,10 @@ RailsAdmin.config do |config|
         [
           Setup::Algorithm,
           Setup::Connection,
-          Setup::Webhook
-        ] + Setup::DataType.class_hierarchy
+          Setup::Webhook,
+          Setup::Translator,
+          Setup::Flow
+        ] + Setup::DataType.class_hierarchy + Setup::Validator.class_hierarchy
       end
       visible { bindings[:object].try(:shared?) }
     end

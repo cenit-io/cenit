@@ -4,21 +4,21 @@ module Setup
     include CollectionName
 
     build_in_data_type.embedding(:namespaces,
-                                           :flows,
-                                           :connection_roles,
-                                           :translators,
-                                           :events,
-                                           :applications,
-                                           :data_types,
-                                           :schemas,
-                                           :custom_validators,
-                                           :algorithms,
-                                           :webhooks,
-                                           :connections,
-                                           :authorizations,
-                                           :oauth_providers,
-                                           :oauth_clients,
-                                           :oauth2_scopes).excluding(:image)
+                                 :flows,
+                                 :connection_roles,
+                                 :translators,
+                                 :events,
+                                 :applications,
+                                 :data_types,
+                                 :schemas,
+                                 :custom_validators,
+                                 :algorithms,
+                                 :webhooks,
+                                 :connections,
+                                 :authorizations,
+                                 :oauth_providers,
+                                 :oauth_clients,
+                                 :oauth2_scopes).excluding(:image)
 
     mount_uploader :image, AccountImageUploader
 

@@ -10,10 +10,13 @@ module RailsAdmin
             Setup::Scheduler,
             Setup::Algorithm,
             Setup::Webhook,
-            Setup::Connection
+            Setup::Connection,
+            Setup::Translator,
+            Setup::Flow
           ] +
             Setup::BaseOauthProvider.class_hierarchy +
-            Setup::DataType.class_hierarchy
+            Setup::DataType.class_hierarchy +
+            Setup::Validator.class_hierarchy
         end
 
         register_instance_option :http_methods do

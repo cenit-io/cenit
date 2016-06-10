@@ -2,6 +2,7 @@ module Setup
   class Validator
     include CenitScoped
     include NamespaceNamed
+    include ClassHierarchyAware
 
     build_in_data_type.referenced_by(:namespace, :name)
 

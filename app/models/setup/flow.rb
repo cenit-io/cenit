@@ -2,7 +2,7 @@ require 'nokogiri'
 
 module Setup
   class Flow < ReqRejValidator
-    include CenitScoped
+    include ShareWithBindings
     include NamespaceNamed
     include TriggersFormatter
     include ThreadAware
@@ -14,7 +14,7 @@ module Setup
     field :notify_response, type: Boolean, default: :false
     field :discard_events, type: Boolean
 
-    belongs_to :event, class_name: Setup::Event.to_s, inverse_of: nil
+    binding_belongs_to :event, class_name: Setup::Event.to_s, inverse_of: nil
 
     belongs_to :translator, class_name: Setup::Translator.to_s, inverse_of: nil
     belongs_to :custom_data_type, class_name: Setup::DataType.to_s, inverse_of: nil
@@ -25,7 +25,7 @@ module Setup
     field :lot_size, type: Integer
 
     belongs_to :webhook, class_name: Setup::Webhook.to_s, inverse_of: nil
-    belongs_to :connection_role, class_name: Setup::ConnectionRole.to_s, inverse_of: nil
+    binding_belongs_to :connection_role, class_name: Setup::ConnectionRole.to_s, inverse_of: nil
 
     belongs_to :response_translator, class_name: Setup::Translator.to_s, inverse_of: nil
     belongs_to :response_data_type, class_name: Setup::DataType.to_s, inverse_of: nil

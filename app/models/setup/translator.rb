@@ -1,6 +1,6 @@
 module Setup
   class Translator < ReqRejValidator
-    include CenitScoped
+    include SharedEditable
     include NamespaceNamed
 
     build_in_data_type.referenced_by(:namespace, :name)
