@@ -7,9 +7,16 @@ module Setup
     deny :all
     allow :index
 
-    belongs_to :connection, class_name: Setup::Connection.to_s, inverse_of: nil
-    belongs_to :webhook, class_name: Setup::Webhook.to_s, inverse_of: nil
-    belongs_to :authorization, class_name: Setup::Authorization.to_s, inverse_of: nil
+    [
+      Setup::Flow,
+      Setup::Connection,
+      Setup::Webhook,
+      Setup::Authorization,
+      Setup::Event,
+      Setup::ConnectionRole
+    ].each do |model|
+      belongs_to model.to_s.split('::').last.underscore.to_sym, class_name: model.to_s, inverse_of: nil
+    end
 
     def target
       @target || (relations.values.detect { |r| @target = send(r.name) } && @target)
@@ -32,20 +39,23 @@ module Setup
     class << self
 
       def id_for(object, model)
-        if (bind = where("#{object.class.to_s.split('::').last.downcase}_id" => object.id).first)
-          bind[("#{model.to_s.split('::').last.downcase}_id")]
+        if (bind = where("#{object.class.to_s.split('::').last.underscore}_id" => object.id).first)
+          bind[("#{model.to_s.split('::').last.underscore}_id")]
         end
       end
 
       def for(object, model)
-        if (bind = where("#{object.class.to_s.split('::').last.downcase}_id" => object.id).first)
-          bind.send(model.to_s.split('::').last.downcase)
+        if (bind = where("#{object.class.to_s.split('::').last.underscore}_id" => object.id).first)
+          bind.send(model.to_s.split('::').last.underscore)
         end
       end
 
-      def bind(target, obj)
-        where(target_id = "#{target.class.mongoid_root_class.to_s.split('::').last.downcase}_id" => target.id).delete_all
-        create(target_id => target.id, "#{obj.class.mongoid_root_class.to_s.split('::').last.downcase}_id" => obj.id) if obj
+      def bind(target, obj, obj_model = nil)
+        obj_model ||= obj.class
+        obj_id = "#{obj_model.mongoid_root_class.to_s.split('::').last.underscore}_id".to_sym
+        target_id = "#{target.class.mongoid_root_class.to_s.split('::').last.underscore}_id".to_sym
+        where(target_id => target.id, obj_id.exists => true).delete_all
+        create(target_id => target.id, obj_id => obj.id) if obj
       end
     end
   end

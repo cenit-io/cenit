@@ -9,7 +9,7 @@ module Setup
     def bind_bindings(options = {})
       clear_foreign_keys = !options.has_key?(:clear_foreign_keys) || options[:clear_foreign_keys]
       self.class.binds.each do |metadata|
-        Setup::Binding.bind(self, send(metadata.name))
+        Setup::Binding.bind(self, send(metadata.name), metadata.klass)
         # remove_attribute(metadata.foreign_key) if clear_foreign_keys TODO Uncomment after data base migration
       end
       true
