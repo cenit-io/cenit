@@ -803,7 +803,7 @@ module RailsAdmin
         if current_user
           RailsAdmin::Config.visible_models(controller: controller)
         else
-          Setup::Models.collect { |m| RailsAdmin::Config.model(m) }.select(&:visible).select(&:show_in_dashboard)
+          Setup::Models.collect { |m| RailsAdmin::Config.model(m) }.select(&:visible).select(&:show_in_dashboard).sort_by(&:weight)
         end
 
       node_model_names = nodes_stack.collect { |c| c.abstract_model.model_name }
