@@ -4,7 +4,6 @@ module Setup
     include NamespaceNamed
     include SchemaHandler
     include DataTypeParser
-    include Slug
     include CustomTitle
     include Mongoff::DataTypeMethods
     include ClassHierarchyAware
@@ -53,7 +52,13 @@ module Setup
 
     before_save :validates_configuration, :on_saving
 
-    after_save :on_saved
+    after_save :on_saved, :configure_slug
+
+    after_destroy { data_type_slug.destroy }
+
+    def configure_slug
+      data_type_slug.save
+    end
 
     def validates_configuration
       invalid_algorithms = []
@@ -72,6 +77,9 @@ module Setup
         if (duplicated_names = by_name.select { |_, count| count > 1 }.keys).present?
           errors.add(methods, "contains algorithms with the same name: #{duplicated_names.to_sentence}")
         end
+      end
+      unless data_type_slug.validate_slug
+        data_type_slug.errors.messages[:slug].each { |error| errors.add(:slug, error) }
       end
       errors.blank?
     end
@@ -406,10 +414,27 @@ module Setup
       end
     end
 
+    def slug
+      data_type_slug.slug
+    end
+
+    def slug=(slug)
+      data_type_slug.slug = slug
+    end
+
+    after_initialize { attributes.delete('slug') } #TODO Remove after DB migration
+
     protected
 
-    def slug_taken?(slug)
-      Setup::DataType.where(slug: slug, namespace: namespace).present?
+    def data_type_slug
+      @data_type_slug ||=
+        begin
+          if new_record?
+            Setup::DataTypeSlug.new(data_type: self)
+          else
+            Setup::DataTypeSlug.find_or_create_by(data_type: self)
+          end
+        end
     end
 
     def do_load_model(report)

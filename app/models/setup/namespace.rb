@@ -3,9 +3,7 @@ module Setup
     include CenitScoped
     include Slug
 
-    # deny :delete, :bulk_delete, :delete_all
-
-    build_in_data_type.referenced_by(:name)
+   build_in_data_type.referenced_by(:name)
 
     field :name, type: String
 
@@ -16,6 +14,12 @@ module Setup
         else
           name.strip
         end.strip
+    end
+
+    after_save do
+      if (old_name = changed_attributes['name'])
+        #TODO Refactor namespace name on setup models
+      end
     end
 
     validates_uniqueness_of :name

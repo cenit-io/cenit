@@ -778,17 +778,6 @@ RailsAdmin.config do |config|
     end
   end
 
-  config.model Setup::Namespace do
-    navigation_label 'Collections'
-    list do
-      field :name
-      field :slug
-      field :created_at
-      field :updated_at
-    end
-    fields :name, :slug
-  end
-
   #Data
 
   config.navigation 'Data', icon: 'fa fa-database'
@@ -3147,10 +3136,25 @@ RailsAdmin.config do |config|
 
   config.navigation 'Configuration', icon: 'fa fa-wrench'
 
+  config.model Setup::Namespace do
+    navigation_label 'Configuration'
+    weight -9
+    fields :name, :slug, :updated_at
+  end
+
+  config.model Setup::DataTypeSlug do
+    navigation_label 'Configuration'
+    weight -8
+    configure :data_type do
+      read_only true
+    end
+    fields :data_type, :slug, :updated_at
+  end
+
   config.model Setup::PinnedVersion do
 
     navigation_label 'Configuration'
-    weight -9
+    weight -7
     object_label_method :to_s
 
     configure :model, :model
@@ -3196,7 +3200,7 @@ RailsAdmin.config do |config|
 
   config.model Setup::Binding do
     navigation_label 'Configuration'
-    weight -8
+    weight -6
 
     configure :target_model, :model
     configure :target, :record
