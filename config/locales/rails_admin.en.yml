@@ -378,18 +378,34 @@ en:
       duration: 'Duration'
       last: 'Last'
       first: 'First'
+      startat: 'Start at'
+      end: 'End'
+      after: 'After'
+      repeat: 'Repeat'
+      repetitions: 'Repetitions'
+      at: 'At'
+      on: 'On'
+      never: 'Never'
       frequency:
+        label: 'Frequency'
+        hourly: 'By the Hour'
+        daily: 'By the Day'
+        weekly: 'By the Week'
+        monthly: 'By the Month'
+        annually: 'By the Year'
+        once: 'Only once'
+        once: 'Never'
         manual: 'Select manually'
       months:
         label: 'Months'
         names: 'Jan Feb Mar Apr May Jun Jul Aug Sep Oct Nov Dec'
       weeks:
         label: 'Weeks'
-        monthly: 'Weeks of the Month'
+        monthly: 'Weeks every Month'
         month: 'First Second Third Fourth'
       days:
-        monthly: 'Days of the Month'
-        weekly: 'Days of the Week'
+        monthly: 'Monthly on'
+        weekly: 'Weekly on'
         last: 'Last day'
         label: 'Days'
         names: 'Sun Mon Tue Wed Thu Fri Sat'
@@ -398,11 +414,13 @@ en:
       minutes:
         label: 'Minutes'
       every:
-        month: "Every month"
+        zero: "(Leave '0' for all, '1' for every other, etc...)"
+        label: 'Every'
+        month: 'Every month'
         months: "Every %{d} months"
-        day: "Every day"
+        day: 'Every day'
         days: "Every %{d} days"
-        hour: "Every hour"
+        hour: 'Every hour'
         hours: "Every %{d} hours"
-        minute: "Every minute"
+        minute: 'Every minute'
         minutes: "Every %{d} minutes"
