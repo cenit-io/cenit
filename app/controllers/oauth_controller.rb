@@ -10,7 +10,7 @@ class OauthController < ApplicationController
 
   def index
     if request.get?
-      if @app_id.account == Account.current || @app_id.registered?
+      if @app_id && @app_id.account == Account.current || @app_id.registered?
         @token = CenitToken.create(data: { scope: @scope.to_s, redirect_uri: @redirect_uri, state: params[:state] }).token
       else
         @errors << 'Unregistered app'
