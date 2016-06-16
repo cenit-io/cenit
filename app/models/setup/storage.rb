@@ -14,7 +14,7 @@ module Setup
     field :length, type: Integer
 
     before_destroy do
-      Mongoid.default_client[(Account.tenant_collection_prefix + '.chunks').to_sym].find(files_id: id).delete_many
+      self.class.chunks_collection.find(files_id: id).delete_many
     end
 
     def storage_name
@@ -43,6 +43,18 @@ module Setup
 
     def label
       "#{storer_property.capitalize} on #{storer_name}"
+    end
+
+    class << self
+
+      def chunks_collection
+        Mongoid.default_client[(Account.tenant_collection_prefix + '.chunks').to_sym]
+      end
+
+      def clean_up
+        collection.drop
+        chunks_collection.drop
+      end
     end
 
     private

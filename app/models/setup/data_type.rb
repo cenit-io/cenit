@@ -115,6 +115,10 @@ module Setup
       !(records_model.try(:delete_all) rescue true) || true
     end
 
+    def clean_up
+      all_data_type_collections_names.each { |name| Mongoid.default_client[name.to_sym].drop }
+    end
+
     def subtype?
       false
     end
