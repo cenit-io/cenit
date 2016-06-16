@@ -145,45 +145,83 @@ function schedulerInit() {
                 break;
         }
 
-        var level = parseInt(freq_sel.val());
+        var level = freq_sel.val();
+        // res['frequency'] = parseInt(level);
         var every = "";
 
-        if (level == 1) {
-            res["type"] = 'cyclic';
-            res["cyclic_expression"] = $('#cyclic_num').val() + ($('#cyclic_unit').val());
-        } else {
-            res["type"] = 'appointed';
-            if (level >= 2) {
-                res["hours"] = _.filter(_.range(0, 23), function (e) {
-                    return $("#hours_at_" + e).hasClass("btn-primary");
-                });
-                res["minutes"] = _.filter(_.range(0, 60, 5), function (e) {
-                    return $("#minutes_at_" + e).hasClass("btn-primary");
-                });
-            }
-            if (level >= 3) {
+        switch (level) {
+            case "1":
+                var hrs, mins;
+                if ($("#hours_sl").val() == "0") {
+                    hrs = parseInt($("#every_hr").val());
+                    mins = parseInt($("#every_min").val());
+                    every = (hrs * 60) + mins + "m";
+                    res["cyclic_expression"] = every;
+                    res["type"] = 'cyclic';
+                } else {
+                    res["hours"] = _.filter(_.range(0, 23), function (e) {
+                        return $("#hours_at_" + e).hasClass("btn-primary");
+                    });
+                    res["minutes"] = _.filter(_.range(0, 60, 5), function (e) {
+                        return $("#minutes_at_" + e).hasClass("btn-primary");
+                    });
+                    res["type"] = 'appointed';
+                }
+                break;
+            case "2":
                 var dval = $("#days_sl").val();
-                if (dval == "1") {
+                if (dval == "0") {
+                    var days = parseInt($("#every_days").val());
+                    every = days + "d";
+                    res["cyclic_expression"] = every;
+                    res["type"] = 'cyclic';
+                } else if (dval == "1") {
                     res["week_days"] = _.filter(_.range(0, 7), function (e) {
                         return $("#week_day_" + e).hasClass("btn-primary");
                     });
-
-                    res["weeks_month"] = _.filter(_.range(0, 3), function (e) {
-                        return $("#weeks_monthly_at_" + e).hasClass("btn-primary");
-                    });
-                    res["last_week_in_month"] = $('#last_week_in_month').hasClass("btn-primary");
+                    res["type"] = 'appointed';
                 } else {
                     res["month_days"] = _.filter(_.range(0, 31), function (e) {
                         return $("#months_day_" + e).hasClass("btn-primary");
                     });
                     res["last_day_in_month"] = $('#last_day_in_month').hasClass("btn-primary");
+                    res["type"] = 'appointed';
                 }
-            }
-            if (level >= 4) {
-                res["months"] = _.filter(_.range(1, 13), function (e) {
-                    return $("#month_" + e).hasClass("btn-primary");
-                });
-            }
+                break;
+            case "3":
+                if ($("#weeks_sl").val() == "0") {
+                    var weeks = parseInt($('#every_week').val());
+                    every = weeks + "w";
+                    res["cyclic_expression"] = every;
+                    res["type"] = 'cyclic';
+                } else {
+                    res["week_days"] = _.filter(_.range(0, 7), function (e) {
+                        return $('#weeks_1').find(".week_day_" + e).hasClass("btn-primary");
+                    });
+                    res["weeks_month"] = _.filter(_.range(0, 3), function (e) {
+                        return $("#weeks_monthly_at_" + e).hasClass("btn-primary");
+                    });
+                    res["last_week_in_month"] = $('#last_week_in_month').hasClass("btn-primary");
+                    res["type"] = 'appointed';
+                }
+                break;
+            case "4":
+                if ($("#months_sl").val() == "0") {
+                    var months = parseInt($('#every_month').val());
+                    every = months + "M";
+                    res["cyclic_expression"] = every;
+                    res["type"] = 'cyclic';
+                } else {
+                    res["month_days"] = _.filter(_.range(0, 31), function (e) {
+                        return $('#month_1').find(".months_day_" + e).hasClass("btn-primary");
+                    });
+                    res["last_day_in_month"] = $('#months_1').find('.last_day_in_month').hasClass("btn-primary");
+                    res["months"] = _.filter(_.range(1, 13), function (e) {
+                        return $("#month_" + e).hasClass("btn-primary");
+                    });
+                    res["type"] = 'appointed';
+                }
+                break;
         }
         $("#setup_scheduler_expression").val(JSON.stringify(res));
     }
