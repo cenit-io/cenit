@@ -5,8 +5,9 @@ module Setup
 
     def deletion_model
       model_name = message[:model_name.to_s]
-      unless model = model_name.constantize rescue nil
-        if model_name.start_with?('Dt') && data_type = Setup::DataType.where(id: model_name.from(2)).first
+      model = model_name.constantize rescue nil
+      unless model
+        if model_name.start_with?('Dt') && (data_type = Setup::DataType.where(id: model_name.from(2)).first)
           model = data_type.records_model
         end
       end
@@ -14,9 +15,10 @@ module Setup
     end
 
     def run(message)
-      if model = deletion_model
+      if (model = deletion_model)
         scope = model.where(message[:selector])
-        if (model.singleton_method(:before_destroy) rescue nil)
+        destroy_callback = model.singleton_method(:before_destroy) rescue false
+        if destroy_callback
           progress_step = 10
           step_size = scope.count / progress_step
           step_count = 0
@@ -30,7 +32,7 @@ module Setup
             end
           end
         else
-          if scope.is_a?(Mongoid::Criteria) then
+          if scope.is_a?(Mongoid::Criteria)
             scope.delete_all
           else
             scope.delete_many
