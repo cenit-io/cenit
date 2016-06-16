@@ -29,7 +29,7 @@ module AccountScoped
     end
 
     def with(options)
-      if (account = options).is_a?(Account) ||
+      if ((account = options).is_a?(Account) && (options = {})) ||
         (options.is_a?(Hash) && options.has_key?(:account) && ((account = options.delete(:account)) || true))
         options = options.merge(collection: Account.tenant_collection_name(mongoid_root_class, account: account))
       end
