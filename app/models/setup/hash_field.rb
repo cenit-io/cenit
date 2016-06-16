@@ -26,6 +26,8 @@ module Setup
                 (changed_value.is_a?(String) || (changed_value = changed_value.to_json)) &&
                 value == changed_value
                 changed_attributes.delete(field)
+              else
+                changed_attributes[field] = changed_value
               end
             end && errors.blank?
         end
