@@ -378,7 +378,7 @@ en:
       duration: 'Duration'
       last: 'Last'
       first: 'First'
-      startat: 'Start at'
+      start: 'Start'
       end: 'End'
       after: 'After'
       repeat: 'Repeat'
@@ -386,6 +386,7 @@ en:
       at: 'At'
       on: 'On'
       never: 'Never'
+      asap: 'Immediately'
       frequency:
         label: 'Frequency'
         hourly: 'By the Hour'

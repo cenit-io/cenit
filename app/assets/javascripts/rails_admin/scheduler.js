@@ -100,6 +100,15 @@ function schedulerInit() {
         $('#months_1').toggleClass('hidden');
     });
 
+    $('#start_sl').on('change', function () {
+        var value = $(this).val();
+
+        $('#start_1').addClass('hidden');
+        $('#start_2').addClass('hidden');
+
+        $('#start_' + value).removeClass('hidden');
+    });
+
     $('#end_sl').on('change', function () {
         var value = $(this).val();
 
@@ -110,15 +119,17 @@ function schedulerInit() {
     });
 
     function updateExpression() {
-        var res = {
-            "start_at": "YYYY-MM-DD HH:mm"
-                .replace('YYYY', $('#start_year').val())
-                .replace('MM', zP($('#start_month').val(), 2))
-                .replace('DD', zP($('#start_day').val(), 2))
-                .replace('HH', zP($('#start_hr').val(), 2))
-                .replace('mm', zP($('#start_min').val(), 2))
-        };
-        
+        var res = {};
+
+        switch ($('#start_sl').val()) {
+            case "1":
+                res["start_at"] = "YYYY-MM-DD HH:mm"
+                    .replace('YYYY', $('#start_year').val())
+                    .replace('MM', zP($('#start_month').val(), 2))
+                    .replace('DD', zP($('#start_day').val(), 2))
+                    .replace('HH', zP($('#start_hr').val(), 2))
+                    .replace('mm', zP($('#start_min').val(), 2))
+        }
 
         switch ($('#end_sl').val()) {
             case "1":
@@ -135,7 +146,7 @@ function schedulerInit() {
         }
 
         var level = freq_sel.val();
-        res['frequency'] = parseInt(level);
+        // res['frequency'] = parseInt(level);
         var every = "";
 
         switch (level) {

@@ -1,22 +1,32 @@
 %input#setup_scheduler_expression.form-control{type:"hidden", name:"setup_scheduler[expression]"}
 
+- dd = dh
+
 .label.top
   %label
-    = t('admin.scheduler.startat')
+    = t('admin.scheduler.start')
 #scheduler_startat
-  .form-inline
-    - year = dd['start_at'][0..3].to_i || Time.now.year
-    - month = dd['start_at'][5..6].to_i || Time.now.month
-    - day = dd['start_at'][8..9].to_i || Time.now.day
-    - hr = dd['start_at'][11..12].to_i || Time.now.hour
-    - min = dd['start_at'][14..15].to_i || Time.now.min
-    %input#start_year.form-control.text-right{type:'number', name: 'start_year', value: year, min: year, max: year+5, size:4}
-    %input#start_month.form-control.text-right{type:'number', name: 'start_month', value: month, min: 1, max: 12, size: 2}
-    %input#start_day.form-control.text-right{type:'number', name: 'start_day', value: day, min: 1, max: Time.days_in_month(month, year), size: 2}
-    = '@'
-    %input#start_hr.form-control.text-right{type:'number', name: 'start_hr', value: hr, min:0, max:23, size:2}
-    = ':'
-    %input#start_min.form-control.text-right{type:'number', name: 'start_min', value: min, min:0, max:59, size:2}
+  .form-inline.clearfix
+    .col-sm-2
+      %select#start_sl.form-control.input-sm{style:'vertical-align: top'}
+        %option{value:0, selected: !(dd.has_key? 'start_at')}
+          = t('admin.scheduler.asap')
+        %option{value:1, selected: (dd.has_key? 'start_at')}
+          = t('admin.scheduler.at')
+    #start_1.col-sm-10{class: (dd.has_key? 'start_at')? '': 'hidden'}
+      - source = (dd.has_key? 'start_at') ? dd['start_at'] : dd['now']
+      - year = source[0..3].to_i || Time.now.year
+      - month = source[5..6].to_i || Time.now.month
+      - day = source[8..9].to_i || Time.now.day
+      - hr = source[11..12].to_i || Time.now.hour
+      - min = source[14..15].to_i || Time.now.min
+      %input#start_year.form-control.text-right{type:'number', name: 'start_year', value: year, min: year, max: year+5, size:4}
+      %input#start_month.form-control.text-right{type:'number', name: 'start_month', value: month, min: 1, max: 12, size: 2}
+      %input#start_day.form-control.text-right{type:'number', name: 'start_day', value: day, min: 1, max: Time.days_in_month(month, year), size: 2}
+      = '@'
+      %input#start_hr.form-control.text-right{type:'number', name: 'start_hr', value: hr, min:0, max:23, size:2}
+      = ':'
+      %input#start_min.form-control.text-right{type:'number', name: 'start_min', value: min, min:0, max:59, size:2}
 
 .label.top
   %label
@@ -153,7 +163,7 @@
         -#%option{value:2}
           = t('admin.scheduler.after')
     #end_1.col-sm-10{class: (dd.has_key? 'end_at')? '': 'hidden'}
-      - source = (dd.has_key? 'end_at') ? dd['end_at'] : dd['start_at']
+      - source = (dd.has_key? 'end_at') ? dd['end_at'] : dd['now']
       - year = source[0..3].to_i
       - month = source[5..6].to_i
       - day = source[8..9].to_i

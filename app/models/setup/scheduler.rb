@@ -162,7 +162,7 @@ module Setup
             type: 'integer'
         }
       },
-      required: %w(type start_at)
+      required: %w(type)
     }.to_json
   end
 
