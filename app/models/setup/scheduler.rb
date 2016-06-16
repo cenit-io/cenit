@@ -24,11 +24,11 @@ module Setup
 
     def check_before_save
       @activation_status_changed = changed_attributes.has_key?(:activated.to_s)
-      if expression['type'] == 'cyclic'
-        self.expression = { type: 'cyclic', cyclic_expression: expression['cyclic_expression'] }
-      else
-        expression.reject! { |_, value| value.blank? }
-      end
+      # if expression['type'] == 'cyclic'
+      #   self.expression = { type: 'cyclic', cyclic_expression: expression['cyclic_expression'] }
+      # else
+      expression.reject! { |_, value| value.blank? }
+      # end
       errors.blank?
     end
 
@@ -93,11 +93,11 @@ module Setup
       properties: {
         cyclic_expression: {
           type: 'string',
-          pattern: '^[1-9][0-9]*(s|m|h|d)$'
+          pattern: '^[1-9][0-9]*(s|m|h|d|w|M)$'
         },
         type: {
           type: 'string',
-          enum: %w(cyclic appointed_position appointed_number)
+          enum: %w(cyclic appointed)
         },
         months_days: {
           type: 'array',
@@ -146,9 +146,23 @@ module Setup
           },
           uniqueItems: true,
           maxItems: 60
+        },
+        start_at: {
+            type: 'string',
+            pattern: '^\d\d\d\d-(0?[1-9]|1[0-2])-(0?[1-9]|[12][0-9]|3[01]) (00|[0-9]|1[0-9]|2[0-3]):([0-9]|[0-5][0-9])$'
+        },
+        frequency: {
+            type: 'integer'
+        },
+        end_at: {
+            type: 'string',
+            pattern: '^\d\d\d\d-(0?[1-9]|1[0-2])-(0?[1-9]|[12][0-9]|3[01]) (00|[0-9]|1[0-9]|2[0-3]):([0-9]|[0-5][0-9])$'
+        },
+        max_repeat: {
+            type: 'integer'
         }
       },
-      required: ['type']
+      required: %w(type)
     }.to_json
   end
 
