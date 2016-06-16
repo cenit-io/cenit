@@ -145,7 +145,7 @@ en:
         will_be_deleted: "objects will be deleted"
         done: "deleted"
         doing: "deletion"
-      delete_collection:
+      trash:
         title: "Trash collection '%{object_label}'"
         menu: "Trash collection"
         breadcrumb: "Trash collection"
@@ -256,6 +256,15 @@ en:
         missing_parameters: "Missing parameters"
         uptodate: "Your %{collection} collection is already synchronized with %{shared_collection}"
         another: "another"
+      bulk_pull:
+        title: "Pulling Collections"
+        menu: "Pull"
+        breadcrumb: "Pull"
+        submit: "Pull"
+        done: "pulled"
+        bulk_link: "Pull selected %{model_label_plural}"
+        warn: "You are about to pull %{pull_size} collections"
+        warn_all: "You are about to pull all collections"
       retry_task:
         title: "Retry"
         menu: "Retry"
@@ -378,6 +387,11 @@ en:
         doing: "registering"
       shared_collection_index:
         menu: "Shared Collections"
+      clean_up:
+        title: "Clean Up"
+        menu: "Clean Up"
+        breadcrumb: "Clean Up"
+        warn: "All your data will be destroyed"
     scheduler:
       cyclic: 'Cyclic'
       appointed: 'Appointed'

@@ -32,7 +32,7 @@
   RailsAdmin::Config::Actions::SimpleExport,
   RailsAdmin::Config::Actions::Schedule,
   RailsAdmin::Config::Actions::Submit,
-  RailsAdmin::Config::Actions::DeleteCollection,
+  RailsAdmin::Config::Actions::Trash,
   RailsAdmin::Config::Actions::Inspect,
   RailsAdmin::Config::Actions::Copy,
   RailsAdmin::Config::Actions::Cancel,
@@ -40,7 +40,9 @@
   RailsAdmin::Config::Actions::SimpleCrossShare,
   RailsAdmin::Config::Actions::BulkCrossShare,
   RailsAdmin::Config::Actions::Regist,
-  RailsAdmin::Config::Actions::SharedCollectionIndex
+  RailsAdmin::Config::Actions::SharedCollectionIndex,
+  RailsAdmin::Config::Actions::BulkPull,
+  RailsAdmin::Config::Actions::CleanUp
 ].each { |a| RailsAdmin::Config::Actions.register(a) }
 
 RailsAdmin::Config::Actions.register(:export, RailsAdmin::Config::Actions::BulkExport)
@@ -133,6 +135,7 @@ RailsAdmin.config do |config|
     bulk_cross_share
     build_gem
     pull
+    bulk_pull
     download_file
     load_model
     shutdown_model
@@ -155,7 +158,8 @@ RailsAdmin.config do |config|
     simple_delete_data_type
     bulk_delete_data_type
     delete
-    delete_collection
+    trash
+    clean_up
     #show_in_app
     send_to_flow
     delete_all
@@ -201,8 +205,8 @@ RailsAdmin.config do |config|
       end
     end
 
-    index_template_name :shared_collection_grid
-    index_link_icon 'icon-th-large'
+    # index_template_name :shared_collection_grid
+    # index_link_icon 'icon-th-large'
 
     group :collections
     group :workflows
