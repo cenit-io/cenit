@@ -958,7 +958,12 @@ module RailsAdmin
     def check_for_cancel
       #Patch
       return unless params[:_continue] || (params[:bulk_action] && !params[:bulk_ids] && !params[:object_ids])
-      redirect_to(back_or_index, notice: t('admin.flash.noaction'))
+      if params[:model_name]
+        redirect_to(back_or_index, notice: t('admin.flash.noaction'))
+      else
+        flash[:notice] = t('admin.flash.noaction')
+        redirect_to dashboard_path
+      end
     end
 
     def handle_save_error(whereto = :new)
