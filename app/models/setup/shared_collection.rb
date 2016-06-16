@@ -99,6 +99,13 @@ module Setup
 
     def on_saving
       attributes['data'] = attributes['data'].to_json unless attributes['data'].is_a?(String)
+      if (changed_value = changed_attributes['data']) &&
+        (changed_value.is_a?(String) || (changed_value = changed_value.to_json)) &&
+        attributes['data'] == changed_value
+        changed_attributes.delete('data')
+      else
+        changed_attributes['data'] = changed_value
+      end
       changed_attributes.keys.each do |attr|
         reset_attribute!(attr) if %w(shared_version).include?(attr) || (%w(pull_count).include?(attr) && !pulling)
       end unless Account.current && Account.current_super_admin?
