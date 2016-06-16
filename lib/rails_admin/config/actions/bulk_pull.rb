@@ -41,8 +41,9 @@ module RailsAdmin
                 done = @bulk_ids.blank?
                 if (errors = @pull_request[:errors]).present?
                   if @options[:halt_on_error]
+                    errors.unshift("Error pulling shared collection #{@object.versioned_name}")
                     do_flash(:error, t('admin.flash.error', name: @model_config.label, action: t("admin.actions.#{@action.key}.done").html_safe), errors)
-                    redirect_to back_or_index
+                    redirect_to rails_admin.index_path(model_name: Setup::SharedCollection.to_s.underscore.gsub('/', '~'))
                     done = true
                   else
                     Setup::Notification.create_with(message: "Error pulling shared collection #{@object.versioned_name}",
@@ -53,15 +54,13 @@ module RailsAdmin
                                                     })
                   end
                 end
-                if done
-                  redirect_to rails_admin.index_path(model_name: Setup::SharedCollection.to_s.underscore.gsub('/', '~'))
-                elsif @bulk_ids.present?
+                if @bulk_ids.present?
                   redirect_to rails_admin.bulk_pull_path(model_name: Setup::SharedCollection.to_s.underscore.gsub('/', '~'),
                                                          bulk_ids: @bulk_ids,
                                                          @options_key => @options)
                 else
                   redirect_to_on_success
-                end
+                end unless done
               else
                 if params[:_pull]
                   flash[:error] = t('admin.actions.pull.missing_parameters') if @pull_request[:missing_parameters].present?
