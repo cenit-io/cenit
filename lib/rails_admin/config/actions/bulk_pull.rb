@@ -54,13 +54,15 @@ module RailsAdmin
                                                     })
                   end
                 end
-                if @bulk_ids.present?
+                if done
+                  redirect_to rails_admin.index_path(model_name: Setup::SharedCollection.to_s.underscore.gsub('/', '~')) unless errors.present?
+                elsif @bulk_ids.present?
                   redirect_to rails_admin.bulk_pull_path(model_name: Setup::SharedCollection.to_s.underscore.gsub('/', '~'),
                                                          bulk_ids: @bulk_ids,
                                                          @options_key => @options)
                 else
                   redirect_to_on_success
-                end unless done
+                end
               else
                 if params[:_pull]
                   flash[:error] = t('admin.actions.pull.missing_parameters') if @pull_request[:missing_parameters].present?
