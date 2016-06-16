@@ -3,6 +3,7 @@ module RailsAdmin
     def dd
       dd = Hash.new { |h, k| h[k] = [] }
       dd['cyclic_expression'] = ''
+      dd['start_at'] = Time.now.strftime '%Y-%m-%d %H:%M'
       if @object.expression != nil
         dd.merge!(@object.expression)
       else
@@ -12,11 +13,22 @@ module RailsAdmin
       dd
     end
 
-    def week_days
+    def cyclic_as_hours
+      exp = dd['cyclic_expression']
+      if exp.ends_with? 'm'
+        m = exp[0..-1].to_i
+        h = m / 60
+        m = m % 60
+        return h, m
+      end
+      return 1, 0
+    end
+
+    def sch_week_days
       t('admin.scheduler.days.names').split(' ')
     end
 
-    def weeks_month
+    def sch_month_weeks
       t('admin.scheduler.weeks.month').split(' ')
     end
 

@@ -470,7 +470,6 @@ RailsAdmin.config do |config|
       end
 
       field :_id
-      field :created_at
       field :updated_at
     end
     list do
@@ -519,7 +518,6 @@ RailsAdmin.config do |config|
     list do
       field :label
       field :parameter
-      field :created_at
       field :updated_at
     end
     fields :label, :parameter
@@ -759,7 +757,6 @@ RailsAdmin.config do |config|
         end
       end
       field :data
-      field :created_at
       field :updated_at
     end
   end
@@ -769,7 +766,6 @@ RailsAdmin.config do |config|
     list do
       field :name
       field :slug
-      field :created_at
       field :updated_at
     end
     fields :name, :slug
@@ -866,7 +862,6 @@ RailsAdmin.config do |config|
         end
       end
       field :storage_size
-      field :created_at
       field :updated_at
     end
 
@@ -994,7 +989,6 @@ RailsAdmin.config do |config|
         end
       end
       field :storage_size
-      field :created_at
       field :updated_at
     end
 
@@ -1126,7 +1120,6 @@ RailsAdmin.config do |config|
         end
       end
       field :storage_size
-      field :created_at
       field :updated_at
     end
 
@@ -1157,7 +1150,6 @@ RailsAdmin.config do |config|
     list do
       field :namespace
       field :name
-      field :created_at
       field :updated_at
     end
     
@@ -1177,7 +1169,6 @@ RailsAdmin.config do |config|
       field :namespace
       field :name
       field :_type
-      field :created_at
       field :updated_at
     end
 
@@ -1245,7 +1236,6 @@ RailsAdmin.config do |config|
       field :namespace
       field :uri
       field :schema_data_type
-      field :created_at
       field :updated_at
     end
     
@@ -1261,7 +1251,6 @@ RailsAdmin.config do |config|
     list do
       field :namespace
       field :xslt
-      field :created_at
       field :updated_at
     end
 
@@ -1280,7 +1269,6 @@ RailsAdmin.config do |config|
       field :name
       field :schema_data_type
       field :content_type
-      field :created_at
       field :updated_at
     end
 
@@ -1297,7 +1285,6 @@ RailsAdmin.config do |config|
       field :namespace
       field :name
       field :algorithm
-      field :created_at
       field :updated_at
     end
 
@@ -1323,7 +1310,6 @@ RailsAdmin.config do |config|
       field :value
       field :description
       field :metadata
-      field :created_at
       field :updated_at
     end
   end
@@ -1425,7 +1411,6 @@ RailsAdmin.config do |config|
       field :key
       field :token
       field :authorization
-      field :created_at
       field :updated_at
     end
 
@@ -1474,7 +1459,6 @@ RailsAdmin.config do |config|
       field :name
       field :webhooks
       field :connections
-      field :created_at
       field :updated_at
     end
     
@@ -1572,7 +1556,6 @@ RailsAdmin.config do |config|
       field :method
       field :description
       field :authorization
-      field :created_at
       field :updated_at
     end
     
@@ -1774,7 +1757,6 @@ RailsAdmin.config do |config|
       field :active
       field :event
       field :translator
-      field :created_at
       field :updated_at
     end
 
@@ -1816,7 +1798,6 @@ RailsAdmin.config do |config|
       field :namespace
       field :name
       field :_type
-      field :created_at
       field :updated_at
     end
 
@@ -1888,8 +1869,6 @@ RailsAdmin.config do |config|
       field :data_type
       field :triggers
       field :trigger_evaluator
-
-      field :created_at
       field :updated_at
     end
 
@@ -1937,7 +1916,6 @@ RailsAdmin.config do |config|
       field :name
       field :expression
       field :activated
-      field :created_at
       field :updated_at
     end
 
@@ -2108,7 +2086,6 @@ RailsAdmin.config do |config|
       field :mime_type
       field :file_extension
       field :transformation
-      field :created_at
       field :updated_at
     end
 
@@ -2155,7 +2132,6 @@ RailsAdmin.config do |config|
       field :description
       field :parameters
       field :call_links
-      field :created_at
       field :updated_at
     end
     
@@ -2193,7 +2169,6 @@ RailsAdmin.config do |config|
       field :secret_token
       field :actions
       field :application_parameters
-      field :created_at
       field :updated_at
     end
     fields :namespace, :name, :slug, :identifier, :secret_token, :actions, :application_parameters
@@ -2210,7 +2185,6 @@ RailsAdmin.config do |config|
       field :many
       field :group
       field :description
-      field :created_at
       field :updated_at
     end
 
@@ -2264,7 +2238,6 @@ RailsAdmin.config do |config|
       field :secret
       field :tenant
       field :origin
-      field :created_at
       field :updated_at
     end
 
@@ -2305,7 +2278,6 @@ RailsAdmin.config do |config|
       field :token_method
       field :tenant
       field :origin
-      field :created_at
       field :updated_at
     end
 
@@ -2348,7 +2320,6 @@ RailsAdmin.config do |config|
       field :refresh_token_algorithm
       field :tenant
       field :origin
-      field :created_at
       field :updated_at
     end
 
@@ -2391,7 +2362,6 @@ RailsAdmin.config do |config|
       field :refresh_token_algorithm
       field :tenant
       field :origin
-      field :created_at
       field :updated_at
     end
 
@@ -2420,7 +2390,6 @@ RailsAdmin.config do |config|
       field :description
       field :tenant
       field :origin
-      field :created_at
       field :updated_at
     end
 
@@ -2450,7 +2419,6 @@ RailsAdmin.config do |config|
       field :status
       field :_type
       field :metadata
-      field :created_at
       field :updated_at
     end
     
@@ -2510,7 +2478,6 @@ RailsAdmin.config do |config|
       field :status
       field :username
       field :password
-      field :created_at
       field :updated_at
     end
 
@@ -2588,7 +2555,6 @@ RailsAdmin.config do |config|
       field :name
       field :status
       field :client
-      field :created_at
       field :updated_at
     end
 
@@ -2694,7 +2660,6 @@ RailsAdmin.config do |config|
       field :status
       field :client
       field :scopes
-      field :created_at
       field :updated_at
     end
   end
@@ -2760,7 +2725,6 @@ RailsAdmin.config do |config|
       field :markets
       field :signature_method
       field :signature_version
-      field :created_at
       field :updated_at
     end
 
@@ -2813,7 +2777,6 @@ RailsAdmin.config do |config|
       field :message
       field :attachment
       field :task
-      field :created_at
       field :updated_at
     end
   end
@@ -2841,7 +2804,6 @@ RailsAdmin.config do |config|
       field :retries
       field :progress
       field :status
-      field :created_at
       field :updated_at
     end
   end
@@ -2865,7 +2827,6 @@ RailsAdmin.config do |config|
       field :progress
       field :status
       field :notifications
-      field :created_at
       field :updated_at
     end
     fields :flow, :description, :scheduler, :attempts_succeded, :retries, :progress, :status, :notifications
@@ -2889,7 +2850,6 @@ RailsAdmin.config do |config|
       field :progress
       field :status
       field :notifications
-      field :created_at
       field :updated_at
     end
     fields :description, :scheduler, :attempts_succeded, :retries, :progress, :status, :notifications
@@ -2913,7 +2873,6 @@ RailsAdmin.config do |config|
       field :progress
       field :status
       field :notifications
-      field :created_at
       field :updated_at
     end
     fields :description, :scheduler, :attempts_succeded, :retries, :progress, :status, :notifications
@@ -2938,7 +2897,6 @@ RailsAdmin.config do |config|
       field :progress
       field :status
       field :notifications
-      field :created_at
       field :updated_at
     end
     fields :translator, :description, :scheduler, :attempts_succeded, :retries, :progress, :status, :notifications
@@ -2964,7 +2922,6 @@ RailsAdmin.config do |config|
       field :progress
       field :status
       field :notifications
-      field :created_at
       field :updated_at
     end
     fields :translator, :data, :description, :scheduler, :attempts_succeded, :retries, :progress, :status, :notifications
@@ -2992,7 +2949,6 @@ RailsAdmin.config do |config|
       field :progress
       field :status
       field :notifications
-      field :created_at
       field :updated_at
     end
     fields :namespace, :base_uri, :data, :description, :scheduler, :attempts_succeded, :retries, :progress, :status, :notifications
@@ -3030,7 +2986,6 @@ RailsAdmin.config do |config|
       field :progress
       field :status
       field :notifications
-      field :created_at
       field :updated_at
     end
     fields :deletion_model, :description, :scheduler, :attempts_succeded, :retries, :progress, :status, :notifications
@@ -3055,7 +3010,6 @@ RailsAdmin.config do |config|
       field :progress
       field :status
       field :notifications
-      field :created_at
       field :updated_at
     end
     fields :algorithm, :description, :scheduler, :attempts_succeded, :retries, :progress, :status, :notifications
@@ -3081,7 +3035,6 @@ RailsAdmin.config do |config|
       field :progress
       field :status
       field :notifications
-      field :created_at
       field :updated_at
     end
     fields :webhook, :connection, :description, :scheduler, :attempts_succeded, :retries, :progress, :status, :notifications
@@ -3151,7 +3104,6 @@ RailsAdmin.config do |config|
       field :filename
       field :contentType
       field :length
-      field :created_at
       field :updated_at
     end
 
@@ -3350,7 +3302,6 @@ RailsAdmin.config do |config|
     list do
       field :name
       field :owners
-      field :created_at
       field :updated_at
     end
     
@@ -3382,7 +3333,6 @@ RailsAdmin.config do |config|
       field :name
       field :description
       field :code
-      field :created_at
       field :updated_at
     end
 
@@ -3434,7 +3384,6 @@ RailsAdmin.config do |config|
       field :executor
       field :task_id
       field :alive
-      field :created_at
       field :updated_at
     end
 
@@ -3466,7 +3415,6 @@ RailsAdmin.config do |config|
       field :registered
       field :account
       field :identifier
-      field :created_at
       field :updated_at
     end
 
@@ -3493,7 +3441,6 @@ RailsAdmin.config do |config|
       field :progress
       field :status
       field :notifications
-      field :created_at
       field :updated_at
     end
     
