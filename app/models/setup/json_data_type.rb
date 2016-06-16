@@ -65,7 +65,7 @@ module Setup
     end
 
     def validate_model
-      if schema.blank?
+      if schema.nil?
         errors.add(:schema, "can't be blank")
       elsif schema_changed?
         begin
