@@ -255,6 +255,14 @@ module Setup
 
     class << self
 
+      def where(expression)
+        if expression.is_a?(Hash) && (slug = expression.delete('slug') || expression.delete(:slug))
+          super.any_in(id: Setup::DataTypeSlug.where(slug: slug).collect(&:data_type_id))
+        else
+          super
+        end
+      end
+
       def for_name(name)
         where(id: name.from(2)).first
       end
