@@ -131,7 +131,7 @@ module Setup
       nss = Set.new
       reflect_on_all_associations(:has_and_belongs_to_many).each do |relation|
         next unless relation.klass.include?(Setup::NamespaceNamed)
-        nss += send(relation.name).distinct(:namespace)
+        nss += send(relation.name).distinct(:namespace).flatten
       end
       self.namespaces = Setup::Namespace.all.any_in(name: nss.to_a)
 
