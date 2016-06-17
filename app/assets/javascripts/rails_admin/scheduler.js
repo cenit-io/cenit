@@ -195,6 +195,9 @@ function schedulerInit() {
                     res["cyclic_expression"] = every;
                     res["type"] = 'cyclic';
                 } else {
+                    res["week_days"] = _.filter(_.range(0, 7), function (e) {
+                        return $('#weeks_1').find(".week_day_" + e).hasClass("btn-primary");
+                    });
                     res["weeks_month"] = _.filter(_.range(0, 3), function (e) {
                         return $("#weeks_monthly_at_" + e).hasClass("btn-primary");
                     });
@@ -209,7 +212,11 @@ function schedulerInit() {
                     res["cyclic_expression"] = every;
                     res["type"] = 'cyclic';
                 } else {
-                    res["months"] = _.filter(_.range(1, 12), function (e) {
+                    res["month_days"] = _.filter(_.range(0, 31), function (e) {
+                        return $('#month_1').find(".months_day_" + e).hasClass("btn-primary");
+                    });
+                    res["last_day_in_month"] = $('#months_1').find('.last_day_in_month').hasClass("btn-primary");
+                    res["months"] = _.filter(_.range(1, 13), function (e) {
                         return $("#month_" + e).hasClass("btn-primary");
                     });
                     res["type"] = 'appointed';

@@ -32,16 +32,17 @@
   %label
     = t('admin.scheduler.repeat')
 #scheduler_frequency
-  .form-inline
-    %select#frequency.form-control.input-sm
-      - %w(never hourly daily weekly monthly).each_with_index do |v, i|
-        %option{value:i, selected: dd['frequency'] == i}
-          = t("admin.scheduler.frequency.#{v}")
+  .clearfix
+    .col-sm-2
+      %select#frequency.form-control.input-sm
+        - %w(never hourly daily weekly monthly).each_with_index do |v, i|
+          %option{value:i, selected: dd['frequency'] == i}
+            = t("admin.scheduler.frequency.#{v}")
 
 #scheduler_hours.scheduler_repeat.visible-1
-  .form-inline.clearfix
+  .clearfix
     .col-sm-2
-      %select#hours_sl.form-control.input-sm{style:'vertical-align: top'}
+      %select#hours_sl.form-control.input-sm.col-sm-12{style:'vertical-align: top'}
         %option{value:0, selected: dd['type'] == 'cyclic'}
           = t('admin.scheduler.every.label')
         %option{value:1, selected: dd['type'] != 'cyclic'}
@@ -72,14 +73,14 @@
           = t('admin.scheduler.minutes.label')
 
 #scheduler_days.scheduler_repeat.visible-2
-  .form-inline.clearfix
+  .clearfix
     .col-sm-2
-      %select#days_sl.form-control.input-sm{style:'vertical-align: top'}
+      %select#days_sl.form-control.input-sm.col-sm-12{style:'vertical-align: top'}
         %option{value:0, selected: dd['type'] == 'cyclic'}
           = t('admin.scheduler.every.label')
         %option{value:1, selected: (dd.has_key? 'week_days')}
           = t('admin.scheduler.days.weekly')
-        %option{value:2, selected: (dd.has_key? 'month_days')}
+        %option{value:2, selected: (dd.has_key? 'month_days') || (dd.has_key? 'last_day_in_month')}
           = t('admin.scheduler.days.monthly')
     #days_0.col-sm-10{class: dd['type'] == 'cyclic' ? '' : 'hidden'}
       - d = (dd['cyclic_expression'][0..-1] or "1").to_i
@@ -92,7 +93,7 @@
           - sch_week_days.each_with_index do |d, i|
             %a.btn.day_in_week{id: "week_day_#{i}", href: '#', class: (dd['week_days'].include? i) ? 'btn-primary' : 'btn-default'}
               = d
-    #days_2.col-sm-10{class: (dd.has_key? 'month_days') ? '' : 'hidden'}
+    #days_2.col-sm-10{class: ((dd.has_key? 'month_days') || (dd.has_key? 'last_day_in_month')) ? '' : 'hidden'}
       - (0..3).to_a.each do |w|
         .clearfix
           .scheduler-opts.btn-group.btn-group-sm{role: 'btn-group'}
@@ -106,9 +107,9 @@
                   = t('admin.scheduler.last')
 
 #scheduler_weeks.scheduler_repeat.visible-3
-  .form-inline.clearfix
+  .clearfix
     .col-sm-2
-      %select#weeks_sl.form-control.input-sm{style:'vertical-align: top'}
+      %select#weeks_sl.form-control.input-sm.col-sm-12{style:'vertical-align: top'}
         %option{value:0, selected: dd['type'] == 'cyclic'}
           = t('admin.scheduler.every.label')
         %option{value:1, selected: dd['type'] != 'cyclic'}
@@ -121,6 +122,11 @@
     #weeks_1.col-sm-10{class: (dd['type'] == 'cyclic') ? 'hidden' : ''}
       .clearfix
         .scheduler-opts.btn-group.btn-group-sm{role: 'btn-group'}
+          - sch_week_days.each_with_index do |d, i|
+            %a.btn.day_in_week{href: '#', class: "week_day_#{i} " + ((dd['week_days'].include? i) ? 'btn-primary' : 'btn-default')}
+              = d
+      .clearfix.bottom
+        .scheduler-opts.btn-group.btn-group-sm{role: 'btn-group'}
           - sch_month_weeks.each_with_index do |w, i|
             %a.btn{id: "weeks_monthly_at_#{i}", href: '#', class: (dd['weeks_month'].include? i) ? 'btn-primary' : 'btn-default'}
               = w
@@ -130,9 +136,9 @@
           = t('admin.scheduler.weeks.label')
 
 #scheduler_months.scheduler_repeat.visible-4
-  .form-inline.clearfix
+  .clearfix
     .col-sm-2
-      %select#months_sl.form-control.input-sm{style:'vertical-align: top'}
+      %select#months_sl.form-control.input-sm.col-sm-12{style:'vertical-align: top'}
         %option{value:0, selected: dd['type'] == 'cyclic'}
           = t('admin.scheduler.every.label')
         %option{value:1, selected: dd['type'] != 'cyclic'}
@@ -143,19 +149,30 @@
       %span
         = t('admin.scheduler.months.label')
     #months_1.col-sm-10{class: (dd['type'] == 'cyclic') ? 'hidden' : ''}
-      .clearfix
+      - (0..3).to_a.each do |w|
+        .clearfix
+          .scheduler-opts.btn-group.btn-group-sm{role: 'btn-group'}
+            - (0..7).to_a.each do |i|
+              - d = ((w*8)+(i+1))
+              - if d < 32
+                %a.btn.day_in_month{href: '#', class: "months_day_#{d} " + ((dd['month_days'].include? d) ? 'btn-primary' : 'btn-default')}
+                  = d
+              - else
+                %a.btn.day_in_month{href: '#', class: 'last_day_in_month ' + (((dd.has_key? 'last_day_in_month') && (dd['last_day_in_month'])) ? 'btn-primary' : 'btn-default')}
+                  = t('admin.scheduler.last')
+      .clearfix.bottom
         .scheduler-opts.btn-group.btn-group-sm{role: 'btn-group'}
           - sch_month_names.each_with_index do |m, i|
-            %a.btn{id: "month_#{i+1}", href: '#', class: (dd['months'].include? i) ? 'btn-primary' : 'btn-default'}
+            %a.btn{id: "month_#{i+1}", href: '#', class: (dd['months'].include? i+1) ? 'btn-primary' : 'btn-default'}
               = m
 
 .label.top
   %label
     = t('admin.scheduler.end')
 #scheduler_end
-  .form-inline.clearfix
+  .clearfix
     .col-sm-2
-      %select#end_sl.form-control.input-sm{style:'vertical-align: top'}
+      %select#end_sl.form-control.input-sm.col-sm-12{style:'vertical-align: top'}
         %option{value:0, selected: !(dd.has_key? 'end_at')}
           = t('admin.scheduler.never')
         %option{value:1, selected: (dd.has_key? 'end_at')}
