@@ -14,7 +14,7 @@
             - am = RailsAdmin::Config.model(relation.klass).abstract_model
             - a = []
             - count = 0
-            - records.each { |record| next if a.length > limit; a << link_to(record.try(:custom_title) || record.name, url_for(action: action(:show, am, record).action_name, model_name: record.class.to_s, id: record.id), class: 'pjax') }
+            - records.each { |record| break if a.length > limit; a << link_to(record.try(:custom_title) || record.name, url_for(action: action(:show, am, record).action_name, model_name: record.class.to_s, id: record.id), class: 'pjax') }
             - a << "#{t('admin.actions.pull.another')} #{records.count - a.length}" if a.length < records.count
             = a.to_sentence.html_safe
             %p.help-block

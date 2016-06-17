@@ -28,7 +28,8 @@ module RailsAdmin
                 Setup::PinnedVersion,
                 Setup::Binding,
                 Setup::Notification,
-                Setup::Storage
+                Setup::Storage,
+                Setup::Task
               ].each(&:clean_up)
               redirect_to dashboard_path
             else
