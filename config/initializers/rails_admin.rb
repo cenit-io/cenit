@@ -3206,12 +3206,12 @@ RailsAdmin.config do |config|
     navigation_label 'Configuration'
     weight -6
 
-    configure :target_model, :model
-    configure :target, :record
+    configure :binder_model, :model
+    configure :binder, :record
     configure :bind_model, :model
     configure :bind, :record
 
-    fields :target_model, :target, :bind_model, :bind
+    fields :binder_model, :binder, :bind_model, :bind
   end
 
   #Administration

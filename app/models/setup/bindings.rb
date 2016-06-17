@@ -4,6 +4,7 @@ module Setup
 
     included do
       before_save :bind_bindings
+      after_destroy :clear_bindings
     end
 
     def bind_bindings(options = {})
@@ -13,6 +14,10 @@ module Setup
         # remove_attribute(metadata.foreign_key) if clear_foreign_keys TODO Uncomment after data base migration
       end
       true
+    end
+
+    def clear_bindings
+      Setup::Binding.clear(self)
     end
 
     module ClassMethods
