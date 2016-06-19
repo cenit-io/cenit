@@ -127,7 +127,7 @@ module RailsAdmin
         end
       end
 
-      navigation_label { target.data_type.navigation_label }
+      navigation_label { target.data_type.namespace }
 
       object_label_method { @object_label_method ||= Config.label_methods.detect { |method| target.property?(method) } || :to_s }
     end

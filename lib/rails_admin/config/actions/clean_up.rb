@@ -24,7 +24,7 @@ module RailsAdmin
               [
                 Setup::Collection,
                 Setup::Namespace,
-                Setup::DataTypeSlug,
+                Setup::DataTypeConfig,
                 Setup::PinnedVersion,
                 Setup::Binding,
                 Setup::Notification,

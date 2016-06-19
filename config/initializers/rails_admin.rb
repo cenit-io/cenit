@@ -3094,13 +3094,14 @@ RailsAdmin.config do |config|
     fields :name, :slug, :updated_at
   end
 
-  config.model Setup::DataTypeSlug do
+  config.model Setup::DataTypeConfig do
     navigation_label 'Configuration'
+    label 'Data Types'
     weight -8
     configure :data_type do
       read_only true
     end
-    fields :data_type, :slug, :updated_at
+    fields :data_type, :slug, :navigation_link, :updated_at
   end
 
   config.model Setup::PinnedVersion do

@@ -591,7 +591,7 @@ module RailsAdmin
 
     def main_navigation
       nodes_stack = RailsAdmin::Config.visible_models(controller: controller) + #Patch
-        Setup::DataType.where(show_navigation_link: true).collect { |data_type| RailsAdmin.config(data_type.records_model) }
+        Setup::DataType.where(navigation_link: true).collect { |data_type| RailsAdmin.config(data_type.records_model) }
       node_model_names = nodes_stack.collect { |c| c.abstract_model.model_name }
 
       i = -1

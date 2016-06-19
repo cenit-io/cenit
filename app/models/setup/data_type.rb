@@ -18,8 +18,6 @@ module Setup
 
     field :title, type: String
 
-    field :show_navigation_link, type: Boolean
-
     has_and_belongs_to_many :before_save_callbacks, class_name: Setup::Algorithm.to_s, inverse_of: nil
     has_and_belongs_to_many :records_methods, class_name: Setup::Algorithm.to_s, inverse_of: nil
     has_and_belongs_to_many :data_type_methods, class_name: Setup::Algorithm.to_s, inverse_of: nil
@@ -30,12 +28,12 @@ module Setup
 
     before_save :validates_configuration, :on_saving
 
-    after_save :on_saved, :configure_slug
+    after_save :on_saved, :configure
 
-    after_destroy { data_type_slug.destroy }
+    after_destroy { data_type_config.destroy }
 
-    def configure_slug
-      data_type_slug.save
+    def configure
+      data_type_config.save
     end
 
     def validates_configuration
@@ -56,8 +54,8 @@ module Setup
           errors.add(methods, "contains algorithms with the same name: #{duplicated_names.to_sentence}")
         end
       end
-      unless data_type_slug.validate_slug
-        data_type_slug.errors.messages[:slug].each { |error| errors.add(:slug, error) }
+      unless data_type_config.validate_slug
+        data_type_config.errors.messages[:slug].each { |error| errors.add(:slug, error) }
       end
       errors.blank?
     end
@@ -119,14 +117,6 @@ module Setup
       "Dt#{self.id.to_s}"
     end
 
-    def visible
-      self.show_navigation_link
-    end
-
-    def navigation_label
-      namespace
-    end
-
     def create_default_events
       if records_model.persistable? && Setup::Observer.where(data_type: self).empty?
         Setup::Observer.create(data_type: self, triggers: '{"created_at":{"0":{"o":"_not_null","v":["","",""]}}}')
@@ -154,8 +144,14 @@ module Setup
     class << self
 
       def where(expression)
-        if expression.is_a?(Hash) && (slug = expression.delete('slug') || expression.delete(:slug))
-          super.any_in(id: Setup::DataTypeSlug.where(slug: slug).collect(&:data_type_id))
+        if expression.is_a?(Hash) && Setup::DataTypeConfig::FIELDS.any? { |field| expression.has_key?(field.to_sym) || expression.has_key?(field) }
+          config_options = {}
+          Setup::DataTypeConfig::FIELDS.each do |field|
+            if expression.has_key?(key = field.to_sym) || expression.has_key?(key = field)
+              config_options[field] = expression.delete(key)
+            end
+          end
+          super.any_in(id: Setup::DataTypeConfig.where(config_options).collect(&:data_type_id))
         else
           super
         end
@@ -166,28 +162,22 @@ module Setup
       end
     end
 
-    def slug
-      data_type_slug.slug
-    end
+    after_initialize { Setup::DataTypeConfig::FIELDS.each { |field| attributes.delete(field) } } #TODO Remove after DB migration
 
-    def slug=(slug)
-      data_type_slug.slug = slug
-    end
-
-    after_initialize { attributes.delete('slug') } #TODO Remove after DB migration
-
-    protected
-
-    def data_type_slug
-      @data_type_slug ||=
+    def data_type_config
+      @data_type_config ||=
         begin
           if new_record?
-            Setup::DataTypeSlug.new(data_type: self)
+            Setup::DataTypeConfig.new(data_type: self)
           else
-            Setup::DataTypeSlug.find_or_create_by(data_type: self)
+            Setup::DataTypeConfig.find_or_create_by(data_type: self)
           end
         end
     end
+
+    delegate *Setup::DataTypeConfig::FIELDS.collect { |p| [p.to_sym, "#{p}=".to_sym] }.flatten, to: :data_type_config
+
+    protected
 
     def mongoff_model_class
       Mongoff::Model
