@@ -1,9 +1,6 @@
 [
-  RailsAdmin::Config::Actions::MemoryUsage,
   RailsAdmin::Config::Actions::DiskUsage,
   RailsAdmin::Config::Actions::SendToFlow,
-  RailsAdmin::Config::Actions::LoadModel,
-  RailsAdmin::Config::Actions::ShutdownModel,
   RailsAdmin::Config::Actions::SwitchNavigation,
   RailsAdmin::Config::Actions::DataType,
   RailsAdmin::Config::Actions::Import,
@@ -113,7 +110,6 @@ RailsAdmin.config do |config|
 
   config.actions do
     dashboard # mandatory
-    # memory_usage
     # disk_usage
     shared_collection_index
     index # mandatory
@@ -137,8 +133,6 @@ RailsAdmin.config do |config|
     pull
     bulk_pull
     download_file
-    load_model
-    shutdown_model
     process_flow
     authorize
     simple_generate
@@ -823,7 +817,7 @@ RailsAdmin.config do |config|
           unless max = bindings[:controller].instance_variable_get(:@max_storage_size)
             bindings[:controller].instance_variable_set(:@max_storage_size, max = objects.collect { |data_type| data_type.storage_size }.max)
           end
-          (bindings[:view].render partial: 'used_memory_bar', locals: { max: max, value: bindings[:object].records_model.storage_size }).html_safe
+          (bindings[:view].render partial: 'size_bar', locals: { max: max, value: bindings[:object].records_model.storage_size }).html_safe
         else
           bindings[:view].number_to_human_size(value)
         end
@@ -863,15 +857,6 @@ RailsAdmin.config do |config|
       field :name
       field :slug
       field :_type
-      field :used_memory do
-        visible { Cenit.dynamic_model_loading? }
-        pretty_value do
-          unless max = bindings[:controller].instance_variable_get(:@max_used_memory)
-            bindings[:controller].instance_variable_set(:@max_used_memory, max = Setup::DataType.fields[:used_memory.to_s].type.new(Setup::DataType.max(:used_memory)))
-          end
-          (bindings[:view].render partial: 'used_memory_bar', locals: { max: max, value: Setup::DataType.fields[:used_memory.to_s].type.new(value) }).html_safe
-        end
-      end
       field :storage_size
       field :created_at
       field :updated_at
@@ -883,7 +868,6 @@ RailsAdmin.config do |config|
       field :slug
       field :_type
       field :storage_size
-      field :activated
       field :schema do
         pretty_value do
           v =
@@ -903,7 +887,7 @@ RailsAdmin.config do |config|
       field :updated_at
       #field :updater
     end
-    fields :namespace, :title, :name, :used_memory
+    fields :namespace, :title, :name
   end
 
   config.model Setup::JsonDataType do
@@ -911,10 +895,6 @@ RailsAdmin.config do |config|
     weight -449
     label 'JSON Data Type'
     object_label_method { :custom_title }
-
-    register_instance_option(:after_form_partials) do
-      %w(shutdown_and_reload)
-    end
 
     group :behavior do
       label 'Behavior'
@@ -929,9 +909,6 @@ RailsAdmin.config do |config|
 
     configure :schema, :code_mirror do
       html_attributes do
-        report = bindings[:object].shutdown(report_only: true)
-        reload = (report[:reloaded].collect(&:data_type) + report[:destroyed].collect(&:data_type)).uniq
-        bindings[:object].instance_variable_set(:@_to_reload, reload)
         { cols: '74', rows: '15' }
       end
       # pretty_value do
@@ -945,7 +922,7 @@ RailsAdmin.config do |config|
           unless max = bindings[:controller].instance_variable_get(:@max_storage_size)
             bindings[:controller].instance_variable_set(:@max_storage_size, max = objects.collect { |data_type| data_type.storage_size }.max)
           end
-          (bindings[:view].render partial: 'used_memory_bar', locals: { max: max, value: bindings[:object].records_model.storage_size }).html_safe
+          (bindings[:view].render partial: 'size_bar', locals: { max: max, value: bindings[:object].records_model.storage_size }).html_safe
         else
           bindings[:view].number_to_human_size(value)
         end
@@ -991,15 +968,6 @@ RailsAdmin.config do |config|
       field :title
       field :name
       field :slug
-      field :used_memory do
-        visible { Cenit.dynamic_model_loading? }
-        pretty_value do
-          unless max = bindings[:controller].instance_variable_get(:@max_used_memory)
-            bindings[:controller].instance_variable_set(:@max_used_memory, max = Setup::JsonDataType.fields[:used_memory.to_s].type.new(Setup::JsonDataType.max(:used_memory)))
-          end
-          (bindings[:view].render partial: 'used_memory_bar', locals: { max: max, value: Setup::JsonDataType.fields[:used_memory.to_s].type.new(value) }).html_safe
-        end
-      end
       field :storage_size
       field :created_at
       field :updated_at
@@ -1011,7 +979,6 @@ RailsAdmin.config do |config|
       field :name
       field :slug
       field :storage_size
-      field :activated
       field :schema do
         pretty_value do
           "<pre><code class='ruby'>#{JSON.pretty_generate(value)}</code></pre>".html_safe
@@ -1051,22 +1018,13 @@ RailsAdmin.config do |config|
       end
     end
 
-    configure :used_memory do
-      pretty_value do
-        unless max = bindings[:controller].instance_variable_get(:@max_used_memory)
-          bindings[:controller].instance_variable_set(:@max_used_memory, max = Setup::JsonDataType.fields[:used_memory.to_s].type.new(Setup::JsonDataType.max(:used_memory)))
-        end
-        (bindings[:view].render partial: 'used_memory_bar', locals: { max: max, value: Setup::JsonDataType.fields[:used_memory.to_s].type.new(value) }).html_safe
-      end
-    end
-
     configure :storage_size, :decimal do
       pretty_value do
         if objects = bindings[:controller].instance_variable_get(:@objects)
           unless max = bindings[:controller].instance_variable_get(:@max_storage_size)
             bindings[:controller].instance_variable_set(:@max_storage_size, max = objects.collect { |data_type| data_type.records_model.storage_size }.max)
           end
-          (bindings[:view].render partial: 'used_memory_bar', locals: { max: max, value: bindings[:object].records_model.storage_size }).html_safe
+          (bindings[:view].render partial: 'size_bar', locals: { max: max, value: bindings[:object].records_model.storage_size }).html_safe
         else
           bindings[:view].number_to_human_size(value)
         end
@@ -1123,15 +1081,6 @@ RailsAdmin.config do |config|
       field :slug
       field :validators
       field :schema_data_type
-      field :used_memory do
-        visible { Cenit.dynamic_model_loading? }
-        pretty_value do
-          unless max = bindings[:controller].instance_variable_get(:@max_used_memory)
-            bindings[:controller].instance_variable_set(:@max_used_memory, max = Setup::JsonDataType.fields[:used_memory.to_s].type.new(Setup::JsonDataType.max(:used_memory)))
-          end
-          (bindings[:view].render partial: 'used_memory_bar', locals: { max: max, value: Setup::JsonDataType.fields[:used_memory.to_s].type.new(value) }).html_safe
-        end
-      end
       field :storage_size
       field :created_at
       field :updated_at
@@ -1141,7 +1090,6 @@ RailsAdmin.config do |config|
       field :title
       field :name
       field :slug
-      field :activated
       field :validators
       field :storage_size
       field :schema_data_type
@@ -3103,7 +3051,7 @@ RailsAdmin.config do |config|
           unless max = bindings[:controller].instance_variable_get(:@max_length)
             bindings[:controller].instance_variable_set(:@max_length, max = objects.collect { |storage| storage.length }.reject(&:nil?).max)
           end
-          (bindings[:view].render partial: 'used_memory_bar', locals: { max: max, value: bindings[:object].length }).html_safe
+          (bindings[:view].render partial: 'size_bar', locals: { max: max, value: bindings[:object].length }).html_safe
         else
           bindings[:view].number_to_human_size(value)
         end

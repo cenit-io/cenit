@@ -12,7 +12,6 @@ module Setup
         existing_data_types = Setup::DataType.any_in(namespace: ns, name: data_type_schemas.keys)
         if existing_data_types.present?
           if message[:override_data_types].to_b
-            Setup::DataType.shutdown(existing_data_types, deactivate: true)
             existing_data_types.each do |data_type|
               data_type.schema = data_type_schemas.delete(data_type.name)
               data_type.save
