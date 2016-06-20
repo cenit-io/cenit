@@ -13,9 +13,7 @@ module Setup
     field :contentType, type: String
     field :length, type: Integer
 
-    before_destroy do
-      self.class.chunks_collection.find(files_id: id).delete_many
-    end
+    after_destroy { self.class.chunks_collection.find(files_id: id).delete_many }
 
     def storage_name
       name_components.last

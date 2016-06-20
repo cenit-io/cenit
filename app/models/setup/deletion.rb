@@ -17,7 +17,7 @@ module Setup
     def run(message)
       if (model = deletion_model)
         scope = model.where(message[:selector])
-        destroy_callback = model.singleton_method(:before_destroy) rescue false
+        destroy_callback = [:before_destroy, :after_destroy].any? { |m| model.singleton_method(m) rescue false }
         if destroy_callback
           progress_step = 10
           step_size = scope.count / progress_step

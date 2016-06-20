@@ -30,7 +30,10 @@ module Setup
 
     after_save :configure
 
-    after_destroy { data_type_config.destroy }
+    after_destroy do
+      data_type_config.destroy
+      clean_up
+    end
 
     def configure
       data_type_config.save
@@ -58,11 +61,6 @@ module Setup
         data_type_config.errors.messages[:slug].each { |error| errors.add(:slug, error) }
       end
       errors.blank?
-    end
-
-    before_destroy do
-      records_model.try(:delete_all) rescue nil
-      true
     end
 
     def clean_up
