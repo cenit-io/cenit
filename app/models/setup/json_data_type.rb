@@ -1,15 +1,15 @@
-require 'edi/formater'
-
 module Setup
   class JsonDataType < DataType
 
+    include HashField
+
     build_in_data_type.referenced_by(:namespace, :name).with(:namespace, :name, :title, :slug, :_type, :schema, :events, :before_save_callbacks, :records_methods, :data_type_methods)
 
-    field :schema
+    hash_field :schema
 
     def check_indices
       if schema_changed?
-        unique_properties  = records_model.unique_properties
+        unique_properties = records_model.unique_properties
         indexed_properties = []
         begin
           records_model.collection.indexes.each do |index|
@@ -34,25 +34,8 @@ module Setup
       errors.blank?
     end
 
-    def read_attribute(name)
-      value = super
-      if name.to_s == 'schema'
-        if value.is_a?(String)
-          attributes['schema'] = value = JSON.parse(value) rescue value
-        elsif value.nil?
-          attributes['schema'] = value = {}
-        end
-      end
-      value
-    end
-
-    def on_saving
-      if validate_model && check_indices && super
-        attributes['schema'] = attributes['schema'].to_json unless attributes['schema'].is_a?(String)
-        true
-      else
-        false
-      end
+    def check_before_save
+      validate_model && check_indices && super
     end
 
     def schema_changed?
@@ -67,7 +50,7 @@ module Setup
           json_schema, _ = validate_schema
           fail Exception, 'defines invalid property name: _type' if object_schema?(json_schema) &&json_schema['properties']['_type']
           self.schema = check_properties(JSON.parse(json_schema.to_json))
-          self.title  = json_schema['title'] || self.name if title.blank?
+          self.title = json_schema['title'] || self.name if title.blank?
         rescue Exception => ex
           errors.add(:schema, ex.message)
         end

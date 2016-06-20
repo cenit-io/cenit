@@ -26,9 +26,9 @@ module Setup
 
     validates_presence_of :namespace
 
-    before_save :validates_configuration, :on_saving
+    before_save :validates_configuration
 
-    after_save :on_saved, :configure
+    after_save :configure
 
     after_destroy { data_type_config.destroy }
 
@@ -58,14 +58,6 @@ module Setup
         data_type_config.errors.messages[:slug].each { |error| errors.add(:slug, error) }
       end
       errors.blank?
-    end
-
-    def on_saving
-      true
-    end
-
-    def on_saved
-      true
     end
 
     before_destroy do
