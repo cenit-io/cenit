@@ -29,13 +29,20 @@ module RailsAdmin
             origin_config = RailsAdmin::Config.model(Forms::CrossOriginSelector)
             if (origin_data = params[origin_config.abstract_model.param_key]) && origin_data.permit! &&
               (@form_object = Forms::CrossOriginSelector.new(origin_data)).valid?
-              criteria = @abstract_model.model.all
+              model = @abstract_model.model
+              criteria = model.all
               ids = params[:bulk_ids] || []
               ids << @object.id if @object
               if ids.present?
                 criteria = criteria.any_in(id: ids)
               end
-              criteria.with_tracking.cross(origin_data['origin'])
+              criteria.with_tracking.cross(origin_data['origin']) do |_, non_tracked_ids|
+                if non_tracked_ids.present?
+                  Account.each do |account| #TODO Run as a task in the background
+                    Setup::Pin.with(account).where(model: model, :record_id.in => non_tracked_ids).delete_all
+                  end
+                end
+              end
               render_form = false
             end
             if render_form

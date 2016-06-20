@@ -46,12 +46,13 @@ module Setup
     end
 
     def track_history_for_action(action)
-      if track_history_for_action?(action)
+      if (tracked = track_history_for_action?(action))
         current_version = (send(history_trackable_options[:version_field]) || 0) + 1
         send("#{history_trackable_options[:version_field]}=", current_version)
         history_tracker_class.create!(history_tracker_attributes(action.to_sym).merge(version: current_version, action: action.to_s, trackable: self))
       end
       clear_trackable_memoization
+      tracked
     end
 
     def shared?

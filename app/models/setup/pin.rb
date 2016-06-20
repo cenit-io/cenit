@@ -84,6 +84,25 @@ module Setup
 
     class << self
 
+      def where(expression)
+        if expression.is_a?(Hash) &&
+          (model = expression.delete(:model) || expression.delete('model')) &&
+          (m_data = models[model]) &&
+          (record_key = expression.keys.detect { |key| key.to_s == 'record_id' })
+          record_id = "#{m_data[:property]}_id".to_sym
+          if record_key.is_a?(Origin::Key)
+            value = expression.delete(record_key)
+            record_key.instance_variable_set(:@name, record_id)
+            expression[record_key] = value
+          else
+            expression[record_id] = expression.delete(record_key)
+          end
+          super
+        else
+          super
+        end
+      end
+
       def for(object)
         if (m_data = models[object.class])
           where("#{m_data[:property]}_id" => object.id).first
