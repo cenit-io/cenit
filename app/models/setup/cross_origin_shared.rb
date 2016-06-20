@@ -79,6 +79,14 @@ module Setup
 
     module ClassMethods
 
+      def shared_deny(*actions)
+        Setup::Models.shared_excluded_actions_for self, *actions
+      end
+
+      def shared_allow(*actions)
+        Setup::Models.shared_allowed_actions_for self, *actions
+      end
+
       def history_trackable_options
         @history_trackable_options ||= Mongoid::History.trackable_class_options[with(account: nil).collection_name.to_s.singularize.to_sym]
       end
