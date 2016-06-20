@@ -1,8 +1,11 @@
 module Setup
-  class PinnedVersion
+  class Pin
     include CenitScoped
+    include DynamicValidators
 
     build_in_data_type
+
+    deny :copy
 
     class_attribute :models
 
@@ -23,6 +26,8 @@ module Setup
 
     field :version, type: Integer
 
+    validates_uniqueness_in_presence_of *models.values.collect { |h| "#{h[:property]}_id".to_sym }
+
     before_save do
       errors.add(:record_model, "can't be blank") unless record_model.present?
       errors.add(:version, "can't be blank") unless version.present?
@@ -31,7 +36,7 @@ module Setup
         record = nil
         self.class.models.values.each do |m_data|
           record_property = m_data[:property] if m_data[:model_name] == record_model
-          if (value = send(record_property))
+          if record_property && (value = send(record_property))
             if m_data[:model_name] == record_model
               record = value
             else

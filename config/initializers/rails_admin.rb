@@ -3104,7 +3104,7 @@ RailsAdmin.config do |config|
     fields :data_type, :slug, :navigation_link, :updated_at
   end
 
-  config.model Setup::PinnedVersion do
+  config.model Setup::Pin do
 
     navigation_label 'Configuration'
     weight -7
@@ -3119,12 +3119,20 @@ RailsAdmin.config do |config|
         help 'Required'
       end
 
-      Setup::PinnedVersion.models.values.each do |m_data|
+      Setup::Pin.models.values.each do |m_data|
         field m_data[:property] do
           inline_add false
           inline_edit false
           help 'Required'
           visible { bindings[:object].record_model == m_data[:model_name] }
+          associated_collection_scope do
+            field = "#{m_data[:property]}_id".to_sym
+            excluded_ids = Setup::Pin.where(field.exists => true).collect(&field)
+            unless (pin = bindings[:object]).nil? || pin.new_record?
+              excluded_ids.delete(pin[field])
+            end
+            Proc.new { |scope| scope.where(origin: :shared, :id.nin => excluded_ids) }
+          end
         end
       end
 
@@ -3134,21 +3142,18 @@ RailsAdmin.config do |config|
       end
     end
 
-    list do
-      field :model
-      field :record
-      field :version
-    end
-
     show do
       field :model
 
-      Setup::PinnedVersion.models.values.each do |m_data|
+      Setup::Pin.models.values.each do |m_data|
         field m_data[:property]
       end
 
       field :version
+      field :updated_at
     end
+
+    fields :model, :record, :version, :updated_at
   end
 
   config.model Setup::Binding do
@@ -3160,7 +3165,7 @@ RailsAdmin.config do |config|
     configure :bind_model, :model
     configure :bind, :record
 
-    fields :binder_model, :binder, :bind_model, :bind
+    fields :binder_model, :binder, :bind_model, :bind, :updated_at
   end
 
   #Administration
