@@ -62,6 +62,20 @@ function schedulerInit() {
         return cur;
     }
 
+    var cyclic_num = $('#cyclic_num');
+    var cyclic_unit = $('#cyclic_unit');
+
+    function ensureMins() {
+        if (cyclic_unit.val() == 'm'){
+            var val = parseInt(cyclic_num.val());
+            val = ensureInRange(val, 20, 110);
+            cyclic_num.val(val)
+        }
+    }
+
+    cyclic_num.on('input', ensureMins);
+    cyclic_unit.on('change', ensureMins);
+
     $('#days_sl').on('change', function () {
         $('#days_1').toggleClass('hidden');
         $('#days_2').toggleClass('hidden');
