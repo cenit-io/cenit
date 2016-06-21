@@ -29,7 +29,7 @@
             = t("admin.scheduler.frequency.#{v}")
     #cyclic_expr.form_inline.col-sm-10.visible-1
       - val = (dd['cyclic_expression'][0..-1] or "1").to_i
-      %input#cyclic_num.form-control.input-sm.inlined.text-right{type:'number', name: 'cyclic_num', value:val, min:0, size:2}
+      %input#cyclic_num.form-control.input-sm.inlined.text-right{type:'number', name: 'cyclic_num', value:val, min:1, size:2}
       %select#cyclic_unit.form-control.input-sm.inlined
         - %w(m h d w M).each do |v|
           %option{value:v, selected: (dd['cyclic_expression'].ends_with? v)}
