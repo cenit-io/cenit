@@ -12,6 +12,16 @@ module Setup
     field :location, type: Symbol
 
     def parent
+      @parent ||= get_parent
+    end
+
+    def parent_model
+      parent && parent.class
+    end
+
+    private
+
+    def get_parent
       reflect_on_all_associations(:belongs_to).each do |r|
         if (parent = send(r.name))
           return parent

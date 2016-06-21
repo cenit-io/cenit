@@ -12,7 +12,7 @@ module Setup
 
     belongs_to :data_type, class_name: Setup::DataType.to_s, inverse_of: nil
 
-    field :navigation_link, type: Boolean
+    field :navigation_link, type: Boolean, default: false
 
     attr_readonly :data_type
 
