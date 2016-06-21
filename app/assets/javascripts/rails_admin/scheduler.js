@@ -66,11 +66,17 @@ function schedulerInit() {
     var cyclic_unit = $('#cyclic_unit');
 
     function ensureMins() {
+        var min = 1;
+        var max = 1000;
+
         if (cyclic_unit.val() == 'm'){
-            var val = parseInt(cyclic_num.val());
-            val = ensureInRange(val, 20, 110);
-            cyclic_num.val(val)
+            min = 20;
+            max = 110;
         }
+
+        var val = parseInt(cyclic_num.val());
+        val = ensureInRange(val, min, max);
+        cyclic_num.val(val)
     }
 
     cyclic_num.on('input', ensureMins);
