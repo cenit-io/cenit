@@ -3096,7 +3096,8 @@ RailsAdmin.config do |config|
 
   config.model Setup::DataTypeConfig do
     navigation_label 'Configuration'
-    label 'Data Types'
+    label 'Data Type'
+    label_plural 'Data Types'
     weight -8
     configure :data_type do
       read_only true
@@ -3166,6 +3167,33 @@ RailsAdmin.config do |config|
     configure :bind, :record
 
     fields :binder_model, :binder, :bind_model, :bind, :updated_at
+  end
+
+  config.model Setup::ParameterConfig do
+    navigation_label 'Configuration'
+    label 'Parameter'
+    label_plural 'Parameters'
+    weight -5
+
+    configure :parent, :record
+
+    edit do
+      field :parent do
+        read_only true
+        help ''
+      end
+      field :location do
+        read_only true
+        help ''
+      end
+      field :name do
+        read_only true
+        help ''
+      end
+      field :value
+    end
+
+    fields :parent, :location, :name, :value, :updated_at
   end
 
   #Administration
