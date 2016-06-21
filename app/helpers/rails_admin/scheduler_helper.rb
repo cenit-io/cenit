@@ -2,28 +2,25 @@ module RailsAdmin
   module SchedulerHelper
     def dh
       dd = Hash.new { |h, k| h[k] = [] }
-      dd['cyclic_expression'] = ''
       dd['now'] = Time.now.strftime '%Y-%m-%d %H:%M'
-      dd['frequency'] = 0
-      if @object.expression != nil
+      dd['type'] = 'cyclic'
+      dd['cyclic_expression'] = '1d'
+      dd['frequency'] = 1
+      if (@object.expression != nil) and (@object.expression.has_key? 'type')
         dd.merge!(@object.expression)
         if dd['type'] == 'cyclic'
-          dd['frequency'] = %w(m d w M).find_index(dd['cyclic_expression'][-1])
+          dd['frequency'] = %w(m h d w M).find_index(dd['cyclic_expression'][-1])
         else
           if dd.has_key? 'months'
             dd['frequency'] = 4
           elsif (dd.has_key? 'weeks_month') or (dd.has_key? 'last_week_in_month')
             dd['frequency'] = 3
           elsif (dd.has_key? 'week_days') or (dd.has_key? 'month_days') or (dd.has_key? 'last_day_in_month')
-            dd['frequency'] = 2
+            dd['frequency'] = 3
           elsif dd.has_key? 'hours'
-            dd['frequency'] = 1
+            dd['frequency'] = 2
           end
         end
-      else
-        dd['type'] = 'cyclic'
-        %w(months_days months hours minutes).each { |e| dd[e] = dd[e].to_s.strip[1..-2] }
-        dd['frequency'] = 2
       end
       dd
     end
