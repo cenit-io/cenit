@@ -15,18 +15,7 @@
           = t('admin.scheduler.at')
     #start_1.form-inline.col-sm-10{class: (dd.has_key? 'start_at')? '': 'hidden'}
       - source = (dd.has_key? 'start_at') ? dd['start_at'] : dd['now']
-      - year = source[0..3].to_i || Time.now.year
-      - month = source[5..6].to_i || Time.now.month
-      - day = source[8..9].to_i || Time.now.day
-      - hr = source[11..12].to_i || Time.now.hour
-      - min = source[14..15].to_i || Time.now.min
-      %input#start_year.form-control.text-right{type:'number', name: 'start_year', value: year, min: year, max: year+5, size:4}
-      %input#start_month.form-control.text-right{type:'number', name: 'start_month', value: month, min: 1, max: 12, size: 2}
-      %input#start_day.form-control.text-right{type:'number', name: 'start_day', value: day, min: 1, max: Time.days_in_month(month, year), size: 2}
-      = '@'
-      %input#start_hr.form-control.text-right{type:'number', name: 'start_hr', value: hr, min:0, max:23, size:2}
-      = ':'
-      %input#start_min.form-control.text-right{type:'number', name: 'start_min', value: min, min:0, max:59, size:2}
+      %input#start_date.form-control.input-sm.datepicker{type:'text', value: source}
 
 .label.top
   %label
@@ -35,7 +24,7 @@
   .clearfix
     .col-sm-2
       %select#frequency.form-control.input-sm
-        - %w(never every daily monthly annually).each_with_index do |v, i|
+        - %w(never every manual).each_with_index do |v, i|
           %option{value:i, selected: dd['frequency'] == i}
             = t("admin.scheduler.frequency.#{v}")
     #cyclic_expr.form_inline.col-sm-10.visible-1
@@ -51,23 +40,12 @@
     .col-sm-2
       = t('admin.scheduler.at')
     #hours_at.form-inline.col-sm-10
-      - (0..1).to_a.each do |w|
-        .clearfix
-          .scheduler-opts.btn-group.btn-group-sm{role: 'btn-group'}
-            - (0..11).to_a.each do |i|
-              - h = (w*12)+(i)
-              %a.btn.at_hour{id: "hours_at_#{h}", href: '#', class: (dd['hours'].include? h) ? 'btn-primary' : 'btn-default'}
-                = h
-      .clearfix.bottom
-        .scheduler-opts.btn-group.btn-group-sm{role: 'btn-group'}
-          - (0..11).to_a.each do |i|
-            - m = (i*5)
-            %a.btn.at_minute{id: "minutes_at_#{m}", href: '#', class: (dd['minutes'].include? m) ? 'btn-primary' : 'btn-default'}
-              = m
-        %span
-          = t('admin.scheduler.minutes.label')
+      - hour = (dd.has_key? 'hours') ? dd['hours'][0] : Time.now.hour
+      - min = (dd.has_key? 'minutes') ? dd['minutes'][0] : Time.now.min
+      - value = hour.to_s + ':' + min.to_s
+      %input#start_time.form-control.input-sm.timepicker{type: 'text', value: value}
 
-#scheduler_days.scheduler_repeat.visible-3
+#scheduler_days.scheduler_repeat.visible-2
   .clearfix
     .col-sm-2
       %select#days_sl.form-control.input-sm.col-sm-12{style:'vertical-align: top'}
@@ -103,7 +81,7 @@
                 %a.btn.day_in_month{id: 'last_day_in_month', href: '#', class: ((dd.has_key? 'last_day_in_month') && (dd['last_day_in_month'])) ? 'btn-primary' : 'btn-default'}
                   = t('admin.scheduler.last')
 
-#scheduler_months.scheduler_repeat.visible-4
+#scheduler_months.scheduler_repeat.visible-2
   .clearfix
     .col-sm-2
       = t('admin.scheduler.every.annually')
@@ -129,18 +107,7 @@
           = t('admin.scheduler.after')
     #end_1.form-inline.col-sm-10{class: (dd.has_key? 'end_at')? '': 'hidden'}
       - source = (dd.has_key? 'end_at') ? dd['end_at'] : dd['now']
-      - year = source[0..3].to_i
-      - month = source[5..6].to_i
-      - day = source[8..9].to_i
-      - hr = source[11..12].to_i
-      - min = source[14..15].to_i
-      %input#end_year.form-control.text-right{type:'number', name: 'start_year', value: year, min: year, max: year+5, size:4}
-      %input#end_month.form-control.text-right{type:'number', name: 'start_month', value: month, min: 1, max: 12, size: 2}
-      %input#end_day.form-control.text-right{type:'number', name: 'start_day', value: day, min: 1, max: Time.days_in_month(month, year), size: 2}
-      = '@'
-      %input#end_hr.form-control.text-right{type:'number', name: 'start_hr', value:hr, min:0, max:23, size:2}
-      = ':'
-      %input#end_min.form-control.text-right{type:'number', name: 'start_min', value:min, min:0, max:59, size:2}
+      %input#end_date.form-control.input-sm.datepicker{type:'text', value: source, }
     -##end_2.col-sm-10.hidden
       %input#max_repeat.form-control.text-right{type:'number', name: 'max_repeat', value:1, min:1, max: 999999, size: 2}
       %span
