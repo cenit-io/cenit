@@ -22,7 +22,7 @@ module Cenit
         record.history_tracks.delete_all
         record.version = nil
         if record.track_history?
-          track_history_for_action("cross #{origin}".to_sym)
+          record.track_history_for_action("cross #{origin}".to_sym)
           tracked_ids
         else
           non_tracked_ids
