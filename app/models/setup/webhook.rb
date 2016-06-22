@@ -1,11 +1,10 @@
 module Setup
   class Webhook
-    include ShareWithBindings
+    include ShareWithBindingsAndParameters
     include NamespaceNamed
-    include ParametersCommon
+    include WithTemplateParameters
     include JsonMetadata
     include AuthorizationHandler
-    include Parameters
 
     build_in_data_type.referenced_by(:namespace, :name).excluding(:connection_roles)
 

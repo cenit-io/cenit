@@ -86,6 +86,10 @@ module Setup
         Setup::Models.shared_allowed_actions_for self, *actions
       end
 
+      def clear_config_for(account, ids)
+        Setup::Pin.with(account).where(model: mongoid_root_class, :record_id.in => ids).delete_all
+      end
+
       def history_trackable_options
         @history_trackable_options ||= Mongoid::History.trackable_class_options[with(account: nil).collection_name.to_s.singularize.to_sym]
       end

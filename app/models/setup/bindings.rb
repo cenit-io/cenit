@@ -3,7 +3,6 @@ module Setup
     extend ActiveSupport::Concern
 
     included do
-      before_save :bind_bindings
       after_destroy :clear_bindings
     end
 
@@ -37,7 +36,13 @@ module Setup
       end
 
       def binding_belongs_to(name, *options)
-        binds << belongs_to(name, *options)
+        relation = belongs_to(name, *options)
+        binds << relation
+        relation
+      end
+
+      def bind_before_save
+        before_save :bind_bindings
       end
     end
   end

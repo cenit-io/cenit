@@ -2,6 +2,25 @@ module Setup
   module Parameters
     extend ActiveSupport::Concern
 
+    included do
+      after_save :configure
+    end
+
+    def configure
+      super
+      reflect_on_all_associations(:embeds_many).each do |relation|
+        next unless relation.klass == Setup::Parameter
+        names = []
+        send(relation.name).each do |parameter|
+          parameter.configure
+          names << parameter.name
+        end
+        Setup::ParameterConfig.where("#{relation.inverse}_id" => id,
+                                     location: relation.name,
+                                     :name.nin => names).delete_all
+      end
+    end
+
     module ClassMethods
 
       def parameters(*relation_names)
@@ -14,18 +33,6 @@ module Setup
             Setup::ParameterConfig.belongs_to inverse_name, class_name: to_s, inverse_of: nil
             Setup::ParameterConfig.attr_readonly inverse_name
             Setup::ParameterConfig.build_in_data_type.including(inverse_name)
-          end
-        end
-        after_save do
-          relation_names.each do |relation_name|
-            names = []
-            send(relation_name).each do |parameter|
-              parameter.configure
-              names << parameter.name
-            end
-            Setup::ParameterConfig.where("#{inverse_name}_id" => id,
-                                         location: relation_name,
-                                         :name.nin => names).delete_all
           end
         end
         after_destroy do

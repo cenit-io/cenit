@@ -2,25 +2,24 @@ module Setup
   module ShareWithBindings
     extend ActiveSupport::Concern
 
-    include CrossOriginShared
+    include SharedConfigurable
     include Bindings
 
-    def save(options = {})
-      if shared? && User.current != creator
-        valid? && bind_bindings
-        errors.blank?
-      else
-        super
-      end
+    def configure
+      super
+      bind_bindings
     end
 
     module ClassMethods
 
-      def tracked_field?(field, action = :update)
-        field = field.to_s
-        binds.none? { |r| r.foreign_key.to_s == field } && super
+      def binding_belongs_to(name, *options)
+        shared_configurable super.foreign_key
       end
 
+      def clear_config_for(account, ids)
+        super
+        Setup::Binding.with(account).clear(self, ids)
+      end
     end
   end
 end

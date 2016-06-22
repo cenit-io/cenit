@@ -97,10 +97,8 @@ module Setup
           else
             expression[record_id] = expression.delete(record_key)
           end
-          super
-        else
-          super
         end
+        super
       end
 
       def for(object)

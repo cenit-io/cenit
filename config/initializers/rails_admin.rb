@@ -173,7 +173,7 @@ RailsAdmin.config do |config|
     end
   end
 
-  shared_with_bindings_edit = Proc.new do
+  shared_non_editable = Proc.new do
     visible { User.current == bindings[:object].creator || !bindings[:object].shared? }
   end
 
@@ -1253,18 +1253,18 @@ RailsAdmin.config do |config|
     end
 
     edit do
-      field(:namespace, :enum_edit, &shared_with_bindings_edit)
-      field(:name, &shared_with_bindings_edit)
-      field(:url, &shared_with_bindings_edit)
+      field(:namespace, :enum_edit, &shared_non_editable)
+      field(:name, &shared_non_editable)
+      field(:url, &shared_non_editable)
 
-      field(:key, &shared_with_bindings_edit)
-      field(:token, &shared_with_bindings_edit)
+      field(:key, &shared_non_editable)
+      field(:token, &shared_non_editable)
       field :authorization
-      field(:authorization_handler, &shared_with_bindings_edit)
+      field(:authorization_handler, &shared_non_editable)
 
-      field(:parameters, &shared_with_bindings_edit)
-      field(:headers, &shared_with_bindings_edit)
-      field(:template_parameters, &shared_with_bindings_edit)
+      field :parameters
+      field :headers
+      field :template_parameters
     end
 
     show do
@@ -1379,19 +1379,19 @@ RailsAdmin.config do |config|
     end
 
     edit do
-      field(:namespace, :enum_edit, &shared_with_bindings_edit)
-      field(:name, &shared_with_bindings_edit)
-      field(:path, &shared_with_bindings_edit)
-      field(:method, &shared_with_bindings_edit)
-      field(:description, &shared_with_bindings_edit)
-      field(:metadata, :json_value, &shared_with_bindings_edit)
+      field(:namespace, :enum_edit, &shared_non_editable)
+      field(:name, &shared_non_editable)
+      field(:path, &shared_non_editable)
+      field(:method, &shared_non_editable)
+      field(:description, &shared_non_editable)
+      field(:metadata, :json_value, &shared_non_editable)
 
       field :authorization
-      field(:authorization_handler, &shared_with_bindings_edit)
+      field(:authorization_handler, &shared_non_editable)
 
-      field(:parameters, &shared_with_bindings_edit)
-      field(:headers, &shared_with_bindings_edit)
-      field(:template_parameters, &shared_with_bindings_edit)
+      field(:parameters, &shared_non_editable)
+      field(:headers, &shared_non_editable)
+      field(:template_parameters, &shared_non_editable)
     end
 
     show do
@@ -2056,7 +2056,7 @@ RailsAdmin.config do |config|
     end
 
     edit do
-      field :namespace, :enum_edit, &shared_with_bindings_edit
+      field :namespace, :enum_edit, &shared_non_editable
       field :name
       field :response_type
       field :authorization_endpoint

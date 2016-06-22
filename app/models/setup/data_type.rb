@@ -1,6 +1,6 @@
 module Setup
   class DataType
-    include SharedEditable
+    include SharedConfigurable
     include NamespaceNamed
     include SchemaHandler
     include DataTypeParser
@@ -16,6 +16,8 @@ module Setup
 
     shared_deny :delete, :simple_delete_data_type, :bulk_delete_data_type, :simple_expand, :bulk_expand
 
+    shared_configurable :slug
+
     field :title, type: String
 
     has_and_belongs_to_many :before_save_callbacks, class_name: Setup::Algorithm.to_s, inverse_of: nil
@@ -28,14 +30,13 @@ module Setup
 
     before_save :validates_configuration
 
-    after_save :configure
-
     after_destroy do
       data_type_config.destroy
       clean_up
     end
 
     def configure
+      super
       data_type_config.save
     end
 
@@ -147,8 +148,14 @@ module Setup
         end
       end
 
+
       def for_name(name)
         where(id: name.from(2)).first
+      end
+
+      def clear_config_for(account, ids)
+        super
+        Setup::DataTypeConfig.with(account).where(:data_type_id.in => ids).delete_all
       end
     end
 

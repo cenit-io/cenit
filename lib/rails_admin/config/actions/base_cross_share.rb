@@ -39,7 +39,7 @@ module RailsAdmin
               criteria.with_tracking.cross(origin_data['origin']) do |_, non_tracked_ids|
                 if non_tracked_ids.present?
                   Account.each do |account| #TODO Run as a task in the background
-                    Setup::Pin.with(account).where(model: model, :record_id.in => non_tracked_ids).delete_all
+                    model.clear_config_for(account, non_tracked_ids)
                   end
                 end
               end

@@ -63,8 +63,12 @@ module Setup
         create(binder_id => binder.id, obj_id => bind.id) if bind
       end
 
-      def clear(binder)
-        where(binder_id(binder) => binder.id).delete_all
+      def clear(binder, ids = nil)
+        if ids
+          where(binder_id(binder).to_sym.in => ids)
+        else
+          where(binder_id(binder) => binder.id)
+        end.delete_all
       end
 
       def bind_id(bind)
