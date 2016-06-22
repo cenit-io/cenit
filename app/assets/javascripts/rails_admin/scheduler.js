@@ -116,7 +116,9 @@ function schedulerInit() {
 
         var level = parseInt(freq_sel.val());
 
-        if (level == 1) {
+        if (level == 0) {
+            res["type"] = 'once';
+        } else if (level == 1) {
             res["type"] = 'cyclic';
             res["cyclic_expression"] = $('#cyclic_num').val() + ($('#cyclic_unit').val());
         } else {
