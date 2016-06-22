@@ -482,7 +482,6 @@ RailsAdmin.config do |config|
       end
 
       field :_id
-      field :created_at
       field :updated_at
     end
     list do
@@ -526,6 +525,11 @@ RailsAdmin.config do |config|
 
       field :created_at
       #field :creator
+      field :updated_at
+    end
+    list do
+      field :label
+      field :parameter
       field :updated_at
     end
     fields :label, :parameter
@@ -765,9 +769,18 @@ RailsAdmin.config do |config|
         end
       end
       field :data
-      field :created_at
       field :updated_at
     end
+  end
+
+  config.model Setup::Namespace do
+    navigation_label 'Collections'
+    list do
+      field :name
+      field :slug
+      field :updated_at
+    end
+    fields :name, :slug
   end
 
   #Data
@@ -844,6 +857,24 @@ RailsAdmin.config do |config|
       field :data_type_methods
     end
 
+    list do
+      field :title
+      field :name
+      field :slug
+      field :_type
+      field :used_memory do
+        visible { Cenit.dynamic_model_loading? }
+        pretty_value do
+          unless max = bindings[:controller].instance_variable_get(:@max_used_memory)
+            bindings[:controller].instance_variable_set(:@max_used_memory, max = Setup::DataType.fields[:used_memory.to_s].type.new(Setup::DataType.max(:used_memory)))
+          end
+          (bindings[:view].render partial: 'used_memory_bar', locals: { max: max, value: Setup::DataType.fields[:used_memory.to_s].type.new(value) }).html_safe
+        end
+      end
+      field :storage_size
+      field :updated_at
+    end
+
     show do
       field :title
       field :name
@@ -869,7 +900,7 @@ RailsAdmin.config do |config|
       field :updated_at
       #field :updater
     end
-    fields :namespace, :name, :slug, :_type, :storage_size, :created_at, :updated_at
+    fields :namespace, :name, :slug, :_type, :storage_size, :updated_at
   end
 
   config.model Setup::JsonDataType do
@@ -947,6 +978,24 @@ RailsAdmin.config do |config|
       field :data_type_methods
     end
 
+    list do
+      field :namespace
+      field :title
+      field :name
+      field :slug
+      field :used_memory do
+        visible { Cenit.dynamic_model_loading? }
+        pretty_value do
+          unless max = bindings[:controller].instance_variable_get(:@max_used_memory)
+            bindings[:controller].instance_variable_set(:@max_used_memory, max = Setup::JsonDataType.fields[:used_memory.to_s].type.new(Setup::JsonDataType.max(:used_memory)))
+          end
+          (bindings[:view].render partial: 'used_memory_bar', locals: { max: max, value: Setup::JsonDataType.fields[:used_memory.to_s].type.new(value) }).html_safe
+        end
+      end
+      field :storage_size
+      field :updated_at
+    end
+
     show do
       field :namespace
       field :title
@@ -969,7 +1018,7 @@ RailsAdmin.config do |config|
       #field :updater
     end
 
-    fields :namespace, :name, :slug, :storage_size, :created_at, :updated_at
+    fields :namespace, :name, :slug, :storage_size, :updated_at
   end
 
   config.model Setup::FileDataType do
@@ -1045,6 +1094,25 @@ RailsAdmin.config do |config|
       field :data_type_methods
     end
 
+    list do
+      field :title
+      field :name
+      field :slug
+      field :validators
+      field :schema_data_type
+      field :used_memory do
+        visible { Cenit.dynamic_model_loading? }
+        pretty_value do
+          unless max = bindings[:controller].instance_variable_get(:@max_used_memory)
+            bindings[:controller].instance_variable_set(:@max_used_memory, max = Setup::JsonDataType.fields[:used_memory.to_s].type.new(Setup::JsonDataType.max(:used_memory)))
+          end
+          (bindings[:view].render partial: 'used_memory_bar', locals: { max: max, value: Setup::JsonDataType.fields[:used_memory.to_s].type.new(value) }).html_safe
+        end
+      end
+      field :storage_size
+      field :updated_at
+    end
+
     show do
       field :title
       field :name
@@ -1060,7 +1128,7 @@ RailsAdmin.config do |config|
       #field :updater
     end
 
-    fields :namespace, :name, :slug, :storage_size, :created_at, :updated_at
+    fields :namespace, :name, :slug, :storage_size, :updated_at
   end
 
   config.model Setup::Validator do
@@ -1069,7 +1137,7 @@ RailsAdmin.config do |config|
     weight -490
     fields :namespace, :name
 
-    fields :namespace, :name, :created_at, :updated_at
+    fields :namespace, :name, :updated_at
 
     show_in_dashboard { false }
   end
@@ -1082,8 +1150,15 @@ RailsAdmin.config do |config|
         value.split('::').last.to_title
       end
     end
+    
+    list do
+      field :namespace
+      field :name
+      field :_type
+      field :updated_at
+    end
 
-    fields :namespace, :name, :_type, :created_at, :updated_at
+    fields :namespace, :name, :_type, :updated_at
   end
 
   config.model Setup::Schema do
@@ -1141,7 +1216,7 @@ RailsAdmin.config do |config|
 
     end
 
-    fields :namespace, :uri, :schema_data_type, :created_at, :updated_at
+    fields :namespace, :uri, :schema_data_type, :updated_at
   end
 
   config.model Setup::XsltValidator do
@@ -1149,8 +1224,14 @@ RailsAdmin.config do |config|
     weight -488
 
     object_label_method { :custom_title }
+    
+    list do
+      field :namespace
+      field :xslt
+      field :updated_at
+    end
 
-    fields :namespace, :name, :xslt, :created_at, :updated_at
+    fields :namespace, :name, :xslt, :updated_at
   end
 
   config.model Setup::EdiValidator do
@@ -1164,11 +1245,10 @@ RailsAdmin.config do |config|
       field :name
       field :schema_data_type
       field :content_type
-      field :created_at
       field :updated_at
     end
 
-    fields :namespace, :name, :schema_data_type, :content_type, :created_at, :updated_at
+    fields :namespace, :name, :schema_data_type, :content_type, :updated_at
   end
 
   config.model Setup::AlgorithmValidator do
@@ -1179,9 +1259,10 @@ RailsAdmin.config do |config|
       field :namespace, :enum_edit
       field :name
       field :algorithm
+      field :updated_at
     end
 
-    fields :namespace, :name, :algorithm, :created_at, :updated_at
+    fields :namespace, :name, :algorithm, :updated_at
   end
 
   #API Connectors
@@ -1204,6 +1285,7 @@ RailsAdmin.config do |config|
       field :value
       field :description
       field :metadata
+      field :updated_at
     end
   end
 
@@ -1285,8 +1367,18 @@ RailsAdmin.config do |config|
       field :created_at
       field :updated_at
     end
+    
+    list do
+      field :namespace
+      field :name
+      field :url
+      field :key
+      field :token
+      field :authorization
+      field :updated_at
+    end
 
-    fields :namespace, :name, :url, :key, :token, :authorization, :created_at, :updated_at
+    fields :namespace, :name, :url, :key, :token, :authorization, :updated_at
   end
 
   config.model Setup::ConnectionRole do
@@ -1330,9 +1422,10 @@ RailsAdmin.config do |config|
       field :name
       field :webhooks
       field :connections
+      field :updated_at
     end
 
-    fields :namespace, :name, :webhooks, :connections, :created_at, :updated_at
+    fields :namespace, :name, :webhooks, :connections, :updated_at
   end
 
   config.model Setup::Webhook do
@@ -1416,7 +1509,7 @@ RailsAdmin.config do |config|
       #field :updater
     end
 
-    fields :namespace, :name, :path, :method, :description, :authorization, :created_at, :updated_at
+    fields :namespace, :name, :path, :method, :description, :authorization, :updated_at
   end
 
   #Workflows
@@ -1605,8 +1698,17 @@ RailsAdmin.config do |config|
       field :updated_at
       #field :updater
     end
+    
+    list do
+      field :namespace
+      field :name
+      field :active
+      field :event
+      field :translator
+      field :updated_at
+    end
 
-    fields :namespace, :name, :active, :event, :translator, :created_at, :updated_at
+    fields :namespace, :name, :active, :event, :translator, :updated_at
   end
 
   config.model Setup::Event do
@@ -1637,8 +1739,15 @@ RailsAdmin.config do |config|
       field :updated_at
       #field :updater
     end
+    
+    list do
+      field :namespace
+      field :name
+      field :_type
+      field :updated_at
+    end
 
-    fields :namespace, :name, :_type, :created_at, :updated_at
+    fields :namespace, :name, :_type, :updated_at
   end
 
   config.model Setup::Observer do
@@ -1697,8 +1806,8 @@ RailsAdmin.config do |config|
       field :updated_at
       #field :updater
     end
-
-    fields :namespace, :name, :data_type, :triggers, :trigger_evaluator, :created_at, :updated_at
+    
+    fields :namespace, :name, :data_type, :triggers, :trigger_evaluator, :updated_at
   end
 
   config.model Setup::Scheduler do
@@ -1735,8 +1844,16 @@ RailsAdmin.config do |config|
       field :updated_at
       #field :updater
     end
+    
+    list do
+      field :namespace
+      field :name
+      field :expression
+      field :activated
+      field :updated_at
+    end
 
-    fields :namespace, :name, :expression, :activated, :created_at, :updated_at
+    fields :namespace, :name, :expression, :activated, :updated_at
   end
 
   config.model Setup::AlgorithmParameter do
@@ -1892,8 +2009,19 @@ RailsAdmin.config do |config|
       field :updated_at
       #field :updater
     end
+    
+    list do
+      field :namespace
+      field :name
+      field :type
+      field :style
+      field :mime_type
+      field :file_extension
+      field :transformation
+      field :updated_at
+    end
 
-    fields :namespace, :name, :type, :style, :transformation, :created_at, :updated_at
+    fields :namespace, :name, :type, :style, :transformation, :updated_at
   end
 
   config.model Setup::Algorithm do
@@ -1927,8 +2055,17 @@ RailsAdmin.config do |config|
       field :call_links
       field :_id
     end
-
-    fields :namespace, :name, :description, :parameters, :call_links, :created_at, :updated_at
+    
+    list do
+      field :namespace
+      field :name
+      field :description
+      field :parameters
+      field :call_links
+      field :updated_at
+    end
+    
+    fields :namespace, :name, :description, :parameters, :call_links
   end
 
   config.model Setup::Action do
@@ -1954,13 +2091,32 @@ RailsAdmin.config do |config|
       field :actions
       field :application_parameters
     end
-    fields :namespace, :name, :slug, :identifier, :secret_token, :actions, :application_parameters, :created_at, :updated_at
+    list do
+      field :namespace
+      field :name
+      field :slug
+      field :identifier
+      field :secret_token
+      field :actions
+      field :application_parameters
+      field :updated_at
+    end
+    fields :namespace, :name, :slug, :identifier, :secret_token, :actions, :application_parameters
   end
 
   config.model Setup::ApplicationParameter do
     visible false
     navigation_label 'Workflows'
     configure :group, :enum_edit
+    
+    list do
+      field :name
+      field :type
+      field :many
+      field :group
+      field :description
+      field :updated_at
+    end
 
     fields :name, :type, :many, :group, :description
   end
@@ -2004,8 +2160,18 @@ RailsAdmin.config do |config|
         end
       end
     end
+    
+    list do
+      field :provider
+      field :name
+      field :identifier
+      field :secret
+      field :tenant
+      field :origin
+      field :updated_at
+    end
 
-    fields :provider, :name, :identifier, :secret, :tenant, :origin, :created_at, :updated_at
+    fields :provider, :name, :identifier, :secret, :tenant, :origin, :updated_at
   end
 
   config.model Setup::BaseOauthProvider do
@@ -2030,7 +2196,22 @@ RailsAdmin.config do |config|
       visible { Account.current_super_admin? }
     end
 
-    fields :namespace, :name, :_type, :response_type, :authorization_endpoint, :token_endpoint, :token_method, :tenant, :origin, :created_at, :updated_at
+    configure :namespace, :enum_edit
+    
+    list do
+      field :namespace
+      field :name
+      field :_type
+      field :response_type
+      field :authorization_endpoint
+      field :token_endpoint
+      field :token_method
+      field :tenant
+      field :origin
+      field :updated_at
+    end
+
+    fields :namespace, :name, :_type, :response_type, :authorization_endpoint, :token_endpoint, :token_method, :tenant, :origin
   end
 
   config.model Setup::OauthProvider do
@@ -2066,11 +2247,11 @@ RailsAdmin.config do |config|
       field :refresh_token_strategy
       field :refresh_token_algorithm
       field :tenant
-      field :created_at
+      field :origin
       field :updated_at
     end
 
-    fields :namespace, :name, :response_type, :authorization_endpoint, :token_endpoint, :token_method, :request_token_endpoint, :refresh_token_strategy, :refresh_token_algorithm, :tenant, :origin, :created_at, :updated_at
+    fields :namespace, :name, :response_type, :authorization_endpoint, :token_endpoint, :token_method, :request_token_endpoint, :refresh_token_strategy, :refresh_token_algorithm, :tenant, :origin, :updated_at
   end
 
   config.model Setup::Oauth2Provider do
@@ -2105,9 +2286,12 @@ RailsAdmin.config do |config|
       field :scope_separator
       field :refresh_token_strategy
       field :refresh_token_algorithm
+      field :tenant
+      field :origin
+      field :updated_at
     end
 
-    fields :namespace, :name, :response_type, :authorization_endpoint, :token_endpoint, :token_method, :scope_separator, :refresh_token_strategy, :refresh_token_algorithm, :tenant, :origin, :created_at, :updated_at
+    fields :namespace, :name, :response_type, :authorization_endpoint, :token_endpoint, :token_method, :scope_separator, :refresh_token_strategy, :refresh_token_algorithm, :tenant, :origin, :updated_at
   end
 
   config.model Setup::Oauth2Scope do
@@ -2125,8 +2309,17 @@ RailsAdmin.config do |config|
     configure :origin do
       visible { Account.current_super_admin? }
     end
+    
+    list do
+      field :provider
+      field :name
+      field :description
+      field :tenant
+      field :origin
+      field :updated_at
+    end
 
-    fields :provider, :name, :description, :tenant, :origin, :created_at, :updated_at
+    fields :provider, :name, :description, :tenant, :origin, :updated_at
   end
 
   config.model Setup::Authorization do
@@ -2151,7 +2344,7 @@ RailsAdmin.config do |config|
       field :metadata
     end
 
-    fields :namespace, :name, :status, :_type, :metadata, :created_at, :updated_at
+    fields :namespace, :name, :status, :_type, :metadata, :updated_at
     show_in_dashboard { false }
   end
 
@@ -2207,7 +2400,7 @@ RailsAdmin.config do |config|
       field :password
     end
 
-    fields :namespace, :name, :status, :username, :password, :created_at, :updated_at
+    fields :namespace, :name, :status, :username, :password, :updated_at
   end
 
   config.model Setup::OauthAuthorization do
@@ -2274,8 +2467,16 @@ RailsAdmin.config do |config|
       field :token_span
       field :authorized_at
     end
+    
+    list do
+      field :namespace
+      field :name
+      field :status
+      field :client
+      field :updated_at
+    end
 
-    fields :namespace, :name, :status, :client, :created_at, :updated_at
+    fields :namespace, :name, :status, :client, :updated_at
   end
 
   config.model Setup::Oauth2Authorization do
@@ -2370,7 +2571,7 @@ RailsAdmin.config do |config|
       field :_id
     end
 
-    fields :namespace, :name, :status, :client, :scopes, :created_at, :updated_at
+    fields :namespace, :name, :status, :client, :scopes, :updated_at
   end
 
   config.model Setup::AwsAuthorization do
@@ -2422,8 +2623,21 @@ RailsAdmin.config do |config|
       field :signature_version
       field :metadata
     end
+    
+    list do
+      field :namespace
+      field :name
+      field :aws_access_key
+      field :aws_secret_key
+      field :seller
+      field :merchant
+      field :markets
+      field :signature_method
+      field :signature_version
+      field :updated_at
+    end
 
-    fields :namespace, :name, :aws_access_key, :aws_secret_key, :seller, :merchant, :markets, :signature_method, :signature_version, :created_at, :updated_at
+    fields :namespace, :name, :aws_access_key, :aws_secret_key, :seller, :merchant, :markets, :signature_method, :signature_version, :updated_at
   end
 
   config.model Setup::OauthAccessGrant do
@@ -2472,7 +2686,6 @@ RailsAdmin.config do |config|
       field :message
       field :attachment
       field :task
-      field :created_at
       field :updated_at
     end
   end
@@ -2495,7 +2708,7 @@ RailsAdmin.config do |config|
       field :description
     end
 
-    fields :_type, :description, :scheduler, :attempts_succeded, :retries, :progress, :status, :created_at, :updated_at
+    fields :_type, :description, :scheduler, :attempts_succeded, :retries, :progress, :status, :updated_at
   end
 
   config.model Setup::FlowExecution do
@@ -2511,7 +2724,7 @@ RailsAdmin.config do |config|
       field :description
     end
 
-    fields :flow, :description, :scheduler, :attempts_succeded, :retries, :progress, :status, :notifications, :created_at, :updated_at
+    fields :flow, :description, :scheduler, :attempts_succeded, :retries, :progress, :status, :notifications, :updated_at
   end
 
   config.model Setup::DataTypeGeneration do
@@ -2527,7 +2740,7 @@ RailsAdmin.config do |config|
       field :description
     end
 
-    fields :description, :scheduler, :attempts_succeded, :retries, :progress, :status, :notifications, :created_at, :updated_at
+    fields :description, :scheduler, :attempts_succeded, :retries, :progress, :status, :notifications, :updated_at
   end
 
   config.model Setup::DataTypeExpansion do
@@ -2543,7 +2756,7 @@ RailsAdmin.config do |config|
       field :description
     end
 
-    fields :description, :scheduler, :attempts_succeded, :retries, :progress, :status, :notifications, :created_at, :updated_at
+    fields :description, :scheduler, :attempts_succeded, :retries, :progress, :status, :notifications, :updated_at
   end
 
   config.model Setup::Translation do
@@ -2559,7 +2772,7 @@ RailsAdmin.config do |config|
       field :description
     end
 
-    fields :translator, :description, :scheduler, :attempts_succeded, :retries, :progress, :status, :notifications, :created_at, :updated_at
+    fields :translator, :description, :scheduler, :attempts_succeded, :retries, :progress, :status, :notifications, :updated_at
   end
 
   config.model Setup::DataImport do
@@ -2575,7 +2788,7 @@ RailsAdmin.config do |config|
       field :description
     end
 
-    fields :translator, :data, :description, :scheduler, :attempts_succeded, :retries, :progress, :status, :notifications, :created_at, :updated_at
+    fields :translator, :data, :description, :scheduler, :attempts_succeded, :retries, :progress, :status, :notifications, :updated_at
   end
 
   config.model Setup::SchemasImport do
@@ -2588,7 +2801,7 @@ RailsAdmin.config do |config|
     edit do
       field :description
     end
-    fields :base_uri, :data, :description, :scheduler, :attempts_succeded, :retries, :progress, :status, :notifications, :created_at, :updated_at
+    fields :base_uri, :data, :description, :scheduler, :attempts_succeded, :retries, :progress, :status, :notifications, :updated_at
   end
 
   config.model Setup::Deletion do
@@ -2614,7 +2827,7 @@ RailsAdmin.config do |config|
     edit do
       field :description
     end
-    fields :deletion_model, :description, :scheduler, :attempts_succeded, :retries, :progress, :status, :notifications, :created_at, :updated_at
+    fields :deletion_model, :description, :scheduler, :attempts_succeded, :retries, :progress, :status, :notifications, :updated_at
   end
 
   config.model Setup::AlgorithmExecution do
@@ -2627,7 +2840,7 @@ RailsAdmin.config do |config|
     edit do
       field :description
     end
-    fields :algorithm, :description, :scheduler, :attempts_succeded, :retries, :progress, :status, :notifications, :created_at, :updated_at
+    fields :algorithm, :description, :scheduler, :attempts_succeded, :retries, :progress, :status, :notifications, :updated_at
   end
 
   config.model Setup::Submission do
@@ -2640,7 +2853,7 @@ RailsAdmin.config do |config|
     edit do
       field :description
     end
-    fields :webhook, :connection, :description, :scheduler, :attempts_succeded, :retries, :progress, :status, :notifications, :created_at, :updated_at
+    fields :webhook, :connection, :description, :scheduler, :attempts_succeded, :retries, :progress, :status, :notifications, :updated_at
   end
 
   config.model Setup::Storage do
@@ -2678,6 +2891,16 @@ RailsAdmin.config do |config|
 
     configure :storer_property do
       label 'Property'
+    end
+    
+    list do
+      field :storer_model
+      field :storer_object
+      field :storer_property
+      field :filename
+      field :contentType
+      field :length
+      field :updated_at
     end
 
     fields :storer_model, :storer_object, :storer_property, :filename, :contentType, :length
@@ -2978,7 +3201,7 @@ RailsAdmin.config do |config|
     navigation_label 'Administration'
     visible { User.current_super_admin? }
 
-    fields :name, :owners, :created_at, :updated_at
+    fields :name, :owners, :updated_at
   end
 
   config.model Script do
@@ -3001,8 +3224,15 @@ RailsAdmin.config do |config|
         end
       end
     end
+    
+    list do
+      field :name
+      field :description
+      field :code
+      field :updated_at
+    end
 
-    fields :name, :description, :code, :created_at, :updated_at
+    fields :name, :description, :code, :updated_at
   end
 
   config.model CenitToken do
@@ -3043,6 +3273,15 @@ RailsAdmin.config do |config|
         end
       end
     end
+    
+    list do
+      field :channel
+      field :tag
+      field :executor
+      field :task_id
+      field :alive
+      field :updated_at
+    end
 
     fields :created_at, :channel, :tag, :executor, :task_id, :alive, :created_at, :updated_at
   end
@@ -3065,6 +3304,15 @@ RailsAdmin.config do |config|
         visible { bindings[:object].instance_variable_get(:@registering) }
       end
     end
+    
+    list do
+      field :channel
+      field :name
+      field :registered
+      field :account
+      field :identifier
+      field :updated_at
+    end
 
     fields :created_at, :name, :registered, :account, :identifier, :created_at, :updated_at
   end
@@ -3081,7 +3329,19 @@ RailsAdmin.config do |config|
     edit do
       field :description
     end
-
-    fields :script, :description, :scheduler, :attempts_succeded, :retries, :progress, :status, :notifications, :created_at, :updated_at
+    
+    list do
+      field :script
+      field :description
+      field :scheduler
+      field :attempts_succeded
+      field :retries
+      field :progress
+      field :status
+      field :notifications
+      field :updated_at
+    end
+    
+    fields :script, :description, :scheduler, :attempts_succeded, :retries, :progress, :status, :notifications
   end
 end
