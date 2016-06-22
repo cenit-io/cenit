@@ -87,6 +87,10 @@ module Setup
       end
 
       def clear_config_for(account, ids)
+        clear_pins_for(account, ids)
+      end
+
+      def clear_pins_for(account, ids)
         Setup::Pin.with(account).where(model: mongoid_root_class, :record_id.in => ids).delete_all
       end
 

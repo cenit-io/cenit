@@ -39,7 +39,11 @@ module RailsAdmin
               criteria.with_tracking.cross(origin_data['origin']) do |_, non_tracked_ids|
                 if non_tracked_ids.present?
                   Account.each do |account| #TODO Run as a task in the background
-                    model.clear_config_for(account, non_tracked_ids)
+                    if account == Account.current
+                      model.clear_pins_for(account, non_tracked_ids)
+                    else
+                      model.clear_config_for(account, non_tracked_ids)
+                    end
                   end
                 end
               end
