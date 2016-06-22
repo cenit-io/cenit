@@ -97,7 +97,7 @@ module Setup
         },
         type: {
           type: 'string',
-          enum: %w(cyclic appointed)
+          enum: %w(once cyclic appointed)
         },
         months_days: {
           type: 'array',
