@@ -1,20 +1,22 @@
 module RailsAdmin
   module SchedulerHelper
-    def dd
+    def dh
       dd = Hash.new { |h, k| h[k] = [] }
-      dd['cyclic_expression'] = ''
-      dd['start_at'] = Time.now.strftime '%Y-%m-%d %H:%M'
-      if @object.expression != nil
+      dd['now'] = Time.now.strftime '%Y-%m-%d'
+      dd['type'] = 'cyclic'
+      dd['cyclic_expression'] = '1d'
+      dd['frequency'] = 1
+      if (@object.expression != nil) and (@object.expression.has_key? 'type')
         dd.merge!(@object.expression)
-      else
-        dd['type'] = 'cyclic'
-        %w(months_days months hours minutes).each { |e| dd[e] = dd[e].to_s.strip[1..-2] }
+        if dd['type'] == 'appointed'
+          dd['frequency'] = 2
+        end
       end
       dd
     end
 
     def cyclic_as_hours
-      exp = dd['cyclic_expression']
+      exp = dh['cyclic_expression']
       if exp.ends_with? 'm'
         m = exp[0..-1].to_i
         h = m / 60

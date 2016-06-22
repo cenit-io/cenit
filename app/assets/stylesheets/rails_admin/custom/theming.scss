@@ -734,6 +734,11 @@ ul#main-accordion .panel-heading .nav-icon {
  * Custom RailsAdmin styles
  ****************************/
 
+#setup_scheduler_expression_field .inlined {
+  display: inline-block !important;
+  width: auto !important;
+}
+
 #setup_scheduler_expression_field #appointed #number a.btn {
   width: 56px;
 }
@@ -769,7 +774,7 @@ ul#main-accordion .panel-heading .nav-icon {
   text-align: center;
 }
 
-#days_2 .btn-group .btn {
+#setup_scheduler_expression_field .btn-group .btn.day_in_month {
   min-width: 48px;
   text-align: center;
 }
@@ -786,11 +791,7 @@ ul#main-accordion .panel-heading .nav-icon {
 #setup_scheduler_expression_field.selected-0 .visible-2,
 #setup_scheduler_expression_field.selected-0 .visible-3,
 #setup_scheduler_expression_field.selected-0 .visible-4,
-#setup_scheduler_expression_field.selected-0 .visible-5 {
-  display: none;
-  visibility: collapse;
-}
-
+#setup_scheduler_expression_field.selected-0 .visible-5,
 #setup_scheduler_expression_field.selected-1 .visible-2,
 #setup_scheduler_expression_field.selected-1 .visible-3,
 #setup_scheduler_expression_field.selected-1 .visible-4,
@@ -808,7 +809,6 @@ ul#main-accordion .panel-heading .nav-icon {
 }
 
 #setup_scheduler_expression_field.selected-3 .visible-1,
-#setup_scheduler_expression_field.selected-3 .visible-2,
 #setup_scheduler_expression_field.selected-3 .visible-4,
 #setup_scheduler_expression_field.selected-3 .visible-5 {
   display: none;
@@ -816,9 +816,20 @@ ul#main-accordion .panel-heading .nav-icon {
 }
 
 #setup_scheduler_expression_field.selected-4 .visible-1,
-#setup_scheduler_expression_field.selected-4 .visible-2,
-#setup_scheduler_expression_field.selected-4 .visible-3,
 #setup_scheduler_expression_field.selected-4 .visible-5 {
+  display: none;
+  visibility: collapse;
+}
+
+//#setup_scheduler_expression_field.selected-5 .visible-1,
+//#setup_scheduler_expression_field.selected-5 .visible-2,
+//#setup_scheduler_expression_field.selected-5 .visible-3,
+//#setup_scheduler_expression_field.selected-5 .visible-4 {
+//  display: none;
+//  visibility: collapse;
+//}
+
+#setup_scheduler_expression_field.selected-0 .hidden-0 {
   display: none;
   visibility: collapse;
 }
