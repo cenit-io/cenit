@@ -13,7 +13,7 @@ module Setup
     after_initialize { @value ||= attributes.delete('value') || '' } #TODO Remove after DB migration
 
     def configure
-      parameter_config.save if parameter_config
+      parameter_config.save if parameter_config && parameter_config.changed?
     end
 
     def to_s

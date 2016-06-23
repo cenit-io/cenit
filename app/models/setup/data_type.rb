@@ -37,7 +37,7 @@ module Setup
 
     def configure
       super
-      data_type_config.save
+      data_type_config.save if data_type_config.changed?
     end
 
     def validates_configuration
