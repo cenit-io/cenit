@@ -15,7 +15,11 @@ module Setup
     accepts_nested_attributes_for :parameters, allow_destroy: true
     accepts_nested_attributes_for :call_links, allow_destroy: true
 
-    before_save :validate_code
+    field :store_output, type: Boolean
+    belongs_to :output_datatype, class_name: Setup::DataType.to_s, inverse_of: nil
+    field :validate_output, type: Boolean
+
+    before_save :validate_code, :validate_output_processing
 
     def validate_code
       if code.blank?
@@ -41,6 +45,18 @@ module Setup
       errors.blank?
     end
 
+    def validate_output_processing
+      if store_output and not output_datatype
+        rc = Setup::FileDataType.find_or_create_by(namespace: namespace, name: "#{name} output")
+        if rc.errors.present?
+          errors.add(:output_datatype, rc.errors.full_messages)
+        else
+          self.output_datatype = rc
+        end
+      end
+      errors.blank?
+    end
+
     def do_link
       call_links.each { |call_link| call_link.do_link }
     end
@@ -52,13 +68,40 @@ module Setup
       self
     end
 
+    def do_store_output(output)
+      if output_datatype.is_a? Setup::FileDataType
+        begin
+          case output
+            when Hash, Array
+              output_datatype.create_from(output.to_json, contentType: 'application/json')
+            when String
+              output_datatype.create_from(output, contentType: 'text/plain')
+            else
+              output_datatype.create_from(output.to_s)
+          end
+        rescue Exception
+          output_datatype.create_from(output.to_s)
+        end
+      else
+      end
+    end
+
     def run(input)
       input = Cenit::Utility.json_value_of(input)
       input = [input] unless input.is_a?(Array)
       args = {}
       parameters.each { |parameter| args[parameter.name] = input.shift }
       do_link
-      Cenit::RubyInterpreter.run(code, args, self_linker: self_linker || self)
+      rc = Cenit::RubyInterpreter.run(code, args, self_linker: self_linker || self)
+
+      if store_output
+        unless output_datatype
+          fail 'Execution failed! Output storage required and no Output Data Type defined.'
+        end
+        do_store_output(rc)
+      end
+
+      rc
     end
 
     def link?(call_symbol)

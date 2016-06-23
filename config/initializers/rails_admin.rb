@@ -2110,6 +2110,9 @@ RailsAdmin.config do |config|
       field :call_links do
         visible { bindings[:object].call_links.present? }
       end
+      field :store_output
+      field :output_datatype
+      field :validate_output
     end
     show do
       field :namespace
