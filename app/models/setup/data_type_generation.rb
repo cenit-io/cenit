@@ -24,6 +24,7 @@ module Setup
           new_data_types_attributes = []
           data_type_schemas.each do |name, schema|
             data_type = Setup::JsonDataType.new(name: name, schema: schema, namespace: ns)
+            data_type.validates_before
             data_type_schemas[name] =
               if data_type.validate_model
                 new_data_types_attributes << data_type.attributes

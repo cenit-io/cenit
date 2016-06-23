@@ -24,9 +24,8 @@ module Setup
       uri
     end
 
-    before_validation :prepare_configuration
-
-    def prepare_configuration
+    def validates_before
+      super
       self.name = uri unless name.present?
       self.schema = schema.strip
       self.schema_type =

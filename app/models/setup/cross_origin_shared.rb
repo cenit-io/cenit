@@ -16,19 +16,20 @@ module Setup
 
       belongs_to :tenant, class_name: Account.to_s, inverse_of: nil
 
-      before_save do
-        if new_record?
-          self.origin = :default
-          self.tenant = Account.current
-        end
-        errors.blank?
-      end
+      before_validation :validates_before
 
       before_destroy do
         unless origin == :default
           errors.add(:base, "#{try(:custom_title) || try(:name) || "#{self.class}##{id}"} is shared")
         end
         errors.blank?
+      end
+    end
+
+    def validates_before
+      if new_record?
+        self.origin = :default
+        self.tenant = Account.current
       end
     end
 
