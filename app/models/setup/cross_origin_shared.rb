@@ -55,6 +55,10 @@ module Setup
       clear_trackable_memoization
     end
 
+    def not_shared?
+      !shared?
+    end
+
     def shared?
       origin == :shared
     end

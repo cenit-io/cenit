@@ -173,8 +173,14 @@ RailsAdmin.config do |config|
     end
   end
 
+  def shared_visible
+    instance_eval do
+      visible { User.current == bindings[:object].creator || !bindings[:object].shared? }
+    end
+  end
+
   shared_non_editable = Proc.new do
-    visible { User.current == bindings[:object].creator || !bindings[:object].shared? }
+    shared_visible
   end
 
   #Collections
@@ -851,10 +857,11 @@ RailsAdmin.config do |config|
     end
 
     edit do
-      field :title, :enum_edit
-      field :before_save_callbacks
-      field :records_methods
-      field :data_type_methods
+      field :title, :enum_edit, &shared_non_editable
+      field :slug
+      field :before_save_callbacks, &shared_non_editable
+      field :records_methods, &shared_non_editable
+      field :data_type_methods, &shared_non_editable
     end
 
     list do
@@ -966,16 +973,17 @@ RailsAdmin.config do |config|
     configure :slug
 
     edit do
-      field :namespace, :enum_edit
-      field :title
-      field :name
+      field :namespace, :enum_edit, &shared_non_editable
+      field :title, &shared_non_editable
+      field :name, &shared_non_editable
       field :slug
       field :schema, :json_schema do
+        shared_visible
         help { 'Required' }
       end
-      field :before_save_callbacks
-      field :records_methods
-      field :data_type_methods
+      field :before_save_callbacks, &shared_non_editable
+      field :records_methods, &shared_non_editable
+      field :data_type_methods, &shared_non_editable
     end
 
     list do
@@ -1083,15 +1091,15 @@ RailsAdmin.config do |config|
     configure :slug
 
     edit do
-      field :namespace, :enum_edit
-      field :title
-      field :name
+      field :namespace, :enum_edit, &shared_non_editable
+      field :title, &shared_non_editable
+      field :name, &shared_non_editable
       field :slug
-      field :validators
-      field :schema_data_type
-      field :before_save_callbacks
-      field :records_methods
-      field :data_type_methods
+      field :validators, &shared_non_editable
+      field :schema_data_type, &shared_non_editable
+      field :before_save_callbacks, &shared_non_editable
+      field :records_methods, &shared_non_editable
+      field :data_type_methods, &shared_non_editable
     end
 
     list do
@@ -1245,7 +1253,6 @@ RailsAdmin.config do |config|
       field :name
       field :schema_data_type
       field :content_type
-      field :updated_at
     end
 
     fields :namespace, :name, :schema_data_type, :content_type, :updated_at
@@ -1259,7 +1266,6 @@ RailsAdmin.config do |config|
       field :namespace, :enum_edit
       field :name
       field :algorithm
-      field :updated_at
     end
 
     fields :namespace, :name, :algorithm, :updated_at
@@ -1482,9 +1488,9 @@ RailsAdmin.config do |config|
       field :authorization
       field(:authorization_handler, &shared_non_editable)
 
-      field(:parameters, &shared_non_editable)
-      field(:headers, &shared_non_editable)
-      field(:template_parameters, &shared_non_editable)
+      field :parameters
+      field :headers
+      field :template_parameters
     end
 
     show do
@@ -1525,14 +1531,15 @@ RailsAdmin.config do |config|
     end
 
     edit do
-      field :namespace, :enum_edit
-      field :name
+      field :namespace, :enum_edit, &shared_non_editable
+      field :name, &shared_non_editable
       field :event do
         inline_edit false
         inline_add false
       end
       field :translator do
         help 'Required'
+        shared_visible
       end
       field :custom_data_type do
         inline_edit false
@@ -1541,7 +1548,7 @@ RailsAdmin.config do |config|
           if (f = bindings[:object]).custom_data_type.present?
             f.nil_data_type = false
           end
-          if f.translator.present? && f.translator.data_type.nil? && !f.nil_data_type
+          if f.not_shared? && f.translator.present? && f.translator.data_type.nil? && !f.nil_data_type
             f.instance_variable_set(:@selecting_data_type, f.custom_data_type = f.event && f.event.try(:data_type)) unless f.data_type
             f.nil_data_type = f.translator.type == :Export && (params = (controller = bindings[:controller]).params) && (params = params[controller.abstract_model.param_key]) && params[:custom_data_type_id].blank? && params.keys.include?(:custom_data_type_id.to_s)
             true
@@ -1571,7 +1578,7 @@ RailsAdmin.config do |config|
         end
       end
       field :nil_data_type do
-        visible { bindings[:object].nil_data_type }
+        visible { (f = bindings[:object]).not_shared? && f.nil_data_type }
         label do
           if (translator = bindings[:object].translator)
             if [:Export, :Conversion].include?(translator.type)
@@ -1588,7 +1595,7 @@ RailsAdmin.config do |config|
         visible do
           bindings[:controller].instance_variable_set(:@_data_type, bindings[:object].data_type)
           bindings[:controller].instance_variable_set(:@_update_field, 'translator_id')
-          (f = bindings[:object]).translator.present? && f.translator.type != :Import && f.data_type && !f.instance_variable_get(:@selecting_data_type)
+          (f = bindings[:object]).not_shared? && f.translator.present? && f.translator.type != :Import && f.data_type && !f.instance_variable_get(:@selecting_data_type)
         end
         label do
           if (translator = bindings[:object].translator)
@@ -1604,14 +1611,14 @@ RailsAdmin.config do |config|
         help 'Required'
       end
       field :scope_filter do
-        visible { bindings[:object].scope_symbol == :filtered }
+        visible { (f = bindings[:object]).not_shared? && f.scope_symbol == :filtered }
         partial 'form_triggers'
         help false
       end
       field :scope_evaluator do
         inline_add false
         inline_edit false
-        visible { bindings[:object].scope_symbol == :evaluation }
+        visible { (f = bindings[:object]).not_shared? && f.scope_symbol == :evaluation }
         associated_collection_scope do
           Proc.new { |scope|
             scope.where(:parameters.with_size => 1)
@@ -1620,10 +1627,10 @@ RailsAdmin.config do |config|
         help 'Required'
       end
       field :lot_size do
-        visible { (f = bindings[:object]).translator.present? && f.translator.type == :Export && !f.nil_data_type && f.data_type_scope && f.scope_symbol != :event_source }
+        visible { (f = bindings[:object]).not_shared? && f.translator.present? && f.translator.type == :Export && !f.nil_data_type && f.data_type_scope && f.scope_symbol != :event_source }
       end
       field :webhook do
-        visible { (translator = (f = bindings[:object]).translator) && (translator.type == :Import || (translator.type == :Export && (bindings[:object].data_type_scope.present? || f.nil_data_type))) }
+        visible { (f = bindings[:object]).not_shared? && (translator = f.translator) && (translator.type == :Import || (translator.type == :Export && (bindings[:object].data_type_scope.present? || f.nil_data_type))) }
         help 'Required'
       end
       field :connection_role do
@@ -1631,7 +1638,7 @@ RailsAdmin.config do |config|
         help 'Optional'
       end
       field :response_translator do
-        visible { (translator = (f = bindings[:object]).translator) && (translator.type == :Export && (bindings[:object].data_type_scope.present? || f.nil_data_type)) && f.ready_to_save? }
+        visible { (f = bindings[:object]).not_shared? && (translator = f.translator) && (translator.type == :Export && (bindings[:object].data_type_scope.present? || f.nil_data_type)) && f.ready_to_save? }
         associated_collection_scope do
           Proc.new { |scope|
             scope.where(type: :Import)
@@ -1641,26 +1648,26 @@ RailsAdmin.config do |config|
       field :response_data_type do
         inline_edit false
         inline_add false
-        visible { (response_translator = bindings[:object].response_translator) && response_translator.type == :Import && response_translator.data_type.nil? }
+        visible { (f = bindings[:object]).not_shared? && (response_translator = f.response_translator) && response_translator.type == :Import && response_translator.data_type.nil? }
         help ''
       end
       field :discard_events do
-        visible { (((obj = bindings[:object]).translator && obj.translator.type == :Import) || obj.response_translator.present?) && obj.ready_to_save? }
+        visible { (f = bindings[:object]).not_shared? && ((f.translator && f.translator.type == :Import) || f.response_translator.present?) && f.ready_to_save? }
         help "Events won't be fired for created or updated records if checked"
       end
       field :active do
-        visible { bindings[:object].ready_to_save? }
+        visible { (f = bindings[:object]).not_shared? && f.ready_to_save? }
       end
       field :notify_request do
-        visible { (obj = bindings[:object]).translator && [:Import, :Export].include?(obj.translator.type) && obj.ready_to_save? }
+        visible { (f = bindings[:object]).not_shared? && f.translator && [:Import, :Export].include?(f.translator.type) && f.ready_to_save? }
         help 'Track request via notifications if checked'
       end
       field :notify_response do
-        visible { (obj = bindings[:object]).translator && [:Import, :Export].include?(obj.translator.type) && obj.ready_to_save? }
+        visible { (f = bindings[:object]).not_shared? && f.translator && [:Import, :Export].include?(f.translator.type) && f.ready_to_save? }
         help 'Track responses via notification if checked'
       end
       field :after_process_callbacks do
-        visible { bindings[:object].ready_to_save? }
+        visible { (f = bindings[:object]).not_shared? && f.ready_to_save? }
         help 'Algorithms executed after flow processing, execution state is supplied as argument'
         associated_collection_scope do
           Proc.new { |scope|
