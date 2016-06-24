@@ -49,15 +49,15 @@
   .clearfix
     .col-sm-2
       %select#days_sl.form-control.input-sm.col-sm-12{style:'vertical-align: top'}
-        %option{value:1, selected: (dd.has_key? 'week_days')}
+        %option{value:1, selected: (dd.has_key? 'weeks_days')}
           = t('admin.scheduler.days.weekly')
-        %option{value:2, selected: (dd.has_key? 'month_days') || (dd.has_key? 'last_day_in_month')}
+        %option{value:2, selected: (dd.has_key? 'months_days') || (dd.has_key? 'last_day_in_month')}
           = t('admin.scheduler.days.monthly')
-    #days_1.form-inline.col-sm-10{class: ((!((dd.has_key? 'month_days') || (dd.has_key? 'last_day_in_month'))) ||(dd.has_key? 'week_days')) ? '' : 'hidden'}
+    #days_1.form-inline.col-sm-10{class: ((!((dd.has_key? 'months_days') || (dd.has_key? 'last_day_in_month'))) ||(dd.has_key? 'weeks_days')) ? '' : 'hidden'}
       .clearfix
         .scheduler-opts.btn-group.btn-group-sm{role: 'btn-group'}
           - sch_week_days.each_with_index do |d, i|
-            %a.btn.day_in_week{id: "week_day_#{i}", href: '#', class: (dd['week_days'].include? i) ? 'btn-primary' : 'btn-default'}
+            %a.btn.day_in_week{id: "week_day_#{i}", href: '#', class: (dd['weeks_days'].include? i) ? 'btn-primary' : 'btn-default'}
               = d
       .clearfix.bottom
         .scheduler-opts.btn-group.btn-group-sm{role: 'btn-group'}
@@ -68,14 +68,14 @@
             = t('admin.scheduler.last')
         %span
           = t('admin.scheduler.weeks.label')
-    #days_2.form-inline.col-sm-10{class: ((dd.has_key? 'month_days') || (dd.has_key? 'last_day_in_month')) ? '' : 'hidden'}
+    #days_2.form-inline.col-sm-10{class: ((dd.has_key? 'months_days') || (dd.has_key? 'last_day_in_month')) ? '' : 'hidden'}
       - (0..3).to_a.each do |w|
         .clearfix
           .scheduler-opts.btn-group.btn-group-sm{role: 'btn-group'}
             - (0..7).to_a.each do |i|
               - d = ((w*8)+(i+1))
               - if d < 32
-                %a.btn.day_in_month{id: "months_day_#{d}", href: '#', class: (dd['month_days'].include? d) ? 'btn-primary' : 'btn-default'}
+                %a.btn.day_in_month{id: "months_day_#{d}", href: '#', class: (dd['months_days'].include? d) ? 'btn-primary' : 'btn-default'}
                   = d
               - else
                 %a.btn.day_in_month{id: 'last_day_in_month', href: '#', class: ((dd.has_key? 'last_day_in_month') && (dd['last_day_in_month'])) ? 'btn-primary' : 'btn-default'}
