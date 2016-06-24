@@ -75,7 +75,16 @@ module Setup
             when Hash, Array
               output_datatype.create_from(output.to_json, contentType: 'application/json')
             when String
-              output_datatype.create_from(output, contentType: 'text/plain')
+              ct = 'text/plain'
+              begin
+                JSON.parse(output)
+                ct = 'application/json'
+              rescue JSON::ParserError
+                unless Nokogiri.XML(output).errors.present?
+                  ct = 'application/xml'
+                end
+              end
+              output_datatype.create_from(output, contentType: ct)
             else
               output_datatype.create_from(output.to_s)
           end
@@ -83,6 +92,20 @@ module Setup
           output_datatype.create_from(output.to_s)
         end
       else
+        begin
+          case output
+            when Hash, String
+              output_datatype.create_from_json(output)
+            when Array
+              output.each do |item|
+                do_store_output(item)
+              end
+            else
+              raise
+          end
+        rescue Exception
+          fail 'Output not stored! Output failed to validate against Output DataType.'
+        end
       end
     end
 
@@ -96,9 +119,15 @@ module Setup
 
       if store_output
         unless output_datatype
-          fail 'Execution failed! Output storage required and no Output Data Type defined.'
+          fail 'Execution failed! Output storage required and no Output DataType defined.'
         end
-        do_store_output(rc)
+        begin
+          do_store_output(rc)
+        rescue Exception
+          if validate_output
+            fail 'Execution failed! Output validation failed.'
+          end
+        end
       end
 
       rc
