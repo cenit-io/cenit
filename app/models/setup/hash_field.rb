@@ -6,6 +6,10 @@ module Setup
       errors.blank?
     end
 
+    def hash_attribute_read(name, value)
+      value
+    end
+
     module ClassMethods
 
       def hash_field(*field_names)
@@ -19,8 +23,15 @@ module Setup
         before_save do
           check_before_save &&
             field_names.each do |field|
-              if (metadata = attributes[field]).is_a?(Hash)
-                attributes[field] = metadata.to_json
+              if (value = attributes[field]).is_a?(Hash)
+                attributes[field] = value = value.to_json
+              end
+              if (changed_value = changed_attributes[field]) &&
+                (changed_value.is_a?(String) || (changed_value = changed_value.to_json)) &&
+                value == changed_value
+                changed_attributes.delete(field)
+              else
+                changed_attributes[field] = changed_value
               end
             end && errors.blank?
         end
@@ -28,7 +39,9 @@ module Setup
         class_eval("def read_attribute(name)
           value = super
           if %w(#{field_names.join(' ')}).include?(name = name.to_s) && value.is_a?(String)
-            attributes[name] = JSON.parse(value) rescue value
+            value = JSON.parse(value) rescue value
+            value = hash_attribute_read(name, value)
+            attributes[name] = value
             value = attributes[name]
           end
           value

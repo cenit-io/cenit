@@ -2,7 +2,7 @@ module Setup
   class Scheduler < Event
     include HashField
 
-    BuildInDataType.regist(self).with(:namespace, :name, :expression, :activated).referenced_by(:namespace, :name)
+    build_in_data_type.with(:namespace, :name, :expression, :activated).referenced_by(:namespace, :name)
 
     hash_field :expression
     field :activated, type: Boolean, default: false

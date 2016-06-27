@@ -2,7 +2,7 @@ module Setup
   class Action
     include CenitUnscoped
 
-    BuildInDataType.regist(self).referenced_by(:method, :path)
+    build_in_data_type.referenced_by(:method, :path)
 
     embedded_in :app, class_name: Setup::Application.to_s, inverse_of: :actions
 

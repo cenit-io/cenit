@@ -1,13 +1,12 @@
 module Setup
   class Connection
-    include CenitScoped
+    include ShareWithBindingsAndParameters
     include NamespaceNamed
     include NumberGenerator
-    include ParametersCommon
+    include WithTemplateParameters
     include AuthorizationHandler
-    include Parameters
 
-    BuildInDataType.regist(self).referenced_by(:namespace, :name).excluding(:connection_roles)
+    build_in_data_type.referenced_by(:namespace, :name).excluding(:connection_roles)
 
     parameters :parameters, :headers, :template_parameters
 

@@ -5,6 +5,15 @@
 - pull_data = @pull_request[:pull_data]
 - limit = 10
 %form{method: 'post', class: 'form-horizontal denser'}
+  - if @bulk_ids
+    %select{name: 'new_bulk_ids[]', multiple: 'multiple', style: 'display:none'}
+      - @bulk_ids.each do |id|
+        %option{value: id, selected: 'selected'}
+  - if @object_id
+    %input{name: 'object_id', value: @object_id, type: 'hidden'}
+  - if @options_key
+    - (@options || {}).each do |key, value|
+      %input{name: "#{@options_key}[#{key}]", value: value.to_s, type: 'hidden'}
   - uptodate = true
   - if @object.pull_parameters.present?
     - uptodate = false

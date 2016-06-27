@@ -6,9 +6,9 @@ module Setup
 
     origins -> { Account.current_super_admin? ? :admin : nil }
 
-    BuildInDataType.regist(self)
+    build_in_data_type
 
-    Setup::Models.exclude_actions_for self, :copy, :new, :translator_update, :import, :convert, :send_to_flow
+    deny :copy, :new, :translator_update, :import, :convert, :send_to_flow
 
     field :message, type: Hash
     field :description, type: String

@@ -1,7 +1,7 @@
 module RailsAdmin
   module Config
     module Actions
-      class DeleteCollection < RailsAdmin::Config::Actions::Base
+      class Trash < RailsAdmin::Config::Actions::Base
 
         register_instance_option :only do
           Setup::Collection
@@ -42,8 +42,6 @@ module RailsAdmin
                 redirect_path = back_or_index
               end
               redirect_to redirect_path
-            else
-              render 'delete_collection'
             end
           end
         end
