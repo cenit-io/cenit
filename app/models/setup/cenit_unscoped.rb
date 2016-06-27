@@ -12,8 +12,9 @@ module Setup
       Setup::Models.regist(self)
     end
 
-    def share_hash
-      to_hash(ignore: [:id, :number, :token], include_blanks: true)
+    def share_hash(options = {})
+      options.reverse_merge!(ignore: [:id, :number, :token], include_blanks: true)
+      to_hash(options )
     end
 
     module ClassMethods

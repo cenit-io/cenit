@@ -41,7 +41,17 @@ module Setup
     accepts_nested_attributes_for :authors, allow_destroy: true
     accepts_nested_attributes_for :pull_parameters, allow_destroy: true
 
-    before_save :check_ready, :check_dependencies, :validate_configuration, :ensure_shared_name, :save_source_collection, :categorize, :sanitize_data, :on_saving
+    attr_reader :relocated
+
+    after_initialize do
+      pull_parameters.each { |pp| @relocated = pp.relocate || @relocated }
+    end
+
+    before_save :hook, :check_ready, :check_dependencies, :validate_configuration, :ensure_shared_name, :save_source_collection, :categorize, :sanitize_data, :on_saving
+
+    def hook
+      true
+    end
 
     def check_ready
       ready_to_save?
@@ -140,15 +150,9 @@ module Setup
       end if connections.present?
       dependencies_hash_data = dependencies_data
       if pull_parameters.present?
-        pull_parameters_enum = enum_for_pull_parameters
         pull_parameters.each do |pull_parameter|
-          if pull_parameter.validate_configuration
-            if (parameter = pull_parameter.parameter) && pull_parameters_enum.include?(parameter)
-              pull_parameter.process_on(hash_data) || pull_parameter.process_on(dependencies_hash_data)
-            else
-              pull_parameter.errors.add(:base, 'is not valid')
-            end
-          end
+          pull_parameter.process_on(hash_data, keep_value: true) ||
+            pull_parameter.process_on(dependencies_hash_data, keep_value: true)
         end
         errors.add(:pull_parameters, 'is not valid') if pull_parameters.any? { |pull_parameter| pull_parameter.errors.present? }
       end
@@ -256,7 +260,7 @@ module Setup
       end
       parameters.each do |id, value|
         if (pull_parameter = pull_parameters.where(id: id).first)
-          pull_parameter.process_on(hash_data, value)
+          pull_parameter.process_on(hash_data, value: value)
         end
       end
       hash_data
@@ -264,11 +268,6 @@ module Setup
 
     def dependencies_data(parameters = {})
       dependencies.inject({}) { |hash_data, dependency| hash_data.deep_merge(dependency.data_with(parameters)) { |_, val1, val2| Cenit::Utility.array_hash_merge(val1, val2) } }
-    end
-
-    def enum_for_pull_parameters
-      collect_pull_parameters unless pull_parameters.present?
-      (pull_parameters.collect(&:parameter) + source_pull_parameters_enum).uniq
     end
 
     def collect_pull_parameters
@@ -281,26 +280,6 @@ module Setup
       end
     end
 
-    def source_pull_parameters_enum(source_collection = self.source_collection, connections = self.connections)
-      enum = []
-      if source_collection
-        connections ||= []
-        source_collection.connections.each do |connection|
-          if connections.include?(connection)
-            enum << CollectionPullParameter.parameter_for(connection, :url)
-            [:headers, :parameters, :template_parameters].each do |property|
-              enum += connection.send(property).collect { |value| CollectionPullParameter.parameter_for(connection, property, value.key) }
-            end
-          end
-        end
-        source_collection.webhooks.each do |webhook|
-          [:headers, :parameters, :template_parameters].each do |property|
-            enum += webhook.send(property).collect { |value| CollectionPullParameter.parameter_for(webhook, property, value.key) }
-          end
-        end
-      end
-      enum
-    end
 
     class << self
 

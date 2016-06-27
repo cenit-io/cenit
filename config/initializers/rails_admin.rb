@@ -187,6 +187,13 @@ RailsAdmin.config do |config|
 
   config.navigation 'Collections', icon: 'fa fa-cubes'
 
+  config.model Setup::CrossSharedCollection do
+
+    configure :pull_data, :json_value
+    configure :data, :json_value
+    configure :swagger_spec, :json_value
+  end
+
   config.model Setup::SharedCollection do
     weight -600
     label 'Shared Collection'
@@ -311,18 +318,7 @@ RailsAdmin.config do |config|
           !(obj = bindings[:object]).instance_variable_get(:@_selecting_collection)
         end
       end
-      field :pull_parameters do
-        visible do
-          if !(obj = bindings[:object]).instance_variable_get(:@_selecting_collection) &&
-            !obj.instance_variable_get(:@_selecting_connections) &&
-            (pull_parameters_enum = obj.enum_for_pull_parameters).present?
-            bindings[:controller].instance_variable_set(:@shared_parameter_enum, pull_parameters_enum)
-            true
-          else
-            false
-          end
-        end
-      end
+      field :pull_parameters
       field :pull_count do
         visible { Account.current_super_admin? }
       end
@@ -524,6 +520,8 @@ RailsAdmin.config do |config|
     edit do
       field :label
       field :parameter
+      field :property_name
+      field :location, :json_value
     end
     show do
       field :label

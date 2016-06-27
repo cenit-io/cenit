@@ -32,7 +32,8 @@ module Setup
 
     has_and_belongs_to_many :after_process_callbacks, class_name: Setup::Algorithm.to_s, inverse_of: nil
 
-    validates_inclusion_of :data_type_scope, in: ->(flow) { flow.data_type_scope_enum }
+    #TODO Not compatible with pulling but intended for cross sharing edition
+    # validates_inclusion_of :data_type_scope, in: ->(flow) { flow.data_type_scope_enum }
     validates_numericality_in_presence_of :lot_size, greater_than_or_equal_to: 1
 
     before_save :validates_configuration, :check_scheduler

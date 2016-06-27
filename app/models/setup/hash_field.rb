@@ -6,6 +6,10 @@ module Setup
       errors.blank?
     end
 
+    def hash_attribute_read(name, value)
+      value
+    end
+
     module ClassMethods
 
       def hash_field(*field_names)
@@ -35,7 +39,9 @@ module Setup
         class_eval("def read_attribute(name)
           value = super
           if %w(#{field_names.join(' ')}).include?(name = name.to_s) && value.is_a?(String)
-            attributes[name] = JSON.parse(value) rescue value
+            value = JSON.parse(value) rescue value
+            value = hash_attribute_read(name, value)
+            attributes[name] = value
             value = attributes[name]
           end
           value
