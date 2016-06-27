@@ -2171,16 +2171,6 @@ RailsAdmin.config do |config|
       end
     end
     
-    list do
-      field :provider
-      field :name
-      field :identifier
-      field :secret
-      field :tenant
-      field :origin
-      field :updated_at
-    end
-
     fields :provider, :name, :identifier, :secret, :tenant, :origin, :updated_at
   end
 
@@ -2320,15 +2310,6 @@ RailsAdmin.config do |config|
       visible { Account.current_super_admin? }
     end
     
-    list do
-      field :provider
-      field :name
-      field :description
-      field :tenant
-      field :origin
-      field :updated_at
-    end
-
     fields :provider, :name, :description, :tenant, :origin, :updated_at
   end
 
