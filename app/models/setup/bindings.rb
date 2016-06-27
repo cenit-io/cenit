@@ -6,7 +6,7 @@ module Setup
       after_destroy :clear_bindings
     end
 
-    def bind_bindings(options = {})
+    def bind_bindings
       self.class.binds.each do |metadata|
         Setup::Binding.bind(self, send(metadata.name), metadata.klass)
       end
