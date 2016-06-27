@@ -1,3 +1,5 @@
+- if @warning_message
+  %h4{style: 'color:#b94a48'}= @warning_message.to_s
 = rails_admin_form_for @form_object, url: url_for(action: @action.action_name, params: params.merge(object_ids: @bulk_ids)), html: { multipart: true, class: "form-horizontal denser", data: { title: @page_name }} do |form|
   = form.generate action: :create
 

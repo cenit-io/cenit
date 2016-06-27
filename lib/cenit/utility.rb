@@ -245,13 +245,6 @@ module Cenit
         end
       end
 
-      def memory_usage_of(model)
-        return 0 unless model
-        size = ObjectSpace.memsize_of(model)
-        model.constants(false).each { |c| size += memory_usage_of(c) } if model.is_a?(Class) || model.is_a?(Module)
-        size > 0 ? size : 100
-      end
-
       def stringfy(obj)
         if obj.is_a?(Hash)
           hash = {}

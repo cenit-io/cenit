@@ -4,7 +4,7 @@ module Setup
 
     included do
 
-      belongs_to :authorization, class_name: Setup::Authorization.to_s, inverse_of: nil
+      binding_belongs_to :authorization, class_name: Setup::Authorization.to_s, inverse_of: nil
       field :authorization_handler, type: Boolean
 
       before_save :check_authorization

@@ -833,3 +833,13 @@ ul#main-accordion .panel-heading .nav-icon {
   display: none;
   visibility: collapse;
 }
+
+
+.toggle-origin {
+  border: none;
+  background-color: transparent;
+}
+
+.toggle-origin:focus, .toggle-origin:active:focus, .toggle-origin.active:focus {
+  outline: none;
+}

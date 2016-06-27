@@ -2,9 +2,9 @@ module Setup
   class DelayedMessage
     include CenitUnscoped
 
-    Setup::Models.exclude_actions_for self, :all
+    deny :all
 
-    Setup::BuildInDataType.regist(self)
+    build_in_data_type
 
     field :message, type: String
     field :publish_at, type: DateTime

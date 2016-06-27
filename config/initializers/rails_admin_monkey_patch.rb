@@ -10,17 +10,6 @@ module RailsAdmin
 
     class << self
 
-      def remove_model(model)
-        models_pool
-        @@system_models.delete_if { |e| e.eql?(model.to_s) }
-      end
-
-      def new_model(model)
-        unless models_pool.include?(model.to_s)
-          @@system_models.insert((i = @@system_models.find_index { |e| e > model.to_s }) ? i : @@system_models.length, model.to_s)
-        end
-      end
-
       def model(entity, &block)
         key = nil
         model_class =
@@ -246,28 +235,6 @@ module RailsAdmin
       end
 
       class Index < RailsAdmin::Config::Actions::Base
-        RailsAdmin::Config::Actions.register(self)
-
-        register_instance_option :collection do
-          true
-        end
-
-        register_instance_option :http_methods do
-          [:get, :post]
-        end
-
-        register_instance_option :route_fragment do
-          ''
-        end
-
-        register_instance_option :breadcrumb_parent do
-          parent_model = bindings[:abstract_model].try(:config).try(:parent)
-          if (am = parent_model && RailsAdmin.config(parent_model).try(:abstract_model))
-            [:index, am]
-          else
-            [:dashboard]
-          end
-        end
 
         register_instance_option :controller do
           proc do
@@ -275,6 +242,13 @@ module RailsAdmin
             if current_user || model_config.public_access?
               begin
                 @objects ||= list_entries
+
+                if (model = @abstract_model.model).include?(CrossOrigin::Document)
+                  origins = []
+                  ([:default] + model.origins).each { |origin| origins << origin if params[origin_param="#{origin}_origin"].to_i.even? }
+                  origins << nil if origins.include?(:default)
+                  @objects = @objects.any_in(origin: origins)
+                end
 
                 unless @model_config.list.scopes.empty?
                   if params[:scope].blank?
@@ -336,10 +310,6 @@ module RailsAdmin
               redirect_to new_session_path(User)
             end
           end
-        end
-
-        register_instance_option :link_icon do
-          'icon-th-list'
         end
       end
     end
@@ -454,166 +424,6 @@ module RailsAdmin
 
     def embedded_in?(abstract_model = nil)
       embedded?
-    end
-
-    class << self
-
-      def update_model_config(loaded_models, removed_models=[], models_to_reset=Set.new)
-        loaded_models = [loaded_models] unless loaded_models.is_a?(Enumerable)
-        removed_models = [removed_models] unless removed_models.is_a?(Enumerable)
-        models_to_reset = [models_to_reset] unless models_to_reset.is_a?(Enumerable)
-        models_to_reset = Set.new(models_to_reset) unless models_to_reset.is_a?(Set)
-        collect_models(models_to_reset, models_to_reset)
-        collect_models(loaded_models, models_to_reset)
-        collect_models(removed_models, models_to_reset)
-        models_to_reset.delete_if { |model| (dt = model.data_type).nil? || dt.to_be_destroyed }
-        removed_models.each do |model|
-          if model.is_a?(Class)
-            Config.reset_model(model)
-            Config.remove_model(model)
-            if (m = all.detect { |m| m.model_name.eql?(model.to_s) })
-              all.delete(m)
-              puts " #{self.to_s}: model #{model.schema_name rescue model.to_s} removed!"
-            else
-              puts "#{self.to_s}: model #{model.schema_name rescue model.to_s} is not present to be removed!"
-            end
-          end
-          models_to_reset.delete(model)
-        end
-        models_to_reset.each do |model|
-          if model.is_a?(Class)
-            Config.new_model(model)
-            if !all.detect { |e| e.model_name.eql?(model.to_s) } && m = new(model)
-              all << m
-            end
-          end
-        end
-        reset_models(models_to_reset.select { |model| model.is_a?(Class) })
-      end
-
-      def remove_model(models)
-        update_model_config([], models)
-      end
-
-      def model_loaded(models)
-        update_model_config(models)
-      end
-
-      def reset_models(models)
-        models = [models] unless models.is_a?(Enumerable)
-        models = sort_by_embeds(models)
-        models.each do |model|
-          puts "#{self.to_s}: resetting configuration of #{model.schema_name rescue model.to_s}"
-          Config.reset_model(model)
-          rails_admin_model = Config.model(model).target
-          data_type = model.data_type
-          data_type.reload
-          schema = model.schema
-          model_data_type = data_type.model.eql?(model) ? data_type : nil
-          title = (model_data_type && model_data_type.title) || model.title
-          { navigation_label: nil,
-            visible: false,
-            label: title }.each do |option, value|
-            if model_data_type && model_data_type.respond_to?(option)
-              value = model_data_type.send(option)
-            end
-            rails_admin_model.register_instance_option option do
-              value
-            end
-          end
-          if properties = schema['properties']
-            properties['created_at'] = properties['updated_at'] = { 'type' => 'string', 'format' => 'date-time', 'visible' => false }
-            properties.each do |property, property_schema|
-              if field =
-                if (property_model = model.property_model(property)).is_a?(Mongoff::Model) &&
-                  !%w(integer number string boolean).include?(property_model.schema['type'])
-                  rails_admin_model.field(property, :json_value)
-                else
-                  begin
-                    rails_admin_model.fields(property.to_sym).first
-                  rescue
-                    rails_admin_model.field(property.to_sym)
-                  end
-                end
-                property_schema = data_type.merge_schema(property_schema)
-                visible_ok = false
-                { label: 'title', help: 'description', visible: 'visible' }.each do |option, key|
-                  unless (value = property_schema[key]).nil?
-                    field.register_instance_option option do
-                      value
-                    end
-                    visible_ok = true if option == :visible
-                  end
-                end
-                unless visible_ok
-                  field.register_instance_option :visible do
-                    true
-                  end
-                end
-                if field.name == :_id
-                  field.register_instance_option :read_only do
-                    !bindings[:object].new_record?
-                  end
-                  field.register_instance_option :partial do
-                    'form_field'
-                  end
-                  field.register_instance_option :html_attributes do
-                    { size: 50 }
-                  end
-                end
-              end
-            end
-          end
-        end
-      end
-
-      private
-
-      def sort_by_embeds(models, sorted = [])
-        models.each do |model|
-          [:embeds_one, :embeds_many].each do |rk|
-            sort_by_embeds(model.reflect_on_all_associations(rk).collect { |r| r.klass }.reject { |model| models.include?(model) || sorted.include?(model) }, sorted)
-          end if model.is_a?(Class)
-          sorted << model unless sorted.include?(model)
-        end
-        sorted
-      end
-
-      def collect_models(models, to_reset)
-        models.each do |model|
-          unless to_reset.detect { |m| m.model_access_name == model.model_access_name }
-            begin
-              unless model.is_a?(Class)
-                affected_models = model.affected_models
-              else
-                to_reset << model
-                [:embeds_one, :embeds_many, :embedded_in].each do |rk|
-                  collect_models(model.reflect_on_all_associations(rk).collect { |r| r.klass }, to_reset)
-                end
-                # referenced relations must be reset if a referenced relation reflects back
-                referenced_to_reset = []
-                { [:belongs_to] => [:has_one, :has_many],
-                  [:has_one, :has_many] => [:belongs_to],
-                  [:has_and_belongs_to_many] => [:has_and_belongs_to_many] }.each do |rks, rkbacks|
-                  rks.each do |rk|
-                    model.reflect_on_all_associations(rk).each do |r|
-                      rkbacks.each do |rkback|
-                        referenced_to_reset << r.klass if r.klass.reflect_on_all_associations(rkback).detect { |r| r.klass.eql?(model) }
-                      end
-                    end
-                  end
-                end
-                collect_models(referenced_to_reset, to_reset)
-                affected_models = model.affected_models
-              end
-              collect_models(affected_models, to_reset)
-            rescue Exception => ex
-              puts "#{self.to_s}: error loading configuration of model #{model.schema_name rescue model.to_s} -> #{ex.message}"
-            end
-          end
-        end
-      end
-
     end
   end
 
@@ -781,7 +591,7 @@ module RailsAdmin
 
     def main_navigation
       nodes_stack = RailsAdmin::Config.visible_models(controller: controller) + #Patch
-        Setup::DataType.where(show_navigation_link: true, model_loaded: false).collect { |data_type| RailsAdmin.config(data_type.records_model) }
+        Setup::DataType.where(navigation_link: true).collect { |data_type| RailsAdmin.config(data_type.records_model) }
       node_model_names = nodes_stack.collect { |c| c.abstract_model.model_name }
 
       i = -1
@@ -977,7 +787,12 @@ module RailsAdmin
     def check_for_cancel
       #Patch
       return unless params[:_continue] || (params[:bulk_action] && !params[:bulk_ids] && !params[:object_ids])
-      redirect_to(back_or_index, notice: t('admin.flash.noaction'))
+      if params[:model_name]
+        redirect_to(back_or_index, notice: t('admin.flash.noaction'))
+      else
+        flash[:notice] = t('admin.flash.noaction')
+        redirect_to dashboard_path
+      end
     end
 
     def handle_save_error(whereto = :new)
@@ -1145,6 +960,42 @@ module RailsAdmin
         @object = model.try(:find_by_id, params[:id])
       end
       @object || fail(RailsAdmin::ObjectNotFound)
+    end
+  end
+
+  module Extensions
+    module MongoidAudit
+      class AuditingAdapter
+
+        def version_class_for(object)
+          @version_class.with(collection: "#{object.collection_name.to_s.singularize}_#{@version_class.collection_name}")
+        end
+
+        def version_class_with(abstract_model)
+          @version_class.with(collection: "#{abstract_model.model.collection_name.to_s.singularize}_#{@version_class.collection_name}")
+        end
+
+        def listing_for_model_or_object(model, object, query, sort, sort_reverse, all, page, per_page)
+          if sort.present?
+            sort = COLUMN_MAPPING[sort.to_sym]
+          else
+            sort = :created_at
+            sort_reverse = 'true'
+          end
+          model_name = model.model.name
+          if object
+            versions = version_class_for(object).where('association_chain.name' => model.model_name, 'association_chain.id' => object.id)
+          else
+            versions = version_class_with(model).where('association_chain.name' => model_name)
+          end
+          versions = versions.order_by([sort, sort_reverse == 'true' ? :desc : :asc])
+          unless all
+            page = 1 if page.nil?
+            versions = versions.send(Kaminari.config.page_method_name, page).per(per_page)
+          end
+          versions.map { |version| VersionProxy.new(version) }
+        end
+      end
     end
   end
 end

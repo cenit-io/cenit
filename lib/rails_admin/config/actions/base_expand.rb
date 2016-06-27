@@ -31,9 +31,6 @@ module RailsAdmin
               do_flash_process_result(result)
               redirect_to back_or_index
             else
-              report = Setup::DataType.shutdown(@object, report_only: true)
-              @object.instance_variable_set(:@_to_shutdown, report[:destroyed].collect(&:data_type).uniq) if report[:destroyed]
-              @object.instance_variable_set(:@_to_reload, report[:affected].collect(&:data_type).uniq) if report[:affected]
               @model_config = options_config
               render :form
             end
