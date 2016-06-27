@@ -188,6 +188,11 @@ RailsAdmin.config do |config|
   config.navigation 'Collections', icon: 'fa fa-cubes'
 
   config.model Setup::CrossSharedCollection do
+    weight -600
+    label 'Cross Shared Collection'
+    navigation_label 'Collections'
+
+    visible { Account.current_super_admin? }
 
     configure :pull_data, :json_value
     configure :data, :json_value
@@ -212,8 +217,8 @@ RailsAdmin.config do |config|
       end
     end
 
-    # index_template_name :shared_collection_grid
-    # index_link_icon 'icon-th-large'
+    index_template_name :shared_collection_grid
+    index_link_icon 'icon-th-large'
 
     group :collections
     group :workflows
