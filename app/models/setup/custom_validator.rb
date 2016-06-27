@@ -1,8 +1,8 @@
 module Setup
   class CustomValidator < Validator
-    include CenitScoped
+    include SharedEditable
 
-    BuildInDataType.regist(self).referenced_by(:namespace, :name)
+    build_in_data_type.referenced_by(:namespace, :name)
     
   end
 end

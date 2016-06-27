@@ -3,9 +3,9 @@ module Setup
     include Setup::TranslationCommon
     include Setup::DataUploader
 
-    BuildInDataType.regist(self)
+    build_in_data_type
 
-    Setup::Models.exclude_actions_for self, :copy, :new, :edit, :translator_update, :import, :convert, :delete_all
+    deny :copy, :new, :edit, :translator_update, :import, :convert, :delete_all
 
     protected
 

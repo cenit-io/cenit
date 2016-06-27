@@ -1,13 +1,12 @@
 module Setup
   class Webhook
-    include CenitScoped
+    include ShareWithBindingsAndParameters
     include NamespaceNamed
-    include ParametersCommon
+    include WithTemplateParameters
     include JsonMetadata
     include AuthorizationHandler
-    include Parameters
 
-    BuildInDataType.regist(self).referenced_by(:namespace, :name).excluding(:connection_roles)
+    build_in_data_type.referenced_by(:namespace, :name).excluding(:connection_roles)
 
     field :path, type: String
     field :method, type: String, default: :post

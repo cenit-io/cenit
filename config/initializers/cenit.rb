@@ -10,9 +10,6 @@ Cenit.config do
 
   github_shared_collections_pass ENV['GITHUB_SHARED_COLLECTIONS_PASS']
 
-  #Deactivate models on cenit startup
-  deactivate_models false
-
   #Use this option to setup an external service
   service_url ENV['SERVICE_URL']
 

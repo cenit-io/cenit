@@ -2,12 +2,14 @@ require 'xsd/include_missing_exception'
 
 module Setup
   class Schema < Validator
-    include CenitScoped
+    include SharedEditable
     include NamespaceNamed
     include Setup::FormatValidator
     include CustomTitle
 
-    BuildInDataType.regist(self).with(:namespace, :uri, :schema).referenced_by(:namespace, :uri)
+    build_in_data_type.with(:namespace, :uri, :schema).referenced_by(:namespace, :uri)
+
+    shared_deny :simple_generate, :bulk_generate
 
     field :uri, type: String
     field :schema, type: String
@@ -24,9 +26,8 @@ module Setup
       uri
     end
 
-    before_validation :prepare_configuration
-
-    def prepare_configuration
+    def validates_before
+      super
       self.name = uri unless name.present?
       self.schema = schema.strip
       self.schema_type =

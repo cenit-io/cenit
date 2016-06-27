@@ -2,7 +2,7 @@ module Setup
   class CollectionData
     include CenitScoped
 
-    BuildInDataType.regist(self).excluding(:data_type).and('properties' => {'namespace' => {'type' => 'string'},
+    build_in_data_type.excluding(:data_type).and('properties' => {'namespace' => {'type' => 'string'},
                                                                             'name' => {'type' => 'string'},
                                                                             'records' => {'type' => 'array'}})
 

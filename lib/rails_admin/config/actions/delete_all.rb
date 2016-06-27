@@ -18,9 +18,10 @@ module RailsAdmin
         register_instance_option :controller do
           proc do
 
-            if model = @abstract_model.model rescue nil
+            model = @abstract_model.model rescue nil
+            if model
               @model_label_plural =
-                if data_type = model.try(:data_type)
+                if (data_type = model.try(:data_type))
                   data_type.title.downcase.pluralize
                 else
                   @abstract_model.pretty_name.downcase.pluralize

@@ -34,30 +34,11 @@ module Cenit
       puts 'DELETING OLD Consumers'
       RabbitConsumer.delete_all
 
-      model_update_options = { model_loaded: false, used_memory: 0 }
-      if Cenit.deactivate_models
-        model_update_options[:activated] = false
-        model_update_options[:show_navigation_link] = false
-      end
-
       Account.all.each do |account|
 
         next if account.meta.present?
 
         Account.current = account
-
-        Setup::DataType.update_all(model_update_options)
-
-        unless Cenit.deactivate_models
-          models = Set.new
-          Setup::JsonDataType.activated.each do |data_type|
-            models += data_type.load_models[:loaded]
-          end
-          Setup::FileDataType.activated.each do |file_data_type|
-            models << file_data_type.load_model
-          end
-          RailsAdmin::AbstractModel.update_model_config(models)
-        end
 
         ThreadToken.destroy_all
         Setup::Task.all.any_in(status: Setup::Task::RUNNING_STATUS).update_all(status: :broken)

@@ -3,7 +3,6 @@ require 'json-schema/validators/mongoff'
 
 module Mongoff
   class Model
-    include Setup::InstanceAffectRelation
     include Setup::InstanceModelParser
     include MetadataAccess
     include ThreadAware

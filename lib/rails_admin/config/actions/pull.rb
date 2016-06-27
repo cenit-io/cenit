@@ -9,7 +9,7 @@ module RailsAdmin
         end
 
         register_instance_option :only do
-          Setup::SharedCollection
+          [Setup::SharedCollection, Setup::CrossSharedCollection]
         end
 
         register_instance_option :member do

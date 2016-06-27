@@ -4,9 +4,9 @@ module Setup
 
     store_in collection: :setup_notifications
 
-    Setup::Models.exclude_actions_for self, :all
+    deny :all
 
-    BuildInDataType.regist(self)
+    build_in_data_type
 
     field :type, type: Symbol, default: :error
     field :message, type: String
