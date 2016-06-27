@@ -8,8 +8,10 @@ module RailsAdmin
       dd['frequency'] = 1
       if (@object.expression != nil) and (@object.expression.has_key? 'type')
         dd.merge!(@object.expression)
-        if dd['type'] == 'appointed'
+        if dd['type'].start_with? 'appointed'
           dd['frequency'] = 2
+        elsif dd['type'] == 'once'
+          dd['frequency'] = 0
         end
       end
       dd

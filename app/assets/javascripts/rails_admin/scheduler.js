@@ -116,7 +116,9 @@ function schedulerInit() {
 
         var level = parseInt(freq_sel.val());
 
-        if (level == 1) {
+        if (level == 0) {
+            res["type"] = 'once';
+        } else if (level == 1) {
             res["type"] = 'cyclic';
             res["cyclic_expression"] = $('#cyclic_num').val() + ($('#cyclic_unit').val());
         } else {
@@ -127,7 +129,7 @@ function schedulerInit() {
 
             var dval = $("#days_sl").val();
             if (dval == "1") {
-                res["week_days"] = _.filter(_.range(0, 7), function (e) {
+                res["weeks_days"] = _.filter(_.range(0, 7), function (e) {
                     return $("#week_day_" + e).hasClass("btn-primary");
                 });
 
@@ -136,7 +138,7 @@ function schedulerInit() {
                 });
                 res["last_week_in_month"] = $('#last_week_in_month').hasClass("btn-primary");
             } else {
-                res["month_days"] = _.filter(_.range(0, 31), function (e) {
+                res["months_days"] = _.filter(_.range(0, 31), function (e) {
                     return $("#months_day_" + e).hasClass("btn-primary");
                 });
                 res["last_day_in_month"] = $('#last_day_in_month').hasClass("btn-primary");
