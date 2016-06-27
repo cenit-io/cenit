@@ -7,10 +7,18 @@ module Setup
     include CustomTitle
     include Mongoff::DataTypeMethods
     include ClassHierarchyAware
+    include ChangedIf
 
     abstract_class true
 
-    build_in_data_type.with(:title, :name, :before_save_callbacks, :records_methods, :data_type_methods).referenced_by(:namespace, :name).including(:slug)
+    build_in_data_type.with(:title, :name, :before_save_callbacks, :records_methods, :data_type_methods).referenced_by(:namespace, :name)
+    build_in_data_type.and({
+                             properties: {
+                               slug: {
+                                 type: 'string'
+                               }
+                             }
+                           }.deep_stringify_keys)
 
     deny :update, :bulk_delete, :delete, :delete_all
 
@@ -34,6 +42,8 @@ module Setup
       data_type_config.destroy
       clean_up
     end
+
+    changed_if { data_type_config.changed? }
 
     def configure
       super

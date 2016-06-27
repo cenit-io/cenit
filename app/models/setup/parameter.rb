@@ -2,8 +2,16 @@ module Setup
   class Parameter
     include CenitScoped
     include JsonMetadata
+    include ChangedIf
 
-    build_in_data_type.with(:key, :value, :description, :metadata).referenced_by(:key)
+    build_in_data_type.with(:key, :description, :metadata).referenced_by(:key)
+    build_in_data_type.and({
+                             properties: {
+                               value: {
+                                 type: 'string'
+                               }
+                             }
+                           }.deep_stringify_keys)
 
     field :key, type: String, as: :name
     field :description, type: String
@@ -11,6 +19,8 @@ module Setup
     validates_presence_of :key
 
     after_initialize { @value ||= attributes.delete('value') || '' } #TODO Remove after DB migration
+
+    changed_if { parameter_config && parameter_config.changed? }
 
     def configure
       parameter_config.save if parameter_config && parameter_config.changed?

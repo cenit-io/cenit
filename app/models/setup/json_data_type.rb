@@ -3,8 +3,14 @@ module Setup
 
     include HashField
 
-    build_in_data_type.referenced_by(:namespace, :name).with(:namespace, :name, :title, :slug, :_type, :schema, :events, :before_save_callbacks, :records_methods, :data_type_methods)
-
+    build_in_data_type.referenced_by(:namespace, :name).with(:namespace, :name, :title, :_type, :schema, :events, :before_save_callbacks, :records_methods, :data_type_methods)
+    build_in_data_type.and({
+                             properties: {
+                               slug: {
+                                 type: 'string'
+                               }
+                             }
+                           }.deep_stringify_keys)
     hash_field :schema
 
     def check_indices
