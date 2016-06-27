@@ -1,5 +1,5 @@
 module Setup
-  module ParametersCommon
+  module WithTemplateParameters
 
     def template_parameters_hash
       hash = {}
@@ -8,25 +8,29 @@ module Setup
       hash
     end
 
-    def conformed_parameters(template_parameters = {})
-      conforms(:parameters, template_parameters)
-    end
-
-    def conformed_headers(template_parameters = {})
-      conforms(:headers, template_parameters)
+    def method_missing(symbol, *args)
+      if (str = symbol.to_s).start_with?(METHOD_MISSING_PREFIX)
+        conforms(str.from(METHOD_MISSING_PREFIX.length), *args)
+      else
+        super
+      end
     end
 
     protected
 
+    METHOD_MISSING_PREFIX = 'conformed_'
+
     def conform_field_value(field, template_parameters = {})
-      unless template = instance_variable_get(var = "@#{field}_template")
+      template = instance_variable_get(var = "@#{field}_template")
+      unless template
         instance_variable_set(var, template = Liquid::Template.parse(send(field)))
       end
       template.render(template_parameters.reverse_merge(template_parameters_hash))
     end
 
     def conforms(field, template_parameters = {})
-      unless templates = instance_variable_get(var = "@_#{field}_templates".to_sym)
+      templates = instance_variable_get(var = "@_#{field}_templates".to_sym)
+      unless templates
         templates = {}
         send(field).each { |p| templates[p.key] = Liquid::Template.parse(p.value) }
         try("other_#{field}_each".to_sym, template_parameters) { |key, value| templates[key] = value && Liquid::Template.parse(value) }

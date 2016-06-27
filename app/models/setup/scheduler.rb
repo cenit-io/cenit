@@ -2,7 +2,7 @@ module Setup
   class Scheduler < Event
     include HashField
 
-    BuildInDataType.regist(self).with(:namespace, :name, :expression, :activated).referenced_by(:namespace, :name)
+    build_in_data_type.with(:namespace, :name, :expression, :activated).referenced_by(:namespace, :name)
 
     hash_field :expression
     field :activated, type: Boolean, default: false
@@ -147,6 +147,12 @@ module Setup
           uniqueItems: true,
           maxItems: 60
         },
+        last_day_in_month: {
+            type: 'boolean'
+        },
+        last_week_in_month: {
+            type: 'boolean'
+        },
         start_at: {
             type: 'string',
             pattern: '^\d\d\d\d-(0?[1-9]|1[0-2])-(0?[1-9]|[12][0-9]|3[01])$'
@@ -162,7 +168,8 @@ module Setup
             type: 'integer'
         }
       },
-      required: %w(type)
+      required: %w(type),
+      additionalProperties: false
     }.to_json
   end
 

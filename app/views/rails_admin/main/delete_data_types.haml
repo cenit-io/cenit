@@ -1,5 +1,5 @@
 %form{method: 'delete', class: 'form-horizontal denser', action: url_for(action: @action.action_name)}
   - (@bulk_ids || []).each do |id|
     %input{name: 'bulk_ids[]', style: 'display:none', value: id}
-  = render partial: 'shutdown_and_reload'
+  = render partial: 'data_type_warnings'
   = render partial: 'confirmation_controls', locals: {confirmation_name: 'delete'}

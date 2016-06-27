@@ -2,9 +2,9 @@ module Setup
   class SchemasImport < Setup::Task
     include Setup::DataUploader
 
-    BuildInDataType.regist(self)
+    build_in_data_type
 
-    Setup::Models.exclude_actions_for self, :copy, :new, :edit, :translator_update, :import, :convert, :delete_all
+    deny :copy, :new, :edit, :translator_update, :import, :convert, :delete_all
 
     field :namespace, type: String
     field :base_uri, type: String, default: ''
@@ -38,7 +38,7 @@ module Setup
       new_schemas_attributes = []
       schemas.each do |entry_name, schema|
         next unless errors.blank?
-        schema.prepare_configuration
+        schema.validates_before
         if schema.validates_configuration
           saved_schemas_ids << schema.id
           new_schemas_attributes << schema.attributes

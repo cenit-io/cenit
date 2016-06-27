@@ -9,8 +9,6 @@ module Setup
 
     abstract_class true
 
-    Setup::Models.exclude_actions_for self
-
-    BuildInDataType.regist(self).with(:name).referenced_by(:namespace, :name)
+    build_in_data_type.with(:name).referenced_by(:namespace, :name)
   end
 end

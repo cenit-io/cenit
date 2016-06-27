@@ -7,7 +7,7 @@ module Setup
 
     abstract_class true
 
-    BuildInDataType.regist(self).referenced_by(:namespace, :name)
+    build_in_data_type.referenced_by(:namespace, :name)
 
     field :authorized, type: Boolean
 

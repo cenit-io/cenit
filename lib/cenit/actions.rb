@@ -8,7 +8,15 @@ module Cenit
 
         pull_parameters = options[:pull_parameters] || {}
         missing_parameters = []
-        shared_collection.pull_parameters.each { |pull_parameter| missing_parameters << pull_parameter.id.to_s unless pull_parameters[pull_parameter.id.to_s].present? }
+        shared_collection.pull_parameters.each do |pull_parameter|
+          unless pull_parameters[(param_id = pull_parameter.id.to_s)].present?
+            missing_parameters << param_id
+          end
+        end
+        if options[:auto_fill]
+          missing_parameters.each { |param_id| pull_parameters[param_id] = FFaker::Lorem.word }
+          missing_parameters.clear
+        end
 
         new_records = Hash.new { |h, k| h[k] = [] }
         updated_records = Hash.new { |h, k| h[k] = [] }
@@ -103,6 +111,9 @@ module Cenit
           begin
             collection_data = pull_request.delete(:collection_data)
             (collection_data['namespaces'] || []).each do |ns_hash|
+              if (slug = ns_hash['slug']) && Setup::Namespace.where(slug: slug).present?
+                ns_hash.delete('slug')
+              end
               next if ns_hash.has_key?('id')
               if (ns = Setup::Namespace.create(ns_hash)).errors.blank?
                 ns_hash['id'] = ns.id.to_s

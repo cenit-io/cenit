@@ -32,7 +32,7 @@ module Setup
     end
 
     def namespace_enum
-      enum = Setup::Namespace.all.collect(&:name)
+      enum = Setup::Namespace.all.asc(:name).collect(&:name)
       enum << namespace unless enum.include?(namespace)
       enum
     end

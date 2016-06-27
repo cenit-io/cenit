@@ -2,7 +2,7 @@ module Setup
   class CollectionAuthor < ReqRejValidator
     include CenitUnscoped
 
-    BuildInDataType.regist(self)
+    build_in_data_type
 
     field :name, type: String
     field :email, type: String

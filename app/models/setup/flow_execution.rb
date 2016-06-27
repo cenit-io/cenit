@@ -1,9 +1,9 @@
 module Setup
   class FlowExecution < Setup::Task
 
-    BuildInDataType.regist(self)
+    build_in_data_type
 
-    Setup::Models.exclude_actions_for self, :copy, :new, :edit, :translator_update, :import, :convert, :delete_all
+    deny :copy, :new, :edit, :translator_update, :import, :convert, :delete_all
 
     belongs_to :flow, class_name: Setup::Flow.to_s, inverse_of: nil
 

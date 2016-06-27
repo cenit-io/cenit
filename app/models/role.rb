@@ -15,7 +15,5 @@ class Role
   
   scopify
 
-  before_destroy do
-    !%w(admin super_admin).include?(name)
-  end
+  before_destroy { %w(admin super_admin).exclude?(name) }
 end

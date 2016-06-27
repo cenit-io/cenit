@@ -20,7 +20,7 @@ class Ability
 
       can [:index, :show, :edi_export, :simple_export], @@oauth_models
       if user.super_admin?
-        can [:destroy, :edit, :create, :import, :cross_share], @@oauth_models
+        can [:destroy, :edit, :create, :import], @@oauth_models
         can :manage, Setup::Application
       else
         can [:destroy, :edit], @@oauth_models, tenant_id: Account.current.id
@@ -41,7 +41,8 @@ class Ability
               Setup::SystemNotification
             ]
         can [:import, :edit], Setup::SharedCollection
-        can :destroy, [Setup::SharedCollection, Setup::DataType, Setup::Storage]
+        can :destroy, [Setup::SharedCollection, Setup::Storage]
+        can :destroy, Setup::DataType, origin: :default
         can [:index, :show, :cancel], RabbitConsumer
       else
         cannot :access, [Setup::SharedName, Setup::DelayedMessage, Setup::SystemNotification]
@@ -63,15 +64,15 @@ class Ability
       end
       can :edi_export, Setup::SharedCollection
 
-      @@setup_map ||=
+      @@allowed ||=
         begin
-          hash = {}
+          allowed_hash = Hash.new { |h, k| h[k] = Set.new }
           non_root = []
           RailsAdmin::Config::Actions.all.each do |action|
             unless action.root?
               if (models = action.only)
                 models = [models] unless models.is_a?(Enumerable)
-                hash[action.authorization_key] = Set.new(models)
+                allowed_hash[action.authorization_key].merge(models)
               else
                 non_root << action
               end
@@ -79,29 +80,85 @@ class Ability
           end
           Setup::Models.each_excluded_action do |model, excluded_actions|
             non_root.each do |action|
-              models = (hash[key = action.authorization_key] ||= Set.new)
+              models = allowed_hash[key = action.authorization_key]
               models << model if relevant_rules_for_match(action.authorization_key, model).empty? && !(excluded_actions.include?(:all) || excluded_actions.include?(action.key))
             end
           end
           Setup::Models.each_included_action do |model, included_actions|
             non_root.each do |action|
-              models = (hash[key = action.authorization_key] ||= Set.new)
+              models = allowed_hash[key = action.authorization_key]
               models << model if included_actions.include?(action.key)
             end
           end
-          new_hash = {}
-          hash.each do |key, models|
-            a = (new_hash[models] ||= [])
-            a << key
+          allowed_hash.each do |key, models|
+            allowed_hash[key] = models.reject { |model| models.any? { |m| model < m } }
           end
-          hash = {}
-          new_hash.each { |models, keys| hash[keys] = models.to_a }
-          hash
+          {
+            each_shared_excluded_action: shared_denied_hash = Hash.new { |h, k| h[k] = [] },
+            each_shared_allowed_action: shared_allowed_hash = Hash.new { |h, k| h[k] = [] }
+          }.each do |collector_method, hash|
+            Setup::Models.send(collector_method) do |model, actions|
+              RailsAdmin::Config::Actions.all.each do |action|
+                next if action.root?
+                if actions.include?(action.key)
+                  models = allowed_hash[(key = action.authorization_key)]
+                  root = model
+                  stack = []
+                  while root && models.exclude?(root)
+                    stack << root
+                    root = root.superclass
+                    root = nil unless root.include?(Mongoid::Document)
+                  end
+                  if root
+                    while root
+                      models.delete(root)
+                      if stack.empty?
+                        hash[key] << root
+                      else
+                        models += root.subclasses
+                      end
+                      root = stack.pop
+                    end
+                  else
+                    hash[key] << model
+                  end
+                end
+              end
+            end
+          end
+          [
+            allowed_hash,
+            shared_denied_hash,
+            shared_allowed_hash
+          ].each do |hash|
+            new_hash = {}
+            hash.each do |key, models|
+              a = (new_hash[models] ||= [])
+              a << key
+            end
+            hash.clear
+            new_hash.each do |models, keys|
+              if (models = models.to_a).present?
+                hash[keys] = models
+              end
+            end
+          end
+          @@shared_denied = shared_denied_hash
+          @@shared_allowed = shared_allowed_hash
+          allowed_hash
         end
 
-      @@setup_map.each do |keys, models|
+      @@allowed.each do |keys, models|
         cannot Cenit.excluded_actions, models unless user.super_admin?
         can keys, models
+      end
+
+      @@shared_denied.each do |keys, models|
+        can keys, models, { 'origin' => 'default' }
+      end
+
+      @@shared_allowed.each do |keys, models|
+        can keys, models, { '$or' => [{ 'origin' => 'default' }, { 'tenant_id' => user.account.id }] }
       end
 
       can :manage, Mongoff::Model
