@@ -27,6 +27,7 @@ module RailsAdmin
                 Setup::DataTypeConfig,
                 Setup::Pin,
                 Setup::Binding,
+                Setup::ParameterConfig,
                 Setup::Notification,
                 Setup::Storage,
                 Setup::Task
