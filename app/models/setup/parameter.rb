@@ -18,8 +18,6 @@ module Setup
 
     validates_presence_of :key
 
-    after_initialize { @value ||= attributes.delete('value') || '' } #TODO Remove after DB migration
-
     changed_if { parameter_config && parameter_config.changed? }
 
     def configure

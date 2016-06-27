@@ -169,8 +169,6 @@ module Setup
       end
     end
 
-    after_initialize { Setup::DataTypeConfig::FIELDS.each { |field| attributes.delete(field) } } #TODO Remove after DB migration
-
     def data_type_config
       @data_type_config ||=
         begin
