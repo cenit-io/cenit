@@ -7,7 +7,8 @@ module Setup
     end
 
     def configure
-      super
+      super if self.class.include?(Setup::SharedConfigurable)
+
       reflect_on_all_associations(:embeds_many).each do |relation|
         next unless relation.klass == Setup::Parameter
         names = []
