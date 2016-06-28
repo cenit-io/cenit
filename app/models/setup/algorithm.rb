@@ -69,11 +69,13 @@ module Setup
     end
 
     def do_store_output(output)
+      rc = []
+      r = nil
       if output_datatype.is_a? Setup::FileDataType
         begin
           case output
             when Hash, Array
-              output_datatype.create_from(output.to_json, contentType: 'application/json')
+              r = output_datatype.create_from!(output.to_json, contentType: 'application/json')
             when String
               ct = 'text/plain'
               begin
@@ -84,29 +86,41 @@ module Setup
                   ct = 'application/xml'
                 end
               end
-              output_datatype.create_from(output, contentType: ct)
+              r = output_datatype.create_from!(output, contentType: ct)
             else
-              output_datatype.create_from(output.to_s)
+              r = output_datatype.create_from!(output.to_s)
           end
         rescue Exception
-          output_datatype.create_from(output.to_s)
+          r = output_datatype.create_from!(output.to_s)
         end
       else
         begin
           case output
             when Hash, String
-              output_datatype.create_from_json(output)
+              begin
+                r = output_datatype.create_from_json!(output)
+              rescue Exception => e
+                puts e.backtrace
+              end
             when Array
               output.each do |item|
-                do_store_output(item)
+                rc += do_store_output(item)
               end
             else
               raise
           end
         rescue Exception
-          fail 'Output not stored! Output failed to validate against Output DataType.'
+          fail 'Output failed to validate against Output DataType.'
         end
       end
+      if r
+        if r.errors.present?
+          fail 'Output failed to validate against Output DataType.'
+        else
+          rc << r.id
+        end
+      end
+      rc
     end
 
     def run(input)
@@ -117,15 +131,18 @@ module Setup
       do_link
       rc = Cenit::RubyInterpreter.run(code, args, self_linker: self_linker || self)
 
-      if store_output
-        unless output_datatype
-          fail 'Execution failed! Output storage required and no Output DataType defined.'
-        end
-        begin
-          do_store_output(rc)
-        rescue Exception
-          if validate_output
-            fail 'Execution failed! Output validation failed.'
+      if rc.present?
+        if store_output
+          unless output_datatype
+            fail 'Execution failed! Output storage required and no Output DataType defined.'
+          end
+          begin
+            ids = do_store_output rc
+            AlgorithmOutput.create(algorithm: self, data_type: output_datatype, output_ids: ids)
+          rescue Exception => e
+            if validate_output
+              fail 'Execution failed!' + e.message
+            end
           end
         end
       end
@@ -155,6 +172,10 @@ module Setup
         block.call(self) if block
         call_links.each { |call_link| call_link.link.for_each_call(visited, &block) if call_link.link }
       end
+    end
+
+    def stored_outputs(options = {})
+      AlgorithmOutput.where(algorithm: self).desc(:created_at)
     end
   end
 end
