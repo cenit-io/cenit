@@ -105,7 +105,7 @@
           %button#remove_filter.btn.btn-info{title: "Reset filters"}
             %i.icon-white.icon-remove
       -# Patch
-      - if (model = @abstract_model.model).include?(CrossOrigin::Document) && (origins = model.origins).present?
+      - if (model = @abstract_model.model).is_a?(Class) && model.include?(CrossOrigin::Document) && (origins = model.origins).present?
         %span{style: 'float:right'}
           - ([:default] + origins).each do |origin|
             %label= origin

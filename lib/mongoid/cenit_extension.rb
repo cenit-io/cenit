@@ -74,14 +74,21 @@ module Mongoid
 
       def stored_properties_on(record)
         properties = Set.new
-        fields.keys.each { |field| properties << field.to_s if property?(field) && !record[field].nil? }
-        reflect_on_all_associations(:embeds_one,
-                                    :embeds_many,
-                                    :has_one,
-                                    :has_many,
-                                    :has_and_belongs_to_many,
-                                    :belongs_to).each do |relation|
-          properties << relation.name.to_s if property?(relation.name.to_s) && record.send(relation.name).present?
+        begin
+          data_type.schema['properties'].keys.each do |key|
+            properties << key if record.send(key).present?
+          end
+        rescue
+          properties.clear
+          fields.keys.each { |field| properties << field.to_s if property?(field) && !record[field].nil? }
+          reflect_on_all_associations(:embeds_one,
+                                      :embeds_many,
+                                      :has_one,
+                                      :has_many,
+                                      :has_and_belongs_to_many,
+                                      :belongs_to).each do |relation|
+            properties << relation.name.to_s if property?(relation.name.to_s) && record.send(relation.name).present?
+          end
         end
         properties
       end
