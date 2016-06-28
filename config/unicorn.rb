@@ -45,7 +45,6 @@ after_fork do |server, worker|
   defined?(Rails) and Rails.cache.respond_to?(:reconnect) and Rails.cache.reconnect
 
   if Cenit.multiple_unicorn_consumers || worker.nr == 0
-    Cenit::Rabbit.start_consumer
     if worker.nr == 0
       Cenit::Rabbit.start_scheduler
       Account.all.each do |account|
@@ -54,6 +53,7 @@ after_fork do |server, worker|
       end
       Account.current = nil
     end
+    Cenit::Rabbit.start_consumer
   end
 end
 
