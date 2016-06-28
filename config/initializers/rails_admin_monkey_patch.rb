@@ -243,7 +243,7 @@ module RailsAdmin
               begin
                 @objects ||= list_entries
 
-                if (model = @abstract_model.model).include?(CrossOrigin::Document)
+                if (model = @abstract_model.model).is_a?(Class) && model.include?(CrossOrigin::Document)
                   origins = []
                   ([:default] + model.origins).each { |origin| origins << origin if params[origin_param="#{origin}_origin"].to_i.even? }
                   origins << nil if origins.include?(:default)
