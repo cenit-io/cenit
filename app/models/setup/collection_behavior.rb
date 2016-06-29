@@ -51,12 +51,12 @@ module Setup
       has_and_belongs_to_many :oauth_clients, class_name: Setup::OauthClient.to_s, inverse_of: nil
       has_and_belongs_to_many :oauth2_scopes, class_name: Setup::Oauth2Scope.to_s, inverse_of: nil
 
-      before_save :check_dependencies
+      before_save :add_dependencies
     end
 
     NO_DATA_FIELDS = %w(name readme)
 
-    def check_dependencies
+    def add_dependencies
       algorithms = Set.new(self.algorithms)
       flows.each do |flow|
         {
@@ -150,6 +150,25 @@ module Setup
 
     def empty?
       COLLECTING_PROPERTIES.all? { |property| send(property).empty? }
+    end
+
+    def cross(origin)
+      COLLECTING_PROPERTIES.each do |property|
+        r = reflect_on_association(property)
+        if (model = r.klass).include?(Setup::CrossOriginShared)
+          model.where(:id.in => send(r.foreign_key)).with_tracking.cross(origin) do |_, non_tracked_ids|
+            if non_tracked_ids.present?
+              Account.each do |account| #TODO Run as a task in the background
+                if account == Account.current
+                  model.clear_pins_for(account, non_tracked_ids)
+                else
+                  model.clear_config_for(account, non_tracked_ids)
+                end
+              end
+            end
+          end
+        end
+      end
     end
 
     module ClassMethods

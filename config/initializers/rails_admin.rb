@@ -187,6 +187,33 @@ RailsAdmin.config do |config|
 
   config.navigation 'Collections', icon: 'fa fa-cubes'
 
+  config.model Setup::CrossCollectionAuthor do
+    visible false
+    object_label_method { :label }
+    fields :name, :email
+  end
+
+  config.model Setup::CrossCollectionPullParameter do
+    visible false
+    object_label_method { :label }
+    configure :location, :json_value
+    edit do
+      field :label
+      field :property_name
+      field :location
+    end
+    show do
+      field :label
+      field :property_name
+      field :location
+
+      field :created_at
+      #field :creator
+      field :updated_at
+    end
+    fields :label, :property_name, :location
+  end
+
   config.model Setup::CrossSharedCollection do
     weight -600
     label 'Cross Shared Collection'
@@ -1173,7 +1200,6 @@ RailsAdmin.config do |config|
   end
 
   config.model Setup::Schema do
-    parent Setup::Validator
     weight -489
     object_label_method { :custom_title }
 
