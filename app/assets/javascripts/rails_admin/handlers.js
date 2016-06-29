@@ -1,10 +1,5 @@
 function schedulerInit() {
     var top_level = $('#setup_scheduler_expression_field');
-    var is_scheduler = top_level.length > 0;
-    if (!is_scheduler) {
-        return;
-    }
-
     function zp(num){
         if (parseInt(num) > 9)
             return num;
@@ -152,4 +147,45 @@ function schedulerInit() {
     }
 
     updateExpression();
+}
+
+function algorithmInit() {
+    var output_store = $('#setup_algorithm_store_output');
+    var output_datatype_field = $('#setup_algorithm_output_datatype_id_field');
+    var output_validate_field = $('#setup_algorithm_validate_output_field');
+
+    var output_datatype = $('#setup_algorithm_output_datatype_id');
+    // var output_validate = $('#setup_algorithm_validate_output');
+
+    if (! output_store)
+        return;
+
+    function updateView() {
+        output_datatype_field.addClass('hidden');
+        output_validate_field.addClass('hidden');
+
+        var store = output_store.is(':checked');
+        if (store) {
+            output_datatype_field.removeClass('hidden');
+        }
+
+        var dt = output_datatype.val();
+        if (dt) {
+            output_validate_field.removeClass('hidden');
+        }
+    }
+
+    output_store.on('change', updateView);
+    output_datatype.on('change', updateView);
+    updateView();
+}
+
+function handlerInit() {
+    console.log("Initializing handlers");
+
+    if ($('#setup_scheduler_expression_field').length > 0)
+        schedulerInit();
+
+    if ($('#setup_algorithm_store_output').length > 0)
+        algorithmInit();
 }
