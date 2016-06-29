@@ -55,19 +55,11 @@ module Setup
 
     def start
       return unless next_time
-      retried_tasks_ids = Set.new
       Setup::Task.where(scheduler: self).each do |task|
-        if task.can_retry?
-          task.retry(action: :scheduled)
-          retried_tasks_ids << task.id
-        end
+        task.retry(action: :scheduled) if AccountToken.where(account: Account.current, task: task).blank?
       end
       Setup::Flow.where(event: self).each do |flow|
-        if (flows_executions = Setup::FlowExecution.where(flow: flow, scheduler: self)).present?
-          flows_executions.each { |flow_execution| flow_execution.retry if !retried_tasks_ids.include?(flow_execution.id) && flow_execution.can_retry? }
-        else
-          flow.process(scheduler: self)
-        end
+        flow.process(scheduler: self) unless Setup::FlowExecution.where(flow: flow, scheduler: self).present?
       end
     end
 
@@ -148,24 +140,24 @@ module Setup
           maxItems: 60
         },
         last_day_in_month: {
-            type: 'boolean'
+          type: 'boolean'
         },
         last_week_in_month: {
-            type: 'boolean'
+          type: 'boolean'
         },
         start_at: {
-            type: 'string',
-            pattern: '^\d\d\d\d-(0?[1-9]|1[0-2])-(0?[1-9]|[12][0-9]|3[01])$'
+          type: 'string',
+          pattern: '^\d\d\d\d-(0?[1-9]|1[0-2])-(0?[1-9]|[12][0-9]|3[01])$'
         },
         frequency: {
-            type: 'integer'
+          type: 'integer'
         },
         end_at: {
-            type: 'string',
-            pattern: '^\d\d\d\d-(0?[1-9]|1[0-2])-(0?[1-9]|[12][0-9]|3[01])$'
+          type: 'string',
+          pattern: '^\d\d\d\d-(0?[1-9]|1[0-2])-(0?[1-9]|[12][0-9]|3[01])$'
         },
         max_repeat: {
-            type: 'integer'
+          type: 'integer'
         }
       },
       required: %w(type),
