@@ -18,7 +18,7 @@ module Api::V2
         @items = @criteria.present? ? select_items(klass) : klass.page(@page)
 
         option = {including: :_type}
-        option[:only] = self.klass.properties_index
+        #option[:only] = self.klass.properties_index
         option[:ignore] = @ignore if @ignore
         option[:include_id] = true
         items_data = @items.map do |item|

@@ -40,6 +40,9 @@ module Setup
           Setup::ParameterConfig.where("#{inverse_name}_id" => id).delete_all
         end
         accepts_nested_attributes_for *relation_names, allow_destroy: true
+        if include?(Setup::SharedConfigurable)
+          shared_configurable *relation_names
+        end
       end
     end
   end

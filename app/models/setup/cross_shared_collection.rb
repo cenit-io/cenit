@@ -16,9 +16,6 @@ module Setup
                             :swagger_scpec,
                             *COLLECTING_PROPERTIES).referenced_by(:name, :shared_version)
 
-    image_with ImageUploader
-    field :logo_background, type: String
-
     field :shared_version, type: String
     embeds_many :authors, class_name: Setup::CrossCollectionAuthor.to_s, inverse_of: :shared_collection
 
@@ -31,6 +28,11 @@ module Setup
     field :pull_count, type: Integer, default: 0
 
     hash_field :data, :pull_data, :swagger_spec
+
+    image_with ImageUploader
+    field :logo_background, type: String
+
+    field :installed, type: Boolean
 
     validates_format_of :shared_version, with: /\A(0|[1-9]\d*)(\.(0|[1-9]\d*))*\Z/
     validates_length_of :shared_version, maximum: 255
@@ -49,8 +51,11 @@ module Setup
     default_scope -> { desc(:pull_count) }
 
     def hash_attribute_read(name, value)
-      if name == 'data' && value.blank?
-        generate_data
+      case name
+      when 'data'
+        installed ? generate_data : value
+      when 'pull_data'
+        installed ? value : data
       else
         value
       end
@@ -60,9 +65,7 @@ module Setup
       super &&
         check_dependencies &&
         begin
-          if present?
-            self.data = {}
-          end
+          self.data = {} if installed
           true
         end
     end
@@ -97,20 +100,7 @@ module Setup
     end
 
     def data_with(parameters = {})
-      hash_data = dependencies_data.deep_merge(data) { |_, val1, val2| Cenit::Utility.array_hash_merge(val1, val2) }
-      hash_data.each do |key, values|
-        next if Setup::Collection::NO_DATA_FIELDS.include?(key)
-        hash = values.inject({}) do |hash, item|
-          name =
-            if (name = item['namespace'])
-              { namespace: name, name: item['name'] }
-            else
-              item['name']
-            end
-          hash[name] = item; hash
-        end
-        hash_data[key] = hash.values.to_a unless hash.size == values.length
-      end
+      hash_data = dependencies_data.deep_merge(pull_data) { |_, val1, val2| Cenit::Utility.array_hash_merge(val1, val2) }
       parameters.each do |id, value|
         if (pull_parameter = pull_parameters.where(id: id).first)
           pull_parameter.process_on(hash_data, value: value)
@@ -121,6 +111,36 @@ module Setup
 
     def dependencies_data(parameters = {})
       dependencies.inject({}) { |hash_data, dependency| hash_data.deep_merge(dependency.data_with(parameters)) { |_, val1, val2| Cenit::Utility.array_hash_merge(val1, val2) } }
+    end
+
+    def pulled(options = {})
+      self.class.collection.find(_id: id).update_one('$inc' => { pull_count: 1 })
+      unless installed
+        self.pull_data = {}
+        (collection = options[:collection]).cross(:shared)
+        COLLECTING_PROPERTIES.each do |property|
+          send("#{property}=", [])
+          r = reflect_on_association(property)
+          if (ids = collection.send(r.foreign_key)).present?
+            self[r.foreign_key]= ids
+          end
+          pull_data[r.name] =
+            if r.klass.include?(Setup::SharedConfigurable)
+              configuring_fields = r.klass.configuring_fields.to_a
+              configuring_fields = configuring_fields.collect(&:to_s)
+              collection.send(r.name).collect do |record|
+                { _id: record.id.to_s }.merge record.share_hash.reject { |k, _| configuring_fields.exclude?(k) }
+              end
+            elsif r.klass.include?(Setup::CrossOriginShared)
+              collection.send(r.name).collect { |record| { _id: record.id.to_s } }
+            else
+              collection.send(r.name).collect { |record| record.share_hash }
+            end
+          pull_data.delete_if { |_, value| value.blank? }
+        end
+        self.installed = true
+        save
+      end
     end
   end
 end
