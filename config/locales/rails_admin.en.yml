@@ -88,6 +88,10 @@ en:
         title: "Records"
         menu: "Records"
         breadcrumb: "Records"
+      show_records:
+        title: "Records"
+        menu: "Records"
+        breadcrumb: "Records"
       import:
         title: "Import"
         menu: "Import"

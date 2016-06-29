@@ -1,55 +1,56 @@
 [
-  RailsAdmin::Config::Actions::DiskUsage,
-  RailsAdmin::Config::Actions::SendToFlow,
-  RailsAdmin::Config::Actions::SwitchNavigation,
-  RailsAdmin::Config::Actions::DataType,
-  RailsAdmin::Config::Actions::Import,
-  #RailsAdmin::Config::Actions::EdiExport,
-  RailsAdmin::Config::Actions::ImportSchema,
-  RailsAdmin::Config::Actions::DeleteAll,
-  RailsAdmin::Config::Actions::TranslatorUpdate,
-  RailsAdmin::Config::Actions::Convert,
-  RailsAdmin::Config::Actions::SimpleShare,
-  RailsAdmin::Config::Actions::BulkShare,
-  RailsAdmin::Config::Actions::Pull,
-  RailsAdmin::Config::Actions::RetryTask,
-  RailsAdmin::Config::Actions::DownloadFile,
-  RailsAdmin::Config::Actions::ProcessFlow,
-  RailsAdmin::Config::Actions::BuildGem,
-  RailsAdmin::Config::Actions::Run,
-  RailsAdmin::Config::Actions::Authorize,
-  RailsAdmin::Config::Actions::SimpleDeleteDataType,
-  RailsAdmin::Config::Actions::BulkDeleteDataType,
-  RailsAdmin::Config::Actions::SimpleGenerate,
-  RailsAdmin::Config::Actions::BulkGenerate,
-  RailsAdmin::Config::Actions::SimpleExpand,
-  RailsAdmin::Config::Actions::BulkExpand,
-  RailsAdmin::Config::Actions::Records,
-  RailsAdmin::Config::Actions::SwitchScheduler,
-  RailsAdmin::Config::Actions::SimpleExport,
-  RailsAdmin::Config::Actions::Schedule,
-  RailsAdmin::Config::Actions::Submit,
-  RailsAdmin::Config::Actions::Trash,
-  RailsAdmin::Config::Actions::Inspect,
-  RailsAdmin::Config::Actions::Copy,
-  RailsAdmin::Config::Actions::Cancel,
-  RailsAdmin::Config::Actions::Configure,
-  RailsAdmin::Config::Actions::SimpleCrossShare,
-  RailsAdmin::Config::Actions::BulkCrossShare,
-  RailsAdmin::Config::Actions::Regist,
-  RailsAdmin::Config::Actions::SharedCollectionIndex,
-  RailsAdmin::Config::Actions::BulkPull,
-  RailsAdmin::Config::Actions::CleanUp
+    RailsAdmin::Config::Actions::DiskUsage,
+    RailsAdmin::Config::Actions::SendToFlow,
+    RailsAdmin::Config::Actions::SwitchNavigation,
+    RailsAdmin::Config::Actions::DataType,
+    RailsAdmin::Config::Actions::Import,
+    #RailsAdmin::Config::Actions::EdiExport,
+    RailsAdmin::Config::Actions::ImportSchema,
+    RailsAdmin::Config::Actions::DeleteAll,
+    RailsAdmin::Config::Actions::TranslatorUpdate,
+    RailsAdmin::Config::Actions::Convert,
+    RailsAdmin::Config::Actions::SimpleShare,
+    RailsAdmin::Config::Actions::BulkShare,
+    RailsAdmin::Config::Actions::Pull,
+    RailsAdmin::Config::Actions::RetryTask,
+    RailsAdmin::Config::Actions::DownloadFile,
+    RailsAdmin::Config::Actions::ProcessFlow,
+    RailsAdmin::Config::Actions::BuildGem,
+    RailsAdmin::Config::Actions::Run,
+    RailsAdmin::Config::Actions::Authorize,
+    RailsAdmin::Config::Actions::SimpleDeleteDataType,
+    RailsAdmin::Config::Actions::BulkDeleteDataType,
+    RailsAdmin::Config::Actions::SimpleGenerate,
+    RailsAdmin::Config::Actions::BulkGenerate,
+    RailsAdmin::Config::Actions::SimpleExpand,
+    RailsAdmin::Config::Actions::BulkExpand,
+    RailsAdmin::Config::Actions::Records,
+    RailsAdmin::Config::Actions::SwitchScheduler,
+    RailsAdmin::Config::Actions::SimpleExport,
+    RailsAdmin::Config::Actions::Schedule,
+    RailsAdmin::Config::Actions::Submit,
+    RailsAdmin::Config::Actions::Trash,
+    RailsAdmin::Config::Actions::Inspect,
+    RailsAdmin::Config::Actions::Copy,
+    RailsAdmin::Config::Actions::Cancel,
+    RailsAdmin::Config::Actions::Configure,
+    RailsAdmin::Config::Actions::SimpleCrossShare,
+    RailsAdmin::Config::Actions::BulkCrossShare,
+    RailsAdmin::Config::Actions::Regist,
+    RailsAdmin::Config::Actions::SharedCollectionIndex,
+    RailsAdmin::Config::Actions::BulkPull,
+    RailsAdmin::Config::Actions::CleanUp,
+    RailsAdmin::Config::Actions::ShowRecords
 ].each { |a| RailsAdmin::Config::Actions.register(a) }
 
 RailsAdmin::Config::Actions.register(:export, RailsAdmin::Config::Actions::BulkExport)
 [
-  RailsAdmin::Config::Fields::Types::JsonValue,
-  RailsAdmin::Config::Fields::Types::JsonSchema,
-  RailsAdmin::Config::Fields::Types::StorageFile,
-  RailsAdmin::Config::Fields::Types::EnumEdit,
-  RailsAdmin::Config::Fields::Types::Model,
-  RailsAdmin::Config::Fields::Types::Record
+    RailsAdmin::Config::Fields::Types::JsonValue,
+    RailsAdmin::Config::Fields::Types::JsonSchema,
+    RailsAdmin::Config::Fields::Types::StorageFile,
+    RailsAdmin::Config::Fields::Types::EnumEdit,
+    RailsAdmin::Config::Fields::Types::Model,
+    RailsAdmin::Config::Fields::Types::Record
 ].each { |f| RailsAdmin::Config::Fields::Types.register(f) }
 
 RailsAdmin::Config::Fields::Types::CodeMirror.register_instance_option :js_location do
@@ -62,15 +63,15 @@ end
 
 RailsAdmin::Config::Fields::Types::CodeMirror.register_instance_option :config do
   {
-    mode: 'css',
-    theme: 'neo',
+      mode: 'css',
+      theme: 'neo',
   }
 end
 
 RailsAdmin::Config::Fields::Types::CodeMirror.register_instance_option :assets do
   {
-    mode: bindings[:view].asset_path('codemirror/modes/css.js'),
-    theme: bindings[:view].asset_path('codemirror/themes/neo.css'),
+      mode: bindings[:view].asset_path('codemirror/modes/css.js'),
+      theme: bindings[:view].asset_path('codemirror/themes/neo.css'),
   }
 end
 
@@ -121,6 +122,7 @@ RailsAdmin.config do |config|
     export
     bulk_delete
     show
+    show_records
     run
     edit
     configure
@@ -162,11 +164,11 @@ RailsAdmin.config do |config|
     history_show do
       only do
         [
-          Setup::Algorithm,
-          Setup::Connection,
-          Setup::Webhook,
-          Setup::Translator,
-          Setup::Flow
+            Setup::Algorithm,
+            Setup::Connection,
+            Setup::Webhook,
+            Setup::Translator,
+            Setup::Flow
         ] + Setup::DataType.class_hierarchy + Setup::Validator.class_hierarchy
       end
       visible { bindings[:object].try(:shared?) }
@@ -305,7 +307,7 @@ RailsAdmin.config do |config|
               can_see = !am.embedded? && (show_action = v.action(:show, am, associated))
               can_see ? v.link_to(wording, v.url_for(action: show_action.action_name, model_name: am.to_param, id: associated.id), class: 'pjax') : wording
             end.to_sentence.html_safe +
-              v.select_tag("#{bindings[:controller].instance_variable_get(:@model_config).abstract_model.param_key}[connection_ids][]", ids.html_safe, multiple: true, style: 'display:none').html_safe
+                v.select_tag("#{bindings[:controller].instance_variable_get(:@model_config).abstract_model.param_key}[connection_ids][]", ids.html_safe, multiple: true, style: 'display:none').html_safe
           else
             'No connection selected'.html_safe
           end
@@ -341,7 +343,7 @@ RailsAdmin.config do |config|
               can_see = !am.embedded? && (show_action = v.action(:show, am, associated))
               can_see ? v.link_to(wording, v.url_for(action: show_action.action_name, model_name: am.to_param, id: associated.id), class: 'pjax') : wording
             end.to_sentence.html_safe +
-              v.select_tag("#{bindings[:controller].instance_variable_get(:@model_config).abstract_model.param_key}[dependency_ids][]", ids.html_safe, multiple: true, style: 'display:none').html_safe
+                v.select_tag("#{bindings[:controller].instance_variable_get(:@model_config).abstract_model.param_key}[dependency_ids][]", ids.html_safe, multiple: true, style: 'display:none').html_safe
           else
             'No dependencies selected'.html_safe
           end
@@ -357,7 +359,7 @@ RailsAdmin.config do |config|
       field :readme do
         visible do
           !(obj = bindings[:object]).instance_variable_get(:@_selecting_collection) &&
-            !obj.instance_variable_get(:@_selecting_connections)
+              !obj.instance_variable_get(:@_selecting_connections)
         end
       end
     end
@@ -858,7 +860,7 @@ RailsAdmin.config do |config|
           unless max = bindings[:controller].instance_variable_get(:@max_storage_size)
             bindings[:controller].instance_variable_set(:@max_storage_size, max = objects.collect { |data_type| data_type.storage_size }.max)
           end
-          (bindings[:view].render partial: 'size_bar', locals: { max: max, value: bindings[:object].records_model.storage_size }).html_safe
+          (bindings[:view].render partial: 'size_bar', locals: {max: max, value: bindings[:object].records_model.storage_size}).html_safe
         else
           bindings[:view].number_to_human_size(value)
         end
@@ -905,7 +907,7 @@ RailsAdmin.config do |config|
           unless max = bindings[:controller].instance_variable_get(:@max_used_memory)
             bindings[:controller].instance_variable_set(:@max_used_memory, max = Setup::DataType.fields[:used_memory.to_s].type.new(Setup::DataType.max(:used_memory)))
           end
-          (bindings[:view].render partial: 'used_memory_bar', locals: { max: max, value: Setup::DataType.fields[:used_memory.to_s].type.new(value) }).html_safe
+          (bindings[:view].render partial: 'used_memory_bar', locals: {max: max, value: Setup::DataType.fields[:used_memory.to_s].type.new(value)}).html_safe
         end
       end
       field :storage_size
@@ -921,11 +923,11 @@ RailsAdmin.config do |config|
       field :schema do
         pretty_value do
           v =
-            if json = JSON.pretty_generate(value) rescue nil
-              "<code class='json'>#{json.gsub('<', '&lt;').gsub('>', '&gt;')}</code>"
-            else
-              value
-            end
+              if json = JSON.pretty_generate(value) rescue nil
+                "<code class='json'>#{json.gsub('<', '&lt;').gsub('>', '&gt;')}</code>"
+              else
+                value
+              end
 
           "<pre>#{v}</pre>".html_safe
         end
@@ -959,7 +961,7 @@ RailsAdmin.config do |config|
 
     configure :schema, :code_mirror do
       html_attributes do
-        { cols: '74', rows: '15' }
+        {cols: '74', rows: '15'}
       end
       # pretty_value do
       #   "<pre><code class='json'>#{JSON.pretty_generate(value)}</code></pre>".html_safe
@@ -972,7 +974,7 @@ RailsAdmin.config do |config|
           unless max = bindings[:controller].instance_variable_get(:@max_storage_size)
             bindings[:controller].instance_variable_set(:@max_storage_size, max = objects.collect { |data_type| data_type.storage_size }.max)
           end
-          (bindings[:view].render partial: 'size_bar', locals: { max: max, value: bindings[:object].records_model.storage_size }).html_safe
+          (bindings[:view].render partial: 'size_bar', locals: {max: max, value: bindings[:object].records_model.storage_size}).html_safe
         else
           bindings[:view].number_to_human_size(value)
         end
@@ -1027,7 +1029,7 @@ RailsAdmin.config do |config|
           unless max = bindings[:controller].instance_variable_get(:@max_used_memory)
             bindings[:controller].instance_variable_set(:@max_used_memory, max = Setup::JsonDataType.fields[:used_memory.to_s].type.new(Setup::JsonDataType.max(:used_memory)))
           end
-          (bindings[:view].render partial: 'used_memory_bar', locals: { max: max, value: Setup::JsonDataType.fields[:used_memory.to_s].type.new(value) }).html_safe
+          (bindings[:view].render partial: 'used_memory_bar', locals: {max: max, value: Setup::JsonDataType.fields[:used_memory.to_s].type.new(value)}).html_safe
         end
       end
       field :storage_size
@@ -1079,7 +1081,7 @@ RailsAdmin.config do |config|
           unless max = bindings[:controller].instance_variable_get(:@max_storage_size)
             bindings[:controller].instance_variable_set(:@max_storage_size, max = objects.collect { |data_type| data_type.records_model.storage_size }.max)
           end
-          (bindings[:view].render partial: 'size_bar', locals: { max: max, value: bindings[:object].records_model.storage_size }).html_safe
+          (bindings[:view].render partial: 'size_bar', locals: {max: max, value: bindings[:object].records_model.storage_size}).html_safe
         else
           bindings[:view].number_to_human_size(value)
         end
@@ -1144,7 +1146,7 @@ RailsAdmin.config do |config|
           unless max = bindings[:controller].instance_variable_get(:@max_used_memory)
             bindings[:controller].instance_variable_set(:@max_used_memory, max = Setup::JsonDataType.fields[:used_memory.to_s].type.new(Setup::JsonDataType.max(:used_memory)))
           end
-          (bindings[:view].render partial: 'used_memory_bar', locals: { max: max, value: Setup::JsonDataType.fields[:used_memory.to_s].type.new(value) }).html_safe
+          (bindings[:view].render partial: 'used_memory_bar', locals: {max: max, value: Setup::JsonDataType.fields[:used_memory.to_s].type.new(value)}).html_safe
         end
       end
       field :storage_size
@@ -1188,7 +1190,7 @@ RailsAdmin.config do |config|
         value.split('::').last.to_title
       end
     end
-    
+
     list do
       field :namespace
       field :name
@@ -1211,13 +1213,13 @@ RailsAdmin.config do |config|
       field :uri do
         read_only { !bindings[:object].new_record? }
         html_attributes do
-          { cols: '74', rows: '1' }
+          {cols: '74', rows: '1'}
         end
       end
 
       field :schema, :code_mirror do
         html_attributes do
-          { cols: '74', rows: '15' }
+          {cols: '74', rows: '15'}
         end
       end
 
@@ -1233,13 +1235,13 @@ RailsAdmin.config do |config|
       field :schema do
         pretty_value do
           v =
-            if json = JSON.parse(value) rescue nil
-              "<code class='json'>#{JSON.pretty_generate(json).gsub('<', '&lt;').gsub('>', '&gt;')}</code>"
-            elsif (xml = Nokogiri::XML(value)).errors.blank?
-              "<code class='xml'>#{xml.to_xml.gsub('<', '&lt;').gsub('>', '&gt;')}</code>"
-            else
-              "<code>#{value}</code>"
-            end
+              if json = JSON.parse(value) rescue nil
+                "<code class='json'>#{JSON.pretty_generate(json).gsub('<', '&lt;').gsub('>', '&gt;')}</code>"
+              elsif (xml = Nokogiri::XML(value)).errors.blank?
+                "<code class='xml'>#{xml.to_xml.gsub('<', '&lt;').gsub('>', '&gt;')}</code>"
+              else
+                "<code>#{value}</code>"
+              end
           "<pre>#{v}</pre>".html_safe
         end
       end
@@ -1261,7 +1263,7 @@ RailsAdmin.config do |config|
     weight -488
 
     object_label_method { :custom_title }
-    
+
     list do
       field :namespace
       field :xslt
@@ -1335,14 +1337,14 @@ RailsAdmin.config do |config|
 
     configure :key, :string do
       html_attributes do
-        { maxlength: 30, size: 30 }
+        {maxlength: 30, size: 30}
       end
       group :credentials
     end
 
     configure :token, :text do
       html_attributes do
-        { cols: '50', rows: '1' }
+        {cols: '50', rows: '1'}
       end
       group :credentials
     end
@@ -1402,7 +1404,7 @@ RailsAdmin.config do |config|
       field :created_at
       field :updated_at
     end
-    
+
     list do
       field :namespace
       field :name
@@ -1424,7 +1426,7 @@ RailsAdmin.config do |config|
     configure :name, :string do
       help 'Requiered.'
       html_attributes do
-        { maxlength: 50, size: 50 }
+        {maxlength: 50, size: 50}
       end
     end
     configure :webhooks do
@@ -1490,7 +1492,7 @@ RailsAdmin.config do |config|
     configure :path, :string do
       help 'Requiered. Path of the webhook relative to connection URL.'
       html_attributes do
-        { maxlength: 255, size: 100 }
+        {maxlength: 255, size: 100}
       end
     end
 
@@ -1734,7 +1736,7 @@ RailsAdmin.config do |config|
       field :updated_at
       #field :updater
     end
-    
+
     list do
       field :namespace
       field :name
@@ -1775,7 +1777,7 @@ RailsAdmin.config do |config|
       field :updated_at
       #field :updater
     end
-    
+
     list do
       field :namespace
       field :name
@@ -1842,7 +1844,7 @@ RailsAdmin.config do |config|
       field :updated_at
       #field :updater
     end
-    
+
     fields :namespace, :name, :data_type, :triggers, :trigger_evaluator, :updated_at
   end
 
@@ -1863,7 +1865,7 @@ RailsAdmin.config do |config|
         help 'Configure scheduler'
         partial :scheduler
         html_attributes do
-          { rows: '1' }
+          {rows: '1'}
         end
 
       end
@@ -1880,7 +1882,7 @@ RailsAdmin.config do |config|
       field :updated_at
       #field :updater
     end
-    
+
     list do
       field :namespace
       field :name
@@ -1976,7 +1978,7 @@ RailsAdmin.config do |config|
         visible { bindings[:object].style.present? && bindings[:object].style != 'chain' }
         help { 'Required' }
         html_attributes do
-          { cols: '74', rows: '15' }
+          {cols: '74', rows: '15'}
         end
       end
 
@@ -1999,11 +2001,11 @@ RailsAdmin.config do |config|
         associated_collection_scope do
           translator = bindings[:object]
           source_data_type =
-            if translator.source_exporter
-              translator.source_exporter.target_data_type
-            else
-              translator.source_data_type
-            end
+              if translator.source_exporter
+                translator.source_exporter.target_data_type
+              else
+                translator.source_data_type
+              end
           target_data_type = bindings[:object].target_data_type
           Proc.new { |scope|
             scope = scope.all(type: :Conversion,
@@ -2045,7 +2047,7 @@ RailsAdmin.config do |config|
       field :updated_at
       #field :updater
     end
-    
+
     list do
       field :namespace
       field :name
@@ -2065,6 +2067,14 @@ RailsAdmin.config do |config|
     weight -205
     object_label_method { :custom_title }
 
+    extra_associations do
+      association = Mongoid::Relations::Metadata.new(
+          name: :stored_outputs, relation: Mongoid::Relations::Referenced::Many,
+          inverse_class_name: Setup::Algorithm.to_s, class_name: Setup::AlgorithmOutput.to_s
+      )
+      [RailsAdmin::Adapters::Mongoid::Association.new(association, abstract_model.model)]
+    end
+
     edit do
       field :namespace, :enum_edit
       field :name
@@ -2076,6 +2086,9 @@ RailsAdmin.config do |config|
       field :call_links do
         visible { bindings[:object].call_links.present? }
       end
+      field :store_output
+      field :output_datatype
+      field :validate_output
     end
     show do
       field :namespace
@@ -2090,8 +2103,10 @@ RailsAdmin.config do |config|
       end
       field :call_links
       field :_id
+
+      field :stored_outputs
     end
-    
+
     list do
       field :namespace
       field :name
@@ -2100,8 +2115,34 @@ RailsAdmin.config do |config|
       field :call_links
       field :updated_at
     end
-    
+
     fields :namespace, :name, :description, :parameters, :call_links
+  end
+
+  config.model Setup::AlgorithmOutput do
+    navigation_label 'Workflows'
+    weight -205
+    visible false
+
+    configure :records_count
+    configure :created_at do
+      label 'Recorded at'
+    end
+
+    extra_associations do
+      association = Mongoid::Relations::Metadata.new(
+          name: :records, relation: Mongoid::Relations::Referenced::Many,
+          inverse_class_name: Setup::AlgorithmOutput.to_s, class_name: Setup::AlgorithmOutput.to_s
+      )
+      [RailsAdmin::Adapters::Mongoid::Association.new(association, abstract_model.model)]
+    end
+
+    show do
+      field :created_at
+      field :records_count
+    end
+
+    fields :created_at, :records_count
   end
 
   config.model Setup::Action do
@@ -2144,7 +2185,7 @@ RailsAdmin.config do |config|
     visible false
     navigation_label 'Workflows'
     configure :group, :enum_edit
-    
+
     list do
       field :name
       field :type
@@ -2196,7 +2237,7 @@ RailsAdmin.config do |config|
         end
       end
     end
-    
+
     fields :provider, :name, :identifier, :secret, :tenant, :origin, :updated_at
   end
 
@@ -2223,7 +2264,7 @@ RailsAdmin.config do |config|
     end
 
     configure :namespace, :enum_edit
-    
+
     list do
       field :namespace
       field :name
@@ -2335,7 +2376,7 @@ RailsAdmin.config do |config|
     configure :origin do
       visible { Account.current_super_admin? }
     end
-    
+
     fields :provider, :name, :description, :tenant, :origin, :updated_at
   end
 
@@ -2484,7 +2525,7 @@ RailsAdmin.config do |config|
       field :token_span
       field :authorized_at
     end
-    
+
     list do
       field :namespace
       field :name
@@ -2640,7 +2681,7 @@ RailsAdmin.config do |config|
       field :signature_version
       field :metadata
     end
-    
+
     list do
       field :namespace
       field :name
@@ -2891,7 +2932,7 @@ RailsAdmin.config do |config|
           unless max = bindings[:controller].instance_variable_get(:@max_length)
             bindings[:controller].instance_variable_set(:@max_length, max = objects.collect { |storage| storage.length }.reject(&:nil?).max)
           end
-          (bindings[:view].render partial: 'size_bar', locals: { max: max, value: bindings[:object].length }).html_safe
+          (bindings[:view].render partial: 'size_bar', locals: {max: max, value: bindings[:object].length}).html_safe
         else
           bindings[:view].number_to_human_size(value)
         end
@@ -2909,7 +2950,7 @@ RailsAdmin.config do |config|
     configure :storer_property do
       label 'Property'
     end
-    
+
     list do
       field :storer_model
       field :storer_object
@@ -3241,7 +3282,7 @@ RailsAdmin.config do |config|
         end
       end
     end
-    
+
     list do
       field :name
       field :description
@@ -3283,14 +3324,14 @@ RailsAdmin.config do |config|
           am = amc.abstract_model
           if (inspect_action = v.action(:inspect, am, executor))
             task_path = v.show_path(model_name: task.class.to_s.underscore.gsub('/', '~'), id: task.id.to_s)
-            v.link_to(wording, v.url_for(action: inspect_action.action_name, model_name: am.to_param, id: executor.id, params: { return_to: task_path }))
+            v.link_to(wording, v.url_for(action: inspect_action.action_name, model_name: am.to_param, id: executor.id, params: {return_to: task_path}))
           else
             wording
           end.html_safe
         end
       end
     end
-    
+
     list do
       field :channel
       field :tag
@@ -3321,7 +3362,7 @@ RailsAdmin.config do |config|
         visible { bindings[:object].instance_variable_get(:@registering) }
       end
     end
-    
+
     list do
       field :channel
       field :name
@@ -3346,7 +3387,7 @@ RailsAdmin.config do |config|
     edit do
       field :description
     end
-    
+
     list do
       field :script
       field :description
@@ -3358,7 +3399,7 @@ RailsAdmin.config do |config|
       field :notifications
       field :updated_at
     end
-    
+
     fields :script, :description, :scheduler, :attempts_succeded, :retries, :progress, :status, :notifications
   end
 end
