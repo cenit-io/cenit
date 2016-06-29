@@ -243,11 +243,16 @@ module RailsAdmin
               begin
                 @objects ||= list_entries
 
-                if (model = @abstract_model.model).include?(CrossOrigin::Document)
-                  origins = []
-                  ([:default] + model.origins).each { |origin| origins << origin if params[origin_param="#{origin}_origin"].to_i.even? }
-                  origins << nil if origins.include?(:default)
-                  @objects = @objects.any_in(origin: origins)
+                if (model = @abstract_model.model).is_a?(Class)
+                  if model.include?(CrossOrigin::Document)
+                    origins = []
+                    ([:default] + model.origins).each { |origin| origins << origin if params[origin_param="#{origin}_origin"].to_i.even? }
+                    origins << nil if origins.include?(:default)
+                    @objects = @objects.any_in(origin: origins)
+                  end
+                elsif (output = Setup::AlgorithmOutput.where(id: params[:algorithm_output]).first) &&
+                  output.data_type == model.data_type
+                  @objects = @objects.any_in(id: output.output_ids)
                 end
 
                 unless @model_config.list.scopes.empty?

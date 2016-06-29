@@ -39,7 +39,8 @@
     RailsAdmin::Config::Actions::Regist,
     RailsAdmin::Config::Actions::SharedCollectionIndex,
     RailsAdmin::Config::Actions::BulkPull,
-    RailsAdmin::Config::Actions::CleanUp
+    RailsAdmin::Config::Actions::CleanUp,
+    RailsAdmin::Config::Actions::ShowRecords
 ].each { |a| RailsAdmin::Config::Actions.register(a) }
 
 RailsAdmin::Config::Actions.register(:export, RailsAdmin::Config::Actions::BulkExport)
@@ -121,6 +122,7 @@ RailsAdmin.config do |config|
     export
     bulk_delete
     show
+    show_records
     run
     edit
     configure

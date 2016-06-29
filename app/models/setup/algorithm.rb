@@ -71,6 +71,11 @@ module Setup
     def do_store_output(output)
       rc = []
       r = nil
+
+      while output.capataz_proxy?
+        output = output.capataz_slave
+      end
+
       if output_datatype.is_a? Setup::FileDataType
         begin
           case output

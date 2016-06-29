@@ -11,6 +11,12 @@ module Setup
 
     field :output_ids, type: Array
 
+    after_destroy :clean_records
+
+    def clean_records
+      data_type.records_model.where(:id.in => output_ids).delete_many
+    end
+
     def name
       "#{algorithm.custom_title} @ #{created_at}"
     end
