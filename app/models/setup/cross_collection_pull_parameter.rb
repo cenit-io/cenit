@@ -14,7 +14,7 @@ module Setup
     validates_presence_of :label, :location, :property_name
     validates_length_of :label, maximum: 255
 
-    def process_on(hash_data, options)
+    def process_on(hash_data, options = {})
       options ||= {}
       errors.clear
       if location.present?

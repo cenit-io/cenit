@@ -140,6 +140,10 @@ module Mongoff
       end
     end
 
+    def hereditary?
+      data_type.subtype?
+    end
+
     def all_collections_names
       persistable? ? data_type.all_data_type_collections_names : [:empty_collection]
     end

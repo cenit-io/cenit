@@ -138,13 +138,6 @@ module Setup
       end
       self.namespaces = Setup::Namespace.all.any_in(name: nss.to_a)
 
-      reflect_on_all_associations(:has_and_belongs_to_many).each do |relation|
-        next unless relation.klass.include?(CrossOrigin::Document)
-        if (shared_objs = (collector = send(relation.name)).where(:origin.nin => [:default])).present?
-          shared_objs.each { |obj| collector.delete(obj) }
-        end
-      end
-
       errors.blank?
     end
 

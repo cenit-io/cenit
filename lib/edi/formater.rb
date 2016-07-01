@@ -253,7 +253,10 @@ module Edi
           store(json, name, value, options, key_properties.include?(property_name)) #TODO Default values should came from record attributes
         end
       end
-      if (options[:inspecting].include?(:_type) || options[:including].include?(:_type) || (enclosed_model && !record.orm_model.eql?(enclosed_model))) && !json['_reference'] && !options[:ignore].include?(:_type) && (!options[:only] || options[:only].include?(:_type))
+      if (options[:inspecting].include?(:_type) ||
+        options[:including].include?(:_type) ||
+        (enclosed_model && !record.orm_model.eql?(enclosed_model)) ||
+        (options[:polymorphic] && record.orm_model.hereditary?)) && !json['_reference'] && !options[:ignore].include?(:_type) && (!options[:only] || options[:only].include?(:_type))
         json['_type'] = model.to_s
       end
       options[:stack].pop

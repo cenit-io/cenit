@@ -330,6 +330,7 @@ module Setup
 
       cross_shared.category = category
       cross_shared.summary = summary
+      cross_shared.readme = readme
 
       pull_parameters.each do |pp|
         cross_shared.pull_parameters.new(label: pp.label,

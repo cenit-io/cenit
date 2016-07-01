@@ -101,10 +101,8 @@ module Setup
 
     def data_with(parameters = {})
       hash_data = dependencies_data.deep_merge(pull_data) { |_, val1, val2| Cenit::Utility.array_hash_merge(val1, val2) }
-      parameters.each do |id, value|
-        if (pull_parameter = pull_parameters.where(id: id).first)
-          pull_parameter.process_on(hash_data, value: value)
-        end
+      pull_parameters.each do |pull_parameter|
+        pull_parameter.process_on(hash_data, value: parameters[pull_parameter.id] || parameters[pull_parameter.id.to_s])
       end
       hash_data
     end
@@ -117,6 +115,7 @@ module Setup
       self.class.collection.find(_id: id).update_one('$inc' => { pull_count: 1 })
       unless installed
         self.pull_data = {}
+        pull_data[:readme] = readme if readme.present?
         (collection = options[:collection]).cross(:shared)
         COLLECTING_PROPERTIES.each do |property|
           send("#{property}=", [])
@@ -124,23 +123,29 @@ module Setup
           if (ids = collection.send(r.foreign_key)).present?
             self[r.foreign_key]= ids
           end
+          opts = { polymorphic: true }
           pull_data[r.name] =
             if r.klass.include?(Setup::SharedConfigurable)
-              configuring_fields = r.klass.configuring_fields.to_a
+              configuring_fields = r.klass.data_type.get_referenced_by + r.klass.configuring_fields.to_a
               configuring_fields = configuring_fields.collect(&:to_s)
               collection.send(r.name).collect do |record|
-                { _id: record.id.to_s }.merge record.share_hash.reject { |k, _| configuring_fields.exclude?(k) }
+                { _id: record.id.to_s }.merge record.share_hash(opts).reject { |k, _| configuring_fields.exclude?(k) }
               end
             elsif r.klass.include?(Setup::CrossOriginShared)
               collection.send(r.name).collect { |record| { _id: record.id.to_s } }
             else
-              collection.send(r.name).collect { |record| record.share_hash }
+              collection.send(r.name).collect { |record| record.share_hash(opts) }
             end
           pull_data.delete_if { |_, value| value.blank? }
         end
+        pull_parameters.each { |pull_parameter| pull_parameter.process_on(pull_data) }
         self.installed = true
         save
       end
+    end
+
+    def versioned_name
+      "#{name}-#{shared_version}"
     end
   end
 end

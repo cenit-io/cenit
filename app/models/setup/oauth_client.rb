@@ -11,7 +11,7 @@ module Setup
     field :identifier, type: String
     field :secret, type: String
 
-    validates_presence_of :provider, :name, :identifier, :secret
+    validates_presence_of :provider, :name
     validates_uniqueness_of :name, scope: :provider
 
     def scope_title
