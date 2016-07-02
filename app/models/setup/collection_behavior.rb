@@ -137,6 +137,8 @@ module Setup
         nss += send(relation.name).distinct(:namespace).flatten
       end
       self.namespaces = Setup::Namespace.all.any_in(name: nss.to_a)
+      namespaces.each { |ns| nss.delete(ns.name) }
+      nss.each { |ns| self.namespaces << Setup::Namespace.create(name: ns) }
 
       errors.blank?
     end

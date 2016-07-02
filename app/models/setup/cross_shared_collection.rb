@@ -117,11 +117,12 @@ module Setup
         self.pull_data = {}
         pull_data[:readme] = readme if readme.present?
         (collection = options[:collection]).cross(:shared)
+        attributes = {}
         COLLECTING_PROPERTIES.each do |property|
           send("#{property}=", [])
           r = reflect_on_association(property)
           if (ids = collection.send(r.foreign_key)).present?
-            self[r.foreign_key]= ids
+            attributes[r.foreign_key]= ids
           end
           opts = { polymorphic: true }
           pull_data[r.name] =
@@ -138,6 +139,7 @@ module Setup
             end
           pull_data.delete_if { |_, value| value.blank? }
         end
+        assign_attributes(attributes)
         pull_parameters.each { |pull_parameter| pull_parameter.process_on(pull_data) }
         self.installed = true
         save
