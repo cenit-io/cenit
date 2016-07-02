@@ -2,10 +2,9 @@ module Setup
   class Validator
     include CenitScoped
     include NamespaceNamed
+    include ClassHierarchyAware
 
-    BuildInDataType.regist(self).referenced_by(:namespace, :name)
-
-    Setup::Models.exclude_actions_for self
+    build_in_data_type.referenced_by(:namespace, :name)
 
     before_save :validates_configuration
 

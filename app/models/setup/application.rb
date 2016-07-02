@@ -4,7 +4,7 @@ module Setup
     include NamespaceNamed
     include Slug
 
-    BuildInDataType.regist(self).referenced_by(:namespace, :name).and('properties' => { 'configuration' => { 'type' => 'object' } })
+    build_in_data_type.referenced_by(:namespace, :name).and('properties' => { 'configuration' => { 'type' => 'object' } })
 
     embeds_many :actions, class_name: Setup::Action.to_s, inverse_of: :application
     embeds_many :application_parameters, class_name: Setup::ApplicationParameter.to_s, inverse_of: :application

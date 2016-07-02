@@ -1,9 +1,9 @@
 module Setup
   class Submission < Setup::Task
 
-    BuildInDataType.regist(self)
+    build_in_data_type
 
-    Setup::Models.exclude_actions_for self, :copy, :new, :edit, :translator_update, :import, :convert, :delete_all
+    deny :copy, :new, :edit, :translator_update, :import, :convert, :delete_all
 
     belongs_to :webhook, class_name: Setup::Webhook.to_s, inverse_of: nil
     belongs_to :connection, class_name: Setup::Connection.to_s, inverse_of: nil

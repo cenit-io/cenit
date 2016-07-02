@@ -101,7 +101,7 @@
         .form-option
           =t('admin.misc.or')
         .local-forms
-          = form_for(resource, as: resource_name, url: session_path(resource_name), html: {id: 'do-user-form', class: 'local'}) do |f|
+          = form_for(resource, as: resource_name, url: session_path(resource_name), html: {id: 'do-user-form', class: 'local active'}) do |f|
             .field.text-justify
               = f.email_field :email, autofocus: true, class: 'form-control', placeholder: t('admin.placeholders.email')
             .field.text-justify
@@ -114,7 +114,7 @@
               %a#no-pass.btn.btn-xs.pull-left{href: '#'}
                 =t('admin.session.forgotten')
 
-          = form_for(resource, as: resource_name, url: registration_path(resource_name), html: {id: 'no-user-form', class: 'local active'}) do |f|
+          = form_for(resource, as: resource_name, url: registration_path(resource_name), html: {id: 'no-user-form', class: 'local'}) do |f|
             .field.text-justify
               = f.email_field :email, autofocus: true, class: 'form-control', placeholder: t('admin.placeholders.email')
             .field.text-justify

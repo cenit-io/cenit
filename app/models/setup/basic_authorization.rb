@@ -3,7 +3,7 @@ module Setup
     include CenitScoped
     include AuthorizationHeader
 
-    BuildInDataType.regist(self).with(:namespace, :name).referenced_by(:namespace, :name)
+    build_in_data_type.with(:namespace, :name).referenced_by(:namespace, :name)
 
     field :username, type: String
     field :password, type: String

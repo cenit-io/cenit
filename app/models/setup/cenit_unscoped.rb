@@ -12,13 +12,26 @@ module Setup
       Setup::Models.regist(self)
     end
 
-    def share_hash
-      to_hash(ignore: [:id, :number, :token], include_blanks: true)
+    def share_hash(options = {})
+      options.reverse_merge!(ignore: [:id, :number, :token], include_blanks: true)
+      to_hash(options )
     end
 
     module ClassMethods
       def super_count
         count
+      end
+
+      def build_in_data_type
+        BuildInDataType.regist(self)
+      end
+
+      def allow(*actions)
+        Setup::Models.included_actions_for self, *actions
+      end
+
+      def deny(*actions)
+        Setup::Models.excluded_actions_for self, *actions
       end
     end
   end

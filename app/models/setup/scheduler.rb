@@ -2,7 +2,7 @@ module Setup
   class Scheduler < Event
     include HashField
 
-    BuildInDataType.regist(self).with(:namespace, :name, :expression, :activated).referenced_by(:namespace, :name)
+    build_in_data_type.with(:namespace, :name, :expression, :activated).referenced_by(:namespace, :name)
 
     hash_field :expression
     field :activated, type: Boolean, default: false
@@ -24,11 +24,11 @@ module Setup
 
     def check_before_save
       @activation_status_changed = changed_attributes.has_key?(:activated.to_s)
-      if expression['type'] == 'cyclic'
-        self.expression = { type: 'cyclic', cyclic_expression: expression['cyclic_expression'] }
-      else
-        expression.reject! { |_, value| value.blank? }
-      end
+      # if expression['type'] == 'cyclic'
+      #   self.expression = { type: 'cyclic', cyclic_expression: expression['cyclic_expression'] }
+      # else
+      expression.reject! { |_, value| value.blank? }
+      # end
       errors.blank?
     end
 
@@ -55,19 +55,11 @@ module Setup
 
     def start
       return unless next_time
-      retried_tasks_ids = Set.new
       Setup::Task.where(scheduler: self).each do |task|
-        if task.can_retry?
-          task.retry(action: :scheduled)
-          retried_tasks_ids << task.id
-        end
+        task.retry(action: :scheduled) if AccountToken.where(account: Account.current, task: task).blank?
       end
       Setup::Flow.where(event: self).each do |flow|
-        if (flows_executions = Setup::FlowExecution.where(flow: flow, scheduler: self)).present?
-          flows_executions.each { |flow_execution| flow_execution.retry if !retried_tasks_ids.include?(flow_execution.id) && flow_execution.can_retry? }
-        else
-          flow.process(scheduler: self)
-        end
+        flow.process(scheduler: self) unless Setup::FlowExecution.where(flow: flow, scheduler: self).present?
       end
     end
 
@@ -93,11 +85,11 @@ module Setup
       properties: {
         cyclic_expression: {
           type: 'string',
-          pattern: '^[1-9][0-9]*(s|m|h|d)$'
+          pattern: '^[1-9][0-9]*(s|m|h|d|w|M)$'
         },
         type: {
           type: 'string',
-          enum: %w(cyclic appointed_position appointed_number)
+          enum: %w(once cyclic appointed)
         },
         months_days: {
           type: 'array',
@@ -146,9 +138,30 @@ module Setup
           },
           uniqueItems: true,
           maxItems: 60
+        },
+        last_day_in_month: {
+          type: 'boolean'
+        },
+        last_week_in_month: {
+          type: 'boolean'
+        },
+        start_at: {
+          type: 'string',
+          pattern: '^\d\d\d\d-(0?[1-9]|1[0-2])-(0?[1-9]|[12][0-9]|3[01])$'
+        },
+        frequency: {
+          type: 'integer'
+        },
+        end_at: {
+          type: 'string',
+          pattern: '^\d\d\d\d-(0?[1-9]|1[0-2])-(0?[1-9]|[12][0-9]|3[01])$'
+        },
+        max_repeat: {
+          type: 'integer'
         }
       },
-      required: ['type']
+      required: %w(type),
+      additionalProperties: false
     }.to_json
   end
 

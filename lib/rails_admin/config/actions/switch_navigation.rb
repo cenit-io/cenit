@@ -21,12 +21,11 @@ module RailsAdmin
 
         register_instance_option :controller do
           proc do
-            if (model = @object.records_model).modelable?
-              @object.show_navigation_link = !@object.show_navigation_link
+            if @object.records_model.modelable?
+              @object.navigation_link = !@object.navigation_link
               @object.save
-              RailsAdmin::AbstractModel.update_model_config(model) if model.is_a?(Class)
               flash[:success] =
-                if @object.show_navigation_link
+                if @object.navigation_link
                   "Data type #{@object.custom_title} added to navigation links"
                 else
                   "Data type #{@object.custom_title} removed from navigation links"
@@ -39,11 +38,11 @@ module RailsAdmin
         end
 
         register_instance_option :i18n_key do
-          "#{key.to_s}.#{bindings[:object].show_navigation_link ? 'hide' : 'show'}"
+          "#{key.to_s}.#{bindings[:object].navigation_link ? 'hide' : 'show'}"
         end
 
         register_instance_option :link_icon do
-          bindings[:object].show_navigation_link ? 'fa fa-unlink' : 'fa fa-link'
+          bindings[:object].navigation_link ? 'fa fa-unlink' : 'fa fa-link'
         end
 
         register_instance_option :pjax? do

@@ -30,7 +30,7 @@ module Cenit
               token.destroy
             end
             message[:task_id] = task.id.to_s
-            message = AccountToken.create(data: message.to_json).token
+            message = AccountToken.create(data: message.to_json, task: task).token
             if scheduler || publish_at
               Setup::DelayedMessage.create(message: message, publish_at: publish_at, scheduler: scheduler)
             else

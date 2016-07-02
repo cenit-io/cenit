@@ -8,7 +8,15 @@ module Cenit
 
         pull_parameters = options[:pull_parameters] || {}
         missing_parameters = []
-        shared_collection.pull_parameters.each { |pull_parameter| missing_parameters << pull_parameter.id.to_s unless pull_parameters[pull_parameter.id.to_s].present? }
+        shared_collection.pull_parameters.each do |pull_parameter|
+          unless pull_parameters[(param_id = pull_parameter.id.to_s)].present?
+            missing_parameters << param_id
+          end
+        end
+        if options[:auto_fill]
+          missing_parameters.each { |param_id| pull_parameters[param_id] = FFaker::Lorem.word }
+          missing_parameters.clear
+        end
 
         new_records = Hash.new { |h, k| h[k] = [] }
         updated_records = Hash.new { |h, k| h[k] = [] }
@@ -39,9 +47,11 @@ module Cenit
                 end
                 if record
                   record_hash = Cenit::Utility.stringfy(record.share_hash)
+                  record_hash['_id'] = item['_id'] if item.has_key?('_id')
                   if item['_type']
                     record_hash['_type'] = record.class.to_s unless record_hash['_type']
                   end
+                  record_hash.reject! { |key, _| !item.has_key?(key) }
                   if Cenit::Utility.eql_content?(record_hash, item)
                     invariant_names << criteria
                     invariant_on_collection += 1 if on_collection
@@ -103,6 +113,9 @@ module Cenit
           begin
             collection_data = pull_request.delete(:collection_data)
             (collection_data['namespaces'] || []).each do |ns_hash|
+              if (slug = ns_hash['slug']) && Setup::Namespace.where(slug: slug).present?
+                ns_hash.delete('slug')
+              end
               next if ns_hash.has_key?('id')
               if (ns = Setup::Namespace.create(ns_hash)).errors.blank?
                 ns_hash['id'] = ns.id.to_s
@@ -141,10 +154,7 @@ module Cenit
               collection.name = shared_collection.name
               collection.image = shared_collection.image if shared_collection.image.present?
               collection.save
-              shared_collection.pull_count = 0 if shared_collection.pull_count.nil?
-              shared_collection.pull_count += 1
-              shared_collection.pulling = true
-              shared_collection.save
+              shared_collection.pulled(collection: collection)
               pull_data = pull_request.delete(:pull_data)
               pull_request[:created_records] = collection.inspect_json(inspecting: :id, inspect_scope: create_collector).reject { |_, value| !value.is_a?(Enumerable) }
               pull_request[:pull_data] = pull_data
@@ -185,7 +195,7 @@ module Cenit
             collection.send("#{source.class.to_s.split('::').last.downcase.pluralize}") << source
           end
         end
-        collection.check_dependencies
+        collection.add_dependencies
         collection
       end
 

@@ -92,12 +92,12 @@ module RailsAdmin
         end
         configure :length do
           label 'Size'
-          pretty_value do #TODO Factorie these code in custom rails admin field type
+          pretty_value do #TODO Factorize these code in custom rails admin field type
             if objects = bindings[:controller].instance_variable_get(:@objects)
               unless max = bindings[:controller].instance_variable_get(:@max_length)
                 bindings[:controller].instance_variable_set(:@max_length, max = objects.collect { |storage| storage.length }.reject(&:nil?).max)
               end
-              (bindings[:view].render partial: 'used_memory_bar', locals: { max: max, value: bindings[:object].length }).html_safe
+              (bindings[:view].render partial: 'size_bar', locals: { max: max, value: bindings[:object].length }).html_safe
             else
               bindings[:view].number_to_human_size(value)
             end
@@ -127,7 +127,7 @@ module RailsAdmin
         end
       end
 
-      navigation_label { target.data_type.navigation_label }
+      navigation_label { target.data_type.namespace }
 
       object_label_method { @object_label_method ||= Config.label_methods.detect { |method| target.property?(method) } || :to_s }
     end

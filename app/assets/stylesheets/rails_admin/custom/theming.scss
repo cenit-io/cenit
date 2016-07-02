@@ -734,18 +734,20 @@ ul#main-accordion .panel-heading .nav-icon {
  * Custom RailsAdmin styles
  ****************************/
 
-#new_setup_scheduler #appointed #number a.btn,
-#edit_setup_scheduler #appointed #number a.btn {
+#setup_scheduler_expression_field .inlined {
+  display: inline-block !important;
+  width: auto !important;
+}
+
+#setup_scheduler_expression_field #appointed #number a.btn {
   width: 56px;
 }
 
-#new_setup_scheduler #appointed #number .scheduler-opts,
-#edit_setup_scheduler #appointed #number .scheduler-opts {
+#setup_scheduler_expression_field #appointed #number .scheduler-opts {
   padding-bottom: 6px;
 }
 
-#new_setup_scheduler .label.top,
-#edit_setup_scheduler .label.top {
+#setup_scheduler_expression_field .label.top {
   color: #000;
   margin-top: 12px;
   max-width: 100%;
@@ -754,13 +756,90 @@ ul#main-accordion .panel-heading .nav-icon {
   text-align: left;
 }
 
-#new_setup_scheduler .label.top .right,
-#edit_setup_scheduler .label.top .right {
+#setup_scheduler_expression_field .scheduler_repeat {
+  margin-top: 12px;
+}
+
+#setup_scheduler_expression_field.label.top .right {
   position: absolute;
   right: 15px;
 }
 
-#new_setup_scheduler .scheduler-opts a.btn,
-#edit_setup_scheduler .scheduler-opts a.btn {
+#setup_scheduler_expression_field .scheduler-opts a.btn {
   transition: all .3s ease-in-out;
+}
+
+#hours_at .btn-group .btn {
+  width: 36px;
+  text-align: center;
+}
+
+#setup_scheduler_expression_field .btn-group .btn.day_in_month {
+  min-width: 48px;
+  text-align: center;
+}
+
+#setup_scheduler_expression_field .scheduler_repeat {
+  margin-bottom: 12px;
+}
+
+#setup_scheduler_expression_field .scheduler_repeat .clearfix.bottom {
+  padding-top: 6px;
+}
+
+#setup_scheduler_expression_field.selected-0 .visible-1,
+#setup_scheduler_expression_field.selected-0 .visible-2,
+#setup_scheduler_expression_field.selected-0 .visible-3,
+#setup_scheduler_expression_field.selected-0 .visible-4,
+#setup_scheduler_expression_field.selected-0 .visible-5,
+#setup_scheduler_expression_field.selected-1 .visible-2,
+#setup_scheduler_expression_field.selected-1 .visible-3,
+#setup_scheduler_expression_field.selected-1 .visible-4,
+#setup_scheduler_expression_field.selected-1 .visible-5 {
+  display: none;
+  visibility: collapse;
+}
+
+#setup_scheduler_expression_field.selected-2 .visible-1,
+#setup_scheduler_expression_field.selected-2 .visible-3,
+#setup_scheduler_expression_field.selected-2 .visible-4,
+#setup_scheduler_expression_field.selected-2 .visible-5 {
+  display: none;
+  visibility: collapse;
+}
+
+#setup_scheduler_expression_field.selected-3 .visible-1,
+#setup_scheduler_expression_field.selected-3 .visible-4,
+#setup_scheduler_expression_field.selected-3 .visible-5 {
+  display: none;
+  visibility: collapse;
+}
+
+#setup_scheduler_expression_field.selected-4 .visible-1,
+#setup_scheduler_expression_field.selected-4 .visible-5 {
+  display: none;
+  visibility: collapse;
+}
+
+//#setup_scheduler_expression_field.selected-5 .visible-1,
+//#setup_scheduler_expression_field.selected-5 .visible-2,
+//#setup_scheduler_expression_field.selected-5 .visible-3,
+//#setup_scheduler_expression_field.selected-5 .visible-4 {
+//  display: none;
+//  visibility: collapse;
+//}
+
+#setup_scheduler_expression_field.selected-0 .hidden-0 {
+  display: none;
+  visibility: collapse;
+}
+
+
+.toggle-origin {
+  border: none;
+  background-color: transparent;
+}
+
+.toggle-origin:focus, .toggle-origin:active:focus, .toggle-origin.active:focus {
+  outline: none;
 }

@@ -89,7 +89,7 @@ module Setup
     end
 
     def and(to_merge)
-      @to_merge = to_merge.deep_stringify_keys
+      @to_merge = (@to_merge || {}).merge(to_merge.deep_stringify_keys)
       self
     end
 
@@ -120,12 +120,15 @@ module Setup
       end
 
       def regist(model)
-        model.include(Setup::OrmModelAware)
-        model.include(Setup::SchemaModelAware)
-        model.include(Edi::Formatter)
-        model.include(Edi::Filler)
-        model.class.include(Mongoid::CenitExtension)
-        build_ins[model.to_s] = BuildInDataType.new(model)
+        build_ins[model.to_s] ||=
+          begin
+            model.include(Setup::OrmModelAware)
+            model.include(Setup::SchemaModelAware)
+            model.include(Edi::Formatter)
+            model.include(Edi::Filler)
+            model.class.include(Mongoid::CenitExtension)
+            BuildInDataType.new(model)
+          end
       end
     end
 

@@ -74,14 +74,21 @@ module Mongoid
 
       def stored_properties_on(record)
         properties = Set.new
-        fields.keys.each { |field| properties << field.to_s if property?(field) && !record[field].nil? }
-        reflect_on_all_associations(:embeds_one,
-                                    :embeds_many,
-                                    :has_one,
-                                    :has_many,
-                                    :has_and_belongs_to_many,
-                                    :belongs_to).each do |relation|
-          properties << relation.name.to_s if property?(relation.name.to_s) && record.send(relation.name).present?
+        begin
+          data_type.schema['properties'].keys.each do |key|
+            properties << key if record.send(key).present?
+          end
+        rescue
+          properties.clear
+          fields.keys.each { |field| properties << field.to_s if property?(field) && !record[field].nil? }
+          reflect_on_all_associations(:embeds_one,
+                                      :embeds_many,
+                                      :has_one,
+                                      :has_many,
+                                      :has_and_belongs_to_many,
+                                      :belongs_to).each do |relation|
+            properties << relation.name.to_s if property?(relation.name.to_s) && record.send(relation.name).present?
+          end
         end
         properties
       end
@@ -95,30 +102,6 @@ module Mongoid
                                     :belongs_to).each do |relation|
           block.yield(name: relation.name, embedded: relation.embedded?) unless relation.macro == :belongs_to && relation.inverse_of.present?
         end
-      end
-
-      def other_affected_models
-        models = []
-        reflect_on_all_associations(:embedded_in,
-                                    :embeds_one,
-                                    :embeds_many,
-                                    :has_one,
-                                    :has_many,
-                                    :has_and_belongs_to_many,
-                                    :belongs_to).each do |relation|
-          models << relation.klass unless [:has_and_belongs_to_many, :belongs_to].include?(relation.macro) && relation.inverse_of.nil?
-        end
-        models.uniq
-      end
-
-      def other_affected_by
-        reflect_on_all_associations(:embedded_in,
-                                    :embeds_one,
-                                    :embeds_many,
-                                    :has_one,
-                                    :has_many,
-                                    :has_and_belongs_to_many,
-                                    :belongs_to).collect { |relation| relation.klass }.uniq
       end
     end
   end

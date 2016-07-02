@@ -2,19 +2,19 @@ require 'nokogiri'
 
 module Setup
   class Flow < ReqRejValidator
-    include CenitScoped
+    include ShareWithBindings
     include NamespaceNamed
     include TriggersFormatter
     include ThreadAware
 
-    BuildInDataType.regist(self).referenced_by(:namespace, :name).excluding(:notify_response, :notify_request)
+    build_in_data_type.referenced_by(:namespace, :name).excluding(:notify_response, :notify_request)
 
     field :active, type: Boolean, default: :true
     field :notify_request, type: Boolean, default: :false
     field :notify_response, type: Boolean, default: :false
     field :discard_events, type: Boolean
 
-    belongs_to :event, class_name: Setup::Event.to_s, inverse_of: nil
+    binding_belongs_to :event, class_name: Setup::Event.to_s, inverse_of: nil
 
     belongs_to :translator, class_name: Setup::Translator.to_s, inverse_of: nil
     belongs_to :custom_data_type, class_name: Setup::DataType.to_s, inverse_of: nil
@@ -25,14 +25,17 @@ module Setup
     field :lot_size, type: Integer
 
     belongs_to :webhook, class_name: Setup::Webhook.to_s, inverse_of: nil
-    belongs_to :connection_role, class_name: Setup::ConnectionRole.to_s, inverse_of: nil
+    binding_belongs_to :connection_role, class_name: Setup::ConnectionRole.to_s, inverse_of: nil
 
     belongs_to :response_translator, class_name: Setup::Translator.to_s, inverse_of: nil
     belongs_to :response_data_type, class_name: Setup::DataType.to_s, inverse_of: nil
 
     has_and_belongs_to_many :after_process_callbacks, class_name: Setup::Algorithm.to_s, inverse_of: nil
 
+    #TODO Not compatible with pulling but intended for cross sharing edition
+    # validates_inclusion_of :data_type_scope, in: ->(flow) { flow.data_type_scope_enum }
     validates_numericality_in_presence_of :lot_size, greater_than_or_equal_to: 1
+
     before_save :validates_configuration, :check_scheduler
     after_save :schedule_task
 
@@ -126,7 +129,10 @@ module Setup
     end
 
     def ready_to_save?
-      translator.present? && (translator.type == :Import || data_type_scope.present? || (translator.type == :Export && nil_data_type && webhook.present?))
+      shared? ||
+        (translator.present? &&
+          (translator.type == :Import || data_type_scope.present? ||
+            (translator.type == :Export && nil_data_type && webhook.present?)))
     end
 
     def can_be_restarted?

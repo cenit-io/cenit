@@ -12,4 +12,24 @@ module Mongoid
       end
     end
   end
+
+  module Contextual
+    class Mongo
+      def yield_document(document, &block)
+        doc = document.respond_to?(:_id) ?
+          document : Factory.from_db(klass, document, criteria.options[:fields])
+        #Patch
+        doc = doc.account_version
+        yield(doc)
+        documents.push(doc) if cacheable?
+      end
+    end
+  end
+
+  module Document
+
+    def account_version
+      self
+    end
+  end
 end

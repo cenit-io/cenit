@@ -62,17 +62,6 @@ en:
         action_name: "Test"
         sample_data: "Sample data"
         result: "Result"
-      load_model:
-        title: "Load '%{object_label}'"
-        menu: "Load"
-        breadcrumb: "Load"
-      shutdown_model:
-        title: "Shutdown '%{object_label}'"
-        menu: "Shutdown"
-        breadcrumb: "Shutdown"
-        shutting_down: "Shutting down '%{model_name}' will also"
-        shutdown_data_types: "shutdown %{shutdown_count} data types"
-        reload_data_types: "reload %{reload_count} data types"
       switch_navigation:
         show:
           title: "Show navigation link"
@@ -96,6 +85,10 @@ en:
         menu: "Data type"
         breadcrumb: "Data type"
       records:
+        title: "Records"
+        menu: "Records"
+        breadcrumb: "Records"
+      show_records:
         title: "Records"
         menu: "Records"
         breadcrumb: "Records"
@@ -145,7 +138,7 @@ en:
         will_be_deleted: "objects will be deleted"
         done: "deleted"
         doing: "deletion"
-      delete_collection:
+      trash:
         title: "Trash collection '%{object_label}'"
         menu: "Trash collection"
         breadcrumb: "Trash collection"
@@ -191,30 +184,20 @@ en:
         breadcrumb: "Delete"
       confirmation:
         are_you_sure: "Are you sure you want to proceed?"
-      shutdown_and_reload:
-        shutdown_data_types: "shutdown %{shutdown_count} data types"
+      data_type_warnings:
         delete_data_types_and_records: "delete %{data_type_count} data types including %{records_count} records"
         another: "Another %{count}"
-        delete_schemas: "delete %{schemas_count} schemas"
         delete_data_types: "delete %{data_type_count} data types"
-        shutdown_data_types: "shutdown %{shutdown_count} data types"
-        reload_data_types: "reload %{count} data types"
         override_data_types: "override %{count} data types"
         records: "records"
       action_will:
         also: 'These action will also'
-      memory_usage:
-        title: "Memory Usage"
-        menu: "Memory"
-        breadcrumb: "Memory"
-        model: "Model"
-        used_memory: "Used memory"
       disk_usage:
         title: "Disk Usage"
         menu: "Disk"
         breadcrumb: "Disk"
         model: "Collection"
-        used_memory: "Space used"
+        usage: "Space used"
       bulk_share:
         title: "Share %{model_label_plural}"
         bulk_link: "Share selected %{model_label_plural}"
@@ -228,7 +211,13 @@ en:
         breadcrumb: "Share"
         submit: "Share"
         done: "shared"
-      cross_share:
+      simple_cross_share:
+        title: "Cross share %{model_label} '%{object_label}'"
+        menu: "Cross share"
+        breadcrumb: "Cross share"
+        submit: "Cross share"
+        done: "cross shared"
+      bulk_cross_share:
         title: "Cross share %{model_label_plural}"
         bulk_link: "Cross share selected %{model_label_plural}"
         menu: "Cross share"
@@ -250,6 +239,15 @@ en:
         missing_parameters: "Missing parameters"
         uptodate: "Your %{collection} collection is already synchronized with %{shared_collection}"
         another: "another"
+      bulk_pull:
+        title: "Pulling Collections"
+        menu: "Pull"
+        breadcrumb: "Pull"
+        submit: "Pull"
+        done: "pulled"
+        bulk_link: "Pull selected %{model_label_plural}"
+        warn: "You are about to pull %{pull_size} collections"
+        warn_all: "You are about to pull all collections"
       retry_task:
         title: "Retry"
         menu: "Retry"
@@ -372,24 +370,46 @@ en:
         doing: "registering"
       shared_collection_index:
         menu: "Shared Collections"
+      clean_up:
+        title: "Clean Up"
+        menu: "Clean Up"
+        breadcrumb: "Clean Up"
+        warn: "All your data will be destroyed"
     scheduler:
       cyclic: 'Cyclic'
       appointed: 'Appointed'
       duration: 'Duration'
       last: 'Last'
       first: 'First'
+      start: 'Start'
+      end: 'End'
+      after: 'After'
+      repeat: 'Repeat'
+      repetitions: 'Repetitions'
+      at: 'At'
+      on: 'On'
+      never: 'Never'
+      asap: 'Immediately'
       frequency:
+        label: 'Frequency'
+        daily: 'Daily at'
+        weekly: 'Weekly on'
+        monthly: 'Monthly on'
+        annually: 'On months'
+        once: 'Only once'
+        never: 'Never'
+        every: 'Every ...'
         manual: 'Select manually'
       months:
         label: 'Months'
         names: 'Jan Feb Mar Apr May Jun Jul Aug Sep Oct Nov Dec'
       weeks:
         label: 'Weeks'
-        monthly: 'Weeks of the Month'
+        monthly: 'Weeks every Month'
         month: 'First Second Third Fourth'
       days:
-        monthly: 'Days of the Month'
-        weekly: 'Days of the Week'
+        monthly: 'Month days'
+        weekly: 'Week days'
         last: 'Last day'
         label: 'Days'
         names: 'Sun Mon Tue Wed Thu Fri Sat'
@@ -398,11 +418,18 @@ en:
       minutes:
         label: 'Minutes'
       every:
-        month: "Every month"
+        zero: "(Leave '0' for all, '1' for every other, etc...)"
+        label: 'Every'
+        month: 'Every month'
         months: "Every %{d} months"
-        day: "Every day"
+        day: 'Every day'
         days: "Every %{d} days"
-        hour: "Every hour"
+        hour: 'Every hour'
         hours: "Every %{d} hours"
-        minute: "Every minute"
+        minute: 'Every minute'
         minutes: "Every %{d} minutes"
+        m: 'minutes'
+        h: 'hours'
+        d: 'days'
+        w: 'weeks'
+        M: 'months'

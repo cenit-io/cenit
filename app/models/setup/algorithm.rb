@@ -1,9 +1,9 @@
 module Setup
   class Algorithm
-    include CenitScoped
+    include SharedEditable
     include NamespaceNamed
 
-    BuildInDataType.regist(self).referenced_by(:namespace, :name)
+    build_in_data_type.referenced_by(:namespace, :name)
 
     field :description, type: String
     embeds_many :parameters, class_name: Setup::AlgorithmParameter.to_s, inverse_of: :algorithm
@@ -15,7 +15,11 @@ module Setup
     accepts_nested_attributes_for :parameters, allow_destroy: true
     accepts_nested_attributes_for :call_links, allow_destroy: true
 
-    before_save :validate_code
+    field :store_output, type: Boolean
+    belongs_to :output_datatype, class_name: Setup::DataType.to_s, inverse_of: nil
+    field :validate_output, type: Boolean
+
+    before_save :validate_code, :validate_output_processing
 
     def validate_code
       if code.blank?
@@ -41,6 +45,18 @@ module Setup
       errors.blank?
     end
 
+    def validate_output_processing
+      if store_output and not output_datatype
+        rc = Setup::FileDataType.find_or_create_by(namespace: namespace, name: "#{name} output")
+        if rc.errors.present?
+          errors.add(:output_datatype, rc.errors.full_messages)
+        else
+          self.output_datatype = rc
+        end
+      end
+      errors.blank?
+    end
+
     def do_link
       call_links.each { |call_link| call_link.do_link }
     end
@@ -52,13 +68,91 @@ module Setup
       self
     end
 
+    def do_store_output(output)
+      rc = []
+      r = nil
+
+      while output.capataz_proxy?
+        output = output.capataz_slave
+      end
+
+      if output_datatype.is_a? Setup::FileDataType
+        begin
+          case output
+            when Hash, Array
+              r = output_datatype.create_from!(output.to_json, contentType: 'application/json')
+            when String
+              ct = 'text/plain'
+              begin
+                JSON.parse(output)
+                ct = 'application/json'
+              rescue JSON::ParserError
+                unless Nokogiri.XML(output).errors.present?
+                  ct = 'application/xml'
+                end
+              end
+              r = output_datatype.create_from!(output, contentType: ct)
+            else
+              r = output_datatype.create_from!(output.to_s)
+          end
+        rescue Exception
+          r = output_datatype.create_from!(output.to_s)
+        end
+      else
+        begin
+          case output
+            when Hash, String
+              begin
+                r = output_datatype.create_from_json!(output)
+              rescue Exception => e
+                puts e.backtrace
+              end
+            when Array
+              output.each do |item|
+                rc += do_store_output(item)
+              end
+            else
+              raise
+          end
+        rescue Exception
+          fail 'Output failed to validate against Output DataType.'
+        end
+      end
+      if r
+        if r.errors.present?
+          fail 'Output failed to validate against Output DataType.'
+        else
+          rc << r.id
+        end
+      end
+      rc
+    end
+
     def run(input)
       input = Cenit::Utility.json_value_of(input)
       input = [input] unless input.is_a?(Array)
       args = {}
       parameters.each { |parameter| args[parameter.name] = input.shift }
       do_link
-      Cenit::RubyInterpreter.run(code, args, self_linker: self_linker || self)
+      rc = Cenit::RubyInterpreter.run(code, args, self_linker: self_linker || self)
+
+      if rc.present?
+        if store_output
+          unless output_datatype
+            fail 'Execution failed! Output storage required and no Output DataType defined.'
+          end
+          begin
+            ids = do_store_output rc
+            AlgorithmOutput.create(algorithm: self, data_type: output_datatype, output_ids: ids)
+          rescue Exception => e
+            if validate_output
+              fail 'Execution failed!' + e.message
+            end
+          end
+        end
+      end
+
+      rc
     end
 
     def link?(call_symbol)
@@ -83,6 +177,10 @@ module Setup
         block.call(self) if block
         call_links.each { |call_link| call_link.link.for_each_call(visited, &block) if call_link.link }
       end
+    end
+
+    def stored_outputs(options = {})
+      AlgorithmOutput.where(algorithm: self).desc(:created_at)
     end
   end
 end

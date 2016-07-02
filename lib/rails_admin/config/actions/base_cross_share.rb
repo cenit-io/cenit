@@ -1,15 +1,22 @@
 module RailsAdmin
   module Config
     module Actions
-      class CrossShare < RailsAdmin::Config::Actions::Base
+      class BaseCrossShare < RailsAdmin::Config::Actions::Base
 
         register_instance_option :only do
-          [Setup::OauthClient, Setup::Oauth2Scope, Setup::Scheduler] +
-            Setup::BaseOauthProvider.class_hierarchy
-        end
-
-        register_instance_option :collection do
-          true
+          [
+            Setup::OauthClient,
+            Setup::Oauth2Scope,
+            Setup::Scheduler,
+            Setup::Algorithm,
+            Setup::Webhook,
+            Setup::Connection,
+            Setup::Translator,
+            Setup::Flow
+          ] +
+            Setup::BaseOauthProvider.class_hierarchy +
+            Setup::DataType.class_hierarchy +
+            Setup::Validator.class_hierarchy
         end
 
         register_instance_option :http_methods do
@@ -22,11 +29,24 @@ module RailsAdmin
             origin_config = RailsAdmin::Config.model(Forms::CrossOriginSelector)
             if (origin_data = params[origin_config.abstract_model.param_key]) && origin_data.permit! &&
               (@form_object = Forms::CrossOriginSelector.new(origin_data)).valid?
-              criteria = @abstract_model.model.all
-              if (ids = params[:bulk_ids])
+              model = @abstract_model.model
+              criteria = model.all
+              ids = params[:bulk_ids] || []
+              ids << @object.id if @object
+              if ids.present?
                 criteria = criteria.any_in(id: ids)
               end
-              criteria.cross(origin_data['origin'])
+              criteria.with_tracking.cross(origin_data['origin']) do |_, non_tracked_ids|
+                if non_tracked_ids.present?
+                  Account.each do |account| #TODO Run as a task in the background
+                    if account == Account.current
+                      model.clear_pins_for(account, non_tracked_ids)
+                    else
+                      model.clear_config_for(account, non_tracked_ids)
+                    end
+                  end
+                end
+              end
               render_form = false
             end
             if render_form
@@ -42,10 +62,6 @@ module RailsAdmin
               redirect_to back_or_index
             end
           end
-        end
-
-        register_instance_option :bulkable? do
-          true
         end
 
         register_instance_option :link_icon do
