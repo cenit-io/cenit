@@ -6,7 +6,7 @@ module Setup
 
     abstract_class true
 
-    BuildInDataType[self].referenced_by(:namespace, :name)
+    build_in_data_type.referenced_by(:namespace, :name).excluding(:clients)
 
     field :response_type, type: String
     field :authorization_endpoint, type: String
