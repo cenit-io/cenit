@@ -247,7 +247,8 @@ module Edi
           value = record_to_hash(sub_record, options, can_be_referenced && property_schema['referenced'] && !property_schema['export_embedded'], property_model)
           store(json, name, value, options, key_properties.include?(property_name))
         else
-          if (value = record.send(property_name)).nil?
+          value = record.send(property_name) || record[property_name] rescue nil
+          if value.nil?
             value = property_schema['default']
           end
           store(json, name, value, options, key_properties.include?(property_name)) #TODO Default values should came from record attributes
