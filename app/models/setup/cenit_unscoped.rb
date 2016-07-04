@@ -19,6 +19,11 @@ module Setup
 
     module ClassMethods
 
+      def inherited(subclass)
+        super
+        Setup::Models.regist(subclass)
+      end
+
       def share_options
         {
           ignore: [:id] + (build_in_data_type.get_protecting || []),

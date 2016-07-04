@@ -3379,6 +3379,7 @@ RailsAdmin.config do |config|
     parent { nil }
     navigation_label 'Administration'
     object_label_method { :to_s }
+    visible { User.current_super_admin? }
 
     configure :attempts_succeded, :text do
       label 'Attempts/Succedded'
