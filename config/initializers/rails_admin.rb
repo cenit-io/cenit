@@ -2966,7 +2966,7 @@ RailsAdmin.config do |config|
 
   #Configuration
 
-  config.navigation 'Configuration', icon: 'fa fa-wrench'
+  config.navigation 'Configuration', icon: 'fa fa-sliders'
 
   config.model Setup::Namespace do
     navigation_label 'Configuration'
