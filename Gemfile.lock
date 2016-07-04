@@ -553,7 +553,7 @@ DEPENDENCIES
   poltergeist
   prawn-rails
   rabl
-  rails (~> 4.2.5)
+  rails
   rails_12factor
   rails_admin (~> 0.7.0)
   rails_layout
