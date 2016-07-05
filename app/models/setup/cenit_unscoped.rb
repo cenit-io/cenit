@@ -22,6 +22,7 @@ module Setup
       def inherited(subclass)
         super
         Setup::Models.regist(subclass)
+        subclass.deny Setup::Models.excluded_actions_for(self)
       end
 
       def share_options

@@ -22,7 +22,7 @@ module Setup
 
     deny :update, :bulk_delete, :delete, :delete_all
 
-    shared_deny :delete, :simple_delete_data_type, :bulk_delete_data_type, :simple_expand, :bulk_expand
+    shared_deny :simple_delete_data_type, :bulk_delete_data_type, :simple_expand, :bulk_expand
 
     shared_configurable :slug
 
