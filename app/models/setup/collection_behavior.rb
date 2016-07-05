@@ -52,11 +52,14 @@ module Setup
       has_and_belongs_to_many :oauth2_scopes, class_name: Setup::Oauth2Scope.to_s, inverse_of: nil
 
       before_save :add_dependencies
+
+      after_initialize { @add_dependencies = true }
     end
 
     NO_DATA_FIELDS = %w(name readme)
 
     def add_dependencies
+      return true unless @add_dependencies
       algorithms = Set.new(self.algorithms)
       flows.each do |flow|
         {
@@ -164,6 +167,10 @@ module Setup
           end
         end
       end
+    end
+
+    def shared?
+      false
     end
 
     module ClassMethods

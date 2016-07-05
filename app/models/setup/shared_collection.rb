@@ -284,6 +284,10 @@ module Setup
       end
     end
 
+    def shared?
+      true
+    end
+
 
     class << self
 

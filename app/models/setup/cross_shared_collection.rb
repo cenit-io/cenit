@@ -16,6 +16,8 @@ module Setup
                             :swagger_scpec,
                             *COLLECTING_PROPERTIES).referenced_by(:name, :shared_version)
 
+    deny :new, :translator_update, :convert, :send_to_flow, :copy, :delete_all
+
     field :shared_version, type: String
     embeds_many :authors, class_name: Setup::CrossCollectionAuthor.to_s, inverse_of: :shared_collection
 
@@ -32,7 +34,7 @@ module Setup
     image_with ImageUploader
     field :logo_background, type: String
 
-    field :installed, type: Boolean
+    field :installed, type: Boolean, default: false
 
     validates_format_of :shared_version, with: /\A(0|[1-9]\d*)(\.(0|[1-9]\d*))*\Z/
     validates_length_of :shared_version, maximum: 255
@@ -49,6 +51,10 @@ module Setup
     end
 
     default_scope -> { desc(:pull_count) }
+
+    def shared?
+      true
+    end
 
     def hash_attribute_read(name, value)
       case name
@@ -96,6 +102,8 @@ module Setup
           hash[property] = items
         end
       end
+      hash = pull_data.merge(hash)
+      hash.delete('readme')
       hash
     end
 
@@ -121,19 +129,21 @@ module Setup
         COLLECTING_PROPERTIES.each do |property|
           send("#{property}=", [])
           r = reflect_on_association(property)
-          if (ids = collection.send(r.foreign_key)).present?
-            attributes[r.foreign_key]= ids
-          end
           opts = { polymorphic: true }
           pull_data[r.name] =
-            if r.klass.include?(Setup::SharedConfigurable)
-              configuring_fields = r.klass.data_type.get_referenced_by + r.klass.configuring_fields.to_a
-              configuring_fields = configuring_fields.collect(&:to_s)
-              collection.send(r.name).collect do |record|
-                { _id: record.id.to_s }.merge record.share_hash(opts).reject { |k, _| configuring_fields.exclude?(k) }
+            if r.klass.include?(Setup::CrossOriginShared)
+              if (ids = collection.send(r.foreign_key)).present?
+                attributes[r.foreign_key]= ids
               end
-            elsif r.klass.include?(Setup::CrossOriginShared)
-              collection.send(r.name).collect { |record| { _id: record.id.to_s } }
+              if r.klass.include?(Setup::SharedConfigurable)
+                configuring_fields = r.klass.data_type.get_referenced_by + r.klass.configuring_fields.to_a
+                configuring_fields = configuring_fields.collect(&:to_s)
+                collection.send(r.name).collect do |record|
+                  { _id: record.id.to_s }.merge record.share_hash(opts).reject { |k, _| configuring_fields.exclude?(k) }
+                end
+              else
+                collection.send(r.name).collect { |record| { _id: record.id.to_s } }
+              end
             else
               collection.send(r.name).collect { |record| record.share_hash(opts) }
             end
@@ -142,12 +152,47 @@ module Setup
         assign_attributes(attributes)
         pull_parameters.each { |pull_parameter| pull_parameter.process_on(pull_data) }
         self.installed = true
-        save
+        save(add_dependencies: false)
       end
     end
 
     def versioned_name
       "#{name}-#{shared_version}"
+    end
+
+    def save(options = {})
+      @add_dependencies =
+        if options.has_key?(:add_dependencies)
+          options.delete(:add_dependencies)
+        else
+          @add_dependencies
+        end
+      super
+    end
+
+    def method_missing(symbol, *args)
+      if (match = /\Adata_(.+)\Z/.match(symbol.to_s)) &&
+        COLLECTING_PROPERTIES.include?(relation_name = match[1].to_sym) &&
+        ((args.length == 0 && (options = {})) || args.length == 1 && (options = args[0]).is_a?(Hash))
+        if (items = send(relation_name)).present?
+          items
+        else
+          relation = reflect_on_association(relation_name)
+          items_data = pull_data[relation.name] || []
+          limit = options[:limit] || items_data.length
+          c = 0
+          items_data.collect do |item_data|
+            if c > limit
+              nil
+            else
+              c += 1
+              relation.klass.new_from_json(item_data)
+            end
+          end
+        end
+      else
+        super
+      end
     end
   end
 end

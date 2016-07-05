@@ -44,9 +44,12 @@ class Ability
         can :destroy, [Setup::SharedCollection, Setup::Storage]
         can :destroy, Setup::DataType, origin: :default
         can [:index, :show, :cancel], RabbitConsumer
+        can [:edit, :pull, :import], Setup::CrossSharedCollection
+        can :destroy, Setup::CrossSharedCollection
       else
         cannot :access, [Setup::SharedName, Setup::DelayedMessage, Setup::SystemNotification]
         cannot :destroy, [Setup::SharedCollection, Setup::Storage]
+        can :pull, Setup::CrossSharedCollection, installed: true
       end
 
       task_destroy_conds =
@@ -140,6 +143,17 @@ class Ability
             new_hash.each do |models, keys|
               if (models = models.to_a).present?
                 hash[keys] = models
+              end
+            end
+          end
+          [
+            allowed_hash,
+            shared_denied_hash,
+            shared_allowed_hash
+          ].each do |hash|
+            hash.each do |keys, models|
+              if [:pull, :edit, :destroy, :import].any? { |key| keys.include?(key) }
+                models.delete(Setup::CrossSharedCollection)
               end
             end
           end

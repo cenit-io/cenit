@@ -133,7 +133,10 @@
               #{object.category} - v #{object.shared_version}
             .versions
               %span.truncate
-                =link_to pull_path id: object.id do
+                - if (pull_action = RailsAdmin::Config::Actions.find(:pull, controller: controller, abstract_model: @abstract_model, object: object))
+                  =link_to pull_path id: object.id do
+                    %i{class: pull_action.link_icon}
+                - else
                   %i.fa.fa-arrow-down
                 -if object.pull_count > 0
                   %span

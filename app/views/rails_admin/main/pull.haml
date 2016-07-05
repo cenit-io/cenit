@@ -24,7 +24,7 @@
           %label.col-sm-2.control-label
             = pull_parameter.label
           .col-sm-10.controls
-            %input{type: 'text', size: 50, name: "pull_parameters[#{pull_parameter.id}]", value:  pull_parameters[pull_parameter.id.to_s]}
+            %input{type: 'text', size: 50, name: "pull_parameters[#{pull_parameter.id}]", value:  pull_parameters[pull_parameter.id.to_s], required: 'required'}
             - if error
               %span{class: 'help-inline'}
                 = "can't be blank"
