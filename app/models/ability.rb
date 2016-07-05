@@ -41,11 +41,9 @@ class Ability
               Setup::SystemNotification
             ]
         can [:import, :edit], Setup::SharedCollection
-        can :destroy, [Setup::SharedCollection, Setup::Storage]
-        can :destroy, Setup::DataType, origin: :default
+        can :destroy, [Setup::SharedCollection, Setup::Storage, Setup::CrossSharedCollection]
         can [:index, :show, :cancel], RabbitConsumer
         can [:edit, :pull, :import], Setup::CrossSharedCollection
-        can :destroy, Setup::CrossSharedCollection
       else
         cannot :access, [Setup::SharedName, Setup::DelayedMessage, Setup::SystemNotification]
         cannot :destroy, [Setup::SharedCollection, Setup::Storage]
@@ -82,12 +80,14 @@ class Ability
             end
           end
           Setup::Models.each_excluded_action do |model, excluded_actions|
+            puts 'OK!'
             non_root.each do |action|
               models = allowed_hash[key = action.authorization_key]
               models << model if relevant_rules_for_match(action.authorization_key, model).empty? && !(excluded_actions.include?(:all) || excluded_actions.include?(action.key))
             end
           end
           Setup::Models.each_included_action do |model, included_actions|
+            puts 'Ok!'
             non_root.each do |action|
               models = allowed_hash[key = action.authorization_key]
               models << model if included_actions.include?(action.key)
@@ -102,7 +102,7 @@ class Ability
           }.each do |collector_method, hash|
             Setup::Models.send(collector_method) do |model, actions|
               RailsAdmin::Config::Actions.all.each do |action|
-                next if action.root?
+                next if action.root? || Setup::Models.excluded_actions_for(model).include?(action.key)
                 if actions.include?(action.key)
                   models = allowed_hash[(key = action.authorization_key)]
                   root = model
