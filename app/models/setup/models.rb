@@ -34,7 +34,7 @@ module Setup
             @#{name}_actions ||= Hash.new { |h, k| h[k] = [] }
           end
           def #{symbol}(model, *actions)
-            #{name}_actions[model] += actions
+            #{name}_actions[model] += actions.flatten
           end
           def each_#{name}_action(&block)
             #{name}_actions.each(&block)
