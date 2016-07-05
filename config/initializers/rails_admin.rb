@@ -39,7 +39,8 @@
   RailsAdmin::Config::Actions::Regist,
   RailsAdmin::Config::Actions::SharedCollectionIndex,
   RailsAdmin::Config::Actions::BulkPull,
-  RailsAdmin::Config::Actions::CleanUp
+  RailsAdmin::Config::Actions::CleanUp,
+  RailsAdmin::Config::Actions::ShowRecords
 ].each { |a| RailsAdmin::Config::Actions.register(a) }
 
 RailsAdmin::Config::Actions.register(:export, RailsAdmin::Config::Actions::BulkExport)
@@ -49,7 +50,8 @@ RailsAdmin::Config::Actions.register(:export, RailsAdmin::Config::Actions::BulkE
   RailsAdmin::Config::Fields::Types::StorageFile,
   RailsAdmin::Config::Fields::Types::EnumEdit,
   RailsAdmin::Config::Fields::Types::Model,
-  RailsAdmin::Config::Fields::Types::Record
+  RailsAdmin::Config::Fields::Types::Record,
+  RailsAdmin::Config::Fields::Types::HtmlErb
 ].each { |f| RailsAdmin::Config::Fields::Types.register(f) }
 
 RailsAdmin::Config::Fields::Types::CodeMirror.register_instance_option :js_location do
@@ -121,6 +123,7 @@ RailsAdmin.config do |config|
     export
     bulk_delete
     show
+    show_records
     run
     edit
     configure
@@ -169,7 +172,7 @@ RailsAdmin.config do |config|
           Setup::Flow
         ] + Setup::DataType.class_hierarchy + Setup::Validator.class_hierarchy
       end
-      visible { bindings[:object].try(:shared?) }
+      visible { only.include?((obj = bindings[:object]).class) && obj.try(:shared?) }
     end
   end
 
@@ -187,6 +190,33 @@ RailsAdmin.config do |config|
 
   config.navigation 'Collections', icon: 'fa fa-cubes'
 
+  config.model Setup::CrossCollectionAuthor do
+    visible false
+    object_label_method { :label }
+    fields :name, :email
+  end
+
+  config.model Setup::CrossCollectionPullParameter do
+    visible false
+    object_label_method { :label }
+    configure :location, :json_value
+    edit do
+      field :label
+      field :property_name
+      field :location
+    end
+    show do
+      field :label
+      field :property_name
+      field :location
+
+      field :created_at
+      #field :creator
+      field :updated_at
+    end
+    fields :label, :property_name, :location
+  end
+
   config.model Setup::CrossSharedCollection do
     weight -600
     label 'Cross Shared Collection'
@@ -194,9 +224,197 @@ RailsAdmin.config do |config|
 
     visible { Account.current_super_admin? }
 
+    public_access true
+    extra_associations do
+      Setup::Collection.reflect_on_all_associations(:has_and_belongs_to_many).collect do |association|
+        association = association.dup
+        association[:name] = "data_#{association.name}".to_sym
+        RailsAdmin::Adapters::Mongoid::Association.new(association, abstract_model.model)
+      end
+    end
+
+    index_template_name :shared_collection_grid
+    index_link_icon 'icon-th-large'
+
+    configure :readme, :html_erb
     configure :pull_data, :json_value
     configure :data, :json_value
     configure :swagger_spec, :json_value
+
+    group :workflows
+
+    configure :flows do
+      group :workflows
+    end
+
+    configure :events do
+      group :workflows
+    end
+
+    configure :translators do
+      group :workflows
+    end
+
+    configure :algorithms do
+      group :workflows
+    end
+
+    configure :applications do
+      group :workflows
+    end
+
+    group :api_connectors do
+      label 'API Connectors'
+      active true
+    end
+
+    configure :connections do
+      group :api_connectors
+    end
+
+    configure :webhooks do
+      group :api_connectors
+    end
+
+    configure :connection_roles do
+      group :api_connectors
+    end
+
+    group :data
+
+    configure :data_types do
+      group :data
+    end
+
+    configure :schemas do
+      group :data
+    end
+
+    configure :data do
+      group :data
+    end
+
+    configure :custom_validators do
+      group :data
+    end
+
+    group :security
+
+    configure :authorizations do
+      group :security
+    end
+
+    configure :oauth_providers do
+      group :security
+    end
+
+    configure :oauth_clients do
+      group :security
+    end
+
+    configure :oauth2_scopes do
+      group :security
+    end
+
+    group :config
+
+    configure :namespaces do
+      group :config
+    end
+
+    show do
+      field :image
+      field :name do
+        pretty_value do
+          bindings[:object].versioned_name
+        end
+      end
+      field :summary
+      field :readme
+
+      field :authors
+      field :pull_count
+      field :_id
+      field :updated_at
+
+      field :data_schemas do
+        label 'Schemas'
+        group :data
+      end
+      field :data_custom_validators do
+        label 'Validators'
+        group :data
+      end
+      field :data_data_types do
+        label 'Data Types'
+        group :data
+      end
+
+      field :data_connections do
+        label 'Connections'
+        group :api_connectors
+      end
+
+      field :data_webhooks do
+        label 'Webhooks'
+        group :api_connectors
+      end
+
+      field :data_connection_roles do
+        label 'Connection Roles'
+        group :api_connectors
+      end
+
+      field :data_flows do
+        label 'Flows'
+        group :workflows
+      end
+
+      field :data_events do
+        label 'Events'
+        group :workflows
+      end
+
+      field :data_translators do
+        label 'Translators'
+        group :workflows
+      end
+
+      field :data_algorithms do
+        label 'Algorithms'
+        group :workflows
+      end
+
+      field :data_applications do
+        label 'Applications'
+        group :workflows
+      end
+
+      field :data_authorizations do
+        label 'Autorizations'
+        group :security
+      end
+
+      field :data_oauth_clients do
+        label 'OAuth Clients'
+        group :security
+      end
+
+      field :data_oauth_providers do
+        label 'OAuth Providers'
+        group :security
+      end
+
+      field :data_oauth2_scopes do
+        label 'OAuth 2.0 Scopes'
+        group :security
+      end
+
+      field :data_namespaces do
+        label 'Namespaces'
+        group :config
+      end
+    end
   end
 
   config.model Setup::SharedCollection do
@@ -346,22 +564,7 @@ RailsAdmin.config do |config|
           value.html_safe
         end
       end
-      field :readme do
-        pretty_value do
-          begin
-            template = value.gsub('&lt;%', '<%').gsub('%&gt;', '%>').gsub('%3C%', '<%').gsub('%%3E', '%>')
-            Setup::Transformation::ActionViewTransform.run(transformation: template,
-                                                           style: 'html.erb',
-                                                           base_url: bindings[:controller].request.base_url,
-                                                           user_key: User.current_number,
-                                                           user_token: User.current_token,
-                                                           collection: nil,
-                                                           shared_collection: bindings[:object])
-          rescue Exception => ex
-            value
-          end.html_safe
-        end
-      end
+      field :readme, :html_erb
       field :authors
       field :dependencies
       field :pull_count
@@ -630,6 +833,12 @@ RailsAdmin.config do |config|
       group :security
     end
 
+    group :config
+
+    configure :namespaces do
+      group :config
+    end
+
     edit do
       field :image
       field :readme do
@@ -656,22 +865,7 @@ RailsAdmin.config do |config|
 
     show do
       field :image
-      field :readme do
-        pretty_value do
-          begin
-            template = value.gsub('&lt;%', '<%').gsub('%&gt;', '%>').gsub('%3C%', '<%').gsub('%%3E', '%>')
-            Setup::Transformation::ActionViewTransform.run(transformation: template,
-                                                           style: 'html.erb',
-                                                           base_url: bindings[:controller].request.base_url,
-                                                           user_key: User.current.number,
-                                                           user_token: User.current.token,
-                                                           collection: bindings[:object],
-                                                           shared_collection: nil)
-          rescue Exception => ex
-            value
-          end.html_safe
-        end
-      end
+      field :readme, :html_erb
       field :name
       field :flows
       field :connection_roles
@@ -689,6 +883,7 @@ RailsAdmin.config do |config|
       field :oauth_clients
       field :oauth2_scopes
       field :data
+      field :namespaces
 
       field :_id
       field :created_at
@@ -1161,7 +1356,7 @@ RailsAdmin.config do |config|
         value.split('::').last.to_title
       end
     end
-    
+
     list do
       field :namespace
       field :name
@@ -1173,7 +1368,6 @@ RailsAdmin.config do |config|
   end
 
   config.model Setup::Schema do
-    parent Setup::Validator
     weight -489
     object_label_method { :custom_title }
 
@@ -1235,7 +1429,7 @@ RailsAdmin.config do |config|
     weight -488
 
     object_label_method { :custom_title }
-    
+
     list do
       field :namespace
       field :xslt
@@ -1376,7 +1570,7 @@ RailsAdmin.config do |config|
       field :created_at
       field :updated_at
     end
-    
+
     list do
       field :namespace
       field :name
@@ -1708,7 +1902,7 @@ RailsAdmin.config do |config|
       field :updated_at
       #field :updater
     end
-    
+
     list do
       field :namespace
       field :name
@@ -1749,7 +1943,7 @@ RailsAdmin.config do |config|
       field :updated_at
       #field :updater
     end
-    
+
     list do
       field :namespace
       field :name
@@ -1816,7 +2010,7 @@ RailsAdmin.config do |config|
       field :updated_at
       #field :updater
     end
-    
+
     fields :namespace, :name, :data_type, :triggers, :trigger_evaluator, :updated_at
   end
 
@@ -1854,7 +2048,7 @@ RailsAdmin.config do |config|
       field :updated_at
       #field :updater
     end
-    
+
     list do
       field :namespace
       field :name
@@ -2019,7 +2213,7 @@ RailsAdmin.config do |config|
       field :updated_at
       #field :updater
     end
-    
+
     list do
       field :namespace
       field :name
@@ -2039,6 +2233,14 @@ RailsAdmin.config do |config|
     weight -205
     object_label_method { :custom_title }
 
+    extra_associations do
+      association = Mongoid::Relations::Metadata.new(
+        name: :stored_outputs, relation: Mongoid::Relations::Referenced::Many,
+        inverse_class_name: Setup::Algorithm.to_s, class_name: Setup::AlgorithmOutput.to_s
+      )
+      [RailsAdmin::Adapters::Mongoid::Association.new(association, abstract_model.model)]
+    end
+
     edit do
       field :namespace, :enum_edit
       field :name
@@ -2050,6 +2252,9 @@ RailsAdmin.config do |config|
       field :call_links do
         visible { bindings[:object].call_links.present? }
       end
+      field :store_output
+      field :output_datatype
+      field :validate_output
     end
     show do
       field :namespace
@@ -2064,8 +2269,10 @@ RailsAdmin.config do |config|
       end
       field :call_links
       field :_id
+
+      field :stored_outputs
     end
-    
+
     list do
       field :namespace
       field :name
@@ -2074,8 +2281,34 @@ RailsAdmin.config do |config|
       field :call_links
       field :updated_at
     end
-    
+
     fields :namespace, :name, :description, :parameters, :call_links
+  end
+
+  config.model Setup::AlgorithmOutput do
+    navigation_label 'Workflows'
+    weight -205
+    visible false
+
+    configure :records_count
+    configure :created_at do
+      label 'Recorded at'
+    end
+
+    extra_associations do
+      association = Mongoid::Relations::Metadata.new(
+        name: :records, relation: Mongoid::Relations::Referenced::Many,
+        inverse_class_name: Setup::AlgorithmOutput.to_s, class_name: Setup::AlgorithmOutput.to_s
+      )
+      [RailsAdmin::Adapters::Mongoid::Association.new(association, abstract_model.model)]
+    end
+
+    show do
+      field :created_at
+      field :records_count
+    end
+
+    fields :created_at, :records_count
   end
 
   config.model Setup::Action do
@@ -2118,7 +2351,7 @@ RailsAdmin.config do |config|
     visible false
     navigation_label 'Workflows'
     configure :group, :enum_edit
-    
+
     list do
       field :name
       field :type
@@ -2170,7 +2403,7 @@ RailsAdmin.config do |config|
         end
       end
     end
-    
+
     fields :provider, :name, :identifier, :secret, :tenant, :origin, :updated_at
   end
 
@@ -2197,7 +2430,7 @@ RailsAdmin.config do |config|
     end
 
     configure :namespace, :enum_edit
-    
+
     list do
       field :namespace
       field :name
@@ -2309,7 +2542,7 @@ RailsAdmin.config do |config|
     configure :origin do
       visible { Account.current_super_admin? }
     end
-    
+
     fields :provider, :name, :description, :tenant, :origin, :updated_at
   end
 
@@ -2458,7 +2691,7 @@ RailsAdmin.config do |config|
       field :token_span
       field :authorized_at
     end
-    
+
     list do
       field :namespace
       field :name
@@ -2614,7 +2847,7 @@ RailsAdmin.config do |config|
       field :signature_version
       field :metadata
     end
-    
+
     list do
       field :namespace
       field :name
@@ -2883,7 +3116,7 @@ RailsAdmin.config do |config|
     configure :storer_property do
       label 'Property'
     end
-    
+
     list do
       field :storer_model
       field :storer_object
@@ -2899,7 +3132,7 @@ RailsAdmin.config do |config|
 
   #Configuration
 
-  config.navigation 'Configuration', icon: 'fa fa-wrench'
+  config.navigation 'Configuration', icon: 'fa fa-sliders'
 
   config.model Setup::Namespace do
     navigation_label 'Configuration'
@@ -3215,7 +3448,7 @@ RailsAdmin.config do |config|
         end
       end
     end
-    
+
     list do
       field :name
       field :description
@@ -3264,7 +3497,7 @@ RailsAdmin.config do |config|
         end
       end
     end
-    
+
     list do
       field :channel
       field :tag
@@ -3295,7 +3528,7 @@ RailsAdmin.config do |config|
         visible { bindings[:object].instance_variable_get(:@registering) }
       end
     end
-    
+
     list do
       field :channel
       field :name
@@ -3312,6 +3545,7 @@ RailsAdmin.config do |config|
     parent { nil }
     navigation_label 'Administration'
     object_label_method { :to_s }
+    visible { User.current_super_admin? }
 
     configure :attempts_succeded, :text do
       label 'Attempts/Succedded'
@@ -3320,7 +3554,7 @@ RailsAdmin.config do |config|
     edit do
       field :description
     end
-    
+
     list do
       field :script
       field :description
@@ -3332,7 +3566,7 @@ RailsAdmin.config do |config|
       field :notifications
       field :updated_at
     end
-    
+
     fields :script, :description, :scheduler, :attempts_succeded, :retries, :progress, :status, :notifications
   end
 end

@@ -13,7 +13,9 @@ module Setup
     module ClassMethods
 
       def binding_belongs_to(name, *options)
-        shared_configurable super.foreign_key
+        r = super
+        shared_configurable r.name, r.foreign_key
+        r
       end
 
       def clear_config_for(account, ids)

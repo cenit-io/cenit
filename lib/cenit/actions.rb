@@ -47,9 +47,11 @@ module Cenit
                 end
                 if record
                   record_hash = Cenit::Utility.stringfy(record.share_hash)
+                  record_hash['_id'] = item['_id'] if item.has_key?('_id')
                   if item['_type']
                     record_hash['_type'] = record.class.to_s unless record_hash['_type']
                   end
+                  record_hash.reject! { |key, _| !item.has_key?(key) }
                   if Cenit::Utility.eql_content?(record_hash, item)
                     invariant_names << criteria
                     invariant_on_collection += 1 if on_collection
@@ -59,7 +61,7 @@ module Cenit
                     updated_records[entry] << record
                   end
                   item['id'] = record.id.to_s
-                  check_embedded_items(item, relation.klass, record)
+                  check_embedded_items(item, record)
                 else
                   new_records[entry] << item
                 end
@@ -152,10 +154,7 @@ module Cenit
               collection.name = shared_collection.name
               collection.image = shared_collection.image if shared_collection.image.present?
               collection.save
-              shared_collection.pull_count = 0 if shared_collection.pull_count.nil?
-              shared_collection.pull_count += 1
-              shared_collection.pulling = true
-              shared_collection.save
+              shared_collection.pulled(collection: collection)
               pull_data = pull_request.delete(:pull_data)
               pull_request[:created_records] = collection.inspect_json(inspecting: :id, inspect_scope: create_collector).reject { |_, value| !value.is_a?(Enumerable) }
               pull_request[:pull_data] = pull_data
@@ -196,7 +195,7 @@ module Cenit
             collection.send("#{source.class.to_s.split('::').last.downcase.pluralize}") << source
           end
         end
-        collection.check_dependencies
+        collection.add_dependencies
         collection
       end
 
@@ -231,8 +230,8 @@ module Cenit
 
       private
 
-      def check_embedded_items(item, item_model, record)
-        item_model.model_properties_schemas.each do |property, schema|
+      def check_embedded_items(item, record)
+        (item_model = record.class).model_properties_schemas.each do |property, schema|
           next if schema['referenced']
           next unless (property_value = item[property]) && (property_model = item_model.property_model(property))
           next unless (property_data_type = property_model.data_type).get_referenced_by.present?
@@ -243,17 +242,21 @@ module Cenit
               criteria.delete_if { |_, value| value.nil? }
               if Cenit::Utility.match?(record_value, criteria)
                 property_value['id'] = record_value.id.to_s
-                check_embedded_items(property_value, property_model, record_value)
+                check_embedded_items(property_value, record_value)
               end
             end
-          elsif (association = record.send(property).to_a).present?
-            property_value.each do |sub_item|
-              criteria = {}
-              property_data_type.get_referenced_by.each { |field| criteria[field.to_s] = sub_item[field.to_s] }
-              criteria.delete_if { |_, value| value.nil? }
-              if (sub_record = Cenit::Utility.find_record(criteria, association))
-                sub_item['id'] = sub_record.id.to_s
-                check_embedded_items(sub_item, property_model, sub_record)
+          else
+            item['_reset'] ||= []
+            item['_reset'] << property
+            if (association = record.send(property).to_a).present?
+              property_value.each do |sub_item|
+                criteria = {}
+                property_data_type.get_referenced_by.each { |field| criteria[field.to_s] = sub_item[field.to_s] }
+                criteria.delete_if { |_, value| value.nil? }
+                if (sub_record = Cenit::Utility.find_record(criteria, association))
+                  sub_item['id'] = sub_record.id.to_s
+                  check_embedded_items(sub_item, sub_record)
+                end
               end
             end
           end

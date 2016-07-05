@@ -38,6 +38,12 @@ module Setup
 
     class << self
 
+      def share_options
+        opts = super
+        opts[:ignore] = opts[:ignore] + [:number, :token]
+        opts
+      end
+
       def respond_to?(*args)
         Setup::Webhook.method_enum.include?(args.first) || super
       end

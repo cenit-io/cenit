@@ -247,13 +247,17 @@ module Edi
           value = record_to_hash(sub_record, options, can_be_referenced && property_schema['referenced'] && !property_schema['export_embedded'], property_model)
           store(json, name, value, options, key_properties.include?(property_name))
         else
-          if (value = record.send(property_name)).nil?
+          value = record.send(property_name) || record[property_name] rescue nil
+          if value.nil?
             value = property_schema['default']
           end
           store(json, name, value, options, key_properties.include?(property_name)) #TODO Default values should came from record attributes
         end
       end
-      if (options[:inspecting].include?(:_type) || options[:including].include?(:_type) || (enclosed_model && !record.orm_model.eql?(enclosed_model))) && !json['_reference'] && !options[:ignore].include?(:_type) && (!options[:only] || options[:only].include?(:_type))
+      if (options[:inspecting].include?(:_type) ||
+        options[:including].include?(:_type) ||
+        (enclosed_model && !record.orm_model.eql?(enclosed_model)) ||
+        (options[:polymorphic] && record.orm_model.hereditary?)) && !json['_reference'] && !options[:ignore].include?(:_type) && (!options[:only] || options[:only].include?(:_type))
         json['_type'] = model.to_s
       end
       options[:stack].pop

@@ -243,11 +243,16 @@ module RailsAdmin
               begin
                 @objects ||= list_entries
 
-                if (model = @abstract_model.model).is_a?(Class) && model.include?(CrossOrigin::Document)
-                  origins = []
-                  ([:default] + model.origins).each { |origin| origins << origin if params[origin_param="#{origin}_origin"].to_i.even? }
-                  origins << nil if origins.include?(:default)
-                  @objects = @objects.any_in(origin: origins)
+                if (model = @abstract_model.model).is_a?(Class)
+                  if model.include?(CrossOrigin::Document)
+                    origins = []
+                    ([:default] + model.origins).each { |origin| origins << origin if params[origin_param="#{origin}_origin"].to_i.even? }
+                    origins << nil if origins.include?(:default)
+                    @objects = @objects.any_in(origin: origins)
+                  end
+                elsif (output = Setup::AlgorithmOutput.where(id: params[:algorithm_output]).first) &&
+                  output.data_type == model.data_type
+                  @objects = @objects.any_in(id: output.output_ids)
                 end
 
                 unless @model_config.list.scopes.empty?
@@ -632,7 +637,7 @@ module RailsAdmin
         if current_user
           RailsAdmin::Config.visible_models(controller: controller)
         else
-          Setup::Models.collect { |m| RailsAdmin::Config.model(m) }.select(&:visible).select(&:show_in_dashboard).sort_by(&:weight)
+          Setup::Models.collect { |m| RailsAdmin::Config.model(m) }.select(&:visible).sort_by(&:weight)
         end
 
       node_model_names = nodes_stack.collect { |c| c.abstract_model.model_name }

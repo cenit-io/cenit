@@ -49,6 +49,10 @@ module Setup
 
     before_save :hook, :check_ready, :check_dependencies, :validate_configuration, :ensure_shared_name, :save_source_collection, :categorize, :sanitize_data, :on_saving
 
+    def pulled(options = {})
+      self.class.collection.find(_id: id).update_one('$inc' => { pull_count: 1 })
+    end
+
     def hook
       true
     end
@@ -280,6 +284,10 @@ module Setup
       end
     end
 
+    def shared?
+      true
+    end
+
 
     class << self
 
@@ -312,6 +320,39 @@ module Setup
             end
           end
         end")
+    end
+
+    def cross
+      cross_shared = Setup::CrossSharedCollection.new
+
+      cross_shared.name = name
+      cross_shared.shared_version = shared_version
+      authors.each do |author|
+        cross_shared.authors.new(name: author.name,
+                                 email: author.email)
+      end
+
+      cross_shared.category = category
+      cross_shared.summary = summary
+      cross_shared.readme = readme
+
+      pull_parameters.each do |pp|
+        cross_shared.pull_parameters.new(label: pp.label,
+                                         location: pp.location,
+                                         property_name: pp.property_name)
+      end
+      dependencies.each do |d|
+        cross_shared.dependencies << Setup::CrossSharedCollection.where(name: d.name, shared_version: d.shared_version).first
+      end
+
+      cross_shared.pull_count = pull_count
+
+      cross_shared.data = data
+
+      cross_shared.image = image
+      cross_shared.logo_background = logo_background
+
+      cross_shared.save
     end
 
     protected

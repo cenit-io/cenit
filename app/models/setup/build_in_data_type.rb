@@ -98,15 +98,15 @@ module Setup
     end
 
     def including(*fields)
-      store_fields(:@including, *fields)
+      store_fields(:@including, fields, @including)
     end
 
     def discarding(*fields)
-      store_fields(:@discarding, *fields)
+      store_fields(:@discarding, *fields, @discarding)
     end
 
     def excluding(*fields)
-      store_fields(:@excluding, *fields)
+      store_fields(:@excluding, *fields, @excluding)
     end
 
     class << self
@@ -149,7 +149,7 @@ module Setup
       if fields
         raise Exception.new('Illegal argument') unless fields.present?
         fields = [fields] unless fields.is_a?(Enumerable)
-        instance_variable_set(instance_variable, fields.collect(&:to_s).uniq)
+        instance_variable_set(instance_variable, fields.flatten.collect(&:to_s).uniq.select(&:present?))
       else
         instance_variable_set(instance_variable, nil)
       end

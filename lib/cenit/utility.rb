@@ -72,33 +72,33 @@ module Cenit
             references[obj] = record_refs
           end
         end
-        options.delete(:visited).each do |obj|
-          references.each do |obj_waiting, to_bind|
-            to_bind.each do |property_name, property_binds|
-              is_array = property_binds.is_a?(Array) ? true : (property_binds = [property_binds]; false)
-              property_binds.each do |property_bind|
-                if obj.is_a?(property_bind[:model]) && match?(obj, property_bind[:criteria])
-                  if is_array
-                    unless (array_property = obj_waiting.send(property_name))
-                      obj_waiting.send("#{property_name}=", array_property = [])
+        if references.present?
+          options.delete(:visited).each do |obj|
+            references.each do |obj_waiting, to_bind|
+              to_bind.each do |property_name, property_binds|
+                is_array = property_binds.is_a?(Array) ? true : (property_binds = [property_binds]; false)
+                property_binds.each do |property_bind|
+                  if obj.is_a?(property_bind[:model]) && match?(obj, property_bind[:criteria])
+                    if is_array
+                      unless (array_property = obj_waiting.send(property_name))
+                        obj_waiting.send("#{property_name}=", array_property = [])
+                      end
+                      array_property << obj
+                    else
+                      obj_waiting.send("#{property_name}=", obj)
                     end
-                    array_property << obj
-                  else
-                    obj_waiting.send("#{property_name}=", obj)
+                    property_binds.delete(property_bind)
                   end
-                  property_binds.delete(property_bind)
+                  to_bind.delete(property_name) if property_binds.empty?
                 end
-                to_bind.delete(property_name) if property_binds.empty?
+                references.delete(obj_waiting) if to_bind.empty?
               end
-              references.delete(obj_waiting) if to_bind.empty?
             end
           end
-        end if references.present?
+        end
 
         if references.present?
-          options[:stack] = stack = []
-          for_each_node_starting_at(record, options) do |obj|
-            if (to_bind = references[obj])
+          references.each do |obj, to_bind|
               to_bind.each do |property_name, property_binds|
                 is_array = property_binds.is_a?(Array) ? true : (property_binds = [property_binds]; false)
                 property_binds.each do |property_bind|
@@ -113,17 +113,17 @@ module Cenit
                   elsif !options[:skip_error_report]
                     message = "#{property_bind[:model]} reference not found with criteria #{property_bind[:criteria].to_json}"
                     obj.errors.add(property_name, message)
-                    message = "#{obj.class} on attribute #{property_name} #{message}"
-                    stack.reverse_each do |node|
-                      message = "#{node[:record].class} '#{node[:record].name}' on attribute #{node[:attribute]} -> #{message}"
-                      node[:record].errors.add(node[:attribute], message)
-                    end
+                    # TODO Report errors to parents
+                    # message = "#{obj.class} on attribute #{property_name} #{message}"
+                    # stack.reverse_each do |node|
+                    #   message = "#{node[:record].class} '#{node[:record].name}' on attribute #{node[:attribute]} -> #{message}"
+                    #   node[:record].errors.add(node[:attribute], message)
+                    # end
                   end
                 end
               end
             end
           end
-        end
         record.errors.blank?
       end
 

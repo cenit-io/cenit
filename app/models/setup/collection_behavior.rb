@@ -51,12 +51,15 @@ module Setup
       has_and_belongs_to_many :oauth_clients, class_name: Setup::OauthClient.to_s, inverse_of: nil
       has_and_belongs_to_many :oauth2_scopes, class_name: Setup::Oauth2Scope.to_s, inverse_of: nil
 
-      before_save :check_dependencies
+      before_save :add_dependencies
+
+      after_initialize { @add_dependencies = true }
     end
 
     NO_DATA_FIELDS = %w(name readme)
 
-    def check_dependencies
+    def add_dependencies
+      return true unless @add_dependencies
       algorithms = Set.new(self.algorithms)
       flows.each do |flow|
         {
@@ -137,19 +140,37 @@ module Setup
         nss += send(relation.name).distinct(:namespace).flatten
       end
       self.namespaces = Setup::Namespace.all.any_in(name: nss.to_a)
-
-      reflect_on_all_associations(:has_and_belongs_to_many).each do |relation|
-        next unless relation.klass.include?(CrossOrigin::Document)
-        if (shared_objs = (collector = send(relation.name)).where(:origin.nin => [:default])).present?
-          shared_objs.each { |obj| collector.delete(obj) }
-        end
-      end
+      namespaces.each { |ns| nss.delete(ns.name) }
+      nss.each { |ns| self.namespaces << Setup::Namespace.create(name: ns) }
 
       errors.blank?
     end
 
     def empty?
       COLLECTING_PROPERTIES.all? { |property| send(property).empty? }
+    end
+
+    def cross(origin)
+      COLLECTING_PROPERTIES.each do |property|
+        r = reflect_on_association(property)
+        if (model = r.klass).include?(Setup::CrossOriginShared)
+          model.where(:id.in => send(r.foreign_key)).with_tracking.cross(origin) do |_, non_tracked_ids|
+            if non_tracked_ids.present?
+              Account.each do |account| #TODO Run as a task in the background
+                if account == Account.current
+                  model.clear_pins_for(account, non_tracked_ids)
+                else
+                  model.clear_config_for(account, non_tracked_ids)
+                end
+              end
+            end
+          end
+        end
+      end
+    end
+
+    def shared?
+      false
     end
 
     module ClassMethods

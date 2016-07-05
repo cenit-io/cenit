@@ -2,6 +2,10 @@ module Setup
   module ChangedIf
     extend ActiveSupport::Concern
 
+    included do
+      class_attribute :changed_if_block
+    end
+
     def changed?
       super || ((block = self.class.changed_if) && instance_eval(&block))
     end
@@ -10,9 +14,9 @@ module Setup
 
       def changed_if(&block)
         if block
-          @changed_if = block
+          self.changed_if_block = block
         else
-          @changed_if
+          changed_if_block
         end
       end
     end

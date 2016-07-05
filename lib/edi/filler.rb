@@ -20,7 +20,14 @@ module Edi
       return unless (refs = instance_variable_get(:@_references))
       fields.each do |f|
         next unless (ref = refs[f.name.to_s])
-        self[f.name] = ref[:model].new_from_json(ref[:criteria])
+        self[f.name] =
+          if ref.is_a?(Array)
+            ref.collect do |item_ref|
+              item_ref[:model].new_from_json(item_ref[:criteria])
+            end
+          else
+            self[f.name] = ref[:model].new_from_json(ref[:criteria])
+          end
       end
     end
   end

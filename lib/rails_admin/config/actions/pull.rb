@@ -28,7 +28,7 @@ module RailsAdmin
               @pull_request = Cenit::Actions.pull(@object, @pull_request) if @pull_request[:collection_data].present?
               if (errors = @pull_request[:errors]).blank?
                 if (errors = @pull_request[:fixed_errors])
-                  do_flash(:notice, t('admin.actions.pull_collection.fixed_errors_header'), errors)
+                  do_flash(:notice, t('admin.actions.pull.fixed_errors_header'), errors)
                 end
                 collection = Setup::Collection.where(name: @object.name).first
                 if collection
@@ -43,7 +43,7 @@ module RailsAdmin
               end
             else
               if params[:_pull]
-                flash[:error] = t('admin.actions.pull_collection.missing_parameters') if @pull_request[:missing_parameters].present?
+                flash[:error] = t('admin.actions.pull.missing_parameters') if @pull_request[:missing_parameters].present?
               else
                 @pull_request[:missing_parameters] = []
               end

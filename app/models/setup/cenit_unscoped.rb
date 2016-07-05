@@ -13,11 +13,24 @@ module Setup
     end
 
     def share_hash(options = {})
-      options.reverse_merge!(ignore: [:id, :number, :token], include_blanks: true)
-      to_hash(options )
+      options = options.reverse_merge(self.class.share_options)
+      to_hash(options)
     end
 
     module ClassMethods
+
+      def inherited(subclass)
+        super
+        Setup::Models.regist(subclass)
+      end
+
+      def share_options
+        {
+          ignore: [:id] + (build_in_data_type.get_protecting || []),
+          include_blanks: true
+        }
+      end
+
       def super_count
         count
       end

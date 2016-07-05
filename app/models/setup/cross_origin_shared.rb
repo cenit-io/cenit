@@ -73,7 +73,7 @@ module Setup
     def read_attribute(name)
       (!(value = super).nil? &&
 
-        (new_record? || !BuildInDataType[self.class].protecting?(name) ||
+        (new_record? || !self.class.build_in_data_type.protecting?(name) ||
           (current_user = User.current) &&
             (current_user.account_id == tenant.id ||
               (current_user.super_admin? && tenant.super_admin?))) &&
