@@ -45,13 +45,16 @@ module Setup
     class << self
 
       def id_for(binder, bind_model)
-        if (bind = where(binder_id(binder) => binder.id).first)
-          bind[bind_id(bind_model)]
+        bind_id = bind_id(bind_model)
+        if (bind = where(binder_id(binder) => binder.id,
+                         bind_id.to_sym.exists => true).first)
+          bind[bind_id]
         end
       end
 
       def for(binder, bind_model)
-        if (bind = where(binder_id(binder) => binder.id).first)
+        if (bind = where(binder_id(binder) => binder.id,
+                         bind_id(bind_model).to_sym.exists => true).first)
           bind.send(bind_model.to_s.split('::').last.underscore)
         end
       end

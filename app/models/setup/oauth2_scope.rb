@@ -3,7 +3,7 @@ module Setup
     include CrossTenancy
     include CustomTitle
 
-    BuildInDataType[self].referenced_by(:name, :provider)
+    build_in_data_type.referenced_by(:name, :provider)
 
     field :name, type: String
     field :description, type: String

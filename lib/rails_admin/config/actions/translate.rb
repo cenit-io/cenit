@@ -21,17 +21,18 @@ module RailsAdmin
           proc do
 
             @bulk_ids = (@object && [@object.id]) || params.delete(:bulk_ids)
-            if object_ids = params.delete(:object_ids)
+            if (object_ids = params.delete(:object_ids))
               @bulk_ids = object_ids
             end
             translation_config = RailsAdmin::Config.model(Forms::Translation)
             translator_type = @action.class.translator_type
             done = false
 
-            if model = @abstract_model.model rescue nil
+            model = @abstract_model.model rescue nil
+            if model
               data_type = model.data_type
               data_type_selector = data_type.is_a?(Setup::BuildInDataType) ? nil : data_type
-              if data = params[translation_config.abstract_model.param_key]
+              if (data = params[translation_config.abstract_model.param_key])
                 translator = Setup::Translator.where(id: data[:translator_id]).first
                 if (@form_object = Forms::Translation.new(
                   translator_type: translator_type,

@@ -9,6 +9,6 @@ module Setup
 
     abstract_class true
 
-    build_in_data_type.with(:name).referenced_by(:namespace, :name)
+    build_in_data_type.with(:name).referenced_by(:namespace, :name).excluding(:origin)
   end
 end

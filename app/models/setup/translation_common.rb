@@ -30,7 +30,7 @@ module Setup
 
     def objects_from(message)
       model = data_type_from(message).records_model
-      if object_ids = object_ids_from(message)
+      if (object_ids = object_ids_from(message))
         model.any_in(id: object_ids)
       else
         model.all
@@ -41,7 +41,7 @@ module Setup
 
     def data_type_from(message)
       @data_type =
-        if data_type_id = message['data_type_id']
+        if (data_type_id = message['data_type_id'])
           Setup::BuildInDataType.build_ins[data_type_id] || Setup::DataType.where(id: data_type_id).first ||
             fail("Data type with id #{data_type_id} not found")
         else

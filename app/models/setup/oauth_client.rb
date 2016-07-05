@@ -3,7 +3,7 @@ module Setup
     include CrossTenancy
     include CustomTitle
 
-    BuildInDataType[self].including(:provider).referenced_by(:provider, :name).protecting(:identifier, :secret)
+    build_in_data_type.including(:provider).referenced_by(:provider, :name).protecting(:identifier, :secret)
 
     field :name, type: String
     belongs_to :provider, class_name: Setup::BaseOauthProvider.to_s, inverse_of: :clients
@@ -11,7 +11,7 @@ module Setup
     field :identifier, type: String
     field :secret, type: String
 
-    validates_presence_of :provider, :name, :identifier, :secret
+    validates_presence_of :provider, :name
     validates_uniqueness_of :name, scope: :provider
 
     def scope_title

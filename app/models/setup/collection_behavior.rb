@@ -52,11 +52,14 @@ module Setup
       has_and_belongs_to_many :oauth2_scopes, class_name: Setup::Oauth2Scope.to_s, inverse_of: nil
 
       before_save :add_dependencies
+
+      after_initialize { @add_dependencies = true }
     end
 
     NO_DATA_FIELDS = %w(name readme)
 
     def add_dependencies
+      return true unless @add_dependencies
       algorithms = Set.new(self.algorithms)
       flows.each do |flow|
         {
@@ -137,13 +140,8 @@ module Setup
         nss += send(relation.name).distinct(:namespace).flatten
       end
       self.namespaces = Setup::Namespace.all.any_in(name: nss.to_a)
-
-      reflect_on_all_associations(:has_and_belongs_to_many).each do |relation|
-        next unless relation.klass.include?(CrossOrigin::Document)
-        if (shared_objs = (collector = send(relation.name)).where(:origin.nin => [:default])).present?
-          shared_objs.each { |obj| collector.delete(obj) }
-        end
-      end
+      namespaces.each { |ns| nss.delete(ns.name) }
+      nss.each { |ns| self.namespaces << Setup::Namespace.create(name: ns) }
 
       errors.blank?
     end
@@ -169,6 +167,10 @@ module Setup
           end
         end
       end
+    end
+
+    def shared?
+      false
     end
 
     module ClassMethods
