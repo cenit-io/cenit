@@ -9,6 +9,10 @@ module RailsAdmin
       !schema.has_key?('visible') || schema['visible'].present?
     end
 
+    def queryable?
+      visible? #TODO Expands criteria to other fields when configuring index properties
+    end
+
     def filterable?
       true
     end

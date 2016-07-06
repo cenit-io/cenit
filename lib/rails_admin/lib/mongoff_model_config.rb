@@ -19,6 +19,7 @@ module RailsAdmin
           label { property.name.to_s.to_title }
           filterable { property.filterable? }
           required { property.required? }
+          queryable { property.queryable? }
           valid_length { {} }
           enum { enumeration } if enumeration
           if (title = property.title)

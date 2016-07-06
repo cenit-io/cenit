@@ -14,32 +14,32 @@ module RailsAdmin
         end
 
         register_instance_option :http_methods do
-          [:get, :post]
+          [:get, :patch]
         end
 
         register_instance_option :controller do
           proc do
 
-            @bulk_ids = (@object && [@object.id]) || params.delete(:bulk_ids)
-            if (object_ids = params.delete(:object_ids))
-              @bulk_ids = object_ids
-            end
+            Forms::Translation.collection.drop
             translation_config = RailsAdmin::Config.model(Forms::Translation)
             translator_type = @action.class.translator_type
             done = false
-
             model = @abstract_model.model rescue nil
+            if (@bulk_ids = (@object && [@object.id]) || params.delete(:bulk_ids) || params.delete(:object_ids)).nil? &&
+              (scope = list_entries).count < model.count
+              @bulk_ids = scope.collect(&:id).collect(&:to_s) #TODO Store scope options and selector instead ids
+            end
+            bulk_source = (@bulk_ids.nil? && model.count != 1) || (@bulk_ids && @bulk_ids.size != 1)
+
             if model
               data_type = model.data_type
               data_type_selector = data_type.is_a?(Setup::BuildInDataType) ? nil : data_type
               if (data = params[translation_config.abstract_model.param_key])
                 translator = Setup::Translator.where(id: data[:translator_id]).first
-                if (@form_object = Forms::Translation.new(
-                  translator_type: translator_type,
-                  bulk_source: (@bulk_ids.nil? && model.count != 1) || (@bulk_ids && @bulk_ids.size != 1),
-                  data_type: data_type_selector,
-                  translator: translator)).valid?
-
+                if (@form_object = Forms::Translation.new(translator_type: translator_type,
+                                                          bulk_source: bulk_source,
+                                                          data_type: data_type_selector,
+                                                          translator: translator)).valid?
                   begin
                     do_flash_process_result Setup::Translation.process(translator_id: translator.id,
                                                                        bulk_ids: @bulk_ids,
@@ -56,15 +56,14 @@ module RailsAdmin
               redirect_to back_or_index
             else
               @model_config = translation_config
-              @form_object ||= Forms::Translation.new(
-                translator_type: translator_type,
-                bulk_source: (@bulk_ids.nil? && (model.nil? || model.count != 1)) || (@bulk_ids && @bulk_ids.size != 1),
-                data_type: data_type_selector,
-                translator: translator)
-
+              @form_object ||= Forms::Translation.new(translator_type: translator_type,
+                                                      bulk_source: bulk_source,
+                                                      data_type: data_type_selector,
+                                                      translator: translator)
               if @form_object.errors.present?
-                do_flash_now(:error, 'There are errors in the export data specification', @form_object.errors.full_messages)
+                do_flash_now(:error, "There are errors in the #{@action.class.translator_type.to_s.downcase} data specification", @form_object.errors.full_messages)
               end
+              @form_object.save(validate: false)
               render :form
             end
 
