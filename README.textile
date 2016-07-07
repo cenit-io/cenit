@@ -188,100 +188,11 @@ For RPM-based distributions like RedHat or CentOS, the RabbitMQ team provides an
 Note: The RabbitMQ packages that ship with Ubuntu versions earlier than 11.10 are outdated and will not work with Bunny 0.9.0 and later versions (you will need at least RabbitMQ v2.0 for use with this guide).
 </pre>
 
-h2. Getting the Application
-
-You have several options for getting the code.
-
-h3. Fork
-
-If you'd like to add features (or bug fixes) to improve the example application, you can fork the GitHub repo and "make pull requests":http://help.github.com/send-pull-requests/. Your code contributions are welcome!
-
-h3. Clone
-
-If you want to copy and customize the app with changes that are only useful for your own project, you can clone the GitHub repo. You'll need to search-and-replace the project name throughout the application. You probably should generate the app instead (see below). To clone:
-
-<pre>
-$ git clone https://github.com/openjaf/cenit
-</pre>
-
-
-h4. Web Servers
-
-Use the default WEBrick server for convenience. If you plan to deploy to Heroku, select "thin" as your production webserver.
-
-
-h4. Other Choices
-
-Set a robots.txt file to ban spiders if you want to keep your new site out of Google search results.
-
-It is a good idea to use "rvm":https://rvm.io/, the Ruby Version Manager, and create a project-specific rvm gemset (not available on Windows). See "Installing Rails":http://railsapps.github.io/installing-rails.html.
-
-If you choose to create a GitHub repository, the generator will prompt you for a GitHub username and password.
-
-h4. Troubleshooting
-
-Other problems? Check the "issues" https://github.com/openjaf/cenit.
-
-h3. Edit the README
-
-If you're storing the app in a GitHub repository, please edit the README files to add a description of the app and your contact info. If you don't change the README, people will think we are the author of your version of the application.
-
-h2. Getting Started
-
-h3. Install the Required Gems
-
-Check the Gemfile to see which gems are used by this application.
-
-<pre>
-$ bundle install
-</pre>
-
-You can check which gems are installed on your computer with:
-
-<pre>
-$ gem list
-</pre>
-
-Keep in mind that you have installed these gems locally. When you deploy the app to another server, the same gems (and versions) must be available.
-
-I recommend using "rvm":https://rvm.io/, the Ruby Version Manager, to create a project-specific gemset for the application. See the article "Installing Rails":http://railsapps.github.io/installing-rails.html.
-
-h3. Configure Mongoid
-
-Mongoid provides access to the MongoDB database from Rails.
-
-You can use the default configuration found in the file *config/mongoid.yml*.
-
-If you want to see what's in your MongoDB databases, I recommend using the "MongoHub":http://mongohub.todayclose.com/ app (for Mac OS X).S
-
-h3. Configuration File
-
-The application uses the "figaro gem":https://github.com/laserlemon/figaro to set environment variables. Credentials for your administrator account and email account are set in the *config/application.yml* file. The *.gitignore* file prevents the *config/application.yml* file from being saved in the git repository so your credentials are kept private. See the article "Rails Environment Variables":http://railsapps.github.io/rails-environment-variables.html for more information.
-
-Modify the file *config/application.yml*:
-
-<pre>
-# Add account credentials and API keys here.
-# See http://railsapps.github.io/rails-environment-variables.html
-# This file should be listed in .gitignore to keep your settings secret!
-# Each entry sets a local environment variable and overrides ENV variables in the Unix shell.
-# Add application configuration variables here, as shown below.
-</pre>
-
-If you wish, set your name, email address, and password for the first user's account. If you prefer, you can use the default to sign in to the application and edit the account after deployment. It is always a good idea to change the password after the application is deployed.
-
-All configuration values in the *config/application.yml* file are available anywhere in the application as environment variables. For example, @ENV["GMAIL_USERNAME"]@ will return the string "Your_Username".
-
-If you prefer, you can delete the *config/application.yml* file and set each value as an environment variable in the Unix shell.
-
 h2. Contributing
 
 If you make improvements to this application, please share with others.
 
 Send the author a message, create an "issue":https://github.com/openjaf/cenit/issues, or fork the project and submit a pull request.
-
-If you add functionality to this application, create an alternative implementation, or build an application that is similar, please contact me and I'll add a note to the README so that others can find your work.
-
 
 h4. Contributors
 
@@ -299,7 +210,6 @@ Thank you for improvements to the application:
 h2. MIT License
 
 "MIT License":http://www.opensource.org/licenses/mit-license
-
 
 h2. Useful Links
 
