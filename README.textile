@@ -2,9 +2,7 @@
 
 h1. Cenit IO
 
-h2. What is?
-
-Cenit IO is an open source social platform as a service for data and business integration. Cenit IO has been designed to integrate solutions by orchestrating data flows that may involve several APIs. It makes possible 
+An open source social platform as a service for data and business integration. Cenit IO has been designed to integrate solutions by orchestrating data flows that may involve several APIs. It makes possible 
 the automation of all operational processes, connecting legacy apps and internet services.
 
 Allow the creations of custom data pipeline to process, storage and move data between APIs - on premises or public APIs- Flows could be trigger by data events or scheduled time intervals over our platform https://cenit.io
