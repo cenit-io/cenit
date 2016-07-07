@@ -1,4 +1,4 @@
-- if partials = @model_config.try(:after_form_partials)
+- if (partials = @model_config.try(:after_form_partials))
   - partials.each do |partial|
     - if partial.is_a?(Hash)
       - partial.each do |key, locals|

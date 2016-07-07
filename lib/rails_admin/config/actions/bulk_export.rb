@@ -12,6 +12,9 @@ module RailsAdmin
           true
         end
 
+        def key
+          :export
+        end
       end
 
     end

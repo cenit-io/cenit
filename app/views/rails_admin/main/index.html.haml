@@ -104,6 +104,8 @@
             = t("admin.misc.refresh")
           %button#remove_filter.btn.btn-info{title: "Reset filters"}
             %i.icon-white.icon-remove
+      - if export_action
+        %span{style: 'float:right'}= link_to wording_for(:link, export_action), export_path(params.except('set').except('page')), class: 'btn btn-info'
       -# Patch
       - if (model = @abstract_model.model).is_a?(Class) && model.include?(CrossOrigin::Document) && (origins = model.origins).present?
         %span{style: 'float:right'}
@@ -113,8 +115,6 @@
             %button.btn.toggle-origin
               %i{class: param_value.even? ? 'fa fa-toggle-on' : 'fa fa-toggle-off'}
             %input{name: origin_param, value: param_value, type: 'hidden'}
-      - if export_action
-        %span{style: 'float:right'}= link_to wording_for(:link, export_action), export_path(params.except('set').except('page')), class: 'btn btn-info'
 
   - unless @model_config.list.scopes.empty?
     %ul.nav.nav-tabs#scope_selector

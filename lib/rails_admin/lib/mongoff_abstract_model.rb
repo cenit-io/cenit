@@ -72,10 +72,7 @@ module RailsAdmin
     class << self
 
       def new(m)
-        unless (mongoff_abstract_models = Thread.current[thread_key])
-          Thread.current[thread_key] = mongoff_abstract_models = {}
-        end
-        mongoff_abstract_models[m.to_s] ||= old_new(m)
+        current_thread_cache[m.to_s] ||= old_new(m)
       end
 
       def abstract_model_for(mongoff_entity)

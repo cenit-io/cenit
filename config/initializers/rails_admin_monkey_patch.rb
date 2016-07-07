@@ -243,18 +243,6 @@ module RailsAdmin
               begin
                 @objects ||= list_entries
 
-                if (model = @abstract_model.model).is_a?(Class)
-                  if model.include?(CrossOrigin::Document)
-                    origins = []
-                    ([:default] + model.origins).each { |origin| origins << origin if params[origin_param="#{origin}_origin"].to_i.even? }
-                    origins << nil if origins.include?(:default)
-                    @objects = @objects.any_in(origin: origins)
-                  end
-                elsif (output = Setup::AlgorithmOutput.where(id: params[:algorithm_output]).first) &&
-                  output.data_type == model.data_type
-                  @objects = @objects.any_in(id: output.output_ids)
-                end
-
                 unless @model_config.list.scopes.empty?
                   if params[:scope].blank?
                     unless @model_config.list.scopes.first.nil?
@@ -770,6 +758,24 @@ module RailsAdmin
 
 
   class MainController
+
+    alias_method :rails_admin_list_entries, :list_entries
+
+    def list_entries(model_config = @model_config, auth_scope_key = :index, additional_scope = get_association_scope_from_params, pagination = !(params[:associated_collection] || params[:all] || params[:bulk_ids]))
+      scope = rails_admin_list_entries(model_config, auth_scope_key, additional_scope, pagination)
+      if (model = model_config.abstract_model.model).is_a?(Class)
+        if model.include?(CrossOrigin::Document)
+          origins = []
+          ([:default] + model.origins).each { |origin| origins << origin if params[origin_param="#{origin}_origin"].to_i.even? }
+          origins << nil if origins.include?(:default)
+          scope = scope.any_in(origin: origins)
+        end
+      elsif (output = Setup::AlgorithmOutput.where(id: params[:algorithm_output]).first) &&
+        output.data_type == model.data_type
+        scope = scope.any_in(id: output.output_ids)
+      end
+      scope
+    end
 
     def sanitize_params_for!(action, model_config = @model_config, target_params = params[@abstract_model.param_key])
       return unless target_params.present?
