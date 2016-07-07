@@ -44,6 +44,24 @@ h2. Key concepts
 * Applications
 
 
+h2. Loading Schemas & Data Types on flight
+
+* XSD, JSON Schemas and EDI grammars
+* Allow add a new Document Type to the Database
+* CRUD any data with ease
+* Custom actions
+* Search and filtering
+* Export data to CSV/JSON/XML
+* User action history
+
+h2. Manage multiple Protocol Authentication
+
+* Basic Auth
+* Digest Auth
+* OAuth 1.0a
+* OAuth 2.0
+
+
 h2. Shared Collections
 
 There are now over 200 pre-built shared integration collections out the box for connecting 
