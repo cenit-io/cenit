@@ -267,10 +267,6 @@ All configuration values in the *config/application.yml* file are available anyw
 
 If you prefer, you can delete the *config/application.yml* file and set each value as an environment variable in the Unix shell.
 
-
-
-
-
 h2. Contributing
 
 If you make improvements to this application, please share with others.
@@ -279,9 +275,6 @@ Send the author a message, create an "issue":https://github.com/openjaf/cenit/is
 
 If you add functionality to this application, create an alternative implementation, or build an application that is similar, please contact me and I'll add a note to the README so that others can find your work.
 
-h2. Credits
-
-Many of the concepts here develop was inspired by Wombat.
 
 h4. Contributors
 
