@@ -366,7 +366,7 @@ module Mongoff
 
       def for(options = {})
         model_name = options[:name]
-        cache_model = (cache_models = Thread.current[thread_key] ||= {})[model_name]
+        cache_model = (cache_models = current_thread_cache)[model_name]
         unless (data_type = (options[:data_type] || (cache_model && cache_model.data_type)))
           raise Exception.new('name or data type required') unless model_name
           unless (data_type = Setup::DataType.for_name(model_name.split('::').first))

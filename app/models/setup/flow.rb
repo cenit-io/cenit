@@ -152,7 +152,7 @@ module Setup
     end
 
     def process(message={}, &block)
-      executing_id, execution_graph = (Thread.current[thread_key] ||= []).last || [nil, {}]
+      executing_id, execution_graph = current_thread_cache.last || [nil, {}]
       if executing_id.present? && !(adjacency_list = execution_graph[executing_id] ||= []).include?(id.to_s)
         adjacency_list << id.to_s
       end
@@ -171,7 +171,7 @@ module Setup
     def translate(message, &block)
       if translator.present?
         begin
-          (flow_execution = Thread.current[thread_key] ||= []) << [id.to_s, message[:execution_graph] || {}]
+          (flow_execution = current_thread_cache) << [id.to_s, message[:execution_graph] || {}]
           send("translate_#{translator.type.to_s.downcase}", message, &block)
           after_process_callbacks.each do |callback|
             begin
@@ -201,6 +201,12 @@ module Setup
         end
       else
         nil
+      end
+    end
+
+    class << self
+      def default_thread_value
+        []
       end
     end
 
