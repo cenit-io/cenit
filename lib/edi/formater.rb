@@ -199,7 +199,8 @@ module Edi
 
     def record_to_hash(record, options = {}, referenced = false, enclosed_model = nil)
       return record if Cenit::Utility.json_object?(record)
-      model = record.orm_model
+      model = record.orm_model rescue nil
+      return nil unless model
       schema = model.schema
       key_properties = schema['referenced_by'] || []
       json = (referenced = referenced && key_properties.present?) ? { '_reference' => true } : {}
