@@ -2,20 +2,24 @@
 
 h1. Cenit IO
 
-An open source social platform as a service for data and business integration. Cenit IO has been designed to integrate solutions by orchestrating data flows that may involve several APIs. It makes possible 
-the automation of all operational processes, connecting legacy apps and internet services.
+Cenit IO is an open source social platform as a service for data and business integration. It has been designed to integrate solutions with orchestrating data flows that may involve several APIs. 
+It makes possible the automation of all operational processes, connecting legacy apps and internet services.
 
-Allow the creations of custom data pipeline to process, storage and move data between APIs - on premises or public APIs- Flows could be trigger by data events or scheduled time intervals over our platform https://cenit.io
+Allows the creations of custom data pipeline for process, storage and move data between APIs – on premises or public APIs- The flows could be trigger by data events or scheduled time intervals over our platform https://cenit.io
 
-h2. General Feature
+h2. General Features
 
-* Social networking features to share collections.
-* 100% Open Source platform as a service (Open-PaaS).
+* 100% Open Source platform as a service (Open-PaaS) and community friendly. 
 * Router Logic for redirect documents to different endpoints.
-* Powerful transform to translates and modified any formats to any format.
-* Dynamic load schemas: XSD, JSON and EDI grammars.
-* Export and import integration settings (collections).
+* Powerful design with simple abstractions: Data Types, Webhooks, Flows, Events, Connections, Transforms and Validators.
+* Support exchange multiple formats XML, JSON, CSV, EDI(X12, EDIFACT, ..), etc.
+* Dinamic Load validators: XML Schema, JSON Schema and EDI grammars.
+* Powerful transformations tools to translate and modified several formats in others.
+* Full stack HTTP RESTful API, and building client libraries for Ruby and Python.
+* Social networking features to shared integration settings, named shared collections.
+* Export and import shared collections as a repo on Github and a gem in Rubygems.
 * Multi-tenancy with shared-schema database.
+* Social networking features to share collections.
 
 
 h2. Key concepts
@@ -51,8 +55,7 @@ h2. Manage multiple Protocol Authentication
 
 h2. Shared Collections
 
-There are now over 200 pre-built shared integration collections out the box for connecting 
-to internet services, fulfilment solutions, accounting, communications, ERP, multi-channels, etc.
+There are now over 200 pre-built shared integration collections out the box for connecting to internet services, fulfilment solutions, accounting, communications, ERP, multi-channels, etc.
 
 h1. Join us
 
@@ -83,7 +86,7 @@ Change branch to develop.
 $ git checkout -b develop origin/develop
 </pre>
 
-Ensure stay in develop branch.
+Ensure that you stay in develop branch.
 
 <pre>
 $ git branch
@@ -97,7 +100,7 @@ $ git pull origin develop
 > Already up-to-date.
 </pre>
 
-Run the bundle install command to install the required gems on your computer:
+Run the bundle install command to set up the required gems on your computer:
 
 <pre>
 $ bundle install
@@ -127,7 +130,7 @@ Cenit::Application.config.secret_key_base = 'bla' # replace this
 go to http://localhost:3000
 </pre>
 
-If you have some trouble check that mondodb is running.
+If you have some trouble please check that mondodb is running.
 
 Check that you have a working installation of "RabbitMQ":http://www.rabbitmq.com, see below the guide for install RabbitMQ.
 
@@ -196,16 +199,13 @@ Send the author a message, create an "issue":https://github.com/openjaf/cenit/is
 
 h4. Contributors
 
-Thank you for improvements to the application:
+Thank you for help with the solution:
 
 * "Maikel Arcia":https://github.com/macarci
 * "Miguel Sancho":https://github.com/sanchojaf
-* "Asnioby Hdez":https://github.com/asnioby
 * "Daniel H. Bahr":https://github.com/dhbahr
 * "Maria E. Guirola":https://github.com/maryguirola
 * "Cesar Lage":https://github.com/kaerdsar
-* "Maykell Sanchez":https://github.com/kellsaro
-* "José A. Cruz":https://github.com/jalbertcruz
 
 h2. MIT License
 
