@@ -19,14 +19,28 @@ This facts overkill many companies that can’t overcome these challenges.
 
 h2. General Feature
 
-* 100% Open Source platform as a service (Open-PaaS).
-* Hub with a great design that provides powerful yet simple abstractions, making a complex problem tractable.
-* Primary concepts are: Data Type/File, Flow, Event, API Connection and Transform.
-* Dynamic load schemas: XSD, JSON and EDI grammars.
-* Powerful transform to translates and modified any formats to any format.
-* Full Stack HTTP API and incremental API's helper libraries in several languages.
-* Export and import integration settings (collections).
 * Social networking features to share collections.
+* 100% Open Source platform as a service (Open-PaaS).
+* Router Logic for redirect documents to different endpoints.
+* Powerful transform to translates and modified any formats to any format.
+* Dynamic load schemas: XSD, JSON and EDI grammars.
+* Export and import integration settings (collections).
+* Multi-tenancy with shared-schema database.
+
+
+h2. Key concepts
+
+* Webhooks
+* Connections
+* Connection Roles
+* Translators
+* Algorithms
+* Authorizations
+* Data Events
+* Schedulers
+* Flows
+* Applications
+
 
 h2. Shared Collections
 
@@ -46,7 +60,6 @@ h2. Frameworks and Tools.
 * Mongoid and Mongoff as Object Document Mapper (ODM)
 * rails_admin, for build admin panel.
 * RabbitMQ for internal pipeline messages.
-* Authentication (via Devise)
 
 h3. Create Cenit IO local server.
 
