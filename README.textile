@@ -143,8 +143,8 @@ h2. Dependencies
 
 Before generating your application, you will need:
 
-* The Ruby language (version 1.9.3 or 2.0.0)
-* The Rails gem (version 4.0.5)
+* The Ruby language
+* The Rails gem
 * A working installation of "MongoDB":http://www.mongodb.org/
 * A working installation of "RabbitMQ":http://www.rabbitmq.com
 
