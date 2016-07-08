@@ -182,5 +182,30 @@ module Setup
     def stored_outputs(options = {})
       AlgorithmOutput.where(algorithm: self).desc(:created_at)
     end
+
+    def configuration_schema
+      schema =
+          {
+              type: 'object',
+              properties: properties = {
+              }.stringify_keys,
+              required: parameters.select(&:required).collect{|p| p.name}
+          }
+      parameters.each { |p| properties[p.name] = p.schema }
+      schema.stringify_keys
+    end
+
+
+    def configuration_model
+      @mongoff_model ||= Mongoff::Model.for(data_type: self.class.data_type,
+                                            schema: configuration_schema,
+                                            name: self.class.configuration_model_name)
+    end
+
+    class << self
+      def configuration_model_name
+        "#{Setup::Algorithm}::Config"
+      end
+    end
   end
 end

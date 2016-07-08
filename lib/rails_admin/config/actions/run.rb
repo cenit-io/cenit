@@ -17,27 +17,47 @@ module RailsAdmin
 
         register_instance_option :controller do
           proc do
-
-            if params[:_run]
+            mongoff_model = @object.configuration_model
+            @model_config = RailsAdmin::Config.model(mongoff_model)
+            if params[:_save]
               begin
-                if params[:background].present?
-                  task_class, id_key =
-                    if @abstract_model.model == Setup::Algorithm
-                      [Setup::AlgorithmExecution, :algorithm_id]
-                    else
-                      [::ScriptExecution, :script_id]
-                    end
-                  do_flash_process_result task_class.process(id_key => @object.id,
-                                                             input: params.delete(:input),
-                                                             skip_notification_level: true)
+                params.permit! unless params.nil?
+                @form_object = mongoff_model.new(params[:setup_algorithm_config])
+                if @form_object.valid?
+                  values = @form_object.to_hash.to_a
+                  if params[:background].present?
+                    task_class, id_key =
+                        if @abstract_model.model == Setup::Algorithm
+                          [Setup::AlgorithmExecution, :algorithm_id]
+                        else
+                          [::ScriptExecution, :script_id]
+                        end
+                    do_flash_process_result task_class.process(id_key => @object.id,
+                                                               input: values,
+                                                               skip_notification_level: true)
+                  else
+                    @output = @object.run(@input = values)
+                  end
                 else
-                  @output = @object.run(@input = params.delete(:input))
+                  if @form_object.errors.present?
+                    do_flash(:error, 'Error!', @form_object.errors.full_messages)
+                  end
                 end
               rescue Exception => ex
                 @error = ex.message
+                do_flash(:error, 'Error!', @error)
               end
+              render :form
+            else
+              @form_object ||= mongoff_model.new
+              @model_config.register_instance_option(:discard_submit_buttons) { true }
+              # @model_config.register_instance_option(:after_form_partial) { :run }
+              if @form_object.errors.present?
+                do_flash(:error, 'There are errors in the configuration data specification', @form_object.errors.full_messages)
+              end
+
+              render :form
             end
-            render :run
           end
         end
 
