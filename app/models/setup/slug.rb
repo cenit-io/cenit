@@ -62,7 +62,7 @@ module Setup
     end
 
     def slug_taken?(slug)
-      self.class.where(slug: slug).present?
+      self.class.where(slug: slug, :id.nin => [id]).present?
     end
   end
 end
