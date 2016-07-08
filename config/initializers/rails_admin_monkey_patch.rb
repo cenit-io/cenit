@@ -410,6 +410,23 @@ module RailsAdmin
           [v, total]
         end
       end
+
+      module Types
+
+        class Datetime
+
+          register_instance_option :formatted_value do
+            if (time = value)
+              if (current_account = Account.current)
+                time = time.localtime(current_account.time_zone_offset)
+              end
+              I18n.l(time, format: strftime_format)
+            else
+              ''.html_safe
+            end
+          end
+        end
+      end
     end
   end
 
