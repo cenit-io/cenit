@@ -155,7 +155,7 @@ function algorithmInit() {
     var output_validate_field = $('#setup_algorithm_validate_output_field');
 
     var output_datatype = $('#setup_algorithm_output_datatype_id');
-    // var output_validate = $('#setup_algorithm_validate_output');
+    var output_validate = $('#setup_algorithm_validate_output');
 
     if (! output_store)
         return;
@@ -167,11 +167,18 @@ function algorithmInit() {
         var store = output_store.is(':checked');
         if (store) {
             output_datatype_field.removeClass('hidden');
-        }
 
-        var dt = output_datatype.val();
-        if (dt) {
-            output_validate_field.removeClass('hidden');
+            var dt = output_datatype.val();
+            if (dt) {
+                output_validate_field.removeClass('hidden');
+            } else {
+                output_validate.removeAttr('checked');
+            }
+        } else {
+            output_datatype.val('');
+            output_datatype.children().removeAttr('selected');
+            output_datatype_field.find('input').val('');
+            output_validate.removeAttr('checked');
         }
     }
 

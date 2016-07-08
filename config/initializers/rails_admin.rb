@@ -2062,7 +2062,7 @@ RailsAdmin.config do |config|
 
   config.model Setup::AlgorithmParameter do
     visible false
-    fields :name, :description
+    fields :name, :type, :many, :required, :default
   end
 
   config.model Setup::CallLink do
