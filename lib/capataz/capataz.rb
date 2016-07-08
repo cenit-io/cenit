@@ -109,7 +109,16 @@ module Capataz
       end
       buffer = Parser::Source::Buffer.new('code')
       buffer.source = code
-      Capataz::Rewriter.new(options).rewrite(buffer, Parser::CurrentRuby.new.parse(buffer))
+      begin
+        Capataz::Rewriter.new(options).rewrite(buffer, Parser::CurrentRuby.new.parse(buffer))
+      rescue Exception => ex
+        if (logs = options[:logs]).is_a?(Hash) &&
+          (errors = (logs[:errors] ||= [])).is_a?(Array)
+          errors << "syntax error: #{ex.message}"
+        else
+          raise ex
+        end
+      end
     end
 
     def handle(obj, options = {})

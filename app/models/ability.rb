@@ -80,14 +80,12 @@ class Ability
             end
           end
           Setup::Models.each_excluded_action do |model, excluded_actions|
-            puts 'OK!'
             non_root.each do |action|
               models = allowed_hash[key = action.authorization_key]
               models << model if relevant_rules_for_match(action.authorization_key, model).empty? && !(excluded_actions.include?(:all) || excluded_actions.include?(action.key))
             end
           end
           Setup::Models.each_included_action do |model, included_actions|
-            puts 'Ok!'
             non_root.each do |action|
               models = allowed_hash[key = action.authorization_key]
               models << model if included_actions.include?(action.key)
