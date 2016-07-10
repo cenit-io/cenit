@@ -1,16 +1,16 @@
-"!https://codeclimate.com/github/openjaf/cenit/badges/gpa.svg!":https://codeclimate.com/github/openjaf/cenit !http://cenit-slack.herokuapp.com/badge.svg!
+[![Code Climate](https://codeclimate.com/github/openjaf/cenit/badges/gpa.svg)](:https://codeclimate.com/github/openjaf/cenit)
+[![codebeat](https://codebeat.co/badges/1b596784-b6c1-4ce7-b739-c91b873e4b5d)](https://codebeat.co/projects/github-com-cenit-io-cenit)
+[![Slack Status](http://cenit-slack.herokuapp.com/badge.svg)](http://cenitio.slack.com)
 
-* "cenit.io":https://cenit.io
-* "Join our Slack":http://cenit-slack.herokuapp.com ("cenitio.slack.com":http://cenitio.slack.com)
-
-h1. Cenit IO
+* [Cenit IO](https://cenit.io)
+* [Join our Slack](http://cenit-slack.herokuapp.com/)
 
 Cenit IO is an open source social platform as a service for data and business integration. It has been designed to integrate solutions with orchestrating data flows that may involve several APIs. 
 It makes possible the automation of all operational processes, connecting legacy apps and internet services.
 
 Allows the creations of custom data pipeline for process, storage and move data between APIs – on premises or public APIs- The flows could be trigger by data events or scheduled time intervals over our platform https://cenit.io
 
-h2. General Features
+## General Features
 
 * 100% Open Source platform as a service (Open-PaaS) and community friendly. 
 * Router Logic for redirect documents to different endpoints.
@@ -25,7 +25,7 @@ h2. General Features
 * Social networking features to share collections.
 
 
-h2. Key concepts
+## Key concepts
 
 * Webhooks
 * Connections
@@ -39,7 +39,7 @@ h2. Key concepts
 * Applications
 
 
-h2. Loading Schemas & Data Types on flight
+## Loading Schemas & Data Types on flight
 
 * XSD, JSON Schemas and EDI grammars
 * Allow add a new Document Type to the Database
@@ -48,7 +48,7 @@ h2. Loading Schemas & Data Types on flight
 * Export data to CSV/JSON/XML
 * User action history
 
-h2. Manage multiple Protocol Authentication
+## Manage multiple Protocol Authentication
 
 * Basic Auth
 * Digest Auth
@@ -56,17 +56,17 @@ h2. Manage multiple Protocol Authentication
 * OAuth 2.0
 
 
-h2. Shared Collections
+## Shared Collections
 
 There are now over 200 pre-built shared integration collections out the box for connecting to internet services, fulfilment solutions, accounting, communications, ERP, multi-channels, etc.
 
-h1. Join us
+## Join us
 
 * Github project: https://github.com/openjaf/cenit
 * Email: support@cenit.io
 * Website: https://cenit.io
 
-h2. Frameworks and Tools.
+## Frameworks and Tools.
 
 * Ruby on Rails
 * MongoDB
@@ -74,148 +74,142 @@ h2. Frameworks and Tools.
 * rails_admin, for build admin panel.
 * RabbitMQ for internal pipeline messages.
 
-h3. Create Cenit IO local server.
+### Create Cenit IO local server.
 
 Clone the github openjaf/cenit repo and move to cenit folder.
 
-<pre>
+```
 $ git clone https://github.com/openjaf/cenit
 $ cd cenit
-</pre>
+```
 
 Change branch to develop.
 
-<pre>
+```
 $ git checkout -b develop origin/develop
-</pre>
+```
 
 Ensure that you stay in develop branch.
 
-<pre>
+```
 $ git branch
 > *develop
-</pre>
+```
 
 Ensure that 'develop' branch is updated.
 
-<pre>
+```
 $ git pull origin develop
 > Already up-to-date.
-</pre>
+```
 
 Run the bundle install command to set up the required gems on your computer:
 
-<pre>
+```
 $ bundle install
-</pre>
+```
 
 With mongodb you don't need run migrations
 
 Run cenit hub by port: 3000
 
-<pre>
+```
 $ rails s -p 3000
-</pre>
+```
 
 If you have some trouble with secret_key_base running 'rails s', you can generate a random secret key value:
 
-<pre>
+```
 $ rake secret
-</pre>	
+```	
 
 Then take this value and put it in config/initializers/secret_token.rb:
 
-<pre>
+```
 Cenit::Application.config.secret_key_base = 'bla' # replace this
-</pre>
+```
 
-<pre>
+```
 go to http://localhost:3000
-</pre>
+```
 
 If you have some trouble please check that mondodb is running.
 
-Check that you have a working installation of "RabbitMQ":http://www.rabbitmq.com, see below the guide for install RabbitMQ.
+Check that you have a working installation of [RabbitMQ](http://www.rabbitmq.com), see below the guide for install RabbitMQ.
 
 If RabbitMQ is well installed when you run rails server then you can see:
 
-<pre>
+```
  [*] Waiting for messages. To exit press CTRL+C	
-</pre>
+```
 
-h2. Dependencies
+## Dependencies
 
 Before generating your application, you will need:
 
 * The Ruby language
 * The Rails gem
-* A working installation of "MongoDB":http://www.mongodb.org/
-* A working installation of "RabbitMQ":http://www.rabbitmq.com
+* A working installation of [MongoDB](http://www.mongodb.org)
+* A working installation of [RabbitMQ](http://www.rabbitmq.com)
 
 
-h3. Installing MongoDB
+### Installing MongoDB
 
 If you don't have MongoDB installed on your computer, you'll need to install it and set it up to be always running on your computer (run at launch).
 
 On Mac OS X, the easiest way to install MongoDB is to install "Homebrew":http://mxcl.github.com/homebrew/ and then run the following:
 
-<pre>
+```
 brew install mongodb
-</pre>
+```
 
 Homebrew will provide post-installation instructions to get MongoDB running. The last line of the installation output shows you the MongoDB install location (for example, */usr/local/Cellar/mongodb/1.8.0-x86_64*). You'll find the MongoDB configuration file there. After an installation using Homebrew, the default data directory will be */usr/local/var/mongodb*.
 
-On the Debian GNU/Linux operating system, as of March 2013, the latest stable version is MongoDB 2.0.0. With MongoDB 2.0.0, the Mongoid gem must be version 3.0.x. See the "Mongoid installation instructions":http://mongoid.org/en/mongoid/docs/installation.html#installation. Change your Gemfile to use an earlier Mongoid version:
+On the Debian GNU/Linux operating system, as of March 2013, the latest stable version is MongoDB 2.0.0. With MongoDB 2.0.0, the Mongoid gem must be version 3.0.x. See the [Mongoid installation instructions](http://mongoid.org/en/mongoid/docs/installation.html#installation). Change your Gemfile to use an earlier Mongoid version:
 
-<pre>
+```
 gem 'mongoid', github: 'mongoid/mongoid'
 gem 'bson_ext', '~> 1.8.6'
-</pre>
+```
 
-h3. Installing RabbitMQ
+### Installing RabbitMQ
 
-The "RabbitMQ":http://www.rabbitmq.com site has a good "installation guide":http://www.rabbitmq.com/download.html that addresses many operating systems. On Mac OS X, the fastest way to install RabbitMQ is with "Homebrew":http://brew.sh:
+The [RabbitMQ](http://www.rabbitmq.com) site has a good [installation guide](http://www.rabbitmq.com/download.html) that addresses many operating systems. On Mac OS X, the fastest way to install RabbitMQ is with [Homebrew](http://brew.sh):
 
-<pre>
+```
 brew install rabbitmq
-</pre>
+```
 
 then run it:
 
-<pre>
+```
 rabbitmq-server
-</pre>
+```
 
-On Debian and Ubuntu, you can either "download the RabbitMQ .deb package":http://www.rabbitmq.com/download.html and install it with "dpkg":http://www.debian.org/doc/manuals/debian-faq/ch-pkgtools.en.html or make use of the "apt repository":http://www.rabbitmq.com/install-debian.html that the RabbitMQ team provides.
+On Debian and Ubuntu, you can either [download the RabbitMQ .deb package](http://www.rabbitmq.com/download.html) and install it with [dpkg](http://www.debian.org/doc/manuals/debian-faq/ch-pkgtools.en.html) or make use of the [apt repository](http://www.rabbitmq.com/install-debian.html) that the RabbitMQ team provides.
 
-For RPM-based distributions like RedHat or CentOS, the RabbitMQ team provides an "RPM package":http://www.rabbitmq.com/download.html.
+For RPM-based distributions like RedHat or CentOS, the RabbitMQ team provides an [RPM package](http://www.rabbitmq.com/download.html).
 
-<pre>
+```
 Note: The RabbitMQ packages that ship with Ubuntu versions earlier than 11.10 are outdated and will not work with Bunny 0.9.0 and later versions (you will need at least RabbitMQ v2.0 for use with this guide).
-</pre>
+```
 
-h2. Contributing
+## Contributing
 
 If you make improvements to this application, please share with others.
 
-Send the author a message, create an "issue":https://github.com/openjaf/cenit/issues, or fork the project and submit a pull request.
+Send the author a message, create an [issue](https://github.com/openjaf/cenit/issues), or fork the project and submit a pull request.
 
-h4. Contributors
+### Contributors
 
 Thank you for help with the solution:
 
-* "Maikel Arcia":https://github.com/macarci
-* "Miguel Sancho":https://github.com/sanchojaf
-* "Daniel H. Bahr":https://github.com/dhbahr
-* "Maria E. Guirola":https://github.com/maryguirola
-* "Cesar Lage":https://github.com/kaerdsar
+* [Maikel Arcia](https://github.com/macarci)
+* [Miguel Sancho](https://github.com/sanchojaf)
+* [Daniel H. Bahr](https://github.com/dhbahr)
+* [Maria E. Guirola](https://github.com/maryguirola)
+* [Cesar Lage](https://github.com/kaerdsar)
 
-h2. MIT License
+## MIT License
 
-"MIT License":http://www.opensource.org/licenses/mit-license
-
-h2. Useful Links
-
-Cenit IO: https://cenit.io
-
-
+[MIT License](http://www.opensource.org/licenses/mit-license)
