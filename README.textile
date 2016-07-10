@@ -1,4 +1,4 @@
-"!https://codeclimate.com/github/openjaf/cenit/badges/gpa.svg!":https://codeclimate.com/github/openjaf/cenit
+"!https://codeclimate.com/github/openjaf/cenit/badges/gpa.svg!":https://codeclimate.com/github/openjaf/cenit !http://cenit-slack.herokuapp.com/badge.svg!
 
 * "cenit.io":https://cenit.io
 * "Join our Slack":http://cenit-slack.herokuapp.com ("cenitio.slack.com":http://cenitio.slack.com)
