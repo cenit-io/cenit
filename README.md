@@ -1,9 +1,10 @@
 [![Code Climate](https://codeclimate.com/github/openjaf/cenit/badges/gpa.svg)](:https://codeclimate.com/github/openjaf/cenit)
 [![codebeat](https://codebeat.co/badges/1b596784-b6c1-4ce7-b739-c91b873e4b5d)](https://codebeat.co/projects/github-com-cenit-io-cenit)
+[![license](https://img.shields.io/packagist/l/doctrine/orm.svg)]()
 [![Slack Status](http://cenit-slack.herokuapp.com/badge.svg)](http://cenitio.slack.com)
 
 * [Cenit IO](https://cenit.io)
-* [Join our Slack](http://cenit-slack.herokuapp.com/)
+* [Join our Slack](http://cenit-slack.herokuapp.com/) [(cenitio.slack.com)](http://cenitio.slack.com)
 
 Cenit IO is an open source social platform as a service for data and business integration. It has been designed to integrate solutions with orchestrating data flows that may involve several APIs. 
 It makes possible the automation of all operational processes, connecting legacy apps and internet services.
@@ -62,7 +63,7 @@ There are now over 200 pre-built shared integration collections out the box for 
 
 ## Join us
 
-* Github project: https://github.com/openjaf/cenit
+* Github project: https://github.com/cenit-io/cenit
 * Email: support@cenit.io
 * Website: https://cenit.io
 
@@ -76,10 +77,10 @@ There are now over 200 pre-built shared integration collections out the box for 
 
 ### Create Cenit IO local server.
 
-Clone the github openjaf/cenit repo and move to cenit folder.
+Clone the github cenit-io/cenit repo and move to cenit folder.
 
 ```
-$ git clone https://github.com/openjaf/cenit
+$ git clone https://github.com/cenit-io/cenit
 $ cd cenit
 ```
 
@@ -198,7 +199,7 @@ Note: The RabbitMQ packages that ship with Ubuntu versions earlier than 11.10 ar
 
 If you make improvements to this application, please share with others.
 
-Send the author a message, create an [issue](https://github.com/openjaf/cenit/issues), or fork the project and submit a pull request.
+Send the author a message, create an [issue](https://github.com/cenit-io/cenit/issues), or fork the project and submit a pull request.
 
 ### Contributors
 
@@ -210,6 +211,3 @@ Thank you for help with the solution:
 * [Maria E. Guirola](https://github.com/maryguirola)
 * [Cesar Lage](https://github.com/kaerdsar)
 
-## MIT License
-
-[MIT License](http://www.opensource.org/licenses/mit-license)
