@@ -375,6 +375,11 @@ en:
         menu: "Clean Up"
         breadcrumb: "Clean Up"
         warn: "All your data will be destroyed"
+      upload_api:
+              title: "Upload Api"
+              menu: "Upload Api"
+              submit: "Upload Api"
+              breadcrumb: "Upload Api"
     scheduler:
       cyclic: 'Cyclic'
       appointed: 'Appointed'

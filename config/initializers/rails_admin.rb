@@ -40,7 +40,8 @@
   RailsAdmin::Config::Actions::SharedCollectionIndex,
   RailsAdmin::Config::Actions::BulkPull,
   RailsAdmin::Config::Actions::CleanUp,
-  RailsAdmin::Config::Actions::ShowRecords
+  RailsAdmin::Config::Actions::ShowRecords,
+  RailsAdmin::Config::Actions::UploadApi
 ].each { |a| RailsAdmin::Config::Actions.register(a) }
 
 RailsAdmin::Config::Actions.register(:export, RailsAdmin::Config::Actions::BulkExport)
@@ -116,6 +117,7 @@ RailsAdmin.config do |config|
     shared_collection_index
     index # mandatory
     new { except [Setup::Event, Setup::DataType, Setup::Authorization, Setup::BaseOauthProvider] }
+    upload_api
     import
     import_schema
     translator_update
@@ -3013,6 +3015,22 @@ RailsAdmin.config do |config|
     end
 
     fields :translator, :data, :description, :scheduler, :attempts_succeded, :retries, :progress, :status, :notifications, :updated_at
+  end
+
+  config.model Setup::UploadApi do
+    navigation_label 'Monitors'
+    visible false
+    object_label_method { :to_s }
+
+    configure :attempts_succeded, :text do
+      label 'Attempts/Succedded'
+    end
+
+    edit do
+      field :description
+    end
+
+    fields :data, :description, :scheduler, :attempts_succeded, :retries, :progress, :status, :notifications, :updated_at
   end
 
   config.model Setup::SchemasImport do
