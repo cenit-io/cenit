@@ -1,10 +1,12 @@
 - if (partials = @model_config.try(:after_form_partials))
+  - unless partials.is_a?(Enumerable)
+    - partials = [partials]
   - partials.each do |partial|
     - if partial.is_a?(Hash)
       - partial.each do |key, locals|
-        = render partial: key, locals: locals
+        = render partial: key.to_s, locals: locals
     - else
-      = render partial: partial
+      = render partial: partial.to_s
 - unless @model_config.with(action: @action, object: @object, controller: @_controller).try(:discard_submit_buttons)
   .form-group.form-actions
     .col-sm-offset-2.col-sm-10

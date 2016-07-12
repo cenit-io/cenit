@@ -157,6 +157,8 @@ function algorithmInit() {
     var output_datatype = $('#setup_algorithm_output_datatype_id');
     var output_validate = $('#setup_algorithm_validate_output');
 
+    var parameters_root = $('#setup_algorithm_parameters_attributes_field');
+
     if (! output_store)
         return;
 
@@ -181,10 +183,31 @@ function algorithmInit() {
             output_validate.removeAttr('checked');
         }
     }
-
     output_store.on('change', updateView);
     output_datatype.on('change', updateView);
     updateView();
+
+    function updateParameter(top) {
+        var default_field = $(top).find('.default_field');
+        var required_input = $(top).find('.required_field input[type=checkbox]');
+
+        if (required_input.is(':checked')) {
+            default_field.addClass('hidden');
+            // default_field.find('textarea').attr('required', false);
+        } else {
+            default_field.removeClass('hidden');
+            // default_field.find('textarea').attr('required', true);
+        }
+
+        default_field.find('.help-block').hide();
+    }
+    parameters_root.find('.tab-pane').each(function () {
+        var root = this;
+        updateParameter(root);
+        $(root).find('.required_field input[type=checkbox]').on('change', function(){
+            updateParameter(root);
+        })
+    });
 }
 
 function handlerInit() {
