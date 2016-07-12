@@ -6,7 +6,7 @@ module Setup
     include WithTemplateParameters
     include AuthorizationHandler
 
-    build_in_data_type.referenced_by(:namespace, :name).excluding(:connection_roles)
+    build_in_data_type.referenced_by(:namespace, :name).excluding(:connection_roles).protecting(:number, :token)
 
     parameters :parameters, :headers, :template_parameters
 
@@ -37,12 +37,6 @@ module Setup
     end
 
     class << self
-
-      def share_options
-        opts = super
-        opts[:ignore] = opts[:ignore] + [:number, :token]
-        opts
-      end
 
       def respond_to?(*args)
         Setup::Webhook.method_enum.include?(args.first) || super

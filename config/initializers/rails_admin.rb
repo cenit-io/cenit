@@ -1508,6 +1508,9 @@ RailsAdmin.config do |config|
         { maxlength: 30, size: 30 }
       end
       group :credentials
+      pretty_value do
+        (value || '<i class="icon-lock"/>').html_safe
+      end
     end
 
     configure :token, :text do
@@ -1515,6 +1518,9 @@ RailsAdmin.config do |config|
         { cols: '50', rows: '1' }
       end
       group :credentials
+      pretty_value do
+        (value || '<i class="icon-lock"/>').html_safe
+      end
     end
 
     configure :authorization do
@@ -2461,21 +2467,13 @@ RailsAdmin.config do |config|
 
     configure :identifier do
       pretty_value do
-        if Account.current.id == bindings[:object].tenant_id
-          value
-        else
-          '<i class="icon-lock"/>'.html_safe
-        end
+        (value || '<i class="icon-lock"/>').html_safe
       end
     end
 
     configure :secret do
       pretty_value do
-        if Account.current && Account.current.id == bindings[:object].tenant_id
-          value
-        else
-          '<i class="icon-lock"/>'.html_safe
-        end
+        (value || '<i class="icon-lock"/>').html_safe
       end
     end
 
