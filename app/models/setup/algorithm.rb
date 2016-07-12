@@ -27,14 +27,10 @@ module Setup
     def validate_parameters
       required = true
       parameters.each do |p|
-        if p.required
-          unless required
-            errors.add(:parameters, 'marked as "Required" must come before non marked')
-          end
-        else
-          if required
+        if p.required && !required
+          errors.add(:parameters, 'marked as "Required" must come before non marked')
+        elsif required
             required = false
-          end
         end
       end
       errors.blank?
@@ -210,7 +206,7 @@ module Setup
               type: 'object',
               properties: properties = {
               }.stringify_keys,
-              required: parameters.select(&:required).collect { |p| p.name }
+              required: parameters.select(&:required).collect(&:name)
           }
       parameters.each { |p| properties[p.name] = p.schema }
       schema.stringify_keys
