@@ -1747,6 +1747,10 @@ RailsAdmin.config do |config|
       end
     end
 
+    Setup::FlowConfig::FIELDS.each do |f|
+      configure f.to_sym, Setup::Flow.data_type.schema['properties'][f]['type'].to_sym
+    end
+
     edit do
       field :namespace, :enum_edit, &shared_non_editable
       field :name, &shared_non_editable
@@ -3215,13 +3219,24 @@ RailsAdmin.config do |config|
 
   config.model Setup::DataTypeConfig do
     navigation_label 'Configuration'
-    label 'Data Type'
-    label_plural 'Data Types'
+    label 'Data Type Config'
+    label_plural 'Data Types Configs'
     weight -8
     configure :data_type do
       read_only true
     end
     fields :data_type, :slug, :navigation_link, :updated_at
+  end
+
+  config.model Setup::FlowConfig do
+    navigation_label 'Configuration'
+    label 'Flow Config'
+    label_plural 'Flows Configs'
+    weight -8
+    configure :flow do
+      read_only true
+    end
+    fields :flow, :active, :notify_request, :notify_response, :discard_events
   end
 
   config.model Setup::Pin do

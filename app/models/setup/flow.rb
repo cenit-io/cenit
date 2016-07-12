@@ -6,13 +6,28 @@ module Setup
     include NamespaceNamed
     include TriggersFormatter
     include ThreadAware
+    include ChangedIf
 
-    build_in_data_type.referenced_by(:namespace, :name).excluding(:notify_response, :notify_request)
-
-    field :active, type: Boolean, default: :true
-    field :notify_request, type: Boolean, default: :false
-    field :notify_response, type: Boolean, default: :false
-    field :discard_events, type: Boolean
+    build_in_data_type.referenced_by(:namespace, :name)
+    build_in_data_type.and({
+                             properties: {
+                               active: {
+                                 type: 'boolean',
+                                 default: true
+                               },
+                               notify_request: {
+                                 type: 'boolean',
+                                 default: false
+                               },
+                               notify_response: {
+                                 type: 'boolean',
+                                 default: false
+                               },
+                               discard_events: {
+                                 type: 'boolean'
+                               }
+                             }
+                           }.deep_stringify_keys)
 
     binding_belongs_to :event, class_name: Setup::Event.to_s, inverse_of: nil
 
@@ -34,8 +49,22 @@ module Setup
 
     validates_numericality_in_presence_of :lot_size, greater_than_or_equal_to: 1
 
+    shared_configurable *Setup::FlowConfig::FIELDS
+
     before_save :validates_configuration, :check_scheduler
+
     after_save :schedule_task
+
+    after_destroy do
+      flow_config.destroy
+    end
+
+    changed_if { flow_config.changed? }
+
+    def configure
+      super
+      flow_config.save if flow_config.changed?
+    end
 
     def validates_configuration
       format_triggers_on(:scope_filter) if scope_filter.present?
@@ -217,10 +246,46 @@ module Setup
     end
 
     class << self
+
       def default_thread_value
         []
       end
+
+      class << self
+
+        def where(expression)
+          if expression.is_a?(Hash) && Setup::FlowConfig::FIELDS.any? { |field| expression.has_key?(field.to_sym) || expression.has_key?(field) }
+            config_options = {}
+            Setup::FlowConfig::FIELDS.each do |field|
+              if expression.has_key?(key = field.to_sym) || expression.has_key?(key = field)
+                config_options[field] = expression.delete(key)
+              end
+            end
+            super.any_in(id: Setup::FlowConfig.where(config_options).collect(&:data_type_id))
+          else
+            super
+          end
+        end
+
+        def clear_config_for(account, ids)
+          super
+          Setup::FlowConfig.with(account).where(:flow_id.in => ids).delete_all
+        end
+      end
     end
+
+    def flow_config
+      @flow_config ||=
+        begin
+          if new_record?
+            Setup::FlowConfig.new(flow: self)
+          else
+            Setup::FlowConfig.find_or_create_by(flow: self)
+          end
+        end
+    end
+
+    delegate *Setup::FlowConfig::FIELDS.collect { |p| [p.to_sym, "#{p}=".to_sym] }.flatten, to: :flow_config
 
     private
 
