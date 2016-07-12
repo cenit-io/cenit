@@ -17,8 +17,12 @@ module RailsAdmin
 
         register_instance_option :controller do
           proc do
+
             mongoff_model = @object.configuration_model
+
             @model_config = RailsAdmin::Config.model(mongoff_model)
+            @model_config.register_instance_option(:discard_submit_buttons) { true }
+
             if params[:_save]
               begin
                 params.permit! unless params.nil?
@@ -37,6 +41,7 @@ module RailsAdmin
                                                                skip_notification_level: true)
                   else
                     @output = @object.run(@input = values)
+                    @model_config.register_instance_option(:after_form_partials) { :algorithm_output }
                   end
                 else
                   if @form_object.errors.present?
@@ -47,17 +52,13 @@ module RailsAdmin
                 @error = ex.message
                 do_flash(:error, 'Error!', @error)
               end
-              render :form
             else
               @form_object ||= mongoff_model.new
-              @model_config.register_instance_option(:discard_submit_buttons) { true }
-              # @model_config.register_instance_option(:after_form_partial) { :run }
               if @form_object.errors.present?
                 do_flash(:error, 'There are errors in the configuration data specification', @form_object.errors.full_messages)
               end
-
-              render :form
             end
+            render :form
           end
         end
 

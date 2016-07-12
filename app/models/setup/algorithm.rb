@@ -19,7 +19,26 @@ module Setup
     belongs_to :output_datatype, class_name: Setup::DataType.to_s, inverse_of: nil
     field :validate_output, type: Boolean
 
-    before_save :validate_code, :validate_output_processing
+    before_save :validate_parameters, :validate_code, :validate_output_processing
+
+    @last_output = nil
+    attr_reader :last_output
+
+    def validate_parameters
+      required = true
+      parameters.each do |p|
+        if p.required
+          unless required
+            errors.add(:parameters, 'marked as "Required" must come before non marked')
+          end
+        else
+          if required
+            required = false
+          end
+        end
+      end
+      errors.blank?
+    end
 
     def validate_code
       if code.blank?
@@ -143,7 +162,9 @@ module Setup
           end
           begin
             ids = do_store_output rc
-            AlgorithmOutput.create(algorithm: self, data_type: output_datatype, output_ids: ids)
+
+            @last_output = AlgorithmOutput.create(algorithm: self, data_type: output_datatype, input_params: args,
+                                                  output_ids: ids)
           rescue Exception => e
             if validate_output
               fail 'Execution failed!' + e.message
@@ -189,7 +210,7 @@ module Setup
               type: 'object',
               properties: properties = {
               }.stringify_keys,
-              required: parameters.select(&:required).collect{|p| p.name}
+              required: parameters.select(&:required).collect { |p| p.name }
           }
       parameters.each { |p| properties[p.name] = p.schema }
       schema.stringify_keys
