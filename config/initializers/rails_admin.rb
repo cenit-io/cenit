@@ -52,7 +52,8 @@ RailsAdmin::Config::Actions.register(:export, RailsAdmin::Config::Actions::BulkE
   RailsAdmin::Config::Fields::Types::EnumEdit,
   RailsAdmin::Config::Fields::Types::Model,
   RailsAdmin::Config::Fields::Types::Record,
-  RailsAdmin::Config::Fields::Types::HtmlErb
+  RailsAdmin::Config::Fields::Types::HtmlErb,
+  RailsAdmin::Config::Fields::Types::OptionalBelongsTo
 ].each { |f| RailsAdmin::Config::Fields::Types.register(f) }
 
 RailsAdmin::Config::Fields::Types::CodeMirror.register_instance_option :js_location do
@@ -177,14 +178,14 @@ RailsAdmin.config do |config|
     end
   end
 
-  def shared_visible
+  def shared_read_only
     instance_eval do
-      visible { User.current == bindings[:object].creator || !bindings[:object].shared? }
+      read_only { (obj = bindings[:object]).creator_id != User.current.id && obj.shared? }
     end
   end
 
   shared_non_editable = Proc.new do
-    shared_visible
+    shared_read_only
   end
 
   #Collections
@@ -1173,13 +1174,13 @@ RailsAdmin.config do |config|
 
     edit do
       field :namespace, :enum_edit, &shared_non_editable
-      field :title, &shared_non_editable
       field :name, &shared_non_editable
-      field :slug
       field :schema, :json_schema do
-        shared_visible
+        shared_read_only
         help { 'Required' }
       end
+      field :title, &shared_non_editable
+      field :slug
       field :before_save_callbacks, &shared_non_editable
       field :records_methods, &shared_non_editable
       field :data_type_methods, &shared_non_editable
@@ -1291,8 +1292,8 @@ RailsAdmin.config do |config|
 
     edit do
       field :namespace, :enum_edit, &shared_non_editable
-      field :title, &shared_non_editable
       field :name, &shared_non_editable
+      field :title, &shared_non_editable
       field :slug
       field :validators, &shared_non_editable
       field :schema_data_type, &shared_non_editable
@@ -1725,118 +1726,156 @@ RailsAdmin.config do |config|
     weight -300
     object_label_method { :custom_title }
     register_instance_option(:form_synchronized) do
-      [:custom_data_type, :data_type_scope, :scope_filter, :scope_evaluator, :lot_size, :connection_role, :webhook, :response_translator, :response_data_type]
+      if bindings[:object].not_shared?
+        [
+          :custom_data_type,
+          :data_type_scope,
+          :scope_filter,
+          :scope_evaluator,
+          :lot_size,
+          :connection_role,
+          :webhook,
+          :response_translator,
+          :response_data_type
+        ]
+      end
     end
 
     edit do
       field :namespace, :enum_edit, &shared_non_editable
       field :name, &shared_non_editable
-      field :event do
-        inline_edit false
-        inline_add false
-      end
-      field :translator do
-        help 'Required'
-        shared_visible
-      end
-      field :custom_data_type do
+      field :event, :optional_belongs_to do
         inline_edit false
         inline_add false
         visible do
-          if (f = bindings[:object]).custom_data_type.present?
-            f.nil_data_type = false
-          end
-          if f.not_shared? && f.translator.present? && f.translator.data_type.nil? && !f.nil_data_type
-            f.instance_variable_set(:@selecting_data_type, f.custom_data_type = f.event && f.event.try(:data_type)) unless f.data_type
-            f.nil_data_type = f.translator.type == :Export && (params = (controller = bindings[:controller]).params) && (params = params[controller.abstract_model.param_key]) && params[:custom_data_type_id].blank? && params.keys.include?(:custom_data_type_id.to_s)
+          (f = bindings[:object]).not_shared? || f.data_type_scope.present?
+        end
+      end
+      field :translator do
+        help I18n.t('admin.form.required')
+        shared_read_only
+      end
+      field :custom_data_type, :optional_belongs_to do
+        inline_edit false
+        inline_add false
+        shared_read_only
+        visible do
+          f = bindings[:object]
+          if (t = f.translator) && t.data_type.nil?
+            unless f.data_type
+              if f.custom_data_type_selected?
+                f.custom_data_type = nil
+                f.data_type_scope = nil
+              else
+                f.custom_data_type = f.event.try(:data_type)
+              end
+            end
             true
           else
+            f.custom_data_type = nil
             false
           end
         end
+        required do
+          bindings[:object].event.present?
+        end
         label do
           if (translator = bindings[:object].translator)
             if [:Export, :Conversion].include?(translator.type)
-              'Source data type'
+              I18n.t('admin.form.flow.source_data_type')
             else
-              'Target data type'
+              I18n.t('admin.form.flow.target_data_type')
             end
           else
-            'Data type'
-          end
-        end
-        help do
-          if bindings[:object].nil_data_type
-            ''
-          elsif (translator = bindings[:object].translator) && [:Export, :Conversion].include?(translator.type)
-            'Optional'
-          else
-            'Required'
-          end
-        end
-      end
-      field :nil_data_type do
-        visible { (f = bindings[:object]).not_shared? && f.nil_data_type }
-        label do
-          if (translator = bindings[:object].translator)
-            if [:Export, :Conversion].include?(translator.type)
-              'No source data type'
-            else
-              'No target data type'
-            end
-          else
-            'No data type'
+            I18n.t('admin.form.flow.data_type')
           end
         end
       end
       field :data_type_scope do
+        shared_read_only
         visible do
-          bindings[:controller].instance_variable_set(:@_data_type, bindings[:object].data_type)
+          f = bindings[:object]
+          #For filter scope
+          bindings[:controller].instance_variable_set(:@_data_type, f.data_type)
           bindings[:controller].instance_variable_set(:@_update_field, 'translator_id')
-          (f = bindings[:object]).not_shared? && f.translator.present? && f.translator.type != :Import && f.data_type && !f.instance_variable_get(:@selecting_data_type)
+          if f.shared?
+            value.present?
+          else
+            f.event &&
+              (t = f.translator) &&
+              t.type != :Import &&
+              (f.custom_data_type_selected? || f.data_type)
+          end
         end
         label do
           if (translator = bindings[:object].translator)
             if [:Export, :Conversion].include?(translator.type)
-              'Source scope'
+              I18n.t('admin.form.flow.source_scope')
             else
-              'Target scope'
+              I18n.t('admin.form.flow.target_scope')
             end
           else
-            'Data type scope'
+            I18n.t('admin.form.flow.data_type_scope')
           end
         end
-        help 'Required'
+        help I18n.t('admin.form.required')
       end
       field :scope_filter do
-        visible { (f = bindings[:object]).not_shared? && f.scope_symbol == :filtered }
+        shared_read_only
+        visible do
+          f = bindings[:object]
+          f.scope_symbol == :filtered
+        end
         partial 'form_triggers'
-        help false
+        help I18n.t('admin.form.required')
       end
       field :scope_evaluator do
         inline_add false
         inline_edit false
-        visible { (f = bindings[:object]).not_shared? && f.scope_symbol == :evaluation }
+        shared_read_only
+        visible do
+          f = bindings[:object]
+          f.scope_symbol == :evaluation
+        end
         associated_collection_scope do
           Proc.new { |scope|
             scope.where(:parameters.with_size => 1)
           }
         end
-        help 'Required'
+        help I18n.t('admin.form.required')
       end
       field :lot_size do
-        visible { (f = bindings[:object]).not_shared? && f.translator.present? && f.translator.type == :Export && !f.nil_data_type && f.data_type_scope && f.scope_symbol != :event_source }
+        shared_read_only
+        visible do
+          f = bindings[:object]
+          (t = f.translator) && t.type == :Export &&
+            f.custom_data_type_selected? &&
+            (f.event.blank? || f.data_type.blank? || (f.data_type_scope.present? && f.scope_symbol != :event_source))
+        end
       end
       field :webhook do
-        visible { (f = bindings[:object]).not_shared? && (translator = f.translator) && (translator.type == :Import || (translator.type == :Export && (bindings[:object].data_type_scope.present? || f.nil_data_type))) }
-        help 'Required'
+        shared_read_only
+        visible do
+          f = bindings[:object]
+          (t = f.translator) && [:Import, :Export].include?(t.type) &&
+            ((f.custom_data_type_selected? || f.data_type) && (t.type == :Import || f.event.blank? || f.data_type.blank? || f.data_type_scope.present?))
+        end
+        help I18n.t('admin.form.required')
       end
       field :connection_role do
-        visible { (translator = (f = bindings[:object]).translator) && (translator.type == :Import || (translator.type == :Export && (bindings[:object].data_type_scope.present? || f.nil_data_type))) }
-        help 'Optional'
+        visible do
+          ((f = bindings[:object]).shared? && f.webhook.present?) ||
+            (t = f.translator) && [:Import, :Export].include?(t.type) &&
+              ((f.custom_data_type_selected? || f.data_type) && (t.type == :Import || f.event.blank? || f.data_type.blank? || f.data_type_scope.present?))
+        end
       end
       field :response_translator do
-        visible { (f = bindings[:object]).not_shared? && (translator = f.translator) && (translator.type == :Export && (bindings[:object].data_type_scope.present? || f.nil_data_type)) && f.ready_to_save? }
+        shared_read_only
+        visible do
+          f = bindings[:object]
+          (t = f.translator) && t.type == :Export &&
+            f.ready_to_save?
+        end
         associated_collection_scope do
           Proc.new { |scope|
             scope.where(type: :Import)
@@ -1846,27 +1885,53 @@ RailsAdmin.config do |config|
       field :response_data_type do
         inline_edit false
         inline_add false
-        visible { (f = bindings[:object]).not_shared? && (response_translator = f.response_translator) && response_translator.type == :Import && response_translator.data_type.nil? }
-        help ''
+        shared_read_only
+        visible do
+          f = bindings[:object]
+          (resp_t = f.response_translator) &&
+            resp_t.type == :Import &&
+            resp_t.data_type.nil?
+        end
+        help I18n.t('admin.form.required')
       end
       field :discard_events do
-        visible { (f = bindings[:object]).not_shared? && ((f.translator && f.translator.type == :Import) || f.response_translator.present?) && f.ready_to_save? }
-        help "Events won't be fired for created or updated records if checked"
+        visible do
+          f = bindings[:object]
+          ((f.translator && f.translator.type == :Import) || f.response_translator.present?) &&
+            f.ready_to_save?
+        end
+        help I18n.t('admin.form.flow.events_wont_be_fired')
       end
       field :active do
-        visible { (f = bindings[:object]).not_shared? && f.ready_to_save? }
+        visible do
+          f = bindings[:object]
+          f.ready_to_save?
+        end
       end
       field :notify_request do
-        visible { (f = bindings[:object]).not_shared? && f.translator && [:Import, :Export].include?(f.translator.type) && f.ready_to_save? }
-        help 'Track request via notifications if checked'
+        visible do
+          f = bindings[:object]
+          (t = f.translator) &&
+            [:Import, :Export].include?(t.type) &&
+            f.ready_to_save?
+        end
+        help I18n.t('admin.form.flow.notify_request')
       end
       field :notify_response do
-        visible { (f = bindings[:object]).not_shared? && f.translator && [:Import, :Export].include?(f.translator.type) && f.ready_to_save? }
-        help 'Track responses via notification if checked'
+        visible do
+          f = bindings[:object]
+          (t = f.translator) &&
+            [:Import, :Export].include?(t.type) &&
+            f.ready_to_save?
+        end
+        help help I18n.t('admin.form.flow.notify_response')
       end
       field :after_process_callbacks do
-        visible { (f = bindings[:object]).not_shared? && f.ready_to_save? }
-        help 'Algorithms executed after flow processing, execution state is supplied as argument'
+        shared_read_only
+        visible do
+          bindings[:object].ready_to_save?
+        end
+        help I18n.t('admin.form.flow.after_process_callbacks')
         associated_collection_scope do
           Proc.new { |scope|
             scope.where(:parameters.with_size => 1)
@@ -2089,7 +2154,16 @@ RailsAdmin.config do |config|
     weight -206
     object_label_method { :custom_title }
     register_instance_option(:form_synchronized) do
-      [:source_data_type, :target_data_type, :transformation, :target_importer, :source_exporter, :discard_chained_records]
+      if bindings[:object].not_shared?
+        [
+          :source_data_type,
+          :target_data_type,
+          :transformation,
+          :target_importer,
+          :source_exporter,
+          :discard_chained_records
+        ]
+      end
     end
 
     edit do

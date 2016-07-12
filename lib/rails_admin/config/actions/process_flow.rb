@@ -47,7 +47,9 @@ module RailsAdmin
 
         class << self
           def processable(flow)
-            flow && ((flow.translator && flow.translator.type == :Export && flow.event.class == Setup::Scheduler) || (flow.nil_data_type || (flow.translator && flow.translator.type != :Export)))
+            flow &&
+              (((t = flow.translator) && t.type == :Export && flow.event.class == Setup::Scheduler) ||
+                (flow.data_type.nil? || (t && t.type != :Export)))
           end
         end
       end

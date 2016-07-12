@@ -32,8 +32,6 @@ module Setup
 
     has_and_belongs_to_many :after_process_callbacks, class_name: Setup::Algorithm.to_s, inverse_of: nil
 
-    #TODO Not compatible with pulling but intended for cross sharing edition
-    # validates_inclusion_of :data_type_scope, in: ->(flow) { flow.data_type_scope_enum }
     validates_numericality_in_presence_of :lot_size, greater_than_or_equal_to: 1
 
     before_save :validates_configuration, :check_scheduler
@@ -41,17 +39,29 @@ module Setup
 
     def validates_configuration
       format_triggers_on(:scope_filter) if scope_filter.present?
-      # return false unless ready_to_save?
       unless requires(:name, :translator)
+        if event.present?
+          unless requires(:data_type_scope)
+            if scope_symbol == :event_source &&
+              !(event.is_a?(Setup::Observer) && event.data_type == data_type)
+              errors.add(:event, 'not compatible with data type scope')
+            end
+          end
+        elsif scope_symbol == :event_source
+          if persisted?
+            requires(:event)
+          else
+            rejects(:data_type_scope)
+          end
+        end
         if translator.data_type.nil?
-          requires(:custom_data_type) unless translator.type == :Export && nil_data_type
+          requires(:custom_data_type) if translator.type == :Conversion && event.present?
         else
           rejects(:custom_data_type)
         end
         if translator.type == :Import
           rejects(:data_type_scope, :scope_filter, :scope_evaluator)
         else
-          requires(:data_type_scope) unless translator.type == :Export && data_type.nil?
           case scope_symbol
           when :filtered
             format_triggers_on(:scope_filter, true)
@@ -85,7 +95,7 @@ module Setup
           else
             rejects(:response_data_type, :discard_events)
           end
-          rejects(:custom_data_type, :data_type_scope, :lot_size) if nil_data_type
+          rejects(:data_type_scope) if data_type.nil?
         else
           rejects(:lot_size, :response_translator, :response_data_type)
         end
@@ -124,15 +134,17 @@ module Setup
         enum << "All #{data_type.title.downcase.pluralize}"
         enum << 'Filter'
         enum << 'Evaluator'
+      else
+        enum << nil
       end
       enum
     end
 
     def ready_to_save?
       shared? ||
-        (translator.present? &&
-          (translator.type == :Import || data_type_scope.present? ||
-            (translator.type == :Export && nil_data_type && webhook.present?)))
+        ((t = translator).present? &&
+          (event.blank? || data_type_scope.present?) &&
+          ([:Export, :Import].exclude?(t.type) || webhook.present?))
     end
 
     def can_be_restarted?
