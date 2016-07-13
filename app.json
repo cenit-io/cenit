@@ -12,11 +12,5 @@
   "addons": [
     "rabbitmq-bigwig:pipkin",
     "mongolab"
-  ],
-  "env": {
-    "MONGODB_URI": {
-      "description": "Setup URI for the mongodb instance",
-      "required": true
-    }
-  }
+  ]
 }
