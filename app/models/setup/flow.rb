@@ -152,8 +152,27 @@ module Setup
       end
     end
 
-    def data_type
+    def with(options)
+      if options && (data_type = options.delete(:data_type))
+        using_data_type(data_type)
+      end
+      super
+    end
+
+    def own_data_type
       (translator && translator.data_type) || custom_data_type
+    end
+
+    def using_data_type(data_type)
+      if (own_dt = own_data_type) && own_dt != data_type
+        fail "Illegal data type option #{data_type.custom_title}, a flow own data type #{flow_data_type} is already configured"
+      else
+        @_data_type = data_type if data_type
+      end
+    end
+
+    def data_type
+      @_data_type || own_data_type
     end
 
     def data_type_scope_enum
@@ -213,6 +232,9 @@ module Setup
       if translator.present?
         begin
           (flow_execution = current_thread_cache) << [id.to_s, message[:execution_graph] || {}]
+          data_type = Setup::BuildInDataType[message[:data_type_id]] ||
+            Setup::DataType.where(id: message[:data_type_id]).first
+          using_data_type(data_type) if data_type
           send("translate_#{translator.type.to_s.downcase}", message, &block)
           after_process_callbacks.each do |callback|
             begin
@@ -416,8 +438,6 @@ module Setup
     def source_ids_from(message)
       if (object_ids = message[:object_ids])
         object_ids
-      elsif scope_symbol.nil?
-        []
       elsif scope_symbol == :event_source && id = message[:source_id]
         [id]
       elsif scope_symbol == :filtered

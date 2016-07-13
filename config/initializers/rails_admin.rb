@@ -1868,7 +1868,7 @@ RailsAdmin.config do |config|
         visible do
           f = bindings[:object]
           (t = f.translator) && [:Import, :Export].include?(t.type) &&
-            ((f.custom_data_type_selected? || f.data_type) && (t.type == :Import || f.event.blank? || f.data_type.blank? || f.data_type_scope.present?))
+            ((f.persisted? || f.custom_data_type_selected? || f.data_type) && (t.type == :Import || f.event.blank? || f.data_type.blank? || f.data_type_scope.present?))
         end
         help I18n.t('admin.form.required')
       end
@@ -1876,7 +1876,7 @@ RailsAdmin.config do |config|
         visible do
           ((f = bindings[:object]).shared? && f.webhook.present?) ||
             (t = f.translator) && [:Import, :Export].include?(t.type) &&
-              ((f.custom_data_type_selected? || f.data_type) && (t.type == :Import || f.event.blank? || f.data_type.blank? || f.data_type_scope.present?))
+              ((f.persisted? || f.custom_data_type_selected? || f.data_type) && (t.type == :Import || f.event.blank? || f.data_type.blank? || f.data_type_scope.present?))
         end
       end
       field :response_translator do

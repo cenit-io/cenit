@@ -41,15 +41,16 @@ module RailsAdmin
         end
 
         register_instance_option :link_icon do
-          'icon-play'
+          'icon-play-circle'
         end
 
 
         class << self
           def processable(flow)
             flow &&
-              (((t = flow.translator) && t.type == :Export && flow.event.class == Setup::Scheduler) ||
-                (flow.data_type.nil? || (t && t.type != :Export)))
+              !flow.data_type.nil? &&
+              (scope = flow.scope_symbol).present? &&
+              scope != :event_source
           end
         end
       end
