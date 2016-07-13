@@ -23,10 +23,12 @@ ul#main-accordion{
   padding-left: 24px;
 }
 
+#help-nav li.dropdown a.dropdown-toggle,
 #user-nav li.dropdown a.dropdown-toggle {
   color: white;
 }
 
+#help-nav > li.dropdown.open > a,
 #user-nav > li.dropdown.open > a {
   color: #3D4046;
 }
@@ -48,12 +50,14 @@ a#sign-in-link:hover, a#sign-out-link:hover  {
   transition: .5s;
 }
 
+#help-nav > li.dropdown.open > a,
 #user-nav > li.dropdown.open > a {
   background-color: white;
   border-right: solid 1px rgba(0,0,0,0.15);
   box-shadow: 0 6px 12px rgba(0, 0, 0, 0.175);
 }
 
+#help-nav > li.dropdown.open > a:after,
 #user-nav > li.dropdown.open > a:after {
   display: block;
   position: absolute;
@@ -66,16 +70,19 @@ a#sign-in-link:hover, a#sign-out-link:hover  {
   background-color: white;
 }
 
+#help-menu,
 #user-menu {
   padding: 12px;
 }
 
+#help-menu .edit_user_root_link img,
 #user-menu .edit_user_root_link img {
   position: inherit;
   border: solid 1px rgba(0,0,0,0.15);
   border-radius: 50%;
 }
 
+#help-menu > li > a,
 #user-menu > li > a {
   padding: 3px;
 }
