@@ -686,7 +686,7 @@ module RailsAdmin
         nodes.collect do |node|
           i += 1
           stack_id = "#{html_id}-sub#{i}"
-          model_count = 0 # node.abstract_model.model.all.count
+          model_count = node.abstract_model.model.all.count rescue 0
 
           children = nodes_stack.select { |n| n.parent.to_s == node.abstract_model.model_name }
           if children.present?
