@@ -14,14 +14,11 @@
     "mongolab"
   ],
   "env": {
-    "UNABLE_CONFIRMABLE": {
-      "value": "true"
+    "ADMIN_EMAIL": {
+      "value": "cenit@example.com"
     },
-    "UNABLE_REGISTERABLE": {
-      "value": "false"
-    },
-    "UNABLE_SIGN_IN_AND_SIGN_UP_DEVISE": {
-      "value": "false"
+    "ADMIN_PASSWORD": {
+      "value": "cenit123"
     }
   }
 }
