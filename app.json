@@ -7,6 +7,7 @@
     "integration"
   ],
   "website": "https://cenit.io",
+  "logo": "https://github.com/cenit-io/cenit/raw/master/app/assets/images/logo_cenitsaas_web.png",
   "repository": "https://github.com/cenit-io/cenit",
   "addons": [
     "rabbitmq-bigwig:pipkin",
