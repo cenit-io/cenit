@@ -12,5 +12,16 @@
   "addons": [
     "rabbitmq-bigwig:pipkin",
     "mongolab"
-  ]
+  ],
+  "env": {
+    "UNABLE_CONFIRMABLE": {
+      "value": "true"
+    },
+    "UNABLE_REGISTERABLE": {
+      "value": "false"
+    },
+    "UNABLE_SIGN_IN_AND_SIGN_UP_DEVISE": {
+      "value": "false"
+    }
+  }
 }
