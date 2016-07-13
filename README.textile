@@ -3,6 +3,8 @@
 * "cenit.io":https://cenit.io
 * "Join our Slack":http://cenit-slack.herokuapp.com ("cenitio.slack.com":http://cenitio.slack.com)
 
+* "!https://www.herokucdn.com/deploy/button.svg!":https://heroku.com/deploy
+
 h1. Cenit IO
 
 Cenit IO is an open source social platform as a service for data and business integration. It has been designed to integrate solutions with orchestrating data flows that may involve several APIs. 
