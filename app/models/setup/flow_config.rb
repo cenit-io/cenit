@@ -2,8 +2,6 @@ module Setup
   class FlowConfig
     include CenitScoped
 
-    FIELDS = %w(active notify_request notify_response discard_events)
-
     deny :all
     allow :index, :show, :edit
 
@@ -23,6 +21,12 @@ module Setup
     before_save do
       self.discard_events = nil if flow.translator.type == :Export && flow.response_translator.blank?
       errors.blank?
+    end
+
+    class << self
+      def config_fields
+        %w(active notify_request notify_response discard_events)
+      end
     end
   end
 end

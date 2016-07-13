@@ -3,8 +3,6 @@ module Setup
     include CenitScoped
     include Slug
 
-    FIELDS = %w(slug navigation_link)
-
     deny :all
     allow :index, :show, :edit
 
@@ -20,6 +18,12 @@ module Setup
 
     def taken?
       slug_taken?(slug)
+    end
+
+    class << self
+      def config_fields
+        %w(slug navigation_link)
+      end
     end
 
     protected

@@ -1747,7 +1747,7 @@ RailsAdmin.config do |config|
       end
     end
 
-    Setup::FlowConfig::FIELDS.each do |f|
+    Setup::FlowConfig.config_fields.each do |f|
       configure f.to_sym, Setup::Flow.data_type.schema['properties'][f]['type'].to_sym
     end
 
