@@ -1503,7 +1503,8 @@ RailsAdmin.config do |config|
       label 'Credentials'
     end
 
-    configure :key, :string do
+    configure :number, :string do
+      label 'Key'
       html_attributes do
         { maxlength: 30, size: 30 }
       end
@@ -1550,8 +1551,8 @@ RailsAdmin.config do |config|
       field(:name, &shared_non_editable)
       field(:url, &shared_non_editable)
 
-      field(:key, &shared_non_editable)
-      field(:token, &shared_non_editable)
+      field :number
+      field :token
       field :authorization
       field(:authorization_handler, &shared_non_editable)
 
@@ -1565,7 +1566,7 @@ RailsAdmin.config do |config|
       field :name
       field :url
 
-      field :key
+      field :number
       field :token
       field :authorization
       field :authorization_handler
@@ -1583,13 +1584,13 @@ RailsAdmin.config do |config|
       field :namespace
       field :name
       field :url
-      field :key
+      field :number
       field :token
       field :authorization
       field :updated_at
     end
 
-    fields :namespace, :name, :url, :key, :token, :authorization, :updated_at
+    fields :namespace, :name, :url, :number, :token, :authorization, :updated_at
   end
 
   config.model Setup::ConnectionRole do
@@ -3237,6 +3238,20 @@ RailsAdmin.config do |config|
       read_only true
     end
     fields :flow, :active, :notify_request, :notify_response, :discard_events
+  end
+
+  config.model Setup::ConnectionConfig do
+    navigation_label 'Configuration'
+    label 'Connection Config'
+    label_plural 'Connections Configs'
+    weight -8
+    configure :connection do
+      read_only true
+    end
+    configure :number do
+      label 'Key'
+    end
+    fields :connection, :number, :token
   end
 
   config.model Setup::Pin do

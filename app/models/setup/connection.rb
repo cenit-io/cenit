@@ -2,35 +2,31 @@ module Setup
   class Connection
     include ShareWithBindingsAndParameters
     include NamespaceNamed
-    include NumberGenerator
     include WithTemplateParameters
     include AuthorizationHandler
+    include ModelConfigurable
 
-    build_in_data_type.referenced_by(:namespace, :name).excluding(:connection_roles).protecting(:number, :token)
+    build_in_data_type.referenced_by(:namespace, :name).excluding(:connection_roles)
+    build_in_data_type.and({
+                             properties: {
+                               number: {
+                                 type: 'string'
+                               },
+                               token: {
+                                 type: 'string'
+                               }
+                             }
+                           }.deep_stringify_keys).protecting(:number, :token)
+
+    field :url, type: String
 
     parameters :parameters, :headers, :template_parameters
 
+    config_with Setup::ConnectionConfig
+
     devise :database_authenticatable
 
-    field :url, type: String
-    field :number, as: :key, type: String
-    field :token, type: String
-
-    after_initialize :ensure_token
-
-    validates_presence_of :url, :key, :token
-    validates_uniqueness_of :token
-
-    def ensure_token
-      if new_record? || token.blank?
-        self.token = generate_token
-      end
-    end
-
-    def generate_number(options = {})
-      options[:prefix] ||= 'C'
-      super(options)
-    end
+    validates_presence_of :url
 
     def conformed_url(options = {})
       conform_field_value(:url, options)
@@ -63,15 +59,6 @@ module Setup
         else
           super
         end
-      end
-    end
-
-    private
-
-    def generate_token
-      loop do
-        token = Devise.friendly_token
-        break token unless Setup::Connection.where(token: token).first
       end
     end
   end
