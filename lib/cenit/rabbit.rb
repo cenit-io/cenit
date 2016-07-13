@@ -112,9 +112,14 @@ module Cenit
         channel_mutex.lock
         if @connection.nil? || @channel.nil? || @channel.closed?
           unless @connection
-            @connection = Bunny.new(automatically_recover: true,
-                                    user: Cenit.rabbit_mq_user,
-                                    password: Cenit.rabbit_mq_password)
+            @connection = 
+              if (rabbit_url = ENV['RABBITMQ_BIGWIG_TX_URL']).present? 
+                Bunny.new(rabbit_url)
+              else
+                Bunny.new(automatically_recover: true,
+                          user: Cenit.rabbit_mq_user,
+                          password: Cenit.rabbit_mq_password)
+              end
             connection.start
           end
 
