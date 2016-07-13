@@ -3,7 +3,7 @@
 * "cenit.io":https://cenit.io
 * "Join our Slack":http://cenit-slack.herokuapp.com ("cenitio.slack.com":http://cenitio.slack.com)
 
-* "!https://www.herokucdn.com/deploy/button.svg!":https://heroku.com/deploy
+"!https://www.herokucdn.com/deploy/button.svg!":https://heroku.com/deploy
 
 h1. Cenit IO
 
