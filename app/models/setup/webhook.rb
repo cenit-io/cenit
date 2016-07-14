@@ -145,6 +145,8 @@ module Setup
                 conformed_path += '?' + query
               end
               url = conformed_url.gsub(/\/+\Z/, '') + ('/' + conformed_path).gsub(/\/+/, '/')
+              url = url.gsub('/?', '?')
+
               if body
                 attachment = {
                   filename: DateTime.now.strftime('%Y-%m-%d_%Hh%Mm%S'),

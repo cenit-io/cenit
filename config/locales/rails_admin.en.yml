@@ -1,4 +1,13 @@
 en:
+  help:
+    label: 'help'
+    open_source: 'open source code'
+    suggest: 'suggest a'
+    feature: 'feature'
+    report: 'report an'
+    issue: 'issue'
+    docs: 'documentation'
+    support: 'support channel'
   admin:
     placeholders:
       email: 'Email'
@@ -43,6 +52,7 @@ en:
       prices: "Prices"
       or: 'or'
       not_selected: 'Not selected'
+      help: 'help'
     actions:
       dashboard:
         title: "Dashboard"

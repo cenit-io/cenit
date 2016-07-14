@@ -12,8 +12,8 @@ class User
   # :lockable, :timeoutable, :rememberable
 
   devise :trackable, :validatable, :omniauthable, :database_authenticatable, :recoverable
-  devise :registerable unless ENV['UNABLE_REGISTERABLE'].to_b
-  devise :confirmable unless ENV['UNABLE_CONFIRMABLE'].to_b
+  devise :registerable unless (ENV['UNABLE_REGISTERABLE'] || false).to_b
+  devise :confirmable unless (ENV['UNABLE_CONFIRMABLE'] || true).to_b
 
   # Database authenticatable
   field :email, type: String, default: ''

@@ -2144,7 +2144,7 @@ RailsAdmin.config do |config|
 
   config.model Setup::AlgorithmParameter do
     visible false
-    fields :name, :description
+    fields :name, :type, :many, :required, :default
   end
 
   config.model Setup::CallLink do
@@ -2382,6 +2382,7 @@ RailsAdmin.config do |config|
     visible false
 
     configure :records_count
+    configure :input_parameters
     configure :created_at do
       label 'Recorded at'
     end
@@ -2396,10 +2397,11 @@ RailsAdmin.config do |config|
 
     show do
       field :created_at
+      field :input_parameters
       field :records_count
     end
 
-    fields :created_at, :records_count
+    fields :created_at, :input_parameters, :records_count
   end
 
   config.model Setup::Action do
