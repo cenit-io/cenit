@@ -171,8 +171,13 @@ RailsAdmin.config do |config|
           Setup::Connection,
           Setup::Webhook,
           Setup::Translator,
-          Setup::Flow
-        ] + Setup::DataType.class_hierarchy + Setup::Validator.class_hierarchy
+          Setup::Flow,
+          Setup::OauthClient,
+          Setup::Oauth2Scope
+        ] +
+          Setup::DataType.class_hierarchy +
+          Setup::Validator.class_hierarchy +
+          Setup::BaseOauthProvider.class_hierarchy
       end
       visible { only.include?((obj = bindings[:object]).class) && obj.try(:shared?) }
     end
@@ -2466,10 +2471,6 @@ RailsAdmin.config do |config|
       help ''
     end
 
-    configure :origin do
-      visible { Account.current_super_admin? }
-    end
-
     configure :identifier do
       pretty_value do
         (value || '<i class="icon-lock"/>').html_safe
@@ -2482,7 +2483,7 @@ RailsAdmin.config do |config|
       end
     end
 
-    fields :provider, :name, :identifier, :secret, :tenant, :origin, :updated_at
+    fields :provider, :name, :identifier, :secret, :tenant, :updated_at
   end
 
   config.model Setup::BaseOauthProvider do
@@ -2503,10 +2504,6 @@ RailsAdmin.config do |config|
       help ''
     end
 
-    configure :origin do
-      visible { Account.current_super_admin? }
-    end
-
     configure :namespace, :enum_edit
 
     list do
@@ -2518,11 +2515,10 @@ RailsAdmin.config do |config|
       field :token_endpoint
       field :token_method
       field :tenant
-      field :origin
       field :updated_at
     end
 
-    fields :namespace, :name, :_type, :response_type, :authorization_endpoint, :token_endpoint, :token_method, :tenant, :origin
+    fields :namespace, :name, :_type, :response_type, :authorization_endpoint, :token_endpoint, :token_method, :tenant
   end
 
   config.model Setup::OauthProvider do
@@ -2537,10 +2533,6 @@ RailsAdmin.config do |config|
       visible { Account.current_super_admin? }
       read_only { true }
       help ''
-    end
-
-    configure :origin do
-      visible { Account.current_super_admin? }
     end
 
     configure :refresh_token_algorithm do
@@ -2558,11 +2550,10 @@ RailsAdmin.config do |config|
       field :refresh_token_strategy
       field :refresh_token_algorithm
       field :tenant
-      field :origin
       field :updated_at
     end
 
-    fields :namespace, :name, :response_type, :authorization_endpoint, :token_endpoint, :token_method, :request_token_endpoint, :refresh_token_strategy, :refresh_token_algorithm, :tenant, :origin, :updated_at
+    fields :namespace, :name, :response_type, :authorization_endpoint, :token_endpoint, :token_method, :request_token_endpoint, :refresh_token_strategy, :refresh_token_algorithm, :tenant, :updated_at
   end
 
   config.model Setup::Oauth2Provider do
@@ -2577,10 +2568,6 @@ RailsAdmin.config do |config|
       visible { Account.current_super_admin? }
       read_only { true }
       help ''
-    end
-
-    configure :origin do
-      visible { Account.current_super_admin? }
     end
 
     configure :refresh_token_algorithm do
@@ -2598,11 +2585,10 @@ RailsAdmin.config do |config|
       field :refresh_token_strategy
       field :refresh_token_algorithm
       field :tenant
-      field :origin
       field :updated_at
     end
 
-    fields :namespace, :name, :response_type, :authorization_endpoint, :token_endpoint, :token_method, :scope_separator, :refresh_token_strategy, :refresh_token_algorithm, :tenant, :origin, :updated_at
+    fields :namespace, :name, :response_type, :authorization_endpoint, :token_endpoint, :token_method, :scope_separator, :refresh_token_strategy, :refresh_token_algorithm, :tenant, :updated_at
   end
 
   config.model Setup::Oauth2Scope do
@@ -2617,11 +2603,7 @@ RailsAdmin.config do |config|
       help ''
     end
 
-    configure :origin do
-      visible { Account.current_super_admin? }
-    end
-
-    fields :provider, :name, :description, :tenant, :origin, :updated_at
+    fields :provider, :name, :description, :tenant, :updated_at
   end
 
   config.model Setup::Authorization do
