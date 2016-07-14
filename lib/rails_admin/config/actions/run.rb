@@ -4,7 +4,7 @@ module RailsAdmin
       class Run < RailsAdmin::Config::Actions::Base
 
         register_instance_option :only do
-          [Script, Setup::Algorithm]
+          Setup::Algorithm
         end
 
         register_instance_option :member do
@@ -28,17 +28,11 @@ module RailsAdmin
                 params.permit! unless params.nil?
                 @form_object = mongoff_model.new(params[:setup_algorithm_config])
                 if @form_object.valid?
-                  values = @form_object.to_hash.to_a
+                  values = @form_object.to_hash.values.to_a
                   if params[:background].present?
-                    task_class, id_key =
-                        if @abstract_model.model == Setup::Algorithm
-                          [Setup::AlgorithmExecution, :algorithm_id]
-                        else
-                          [::ScriptExecution, :script_id]
-                        end
-                    do_flash_process_result task_class.process(id_key => @object.id,
-                                                               input: values,
-                                                               skip_notification_level: true)
+                    do_flash_process_result Setup::AlgorithmExecution.process(algorithm_id: @object.id,
+                                                                              input: values,
+                                                                              skip_notification_level: true)
                   else
                     @output = @object.run(@input = values)
                     @model_config.register_instance_option(:after_form_partials) { :algorithm_output }

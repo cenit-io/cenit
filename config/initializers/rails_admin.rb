@@ -40,7 +40,8 @@
   RailsAdmin::Config::Actions::SharedCollectionIndex,
   RailsAdmin::Config::Actions::BulkPull,
   RailsAdmin::Config::Actions::CleanUp,
-  RailsAdmin::Config::Actions::ShowRecords
+  RailsAdmin::Config::Actions::ShowRecords,
+  RailsAdmin::Config::Actions::RunScript
 ].each { |a| RailsAdmin::Config::Actions.register(a) }
 
 RailsAdmin::Config::Actions.register(:export, RailsAdmin::Config::Actions::BulkExport)
@@ -127,6 +128,7 @@ RailsAdmin.config do |config|
     show
     show_records
     run
+    run_script
     edit
     configure
     copy
