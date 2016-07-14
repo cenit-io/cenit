@@ -47,9 +47,7 @@ module RailsAdmin
 
         class << self
           def processable(flow)
-            flow &&
-              (scope = flow.scope_symbol).present? &&
-              scope != :event_source
+            flow.present?
           end
         end
       end
