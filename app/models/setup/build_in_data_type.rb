@@ -40,6 +40,10 @@ module Setup
       []
     end
 
+    def count
+      model.count
+    end
+
     def initialize(model)
       @model = model
     end

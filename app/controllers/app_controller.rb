@@ -30,7 +30,7 @@ class AppController < ApplicationController
       (app = Setup::Application.where(namespace: ns.name, slug: params[:app_slug]).first)
       if @app.nil? || app == @app
         @app ||= app
-        if @app.authentication_method == @authentication_method
+        if @authentication_method.nil? || @app.authentication_method == @authentication_method
           found = true
         else
           render plain: 'Invalid authentication method', status: :bad_request

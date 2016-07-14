@@ -81,6 +81,10 @@ module Setup
         value) || nil
     end
 
+    def [](name)
+      read_attribute(name)
+    end
+
     module ClassMethods
 
       def shared_deny(*actions)

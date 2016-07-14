@@ -1,6 +1,6 @@
 module Setup
   class BaseOauthProvider
-    include CrossTenancy
+    include SharedEditable
     include MandatoryNamespace
     include ClassHierarchyAware
 

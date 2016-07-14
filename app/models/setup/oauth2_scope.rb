@@ -1,6 +1,6 @@
 module Setup
   class Oauth2Scope
-    include CrossTenancy
+    include SharedEditable
     include CustomTitle
 
     build_in_data_type.referenced_by(:name, :provider)

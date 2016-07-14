@@ -155,7 +155,9 @@ function algorithmInit() {
     var output_validate_field = $('#setup_algorithm_validate_output_field');
 
     var output_datatype = $('#setup_algorithm_output_datatype_id');
-    // var output_validate = $('#setup_algorithm_validate_output');
+    var output_validate = $('#setup_algorithm_validate_output');
+
+    var parameters_root = $('#setup_algorithm_parameters_attributes_field');
 
     if (! output_store)
         return;
@@ -167,17 +169,45 @@ function algorithmInit() {
         var store = output_store.is(':checked');
         if (store) {
             output_datatype_field.removeClass('hidden');
-        }
 
-        var dt = output_datatype.val();
-        if (dt) {
-            output_validate_field.removeClass('hidden');
+            var dt = output_datatype.val();
+            if (dt) {
+                output_validate_field.removeClass('hidden');
+            } else {
+                output_validate.removeAttr('checked');
+            }
+        } else {
+            output_datatype.val('');
+            output_datatype.children().removeAttr('selected');
+            output_datatype_field.find('input').val('');
+            output_validate.removeAttr('checked');
         }
     }
-
     output_store.on('change', updateView);
     output_datatype.on('change', updateView);
     updateView();
+
+    function updateParameter(top) {
+        var default_field = $(top).find('.default_field');
+        var required_input = $(top).find('.required_field input[type=checkbox]');
+
+        if (required_input.is(':checked')) {
+            default_field.addClass('hidden');
+            // default_field.find('textarea').attr('required', false);
+        } else {
+            default_field.removeClass('hidden');
+            // default_field.find('textarea').attr('required', true);
+        }
+
+        default_field.find('.help-block').hide();
+    }
+    parameters_root.find('.tab-pane').each(function () {
+        var root = this;
+        updateParameter(root);
+        $(root).find('.required_field input[type=checkbox]').on('change', function(){
+            updateParameter(root);
+        })
+    });
 }
 
 function handlerInit() {

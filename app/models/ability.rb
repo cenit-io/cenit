@@ -12,21 +12,6 @@ class Ability
       can [:show, :edit], Account, id: user.account_id
       can [:show, :edit], User, id: user.id
 
-      @@oauth_models = [Setup::BaseOauthProvider,
-                        Setup::OauthProvider,
-                        Setup::Oauth2Provider,
-                        Setup::OauthClient,
-                        Setup::Oauth2Scope]
-
-      can [:index, :show, :edi_export, :simple_export], @@oauth_models
-      if user.super_admin?
-        can [:destroy, :edit, :create, :import], @@oauth_models
-        can :manage, Setup::Application
-      else
-        can [:destroy, :edit], @@oauth_models, tenant_id: Account.current.id
-        cannot :access, Setup::Application
-      end
-
       if user.super_admin?
         can :manage,
             [

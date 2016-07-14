@@ -24,7 +24,7 @@
     -#    %i{class:"fa fa-fw fa-twitter"}
     -#    %span Twitter
 
-    - unless ENV['UNABLE_SIGN_IN_AND_SIGN_UP_DEVISE'].to_b
+    - unless (ENV['UNABLE_SIGN_IN_AND_SIGN_UP_DEVISE'] || false).to_b
       .form-option
         =t('admin.misc.or')
       = form_for(resource, as: resource_name, url: session_path(resource_name)) do |f|

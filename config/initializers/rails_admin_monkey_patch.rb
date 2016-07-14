@@ -99,6 +99,7 @@ module RailsAdmin
 
               unless (attrs = params[:attributes] || {}).is_a?(Hash)
                 attrs = JSON.parse(attrs) rescue {}
+                %w(_id origin).each { |attr| attrs.delete(attr) }
               end
               @object = @abstract_model.new(attrs)
               @authorization_adapter && @authorization_adapter.attributes_for(:new, @abstract_model).each do |name, value|
@@ -759,7 +760,7 @@ module RailsAdmin
                 if current_user
                   node.abstract_model.count(cache: true)
                 else
-                  @count[node.abstract_model.model.name] || 0
+                  @count[node.abstract_model.model_name] || 0
                 end
               pc = percent(model_count, @max)
               indicator = get_indicator(pc)
@@ -920,7 +921,8 @@ module RailsAdmin
           if @count_cache
             @count_cache
           else
-            @count_cache = rails_admin_count(options, scope)
+            #TODO: review issue #748
+            @count_cache = rails_admin_count(options, scope) rescue 0
           end
         else
           rails_admin_count(options, scope)
