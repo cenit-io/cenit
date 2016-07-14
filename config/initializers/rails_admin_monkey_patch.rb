@@ -920,7 +920,8 @@ module RailsAdmin
           if @count_cache
             @count_cache
           else
-            @count_cache = rails_admin_count(options, scope)
+            #TODO: review issue #748
+            @count_cache = rails_admin_count(options, scope) rescue 0
           end
         else
           rails_admin_count(options, scope)
