@@ -20,5 +20,8 @@
     "ADMIN_PASSWORD": {
       "value": "cenit123"
     }
+  },
+  "scripts": {
+    "postdeploy": "bundle exec rake admin:create"
   }
 }
