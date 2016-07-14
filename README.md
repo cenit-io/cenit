@@ -7,14 +7,13 @@
 * [Join our Slack](http://cenit-slack.herokuapp.com/) [(cenitio.slack.com)](http://cenitio.slack.com)
 * Email: support@cenit.io
 
-Cenit IO is an open source social platform as a service for data and business integration. It has been designed to integrate solutions with orchestrating data flows that may involve several APIs. 
-It makes possible the automation of all operational processes, connecting legacy apps and internet services.
+Cenit IO is an open platform for data and business integration. It has been designed to integrate solutions with orchestrating data flows that may involve several APIs. It makes possible the automation of all operational processes, connecting legacy apps and internet services.
 
 Allows the creations of custom data pipeline for process, storage and move data between APIs – on premises or public APIs- The flows could be trigger by data events or scheduled time intervals over our platform https://cenit.io
 
 ## General Features
 
-* 100% Open Source platform as a service (Open-PaaS) and community friendly. 
+* 100% Open platform an community friendly. 
 * Router Logic for redirect documents to different endpoints.
 * Powerful design with simple abstractions: Data Types, Webhooks, Flows, Events, Connections, Transforms and Validators.
 * Support exchange multiple formats XML, JSON, CSV, EDI(X12, EDIFACT, ..), etc.
@@ -23,7 +22,7 @@ Allows the creations of custom data pipeline for process, storage and move data 
 * Full stack HTTP RESTful API, and building client libraries for Ruby and Python.
 * Social networking features to shared integration settings, named shared collections.
 * Export and import shared collections as a repo on Github and a gem in Rubygems.
-* Multi-tenancy with shared-schema database.
+* Multi-tenancy.
 * Social networking features to share collections.
 
 
@@ -196,6 +195,24 @@ If you make improvements to this application, please share with others.
 
 Send the author a message, create an [issue](https://github.com/cenit-io/cenit/issues), or fork the project and submit a pull request.
 
+
+
+Contributing
+----------------------
+
+Cenit IO is an open source project and we encourage contributions. 
+
+In the spirit of [free software](http://www.fsf.org/licensing/essays/free-sw.html), **everyone** is encouraged to help improve this project.
+
+Here are some ways **you** can contribute:
+
+* by using prerelease master branch
+* by reporting [bugs](https://github.com/spree/spree/issues/new)
+* by writing or editing [documentation](https://github.com/cenit-io/docs)
+* by writing [needed code](https://github.com/cenit-io/cenit/labels/feature_request) or [finishing code](https://github.com/cenit-io/cenit/labels/address_feedback)
+* by [refactoring code](https://github.com/cenit-io/cenit/labels/address_feedback)
+* by reviewing [pull requests](https://github.com/cenit-io/cenit/pulls)
+
 ### Contributors
 
 Thank you for help with the solution:
@@ -206,5 +223,6 @@ Thank you for help with the solution:
 * [Cesar Lage](https://github.com/kaerdsar)
 * [Daniel H. Bahr](https://github.com/dhbahr)
 * [Maria E. Guirola](https://github.com/maryguirola)
+* [José A. Cruz](https://github.com/jalbertcruz)
 
 
