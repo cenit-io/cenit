@@ -7,7 +7,7 @@ module Setup
     include CustomTitle
     include Mongoff::DataTypeMethods
     include ClassHierarchyAware
-    include ChangedIf
+    include ModelConfigurable
 
     abstract_class true
 
@@ -24,7 +24,7 @@ module Setup
 
     shared_deny :simple_delete_data_type, :bulk_delete_data_type, :simple_expand, :bulk_expand
 
-    shared_configurable :slug
+    config_with Setup::DataTypeConfig, only: :slug
 
     field :title, type: String
 
@@ -39,15 +39,7 @@ module Setup
     before_save :validates_configuration
 
     after_destroy do
-      data_type_config.destroy
       clean_up
-    end
-
-    changed_if { data_type_config.changed? }
-
-    def configure
-      super
-      data_type_config.save if data_type_config.changed?
     end
 
     def validates_configuration
@@ -68,8 +60,8 @@ module Setup
           errors.add(methods, "contains algorithms with the same name: #{duplicated_names.to_sentence}")
         end
       end
-      unless data_type_config.validate_slug
-        data_type_config.errors.messages[:slug].each { |error| errors.add(:slug, error) }
+      unless config.validate_slug
+        config.errors.messages[:slug].each { |error| errors.add(:slug, error) }
       end
       errors.blank?
     end
@@ -143,44 +135,10 @@ module Setup
     end
 
     class << self
-
-      def where(expression)
-        if expression.is_a?(Hash) && Setup::DataTypeConfig::FIELDS.any? { |field| expression.has_key?(field.to_sym) || expression.has_key?(field) }
-          config_options = {}
-          Setup::DataTypeConfig::FIELDS.each do |field|
-            if expression.has_key?(key = field.to_sym) || expression.has_key?(key = field)
-              config_options[field] = expression.delete(key)
-            end
-          end
-          super.any_in(id: Setup::DataTypeConfig.where(config_options).collect(&:data_type_id))
-        else
-          super
-        end
-      end
-
-
       def for_name(name)
         where(id: name.from(2)).first
       end
-
-      def clear_config_for(account, ids)
-        super
-        Setup::DataTypeConfig.with(account).where(:data_type_id.in => ids).delete_all
-      end
     end
-
-    def data_type_config
-      @data_type_config ||=
-        begin
-          if new_record?
-            Setup::DataTypeConfig.new(data_type: self)
-          else
-            Setup::DataTypeConfig.find_or_create_by(data_type: self)
-          end
-        end
-    end
-
-    delegate *Setup::DataTypeConfig::FIELDS.collect { |p| [p.to_sym, "#{p}=".to_sym] }.flatten, to: :data_type_config
 
     protected
 

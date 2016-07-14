@@ -13,7 +13,7 @@ module Setup
 
     def save(options = {})
       if shared? && User.current != creator
-        valid? && configure
+        run_callbacks(:save) && configure
         errors.blank?
       else
         super

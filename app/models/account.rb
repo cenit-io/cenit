@@ -103,7 +103,7 @@ class Account
     def set_current_with_connection(key, token)
       all.each do |account|
         self.current = account
-        if (connection = Setup::Connection.where(key: key).first).present? && Devise.secure_compare(connection.token, token)
+        if (connection = Setup::Connection.where(number: key).first).present? && Devise.secure_compare(connection.token, token)
           return connection
         end
       end

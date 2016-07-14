@@ -16,7 +16,7 @@ module RailsAdmin
 
             model = abstract_model.model rescue nil
             if model
-              attrs = @object.attributes.deep_dup
+              attrs = @object.attributes.deep_dup #TODO Exclude protected attributes
               redirect_to rails_admin.new_path(model_name: model.to_s.underscore.gsub('/', '~'), params: { attributes: attrs.to_json })
             else
               redirect_to back_or_index

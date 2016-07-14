@@ -51,6 +51,7 @@ en:
       overview: "Overview"
       prices: "Prices"
       or: 'or'
+      not_selected: 'Not selected'
       help: 'help'
     actions:
       dashboard:
@@ -313,6 +314,13 @@ en:
         breadcrumb: "Run"
         done: "run"
         doing: "execution"
+      run_script:
+        title: "Run"
+        menu: "Run"
+        submit: "Run"
+        breadcrumb: "Run"
+        done: "run"
+        doing: "execution"
       user_info:
         title: "My Profile"
         menu: "My Profile"
@@ -385,6 +393,18 @@ en:
         menu: "Clean Up"
         breadcrumb: "Clean Up"
         warn: "All your data will be destroyed"
+    form:
+      flow:
+        source_data_type: 'Source data type'
+        target_data_type: 'Target data type'
+        data_type: 'Data type'
+        source_scope: 'Source scope'
+        target_scope: 'Target scope'
+        data_type_scope: 'Data type scope'
+        events_wont_be_fired: "Events won't be fired for created or updated records if checked"
+        notify_request: 'Track request with notifications if checked'
+        notify_response: 'Track responses via notification if checked'
+        after_process_callbacks: 'Algorithms executed after flow processing, execution state is supplied as argument'
     scheduler:
       cyclic: 'Cyclic'
       appointed: 'Appointed'

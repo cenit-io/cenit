@@ -6,13 +6,28 @@ module Setup
     include NamespaceNamed
     include TriggersFormatter
     include ThreadAware
+    include ModelConfigurable
 
-    build_in_data_type.referenced_by(:namespace, :name).excluding(:notify_response, :notify_request)
-
-    field :active, type: Boolean, default: :true
-    field :notify_request, type: Boolean, default: :false
-    field :notify_response, type: Boolean, default: :false
-    field :discard_events, type: Boolean
+    build_in_data_type.referenced_by(:namespace, :name)
+    build_in_data_type.and({
+                             properties: {
+                               active: {
+                                 type: 'boolean',
+                                 default: true
+                               },
+                               notify_request: {
+                                 type: 'boolean',
+                                 default: false
+                               },
+                               notify_response: {
+                                 type: 'boolean',
+                                 default: false
+                               },
+                               discard_events: {
+                                 type: 'boolean'
+                               }
+                             }
+                           }.deep_stringify_keys)
 
     binding_belongs_to :event, class_name: Setup::Event.to_s, inverse_of: nil
 
@@ -32,26 +47,39 @@ module Setup
 
     has_and_belongs_to_many :after_process_callbacks, class_name: Setup::Algorithm.to_s, inverse_of: nil
 
-    #TODO Not compatible with pulling but intended for cross sharing edition
-    # validates_inclusion_of :data_type_scope, in: ->(flow) { flow.data_type_scope_enum }
     validates_numericality_in_presence_of :lot_size, greater_than_or_equal_to: 1
 
+    config_with Setup::FlowConfig
+
     before_save :validates_configuration, :check_scheduler
+
     after_save :schedule_task
 
     def validates_configuration
       format_triggers_on(:scope_filter) if scope_filter.present?
-      # return false unless ready_to_save?
       unless requires(:name, :translator)
+        if event.present?
+          unless requires(:data_type_scope)
+            if scope_symbol == :event_source &&
+              !(event.is_a?(Setup::Observer) && event.data_type == data_type)
+              errors.add(:event, 'not compatible with data type scope')
+            end
+          end
+        elsif scope_symbol == :event_source
+          if persisted?
+            requires(:event)
+          else
+            rejects(:data_type_scope)
+          end
+        end
         if translator.data_type.nil?
-          requires(:custom_data_type) unless translator.type == :Export && nil_data_type
+          requires(:custom_data_type) if translator.type == :Conversion && event.present?
         else
           rejects(:custom_data_type)
         end
         if translator.type == :Import
           rejects(:data_type_scope, :scope_filter, :scope_evaluator)
         else
-          requires(:data_type_scope) unless translator.type == :Export && data_type.nil?
           case scope_symbol
           when :filtered
             format_triggers_on(:scope_filter, true)
@@ -85,7 +113,7 @@ module Setup
           else
             rejects(:response_data_type, :discard_events)
           end
-          rejects(:custom_data_type, :data_type_scope, :lot_size) if nil_data_type
+          rejects(:data_type_scope) if data_type.nil?
         else
           rejects(:lot_size, :response_translator, :response_data_type)
         end
@@ -113,8 +141,27 @@ module Setup
       end
     end
 
-    def data_type
+    def with(options)
+      if options && (data_type = options.delete(:data_type))
+        using_data_type(data_type)
+      end
+      super
+    end
+
+    def own_data_type
       (translator && translator.data_type) || custom_data_type
+    end
+
+    def using_data_type(data_type)
+      if (own_dt = own_data_type) && own_dt != data_type
+        fail "Illegal data type option #{data_type.custom_title}, a flow own data type #{flow_data_type} is already configured"
+      else
+        @_data_type = data_type if data_type
+      end
+    end
+
+    def data_type
+      @_data_type || own_data_type
     end
 
     def data_type_scope_enum
@@ -124,15 +171,17 @@ module Setup
         enum << "All #{data_type.title.downcase.pluralize}"
         enum << 'Filter'
         enum << 'Evaluator'
+      else
+        enum << nil
       end
       enum
     end
 
     def ready_to_save?
       shared? ||
-        (translator.present? &&
-          (translator.type == :Import || data_type_scope.present? ||
-            (translator.type == :Export && nil_data_type && webhook.present?)))
+        ((t = translator).present? &&
+          (event.blank? || data_type_scope.present?) &&
+          ([:Export, :Import].exclude?(t.type) || webhook.present?))
     end
 
     def can_be_restarted?
@@ -172,6 +221,9 @@ module Setup
       if translator.present?
         begin
           (flow_execution = current_thread_cache) << [id.to_s, message[:execution_graph] || {}]
+          data_type = Setup::BuildInDataType[message[:data_type_id]] ||
+            Setup::DataType.where(id: message[:data_type_id]).first
+          using_data_type(data_type) if data_type
           send("translate_#{translator.type.to_s.downcase}", message, &block)
           after_process_callbacks.each do |callback|
             begin
@@ -339,8 +391,6 @@ module Setup
     def source_ids_from(message)
       if (object_ids = message[:object_ids])
         object_ids
-      elsif scope_symbol.nil?
-        []
       elsif scope_symbol == :event_source && id = message[:source_id]
         [id]
       elsif scope_symbol == :filtered

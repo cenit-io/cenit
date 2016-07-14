@@ -145,9 +145,7 @@ module Setup
                 conformed_path += '?' + query
               end
               url = conformed_url.gsub(/\/+\Z/, '') + ('/' + conformed_path).gsub(/\/+/, '/')
-              if url.include?('/?')
-                url = url.gsub('/?', '?')
-              end
+              url = url.gsub('/?', '?')
 
               if body
                 attachment = {

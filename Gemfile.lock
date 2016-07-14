@@ -1,6 +1,6 @@
 GIT
   remote: https://github.com/macarci/cross_origin.git
-  revision: c22c12e061541225de5c81fa7254fe0c6957b1f4
+  revision: 872a8a6fe81794dc63d0f2397f4e81d188fc55f4
   specs:
     cross_origin (0.0.3)
 
@@ -574,6 +574,3 @@ DEPENDENCIES
   unicorn (= 4.9.0)
   wannabe_bool
   xmldsig
-
-BUNDLED WITH
-   1.10.6
