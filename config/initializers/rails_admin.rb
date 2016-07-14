@@ -44,6 +44,7 @@
 ].each { |a| RailsAdmin::Config::Actions.register(a) }
 
 RailsAdmin::Config::Actions.register(:export, RailsAdmin::Config::Actions::BulkExport)
+
 [
   RailsAdmin::Config::Fields::Types::JsonValue,
   RailsAdmin::Config::Fields::Types::JsonSchema,
@@ -3532,7 +3533,6 @@ RailsAdmin.config do |config|
     end
 
     list do
-      field :channel
       field :name
       field :registered
       field :account
