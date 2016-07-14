@@ -1,10 +1,9 @@
 {
   "name": "Cenit IO",
-  "description": "Cenit IO is social platform as a service for data and business integration.",
+  "description": "Cenit IO is an open platform for data and business integration.",
   "keywords": [
-    "productivity",
-    "api",
-    "integration"
+    "APIs", "EBS", "PaaS",
+    "hub", "integrations"
   ],
   "website": "https://cenit.io",
   "logo": "https://github.com/cenit-io/cenit/raw/master/app/assets/images/logo_cenitsaas_web.png",
