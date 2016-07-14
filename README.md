@@ -5,7 +5,9 @@
 
 * [Cenit IO](https://cenit.io)
 * [Join our Slack](http://cenit-slack.herokuapp.com/) [(cenitio.slack.com)](http://cenitio.slack.com)
-* Email: support@cenit.io
+* [Shared Collections](https://cenit.io/setup~shared_collection)
+* [Documentation](https://cenit-io.github.io/docs/)
+* support@cenit.io
 
 Cenit IO is an open platform for data and business integration. It has been designed to integrate solutions with orchestrating data flows that may involve several APIs. It makes possible the automation of all operational processes, connecting legacy apps and internet services.
 
