@@ -1,5 +1,5 @@
 /
-  replace 'a.navbar-brand'
+  replace 'a.navbar-brand.pjax'
   original 'e7a23dd0db59e7705763b56251c84e5823de06d5'
 
 
