@@ -337,7 +337,14 @@ module Setup
 
     def translate_export(message, &block)
       limit = translator.bulk_source ? lot_size || 1000 : 1
-      max = ((object_ids = source_ids_from(message)) ? object_ids.size : data_type.count) - (scope_symbol ? 1 : 0)
+      max =
+        if (object_ids = source_ids_from(message))
+          object_ids.size
+        elsif data_type
+          data_type.count
+        else
+          0
+        end - (scope_symbol ? 1 : 0)
       translation_options = nil
       connections_present = true
       0.step(max, limit) do |offset|
