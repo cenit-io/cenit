@@ -191,14 +191,6 @@ For RPM-based distributions like RedHat or CentOS, the RabbitMQ team provides an
 Note: The RabbitMQ packages that ship with Ubuntu versions earlier than 11.10 are outdated and will not work with Bunny 0.9.0 and later versions (you will need at least RabbitMQ v2.0 for use with this guide).
 ```
 
-## Contributing
-
-If you make improvements to this application, please share with others.
-
-Send the author a message, create an [issue](https://github.com/cenit-io/cenit/issues), or fork the project and submit a pull request.
-
-
-
 Contributing
 ----------------------
 
