@@ -19,7 +19,7 @@ module Setup
     validates_presence_of :flow
 
     before_save do
-      self.discard_events = nil if flow.translator.type == :Export && flow.response_translator.blank?
+      self.discard_events = nil if (t = flow.translator).nil? || (t.type == :Export && flow.response_translator.blank?)
       errors.blank?
     end
 
