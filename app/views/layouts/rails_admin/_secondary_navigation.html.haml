@@ -139,7 +139,7 @@
           %i{class:"fa fa-fw fa-google"}
         = f.button class: 'btn btn-lg soc-btn soc-facebook', name: 'with', value: 'facebook' do
           %i{class:"fa fa-fw fa-facebook"}
-      - unless ENV['UNABLE_SIGN_IN_AND_SIGN_UP_DEVISE'].to_b
+      - unless (ENV['UNABLE_SIGN_IN_AND_SIGN_UP_DEVISE'] || false).to_b
         .form-option
           =t('admin.misc.or')
         .local-forms

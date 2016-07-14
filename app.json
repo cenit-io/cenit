@@ -1,0 +1,26 @@
+{
+  "name": "Cenit IO",
+  "description": "Cenit IO is an open platform for data and business integration.",
+  "keywords": [
+    "APIs", "EBS", "PaaS",
+    "hub", "integrations"
+  ],
+  "website": "https://cenit.io",
+  "logo": "https://github.com/cenit-io/cenit/raw/master/app/assets/images/logo_cenitsaas_web.png",
+  "repository": "https://github.com/cenit-io/cenit",
+  "addons": [
+    "rabbitmq-bigwig:pipkin",
+    "mongolab"
+  ],
+  "env": {
+    "ADMIN_EMAIL": {
+      "value": "cenit@example.com"
+    },
+    "ADMIN_PASSWORD": {
+      "value": "cenit123"
+    }
+  },
+  "scripts": {
+    "postdeploy": "bundle exec rake admin:create"
+  }
+}
