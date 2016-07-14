@@ -9,7 +9,8 @@
 * [Documentation](https://cenit-io.github.io/docs/)
 * support@cenit.io
 
-[![Run the demo](https://www.herokucdn.com/deploy/button.svg)](https://heroku.com/deploy)
+## Run the demo
+[![Deploy to Heroku](https://www.herokucdn.com/deploy/button.svg)](https://heroku.com/deploy)
 
 Cenit IO is an open platform for data and business integration. It has been designed to integrate solutions with orchestrating data flows that may involve several APIs. It makes possible the automation of all operational processes, connecting legacy apps and internet services.
 
