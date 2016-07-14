@@ -3,7 +3,7 @@
 [![license](https://img.shields.io/packagist/l/doctrine/orm.svg)]()
 [![Slack Status](http://cenit-slack.herokuapp.com/badge.svg)](http://cenitio.slack.com)
 
-* [Cenit IO](https://cenit.io)
+* [Cenit IO](https://cenit.io)  [(https://cenit.io)](https://cenit.io)
 * [Join our Slack](http://cenit-slack.herokuapp.com/) [(cenitio.slack.com)](http://cenitio.slack.com)
 * [Shared Collections](https://cenit.io/setup~shared_collection)
 * [Documentation](https://cenit-io.github.io/docs/)
@@ -11,7 +11,7 @@
 
 Cenit IO is an open platform for data and business integration. It has been designed to integrate solutions with orchestrating data flows that may involve several APIs. It makes possible the automation of all operational processes, connecting legacy apps and internet services.
 
-Allows the creations of custom data pipeline for process, storage and move data between APIs – on premises or public APIs- The flows could be trigger by data events or scheduled time intervals over our platform https://cenit.io
+Allows the creations of custom data pipeline for process, storage and move data between APIs – on premises or public APIs- The flows could be trigger by data events or scheduled time intervals over our platform [Cenit IO](https://cenit.io)
 
 ## General Features
 
