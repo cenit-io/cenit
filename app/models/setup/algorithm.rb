@@ -26,11 +26,17 @@ module Setup
 
     def validate_parameters
       required = true
+      first_err = true
       parameters.each do |p|
-        if p.required && !required
-          errors.add(:parameters, 'marked as "Required" must come before non marked')
+        if p.required
+          unless required
+            if first_err
+              first_err = false
+              errors.add(:parameters, 'marked as "Required" must come before non marked')
+            end
+          end
         elsif required
-            required = false
+          required = false
         end
       end
       errors.blank?
