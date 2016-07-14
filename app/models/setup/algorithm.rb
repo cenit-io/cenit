@@ -25,14 +25,12 @@ module Setup
     attr_reader :last_output
 
     def validate_parameters
-      required = true
+      not_required = false
       parameters.each do |p|
-        if p.required && !required
-          errors.add(:parameters, 'marked as "Required" must come before non marked')
-        elsif required
-            required = false
-        end
+        next unless not_required ||= !p.required
+        p.errors.add(:required, 'marked as "Required" must come before non marked') if p.required
       end
+      errors.add(:parameters, 'contains invalid requence of required parameters') if parameters.last.errors.present?
       errors.blank?
     end
 
