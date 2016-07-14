@@ -156,7 +156,7 @@ module RailsAdmin
               @object.set_attributes(form_attributes = params[@abstract_model.param_key])
 
               #Patch
-              if (synchronized_fields = @model_config.try(:form_synchronized))
+              if (synchronized_fields = @model_config.with(object: @object).try(:form_synchronized))
                 params_to_check = {}
                 model_config.send(action).with(controller: self, view: view_context, object: @object).fields.each do |field|
                   if synchronized_fields.include?(field.name.to_sym)
@@ -194,14 +194,20 @@ module RailsAdmin
             @history = @auditing_adapter && @auditing_adapter.latest || []
             if @action.statistics?
               #Patch
+              @model_configs = {}
               @abstract_models =
                 if current_user
                   RailsAdmin::Config.visible_models(controller: self).select(&:show_in_dashboard).collect(&:abstract_model).select do |absm|
                     ((model = absm.model) rescue nil) &&
-                      (model.is_a?(Mongoff::Model) || model.include?(AccountScoped))
+                      (model.is_a?(Mongoff::Model) || model.include?(AccountScoped)) &&
+                      (@model_configs[absm.model_name] = absm.config)
                   end
                 else
-                  Setup::Models.collect { |m| RailsAdmin::Config.model(m) }.select(&:visible).select(&:show_in_dashboard).collect(&:abstract_model)
+                  Setup::Models.collect { |m| RailsAdmin::Config.model(m) }.select(&:visible).select(&:show_in_dashboard).collect do |config|
+                    absm = config.abstract_model
+                    @model_configs[absm.model_name] = config
+                    absm
+                  end
                 end
               @most_recent_changes = {}
               @count = {}
@@ -210,7 +216,7 @@ module RailsAdmin
               if current_user
                 @abstract_models.each do |t|
                   scope = @authorization_adapter && @authorization_adapter.query(:index, t)
-                  current_count = t.count({}, scope)
+                  current_count = t.count({ cache: true }, scope)
                   @max = current_count > @max ? current_count : @max
                   @count[t.model.name] = current_count
                   # Patch
@@ -418,7 +424,7 @@ module RailsAdmin
           register_instance_option :formatted_value do
             if (time = value)
               if (current_account = Account.current)
-                time = time.localtime(current_account.time_zone_offset)
+                time = time.to_time.localtime(current_account.time_zone_offset)
               end
               I18n.l(time, format: strftime_format)
             else
@@ -600,9 +606,17 @@ module RailsAdmin
 
 
     def main_navigation
-      nodes_stack = RailsAdmin::Config.visible_models(controller: controller) + #Patch
+      #Patch
+      nodes_stack = RailsAdmin::Config.visible_models(controller: controller) +
         Setup::DataType.where(navigation_link: true).collect { |data_type| RailsAdmin.config(data_type.records_model) }
       node_model_names = nodes_stack.collect { |c| c.abstract_model.model_name }
+      if @model_configs
+        nodes_stack.each_with_index do |node, index|
+          if (model_config = @model_configs[node.abstract_model.model_name])
+            nodes_stack[index] = model_config
+          end
+        end
+      end
 
       i = -1
       nodes_stack.group_by(&:navigation_label).collect do |navigation_label, nodes|
@@ -638,14 +652,13 @@ module RailsAdmin
     end
 
     def dashboard_main()
-      nodes_stack =
+      nodes_stack = @model_configs.values.sort_by(&:weight)
+      node_model_names =
         if current_user
           RailsAdmin::Config.visible_models(controller: controller)
         else
-          Setup::Models.collect { |m| RailsAdmin::Config.model(m) }.select(&:visible).sort_by(&:weight)
-        end
-
-      node_model_names = nodes_stack.collect { |c| c.abstract_model.model_name }
+          Setup::Models.collect { |m| RailsAdmin::Config.model(m) }.select(&:visible)
+        end.collect { |c| c.abstract_model.model_name }
 
       html_ = "<table class='table table-condensed table-striped .col-sm-6'>" +
         '<thead><tr><th class="shrink"></th><th></th><th class="shrink"></th></tr></thead>' +
@@ -686,7 +699,7 @@ module RailsAdmin
         nodes.collect do |node|
           i += 1
           stack_id = "#{html_id}-sub#{i}"
-          model_count = 0 # node.abstract_model.model.all.count
+          model_count = node.abstract_model.count(cache: true)
 
           children = nodes_stack.select { |n| n.parent.to_s == node.abstract_model.model_name }
           if children.present?
@@ -744,7 +757,7 @@ module RailsAdmin
 
               model_count =
                 if current_user
-                  node.abstract_model.model.all.count
+                  node.abstract_model.count(cache: true)
                 else
                   @count[node.abstract_model.model.name] || 0
                 end
@@ -899,6 +912,21 @@ module RailsAdmin
 
   module Adapters
     module Mongoid
+
+      alias_method :rails_admin_count, :count
+
+      def count(options = {}, scope = nil)
+        if options.delete(:cache)
+          if @count_cache
+            @count_cache
+          else
+            #TODO: review issue #748
+            @count_cache = rails_admin_count(options, scope) rescue 0
+          end
+        else
+          rails_admin_count(options, scope)
+        end
+      end
 
       def sort_by(options, scope)
         return scope unless options[:sort]
