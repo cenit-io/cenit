@@ -30,7 +30,6 @@ on premises-. The flows could be trigger by data events or be scheduled by our p
 * Exchange support for multiple formats XML, JSON, CSV, EDI(X12, EDIFACT, ..), etc.
 * Dynamic load validators: XML Schema, JSON Schema and EDI grammars.
 * Powerful transformation tools to translate and convert several formats into others.
-* Full stack HTTP RESTful API, and building client libraries for Ruby and Python.
 * Social networking features to share integration settings, we call them *Shared Collections*.
 * Export and import shared collections as a repo on Github and a gem in Rubygems.
 * Multi-tenancy.
