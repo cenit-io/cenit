@@ -94,7 +94,7 @@ module Setup
     def check_schema(json, name, defined_types, embedded_refs, root_schema)
       if (refs = json['$ref'])
         refs = [refs] unless refs.is_a?(Array)
-        refs.each { |ref| embedded_refs[ref] = check_embedded_ref(ref, root_schema) if ref.start_with?('#') }
+        refs.each { |ref| embedded_refs[ref] = check_embedded_ref(ref, root_schema) if ref.is_a?(String) && ref.start_with?('#') }
       elsif json['type'].nil? || json['type'].eql?('object')
         defined_types << name
         check_definitions(json, name, defined_types, embedded_refs, root_schema)
