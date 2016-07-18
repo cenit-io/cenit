@@ -6,16 +6,17 @@
 * [Cenit IO](https://cenit.io)  [(https://cenit.io)](https://cenit.io)
 * [Join our Slack](http://cenit-slack.herokuapp.com/) [(cenitio.slack.com)](http://cenitio.slack.com)
 * [Shared Collections](https://cenit.io/setup~shared_collection)
+* [Cenit IO - 101 Intro](https://cenit-io.github.io/cenit-slides/#cover)
 * [Documentation](https://cenit-io.github.io/docs/)
 * support@cenit.io
 
 
-Cenit IO is an open platform for data and business integration. It has been designed to integrate solutions by 
+**Cenit IO** is an open platform for data and business integration. It has been designed to integrate solutions by 
 orchestrating data flows that may involve several APIs. It makes possible the automation of all operational processes, 
 connecting legacy apps and internet services.
 
 It allows the creation of custom data pipelines for process, storage and data movement between APIs –either public or 
-on premises-. The flows could be trigger by data events or be scheduled by our platform /[Cenit IO](https://cenit.io).
+on premises-. The flows could be trigger by data events or be scheduled by our platform [Cenit IO](https://cenit.io).
 
 
 ## Run your own Cenit

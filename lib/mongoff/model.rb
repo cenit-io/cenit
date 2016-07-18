@@ -21,7 +21,11 @@ module Mongoff
     end
 
     def data_type
-      @data_type_id.is_a?(Setup::DataType) || @data_type_id.is_a?(Setup::BuildInDataType) ? @data_type_id : Setup::DataType.where(id: @data_type_id).first
+      if @data_type_id.is_a?(Setup::DataType) || @data_type_id.is_a?(Setup::BuildInDataType)
+        @data_type_id
+      else
+        Setup::DataType.where(id: @data_type_id).first
+      end
     end
 
     def new(attributes = {})
@@ -406,7 +410,7 @@ module Mongoff
     def proto_schema
       sch = data_type.merged_schema #(recursive: caching?)
       if (properties = sch['properties'])
-        sch[properties] = data_type.merge_schema(properties)
+        sch['properties'] = data_type.merge_schema(properties)
       end
       sch
     end
@@ -415,12 +419,20 @@ module Mongoff
 
     def check_referenced_schema(schema, check_for_array = true)
       if schema.is_a?(Hash) && (schema = schema.reject { |key, _| %w(title description edi group).include?(key) })
-        (((ref = schema['$ref']).is_a?(String) && (schema.size == 1 || (schema.size == 2 && schema.has_key?('referenced')))) ||
+        ns = data_type.namespace
+        ref = schema['$ref']
+        if ref.is_a?(Hash)
+          (ns = ref['namespace'].to_s)
+          ref = ref['name']
+        end
+        ((ref.is_a?(String) && (schema.size == 1 || (schema.size == 2 && schema.has_key?('referenced')))) ||
           (schema['type'] == 'array' && (items=schema['items']) &&
             (schema.size == 2 || (schema.size == 3 && schema.has_key?('referenced'))) &&
             (items = items.reject { |key, _| %w(title description edi).include?(key) }) &&
-            items.size == 1 && (ref = items['$ref']).is_a?(String))) &&
-          (property_dt = data_type.find_data_type(ref))
+            items.size == 1 &&
+            ((ref = items['$ref']).is_a?(String) ||
+              (ref.is_a?(Hash) && (ns = ref['namespace'].to_s) && (ref = ref['name']).is_a?(String))))) &&
+          (property_dt = data_type.find_data_type(ref, ns))
         [ref, property_dt]
       else
         [nil, nil]

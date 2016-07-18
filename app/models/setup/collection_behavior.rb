@@ -54,88 +54,69 @@ module Setup
       before_save :add_dependencies
 
       after_initialize { @add_dependencies = true }
+
+      attr_reader :warnings
     end
 
     NO_DATA_FIELDS = %w(name readme)
 
     def add_dependencies
       return true unless @add_dependencies
-      algorithms = Set.new(self.algorithms)
-      flows.each do |flow|
-        {
-          event: events,
-          translator: translators,
-          webhook: webhooks,
-          connection_role: connection_roles,
-          response_translator: translators
-        }.each do |key, association|
-          unless (value = flow.send(key)).nil? || association.any? { |v| v == value }
-            association << value
-          end
-        end
-        check_data_type_dependencies(flow.custom_data_type, algorithms)
-        check_data_type_dependencies(flow.response_data_type, algorithms)
+      @warnings = nil
+      collecting_models = {}
+      COLLECTING_PROPERTIES.each do |property|
+        relation = reflect_on_association(property)
+        collecting_models[relation.klass] = relation
       end
-      connection_roles.each do |connection_role|
-        connection_role.webhooks.each { |webhook| webhooks << webhook unless webhooks.any? { |v| v == webhook } }
-        connection_role.connections.each { |connection| connections << connection unless connections.any? { |v| v == connection } }
-      end
-      connections.each do |connection|
-        unless (authorization = connection.authorization).nil? || authorizations.any? { |a| a == authorization }
-          authorizations << authorization
+      dependencies = Hash.new { |h, k| h[k] = Set.new }
+      visited = Set.new
+      COLLECTING_PROPERTIES.each do |property|
+        send(property).each do |record|
+          dependencies[property] << record if scan_dependencies_on(record,
+                                                                   collecting_models: collecting_models,
+                                                                   dependencies: dependencies,
+                                                                   visited: visited)
         end
       end
-      authorizations.each do |authorization|
-        if authorization.is_a?(Setup::BaseOauthAuthorization)
-          {
-            provider: :oauth_providers,
-            client: :oauth_clients
-          }.each do |property, collector_name|
-            collector = send(collector_name)
-            obj = authorization.send(property)
-            collector << obj unless collector.any? { |o| o == obj }
-          end
-          if authorization.is_a?(Setup::Oauth2Authorization)
-            authorization.scopes.each { |scope| oauth2_scopes << scope unless oauth2_scopes.any? { |s| s == scope } }
-          end
-        end
-      end
-      translators = Set.new(self.translators)
-      self.translators.each do |translator|
-        [:source_exporter, :target_importer].each do |key|
-          if (t = translator.send(key))
-            translators << t
-          end
-        end
-      end
-      translators.each do |translator|
-        check_data_type_dependencies(translator.source_data_type, algorithms)
-        check_data_type_dependencies(translator.target_data_type, algorithms)
-      end
-      events.each { |event| check_data_type_dependencies(event.data_type, algorithms) if event.is_a?(Setup::Observer) }
-      data_types.each { |data_type| check_data_type_dependencies(data_type, algorithms) }
-
       applications.each do |app|
-        app.actions.each { |action| algorithms << action.algorithm }
         app.application_parameters.each do |app_parameter|
           if (param_model = app.configuration_model.property_model(app_parameter.name)) &&
-            (item = app.configuration[app_parameter.name]) &&
-            (association = reflect_on_all_associations(:has_and_belongs_to_many).detect { |r| r.klass == param_model }) &&
-            (association = send(association.name)) &&
-            !association.include?(item)
-            association << item
+            (relation = collecting_models[param_model]) &&
+            (items = app.configuration[app_parameter.name])
+            items = [items] unless items.is_a?(Enumerable)
+            items.each do |item|
+              dependencies[relation.name] << item if scan_dependencies_on(item,
+                                                                          collecting_models: collecting_models,
+                                                                          dependencies: dependencies,
+                                                                          visited: visited)
+            end
           end
         end
       end
-
-      before_scanning_algorithms(algorithms)
-
-      visited_algs = Set.new
-      algorithms.each { |alg| alg.for_each_call(visited_algs) }
-      self.algorithms = visited_algs.to_a
-
+      params = {}
+      if (data_types = dependencies[:data_types])
+        data_types = data_types.to_a
+        while (data_type = data_types.pop)
+          data_type.each_ref(params) do |dt|
+            if scan_dependencies_on(dt,
+                                    collecting_models: collecting_models,
+                                    dependencies: dependencies,
+                                    visited: visited)
+              dependencies[:data_types] << dt
+              data_types << dt
+            end
+          end if data_type.is_a?(Setup::JsonDataType)
+        end
+      end
+      if (not_found_refs = params[:not_found]).present?
+        @warnings = not_found_refs.to_a.collect { |ref| "Reference not found #{ref.to_json}" }
+      end
+      dependencies.each do |property, set|
+        set.merge(send(property))
+        self.send("#{property}=", set.to_a)
+      end
       nss = Set.new
-      reflect_on_all_associations(:has_and_belongs_to_many).each do |relation|
+      collecting_models.values.each do |relation|
         next unless relation.klass.include?(Setup::NamespaceNamed)
         nss += send(relation.name).distinct(:namespace).flatten
       end
@@ -190,27 +171,33 @@ module Setup
 
     protected
 
-    def before_scanning_algorithms(algorithms_collector)
-
-    end
-
-    def check_data_type_dependencies(data_type, algorithms)
-      if data_type
-        algorithms.merge(data_type.before_save_callbacks)
-        algorithms.merge(data_type.records_methods)
-        algorithms.merge(data_type.data_type_methods)
-        if data_type.is_a?(Setup::FileDataType)
-          check_data_type_dependencies(data_type.schema_data_type, algorithms)
-          data_type.validators.each do |validator|
-            custom_validators << validator if validator.is_a?(Setup::CustomValidator) && custom_validators.none? { |v| v == validator }
-            check_data_type_dependencies(validator.try(:schema_data_type), algorithms)
-            if (algorithm = validator.try(:algorithm))
-              algorithms << algorithm
+    def scan_dependencies_on(record, opts)
+      return false if opts[:visited].include?(record)
+      opts[:visited] << record
+      record.class.reflect_on_all_associations(:embeds_one,
+                                               :embeds_many,
+                                               :has_one,
+                                               :belongs_to,
+                                               :has_many,
+                                               :has_and_belongs_to_many).each do |relation|
+        next if [User, Account].include?(relation.klass)
+        collecting_relation = opts[:collecting_models][relation.klass]
+        association = collecting_relation && opts[:dependencies][collecting_relation.name]
+        if relation.many?
+          record.send(relation.name).each do |dependency|
+            if association && association.exclude?(dependency)
+              association << dependency
             end
+            scan_dependencies_on(dependency, opts)
           end
+        elsif (dependency = record.send(relation.name))
+          if association && association.exclude?(dependency)
+            association << dependency
+          end
+          scan_dependencies_on(dependency, opts)
         end
       end
+      true
     end
-
   end
 end

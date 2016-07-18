@@ -41,6 +41,7 @@ module Setup
 
     belongs_to :webhook, class_name: Setup::Webhook.to_s, inverse_of: nil
     binding_belongs_to :connection_role, class_name: Setup::ConnectionRole.to_s, inverse_of: nil
+    belongs_to :before_submit, class_name: Setup::Algorithm.to_s, inverse_of: nil
 
     belongs_to :response_translator, class_name: Setup::Translator.to_s, inverse_of: nil
     belongs_to :response_data_type, class_name: Setup::DataType.to_s, inverse_of: nil
@@ -59,7 +60,7 @@ module Setup
       format_triggers_on(:scope_filter) if scope_filter.present?
       unless requires(:name, :translator)
         if event.present?
-          unless requires(:data_type_scope)
+          unless translator.type == :Import || requires(:data_type_scope)
             if scope_symbol == :event_source &&
               !(event.is_a?(Setup::Observer) && event.data_type == data_type)
               errors.add(:event, 'not compatible with data type scope')
@@ -96,10 +97,11 @@ module Setup
         if [:Import, :Export].include?(translator.type)
           requires(:webhook)
         else
-          rejects(:connection_role, :webhook, :notify_request, :notify_response)
+          rejects(:before_submit, :connection_role, :webhook, :notify_request, :notify_response)
         end
 
         if translator.type == :Export
+          rejects(:before_submit)
           if response_translator.present?
             if response_translator.type == :Import
               if response_translator.data_type
@@ -180,7 +182,7 @@ module Setup
     def ready_to_save?
       shared? ||
         ((t = translator).present? &&
-          (event.blank? || data_type_scope.present?) &&
+          (event.blank? || data_type_scope.present? || t.type == :Import) &&
           ([:Export, :Import].exclude?(t.type) || webhook.present?))
     end
 
@@ -323,8 +325,18 @@ module Setup
     end
 
     def translate_import(message, &block)
-      webhook.upon(connection_role).submit(notify_request: notify_request,
-                                           notify_response: notify_response) do |response, template_parameters|
+      options =
+        {
+          headers: {},
+          parameters: {},
+          template_parameters: {},
+          notify_request: notify_request,
+          notify_response: notify_response
+        }
+      if before_submit
+        before_submit.run(options)
+      end
+      webhook.upon(connection_role).submit(options) do |response, template_parameters|
         translator.run(target_data_type: data_type,
                        data: response.body,
                        discard_events: discard_events,

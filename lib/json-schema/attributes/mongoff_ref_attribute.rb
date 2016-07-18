@@ -25,32 +25,36 @@ module JSON
           refs = [refs] unless refs.is_a?(Array)
           refs.each do |ref|
             uri, schema = nil, nil
-
-            temp_uri = Addressable::URI.parse(ref)
-            if temp_uri.relative?
-              temp_uri = current_schema.uri.clone
-              # Check for absolute path
-              path = ref.split('#')[0]
-              if path.nil? || path == ''
-                temp_uri.path = current_schema.uri.path
-              elsif path[0, 1] == '/'
-                temp_uri.path = Pathname.new(path).cleanpath.to_s
+            schema_key =
+              if ref.is_a?(Hash)
+                temp_uri = ref
               else
-                temp_uri = current_schema.uri.join(path)
-              end
-              temp_uri.fragment = ref.split('#')[1]
-            end
-            temp_uri.fragment = '' if temp_uri.fragment.nil?
+                temp_uri = Addressable::URI.parse(ref)
+                if temp_uri.relative?
+                  temp_uri = current_schema.uri.clone
+                  # Check for absolute path
+                  path = ref.split('#')[0]
+                  if path.nil? || path == ''
+                    temp_uri.path = current_schema.uri.path
+                  elsif path[0, 1] == '/'
+                    temp_uri.path = Pathname.new(path).cleanpath.to_s
+                  else
+                    temp_uri = current_schema.uri.join(path)
+                  end
+                  temp_uri.fragment = ref.split('#')[1]
+                end
+                temp_uri.fragment = '' if temp_uri.fragment.nil?
 
-            # Grab the parent schema from the schema list
-            schema_key = temp_uri.to_s.split('#')[0] + '#'
+                # Grab the parent schema from the schema list
+                temp_uri.to_s.split('#')[0] + '#'
+              end
 
             ref_schema = JSON::Validator.schema_for_uri(schema_key)
 
             if ref_schema
               # Perform fragment resolution to retrieve the appropriate level for the schema
               target_schema = ref_schema.schema
-              fragments = temp_uri.fragment.split('/')
+              fragments = (temp_uri.try(:fragment) || '').split('/')
               fragment_path = ''
               fragments.each do |fragment|
                 if fragment && fragment != ''
