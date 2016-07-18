@@ -30,7 +30,7 @@ module Setup
         next unless not_required ||= !p.required
         p.errors.add(:required, 'marked as "Required" must come before non marked') if p.required
       end
-      errors.add(:parameters, 'contains invalid requence of required parameters') if parameters.last.errors.present?
+      errors.add(:parameters, 'contains invalid sequence of required parameters') if (last = parameters.last) && last.errors.present?
       errors.blank?
     end
 
