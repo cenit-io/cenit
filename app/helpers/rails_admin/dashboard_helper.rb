@@ -11,5 +11,9 @@ module RailsAdmin
     def animate_width_to(percent)
       "#{[2.0, percent].max.to_i}%"
     end
+
+    def recent_users()
+      User.order(created_at: :desc).limit(5)
+    end
   end
 end
