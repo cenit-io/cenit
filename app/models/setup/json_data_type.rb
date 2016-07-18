@@ -78,7 +78,39 @@ module Setup
       Account.tenant_collection_name(collection_data_type.data_type_name)
     end
 
+    def each_ref(params={}, &block)
+      params[:visited] ||= Set.new
+      params[:not_found] ||= Set.new
+      for_each_ref(params[:visited], params, &block)
+    end
+
     protected
+
+    def for_each_ref(visited = Set.new, params = {}, &block)
+      schema = params[:schema] || self.schema
+      not_found = params[:not_found]
+      refs = []
+      if (ref = schema['$ref'])
+        refs << ref
+      end
+      if (ref = schema['extends']).is_a?(String)
+        refs << ref
+      end
+      refs.flatten.each do |ref|
+        if (data_type = find_data_type(ref)) &&
+          visited.exclude?(data_type)
+          visited << data_type
+          block.call(data_type)
+          data_type.for_each_ref(visited, not_found: not_found, &block)
+        else
+          not_found << ref
+        end
+      end
+      schema.each do |key, value|
+        next unless value.is_a?(Hash) && %w(extends $ref).exclude?(key)
+        for_each_ref(visited, schema: value, not_found: not_found, &block)
+      end
+    end
 
     def validate_schema
       # check_type_name(self.name)
