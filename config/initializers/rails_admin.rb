@@ -1887,6 +1887,14 @@ RailsAdmin.config do |config|
               ((f.persisted? || f.custom_data_type_selected? || f.data_type) && (t.type == :Import || f.event.blank? || f.data_type.blank? || f.data_type_scope.present?))
         end
       end
+      field :before_submit do
+        shared_read_only
+        visible do
+          f = bindings[:object]
+          (t = f.translator) && [:Import].include?(t.type) &&
+            ((f.persisted? || f.custom_data_type_selected? || f.data_type) && (t.type == :Import || f.event.blank? || f.data_type.blank? || f.data_type_scope.present?))
+        end
+      end
       field :response_translator do
         shared_read_only
         visible do
@@ -1972,6 +1980,7 @@ RailsAdmin.config do |config|
 
       field :webhook
       field :connection_role
+      field :before_submit
       field :response_translator
       field :response_data_type
 
