@@ -101,7 +101,7 @@ module Setup
           visited.exclude?(data_type)
           visited << data_type
           block.call(data_type)
-          data_type.for_each_ref(visited, not_found: not_found, &block)
+          data_type.for_each_ref(visited, not_found: not_found, &block) if data_type.is_a?(Setup::JsonDataType)
         else
           not_found << ref
         end

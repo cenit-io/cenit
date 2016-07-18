@@ -49,7 +49,7 @@ module RailsAdmin
         end
 
         register_instance_option :link_icon do
-          'icon-sliders'
+          'fa fa-sliders'
         end
 
         class << self

@@ -78,6 +78,21 @@ module Setup
                                                                    visited: visited)
         end
       end
+      applications.each do |app|
+        app.application_parameters.each do |app_parameter|
+          if (param_model = app.configuration_model.property_model(app_parameter.name)) &&
+            (relation = collecting_models[param_model]) &&
+            (items = app.configuration[app_parameter.name])
+            items = [items] unless items.is_a?(Enumerable)
+            items.each do |item|
+              dependencies[relation.name] << item if scan_dependencies_on(item,
+                                                                          collecting_models: collecting_models,
+                                                                          dependencies: dependencies,
+                                                                          visited: visited)
+            end
+          end
+        end
+      end
       params = {}
       if (data_types = dependencies[:data_types])
         data_types = data_types.to_a
@@ -90,7 +105,7 @@ module Setup
               dependencies[:data_types] << dt
               data_types << dt
             end
-          end
+          end if data_type.is_a?(Setup::JsonDataType)
         end
       end
       if (not_found_refs = params[:not_found]).present?
