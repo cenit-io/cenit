@@ -8,7 +8,7 @@ module Setup
     shared_deny :copy
 
     field :name, type: String
-    belongs_to :provider, class_name: Setup::BaseOauthProvider.to_s, inverse_of: :clients
+    belongs_to :provider, class_name: Setup::BaseOauthProvider.to_s, inverse_of: nil
 
     field :identifier, type: String
     field :secret, type: String

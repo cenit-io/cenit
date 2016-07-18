@@ -86,14 +86,11 @@ module Setup
     end
 
     def find_ref_schema(ref, root_schema = schema)
-      if ref.start_with?('#')
+      if ref.is_a?(String) && ref.start_with?('#')
         get_embedded_schema(ref, root_schema)[1] rescue nil
       else
-        if (data_type = find_data_type(ref))
+        (data_type = find_data_type(ref)) &&
           data_type.schema
-        else
-          nil
-        end
       end
     end
 
@@ -155,12 +152,12 @@ module Setup
             end
           end
         elsif options[:only_overriders]
-          while base_model = schema.delete('extends') || options.delete(:extends)
+          while (base_model = schema.delete('extends') || options.delete(:extends))
             merged = merging = true
             base_model = find_ref_schema(base_model) if base_model.is_a?(String)
             base_model = do_merge_schema(base_model)
             schema['extends'] = base_model['extends'] if base_model['extends']
-            if base_properties = base_model['properties']
+            if (base_properties = base_model['properties'])
               properties = schema['properties'] || {}
               base_properties.reject! { |property_name, _| properties[property_name].nil? }
               schema = { 'properties' => base_properties }.deep_merge(schema) do |_, val1, val2|
@@ -169,7 +166,7 @@ module Setup
             end
           end
         end
-        while refs = schema['$ref']
+        while (refs = schema['$ref'])
           merged = merging = true
           refs = [refs] unless refs.is_a?(Array)
           refs.each do |ref|
@@ -188,7 +185,7 @@ module Setup
             if key == '$ref' && (!options[:keep_ref] || sch[key])
               value = [value] unless value.is_a?(Array)
               value.each do |ref|
-                if ref_sch = find_ref_schema(ref)
+                if (ref_sch = find_ref_schema(ref))
                   sch = sch.reverse_merge(ref_sch) { |_, val1, val2| Cenit::Utility.array_hash_merge(val1, val2) }
                 else
                   raise Exception.new("contains an unresolved reference #{value}") unless options[:silent]

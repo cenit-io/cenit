@@ -119,7 +119,7 @@ module Setup
 
     def find_data_type(ref, ns = namespace)
       super ||
-        Setup::DataType.where(namespace: ns, name: ref).first ||
+        self.class.find_data_type(ref, ns) ||
         ((ref = ref.to_s).start_with?('Dt') && Setup::DataType.where(id: ref.from(2)).first) ||
         nil
     end
@@ -137,6 +137,13 @@ module Setup
     class << self
       def for_name(name)
         where(id: name.from(2)).first
+      end
+
+      def find_data_type(ref, ns = '')
+        if ref.is_a?(Hash)
+          ns = ref['namespace'].to_s
+        end
+        Setup::DataType.where(namespace: ns, name: ref).first
       end
     end
 

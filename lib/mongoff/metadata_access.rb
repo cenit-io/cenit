@@ -85,7 +85,7 @@ module Mongoff
       property_model ||= property_model(field) if field
       schema ||= property_schema(field)
       if property_model && schema['referenced']
-        property_model.mongo_type_for(:id, nil) #TODO Set schema parameter default to nil
+        property_model.mongo_type_for(:_id, nil) #TODO Set schema parameter default to nil
       elsif schema
         key = schema['type']
         if (type = MONGO_TYPE_MAP[key]).is_a?(Hash)

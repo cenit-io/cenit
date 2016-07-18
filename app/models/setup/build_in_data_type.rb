@@ -69,7 +69,8 @@ module Setup
     end
 
     def find_data_type(ref, ns = namespace)
-      BuildInDataType.build_ins[ref]
+      BuildInDataType.build_ins[ref] ||
+        Setup::DataType.find_data_type(ref, ns)
     end
 
     def protecting?(field)

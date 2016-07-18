@@ -16,6 +16,10 @@ module Setup
     end
 
     def find_data_type(ref, ns = self.namespace)
+      if ref.is_a?(Hash)
+        ns = ref['namespace'].to_s
+        ref = ref['name']
+      end
       unless (data_type = (ns_hash = @nss[ns])[ref])
         if (data_type = Setup::DataType.where(namespace: ns, name: ref).first)
           ns_hash[ref] = data_type

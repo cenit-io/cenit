@@ -78,7 +78,39 @@ module Setup
       Account.tenant_collection_name(collection_data_type.data_type_name)
     end
 
+    def each_ref(params={}, &block)
+      params[:visited] ||= Set.new
+      params[:not_found] ||= Set.new
+      for_each_ref(params[:visited], params, &block)
+    end
+
     protected
+
+    def for_each_ref(visited = Set.new, params = {}, &block)
+      schema = params[:schema] || self.schema
+      not_found = params[:not_found]
+      refs = []
+      if (ref = schema['$ref'])
+        refs << ref
+      end
+      if (ref = schema['extends']).is_a?(String)
+        refs << ref
+      end
+      refs.flatten.each do |ref|
+        if (data_type = find_data_type(ref)) &&
+          visited.exclude?(data_type)
+          visited << data_type
+          block.call(data_type)
+          data_type.for_each_ref(visited, not_found: not_found, &block) if data_type.is_a?(Setup::JsonDataType)
+        else
+          not_found << ref
+        end
+      end
+      schema.each do |key, value|
+        next unless value.is_a?(Hash) && %w(extends $ref).exclude?(key)
+        for_each_ref(visited, schema: value, not_found: not_found, &block)
+      end
+    end
 
     def validate_schema
       # check_type_name(self.name)
@@ -94,7 +126,7 @@ module Setup
     def check_schema(json, name, defined_types, embedded_refs, root_schema)
       if (refs = json['$ref'])
         refs = [refs] unless refs.is_a?(Array)
-        refs.each { |ref| embedded_refs[ref] = check_embedded_ref(ref, root_schema) if ref.start_with?('#') }
+        refs.each { |ref| embedded_refs[ref] = check_embedded_ref(ref, root_schema) if ref.is_a?(String) && ref.start_with?('#') }
       elsif json['type'].nil? || json['type'].eql?('object')
         defined_types << name
         check_definitions(json, name, defined_types, embedded_refs, root_schema)

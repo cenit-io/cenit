@@ -77,10 +77,14 @@ module Setup
     def find_ref_schema(ref)
       if ref == uri
         self
-      elsif (sch = Setup::Schema.where(namespace: namespace, uri: ref).first)
-        sch.schema
       else
-        nil
+        ns = namespace
+        if ref.is_a?(Hash)
+          ns = ref['namespace']
+          ref = ref['name']
+        end
+        (sch = Setup::Schema.where(namespace: ns, uri: ref).first) &&
+          sch.schema
       end
     end
 
