@@ -12,14 +12,14 @@
 - if ['dashboard', 'list-of-shared-collections'].include? @page_name.parameterize
   - @count ||= {}
   - query = params[:query]
-  .content
-    .container{style: "margin-bottom: 20px;"}
+  .clearfix
+    .col-md-7{style: "margin-bottom: 20px;"}
       %h3.label-heading{style: "margin: 0px;"}
         %small=  t("admin.misc.title_search_shared_collections")
         %h3{style: "margin-top: 0px;"}= t("admin.misc.sub_title_search_shared_collections", count: @count[Setup::SharedCollection.name])
         - shared_path = index_path(model_name: "setup~shared_collection", query: query)
         = form_tag(shared_path, method: :get, class: "pjax-form form-inline") do
-          .input-group.col-xs-12.col-sd-9.col-lg-8
+          .input-group.col-xs-12
             %input.form-control.btb.btn-default{name: "query", type: "search", value: query}
               %span.input-group-btn
                 %button.btn.btn-primary
@@ -28,6 +28,23 @@
       = link_to('gmail', index_path(model_name: "setup~shared_collection", query: 'gmail'))+','
       = link_to('twilio', index_path(model_name: "setup~shared_collection", query: 'twilio'))+' or'
       = link_to('shipstation', index_path(model_name: "setup~shared_collection", query: 'shipstation'))
+    - unless current_user
+      #welcome_users.col-md-5
+        %h3.text-muted
+          = t('admin.actions.dashboard.recent_users.title')
+        %ul.list-inline.list-unstyled
+          - recent_users.each do |u|
+            - if u.picture.present?
+              - url = u.picture.icon.url
+            - elsif gravatar(u)
+              - url = "#{(request.ssl? ? 'https://secure' : 'http://www')}.gravatar.com/avatar/#{Digest::MD5.hexdigest u.email}?s=60"
+            - else
+              - url = "//api.adorable.io/avatars/60/#{u.email}"
+            - alt = (u.email.split('@'))[0]
+            %li
+              = image_tag url, alt: alt, title: alt, class: 'img-circle', height: 60, width: 60
+
+
 %ul.nav.nav-tabs
   = menu_for((@abstract_model ? (@object.try(:persisted?) ? :member : :collection) : :root), @abstract_model, @object)
   = content_for :contextual_tabs
