@@ -44,8 +44,8 @@ en:
       docs: "Docs"
       directory: "Directory"
       shared_collections: find shared collections
-      title_search_shared_collections: Share flows to process, storage and move data between APIs, EDIs, DBs and more
-      sub_title_search_shared_collections: "Find code and data over %{count} shared collections"
+      title_search_shared_collections: "Process, store and move data between APIs, EDIs, DBs and more"
+      sub_title_search_shared_collections: "Find data flows over %{count} shared collections"
       pull: "Pull"
       show_all: "Show all"
       overview: "Overview"
@@ -57,7 +57,7 @@ en:
       dashboard:
         title: "Dashboard"
         recent_users:
-          title: 'Welcome to our recently joined users!'
+          title: 'Thank you for joining us!'
       send_to_flow:
         title: "Send %{model_label_plural} to flow"
         menu: "Send to flow"
