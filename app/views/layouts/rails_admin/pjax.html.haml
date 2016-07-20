@@ -34,7 +34,7 @@
           = t('admin.actions.dashboard.recent_users.title')
         %ul.list-inline.list-unstyled
           - recent_users.each do |u|
-            - url = u.picture.present? ? u.picture.icon.url : u.gravatar_or_identicon_url(request, 60)
+            - url = u.picture.present? ? u.picture.icon.url : u.gravatar_or_identicon_url(60)
             - alt = (u.email.split('@'))[0]
             - title = u.name.present? ? u.name : alt
             %li

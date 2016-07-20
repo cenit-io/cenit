@@ -139,9 +139,9 @@ class User
     Identicon.data_url_for email.downcase, size
   end
 
-  def gravatar_or_identicon_url(request, size=60)
+  def gravatar_or_identicon_url(size=60)
     if gravatar()
-      "#{(request.ssl? ? 'https://secure' : 'http://www')}.gravatar.com/avatar/#{Digest::MD5.hexdigest email}?s=#{size}"
+      "//gravatar.com/avatar/#{Digest::MD5.hexdigest email}?s=#{size}"
     else
       identicon size
     end
