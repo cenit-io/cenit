@@ -7,7 +7,7 @@ module Cenit
       @cenit_action = action
       @action = Struct.new(http_method: action.method,
                            path: action.request_path,
-                           params: controller.request.query_parameters.merge(action.path_params).with_indifferent_access,
+                           params: controller.request.params.merge(action.path_params).with_indifferent_access,
                            query_parameters: controller.request.query_parameters,
                            body: controller.request.body,
                            content_type: controller.request.content_type,
