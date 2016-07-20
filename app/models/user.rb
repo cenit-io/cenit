@@ -1,3 +1,6 @@
+require 'net/http'
+require 'identicon'
+
 class User
   include Mongoid::Document
   include Mongoid::Timestamps
@@ -121,6 +124,27 @@ class User
 
   def super_admin?
     has_role?(:super_admin)
+  end
+
+  def gravatar()
+    gravatar_check = "//gravatar.com/avatar/#{Digest::MD5.hexdigest(email.downcase)}.png?d=404"
+    uri = URI.parse(gravatar_check)
+    http = Net::HTTP.new(uri.host, uri.port)
+    request = Net::HTTP::Get.new("/avatar/#{Digest::MD5.hexdigest(email.downcase)}.png?d=404")
+    response = http.request(request)
+    response.code.to_i < 400 # from d=404 parameter
+  end
+
+  def identicon(size=60)
+    Identicon.data_url_for email.downcase, size
+  end
+
+  def gravatar_or_identicon_url(size=60)
+    if gravatar()
+      "//gravatar.com/avatar/#{Digest::MD5.hexdigest email}?s=#{size}"
+    else
+      identicon size
+    end
   end
 
   class << self

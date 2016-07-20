@@ -34,15 +34,11 @@
           = t('admin.actions.dashboard.recent_users.title')
         %ul.list-inline.list-unstyled
           - recent_users.each do |u|
-            - if u.picture.present?
-              - url = u.picture.icon.url
-            - elsif gravatar(u)
-              - url = "#{(request.ssl? ? 'https://secure' : 'http://www')}.gravatar.com/avatar/#{Digest::MD5.hexdigest u.email}?s=60"
-            - else
-              - url = "//api.adorable.io/avatars/60/#{u.email}"
+            - url = u.picture.present? ? u.picture.icon.url : u.gravatar_or_identicon_url(60)
             - alt = (u.email.split('@'))[0]
+            - title = u.name.present? ? u.name : alt
             %li
-              = image_tag url, alt: alt, title: alt, class: 'img-circle', height: 60, width: 60
+              = image_tag url, alt: alt, title: title, class: 'img-circle', height: 60, width: 60
 
 
 %ul.nav.nav-tabs

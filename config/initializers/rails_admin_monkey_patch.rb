@@ -594,7 +594,7 @@ module RailsAdmin
           if current_user && current_user.picture.present? && abstract_model && edit_action
             html << image_tag(current_user.picture.icon.url, alt: '')
           elsif current_user.email.present?
-            html << image_tag("#{(request.ssl? ? 'https://secure' : 'http://www')}.gravatar.com/avatar/#{Digest::MD5.hexdigest current_user.email}?s=30", alt: '')
+            html << image_tag(current_user.gravatar_or_identicon_url(30), alt: '')
           end
         end
         html.join.html_safe
