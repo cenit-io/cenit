@@ -223,7 +223,7 @@ module Mongoff
     end
 
     def attribute_key(field, field_metadata = {})
-      if (field_metadata[:model] ||= property_model(field)) && field_metadata[:model].modelable?
+      if (field_metadata[:model] ||= property_model(field)) && field_metadata[:model].persistable?
         (schema = (field_metadata[:schema] ||= property_schema(field)))['referenced']
         ((schema['type'] == 'array') ? field.to_s.singularize + '_ids' : "#{field}_id").to_sym
       else

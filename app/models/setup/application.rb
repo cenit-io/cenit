@@ -19,6 +19,9 @@ module Setup
     attr_readonly :secret_token
 
     before_save do
+      if new_record?
+        configuration!.logo = Identicon.data_url_for identifier
+      end
       if @config
         self.configuration_attributes = @config.attributes
       end
@@ -72,8 +75,7 @@ module Setup
             },
             logo: {
               type: 'string',
-              group: 'UI',
-              default: "#{Cenit.homepage}/images/logo.png" #TODO Default Apps Logo
+              group: 'UI'
             }
           },
         required: %w(authentication_method)
