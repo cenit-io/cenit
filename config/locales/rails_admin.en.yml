@@ -323,6 +323,13 @@ en:
         breadcrumb: "Run"
         done: "run"
         doing: "execution"
+      play:
+        title: "Play"
+        menu: "Play"
+        submit: "Play"
+        breadcrumb: "Play"
+        done: "played"
+        doing: "playing"
       user_info:
         title: "My Profile"
         menu: "My Profile"

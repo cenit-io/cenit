@@ -96,12 +96,18 @@ module Setup
         end
         if [:Import, :Export].include?(translator.type)
           requires(:webhook)
+          if translator.type == :Import
+            unless before_submit.nil? || before_submit.parameters.count == 1
+              errors.add(:before_submit, 'must receive one parameter')
+            end
+          else
+            rejects(:before_submit)
+          end
         else
           rejects(:before_submit, :connection_role, :webhook, :notify_request, :notify_response)
         end
 
         if translator.type == :Export
-          rejects(:before_submit)
           if response_translator.present?
             if response_translator.type == :Import
               if response_translator.data_type

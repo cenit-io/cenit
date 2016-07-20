@@ -41,7 +41,8 @@
   RailsAdmin::Config::Actions::BulkPull,
   RailsAdmin::Config::Actions::CleanUp,
   RailsAdmin::Config::Actions::ShowRecords,
-  RailsAdmin::Config::Actions::RunScript
+  RailsAdmin::Config::Actions::RunScript,
+  RailsAdmin::Config::Actions::Play
 ].each { |a| RailsAdmin::Config::Actions.register(a) }
 
 RailsAdmin::Config::Actions.register(:export, RailsAdmin::Config::Actions::BulkExport)
@@ -131,6 +132,7 @@ RailsAdmin.config do |config|
     run_script
     edit
     configure
+    play
     copy
     simple_share
     bulk_share
@@ -1856,9 +1858,7 @@ RailsAdmin.config do |config|
           f.scope_symbol == :evaluation
         end
         associated_collection_scope do
-          Proc.new { |scope|
-            scope.where(:parameters.with_size => 1)
-          }
+          Proc.new { |scope| scope.where(:parameters.with_size => 1) }
         end
         help I18n.t('admin.form.required')
       end
@@ -1893,6 +1893,9 @@ RailsAdmin.config do |config|
           f = bindings[:object]
           (t = f.translator) && [:Import].include?(t.type) &&
             ((f.persisted? || f.custom_data_type_selected? || f.data_type) && (t.type == :Import || f.event.blank? || f.data_type.blank? || f.data_type_scope.present?))
+        end
+        associated_collection_scope do
+          Proc.new { |scope| scope.where(:parameters.with_size => 1) }
         end
       end
       field :response_translator do
