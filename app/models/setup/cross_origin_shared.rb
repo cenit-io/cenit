@@ -108,15 +108,16 @@ module Setup
       end
 
       def super_count
-        current_account = Account.current
-        Account.current = nil
-        c = 0
-        Account.each do |account|
-          Account.current = account
-          c += where(origin: :default).count
-        end
-        Account.current = current_account
-        c + where(origin: :shared).count
+        # current_account = Account.current
+        # Account.current = nil
+        # c = 0
+        # Account.each do |account|
+        #   Account.current = account
+        #   c += where(origin: :default).count
+        # end
+        # Account.current = current_account
+        # c + where(origin: :shared).count
+        where(origin: :shared).count
       end
     end
   end
