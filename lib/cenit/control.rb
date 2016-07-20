@@ -7,7 +7,7 @@ module Cenit
       @cenit_action = action
       @action = Struct.new(http_method: action.method,
                            path: action.request_path,
-                           params: controller.request.params.merge(action.path_params).with_indifferent_access,
+                           params: controller.request.query_parameters.merge(action.path_params).with_indifferent_access,
                            query_parameters: controller.request.query_parameters,
                            body: controller.request.body,
                            content_type: controller.request.content_type,
@@ -35,6 +35,10 @@ module Cenit
     def redirect_to(*args)
       fail 'Re-calling redirect_to' if redirect_to_called?
       @redirect_to_called = true
+      if URI.parse(path = args.first).relative?
+        path = "app/#{app.ns_slug}/#{app.slug}/#{path}".gsub(/\/+/, '/')
+        args[0] = "#{Cenit.homepage}/#{path}"
+      end
       controller.redirect_to(*args)
     end
 

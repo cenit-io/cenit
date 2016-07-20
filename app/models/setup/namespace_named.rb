@@ -41,6 +41,10 @@ module Setup
       namespace
     end
 
+    def ns_slug
+      namespace_ns.slug
+    end
+
     def namespace_ns
       if @namespace_ns.nil? || @namespace_ns.name != namespace
         @namespace_ns = Setup::Namespace.find_or_create_by(name: namespace)

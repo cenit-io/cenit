@@ -16,7 +16,7 @@ module Setup
     validates_format_of :name, with: /\A[a-z]([a-z]|_|\d)*\Z/
 
     def type_enum
-      %w(integer number boolean string) +
+      %w(integer number boolean string object) +
         Setup::Collection.reflect_on_all_associations(:has_and_belongs_to_many).collect { |r| r.name.to_s.singularize.to_title }
     end
 
@@ -28,7 +28,7 @@ module Setup
       sch =
         if type.blank?
           {}
-        elsif %w(integer number boolean string).include?(type)
+        elsif %w(integer number boolean string object).include?(type)
           {
             type: type
           }
@@ -38,7 +38,7 @@ module Setup
           }
         end.stringify_keys
       sch = (many ? { type: 'array', items: sch } : sch)
-      sch[:referenced] = true unless %w(integer number boolean string).include?(type)
+      sch[:referenced] = true unless %w(integer number boolean string object).include?(type)
       sch[:group] = group if group.present?
       sch[:description] = description if description.present?
       sch.stringify_keys
