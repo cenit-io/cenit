@@ -69,12 +69,17 @@ module Setup
               enum: ['User credentials', 'Application ID'],
               group: 'Security',
               default: 'User credentials'
-            }.stringify_keys
-          }.stringify_keys,
+            },
+            logo: {
+              type: 'string',
+              group: 'UI',
+              default: "#{Cenit.homepage}/images/logo.png" #TODO Default Apps Logo
+            }
+          },
         required: %w(authentication_method)
         }
       application_parameters.each { |p| properties[p.name] = p.schema }
-      schema.stringify_keys
+      schema.deep_stringify_keys
     end
 
 
