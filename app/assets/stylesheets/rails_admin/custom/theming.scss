@@ -211,7 +211,6 @@ ul.drawer li a span {
 
 #wrapper.toggled {
   padding-left: 250px;
-  overflow: scroll;
 }
 
 #sidebar-wrapper {
@@ -223,6 +222,7 @@ ul.drawer li a span {
   height: calc(100% - 50px);
   margin-left: -250px;
   overflow-y: auto;
+  overflow-x: hidden;
   transition: all 0.5s ease;
   background: #ffffff!important;
   border-right: solid 1px #e7e7e7!important;
@@ -283,6 +283,7 @@ ul.drawer li a span {
   padding: 0;
   list-style: none;
   margin-top: 2px;
+  margin-bottom: 44px;
 }
 
 @media screen and (max-width: 280px) {
@@ -300,7 +301,6 @@ ul.drawer li a span {
 
 ul#main-accordion {
   padding: 6px;
-  overflow: visible;
 }
 
 .panel-heading {
@@ -411,6 +411,36 @@ ul#main-accordion .panel-heading .nav-icon {
 
 .social-links .cenit-llc {
   width: 100%;
+}
+
+#sidebar-wrapper .social-links {
+  position: absolute;
+  bottom: 0;
+  background-color: #f8f8f8;
+  width: 100%;
+  text-align: center;
+  padding: 12px;
+}
+
+#os-love {
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+#os-love span {
+  transition: all .5s ease-in-out;
+  visibility: collapse;
+  opacity: 0;
+  max-width: 0;
+  display: inline-block;
+}
+
+#sidebar-wrapper:hover #os-love span,
+#wrapper.toggled #os-love span {
+  transition: all .5s ease-in-out .05s;
+  visibility: visible;
+  opacity: 1;
+  max-width: 100%;
 }
 
 /* Signin Drawer */
