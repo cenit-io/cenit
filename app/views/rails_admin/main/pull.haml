@@ -62,8 +62,11 @@
             %p.help-block
               = "#{records.count} #{key.titleize.downcase.pluralize}"
   - if uptodate
-    - collection_link = link_to(@object.name, rails_admin.show_path(model_name: Setup::Collection.to_s.underscore.gsub('/', '~'), id: @object.name), class: 'pjax')
-    %h4=  t('admin.actions.pull.uptodate', collection: collection_link, shared_collection: @object.versioned_name).html_safe
+    - if @pull_request[:collection_discarded]
+      %h4=  t('admin.actions.pull.nothing_to_pull')
+    - else
+      - collection_link = link_to(@object.name, rails_admin.show_path(model_name: Setup::Collection.to_s.underscore.gsub('/', '~'), id: @object.name), class: 'pjax')
+      %h4=  t('admin.actions.pull.uptodate', collection: collection_link, shared_collection: @object.versioned_name).html_safe
   .form-group.form-actions
   .col-sm-offset-2.col-sm-10
     - if uptodate

@@ -42,7 +42,8 @@
   RailsAdmin::Config::Actions::CleanUp,
   RailsAdmin::Config::Actions::ShowRecords,
   RailsAdmin::Config::Actions::RunScript,
-  RailsAdmin::Config::Actions::Play
+  RailsAdmin::Config::Actions::Play,
+  RailsAdmin::Config::Actions::PullImport
 ].each { |a| RailsAdmin::Config::Actions.register(a) }
 
 RailsAdmin::Config::Actions.register(:export, RailsAdmin::Config::Actions::BulkExport)
@@ -122,6 +123,7 @@ RailsAdmin.config do |config|
     new { except [Setup::Event, Setup::DataType, Setup::Authorization, Setup::BaseOauthProvider] }
     import
     import_schema
+    pull_import
     translator_update
     convert
     export
@@ -3089,6 +3091,30 @@ RailsAdmin.config do |config|
     end
 
     fields :translator, :data, :description, :scheduler, :attempts_succeded, :retries, :progress, :status, :notifications, :updated_at
+  end
+
+  config.model Setup::PullImport do
+    navigation_label 'Monitors'
+    visible false
+    object_label_method { :to_s }
+
+    configure :attempts_succeded, :text do
+      label 'Attempts/Succedded'
+    end
+
+    configure :data do
+      label 'Pull data'
+    end
+
+    configure :pull_request, :json_value
+
+    configure :pulled_request, :json_value
+
+    edit do
+      field :description
+    end
+
+    fields :data, :pull_request, :pulled_request, :description, :scheduler, :attempts_succeded, :retries, :progress, :status, :notifications, :updated_at
   end
 
   config.model Setup::SchemasImport do

@@ -76,7 +76,7 @@ module Cenit
           end
         end
 
-        if resetting.present?
+        if resetting.present? && !options[:discard_collection]
           if collection
             updated_records['collections'] << collection
           else
@@ -100,7 +100,8 @@ module Cenit
           updated_records: updated_records,
           missing_parameters: missing_parameters,
           pull_data: pull_data,
-          collection_data: collection_data
+          collection_data: collection_data,
+          collection_discarded: options[:discard_collection].present?
         }
       end
 
@@ -150,15 +151,18 @@ module Cenit
               end
             end
             if errors.blank?
-              Setup::Collection.where(name: shared_collection.name).delete
-              collection.name = shared_collection.name
-              collection.image = shared_collection.image if shared_collection.image.present?
-              collection.save
-              shared_collection.pulled(collection: collection)
+              unless pull_request[:collection_discarded]
+                Setup::Collection.where(name: shared_collection.name).delete
+                collection.name = shared_collection.name
+                collection.image = shared_collection.image if shared_collection.image.present?
+                collection.save
+                shared_collection.pulled(collection: collection)
+                pull_request[:collection] = { id: collection.id.to_s }
+              end
               pull_data = pull_request.delete(:pull_data)
               pull_request[:created_records] = collection.inspect_json(inspecting: :id, inspect_scope: create_collector).reject { |_, value| !value.is_a?(Enumerable) }
+              collection.destroy if pull_request[:collection_discarded]
               pull_request[:pull_data] = pull_data
-              pull_request[:collection] = { id: collection.id.to_s }
             end
           rescue Exception => ex
             errors << ex.message
