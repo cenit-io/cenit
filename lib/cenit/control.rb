@@ -5,9 +5,18 @@ module Cenit
       @app = app
       @controller = controller
       @cenit_action = action
+      params = controller.request.params.merge(action.path_params).with_indifferent_access
+      {
+        controller: 'app',
+        action: 'index',
+        ns: app.ns_slug,
+        app_slug: app.slug
+      }.each do |key, value|
+        params.delete(key) if params[key] == value
+      end
       @action = Struct.new(http_method: action.method,
                            path: action.request_path,
-                           params: controller.request.params.merge(action.path_params).with_indifferent_access,
+                           params: params,
                            query_parameters: controller.request.query_parameters,
                            body: controller.request.body,
                            content_type: controller.request.content_type,
