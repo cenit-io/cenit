@@ -135,11 +135,11 @@ class User
     response.code.to_i < 400 # from d=404 parameter
   end
 
-  def identicon(size=60)
+  def identicon(size=50)
     Identicon.data_url_for email.downcase, size
   end
 
-  def gravatar_or_identicon_url(size=60)
+  def gravatar_or_identicon_url(size=50)
     if gravatar()
       "//gravatar.com/avatar/#{Digest::MD5.hexdigest email}?s=#{size}"
     else
