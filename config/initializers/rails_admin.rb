@@ -43,7 +43,8 @@
   RailsAdmin::Config::Actions::ShowRecords,
   RailsAdmin::Config::Actions::RunScript,
   RailsAdmin::Config::Actions::Play,
-  RailsAdmin::Config::Actions::PullImport
+  RailsAdmin::Config::Actions::PullImport,
+  RailsAdmin::Config::Actions::State
 ].each { |a| RailsAdmin::Config::Actions.register(a) }
 
 RailsAdmin::Config::Actions.register(:export, RailsAdmin::Config::Actions::BulkExport)
@@ -155,6 +156,7 @@ RailsAdmin.config do |config|
     switch_scheduler
     simple_export
     schedule
+    state
     retry_task
     submit
     inspect

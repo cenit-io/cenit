@@ -259,6 +259,7 @@ en:
         fixed_errors_header: "The following errors where fixed when pulling the collection"
         missing_parameters: "Missing parameters"
         uptodate: "Your %{collection} collection is already synchronized with %{shared_collection}"
+        uptodate_data: "The pull data is already synchronized with your collections"
         another: "another"
       bulk_pull:
         title: "Pulling Collections"
@@ -403,6 +404,10 @@ en:
         submit: "Regist"
         done: "registered"
         doing: "registering"
+      state:
+        title: "State"
+        menu: "State"
+        breadcrumb: "State"
       shared_collection_index:
         menu: "Shared Collections"
       clean_up:

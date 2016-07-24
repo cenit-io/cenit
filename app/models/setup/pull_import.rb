@@ -25,7 +25,9 @@ module Setup
         end
       else
         self.pulled_request = {}
-        self.pull_request = Cenit::Actions.pull_request(shared_collection, discard_collection: true)
+        self.pull_request = Cenit::Actions.pull_request(shared_collection,
+                                                        discard_collection: true,
+                                                        updated_records_ids: true)
         if shared_collection.pull_parameters.present? ||
           pull_request[:new_records].present? ||
           pull_request[:updated_records].present?
