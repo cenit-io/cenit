@@ -58,6 +58,7 @@ en:
         title: "Dashboard"
         recent_users:
           title: 'Thank you for joining us!'
+          more: "More than %{count} users"
       send_to_flow:
         title: "Send %{model_label_plural} to flow"
         menu: "Send to flow"
