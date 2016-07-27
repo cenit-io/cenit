@@ -25,7 +25,7 @@ module Setup
       if @config
         self.configuration_attributes = @config.attributes
       end
-      params = application_parameters.sort_by(&:name).sort_by(&:group)
+      params = application_parameters.sort_by(&:name).sort_by(&:group_s)
       self.application_parameters = params
 
       self.application_id ||= ApplicationId.create

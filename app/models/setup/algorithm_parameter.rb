@@ -14,53 +14,60 @@ module Setup
 
     validates_presence_of :name
 
-    before_save :validate_default
-
-    def validate_default
-      defaults = {
-          integer: 0,
-          number: 0.0,
-          boolean: false,
-          string: ''
-      }
-      unless required
-        default ||= defaults[type]
+    validate do
+      if type
+        if type.blank?
+          self.type = nil
+        else
+          errors.add(:type, 'is not valid') unless type_enum.include?(type)
+        end
       end
-
-      true
+      if required
+        if default.blank?
+          self.default =nil
+        else
+          errors.add(:default, 'is not allowed')
+        end
+      else
+        self.default ||= DEFAULTS[type]
+      end
+      errors.blank?
     end
+
+    DEFAULTS =
+      {
+        integer: 0,
+        number: 0.0,
+        boolean: false,
+        string: '',
+        nil => nil
+      }
 
     def type_enum
       %w(integer number boolean string hash)
-          # Setup::DataType.where(namespace: self.namespace).collect(&:custom_title)
-          # Setup::Collection.reflect_on_all_associations(:has_and_belongs_to_many).collect { |r| r.name.to_s.singularize.to_title }
+      # Setup::DataType.where(namespace: self.namespace).collect(&:custom_title)
+      # Setup::Collection.reflect_on_all_associations(:has_and_belongs_to_many).collect { |r| r.name.to_s.singularize.to_title }
     end
 
     def schema
-      defaults = {
-          integer: 0,
-          number: 0.0,
-          boolean: false,
-          string: ''
-      }
       sch =
-          if type.blank?
-            {}
-          elsif %w(integer number boolean string).include?(type)
-            {
-                type: type
-            }
-          elsif type == 'hash'
-            {
-                type: 'object'
-            }
-          else
-            {
-                '$ref': Setup::Collection.reflect_on_association(type.to_s.downcase.gsub(' ', '_').pluralize).klass.to_s
-            }
-          end.stringify_keys
+        if type.blank?
+          {}
+        elsif %w(integer number boolean string).include?(type)
+          {
+            type: type
+          }
+        elsif type == 'hash'
+          {
+            type: 'object'
+          }
+        else
+          {
+            '$ref': Setup::Collection.reflect_on_association(type.to_s.downcase.gsub(' ', '_').pluralize).klass.to_s
+          }
+        end.stringify_keys
       unless required
-        sch[:default] = default ? default : defaults[type]
+        sch[:default] = default || DEFAULTS[type]
       end
       sch = (many ? { type: 'array', items: sch } : sch)
       sch[:referenced] = true unless %w(integer number boolean string object).include?(type)
