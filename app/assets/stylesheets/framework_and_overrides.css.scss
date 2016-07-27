@@ -167,3 +167,11 @@ section {
   opacity: 0.25;
   z-index: 10000;
 }
+
+.fa-cenit:before {
+  content: image_url('logo_icon.png');
+}
+
+.user-auth .soc-cenit {
+  background-color: #3D4046;
+}
