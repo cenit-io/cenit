@@ -1,17 +1,25 @@
-- shared_collection ||= nil
-- pull_request ||= {}
-- bulk_ids ||= nil
-- object_id ||= nil
-- options ||= {}
-- options_key ||= {}
+:ruby
+  shared_collection ||= nil
+  pull_request ||= {}
+  bulk_ids ||= nil
+  object_id ||= nil
+  options ||= {}
+  options_key ||= {}
 
-- missing_parameters = pull_request[:missing_parameters] || []
-- pull_parameters = pull_request[:pull_parameters] || {}
-- new_records = pull_request[:new_records] || []
-- updated_records = pull_request[:updated_records] || []
-- pull_data = pull_request[:pull_data] #TODO When records data included in collections
-- limit ||= 10
+  missing_parameters = pull_request[:missing_parameters] || []
+  pull_parameters = pull_request[:pull_parameters] || {}
+  new_records = pull_request[:new_records] || []
+  updated_records = pull_request[:updated_records] || []
+  pull_data = pull_request[:pull_data] #TODO When records data included in collections
+  limit ||= 10
+
+  before_form_partials ||= []
+  before_form_partials = [before_form_partials] unless before_form_partials.is_a?(Enumerable)
+  before_form_partials = before_form_partials.collect(&:to_s)
+
 %form{method: 'post', class: 'form-horizontal denser'}
+  - before_form_partials.each do |partial|
+    = render partial: partial
   - if bulk_ids
     %select{name: 'new_bulk_ids[]', multiple: 'multiple', style: 'display:none'}
       - bulk_ids.each do |id|

@@ -25,6 +25,7 @@ module RailsAdmin
 
             @pull_request = Cenit::Actions.pull_request(@object, pull_parameters: params[:pull_parameters])
             if @pull_request[:missing_parameters].blank? && params[:_pull]
+              @pull_request[:install] = params[:install].to_b if User.current_super_admin?
               @pull_request = Cenit::Actions.pull(@object, @pull_request) if @pull_request[:collection_data].present?
               if (errors = @pull_request[:errors]).blank?
                 if (errors = @pull_request[:fixed_errors])
@@ -47,14 +48,17 @@ module RailsAdmin
               else
                 @pull_request[:missing_parameters] = []
               end
-              render :pull, locals: {
-                shared_collection: @object,
-                pull_request: @pull_request,
-                bulk_ids: @bulk_ids,
-                object_id: @object_id,
-                options: @options,
-                options_key: @options_key
-              }
+              locals =
+                {
+                  shared_collection: @object,
+                  pull_request: @pull_request,
+                  bulk_ids: @bulk_ids,
+                  object_id: @object_id,
+                  options: @options,
+                  options_key: @options_key
+                }
+              locals[:before_form_partials] = :install_option if User.current_super_admin? && !@object.installed?
+              render :pull, locals: locals
             end
           end
         end

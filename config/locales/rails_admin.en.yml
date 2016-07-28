@@ -262,6 +262,9 @@ en:
         uptodate: "Your %{collection} collection is already synchronized with %{shared_collection}"
         uptodate_data: "The pull data is already synchronized with your collections"
         another: "another"
+        not_installed: "This collection is not installed"
+        install: "Install"
+        install_help: "The collection will be installed after pulled if checked"
       bulk_pull:
         title: "Pulling Collections"
         menu: "Pull"

@@ -1,0 +1,8 @@
+%h4{style: 'color:#b94a48'}= t('admin.actions.pull.not_installed')
+.fieldset
+  .control-group
+    %label.col-sm-2.control-label= t('admin.actions.pull.install')
+    .col-sm-10.controls
+      %input{type: 'checkbox', name: 'install'}
+      %p.help-block
+        = t('admin.actions.pull.install_help')
