@@ -55,7 +55,7 @@ module Setup
 
     def authorize_params(params = {})
       params = base_params.merge(params)
-      conformed_parameters.each { |parameter| params[parameter.key.to_sym] = parameter.value }
+      conformed_parameters.each { |key, value| params[key.to_sym] = value }
       params
     end
 

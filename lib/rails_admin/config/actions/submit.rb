@@ -34,6 +34,7 @@ module RailsAdmin
                                                  name: model_name)
               if params.delete(:_save) && (@form_object = mongoff_model.new(data)).valid?
                 msg = Submit.params_and_headers_from(@form_object).merge!(webhook_id: @object.id,
+                                                                          authorization_id: @form_object.authorization.id,
                                                                           connection_id: connection.id,
                                                                           body: data[:body])
                 do_flash_process_result Setup::Submission.process(msg)
@@ -43,7 +44,8 @@ module RailsAdmin
               flash[:error] = 'Error loading model'
             end
             if render_form
-              @form_object ||= mongoff_model.new(connection: connection)
+              @form_object ||= mongoff_model.new(authorization: Setup::Authorization.where(namespace: @object.namespace).first,
+                                                 connection: connection)
               @form_object.define_singleton_method(:ready_to_save?) { !selecting_connection && connection.present? }
               @form_object.define_singleton_method(:can_be_restarted?) { ready_to_save? }
 
@@ -147,6 +149,10 @@ module RailsAdmin
               'properties' => {
                 'connection' => {
                   '$ref' => Setup::Connection.to_s,
+                  'referenced' => true
+                },
+                'authorization' => {
+                  '$ref' => Setup::Authorization.to_s,
                   'referenced' => true
                 }
               }.merge!(pararms_properties)

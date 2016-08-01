@@ -40,6 +40,7 @@ module Setup
     field :lot_size, type: Integer
 
     belongs_to :webhook, class_name: Setup::Webhook.to_s, inverse_of: nil
+    binding_belongs_to :authorization, class_name: Setup::Authorization.to_s, inverse_of: nil
     binding_belongs_to :connection_role, class_name: Setup::ConnectionRole.to_s, inverse_of: nil
     belongs_to :before_submit, class_name: Setup::Algorithm.to_s, inverse_of: nil
 
@@ -104,7 +105,7 @@ module Setup
             rejects(:before_submit)
           end
         else
-          rejects(:before_submit, :connection_role, :webhook, :notify_request, :notify_response)
+          rejects(:before_submit, :connection_role, :authorization, :webhook, :notify_request, :notify_response)
         end
 
         if translator.type == :Export
@@ -342,7 +343,7 @@ module Setup
       if before_submit
         before_submit.run(options)
       end
-      webhook.upon(connection_role).submit(options) do |response, template_parameters|
+      webhook.with(connection_role).and(authorization).submit(options) do |response, template_parameters|
         translator.run(target_data_type: data_type,
                        data: response.body,
                        discard_events: discard_events,
@@ -368,7 +369,7 @@ module Setup
       0.step(max, limit) do |offset|
         next unless connections_present
         verbose_response =
-          webhook.upon(connection_role).submit ->(template_parameters) {
+          webhook.with(connection_role).and(authorization).submit ->(template_parameters) {
             translation_options =
               {
                 object_ids: object_ids,
