@@ -623,36 +623,108 @@ module RailsAdmin
       end
 
       i = -1
-      nodes_stack.group_by(&:navigation_label).collect do |navigation_label, nodes|
-        i += 1
-        collapse_id = "main-collapse#{i}"
+      mongoff_start_index = nil
+      definitions_index = nil
+      main_labels =
+        nodes_stack.group_by(&:navigation_label).collect do |navigation_label, nodes|
+          i += 1
+          collapse_id = "main-collapse#{i}"
 
-        nodes = nodes.select { |n| n.parent.nil? || !n.parent.to_s.in?(node_model_names) }
-        li_stack = navigation nodes_stack, nodes, collapse_id
-
-        label = navigation_label || t('admin.misc.navigation')
-        html_id = "main-#{label.underscore.gsub(' ', '-')}"
-
-        icon = ((opts = RailsAdmin::Config.navigation_options[label]) && opts[:icon]) || 'fa fa-cube'
-        icon =
-          case icon
-          when Symbol
-            render partial: icon.to_s
-          else
-            "<i class='#{icon}'></i>"
+          if nodes.first.is_a?(RailsAdmin::MongoffModelConfig)
+            mongoff_start_index ||= i
           end
 
-        %(<div id='#{html_id}' class='panel panel-default'>
-            <div class='panel-heading'>
-              <a data-toggle='collapse' data-parent='#main-accordion' href='##{collapse_id}' class='panel-title collapse in collapsed'>
-                <span class='nav-caret'><i class='fa fa-caret-down'></i></span>
-                <span class='nav-icon'>#{icon}</i></span>
-                <span class='nav-caption'>#{capitalize_first_letter label}</span>
+          nodes = nodes.select { |n| n.parent.nil? || !n.parent.to_s.in?(node_model_names) }
+          li_stack = navigation nodes_stack, nodes, collapse_id
+
+          label = navigation_label || t('admin.misc.navigation')
+          if label == 'Definitions'
+            definitions_index = i
+          end
+          html_id = "main-#{label.underscore.gsub(' ', '-')}"
+
+          icon = mongoff_start_index.nil? && (((opts = RailsAdmin::Config.navigation_options[label]) && opts[:icon]) || 'fa fa-cube')
+          icon =
+            case icon
+            when Symbol
+              render partial: icon.to_s
+            when String
+              "<i class='#{icon}'></i>"
+            else
+              nil
+            end
+
+
+          if li_stack.present?
+            a = %(<div class='panel-heading'>
+              <a data-toggle='collapse' data-parent='##{mongoff_start_index ? 'records-collapse' : 'main-accordion'}' href='##{collapse_id}' class='panel-title collapse in collapsed'>
+                <span class='nav-caret'><i class='fa fa-caret-down'></i></span>) +
+              (icon ? "<span class='nav-icon'>#{icon}</span>" : '') +
+              %(<span class='nav-caption'>#{capitalize_first_letter label}</span>
               </a>
             </div>
-            #{li_stack}
-          </div>) if li_stack.present?
-      end.join.html_safe
+            #{li_stack})
+            unless mongoff_start_index
+              a = "<div id='#{html_id}' class='panel panel-default'>#{a}</div>"
+            end
+            a
+          end
+        end
+      if mongoff_start_index
+        mongoffs = main_labels.from(mongoff_start_index)
+        main_labels = main_labels.to(mongoff_start_index - 1)
+        definitions_index ||= main_labels.length - 1
+        main_labels.insert definitions_index + 1, %(<div id='main-records' class='panel panel-default'>
+            <div class='panel-heading'>
+              <a data-toggle='collapse' data-parent='#main-accordion' href='#records-collapse' class='panel-title collapse in collapsed'>
+                <span class='nav-caret'><i class='fa fa-caret-down'></i></span>
+                <span class='nav-icon'><i class='fa fa-database'></i></span>
+                <span class='nav-caption'>Records</span>
+              </a>
+            </div>
+            <div id='records-collapse' class='nav nav-pills nav-stacked panel-collapse collapse'>
+              #{mongoffs.collect { |m| "<div class='panel panel-default'> #{m} </div>" }.join }
+            </div>
+          </div>)
+      end
+      main_labels.join.html_safe
+    end
+
+    def navigation(nodes_stack, nodes, html_id)
+      return if nodes.blank?
+      i = -1
+      ("<div id='#{html_id}' class='nav nav-pills nav-stacked panel-collapse collapse'>" +
+        nodes.collect do |node|
+          i += 1
+          stack_id = "#{html_id}-sub#{i}"
+          model_count = node.abstract_model.count(cache: true)
+
+          children = nodes_stack.select { |n| n.parent.to_s == node.abstract_model.model_name }
+          if children.present?
+            li = %(<div class='panel panel-default'>
+            <div class='panel-heading'>
+              <a data-toggle='collapse' data-parent='##{html_id}' href='##{stack_id}' class='panel-title collapse in collapsed'>
+                <span class='nav-caret'><i class='fa fa-caret-down'></i></span>
+                <span class='nav-caption'>#{capitalize_first_letter node.label_navigation}</span>
+              </a>
+            </div>)
+            li + navigation(nodes_stack, children, stack_id) + '</div>'
+          else
+            model_param = node.abstract_model.to_param
+            url = url_for(action: :index, controller: 'rails_admin/main', model_name: model_param)
+            nav_icon = node.navigation_icon ? %(<i class="#{node.navigation_icon}"></i>).html_safe : ''
+            content_tag :li, data: { model: model_param } do
+              link_to url, class: 'pjax' do
+                rc = ""
+                if _current_user.present? && model_count>0
+                  rc += "<span class='nav-amount'>#{model_count}</span>"
+                end
+                rc += "<span class='nav-caption'>#{capitalize_first_letter node.label_navigation}</span>"
+                rc.html_safe
+              end
+            end
+          end
+        end.join + '</div>').html_safe
     end
 
     def dashboard_main()
@@ -692,45 +764,6 @@ module RailsAdmin
           end
         end.join + '</tbody></table>'
       html_.html_safe
-    end
-
-    def navigation(nodes_stack, nodes, html_id)
-      if not nodes.present?
-        return
-      end
-      i = -1
-      ("<div id='#{html_id}' class='nav nav-pills nav-stacked panel-collapse collapse'>" +
-        nodes.collect do |node|
-          i += 1
-          stack_id = "#{html_id}-sub#{i}"
-          model_count = node.abstract_model.count(cache: true)
-
-          children = nodes_stack.select { |n| n.parent.to_s == node.abstract_model.model_name }
-          if children.present?
-            li = %(<div class='panel panel-default'>
-            <div class='panel-heading'>
-              <a data-toggle='collapse' data-parent='##{html_id}' href='##{stack_id}' class='panel-title collapse in collapsed'>
-                <span class='nav-caret'><i class='fa fa-caret-down'></i></span>
-                <span class='nav-caption'>#{capitalize_first_letter node.label_navigation}</span>
-              </a>
-            </div>)
-            li + navigation(nodes_stack, children, stack_id) + '</div>'
-          else
-            model_param = node.abstract_model.to_param
-            url = url_for(action: :index, controller: 'rails_admin/main', model_name: model_param)
-            nav_icon = node.navigation_icon ? %(<i class="#{node.navigation_icon}"></i>).html_safe : ''
-            content_tag :li, data: { model: model_param } do
-              link_to url, class: 'pjax' do
-                rc = ""
-                if _current_user.present? && model_count>0
-                  rc += "<span class='nav-amount'>#{model_count}</span>"
-                end
-                rc += "<span class='nav-caption'>#{capitalize_first_letter node.label_navigation}</span>"
-                rc.html_safe
-              end
-            end
-          end
-        end.join + '</div>').html_safe
     end
 
     def dashboard_navigation(nodes_stack, nodes)
