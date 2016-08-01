@@ -20,7 +20,7 @@ module RailsAdmin
         end
 
         register_instance_option :link_icon do
-          'fa fa-puzzle-piece'
+          'fa fa-cube'
         end
       end
     end
