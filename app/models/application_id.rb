@@ -37,7 +37,7 @@ class ApplicationId
   end
 
   def name
-    oauth_name || app.custom_title
+    oauth_name || (app && app.custom_title)
   end
 
   def redirect_uris

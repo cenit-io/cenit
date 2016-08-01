@@ -114,6 +114,14 @@ en:
         submit: "Import"
         done: "created"
         doing: "import"
+      pull_import:
+        title: "Pull import"
+        menu: "Pull import"
+        breadcrumb: "Pull import"
+        file_content_label: "File content"
+        submit: "Pull import"
+        done: "pulled"
+        doing: "pull import"
       submit:
         title: "Submit"
         menu: "Submit"
@@ -248,11 +256,15 @@ en:
         create_warning: "The following objects will be created"
         update_warning: "The following objects will be updated"
         ready: "Ready to pull!"
-        nothing_to_pull: "Nothing to pull from here"
+        nothing_to_pull: "Nothing to pull"
         fixed_errors_header: "The following errors where fixed when pulling the collection"
         missing_parameters: "Missing parameters"
         uptodate: "Your %{collection} collection is already synchronized with %{shared_collection}"
+        uptodate_data: "The pull data is already synchronized with your collections"
         another: "another"
+        not_installed: "This collection is not installed"
+        install: "Install"
+        install_help: "The collection will be installed after pulled if checked"
       bulk_pull:
         title: "Pulling Collections"
         menu: "Pull"
@@ -396,6 +408,10 @@ en:
         submit: "Regist"
         done: "registered"
         doing: "registering"
+      state:
+        title: "State"
+        menu: "State"
+        breadcrumb: "State"
       shared_collection_index:
         menu: "Shared Collections"
       clean_up:

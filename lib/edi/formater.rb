@@ -32,9 +32,21 @@ module Edi
       options[:pretty] ? JSON.pretty_generate(hash) : hash.to_json
     end
 
+    def share_hash(options = {})
+      if self.class.respond_to?(:share_options)
+        options = options.reverse_merge(self.class.share_options) rescue options
+      end
+      to_hash(options)
+    end
+
+    def share_json(options={})
+      hash = share_hash(options)
+      options[:pretty] ? JSON.pretty_generate(hash) : hash.to_json
+    end
+
     def to_xml_element(options = {})
       prepare_options(options)
-      unless xml_doc = options[:xml_doc]
+      unless (xml_doc = options[:xml_doc])
         options[:xml_doc] = xml_doc = Nokogiri::XML::Document.new
       end
       element = record_to_xml_element(data_type = self.orm_model.data_type, self.orm_model.schema, self, xml_doc, nil, options, namespaces = {})
@@ -212,6 +224,7 @@ module Edi
       store(json, 'id', record.id, options) if options[:include_id]
       content_property = nil
       model.stored_properties_on(record).each do |property_name|
+        next if (options[:protected] && (model.schema['protected'] || []).include?(property_name))
         property_schema = model.property_schema(property_name)
         property_model = model.property_model(property_name)
         name = property_schema['edi']['segment'] if property_schema['edi']

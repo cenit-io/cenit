@@ -12,11 +12,6 @@ module Setup
       Setup::Models.regist(self)
     end
 
-    def share_hash(options = {})
-      options = options.reverse_merge(self.class.share_options)
-      to_hash(options)
-    end
-
     module ClassMethods
 
       def inherited(subclass)
@@ -27,8 +22,9 @@ module Setup
 
       def share_options
         {
-          ignore: [:id] + (build_in_data_type.get_protecting || []),
-          include_blanks: true
+          ignore: [:id],
+          include_blanks: true,
+          protected: true
         }
       end
 

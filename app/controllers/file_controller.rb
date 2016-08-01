@@ -12,7 +12,7 @@ class FileController < ApplicationController
     end
     if model &&
       (record = model.where(id: params[:id]).first)
-      if Ability.new(current_user).can?(:show, record)
+      if authorization_adapter.can?(:show, record) || (model == User && params[:field] == 'picture') #TODO remove when authorize to view users profile
         if (uploader = record.try(params[:field])).is_a?(CarrierWave::Uploader::Base) &&
           (uploader = find_version(uploader, file_path)) &&
           (content = uploader.read)
@@ -28,7 +28,11 @@ class FileController < ApplicationController
     end
   end
 
-  private
+  protected
+
+  def authorization_adapter
+    @authorization_adapter ||= Ability.new(current_user)
+  end
 
   def find_version(uploader, path)
     if uploader.path == path

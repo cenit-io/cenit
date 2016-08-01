@@ -109,7 +109,7 @@ class OauthController < ApplicationController
       end
       @errors << 'Invalid scope' unless @scope.nil? || @scope.valid?
     else
-      @errors << 'Conent time out' unless (@token = params[:token])
+      @errors << 'Consent time out' unless (@token = params[:token])
       @consent_action = params[:allow] ? :allow : :deny
     end
     true

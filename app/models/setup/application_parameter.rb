@@ -7,13 +7,23 @@ module Setup
     field :name, type: String
     field :type, type: String
     field :many, type: Boolean
-    field :group, type: String, default: ''
+    field :group, type: String
     field :description, type: String
 
     embedded_in :application, class_name: Setup::Application.to_s, inverse_of: :application_parameters
 
     validates_uniqueness_of :name
     validates_format_of :name, with: /\A[a-z]([a-z]|_|\d)*\Z/
+
+    validate do
+      self.group = nil if group.blank?
+      self.description = nil if description.blank?
+      errors.blank?
+    end
+
+    def group_s
+      group.to_s
+    end
 
     def type_enum
       %w(integer number boolean string object) +
@@ -39,7 +49,7 @@ module Setup
         end.stringify_keys
       sch = (many ? { type: 'array', items: sch } : sch)
       sch[:referenced] = true unless %w(integer number boolean string object).include?(type)
-      sch[:group] = group if group.present?
+      sch[:group] = group if group
       sch[:description] = description if description.present?
       sch.stringify_keys
     end

@@ -177,9 +177,13 @@ module Setup
       @resuming_later
     end
 
-    def resume_in(interval)
+    def resume_later
       fail 'Resume later is already invoked for these task' if @resuming_later
       @resuming_later = true
+    end
+
+    def resume_in(interval)
+      resume_later
       @resume_in =
         if interval.is_a?(Integer)
           interval
