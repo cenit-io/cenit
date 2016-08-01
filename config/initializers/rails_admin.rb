@@ -3181,7 +3181,7 @@ RailsAdmin.config do |config|
     edit do
       field :description
     end
-    fields :webhook, :connection, :description, :scheduler, :attempts_succeded, :retries, :progress, :status, :notifications, :updated_at
+    fields :webhook, :connection, :authorization, :description, :scheduler, :attempts_succeded, :retries, :progress, :status, :notifications, :updated_at
   end
 
   config.model Setup::Storage do
