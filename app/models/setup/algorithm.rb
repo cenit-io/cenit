@@ -21,7 +21,6 @@ module Setup
 
     before_save :validate_parameters, :validate_code, :validate_output_processing
 
-    @last_output = nil
     attr_reader :last_output
 
     def validate_parameters

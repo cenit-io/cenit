@@ -288,6 +288,9 @@ module Setup
       true
     end
 
+    def installed?
+      true
+    end
 
     class << self
 

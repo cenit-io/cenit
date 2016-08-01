@@ -42,8 +42,9 @@ module Cenit
                 criteria = {}
                 items_data_type.get_referenced_by.each { |field| criteria[field.to_s] = item[field.to_s] }
                 criteria.delete_if { |_, value| value.nil? }
-                unless (on_collection = (record = collection && collection.send(relation.name).where(criteria).first))
-                  record = relation.klass.where(criteria).first
+                criteria = Cenit::Utility.deep_remove(criteria, '_reference')
+                unless (on_collection = (record = collection && Cenit::Utility.find_record(criteria, collection.send(relation.name))))
+                  record = Cenit::Utility.find_record(criteria, relation.klass.all)
                 end
                 if record
                   record_hash = Cenit::Utility.stringfy(record.share_hash)
@@ -58,7 +59,12 @@ module Cenit
                     item = criteria
                     item['_reference'] = true
                   else
-                    updated_records[entry] << record
+                    updated_records[entry] <<
+                      if options[:updated_records_ids]
+                        record.id.to_s
+                      else
+                        record
+                      end
                   end
                   item['id'] = record.id.to_s
                   check_embedded_items(item, record)
@@ -76,9 +82,14 @@ module Cenit
           end
         end
 
-        if resetting.present?
+        if resetting.present? && !options[:discard_collection]
           if collection
-            updated_records['collections'] << collection
+            updated_records['collections'] <<
+              if options[:updated_records_ids]
+                collection.id.to_s
+              else
+                collection
+              end
           else
             new_records['collections'] << { 'name' => shared_collection.name }
           end
@@ -100,7 +111,9 @@ module Cenit
           updated_records: updated_records,
           missing_parameters: missing_parameters,
           pull_data: pull_data,
-          collection_data: collection_data
+          collection_data: collection_data,
+          collection_discarded: options[:discard_collection].present?,
+          updated_records_ids: options[:updated_records_ids].present?
         }
       end
 
@@ -150,15 +163,19 @@ module Cenit
               end
             end
             if errors.blank?
-              Setup::Collection.where(name: shared_collection.name).delete
-              collection.name = shared_collection.name
-              collection.image = shared_collection.image if shared_collection.image.present?
-              collection.save
-              shared_collection.pulled(collection: collection)
+              unless pull_request[:collection_discarded]
+                Setup::Collection.where(name: shared_collection.name).delete
+                collection.name = shared_collection.name
+                collection.image = shared_collection.image if shared_collection.image.present?
+                collection.save
+                shared_collection.pulled(collection: collection,
+                                         install: pull_request[:install])
+                pull_request[:collection] = { id: collection.id.to_s }
+              end
               pull_data = pull_request.delete(:pull_data)
               pull_request[:created_records] = collection.inspect_json(inspecting: :id, inspect_scope: create_collector).reject { |_, value| !value.is_a?(Enumerable) }
+              collection.destroy if pull_request[:collection_discarded]
               pull_request[:pull_data] = pull_data
-              pull_request[:collection] = { id: collection.id.to_s }
             end
           rescue Exception => ex
             errors << ex.message

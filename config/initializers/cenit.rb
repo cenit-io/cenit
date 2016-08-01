@@ -49,6 +49,9 @@ Cenit.config do
   #Process webhook submits asynchronous
   asynchronous_submission true
 
+  #Process pull imports asynchronous
+  asynchronous_pull_import true
+
   #oauth2 callback site
   oauth2_callback_site ENV['OAUTH2_CALLBACK_SITE']
 

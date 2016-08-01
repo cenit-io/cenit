@@ -52,8 +52,8 @@ class User
   mount_uploader :picture, ImageUploader
 
   before_save :ensure_token
-  before_create { self.account ||= Account.current || Account.create_with_owner(owner: self)}
-  
+  before_create { self.account ||= Account.current || Account.create_with_owner(owner: self) }
+
   validates_uniqueness_of :token
   before_save :ensure_token, :inspect_updated_fields
 
@@ -133,13 +133,15 @@ class User
     request = Net::HTTP::Get.new("/avatar/#{Digest::MD5.hexdigest(email.downcase)}.png?d=404")
     response = http.request(request)
     response.code.to_i < 400 # from d=404 parameter
+  rescue
+    false
   end
 
-  def identicon(size=60)
+  def identicon(size=50)
     Identicon.data_url_for email.downcase, size
   end
 
-  def gravatar_or_identicon_url(size=60)
+  def gravatar_or_identicon_url(size=50)
     if gravatar()
       "//gravatar.com/avatar/#{Digest::MD5.hexdigest email}?s=#{size}"
     else
@@ -155,9 +157,9 @@ class User
     def current_super_admin?
       current && current.super_admin?
     end
-    
+
     def super_admin
-      all.select {|u| u.has_role? :super_admin}
+      all.select { |u| u.has_role? :super_admin }
     end
 
     def current_number

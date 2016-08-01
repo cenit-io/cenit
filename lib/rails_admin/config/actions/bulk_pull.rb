@@ -69,7 +69,14 @@ module RailsAdmin
                 else
                   @pull_request[:missing_parameters] = []
                 end
-                render :pull
+                render :pull, locals: {
+                  shared_collection: @object,
+                  pull_request: @pull_request,
+                  bulk_ids: @bulk_ids,
+                  object_id: @object_id,
+                  options: @options,
+                  options_key: @options_key
+                }
               end
             else
               @form_object = Forms::PullOptions.new

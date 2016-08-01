@@ -3,14 +3,15 @@ module Setup
     include CenitScoped
     include AuthorizationHeader
     include Parameters
+    include WithTemplateParameters
 
     abstract_class true
 
-    build_in_data_type.with(:namespace, :name, :client, :parameters).referenced_by(:namespace, :name)
+    build_in_data_type.with(:namespace, :name, :client, :parameters, :template_parameters).referenced_by(:namespace, :name)
 
     belongs_to :client, class_name: Setup::OauthClient.to_s, inverse_of: nil
 
-    parameters :parameters
+    parameters :parameters, :template_parameters
 
     field :access_token, type: String
     field :token_span, type: BigDecimal
@@ -54,7 +55,7 @@ module Setup
 
     def authorize_params(params = {})
       params = base_params.merge(params)
-      parameters.each { |parameter| params[parameter.key.to_sym] = parameter.value }
+      conformed_parameters.each { |parameter| params[parameter.key.to_sym] = parameter.value }
       params
     end
 

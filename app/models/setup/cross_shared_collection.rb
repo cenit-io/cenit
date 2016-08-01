@@ -52,6 +52,10 @@ module Setup
 
     default_scope -> { desc(:pull_count) }
 
+    def installed?
+      installed.present?
+    end
+
     def shared?
       true
     end
@@ -121,7 +125,7 @@ module Setup
 
     def pulled(options = {})
       self.class.collection.find(_id: id).update_one('$inc' => { pull_count: 1 })
-      unless installed
+      if !installed && options[:install]
         self.pull_data = {}
         pull_data[:readme] = readme if readme.present?
         (collection = options[:collection]).cross(:shared)

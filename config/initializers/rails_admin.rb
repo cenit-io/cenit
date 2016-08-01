@@ -42,7 +42,9 @@
   RailsAdmin::Config::Actions::CleanUp,
   RailsAdmin::Config::Actions::ShowRecords,
   RailsAdmin::Config::Actions::RunScript,
-  RailsAdmin::Config::Actions::Play
+  RailsAdmin::Config::Actions::Play,
+  RailsAdmin::Config::Actions::PullImport,
+  RailsAdmin::Config::Actions::State
 ].each { |a| RailsAdmin::Config::Actions.register(a) }
 
 RailsAdmin::Config::Actions.register(:export, RailsAdmin::Config::Actions::BulkExport)
@@ -122,6 +124,7 @@ RailsAdmin.config do |config|
     new { except [Setup::Event, Setup::DataType, Setup::Authorization, Setup::BaseOauthProvider] }
     import
     import_schema
+    pull_import
     translator_update
     convert
     export
@@ -153,6 +156,7 @@ RailsAdmin.config do |config|
     switch_scheduler
     simple_export
     schedule
+    state
     retry_task
     submit
     inspect
@@ -2565,8 +2569,6 @@ RailsAdmin.config do |config|
       field :request_token_endpoint
       field :refresh_token_strategy
       field :refresh_token_algorithm
-      field :tenant
-      field :updated_at
     end
 
     fields :namespace, :name, :response_type, :authorization_endpoint, :token_endpoint, :token_method, :request_token_endpoint, :refresh_token_strategy, :refresh_token_algorithm, :tenant, :updated_at
@@ -2600,8 +2602,6 @@ RailsAdmin.config do |config|
       field :scope_separator
       field :refresh_token_strategy
       field :refresh_token_algorithm
-      field :tenant
-      field :updated_at
     end
 
     fields :namespace, :name, :response_type, :authorization_endpoint, :token_endpoint, :token_method, :scope_separator, :refresh_token_strategy, :refresh_token_algorithm, :tenant, :updated_at
@@ -2725,6 +2725,7 @@ RailsAdmin.config do |config|
       field :name
       field :client
       field :parameters
+      field :template_parameters
       field :metadata
     end
 
@@ -2758,6 +2759,7 @@ RailsAdmin.config do |config|
       field :status
       field :client
       field :parameters
+      field :template_parameters
       field :metadata
       field :_id
 
@@ -2822,6 +2824,9 @@ RailsAdmin.config do |config|
       field :parameters do
         visible { bindings[:object].ready_to_save? }
       end
+      field :template_parameters do
+        visible { bindings[:object].ready_to_save? }
+      end
       field :metadata
     end
 
@@ -2856,6 +2861,7 @@ RailsAdmin.config do |config|
       field :client
       field :scopes
       field :parameters
+      field :template_parameters
       field :metadata
       field :_id
 
@@ -3089,6 +3095,30 @@ RailsAdmin.config do |config|
     end
 
     fields :translator, :data, :description, :scheduler, :attempts_succeded, :retries, :progress, :status, :notifications, :updated_at
+  end
+
+  config.model Setup::PullImport do
+    navigation_label 'Monitors'
+    visible false
+    object_label_method { :to_s }
+
+    configure :attempts_succeded, :text do
+      label 'Attempts/Succedded'
+    end
+
+    configure :data do
+      label 'Pull data'
+    end
+
+    configure :pull_request, :json_value
+
+    configure :pulled_request, :json_value
+
+    edit do
+      field :description
+    end
+
+    fields :data, :pull_request, :pulled_request, :description, :scheduler, :attempts_succeded, :retries, :progress, :status, :notifications, :updated_at
   end
 
   config.model Setup::SchemasImport do

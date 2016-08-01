@@ -21,7 +21,7 @@ Capataz.config do
   allow_on JWT, [:encode, :decode]
 
   allow_on Devise, [:friendly_token]
-  
+
   allow_on Spreadsheet::Workbook, [:new_workbook]
 
   allow_on MIME::Multipart::Mixed, [:new_message]
@@ -38,7 +38,7 @@ Capataz.config do
 
   allow_on URI, [:decode, :encode]
 
-  allow_on  StringIO, [:new_io]
+  allow_on StringIO, [:new_io]
 
   allow_on File, [:dirname, :basename]
 
@@ -64,22 +64,22 @@ Capataz.config do
 
   allow_for Setup::Task, [:status, :scheduler, :state, :resume_in, :run_again, :progress, :progress=, :update, :destroy, :notifications, :notify]
 
-  allow_for Setup::Scheduler, [:activated?,  :name, :to_json, :to_edi, :to_hash, :to_xml, :namespace]
+  allow_for Setup::Scheduler, [:activated?, :name, :to_json, :share_json, :to_edi, :to_hash, :to_xml, :namespace]
 
   allow_for Setup::Webhook::ResponseProxy, [:code, :body, :headers, :content_type]
 
   allow_for Setup::DataType, ((%w(_json _xml _edi) + ['']).collect do |format|
-                             %w(create new create!).collect do |action|
-                               if action.end_with?('!')
-                                 "#{action.chop}_from#{format}!"
-                               else
-                                 "#{action}_from#{format}"
-                               end
-                             end + [:create_from]
-                           end + [:name, :slug, :to_json, :to_edi, :to_hash, :to_xml, :to_params, :records_model, :namespace]).flatten
+    %w(create new create!).collect do |action|
+      if action.end_with?('!')
+        "#{action.chop}_from#{format}!"
+      else
+        "#{action}_from#{format}"
+      end
+    end + [:create_from]
+  end + [:name, :slug, :to_json, :share_json, :to_edi, :to_hash, :to_xml, :to_params, :records_model, :namespace]).flatten
 
   deny_for [Setup::DynamicRecord, Mongoff::Record], ->(instance, method) do
-    return false if [:id, :to_json, :to_edi, :to_hash, :to_xml, :to_xml_element, :to_params, :from_json, :from_xml, :from_edi, :[], :[]=, :save, :all, :where, :orm_model, :nil?, :==, :errors, :destroy].include?(method)
+    return false if [:id, :to_json, :share_json, :to_edi, :to_hash, :to_xml, :to_xml_element, :to_params, :from_json, :from_xml, :from_edi, :[], :[]=, :save, :all, :where, :orm_model, :nil?, :==, :errors, :destroy].include?(method)
     return false if instance.orm_model.data_type.records_methods.any? { |alg| alg.name == method.to_s }
     return false if [:data].include?(method) && instance.is_a?(Mongoff::GridFs::FileFormatter)
     if (method = method.to_s).end_with?('=')

@@ -4,8 +4,12 @@ require 'setup/storage'
 class Ability
   include CanCan::Ability
 
+  attr_reader :user
+
   def initialize(user)
+
     can :access, :rails_admin
+
     if (@user = user)
       cannot :inspect, Account unless user.super_admin?
 
@@ -169,7 +173,7 @@ class Ability
   end
 
   def can?(action, subject, *extra_args)
-    if subject == ScriptExecution && (@user.nil? || !@user.super_admin?)
+    if subject == ScriptExecution && (user.nil? || !user.super_admin?)
       false
     else
       super
