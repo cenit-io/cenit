@@ -992,23 +992,13 @@ RailsAdmin.config do |config|
     end
   end
 
-  config.model Setup::Namespace do
-    navigation_label 'Collections'
-    list do
-      field :name
-      field :slug
-      field :updated_at
-    end
-    fields :name, :slug
-  end
-
   #Workflows
 
   config.navigation 'Workflows', icon: 'fa fa-cogs'
 
   config.model Setup::Flow do
     navigation_label 'Workflows'
-    weight -300
+    weight -410
     object_label_method { :custom_title }
     register_instance_option(:form_synchronized) do
       if bindings[:object].not_shared?
@@ -1149,6 +1139,13 @@ RailsAdmin.config do |config|
         end
         help I18n.t('admin.form.required')
       end
+      field :authorization do
+        visible do
+          ((f = bindings[:object]).shared? && f.webhook.present?) ||
+            (t = f.translator) && [:Import, :Export].include?(t.type) &&
+              ((f.persisted? || f.custom_data_type_selected? || f.data_type) && (t.type == :Import || f.event.blank? || f.data_type.blank? || f.data_type_scope.present?))
+        end
+      end
       field :connection_role do
         visible do
           ((f = bindings[:object]).shared? && f.webhook.present?) ||
@@ -1251,6 +1248,7 @@ RailsAdmin.config do |config|
       field :lot_size
 
       field :webhook
+      field :authorization
       field :connection_role
       field :before_submit
       field :response_translator
@@ -1282,7 +1280,7 @@ RailsAdmin.config do |config|
 
   config.model Setup::Event do
     navigation_label 'Workflows'
-    weight -209
+    weight -409
     object_label_method { :custom_title }
     visible false
 
@@ -3376,6 +3374,16 @@ RailsAdmin.config do |config|
     end
 
     fields :parent_model, :parent, :location, :name, :value, :updated_at
+  end
+
+  config.model Setup::Namespace do
+    navigation_label 'Collections'
+    list do
+      field :name
+      field :slug
+      field :updated_at
+    end
+    fields :name, :slug
   end
 
   #Administration

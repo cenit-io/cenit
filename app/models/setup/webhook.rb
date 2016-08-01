@@ -31,7 +31,10 @@ module Setup
     end
 
     def with(options)
-      if options.is_a?(Setup::Connection) || options.is_a?(Setup::ConnectionRole)
+      case options
+      when NilClass
+        self
+      when Setup::Connection, Setup::ConnectionRole
         upon(options)
       else
         super
