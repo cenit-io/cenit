@@ -16,5 +16,13 @@ module Setup
     def scope_title
       provider && provider.custom_title
     end
+
+    def key
+      name
+    end
+
+    def value
+      name
+    end
   end
 end

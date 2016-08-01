@@ -2569,8 +2569,6 @@ RailsAdmin.config do |config|
       field :request_token_endpoint
       field :refresh_token_strategy
       field :refresh_token_algorithm
-      field :tenant
-      field :updated_at
     end
 
     fields :namespace, :name, :response_type, :authorization_endpoint, :token_endpoint, :token_method, :request_token_endpoint, :refresh_token_strategy, :refresh_token_algorithm, :tenant, :updated_at
@@ -2604,8 +2602,6 @@ RailsAdmin.config do |config|
       field :scope_separator
       field :refresh_token_strategy
       field :refresh_token_algorithm
-      field :tenant
-      field :updated_at
     end
 
     fields :namespace, :name, :response_type, :authorization_endpoint, :token_endpoint, :token_method, :scope_separator, :refresh_token_strategy, :refresh_token_algorithm, :tenant, :updated_at
@@ -2729,6 +2725,7 @@ RailsAdmin.config do |config|
       field :name
       field :client
       field :parameters
+      field :template_parameters
       field :metadata
     end
 
@@ -2762,6 +2759,7 @@ RailsAdmin.config do |config|
       field :status
       field :client
       field :parameters
+      field :template_parameters
       field :metadata
       field :_id
 
@@ -2826,6 +2824,9 @@ RailsAdmin.config do |config|
       field :parameters do
         visible { bindings[:object].ready_to_save? }
       end
+      field :template_parameters do
+        visible { bindings[:object].ready_to_save? }
+      end
       field :metadata
     end
 
@@ -2860,6 +2861,7 @@ RailsAdmin.config do |config|
       field :client
       field :scopes
       field :parameters
+      field :template_parameters
       field :metadata
       field :_id
 

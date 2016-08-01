@@ -46,7 +46,7 @@ module Setup
 
     def authorize_params(params)
       scope_sep = provider.scope_separator.blank? ? ' ' : provider.scope_separator
-      params[:scope] ||= scopes.collect { |scope| scope.name }.join(scope_sep)
+      params[:scope] ||= conformed_scopes.collect { |conforms| conforms[1] }.join(scope_sep)
       super(params)
     end
 
