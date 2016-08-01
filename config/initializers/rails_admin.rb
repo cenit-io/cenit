@@ -279,7 +279,7 @@ RailsAdmin.config do |config|
     end
 
     group :api_connectors do
-      label 'API Connectors'
+      label 'Connectors'
       active true
     end
 
@@ -456,7 +456,7 @@ RailsAdmin.config do |config|
     group :collections
     group :workflows
     group :api_connectors do
-      label 'API Connectors'
+      label 'Connectors'
       active true
     end
     group :data
@@ -796,7 +796,7 @@ RailsAdmin.config do |config|
     end
 
     group :api_connectors do
-      label 'API Connectors'
+      label 'Connectors'
       active true
     end
 
@@ -1000,741 +1000,6 @@ RailsAdmin.config do |config|
       field :updated_at
     end
     fields :name, :slug
-  end
-
-  #Data
-
-  config.navigation 'Data', icon: 'fa fa-database'
-
-  config.model Setup::DataType do
-    navigation_label 'Data'
-    weight -450
-    label 'Data type'
-    label_plural 'Data types'
-    object_label_method { :custom_title }
-    visible true
-
-    show_in_dashboard false
-
-    configure :_type do
-      pretty_value do
-        value.split('::').last.to_title
-      end
-    end
-
-    group :behavior do
-      label 'Behavior'
-      active false
-    end
-
-    configure :title do
-      pretty_value do
-        bindings[:object].custom_title
-      end
-    end
-
-    configure :slug
-
-    configure :storage_size, :decimal do
-      pretty_value do
-        if objects = bindings[:controller].instance_variable_get(:@objects)
-          unless max = bindings[:controller].instance_variable_get(:@max_storage_size)
-            bindings[:controller].instance_variable_set(:@max_storage_size, max = objects.collect { |data_type| data_type.storage_size }.max)
-          end
-          (bindings[:view].render partial: 'size_bar', locals: { max: max, value: bindings[:object].records_model.storage_size }).html_safe
-        else
-          bindings[:view].number_to_human_size(value)
-        end
-      end
-      read_only true
-    end
-
-    configure :before_save_callbacks do
-      group :behavior
-      inline_add false
-      associated_collection_scope do
-        Proc.new { |scope|
-          scope.where(:parameters.with_size => 1)
-        }
-      end
-    end
-
-    configure :records_methods do
-      group :behavior
-      inline_add false
-    end
-
-    configure :data_type_methods do
-      group :behavior
-      inline_add false
-    end
-
-    edit do
-      field :title, :enum_edit, &shared_non_editable
-      field :slug
-      field :before_save_callbacks, &shared_non_editable
-      field :records_methods, &shared_non_editable
-      field :data_type_methods, &shared_non_editable
-    end
-
-    list do
-      field :title
-      field :name
-      field :slug
-      field :_type
-      field :used_memory do
-        visible { Cenit.dynamic_model_loading? }
-        pretty_value do
-          unless max = bindings[:controller].instance_variable_get(:@max_used_memory)
-            bindings[:controller].instance_variable_set(:@max_used_memory, max = Setup::DataType.fields[:used_memory.to_s].type.new(Setup::DataType.max(:used_memory)))
-          end
-          (bindings[:view].render partial: 'used_memory_bar', locals: { max: max, value: Setup::DataType.fields[:used_memory.to_s].type.new(value) }).html_safe
-        end
-      end
-      field :storage_size
-      field :updated_at
-    end
-
-    show do
-      field :title
-      field :name
-      field :slug
-      field :_type
-      field :storage_size
-      field :schema do
-        pretty_value do
-          v =
-            if json = JSON.pretty_generate(value) rescue nil
-              "<code class='json'>#{json.gsub('<', '&lt;').gsub('>', '&gt;')}</code>"
-            else
-              value
-            end
-
-          "<pre>#{v}</pre>".html_safe
-        end
-      end
-
-      field :_id
-      field :created_at
-      #field :creator
-      field :updated_at
-      #field :updater
-    end
-    fields :namespace, :name, :slug, :_type, :storage_size, :updated_at
-  end
-
-  config.model Setup::JsonDataType do
-    navigation_label 'Data'
-    weight -449
-    label 'JSON Data Type'
-    object_label_method { :custom_title }
-
-    group :behavior do
-      label 'Behavior'
-      active false
-    end
-
-    configure :title
-
-    configure :name do
-      read_only { !bindings[:object].new_record? }
-    end
-
-    configure :schema, :code_mirror do
-      html_attributes do
-        { cols: '74', rows: '15' }
-      end
-      # pretty_value do
-      #   "<pre><code class='json'>#{JSON.pretty_generate(value)}</code></pre>".html_safe
-      # end
-    end
-
-    configure :storage_size, :decimal do
-      pretty_value do
-        if objects = bindings[:controller].instance_variable_get(:@objects)
-          unless max = bindings[:controller].instance_variable_get(:@max_storage_size)
-            bindings[:controller].instance_variable_set(:@max_storage_size, max = objects.collect { |data_type| data_type.storage_size }.max)
-          end
-          (bindings[:view].render partial: 'size_bar', locals: { max: max, value: bindings[:object].records_model.storage_size }).html_safe
-        else
-          bindings[:view].number_to_human_size(value)
-        end
-      end
-      read_only true
-    end
-
-    configure :before_save_callbacks do
-      group :behavior
-      inline_add false
-      associated_collection_scope do
-        Proc.new { |scope|
-          scope.where(:parameters.with_size => 1)
-        }
-      end
-    end
-
-    configure :records_methods do
-      group :behavior
-      inline_add false
-    end
-
-    configure :data_type_methods do
-      group :behavior
-      inline_add false
-    end
-
-    configure :slug
-
-    edit do
-      field :namespace, :enum_edit, &shared_non_editable
-      field :name, &shared_non_editable
-      field :schema, :json_schema do
-        shared_read_only
-        help { 'Required' }
-      end
-      field :title, &shared_non_editable
-      field :slug
-      field :before_save_callbacks, &shared_non_editable
-      field :records_methods, &shared_non_editable
-      field :data_type_methods, &shared_non_editable
-    end
-
-    list do
-      field :namespace
-      field :title
-      field :name
-      field :slug
-      field :used_memory do
-        visible { Cenit.dynamic_model_loading? }
-        pretty_value do
-          unless max = bindings[:controller].instance_variable_get(:@max_used_memory)
-            bindings[:controller].instance_variable_set(:@max_used_memory, max = Setup::JsonDataType.fields[:used_memory.to_s].type.new(Setup::JsonDataType.max(:used_memory)))
-          end
-          (bindings[:view].render partial: 'used_memory_bar', locals: { max: max, value: Setup::JsonDataType.fields[:used_memory.to_s].type.new(value) }).html_safe
-        end
-      end
-      field :storage_size
-      field :updated_at
-    end
-
-    show do
-      field :namespace
-      field :title
-      field :name
-      field :slug
-      field :storage_size
-      field :schema do
-        pretty_value do
-          "<pre><code class='ruby'>#{JSON.pretty_generate(value)}</code></pre>".html_safe
-        end
-      end
-      field :before_save_callbacks
-      field :records_methods
-      field :data_type_methods
-
-      field :_id
-      field :created_at
-      #field :creator
-      field :updated_at
-      #field :updater
-    end
-
-    fields :namespace, :name, :slug, :storage_size, :updated_at
-  end
-
-  config.model Setup::FileDataType do
-    navigation_label 'Data'
-    weight -448
-    object_label_method { :custom_title }
-
-    group :content do
-      label 'Content'
-    end
-
-    group :behavior do
-      label 'Behavior'
-      active false
-    end
-
-    configure :storage_size, :decimal do
-      pretty_value do
-        if objects = bindings[:controller].instance_variable_get(:@objects)
-          unless max = bindings[:controller].instance_variable_get(:@max_storage_size)
-            bindings[:controller].instance_variable_set(:@max_storage_size, max = objects.collect { |data_type| data_type.records_model.storage_size }.max)
-          end
-          (bindings[:view].render partial: 'size_bar', locals: { max: max, value: bindings[:object].records_model.storage_size }).html_safe
-        else
-          bindings[:view].number_to_human_size(value)
-        end
-      end
-      read_only true
-    end
-
-    configure :validators do
-      group :content
-      inline_add false
-    end
-
-    configure :schema_data_type do
-      group :content
-      inline_add false
-      inline_edit false
-    end
-
-    configure :before_save_callbacks do
-      group :behavior
-      inline_add false
-      associated_collection_scope do
-        Proc.new { |scope|
-          scope.where(:parameters.with_size => 1)
-        }
-      end
-    end
-
-    configure :records_methods do
-      group :behavior
-      inline_add false
-    end
-
-    configure :data_type_methods do
-      group :behavior
-      inline_add false
-    end
-
-    configure :slug
-
-    edit do
-      field :namespace, :enum_edit, &shared_non_editable
-      field :name, &shared_non_editable
-      field :title, &shared_non_editable
-      field :slug
-      field :validators, &shared_non_editable
-      field :schema_data_type, &shared_non_editable
-      field :before_save_callbacks, &shared_non_editable
-      field :records_methods, &shared_non_editable
-      field :data_type_methods, &shared_non_editable
-    end
-
-    list do
-      field :title
-      field :name
-      field :slug
-      field :validators
-      field :schema_data_type
-      field :used_memory do
-        visible { Cenit.dynamic_model_loading? }
-        pretty_value do
-          unless max = bindings[:controller].instance_variable_get(:@max_used_memory)
-            bindings[:controller].instance_variable_set(:@max_used_memory, max = Setup::JsonDataType.fields[:used_memory.to_s].type.new(Setup::JsonDataType.max(:used_memory)))
-          end
-          (bindings[:view].render partial: 'used_memory_bar', locals: { max: max, value: Setup::JsonDataType.fields[:used_memory.to_s].type.new(value) }).html_safe
-        end
-      end
-      field :storage_size
-      field :updated_at
-    end
-
-    show do
-      field :title
-      field :name
-      field :slug
-      field :validators
-      field :storage_size
-      field :schema_data_type
-
-      field :_id
-      field :created_at
-      #field :creator
-      field :updated_at
-      #field :updater
-    end
-
-    fields :namespace, :name, :slug, :storage_size, :updated_at
-  end
-
-  config.model Setup::Validator do
-    navigation_label 'Data'
-    label 'Schemas & Validators'
-    weight -490
-    fields :namespace, :name
-
-    fields :namespace, :name, :updated_at
-
-    show_in_dashboard { false }
-  end
-
-  config.model Setup::CustomValidator do
-    visible false
-
-    configure :_type do
-      pretty_value do
-        value.split('::').last.to_title
-      end
-    end
-
-    list do
-      field :namespace
-      field :name
-      field :_type
-      field :updated_at
-    end
-
-    fields :namespace, :name, :_type, :updated_at
-  end
-
-  config.model Setup::Schema do
-    weight -489
-    object_label_method { :custom_title }
-
-    edit do
-      field :namespace, :enum_edit do
-        read_only { !bindings[:object].new_record? }
-      end
-
-      field :uri do
-        read_only { !bindings[:object].new_record? }
-        html_attributes do
-          { cols: '74', rows: '1' }
-        end
-      end
-
-      field :schema, :code_mirror do
-        html_attributes do
-          { cols: '74', rows: '15' }
-        end
-      end
-
-      field :schema_data_type do
-        inline_edit false
-        inline_add false
-      end
-    end
-
-    show do
-      field :namespace
-      field :uri
-      field :schema do
-        pretty_value do
-          v =
-            if json = JSON.parse(value) rescue nil
-              "<code class='json'>#{JSON.pretty_generate(json).gsub('<', '&lt;').gsub('>', '&gt;')}</code>"
-            elsif (xml = Nokogiri::XML(value)).errors.blank?
-              "<code class='xml'>#{xml.to_xml.gsub('<', '&lt;').gsub('>', '&gt;')}</code>"
-            else
-              "<code>#{value}</code>"
-            end
-          "<pre>#{v}</pre>".html_safe
-        end
-      end
-      field :schema_data_type
-
-      field :_id
-      field :created_at
-      #field :creator
-      field :updated_at
-      #field :updater
-
-    end
-
-    fields :namespace, :uri, :schema_data_type, :updated_at
-  end
-
-  config.model Setup::XsltValidator do
-    parent Setup::Validator
-    weight -488
-
-    object_label_method { :custom_title }
-
-    list do
-      field :namespace
-      field :xslt
-      field :updated_at
-    end
-
-    fields :namespace, :name, :xslt, :updated_at
-  end
-
-  config.model Setup::EdiValidator do
-    parent Setup::Validator
-    weight -487
-    object_label_method { :custom_title }
-    label 'EDI Validators'
-
-    edit do
-      field :namespace, :enum_edit
-      field :name
-      field :schema_data_type
-      field :content_type
-    end
-
-    fields :namespace, :name, :schema_data_type, :content_type, :updated_at
-  end
-
-  config.model Setup::AlgorithmValidator do
-    parent Setup::Validator
-    weight -486
-    object_label_method { :custom_title }
-    edit do
-      field :namespace, :enum_edit
-      field :name
-      field :algorithm
-    end
-
-    fields :namespace, :name, :algorithm, :updated_at
-  end
-
-  #API Connectors
-
-  config.navigation 'API Connectors', icon: :api_connectors
-
-  config.model Setup::Parameter do
-    visible false
-    object_label_method { :to_s }
-    configure :metadata, :json_value
-    configure :value
-    edit do
-      field :name
-      field :value
-      field :description
-      field :metadata
-    end
-    list do
-      field :name
-      field :value
-      field :description
-      field :metadata
-      field :updated_at
-    end
-  end
-
-  config.model Setup::Connection do
-    navigation_label 'API Connectors'
-    weight -400
-    object_label_method { :custom_title }
-
-    group :credentials do
-      label 'Credentials'
-    end
-
-    configure :number, :string do
-      label 'Key'
-      html_attributes do
-        { maxlength: 30, size: 30 }
-      end
-      group :credentials
-      pretty_value do
-        (value || '<i class="icon-lock"/>').html_safe
-      end
-    end
-
-    configure :token, :text do
-      html_attributes do
-        { cols: '50', rows: '1' }
-      end
-      group :credentials
-      pretty_value do
-        (value || '<i class="icon-lock"/>').html_safe
-      end
-    end
-
-    configure :authorization do
-      group :credentials
-      inline_edit false
-    end
-
-    configure :authorization_handler do
-      group :credentials
-    end
-
-    group :parameters do
-      label 'Parameters & Headers'
-    end
-    configure :parameters do
-      group :parameters
-    end
-    configure :headers do
-      group :parameters
-    end
-    configure :template_parameters do
-      group :parameters
-    end
-
-    edit do
-      field(:namespace, :enum_edit, &shared_non_editable)
-      field(:name, &shared_non_editable)
-      field(:url, &shared_non_editable)
-
-      field :number
-      field :token
-      field :authorization
-      field(:authorization_handler, &shared_non_editable)
-
-      field :parameters
-      field :headers
-      field :template_parameters
-    end
-
-    show do
-      field :namespace
-      field :name
-      field :url
-
-      field :number
-      field :token
-      field :authorization
-      field :authorization_handler
-
-      field :parameters
-      field :headers
-      field :template_parameters
-
-      field :_id
-      field :created_at
-      field :updated_at
-    end
-
-    list do
-      field :namespace
-      field :name
-      field :url
-      field :number
-      field :token
-      field :authorization
-      field :updated_at
-    end
-
-    fields :namespace, :name, :url, :number, :token, :authorization, :updated_at
-  end
-
-  config.model Setup::ConnectionRole do
-    navigation_label 'API Connectors'
-    weight -309
-    object_label_method { :custom_title }
-
-    configure :name, :string do
-      help 'Requiered.'
-      html_attributes do
-        { maxlength: 50, size: 50 }
-      end
-    end
-    configure :webhooks do
-      nested_form false
-    end
-    configure :connections do
-      nested_form false
-    end
-    modal do
-      field :namespace, :enum_edit
-      field :name
-      field :webhooks
-      field :connections
-    end
-    show do
-      field :namespace
-      field :name
-      field :webhooks
-      field :connections
-
-      field :_id
-      field :created_at
-      #field :creator
-      field :updated_at
-      #field :updater
-    end
-
-    edit do
-      field :namespace, :enum_edit
-      field :name
-      field :webhooks
-      field :connections
-      field :updated_at
-    end
-
-    fields :namespace, :name, :webhooks, :connections, :updated_at
-  end
-
-  config.model Setup::Webhook do
-    navigation_label 'API Connectors'
-    weight -308
-    object_label_method { :custom_title }
-
-    configure :metadata, :json_value
-
-    group :credentials do
-      label 'Credentials'
-    end
-
-    configure :authorization do
-      group :credentials
-      inline_edit false
-    end
-
-    configure :authorization_handler do
-      group :credentials
-    end
-
-    group :parameters do
-      label 'Parameters & Headers'
-    end
-
-    configure :path, :string do
-      help 'Requiered. Path of the webhook relative to connection URL.'
-      html_attributes do
-        { maxlength: 255, size: 100 }
-      end
-    end
-
-    configure :parameters do
-      group :parameters
-    end
-
-    configure :headers do
-      group :parameters
-    end
-
-    configure :template_parameters do
-      group :parameters
-    end
-
-    edit do
-      field(:namespace, :enum_edit, &shared_non_editable)
-      field(:name, &shared_non_editable)
-      field(:path, &shared_non_editable)
-      field(:method, &shared_non_editable)
-      field(:description, &shared_non_editable)
-      field(:metadata, :json_value, &shared_non_editable)
-
-      field :authorization
-      field(:authorization_handler, &shared_non_editable)
-
-      field :parameters
-      field :headers
-      field :template_parameters
-    end
-
-    show do
-      field :namespace
-      field :name
-      field :path
-      field :method
-      field :description
-      field :metadata, :json_value
-
-      field :authorization
-      field :authorization_handler
-
-      field :parameters
-      field :headers
-      field :template_parameters
-
-      field :_id
-      field :created_at
-      #field :creator
-      field :updated_at
-      #field :updater
-    end
-
-    fields :namespace, :name, :path, :method, :description, :authorization, :updated_at
   end
 
   #Workflows
@@ -2056,7 +1321,7 @@ RailsAdmin.config do |config|
 
   config.model Setup::Observer do
     navigation_label 'Workflows'
-    weight -208
+    weight -408
     label 'Data event'
     object_label_method { :custom_title }
 
@@ -2116,7 +1381,7 @@ RailsAdmin.config do |config|
 
   config.model Setup::Scheduler do
     navigation_label 'Workflows'
-    weight -207
+    weight -407
     object_label_method { :custom_title }
 
     configure :expression, :json_value
@@ -2185,7 +1450,7 @@ RailsAdmin.config do |config|
 
   config.model Setup::Translator do
     navigation_label 'Workflows'
-    weight -206
+    weight -406
     object_label_method { :custom_title }
     register_instance_option(:form_synchronized) do
       if bindings[:object].not_shared?
@@ -2339,7 +1604,7 @@ RailsAdmin.config do |config|
 
   config.model Setup::Algorithm do
     navigation_label 'Workflows'
-    weight -205
+    weight -405
     object_label_method { :custom_title }
 
     extra_associations do
@@ -2396,7 +1661,7 @@ RailsAdmin.config do |config|
 
   config.model Setup::AlgorithmOutput do
     navigation_label 'Workflows'
-    weight -205
+    weight -405
     visible false
 
     configure :records_count
@@ -2425,7 +1690,7 @@ RailsAdmin.config do |config|
   config.model Setup::Action do
     visible false
     navigation_label 'Workflows'
-    weight -202
+    weight -402
     object_label_method { :to_s }
 
     fields :method, :path, :algorithm
@@ -2433,7 +1698,7 @@ RailsAdmin.config do |config|
 
   config.model Setup::Application do
     navigation_label 'Workflows'
-    weight -201
+    weight -401
     object_label_method { :custom_title }
     visible { Account.current_super_admin? }
     configure :identifier
@@ -2473,6 +1738,741 @@ RailsAdmin.config do |config|
     end
 
     fields :name, :type, :many, :group, :description
+  end
+
+  #Connectors
+
+  config.navigation 'Connectors', icon: :api_connectors
+
+  config.model Setup::Parameter do
+    visible false
+    object_label_method { :to_s }
+    configure :metadata, :json_value
+    configure :value
+    edit do
+      field :name
+      field :value
+      field :description
+      field :metadata
+    end
+    list do
+      field :name
+      field :value
+      field :description
+      field :metadata
+      field :updated_at
+    end
+  end
+
+  config.model Setup::Connection do
+    navigation_label 'Connectors'
+    weight -310
+    object_label_method { :custom_title }
+
+    group :credentials do
+      label 'Credentials'
+    end
+
+    configure :number, :string do
+      label 'Key'
+      html_attributes do
+        { maxlength: 30, size: 30 }
+      end
+      group :credentials
+      pretty_value do
+        (value || '<i class="icon-lock"/>').html_safe
+      end
+    end
+
+    configure :token, :text do
+      html_attributes do
+        { cols: '50', rows: '1' }
+      end
+      group :credentials
+      pretty_value do
+        (value || '<i class="icon-lock"/>').html_safe
+      end
+    end
+
+    configure :authorization do
+      group :credentials
+      inline_edit false
+    end
+
+    configure :authorization_handler do
+      group :credentials
+    end
+
+    group :parameters do
+      label 'Parameters & Headers'
+    end
+    configure :parameters do
+      group :parameters
+    end
+    configure :headers do
+      group :parameters
+    end
+    configure :template_parameters do
+      group :parameters
+    end
+
+    edit do
+      field(:namespace, :enum_edit, &shared_non_editable)
+      field(:name, &shared_non_editable)
+      field(:url, &shared_non_editable)
+
+      field :number
+      field :token
+      field :authorization
+      field(:authorization_handler, &shared_non_editable)
+
+      field :parameters
+      field :headers
+      field :template_parameters
+    end
+
+    show do
+      field :namespace
+      field :name
+      field :url
+
+      field :number
+      field :token
+      field :authorization
+      field :authorization_handler
+
+      field :parameters
+      field :headers
+      field :template_parameters
+
+      field :_id
+      field :created_at
+      field :updated_at
+    end
+
+    list do
+      field :namespace
+      field :name
+      field :url
+      field :number
+      field :token
+      field :authorization
+      field :updated_at
+    end
+
+    fields :namespace, :name, :url, :number, :token, :authorization, :updated_at
+  end
+
+  config.model Setup::ConnectionRole do
+    navigation_label 'Connectors'
+    weight -309
+    object_label_method { :custom_title }
+
+    configure :name, :string do
+      help 'Requiered.'
+      html_attributes do
+        { maxlength: 50, size: 50 }
+      end
+    end
+    configure :webhooks do
+      nested_form false
+    end
+    configure :connections do
+      nested_form false
+    end
+    modal do
+      field :namespace, :enum_edit
+      field :name
+      field :webhooks
+      field :connections
+    end
+    show do
+      field :namespace
+      field :name
+      field :webhooks
+      field :connections
+
+      field :_id
+      field :created_at
+      #field :creator
+      field :updated_at
+      #field :updater
+    end
+
+    edit do
+      field :namespace, :enum_edit
+      field :name
+      field :webhooks
+      field :connections
+      field :updated_at
+    end
+
+    fields :namespace, :name, :webhooks, :connections, :updated_at
+  end
+
+  config.model Setup::Webhook do
+    navigation_label 'Connectors'
+    weight -308
+    object_label_method { :custom_title }
+
+    configure :metadata, :json_value
+
+    group :credentials do
+      label 'Credentials'
+    end
+
+    configure :authorization do
+      group :credentials
+      inline_edit false
+    end
+
+    configure :authorization_handler do
+      group :credentials
+    end
+
+    group :parameters do
+      label 'Parameters & Headers'
+    end
+
+    configure :path, :string do
+      help 'Requiered. Path of the webhook relative to connection URL.'
+      html_attributes do
+        { maxlength: 255, size: 100 }
+      end
+    end
+
+    configure :parameters do
+      group :parameters
+    end
+
+    configure :headers do
+      group :parameters
+    end
+
+    configure :template_parameters do
+      group :parameters
+    end
+
+    edit do
+      field(:namespace, :enum_edit, &shared_non_editable)
+      field(:name, &shared_non_editable)
+      field(:path, &shared_non_editable)
+      field(:method, &shared_non_editable)
+      field(:description, &shared_non_editable)
+      field(:metadata, :json_value, &shared_non_editable)
+
+      field :authorization
+      field(:authorization_handler, &shared_non_editable)
+
+      field :parameters
+      field :headers
+      field :template_parameters
+    end
+
+    show do
+      field :namespace
+      field :name
+      field :path
+      field :method
+      field :description
+      field :metadata, :json_value
+
+      field :authorization
+      field :authorization_handler
+
+      field :parameters
+      field :headers
+      field :template_parameters
+
+      field :_id
+      field :created_at
+      #field :creator
+      field :updated_at
+      #field :updater
+    end
+
+    fields :namespace, :name, :path, :method, :description, :authorization, :updated_at
+  end
+
+  #Definitions
+
+  config.navigation 'Definitions', icon: 'fa fa-puzzle-piece'
+
+  config.model Setup::DataType do
+    navigation_label 'Definitions'
+    weight -250
+    label 'Data type'
+    label_plural 'Data types'
+    object_label_method { :custom_title }
+    visible true
+
+    show_in_dashboard false
+
+    configure :_type do
+      pretty_value do
+        value.split('::').last.to_title
+      end
+    end
+
+    group :behavior do
+      label 'Behavior'
+      active false
+    end
+
+    configure :title do
+      pretty_value do
+        bindings[:object].custom_title
+      end
+    end
+
+    configure :slug
+
+    configure :storage_size, :decimal do
+      pretty_value do
+        if objects = bindings[:controller].instance_variable_get(:@objects)
+          unless max = bindings[:controller].instance_variable_get(:@max_storage_size)
+            bindings[:controller].instance_variable_set(:@max_storage_size, max = objects.collect { |data_type| data_type.storage_size }.max)
+          end
+          (bindings[:view].render partial: 'size_bar', locals: { max: max, value: bindings[:object].records_model.storage_size }).html_safe
+        else
+          bindings[:view].number_to_human_size(value)
+        end
+      end
+      read_only true
+    end
+
+    configure :before_save_callbacks do
+      group :behavior
+      inline_add false
+      associated_collection_scope do
+        Proc.new { |scope|
+          scope.where(:parameters.with_size => 1)
+        }
+      end
+    end
+
+    configure :records_methods do
+      group :behavior
+      inline_add false
+    end
+
+    configure :data_type_methods do
+      group :behavior
+      inline_add false
+    end
+
+    edit do
+      field :title, :enum_edit, &shared_non_editable
+      field :slug
+      field :before_save_callbacks, &shared_non_editable
+      field :records_methods, &shared_non_editable
+      field :data_type_methods, &shared_non_editable
+    end
+
+    list do
+      field :title
+      field :name
+      field :slug
+      field :_type
+      field :used_memory do
+        visible { Cenit.dynamic_model_loading? }
+        pretty_value do
+          unless max = bindings[:controller].instance_variable_get(:@max_used_memory)
+            bindings[:controller].instance_variable_set(:@max_used_memory, max = Setup::DataType.fields[:used_memory.to_s].type.new(Setup::DataType.max(:used_memory)))
+          end
+          (bindings[:view].render partial: 'used_memory_bar', locals: { max: max, value: Setup::DataType.fields[:used_memory.to_s].type.new(value) }).html_safe
+        end
+      end
+      field :storage_size
+      field :updated_at
+    end
+
+    show do
+      field :title
+      field :name
+      field :slug
+      field :_type
+      field :storage_size
+      field :schema do
+        pretty_value do
+          v =
+            if json = JSON.pretty_generate(value) rescue nil
+              "<code class='json'>#{json.gsub('<', '&lt;').gsub('>', '&gt;')}</code>"
+            else
+              value
+            end
+
+          "<pre>#{v}</pre>".html_safe
+        end
+      end
+
+      field :_id
+      field :created_at
+      #field :creator
+      field :updated_at
+      #field :updater
+    end
+    fields :namespace, :name, :slug, :_type, :storage_size, :updated_at
+  end
+
+  config.model Setup::JsonDataType do
+    navigation_label 'Definitions'
+    weight -249
+    label 'JSON Data Type'
+    object_label_method { :custom_title }
+
+    group :behavior do
+      label 'Behavior'
+      active false
+    end
+
+    configure :title
+
+    configure :name do
+      read_only { !bindings[:object].new_record? }
+    end
+
+    configure :schema, :code_mirror do
+      html_attributes do
+        { cols: '74', rows: '15' }
+      end
+      # pretty_value do
+      #   "<pre><code class='json'>#{JSON.pretty_generate(value)}</code></pre>".html_safe
+      # end
+    end
+
+    configure :storage_size, :decimal do
+      pretty_value do
+        if objects = bindings[:controller].instance_variable_get(:@objects)
+          unless max = bindings[:controller].instance_variable_get(:@max_storage_size)
+            bindings[:controller].instance_variable_set(:@max_storage_size, max = objects.collect { |data_type| data_type.storage_size }.max)
+          end
+          (bindings[:view].render partial: 'size_bar', locals: { max: max, value: bindings[:object].records_model.storage_size }).html_safe
+        else
+          bindings[:view].number_to_human_size(value)
+        end
+      end
+      read_only true
+    end
+
+    configure :before_save_callbacks do
+      group :behavior
+      inline_add false
+      associated_collection_scope do
+        Proc.new { |scope|
+          scope.where(:parameters.with_size => 1)
+        }
+      end
+    end
+
+    configure :records_methods do
+      group :behavior
+      inline_add false
+    end
+
+    configure :data_type_methods do
+      group :behavior
+      inline_add false
+    end
+
+    configure :slug
+
+    edit do
+      field :namespace, :enum_edit, &shared_non_editable
+      field :name, &shared_non_editable
+      field :schema, :json_schema do
+        shared_read_only
+        help { 'Required' }
+      end
+      field :title, &shared_non_editable
+      field :slug
+      field :before_save_callbacks, &shared_non_editable
+      field :records_methods, &shared_non_editable
+      field :data_type_methods, &shared_non_editable
+    end
+
+    list do
+      field :namespace
+      field :title
+      field :name
+      field :slug
+      field :used_memory do
+        visible { Cenit.dynamic_model_loading? }
+        pretty_value do
+          unless max = bindings[:controller].instance_variable_get(:@max_used_memory)
+            bindings[:controller].instance_variable_set(:@max_used_memory, max = Setup::JsonDataType.fields[:used_memory.to_s].type.new(Setup::JsonDataType.max(:used_memory)))
+          end
+          (bindings[:view].render partial: 'used_memory_bar', locals: { max: max, value: Setup::JsonDataType.fields[:used_memory.to_s].type.new(value) }).html_safe
+        end
+      end
+      field :storage_size
+      field :updated_at
+    end
+
+    show do
+      field :namespace
+      field :title
+      field :name
+      field :slug
+      field :storage_size
+      field :schema do
+        pretty_value do
+          "<pre><code class='ruby'>#{JSON.pretty_generate(value)}</code></pre>".html_safe
+        end
+      end
+      field :before_save_callbacks
+      field :records_methods
+      field :data_type_methods
+
+      field :_id
+      field :created_at
+      #field :creator
+      field :updated_at
+      #field :updater
+    end
+
+    fields :namespace, :name, :slug, :storage_size, :updated_at
+  end
+
+  config.model Setup::FileDataType do
+    navigation_label 'Definitions'
+    weight -248
+    object_label_method { :custom_title }
+
+    group :content do
+      label 'Content'
+    end
+
+    group :behavior do
+      label 'Behavior'
+      active false
+    end
+
+    configure :storage_size, :decimal do
+      pretty_value do
+        if objects = bindings[:controller].instance_variable_get(:@objects)
+          unless max = bindings[:controller].instance_variable_get(:@max_storage_size)
+            bindings[:controller].instance_variable_set(:@max_storage_size, max = objects.collect { |data_type| data_type.records_model.storage_size }.max)
+          end
+          (bindings[:view].render partial: 'size_bar', locals: { max: max, value: bindings[:object].records_model.storage_size }).html_safe
+        else
+          bindings[:view].number_to_human_size(value)
+        end
+      end
+      read_only true
+    end
+
+    configure :validators do
+      group :content
+      inline_add false
+    end
+
+    configure :schema_data_type do
+      group :content
+      inline_add false
+      inline_edit false
+    end
+
+    configure :before_save_callbacks do
+      group :behavior
+      inline_add false
+      associated_collection_scope do
+        Proc.new { |scope|
+          scope.where(:parameters.with_size => 1)
+        }
+      end
+    end
+
+    configure :records_methods do
+      group :behavior
+      inline_add false
+    end
+
+    configure :data_type_methods do
+      group :behavior
+      inline_add false
+    end
+
+    configure :slug
+
+    edit do
+      field :namespace, :enum_edit, &shared_non_editable
+      field :name, &shared_non_editable
+      field :title, &shared_non_editable
+      field :slug
+      field :validators, &shared_non_editable
+      field :schema_data_type, &shared_non_editable
+      field :before_save_callbacks, &shared_non_editable
+      field :records_methods, &shared_non_editable
+      field :data_type_methods, &shared_non_editable
+    end
+
+    list do
+      field :title
+      field :name
+      field :slug
+      field :validators
+      field :schema_data_type
+      field :used_memory do
+        visible { Cenit.dynamic_model_loading? }
+        pretty_value do
+          unless max = bindings[:controller].instance_variable_get(:@max_used_memory)
+            bindings[:controller].instance_variable_set(:@max_used_memory, max = Setup::JsonDataType.fields[:used_memory.to_s].type.new(Setup::JsonDataType.max(:used_memory)))
+          end
+          (bindings[:view].render partial: 'used_memory_bar', locals: { max: max, value: Setup::JsonDataType.fields[:used_memory.to_s].type.new(value) }).html_safe
+        end
+      end
+      field :storage_size
+      field :updated_at
+    end
+
+    show do
+      field :title
+      field :name
+      field :slug
+      field :validators
+      field :storage_size
+      field :schema_data_type
+
+      field :_id
+      field :created_at
+      #field :creator
+      field :updated_at
+      #field :updater
+    end
+
+    fields :namespace, :name, :slug, :storage_size, :updated_at
+  end
+
+  config.model Setup::Validator do
+    navigation_label 'Definitions'
+    label 'Schemas & Validators'
+    weight -290
+    fields :namespace, :name
+
+    fields :namespace, :name, :updated_at
+
+    show_in_dashboard { false }
+  end
+
+  config.model Setup::CustomValidator do
+    visible false
+
+    configure :_type do
+      pretty_value do
+        value.split('::').last.to_title
+      end
+    end
+
+    list do
+      field :namespace
+      field :name
+      field :_type
+      field :updated_at
+    end
+
+    fields :namespace, :name, :_type, :updated_at
+  end
+
+  config.model Setup::Schema do
+    weight -289
+    object_label_method { :custom_title }
+
+    edit do
+      field :namespace, :enum_edit do
+        read_only { !bindings[:object].new_record? }
+      end
+
+      field :uri do
+        read_only { !bindings[:object].new_record? }
+        html_attributes do
+          { cols: '74', rows: '1' }
+        end
+      end
+
+      field :schema, :code_mirror do
+        html_attributes do
+          { cols: '74', rows: '15' }
+        end
+      end
+
+      field :schema_data_type do
+        inline_edit false
+        inline_add false
+      end
+    end
+
+    show do
+      field :namespace
+      field :uri
+      field :schema do
+        pretty_value do
+          v =
+            if json = JSON.parse(value) rescue nil
+              "<code class='json'>#{JSON.pretty_generate(json).gsub('<', '&lt;').gsub('>', '&gt;')}</code>"
+            elsif (xml = Nokogiri::XML(value)).errors.blank?
+              "<code class='xml'>#{xml.to_xml.gsub('<', '&lt;').gsub('>', '&gt;')}</code>"
+            else
+              "<code>#{value}</code>"
+            end
+          "<pre>#{v}</pre>".html_safe
+        end
+      end
+      field :schema_data_type
+
+      field :_id
+      field :created_at
+      #field :creator
+      field :updated_at
+      #field :updater
+
+    end
+
+    fields :namespace, :uri, :schema_data_type, :updated_at
+  end
+
+  config.model Setup::XsltValidator do
+    parent Setup::Validator
+    weight -288
+
+    object_label_method { :custom_title }
+
+    list do
+      field :namespace
+      field :xslt
+      field :updated_at
+    end
+
+    fields :namespace, :name, :xslt, :updated_at
+  end
+
+  config.model Setup::EdiValidator do
+    parent Setup::Validator
+    weight -287
+    object_label_method { :custom_title }
+    label 'EDI Validators'
+
+    edit do
+      field :namespace, :enum_edit
+      field :name
+      field :schema_data_type
+      field :content_type
+    end
+
+    fields :namespace, :name, :schema_data_type, :content_type, :updated_at
+  end
+
+  config.model Setup::AlgorithmValidator do
+    parent Setup::Validator
+    weight -286
+    object_label_method { :custom_title }
+    edit do
+      field :namespace, :enum_edit
+      field :name
+      field :algorithm
+    end
+
+    fields :namespace, :name, :algorithm, :updated_at
   end
 
   #Security
