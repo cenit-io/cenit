@@ -38,32 +38,32 @@ on premises-. The flows could be trigger by data events or be scheduled by our p
 
 ## Key concepts
 
-Definitions
-* Schemas & Validators
-* Data Types
+* Definitions
+  + Schemas & Validators
+  + Data Types
 
-Connectors
-* Connections
-* Connection Roles
-* Webhooks
+* Connectors
+  + Connections
+  + Connection Roles
+  + Webhooks
 
-Workflows
-* Flows
-* Data Events
-* Schedulers
-* Translators
-* Algoritms
+* Workflows
+  + Flows
+  + Data Events
+  + Schedulers
+  + Translators
+  + Algoritms
 
-Security
-* OAuth Clients
-* Providers
-* OAuth 2.0 Scopes
-* Authorizations
+* Security
+  + OAuth Clients
+  + Providers
+  + OAuth 2.0 Scopes
+  + Authorizations
 
-Monitors
-* Notifications
-* Tasks
-* Storages
+* Monitors
+  + Notifications
+  + Tasks
+  + Storages
 
 
 ## Load Schemas & Data Types on the fly
