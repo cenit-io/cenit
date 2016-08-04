@@ -1700,6 +1700,7 @@ RailsAdmin.config do |config|
     object_label_method { :custom_title }
     visible { Account.current_super_admin? }
     configure :identifier
+    configure :registered, :boolean
 
     edit do
       field :namespace, :enum_edit
@@ -1712,13 +1713,12 @@ RailsAdmin.config do |config|
       field :namespace
       field :name
       field :slug
-      field :identifier
-      field :secret_token
+      field :registered
       field :actions
       field :application_parameters
       field :updated_at
     end
-    fields :namespace, :name, :slug, :identifier, :secret_token, :actions, :application_parameters
+    fields :namespace, :name, :slug, :identifier, :secret_token, :registered, :actions, :application_parameters
   end
 
   config.model Setup::ApplicationParameter do
@@ -3652,6 +3652,8 @@ RailsAdmin.config do |config|
   config.model ApplicationId do
     navigation_label 'Administration'
     visible { User.current_super_admin? }
+    label 'Application ID'
+    label_plural 'Application IDs'
 
     register_instance_option(:discard_submit_buttons) { bindings[:object].instance_variable_get(:@registering) }
 

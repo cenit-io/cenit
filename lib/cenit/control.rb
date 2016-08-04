@@ -7,12 +7,12 @@ module Cenit
       @cenit_action = action
       params = controller.request.params.merge(action.path_params).with_indifferent_access
       {
-        controller: 'app',
-        action: 'index',
-        ns: app.ns_slug,
-        app_slug: app.slug
+        controller: ['app'],
+        action: ['index'],
+        id_or_ns: [app.identifier, app.ns_slug],
+        app_slug:[app.slug]
       }.each do |key, value|
-        params.delete(key) if params[key] == value
+        params.delete(key) if value.include?(params[key])
       end
       @action = Struct.new(http_method: action.method,
                            path: action.request_path,
@@ -42,7 +42,7 @@ module Cenit
     end
 
     def base_path
-      "/app/#{app.ns_slug}/#{app.slug}"
+      "/app/#{app.identifier}"
     end
 
     def redirect_to(*args)

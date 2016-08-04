@@ -8,8 +8,8 @@ class ApplicationId
   field :identifier, type: String
   field :oauth_name, type: String
 
-  validates_length_of :oauth_name, maximum: 255
   validates_uniqueness_in_presence_of :oauth_name
+  validates_length_in_presence_of :oauth_name, within: 6..20
 
   before_save do
     self.identifier ||= (id.to_s + Devise.friendly_token(60))
@@ -30,6 +30,15 @@ class ApplicationId
       end
     end
     errors.blank?
+  end
+
+  before_destroy do
+    if app
+      errors.add(:base, 'User App is present')
+      false
+    else
+      true
+    end
   end
 
   def app
