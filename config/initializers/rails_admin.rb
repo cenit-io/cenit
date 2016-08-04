@@ -3376,16 +3376,6 @@ RailsAdmin.config do |config|
     fields :parent_model, :parent, :location, :name, :value, :updated_at
   end
 
-  config.model Setup::Namespace do
-    navigation_label 'Collections'
-    list do
-      field :name
-      field :slug
-      field :updated_at
-    end
-    fields :name, :slug
-  end
-
   #Administration
 
   config.navigation 'Administration', icon: 'fa fa-user-secret'
