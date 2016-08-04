@@ -22,6 +22,11 @@ module Capataz
       @source_rewriter.process
     end
 
+    def on_array(node)
+      super
+      node.children.each { |child| decapatize(child) }
+    end
+
     def on_send(node)
       super
       unless Capataz.allows_invocation_of(method_name = node.children[1])

@@ -34,6 +34,14 @@ module Setup
       errors.blank?
     end
 
+    after_destroy { application_id && application_id.destroy }
+
+    delegate :registered, to: :application_id
+
+    def registered?
+      registered
+    end
+
     def identifier
       application_id && application_id.identifier
     end
@@ -78,7 +86,7 @@ module Setup
               group: 'UI'
             }
           },
-        required: %w(authentication_method)
+          required: %w(authentication_method)
         }
       application_parameters.each { |p| properties[p.name] = p.schema }
       schema.deep_stringify_keys

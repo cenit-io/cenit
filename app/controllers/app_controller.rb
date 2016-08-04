@@ -3,7 +3,7 @@ class AppController < ApplicationController
   before_action :authorize_account, :find_app
 
   def index
-    if (path = request.path.split('/').from(4).join('/')).empty?
+    if (path = request.path.split('/').from(@id_routing ? 3 : 4).join('/')).empty?
       path = '/'
     end
     method = request.method.to_s.downcase.to_sym
@@ -26,8 +26,9 @@ class AppController < ApplicationController
 
   def find_app
     found = false
-    if (ns = Setup::Namespace.where(slug: params[:ns]).first) &&
-      (app = Setup::Application.where(namespace: ns.name, slug: params[:app_slug]).first)
+    if (@id_routing && (app = @app)) ||
+      ((ns = Setup::Namespace.where(slug: params[:id_or_ns]).first) &&
+        (app = Setup::Application.where(namespace: ns.name, slug: params[:app_slug]).first))
       if @app.nil? || app == @app
         @app ||= app
         if @authentication_method.nil? || @app.authentication_method == @authentication_method
@@ -64,7 +65,12 @@ class AppController < ApplicationController
         @authentication_method = :user_credentials
       end
     end
-    if (app_id = params[:client_id]) && (app_id = ApplicationId.where(identifier: app_id).first)
+    if (app_id = ApplicationId.where(identifier: params[:id_or_ns]).first)
+      @id_routing = true
+    elsif (app_id = params[:client_id])
+      app_id = ApplicationId.where(identifier: app_id).first
+    end
+    if app_id
       if Account.current && Account.current != app_id.account
         Account.current = nil
       else
