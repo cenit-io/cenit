@@ -3,7 +3,7 @@ Cenit::Application.routes.draw do
   devise_for :users, controllers: { omniauth_callbacks: 'users/omniauth_callbacks', sessions: 'sessions' } do
     get 'sign_out', to: 'users/sessions#destroy', as: :destroy_user_session
   end
-  
+
   root to: 'rails_admin/main#dashboard'
 
   get 'explore/:api', to: 'api#explore', as: :explore_api
@@ -53,8 +53,9 @@ Cenit::Application.routes.draw do
 
   end
 
-  match 'app/:ns/:app_slug' => 'app#index', via: [:all]
-  match 'app/:ns/:app_slug/*path' => 'app#index', via: [:all]
+  match 'app/:id_or_ns' => 'app#index', via: [:all]
+  match 'app/:id_or_ns/:app_slug' => 'app#index', via: [:all]
+  match 'app/:id_or_ns/:app_slug/*path' => 'app#index', via: [:all]
 
   mount RailsAdmin::Engine => '/', as: 'rails_admin'
 
