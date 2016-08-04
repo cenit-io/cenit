@@ -24,7 +24,6 @@ class Ability
               Account,
               Setup::SharedName,
               CenitToken,
-              ApplicationId,
               Script,
               Setup::DelayedMessage,
               Setup::SystemNotification
@@ -33,6 +32,10 @@ class Ability
         can :destroy, [Setup::SharedCollection, Setup::Storage, Setup::CrossSharedCollection]
         can [:index, :show, :cancel], RabbitConsumer
         can [:edit, :pull, :import], Setup::CrossSharedCollection
+        can [:index, :show], ApplicationId
+        can(:destroy, ApplicationId) do |app_id|
+          app_id.app.nil?
+        end
       else
         cannot :access, [Setup::SharedName, Setup::DelayedMessage, Setup::SystemNotification]
         cannot :destroy, [Setup::SharedCollection, Setup::Storage]
