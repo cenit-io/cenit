@@ -1,14 +1,12 @@
 module Setup
   module Transformation
-    class PrawnTransform < WithOptions
+    class PrawnTransform < Setup::Transformation::AbstractTransform
 
       class << self
 
         def run(options = {})
-          context = new(options)
-          context.send(:eval, "pdf = PrawnRails::Document.new;
-            #{options[:transformation]}
-            ;pdf.render;")
+          options[:pdf] = PrawnRails::Document.new
+          Cenit::RubyInterpreter.run("#{options[:transformation]};pdf.render;", options, self_linker: options[:translator])
         end
 
       end

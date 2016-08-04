@@ -108,7 +108,7 @@ module Setup
       'js.erb' => {Setup::Transformation::ActionViewTransform => [:Export]},
       # 'text.erb' => {Setup::Transformation::ActionViewTransform => [:Export]},
       'ruby' => {Setup::Transformation::Ruby => [:Import, :Export, :Update, :Conversion]},
-      # 'pdf.prawn' => {Setup::Transformation::PrawnTransform => [:Export]},
+      'pdf.prawn' => {Setup::Transformation::PrawnTransform => [:Export]},
       'chain' => {Setup::Transformation::ChainTransform => [:Conversion]}
     }
 
