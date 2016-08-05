@@ -59,6 +59,10 @@ en:
         recent_users:
           title: 'Thank you for joining us!'
           more: "More than %{count} users"
+        monitors:
+          tasks: 'running tasks'
+          auths: 'authorizations'
+          notif: 'notifications'
       send_to_flow:
         title: "Send %{model_label_plural} to flow"
         menu: "Send to flow"
