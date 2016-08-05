@@ -16,6 +16,10 @@ module RailsAdmin
       User.order(created_at: :desc).limit(10).sample(5)
     end
 
+    def tenant_users
+      [current_user]
+    end
+
     def monitor_totals
       totals = Hash.new { |r, h| r[h] = Hash.new { |k, v| k[v] = 0}}
       if current_user

@@ -59,6 +59,8 @@ en:
         recent_users:
           title: 'Thank you for joining us!'
           more: "More than %{count} users"
+        tenant_users:
+          title: "Only you in your tenant"
         monitors:
           tasks: 'running tasks'
           auths: 'authorizations'
