@@ -9,7 +9,7 @@
     %h1= @page_name
 
 - flash && flash.each do |key, value|
-  .alert{class: flash_alert_class(key), style: 'margin-top: 10px'}
+  .alert{class: flash_alert_class(key), style: "margin-bottom: #{page_slug=='dashboard' ? '0' : '20px'}"}
     %a.close{href: '#', :'data-dismiss' => "alert"} &times;
     = value
 
@@ -19,8 +19,8 @@
 - if ['dashboard', 'list-of-shared-collections'].include? page_slug
   - @count ||= {}
   - query = params[:query]
-  .clearfix{style: 'margin-top: 10px;'}
-    .col-md-7{style: "margin-bottom: 20px;"}
+  .clearfix
+    .col-md-7{style: 'margin: 10px 0 20px;'}
       %h3.label-heading{style: 'margin: 0;'}
         %small=  t("admin.misc.title_search_shared_collections")
         %h3{style: "margin-top: 0px;"}= t("admin.misc.sub_title_search_shared_collections", count: @count[Setup::SharedCollection.name])

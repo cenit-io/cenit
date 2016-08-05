@@ -2,6 +2,10 @@
 
 @import "rails_admin/custom/github";
 
+body.rails_admin {
+  padding-top: 55px!important;
+}
+
 .navbar-brand img {
   max-height: 100%;
   width: auto;
@@ -216,7 +220,7 @@ ul.drawer li a span {
 #sidebar-wrapper {
   z-index: 1000;
   position: fixed;
-  top: 50px;
+  top: 55px;
   left: 250px;
   width: 55px;
   height: calc(100% - 50px);
@@ -259,6 +263,7 @@ ul.drawer li a span {
   position: relative;
   padding-left: 15px;
   padding-right: 15px;
+  padding-top: 10px;
 }
 
 .xyz{
