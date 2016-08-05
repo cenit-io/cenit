@@ -1,65 +1,65 @@
--if current_user
-  #usage-blocks.blocks.clearfix
-    #tasks-overview.col-sm-4
-      .block
-        .icon
-          %i.icon-tasks
-        .caption
-          %h4
-            -if (total = Setup::Task.any_in(status: Setup::Task::RUNNING_STATUS).count) > 0
-              #{number_to_human(total)}
-            =t('admin.actions.dashboard.monitors.tasks')
-          -if (value = Setup::Task.where(status: :failed).count) > 0
-            - value = number_to_human(value)
-            - label = 'failed'
-          -elsif (value = Setup::Task.where(status: :broken).count) > 0
-            - value = number_to_human(value)
-            - label = 'broken'
-          -elsif (value = Setup::Task.where(status: :unscheduled).count) > 0
-            - value = number_to_human(value)
-            - label = 'unscheduled'
-          -elsif (value = Setup::Task.where(status: :pending).count) > 0
-            - value = number_to_human(value)
-            - label = 'pending'
-          -else
-            - value = 'All'
-            - label = 'good'
-          %h6 #{value} #{label}
-    #auths-overview.col-sm-4
-      .block
-        .icon
-          %i.icon-check
-        .caption
-          %h4
-            -if (total = Setup::Authorization.all.count) > 0
-              #{number_to_human(total)}
-            =t('admin.actions.dashboard.monitors.auths')
-          -if (value = Setup::Authorization.where(authorized: false).count) > 0
-            - value = number_to_human(value)
-            - label = 'unauthorized'
-          -else
-            - value = 'All'
-            - label = 'good'
-          %h6 #{value} #{label}
-    #notif-overview.col-sm-4
-      .block
-        .icon
-          %i.icon-bell
-        .caption
-          %h4
-            -if (total = Setup::Notification.dashboard_related()[:total]) > 0
-              #{number_to_human(total)}
-            =t('admin.actions.dashboard.monitors.notif')
-          -if (value = Setup::Notification.dashboard_related()[Setup::Notification.type_color(:error)]) > 0
-            - value = number_to_human(value)
-            - label = 'errors'
-          -elsif (value = Setup::Notification.dashboard_related()[Setup::Notification.type_color(:warning)]) > 0
-            - value = number_to_human(value)
-            - label = 'warnings'
-          -else
-            - value = 'All'
-            - label = 'good'
-          %h6 #{value} #{label}
+- totals = monitor_totals
+#usage-blocks.blocks.clearfix
+  #tasks-overview.col-sm-4
+    .block
+      .icon
+        %i.icon-tasks
+      .caption
+        %h4
+          -if (total = totals[:tasks][:total]) > 0
+            #{number_to_human(total)}
+          =t('admin.actions.dashboard.monitors.tasks')
+        -if (value = totals[:tasks][:failed]) > 0
+          - value = number_to_human(value)
+          - label = 'failed'
+        -elsif (value = totals[:tasks][:broken]) > 0
+          - value = number_to_human(value)
+          - label = 'broken'
+        -elsif (value = totals[:tasks][:unscheduled]) > 0
+          - value = number_to_human(value)
+          - label = 'unscheduled'
+        -elsif (value = totals[:tasks][:pending]) > 0
+          - value = number_to_human(value)
+          - label = 'pending'
+        -else
+          - value = 'All'
+          - label = 'good'
+        %h6 #{value} #{label}
+  #auths-overview.col-sm-4
+    .block
+      .icon
+        %i.icon-check
+      .caption
+        %h4
+          -if (total = totals[:auths][:total]) > 0
+            #{number_to_human(total)}
+          =t('admin.actions.dashboard.monitors.auths')
+        -if (value = totals[:auths][:unauthorized]) > 0
+          - value = number_to_human(value)
+          - label = 'unauthorized'
+        -else
+          - value = 'All'
+          - label = 'good'
+        %h6 #{value} #{label}
+  #notif-overview.col-sm-4
+    .block
+      .icon
+        %i.icon-bell
+      .caption
+        %h4
+          -if (total = totals[:notif][:total]) > 0
+            #{number_to_human(total)}
+          =t('admin.actions.dashboard.monitors.notif')
+        -if (value = totals[:notif][:error]) > 0
+          - value = number_to_human(value)
+          - label = 'errors'
+        -elsif (value = totals[:notif][:warning]) > 0
+          - value = number_to_human(value)
+          - label = 'warnings'
+        -else
+          - value = 'All'
+          - label = 'good'
+        %h6 #{value} #{label}
 
 - if @abstract_models
   .dashboard
