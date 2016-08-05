@@ -5,7 +5,10 @@
         .icon
           %i.icon-tasks
         .caption
-          %h4 #{number_to_human(Setup::Task.any_in(status: Setup::Task::RUNNING_STATUS).count)} running tasks
+          %h4
+            -if (total = Setup::Task.any_in(status: Setup::Task::RUNNING_STATUS).count) > 0
+              #{number_to_human(total)}
+            =t('admin.actions.dashboard.monitors.tasks')
           -if (value = Setup::Task.where(status: :failed).count) > 0
             - value = number_to_human(value)
             - label = 'failed'
@@ -27,7 +30,10 @@
         .icon
           %i.icon-check
         .caption
-          %h4 #{number_to_human(Setup::Authorization.all.count)} authorizations
+          %h4
+            -if (total = Setup::Authorization.all.count) > 0
+              #{number_to_human(total)}
+            =t('admin.actions.dashboard.monitors.auths')
           -if (value = Setup::Authorization.where(authorized: false).count) > 0
             - value = number_to_human(value)
             - label = 'unauthorized'
@@ -40,7 +46,10 @@
         .icon
           %i.icon-bell
         .caption
-          %h4 #{number_to_human(Setup::Notification.dashboard_related()[:total])} notifications
+          %h4
+            -if (total = Setup::Notification.dashboard_related()[:total]) > 0
+              #{number_to_human(total)}
+            =t('admin.actions.dashboard.monitors.notif')
           -if (value = Setup::Notification.dashboard_related()[Setup::Notification.type_color(:error)]) > 0
             - value = number_to_human(value)
             - label = 'errors'
