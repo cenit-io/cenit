@@ -39,9 +39,8 @@ ul#main-accordion{
 
 a#sign-in-link, a#sign-out-link {
   font-size: 16px;
-  border: solid 2px;
-  border-color: white;
-  border-radius: 0px;
+  border: 2px solid white;
+  border-radius: 0;
   background-color: #ea7400;
 }
 
@@ -280,11 +279,9 @@ ul.drawer li a span {
   position: absolute!important;
   top: 0!important;
   width: 250px;
-  margin: 0;
   padding: 0;
   list-style: none;
-  margin-top: 2px;
-  margin-bottom: 44px;
+  margin: 2px 0 44px;
 }
 
 @media screen and (max-width: 280px) {
@@ -574,16 +571,14 @@ ul#main-accordion .panel-heading .nav-icon {
 
 /* Dashboard overview*/
 .blocks {
-  margin-bottom: 12px;
+  margin-bottom: 10px;
 }
 
 .blocks .block {
-  border: solid 1px;
   border-radius: 1px;
   padding: 0 10px;
   background-color: #d9edf7;
-  border-color: #bce8f1;
-  margin-bottom: 12px;
+  border: 1px solid #bce8f1;
 }
 
 .blocks .block:hover {
@@ -697,8 +692,7 @@ ul#main-accordion .panel-heading .nav-icon {
 }
 
 #grid-wrapper .panel-heading {
-  padding: 10px 15px;
-  padding-right: 25px;
+  padding: 10px 25px 10px 15px;
   white-space: nowrap;
   text-overflow: ellipsis;
   overflow: hidden;
