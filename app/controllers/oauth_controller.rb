@@ -42,7 +42,7 @@ class OauthController < ApplicationController
     redirect_path = rails_admin.index_path(Setup::Authorization.to_s.underscore.gsub('/', '~'))
     error = params[:error]
     if (cenit_token = OauthAuthorizationToken.where(token: params[:state] || session[:oauth_state]).first) &&
-      cenit_token.set_current_account && (authorization = cenit_token.authorization)
+      cenit_token.set_current_account! && (authorization = cenit_token.authorization)
       begin
         authorization.metadata[:redirect_token] = redirect_token = Devise.friendly_token
         redirect_path =
