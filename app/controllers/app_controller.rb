@@ -71,13 +71,9 @@ class AppController < ApplicationController
       app_id = ApplicationId.where(identifier: app_id).first
     end
     if app_id
-      if Account.current && Account.current != app_id.account
-        Account.current = nil
-      else
-        Account.current ||= app_id.account
-        @app = Setup::Application.where(application_id: app_id).first
-        @authentication_method = :application_id
-      end
+      Account.current = app_id.account
+      @app = app_id.app
+      @authentication_method = :application_id
     end
     User.current = user || (Account.current ? Account.current.owner : nil)
     if Account.current && User.current

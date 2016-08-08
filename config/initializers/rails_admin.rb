@@ -1320,7 +1320,7 @@ RailsAdmin.config do |config|
   config.model Setup::Observer do
     navigation_label 'Workflows'
     weight -408
-    label 'Data event'
+    label 'Data Event'
     object_label_method { :custom_title }
 
     edit do
@@ -1446,9 +1446,66 @@ RailsAdmin.config do |config|
     fields :name, :link
   end
 
-  config.model Setup::Translator do
+  config.model Setup::Algorithm do
     navigation_label 'Workflows'
     weight -406
+    object_label_method { :custom_title }
+
+    extra_associations do
+      association = Mongoid::Relations::Metadata.new(
+        name: :stored_outputs, relation: Mongoid::Relations::Referenced::Many,
+        inverse_class_name: Setup::Algorithm.to_s, class_name: Setup::AlgorithmOutput.to_s
+      )
+      [RailsAdmin::Adapters::Mongoid::Association.new(association, abstract_model.model)]
+    end
+
+    edit do
+      field :namespace, :enum_edit
+      field :name
+      field :description
+      field :parameters
+      field :code, :code_mirror do
+        help { 'Required' }
+      end
+      field :call_links do
+        visible { bindings[:object].call_links.present? }
+      end
+      field :store_output
+      field :output_datatype
+      field :validate_output
+    end
+    show do
+      field :namespace
+      field :name
+      field :description
+      field :parameters
+      field :code do
+        pretty_value do
+          v = value.gsub('<', '&lt;').gsub('>', '&gt;')
+          "<pre><code class='ruby'>#{v}</code></pre>".html_safe
+        end
+      end
+      field :call_links
+      field :_id
+
+      field :stored_outputs
+    end
+
+    list do
+      field :namespace
+      field :name
+      field :description
+      field :parameters
+      field :call_links
+      field :updated_at
+    end
+
+    fields :namespace, :name, :description, :parameters, :call_links
+  end
+
+  config.model Setup::Translator do
+    navigation_label 'Workflows'
+    weight -405
     object_label_method { :custom_title }
     register_instance_option(:form_synchronized) do
       if bindings[:object].not_shared?
@@ -1598,63 +1655,6 @@ RailsAdmin.config do |config|
     end
 
     fields :namespace, :name, :type, :style, :transformation, :updated_at
-  end
-
-  config.model Setup::Algorithm do
-    navigation_label 'Workflows'
-    weight -405
-    object_label_method { :custom_title }
-
-    extra_associations do
-      association = Mongoid::Relations::Metadata.new(
-        name: :stored_outputs, relation: Mongoid::Relations::Referenced::Many,
-        inverse_class_name: Setup::Algorithm.to_s, class_name: Setup::AlgorithmOutput.to_s
-      )
-      [RailsAdmin::Adapters::Mongoid::Association.new(association, abstract_model.model)]
-    end
-
-    edit do
-      field :namespace, :enum_edit
-      field :name
-      field :description
-      field :parameters
-      field :code, :code_mirror do
-        help { 'Required' }
-      end
-      field :call_links do
-        visible { bindings[:object].call_links.present? }
-      end
-      field :store_output
-      field :output_datatype
-      field :validate_output
-    end
-    show do
-      field :namespace
-      field :name
-      field :description
-      field :parameters
-      field :code do
-        pretty_value do
-          v = value.gsub('<', '&lt;').gsub('>', '&gt;')
-          "<pre><code class='ruby'>#{v}</code></pre>".html_safe
-        end
-      end
-      field :call_links
-      field :_id
-
-      field :stored_outputs
-    end
-
-    list do
-      field :namespace
-      field :name
-      field :description
-      field :parameters
-      field :call_links
-      field :updated_at
-    end
-
-    fields :namespace, :name, :description, :parameters, :call_links
   end
 
   config.model Setup::AlgorithmOutput do
@@ -1864,6 +1864,7 @@ RailsAdmin.config do |config|
   config.model Setup::ConnectionRole do
     navigation_label 'Connectors'
     weight -309
+    label 'Connection Role'
     object_label_method { :custom_title }
 
     configure :name, :string do
@@ -1999,8 +2000,7 @@ RailsAdmin.config do |config|
   config.model Setup::DataType do
     navigation_label 'Definitions'
     weight -250
-    label 'Data type'
-    label_plural 'Data types'
+    label 'Data Type'
     object_label_method { :custom_title }
     visible true
 
@@ -2235,6 +2235,7 @@ RailsAdmin.config do |config|
   config.model Setup::FileDataType do
     navigation_label 'Definitions'
     weight -248
+    label 'File Data Type'
     object_label_method { :custom_title }
 
     group :content do
@@ -2344,7 +2345,7 @@ RailsAdmin.config do |config|
 
   config.model Setup::Validator do
     navigation_label 'Definitions'
-    label 'Schemas & Validators'
+    label 'Validators'
     weight -290
     fields :namespace, :name
 
@@ -2432,7 +2433,7 @@ RailsAdmin.config do |config|
   config.model Setup::XsltValidator do
     parent Setup::Validator
     weight -288
-
+    label 'XSLT Validator'
     object_label_method { :custom_title }
 
     list do
@@ -2448,7 +2449,7 @@ RailsAdmin.config do |config|
     parent Setup::Validator
     weight -287
     object_label_method { :custom_title }
-    label 'EDI Validators'
+    label 'EDI Validator'
 
     edit do
       field :namespace, :enum_edit
@@ -2463,6 +2464,7 @@ RailsAdmin.config do |config|
   config.model Setup::AlgorithmValidator do
     parent Setup::Validator
     weight -286
+    label 'Algorithm Validator'
     object_label_method { :custom_title }
     edit do
       field :namespace, :enum_edit
@@ -2479,7 +2481,7 @@ RailsAdmin.config do |config|
 
   config.model Setup::OauthClient do
     navigation_label 'Security'
-    label 'OAuth client'
+    label 'OAuth Client'
     weight -100
     object_label_method { :custom_title }
 
@@ -2608,7 +2610,7 @@ RailsAdmin.config do |config|
   config.model Setup::Oauth2Scope do
     navigation_label 'Security'
     weight -87
-    label 'OAuth 2.0 scope'
+    label 'OAuth 2.0 Scope'
     object_label_method { :custom_title }
 
     configure :tenant do
@@ -2946,6 +2948,7 @@ RailsAdmin.config do |config|
 
   config.model Setup::OauthAccessGrant do
     navigation_label 'Security'
+    label 'Access Grants'
     weight -32
 
     fields :created_at, :application_id, :scope
@@ -3247,7 +3250,6 @@ RailsAdmin.config do |config|
   config.model Setup::DataTypeConfig do
     navigation_label 'Configuration'
     label 'Data Type Config'
-    label_plural 'Data Types Configs'
     weight -8
     configure :data_type do
       read_only true
@@ -3258,7 +3260,6 @@ RailsAdmin.config do |config|
   config.model Setup::FlowConfig do
     navigation_label 'Configuration'
     label 'Flow Config'
-    label_plural 'Flows Configs'
     weight -8
     configure :flow do
       read_only true
@@ -3269,7 +3270,6 @@ RailsAdmin.config do |config|
   config.model Setup::ConnectionConfig do
     navigation_label 'Configuration'
     label 'Connection Config'
-    label_plural 'Connections Configs'
     weight -8
     configure :connection do
       read_only true
@@ -3347,7 +3347,6 @@ RailsAdmin.config do |config|
   config.model Setup::ParameterConfig do
     navigation_label 'Configuration'
     label 'Parameter'
-    label_plural 'Parameters'
     weight -5
 
     configure :parent_model, :model
@@ -3643,7 +3642,6 @@ RailsAdmin.config do |config|
     navigation_label 'Administration'
     visible { User.current_super_admin? }
     label 'Application ID'
-    label_plural 'Application IDs'
 
     register_instance_option(:discard_submit_buttons) { bindings[:object].instance_variable_get(:@registering) }
 
