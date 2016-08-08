@@ -12,11 +12,15 @@
       %a#take-tour{'href'=> '#'}
         %i.fa.fa-fw.fa-bus{title: t('admin.misc.tour')}
         %span=t('admin.misc.tour')
-    - actions(:root).each do |action|
+    -#- actions(:root).each do |action|
       %li
         =link_to url_for(action: action.action_name, class: 'pjax') do
           %i{class: "#{action.link_icon} fa-fw", title: wording_for(:menu, action)}
           %span=wording_for(:menu, action)
+    %li
+      =link_to "#{ENV['DOCS_URL'] || 'https://cenit.io'}/docs/api", target: '_blank' do
+        %i.fa.fa-fw.fa-send-o{title: t('admin.misc.api')}
+        %span=t('admin.misc.api')
     %li
       =link_to "#{ENV['DOCS_URL'] || 'https://cenit.io'}/docs", target: '_blank' do
         %i.fa.fa-fw.fa-file-text{title: t('admin.misc.docs')}
@@ -46,7 +50,7 @@
       =link_to "#{ENV['PORTAL_URL'] || 'https://cenit.io'}/terms_of_service", target: '_blank' do
         %i.fa.fa-fw.fa-institution{title: t('admin.misc.terms')}
         %span=t('admin.misc.terms')
-  .social-links.text-center.last
+  .social-links.absolute.text-center.last
     =link_to 'https://github.com/openjaf/cenit', target: '_blank' do
       %i.fa.fa-fw.fa-github-square
     =link_to 'https://www.linkedin.com/company/cenit-llc', target: '_blank' do
