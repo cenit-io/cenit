@@ -18,19 +18,21 @@ class OauthController < ApplicationController
     else
       if (token = CenitToken.where(token: @token).first) &&
         token.data.is_a?(Hash) &&
-        (redirect_uri = token.data['redirect_uri']) &&
+        (redirect_uri = URI.parse(token.data['redirect_uri'])) &&
         (scope = token.data['scope'])
         token.destroy
+        params = {}
+        if (state = token.data['state'])
+          params[:state] = state
+        end
         if @consent_action == :allow
           code_token = OauthCodeToken.create(scope: scope)
-          redirect_uri += "?code=#{URI.encode(code_token.token)}"
-          if (state = token.data['state'])
-            redirect_uri += "&state=#{URI.encode(state)}"
-          end
+          params[:code] = code_token.token
         else
-          redirect_uri += "?error=#{URI.encode('Access denied')}"
+          params[:error] ='Access denied'
         end
-        redirect_to redirect_uri
+        redirect_uri.query = redirect_uri.query.to_s + params.to_param
+        redirect_to redirect_uri.to_s
       else
         @errors << 'Consent time out'
       end
@@ -42,7 +44,7 @@ class OauthController < ApplicationController
     redirect_path = rails_admin.index_path(Setup::Authorization.to_s.underscore.gsub('/', '~'))
     error = params[:error]
     if (cenit_token = OauthAuthorizationToken.where(token: params[:state] || session[:oauth_state]).first) &&
-      cenit_token.set_current_account && (authorization = cenit_token.authorization)
+      cenit_token.set_current_account! && (authorization = cenit_token.authorization)
       begin
         authorization.metadata[:redirect_token] = redirect_token = Devise.friendly_token
         redirect_path =
