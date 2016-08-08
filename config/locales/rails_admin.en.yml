@@ -42,6 +42,7 @@ en:
       tour: "Take Tour"
       blog: "Blog"
       docs: "Docs"
+      api: "API"
       directory: "Directory"
       shared_collections: find shared collections
       title_search_shared_collections: "Open platform for data and business integrations"

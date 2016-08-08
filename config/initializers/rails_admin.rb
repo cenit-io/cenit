@@ -233,7 +233,7 @@ RailsAdmin.config do |config|
   end
 
   config.model Setup::CrossSharedCollection do
-    weight -600
+    weight 000
     label 'Cross Shared Collection'
     navigation_label 'Collections'
 
@@ -433,7 +433,7 @@ RailsAdmin.config do |config|
   end
 
   config.model Setup::SharedCollection do
-    weight -600
+    weight 010
     label 'Shared Collection'
     register_instance_option(:discard_submit_buttons) do
       !(a = bindings[:action]) || a.key != :edit
@@ -768,6 +768,7 @@ RailsAdmin.config do |config|
   end
 
   config.model Setup::Collection do
+    weight 020
     navigation_label 'Collections'
     register_instance_option :label_navigation do
       'My Collections'
@@ -992,13 +993,1549 @@ RailsAdmin.config do |config|
     end
   end
 
+  #Definitions
+
+  config.navigation 'Definitions', icon: 'fa fa-puzzle-piece'
+
+  config.model Setup::Validator do
+    navigation_label 'Definitions'
+    label 'Validators'
+    weight 100
+    fields :namespace, :name
+
+    fields :namespace, :name, :updated_at
+
+    show_in_dashboard { false }
+  end
+
+  config.model Setup::CustomValidator do
+    visible false
+
+    configure :_type do
+      pretty_value do
+        value.split('::').last.to_title
+      end
+    end
+
+    list do
+      field :namespace
+      field :name
+      field :_type
+      field :updated_at
+    end
+
+    fields :namespace, :name, :_type, :updated_at
+  end
+
+  config.model Setup::Schema do
+    weight 101
+    object_label_method { :custom_title }
+
+    edit do
+      field :namespace, :enum_edit do
+        read_only { !bindings[:object].new_record? }
+      end
+
+      field :uri do
+        read_only { !bindings[:object].new_record? }
+        html_attributes do
+          { cols: '74', rows: '1' }
+        end
+      end
+
+      field :schema, :code_mirror do
+        html_attributes do
+          { cols: '74', rows: '15' }
+        end
+      end
+
+      field :schema_data_type do
+        inline_edit false
+        inline_add false
+      end
+    end
+
+    show do
+      field :namespace
+      field :uri
+      field :schema do
+        pretty_value do
+          v =
+              if json = JSON.parse(value) rescue nil
+                "<code class='json'>#{JSON.pretty_generate(json).gsub('<', '&lt;').gsub('>', '&gt;')}</code>"
+              elsif (xml = Nokogiri::XML(value)).errors.blank?
+                "<code class='xml'>#{xml.to_xml.gsub('<', '&lt;').gsub('>', '&gt;')}</code>"
+              else
+                "<code>#{value}</code>"
+              end
+          "<pre>#{v}</pre>".html_safe
+        end
+      end
+      field :schema_data_type
+
+      field :_id
+      field :created_at
+      #field :creator
+      field :updated_at
+      #field :updater
+
+    end
+
+    fields :namespace, :uri, :schema_data_type, :updated_at
+  end
+
+  config.model Setup::XsltValidator do
+    parent Setup::Validator
+    weight 102
+    label 'XSLT Validator'
+    object_label_method { :custom_title }
+
+    list do
+      field :namespace
+      field :xslt
+      field :updated_at
+    end
+
+    fields :namespace, :name, :xslt, :updated_at
+  end
+
+  config.model Setup::EdiValidator do
+    parent Setup::Validator
+    weight 103
+    object_label_method { :custom_title }
+    label 'EDI Validator'
+
+    edit do
+      field :namespace, :enum_edit
+      field :name
+      field :schema_data_type
+      field :content_type
+    end
+
+    fields :namespace, :name, :schema_data_type, :content_type, :updated_at
+  end
+
+  config.model Setup::AlgorithmValidator do
+    parent Setup::Validator
+    weight 104
+    label 'Algorithm Validator'
+    object_label_method { :custom_title }
+    edit do
+      field :namespace, :enum_edit
+      field :name
+      field :algorithm
+    end
+
+    fields :namespace, :name, :algorithm, :updated_at
+  end
+
+  config.model Setup::DataType do
+    navigation_label 'Definitions'
+    weight 110
+    label 'Data Type'
+    object_label_method { :custom_title }
+    visible true
+
+    show_in_dashboard false
+
+    configure :_type do
+      pretty_value do
+        value.split('::').last.to_title
+      end
+    end
+
+    group :behavior do
+      label 'Behavior'
+      active false
+    end
+
+    configure :title do
+      pretty_value do
+        bindings[:object].custom_title
+      end
+    end
+
+    configure :slug
+
+    configure :storage_size, :decimal do
+      pretty_value do
+        if objects = bindings[:controller].instance_variable_get(:@objects)
+          unless max = bindings[:controller].instance_variable_get(:@max_storage_size)
+            bindings[:controller].instance_variable_set(:@max_storage_size, max = objects.collect { |data_type| data_type.storage_size }.max)
+          end
+          (bindings[:view].render partial: 'size_bar', locals: { max: max, value: bindings[:object].records_model.storage_size }).html_safe
+        else
+          bindings[:view].number_to_human_size(value)
+        end
+      end
+      read_only true
+    end
+
+    configure :before_save_callbacks do
+      group :behavior
+      inline_add false
+      associated_collection_scope do
+        Proc.new { |scope|
+          scope.where(:parameters.with_size => 1)
+        }
+      end
+    end
+
+    configure :records_methods do
+      group :behavior
+      inline_add false
+    end
+
+    configure :data_type_methods do
+      group :behavior
+      inline_add false
+    end
+
+    edit do
+      field :title, :enum_edit, &shared_non_editable
+      field :slug
+      field :before_save_callbacks, &shared_non_editable
+      field :records_methods, &shared_non_editable
+      field :data_type_methods, &shared_non_editable
+    end
+
+    list do
+      field :title
+      field :name
+      field :slug
+      field :_type
+      field :used_memory do
+        visible { Cenit.dynamic_model_loading? }
+        pretty_value do
+          unless max = bindings[:controller].instance_variable_get(:@max_used_memory)
+            bindings[:controller].instance_variable_set(:@max_used_memory, max = Setup::DataType.fields[:used_memory.to_s].type.new(Setup::DataType.max(:used_memory)))
+          end
+          (bindings[:view].render partial: 'used_memory_bar', locals: { max: max, value: Setup::DataType.fields[:used_memory.to_s].type.new(value) }).html_safe
+        end
+      end
+      field :storage_size
+      field :updated_at
+    end
+
+    show do
+      field :title
+      field :name
+      field :slug
+      field :_type
+      field :storage_size
+      field :schema do
+        pretty_value do
+          v =
+              if json = JSON.pretty_generate(value) rescue nil
+                "<code class='json'>#{json.gsub('<', '&lt;').gsub('>', '&gt;')}</code>"
+              else
+                value
+              end
+
+          "<pre>#{v}</pre>".html_safe
+        end
+      end
+
+      field :_id
+      field :created_at
+      #field :creator
+      field :updated_at
+      #field :updater
+    end
+    fields :namespace, :name, :slug, :_type, :storage_size, :updated_at
+  end
+
+  config.model Setup::JsonDataType do
+    navigation_label 'Definitions'
+    weight 111
+    label 'JSON Data Type'
+    object_label_method { :custom_title }
+
+    group :behavior do
+      label 'Behavior'
+      active false
+    end
+
+    configure :title
+
+    configure :name do
+      read_only { !bindings[:object].new_record? }
+    end
+
+    configure :schema, :code_mirror do
+      html_attributes do
+        { cols: '74', rows: '15' }
+      end
+      # pretty_value do
+      #   "<pre><code class='json'>#{JSON.pretty_generate(value)}</code></pre>".html_safe
+      # end
+    end
+
+    configure :storage_size, :decimal do
+      pretty_value do
+        if objects = bindings[:controller].instance_variable_get(:@objects)
+          unless max = bindings[:controller].instance_variable_get(:@max_storage_size)
+            bindings[:controller].instance_variable_set(:@max_storage_size, max = objects.collect { |data_type| data_type.storage_size }.max)
+          end
+          (bindings[:view].render partial: 'size_bar', locals: { max: max, value: bindings[:object].records_model.storage_size }).html_safe
+        else
+          bindings[:view].number_to_human_size(value)
+        end
+      end
+      read_only true
+    end
+
+    configure :before_save_callbacks do
+      group :behavior
+      inline_add false
+      associated_collection_scope do
+        Proc.new { |scope|
+          scope.where(:parameters.with_size => 1)
+        }
+      end
+    end
+
+    configure :records_methods do
+      group :behavior
+      inline_add false
+    end
+
+    configure :data_type_methods do
+      group :behavior
+      inline_add false
+    end
+
+    configure :slug
+
+    edit do
+      field :namespace, :enum_edit, &shared_non_editable
+      field :name, &shared_non_editable
+      field :schema, :json_schema do
+        shared_read_only
+        help { 'Required' }
+      end
+      field :title, &shared_non_editable
+      field :slug
+      field :before_save_callbacks, &shared_non_editable
+      field :records_methods, &shared_non_editable
+      field :data_type_methods, &shared_non_editable
+    end
+
+    list do
+      field :namespace
+      field :title
+      field :name
+      field :slug
+      field :used_memory do
+        visible { Cenit.dynamic_model_loading? }
+        pretty_value do
+          unless max = bindings[:controller].instance_variable_get(:@max_used_memory)
+            bindings[:controller].instance_variable_set(:@max_used_memory, max = Setup::JsonDataType.fields[:used_memory.to_s].type.new(Setup::JsonDataType.max(:used_memory)))
+          end
+          (bindings[:view].render partial: 'used_memory_bar', locals: { max: max, value: Setup::JsonDataType.fields[:used_memory.to_s].type.new(value) }).html_safe
+        end
+      end
+      field :storage_size
+      field :updated_at
+    end
+
+    show do
+      field :namespace
+      field :title
+      field :name
+      field :slug
+      field :storage_size
+      field :schema do
+        pretty_value do
+          "<pre><code class='ruby'>#{JSON.pretty_generate(value)}</code></pre>".html_safe
+        end
+      end
+      field :before_save_callbacks
+      field :records_methods
+      field :data_type_methods
+
+      field :_id
+      field :created_at
+      #field :creator
+      field :updated_at
+      #field :updater
+    end
+
+    fields :namespace, :name, :slug, :storage_size, :updated_at
+  end
+
+  config.model Setup::FileDataType do
+    navigation_label 'Definitions'
+    weight 112
+    label 'File Data Type'
+    object_label_method { :custom_title }
+
+    group :content do
+      label 'Content'
+    end
+
+    group :behavior do
+      label 'Behavior'
+      active false
+    end
+
+    configure :storage_size, :decimal do
+      pretty_value do
+        if objects = bindings[:controller].instance_variable_get(:@objects)
+          unless max = bindings[:controller].instance_variable_get(:@max_storage_size)
+            bindings[:controller].instance_variable_set(:@max_storage_size, max = objects.collect { |data_type| data_type.records_model.storage_size }.max)
+          end
+          (bindings[:view].render partial: 'size_bar', locals: { max: max, value: bindings[:object].records_model.storage_size }).html_safe
+        else
+          bindings[:view].number_to_human_size(value)
+        end
+      end
+      read_only true
+    end
+
+    configure :validators do
+      group :content
+      inline_add false
+    end
+
+    configure :schema_data_type do
+      group :content
+      inline_add false
+      inline_edit false
+    end
+
+    configure :before_save_callbacks do
+      group :behavior
+      inline_add false
+      associated_collection_scope do
+        Proc.new { |scope|
+          scope.where(:parameters.with_size => 1)
+        }
+      end
+    end
+
+    configure :records_methods do
+      group :behavior
+      inline_add false
+    end
+
+    configure :data_type_methods do
+      group :behavior
+      inline_add false
+    end
+
+    configure :slug
+
+    edit do
+      field :namespace, :enum_edit, &shared_non_editable
+      field :name, &shared_non_editable
+      field :title, &shared_non_editable
+      field :slug
+      field :validators, &shared_non_editable
+      field :schema_data_type, &shared_non_editable
+      field :before_save_callbacks, &shared_non_editable
+      field :records_methods, &shared_non_editable
+      field :data_type_methods, &shared_non_editable
+    end
+
+    list do
+      field :title
+      field :name
+      field :slug
+      field :validators
+      field :schema_data_type
+      field :used_memory do
+        visible { Cenit.dynamic_model_loading? }
+        pretty_value do
+          unless max = bindings[:controller].instance_variable_get(:@max_used_memory)
+            bindings[:controller].instance_variable_set(:@max_used_memory, max = Setup::JsonDataType.fields[:used_memory.to_s].type.new(Setup::JsonDataType.max(:used_memory)))
+          end
+          (bindings[:view].render partial: 'used_memory_bar', locals: { max: max, value: Setup::JsonDataType.fields[:used_memory.to_s].type.new(value) }).html_safe
+        end
+      end
+      field :storage_size
+      field :updated_at
+    end
+
+    show do
+      field :title
+      field :name
+      field :slug
+      field :validators
+      field :storage_size
+      field :schema_data_type
+
+      field :_id
+      field :created_at
+      #field :creator
+      field :updated_at
+      #field :updater
+    end
+
+    fields :namespace, :name, :slug, :storage_size, :updated_at
+  end
+
+  #Connectors
+
+  config.navigation 'Connectors', icon: 'fa fa-plug'
+
+  config.model Setup::Parameter do
+    visible false
+    object_label_method { :to_s }
+    configure :metadata, :json_value
+    configure :value
+    edit do
+      field :name
+      field :value
+      field :description
+      field :metadata
+    end
+    list do
+      field :name
+      field :value
+      field :description
+      field :metadata
+      field :updated_at
+    end
+  end
+
+  config.model Setup::Connection do
+    navigation_label 'Connectors'
+    weight 200
+    object_label_method { :custom_title }
+
+    group :credentials do
+      label 'Credentials'
+    end
+
+    configure :number, :string do
+      label 'Key'
+      html_attributes do
+        { maxlength: 30, size: 30 }
+      end
+      group :credentials
+      pretty_value do
+        (value || '<i class="icon-lock"/>').html_safe
+      end
+    end
+
+    configure :token, :text do
+      html_attributes do
+        { cols: '50', rows: '1' }
+      end
+      group :credentials
+      pretty_value do
+        (value || '<i class="icon-lock"/>').html_safe
+      end
+    end
+
+    configure :authorization do
+      group :credentials
+      inline_edit false
+    end
+
+    configure :authorization_handler do
+      group :credentials
+    end
+
+    group :parameters do
+      label 'Parameters & Headers'
+    end
+    configure :parameters do
+      group :parameters
+    end
+    configure :headers do
+      group :parameters
+    end
+    configure :template_parameters do
+      group :parameters
+    end
+
+    edit do
+      field(:namespace, :enum_edit, &shared_non_editable)
+      field(:name, &shared_non_editable)
+      field(:url, &shared_non_editable)
+
+      field :number
+      field :token
+      field :authorization
+      field(:authorization_handler, &shared_non_editable)
+
+      field :parameters
+      field :headers
+      field :template_parameters
+    end
+
+    show do
+      field :namespace
+      field :name
+      field :url
+
+      field :number
+      field :token
+      field :authorization
+      field :authorization_handler
+
+      field :parameters
+      field :headers
+      field :template_parameters
+
+      field :_id
+      field :created_at
+      field :updated_at
+    end
+
+    list do
+      field :namespace
+      field :name
+      field :url
+      field :number
+      field :token
+      field :authorization
+      field :updated_at
+    end
+
+    fields :namespace, :name, :url, :number, :token, :authorization, :updated_at
+  end
+
+  config.model Setup::ConnectionRole do
+    navigation_label 'Connectors'
+    weight 210
+    label 'Connection Role'
+    object_label_method { :custom_title }
+
+    configure :name, :string do
+      help 'Requiered.'
+      html_attributes do
+        { maxlength: 50, size: 50 }
+      end
+    end
+    configure :webhooks do
+      nested_form false
+    end
+    configure :connections do
+      nested_form false
+    end
+    modal do
+      field :namespace, :enum_edit
+      field :name
+      field :webhooks
+      field :connections
+    end
+    show do
+      field :namespace
+      field :name
+      field :webhooks
+      field :connections
+
+      field :_id
+      field :created_at
+      #field :creator
+      field :updated_at
+      #field :updater
+    end
+
+    edit do
+      field :namespace, :enum_edit
+      field :name
+      field :webhooks
+      field :connections
+      field :updated_at
+    end
+
+    fields :namespace, :name, :webhooks, :connections, :updated_at
+  end
+
+  config.model Setup::Webhook do
+    navigation_label 'Connectors'
+    weight 220
+    object_label_method { :custom_title }
+
+    configure :metadata, :json_value
+
+    group :credentials do
+      label 'Credentials'
+    end
+
+    configure :authorization do
+      group :credentials
+      inline_edit false
+    end
+
+    configure :authorization_handler do
+      group :credentials
+    end
+
+    group :parameters do
+      label 'Parameters & Headers'
+    end
+
+    configure :path, :string do
+      help 'Requiered. Path of the webhook relative to connection URL.'
+      html_attributes do
+        { maxlength: 255, size: 100 }
+      end
+    end
+
+    configure :parameters do
+      group :parameters
+    end
+
+    configure :headers do
+      group :parameters
+    end
+
+    configure :template_parameters do
+      group :parameters
+    end
+
+    edit do
+      field(:namespace, :enum_edit, &shared_non_editable)
+      field(:name, &shared_non_editable)
+      field(:path, &shared_non_editable)
+      field(:method, &shared_non_editable)
+      field(:description, &shared_non_editable)
+      field(:metadata, :json_value, &shared_non_editable)
+
+      field :authorization
+      field(:authorization_handler, &shared_non_editable)
+
+      field :parameters
+      field :headers
+      field :template_parameters
+    end
+
+    show do
+      field :namespace
+      field :name
+      field :path
+      field :method
+      field :description
+      field :metadata, :json_value
+
+      field :authorization
+      field :authorization_handler
+
+      field :parameters
+      field :headers
+      field :template_parameters
+
+      field :_id
+      field :created_at
+      #field :creator
+      field :updated_at
+      #field :updater
+    end
+
+    fields :namespace, :name, :path, :method, :description, :authorization, :updated_at
+  end
+
+  #Security
+
+  config.navigation 'Security', icon: 'fa fa-shield'
+
+  config.model Setup::OauthClient do
+    navigation_label 'Security'
+    label 'OAuth Client'
+    weight 300
+    object_label_method { :custom_title }
+
+    configure :tenant do
+      visible { Account.current_super_admin? }
+      read_only { true }
+      help ''
+    end
+
+    configure :identifier do
+      pretty_value do
+        (value || '<i class="icon-lock"/>').html_safe
+      end
+    end
+
+    configure :secret do
+      pretty_value do
+        (value || '<i class="icon-lock"/>').html_safe
+      end
+    end
+
+    fields :provider, :name, :identifier, :secret, :tenant, :updated_at
+  end
+
+  config.model Setup::BaseOauthProvider do
+    navigation_label 'Security'
+    weight 310
+    object_label_method { :custom_title }
+    label 'Provider'
+
+    configure :_type do
+      pretty_value do
+        value.split('::').last.to_title
+      end
+    end
+
+    configure :tenant do
+      visible { Account.current_super_admin? }
+      read_only { true }
+      help ''
+    end
+
+    configure :namespace, :enum_edit
+
+    list do
+      field :namespace
+      field :name
+      field :_type
+      field :response_type
+      field :authorization_endpoint
+      field :token_endpoint
+      field :token_method
+      field :tenant
+      field :updated_at
+    end
+
+    fields :namespace, :name, :_type, :response_type, :authorization_endpoint, :token_endpoint, :token_method, :tenant
+  end
+
+  config.model Setup::OauthProvider do
+    weight 311
+    label 'OAuth 1.0 provider'
+    register_instance_option :label_navigation do
+      'OAuth 1.0'
+    end
+    object_label_method { :custom_title }
+
+    configure :tenant do
+      visible { Account.current_super_admin? }
+      read_only { true }
+      help ''
+    end
+
+    configure :refresh_token_algorithm do
+      visible { bindings[:object].refresh_token_strategy == :custom.to_s }
+    end
+
+    edit do
+      field :namespace, :enum_edit, &shared_non_editable
+      field :name
+      field :response_type
+      field :authorization_endpoint
+      field :token_endpoint
+      field :token_method
+      field :request_token_endpoint
+      field :refresh_token_strategy
+      field :refresh_token_algorithm
+    end
+
+    fields :namespace, :name, :response_type, :authorization_endpoint, :token_endpoint, :token_method, :request_token_endpoint, :refresh_token_strategy, :refresh_token_algorithm, :tenant, :updated_at
+  end
+
+  config.model Setup::Oauth2Provider do
+    weight 312
+    label 'OAuth 2.0 provider'
+    register_instance_option :label_navigation do
+      'OAuth 2.0'
+    end
+    object_label_method { :custom_title }
+
+    configure :tenant do
+      visible { Account.current_super_admin? }
+      read_only { true }
+      help ''
+    end
+
+    configure :refresh_token_algorithm do
+      visible { bindings[:object].refresh_token_strategy == :custom.to_s }
+    end
+
+    edit do
+      field :namespace, :enum_edit
+      field :name
+      field :response_type
+      field :authorization_endpoint
+      field :token_endpoint
+      field :token_method
+      field :scope_separator
+      field :refresh_token_strategy
+      field :refresh_token_algorithm
+    end
+
+    fields :namespace, :name, :response_type, :authorization_endpoint, :token_endpoint, :token_method, :scope_separator, :refresh_token_strategy, :refresh_token_algorithm, :tenant, :updated_at
+  end
+
+  config.model Setup::Oauth2Scope do
+    navigation_label 'Security'
+    weight 320
+    label 'OAuth 2.0 Scope'
+    object_label_method { :custom_title }
+
+    configure :tenant do
+      visible { Account.current_super_admin? }
+      read_only { true }
+      help ''
+    end
+
+    fields :provider, :name, :description, :tenant, :updated_at
+  end
+
+  config.model Setup::Authorization do
+    navigation_label 'Security'
+    weight 330
+    object_label_method { :custom_title }
+    configure :status do
+      pretty_value do
+        "<span class=\"label label-#{bindings[:object].status_class}\">#{value.to_s.capitalize}</span>".html_safe
+      end
+    end
+    configure :metadata, :json_value
+    configure :_type do
+      pretty_value do
+        value.split('::').last.to_title
+      end
+    end
+
+    edit do
+      field :namespace, :enum_edit
+      field :name
+      field :metadata
+    end
+
+    fields :namespace, :name, :status, :_type, :metadata, :updated_at
+    show_in_dashboard { false }
+  end
+
+  config.model Setup::BasicAuthorization do
+    weight 331
+    register_instance_option :label_navigation do
+      'Basic'
+    end
+    object_label_method { :custom_title }
+
+    configure :status do
+      pretty_value do
+        "<span class=\"label label-#{bindings[:object].status_class}\">#{value.to_s.capitalize}</span>".html_safe
+      end
+    end
+
+    configure :metadata, :json_value
+
+    edit do
+      field :namespace
+      field :name
+      field :username
+      field :password
+      field :metadata
+    end
+
+    group :credentials do
+      label 'Credentials'
+    end
+
+    configure :username do
+      group :credentials
+    end
+
+    configure :password do
+      group :credentials
+    end
+
+    show do
+      field :namespace
+      field :name
+      field :status
+      field :username
+      field :password
+      field :metadata
+      field :_id
+    end
+
+    edit do
+      field :namespace, :enum_edit
+      field :name
+      field :username
+      field :password
+    end
+
+    fields :namespace, :name, :status, :username, :password, :updated_at
+  end
+
+  config.model Setup::OauthAuthorization do
+    weight 332
+    label 'OAuth 1.0 authorization'
+    register_instance_option :label_navigation do
+      'OAuth 1.0'
+    end
+    object_label_method { :custom_title }
+    parent Setup::Authorization
+
+    configure :metadata, :json_value
+
+    configure :status do
+      pretty_value do
+        "<span class=\"label label-#{bindings[:object].status_class}\">#{value.to_s.capitalize}</span>".html_safe
+      end
+    end
+
+    edit do
+      field :namespace, :enum_edit
+      field :name
+      field :client
+      field :parameters
+      field :template_parameters
+      field :metadata
+    end
+
+    group :credentials do
+      label 'Credentials'
+    end
+
+    configure :access_token do
+      group :credentials
+    end
+
+    configure :token_span do
+      group :credentials
+    end
+
+    configure :authorized_at do
+      group :credentials
+    end
+
+    configure :access_token_secret do
+      group :credentials
+    end
+
+    configure :realm_id do
+      group :credentials
+    end
+
+    show do
+      field :namespace
+      field :name
+      field :status
+      field :client
+      field :parameters
+      field :template_parameters
+      field :metadata
+      field :_id
+
+      field :access_token
+      field :access_token_secret
+      field :realm_id
+      field :token_span
+      field :authorized_at
+    end
+
+    list do
+      field :namespace
+      field :name
+      field :status
+      field :client
+      field :updated_at
+    end
+
+    fields :namespace, :name, :status, :client, :updated_at
+  end
+
+  config.model Setup::Oauth2Authorization do
+    weight 333
+    label 'OAuth 2.0 authorization'
+    register_instance_option :label_navigation do
+      'OAuth 2.0'
+    end
+    object_label_method { :custom_title }
+    parent Setup::Authorization
+
+    configure :metadata, :json_value
+
+    configure :status do
+      pretty_value do
+        "<span class=\"label label-#{bindings[:object].status_class}\">#{value.to_s.capitalize}</span>".html_safe
+      end
+    end
+
+    configure :expires_in do
+      pretty_value do
+        "#{value}s" if value
+      end
+    end
+
+    edit do
+      field :namespace, :enum_edit
+      field :name
+      field :client
+      field :scopes do
+        visible { bindings[:object].ready_to_save? }
+        associated_collection_scope do
+          provider = ((obj = bindings[:object]) && obj.provider) || nil
+          Proc.new { |scope|
+            if provider
+              scope.where(provider_id: provider.id)
+            else
+              scope
+            end
+          }
+        end
+      end
+      field :parameters do
+        visible { bindings[:object].ready_to_save? }
+      end
+      field :template_parameters do
+        visible { bindings[:object].ready_to_save? }
+      end
+      field :metadata
+    end
+
+    group :credentials do
+      label 'Credentials'
+    end
+
+    configure :access_token do
+      group :credentials
+    end
+
+    configure :token_span do
+      group :credentials
+    end
+
+    configure :authorized_at do
+      group :credentials
+    end
+
+    configure :refresh_token do
+      group :credentials
+    end
+
+    configure :token_type do
+      group :credentials
+    end
+
+    show do
+      field :namespace
+      field :name
+      field :status
+      field :client
+      field :scopes
+      field :parameters
+      field :template_parameters
+      field :metadata
+      field :_id
+
+      field :expires_in
+
+      field :id_token
+      field :token_type
+      field :access_token
+      field :token_span
+      field :authorized_at
+      field :refresh_token
+
+      field :_id
+    end
+
+    fields :namespace, :name, :status, :client, :scopes, :updated_at
+  end
+
+  config.model Setup::AwsAuthorization do
+    weight -334
+    object_label_method { :custom_title }
+
+    configure :metadata, :json_value
+
+    configure :status do
+      pretty_value do
+        "<span class=\"label label-#{bindings[:object].status_class}\">#{value.to_s.capitalize}</span>".html_safe
+      end
+    end
+
+    edit do
+      field :namespace
+      field :name
+      field :aws_access_key
+      field :aws_secret_key
+      field :seller
+      field :merchant
+      field :markets
+      field :signature_method
+      field :signature_version
+      field :metadata
+    end
+
+    group :credentials do
+      label 'Credentials'
+    end
+
+    configure :aws_access_key do
+      group :credentials
+    end
+
+    configure :aws_secret_key do
+      group :credentials
+    end
+
+    show do
+      field :namespace
+      field :name
+      field :aws_access_key
+      field :aws_secret_key
+      field :seller
+      field :merchant
+      field :markets
+      field :signature_method
+      field :signature_version
+      field :metadata
+    end
+
+    list do
+      field :namespace
+      field :name
+      field :aws_access_key
+      field :aws_secret_key
+      field :seller
+      field :merchant
+      field :markets
+      field :signature_method
+      field :signature_version
+      field :updated_at
+    end
+
+    fields :namespace, :name, :aws_access_key, :aws_secret_key, :seller, :merchant, :markets, :signature_method, :signature_version, :updated_at
+  end
+
+  config.model Setup::OauthAccessGrant do
+    navigation_label 'Security'
+    label 'Access Grants'
+    weight 340
+
+    fields :created_at, :application_id, :scope
+  end
+
+  #Compute
+
+  config.navigation 'Compute', icon: 'fa fa-cog'
+
+
+  config.model Setup::AlgorithmParameter do
+    visible false
+    fields :name, :type, :many, :required, :default
+  end
+
+  config.model Setup::CallLink do
+    visible false
+    edit do
+      field :name do
+        read_only true
+        help { nil }
+        label 'Call name'
+      end
+      field :link do
+        inline_add false
+        inline_edit false
+        help { nil }
+      end
+    end
+
+    fields :name, :link
+  end
+
+  config.model Setup::Algorithm do
+    navigation_label 'Compute'
+    weight 400
+    object_label_method { :custom_title }
+
+    extra_associations do
+      association = Mongoid::Relations::Metadata.new(
+          name: :stored_outputs, relation: Mongoid::Relations::Referenced::Many,
+          inverse_class_name: Setup::Algorithm.to_s, class_name: Setup::AlgorithmOutput.to_s
+      )
+      [RailsAdmin::Adapters::Mongoid::Association.new(association, abstract_model.model)]
+    end
+
+    edit do
+      field :namespace, :enum_edit
+      field :name
+      field :description
+      field :parameters
+      field :code, :code_mirror do
+        help { 'Required' }
+      end
+      field :call_links do
+        visible { bindings[:object].call_links.present? }
+      end
+      field :store_output
+      field :output_datatype
+      field :validate_output
+    end
+    show do
+      field :namespace
+      field :name
+      field :description
+      field :parameters
+      field :code do
+        pretty_value do
+          v = value.gsub('<', '&lt;').gsub('>', '&gt;')
+          "<pre><code class='ruby'>#{v}</code></pre>".html_safe
+        end
+      end
+      field :call_links
+      field :_id
+
+      field :stored_outputs
+    end
+
+    list do
+      field :namespace
+      field :name
+      field :description
+      field :parameters
+      field :call_links
+      field :updated_at
+    end
+
+    fields :namespace, :name, :description, :parameters, :call_links
+  end
+
+  config.model Setup::Translator do
+    navigation_label 'Compute'
+    weight 410
+    object_label_method { :custom_title }
+    register_instance_option(:form_synchronized) do
+      if bindings[:object].not_shared?
+        [
+            :source_data_type,
+            :target_data_type,
+            :transformation,
+            :target_importer,
+            :source_exporter,
+            :discard_chained_records
+        ]
+      end
+    end
+
+    edit do
+      field :namespace, :enum_edit
+      field :name
+
+      field :type
+
+      field :source_data_type do
+        inline_edit false
+        inline_add false
+        visible { [:Export, :Conversion].include?(bindings[:object].type) }
+        help { bindings[:object].type == :Conversion ? 'Required' : 'Optional' }
+      end
+
+      field :target_data_type do
+        inline_edit false
+        inline_add false
+        visible { [:Import, :Update, :Conversion].include?(bindings[:object].type) }
+        help { bindings[:object].type == :Conversion ? 'Required' : 'Optional' }
+      end
+
+      field :discard_events do
+        visible { [:Import, :Update, :Conversion].include?(bindings[:object].type) }
+        help "Events won't be fired for created or updated records if checked"
+      end
+
+      field :style do
+        visible { bindings[:object].type.present? }
+        help 'Required'
+      end
+
+      field :bulk_source do
+        visible { bindings[:object].type == :Export && bindings[:object].style.present? && bindings[:object].source_bulkable? }
+      end
+
+      field :mime_type do
+        label 'MIME type'
+        visible { bindings[:object].type == :Export && bindings[:object].style.present? }
+      end
+
+      field :file_extension do
+        visible { bindings[:object].type == :Export && !bindings[:object].file_extension_enum.empty? }
+        help { "Extensions for #{bindings[:object].mime_type}" }
+      end
+
+      field :source_handler do
+        visible { (t = bindings[:object]).style.present? && (t.type == :Update || (t.type == :Conversion && t.style == 'ruby')) }
+        help { 'Handle sources on transformation' }
+      end
+
+      field :transformation, :code_mirror do
+        visible { bindings[:object].style.present? && bindings[:object].style != 'chain' }
+        help { 'Required' }
+        html_attributes do
+          { cols: '74', rows: '15' }
+        end
+      end
+
+      field :source_exporter do
+        inline_add { bindings[:object].source_exporter.nil? }
+        visible { bindings[:object].style == 'chain' && bindings[:object].source_data_type && bindings[:object].target_data_type }
+        help 'Required'
+        associated_collection_scope do
+          data_type = bindings[:object].source_data_type
+          Proc.new { |scope|
+            scope.all(type: :Conversion, source_data_type: data_type)
+          }
+        end
+      end
+
+      field :target_importer do
+        inline_add { bindings[:object].target_importer.nil? }
+        visible { bindings[:object].style == 'chain' && bindings[:object].source_data_type && bindings[:object].target_data_type && bindings[:object].source_exporter }
+        help 'Required'
+        associated_collection_scope do
+          translator = bindings[:object]
+          source_data_type =
+              if translator.source_exporter
+                translator.source_exporter.target_data_type
+              else
+                translator.source_data_type
+              end
+          target_data_type = bindings[:object].target_data_type
+          Proc.new { |scope|
+            scope = scope.all(type: :Conversion,
+                              source_data_type: source_data_type,
+                              target_data_type: target_data_type)
+          }
+        end
+      end
+
+      field :discard_chained_records do
+        visible { bindings[:object].style == 'chain' && bindings[:object].source_data_type && bindings[:object].target_data_type && bindings[:object].source_exporter }
+        help "Chained records won't be saved if checked"
+      end
+    end
+
+    show do
+      field :namespace
+      field :name
+      field :type
+      field :source_data_type
+      field :bulk_source
+      field :target_data_type
+      field :discard_events
+      field :style
+      field :mime_type
+      field :file_extension
+      field :transformation do
+        pretty_value do
+          "<pre><code class='ruby'>#{value}</code></pre>".html_safe
+        end
+      end
+      field :source_exporter
+      field :target_importer
+      field :discard_chained_records
+
+      field :_id
+      field :created_at
+      #field :creator
+      field :updated_at
+      #field :updater
+    end
+
+    list do
+      field :namespace
+      field :name
+      field :type
+      field :style
+      field :mime_type
+      field :file_extension
+      field :transformation
+      field :updated_at
+    end
+
+    fields :namespace, :name, :type, :style, :transformation, :updated_at
+  end
+
+  config.model Setup::AlgorithmOutput do
+    navigation_label 'Compute'
+    weight -405
+    visible false
+
+    configure :records_count
+    configure :input_parameters
+    configure :created_at do
+      label 'Recorded at'
+    end
+
+    extra_associations do
+      association = Mongoid::Relations::Metadata.new(
+          name: :records, relation: Mongoid::Relations::Referenced::Many,
+          inverse_class_name: Setup::AlgorithmOutput.to_s, class_name: Setup::AlgorithmOutput.to_s
+      )
+      [RailsAdmin::Adapters::Mongoid::Association.new(association, abstract_model.model)]
+    end
+
+    show do
+      field :created_at
+      field :input_parameters
+      field :records_count
+    end
+
+    fields :created_at, :input_parameters, :records_count
+  end
+
+  config.model Setup::Action do
+    visible false
+    navigation_label 'Compute'
+    weight -402
+    object_label_method { :to_s }
+
+    fields :method, :path, :algorithm
+  end
+
+  config.model Setup::Application do
+    navigation_label 'Compute'
+    weight 420
+    object_label_method { :custom_title }
+    visible { Account.current_super_admin? }
+    configure :identifier
+    configure :registered, :boolean
+
+    edit do
+      field :namespace, :enum_edit
+      field :name
+      field :slug
+      field :actions
+      field :application_parameters
+    end
+    list do
+      field :namespace
+      field :name
+      field :slug
+      field :registered
+      field :actions
+      field :application_parameters
+      field :updated_at
+    end
+    fields :namespace, :name, :slug, :identifier, :secret_token, :registered, :actions, :application_parameters
+  end
+
+  config.model Setup::ApplicationParameter do
+    visible false
+    navigation_label 'Compute'
+    configure :group, :enum_edit
+
+    list do
+      field :name
+      field :type
+      field :many
+      field :group
+      field :description
+      field :updated_at
+    end
+
+    fields :name, :type, :many, :group, :description
+  end
+
   #Workflows
 
   config.navigation 'Workflows', icon: 'fa fa-cogs'
 
   config.model Setup::Flow do
     navigation_label 'Workflows'
-    weight -410
+    weight 500
     object_label_method { :custom_title }
     register_instance_option(:form_synchronized) do
       if bindings[:object].not_shared?
@@ -1280,7 +2817,7 @@ RailsAdmin.config do |config|
 
   config.model Setup::Event do
     navigation_label 'Workflows'
-    weight -409
+    weight 510
     object_label_method { :custom_title }
     visible false
 
@@ -1319,7 +2856,7 @@ RailsAdmin.config do |config|
 
   config.model Setup::Observer do
     navigation_label 'Workflows'
-    weight -408
+    weight 511
     label 'Data Event'
     object_label_method { :custom_title }
 
@@ -1379,7 +2916,7 @@ RailsAdmin.config do |config|
 
   config.model Setup::Scheduler do
     navigation_label 'Workflows'
-    weight -407
+    weight 512
     object_label_method { :custom_title }
 
     configure :expression, :json_value
@@ -1423,1544 +2960,13 @@ RailsAdmin.config do |config|
     fields :namespace, :name, :expression, :activated, :updated_at
   end
 
-  config.model Setup::AlgorithmParameter do
-    visible false
-    fields :name, :type, :many, :required, :default
-  end
-
-  config.model Setup::CallLink do
-    visible false
-    edit do
-      field :name do
-        read_only true
-        help { nil }
-        label 'Call name'
-      end
-      field :link do
-        inline_add false
-        inline_edit false
-        help { nil }
-      end
-    end
-
-    fields :name, :link
-  end
-
-  config.model Setup::Algorithm do
-    navigation_label 'Workflows'
-    weight -406
-    object_label_method { :custom_title }
-
-    extra_associations do
-      association = Mongoid::Relations::Metadata.new(
-        name: :stored_outputs, relation: Mongoid::Relations::Referenced::Many,
-        inverse_class_name: Setup::Algorithm.to_s, class_name: Setup::AlgorithmOutput.to_s
-      )
-      [RailsAdmin::Adapters::Mongoid::Association.new(association, abstract_model.model)]
-    end
-
-    edit do
-      field :namespace, :enum_edit
-      field :name
-      field :description
-      field :parameters
-      field :code, :code_mirror do
-        help { 'Required' }
-      end
-      field :call_links do
-        visible { bindings[:object].call_links.present? }
-      end
-      field :store_output
-      field :output_datatype
-      field :validate_output
-    end
-    show do
-      field :namespace
-      field :name
-      field :description
-      field :parameters
-      field :code do
-        pretty_value do
-          v = value.gsub('<', '&lt;').gsub('>', '&gt;')
-          "<pre><code class='ruby'>#{v}</code></pre>".html_safe
-        end
-      end
-      field :call_links
-      field :_id
-
-      field :stored_outputs
-    end
-
-    list do
-      field :namespace
-      field :name
-      field :description
-      field :parameters
-      field :call_links
-      field :updated_at
-    end
-
-    fields :namespace, :name, :description, :parameters, :call_links
-  end
-
-  config.model Setup::Translator do
-    navigation_label 'Workflows'
-    weight -405
-    object_label_method { :custom_title }
-    register_instance_option(:form_synchronized) do
-      if bindings[:object].not_shared?
-        [
-          :source_data_type,
-          :target_data_type,
-          :transformation,
-          :target_importer,
-          :source_exporter,
-          :discard_chained_records
-        ]
-      end
-    end
-
-    edit do
-      field :namespace, :enum_edit
-      field :name
-
-      field :type
-
-      field :source_data_type do
-        inline_edit false
-        inline_add false
-        visible { [:Export, :Conversion].include?(bindings[:object].type) }
-        help { bindings[:object].type == :Conversion ? 'Required' : 'Optional' }
-      end
-
-      field :target_data_type do
-        inline_edit false
-        inline_add false
-        visible { [:Import, :Update, :Conversion].include?(bindings[:object].type) }
-        help { bindings[:object].type == :Conversion ? 'Required' : 'Optional' }
-      end
-
-      field :discard_events do
-        visible { [:Import, :Update, :Conversion].include?(bindings[:object].type) }
-        help "Events won't be fired for created or updated records if checked"
-      end
-
-      field :style do
-        visible { bindings[:object].type.present? }
-        help 'Required'
-      end
-
-      field :bulk_source do
-        visible { bindings[:object].type == :Export && bindings[:object].style.present? && bindings[:object].source_bulkable? }
-      end
-
-      field :mime_type do
-        label 'MIME type'
-        visible { bindings[:object].type == :Export && bindings[:object].style.present? }
-      end
-
-      field :file_extension do
-        visible { bindings[:object].type == :Export && !bindings[:object].file_extension_enum.empty? }
-        help { "Extensions for #{bindings[:object].mime_type}" }
-      end
-
-      field :source_handler do
-        visible { (t = bindings[:object]).style.present? && (t.type == :Update || (t.type == :Conversion && t.style == 'ruby')) }
-        help { 'Handle sources on transformation' }
-      end
-
-      field :transformation, :code_mirror do
-        visible { bindings[:object].style.present? && bindings[:object].style != 'chain' }
-        help { 'Required' }
-        html_attributes do
-          { cols: '74', rows: '15' }
-        end
-      end
-
-      field :source_exporter do
-        inline_add { bindings[:object].source_exporter.nil? }
-        visible { bindings[:object].style == 'chain' && bindings[:object].source_data_type && bindings[:object].target_data_type }
-        help 'Required'
-        associated_collection_scope do
-          data_type = bindings[:object].source_data_type
-          Proc.new { |scope|
-            scope.all(type: :Conversion, source_data_type: data_type)
-          }
-        end
-      end
-
-      field :target_importer do
-        inline_add { bindings[:object].target_importer.nil? }
-        visible { bindings[:object].style == 'chain' && bindings[:object].source_data_type && bindings[:object].target_data_type && bindings[:object].source_exporter }
-        help 'Required'
-        associated_collection_scope do
-          translator = bindings[:object]
-          source_data_type =
-            if translator.source_exporter
-              translator.source_exporter.target_data_type
-            else
-              translator.source_data_type
-            end
-          target_data_type = bindings[:object].target_data_type
-          Proc.new { |scope|
-            scope = scope.all(type: :Conversion,
-                              source_data_type: source_data_type,
-                              target_data_type: target_data_type)
-          }
-        end
-      end
-
-      field :discard_chained_records do
-        visible { bindings[:object].style == 'chain' && bindings[:object].source_data_type && bindings[:object].target_data_type && bindings[:object].source_exporter }
-        help "Chained records won't be saved if checked"
-      end
-    end
-
-    show do
-      field :namespace
-      field :name
-      field :type
-      field :source_data_type
-      field :bulk_source
-      field :target_data_type
-      field :discard_events
-      field :style
-      field :mime_type
-      field :file_extension
-      field :transformation do
-        pretty_value do
-          "<pre><code class='ruby'>#{value}</code></pre>".html_safe
-        end
-      end
-      field :source_exporter
-      field :target_importer
-      field :discard_chained_records
-
-      field :_id
-      field :created_at
-      #field :creator
-      field :updated_at
-      #field :updater
-    end
-
-    list do
-      field :namespace
-      field :name
-      field :type
-      field :style
-      field :mime_type
-      field :file_extension
-      field :transformation
-      field :updated_at
-    end
-
-    fields :namespace, :name, :type, :style, :transformation, :updated_at
-  end
-
-  config.model Setup::AlgorithmOutput do
-    navigation_label 'Workflows'
-    weight -405
-    visible false
-
-    configure :records_count
-    configure :input_parameters
-    configure :created_at do
-      label 'Recorded at'
-    end
-
-    extra_associations do
-      association = Mongoid::Relations::Metadata.new(
-        name: :records, relation: Mongoid::Relations::Referenced::Many,
-        inverse_class_name: Setup::AlgorithmOutput.to_s, class_name: Setup::AlgorithmOutput.to_s
-      )
-      [RailsAdmin::Adapters::Mongoid::Association.new(association, abstract_model.model)]
-    end
-
-    show do
-      field :created_at
-      field :input_parameters
-      field :records_count
-    end
-
-    fields :created_at, :input_parameters, :records_count
-  end
-
-  config.model Setup::Action do
-    visible false
-    navigation_label 'Workflows'
-    weight -402
-    object_label_method { :to_s }
-
-    fields :method, :path, :algorithm
-  end
-
-  config.model Setup::Application do
-    navigation_label 'Workflows'
-    weight -401
-    object_label_method { :custom_title }
-    visible { Account.current_super_admin? }
-    configure :identifier
-    configure :registered, :boolean
-
-    edit do
-      field :namespace, :enum_edit
-      field :name
-      field :slug
-      field :actions
-      field :application_parameters
-    end
-    list do
-      field :namespace
-      field :name
-      field :slug
-      field :registered
-      field :actions
-      field :application_parameters
-      field :updated_at
-    end
-    fields :namespace, :name, :slug, :identifier, :secret_token, :registered, :actions, :application_parameters
-  end
-
-  config.model Setup::ApplicationParameter do
-    visible false
-    navigation_label 'Workflows'
-    configure :group, :enum_edit
-
-    list do
-      field :name
-      field :type
-      field :many
-      field :group
-      field :description
-      field :updated_at
-    end
-
-    fields :name, :type, :many, :group, :description
-  end
-
-  #Connectors
-
-  config.navigation 'Connectors', icon: :api_connectors
-
-  config.model Setup::Parameter do
-    visible false
-    object_label_method { :to_s }
-    configure :metadata, :json_value
-    configure :value
-    edit do
-      field :name
-      field :value
-      field :description
-      field :metadata
-    end
-    list do
-      field :name
-      field :value
-      field :description
-      field :metadata
-      field :updated_at
-    end
-  end
-
-  config.model Setup::Connection do
-    navigation_label 'Connectors'
-    weight -310
-    object_label_method { :custom_title }
-
-    group :credentials do
-      label 'Credentials'
-    end
-
-    configure :number, :string do
-      label 'Key'
-      html_attributes do
-        { maxlength: 30, size: 30 }
-      end
-      group :credentials
-      pretty_value do
-        (value || '<i class="icon-lock"/>').html_safe
-      end
-    end
-
-    configure :token, :text do
-      html_attributes do
-        { cols: '50', rows: '1' }
-      end
-      group :credentials
-      pretty_value do
-        (value || '<i class="icon-lock"/>').html_safe
-      end
-    end
-
-    configure :authorization do
-      group :credentials
-      inline_edit false
-    end
-
-    configure :authorization_handler do
-      group :credentials
-    end
-
-    group :parameters do
-      label 'Parameters & Headers'
-    end
-    configure :parameters do
-      group :parameters
-    end
-    configure :headers do
-      group :parameters
-    end
-    configure :template_parameters do
-      group :parameters
-    end
-
-    edit do
-      field(:namespace, :enum_edit, &shared_non_editable)
-      field(:name, &shared_non_editable)
-      field(:url, &shared_non_editable)
-
-      field :number
-      field :token
-      field :authorization
-      field(:authorization_handler, &shared_non_editable)
-
-      field :parameters
-      field :headers
-      field :template_parameters
-    end
-
-    show do
-      field :namespace
-      field :name
-      field :url
-
-      field :number
-      field :token
-      field :authorization
-      field :authorization_handler
-
-      field :parameters
-      field :headers
-      field :template_parameters
-
-      field :_id
-      field :created_at
-      field :updated_at
-    end
-
-    list do
-      field :namespace
-      field :name
-      field :url
-      field :number
-      field :token
-      field :authorization
-      field :updated_at
-    end
-
-    fields :namespace, :name, :url, :number, :token, :authorization, :updated_at
-  end
-
-  config.model Setup::ConnectionRole do
-    navigation_label 'Connectors'
-    weight -309
-    label 'Connection Role'
-    object_label_method { :custom_title }
-
-    configure :name, :string do
-      help 'Requiered.'
-      html_attributes do
-        { maxlength: 50, size: 50 }
-      end
-    end
-    configure :webhooks do
-      nested_form false
-    end
-    configure :connections do
-      nested_form false
-    end
-    modal do
-      field :namespace, :enum_edit
-      field :name
-      field :webhooks
-      field :connections
-    end
-    show do
-      field :namespace
-      field :name
-      field :webhooks
-      field :connections
-
-      field :_id
-      field :created_at
-      #field :creator
-      field :updated_at
-      #field :updater
-    end
-
-    edit do
-      field :namespace, :enum_edit
-      field :name
-      field :webhooks
-      field :connections
-      field :updated_at
-    end
-
-    fields :namespace, :name, :webhooks, :connections, :updated_at
-  end
-
-  config.model Setup::Webhook do
-    navigation_label 'Connectors'
-    weight -308
-    object_label_method { :custom_title }
-
-    configure :metadata, :json_value
-
-    group :credentials do
-      label 'Credentials'
-    end
-
-    configure :authorization do
-      group :credentials
-      inline_edit false
-    end
-
-    configure :authorization_handler do
-      group :credentials
-    end
-
-    group :parameters do
-      label 'Parameters & Headers'
-    end
-
-    configure :path, :string do
-      help 'Requiered. Path of the webhook relative to connection URL.'
-      html_attributes do
-        { maxlength: 255, size: 100 }
-      end
-    end
-
-    configure :parameters do
-      group :parameters
-    end
-
-    configure :headers do
-      group :parameters
-    end
-
-    configure :template_parameters do
-      group :parameters
-    end
-
-    edit do
-      field(:namespace, :enum_edit, &shared_non_editable)
-      field(:name, &shared_non_editable)
-      field(:path, &shared_non_editable)
-      field(:method, &shared_non_editable)
-      field(:description, &shared_non_editable)
-      field(:metadata, :json_value, &shared_non_editable)
-
-      field :authorization
-      field(:authorization_handler, &shared_non_editable)
-
-      field :parameters
-      field :headers
-      field :template_parameters
-    end
-
-    show do
-      field :namespace
-      field :name
-      field :path
-      field :method
-      field :description
-      field :metadata, :json_value
-
-      field :authorization
-      field :authorization_handler
-
-      field :parameters
-      field :headers
-      field :template_parameters
-
-      field :_id
-      field :created_at
-      #field :creator
-      field :updated_at
-      #field :updater
-    end
-
-    fields :namespace, :name, :path, :method, :description, :authorization, :updated_at
-  end
-
-  #Definitions
-
-  config.navigation 'Definitions', icon: 'fa fa-puzzle-piece'
-
-  config.model Setup::DataType do
-    navigation_label 'Definitions'
-    weight -250
-    label 'Data Type'
-    object_label_method { :custom_title }
-    visible true
-
-    show_in_dashboard false
-
-    configure :_type do
-      pretty_value do
-        value.split('::').last.to_title
-      end
-    end
-
-    group :behavior do
-      label 'Behavior'
-      active false
-    end
-
-    configure :title do
-      pretty_value do
-        bindings[:object].custom_title
-      end
-    end
-
-    configure :slug
-
-    configure :storage_size, :decimal do
-      pretty_value do
-        if objects = bindings[:controller].instance_variable_get(:@objects)
-          unless max = bindings[:controller].instance_variable_get(:@max_storage_size)
-            bindings[:controller].instance_variable_set(:@max_storage_size, max = objects.collect { |data_type| data_type.storage_size }.max)
-          end
-          (bindings[:view].render partial: 'size_bar', locals: { max: max, value: bindings[:object].records_model.storage_size }).html_safe
-        else
-          bindings[:view].number_to_human_size(value)
-        end
-      end
-      read_only true
-    end
-
-    configure :before_save_callbacks do
-      group :behavior
-      inline_add false
-      associated_collection_scope do
-        Proc.new { |scope|
-          scope.where(:parameters.with_size => 1)
-        }
-      end
-    end
-
-    configure :records_methods do
-      group :behavior
-      inline_add false
-    end
-
-    configure :data_type_methods do
-      group :behavior
-      inline_add false
-    end
-
-    edit do
-      field :title, :enum_edit, &shared_non_editable
-      field :slug
-      field :before_save_callbacks, &shared_non_editable
-      field :records_methods, &shared_non_editable
-      field :data_type_methods, &shared_non_editable
-    end
-
-    list do
-      field :title
-      field :name
-      field :slug
-      field :_type
-      field :used_memory do
-        visible { Cenit.dynamic_model_loading? }
-        pretty_value do
-          unless max = bindings[:controller].instance_variable_get(:@max_used_memory)
-            bindings[:controller].instance_variable_set(:@max_used_memory, max = Setup::DataType.fields[:used_memory.to_s].type.new(Setup::DataType.max(:used_memory)))
-          end
-          (bindings[:view].render partial: 'used_memory_bar', locals: { max: max, value: Setup::DataType.fields[:used_memory.to_s].type.new(value) }).html_safe
-        end
-      end
-      field :storage_size
-      field :updated_at
-    end
-
-    show do
-      field :title
-      field :name
-      field :slug
-      field :_type
-      field :storage_size
-      field :schema do
-        pretty_value do
-          v =
-            if json = JSON.pretty_generate(value) rescue nil
-              "<code class='json'>#{json.gsub('<', '&lt;').gsub('>', '&gt;')}</code>"
-            else
-              value
-            end
-
-          "<pre>#{v}</pre>".html_safe
-        end
-      end
-
-      field :_id
-      field :created_at
-      #field :creator
-      field :updated_at
-      #field :updater
-    end
-    fields :namespace, :name, :slug, :_type, :storage_size, :updated_at
-  end
-
-  config.model Setup::JsonDataType do
-    navigation_label 'Definitions'
-    weight -249
-    label 'JSON Data Type'
-    object_label_method { :custom_title }
-
-    group :behavior do
-      label 'Behavior'
-      active false
-    end
-
-    configure :title
-
-    configure :name do
-      read_only { !bindings[:object].new_record? }
-    end
-
-    configure :schema, :code_mirror do
-      html_attributes do
-        { cols: '74', rows: '15' }
-      end
-      # pretty_value do
-      #   "<pre><code class='json'>#{JSON.pretty_generate(value)}</code></pre>".html_safe
-      # end
-    end
-
-    configure :storage_size, :decimal do
-      pretty_value do
-        if objects = bindings[:controller].instance_variable_get(:@objects)
-          unless max = bindings[:controller].instance_variable_get(:@max_storage_size)
-            bindings[:controller].instance_variable_set(:@max_storage_size, max = objects.collect { |data_type| data_type.storage_size }.max)
-          end
-          (bindings[:view].render partial: 'size_bar', locals: { max: max, value: bindings[:object].records_model.storage_size }).html_safe
-        else
-          bindings[:view].number_to_human_size(value)
-        end
-      end
-      read_only true
-    end
-
-    configure :before_save_callbacks do
-      group :behavior
-      inline_add false
-      associated_collection_scope do
-        Proc.new { |scope|
-          scope.where(:parameters.with_size => 1)
-        }
-      end
-    end
-
-    configure :records_methods do
-      group :behavior
-      inline_add false
-    end
-
-    configure :data_type_methods do
-      group :behavior
-      inline_add false
-    end
-
-    configure :slug
-
-    edit do
-      field :namespace, :enum_edit, &shared_non_editable
-      field :name, &shared_non_editable
-      field :schema, :json_schema do
-        shared_read_only
-        help { 'Required' }
-      end
-      field :title, &shared_non_editable
-      field :slug
-      field :before_save_callbacks, &shared_non_editable
-      field :records_methods, &shared_non_editable
-      field :data_type_methods, &shared_non_editable
-    end
-
-    list do
-      field :namespace
-      field :title
-      field :name
-      field :slug
-      field :used_memory do
-        visible { Cenit.dynamic_model_loading? }
-        pretty_value do
-          unless max = bindings[:controller].instance_variable_get(:@max_used_memory)
-            bindings[:controller].instance_variable_set(:@max_used_memory, max = Setup::JsonDataType.fields[:used_memory.to_s].type.new(Setup::JsonDataType.max(:used_memory)))
-          end
-          (bindings[:view].render partial: 'used_memory_bar', locals: { max: max, value: Setup::JsonDataType.fields[:used_memory.to_s].type.new(value) }).html_safe
-        end
-      end
-      field :storage_size
-      field :updated_at
-    end
-
-    show do
-      field :namespace
-      field :title
-      field :name
-      field :slug
-      field :storage_size
-      field :schema do
-        pretty_value do
-          "<pre><code class='ruby'>#{JSON.pretty_generate(value)}</code></pre>".html_safe
-        end
-      end
-      field :before_save_callbacks
-      field :records_methods
-      field :data_type_methods
-
-      field :_id
-      field :created_at
-      #field :creator
-      field :updated_at
-      #field :updater
-    end
-
-    fields :namespace, :name, :slug, :storage_size, :updated_at
-  end
-
-  config.model Setup::FileDataType do
-    navigation_label 'Definitions'
-    weight -248
-    label 'File Data Type'
-    object_label_method { :custom_title }
-
-    group :content do
-      label 'Content'
-    end
-
-    group :behavior do
-      label 'Behavior'
-      active false
-    end
-
-    configure :storage_size, :decimal do
-      pretty_value do
-        if objects = bindings[:controller].instance_variable_get(:@objects)
-          unless max = bindings[:controller].instance_variable_get(:@max_storage_size)
-            bindings[:controller].instance_variable_set(:@max_storage_size, max = objects.collect { |data_type| data_type.records_model.storage_size }.max)
-          end
-          (bindings[:view].render partial: 'size_bar', locals: { max: max, value: bindings[:object].records_model.storage_size }).html_safe
-        else
-          bindings[:view].number_to_human_size(value)
-        end
-      end
-      read_only true
-    end
-
-    configure :validators do
-      group :content
-      inline_add false
-    end
-
-    configure :schema_data_type do
-      group :content
-      inline_add false
-      inline_edit false
-    end
-
-    configure :before_save_callbacks do
-      group :behavior
-      inline_add false
-      associated_collection_scope do
-        Proc.new { |scope|
-          scope.where(:parameters.with_size => 1)
-        }
-      end
-    end
-
-    configure :records_methods do
-      group :behavior
-      inline_add false
-    end
-
-    configure :data_type_methods do
-      group :behavior
-      inline_add false
-    end
-
-    configure :slug
-
-    edit do
-      field :namespace, :enum_edit, &shared_non_editable
-      field :name, &shared_non_editable
-      field :title, &shared_non_editable
-      field :slug
-      field :validators, &shared_non_editable
-      field :schema_data_type, &shared_non_editable
-      field :before_save_callbacks, &shared_non_editable
-      field :records_methods, &shared_non_editable
-      field :data_type_methods, &shared_non_editable
-    end
-
-    list do
-      field :title
-      field :name
-      field :slug
-      field :validators
-      field :schema_data_type
-      field :used_memory do
-        visible { Cenit.dynamic_model_loading? }
-        pretty_value do
-          unless max = bindings[:controller].instance_variable_get(:@max_used_memory)
-            bindings[:controller].instance_variable_set(:@max_used_memory, max = Setup::JsonDataType.fields[:used_memory.to_s].type.new(Setup::JsonDataType.max(:used_memory)))
-          end
-          (bindings[:view].render partial: 'used_memory_bar', locals: { max: max, value: Setup::JsonDataType.fields[:used_memory.to_s].type.new(value) }).html_safe
-        end
-      end
-      field :storage_size
-      field :updated_at
-    end
-
-    show do
-      field :title
-      field :name
-      field :slug
-      field :validators
-      field :storage_size
-      field :schema_data_type
-
-      field :_id
-      field :created_at
-      #field :creator
-      field :updated_at
-      #field :updater
-    end
-
-    fields :namespace, :name, :slug, :storage_size, :updated_at
-  end
-
-  config.model Setup::Validator do
-    navigation_label 'Definitions'
-    label 'Validators'
-    weight -290
-    fields :namespace, :name
-
-    fields :namespace, :name, :updated_at
-
-    show_in_dashboard { false }
-  end
-
-  config.model Setup::CustomValidator do
-    visible false
-
-    configure :_type do
-      pretty_value do
-        value.split('::').last.to_title
-      end
-    end
-
-    list do
-      field :namespace
-      field :name
-      field :_type
-      field :updated_at
-    end
-
-    fields :namespace, :name, :_type, :updated_at
-  end
-
-  config.model Setup::Schema do
-    weight -289
-    object_label_method { :custom_title }
-
-    edit do
-      field :namespace, :enum_edit do
-        read_only { !bindings[:object].new_record? }
-      end
-
-      field :uri do
-        read_only { !bindings[:object].new_record? }
-        html_attributes do
-          { cols: '74', rows: '1' }
-        end
-      end
-
-      field :schema, :code_mirror do
-        html_attributes do
-          { cols: '74', rows: '15' }
-        end
-      end
-
-      field :schema_data_type do
-        inline_edit false
-        inline_add false
-      end
-    end
-
-    show do
-      field :namespace
-      field :uri
-      field :schema do
-        pretty_value do
-          v =
-            if json = JSON.parse(value) rescue nil
-              "<code class='json'>#{JSON.pretty_generate(json).gsub('<', '&lt;').gsub('>', '&gt;')}</code>"
-            elsif (xml = Nokogiri::XML(value)).errors.blank?
-              "<code class='xml'>#{xml.to_xml.gsub('<', '&lt;').gsub('>', '&gt;')}</code>"
-            else
-              "<code>#{value}</code>"
-            end
-          "<pre>#{v}</pre>".html_safe
-        end
-      end
-      field :schema_data_type
-
-      field :_id
-      field :created_at
-      #field :creator
-      field :updated_at
-      #field :updater
-
-    end
-
-    fields :namespace, :uri, :schema_data_type, :updated_at
-  end
-
-  config.model Setup::XsltValidator do
-    parent Setup::Validator
-    weight -288
-    label 'XSLT Validator'
-    object_label_method { :custom_title }
-
-    list do
-      field :namespace
-      field :xslt
-      field :updated_at
-    end
-
-    fields :namespace, :name, :xslt, :updated_at
-  end
-
-  config.model Setup::EdiValidator do
-    parent Setup::Validator
-    weight -287
-    object_label_method { :custom_title }
-    label 'EDI Validator'
-
-    edit do
-      field :namespace, :enum_edit
-      field :name
-      field :schema_data_type
-      field :content_type
-    end
-
-    fields :namespace, :name, :schema_data_type, :content_type, :updated_at
-  end
-
-  config.model Setup::AlgorithmValidator do
-    parent Setup::Validator
-    weight -286
-    label 'Algorithm Validator'
-    object_label_method { :custom_title }
-    edit do
-      field :namespace, :enum_edit
-      field :name
-      field :algorithm
-    end
-
-    fields :namespace, :name, :algorithm, :updated_at
-  end
-
-  #Security
-
-  config.navigation 'Security', icon: 'fa fa-shield'
-
-  config.model Setup::OauthClient do
-    navigation_label 'Security'
-    label 'OAuth Client'
-    weight -100
-    object_label_method { :custom_title }
-
-    configure :tenant do
-      visible { Account.current_super_admin? }
-      read_only { true }
-      help ''
-    end
-
-    configure :identifier do
-      pretty_value do
-        (value || '<i class="icon-lock"/>').html_safe
-      end
-    end
-
-    configure :secret do
-      pretty_value do
-        (value || '<i class="icon-lock"/>').html_safe
-      end
-    end
-
-    fields :provider, :name, :identifier, :secret, :tenant, :updated_at
-  end
-
-  config.model Setup::BaseOauthProvider do
-    navigation_label 'Security'
-    weight -90
-    object_label_method { :custom_title }
-    label 'Provider'
-
-    configure :_type do
-      pretty_value do
-        value.split('::').last.to_title
-      end
-    end
-
-    configure :tenant do
-      visible { Account.current_super_admin? }
-      read_only { true }
-      help ''
-    end
-
-    configure :namespace, :enum_edit
-
-    list do
-      field :namespace
-      field :name
-      field :_type
-      field :response_type
-      field :authorization_endpoint
-      field :token_endpoint
-      field :token_method
-      field :tenant
-      field :updated_at
-    end
-
-    fields :namespace, :name, :_type, :response_type, :authorization_endpoint, :token_endpoint, :token_method, :tenant
-  end
-
-  config.model Setup::OauthProvider do
-    weight -89
-    label 'OAuth 1.0 provider'
-    register_instance_option :label_navigation do
-      'OAuth 1.0'
-    end
-    object_label_method { :custom_title }
-
-    configure :tenant do
-      visible { Account.current_super_admin? }
-      read_only { true }
-      help ''
-    end
-
-    configure :refresh_token_algorithm do
-      visible { bindings[:object].refresh_token_strategy == :custom.to_s }
-    end
-
-    edit do
-      field :namespace, :enum_edit, &shared_non_editable
-      field :name
-      field :response_type
-      field :authorization_endpoint
-      field :token_endpoint
-      field :token_method
-      field :request_token_endpoint
-      field :refresh_token_strategy
-      field :refresh_token_algorithm
-    end
-
-    fields :namespace, :name, :response_type, :authorization_endpoint, :token_endpoint, :token_method, :request_token_endpoint, :refresh_token_strategy, :refresh_token_algorithm, :tenant, :updated_at
-  end
-
-  config.model Setup::Oauth2Provider do
-    weight -88
-    label 'OAuth 2.0 provider'
-    register_instance_option :label_navigation do
-      'OAuth 2.0'
-    end
-    object_label_method { :custom_title }
-
-    configure :tenant do
-      visible { Account.current_super_admin? }
-      read_only { true }
-      help ''
-    end
-
-    configure :refresh_token_algorithm do
-      visible { bindings[:object].refresh_token_strategy == :custom.to_s }
-    end
-
-    edit do
-      field :namespace, :enum_edit
-      field :name
-      field :response_type
-      field :authorization_endpoint
-      field :token_endpoint
-      field :token_method
-      field :scope_separator
-      field :refresh_token_strategy
-      field :refresh_token_algorithm
-    end
-
-    fields :namespace, :name, :response_type, :authorization_endpoint, :token_endpoint, :token_method, :scope_separator, :refresh_token_strategy, :refresh_token_algorithm, :tenant, :updated_at
-  end
-
-  config.model Setup::Oauth2Scope do
-    navigation_label 'Security'
-    weight -87
-    label 'OAuth 2.0 Scope'
-    object_label_method { :custom_title }
-
-    configure :tenant do
-      visible { Account.current_super_admin? }
-      read_only { true }
-      help ''
-    end
-
-    fields :provider, :name, :description, :tenant, :updated_at
-  end
-
-  config.model Setup::Authorization do
-    navigation_label 'Security'
-    weight -50
-    object_label_method { :custom_title }
-    configure :status do
-      pretty_value do
-        "<span class=\"label label-#{bindings[:object].status_class}\">#{value.to_s.capitalize}</span>".html_safe
-      end
-    end
-    configure :metadata, :json_value
-    configure :_type do
-      pretty_value do
-        value.split('::').last.to_title
-      end
-    end
-
-    edit do
-      field :namespace, :enum_edit
-      field :name
-      field :metadata
-    end
-
-    fields :namespace, :name, :status, :_type, :metadata, :updated_at
-    show_in_dashboard { false }
-  end
-
-  config.model Setup::BasicAuthorization do
-    weight -49
-    register_instance_option :label_navigation do
-      'Basic'
-    end
-    object_label_method { :custom_title }
-
-    configure :status do
-      pretty_value do
-        "<span class=\"label label-#{bindings[:object].status_class}\">#{value.to_s.capitalize}</span>".html_safe
-      end
-    end
-
-    configure :metadata, :json_value
-
-    edit do
-      field :namespace
-      field :name
-      field :username
-      field :password
-      field :metadata
-    end
-
-    group :credentials do
-      label 'Credentials'
-    end
-
-    configure :username do
-      group :credentials
-    end
-
-    configure :password do
-      group :credentials
-    end
-
-    show do
-      field :namespace
-      field :name
-      field :status
-      field :username
-      field :password
-      field :metadata
-      field :_id
-    end
-
-    edit do
-      field :namespace, :enum_edit
-      field :name
-      field :username
-      field :password
-    end
-
-    fields :namespace, :name, :status, :username, :password, :updated_at
-  end
-
-  config.model Setup::OauthAuthorization do
-    weight -45
-    label 'OAuth 1.0 authorization'
-    register_instance_option :label_navigation do
-      'OAuth 1.0'
-    end
-    object_label_method { :custom_title }
-    parent Setup::Authorization
-
-    configure :metadata, :json_value
-
-    configure :status do
-      pretty_value do
-        "<span class=\"label label-#{bindings[:object].status_class}\">#{value.to_s.capitalize}</span>".html_safe
-      end
-    end
-
-    edit do
-      field :namespace, :enum_edit
-      field :name
-      field :client
-      field :parameters
-      field :template_parameters
-      field :metadata
-    end
-
-    group :credentials do
-      label 'Credentials'
-    end
-
-    configure :access_token do
-      group :credentials
-    end
-
-    configure :token_span do
-      group :credentials
-    end
-
-    configure :authorized_at do
-      group :credentials
-    end
-
-    configure :access_token_secret do
-      group :credentials
-    end
-
-    configure :realm_id do
-      group :credentials
-    end
-
-    show do
-      field :namespace
-      field :name
-      field :status
-      field :client
-      field :parameters
-      field :template_parameters
-      field :metadata
-      field :_id
-
-      field :access_token
-      field :access_token_secret
-      field :realm_id
-      field :token_span
-      field :authorized_at
-    end
-
-    list do
-      field :namespace
-      field :name
-      field :status
-      field :client
-      field :updated_at
-    end
-
-    fields :namespace, :name, :status, :client, :updated_at
-  end
-
-  config.model Setup::Oauth2Authorization do
-    weight -40
-    label 'OAuth 2.0 authorization'
-    register_instance_option :label_navigation do
-      'OAuth 2.0'
-    end
-    object_label_method { :custom_title }
-    parent Setup::Authorization
-
-    configure :metadata, :json_value
-
-    configure :status do
-      pretty_value do
-        "<span class=\"label label-#{bindings[:object].status_class}\">#{value.to_s.capitalize}</span>".html_safe
-      end
-    end
-
-    configure :expires_in do
-      pretty_value do
-        "#{value}s" if value
-      end
-    end
-
-    edit do
-      field :namespace, :enum_edit
-      field :name
-      field :client
-      field :scopes do
-        visible { bindings[:object].ready_to_save? }
-        associated_collection_scope do
-          provider = ((obj = bindings[:object]) && obj.provider) || nil
-          Proc.new { |scope|
-            if provider
-              scope.where(provider_id: provider.id)
-            else
-              scope
-            end
-          }
-        end
-      end
-      field :parameters do
-        visible { bindings[:object].ready_to_save? }
-      end
-      field :template_parameters do
-        visible { bindings[:object].ready_to_save? }
-      end
-      field :metadata
-    end
-
-    group :credentials do
-      label 'Credentials'
-    end
-
-    configure :access_token do
-      group :credentials
-    end
-
-    configure :token_span do
-      group :credentials
-    end
-
-    configure :authorized_at do
-      group :credentials
-    end
-
-    configure :refresh_token do
-      group :credentials
-    end
-
-    configure :token_type do
-      group :credentials
-    end
-
-    show do
-      field :namespace
-      field :name
-      field :status
-      field :client
-      field :scopes
-      field :parameters
-      field :template_parameters
-      field :metadata
-      field :_id
-
-      field :expires_in
-
-      field :id_token
-      field :token_type
-      field :access_token
-      field :token_span
-      field :authorized_at
-      field :refresh_token
-
-      field :_id
-    end
-
-    fields :namespace, :name, :status, :client, :scopes, :updated_at
-  end
-
-  config.model Setup::AwsAuthorization do
-    weight -35
-    object_label_method { :custom_title }
-
-    configure :metadata, :json_value
-
-    configure :status do
-      pretty_value do
-        "<span class=\"label label-#{bindings[:object].status_class}\">#{value.to_s.capitalize}</span>".html_safe
-      end
-    end
-
-    edit do
-      field :namespace
-      field :name
-      field :aws_access_key
-      field :aws_secret_key
-      field :seller
-      field :merchant
-      field :markets
-      field :signature_method
-      field :signature_version
-      field :metadata
-    end
-
-    group :credentials do
-      label 'Credentials'
-    end
-
-    configure :aws_access_key do
-      group :credentials
-    end
-
-    configure :aws_secret_key do
-      group :credentials
-    end
-
-    show do
-      field :namespace
-      field :name
-      field :aws_access_key
-      field :aws_secret_key
-      field :seller
-      field :merchant
-      field :markets
-      field :signature_method
-      field :signature_version
-      field :metadata
-    end
-
-    list do
-      field :namespace
-      field :name
-      field :aws_access_key
-      field :aws_secret_key
-      field :seller
-      field :merchant
-      field :markets
-      field :signature_method
-      field :signature_version
-      field :updated_at
-    end
-
-    fields :namespace, :name, :aws_access_key, :aws_secret_key, :seller, :merchant, :markets, :signature_method, :signature_version, :updated_at
-  end
-
-  config.model Setup::OauthAccessGrant do
-    navigation_label 'Security'
-    label 'Access Grants'
-    weight -32
-
-    fields :created_at, :application_id, :scope
-  end
-
   #Monitors
 
   config.navigation 'Monitors', icon: 'fa fa-heartbeat'
 
   config.model Setup::Notification do
     navigation_label 'Monitors'
-    weight -20
+    weight 600
     object_label_method { :label }
 
     show_in_dashboard false
@@ -2999,7 +3005,7 @@ RailsAdmin.config do |config|
 
   config.model Setup::Task do
     navigation_label 'Monitors'
-    weight -18
+    weight 610
     object_label_method { :to_s }
 
     configure :attempts_succeded, :text do
@@ -3190,7 +3196,7 @@ RailsAdmin.config do |config|
   config.model Setup::Storage do
     navigation_label 'Monitors'
     show_in_dashboard false
-    weight -15
+    weight 620
     object_label_method { :label }
 
     configure :filename do
@@ -3243,14 +3249,14 @@ RailsAdmin.config do |config|
 
   config.model Setup::Namespace do
     navigation_label 'Configuration'
-    weight -9
+    weight 700
     fields :name, :slug, :updated_at
   end
 
   config.model Setup::DataTypeConfig do
     navigation_label 'Configuration'
     label 'Data Type Config'
-    weight -8
+    weight 710
     configure :data_type do
       read_only true
     end
@@ -3260,7 +3266,7 @@ RailsAdmin.config do |config|
   config.model Setup::FlowConfig do
     navigation_label 'Configuration'
     label 'Flow Config'
-    weight -8
+    weight 720
     configure :flow do
       read_only true
     end
@@ -3270,7 +3276,7 @@ RailsAdmin.config do |config|
   config.model Setup::ConnectionConfig do
     navigation_label 'Configuration'
     label 'Connection Config'
-    weight -8
+    weight 730
     configure :connection do
       read_only true
     end
@@ -3283,7 +3289,7 @@ RailsAdmin.config do |config|
   config.model Setup::Pin do
 
     navigation_label 'Configuration'
-    weight -7
+    weight 740
     object_label_method :to_s
 
     configure :model, :model
@@ -3334,7 +3340,7 @@ RailsAdmin.config do |config|
 
   config.model Setup::Binding do
     navigation_label 'Configuration'
-    weight -6
+    weight 750
 
     configure :binder_model, :model
     configure :binder, :record
@@ -3347,7 +3353,7 @@ RailsAdmin.config do |config|
   config.model Setup::ParameterConfig do
     navigation_label 'Configuration'
     label 'Parameter'
-    weight -5
+    weight 760
 
     configure :parent_model, :model
     configure :parent, :record
@@ -3380,7 +3386,7 @@ RailsAdmin.config do |config|
   config.navigation 'Administration', icon: 'fa fa-user-secret'
 
   config.model User do
-    weight -1
+    weight 800
     navigation_label 'Administration'
     visible { User.current_super_admin? }
     object_label_method { :label }
@@ -3509,6 +3515,7 @@ RailsAdmin.config do |config|
   end
 
   config.model Account do
+    weight 810
     navigation_label 'Administration'
     visible { User.current_super_admin? }
     object_label_method { :label }
@@ -3541,6 +3548,7 @@ RailsAdmin.config do |config|
   end
 
   config.model Role do
+    weight 810
     navigation_label 'Administration'
     visible { User.current_super_admin? }
     configure :users do
@@ -3550,6 +3558,7 @@ RailsAdmin.config do |config|
   end
 
   config.model Setup::SharedName do
+    weight 880
     navigation_label 'Administration'
     visible { User.current_super_admin? }
 
@@ -3557,6 +3566,7 @@ RailsAdmin.config do |config|
   end
 
   config.model Script do
+    weight 830
     navigation_label 'Administration'
     visible { User.current_super_admin? }
 
@@ -3588,21 +3598,25 @@ RailsAdmin.config do |config|
   end
 
   config.model CenitToken do
+    weight 890
     navigation_label 'Administration'
     visible { User.current_super_admin? }
   end
 
   config.model Setup::DelayedMessage do
+    weight 880
     navigation_label 'Administration'
     visible { User.current_super_admin? }
   end
 
   config.model Setup::SystemNotification do
+    weight 880
     navigation_label 'Administration'
     visible { User.current_super_admin? }
   end
 
   config.model RabbitConsumer do
+    weight 850
     navigation_label 'Administration'
     visible { User.current_super_admin? }
     object_label_method { :to_s }
@@ -3639,6 +3653,7 @@ RailsAdmin.config do |config|
   end
 
   config.model ApplicationId do
+    weight 830
     navigation_label 'Administration'
     visible { User.current_super_admin? }
     label 'Application ID'
@@ -3670,6 +3685,7 @@ RailsAdmin.config do |config|
   end
 
   config.model Setup::ScriptExecution do
+    weight 840
     parent { nil }
     navigation_label 'Administration'
     object_label_method { :to_s }
