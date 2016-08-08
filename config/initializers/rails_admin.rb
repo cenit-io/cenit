@@ -3007,6 +3007,8 @@ RailsAdmin.config do |config|
     navigation_label 'Monitors'
     weight 610
     object_label_method { :to_s }
+    show_in_dashboard false
+
 
     configure :attempts_succeded, :text do
       label 'Attempts/Succedded'
