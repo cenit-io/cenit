@@ -7,6 +7,7 @@ module Mongoff
       def initialize(model, document = nil, new_record = true)
         raise "Illegal file model #{model}" unless model.is_a?(FileModel)
         super
+        @cursor = 0
       end
 
       def to_s
@@ -17,27 +18,57 @@ module Mongoff
         orm_model.chunk_model
       end
 
-      def data
+      def rewind
+        @cursor = 0
         if @new_data
-          if @new_data.is_a?(String)
-            @new_data
-          else
-            @new_data.rewind
-            data = @new_data.read
-            @new_data.rewind
-            data
-          end
-        else
-          @data ||=
-            begin
-              data = ''
-              chunks.ascending(:n).each { |chunk| data << chunk.data.data }
-              data
-            end
+          @new_data.rewind unless @new_data.is_a?(String)
         end
       end
 
+      def read(*args)
+        len = (args.length > 0 && args[0].to_i) || length || 0
+        if @new_data
+          if @new_data.is_a?(String)
+            return nil if @cursor == @new_data.length
+            start = @cursor
+            if len > @new_data.length - start
+              len = @new_data.length - start
+            end
+            @cursor += len
+            @new_data[start, len]
+          else
+            @new_data.read(len)
+          end
+        else
+          return nil if @cursor == length
+          current_chunk = @cursor / chunkSize
+          chunk_chunk = chunkSize - (@cursor + 1) % chunkSize
+          chunk_start = chunkSize - chunk_chunk - 1
+          if chunk_chunk > len
+            chunk_chunk = len
+          end
+          chunks_left = ((len - chunk_chunk) / chunkSize.to_f).ceil
+          data = ''
+          chunks.ascending(:n).where(:n.gte => current_chunk,
+                                     :n.lte => current_chunk + chunks_left).each do |chunk|
+            data += chunk.data.data[chunk_start, chunk_chunk]
+            if (chunk_chunk = len - data.length) > chunkSize
+              chunk_chunk = chunkSize
+            end
+            chunk_start = 0
+          end
+          @cursor += data.length
+          data
+        end
+      end
+
+      def data
+        rewind
+        read
+      end
+
       def data=(string_or_readable)
+        @cursor = 0
         @new_data = string_or_readable
       end
 
@@ -102,6 +133,7 @@ module Mongoff
           temporary_file.close if temporary_file
           [:filename, :contentType].each { |property| self[property] = options[property] unless self[property].present? }
           if errors.blank? && super
+            @cursor = 0
             if new_chunks_ids
               chunks.delete_many
               chunk_model.all.any_in(id: new_chunks_ids).update_many('$set' => { files_id: id })
@@ -161,7 +193,7 @@ module Mongoff
 
       def reading(arg, &block)
         if arg.respond_to?(:read)
-          rewind(arg) do |io|
+          do_rewind(arg) do |io|
             block.call(io)
           end
         else
@@ -172,7 +204,7 @@ module Mongoff
         end
       end
 
-      def rewind(io, &block)
+      def do_rewind(io, &block)
         begin
           pos = io.pos
           io.flush
@@ -200,7 +232,7 @@ module Mongoff
           :pathname,
           :path,
           :to_path
-        ].detect { |msg| object.respond_to?(msg) && file_name = object.send(msg) }
+        ].detect { |msg| object.respond_to?(msg) && (file_name = object.send(msg)) }
         file_name ? clean(file_name).squeeze('/') : nil
       end
 
@@ -209,12 +241,12 @@ module Mongoff
         [
           :content_type,
           :contentType
-        ].detect { |msg| object.respond_to?(msg) && content_type = object.send(msg) }
+        ].detect { |msg| object.respond_to?(msg) && (content_type = object.send(msg)) }
         content_type ? clean(content_type).squeeze('/') : nil
       end
 
       def extract_content_type(filename)
-        if mime_type = MIME::Types.type_for(::File.basename(filename.to_s)).first
+        if (mime_type = MIME::Types.type_for(::File.basename(filename.to_s)).first)
           mime_type.to_s
         else
           self[:contentType]
@@ -241,7 +273,7 @@ module Mongoff
             i += 1
           end
         else
-          while ((buf = io.read(chunk_size)) && buf.size > 0)
+          while (buf = io.read(chunk_size)) && buf.size > 0
             block.call(buf)
           end
         end
