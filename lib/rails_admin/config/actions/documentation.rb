@@ -3,9 +3,6 @@ module RailsAdmin
     module Actions
 
       class Documentation < RailsAdmin::Config::Actions::Base
-        # register_instance_option :only do
-        #   [Setup::Scheduler]
-        # end
 
         register_instance_option :collection do
           true
