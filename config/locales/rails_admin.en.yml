@@ -426,6 +426,10 @@ en:
         menu: "Clean Up"
         breadcrumb: "Clean Up"
         warn: "All your data will be destroyed"
+      documentation:
+        title: "Docs"
+        menu: "Docs"
+        breadcrumb: "Docs"
     form:
       flow:
         source_data_type: 'Source data type'
