@@ -25,7 +25,8 @@ class Account
     changed_attributes.keys.each do |attr|
       reset_attribute!(attr) unless %w(notification_level time_zone).include?(attr)
     end unless new_record? || Account.current_super_admin?
-    true
+    errors.add(:tenant_account, 'is sealed and can not be inspected') if tenant_account && tenant_account.sealed?
+    errors.blank?
   end
 
   def init_heroku_db
@@ -72,6 +73,10 @@ class Account
 
   def super_admin?
     owner && owner.super_admin?
+  end
+
+  def sealed?
+    owner && owner.sealed?
   end
 
   class << self

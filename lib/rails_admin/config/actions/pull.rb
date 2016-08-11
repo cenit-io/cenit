@@ -25,7 +25,7 @@ module RailsAdmin
 
             @pull_request = Cenit::Actions.pull_request(@object, pull_parameters: params[:pull_parameters])
             if @pull_request[:missing_parameters].blank? && params[:_pull]
-              @pull_request[:install] = params[:install].to_b if User.current_super_admin?
+              @pull_request[:install] = params[:install].to_b if User.current_super_admin? && User.current_installer?
               @pull_request = Cenit::Actions.pull(@object, @pull_request) if @pull_request[:collection_data].present?
               if (errors = @pull_request[:errors]).blank?
                 if (errors = @pull_request[:fixed_errors])
