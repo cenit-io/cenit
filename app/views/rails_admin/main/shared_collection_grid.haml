@@ -114,7 +114,7 @@
   #grid-wrapper
     - @objects.each do |object|
       .col-xs-6.col-sm-4.col-md-3
-        %div{class: "panel panel-#{object.installed ? 'default' : 'danger'} text-center"}
+        %div{class: "panel panel-#{object.installed? ? 'default' : 'danger'} text-center"}
           .options-menu
             %span.btn.dropdown-toggle{type:'button', 'data-toggle': 'dropdown', 'aria-haspopup': 'true'}
               %i.fa.fa-ellipsis-v
