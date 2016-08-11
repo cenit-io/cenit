@@ -201,13 +201,13 @@ module RailsAdmin
               @model_configs = {}
               @abstract_models =
                 if current_user
-                  RailsAdmin::Config.visible_models(controller: self).select(&:show_in_dashboard).collect(&:abstract_model).select do |absm|
+                  RailsAdmin::Config.visible_models(controller: self).collect(&:abstract_model).select do |absm|
                     ((model = absm.model) rescue nil) &&
                       (model.is_a?(Mongoff::Model) || model.include?(AccountScoped)) &&
                       (@model_configs[absm.model_name] = absm.config)
                   end
                 else
-                  Setup::Models.collect { |m| RailsAdmin::Config.model(m) }.select(&:visible).select(&:show_in_dashboard).collect do |config|
+                  Setup::Models.collect { |m| RailsAdmin::Config.model(m) }.select(&:visible).collect do |config|
                     absm = config.abstract_model
                     @model_configs[absm.model_name] = config
                     absm
@@ -954,11 +954,11 @@ module RailsAdmin
 
       def count(options = {}, scope = nil)
         if options.delete(:cache)
-          if @count_cache
-            @count_cache
+          key = "[cenit]#{model_name}.count"
+          if (count_cache = Thread.current[key])
+            count_cache
           else
-            #TODO: review issue #748
-            @count_cache = rails_admin_count(options, scope) rescue 0
+            Thread.current[key] = rails_admin_count(options, scope)
           end
         else
           rails_admin_count(options, scope)
