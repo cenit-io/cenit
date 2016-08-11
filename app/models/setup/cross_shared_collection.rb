@@ -125,7 +125,7 @@ module Setup
 
     def pulled(options = {})
       self.class.collection.find(_id: id).update_one('$inc' => { pull_count: 1 })
-      if !installed && options[:install]
+      if !installed && options[:install] && User.current_installer?
         self.pull_data = {}
         pull_data[:readme] = readme if readme.present?
         (collection = options[:collection]).cross(:shared)

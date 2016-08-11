@@ -7,9 +7,13 @@ module Setup
 
     build_in_data_type
 
-    field :value, type: String, default: ''
+    field :value, default: ''
     field :name, type: String
     field :location, type: Symbol
+
+    before_save do
+      self.value = Cenit::Utility.json_value_of(value)
+    end
 
     def parent
       @parent ||= get_parent

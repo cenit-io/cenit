@@ -39,7 +39,7 @@ module Cenit
             items_data_type = relation.klass.data_type
             refs =
               items.collect do |item|
-                criteria = {}
+                criteria = ref_criteria = {}
                 items_data_type.get_referenced_by.each { |field| criteria[field.to_s] = item[field.to_s] }
                 criteria.delete_if { |_, value| value.nil? }
                 criteria = Cenit::Utility.deep_remove(criteria, '_reference')
@@ -54,9 +54,9 @@ module Cenit
                   end
                   record_hash.reject! { |key, _| !item.has_key?(key) }
                   if Cenit::Utility.eql_content?(record_hash, item)
-                    invariant_names << criteria
+                    invariant_names << ref_criteria
                     invariant_on_collection += 1 if on_collection
-                    item = criteria
+                    item = ref_criteria
                     item['_reference'] = true
                   else
                     updated_records[entry] <<

@@ -272,6 +272,7 @@ en:
         not_installed: "This collection is not installed"
         install: "Install"
         install_help: "The collection will be installed after pulled if checked"
+        not_installer: "You can not install these collection since you have not the installer role"
       bulk_pull:
         title: "Pulling Collections"
         menu: "Pull"
@@ -426,6 +427,10 @@ en:
         menu: "Clean Up"
         breadcrumb: "Clean Up"
         warn: "All your data will be destroyed"
+      documentation:
+        title: "Docs"
+        menu: "Docs"
+        breadcrumb: "Docs"
     form:
       flow:
         source_data_type: 'Source data type'
