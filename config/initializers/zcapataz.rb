@@ -14,7 +14,7 @@ Capataz.config do
                     SecureRandom, Setup, Setup::Namespace, Setup::DataType, Setup::Schema, OpenSSL, OpenSSL::PKey, OpenSSL::PKey::RSA,
                     OpenSSL::Digest, OpenSSL::HMAC, Setup::Task, Setup::Task::RUNNING_STATUS, Setup::Task::NOT_RUNNING_STATUS, Setup::Webhook, Setup::Algorithm,
                     Xmldsig, Xmldsig::SignedDocument, Zip, Zip::OutputStream, Zip::InputStream, StringIO, MIME::Mail, MIME::Text, MIME::Multipart::Mixed,
-                    Spreadsheet, Spreadsheet::Workbook, Setup::Authorization, Setup::Connection, Devise, Cenit, JWT, Setup::XsltValidator
+                    Spreadsheet, Spreadsheet::Workbook, Setup::Authorization, Setup::Connection, Devise, Cenit, JWT, Setup::XsltValidator, Setup::Translator
 
   allow_on Cenit, [:homepage]
 
@@ -55,6 +55,10 @@ Capataz.config do
   allow_on Nokogiri::XML::Builder, [:with, :new_builder, :[]]
 
   allow_on Nokogiri::XML, [:search]
+
+  allow_on Setup::Connection, [:get, :post]
+
+  allow_on Setup::Translator, [:run, :where]
 
   allow_for [Mongoff::Model], [:where, :all, :data_type]
 

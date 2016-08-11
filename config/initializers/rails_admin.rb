@@ -44,7 +44,8 @@
   RailsAdmin::Config::Actions::RunScript,
   RailsAdmin::Config::Actions::Play,
   RailsAdmin::Config::Actions::PullImport,
-  RailsAdmin::Config::Actions::State
+  RailsAdmin::Config::Actions::State,
+  RailsAdmin::Config::Actions::Documentation
 ].each { |a| RailsAdmin::Config::Actions.register(a) }
 
 RailsAdmin::Config::Actions.register(:export, RailsAdmin::Config::Actions::BulkExport)
@@ -189,6 +190,7 @@ RailsAdmin.config do |config|
       end
       visible { only.include?((obj = bindings[:object]).class) && obj.try(:shared?) }
     end
+    documentation
   end
 
   def shared_read_only
@@ -3007,6 +3009,8 @@ RailsAdmin.config do |config|
     navigation_label 'Monitors'
     weight 610
     object_label_method { :to_s }
+    show_in_dashboard false
+
 
     configure :attempts_succeded, :text do
       label 'Attempts/Succedded'
