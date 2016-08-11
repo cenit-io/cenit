@@ -17,17 +17,20 @@ module RailsAdmin
 
         register_instance_option :visible? do
           authorized? &&
-            (current_account = Account.current) &&
-            (current_user = User.current) &&
-            current_user.super_admin?
+            User.current_super_admin? &&
+            !bindings[:object].sealed?
         end
 
         register_instance_option :controller do
           proc do
             if (account = @object.is_a?(Account) ? @object : @object.account)
-              if (current_account = Account.current) && (current_user = User.current) && current_user.super_admin?
+              if (current_account = Account.current) &&
+                (current_user = User.current) &&
+                current_user.super_admin?
                 current_account.tenant_account = (current_account.tenant_account == account) ? nil : account
-                current_account.save
+                unless current_account.save
+                  do_flash(:error, "Error inspecting account #{account}", current_account.errors.full_messages)
+                end
               else
                 flash[:error] = 'Not authorized'
               end

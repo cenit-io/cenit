@@ -118,12 +118,16 @@ class User
     end
   end
 
-  def admin?
-    has_role?(:admin) || has_role?(:super_admin)
+  def method_missing(symbol, *args)
+    if (match = symbol.to_s.match(/(.+)\?/))
+      has_role?(match[1].to_sym)
+    else
+      super
+    end
   end
 
-  def super_admin?
-    has_role?(:super_admin)
+  def admin?
+    has_role?(:admin) || has_role?(:super_admin)
   end
 
   def gravatar()
@@ -150,12 +154,13 @@ class User
   end
 
   class << self
-    def current_admin?
-      current && current.admin?
-    end
 
-    def current_super_admin?
-      current && current.super_admin?
+    def method_missing(symbol, *args)
+      if (match = symbol.to_s.match(/\Acurrent_(.+)\?/))
+        current && current.send("#{match[1]}?")
+      else
+        super
+      end
     end
 
     def super_admin
