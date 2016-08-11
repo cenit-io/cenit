@@ -1007,7 +1007,7 @@ RailsAdmin.config do |config|
 
     fields :namespace, :name, :updated_at
 
-    show_in_dashboard { false }
+    show_in_dashboard false
   end
 
   config.model Setup::CustomValidator do
@@ -1902,7 +1902,7 @@ RailsAdmin.config do |config|
     end
 
     fields :namespace, :name, :status, :_type, :metadata, :updated_at
-    show_in_dashboard { false }
+    show_in_dashboard false
   end
 
   config.model Setup::BasicAuthorization do
