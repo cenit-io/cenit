@@ -25,12 +25,12 @@ module RailsAdmin
         register_instance_option :controller do
           proc do
 
-            form_config = RailsAdmin::Config.model(Forms::DataImport)
+            form_config = RailsAdmin::Config.model(Forms::JsonDataImport)
             view = :form
             model = @abstract_model.model rescue nil
             if model
               if (data = params[form_config.abstract_model.param_key]) &&
-                (@form_object = Forms::DataImport.new(file: (file = data[:file]), data: (data = data[:data]))).valid?
+                (@form_object = Forms::JsonDataImport.new(file: (file = data[:file]), data: (data = data[:data]))).valid?
                 begin
                   if model == Setup::Collection
                     if (data = @form_object.json_data).length == 1
@@ -52,7 +52,7 @@ module RailsAdmin
               flash[:error] = 'Error loading model'
             end
             if view
-              @form_object ||= Forms::DataImport.new
+              @form_object ||= Forms::JsonDataImport.new
               @model_config = form_config
               if @form_object.errors.present?
                 do_flash(:error, 'There are errors in the import data specification', @form_object.errors.full_messages)

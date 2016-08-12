@@ -1,19 +1,10 @@
 module Forms
-  class DataImport
-    include Mongoid::Document
+  class JsonDataImport
+    include DataImportCommon
 
     attr_reader :json_data
 
-    field :file
-    field :data
-
     validate do
-      if file.present? && data.present?
-        errors.add(:base, 'Both file & data is not allowed')
-      end
-      if file.blank? && data.blank?
-        errors.add(:base, 'File or data is required')
-      end
       if errors.blank?
         @json_data, attr =
           if file.present?
@@ -22,6 +13,9 @@ module Forms
           else
             [data.to_s, :data]
           end
+        if decompress_content
+          @json_data[0] = Zi
+        end
         @json_data = @json_data && JSON.parse(@json_data) rescue nil
         if @json_data.is_a?(Hash)
           @json_data = [@json_data]

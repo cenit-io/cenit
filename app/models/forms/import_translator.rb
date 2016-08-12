@@ -1,16 +1,11 @@
 module Forms
   class ImportTranslator
-    include Mongoid::Document
+    include DataImportCommon
 
     belongs_to :data_type, class_name: Setup::DataType.to_s, inverse_of: nil
     belongs_to :translator, class_name: Setup::Translator.to_s, inverse_of: nil
 
-    field :file, type: String
-    field :data, type: String
-
     validates_presence_of :translator
-
-    #TODO Validate presence of one of data or file
 
     rails_admin do
       visible false
@@ -33,6 +28,8 @@ module Forms
             bindings[:form].file_field(self.name, self.html_attributes.reverse_merge(data: { fileupload: true }))
           end
         end
+
+        field :decompress_content
 
         field :data do
           html_attributes do
