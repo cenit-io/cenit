@@ -31,8 +31,14 @@ module Cenit
       app.secret_token
     end
 
+    def send_data(*args)
+      fail 'Double-rendering' if done?
+      @render_called = true
+      controller.send_data(*args)
+    end
+
     def render(*args)
-      fail 'Re-calling render' if render_called?
+      fail 'Re-calling render' if done?
       @render_called = true
       controller.render(*args)
     end
@@ -47,6 +53,7 @@ module Cenit
 
     def redirect_to(*args)
       fail 'Re-calling redirect_to' if redirect_to_called?
+      fail 'Double-rendering' if done?
       @redirect_to_called = true
       if URI.parse(path = args.first).relative?
         path = "#{base_path}/#{path}".gsub(/\/+/, '/')
