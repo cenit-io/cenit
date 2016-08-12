@@ -11,10 +11,10 @@ class Hash
     each_pair do |key, value|
       yield(self, key, value)
       case value
-        when Hash
-          value.each_deep_pair(&block)
-        when Array
-          value.each { |sub_value| sub_value.each_deep_pair(&block) if sub_value.is_a?(Hash) }
+      when Hash
+        value.each_deep_pair(&block)
+      when Array
+        value.each { |sub_value| sub_value.each_deep_pair(&block) if sub_value.is_a?(Hash) }
       end
     end if block_given?
   end
@@ -24,11 +24,12 @@ end
 class String
   def to_title
     self.
-        gsub(/([A-Z])(\d)/, '\1 \2').
-        gsub(/([a-z])(\d|[A-Z])/, '\1 \2').
-        gsub(/(\d)([a-z]|[A-Z])/, '\1 \2').
-        tr('_', ' ').
-        tr('-', ' ')
+      gsub(/([A-Z])(\d)/, '\1 \2').
+      gsub(/([a-z])(\d|[A-Z])/, '\1 \2').
+      gsub(/(\d)([a-z]|[A-Z])/, '\1 \2').
+      tr('_', ' ').
+      tr('-', ' ').
+      capitalize
   end
 end
 
