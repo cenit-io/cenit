@@ -8,12 +8,13 @@ module Setup
                             :shared_version,
                             :authors,
                             :summary,
+                            :category,
                             :pull_parameters,
                             :dependencies,
                             :readme,
                             :pull_data,
                             :data,
-                            :swagger_scpec,
+                            :swagger_spec,
                             *COLLECTING_PROPERTIES).referenced_by(:name, :shared_version)
 
     deny :new, :translator_update, :convert, :send_to_flow, :copy, :delete_all
