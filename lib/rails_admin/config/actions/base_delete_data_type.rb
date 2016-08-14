@@ -24,6 +24,7 @@ module RailsAdmin
               end
             if params[:delete] # DELETE
               data_types.each { |data_type| @auditing_adapter.delete_object(data_type, @abstract_model, _current_user) } if @auditing_adapter
+              data_types.each(&:destroy)
               redirect_to back_or_index
             else
               @object = Object.new
