@@ -21,7 +21,7 @@ module RailsAdmin
           proc do
 
             form_config = RailsAdmin::Config.model(Forms::ImportSchema)
-            if params[:_save] && message = params[form_config.abstract_model.param_key]
+            if params[:_save] && (message = params[form_config.abstract_model.param_key])
               do_flash_process_result Setup::SchemasImport.process(message)
               redirect_to back_or_index
             else

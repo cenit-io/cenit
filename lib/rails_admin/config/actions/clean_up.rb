@@ -25,12 +25,15 @@ module RailsAdmin
                 Setup::Collection,
                 Setup::Namespace,
                 Setup::DataTypeConfig,
+                Setup::FlowConfig,
+                Setup::ConnectionConfig,
                 Setup::Pin,
                 Setup::Binding,
                 Setup::ParameterConfig,
                 Setup::Notification,
                 Setup::Storage,
-                Setup::Task
+                Setup::Task,
+                Setup::OauthAccessGrant
               ].each(&:clean_up)
               redirect_to dashboard_path
             else
