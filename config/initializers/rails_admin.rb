@@ -339,6 +339,19 @@ RailsAdmin.config do |config|
       group :config
     end
 
+    edit do
+      field :image
+      field :logo_background, :color
+      field :name
+      field :shared_version
+      field :summary
+      field :category
+      field :authors
+      field :pull_count
+      field :pull_parameters
+      field :dependencies
+    end
+
     show do
       field :image
       field :name do

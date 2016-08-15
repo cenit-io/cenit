@@ -35,10 +35,23 @@ module RailsAdmin
               data_type_selector = nil if data_type_selector.is_a?(Setup::BuildInDataType)
               if (data = params[selector_config.abstract_model.param_key])
                 translator = Setup::Translator.where(id: data[:translator_id]).first
+                decompress = data[:decompress_content].to_b
                 if (@form_object = Forms::ImportTranslator.new(translator: translator, data_type: data_type_selector, file: (file = data[:file]), data: (data = data[:data]))).valid?
                   begin
-                    do_flash_process_result Setup::DataImport.process(translator_id: translator.id, data_type_id: model.data_type.id, data: file.read) if file.present?
-                    do_flash_process_result Setup::DataImport.process(translator_id: translator.id, data_type_id: model.data_type.id, data: data) if data.present?
+                    msg =
+                      {
+                        translator_id: translator.id,
+                        data_type_id: model.data_type.id,
+                        decompress_content: decompress,
+                        data: if file.present?
+                                file
+                              elsif data.present?
+                                data
+                              else
+                                nil
+                              end
+                      }
+                    do_flash_process_result Setup::DataImport.process(msg) if msg[:data]
                     render_form = false
                   rescue Exception => ex
                     flash[:error] = ex.message
