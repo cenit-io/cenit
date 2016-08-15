@@ -1,6 +1,7 @@
 require 'rails_admin/config'
 require 'rails_admin/main_controller'
 require 'rails_admin/config/fields/types/carrierwave'
+require 'rails_admin/config/fields/types/file_upload'
 require 'rails_admin/adapters/mongoid'
 require 'rails_admin/lib/mongoff_abstract_model'
 
@@ -433,6 +434,27 @@ module RailsAdmin
               I18n.l(time, format: strftime_format)
             else
               ''.html_safe
+            end
+          end
+        end
+
+        class FileUpload
+
+          register_instance_option :pretty_value do
+            if value.presence
+              v = bindings[:view]
+              url = resource_url
+              if image
+                thumb_url = resource_url(thumb_method)
+                logo_background = bindings[:object].try(:logo_background)
+                image_html = v.image_tag(thumb_url, class: logo_background ? 'logo' : 'img-thumbnail')
+                if logo_background
+                  image_html = "<div style=\"background-color:##{logo_background}\">#{image_html}</div>".html_safe
+                end
+                url != thumb_url ? v.link_to(image_html, url, target: '_blank') : image_html
+              else
+                v.link_to(nil, url, target: '_blank')
+              end
             end
           end
         end
