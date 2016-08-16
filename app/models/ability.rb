@@ -11,8 +11,6 @@ class Ability
     can :access, :rails_admin
 
     if (@user = user)
-      cannot :inspect, Account unless user.super_admin?
-
       can [:show, :edit], Account, id: user.account_id
       can [:show, :edit], User, id: user.id
 
@@ -36,6 +34,8 @@ class Ability
         can(:destroy, ApplicationId) do |app_id|
           app_id.app.nil?
         end
+        can :inspect, [User, Account]
+        can :pull_up, Setup::Collection
       else
         cannot :access, [Setup::SharedName, Setup::DelayedMessage, Setup::SystemNotification]
         cannot :destroy, [Setup::SharedCollection, Setup::Storage]
@@ -63,18 +63,22 @@ class Ability
           non_root = []
           RailsAdmin::Config::Actions.all.each do |action|
             unless action.root?
+              non_root << action
               if (models = action.only)
                 models = [models] unless models.is_a?(Enumerable)
                 allowed_hash[action.authorization_key].merge(models)
-              else
-                non_root << action
               end
             end
           end
           Setup::Models.each_excluded_action do |model, excluded_actions|
             non_root.each do |action|
               models = allowed_hash[key = action.authorization_key]
-              models << model if relevant_rules_for_match(action.authorization_key, model).empty? && !(excluded_actions.include?(:all) || excluded_actions.include?(action.key))
+              denied = (excluded_actions.include?(:all) || excluded_actions.include?(action.key))
+              if relevant_rules_for_match(action.authorization_key, model).empty? && !denied
+                models << model
+              elsif denied
+                models.delete(model)
+              end
             end
           end
           Setup::Models.each_included_action do |model, included_actions|
@@ -170,7 +174,7 @@ class Ability
 
     else
       can [:dashboard, :shared_collection_index]
-      can [:index, :show, :grid, :pull, :simple_export], [Setup::SharedCollection]
+      can [:index, :show, :pull, :simple_export], [Setup::SharedCollection, Setup::CrossSharedCollection]
       can :index, Setup::Models.all.to_a
     end
   end
