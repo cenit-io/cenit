@@ -45,7 +45,8 @@
   RailsAdmin::Config::Actions::Play,
   RailsAdmin::Config::Actions::PullImport,
   RailsAdmin::Config::Actions::State,
-  RailsAdmin::Config::Actions::Documentation
+  RailsAdmin::Config::Actions::Documentation,
+  RailsAdmin::Config::Actions::PullUp
 ].each { |a| RailsAdmin::Config::Actions.register(a) }
 
 RailsAdmin::Config::Actions.register(:export, RailsAdmin::Config::Actions::BulkExport)
@@ -145,6 +146,7 @@ RailsAdmin.config do |config|
     build_gem
     pull
     bulk_pull
+    pull_up
     download_file
     process_flow
     authorize
@@ -238,6 +240,7 @@ RailsAdmin.config do |config|
     weight 000
     label 'Cross Shared Collection'
     navigation_label 'Collections'
+    object_label_method :versioned_name
 
     visible { Account.current_super_admin? }
 
@@ -3119,6 +3122,22 @@ RailsAdmin.config do |config|
     end
 
     fields :translator, :data, :description, :scheduler, :attempts_succeded, :retries, :progress, :status, :notifications, :updated_at
+  end
+
+  config.model Setup::PullUp do
+    navigation_label 'Monitors'
+    visible false
+    object_label_method { :to_s }
+
+    configure :attempts_succeded, :text do
+      label 'Attempts/Succedded'
+    end
+
+    edit do
+      field :description
+    end
+
+    fields :source_collection, :shared_collection, :description, :attempts_succeded, :retries, :progress, :status, :notifications, :updated_at
   end
 
   config.model Setup::PullImport do

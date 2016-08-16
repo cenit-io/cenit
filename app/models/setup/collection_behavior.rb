@@ -60,6 +60,16 @@ module Setup
 
     NO_DATA_FIELDS = %w(name readme)
 
+    def collecting_data
+      hash = {}
+      COLLECTING_PROPERTIES.each do |property|
+        if (items = send(property).collect(&:share_hash)).present?
+          hash[property] = items
+        end
+      end
+      hash
+    end
+
     def add_dependencies
       return true unless @add_dependencies
       @warnings = nil

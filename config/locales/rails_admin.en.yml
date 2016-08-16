@@ -129,6 +129,13 @@ en:
         submit: "Pull import"
         done: "pulled"
         doing: "pull import"
+      pull_up:
+        title: "Pull up"
+        menu: "Pull up"
+        breadcrumb: "Pull up"
+        submit: "Pull up"
+        done: "pull upped"
+        doing: "pull upping"
       submit:
         title: "Submit"
         menu: "Submit"
