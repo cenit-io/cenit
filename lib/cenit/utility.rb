@@ -99,31 +99,31 @@ module Cenit
 
         if references.present?
           references.each do |obj, to_bind|
-              to_bind.each do |property_name, property_binds|
-                is_array = property_binds.is_a?(Array) ? true : (property_binds = [property_binds]; false)
-                property_binds.each do |property_bind|
-                  if (value = Cenit::Utility.find_record(property_bind[:criteria], obj.orm_model.property_model(property_name)))
-                    if is_array
-                      unless (association = obj.send(property_name)).include?(value)
-                        association << value
-                      end
-                    else
-                      obj.send("#{property_name}=", value)
+            to_bind.each do |property_name, property_binds|
+              is_array = property_binds.is_a?(Array) ? true : (property_binds = [property_binds]; false)
+              property_binds.each do |property_bind|
+                if (value = Cenit::Utility.find_record(property_bind[:criteria], obj.orm_model.property_model(property_name)))
+                  if is_array
+                    unless (association = obj.send(property_name)).include?(value)
+                      association << value
                     end
-                  elsif !options[:skip_error_report]
-                    message = "#{property_bind[:model]} reference not found with criteria #{property_bind[:criteria].to_json}"
-                    obj.errors.add(property_name, message)
-                    # TODO Report errors to parents
-                    # message = "#{obj.class} on attribute #{property_name} #{message}"
-                    # stack.reverse_each do |node|
-                    #   message = "#{node[:record].class} '#{node[:record].name}' on attribute #{node[:attribute]} -> #{message}"
-                    #   node[:record].errors.add(node[:attribute], message)
-                    # end
+                  else
+                    obj.send("#{property_name}=", value)
                   end
+                elsif !options[:skip_error_report]
+                  message = "#{property_bind[:model]} reference not found with criteria #{property_bind[:criteria].to_json}"
+                  obj.errors.add(property_name, message)
+                  # TODO Report errors to parents
+                  # message = "#{obj.class} on attribute #{property_name} #{message}"
+                  # stack.reverse_each do |node|
+                  #   message = "#{node[:record].class} '#{node[:record].name}' on attribute #{node[:attribute]} -> #{message}"
+                  #   node[:record].errors.add(node[:attribute], message)
+                  # end
                 end
               end
             end
           end
+        end
         record.errors.blank?
       end
 
@@ -327,20 +327,37 @@ module Cenit
         uri.to_s
       end
 
-      def eql_content?(a, b)
+      def eql_content?(a, b, &block)
         case a
         when Hash
-          return false unless b.is_a?(Hash) && a.size == b.size
-          a.each do |key, value|
-            return false unless eql_content?(value, b[key])
+          if b.is_a?(Hash)
+            if a.size < b.size
+              a, b = b, a
+            end
+            a.each do |key, value|
+              return false unless eql_content?(value, b[key], &block)
+            end
+          else
+            return block && block.call(a, b)
           end
         when Array
-          return false unless b.is_a?(Array) && a.length == b.length
-          a.each do |a_value|
-            return false unless b.any? { |b_value| eql_content?(a_value, b_value) }
+          if b.is_a?(Array) && a.length == b.length
+            a = a.dup
+            b = b.dup
+            until a.empty?
+              a_value = a.shift
+              b_len = b.length
+              b.delete_if { |b_value| eql_content?(a_value, b_value, &block) }
+              if b.length < b_len
+                a.delete_if { |value| eql_content?(a_value, value, &block) }
+              end
+              return false unless a.length == b.length
+            end
+          else
+            return block && block.call(a, b)
           end
         else
-          return a.eql?(b)
+          return a.eql?(b) || (block && block.call(a, b))
         end
         true
       end
