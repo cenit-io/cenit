@@ -51,6 +51,7 @@ module Setup
 
         # Check #object property
         if properties.has_key?('object')
+          obj_property = 'object'
           new_properties = {}
           properties.keys.each do |property|
             property_schema = properties.delete(property)
@@ -61,10 +62,16 @@ module Setup
                 property = "obj_#{c += 1}"
               end
               property_schema['edi'] = { 'segment' => 'object' }
+              obj_property = property
             end
             new_properties[property] = property_schema
           end
           new_properties.each { |property, schema| properties[property] = schema }
+          %w(required protected).each do |modifier_key|
+            if (modifier = object_schema[modifier_key]) && modifier.delete('object')
+              modifier << obj_property
+            end
+          end
         end
 
         # Check recursively
