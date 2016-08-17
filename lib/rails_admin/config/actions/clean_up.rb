@@ -19,22 +19,7 @@ module RailsAdmin
         register_instance_option :controller do
           proc do
             if params[:delete] # DELETE
-              Setup::DataType.each(&:clean_up)
-              Setup::Collection.reflect_on_all_associations(:has_and_belongs_to_many).each { |relation| relation.klass.clean_up }
-              [
-                Setup::Collection,
-                Setup::Namespace,
-                Setup::DataTypeConfig,
-                Setup::FlowConfig,
-                Setup::ConnectionConfig,
-                Setup::Pin,
-                Setup::Binding,
-                Setup::ParameterConfig,
-                Setup::Notification,
-                Setup::Storage,
-                Setup::Task,
-                Setup::OauthAccessGrant
-              ].each(&:clean_up)
+              Account.current.each_cenit_collection(&:drop)
               redirect_to dashboard_path
             else
               @object = Setup::Collection.new

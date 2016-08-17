@@ -1218,7 +1218,7 @@ RailsAdmin.config do |config|
     end
 
     list do
-      field :title
+      field :namespace
       field :name
       field :slug
       field :_type
@@ -1236,8 +1236,9 @@ RailsAdmin.config do |config|
     end
 
     show do
-      field :title
+      field :namespace
       field :name
+      field :title
       field :slug
       field :_type
       field :storage_size
@@ -1291,8 +1292,8 @@ RailsAdmin.config do |config|
 
     configure :storage_size, :decimal do
       pretty_value do
-        if objects = bindings[:controller].instance_variable_get(:@objects)
-          unless max = bindings[:controller].instance_variable_get(:@max_storage_size)
+        if (objects = bindings[:controller].instance_variable_get(:@objects))
+          unless (max = bindings[:controller].instance_variable_get(:@max_storage_size))
             bindings[:controller].instance_variable_set(:@max_storage_size, max = objects.collect { |data_type| data_type.storage_size }.max)
           end
           (bindings[:view].render partial: 'size_bar', locals: { max: max, value: bindings[:object].records_model.storage_size }).html_safe
@@ -1341,13 +1342,12 @@ RailsAdmin.config do |config|
 
     list do
       field :namespace
-      field :title
       field :name
       field :slug
       field :used_memory do
         visible { Cenit.dynamic_model_loading? }
         pretty_value do
-          unless max = bindings[:controller].instance_variable_get(:@max_used_memory)
+          unless (max = bindings[:controller].instance_variable_get(:@max_used_memory))
             bindings[:controller].instance_variable_set(:@max_used_memory, max = Setup::JsonDataType.fields[:used_memory.to_s].type.new(Setup::JsonDataType.max(:used_memory)))
           end
           (bindings[:view].render partial: 'used_memory_bar', locals: { max: max, value: Setup::JsonDataType.fields[:used_memory.to_s].type.new(value) }).html_safe
@@ -1457,7 +1457,7 @@ RailsAdmin.config do |config|
     end
 
     list do
-      field :title
+      field :namespace
       field :name
       field :slug
       field :validators
