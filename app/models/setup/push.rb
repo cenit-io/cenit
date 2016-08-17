@@ -1,5 +1,5 @@
 module Setup
-  class PullUp < Setup::Task
+  class Push < Setup::Task
     include Setup::DataUploader
     include HashField
 

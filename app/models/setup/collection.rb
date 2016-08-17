@@ -3,7 +3,7 @@ module Setup
     include CenitScoped
     include CollectionBehavior
 
-    deny :pull_up
+    deny :push
 
     image_with AccountImageUploader
 

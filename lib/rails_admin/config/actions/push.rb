@@ -1,7 +1,7 @@
 module RailsAdmin
   module Config
     module Actions
-      class PullUp < RailsAdmin::Config::Actions::Base
+      class Push < RailsAdmin::Config::Actions::Base
 
         register_instance_option :visible do
           authorized? && Setup::CrossSharedCollection.where(name: bindings[:object].name, installed: false).exists?
@@ -26,8 +26,8 @@ module RailsAdmin
             if (data = params[form_config.abstract_model.param_key]) && data.permit! &&
               (@form_object = Forms::SharedCollectionSelector.new(data)).valid?
               begin
-                do_flash_process_result Setup::PullUp.process(source_collection_id: @object.id,
-                                                              shared_collection_id: @form_object.shared_collection_id)
+                do_flash_process_result Setup::Push.process(source_collection_id: @object.id,
+                                                            shared_collection_id: @form_object.shared_collection_id)
                 done =true
               rescue Exception => ex
                 flash[:error] = ex.message

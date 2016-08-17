@@ -46,7 +46,7 @@
   RailsAdmin::Config::Actions::PullImport,
   RailsAdmin::Config::Actions::State,
   RailsAdmin::Config::Actions::Documentation,
-  RailsAdmin::Config::Actions::PullUp
+  RailsAdmin::Config::Actions::Push
 ].each { |a| RailsAdmin::Config::Actions.register(a) }
 
 RailsAdmin::Config::Actions.register(:export, RailsAdmin::Config::Actions::BulkExport)
@@ -146,7 +146,7 @@ RailsAdmin.config do |config|
     build_gem
     pull
     bulk_pull
-    pull_up
+    push
     download_file
     process_flow
     authorize
@@ -3124,7 +3124,7 @@ RailsAdmin.config do |config|
     fields :translator, :data, :description, :scheduler, :attempts_succeded, :retries, :progress, :status, :notifications, :updated_at
   end
 
-  config.model Setup::PullUp do
+  config.model Setup::Push do
     navigation_label 'Monitors'
     visible false
     object_label_method { :to_s }

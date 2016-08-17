@@ -35,7 +35,7 @@ class Ability
           app_id.app.nil?
         end
         can :inspect, [User, Account]
-        can :pull_up, Setup::Collection
+        can :push, Setup::Collection
       else
         cannot :access, [Setup::SharedName, Setup::DelayedMessage, Setup::SystemNotification]
         cannot :destroy, [Setup::SharedCollection, Setup::Storage]
