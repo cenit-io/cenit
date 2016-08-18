@@ -5,6 +5,7 @@
   object_id ||= nil
   options ||= {}
   options_key ||= {}
+  pull_anyway ||= false
 
   missing_parameters = pull_request[:missing_parameters] || []
   pull_parameters = pull_request[:pull_parameters] || {}
@@ -91,16 +92,11 @@
       %h4=  t('admin.actions.pull.uptodate_data').html_safe
   .form-group.form-actions
   .col-sm-offset-2.col-sm-10
-    - if uptodate
-      %span.extra_buttons
-        %button.btn{type: 'submit', name: '_ok', :'data-disable-with' => t('admin.form.ok')}
-          %i.icon-ok
-          = t('admin.form.ok')
-    - else
+    - if !uptodate || pull_anyway
       %button.btn.btn-primary{type: 'submit', name: '_pull', :'data-disable-with' => t('admin.actions.pull.submit')}
         %i{class: 'icon-arrow-down'}
         = t('admin.actions.pull.submit')
-      %span.extra_buttons
-        %button.btn{type: 'submit', name: '_continue', :'data-disable-with' => t('admin.form.cancel')}
-          %i.icon-remove
-          = t('admin.form.cancel')
+    %span.extra_buttons
+      %button.btn{type: 'submit', name: '_continue', :'data-disable-with' => uptodate ? t('admin.form.ok') : t('admin.form.cancel')}
+        %i{class: "icon-#{uptodate ? 'ok' : 'remove'}"}
+        = uptodate ? t('admin.form.ok') : t('admin.form.cancel')

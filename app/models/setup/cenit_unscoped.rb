@@ -24,7 +24,8 @@ module Setup
         {
           ignore: [:id],
           include_blanks: true,
-          protected: true
+          protected: true,
+          polymorphic: true
         }
       end
 
