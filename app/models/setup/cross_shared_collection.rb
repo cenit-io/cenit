@@ -101,12 +101,7 @@ module Setup
     end
 
     def generate_data
-      hash = {}
-      COLLECTING_PROPERTIES.each do |property|
-        if (items = send(property).collect(&:share_hash)).present?
-          hash[property] = items
-        end
-      end
+      hash = collecting_data
       hash = pull_data.merge(hash)
       hash.delete('readme')
       hash

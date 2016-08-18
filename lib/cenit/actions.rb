@@ -53,7 +53,10 @@ module Cenit
                     record_hash['_type'] = record.class.to_s unless record_hash['_type']
                   end
                   record_hash.reject! { |key, _| !item.has_key?(key) }
-                  if Cenit::Utility.eql_content?(record_hash, item)
+                  invariant = Cenit::Utility.eql_content?(record_hash, item) do |record_value, item_value|
+                    (record_value.nil? && item_value.blank?) || (item_value.nil? && record_value.blank?)
+                  end
+                  if invariant
                     invariant_names << ref_criteria
                     invariant_on_collection += 1 if on_collection
                     item = ref_criteria

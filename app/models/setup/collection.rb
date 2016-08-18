@@ -3,10 +3,11 @@ module Setup
     include CenitScoped
     include CollectionBehavior
 
+    deny :push
+
     image_with AccountImageUploader
 
     unique_name
-
 
     embeds_many :data, class_name: Setup::CollectionData.to_s, inverse_of: :setup_collection #TODO Include Data data types on dependencies
 

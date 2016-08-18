@@ -79,7 +79,20 @@ class Account
     owner && owner.sealed?
   end
 
+  def time_zone_enum
+    ActiveSupport::TimeZone.all.collect { |e| "#{e.name} | #{e.formatted_offset}" }
+  end
+
+  def cenit_collections_names
+    self.class.cenit_collections_names(self)
+  end
+
+  def each_cenit_collection(&block)
+    self.class.each_cenit_collection(self, &block)
+  end
+
   class << self
+
     def current
       Thread.current[:current_account]
     end
@@ -138,11 +151,19 @@ class Account
     def data_type_collection_name(data_type)
       tenant_collection_name(data_type.data_type_name)
     end
+
+    def cenit_collections_names(account = current)
+      db_name = Mongoid.default_client.database.name
+      Mongoid.default_client[:'system.namespaces']
+        .find(name: Regexp.new("\\A#{db_name}.#{tenant_collection_prefix(account: account)}_[^$]+\\Z"))
+        .collect { |doc| doc['name'] }
+        .collect { |name| name.gsub(Regexp.new("\\A#{db_name}\."), '') }
+    end
+
+    def each_cenit_collection(account = current, &block)
+      cenit_collections_names(account).each do |collection_name|
+        block.call(Mongoid.default_client[collection_name.to_sym])
+      end
+    end
   end
-
-
-  def time_zone_enum
-    ActiveSupport::TimeZone.all.collect { |e| "#{e.name} | #{e.formatted_offset}" }
-  end
-
 end

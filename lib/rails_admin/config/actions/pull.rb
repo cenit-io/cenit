@@ -26,7 +26,7 @@ module RailsAdmin
             @pull_request = Cenit::Actions.pull_request(@object, pull_parameters: params[:pull_parameters])
             if @pull_request[:missing_parameters].blank? && params[:_pull]
               @pull_request[:install] = params[:install].to_b if User.current_super_admin? && User.current_installer?
-              @pull_request = Cenit::Actions.pull(@object, @pull_request) if @pull_request[:collection_data].present?
+              @pull_request = Cenit::Actions.pull(@object, @pull_request) if @pull_request[:install] || @pull_request[:collection_data].present?
               if (errors = @pull_request[:errors]).blank?
                 if (errors = @pull_request[:fixed_errors])
                   do_flash(:notice, t('admin.actions.pull.fixed_errors_header'), errors)
@@ -57,7 +57,10 @@ module RailsAdmin
                   options: @options,
                   options_key: @options_key
                 }
-              locals[:before_form_partials] = :install_option if User.current_super_admin? && !@object.installed?
+              if User.current_super_admin? && !@object.installed?
+                locals[:before_form_partials] = :install_option
+                locals[:pull_anyway] = User.current_installer?
+              end
               render :pull, locals: locals
             end
           end
