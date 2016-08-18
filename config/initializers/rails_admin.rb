@@ -2507,7 +2507,7 @@ RailsAdmin.config do |config|
     navigation_label 'Compute'
     weight 420
     object_label_method { :custom_title }
-    visible { Account.current_super_admin? }
+    visible
     configure :identifier
     configure :registered, :boolean
 
