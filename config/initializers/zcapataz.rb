@@ -17,7 +17,7 @@ Capataz.config do
                     Spreadsheet, Spreadsheet::Workbook, Setup::Authorization, Setup::Connection, Devise, Cenit, JWT, Setup::XsltValidator, Setup::Translator,
                     Setup::Flow
 
-  allow_on Cenit, [:homepage]
+  allow_on Cenit, [:homepage, :namespace]
 
   allow_on JWT, [:encode, :decode]
 
