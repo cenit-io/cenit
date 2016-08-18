@@ -18,6 +18,7 @@ module Setup
         if (shared_collection = Setup::CrossSharedCollection.where(id: (shared_collection_id = message[:shared_collection_id])).first)
           fail "Can not pull up on an installed shared collection #{shared_collection.versioned_name}" if shared_collection.installed?
           begin
+            shared_collection.readme = source_collection.readme
             shared_collection.data = source_collection.collecting_data
             fail shared_collection.errors.full_messages.to_sentence unless shared_collection.save
           rescue ::Exception => ex
