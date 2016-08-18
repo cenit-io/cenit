@@ -201,8 +201,7 @@ module Setup
       schema =
           {
               type: 'object',
-              properties: properties = {
-              }.stringify_keys,
+              properties: properties = {},
               required: parameters.select(&:required).collect(&:name)
           }
       parameters.each { |p| properties[p.name] = p.schema }

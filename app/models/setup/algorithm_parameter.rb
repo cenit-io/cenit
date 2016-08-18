@@ -70,7 +70,7 @@ module Setup
         sch[:default] = default || DEFAULTS[type]
       end
       sch = (many ? { type: 'array', items: sch } : sch)
-      sch[:referenced] = true unless %w(integer number boolean string object).include?(type)
+      sch[:referenced] = true unless type.blank? || %w(integer number boolean string object).include?(type)
       sch.stringify_keys
     end
   end
