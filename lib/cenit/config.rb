@@ -70,5 +70,8 @@ module Cenit
       end
     end
 
+    def namespace(name)
+      Setup::Namespace.where(name: name).first
+    end
   end
 end
