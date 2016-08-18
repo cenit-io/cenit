@@ -369,7 +369,7 @@ module Setup
       0.step(max, limit) do |offset|
         next unless connections_present
         verbose_response =
-          webhook.with(connection_role).and(authorization).submit ->(template_parameters) {
+          webhook.target.with(connection_role).and(authorization).submit ->(template_parameters) {
             translation_options =
               {
                 object_ids: object_ids,

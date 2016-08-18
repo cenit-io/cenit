@@ -90,9 +90,9 @@ module Edi
       [tokens.join(':'), name]
     end
 
-    def ns_for(ns, namespaces)
+    def ns_prefix_for(ns, namespaces, preferred = nil)
       letters = true
-      ns = ns.split(':').last.split('/').last.underscore.split('_').collect { |token| (letters &&= token[0] =~ /[[:alpha:]]/) ? token[0] : '' }.join
+      ns = preferred || ns.split(':').last.split('/').last.underscore.split('_').collect { |token| (letters &&= token[0] =~ /[[:alpha:]]/) ? token[0] : '' }.join
       ns = 'ns' if ns.blank?
       if namespaces.values.include?(ns)
         i = 1
@@ -108,13 +108,19 @@ module Edi
       return unless record
       return Nokogiri::XML({ enclosed_property_name => record }.to_xml(dasherize: false)).root.first_element_child if Cenit::Utility.json_object?(record)
 
+      if schema['xml'] && (xmlnss = schema['xml']['xmlns']).is_a?(Hash)
+        xmlnss.each do |ns, xmlns|
+          namespaces[ns] = ns_prefix_for(ns, namespaces, xmlns) unless namespaces.has_key?(ns)
+        end
+      end
+
       element_name = schema['edi']['segment'] if schema['edi']
       element_name ||= enclosed_property_name || record.orm_model.data_type.name
       ns, element_name = split_name(element_name)
-      unless xmlns = namespaces[ns]
+      unless (xmlns = namespaces[ns])
         xmlns = namespaces[ns] =
           if namespaces.values.include?('')
-            ns_for(ns, namespaces)
+            ns_prefix_for(ns, namespaces)
           else
             ''
           end
@@ -131,7 +137,7 @@ module Edi
         name = property_schema['edi']['segment'] if property_schema['edi']
         name ||= property_name
         property_model = record.orm_model.property_model(property_name)
-        if inspecting = options[:inspecting].present? #TODO Factorize for all format formatting
+        if (inspecting = options[:inspecting].present?) #TODO Factorize for all format formatting
           next unless (property_model || inspecting.include?(name.to_sym))
         else
           next if property_schema['virtual'] ||
