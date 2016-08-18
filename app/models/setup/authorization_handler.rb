@@ -42,7 +42,7 @@ module Setup
     def inject_template_parameters(hash)
       using_authorization.each_template_parameter do |key, value|
         hash[key] = value unless hash.has_key?(key) && authorization_handler
-      end if authorization
+      end if using_authorization
     end
 
     def with(options)
