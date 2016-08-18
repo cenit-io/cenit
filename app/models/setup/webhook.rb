@@ -83,9 +83,6 @@ module Setup
         common_submitter_body = (body_caller = body_argument.respond_to?(:call)) ? nil : body_argument
         common_template_parameters = nil
         connections.each do |connection|
-          if (auth = using_authorization)
-            connection = connection.with(auth)
-          end
           template_parameters = template_parameters_hash.dup
           template_parameters.reverse_merge!(connection.template_parameters_hash)
           submitter_body =
