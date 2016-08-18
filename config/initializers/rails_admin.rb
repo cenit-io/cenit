@@ -353,6 +353,7 @@ RailsAdmin.config do |config|
       field :pull_count
       field :pull_parameters
       field :dependencies
+      field :readme
     end
 
     show do
