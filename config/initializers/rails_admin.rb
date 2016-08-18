@@ -1658,7 +1658,6 @@ RailsAdmin.config do |config|
       field :name
       field :webhooks
       field :connections
-      field :updated_at
     end
 
     fields :namespace, :name, :webhooks, :connections, :updated_at
