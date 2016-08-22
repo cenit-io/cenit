@@ -42,6 +42,29 @@ module Setup
       def bind_before_save
         before_save :bind_bindings
       end
+
+      def where(expression)
+        ids = Set.new
+        if expression.is_a?(Hash)
+          binds.each do |metadata|
+            c_str = expression.delete(metadata.name.to_s)
+            c_sym = expression.delete(metadata.name.to_sym)
+            if (c = c_sym || c_str).is_a?(metadata.klass)
+              ids.merge Setup::Binding.where(Setup::Binding.bind_id(metadata.klass) => c.id).collect(&Setup::Binding.binder_id(self).to_sym)
+            end
+            c_str = expression.delete(metadata.foreign_key.to_s)
+            c_sym = expression.delete(metadata.foreign_key.to_sym)
+            if (c = c_sym || c_str)
+              ids.merge Setup::Binding.where(Setup::Binding.bind_id(metadata.klass) => c).collect(&Setup::Binding.binder_id(self).to_sym)
+            end
+          end
+        end
+        q = super
+        if ids.present?
+          q = q.where(:id.in => ids.to_a)
+        end
+        q
+      end
     end
   end
 end
