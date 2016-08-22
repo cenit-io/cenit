@@ -5,7 +5,7 @@ module RailsAdmin
         class HtmlErb < RailsAdmin::Config::Fields::Types::Text
 
           register_instance_option :pretty_value do
-            template = value.gsub('&lt;%', '<%').gsub('%&gt;', '%>').gsub('%3C%', '<%').gsub('%%3E', '%>')
+            template = value.to_s.gsub('&lt;%', '<%').gsub('%&gt;', '%>').gsub('%3C%', '<%').gsub('%%3E', '%>')
             output =
               begin
                 Setup::Transformation::ActionViewTransform.run(transformation: template,
