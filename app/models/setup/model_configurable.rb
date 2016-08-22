@@ -54,17 +54,23 @@ module Setup
       end
 
       def where(expression)
-        if expression.is_a?(Hash) && config_model.config_fields.any? { |field| expression.has_key?(field.to_sym) || expression.has_key?(field) }
+        ids = nil
+        if expression.is_a?(Hash)
           config_options = {}
           config_model.config_fields.each do |field|
             if expression.has_key?(key = field.to_sym) || expression.has_key?(key = field)
               config_options[field] = expression.delete(key)
             end
           end
-          super.any_in(id: config_model.where(config_options).collect { |config| config[foreign_key] })
-        else
-          super
+          if config_options.present?
+            ids = config_model.where(config_options).collect { |config| config[foreign_key] }
+          end
         end
+        q = super
+        if ids.present?
+          q = q.where(:id.in => ids)
+        end
+        q
       end
 
       def clear_config_for(account, ids)
