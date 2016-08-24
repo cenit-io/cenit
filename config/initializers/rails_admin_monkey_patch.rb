@@ -1,5 +1,6 @@
 require 'rails_admin/config'
 require 'rails_admin/main_controller'
+require 'rails_admin/application_controller'
 require 'rails_admin/config/fields/types/carrierwave'
 require 'rails_admin/config/fields/types/file_upload'
 require 'rails_admin/adapters/mongoid'
