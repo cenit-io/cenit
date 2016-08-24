@@ -4,7 +4,7 @@ module AccountTokenCommon
   included do
     belongs_to :account, class_name: Account.to_s, inverse_of: nil
 
-    before_create { self.account ||= Account.current }
+    before_create { self.account ||= Account.current_executor }
   end
 
   def set_current_account!
