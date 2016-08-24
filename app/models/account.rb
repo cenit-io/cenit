@@ -93,6 +93,13 @@ class Account
 
   class << self
 
+    def current_executor
+      if (current_account = current)
+        ((user = current_account.owner) && user.super_admin? && current_account.tenant_account) ||
+          current_account
+      end
+    end
+
     def current
       Thread.current[:current_account]
     end
