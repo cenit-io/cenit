@@ -50,73 +50,29 @@ module Enumerable
 
 end
 
-module OpenSSL
-  class Digest
-    class << self
-      def new_sign(*args)
-        args = args.collect { |a| a.capataz_proxy? ? a.capataz_slave : a }
-        new(*args)
-      end
-    end
-    class SHA1
-      def new_sha1(*args)
-        args = args.collect { |a| a.capataz_proxy? ? a.capataz_slave : a }
-        new(*args)
-      end
-    end
-  end
-  module PKey
-    class RSA
-      class << self
-        def new_rsa(*args)
-          args = args.collect { |a| a.capataz_proxy? ? a.capataz_slave : a }
-          new(*args)
-        end
-      end
-    end
-  end
+{
+  OpenSSL::Digest => :new_sign,
+  OpenSSL::Digest::SHA1 => :new_sha1,
+  OpenSSL::PKey::RSA => :new_rsa,
+  OpenSSL::X509::Certificate => :new_certificate,
+  Xmldsig::SignedDocument => new_document,
+  StringIO => :new_io,
+  Spreadsheet::Workbook => :new_workbook,
+  Nokogiri::XML::Builder => :new_builder,
+  MIME::Message => :new_message,
+  MIME::Text => :new_text,
+  MIME::Multipart::Mixed => :new_message
+}.each do |entity, method|
+  entity.class_eval("def self.#{method}(*args)
+    new(*args)
+  end")
 end
 
-module Xmldsig
-  class SignedDocument
-    class << self
-      def new_document(*args)
-        args = args.collect { |a| a.capataz_proxy? ? a.capataz_slave : a }
-        new(*args)
-      end
-    end
-  end
-end
-
-class StringIO
-  class << self
-    def new_io(*args)
-      args = args.collect { |a| a.capataz_proxy? ? a.capataz_slave : a }
-      new(*args)
-    end
-  end
-end
-
-module Spreadsheet
-  class Workbook
-    class << self
-      def new_workbook(*args)
-        args = args.collect { |a| a.capataz_proxy? ? a.capataz_slave : a }
-        new(*args)
-      end
-    end
-  end
-end
 
 module Nokogiri
   module XML
+
     class Builder
-      class << self
-        def new_builder(*args)
-          args = args.collect { |a| a.capataz_proxy? ? a.capataz_slave : a }
-          new(*args)
-        end
-      end
 
       def respond_to?(*args)
         true
@@ -124,11 +80,11 @@ module Nokogiri
 
       class NodeBuilder
         def respond_to?(*args)
-          MIME::Mail.new
           true
         end
       end
     end
+
     class SyntaxError
       def empty?
         false
@@ -140,22 +96,6 @@ end
 require 'mime'
 
 module MIME
-  class Mail
-    class << self
-      def new_message(*args)
-        new(*args)
-      end
-    end
-  end
-
-  class Text
-    class << self
-      def new_text(*args)
-        new(*args)
-      end
-    end
-  end
-
   class Multipart
     class Mixed
 
@@ -177,12 +117,6 @@ module MIME
             end.new(entity.data, subtype, { 'Content-Type' => entity.contentType, 'name' => entity.filename })
         end
         super
-      end
-
-      class << self
-        def new_message(*args)
-          new(*args)
-        end
       end
     end
   end
