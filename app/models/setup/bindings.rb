@@ -61,7 +61,7 @@ module Setup
         end
         q = super
         if ids.present?
-          q = q.where(:id.in => ids.to_a)
+          q = q.and(:id.in => ids.to_a)
         end
         q
       end
