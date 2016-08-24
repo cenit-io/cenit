@@ -49,7 +49,9 @@ Capataz.config do
 
   allow_on OpenSSL::PKey::RSA, [:new_rsa]
 
-  allow_on OpenSSL::Digest::SHA1, [:digest]
+  allow_on OpenSSL::X509::Certificate, [:new_certificate]
+
+  allow_on OpenSSL::Digest::SHA1, [:digest, :new_sha1]
 
   allow_for ActionView::Base, [:escape_javascript, :j]
 
@@ -71,7 +73,14 @@ Capataz.config do
 
   # allow_for [Setup::Raml],  [:id, :name, :slug, :to_json, :to_edi, :to_hash, :to_xml, :to_params, :records_model, :ref_hash, :raml_parse, :build_hash, :map_collection]
 
-  allow_for [Class], [:where, :all, :new_sign, :digest, :now, :data_type, :hexdigest, :id, :new_rsa, :new_document, :sign, :write_buffer, :put_next_entry, :write, :encode64, :decode64, :urlsafe_encode64, :new_io, :get_input_stream, :open] + Setup::Webhook.method_enum
+  allow_for [Class],
+            [
+              :where, :all, :now,
+              :new_sign, :digest, :new_sha1, :hexdigest, :new_rsa, :sign, :new_certificate,
+              :data_type, :id,
+              :write_buffer, :put_next_entry, :write,
+              :encode64, :decode64, :urlsafe_encode64, :new_io, :get_input_stream, :open, :new_document
+            ] + Setup::Webhook.method_enum
 
   allow_for [Mongoid::Criteria, Mongoff::Criteria], Enumerable.instance_methods(false) + Origin::Queryable.instance_methods(false) + [:each, :present?, :blank?]
 

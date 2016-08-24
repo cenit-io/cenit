@@ -59,6 +59,7 @@ end
   StringIO => :new_io,
   Spreadsheet::Workbook => :new_workbook,
   Nokogiri::XML::Builder => :new_builder,
+  MIME::Mail => :new_message,
   MIME::Message => :new_message,
   MIME::Text => :new_text,
   MIME::Multipart::Mixed => :new_message
