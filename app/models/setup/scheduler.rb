@@ -56,7 +56,7 @@ module Setup
     def start
       return unless next_time
       Setup::Task.where(scheduler: self).each do |task|
-        task.retry(action: :scheduled) if AccountToken.where(account: Account.current, task: task).blank?
+        task.retry(action: :scheduled) if AccountToken.where(account: Account.current, task_id: task.id).blank?
       end
       Setup::Flow.where(event: self).each do |flow|
         flow.process(scheduler: self) unless Setup::FlowExecution.where(flow: flow, scheduler: self).present?
