@@ -44,23 +44,25 @@ module Setup
       end
 
       def where(expression)
-        ids = Set.new
+        ids = nil
         if expression.is_a?(Hash)
           binds.each do |metadata|
             c_str = expression.delete(metadata.name.to_s)
             c_sym = expression.delete(metadata.name.to_sym)
             if (c = c_sym || c_str).is_a?(metadata.klass)
+              ids ||= Set.new
               ids.merge Setup::Binding.where(Setup::Binding.bind_id(metadata.klass) => c.id).collect(&Setup::Binding.binder_id(self).to_sym)
             end
             c_str = expression.delete(metadata.foreign_key.to_s)
             c_sym = expression.delete(metadata.foreign_key.to_sym)
             if (c = c_sym || c_str)
+              ids ||= Set.new
               ids.merge Setup::Binding.where(Setup::Binding.bind_id(metadata.klass) => c).collect(&Setup::Binding.binder_id(self).to_sym)
             end
           end
         end
         q = super
-        if ids.present?
+        if ids
           q = q.and(:id.in => ids.to_a)
         end
         q
