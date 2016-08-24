@@ -94,8 +94,10 @@ class Account
   class << self
 
     def current_executor
-      ((user = current.owner) && user.super_admin? && current.tenant_account) ||
-        current
+      if (current_account = current)
+        ((user = current_account.owner) && user.super_admin? && current_account.tenant_account) ||
+          current_account
+      end
     end
 
     def current
