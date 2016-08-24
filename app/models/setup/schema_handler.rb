@@ -49,27 +49,28 @@ module Setup
           required.unshift('_id')
         end
 
-        # Check #object property
-        if properties.has_key?('object')
-          obj_property = 'object'
-          new_properties = {}
-          properties.keys.each do |property|
-            property_schema = properties.delete(property)
-            if property == 'object'
-              c = 1
-              property = 'obj'
-              while new_properties.has_key?(property) || properties.has_key?(property)
-                property = "obj_#{c += 1}"
-              end
-              property_schema['edi'] = { 'segment' => 'object' }
-              obj_property = property
+        # Check property names
+        new_names = {}
+        new_properties = {}
+        properties.keys.each do |property|
+          property_schema = properties.delete(property)
+          new_property = property
+          if property == 'object' || !(property =~ /\A[A-Za-z_]\w*\Z/)
+            c = 1
+            new_property = prefix = (property == 'object') ? 'obj' : to_method_name(property)
+            while new_properties.has_key?(new_property) || properties.has_key?(new_property)
+              new_property = "#{prefix}_#{c += 1}"
             end
-            new_properties[property] = property_schema
+            property_schema['edi'] = { 'segment' => property }
+            new_names[property] = new_property
           end
-          new_properties.each { |property, schema| properties[property] = schema }
-          %w(required protected).each do |modifier_key|
-            if (modifier = object_schema[modifier_key]) && modifier.delete('object')
-              modifier << obj_property
+          new_properties[new_property] = property_schema
+        end
+        new_properties.each { |property, schema| properties[property] = schema }
+        %w(required protected).each do |modifier_key|
+          if (modifier = object_schema[modifier_key])
+            new_names.each do |old_name, new_name|
+              modifier << new_name if modifier.delete(old_name)
             end
           end
         end
@@ -124,6 +125,44 @@ module Setup
     end
 
     private
+
+    def to_method_name(str)
+      {
+        '+' => 'plus',
+        '@' => 'at',
+        '.' => 'dot',
+        '$' => 'dollar',
+        '%' => 'percentage',
+        '?' => 'question',
+        '=' => 'equals',
+        '*' => 'asterisk'
+      }.each do |char, word|
+        str = str.squeeze(char).gsub(char, word)
+      end
+      ch = true
+      while ch && (ch = str[0]) =~ /\W/
+        str = str.from(1)
+        if ch == '-'
+          str = "minus#{str}"
+          ch = false
+        end
+      end
+      ch = true
+      while ch && (ch = str.last) =~ /\W/
+        str = str.to(str.length - 2)
+        if ch == '-'
+          str = "#{str}minus"
+          ch = false
+        end
+      end
+      str = str.squeeze('-').gsub('-', '_')
+      if (str = str.gsub(/\W/, '')).empty?
+        str = '_property'
+      else
+        str = "_#{str}" unless str =~ /\A(_|[A-Za-z])/
+      end
+      str
+    end
 
     def do_merge_schema(schema, options = {})
       if schema.is_a?(Array)
