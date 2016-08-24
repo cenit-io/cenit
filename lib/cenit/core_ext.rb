@@ -58,10 +58,13 @@ module OpenSSL
         new(*args)
       end
     end
+    class SHA1
+      def new_sha1(*args)
+        args = args.collect { |a| a.capataz_proxy? ? a.capataz_slave : a }
+        new(*args)
+      end
+    end
   end
-end
-
-module OpenSSL
   module PKey
     class RSA
       class << self
