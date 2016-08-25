@@ -36,7 +36,10 @@ module RailsAdmin
               if ids.present?
                 criteria = criteria.any_in(id: ids)
               end
-              criteria.with_tracking.cross(origin_data['origin']) do |_, non_tracked_ids|
+              if model < Trackable
+                criteria = criteria.with_tracking
+              end
+              criteria.cross(origin_data['origin']) do |_, non_tracked_ids|
                 if non_tracked_ids.present?
                   Account.each do |account| #TODO Run as a task in the background
                     if account == Account.current
