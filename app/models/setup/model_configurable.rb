@@ -67,7 +67,7 @@ module Setup
           end
         end
         q = super
-        if ids.present?
+        if ids
           q = q.and(:id.in => ids)
         end
         q
