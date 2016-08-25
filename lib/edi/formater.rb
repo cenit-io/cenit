@@ -117,7 +117,8 @@ module Edi
       element_name = schema['edi']['segment'] if schema['edi']
       element_name ||= enclosed_property_name || record.orm_model.data_type.name
       ns, element_name = split_name(element_name)
-      unless (xmlns = namespaces[ns])
+      xmlns = ''
+      unless ns.empty? || (xmlns = namespaces[ns])
         xmlns = namespaces[ns] =
           if namespaces.values.include?('')
             ns_prefix_for(ns, namespaces)
