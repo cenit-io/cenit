@@ -183,58 +183,74 @@ module Api::V1
       data = (JSON.parse(@webhook_body) rescue {}).keep_if { |key, _| %w(email password password_confirmation token code).include?(key) }
       data = data.with_indifferent_access
       data.reverse_merge!(email: params[:email], password: pwd = params[:password], password_confirmation: params[:password_confirmation] || pwd)
-      status = 406
-      response =
-        if (token = data[:token] || params[:token])
-          if (tkaptcha = CaptchaToken.where(token: token).first)
-            if (code = data[:code] || params[:code])
-              if code == tkaptcha.code
-                data.merge!(tkaptcha.data || {}) { |_, left, right| left || right }
-                data[:password] = Devise.friendly_token unless data[:password]
-                data[:password_confirmation] = data[:password] unless data[:password_confirmation]
-                tkaptcha.destroy
-                user =
-                  begin
-                    (user = ::User.new(data)).save
-                    user
-                  rescue
-                    user #TODO Handle sending confirmation email error
-                  end
-                if user.errors.blank?
-                  status = 200
-                  { number: user.number, token: user.authentication_token }
-                else
-                  user.errors.to_json
+      status = :not_acceptable
+      authorize_account
+      if User.current_parnert?
+        _, status, response = create_user_with(data)
+      else
+        response =
+          if (token = data[:token] || params[:token])
+            if (tkaptcha = CaptchaToken.where(token: token).first)
+              if (code = data[:code] || params[:code])
+                if code == tkaptcha.code
+                  data.merge!(tkaptcha.data || {}) { |_, left, right| left || right }
+                  tkaptcha.destroy
+                  _, status, response = create_user_with(data)
+                  response
+                else #invalid code
+                  { code: ['is not valid'] }
                 end
-              else #invalid code
-                { code: ['is not valid'] }
+              else #code missing
+                { code: ['is missing'] }
               end
-            else #code missing
-              { code: ['is missing'] }
+            else #invalid token
+              { token: ['is not valid'] }
             end
-          else #invalid token
-            { token: ['is not valid'] }
-          end
-        elsif data[:email]
-          data[:password] = Devise.friendly_token unless data[:password]
-          data[:password_confirmation] = data[:password] unless data[:password_confirmation]
-          if (user = User.new(data)).valid?(context: :create)
-            if (tkaptcha = CaptchaToken.create(email: data[:email], data: data)).errors.blank?
-              status = 200
-              { token: tkaptcha.token }
+          elsif data[:email]
+            data[:password] = Devise.friendly_token unless data[:password]
+            data[:password_confirmation] = data[:password] unless data[:password_confirmation]
+            if (user = User.new(data)).valid?(context: :create)
+              if (tkaptcha = CaptchaToken.create(email: data[:email], data: data)).errors.blank?
+                status = :ok
+                { token: tkaptcha.token }
+              else
+                tkaptcha.errors.to_json
+              end
             else
-              tkaptcha.errors.to_json
+              user.errors.to_json
             end
-          else
-            user.errors.to_json
+          else #bad request
+            status = :bad_request
+            { token: ['is missing'], email: ['is missing'] }
           end
-        else #bad request
-          { token: ['is missing'], email: ['is missing'] }
-        end
+      end
       render json: response, status: status
     end
 
     protected
+
+    def create_user_with(data)
+      status = :not_acceptable
+      data[:password] ||= Devise.friendly_token
+      data[:password_confirmation] ||= data[:password]
+      current_account = Account.current
+      begin
+        Account.current = nil
+        (user = ::User.new(data)).save
+      rescue
+        user #TODO Handle sending confirmation email error
+      ensure
+        Account.current = current_account
+      end
+      response=
+        if user.errors.blank?
+          status = :ok
+          { number: user.number, token: user.authentication_token }
+        else
+          user.errors.to_json
+        end
+      [user, status, response]
+    end
 
     def authorize_account
       key = params.delete('X-User-Access-Key')
