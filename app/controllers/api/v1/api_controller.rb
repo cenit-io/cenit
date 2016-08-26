@@ -185,7 +185,7 @@ module Api::V1
       data.reverse_merge!(email: params[:email], password: pwd = params[:password], password_confirmation: params[:password_confirmation] || pwd)
       status = :not_acceptable
       authorize_account
-      if User.current_parner?
+      if User.current_partner?
         _, status, response = create_user_with(data)
       else
         response =
