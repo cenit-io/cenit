@@ -98,8 +98,8 @@ module Setup
         if [:Import, :Export].include?(translator.type)
           requires(:webhook)
           if translator.type == :Import
-            unless before_submit.nil? || before_submit.parameters.count == 1
-              errors.add(:before_submit, 'must receive one parameter')
+            unless before_submit.nil? || before_submit.parameters.count == 1 || before_submit.parameters.count == 2
+              errors.add(:before_submit, 'must receive one or two parameter')
             end
           else
             rejects(:before_submit)
@@ -341,7 +341,11 @@ module Setup
           notify_response: notify_response
         }
       if before_submit
-        before_submit.run(options)
+        if before_submit.parameters.count == 1
+          before_submit.run(options)
+        elsif before_submit.parameters.count == 2
+          before_submit.run(options, message[:task])
+        end
       end
       webhook.with(connection_role).and(authorization).submit(options) do |response, template_parameters|
         translator.run(target_data_type: data_type,
@@ -382,16 +386,16 @@ module Setup
               }
             translator.run(translation_options)
           },
-                                               contentType: translator.mime_type,
-                                               notify_request: notify_request,
-                                               request_attachment: ->(attachment) do
-                                                 attachment[:filename] = ((data_type && data_type.title) || translator.name).collectionize +
-                                                   attachment[:filename] +
-                                                   ((ext = translator.file_extension).present? ? ".#{ext}" : '')
-                                                 attachment
-                                               end,
-                                               notify_response: notify_response,
-                                               verbose_response: true do |response|
+                                                                         contentType: translator.mime_type,
+                                                                         notify_request: notify_request,
+                                                                         request_attachment: ->(attachment) do
+                                                                           attachment[:filename] = ((data_type && data_type.title) || translator.name).collectionize +
+                                                                             attachment[:filename] +
+                                                                             ((ext = translator.file_extension).present? ? ".#{ext}" : '')
+                                                                           attachment
+                                                                         end,
+                                                                         notify_response: notify_response,
+                                                                         verbose_response: true do |response|
             if response_translator #&& response.code == 200
               response_translator.run(translation_options.merge(target_data_type: response_translator.data_type || response_data_type,
                                                                 data: response.body,
