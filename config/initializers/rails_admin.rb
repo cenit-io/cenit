@@ -2716,7 +2716,7 @@ RailsAdmin.config do |config|
             ((f.persisted? || f.custom_data_type_selected? || f.data_type) && (t.type == :Import || f.event.blank? || f.data_type.blank? || f.data_type_scope.present?))
         end
         associated_collection_scope do
-          Proc.new { |scope| scope.where(:parameters.with_size => 1) }
+          Proc.new { |scope| scope.where(:parameters.with_size => 1).or(:parameters.with_size => 2) }
         end
       end
       field :response_translator do
