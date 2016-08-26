@@ -344,7 +344,7 @@ module Setup
         if before_submit.parameters.count == 1
           before_submit.run(options)
         elsif before_submit.parameters.count == 2
-          before_submit.run(options, message[:task])
+          before_submit.run([options, message[:task]])
         end
       end
       webhook.with(connection_role).and(authorization).submit(options) do |response, template_parameters|
