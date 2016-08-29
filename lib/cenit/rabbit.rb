@@ -26,9 +26,11 @@ module Cenit
           block.call(task) if block
           asynchronous_message ||= Cenit.send('asynchronous_' + task_class.to_s.split('::').last.underscore)
           if scheduler || publish_at || asynchronous_message
-            if (token = message[:token]) && (token = AccountToken.where(token: token).first)
-              token.destroy
+            tokens = AccountToken.where(task_id: task.id)
+            if (token = message[:token])
+              tokens = tokens.or(token: token).first
             end
+            tokens.delete_all
             message[:task_id] = task.id.to_s
             message = AccountToken.create(data: message.to_json, task: task).token
             if scheduler || publish_at
