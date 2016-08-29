@@ -94,7 +94,6 @@ module Cenit
           ensure
             rabbit_consumer.update(executor_id: nil, task_id: nil) if rabbit_consumer
           end
-          resume_interval = nil
           if task &&
             (task.resuming_later? ||
               ((scheduler = task.scheduler) && scheduler.activated?))
