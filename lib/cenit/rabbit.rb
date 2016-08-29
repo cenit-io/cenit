@@ -61,9 +61,9 @@ module Cenit
         message = message.with_indifferent_access
         message_token = message.delete(:token)
         if (token = AccountToken.where(token: message_token).first)
+          token.destroy
           account = token.set_current_account
           message = JSON.parse(token.data).with_indifferent_access if token.data
-          token.destroy
         else
           account = nil
         end
@@ -96,10 +96,10 @@ module Cenit
           end
           resume_interval = nil
           if task &&
-            ((task.resuming_later? && (resume_interval = task.resume_interval)) ||
+            (task.resuming_later? ||
               ((scheduler = task.scheduler) && scheduler.activated?))
             message[:task] = task
-            if resume_interval
+            if (resume_interval = task.resume_interval)
               message[:publish_at] = Time.now + resume_interval
             end
             enqueue(message)
