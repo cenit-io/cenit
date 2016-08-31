@@ -87,7 +87,8 @@
       %h4=  t('admin.actions.pull.nothing_to_pull')
     - elsif shared_collection
       - collection_link = link_to(shared_collection.name, rails_admin.show_path(model_name: Setup::Collection.to_s.underscore.gsub('/', '~'), id: shared_collection.name), class: 'pjax')
-      %h4=  t('admin.actions.pull.uptodate', collection: collection_link, shared_collection: shared_collection.versioned_name).html_safe
+      - shared_collection_link = link_to(shared_collection.versioned_name, rails_admin.show_path(model_name: shared_collection.class.to_s.underscore.gsub('/', '~'), id: shared_collection.id), class: 'pjax')
+      %h4=  t('admin.actions.pull.uptodate', collection: collection_link, shared_collection: shared_collection_link).html_safe
     - else
       %h4=  t('admin.actions.pull.uptodate_data').html_safe
   .form-group.form-actions

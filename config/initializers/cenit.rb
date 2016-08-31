@@ -52,6 +52,9 @@ Cenit.config do
   #Process pull imports asynchronous
   asynchronous_pull_import true
 
+  #Process shared collection pulls asynchronous
+  asynchronous_shared_collection_pull true
+
   #oauth2 callback site
   oauth2_callback_site ENV['OAUTH2_CALLBACK_SITE']
 
