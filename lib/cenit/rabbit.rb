@@ -96,7 +96,7 @@ module Cenit
           ensure
             rabbit_consumer.update(executor_id: nil, task_id: nil) if rabbit_consumer
           end
-          if task &&
+          if task && !task.resuming_manually? &&
             (task.resuming_later? ||
               ((scheduler = task.scheduler) && scheduler.activated?))
             message[:task] = task
