@@ -41,7 +41,7 @@ module Cenit
         Account.current = account
 
         ThreadToken.destroy_all
-        Setup::Task.all.any_in(status: Setup::Task::RUNNING_STATUS).update_all(status: :broken)
+        Setup::Task.all.any_in(status: Setup::Task::ACTIVE_STATUS).update_all(status: :broken)
 
       end
 
