@@ -280,6 +280,7 @@ en:
         install: "Install"
         install_help: "The collection will be installed after pulled if checked"
         not_installer: "You can not install these collection since you have not the installer role"
+        doing: 'pull'
       bulk_pull:
         title: "Pulling Collections"
         menu: "Pull"

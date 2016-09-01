@@ -358,6 +358,10 @@ module Setup
       cross_shared.save
     end
 
+    def pull_asynchronous
+      false
+    end
+
     protected
 
     def collect_dependencies_pull_parameters(hash = {})

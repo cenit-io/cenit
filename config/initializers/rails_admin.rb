@@ -3140,6 +3140,29 @@ RailsAdmin.config do |config|
     fields :source_collection, :shared_collection, :description, :attempts_succeded, :retries, :progress, :status, :notifications, :updated_at
   end
 
+  config.model Setup::BasePull do
+    navigation_label 'Monitors'
+    visible false
+    label 'Pull'
+    object_label_method { :to_s }
+
+    configure :attempts_succeded, :text do
+      label 'Attempts/Succedded'
+    end
+
+    configure :_type do
+      pretty_value do
+        value.split('::').last.to_title
+      end
+    end
+
+    edit do
+      field :description
+    end
+
+    fields :_type, :pull_request, :pulled_request, :description, :scheduler, :attempts_succeded, :retries, :progress, :status, :notifications, :updated_at
+  end
+
   config.model Setup::PullImport do
     navigation_label 'Monitors'
     visible false
@@ -3153,15 +3176,27 @@ RailsAdmin.config do |config|
       label 'Pull data'
     end
 
-    configure :pull_request, :json_value
-
-    configure :pulled_request, :json_value
-
     edit do
       field :description
     end
 
     fields :data, :pull_request, :pulled_request, :description, :scheduler, :attempts_succeded, :retries, :progress, :status, :notifications, :updated_at
+  end
+
+  config.model Setup::SharedCollectionPull do
+    navigation_label 'Monitors'
+    visible false
+    object_label_method { :to_s }
+
+    configure :attempts_succeded, :text do
+      label 'Attempts/Succedded'
+    end
+
+    edit do
+      field :description
+    end
+
+    fields :shared_collection, :pull_request, :pulled_request, :description, :scheduler, :attempts_succeded, :retries, :progress, :status, :notifications, :updated_at
   end
 
   config.model Setup::SchemasImport do
