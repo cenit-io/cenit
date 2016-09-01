@@ -130,7 +130,6 @@ module Setup
       {
         '+' => 'plus',
         '@' => 'at',
-        '.' => 'dot',
         '$' => 'dollar',
         '%' => 'percentage',
         '?' => 'question',
@@ -139,23 +138,28 @@ module Setup
       }.each do |char, word|
         str = str.squeeze(char).gsub(char, word)
       end
-      ch = true
-      while ch && (ch = str[0]) =~ /\W/
-        str = str.from(1)
-        if ch == '-'
-          str = "minus#{str}"
-          ch = false
+      {
+        '-' => 'minus',
+        '.' => 'dot'
+      }.each do |char, replacement|
+        ch = true
+        while ch && (ch = str[0]) =~ /\W/
+          str = str.from(1)
+          if ch == char
+            str = "#{replacement}#{str}"
+            ch = false
+          end
         end
-      end
-      ch = true
-      while ch && (ch = str.last) =~ /\W/
-        str = str.to(str.length - 2)
-        if ch == '-'
-          str = "#{str}minus"
-          ch = false
+        ch = true
+        while ch && (ch = str.last) =~ /\W/
+          str = str.to(str.length - 2)
+          if ch == char
+            str = "#{str}#{replacement}"
+            ch = false
+          end
         end
+        str = str.squeeze(char).gsub(char, '_')
       end
-      str = str.squeeze('-').gsub('-', '_')
       if (str = str.gsub(/\W/, '')).empty?
         str = '_property'
       else
