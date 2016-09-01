@@ -1,6 +1,5 @@
 module Setup
   class Push < Setup::Task
-    include Setup::DataUploader
     include HashField
 
     build_in_data_type

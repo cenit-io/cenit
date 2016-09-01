@@ -36,6 +36,7 @@ module Setup
     field :logo_background, type: String
 
     field :installed, type: Boolean, default: false
+    field :pull_asynchronous, type: Boolean, default: false
 
     validates_format_of :shared_version, with: /\A(0|[1-9]\d*)(\.(0|[1-9]\d*))*\Z/
     validates_length_of :shared_version, maximum: 255

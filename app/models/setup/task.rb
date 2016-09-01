@@ -10,7 +10,7 @@ module Setup
 
     deny :copy, :new, :translator_update, :import, :convert, :send_to_flow
 
-    field :message, type: Hash
+    field :message, type: Hash, default: {}
     field :description, type: String
     field :status, type: Symbol, default: :pending
     field :progress, type: Float, default: 0
@@ -65,7 +65,8 @@ module Setup
     end
 
     STATUS = [:pending, :running, :failed, :completed, :retrying, :broken, :unscheduled, :paused]
-    RUNNING_STATUS = [:running, :retrying, :paused]
+    ACTIVE_STATUS = [:running, :retrying]
+    RUNNING_STATUS = ACTIVE_STATUS + [:paused]
     NOT_RUNNING_STATUS = STATUS.reject { |status| RUNNING_STATUS.include?(status) }
 
     def runnin_status?
@@ -173,6 +174,15 @@ module Setup
 
     attr_reader :finish_attachment
 
+    def resuming_manually?
+      @resuming_manually
+    end
+
+    def resume_manually
+      resume_later
+      @resuming_manually = true
+    end
+
     def resuming_later?
       @resuming_later
     end
@@ -212,7 +222,8 @@ module Setup
     class << self
 
       def process(message = {}, &block)
-        Cenit::Rabbit.enqueue(message.merge(task: self), &block)
+        message[:task] = self unless (task = message[:task]).is_a?(self) || (task.is_a?(Class) && task < self)
+        Cenit::Rabbit.enqueue(message, &block)
       end
     end
 

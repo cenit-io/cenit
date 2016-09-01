@@ -11,7 +11,8 @@ module RailsAdmin
         register_instance_option :visible do
           authorized? && (obj = bindings[:object]) &&
             [
-              Setup::PullImport
+              Setup::PullImport,
+              Setup::SharedCollectionPull
             ].include?(obj.class)
         end
 
@@ -53,13 +54,40 @@ module RailsAdmin
 
         class << self
 
+          def get_base_pull(controller, params, task)
+            locals = { pull_request: task.pull_request_hash }
+            if task.ask_for_install?
+              locals[:before_form_partials] = :install_option
+              locals[:pull_anyway] = User.current_installer?
+            end
+            if task.source_shared_collection.persisted?
+              locals[:shared_collection] = task.source_shared_collection
+            end
+            controller.render :pull, locals: locals
+          end
+
+          def post_base_pull(controller, params, task)
+            if params[:_pull]
+              task.message[:install] = params[:install].to_b if task.ask_for_install?
+              task.retry
+            end
+            controller.redirect_to controller.rails_admin.show_path(model_name: task.class.to_s.underscore.gsub('/', '~'), id: task.id.to_s)
+          end
+
           def get_pull_import(controller, params, task)
-            controller.render :pull, locals: { pull_request: task.pull_request }
+            get_base_pull(controller, params, task)
           end
 
           def post_pull_import(controller, params, task)
-            task.retry if params[:_pull]
-            controller.redirect_to controller.rails_admin.show_path(model_name: task.class.to_s.underscore.gsub('/', '~'), id: task.id.to_s)
+            post_base_pull(controller, params, task)
+          end
+
+          def get_shared_collection_pull(controller, params, task)
+            get_base_pull(controller, params, task)
+          end
+
+          def post_shared_collection_pull(controller, params, task)
+            post_base_pull(controller, params, task)
           end
         end
       end
