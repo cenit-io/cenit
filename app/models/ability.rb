@@ -44,7 +44,7 @@ class Ability
 
       task_destroy_conds =
         {
-          'status' => { '$in' => Setup::Task::NOT_RUNNING_STATUS },
+          'status' => { '$in' => Setup::Task::NON_ACTIVE_STATUS },
           'scheduler_id' => { '$in' => Setup::Scheduler.where(activated: false).collect(&:id) + [nil] }
         }
       can :destroy, Setup::Task, task_destroy_conds
