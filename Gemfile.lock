@@ -105,7 +105,6 @@ GEM
       carrierwave (>= 0.8.0, < 0.11.0)
       mongoid (>= 3.0, < 6.0)
       mongoid-grid_fs (>= 1.3, < 3.0)
-    charlock_holmes (0.7.3)
     chartkick (1.4.1)
     childprocess (0.5.7)
       ffi (~> 1.0, >= 1.0.11)
@@ -151,7 +150,6 @@ GEM
       unf (>= 0.0.5, < 1.0.0)
     easy_diff (0.0.6)
     erubis (2.7.0)
-    escape_utils (1.1.1)
     eventmachine (1.0.8)
     exception_notification (4.1.4)
       actionmailer (~> 4.0)
@@ -171,11 +169,6 @@ GEM
     font-awesome-rails (4.6.2.0)
       railties (>= 3.2, < 5.1)
     git (1.2.9.1)
-    github-linguist (4.8.8)
-      charlock_holmes (~> 0.7.3)
-      escape_utils (~> 1.1.0)
-      mime-types (>= 1.19)
-      rugged (>= 0.23.0b)
     github_api (0.12.4)
       addressable (~> 2.3)
       descendants_tracker (~> 0.0.4)
@@ -242,6 +235,7 @@ GEM
       actionpack (>= 3.0.0)
       activesupport (>= 3.0.0)
     kgio (2.10.0)
+    language_sniffer (1.0.2)
     libv8 (3.16.14.13)
     liquid (3.0.6)
     lodash-rails (4.6.1)
@@ -427,7 +421,6 @@ GEM
       sexp_processor (~> 4.1)
     rubyzip (1.1.7)
     rufus-scheduler (3.1.9)
-    rugged (0.25.0b6)
     safe_yaml (1.0.4)
     sass (3.4.19)
     sass-rails (5.0.4)
@@ -538,7 +531,6 @@ DEPENDENCIES
   factory_girl_rails
   ffaker
   figaro
-  github-linguist
   github_api
   haml-rails
   httmultiparty
@@ -548,6 +540,7 @@ DEPENDENCIES
   jeweler
   jquery-rails
   json-schema
+  language_sniffer
   liquid
   lodash-rails
   mime

@@ -2547,6 +2547,53 @@ RailsAdmin.config do |config|
     fields :name, :type, :many, :group, :description
   end
 
+  config.model Setup::Snippet do
+    navigation_label 'Compute'
+    weight 430
+    object_label_method { :custom_title }
+    visible
+    configure :identifier
+    configure :registered, :boolean
+
+    edit do
+      field :namespace, :enum_edit
+      field :name
+      field :type
+      field :description
+      field :code, :code_mirror do
+        html_attributes do
+          { cols: '74', rows: '15' }
+        end
+        help { 'Required' }
+        config do
+          { lineNumbers: true, mode: bindings[:object].type}
+        end
+      end
+      field :tags
+    end
+
+    show do
+      field :namespace, :enum_edit
+      field :name
+      field :type
+      field :description
+      field :code do
+        pretty_value do
+          "<pre><code class='#{bindings[:object].type}'>#{value}</code></pre>".html_safe
+        end
+      end
+      field :tags
+    end
+
+    list do
+      field :namespace
+      field :name
+      field :type
+      field :tags
+    end
+    fields :namespace, :name, :type, :description, :code, :tags
+  end
+
   #Workflows
 
   config.navigation 'Workflows', icon: 'fa fa-cogs'
