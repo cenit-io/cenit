@@ -62,28 +62,6 @@ RailsAdmin::Config::Actions.register(:export, RailsAdmin::Config::Actions::BulkE
   RailsAdmin::Config::Fields::Types::OptionalBelongsTo
 ].each { |f| RailsAdmin::Config::Fields::Types.register(f) }
 
-RailsAdmin::Config::Fields::Types::CodeMirror.register_instance_option :js_location do
-  bindings[:view].asset_path('codemirror.js')
-end
-
-RailsAdmin::Config::Fields::Types::CodeMirror.register_instance_option :css_location do
-  bindings[:view].asset_path('codemirror.css')
-end
-
-RailsAdmin::Config::Fields::Types::CodeMirror.register_instance_option :config do
-  {
-    mode: 'css',
-    theme: 'neo',
-  }
-end
-
-RailsAdmin::Config::Fields::Types::CodeMirror.register_instance_option :assets do
-  {
-    mode: bindings[:view].asset_path('codemirror/modes/css.js'),
-    theme: bindings[:view].asset_path('codemirror/themes/neo.css'),
-  }
-end
-
 module RailsAdmin
 
   module Config
@@ -1065,6 +1043,9 @@ RailsAdmin.config do |config|
       field :schema, :code_mirror do
         html_attributes do
           { cols: '74', rows: '15' }
+        end
+        config do
+          { lineNumbers: true }
         end
       end
 
@@ -2274,6 +2255,12 @@ RailsAdmin.config do |config|
       field :description
       field :parameters
       field :code, :code_mirror do
+        html_attributes do
+          { cols: '74', rows: '15' }
+        end
+        config do
+          { lineNumbers: true }
+        end
         help { 'Required' }
       end
       field :call_links do
@@ -2383,6 +2370,9 @@ RailsAdmin.config do |config|
         help { 'Required' }
         html_attributes do
           { cols: '74', rows: '15' }
+        end
+        config do
+          { lineNumbers: true }
         end
       end
 
@@ -2566,7 +2556,7 @@ RailsAdmin.config do |config|
         end
         help { 'Required' }
         config do
-          { lineNumbers: true, mode: bindings[:object].type}
+          { lineNumbers: true }
         end
       end
       field :tags
@@ -3691,7 +3681,14 @@ RailsAdmin.config do |config|
     edit do
       field :name
       field :description
-      field :code, :code_mirror
+      field :code, :code_mirror do
+        html_attributes do
+          { cols: '74', rows: '15' }
+        end
+        config do
+          { lineNumbers: true }
+        end
+      end
     end
 
     show do
