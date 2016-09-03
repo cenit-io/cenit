@@ -46,7 +46,7 @@ en:
       directory: "Directory"
       shared_collections: find shared collections
       title_search_shared_collections: "Open platform for data and business integrations"
-      sub_title_search_shared_collections: "Find data flows over %{count} shared collections"
+      sub_title_search_shared_collections: "Find data flows over %{count} API Connectors"
       pull: "Pull"
       show_all: "Show all"
       overview: "Overview"
