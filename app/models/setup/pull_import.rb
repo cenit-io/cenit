@@ -5,7 +5,7 @@ module Setup
     build_in_data_type
 
     def run(message)
-      message[:discard_collection] = true
+      message[:discard_collection] = true unless message.has_key?(:discard_collection)
       super
     end
 
