@@ -12,7 +12,8 @@ Capataz.config do
 
   allowed_constants Psych, JSON, URI, File, Array, Hash, Nokogiri, Nokogiri::XML, Nokogiri::XML::Builder, Time, Base64, Digest, Digest::MD5, Digest::SHA256,
                     SecureRandom, Setup, Setup::Namespace, Setup::DataType, Setup::Schema, OpenSSL, OpenSSL::PKey, OpenSSL::PKey::RSA,
-                    OpenSSL::Digest, OpenSSL::Digest::SHA1, OpenSSL::HMAC, OpenSSL::X509::Certificate, Setup::Task, Setup::Task::RUNNING_STATUS, Setup::Task::NOT_RUNNING_STATUS, Setup::Webhook, Setup::Algorithm,
+                    OpenSSL::Digest, OpenSSL::Digest::SHA1, OpenSSL::HMAC, OpenSSL::X509::Certificate, Setup::Webhook, Setup::Algorithm,
+                    Setup::Task, Setup::Task::RUNNING_STATUS, Setup::Task::NOT_RUNNING_STATUS, Setup::Task::ACTIVE_STATUS, Setup::Task::NON_ACTIVE_STATUS,
                     Xmldsig, Xmldsig::SignedDocument, Zip, Zip::OutputStream, Zip::InputStream, StringIO, MIME::Mail, MIME::Text, MIME::Multipart::Mixed,
                     Spreadsheet, Spreadsheet::Workbook, Setup::Authorization, Setup::Connection, Devise, Cenit, JWT, Setup::XsltValidator, Setup::Translator,
                     Setup::Flow
@@ -58,6 +59,10 @@ Capataz.config do
   allow_on Setup::Task::RUNNING_STATUS, [:include?]
 
   allow_on Setup::Task::NOT_RUNNING_STATUS, [:include?]
+
+  allow_on Setup::Task::ACTIVE_STATUS, [:include?]
+
+  allow_on Setup::Task::NON_ACTIVE_STATUS, [:include?]
 
   allow_on Nokogiri::XML::Builder, [:with, :new_builder, :[]]
 

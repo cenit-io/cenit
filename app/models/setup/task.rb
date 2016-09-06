@@ -39,7 +39,7 @@ module Setup
       errors.blank?
     end
 
-    before_destroy { NOT_RUNNING_STATUS.include?(status) }
+    before_destroy { NON_ACTIVE_STATUS.include?(status) && (scheduler.nil? || scheduler.deactivated?)}
 
     def _type_enum
       classes = Setup::Task.class_hierarchy
@@ -66,15 +66,16 @@ module Setup
 
     STATUS = [:pending, :running, :failed, :completed, :retrying, :broken, :unscheduled, :paused]
     ACTIVE_STATUS = [:running, :retrying]
+    NON_ACTIVE_STATUS = STATUS.reject { |status| ACTIVE_STATUS.include?(status) }
     RUNNING_STATUS = ACTIVE_STATUS + [:paused]
     NOT_RUNNING_STATUS = STATUS.reject { |status| RUNNING_STATUS.include?(status) }
 
-    def runnin_status?
+    def running_status?
       RUNNING_STATUS.include?(status)
     end
 
     def running?
-      runnin_status? &&
+      running_status? &&
         thread_token.present? &&
         Thread.list.any? { |thread| thread[:task_token] == thread_token.token }
     end
@@ -89,7 +90,7 @@ module Setup
         if status == :retrying
           self.retries += 1
         end
-        if runnin_status?
+        if running_status?
           notify(message: "Restarting task ##{id} at #{Time.now}", type: :notice)
         else
           self.attempts += 1
