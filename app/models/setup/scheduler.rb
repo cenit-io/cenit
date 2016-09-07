@@ -224,8 +224,10 @@ module Setup
 
     def days
       month = @solution[0]
-      weeks_days = @conf[:weeks_days] || (1..7).to_a
-      weeks_month = @conf[:weeks_month] || (1..5).to_a
+      weeks_days = @conf[:weeks_days]
+      weeks_days = (0..6).to_a if weeks_days.blank?
+      weeks_month = @conf[:weeks_month]
+      weeks_month = (0..3).to_a if weeks_month.blank?
       _a = amount_of_days_in_the_month(@year, month)
 
       if @conf[:type] == 'appointed_position'
