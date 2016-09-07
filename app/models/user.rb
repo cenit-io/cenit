@@ -15,8 +15,8 @@ class User
   # :lockable, :timeoutable, :rememberable
 
   devise :trackable, :validatable, :omniauthable, :database_authenticatable, :recoverable
-  devise :registerable unless (ENV['UNABLE_REGISTERABLE'] || false).to_b
-  devise :confirmable unless (ENV['UNABLE_CONFIRMABLE'] || true).to_b
+  devise :registerable unless ENV['UNABLE_REGISTERABLE'].to_b
+  devise :confirmable unless ENV['UNABLE_CONFIRMABLE'].to_b
 
   # Database authenticatable
   field :email, type: String, default: ''
@@ -72,12 +72,17 @@ class User
     true
   end
 
-  def core_handling=(arg)
-    @core_handling = arg.present?
+  def core_handling(*arg)
+    @core_handling = arg[0].to_s.to_b
   end
 
   def core_handling?
     @core_handling
+  end
+
+  def confirm(args={})
+    core_handling true
+    super
   end
 
   def self.find_or_initialize_for_doorkeeper_oauth(oauth_data)
@@ -85,7 +90,7 @@ class User
     user ||= User.new(email: oauth_data.info.email, password: Devise.friendly_token[0, 20])
     user.confirmed_at ||= Time.now
     user.doorkeeper_uid = oauth_data.uid
-    user.core_handling = true
+    user.core_handling true
     user
   end
 

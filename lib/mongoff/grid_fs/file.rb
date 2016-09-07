@@ -20,9 +20,7 @@ module Mongoff
 
       def rewind
         @cursor = 0
-        if @new_data
-          @new_data.rewind unless @new_data.is_a?(String)
-        end
+        @new_data.try(:rewind)
       end
 
       def read(*args)
@@ -69,7 +67,9 @@ module Mongoff
 
       def data=(string_or_readable)
         @cursor = 0
-        @new_data = string_or_readable
+        if (@new_data = string_or_readable)
+          self.length = @new_data.size
+        end
       end
 
       attr_accessor :encoding
@@ -208,6 +208,10 @@ module Mongoff
         begin
           pos = io.pos
           io.flush
+        rescue
+        end
+
+        begin
           io.rewind
         rescue
         end
