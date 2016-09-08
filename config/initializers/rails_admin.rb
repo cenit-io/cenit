@@ -1,3 +1,5 @@
+require 'account'
+
 [
   RailsAdmin::Config::Actions::DiskUsage,
   RailsAdmin::Config::Actions::SendToFlow,
@@ -3322,6 +3324,8 @@ RailsAdmin.config do |config|
     navigation_label 'Configuration'
     weight 700
     fields :name, :slug, :updated_at
+
+    show_in_dashboard false
   end
 
   config.model Setup::DataTypeConfig do
@@ -3332,6 +3336,8 @@ RailsAdmin.config do |config|
       read_only true
     end
     fields :data_type, :slug, :navigation_link, :updated_at
+
+    show_in_dashboard false
   end
 
   config.model Setup::FlowConfig do
@@ -3342,6 +3348,8 @@ RailsAdmin.config do |config|
       read_only true
     end
     fields :flow, :active, :notify_request, :notify_response, :discard_events
+
+    show_in_dashboard false
   end
 
   config.model Setup::ConnectionConfig do
@@ -3355,6 +3363,8 @@ RailsAdmin.config do |config|
       label 'Key'
     end
     fields :connection, :number, :token
+
+    show_in_dashboard false
   end
 
   config.model Setup::Pin do
@@ -3407,6 +3417,8 @@ RailsAdmin.config do |config|
     end
 
     fields :model, :record, :version, :updated_at
+
+    show_in_dashboard false
   end
 
   config.model Setup::Binding do
@@ -3419,6 +3431,8 @@ RailsAdmin.config do |config|
     configure :bind, :record
 
     fields :binder_model, :binder, :bind_model, :bind, :updated_at
+
+    show_in_dashboard false
   end
 
   config.model Setup::ParameterConfig do
@@ -3450,6 +3464,8 @@ RailsAdmin.config do |config|
     end
 
     fields :parent_model, :parent, :location, :name, :value, :updated_at
+
+    show_in_dashboard false
   end
 
   #Administration
@@ -3668,9 +3684,24 @@ RailsAdmin.config do |config|
     fields :name, :description, :code, :updated_at
   end
 
-  config.model CenitToken do
+  config.model Cenit::BasicToken do
     weight 890
     navigation_label 'Administration'
+    label 'Token'
+    visible { User.current_super_admin? }
+  end
+
+  config.model Cenit::BasicTenantToken do
+    weight 890
+    navigation_label 'Administration'
+    label 'Tenant token'
+    visible { User.current_super_admin? }
+  end
+
+  config.model Setup::TaskToken do
+    weight 890
+    navigation_label 'Administration'
+    parent Cenit::BasicToken
     visible { User.current_super_admin? }
   end
 

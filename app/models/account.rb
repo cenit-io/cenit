@@ -2,6 +2,7 @@ require 'cenit/heroku_client'
 
 class Account
   include Mongoid::Document
+  include Cenit::MultiTenancy
   include NumberGenerator
 
   belongs_to :owner, class_name: User.to_s, inverse_of: nil
@@ -83,29 +84,15 @@ class Account
     ActiveSupport::TimeZone.all.collect { |e| "#{e.name} | #{e.formatted_offset}" }
   end
 
-  def cenit_collections_names
-    self.class.cenit_collections_names(self)
-  end
-
-  def each_cenit_collection(&block)
-    self.class.each_cenit_collection(self, &block)
-  end
-
   class << self
 
-    def current_executor
-      if (current_account = current)
-        ((user = current_account.owner) && user.super_admin? && current_account.tenant_account) ||
-          current_account
-      end
-    end
-
-    def current
-      Thread.current[:current_account]
+    def current_tenant
+      (current && (user = current.owner) && user.super_admin? && current.tenant_account) ||
+        current
     end
 
     def current=(account)
-      Thread.current[:current_account] = account
+      super
       if User.respond_to?(:current=) #TODO Optimize here!
         User.current = account ? account.owner : nil
       end
@@ -135,42 +122,8 @@ class Account
       self.current = nil
     end
 
-    def tenant_collection_prefix(options = {})
-      sep = options[:separator] || ''
-      acc_id =
-        (options[:account] && options[:account].id) ||
-          options[:account_id] ||
-          (!options.has_key?(:account) &&
-            !options.has_key?(:account_id) &&
-            current &&
-            (((user = current.owner) && user.super_admin? && current.tenant_account.present?) ?
-              current.tenant_account.id :
-              current.id))
-      acc_id ? "acc#{acc_id}#{sep}" : ''
-    end
-
-    def tenant_collection_name(model_name, options = {})
-      model_name = model_name.to_s
-      options[:separator] ||= '_'
-      tenant_collection_prefix(options) + model_name.collectionize
-    end
-
     def data_type_collection_name(data_type)
       tenant_collection_name(data_type.data_type_name)
-    end
-
-    def cenit_collections_names(account = current)
-      db_name = Mongoid.default_client.database.name
-      Mongoid.default_client[:'system.namespaces']
-        .find(name: Regexp.new("\\A#{db_name}.#{tenant_collection_prefix(account: account)}_[^$]+\\Z"))
-        .collect { |doc| doc['name'] }
-        .collect { |name| name.gsub(Regexp.new("\\A#{db_name}\."), '') }
-    end
-
-    def each_cenit_collection(account = current, &block)
-      cenit_collections_names(account).each do |collection_name|
-        block.call(Mongoid.default_client[collection_name.to_sym])
-      end
     end
   end
 end

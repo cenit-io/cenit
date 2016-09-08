@@ -21,7 +21,7 @@ class Ability
               User,
               Account,
               Setup::SharedName,
-              CenitToken,
+              Cenit::BasicToken,
               Script,
               Setup::DelayedMessage,
               Setup::SystemNotification
@@ -175,7 +175,16 @@ class Ability
     else
       can [:dashboard, :shared_collection_index]
       can [:index, :show, :pull, :simple_export], [Setup::SharedCollection, Setup::CrossSharedCollection]
-      can :index, Setup::Models.all.to_a
+      can :index, Setup::Models.all.to_a -
+        [
+          Setup::Namespace,
+          Setup::DataTypeConfig,
+          Setup::FlowConfig,
+          Setup::ConnectionConfig,
+          Setup::Pin,
+          Setup::Binding,
+          Setup::ParameterConfig
+        ]
     end
   end
 

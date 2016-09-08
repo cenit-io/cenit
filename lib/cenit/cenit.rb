@@ -1,7 +1,13 @@
 require 'cenit/core_ext'
 
 module Cenit
+
   class << self
+
+    def default_options
+      super.merge service_url: '/service',
+                  reserved_namespaces: %w(cenit default)
+    end
 
     def http_proxy
       if (address = http_proxy_address) && (port = http_proxy_port)
@@ -32,41 +38,6 @@ module Cenit
         options[:reserved_namespaces]
       else
         self[:reserved_namespaces] = (options[:reserved_namespaces] + args[0].flatten.collect(&:to_s).collect(&:downcase)).uniq
-      end
-    end
-
-    def options
-      @options ||=
-        {
-          service_url: 'http://localhost:3000', #TODO Automatize default service url
-          service_schema_path: '/service/schema',
-          reserved_namespaces: %w(cenit default)
-        }
-    end
-
-    def [](option)
-      (value = options[option]).respond_to?(:call) ? value.call : value
-    end
-
-    def []=(option, value)
-      options[option] = value
-    end
-
-    def config(&block)
-      class_eval(&block) if block
-    end
-
-    def respond_to?(*args)
-      super || options.has_key?(args[0])
-    end
-
-    def method_missing(symbol, *args)
-      if !symbol.to_s.end_with?('=') && ((args.length == 0 && block_given?) || args.length == 1 && !block_given?)
-        self[symbol] = block_given? ? yield : args[0]
-      elsif args.length == 0 && !block_given?
-        self[symbol]
-      else
-        super
       end
     end
 

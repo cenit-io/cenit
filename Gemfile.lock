@@ -1,4 +1,34 @@
 GIT
+  remote: https://github.com/macarci/cenit-config.git
+  revision: 16b19de12378719f3d967f61f088e7b021c4e6ba
+  specs:
+    cenit-config (0.0.1)
+
+GIT
+  remote: https://github.com/macarci/cenit-multi_tenancy.git
+  revision: ac702acb858e35d002c31998ff41229b39ddeae2
+  specs:
+    cenit-multi_tenancy (0.0.1)
+      cenit-config
+      mongoid (>= 5.0.1)
+
+GIT
+  remote: https://github.com/macarci/cenit-service.git
+  revision: 60858cc4b4c24c303a869ad55480f329cd681b26
+  specs:
+    cenit-service (0.0.1)
+      cenit-token
+      rails (>= 4.2.5)
+
+GIT
+  remote: https://github.com/macarci/cenit-token.git
+  revision: 99a6bc8316c72c3748d5cc731ea90a9e33e7bafe
+  specs:
+    cenit-token (0.0.1)
+      mongoid (>= 5.0.1)
+      rails (>= 4.2.5)
+
+GIT
   remote: https://github.com/macarci/cross_origin.git
   revision: 872a8a6fe81794dc63d0f2397f4e81d188fc55f4
   specs:
@@ -516,6 +546,10 @@ DEPENDENCIES
   captcha
   capybara
   carrierwave-mongoid
+  cenit-config!
+  cenit-multi_tenancy!
+  cenit-service!
+  cenit-token!
   cenit_cmd!
   chartkick
   codemirror-rails
@@ -578,6 +612,3 @@ DEPENDENCIES
   unicorn (= 4.9.0)
   wannabe_bool
   xmldsig
-
-BUNDLED WITH
-   1.10.6

@@ -1,4 +1,4 @@
-class OauthAccessToken < CenitToken
+class OauthAccessToken < Cenit::BasicToken
   include OauthGrantToken
 
   field :token_type, type: Symbol, default: :Bearer
