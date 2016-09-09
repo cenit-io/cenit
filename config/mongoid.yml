@@ -75,11 +75,10 @@ test:
         max_retries: 1
         retry_interval: 0
 production:
+  # uri: <%= ENV['MONGOHQ_URL'] %>
   clients:
     default:
-     # The standard MongoDB connection URI allows for easy
-     # replica set connection setup.
-     # Use environment variables or a config file to keep your
-     # credentials safe e.g. <%= ENV['MONGODB_URI'] %>.
-     uri: <%= ENV['MONGODB_URI'] %>
-     options:
+      database: <%= ENV['DB_PROD'] %>
+      hosts:
+        - localhost:27017
+
