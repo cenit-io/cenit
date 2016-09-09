@@ -60,7 +60,7 @@ class Account
 
   before_save :inspect_updated_fields, :init_heroku_db, :validates_configuration
 
-  def account
+  def api_account
     self
   end
 

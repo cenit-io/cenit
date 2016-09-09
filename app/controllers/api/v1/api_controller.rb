@@ -261,7 +261,7 @@ module Api::V1
           next if user
           record = model.where(key: key).first
           if record && Devise.secure_compare(record[:authentication_token], token)
-            Account.current = record.account
+            Account.current = record.api_account
             user = record.user
           end
         end
