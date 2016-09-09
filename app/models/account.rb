@@ -1,32 +1,87 @@
 require 'cenit/heroku_client'
 
 class Account
-  include Mongoid::Document
+  include Setup::CenitUnscoped
   include Cenit::MultiTenancy
   include NumberGenerator
+  include TokenGenerator
 
-  belongs_to :owner, class_name: User.to_s, inverse_of: nil
-  has_many :users, class_name: User.to_s, inverse_of: :account
+  build_in_data_type.with(:name, :notification_level, :time_zone, :number, :authentication_token)
+  build_in_data_type.protecting(:number, :authentication_token)
+  build_in_data_type.and({
+                           properties: {
+                             number: {
+                               type: 'string',
+                               edi: {
+                                 segment: 'key'
+                               }
+                             },
+                             authentication_token: {
+                               type: 'string',
+                               edi: {
+                                 segment: 'token'
+                               }
+                             }
+                           }
+                         }.stringify_keys)
+
+  deny :all
+
+  belongs_to :owner, class_name: User.to_s, inverse_of: :accounts
+  has_and_belongs_to_many :users, class_name: User.to_s, inverse_of: nil
 
   field :name, type: String
   field :meta, type: Hash, default: {}
 
-  belongs_to :tenant_account, class_name: Account.to_s, inverse_of: nil
-
   field :notification_level, type: Symbol, default: :warning
   field :notifications_listed_at, type: DateTime
 
-  field :time_zone, type: String, default: '+00:00'
+  field :time_zone, type: String, default: "#{Time.zone.name} | #{Time.zone.formatted_offset}"
 
+  validates_presence_of :name, :notification_level, :time_zone
+  validates_uniqueness_of :name, scope: :owner
   validates_inclusion_of :notification_level, in: ->(a) { a.notification_level_enum }
+
+  before_validation do
+    if self.owner ||= User.current
+      if (n = name.to_s.strip).empty?
+        n = owner.email
+        c = 0
+        while Account.where(owner_id: owner_id, name: n).exists?
+          n = "#{owner.email} (#{c += 1})"
+        end
+        self.name = n
+      end
+    else
+      errors.add(:base, 'can not be created outside current user context')
+    end
+    errors.blank?
+  end
 
   before_save :inspect_updated_fields, :init_heroku_db, :validates_configuration
 
+  def account
+    self
+  end
+
+  def user
+    owner
+  end
+
+  def read_attribute(name)
+    (!(value = super).nil? &&
+
+      (new_record? || !self.class.data_type.protecting?(name) ||
+        (current_user = User.try(:current)) && current_user.owns?(self)) &&
+
+      value) || nil
+  end
+
   def inspect_updated_fields
+    users << owner unless user_ids.include?(owner.id)
     changed_attributes.keys.each do |attr|
-      reset_attribute!(attr) unless %w(notification_level time_zone).include?(attr)
+      reset_attribute!(attr) unless %w(name notification_level time_zone).include?(attr)
     end unless new_record? || Account.current_super_admin?
-    errors.add(:tenant_account, 'is sealed and can not be inspected') if tenant_account && tenant_account.sealed?
     errors.blank?
   end
 
@@ -60,7 +115,11 @@ class Account
   end
 
   def label
-    owner.present? ? owner.label : Account.to_s + '#' + id.to_s
+    l = name.to_s
+    unless User.current == owner
+      l += " of #{owner.present? ? owner.label : Account.to_s + '#' + id.to_s}"
+    end
+    l
   end
 
   def owner?(user)
@@ -86,18 +145,6 @@ class Account
 
   class << self
 
-    def current_tenant
-      (current && (user = current.owner) && user.super_admin? && current.tenant_account) ||
-        current
-    end
-
-    def current=(account)
-      super
-      if User.respond_to?(:current=) #TODO Optimize here!
-        User.current = account ? account.owner : nil
-      end
-    end
-
     def current_super_admin?
       current && current.super_admin?
     end
@@ -106,7 +153,6 @@ class Account
       account = new(params)
       if (owner = account.owner)
         owner.roles << ::Role.where(name: :admin).first unless owner.roles.any? { |role| role.name.to_s == :admin.to_s }
-        account.users << owner
         account.save
       end
       account

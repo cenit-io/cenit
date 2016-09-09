@@ -11,7 +11,7 @@ class Ability
     can :access, :rails_admin
 
     if (@user = user)
-      can [:show, :edit], Account, id: user.account_id
+
       can [:show, :edit], User, id: user.id
 
       if user.super_admin?
@@ -34,12 +34,14 @@ class Ability
         can(:destroy, ApplicationId) do |app_id|
           app_id.app.nil?
         end
-        can :inspect, [User, Account]
+        can :inspect, Account
         can :push, Setup::Collection
       else
         cannot :access, [Setup::SharedName, Setup::DelayedMessage, Setup::SystemNotification]
         cannot :destroy, [Setup::SharedCollection, Setup::Storage]
         can :pull, Setup::CrossSharedCollection, installed: true
+        can [:index, :show, :inspect, :edit], Account, :id.in => user.account_ids
+        can :new, Account if user.partner?
       end
 
       task_destroy_conds =

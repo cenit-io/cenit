@@ -1082,13 +1082,13 @@ RailsAdmin.config do |config|
       field :schema do
         pretty_value do
           v =
-              if json = JSON.parse(value) rescue nil
-                "<code class='json'>#{JSON.pretty_generate(json).gsub('<', '&lt;').gsub('>', '&gt;')}</code>"
-              elsif (xml = Nokogiri::XML(value)).errors.blank?
-                "<code class='xml'>#{xml.to_xml.gsub('<', '&lt;').gsub('>', '&gt;')}</code>"
-              else
-                "<code>#{value}</code>"
-              end
+            if json = JSON.parse(value) rescue nil
+              "<code class='json'>#{JSON.pretty_generate(json).gsub('<', '&lt;').gsub('>', '&gt;')}</code>"
+            elsif (xml = Nokogiri::XML(value)).errors.blank?
+              "<code class='xml'>#{xml.to_xml.gsub('<', '&lt;').gsub('>', '&gt;')}</code>"
+            else
+              "<code>#{value}</code>"
+            end
           "<pre>#{v}</pre>".html_safe
         end
       end
@@ -1248,11 +1248,11 @@ RailsAdmin.config do |config|
       field :schema do
         pretty_value do
           v =
-              if json = JSON.pretty_generate(value) rescue nil
-                "<code class='json'>#{json.gsub('<', '&lt;').gsub('>', '&gt;')}</code>"
-              else
-                value
-              end
+            if json = JSON.pretty_generate(value) rescue nil
+              "<code class='json'>#{json.gsub('<', '&lt;').gsub('>', '&gt;')}</code>"
+            else
+              value
+            end
 
           "<pre>#{v}</pre>".html_safe
         end
@@ -2264,8 +2264,8 @@ RailsAdmin.config do |config|
 
     extra_associations do
       association = Mongoid::Relations::Metadata.new(
-          name: :stored_outputs, relation: Mongoid::Relations::Referenced::Many,
-          inverse_class_name: Setup::Algorithm.to_s, class_name: Setup::AlgorithmOutput.to_s
+        name: :stored_outputs, relation: Mongoid::Relations::Referenced::Many,
+        inverse_class_name: Setup::Algorithm.to_s, class_name: Setup::AlgorithmOutput.to_s
       )
       [RailsAdmin::Adapters::Mongoid::Association.new(association, abstract_model.model)]
     end
@@ -2321,12 +2321,12 @@ RailsAdmin.config do |config|
     register_instance_option(:form_synchronized) do
       if bindings[:object].not_shared?
         [
-            :source_data_type,
-            :target_data_type,
-            :transformation,
-            :target_importer,
-            :source_exporter,
-            :discard_chained_records
+          :source_data_type,
+          :target_data_type,
+          :transformation,
+          :target_importer,
+          :source_exporter,
+          :discard_chained_records
         ]
       end
     end
@@ -2407,11 +2407,11 @@ RailsAdmin.config do |config|
         associated_collection_scope do
           translator = bindings[:object]
           source_data_type =
-              if translator.source_exporter
-                translator.source_exporter.target_data_type
-              else
-                translator.source_data_type
-              end
+            if translator.source_exporter
+              translator.source_exporter.target_data_type
+            else
+              translator.source_data_type
+            end
           target_data_type = bindings[:object].target_data_type
           Proc.new { |scope|
             scope = scope.all(type: :Conversion,
@@ -2481,8 +2481,8 @@ RailsAdmin.config do |config|
 
     extra_associations do
       association = Mongoid::Relations::Metadata.new(
-          name: :records, relation: Mongoid::Relations::Referenced::Many,
-          inverse_class_name: Setup::AlgorithmOutput.to_s, class_name: Setup::AlgorithmOutput.to_s
+        name: :records, relation: Mongoid::Relations::Referenced::Many,
+        inverse_class_name: Setup::AlgorithmOutput.to_s, class_name: Setup::AlgorithmOutput.to_s
       )
       [RailsAdmin::Adapters::Mongoid::Association.new(association, abstract_model.model)]
     end
@@ -3492,7 +3492,13 @@ RailsAdmin.config do |config|
     configure :email
     configure :roles
     configure :account do
-      read_only { true }
+      label 'Current Account'
+    end
+    configure :api_account do
+      label 'API Account'
+    end
+    configure :accounts do
+      read_only { !Account.current_super_admin? }
     end
     configure :password do
       group :credentials
@@ -3534,9 +3540,10 @@ RailsAdmin.config do |config|
       field :roles do
         visible { Account.current_super_admin? }
       end
-      field :account do
-        label { Account.current_super_admin? ? 'Account' : 'Account settings' }
-        help { nil }
+      field :account
+      field :api_account
+      field :accounts do
+        visible { Account.current_super_admin? }
       end
       field :password do
         visible { Account.current_super_admin? }
@@ -3575,6 +3582,8 @@ RailsAdmin.config do |config|
       field :name
       field :email
       field :account
+      field :api_account
+      field :accounts
       field :roles
       field :key
       field :authentication_token
@@ -3592,6 +3601,8 @@ RailsAdmin.config do |config|
       field :name
       field :email
       field :account
+      field :api_account
+      field :accounts
       field :roles
       field :key
       field :authentication_token
@@ -3604,24 +3615,24 @@ RailsAdmin.config do |config|
   config.model Account do
     weight 810
     navigation_label 'Administration'
-    visible { User.current_super_admin? }
     object_label_method { :label }
 
     configure :_id do
       visible { Account.current_super_admin? }
     end
-    configure :name do
-      visible { Account.current_super_admin? }
-    end
     configure :owner do
-      read_only { !Account.current_super_admin? }
+      visible { Account.current_super_admin? }
       help { nil }
     end
-    configure :tenant_account do
-      visible { Account.current_super_admin? }
+    configure :key do
+      pretty_value do
+        (value || '<i class="icon-lock"/>').html_safe
+      end
     end
-    configure :number do
-      visible { Account.current_super_admin? }
+    configure :token do
+      pretty_value do
+        (value || '<i class="icon-lock"/>').html_safe
+      end
     end
     configure :users do
       visible { Account.current_super_admin? }
@@ -3631,7 +3642,25 @@ RailsAdmin.config do |config|
       label 'Time Zone'
     end
 
-    fields :_id, :name, :owner, :tenant_account, :number, :users, :notification_level, :time_zone
+    edit do
+      field :name
+      field :owner do
+        visible { Account.current_super_admin? }
+      end
+      field :key do
+        visible { Account.current_super_admin? }
+      end
+      field :token do
+        visible { Account.current_super_admin? }
+      end
+      field :users do
+        visible { Account.current_super_admin? }
+      end
+      field :notification_level
+      field :time_zone
+    end
+
+    fields :_id, :name, :owner, :key, :token, :users, :notification_level, :time_zone
   end
 
   config.model Role do

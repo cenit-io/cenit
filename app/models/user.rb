@@ -6,10 +6,12 @@ class User
   include Mongoid::Timestamps
   extend DeviseOverrides
   include NumberGenerator
+  include TokenGenerator
   rolify
 
-  belongs_to :account, inverse_of: :users, class_name: Account.to_s
-  scope :by_account, -> { where(account: Account.current) }
+  has_many :accounts, class_name: Account.to_s, inverse_of: :owner
+  belongs_to :account, class_name: Account.to_s, inverse_of: :nil
+  belongs_to :api_account, class_name: Account.to_s, inverse_of: :nil
 
   # Include default devise modules. Others available are:
   # :lockable, :timeoutable, :rememberable
@@ -38,9 +40,6 @@ class User
   field :confirmation_token, type: String
   field :current_sign_in_ip, type: String
   field :last_sign_in_ip, type: String
-  field :authentication_token, as: :token, type: String
-  field :number, as: :key, type: String
-  field :unique_key, type: String
   field :unconfirmed_email, type: String
 
   field :doorkeeper_uid, type: String
@@ -51,11 +50,32 @@ class User
   field :name, type: String
   mount_uploader :picture, ImageUploader
 
-  before_save :ensure_token
-  before_create { self.account ||= Account.current || Account.create_with_owner(owner: self) }
+  before_create do
+    created_account = nil
+    self.account ||= Account.current || (created_account = Account.create_with_owner(owner: self))
+    accounts << created_account if created_account
+    unless owns?(account)
+      errors.add(:account, 'is sealed and can not be inspected') if account && account.sealed?
+    end
+    unless owns?(api_account)
+      self.api_account = owns?(account) ? account : accounts.first
+    end
+    errors.blank?
+  end
 
-  validates_uniqueness_of :token
   before_save :ensure_token, :inspect_updated_fields
+
+  def user
+    self
+  end
+
+  def owns?(account)
+    !account.nil? && account.owner_id == id
+  end
+
+  def account_ids
+    accounts.collect(&:id)
+  end
 
   def label
     if name.present?
@@ -67,9 +87,9 @@ class User
 
   def inspect_updated_fields
     changed_attributes.keys.each do |attr|
-      reset_attribute!(attr) unless %w(name picture).include?(attr)
+      reset_attribute!(attr) unless %w(name picture account_id api_account_id).include?(attr)
     end unless core_handling? || new_record? || (Account.current && Account.current_super_admin?)
-    true
+    errors.blank?
   end
 
   def core_handling(*arg)
@@ -106,21 +126,6 @@ class User
     self.doorkeeper_access_token = oauth_data.credentials.token
     self.doorkeeper_refresh_token = oauth_data.credentials.refresh_token
     self.doorkeeper_expires_at = oauth_data.credentials.expires_at
-  end
-
-  def ensure_token
-    self.token ||= generate_token
-    md5 = Digest::MD5.new
-    md5 << key
-    md5 << token
-    self.unique_key = md5.hexdigest
-  end
-
-  def generate_token
-    loop do
-      token = Devise.friendly_token
-      break token unless User.where(token: token).first
-    end
   end
 
   def method_missing(symbol, *args)
