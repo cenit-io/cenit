@@ -73,14 +73,14 @@ end
 RailsAdmin::Config::Fields::Types::CodeMirror.register_instance_option :config do
   {
     mode: 'css',
-    theme: 'neo',
+    theme: 'night',
   }
 end
 
 RailsAdmin::Config::Fields::Types::CodeMirror.register_instance_option :assets do
   {
     mode: bindings[:view].asset_path('codemirror/modes/css.js'),
-    theme: bindings[:view].asset_path('codemirror/themes/neo.css'),
+    theme: bindings[:view].asset_path('codemirror/themes/night.css'),
   }
 end
 
@@ -1067,6 +1067,9 @@ RailsAdmin.config do |config|
         html_attributes do
           { cols: '74', rows: '15' }
         end
+        config do
+          { lineNumbers: true, theme: 'night' }
+        end
       end
 
       field :schema_data_type do
@@ -1286,6 +1289,9 @@ RailsAdmin.config do |config|
     configure :schema, :code_mirror do
       html_attributes do
         { cols: '74', rows: '15' }
+      end
+      config do
+        { lineNumbers: true, theme: 'night'}
       end
       # pretty_value do
       #   "<pre><code class='json'>#{JSON.pretty_generate(value)}</code></pre>".html_safe
@@ -2275,6 +2281,12 @@ RailsAdmin.config do |config|
       field :description
       field :parameters
       field :code, :code_mirror do
+        html_attributes do
+          { cols: '74', rows: '15' }
+        end
+        config do
+          { lineNumbers: true, theme: 'night'}
+        end
         help { 'Required' }
       end
       field :call_links do
@@ -2385,6 +2397,9 @@ RailsAdmin.config do |config|
         html_attributes do
           { cols: '74', rows: '15' }
         end
+        config do
+          { lineNumbers: true, theme: 'night'}
+        end        
       end
 
       field :source_exporter do
@@ -3645,7 +3660,14 @@ RailsAdmin.config do |config|
     edit do
       field :name
       field :description
-      field :code, :code_mirror
+      field :code, :code_mirror do
+        html_attributes do
+          { cols: '74', rows: '15' }
+        end
+        config do
+          { lineNumbers: true, theme: 'night' }
+        end        
+      end
     end
 
     show do
