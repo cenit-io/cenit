@@ -209,6 +209,12 @@ RailsAdmin.config do |config|
 
   config.navigation 'Collections', icon: 'fa fa-cubes'
 
+  config.model Setup::Tag do
+    visible false
+    object_label_method { :name }
+    fields :namespace, :name
+  end
+  
   config.model Setup::CrossCollectionAuthor do
     visible false
     object_label_method { :label }
