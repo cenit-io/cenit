@@ -235,6 +235,7 @@ GEM
       actionpack (>= 3.0.0)
       activesupport (>= 3.0.0)
     kgio (2.10.0)
+    language_sniffer (1.0.2)
     libv8 (3.16.14.13)
     liquid (3.0.6)
     lodash-rails (4.6.1)
@@ -539,6 +540,7 @@ DEPENDENCIES
   jeweler
   jquery-rails
   json-schema
+  language_sniffer
   liquid
   lodash-rails
   mime

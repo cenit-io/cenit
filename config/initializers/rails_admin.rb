@@ -62,6 +62,28 @@ RailsAdmin::Config::Actions.register(:export, RailsAdmin::Config::Actions::BulkE
   RailsAdmin::Config::Fields::Types::OptionalBelongsTo
 ].each { |f| RailsAdmin::Config::Fields::Types.register(f) }
 
+RailsAdmin::Config::Fields::Types::CodeMirror.register_instance_option :js_location do
+  bindings[:view].asset_path('codemirror.js')
+end
+
+RailsAdmin::Config::Fields::Types::CodeMirror.register_instance_option :css_location do
+  bindings[:view].asset_path('codemirror.css')
+end
+
+RailsAdmin::Config::Fields::Types::CodeMirror.register_instance_option :config do
+  {
+    mode: 'css',
+    theme: 'night',
+  }
+end
+
+RailsAdmin::Config::Fields::Types::CodeMirror.register_instance_option :assets do
+  {
+    mode: bindings[:view].asset_path('codemirror/modes/css.js'),
+    theme: bindings[:view].asset_path('codemirror/themes/night.css'),
+  }
+end
+
 module RailsAdmin
 
   module Config
@@ -187,6 +209,12 @@ RailsAdmin.config do |config|
 
   config.navigation 'Collections', icon: 'fa fa-cubes'
 
+  config.model Setup::Tag do
+    visible false
+    object_label_method { :name }
+    fields :namespace, :name
+  end
+  
   config.model Setup::CrossCollectionAuthor do
     visible false
     object_label_method { :label }
@@ -1044,6 +1072,9 @@ RailsAdmin.config do |config|
         html_attributes do
           { cols: '74', rows: '15' }
         end
+        config do
+          { lineNumbers: true, theme: 'night' }
+        end
       end
 
       field :schema_data_type do
@@ -1263,6 +1294,9 @@ RailsAdmin.config do |config|
     configure :schema, :code_mirror do
       html_attributes do
         { cols: '74', rows: '15' }
+      end
+      config do
+        { lineNumbers: true, theme: 'night'}
       end
       # pretty_value do
       #   "<pre><code class='json'>#{JSON.pretty_generate(value)}</code></pre>".html_safe
@@ -2252,6 +2286,12 @@ RailsAdmin.config do |config|
       field :description
       field :parameters
       field :code, :code_mirror do
+        html_attributes do
+          { cols: '74', rows: '15' }
+        end
+        config do
+          { lineNumbers: true, theme: 'night'}
+        end
         help { 'Required' }
       end
       field :call_links do
@@ -2361,6 +2401,9 @@ RailsAdmin.config do |config|
         help { 'Required' }
         html_attributes do
           { cols: '74', rows: '15' }
+        end
+        config do
+          { lineNumbers: true, theme: 'night'}
         end
       end
 
@@ -2523,6 +2566,53 @@ RailsAdmin.config do |config|
     end
 
     fields :name, :type, :many, :group, :description
+  end
+
+  config.model Setup::Snippet do
+    navigation_label 'Compute'
+    weight 430
+    object_label_method { :custom_title }
+    visible
+    configure :identifier
+    configure :registered, :boolean
+
+    edit do
+      field :namespace, :enum_edit
+      field :name
+      field :type
+      field :description
+      field :code, :code_mirror do
+        html_attributes do
+          { cols: '74', rows: '15' }
+        end
+        help { 'Required' }
+        config do
+          { lineNumbers: true, theme: 'night'}
+        end
+      end
+      field :tags
+    end
+
+    show do
+      field :namespace, :enum_edit
+      field :name
+      field :type
+      field :description
+      field :code do
+        pretty_value do
+          "<pre><code class='#{bindings[:object].type}'>#{value}</code></pre>".html_safe
+        end
+      end
+      field :tags
+    end
+
+    list do
+      field :namespace
+      field :name
+      field :type
+      field :tags
+    end
+    fields :namespace, :name, :type, :description, :code, :tags
   end
 
   #Workflows
@@ -3622,7 +3712,14 @@ RailsAdmin.config do |config|
     edit do
       field :name
       field :description
-      field :code, :code_mirror
+      field :code, :code_mirror do
+        html_attributes do
+          { cols: '74', rows: '15' }
+        end
+        config do
+          { lineNumbers: true, theme: 'night' }
+        end
+      end
     end
 
     show do
