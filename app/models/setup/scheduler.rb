@@ -224,8 +224,10 @@ module Setup
 
     def days
       month = @solution[0]
-      weeks_days = @conf[:weeks_days] || []
-      weeks_month = @conf[:weeks_month] || []
+      weeks_days = @conf[:weeks_days]
+      weeks_days = (0..6).to_a if weeks_days.blank?
+      weeks_month = @conf[:weeks_month]
+      weeks_month = (0..3).to_a if weeks_month.blank?
       _a = amount_of_days_in_the_month(@year, month)
 
       if @conf[:type] == 'appointed_position'
@@ -250,26 +252,26 @@ module Setup
         months_days = @conf[:months_days]
       end
 
-      months_days = [1] if months_days.blank?
+      months_days = (1.._a).to_a if months_days.blank?
 
       months_days.select { |e| e > 0 && e <= _a }
     end
 
     def hours
       res = @conf[:hours]
-      res = [0] if res.blank?
+      res = (0..23).to_a if res.blank?
       res.select { |e| e > -1 && e <= 23 }
     end
 
     def minutes
       res = @conf[:minutes]
-      res = [0] if res.blank?
+      res = (1..59).to_a if res.blank?
       res.select { |e| e > -1 && e <= 59 }
     end
 
     def months
       res = @conf[:months]
-      res = [1] if res.blank?
+      res = (1..12).to_a if res.blank?
       res.select { |e| e > 0 && e <= 12 }
     end
 
@@ -281,8 +283,8 @@ module Setup
       @tz = tz
     end
 
-    def run
-      @solution = [0, 0, 0, 0]
+    def run(now)
+      @solution = [now.month, now.day, now.hour, now.min]
       @v = []
       backtracking(0)
       @v
@@ -309,7 +311,7 @@ module Setup
         b = Cenit.min_scheduler_interval || 60
         now + [a, b].max
       else
-        run
+        run(now)
         res = @v.select { |e| e > now }
                 .collect { |e| e - now }
                 .min
