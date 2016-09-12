@@ -2,7 +2,7 @@ module RailsAdmin
   module Config
     module Fields
       module Types
-        class JsonSchema < RailsAdmin::Config::Fields::Types::CodeMirror
+        class JsonSchema < RailsAdmin::Config::Fields::Types::Code
           include JsonValueCommon
 
           def parse_input(params)
