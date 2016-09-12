@@ -1,3 +1,3 @@
-class ThreadToken < CenitToken
+class ThreadToken < Cenit::BasicToken
 
 end
