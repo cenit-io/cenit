@@ -39,7 +39,7 @@ class ApplicationController < ActionController::Base
   end
 
   def clean_thread_cache
-    Thread.current.keys.each { |key| Thread.current[key] = nil if key.to_s.start_with?('[cenit]') }
+    Thread.clean_keys_prefixed_with('[cenit]')
   end
 
   def scope_current_account

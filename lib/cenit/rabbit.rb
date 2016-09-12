@@ -162,12 +162,14 @@ module Cenit
             if (rabbit_consumer = RabbitConsumer.where(tag: consumer.consumer_tag).first)
               begin
                 Account.current = nil
+                Thread.clean_keys_prefixed_with('[cenit]')
                 options = (properties[:headers] || {}).merge(rabbit_consumer: rabbit_consumer)
                 Cenit::Rabbit.process_message(body, options)
               rescue Exception => ex
                 Setup::Notification.create(message: "Error (#{ex.message}) consuming message: #{body}")
               ensure
                 Account.current = nil
+                Thread.clean_keys_prefixed_with('[cenit]')
               end unless rabbit_consumer.cancelled?
             else
               Setup::Notification.create(message: "Rabbit consumer with tag '#{consumer.consumer_tag}' not found")
