@@ -1,4 +1,3 @@
-require 'language_sniffer'
 
 module Setup
   class Snippet < ReqRejValidator
