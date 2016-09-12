@@ -1,4 +1,4 @@
-class CaptchaToken < CenitToken
+class CaptchaToken < Cenit::BasicToken
 
   field :email, type: String
   field :code, type: String

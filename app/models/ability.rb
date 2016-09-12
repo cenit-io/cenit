@@ -11,7 +11,7 @@ class Ability
     can :access, :rails_admin
 
     if (@user = user)
-      can [:show, :edit], Account, id: user.account_id
+
       can [:show, :edit], User, id: user.id
 
       if user.super_admin?
@@ -21,7 +21,7 @@ class Ability
               User,
               Account,
               Setup::SharedName,
-              CenitToken,
+              Cenit::BasicToken,
               Script,
               Setup::DelayedMessage,
               Setup::SystemNotification
@@ -34,17 +34,19 @@ class Ability
         can(:destroy, ApplicationId) do |app_id|
           app_id.app.nil?
         end
-        can :inspect, [User, Account]
+        can :inspect, Account
         can :push, Setup::Collection
       else
         cannot :access, [Setup::SharedName, Setup::DelayedMessage, Setup::SystemNotification]
         cannot :destroy, [Setup::SharedCollection, Setup::Storage]
         can :pull, Setup::CrossSharedCollection, installed: true
+        can [:index, :show, :inspect, :edit], Account, :id.in => user.account_ids
+        can :new, Account if user.partner?
       end
 
       task_destroy_conds =
         {
-          'status' => { '$in' => Setup::Task::NOT_RUNNING_STATUS },
+          'status' => { '$in' => Setup::Task::NON_ACTIVE_STATUS },
           'scheduler_id' => { '$in' => Setup::Scheduler.where(activated: false).collect(&:id) + [nil] }
         }
       can :destroy, Setup::Task, task_destroy_conds
@@ -175,7 +177,16 @@ class Ability
     else
       can [:dashboard, :shared_collection_index]
       can [:index, :show, :pull, :simple_export], [Setup::SharedCollection, Setup::CrossSharedCollection]
-      can :index, Setup::Models.all.to_a
+      can :index, Setup::Models.all.to_a -
+        [
+          Setup::Namespace,
+          Setup::DataTypeConfig,
+          Setup::FlowConfig,
+          Setup::ConnectionConfig,
+          Setup::Pin,
+          Setup::Binding,
+          Setup::ParameterConfig
+        ]
     end
   end
 

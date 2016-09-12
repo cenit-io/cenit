@@ -42,7 +42,7 @@ module RailsAdmin
                     collecting_property = Setup::CrossSharedCollection::COLLECTING_PROPERTIES.detect { |name| Setup::CrossSharedCollection.reflect_on_association(name).klass == model }
                     data = { collecting_property => @form_object.json_data }.with_indifferent_access
                   end
-                  do_flash_process_result Setup::PullImport.process(data: data.to_json)
+                  do_flash_process_result Setup::PullImport.process(data: data.to_json, discard_collection: model != Setup::Collection)
                   view = nil
                 rescue Exception => ex
                   flash[:error] = ex.message

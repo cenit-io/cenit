@@ -1,4 +1,34 @@
 GIT
+  remote: https://github.com/macarci/cenit-config.git
+  revision: 16b19de12378719f3d967f61f088e7b021c4e6ba
+  specs:
+    cenit-config (0.0.1)
+
+GIT
+  remote: https://github.com/macarci/cenit-multi_tenancy.git
+  revision: ac702acb858e35d002c31998ff41229b39ddeae2
+  specs:
+    cenit-multi_tenancy (0.0.1)
+      cenit-config
+      mongoid (>= 5.0.1)
+
+GIT
+  remote: https://github.com/macarci/cenit-service.git
+  revision: cf71aaf830006910435e733ba3f34c3cd5264d33
+  specs:
+    cenit-service (0.0.1)
+      cenit-token
+      rails (>= 4.2.5)
+
+GIT
+  remote: https://github.com/macarci/cenit-token.git
+  revision: 9a4643ff6ced1c5751aa9bf494c8156802a09968
+  specs:
+    cenit-token (0.0.1)
+      mongoid (>= 5.0.1)
+      rails (>= 4.2.5)
+
+GIT
   remote: https://github.com/macarci/cross_origin.git
   revision: 872a8a6fe81794dc63d0f2397f4e81d188fc55f4
   specs:
@@ -281,6 +311,7 @@ GEM
       net-ssh (>= 2.6.5)
     net-ssh (3.0.1)
     netrc (0.11.0)
+    newrelic_rpm (3.16.2.321)
     nokogiri (1.6.7.2)
       mini_portile2 (~> 2.0.0.rc2)
     oauth (0.4.7)
@@ -516,6 +547,10 @@ DEPENDENCIES
   captcha
   capybara
   carrierwave-mongoid
+  cenit-config!
+  cenit-multi_tenancy!
+  cenit-service!
+  cenit-token!
   cenit_cmd!
   chartkick
   codemirror-rails
@@ -539,6 +574,7 @@ DEPENDENCIES
   jeweler
   jquery-rails
   json-schema
+  language_sniffer
   liquid
   lodash-rails
   mime
@@ -547,6 +583,7 @@ DEPENDENCIES
   mongoid-audit
   mongoid-history
   mongoid-rspec
+  newrelic_rpm
   nokogiri
   oauth
   oauth2
@@ -579,5 +616,8 @@ DEPENDENCIES
   wannabe_bool
   xmldsig
 
+RUBY VERSION
+   ruby 2.2.1p85
+
 BUNDLED WITH
-   1.10.6
+   1.12.5
