@@ -61,30 +61,9 @@ RailsAdmin::Config::Actions.register(:export, RailsAdmin::Config::Actions::BulkE
   RailsAdmin::Config::Fields::Types::Model,
   RailsAdmin::Config::Fields::Types::Record,
   RailsAdmin::Config::Fields::Types::HtmlErb,
-  RailsAdmin::Config::Fields::Types::OptionalBelongsTo
+  RailsAdmin::Config::Fields::Types::OptionalBelongsTo,
+  RailsAdmin::Config::Fields::Types::Code
 ].each { |f| RailsAdmin::Config::Fields::Types.register(f) }
-
-RailsAdmin::Config::Fields::Types::CodeMirror.register_instance_option :js_location do
-  bindings[:view].asset_path('codemirror.js')
-end
-
-RailsAdmin::Config::Fields::Types::CodeMirror.register_instance_option :css_location do
-  bindings[:view].asset_path('codemirror.css')
-end
-
-RailsAdmin::Config::Fields::Types::CodeMirror.register_instance_option :config do
-  {
-    mode: 'css',
-    theme: 'night',
-  }
-end
-
-RailsAdmin::Config::Fields::Types::CodeMirror.register_instance_option :assets do
-  {
-    mode: bindings[:view].asset_path('codemirror/modes/css.js'),
-    theme: bindings[:view].asset_path('codemirror/themes/night.css'),
-  }
-end
 
 module RailsAdmin
 
@@ -101,21 +80,6 @@ module RailsAdmin
       end
     end
   end
-end
-
-RailsAdmin::Config::Fields::Types::CodeMirror.register_instance_option :js_location do
-  bindings[:view].asset_path('codemirror.js')
-end
-
-RailsAdmin::Config::Fields::Types::CodeMirror.register_instance_option :css_location do
-  bindings[:view].asset_path('codemirror.css')
-end
-
-RailsAdmin::Config::Fields::Types::CodeMirror.register_instance_option :assets do
-  {
-    mode: bindings[:view].asset_path('codemirror/modes/css.js'),
-    theme: bindings[:view].asset_path('codemirror/themes/night.css'),
-  }
 end
 
 RailsAdmin.config do |config|
@@ -231,7 +195,7 @@ RailsAdmin.config do |config|
     object_label_method { :name }
     fields :namespace, :name
   end
-  
+
   config.model Setup::CrossCollectionAuthor do
     visible false
     object_label_method { :label }
@@ -1085,12 +1049,20 @@ RailsAdmin.config do |config|
         end
       end
 
-      field :schema, :code_mirror do
+      field :schema, :code do
         html_attributes do
           { cols: '74', rows: '15' }
         end
-        config do
-          { lineNumbers: true, theme: 'night' }
+        code_config do
+          if bindings[:object].schema_type == :json_schema
+            {
+              mode: 'application/json'
+            }
+          else
+            {
+              mode: 'application/xml'
+            }
+          end
         end
       end
 
@@ -1308,12 +1280,9 @@ RailsAdmin.config do |config|
       read_only { !bindings[:object].new_record? }
     end
 
-    configure :schema, :code_mirror do
+    configure :schema, :json_schema do
       html_attributes do
         { cols: '74', rows: '15' }
-      end
-      config do
-        { lineNumbers: true, theme: 'night'}
       end
       # pretty_value do
       #   "<pre><code class='json'>#{JSON.pretty_generate(value)}</code></pre>".html_safe
@@ -2302,12 +2271,14 @@ RailsAdmin.config do |config|
       field :name
       field :description
       field :parameters
-      field :code, :code_mirror do
+      field :code, :code do
         html_attributes do
           { cols: '74', rows: '15' }
         end
-        config do
-          { lineNumbers: true, theme: 'night'}
+        code_config do
+          {
+            mode: 'text/x-ruby'
+          }
         end
         help { 'Required' }
       end
@@ -2413,14 +2384,23 @@ RailsAdmin.config do |config|
         help { 'Handle sources on transformation' }
       end
 
-      field :transformation, :code_mirror do
+      field :transformation, :code do
         visible { bindings[:object].style.present? && bindings[:object].style != 'chain' }
         help { 'Required' }
         html_attributes do
           { cols: '74', rows: '15' }
         end
-        config do
-          { lineNumbers: true, theme: 'night'}
+        code_config do
+          {
+            mode: case bindings[:object].style
+                  when 'html.erb'
+                    'text/html'
+                  when 'xslt'
+                    'application/xml'
+                  else
+                    'text/x-ruby'
+                  end
+          }
         end
       end
 
@@ -2598,14 +2578,11 @@ RailsAdmin.config do |config|
       field :name
       field :type
       field :description
-      field :code, :code_mirror do
+      field :code, :code do
         html_attributes do
           { cols: '74', rows: '15' }
         end
         help { 'Required' }
-        config do
-          { lineNumbers: true, theme: 'night'}
-        end
       end
       field :tags
     end
@@ -3772,12 +3749,14 @@ RailsAdmin.config do |config|
     edit do
       field :name
       field :description
-      field :code, :code_mirror do
+      field :code, :code do
         html_attributes do
           { cols: '74', rows: '15' }
         end
-        config do
-          { lineNumbers: true, theme: 'night' }
+        code_config do
+          {
+            mode: 'text/x-ruby'
+          }
         end
       end
     end
