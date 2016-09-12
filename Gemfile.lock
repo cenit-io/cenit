@@ -311,6 +311,7 @@ GEM
       net-ssh (>= 2.6.5)
     net-ssh (3.0.1)
     netrc (0.11.0)
+    newrelic_rpm (3.16.2.321)
     nokogiri (1.6.7.2)
       mini_portile2 (~> 2.0.0.rc2)
     oauth (0.4.7)
@@ -573,6 +574,7 @@ DEPENDENCIES
   jeweler
   jquery-rails
   json-schema
+  language_sniffer
   liquid
   lodash-rails
   mime
@@ -581,6 +583,7 @@ DEPENDENCIES
   mongoid-audit
   mongoid-history
   mongoid-rspec
+  newrelic_rpm
   nokogiri
   oauth
   oauth2
@@ -612,3 +615,9 @@ DEPENDENCIES
   unicorn (= 4.9.0)
   wannabe_bool
   xmldsig
+
+RUBY VERSION
+   ruby 2.2.1p85
+
+BUNDLED WITH
+   1.12.5
