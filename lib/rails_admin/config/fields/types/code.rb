@@ -43,7 +43,9 @@ module RailsAdmin
               'application/ld+json': 'javascript',
               'text/x-ruby': 'ruby',
               'application/xml': 'xml',
-              'text/html': 'xml'
+              'text/html': 'xml',
+              'application/x-ejs': 'htmlembedded',
+              'application/x-erb': 'htmlembedded'
             }[config[:mode].to_sym]
           end
         end
