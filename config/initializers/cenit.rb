@@ -1,4 +1,4 @@
-require 'cenit/config'
+require 'cenit/cenit'
 
 Cenit.config do
 
@@ -12,6 +12,12 @@ Cenit.config do
 
   #Use this option to setup an external service
   service_url ENV['SERVICE_URL']
+
+  #If an external service is not configured then mount the cenit-service engine in this path
+  service_path '/service'
+
+  #The path tha serves schemas on the service URL
+  schema_service_path '/schema'
 
   #Home page
   homepage ENV['HOMEPAGE']

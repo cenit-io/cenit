@@ -1,8 +1,8 @@
 module Api::V1
   class ApiController < ApplicationController
-    before_action :authorize_account, :save_request_data, except: [:new_account, :cors_check, :auth]
+    before_action :authorize_account, :save_request_data, except: [:new_user, :cors_check, :auth]
     before_action :find_item, only: [:show, :destroy, :pull, :run]
-    before_action :authorize_action, except: [:auth, :new_account, :cors_check, :push]
+    before_action :authorize_action, except: [:auth, :new_user, :cors_check, :push]
     rescue_from Exception, :with => :exception_handler
     respond_to :json
 
@@ -12,7 +12,7 @@ module Api::V1
     end
 
     def index
-      if (klass = self.klass)
+      if klass
         @items =
           if @criteria.present?
             if (sort_key = @criteria.delete(:sort_by))
@@ -23,7 +23,7 @@ module Api::V1
               limit = limit.to_s.to_i
               limit = nil if limit == 0
             end
-            items = klass.where(@criteria)
+            items = accessible_records.where(@criteria)
             if sort_key
               items =
                 if asc
@@ -35,7 +35,7 @@ module Api::V1
             items = items.limit(limit) if limit
             items
           else
-            klass.all
+            accessible_records
           end
         option = { including: :_type }
         option[:only] = @only if @only
@@ -179,51 +179,46 @@ module Api::V1
       end
     end
 
-    def new_account
+    def new_user
       data = (JSON.parse(@webhook_body) rescue {}).keep_if { |key, _| %w(email password password_confirmation token code).include?(key) }
       data = data.with_indifferent_access
       data.reverse_merge!(email: params[:email], password: pwd = params[:password], password_confirmation: params[:password_confirmation] || pwd)
       status = :not_acceptable
-      authorize_account
-      if User.current_partner?
-        _, status, response = create_user_with(data)
-      else
-        response =
-          if (token = data[:token] || params[:token])
-            if (tkaptcha = CaptchaToken.where(token: token).first)
-              if (code = data[:code] || params[:code])
-                if code == tkaptcha.code
-                  data.merge!(tkaptcha.data || {}) { |_, left, right| left || right }
-                  tkaptcha.destroy
-                  _, status, response = create_user_with(data)
-                  response
-                else #invalid code
-                  { code: ['is not valid'] }
-                end
-              else #code missing
-                { code: ['is missing'] }
+      response =
+        if (token = data[:token] || params[:token])
+          if (captcha_token = CaptchaToken.where(token: token).first)
+            if (code = data[:code] || params[:code])
+              if code == captcha_token.code
+                data.merge!(captcha_token.data || {}) { |_, left, right| left || right }
+                captcha_token.destroy
+                _, status, response = create_user_with(data)
+                response
+              else #invalid code
+                { code: ['is not valid'] }
               end
-            else #invalid token
-              { token: ['is not valid'] }
+            else #code missing
+              { code: ['is missing'] }
             end
-          elsif data[:email]
-            data[:password] = Devise.friendly_token unless data[:password]
-            data[:password_confirmation] = data[:password] unless data[:password_confirmation]
-            if (user = User.new(data)).valid?(context: :create)
-              if (tkaptcha = CaptchaToken.create(email: data[:email], data: data)).errors.blank?
-                status = :ok
-                { token: tkaptcha.token }
-              else
-                tkaptcha.errors.to_json
-              end
-            else
-              user.errors.to_json
-            end
-          else #bad request
-            status = :bad_request
-            { token: ['is missing'], email: ['is missing'] }
+          else #invalid token
+            { token: ['is not valid'] }
           end
-      end
+        elsif data[:email]
+          data[:password] = Devise.friendly_token unless data[:password]
+          data[:password_confirmation] = data[:password] unless data[:password_confirmation]
+          if (user = User.new(data)).valid?(context: :create)
+            if (captcha_token = CaptchaToken.create(email: data[:email], data: data)).errors.blank?
+              status = :ok
+              { token: captcha_token.token }
+            else
+              captcha_token.errors.to_json
+            end
+          else
+            user.errors.to_json
+          end
+        else #bad request
+          status = :bad_request
+          { token: ['is missing'], email: ['is missing'] }
+        end
       render json: response, status: status
     end
 
@@ -253,27 +248,36 @@ module Api::V1
     end
 
     def authorize_account
+      user = nil
       key = params.delete('X-User-Access-Key')
       key = request.headers['X-User-Access-Key'] || key
       token = params.delete('X-User-Access-Token')
       token = request.headers['X-User-Access-Token'] || token
       if key || token
-        user = User.where(key: key).first
-        if user && Devise.secure_compare(user.token, token) && user.has_role?(:admin)
-          Account.current = user.account
+        [
+          User,
+          Account
+        ].each do |model|
+          next if user
+          record = model.where(key: key).first
+          if record && Devise.secure_compare(record[:authentication_token], token)
+            Account.current = record.api_account
+            user = record.user
+          end
         end
-      else
+      end
+      unless key || token
         key = request.headers['X-Hub-Store']
         token = request.headers['X-Hub-Access-Token']
         Account.set_current_with_connection(key, token) if key || token
       end
       User.current = user || (Account.current ? Account.current.owner : nil)
+      @ability = Ability.new(User.current)
       true
     end
 
     def authorize_action
       if klass
-        @ability = Ability.new(Account.current && Account.current.owner)
         action_symbol =
           case @_action_name
           when 'push'
@@ -311,7 +315,7 @@ module Api::V1
     end
 
     def find_item
-      if (@item = klass.where(id: params[:id]).first)
+      if (@item = accessible_records.where(id: params[:id]).first)
         true
       else
         render json: { status: 'item not found' }, status: :not_found
@@ -323,7 +327,7 @@ module Api::V1
       if slug
         @data_types[slug] ||=
           if @ns_slug == 'setup'
-            Setup::BuildInDataType["Setup::#{slug.camelize}"]
+            Setup::BuildInDataType["Setup::#{slug.camelize}"] || Setup::BuildInDataType[slug.camelize]
           else
             if @ns_name.nil?
               ns = Setup::Namespace.where(slug: @ns_slug).first
@@ -355,6 +359,10 @@ module Api::V1
 
     def klass
       @klass ||= get_model(@model)
+    end
+
+    def accessible_records
+      (@ability && klass.accessible_by(@ability)) || klass.all
     end
 
     def save_request_data
@@ -408,7 +416,8 @@ module Api::V1
                            end,
             message: ''
           }.merge(config || {})
-        @data_type = (controller = config[:controller]).send(:get_data_type, (@root = controller.request.params[:model] || controller.request.headers['data-type'])) rescue nil
+        controller = config[:controller]
+        @data_type = controller.send(:get_data_type, (@root = controller.request.params[:model] || controller.request.headers['data-type'])) rescue nil
         @create_options = { create_collector: Set.new }
         create_options_keys.each { |option| @create_options[option.to_sym] = controller.request[option] }
       end
@@ -460,9 +469,9 @@ module Api::V1
     class XMLPayload < BasicPayload
 
       def each_root(&block)
-        if roots = Nokogiri::XML::DocumentFragment.parse(config[:message]).element_children
+        if (roots = Nokogiri::XML::DocumentFragment.parse(config[:message]).element_children)
           roots.each do |root|
-            if elements = root.element_children
+            if (elements = root.element_children)
               elements.each { |e| block.call(root.name, e) }
             end
           end

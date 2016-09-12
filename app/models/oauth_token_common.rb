@@ -1,7 +1,7 @@
 module OauthTokenCommon
   extend ActiveSupport::Concern
 
-  include AccountTokenCommon
+  include Cenit::TenantToken
 
   included do
     token_length 60

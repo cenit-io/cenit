@@ -231,7 +231,7 @@ module Edi
       store(json, 'id', record.id, options) if options[:include_id]
       content_property = nil
       model.stored_properties_on(record).each do |property_name|
-        next if (options[:protected] && (model.schema['protected'] || []).include?(property_name))
+        next if (protected = (model.schema['protected'] || []).include?(property_name)) && options[:protected]
         property_schema = model.property_schema(property_name)
         property_model = model.property_model(property_name)
         name = property_schema['edi']['segment'] if property_schema['edi']
@@ -268,7 +268,12 @@ module Edi
           value = record_to_hash(sub_record, options, can_be_referenced && property_schema['referenced'] && !property_schema['export_embedded'], property_model)
           store(json, name, value, options, key_properties.include?(property_name))
         else
-          value = record.send(property_name) || record[property_name] rescue nil
+          value =
+            begin
+              record.send(property_name) || (protected ? nil : record[property_name])
+            rescue
+              nil
+            end
           if value.nil?
             value = property_schema['default']
           end

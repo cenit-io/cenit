@@ -1,4 +1,4 @@
-class OauthAccessToken < CenitToken
+class OauthAccessToken < Cenit::BasicToken
   include OauthGrantToken
 
   field :token_type, type: Symbol, default: :Bearer
@@ -7,7 +7,7 @@ class OauthAccessToken < CenitToken
 
   class << self
     def for(user, app_id, scope)
-      account = user.account
+      account = Account.current || user.account
       scope = Cenit::Scope.new(scope) unless scope.is_a?(Cenit::Scope)
       unless (access_grant = Setup::OauthAccessGrant.with(account).where(application_id: app_id).first)
         access_grant = Setup::OauthAccessGrant.with(account).new(application_id: app_id)

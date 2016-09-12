@@ -106,3 +106,8 @@ gem 'lodash-rails'
 gem 'identicon'
 
 gem 'language_sniffer'
+
+gem 'cenit-config', git: 'https://github.com/macarci/cenit-config.git'
+gem 'cenit-multi_tenancy', git: 'https://github.com/macarci/cenit-multi_tenancy.git'
+gem 'cenit-token', git: 'https://github.com/macarci/cenit-token.git'
+gem 'cenit-service', git: 'https://github.com/macarci/cenit-service.git'
