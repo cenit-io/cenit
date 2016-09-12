@@ -81,6 +81,21 @@ module RailsAdmin
   end
 end
 
+RailsAdmin::Config::Fields::Types::CodeMirror.register_instance_option :js_location do
+  bindings[:view].asset_path('codemirror.js')
+end
+
+RailsAdmin::Config::Fields::Types::CodeMirror.register_instance_option :css_location do
+  bindings[:view].asset_path('codemirror.css')
+end
+
+RailsAdmin::Config::Fields::Types::CodeMirror.register_instance_option :assets do
+  {
+    mode: bindings[:view].asset_path('codemirror/modes/css.js'),
+    theme: bindings[:view].asset_path('codemirror/themes/night.css'),
+  }
+end
+
 RailsAdmin.config do |config|
 
   config.total_columns_width = 900
