@@ -14,7 +14,7 @@ GIT
 
 GIT
   remote: https://github.com/macarci/cenit-service.git
-  revision: 60858cc4b4c24c303a869ad55480f329cd681b26
+  revision: cf71aaf830006910435e733ba3f34c3cd5264d33
   specs:
     cenit-service (0.0.1)
       cenit-token
@@ -22,7 +22,7 @@ GIT
 
 GIT
   remote: https://github.com/macarci/cenit-token.git
-  revision: 99a6bc8316c72c3748d5cc731ea90a9e33e7bafe
+  revision: 9a4643ff6ced1c5751aa9bf494c8156802a09968
   specs:
     cenit-token (0.0.1)
       mongoid (>= 5.0.1)
