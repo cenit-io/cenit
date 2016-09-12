@@ -1,3 +1,18 @@
+class Thread
+
+  def clean_keys_prefixed_with(prefix)
+    unless (prefix = prefix.to_s).empty?
+      Thread.current.keys.each { |key| Thread.current[key] = nil if key.to_s.start_with?(prefix) }
+    end
+  end
+
+  class << self
+    def clean_keys_prefixed_with(prefix)
+      current.clean_keys_prefixed_with(prefix)
+    end
+  end
+end
+
 class Hash
   def plain_query(namespace = nil)
     collect do |key, value|
