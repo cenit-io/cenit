@@ -3550,6 +3550,7 @@ RailsAdmin.config do |config|
 
     configure :name
     configure :email
+    configure :code_theme
     configure :roles
     configure :account do
       label 'Current Account'
@@ -3594,6 +3595,7 @@ RailsAdmin.config do |config|
     edit do
       field :picture
       field :name
+      field :code_theme
       field :email do
         visible { Account.current_super_admin? }
       end
@@ -3641,6 +3643,9 @@ RailsAdmin.config do |config|
       field :picture
       field :name
       field :email
+      field :code_theme do
+        label 'Code Theme'
+      end
       field :account
       field :api_account
       field :accounts

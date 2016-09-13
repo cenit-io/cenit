@@ -26,14 +26,12 @@ module RailsAdmin
           register_instance_option :default_config do
             {
               lineNumbers: true,
-              theme: 'night'
+              theme: (theme = User.current.code_theme).present? ? theme : 'neo'
             }
           end
 
           register_instance_option :code_config do
             {
-              lineNumbers: true,
-              theme: 'night'
             }
           end
 
