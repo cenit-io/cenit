@@ -18,6 +18,7 @@ module Setup
         super
         Setup::Models.regist(subclass)
         subclass.deny Setup::Models.excluded_actions_for(self)
+        subclass.build_in_data_type.excluding(build_in_data_type.get_excluding)
       end
 
       def share_options
