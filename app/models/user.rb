@@ -49,6 +49,9 @@ class User
 
   field :name, type: String
   mount_uploader :picture, ImageUploader
+  field :code_theme, type: String
+
+  validates_inclusion_of :code_theme, in: ->(user) { user.code_theme_enum }
 
   before_create do
     created_account = nil
@@ -64,6 +67,11 @@ class User
   end
 
   before_save :ensure_token, :inspect_updated_fields
+
+  def code_theme_enum
+    [nil, ''] +
+      %w(3024-day 3024-night abcdef ambiance-mobile ambiance base16-dark base16-light bespin blackboard cobalt colorforth dracula eclipse elegant erlang-dark hopscotch icecoder isotope lesser-dark liquibyte material mbo mdn-like midnight monokai neat neo night panda-syntax paraiso-dark paraiso-light pastel-on-dark railscasts rubyblue seti solarized the-matrix tomorrow-night-bright tomorrow-night-eighties ttcn twilight vibrant-ink xq-dark xq-light yeti zenburn)
+  end
 
   def user
     self
@@ -87,7 +95,7 @@ class User
 
   def inspect_updated_fields
     changed_attributes.keys.each do |attr|
-      reset_attribute!(attr) unless %w(name picture account_id api_account_id).include?(attr)
+      reset_attribute!(attr) unless %w(name picture account_id api_account_id code_theme).include?(attr)
     end unless core_handling? || new_record? || (Account.current && Account.current_super_admin?)
     errors.blank?
   end
