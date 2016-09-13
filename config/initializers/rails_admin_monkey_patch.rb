@@ -719,7 +719,7 @@ module RailsAdmin
         nodes.collect do |node|
           i += 1
           stack_id = "#{html_id}-sub#{i}"
-          model_count = node.abstract_model.count({ cache: true }, @authorization_adapter && @authorization_adapter.query(:index, node.abstract_model))
+          model_count = node.abstract_model.count({ cache: true }, @authorization_adapter && @authorization_adapter.query(:index, node.abstract_model)) rescue -1
 
           children = nodes_stack.select { |n| n.parent.to_s == node.abstract_model.model_name }
           if children.present?
