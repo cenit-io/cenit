@@ -26,13 +26,13 @@ module Cenit
           block.call(task) if block
           asynchronous_message ||= Cenit.send('asynchronous_' + task_class.to_s.split('::').last.underscore)
           if scheduler || publish_at || asynchronous_message
-            tokens = AccountToken.where(task_id: task.id)
+            tokens = TaskToken.where(task_id: task.id)
             if (token = message[:token])
               tokens = tokens.or(token: token).first
             end
             tokens.delete_all
             message[:task_id] = task.id.to_s
-            message = AccountToken.create(data: message.to_json, task: task).token
+            message = TaskToken.create(data: message.to_json, task: task).token
             if scheduler || publish_at
               Setup::DelayedMessage.create(message: message, publish_at: publish_at, scheduler: scheduler)
             else
@@ -62,9 +62,9 @@ module Cenit
         end
         message = message.with_indifferent_access
         message_token = message.delete(:token)
-        if (token = AccountToken.where(token: message_token).first)
+        if (token = TaskToken.where(token: message_token).first)
           token.destroy
-          account = token.set_current_account
+          account = token.set_current_tenant
           message = JSON.parse(token.data).with_indifferent_access if token.data
         else
           account = nil
@@ -162,12 +162,14 @@ module Cenit
             if (rabbit_consumer = RabbitConsumer.where(tag: consumer.consumer_tag).first)
               begin
                 Account.current = nil
+                Thread.clean_keys_prefixed_with('[cenit]')
                 options = (properties[:headers] || {}).merge(rabbit_consumer: rabbit_consumer)
                 Cenit::Rabbit.process_message(body, options)
               rescue Exception => ex
                 Setup::Notification.create(message: "Error (#{ex.message}) consuming message: #{body}")
               ensure
                 Account.current = nil
+                Thread.clean_keys_prefixed_with('[cenit]')
               end unless rabbit_consumer.cancelled?
             else
               Setup::Notification.create(message: "Rabbit consumer with tag '#{consumer.consumer_tag}' not found")

@@ -10,13 +10,13 @@ class OauthController < ApplicationController
 
   def index
     if request.get?
-      if @app_id && @app_id.account == Account.current || @app_id.registered?
-        @token = CenitToken.create(data: { scope: @scope.to_s, redirect_uri: @redirect_uri, state: params[:state] }).token
+      if @app_id && (@app_id.account == Account.current || @app_id.registered?)
+        @token = Cenit::Token.create(data: { scope: @scope.to_s, redirect_uri: @redirect_uri, state: params[:state] }).token
       else
         @errors << 'Unregistered app'
       end
     else
-      if (token = CenitToken.where(token: @token).first) &&
+      if (token = Cenit::Token.where(token: @token).first) &&
         token.data.is_a?(Hash) &&
         (redirect_uri = URI.parse(token.data['redirect_uri'])) &&
         (scope = token.data['scope'])
@@ -44,7 +44,7 @@ class OauthController < ApplicationController
     redirect_path = rails_admin.index_path(Setup::Authorization.to_s.underscore.gsub('/', '~'))
     error = params[:error]
     if (cenit_token = OauthAuthorizationToken.where(token: params[:state] || session[:oauth_state]).first) &&
-      cenit_token.set_current_account! && (authorization = cenit_token.authorization)
+      cenit_token.set_current_tenant! && (authorization = cenit_token.authorization)
       begin
         authorization.metadata[:redirect_token] = redirect_token = Devise.friendly_token
         redirect_path =

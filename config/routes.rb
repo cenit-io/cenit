@@ -11,7 +11,6 @@ Cenit::Application.routes.draw do
 
   match 'oauth/authorize', to: 'oauth#index', via: [:get, :post]
   get 'oauth/callback', to: 'oauth#callback'
-  get 'schema', to: 'schema#index'
   get 'captcha', to: 'captcha#index'
   get 'captcha/:token', to: 'captcha#index'
   get '/file/:model/:field/:id/*file(.:format)', to: 'file#index'
@@ -19,9 +18,9 @@ Cenit::Application.routes.draw do
   namespace :api do
     namespace :v1 do
       post '/auth/ping', to: 'api#auth'
-      get  '/public/:model', to: 'api#index', ns: 'setup'
-      get  '/public/:model/:id(.:format)', to: 'api#show', ns: 'setup', defaults: { format: 'json' }, constraints: {format: /(json)/}
-      post '/setup/account', to: 'api#new_account'
+      get '/public/:model', to: 'api#index', ns: 'setup'
+      get '/public/:model/:id(.:format)', to: 'api#show', ns: 'setup', defaults: { format: 'json' }, constraints: { format: /(json)/ }
+      post '/setup/user', to: 'api#new_user'
       post '/:ns/push', to: 'api#push'
       post '/:ns/:model', to: 'api#new'
       get '/:ns/:model', to: 'api#index', defaults: { format: 'json' }
@@ -33,29 +32,22 @@ Cenit::Application.routes.draw do
       match '/auth', to: 'api#auth', via: [:head]
       match '/*path', to: 'api#cors_check', via: [:options]
     end
-
-    namespace :v2 do
-      post '/auth/ping', to: 'api#auth'
-      get  '/public/:model', to: 'api#index', ns: 'setup'
-      get  '/public/:model/:id(.:format)', to: 'api#show', ns: 'setup', defaults: { format: 'json' }, constraints: {format: /(json)/}
-      post '/setup/account', to: 'api#new_account'
-      post '/:ns/push', to: 'api#push'
-      post '/:ns/:model', to: 'api#new'
-      get '/:ns/:model', to: 'api#index', defaults: { format: 'json' }
-      get '/:ns/:model/:id', to: 'api#show', defaults: { format: 'json' }
-      get '/:ns/:model/:id/:view', to: 'api#content', defaults: { format: 'json' }
-      delete '/:ns/:model/:id', to: 'api#destroy'
-      post '/:ns/:model/:id/pull', to: 'api#pull'
-      post '/:ns/:model/:id/run', to: 'api#run'
-      match '/auth', to: 'api#auth', via: [:head]
-      match '/*path', to: 'api#cors_check', via: [:options]
-    end
-
   end
 
   match 'app/:id_or_ns' => 'app#index', via: [:all]
   match 'app/:id_or_ns/:app_slug' => 'app#index', via: [:all]
   match 'app/:id_or_ns/:app_slug/*path' => 'app#index', via: [:all]
+
+  unless Cenit.service_url.present?
+    path =
+      if Cenit.service_path.present?
+        "/#{Cenit.service_path}".squeeze('/')
+      else
+        '/service'
+      end
+    Cenit.service_url Cenit.homepage + path
+    mount Cenit::Service::Engine => path
+  end
 
   mount RailsAdmin::Engine => '/', as: 'rails_admin'
 

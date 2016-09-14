@@ -205,7 +205,7 @@ module RailsAdmin
                 if current_user
                   RailsAdmin::Config.visible_models(controller: self).collect(&:abstract_model).select do |absm|
                     ((model = absm.model) rescue nil) &&
-                      (model.is_a?(Mongoff::Model) || model.include?(AccountScoped)) &&
+                      (model.is_a?(Mongoff::Model) || model.include?(AccountScoped) || [Account].include?(model)) &&
                       (@model_configs[absm.model_name] = absm.config)
                   end
                 else
@@ -588,22 +588,21 @@ module RailsAdmin
       account_config = nil
       account_abstract_model = nil
       inspect_action = nil
-      current_user =
-        if (current_account = Account.current) && current_account.super_admin? && current_account.tenant_account
+      if (current_user = _current_user)
+        unless (current_account = Account.current_tenant).nil? || current_user.owns?(current_account)
           account_abstract_model = (account_config = RailsAdmin.config(Account)).abstract_model
-          inspect_action = RailsAdmin::Config::Actions.find(:inspect, controller: controller, abstract_model: account_abstract_model, object: current_account.tenant_account)
+          inspect_action = RailsAdmin::Config::Actions.find(:inspect, controller: controller, abstract_model: account_abstract_model, object: current_account)
           inspecting = inspect_action.try(:authorized?)
-          current_account.tenant_account.owner
-        else
-          _current_user
+          current_user = current_account.owner
         end
+      end
       abstract_model = (user_config = RailsAdmin.config(current_user.class)).abstract_model if current_user
       edit_action = RailsAdmin::Config::Actions.find(:show, controller: controller, abstract_model: abstract_model, object: current_user) if abstract_model
       unless current_user && abstract_model && edit_action
         user_config = account_config
         abstract_model = account_abstract_model
         edit_action = inspect_action
-        current_user = current_account.tenant_account || current_account
+        current_user = current_account
       end
       return nil unless current_user && abstract_model && edit_action
       link = link_to url_for(action: edit_action.action_name, model_name: abstract_model.to_param, id: current_user.id, controller: 'rails_admin/main'), class: 'pjax' do
@@ -611,7 +610,7 @@ module RailsAdmin
         # Patch
         # text = _current_user.name
         # Patch
-        text = current_user.send(user_config.object_label_method)
+        text = current_account.label
         html << content_tag(:span, text, style: 'padding-right:5px')
         unless inspecting
           if current_user && current_user.picture.present? && abstract_model && edit_action
@@ -624,7 +623,7 @@ module RailsAdmin
       end
       if inspecting
         link = [link]
-        link << link_to(url_for(action: inspect_action.action_name, model_name: account_abstract_model.to_param, id: current_account.tenant_account.id, controller: 'rails_admin/main'), class: 'pjax') do
+        link << link_to(url_for(action: inspect_action.action_name, model_name: account_abstract_model.to_param, id: current_account.id, controller: 'rails_admin/main'), class: 'pjax') do
           '<i class="icon-eye-close" style="color: red"></i>'.html_safe
         end
       end
@@ -720,7 +719,7 @@ module RailsAdmin
         nodes.collect do |node|
           i += 1
           stack_id = "#{html_id}-sub#{i}"
-          model_count = node.abstract_model.count(cache: true)
+          model_count = node.abstract_model.count({ cache: true }, @authorization_adapter && @authorization_adapter.query(:index, node.abstract_model)) rescue -1
 
           children = nodes_stack.select { |n| n.parent.to_s == node.abstract_model.model_name }
           if children.present?
@@ -817,7 +816,7 @@ module RailsAdmin
 
               model_count =
                 if current_user
-                  node.abstract_model.count(cache: true)
+                  node.abstract_model.count({ cache: true }, @authorization_adapter && @authorization_adapter.query(:index, node.abstract_model))
                 else
                   @count[node.abstract_model.model_name] || 0
                 end
