@@ -2578,11 +2578,14 @@ RailsAdmin.config do |config|
       field :name
       field :type
       field :description
-      field :code, :code do
+      field :code, :code_mirror do
         html_attributes do
           { cols: '74', rows: '15' }
         end
         help { 'Required' }
+        config do
+          { mode: bindings[:object].type }
+        end
       end
       field :tags
     end
