@@ -27,11 +27,13 @@ ul#main-accordion{
   padding-left: 24px;
 }
 
+#tenant-nav li.dropdown a.dropdown-toggle,
 #help-nav li.dropdown a.dropdown-toggle,
 #user-nav li.dropdown a.dropdown-toggle {
   color: white;
 }
 
+#tenant-nav > li.dropdown.open > a,
 #help-nav > li.dropdown.open > a,
 #user-nav > li.dropdown.open > a {
   color: #3D4046;
@@ -53,6 +55,13 @@ a#sign-in-link:hover, a#sign-out-link:hover  {
   transition: .5s;
 }
 
+#tenant-nav .dropdown-menu,
+#help-nav .dropdown-menu,
+#user-nav .dropdown-menu {
+  min-width: calc(100% + 4px);
+}
+
+#tenant-nav > li.dropdown.open > a,
 #help-nav > li.dropdown.open > a,
 #user-nav > li.dropdown.open > a {
   background-color: white;
@@ -60,6 +69,7 @@ a#sign-in-link:hover, a#sign-out-link:hover  {
   box-shadow: 0 6px 12px rgba(0, 0, 0, 0.175);
 }
 
+#tenant-nav > li.dropdown.open > a:after,
 #help-nav > li.dropdown.open > a:after,
 #user-nav > li.dropdown.open > a:after {
   display: block;
@@ -73,11 +83,13 @@ a#sign-in-link:hover, a#sign-out-link:hover  {
   background-color: white;
 }
 
+#tenant-menu,
 #help-menu,
 #user-menu {
   padding: 12px;
 }
 
+#tenant-menu .edit_user_root_link img,
 #help-menu .edit_user_root_link img,
 #user-menu .edit_user_root_link img {
   position: inherit;
@@ -85,6 +97,7 @@ a#sign-in-link:hover, a#sign-out-link:hover  {
   border-radius: 50%;
 }
 
+#tenant-menu > li > a,
 #help-menu > li > a,
 #user-menu > li > a {
   padding: 3px;
