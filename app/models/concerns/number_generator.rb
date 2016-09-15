@@ -14,7 +14,7 @@ module NumberGenerator
     before_validation :generate_number
 
     before_save do
-      erros.add(:number, "can't be blank") unless self[:number].present?
+      errors.add(:number, "can't be blank") unless self[:number].present?
       errors.blank?
     end
   end
