@@ -2390,18 +2390,6 @@ RailsAdmin.config do |config|
         html_attributes do
           { cols: '74', rows: '15' }
         end
-        code_config do
-          {
-            mode: case bindings[:object].style
-                  when 'html.erb'
-                    'text/html'
-                  when 'xslt'
-                    'application/xml'
-                  else
-                    'text/x-ruby'
-                  end
-          }
-        end
       end
 
       field :source_exporter do
@@ -2578,14 +2566,17 @@ RailsAdmin.config do |config|
       field :name
       field :type
       field :description
-      field :code, :code_mirror do
+      field :code, :code do
         html_attributes do
           { cols: '74', rows: '15' }
         end
         help { 'Required' }
-        config do
-          { mode: bindings[:object].type }
+        code_config do
+          {
+              mode: bindings[:object].type
+          }
         end
+
       end
       field :tags
     end

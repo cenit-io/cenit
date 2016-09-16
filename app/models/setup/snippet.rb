@@ -7,7 +7,7 @@ module Setup
     build_in_data_type.referenced_by(:namespace, :name)
 
     field :description, type: String
-    field :type, type: Symbol, default: :auto
+    field :type, type: Symbol, default: :javascript
     field :code, type: String
 
     has_and_belongs_to_many :tags, class_name: Setup::Tag.to_s, inverse_of: nil
