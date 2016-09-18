@@ -23,7 +23,7 @@
     .col-md-7{style: 'margin: 10px 0 20px;'}
       %h3.label-heading{style: 'margin: 0;'}
         %small=  t("admin.misc.title_search_shared_collections")
-        %h3{style: "margin-top: 0px;"}= t("admin.misc.sub_title_search_shared_collections", count: @count[Setup::SharedCollection.name])
+        %h4{style: "margin-top: 0px;"}= t("admin.misc.sub_title_search_shared_collections", count: @count[Setup::SharedCollection.name])
         - shared_path = index_path(model_name: "setup~shared_collection", query: query)
         = form_tag(shared_path, method: :get, class: "pjax-form form-inline") do
           .input-group.col-xs-12
