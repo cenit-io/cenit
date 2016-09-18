@@ -50,16 +50,8 @@
       =link_to "#{ENV['PORTAL_URL'] || 'https://cenit.io'}/terms_of_service", target: '_blank' do
         %i.fa.fa-fw.fa-institution{title: t('admin.misc.terms')}
         %span=t('admin.misc.terms')
-  .social-links.absolute.text-center.last
-    =link_to 'https://github.com/openjaf/cenit', target: '_blank' do
-      %i.fa.fa-fw.fa-github-square
-    =link_to 'https://www.linkedin.com/company/cenit-llc', target: '_blank' do
-      %i.fa.fa-fw.fa-linkedin-square
-    =link_to 'https://www.youtube.com/channel/UC7JVcEmA3BkiR2SZ_lx5lyA', target: '_blank' do
-      %i.fa.fa-fw.fa-youtube-square
-    .cenit-llc
-      =link_to 'mailto:support@cenit.io', class: "text-muted" do
-        %h5= 'support@cenit.io'
+    = render partial: 'shared/socials'
+
 
 - if _current_user.present?
 
@@ -210,17 +202,7 @@
                 =t('admin.session.register')
               %a#do-user.btn.btn-xs.pull-left{href: '#'}
                 =t('admin.registration.sign')
-
-    .social-links.text-center.last
-      =link_to 'https://github.com/openjaf/cenit', target: '_blank' do
-        %i.fa.fa-fw.fa-github-square
-      =link_to 'https://www.linkedin.com/company/cenit-llc', target: '_blank' do
-        %i.fa.fa-fw.fa-linkedin-square
-      =link_to 'https://www.youtube.com/channel/UC7JVcEmA3BkiR2SZ_lx5lyA', target: '_blank' do
-        %i.fa.fa-fw.fa-youtube-square
-      .cenit-llc
-        =link_to 'mailto:support@cenit.io', class: "text-muted" do
-          %h5= 'support@cenit.io'
+    = render partial: 'shared/socials'
 
 - query = params[:query]
 %ul.nav.navbar-nav.navbar-right.root_links{style: 'padding-left: 0px;'}
