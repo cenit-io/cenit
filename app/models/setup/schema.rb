@@ -123,7 +123,7 @@ module Setup
 
     def cenit_ref_schema(options = {})
       options = {
-        service_url: Cenit.service_url,
+        service_url: Cenit.routed_service_url,
         schema_service_path: Cenit.schema_service_path
       }.merge(options)
       send("cenit_ref_#{schema_type}", options)
