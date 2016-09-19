@@ -71,13 +71,13 @@ class AppController < ApplicationController
       Account.set_current_with_connection(key, token) if key || token
       @authentication_method = :user_credentials
     end
-    if (app_id = ApplicationId.where(identifier: params[:id_or_ns]).first)
+    if (app_id = Cenit::ApplicationId.where(identifier: params[:id_or_ns]).first)
       @id_routing = true
     elsif (app_id = params[:client_id])
-      app_id = ApplicationId.where(identifier: app_id).first
+      app_id = Cenit::ApplicationId.where(identifier: app_id).first
     end
     if app_id
-      Account.current = app_id.account
+      Account.current = app_id.tenant
       @app = app_id.app
       @authentication_method = :application_id
     end

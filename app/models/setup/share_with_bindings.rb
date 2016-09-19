@@ -18,9 +18,9 @@ module Setup
         r
       end
 
-      def clear_config_for(account, ids)
+      def clear_config_for(tenant, ids)
         super
-        Setup::Binding.with(account).clear(self, ids)
+        Setup::Binding.with(tenant).clear(self, ids)
       end
     end
   end

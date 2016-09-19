@@ -9,8 +9,20 @@ Cenit::Application.routes.draw do
   get 'explore/:api', to: 'api#explore', as: :explore_api
   post 'write/:api', to: 'api#write', as: :write_api
 
-  match 'oauth/authorize', to: 'oauth#index', via: [:get, :post]
-  get 'oauth/callback', to: 'oauth#callback'
+  oauth_path =
+    if Cenit.oauth_path.present?
+      "/#{Cenit.oauth_path}".squeeze('/')
+    else
+      '/oauth'
+    end
+  Cenit.oauth_path oauth_path
+
+  match "#{oauth_path}/authorize", to: 'oauth#index', via: [:get, :post]
+  get "#{oauth_path}/callback", to: 'oauth#callback'
+  if Cenit.oauth_token_end_point.to_s.to_sym == :embedded
+    mount Cenit::Oauth::Engine => oauth_path
+  end
+
   get 'captcha', to: 'captcha#index'
   get 'captcha/:token', to: 'captcha#index'
   get '/file/:model/:field/:id/*file(.:format)', to: 'file#index'

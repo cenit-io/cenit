@@ -19,7 +19,7 @@ module RailsAdmin
           proc do
             render_form = true
             app_id = @object.application_id
-            app_id_config = RailsAdmin::Config.model(ApplicationId)
+            app_id_config = RailsAdmin::Config.model(Cenit::ApplicationId)
             if (registration_data = params[app_id_config.abstract_model.param_key]) && registration_data.permit! &&
               (app_id.regist_with(registration_data)).valid?
               app_id.save

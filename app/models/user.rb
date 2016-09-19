@@ -81,7 +81,7 @@ class User
     !account.nil? && account.owner_id == id
   end
 
-  def account_ids
+  def account_ids #TODO look for usages and try to optimize
     accounts.collect(&:id)
   end
 
