@@ -10,7 +10,7 @@ module Cenit
         controller: ['app'],
         action: ['index'],
         id_or_ns: [app.identifier, app.ns_slug],
-        app_slug:[app.slug]
+        app_slug: [app.slug]
       }.each do |key, value|
         params.delete(key) if value.include?(params[key])
       end
@@ -94,12 +94,12 @@ module Cenit
 
     def access_token_for(auth)
       fail "Invalid authorization class: #{auth.class}" unless auth.is_a?(Setup::Oauth2Authorization)
-      unless (app_id = ApplicationId.where(identifier: auth.client && auth.client.identifier).first)
+      unless (app_id = Cenit::ApplicationId.where(identifier: auth.client && auth.client.identifier).first)
         fail "Invalid authorization client: #{auth.client.identifier}"
       end
-      if (scope = auth.scopes.collect { |scope| Cenit::Scope.new(scope.name) }.inject(&:merge)).valid? &&
-        scope.auth?
-        OauthAccessToken.for(User.current, app_id, scope)
+      scope = auth.scopes.collect { |scope| Cenit::OauthScope.new(scope.name) }.inject(&:merge)
+      if scope.valid? && scope.auth?
+        Cenit::OauthAccessToken.for(app_id, scope, User.current)
       else
         fail 'Invalid authorization scope'
       end

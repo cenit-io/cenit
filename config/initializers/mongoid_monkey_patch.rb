@@ -28,7 +28,7 @@ module Mongoid
 
   module Document
 
-    def account_version
+    def account_version #TODO Rename to tenant_version
       self
     end
   end

@@ -10,7 +10,7 @@ class OauthController < ApplicationController
 
   def index
     if request.get?
-      if @app_id && (@app_id.account == Account.current || @app_id.registered?)
+      if @app_id && (@app_id.tenant == Account.current || @app_id.registered?)
         @token = Cenit::Token.create(data: { scope: @scope.to_s, redirect_uri: @redirect_uri, state: params[:state] }).token
       else
         @errors << 'Unregistered app'
@@ -26,7 +26,7 @@ class OauthController < ApplicationController
           params[:state] = state
         end
         if @consent_action == :allow
-          code_token = OauthCodeToken.create(scope: scope)
+          code_token = Cenit::OauthCodeToken.create(scope: scope, user_id: User.current.id)
           params[:code] = code_token.token
         else
           params[:error] ='Access denied'
@@ -100,7 +100,7 @@ class OauthController < ApplicationController
       end
       @errors << 'Missing redirect_uri.' unless (@redirect_uri = params[:redirect_uri])
       @errors << 'Missing scope.' unless (@scope = params[:scope])
-      if (@app_id = ApplicationId.where(identifier: @client_id).first)
+      if (@app_id = Cenit::ApplicationId.where(identifier: @client_id).first)
         unless @app_id.redirect_uris.include?(@redirect_uri)
           @errors << 'Invalid redirect_uri'
         end
@@ -108,7 +108,7 @@ class OauthController < ApplicationController
         @errors << 'Invalid credentials'
       end if @errors.blank?
       if @scope.is_a?(String)
-        @scope = Cenit::Scope.new(@scope)
+        @scope = Cenit::OauthScope.new(@scope)
       end
       @errors << 'Invalid scope' unless @scope.nil? || @scope.valid?
     else

@@ -50,7 +50,7 @@ module Mongoff
     def each(*args, &blk)
       query.each do |document|
         m =
-          if type = document['_type']
+          if (type = document['_type'])
             model.class.for(name: type)
           else
             model
