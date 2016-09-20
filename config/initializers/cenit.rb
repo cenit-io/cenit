@@ -98,4 +98,6 @@ Cenit.config do
   rabbit_mq_user ENV['RABBIT_MQ_USER']
 
   rabbit_mq_password ENV['RABBIT_MQ_PASSWORD']
+
+  default_code_theme 'monokai'
 end
