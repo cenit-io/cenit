@@ -2217,7 +2217,7 @@ RailsAdmin.config do |config|
     fields :namespace, :name, :aws_access_key, :aws_secret_key, :seller, :merchant, :markets, :signature_method, :signature_version, :updated_at
   end
 
-  config.model Setup::OauthAccessGrant do
+  config.model Cenit::OauthAccessGrant do
     navigation_label 'Security'
     label 'Access Grants'
     weight 340
@@ -2548,7 +2548,7 @@ RailsAdmin.config do |config|
     fields :namespace, :name, :slug, :identifier, :secret_token, :registered, :actions, :application_parameters
   end
 
-  config.model Setup::ApplicationParameter do
+  config.model Cenit::ApplicationParameter do
     visible false
     navigation_label 'Compute'
     configure :group, :enum_edit
@@ -3072,7 +3072,7 @@ RailsAdmin.config do |config|
     list do
       field :created_at do
         visible do
-          if account = Account.current
+          if (account = Account.current)
             account.notifications_listed_at = Time.now
           end
           true
@@ -3860,7 +3860,7 @@ RailsAdmin.config do |config|
     fields :created_at, :channel, :tag, :executor, :task_id, :alive, :created_at, :updated_at
   end
 
-  config.model ApplicationId do
+  config.model Cenit::ApplicationId do
     weight 830
     navigation_label 'Administration'
     visible { User.current_super_admin? }
@@ -3884,12 +3884,12 @@ RailsAdmin.config do |config|
     list do
       field :name
       field :registered
-      field :account
+      field :tenant
       field :identifier
       field :updated_at
     end
 
-    fields :created_at, :name, :registered, :account, :identifier, :created_at, :updated_at
+    fields :created_at, :name, :registered, :tenant, :identifier, :created_at, :updated_at
   end
 
   config.model Setup::ScriptExecution do

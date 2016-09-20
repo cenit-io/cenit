@@ -73,9 +73,9 @@ module Setup
         q
       end
 
-      def clear_config_for(account, ids)
+      def clear_config_for(tenant, ids)
         super
-        config_model.with(account).where(foreign_key.in => ids).delete_all
+        config_model.with(tenant).where(foreign_key.in => ids).delete_all
       end
     end
   end

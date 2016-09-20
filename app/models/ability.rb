@@ -30,8 +30,8 @@ class Ability
         can :destroy, [Setup::SharedCollection, Setup::Storage, Setup::CrossSharedCollection]
         can [:index, :show, :cancel], RabbitConsumer
         can [:edit, :pull, :import], Setup::CrossSharedCollection
-        can [:index, :show], ApplicationId
-        can(:destroy, ApplicationId) do |app_id|
+        can [:index, :show], Cenit::ApplicationId
+        can(:destroy, Cenit::ApplicationId) do |app_id|
           app_id.app.nil?
         end
         can :inspect, Account
@@ -44,12 +44,9 @@ class Ability
         can :new, Account if user.partner?
       end
 
-      task_destroy_conds =
-        {
-          'status' => { '$in' => Setup::Task::NON_ACTIVE_STATUS },
-          'scheduler_id' => { '$in' => Setup::Scheduler.where(activated: false).collect(&:id) + [nil] }
-        }
-      can :destroy, Setup::Task, task_destroy_conds
+      can :destroy, Setup::Task,
+          :status.in => Setup::Task::NON_ACTIVE_STATUS,
+          :scheduler_id.in => Setup::Scheduler.where(activated: false).collect(&:id) + [nil]
 
 
       can RailsAdmin::Config::Actions.all(:root).collect(&:authorization_key)

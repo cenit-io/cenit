@@ -64,13 +64,13 @@ module Cenit
         message_token = message.delete(:token)
         if (token = TaskToken.where(token: message_token).first)
           token.destroy
-          account = token.set_current_tenant
+          tenant = token.set_current_tenant
           message = JSON.parse(token.data).with_indifferent_access if token.data
         else
-          account = nil
+          tenant = nil
         end
-        if Account.current.nil? || (message_token.present? && Account.current != account)
-          Setup::Notification.create(message: "Can not determine account for message: #{message}")
+        if Account.current.nil? || (message_token.present? && Account.current != tenant)
+          Setup::Notification.create(message: "Can not determine tenant for message: #{message}")
         else
           begin
             rabbit_consumer = nil
@@ -80,7 +80,7 @@ module Cenit
             else
               if task ||= task_class && task_class.create(message: message)
                 if (rabbit_consumer = options[:rabbit_consumer] || RabbitConsumer.where(tag: options[:consumer_tag]).first)
-                  rabbit_consumer.update(executor_id: account.id, task_id: task.id)
+                  rabbit_consumer.update(executor_id: tenant.id, task_id: task.id)
                 end
                 task.execute
               else

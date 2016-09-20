@@ -46,6 +46,17 @@ module Cenit
       end
 
       Account.current = nil
+
+      Cenit::ApplicationParameter.instance_eval do
+        include Setup::CenitScoped
+        build_in_data_type.referenced_by(:name)
+      end
+
+      Cenit::OauthAccessGrant.instance_eval do
+        include Setup::CenitScoped
+        deny :all
+        allow :index, :delete
+      end
     end
 
     if Rails.env.production? &&
