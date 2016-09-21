@@ -35,7 +35,6 @@ Cenit::Application.routes.draw do
   match "#{oauth_path}/authorize", to: 'oauth#index', via: [:get, :post]
   get "#{oauth_path}/callback", to: 'oauth#callback'
   if Cenit.oauth_token_end_point.to_s.to_sym == :embedded
-    Cenit::MultiTenancy.user_model User #TODO Remove when include module for user model
     mount Cenit::Oauth::Engine => oauth_path
   end
 
