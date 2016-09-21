@@ -17,6 +17,8 @@ module Setup
     end
 
     before_save do
+      self.configuration_attributes = configuration.attributes
+
       params = application_parameters.sort_by(&:name).sort_by(&:group_s)
       self.application_parameters = params
 
