@@ -68,8 +68,9 @@ class AppController < ApplicationController
     unless key || token
       key = request.headers['X-Hub-Store']
       token = request.headers['X-Hub-Access-Token']
-      Account.set_current_with_connection(key, token) if key || token
-      @authentication_method = :user_credentials
+      if (key || token) && Account.set_current_with_connection(key, token)
+        @authentication_method = :user_credentials
+      end
     end
     if (app_id = Cenit::ApplicationId.where(identifier: params[:id_or_ns]).first)
       @id_routing = true
