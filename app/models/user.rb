@@ -2,8 +2,8 @@ require 'net/http'
 require 'identicon'
 
 class User
-  include Cenit::MultiTenancy::UserScope
   include Mongoid::Document
+  include Cenit::MultiTenancy::UserScope
   include Mongoid::Timestamps
   extend DeviseOverrides
   include NumberGenerator
