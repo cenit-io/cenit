@@ -14,8 +14,8 @@ module RailsAdmin
 
           register_instance_option :assets do
             {
-              mode: bindings[:view].asset_path("/assets/codemirror/modes/#{mode_file}.js"),
-              theme: bindings[:view].asset_path("/assets/codemirror/themes/#{config[:theme]}.css"),
+              mode: bindings[:view].asset_path("codemirror/modes/#{mode_file}.js"),
+              theme: bindings[:view].asset_path("codemirror/themes/#{config[:theme]}.css")
             }
           end
 
@@ -45,11 +45,8 @@ module RailsAdmin
 
               'text/apl': 'apl',
               'text/html': 'xml',
-              'text/plain': 'null',
+              'text/plain': 'javascript',
               'text/x-ruby': 'ruby',
-
-              'auto': 'null',
-              'text': 'null'
             }[config[:mode].to_sym] || config[:mode].to_sym
           end
         end

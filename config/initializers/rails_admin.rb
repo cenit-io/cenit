@@ -2573,7 +2573,21 @@ RailsAdmin.config do |config|
         help { 'Required' }
         code_config do
           {
-              mode: bindings[:object].type
+              mode: {
+                  'auto': 'javascript',
+                  'text': 'javascript',
+                  'null': 'javascript',
+                  'c': 'clike',
+                  'cpp': 'clike',
+                  'csharp': 'clike',
+                  'csv': 'javascript',
+                  'fsharp': 'mllike',
+                  'java': 'clike',
+                  'latex': 'stex',
+                  'ocaml': 'mllike',
+                  'scala': 'clike',
+                  'squirrel': 'clike'
+              }[bindings[:object].type] || bindings[:object].type
           }
         end
 
