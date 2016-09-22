@@ -613,10 +613,8 @@ module RailsAdmin
         text = current_account.label
         html << content_tag(:span, text, style: 'padding-right:5px')
         unless inspecting
-          if current_user && current_user.picture.present? && abstract_model && edit_action
-            html << image_tag(current_user.picture.icon.url, alt: '')
-          elsif current_user.email.present?
-            html << image_tag(current_user.gravatar_or_identicon_url(30), alt: '')
+          if current_user && abstract_model && edit_action
+            html << image_tag(current_user.picture_url(30), alt: '')
           end
         end
         html.join.html_safe
