@@ -91,21 +91,21 @@ module Setup
       if output_datatype.is_a? Setup::FileDataType
         begin
           case output
-            when Hash, Array
-              r = output_datatype.create_from!(output.to_json, contentType: 'application/json')
-            when String
-              ct = 'text/plain'
-              begin
-                JSON.parse(output)
-                ct = 'application/json'
-              rescue JSON::ParserError
-                unless Nokogiri.XML(output).errors.present?
-                  ct = 'application/xml'
-                end
+          when Hash, Array
+            r = output_datatype.create_from!(output.to_json, contentType: 'application/json')
+          when String
+            ct = 'text/plain'
+            begin
+              JSON.parse(output)
+              ct = 'application/json'
+            rescue JSON::ParserError
+              unless Nokogiri.XML(output).errors.present?
+                ct = 'application/xml'
               end
-              r = output_datatype.create_from!(output, contentType: ct)
-            else
-              r = output_datatype.create_from!(output.to_s)
+            end
+            r = output_datatype.create_from!(output, contentType: ct)
+          else
+            r = output_datatype.create_from!(output.to_s)
           end
         rescue Exception
           r = output_datatype.create_from!(output.to_s)
@@ -113,18 +113,18 @@ module Setup
       else
         begin
           case output
-            when Hash, String
-              begin
-                r = output_datatype.create_from_json!(output)
-              rescue Exception => e
-                puts e.backtrace
-              end
-            when Array
-              output.each do |item|
-                rc += do_store_output(item)
-              end
-            else
-              raise
+          when Hash, String
+            begin
+              r = output_datatype.create_from_json!(output)
+            rescue Exception => e
+              puts e.backtrace
+            end
+          when Array
+            output.each do |item|
+              rc += do_store_output(item)
+            end
+          else
+            raise
           end
         rescue Exception
           fail 'Output failed to validate against Output DataType.'
@@ -199,11 +199,11 @@ module Setup
 
     def configuration_schema
       schema =
-          {
-              type: 'object',
-              properties: properties = {},
-              required: parameters.select(&:required).collect(&:name)
-          }
+        {
+          type: 'object',
+          properties: properties = {},
+          required: parameters.select(&:required).collect(&:name)
+        }
       parameters.each { |p| properties[p.name] = p.schema }
       schema.stringify_keys
     end
@@ -212,7 +212,8 @@ module Setup
     def configuration_model
       @mongoff_model ||= Mongoff::Model.for(data_type: self.class.data_type,
                                             schema: configuration_schema,
-                                            name: self.class.configuration_model_name)
+                                            name: self.class.configuration_model_name,
+                                            cache: false)
     end
 
     class << self

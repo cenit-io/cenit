@@ -97,11 +97,12 @@ module Setup
         refs << ref
       end
       refs.flatten.each do |ref|
-        if (data_type = find_data_type(ref)) &&
-          visited.exclude?(data_type)
-          visited << data_type
-          block.call(data_type)
-          data_type.for_each_ref(visited, not_found: not_found, &block) if data_type.is_a?(Setup::JsonDataType)
+        if (data_type = find_data_type(ref))
+          if visited.exclude?(data_type)
+            visited << data_type
+            block.call(data_type)
+            data_type.for_each_ref(visited, not_found: not_found, &block) if data_type.is_a?(Setup::JsonDataType)
+          end
         else
           not_found << ref
         end

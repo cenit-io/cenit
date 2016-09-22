@@ -3541,6 +3541,11 @@ RailsAdmin.config do |config|
     visible { User.current_super_admin? }
     object_label_method { :label }
 
+    group :accounts do
+      label 'Accounts'
+      active true
+    end
+
     group :credentials do
       label 'Credentials'
       active true
@@ -3556,12 +3561,15 @@ RailsAdmin.config do |config|
     configure :code_theme
     configure :roles
     configure :account do
+      group :accounts
       label 'Current Account'
     end
     configure :api_account do
+      group :accounts
       label 'API Account'
     end
     configure :accounts do
+      group :accounts
       read_only { !Account.current_super_admin? }
     end
     configure :password do
