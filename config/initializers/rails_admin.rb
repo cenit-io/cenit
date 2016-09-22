@@ -2477,7 +2477,6 @@ RailsAdmin.config do |config|
       field :style
       field :mime_type
       field :file_extension
-      field :transformation
       field :updated_at
     end
 
