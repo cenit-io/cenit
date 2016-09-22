@@ -55,21 +55,19 @@
 
 - if _current_user.present?
 
-  - if (accs = _current_user.accounts).count > 1
-    %ul#tenant-nav.nav.navbar-nav.navbar-right
-      %li.dropdown
-        %a.dropdown-toggle{href:"#", role:"button",'data-toggle':"dropdown",'aria-haspopup':"true",'aria-expanded':"false"}
-          %i.fa.fa-fw.fa-home
-          = _current_user.account.name
-          %span.caret
-        %ul#tenant-menu.dropdown-menu
-          - accs.each do | a |
-            - if a != _current_user.account
-              %li= link_to a.name, inspect_path(model_name: 'account', id: a.id)
-
-          %li.divider{role:"separator"}
-          .actions.clearfix
-            %li= link_to t('admin.misc.add_tenant'), new_path(model_name: 'account')
+  %ul#tenant-nav.nav.navbar-nav.navbar-right
+    %li.dropdown
+      %a.dropdown-toggle{href:"#", role:"button",'data-toggle':"dropdown",'aria-haspopup':"true",'aria-expanded':"false"}
+        %i.fa.fa-fw.fa-home
+        = _current_user.account.name
+        %span.caret
+      %ul#tenant-menu.dropdown-menu
+        - accs.each do | a |
+          - if a != _current_user.account
+            %li= link_to a.name, inspect_path(model_name: 'account', id: a.id)
+        %li.divider{role:"separator"}
+        .actions.clearfix
+          %li= link_to t('admin.misc.add_tenant'), new_path(model_name: 'account')
 
   %ul#user-nav.nav.navbar-nav.navbar-right
     %li.dropdown
