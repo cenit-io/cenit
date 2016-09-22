@@ -52,26 +52,33 @@ class AppController < ApplicationController
     token = params.delete('X-User-Access-Token')
     token = request.headers['X-User-Access-Token'] || token
     if key || token
-      user = User.where(key: key).first
-      if user && Devise.secure_compare(user.token, token) && user.has_role?(:admin)
-        Account.current = user.account
-        @authentication_method = :user_credentials
+      [
+        User,
+        Account
+      ].each do |model|
+        next if user
+        record = model.where(key: key).first
+        if record && Devise.secure_compare(record[:authentication_token], token)
+          Account.current = record.api_account
+          user = record.user
+          @authentication_method = :user_credentials
+        end
       end
-    else
+    end
+    unless key || token
       key = request.headers['X-Hub-Store']
       token = request.headers['X-Hub-Access-Token']
-      if key || token
-        Account.set_current_with_connection(key, token)
+      if (key || token) && Account.set_current_with_connection(key, token)
         @authentication_method = :user_credentials
       end
     end
-    if (app_id = ApplicationId.where(identifier: params[:id_or_ns]).first)
+    if (app_id = Cenit::ApplicationId.where(identifier: params[:id_or_ns]).first)
       @id_routing = true
     elsif (app_id = params[:client_id])
-      app_id = ApplicationId.where(identifier: app_id).first
+      app_id = Cenit::ApplicationId.where(identifier: app_id).first
     end
     if app_id
-      Account.current = app_id.account
+      Account.current = app_id.tenant
       @app = app_id.app
       @authentication_method = :application_id
     end

@@ -206,7 +206,7 @@ module Edi
           when Hash
             Nokogiri::XML(content.to_xml).root.element_children
           else
-            [json_value(content).to_s]
+            [json_value(content, options).to_s]
           end
         content.each { |e| element << e }
       else
@@ -305,17 +305,28 @@ module Edi
           json[key] = value if store_anyway || value.present? || options[:include_blanks] || options[:include_empty]
         else
           value = value.to_s if [BSON::ObjectId, Symbol].any? { |klass| value.is_a?(klass) }
-          json[key] = json_value(value) if store_anyway || !(value.nil? || value.try(:empty?)) || options[:include_blanks] #TODO String blanks!
+          json[key] = json_value(value, options) if store_anyway || !(value.nil? || value.try(:empty?)) || options[:include_blanks] #TODO String blanks!
         end
       end
     end
 
-    def json_value(value)
+    def json_value(value, options)
       case value
       when Time
         value.strftime('%H:%M:%S')
       else
-        value
+        if Cenit::Utility.json_object?(value)
+          value
+        else
+          options = options.dup
+          if (hash = value.try(:to_hash, options))
+            hash
+          elsif (json = value.try(:to_json, options))
+            JSON.parse(json.to_s) rescue json.to_s
+          else
+            value.to_s
+          end
+        end
       end
     end
 
@@ -346,11 +357,11 @@ module Edi
               end
             end
           else
-            if sub_record = record.send(property_name)
+            if (sub_record = record.send(property_name))
               if property_schema['edi'] && property_schema['edi']['inline']
                 value = []
-                property_model.properties_schemas.each do |property_name, property_schema|
-                  value << edi_value(sub_record, property_name, property_schema, sub_record.orm_model.property_model(property_name), options)
+                property_model.properties_schemas.each do |sub_property_name, sub_property_schema|
+                  value << edi_value(sub_record, sub_property_name, sub_property_schema, sub_record.orm_model.property_model(sub_property_name), options)
                 end
                 segment +=
                   if field_sep == :by_fixed_length
@@ -396,10 +407,9 @@ module Edi
         end
       if options[:field_separator] == :by_fixed_length
         if (max_len = property_schema['maxLength']) && (auto_fill = property_schema['auto_fill'])
-          case auto_fill[0]
-          when 'R'
+          if auto_fill[0] == 'R'
             value += auto_fill[1] until value.length == max_len
-          when 'L'
+          else #should be 'L'
             value = auto_fill[1] + value until value.length == max_len
           end
         end

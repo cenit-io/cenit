@@ -10,6 +10,12 @@ Cenit.config do
 
   github_shared_collections_pass ENV['GITHUB_SHARED_COLLECTIONS_PASS']
 
+  #The path for OAuth 2.0 actions
+  oauth_path '/oauth'
+
+  #Set this option to :embedded to mount the cenit-oauth Token End Point
+  oauth_token_end_point ENV['OAUTH_TOKEN_END_POINT']
+
   #Use this option to setup an external service
   service_url ENV['SERVICE_URL']
 
@@ -92,4 +98,6 @@ Cenit.config do
   rabbit_mq_user ENV['RABBIT_MQ_USER']
 
   rabbit_mq_password ENV['RABBIT_MQ_PASSWORD']
+
+  default_code_theme 'monokai'
 end

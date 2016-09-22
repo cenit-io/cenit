@@ -19,6 +19,15 @@ module Setup
 
     validates_presence_of :client
 
+    def each_template_parameter(&block)
+      if block
+        template_parameters.each do |parameter|
+          block.call(parameter.name, parameter.value)
+        end
+        method_missing(:each_template_parameter, &block)
+      end
+    end
+
     def expires_at
       authorized_at && token_span && authorized_at + token_span
     end

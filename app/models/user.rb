@@ -3,6 +3,7 @@ require 'identicon'
 
 class User
   include Mongoid::Document
+  include Cenit::MultiTenancy::UserScope
   include Mongoid::Timestamps
   extend DeviseOverrides
   include NumberGenerator
@@ -47,8 +48,11 @@ class User
   field :doorkeeper_refresh_token, type: String
   field :doorkeeper_expires_at, type: Integer
 
-  field :name, type: String
+  #Profile
   mount_uploader :picture, ImageUploader
+  field :name, type: String
+
+  #UI options
   field :code_theme, type: String
 
   validates_inclusion_of :code_theme, in: ->(user) { user.code_theme_enum }
@@ -81,7 +85,7 @@ class User
     !account.nil? && account.owner_id == id
   end
 
-  def account_ids
+  def account_ids #TODO look for usages and try to optimize
     accounts.collect(&:id)
   end
 

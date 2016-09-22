@@ -6,15 +6,27 @@ GIT
 
 GIT
   remote: https://github.com/macarci/cenit-multi_tenancy.git
-  revision: ac702acb858e35d002c31998ff41229b39ddeae2
+  revision: 85c03bf48cce0882c13bff92d6c1bce4feb1ccb8
   specs:
     cenit-multi_tenancy (0.0.1)
       cenit-config
+      glebtv_mongoid_userstamp
       mongoid (>= 5.0.1)
 
 GIT
+  remote: https://github.com/macarci/cenit-oauth.git
+  revision: 124b939a64e8e2c0dbe1a7e60d4263659b2da2a8
+  specs:
+    cenit-oauth (0.0.1)
+      cenit-token
+      identicon
+      json-schema
+      jwt
+      rails (>= 4.2.5)
+
+GIT
   remote: https://github.com/macarci/cenit-service.git
-  revision: cf71aaf830006910435e733ba3f34c3cd5264d33
+  revision: bfd958d12331bf1f82505e62d6b7f2c99802366e
   specs:
     cenit-service (0.0.1)
       cenit-token
@@ -22,7 +34,7 @@ GIT
 
 GIT
   remote: https://github.com/macarci/cenit-token.git
-  revision: 9a4643ff6ced1c5751aa9bf494c8156802a09968
+  revision: 9ee5309b52d897b41b9f8fcab488c462aa0eb649
   specs:
     cenit-token (0.0.1)
       mongoid (>= 5.0.1)
@@ -265,6 +277,7 @@ GEM
       actionpack (>= 3.0.0)
       activesupport (>= 3.0.0)
     kgio (2.10.0)
+    language_sniffer (1.0.2)
     libv8 (3.16.14.13)
     liquid (3.0.6)
     lodash-rails (4.6.1)
@@ -549,6 +562,7 @@ DEPENDENCIES
   carrierwave-mongoid
   cenit-config!
   cenit-multi_tenancy!
+  cenit-oauth!
   cenit-service!
   cenit-token!
   cenit_cmd!
@@ -615,9 +629,3 @@ DEPENDENCIES
   unicorn (= 4.9.0)
   wannabe_bool
   xmldsig
-
-RUBY VERSION
-   ruby 2.2.1p85
-
-BUNDLED WITH
-   1.12.5

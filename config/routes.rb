@@ -9,8 +9,35 @@ Cenit::Application.routes.draw do
   get 'explore/:api', to: 'api#explore', as: :explore_api
   post 'write/:api', to: 'api#write', as: :write_api
 
-  match 'oauth/authorize', to: 'oauth#index', via: [:get, :post]
-  get 'oauth/callback', to: 'oauth#callback'
+  service_path =
+    if Cenit.service_path.present?
+      "/#{Cenit.service_path}".squeeze('/')
+    else
+      '/service'
+    end
+  Cenit.service_path service_path
+  if Cenit.service_url.present?
+    Cenit.routed_service_url(Cenit.service_url)
+  else
+    mount Cenit::Service::Engine => service_path
+    Cenit.routed_service_url(Cenit.homepage + service_path)
+  end
+
+
+  oauth_path =
+    if Cenit.oauth_path.present?
+      "/#{Cenit.oauth_path}".squeeze('/')
+    else
+      '/oauth'
+    end
+  Cenit.oauth_path oauth_path
+
+  match "#{oauth_path}/authorize", to: 'oauth#index', via: [:get, :post]
+  get "#{oauth_path}/callback", to: 'oauth#callback'
+  if Cenit.oauth_token_end_point.to_s.to_sym == :embedded
+    mount Cenit::Oauth::Engine => oauth_path
+  end
+
   get 'captcha', to: 'captcha#index'
   get 'captcha/:token', to: 'captcha#index'
   get '/file/:model/:field/:id/*file(.:format)', to: 'file#index'
@@ -37,17 +64,6 @@ Cenit::Application.routes.draw do
   match 'app/:id_or_ns' => 'app#index', via: [:all]
   match 'app/:id_or_ns/:app_slug' => 'app#index', via: [:all]
   match 'app/:id_or_ns/:app_slug/*path' => 'app#index', via: [:all]
-
-  unless Cenit.service_url.present?
-    path =
-      if Cenit.service_path.present?
-        "/#{Cenit.service_path}".squeeze('/')
-      else
-        '/service'
-      end
-    Cenit.service_url Cenit.homepage + path
-    mount Cenit::Service::Engine => path
-  end
 
   mount RailsAdmin::Engine => '/', as: 'rails_admin'
 

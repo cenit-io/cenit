@@ -45,8 +45,8 @@ en:
       api: "API"
       directory: "Directory"
       shared_collections: find shared collections
-      title_search_shared_collections: "Platform to process, store and move data between APIs, EDI and more"
-      sub_title_search_shared_collections: "Find data flows over %{count} API Connectors"
+      title_search_shared_collections: "Platform to process, storage and move data between APIs, EDI and Datasets"
+      sub_title_search_shared_collections: "Find or create data flows over %{count} built integrations"
       pull: "Pull"
       show_all: "Show all"
       overview: "Overview"
@@ -54,6 +54,7 @@ en:
       or: 'or'
       not_selected: 'Not selected'
       help: 'help'
+      add_tenant: 'New account'
     actions:
       dashboard:
         title: "Dashboard"

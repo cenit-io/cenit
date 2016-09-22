@@ -96,16 +96,16 @@ module Setup
         Setup::Models.shared_allowed_actions_for self, *actions
       end
 
-      def clear_config_for(account, ids)
-        clear_pins_for(account, ids)
+      def clear_config_for(tenant, ids)
+        clear_pins_for(tenant, ids)
       end
 
-      def clear_pins_for(account, ids)
-        Setup::Pin.with(account).where(model: mongoid_root_class, :record_id.in => ids).delete_all
+      def clear_pins_for(tenant, ids)
+        Setup::Pin.with(tenant).where(model: mongoid_root_class, :record_id.in => ids).delete_all
       end
 
       def history_trackable_options
-        @history_trackable_options ||= Mongoid::History.trackable_class_options[with(account: nil).collection_name.to_s.singularize.to_sym]
+        @history_trackable_options ||= Mongoid::History.trackable_class_options[with(tenant: nil).collection_name.to_s.singularize.to_sym]
       end
 
       def super_count

@@ -32,7 +32,9 @@ module Cenit
             end
             tokens.delete_all
             message[:task_id] = task.id.to_s
-            message = TaskToken.create(data: message.to_json, task: task).token
+            message = TaskToken.create(data: message.to_json,
+                                       task: task,
+                                       user: Cenit::MultiTenancy.user_model.current).token
             if scheduler || publish_at
               Setup::DelayedMessage.create(message: message, publish_at: publish_at, scheduler: scheduler)
             else
@@ -64,13 +66,15 @@ module Cenit
         message_token = message.delete(:token)
         if (token = TaskToken.where(token: message_token).first)
           token.destroy
-          account = token.set_current_tenant
+          Cenit::MultiTenancy.user_model.current = token.user
+          tenant = token.set_current_tenant
           message = JSON.parse(token.data).with_indifferent_access if token.data
         else
-          account = nil
+          tenant = nil
         end
-        if Account.current.nil? || (message_token.present? && Account.current != account)
-          Setup::Notification.create(message: "Can not determine account for message: #{message}")
+        if Cenit::MultiTenancy.tenant_model.current.nil? ||
+          (message_token.present? && Cenit::MultiTenancy.tenant_model.current != tenant)
+          Setup::Notification.create(message: "Can not determine tenant for message: #{message}")
         else
           begin
             rabbit_consumer = nil
@@ -80,7 +84,7 @@ module Cenit
             else
               if task ||= task_class && task_class.create(message: message)
                 if (rabbit_consumer = options[:rabbit_consumer] || RabbitConsumer.where(tag: options[:consumer_tag]).first)
-                  rabbit_consumer.update(executor_id: account.id, task_id: task.id)
+                  rabbit_consumer.update(executor_id: tenant.id, task_id: task.id)
                 end
                 task.execute
               else
@@ -161,14 +165,16 @@ module Cenit
             consumer = delivery_info.consumer
             if (rabbit_consumer = RabbitConsumer.where(tag: consumer.consumer_tag).first)
               begin
-                Account.current = nil
+                Cenit::MultiTenancy.tenant_model.current =
+                  Cenit::MultiTenancy.user_model.current = nil
                 Thread.clean_keys_prefixed_with('[cenit]')
                 options = (properties[:headers] || {}).merge(rabbit_consumer: rabbit_consumer)
                 Cenit::Rabbit.process_message(body, options)
               rescue Exception => ex
                 Setup::Notification.create(message: "Error (#{ex.message}) consuming message: #{body}")
               ensure
-                Account.current = nil
+                Cenit::MultiTenancy.tenant_model.current =
+                  Cenit::MultiTenancy.user_model.current = nil
                 Thread.clean_keys_prefixed_with('[cenit]')
               end unless rabbit_consumer.cancelled?
             else

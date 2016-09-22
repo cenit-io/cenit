@@ -3,59 +3,31 @@ module Setup
     include CenitScoped
     include NamespaceNamed
     include Slug
+    include Cenit::Oauth::AppConfig
 
-    build_in_data_type.referenced_by(:namespace, :name).and('properties' => { 'configuration' => { 'type' => 'object' } })
+    build_in_data_type.with(:namespace, :name, :actions, :application_parameters)
+    build_in_data_type.referenced_by(:namespace, :name).and('properties' => { 'configuration' => {} })
 
     embeds_many :actions, class_name: Setup::Action.to_s, inverse_of: :application
-    embeds_many :application_parameters, class_name: Setup::ApplicationParameter.to_s, inverse_of: :application
 
     accepts_nested_attributes_for :actions, :application_parameters, allow_destroy: true
 
-    field :configuration_attributes, type: Hash
-
-    belongs_to :application_id, class_name: ApplicationId.to_s, inverse_of: nil
-    field :secret_token, type: String
-
-    attr_readonly :secret_token
+    def validates_configuration
+      configuration.validate
+      configuration.errors.full_messages
+    end
 
     before_save do
-      if new_record?
-        configuration!.logo = Identicon.data_url_for identifier
-      end
-      if @config
-        self.configuration_attributes = @config.attributes
-      end
+      self.configuration_attributes = configuration.attributes
+
       params = application_parameters.sort_by(&:name).sort_by(&:group_s)
       self.application_parameters = params
-
-      self.application_id ||= ApplicationId.create
-      self.secret_token ||= Devise.friendly_token(60)
 
       errors.blank?
     end
 
-    after_destroy { application_id && application_id.destroy }
-
-    delegate :registered, to: :application_id
-
-    def registered?
-      registered
-    end
-
-    def identifier
-      application_id && application_id.identifier
-    end
-
-    def authentication_method
-      configuration.authentication_method.to_s.underscore.gsub(/ +/, '_').to_sym
-    end
-
     def configuration
-      @config ||= (configuration_attributes ? configuration_model.new(configuration_attributes) : nil)
-    end
-
-    def configuration!
-      @config ||= configuration_model.new(configuration_attributes || {})
+      @config ||= configuration_model.new(configuration_attributes)
     end
 
     def configuration=(data)
@@ -70,36 +42,28 @@ module Setup
       @config = configuration_model.new_from_json(data)
     end
 
-    def configuration_schema
-      schema =
-        {
-          type: 'object',
-          properties: properties = {
-            authentication_method: {
-              type: 'string',
-              enum: ['User credentials', 'Application ID'],
-              group: 'Security',
-              default: 'User credentials'
-            },
-            logo: {
-              type: 'string',
-              group: 'UI'
-            }
-          },
-          required: %w(authentication_method)
-        }
-      application_parameters.each { |p| properties[p.name] = p.schema }
-      schema.deep_stringify_keys
-    end
-
-
     def configuration_model
       @mongoff_model ||= Mongoff::Model.for(data_type: self.class.data_type,
                                             schema: configuration_schema,
-                                            name: self.class.configuration_model_name)
+                                            name: self.class.configuration_model_name,
+                                            cache: false)
+    end
+
+    def oauth_name
+      custom_title
     end
 
     class << self
+
+      def additional_parameter_types
+        Setup::Collection.reflect_on_all_associations(:has_and_belongs_to_many).collect { |r| r.name.to_s.singularize.to_title }
+      end
+
+      def parameter_type_schema(type)
+        {
+          '$ref': Setup::Collection.reflect_on_association(type.to_s.downcase.gsub(' ', '_').pluralize).klass.to_s
+        }
+      end
 
       def configuration_model_name
         "#{Setup::Application}::Config"

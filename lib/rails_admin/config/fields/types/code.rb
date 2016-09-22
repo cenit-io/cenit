@@ -26,7 +26,7 @@ module RailsAdmin
           register_instance_option :default_config do
             {
               lineNumbers: true,
-              theme: (theme = User.current.code_theme).present? ? theme : 'night'
+              theme: (theme = User.current.code_theme).present? ? theme : (Cenit.default_code_theme || 'monokai')
             }
           end
 
