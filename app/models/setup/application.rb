@@ -5,7 +5,8 @@ module Setup
     include Slug
     include Cenit::Oauth::AppConfig
 
-    build_in_data_type.referenced_by(:namespace, :name).and('properties' => { 'configuration' => { 'type' => 'object' } })
+    build_in_data_type.with(:namespace, :name, :actions, :application_parameters)
+    build_in_data_type.referenced_by(:namespace, :name).and('properties' => { 'configuration' => {} })
 
     embeds_many :actions, class_name: Setup::Action.to_s, inverse_of: :application
 
@@ -29,10 +30,23 @@ module Setup
       @config ||= configuration_model.new(configuration_attributes)
     end
 
+    def configuration=(data)
+      unless data.is_a?(Hash)
+        data =
+          if data.is_a?(String)
+            JSON.parse(data)
+          else
+            data.try(:to_json) || {}
+          end
+      end
+      @config = configuration_model.new_from_json(data)
+    end
+
     def configuration_model
       @mongoff_model ||= Mongoff::Model.for(data_type: self.class.data_type,
                                             schema: configuration_schema,
-                                            name: self.class.configuration_model_name)
+                                            name: self.class.configuration_model_name,
+                                            cache: false)
     end
 
     def oauth_name
