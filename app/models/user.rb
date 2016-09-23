@@ -72,10 +72,6 @@ class User
 
   before_save :ensure_token, :inspect_updated_fields
 
-  def identicon_value
-    email
-  end
-
   def picture_url(size=50)
     custom_picture_url(size) || gravatar_or_identicon_url(size)
   end
