@@ -1,4 +1,3 @@
-
 module Setup
   class Snippet < ReqRejValidator
     include SharedEditable
@@ -7,7 +6,7 @@ module Setup
     build_in_data_type.referenced_by(:namespace, :name)
 
     field :description, type: String
-    field :type, type: Symbol, default: :auto
+    field :type, type: Symbol, default: :javascript
     field :code, type: String
 
     has_and_belongs_to_many :tags, class_name: Setup::Tag.to_s, inverse_of: nil
@@ -21,9 +20,7 @@ module Setup
 
       case type
         when :auto
-      #    # use extension for explicit type
-      #    # extension = name.split('.')[-1]
-          language = LanguageSniffer.detect(name, :content => code).language
+          language = ::LanguageSniffer.detect(name, :content => code).language
           if language && type_enum.has_key?(language.name)
             type_ = type_enum[language.name]
           else
@@ -32,7 +29,6 @@ module Setup
           self.type = type_
       end
 
-
       errors.blank?
     end
 
@@ -40,69 +36,116 @@ module Setup
       {
           'Auto detect': :auto,
           'Plain text': :text,
-          'AppleScript': :applescript,
-          'BoxNote': :boxnote,
+          'APL': :apl,
+          'ASCIIArmor': :asciiarmor,
+          'ASN.1': :'asn.1',
+          'Asterisk dialplan': :asterisk,
+          'Brainfuck': :brainfuck,
           'C': :c,
-          'C#': :csharp,
           'C++': :cpp,
-          'CSS': :css,
-          'CSV': :csv,
+          'C#': :csharp,
           'Clojure': :clojure,
+          'CMake': :cmake,
+          'Cobol': :cobol,
           'CoffeeScript': :coffeescript,
           'Cold Fusion': :cfm,
           'Crystal': :crystal,
+          'CSS': :css,
+          'CSV': :csv,
           'Cypher': :cypher,
           'D': :d,
           'Dart': :dart,
           'Diff': :diff,
           'Docker': :dockerfile,
+          'DTD': :dtd,
+          'Dylan': :dylan,
+          'EBNF': :ebnf,
+          'ECL': :ecl,
+          'Eiffel': :eiffel,
+          'Elm': :elm,
           'Erlang': :erlang,
-          'F#': :fsharp,
+          'Factor': :factor,
+          'Forth': :forth,
           'Fortran': :fortran,
+          'F#': :fsharp,
+          'Gas': :gas,
           'Gherkin': :gherkin,
           'Go': :go,
           'Groovy': :groovy,
-          'HTML': :html,
+          'HAML': :haml,
           'Handlebars': :handlebars,
           'Haskell': :haskell,
           'Haxe': :haxe,
+          'HTML': :htmlmixed,
+          'HTTP': :http,
+          'IDL': :idl,
           'Java': :java,
-          'Javascript/JSON': :javascript,
+          'JavaScript': :javascript,
+          'Jinja2': :jinja2,
           'Julia': :julia,
           'Kotlin': :kotlin,
-          'LaTeX/sTeX': :latex,
-          'Lisp': :lisp,
+          'LaTeX': :latex,
+          'LiveScript': :livescript,
+          'Lisp': :commonlisp,
           'Lua': :lua,
-          'MatLab': :matlab,
+          'Markdown': :gfm,
+          'Mathematica': :mathematica,
+          'mIRC': :mirc,
+          'Modelica': :modelica,
           'MUMPS': :mumps,
-          'Markdown (raw)': :markdown,
-          'OCaml': :ocaml,
+          'Nginx': :nginx,
+          'NTriples': :ntriples,
           'Objective-C': :objc,
-          'PHP': :php,
+          'OCaml': :ocaml,
+          'Octave': :octave,
           'Pascal': :pascal,
+          'PEG.js': :pegjs,
           'Perl': :perl,
-          'Pig': :pig,
+          'PHP': :php,
+          'Pig Latin': :pig,
           'Post': :post,
-          'Powershell': :powershell,
+          'Properties': :properties,
           'Puppet': :puppet,
           'Python': :python,
+          'Q': :q,
           'R': :r,
+          'reStructuredText': :rst,
+          'RPM': :rpm,
           'Ruby': :ruby,
           'Rust': :rust,
-          'SQL': :sql,
           'Sass': :sass,
           'Scala': :scala,
           'Scheme': :scheme,
           'Shell': :shell,
+          'Sieve': :sieve,
+          'Slim': :slim,
           'SmallTalk': :smalltalk,
+          'Smarty': :smarty,
+          'Solr': :solr,
+          'Soy': :soy,
+          'SPARQL': :sparql,
+          'SQL': :sql,
+          'Squirrel': :squirrel,
+          'sTex': :stex,
           'Swift': :swift,
-          'TSV': :tsv,
+          'TCL': :tcl,
+          'Textile': :textile,
+          'Tiddlywiki': :tiddlywiki,
+          'Tiki wiki': :tiki,
+          'TOML': :toml,
+          'Tornado': :tornado,
+          'Troff': :troff,
+          'TTCN': :ttcn,
+          'Turtle': :turtle,
+          'Twig': :twig,
           'VB.net': :vb,
           'VBScript': :vbscript,
           'Velocity': :velocity,
           'Verilog': :verilog,
+          'VHDL': :vhdl,
           'XML': :xml,
-          'YAML': :yaml
+          'XQuery': :xquery,
+          'Z80': :z80
       }
     end
   end
