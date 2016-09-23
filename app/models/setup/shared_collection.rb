@@ -57,6 +57,10 @@ module Setup
       true
     end
 
+    def title
+      nil
+    end
+
     def check_ready
       ready_to_save?
     end

@@ -330,6 +330,7 @@ RailsAdmin.config do |config|
     end
 
     edit do
+      field :title
       field :image
       field :logo_background, :color
       field :name
@@ -344,6 +345,7 @@ RailsAdmin.config do |config|
     end
 
     show do
+      field :title
       field :image
       field :name do
         pretty_value do
@@ -862,6 +864,7 @@ RailsAdmin.config do |config|
     end
 
     edit do
+      field :title
       field :image
       field :readme do
         visible { Account.current_super_admin? }
@@ -886,6 +889,7 @@ RailsAdmin.config do |config|
     end
 
     show do
+      field :title
       field :image
       field :readme, :html_erb
       field :name
@@ -915,6 +919,7 @@ RailsAdmin.config do |config|
     end
 
     list do
+      field :title
       field :image do
         thumb_method :icon
       end
@@ -2577,14 +2582,31 @@ RailsAdmin.config do |config|
       field :name
       field :type
       field :description
-      field :code, :code_mirror do
+      field :code, :code do
         html_attributes do
           { cols: '74', rows: '15' }
         end
         help { 'Required' }
-        config do
-          { mode: bindings[:object].type }
+        code_config do
+          {
+              mode: {
+                  'auto': 'javascript',
+                  'text': 'javascript',
+                  'null': 'javascript',
+                  'c': 'clike',
+                  'cpp': 'clike',
+                  'csharp': 'clike',
+                  'csv': 'javascript',
+                  'fsharp': 'mllike',
+                  'java': 'clike',
+                  'latex': 'stex',
+                  'ocaml': 'mllike',
+                  'scala': 'clike',
+                  'squirrel': 'clike'
+              }[bindings[:object].type] || bindings[:object].type
+          }
         end
+
       end
       field :tags
     end

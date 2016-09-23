@@ -121,7 +121,7 @@
               %ul.dropdown-menu= menu_for :member, @abstract_model, object
           .panel-heading
             =link_to show_path id: object.id do
-              =object.name.titleize
+              =object.title || object.name.titleize
           .panel-body
             .panel-body-logo.text-center{style: "background-color:##{object.logo_background || 'inherit'}"}
               =link_to show_path id: object.id do 

@@ -55,6 +55,14 @@ module Setup
 
     class << self
 
+      def share_options
+        options = super
+        ignore = options[:ignore] || []
+        ignore = [ignore] unless ignore.is_a?(Array)
+        ignore << :logo
+        options
+      end
+
       def additional_parameter_types
         Setup::Collection.reflect_on_all_associations(:has_and_belongs_to_many).collect { |r| r.name.to_s.singularize.to_title }
       end
