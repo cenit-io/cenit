@@ -236,7 +236,7 @@ module Mongoff
         name
       else
         name = name.gsub(/_id(s)?\Z/, '')
-        if property?(name)
+        if (name = [name.pluralize, name].detect { |n| property?(n) })
           name
         else
           nil
