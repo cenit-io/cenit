@@ -87,29 +87,23 @@ module Mongoff
       if property_model && schema['referenced']
         property_model.mongo_type_for(:_id, nil) #TODO Set schema parameter default to nil
       elsif schema
-        key = schema['type']
-        if (type = MONGO_TYPE_MAP[key]).is_a?(Hash)
-          type = type['format'][schema['format']] || type['default']
+        if (key = schema['type']).nil? && (one_of = schema['oneOf']).is_a?(Array)
+          one_of.collect { |sch| mongo_type_for(nil, sch) }.flatten.uniq
+        else
+          if (type = MONGO_TYPE_MAP[key]).is_a?(Hash)
+            type = type['format'][schema['format']] || type['default']
+          end
+          [type]
         end
-        type
       elsif %w(id _id).include?((str = field.to_s)) || str.end_with?('_id')
-        BSON::ObjectId
+        [BSON::ObjectId]
       else
-        NilClass
+        [NilClass]
       end
     end
 
     def type_symbol_for(schema)
-      mongo_type_for(nil, schema).to_s.downcase.to_sym
-    end
-
-    def simple_properties_mongo_types
-      (hash = simple_properties_schemas).each { |property, schema| hash[property] = mongo_type_for(property, schema) }
-      hash
-    end
-
-    def property_type_symbol(property)
-      type_symbol_for(property_schema(property))
+      mongo_type_for(nil, schema).collect(&:to_s).collect(&:downcase).collect(&:to_sym)
     end
   end
 end

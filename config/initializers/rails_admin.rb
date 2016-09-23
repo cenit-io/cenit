@@ -330,6 +330,7 @@ RailsAdmin.config do |config|
     end
 
     edit do
+      field :title
       field :image
       field :logo_background, :color
       field :name
@@ -344,6 +345,7 @@ RailsAdmin.config do |config|
     end
 
     show do
+      field :title
       field :image
       field :name do
         pretty_value do
@@ -862,6 +864,7 @@ RailsAdmin.config do |config|
     end
 
     edit do
+      field :title
       field :image
       field :readme do
         visible { Account.current_super_admin? }
@@ -886,6 +889,7 @@ RailsAdmin.config do |config|
     end
 
     show do
+      field :title
       field :image
       field :readme, :html_erb
       field :name
@@ -915,6 +919,7 @@ RailsAdmin.config do |config|
     end
 
     list do
+      field :title
       field :image do
         thumb_method :icon
       end

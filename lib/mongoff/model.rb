@@ -236,7 +236,7 @@ module Mongoff
         name
       else
         name = name.gsub(/_id(s)?\Z/, '')
-        if property?(name)
+        if (name = [name.pluralize, name].detect { |n| property?(n) })
           name
         else
           nil
@@ -301,17 +301,22 @@ module Mongoff
     }
 
     def mongo_value(value, field, schema = nil)
-      type =
+      types =
         if !caching? || schema
           mongo_type_for(field, schema)
         else
           @mongo_types[field] ||= mongo_type_for(field, schema)
         end
-      if type && value.is_a?(type)
-        value
-      else
-        convert(type, value)
+      types.each do |type|
+        v =
+          if value.is_a?(type)
+            value
+          else
+            convert(type, value)
+          end
+        return v if v
       end
+      nil
     end
 
     def convert(type, value)

@@ -614,7 +614,7 @@ module RailsAdmin
         html << content_tag(:span, text, style: 'padding-right:5px')
         unless inspecting
           if current_user && abstract_model && edit_action
-            html << image_tag(current_user.picture_url(30), alt: '')
+            html << image_tag(current_user.picture_url, alt: '', width: '30px')
           end
         end
         html.join.html_safe

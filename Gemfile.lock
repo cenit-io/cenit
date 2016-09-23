@@ -15,7 +15,7 @@ GIT
 
 GIT
   remote: https://github.com/macarci/cenit-oauth.git
-  revision: f879cd466b2172a7187d1aecf9af70ac4fd1cb4b
+  revision: 2a29c1f381f6105875fbb8f725aab03913edddd9
   specs:
     cenit-oauth (0.0.1)
       cenit-token
