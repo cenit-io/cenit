@@ -7,7 +7,8 @@ module Setup
 
     abstract_class true
 
-    build_in_data_type.with(:namespace, :name, :client, :parameters, :template_parameters).referenced_by(:namespace, :name)
+    build_in_data_type.with(:namespace, :name, :client, :parameters, :template_parameters)
+    build_in_data_type.referenced_by(:namespace, :name)
 
     belongs_to :client, class_name: Setup::OauthClient.to_s, inverse_of: nil
 

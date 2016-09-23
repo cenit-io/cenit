@@ -2,7 +2,8 @@ module Setup
   class OauthAuthorization < Setup::BaseOauthAuthorization
     include CenitScoped
 
-    build_in_data_type.with(:namespace, :name, :provider, :client, :parameters).referenced_by(:namespace, :name)
+    build_in_data_type.with(:namespace, :name, :provider, :client, :parameters, :template_parameters)
+    build_in_data_type.referenced_by(:namespace, :name)
 
     field :access_token_secret, type: String
     field :realm_id, type: String
