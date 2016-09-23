@@ -28,6 +28,7 @@ module Setup
 
       build_in_data_type.embedding(*COLLECTING_PROPERTIES).excluding(:image)
 
+      field :title
       field :readme, type: String
 
       has_and_belongs_to_many :namespaces, class_name: Setup::Namespace.to_s, inverse_of: nil
