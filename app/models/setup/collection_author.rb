@@ -1,5 +1,6 @@
 module Setup
-  class CollectionAuthor < ReqRejValidator
+  class CollectionAuthor
+    include ReqRejValidator
     include CenitUnscoped
 
     build_in_data_type
