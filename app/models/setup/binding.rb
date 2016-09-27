@@ -5,7 +5,20 @@ module Setup
     build_in_data_type
 
     deny :all
-    allow :index, :show
+    allow :index, :show, :edit
+
+    bind_models =
+      [
+        Setup::Authorization,
+        Setup::Event,
+        Setup::ConnectionRole
+      ]
+
+    bind_models.each do |model|
+      model.after_destroy do
+        Setup::Binding.where(Binding.bind_id(self) => id).delete_all
+      end
+    end
 
     {
       binder:
@@ -14,12 +27,7 @@ module Setup
           Setup::Connection,
           Setup::Webhook
         ],
-      bind:
-        [
-          Setup::Authorization,
-          Setup::Event,
-          Setup::ConnectionRole
-        ]
+      bind: bind_models
     }.each do |role, models|
       models.each do |model|
         belongs_to "#{model.to_s.split('::').last.underscore}_#{role}".to_sym, class_name: model.to_s, inverse_of: nil
@@ -40,6 +48,10 @@ module Setup
 
     def bind_model
       bind && bind.class
+    end
+
+    def label
+      "#{bind.class.to_s.split('::').last} of #{binder.custom_title}"
     end
 
     class << self
