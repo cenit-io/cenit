@@ -12,7 +12,8 @@ module RailsAdmin
             Setup::Webhook,
             Setup::Connection,
             Setup::Translator,
-            Setup::Flow
+            Setup::Flow,
+            Setup::Snippet
           ] +
             Setup::BaseOauthProvider.class_hierarchy +
             Setup::DataType.class_hierarchy +
