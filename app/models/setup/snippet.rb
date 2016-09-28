@@ -1,5 +1,6 @@
 module Setup
-  class Snippet < ReqRejValidator
+  class Snippet
+    include ReqRejValidator
     include SharedEditable
     include NamespaceNamed
 
@@ -20,7 +21,7 @@ module Setup
 
       case type
         when :auto
-          language = ::LanguageSniffer.detect(name, :content => code).language
+          language = ::LanguageSniffer.detect(name, content: code).language
           if language && type_enum.has_key?(language.name)
             type_ = type_enum[language.name]
           else

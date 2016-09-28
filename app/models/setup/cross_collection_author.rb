@@ -1,5 +1,6 @@
 module Setup
-  class CrossCollectionAuthor < ReqRejValidator
+  class CrossCollectionAuthor
+    include ReqRejValidator
     include CenitUnscoped
 
     build_in_data_type.referenced_by(:email)

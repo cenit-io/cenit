@@ -1,7 +1,8 @@
 require 'nokogiri'
 
 module Setup
-  class Flow < ReqRejValidator
+  class Flow
+    include ReqRejValidator
     include ShareWithBindings
     include NamespaceNamed
     include TriggersFormatter

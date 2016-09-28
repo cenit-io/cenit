@@ -1,5 +1,6 @@
 module Setup
-  class Translator < ReqRejValidator
+  class Translator
+    include ReqRejValidator
     include SharedEditable
     include NamespaceNamed
 
