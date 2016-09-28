@@ -346,6 +346,7 @@ en:
         breadcrumb: "Run"
         done: "run"
         doing: "execution"
+        background_option: "Run in the background"
       run_script:
         title: "Run"
         menu: "Run"

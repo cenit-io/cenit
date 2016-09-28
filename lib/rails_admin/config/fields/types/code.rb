@@ -47,7 +47,8 @@ module RailsAdmin
               'text/html': 'xml',
               'text/plain': 'javascript',
               'text/x-ruby': 'ruby',
-            }[config[:mode].to_sym] || config[:mode].to_sym
+              '': 'javascript'
+            }[config[:mode].to_s.to_sym] || config[:mode].to_sym
           end
         end
       end

@@ -41,6 +41,7 @@ class Ability
         cannot :destroy, [Setup::SharedCollection, Setup::Storage]
         can :pull, Setup::CrossSharedCollection, installed: true
         can [:index, :show, :inspect, :edit], Account, :id.in => user.account_ids
+        can :destroy, Account, :id.in => user.account_ids - [user.account_id]
         can :new, Account if user.partner?
       end
 

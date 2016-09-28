@@ -99,11 +99,13 @@ module RailsAdmin
             #Patch
             if request.get? || params[:_restart] # NEW
 
-              unless (attrs = params[:attributes] || {}).is_a?(Hash)
-                attrs = JSON.parse(attrs) rescue {}
-                %w(_id origin).each { |attr| attrs.delete(attr) }
-              end
-              @object = @abstract_model.new(attrs)
+              @object =
+                if (token = Cenit::Token.where(token: params[:json_token]).first)
+                  hash = JSON.parse(token.data) rescue {}
+                  @abstract_model.model.data_type.new_from_json(hash)
+                else
+                  @abstract_model.new
+                end
               @authorization_adapter && @authorization_adapter.attributes_for(:new, @abstract_model).each do |name, value|
                 @object.send("#{name}=", value)
               end
