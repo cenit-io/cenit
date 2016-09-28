@@ -23,6 +23,9 @@ module RailsAdmin
             @model_config = RailsAdmin::Config.model(mongoff_model)
             @model_config.register_instance_option(:discard_submit_buttons) { true }
 
+            done = false
+            partials = [:background_run_option]
+
             if params[:_save]
               begin
                 params.permit! unless params.nil?
@@ -33,9 +36,11 @@ module RailsAdmin
                     do_flash_process_result Setup::AlgorithmExecution.process(algorithm_id: @object.id,
                                                                               input: values,
                                                                               skip_notification_level: true)
+                    redirect_to back_or_index
+                    done = true
                   else
                     @output = @object.run(@input = values)
-                    @model_config.register_instance_option(:after_form_partials) { :algorithm_output }
+                    partials.unshift :algorithm_output
                   end
                 else
                   if @form_object.errors.present?
@@ -52,7 +57,10 @@ module RailsAdmin
                 do_flash(:error, 'There are errors in the configuration data specification', @form_object.errors.full_messages)
               end
             end
-            render :form
+            unless done
+              @model_config.register_instance_option(:after_form_partials) { partials }
+              render :form
+            end
           end
         end
 

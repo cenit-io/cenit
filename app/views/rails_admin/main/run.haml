@@ -20,12 +20,7 @@
         .controls
           %textarea{wrap: 'soft', readonly: 'true', cols: 100, rows: 5}
             = @output
-  .fieldset
-    .control-group
-      %label.col-sm-2.control-label
-        = 'Run in the background'
-      .controls
-        %input{name: 'background', type: 'checkbox'}
+  = render partial: 'background_run_option'
   .form-group.form-actions
     .col-sm-offset-2.col-sm-10
       %button.btn.btn-primary{type: 'submit', name: '_run', :'data-disable-with' => t('admin.actions.run.submit')}
