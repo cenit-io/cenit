@@ -1,5 +1,10 @@
+require 'mongoid/history/trackable'
+require 'mongoid/history/tracker'
+
+
 module Mongoid
   module History
+
     module Trackable
       extend ActiveSupport::Concern
 
@@ -53,9 +58,62 @@ module Mongoid
       end
 
       module MyInstanceMethods
+
+        def undo(modifier = nil, options_or_version = nil)
+          versions = get_versions_criteria(options_or_version).to_a
+          versions.sort! { |v1, v2| v2.version <=> v1.version }
+
+          versions.each do |v|
+            v.root_document = self
+            undo_attr = v.undo_attr(modifier)
+            if Mongoid::History.mongoid3? # update_attributes! not bypassing rails 3 protected attributes
+              assign_attributes(undo_attr, without_protection: true)
+            else # assign_attributes with 'without_protection' option does not work with rails 4/mongoid 4
+              self.attributes = undo_attr
+            end
+          end
+        end
+
         def track_history?
           self.class.track_history?
         end
+      end
+    end
+
+    module Tracker
+
+      attr_accessor :root_document
+
+      private
+
+      def traverse_association_chain
+        chain = association_chain.dup
+        doc = nil
+        documents = []
+        loop do
+          node = chain.shift
+          name = node['name']
+          doc = if doc.nil?
+                  #Patch
+                  if root_document && root_document.id == node['id']
+                    root_document
+                  else
+                    # root association. First element of the association chain
+                    # unscoped is added to remove any default_scope defined in model
+                    klass = name.classify.constantize
+                    klass.unscoped.where(_id: node['id']).first
+                  end
+                elsif doc.class.embeds_one?(name)
+                  doc.get_embedded(name)
+                elsif doc.class.embeds_many?(name)
+                  doc.get_embedded(name).unscoped.where(_id: node['id']).first
+                else
+                  fail 'This should never happen. Please report bug.'
+                end
+          documents << doc
+          break if chain.empty?
+        end
+        documents
       end
     end
   end

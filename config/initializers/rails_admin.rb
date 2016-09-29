@@ -165,7 +165,8 @@ RailsAdmin.config do |config|
           Setup::Translator,
           Setup::Flow,
           Setup::OauthClient,
-          Setup::Oauth2Scope
+          Setup::Oauth2Scope,
+          Setup::Snippet
         ] +
           Setup::DataType.class_hierarchy +
           Setup::Validator.class_hierarchy +
@@ -2572,13 +2573,11 @@ RailsAdmin.config do |config|
   config.model Setup::Snippet do
     navigation_label 'Compute'
     weight 430
-    object_label_method { :custom_title }
-    visible { Account.current_super_admin? }
-    configure :identifier
-    configure :registered, :boolean
+    #visible { Account.current_super_admin? }
+
+    configure :name
 
     edit do
-      field :namespace, :enum_edit
       field :name
       field :type
       field :description
@@ -2586,24 +2585,23 @@ RailsAdmin.config do |config|
         html_attributes do
           { cols: '74', rows: '15' }
         end
-        help { 'Required' }
         code_config do
           {
-              mode: {
-                  'auto': 'javascript',
-                  'text': 'javascript',
-                  'null': 'javascript',
-                  'c': 'clike',
-                  'cpp': 'clike',
-                  'csharp': 'clike',
-                  'csv': 'javascript',
-                  'fsharp': 'mllike',
-                  'java': 'clike',
-                  'latex': 'stex',
-                  'ocaml': 'mllike',
-                  'scala': 'clike',
-                  'squirrel': 'clike'
-              }[bindings[:object].type] || bindings[:object].type
+            mode: {
+              'auto': 'javascript',
+              'text': 'javascript',
+              'null': 'javascript',
+              'c': 'clike',
+              'cpp': 'clike',
+              'csharp': 'clike',
+              'csv': 'javascript',
+              'fsharp': 'mllike',
+              'java': 'clike',
+              'latex': 'stex',
+              'ocaml': 'mllike',
+              'scala': 'clike',
+              'squirrel': 'clike'
+            }[bindings[:object].type] || bindings[:object].type
           }
         end
 
@@ -2612,7 +2610,6 @@ RailsAdmin.config do |config|
     end
 
     show do
-      field :namespace, :enum_edit
       field :name
       field :type
       field :description
@@ -2625,12 +2622,11 @@ RailsAdmin.config do |config|
     end
 
     list do
-      field :namespace
       field :name
       field :type
       field :tags
     end
-    fields :namespace, :name, :type, :description, :code, :tags
+    fields :_id, :type, :description, :code, :tags
   end
 
   #Workflows
