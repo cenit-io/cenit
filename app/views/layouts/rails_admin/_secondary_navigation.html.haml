@@ -54,7 +54,7 @@
 
 
 - if _current_user.present?
-
+  - accs = _current_user.accounts
   %ul#tenant-nav.nav.navbar-nav.navbar-right
     %li.dropdown
       %a.dropdown-toggle{href:"#", role:"button",'data-toggle':"dropdown",'aria-haspopup':"true",'aria-expanded':"false"}
