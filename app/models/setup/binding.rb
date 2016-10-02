@@ -27,7 +27,8 @@ module Setup
           Setup::Flow,
           Setup::Connection,
           Setup::Webhook,
-          Setup::Algorithm
+          Setup::Algorithm,
+          Setup::Translator
         ],
       bind: bind_models
     }.each do |role, models|

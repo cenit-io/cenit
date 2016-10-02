@@ -2335,13 +2335,15 @@ RailsAdmin.config do |config|
         [
           :source_data_type,
           :target_data_type,
-          :transformation,
+          :code,
           :target_importer,
           :source_exporter,
           :discard_chained_records
         ]
       end
     end
+
+    configure :code, :code
 
     edit do
       field :namespace, :enum_edit
@@ -2389,10 +2391,10 @@ RailsAdmin.config do |config|
 
       field :source_handler do
         visible { (t = bindings[:object]).style.present? && (t.type == :Update || (t.type == :Conversion && t.style == 'ruby')) }
-        help { 'Handle sources on transformation' }
+        help { 'Handle sources on code' }
       end
 
-      field :transformation, :code do
+      field :code, :code do
         visible { bindings[:object].style.present? && bindings[:object].style != 'chain' }
         help { 'Required' }
         html_attributes do
@@ -2462,7 +2464,7 @@ RailsAdmin.config do |config|
       field :style
       field :mime_type
       field :file_extension
-      field :transformation do
+      field :code do
         pretty_value do
           "<pre><code class='ruby'>#{value}</code></pre>".html_safe
         end
@@ -2488,7 +2490,7 @@ RailsAdmin.config do |config|
       field :updated_at
     end
 
-    fields :namespace, :name, :type, :style, :transformation, :updated_at
+    fields :namespace, :name, :type, :style, :code, :updated_at
   end
 
   config.model Setup::AlgorithmOutput do

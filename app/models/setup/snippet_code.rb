@@ -41,7 +41,7 @@ module Setup
 
     def snippet_name(suffix = '')
       name = code_name.to_method_name.underscore
-      if (ext = ".#{code_extension.strip}".squeeze('.')).length > 1
+      if (ext = ".#{code_extension.to_s.strip}".squeeze('.')).length > 1
         if name.ends_with?(ext)
           name = name.to(name.rindex('.') - 1)
         end

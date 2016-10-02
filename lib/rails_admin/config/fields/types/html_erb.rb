@@ -8,7 +8,7 @@ module RailsAdmin
             template = value.to_s.gsub('&lt;%', '<%').gsub('%&gt;', '%>').gsub('%3C%', '<%').gsub('%%3E', '%>')
             output =
               begin
-                Setup::Transformation::ActionViewTransform.run(transformation: template,
+                Setup::Transformation::ActionViewTransform.run(code: template,
                                                                style: 'html.erb',
                                                                base_url: bindings[:controller].request.base_url,
                                                                user_key: User.current_number,
