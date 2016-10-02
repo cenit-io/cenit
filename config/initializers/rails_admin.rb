@@ -2272,6 +2272,8 @@ RailsAdmin.config do |config|
       [RailsAdmin::Adapters::Mongoid::Association.new(association, abstract_model.model)]
     end
 
+    configure :code, :code
+
     edit do
       field :namespace, :enum_edit
       field :name
@@ -2606,7 +2608,6 @@ RailsAdmin.config do |config|
         end
 
       end
-      field :tags
     end
 
     show do
@@ -2618,15 +2619,9 @@ RailsAdmin.config do |config|
           "<pre><code class='#{bindings[:object].type}'>#{value}</code></pre>".html_safe
         end
       end
-      field :tags
     end
 
-    list do
-      field :name
-      field :type
-      field :tags
-    end
-    fields :_id, :type, :description, :code, :tags
+    fields :name, :type, :description
   end
 
   #Workflows

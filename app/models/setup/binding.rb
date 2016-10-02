@@ -26,7 +26,8 @@ module Setup
         [
           Setup::Flow,
           Setup::Connection,
-          Setup::Webhook
+          Setup::Webhook,
+          Setup::Algorithm
         ],
       bind: bind_models
     }.each do |role, models|

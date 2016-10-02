@@ -66,5 +66,34 @@ module Setup
     def code=(code)
       snippet_ref.code = code
     end
+
+    #TODO Only for legacy codes, remove after migration
+
+    def read_attribute(name)
+      if name.to_s == 'code' || name.to_s == self.class.legacy_code_attribute.to_s
+        code
+      else
+        super
+      end
+    end
+
+    module ClassMethods
+
+      def instantiate(attrs = nil, selected_fields = nil)
+        record = super
+        if record.snippet.nil? && (legacy_code = record.attributes[legacy_code_attribute])
+          record.code = legacy_code
+        end
+        record
+      end
+
+      def legacy_code_attribute(*args)
+        if args.length == 0
+          @legacy_code_attribute
+        else
+          @legacy_code_attribute = args[0].to_s
+        end
+      end
+    end
   end
 end
