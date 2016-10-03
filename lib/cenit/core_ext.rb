@@ -48,7 +48,7 @@ class String
       capitalize
   end
 
-  def to_method_name
+  def sym2word
     str = self
     {
       '+' => 'plus',
@@ -57,10 +57,22 @@ class String
       '%' => 'percentage',
       '?' => 'question',
       '=' => 'equals',
-      '*' => 'asterisk'
+      '*' => 'asterisk',
+      '&' => 'and'
     }.each do |char, word|
       str = str.squeeze(char).gsub(char, word)
     end
+    str
+  end
+
+  def to_file_name
+    gsub(/[^\w\s_-]+/, '') #TODO Improve to_file_name method
+      .gsub(/(^|\b\s)\s+($|\s?\b)/, '\\1\\2')
+      .gsub(/\s+/, '_')
+  end
+
+  def to_method_name
+    str = sym2word
     {
       '-' => 'minus',
       '.' => 'dot'

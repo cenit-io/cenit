@@ -54,29 +54,30 @@
 
 
 - if _current_user.present?
-  - accs = _current_user.accounts
+  - acc_am = RailsAdmin::Config.model(Cenit::MultiTenancy.tenant_model).abstract_model
   %ul#tenant-nav.nav.navbar-nav.navbar-right
     %li.dropdown
-      %a.dropdown-toggle{href:"#", role:"button",'data-toggle':"dropdown",'aria-haspopup':"true",'aria-expanded':"false"}
+      %a.dropdown-toggle{href:'#', role:'button','data-toggle':'dropdown','aria-haspopup':'true','aria-expanded':'false'}
         %i.fa.fa-fw.fa-home
         = _current_user.account.name
         %span.caret
       %ul#tenant-menu.dropdown-menu
-        - accs.each do | a |
+        - _current_user.accounts.each do | a |
           - if a != _current_user.account
-            %li= link_to a.name, inspect_path(model_name: 'account', id: a.id)
-        %li.divider{role:"separator"}
-        .actions.clearfix
-          %li= link_to t('admin.misc.add_tenant'), new_path(model_name: 'account')
+            %li= link_to a.name, inspect_path(model_name: acc_am.to_param, id: a.id)
+        - if (new_action = action(:new, acc_am))
+          %li.divider{role:'separator'}
+          .actions.clearfix
+            %li= link_to(t('admin.misc.add_tenant'), url_for(action: new_action.action_name, model_name: acc_am.to_param))
 
   %ul#user-nav.nav.navbar-nav.navbar-right
     %li.dropdown
-      %a.dropdown-toggle{href:"#", role:"button",'data-toggle':"dropdown",'aria-haspopup':"true",'aria-expanded':"false"}
+      %a.dropdown-toggle{href:'#', role:'button','data-toggle':'dropdown','aria-haspopup':'true','aria-expanded':'false'}
         %i.fa.fa-fw.fa-user
         - if _current_user.name.present?
           = _current_user.name
         - else
-          = _current_user.email.split("@")[0]
+          = _current_user.email.split('@')[0]
         %span.caret
       %ul#user-menu.dropdown-menu
         - if (user_link = edit_user_link)
@@ -85,32 +86,32 @@
           - user_link.each do |link|
             %li= link
 
-        %li.divider{role:"separator"}
+        %li.divider{role:'separator'}
         .actions.clearfix
           %li.terms.pull-left
-            %small= link_to t('admin.misc.terms'), "#{ENV['PORTAL_URL'] || 'https://cenit.io'}/terms_of_service", class: "text-muted", target: '_blank'
+            %small= link_to t('admin.misc.terms'), "#{ENV['PORTAL_URL'] || 'https://cenit.io'}/terms_of_service", class: 'text-muted', target: '_blank'
           - if logout_path.present?
             %li.pull-right= link_to t('admin.misc.log_out'), logout_path, method: logout_method, class: 'btn btn-xs btn-danger'
 
   %ul#help-nav.nav.navbar-nav.navbar-right
     %li.dropdown
-      %a.dropdown-toggle{href:"#", role:"button",'data-toggle':"dropdown",'aria-haspopup':"true",'aria-expanded':"false"}
+      %a.dropdown-toggle{href:'#', role:'button','data-toggle':'dropdown','aria-haspopup':'true','aria-expanded':'false'}
         %i.fa.fa-fw.fa-question-circle
         = t('help.label')
         %span.caret
       %ul#help-menu.dropdown-menu
         %li
-          = link_to "https://github.com/cenit-io/cenit", target: "_blank" do
+          = link_to 'https://github.com/cenit-io/cenit', target: '_blank' do
             %i.fa.fa-fw.fa-github-alt
             = t('help.open_source')
         %li
-          = link_to "https://github.com/cenit-io/cenit/issues?state=open", target: "_blank" do
+          = link_to 'https://github.com/cenit-io/cenit/issues?state=open', target: '_blank' do
             %i.fa.fa-fw.fa-lightbulb-o
             = t('help.suggest')
             %strong
               = t('help.feature')
         %li
-          = link_to "https://github.com/cenit-io/cenit/issues?state=open", target: "_blank" do
+          = link_to 'https://github.com/cenit-io/cenit/issues?state=open', target: '_blank' do
             %i.fa.fa-fw.fa-bug
             = t('help.report')
             %strong
@@ -120,7 +121,7 @@
             %i.fa.fa-fw.fa-file-text{title: t('admin.misc.docs')}
             %span=t('help.docs')
         %li
-          = link_to "https://cenitio.slack.com/messages/support/", target: "_blank" do
+          = link_to 'https://cenitio.slack.com/messages/support/', target: '_blank' do
             %i.fa.fa-fw.fa-support
             = t('help.support')
 
@@ -148,11 +149,11 @@
           - f.hidden_field :return_to, value: return_to
         = f.check_box :remember_me, style: 'display:none', value: '1', checked: 'checked'
         = f.button class: 'btn btn-lg soc-btn soc-github', name: 'with', value: 'github' do
-          %i{class:"fa fa-fw fa-github"}
+          %i{class:'fa fa-fw fa-github'}
         = f.button class: 'btn btn-lg soc-btn soc-google', name: 'with', value: 'google' do
-          %i{class:"fa fa-fw fa-google"}
+          %i{class:'fa fa-fw fa-google'}
         = f.button class: 'btn btn-lg soc-btn soc-facebook', name: 'with', value: 'facebook' do
-          %i{class:"fa fa-fw fa-facebook"}
+          %i{class:'fa fa-fw fa-facebook'}
       - unless (ENV['UNABLE_SIGN_IN_AND_SIGN_UP_DEVISE'] || false).to_b
         .form-option
           =t('admin.misc.or')
@@ -174,7 +175,7 @@
             .field.text-justify
               = f.email_field :email, autofocus: true, class: 'form-control', placeholder: t('admin.placeholders.email')
             .field.text-justify
-              = f.password_field :password, autocomplete: "off", class: 'form-control', placeholder: t('admin.placeholders.password')
+              = f.password_field :password, autocomplete: 'off', class: 'form-control', placeholder: t('admin.placeholders.password')
             .field.text-justify
               = f.password_field :password_confirmation, autocomplete: 'off', class: 'form-control', placeholder: t('admin.placeholders.pass_confirm')
             .actions.clearfix
@@ -205,8 +206,8 @@
 - query = params[:query]
 %ul.nav.navbar-nav.navbar-right.root_links{style: 'padding-left: 0px;'}
   %li#navbar-search
-    - shared_path = index_path(model_name: "setup~shared_collection")
+    - shared_path = index_path(model_name: 'setup~shared_collection')
     = form_tag(shared_path, method: :get, class: 'pjax-form') do
-      %input.navbar-brand{name: "query", type: "search", value: query, placeholder: t("admin.misc.shared_collections")}
+      %input.navbar-brand{name: 'query', type: 'search', value: query, placeholder: t('admin.misc.shared_collections')}
       %button#search-toggle.btn.a.navbar-brand.toggle-btn
         %i.fa.fa-fw.fa-search
