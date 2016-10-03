@@ -226,11 +226,9 @@ RailsAdmin.config do |config|
 
   config.model Setup::CrossSharedCollection do
     weight 000
-    label 'Cross Shared Collection'
+    label 'Shared Collection'
     navigation_label 'Collections'
     object_label_method :versioned_name
-
-    visible { Account.current_super_admin? }
 
     public_access true
     extra_associations do
@@ -443,12 +441,14 @@ RailsAdmin.config do |config|
 
   config.model Setup::SharedCollection do
     weight 010
-    label 'Shared Collection'
+    label 'Legacy Shared Collection'
     register_instance_option(:discard_submit_buttons) do
       !(a = bindings[:action]) || a.key != :edit
     end
     navigation_label 'Collections'
     object_label_method { :versioned_name }
+
+    visible { Account.current_super_admin? }
 
     public_access true
     extra_associations do
