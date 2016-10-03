@@ -2654,7 +2654,13 @@ RailsAdmin.config do |config|
     end
 
     Setup::FlowConfig.config_fields.each do |f|
-      configure f.to_sym, Setup::Flow.data_type.schema['properties'][f]['type'].to_sym
+      schema = Setup::Flow.data_type.schema['properties'][f]
+      if schema['enum']
+        type = :enum
+      elsif (type = schema['type'].to_sym) == :string
+        type = :text
+      end
+      configure f.to_sym, type
     end
 
     edit do
@@ -2835,6 +2841,12 @@ RailsAdmin.config do |config|
         help I18n.t('admin.form.flow.events_wont_be_fired')
       end
       field :active do
+        visible do
+          f = bindings[:object]
+          f.ready_to_save?
+        end
+      end
+      field :auto_retry do
         visible do
           f = bindings[:object]
           f.ready_to_save?
@@ -3121,6 +3133,7 @@ RailsAdmin.config do |config|
 
     edit do
       field :description
+      field :auto_retry
     end
 
     fields :_type, :description, :scheduler, :attempts_succeded, :retries, :progress, :status, :updated_at
@@ -3137,6 +3150,7 @@ RailsAdmin.config do |config|
 
     edit do
       field :description
+      field :auto_retry
     end
 
     fields :flow, :description, :scheduler, :attempts_succeded, :retries, :progress, :status, :notifications, :updated_at
@@ -3153,6 +3167,7 @@ RailsAdmin.config do |config|
 
     edit do
       field :description
+      field :auto_retry
     end
 
     fields :description, :scheduler, :attempts_succeded, :retries, :progress, :status, :notifications, :updated_at
@@ -3169,6 +3184,7 @@ RailsAdmin.config do |config|
 
     edit do
       field :description
+      field :auto_retry
     end
 
     fields :description, :scheduler, :attempts_succeded, :retries, :progress, :status, :notifications, :updated_at
@@ -3185,6 +3201,7 @@ RailsAdmin.config do |config|
 
     edit do
       field :description
+      field :auto_retry
     end
 
     fields :translator, :description, :scheduler, :attempts_succeded, :retries, :progress, :status, :notifications, :updated_at
@@ -3201,6 +3218,7 @@ RailsAdmin.config do |config|
 
     edit do
       field :description
+      field :auto_retry
     end
 
     fields :translator, :data, :description, :scheduler, :attempts_succeded, :retries, :progress, :status, :notifications, :updated_at
@@ -3217,6 +3235,7 @@ RailsAdmin.config do |config|
 
     edit do
       field :description
+      field :auto_retry
     end
 
     fields :source_collection, :shared_collection, :description, :attempts_succeded, :retries, :progress, :status, :notifications, :updated_at
@@ -3240,6 +3259,7 @@ RailsAdmin.config do |config|
 
     edit do
       field :description
+      field :auto_retry
     end
 
     fields :_type, :pull_request, :pulled_request, :description, :scheduler, :attempts_succeded, :retries, :progress, :status, :notifications, :updated_at
@@ -3260,6 +3280,7 @@ RailsAdmin.config do |config|
 
     edit do
       field :description
+      field :auto_retry
     end
 
     fields :data, :pull_request, :pulled_request, :description, :scheduler, :attempts_succeded, :retries, :progress, :status, :notifications, :updated_at
@@ -3276,6 +3297,7 @@ RailsAdmin.config do |config|
 
     edit do
       field :description
+      field :auto_retry
     end
 
     fields :shared_collection, :pull_request, :pulled_request, :description, :scheduler, :attempts_succeded, :retries, :progress, :status, :notifications, :updated_at
@@ -3290,6 +3312,7 @@ RailsAdmin.config do |config|
     end
     edit do
       field :description
+      field :auto_retry
     end
     fields :base_uri, :data, :description, :scheduler, :attempts_succeded, :retries, :progress, :status, :notifications, :updated_at
   end
@@ -3316,6 +3339,7 @@ RailsAdmin.config do |config|
     end
     edit do
       field :description
+      field :auto_retry
     end
     fields :deletion_model, :description, :scheduler, :attempts_succeded, :retries, :progress, :status, :notifications, :updated_at
   end
@@ -3329,6 +3353,7 @@ RailsAdmin.config do |config|
     end
     edit do
       field :description
+      field :auto_retry
     end
     fields :algorithm, :description, :scheduler, :attempts_succeded, :retries, :progress, :status, :notifications, :updated_at
   end
@@ -3342,6 +3367,7 @@ RailsAdmin.config do |config|
     end
     edit do
       field :description
+      field :auto_retry
     end
     fields :webhook, :connection, :authorization, :description, :scheduler, :attempts_succeded, :retries, :progress, :status, :notifications, :updated_at
   end
@@ -3427,7 +3453,10 @@ RailsAdmin.config do |config|
     configure :flow do
       read_only true
     end
-    fields :flow, :active, :notify_request, :notify_response, :discard_events
+    configure :auto_retry do
+      help ''
+    end
+    fields :flow, :active, :auto_retry, :notify_request, :notify_response, :discard_events
 
     show_in_dashboard false
   end
