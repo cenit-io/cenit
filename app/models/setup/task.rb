@@ -18,6 +18,7 @@ module Setup
     field :succeded, type: Integer, default: 0
     field :retries, type: Integer, default: 0
     field :state, type: Hash, default: {}
+    field :auto_retry, type: Symbol, default: -> { auto_retry_enum.first }
 
     has_many :notifications, class_name: Setup::Notification.to_s, inverse_of: :task, dependent: :destroy
 
@@ -29,6 +30,7 @@ module Setup
 
     validates_inclusion_of :status, in: ->(t) { t.status_enum }
     validates_numericality_of :progress, greater_than_or_equal_to: 0, less_than_or_equal_to: 100
+    validates_presence_of :auto_retry
 
     before_save do
       message.delete(:task)
@@ -39,13 +41,17 @@ module Setup
       errors.blank?
     end
 
-    before_destroy { NON_ACTIVE_STATUS.include?(status) && (scheduler.nil? || scheduler.deactivated?)}
+    before_destroy { NON_ACTIVE_STATUS.include?(status) && (scheduler.nil? || scheduler.deactivated?) }
 
     def _type_enum
       classes = Setup::Task.class_hierarchy
       classes.delete(Setup::Task)
       classes.delete(::ScriptExecution)
       classes.collect(&:to_s)
+    end
+
+    def auto_retry_enum
+      self.class.auto_retry_enum
     end
 
     def auto_description
@@ -87,7 +93,7 @@ module Setup
         thread_token.destroy if thread_token.present?
         self.thread_token = ThreadToken.create
         Thread.current[:task_token] = thread_token.token
-        if status == :retrying
+        if status == :retrying || status == :failed
           self.retries += 1
         end
         if running_status?
@@ -222,6 +228,10 @@ module Setup
 
     class << self
 
+      def auto_retry_enum
+        %w(manually automatic).collect(&:to_sym)
+      end
+
       def process(message = {}, &block)
         message[:task] = self unless (task = message[:task]).is_a?(self) || (task.is_a?(Class) && task < self)
         Cenit::Rabbit.enqueue(message, &block)
@@ -260,6 +270,27 @@ module Setup
       if status == :completed
         self.succeded += 1
         self.retries = 0
+      elsif status == :failed
+        if auto_retry == :automatic
+          resume_in case retries
+                    when 0
+                      '5s'
+                    when 1
+                      '1m'
+                    when 2
+                      '3m'
+                    when 3
+                      '5m'
+                    when 4
+                      '10m'
+                    when 5
+                      '30m'
+                    when 6
+                      '1h'
+                    else
+                      '1d'
+                    end
+        end
       end
       notify(type: message_type, message: message, attachment: finish_attachment)
     end

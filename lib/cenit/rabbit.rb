@@ -9,6 +9,7 @@ module Cenit
 
       def enqueue(message, &block)
         message = message.with_indifferent_access
+        auto_retry = message[:auto_retry] || Setup::Task.auto_retry_enum.first
         asynchronous_message = message.delete(:asynchronous).present? |
           (scheduler = message.delete(:scheduler)).present? |
           (publish_at = message.delete(:publish_at))
@@ -20,7 +21,11 @@ module Cenit
               scheduler = task.scheduler
             end
           else
-            task = task_class.create(message: message, scheduler: scheduler)
+            task = task_class.create(message: message, scheduler: scheduler, auto_retry: auto_retry)
+            task.save
+          end
+          unless task.auto_retry == auto_retry
+            task.auto_retry = auto_retry
             task.save
           end
           block.call(task) if block

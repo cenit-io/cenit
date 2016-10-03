@@ -13,6 +13,7 @@ module Setup
     field :notify_request, type: Boolean, default: :false
     field :notify_response, type: Boolean, default: :false
     field :discard_events, type: Boolean
+    field :auto_retry, type: Symbol, default: -> { auto_retry_enum.first }
 
     attr_readonly :flow
 
@@ -23,9 +24,14 @@ module Setup
       errors.blank?
     end
 
+    def auto_retry_enum
+      Setup::Task.auto_retry_enum
+    end
+
     class << self
+
       def config_fields
-        %w(active notify_request notify_response discard_events)
+        %w(active notify_request notify_response discard_events auto_retry)
       end
     end
   end
