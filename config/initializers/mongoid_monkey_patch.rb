@@ -1,4 +1,21 @@
+require 'mongoid/document'
+require 'mongoid/scopable'
+require 'mongoid/factory'
+
+class NilClass
+  def account_version
+    nil
+  end
+end
+
 module Mongoid
+
+  module Document
+
+    def account_version #TODO Rename to tenant_version
+      self
+    end
+  end
 
   module Scopable
 
@@ -13,23 +30,18 @@ module Mongoid
     end
   end
 
-  module Contextual
-    class Mongo
-      def yield_document(document, &block)
-        doc = document.respond_to?(:_id) ?
-          document : Factory.from_db(klass, document, criteria.options[:fields])
-        #Patch
-        doc = doc.account_version
-        yield(doc)
-        documents.push(doc) if cacheable?
-      end
+  module Factory
+
+    alias_method :mongoid_build, :build
+
+    def build(klass, attributes = nil)
+      mongoid_build(klass, attributes).account_version
     end
-  end
 
-  module Document
+    alias_method :mongoid_from_db, :from_db
 
-    def account_version #TODO Rename to tenant_version
-      self
+    def from_db(klass, attributes = nil, selected_fields = nil)
+      mongoid_from_db(klass, attributes, selected_fields).account_version
     end
   end
 end

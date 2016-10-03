@@ -11,7 +11,8 @@ module Setup
       [
         Setup::Authorization,
         Setup::Event,
-        Setup::ConnectionRole
+        Setup::ConnectionRole,
+        Setup::Snippet
       ]
 
     bind_models.each do |model|
