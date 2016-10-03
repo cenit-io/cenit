@@ -195,7 +195,10 @@ module Setup
                     block.call(http_response, template_parameters)
                   end
               end
-              verbose_response[:last_response] = last_response if verbose_response
+              if verbose_response
+                verbose_response[:last_response] = last_response
+                verbose_response[:http_response] = http_response
+              end
             rescue Exception => ex
               Setup::Notification.create_from(ex)
             end

@@ -26,6 +26,10 @@ module Setup
                                },
                                discard_events: {
                                  type: 'boolean'
+                               },
+                               auto_retry: {
+                                 type: 'string',
+                                 enum: Setup::Task.auto_retry_enum.collect(&:to_s)
                                }
                              }
                            }.deep_stringify_keys)
@@ -187,6 +191,10 @@ module Setup
       enum
     end
 
+    def auto_retry_enum
+      Setup::Task.auto_retry_enum
+    end
+
     def ready_to_save?
       shared? ||
         ((t = translator).present? &&
@@ -220,7 +228,10 @@ module Setup
           cycle = cycle.collect { |id| ((flow = Setup::Flow.where(id: id).first) && flow.name) || id }
           Setup::Notification.create(message: "Cyclic flow execution: #{cycle.join(' -> ')}")
         else
-          message = message.merge(flow_id: id.to_s, tirgger_flow_id: executing_id, execution_graph: execution_graph)
+          message = message.merge(flow_id: id.to_s,
+                                  tirgger_flow_id: executing_id,
+                                  execution_graph: execution_graph,
+                                  auto_retry: auto_retry)
           Setup::FlowExecution.process(message, &block)
         end
       save
@@ -339,7 +350,8 @@ module Setup
           parameters: {},
           template_parameters: {},
           notify_request: notify_request,
-          notify_response: notify_response
+          notify_response: notify_response,
+          verbose_response: true
         }
       if before_submit
         if before_submit.parameters.count == 1
@@ -348,14 +360,18 @@ module Setup
           before_submit.run([options, message[:task]])
         end
       end
-      webhook.with(connection_role).and(authorization).submit(options) do |response, template_parameters|
-        translator.run(target_data_type: data_type,
-                       data: response.body,
-                       discard_events: discard_events,
-                       parameters: template_parameters,
-                       headers: response.headers.to_hash,
-                       statusCode: response.code,
-                       task: message[:task]) #if response.code == 200
+      verbose_response =
+        webhook.with(connection_role).and(authorization).submit(options) do |response, template_parameters|
+          translator.run(target_data_type: data_type,
+                         data: response.body,
+                         discard_events: discard_events,
+                         parameters: template_parameters,
+                         headers: response.headers.to_hash,
+                         statusCode: response.code,
+                         task: message[:task]) #if response.code == 200
+        end
+      if auto_retry == :automatic && (200...299).exclude?(verbose_response[:http_response].code)
+        fail "Unsuccessful response code #{verbose_response[:http_response].code}"
       end
     end
 
@@ -405,6 +421,9 @@ module Setup
             end
             true
           end
+        if auto_retry == :automatic && (200...299).exclude?(verbose_response[:http_response].code)
+          fail "Unsuccessful response code #{verbose_response[:http_response].code}"
+        end
         connections_present = verbose_response[:connections_present]
       end
     end
