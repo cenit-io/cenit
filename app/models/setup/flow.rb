@@ -371,7 +371,7 @@ module Setup
                          task: message[:task]) #if response.code == 200
         end
       if auto_retry == :automatic && (200...299).exclude?(verbose_response[:http_response].code)
-        fail "Unsuccessful response code #{verbose_response[:http_response].code}"
+        fail unsuccessful_response(verbose_response[:http_response], message)
       end
     end
 
@@ -422,10 +422,23 @@ module Setup
             true
           end
         if auto_retry == :automatic && (200...299).exclude?(verbose_response[:http_response].code)
-          fail "Unsuccessful response code #{verbose_response[:http_response].code}"
+          fail unsuccessful_response(verbose_response[:http_response], message)
         end
         connections_present = verbose_response[:connections_present]
       end
+    end
+
+    def unsuccessful_response(http_response, task_msg)
+      {
+        error: 'Unsuccessful response code',
+        code: http_response.code,
+        user: ::User.current.label,
+        user_id: ::User.current.id,
+        tenant: Account.current.label,
+        tenant_id: Account.current.id,
+        task: task_msg,
+        flow: to_hash
+      }.to_json
     end
 
     def attachment_from(http_response)
