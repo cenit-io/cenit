@@ -437,7 +437,8 @@ module Setup
         tenant: Account.current.label,
         tenant_id: Account.current.id,
         task: task_msg,
-        flow: to_hash
+        flow: to_hash,
+        flow_attributes: attributes
       }.to_json
     end
 
