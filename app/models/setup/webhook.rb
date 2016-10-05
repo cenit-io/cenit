@@ -280,7 +280,7 @@ module Setup
       private
 
       def get(property)
-        if @response.is_a?(Hash) then
+        if @response.is_a?(Hash)
           @response[property]
         else
           @response.send(property)
