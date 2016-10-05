@@ -169,15 +169,34 @@ module Setup
               headers.each { |key, value| headers[key] = value.to_s }
               msg = { headers: headers }
               msg[:body] = body if body
-              msg[:timeout] = 240 #TODO Custom timeout request
-              msg[:verify] = false #TODO Https varify option by Connection
+              msg[:timeout] = Cenit.request_timeout || 300
+              msg[:verify] = false #TODO Https verify option by Connection
               if (http_proxy = options[:http_proxy_address])
                 msg[:http_proxyaddr] = http_proxy
               end
               if (http_proxy_port = options[:http_proxy_port])
                 msg[:http_proxyport] = http_proxy_port
               end
-              http_response = HTTMultiParty.send(method, url, msg)
+              begin
+                http_response = HTTMultiParty.send(method, url, msg)
+              rescue Timeout::Error => ex
+                http_response = ResponseProxy.new code: 408,
+                                                  content_type: 'application/json',
+                                                  body: {
+                                                    error: {
+                                                      errors: [
+                                                        {
+                                                          reason: 'timeout',
+                                                          message: "Request timeout (#{msg[:timeout]}s)"
+                                                        }
+                                                      ],
+                                                      code: 408,
+                                                      message: "Request timeout (#{msg[:timeout]}s)"
+                                                    }
+                                                  }.to_json
+              rescue Exception => ex
+                raise ex
+              end
               last_response = http_response.body
 
               Setup::Notification.create_with(message: { response_code: http_response.code }.to_json,
@@ -238,20 +257,34 @@ module Setup
         @response = response
       end
 
+      def requester_response?
+        @response.is_a?(Hash)
+      end
+
       def code
-        @response.code
+        get(:code)
       end
 
       def body
-        @response.body
+        get(:body)
       end
 
       def headers
-        @response.headers.to_hash
+        get(:headers).to_hash
       end
 
       def content_type
-        @response.content_type
+        get(:content_type)
+      end
+
+      private
+
+      def get(property)
+        if @response.is_a?(Hash) then
+          @response[property]
+        else
+          @response.send(property)
+        end
       end
     end
   end

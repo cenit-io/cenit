@@ -100,4 +100,6 @@ Cenit.config do
   rabbit_mq_password ENV['RABBIT_MQ_PASSWORD']
 
   default_code_theme 'monokai'
+
+  request_timeout 300
 end

@@ -18,7 +18,9 @@ module Setup
     def run(message)
       if (webhook = Setup::Webhook.where(id: (webhook_id = message[:webhook_id])).first)
         if (connection = Setup::Connection.where(id: (connection_id = message[:connection_id])).first)
-          unless (auth = Setup::Authorization.where(id: (auth_id = message[:authorization_id])).first)
+          auth = nil
+          if (auth_id = message[:authorization_id]).present? &&
+            (auth = Setup::Authorization.where(id: auth_id).first).nil?
             notify(message: "Authorization with id #{auth_id} not found", type: :warning)
           end
           webhook.with(connection).and(auth).submit message[:body],

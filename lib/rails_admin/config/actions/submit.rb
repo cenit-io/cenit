@@ -34,7 +34,7 @@ module RailsAdmin
                                                  name: model_name)
               if params.delete(:_save) && (@form_object = mongoff_model.new(data)).valid?
                 msg = Submit.params_and_headers_from(@form_object).merge!(webhook_id: @object.id,
-                                                                          authorization_id: @form_object.authorization.id,
+                                                                          authorization_id: @form_object.attributes[:authorization_id],
                                                                           connection_id: connection.id,
                                                                           body: data[:body])
                 do_flash_process_result Setup::Submission.process(msg)

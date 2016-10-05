@@ -1622,6 +1622,7 @@ RailsAdmin.config do |config|
   end
 
   config.model Setup::ConnectionRole do
+    visible { Account.current_super_admin? }
     navigation_label 'Connectors'
     weight 210
     label 'Connection Role'
