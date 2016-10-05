@@ -417,7 +417,9 @@ module Setup
               response_translator.run(translation_options.merge(target_data_type: response_translator.data_type || response_data_type,
                                                                 data: response.body,
                                                                 headers: response.headers.to_hash,
-                                                                statusCode: response.code))
+                                                                statusCode: response.code, #TODO Remove after deprecation migration
+                                                                response_code: response.code,
+                                                                requester_response: response.requester_response?))
             end
             true
           end
