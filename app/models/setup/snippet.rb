@@ -81,6 +81,7 @@ module Setup
         'IDL': :idl,
         'Java': :java,
         'JavaScript': :javascript,
+        'JSON': :javascript,
         'Jinja2': :jinja2,
         'Julia': :julia,
         'Kotlin': :kotlin,

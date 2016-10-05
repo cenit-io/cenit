@@ -28,7 +28,8 @@ module Setup
           Setup::Connection,
           Setup::Webhook,
           Setup::Algorithm,
-          Setup::Translator
+          Setup::Translator,
+          Setup::DataType
         ],
       bind: bind_models
     }.each do |role, models|

@@ -70,8 +70,13 @@ module Setup
     #TODO Only for legacy codes, remove after migration
 
     def read_attribute(name)
-      if name.to_s == 'code' || name.to_s == self.class.legacy_code_attribute.to_s
-        code
+      if name.to_s == 'code'
+      elsif name.to_s == self.class.legacy_code_attribute.to_s
+        if respond_to?(name)
+          send(name)
+        else
+          code
+        end
       else
         super
       end

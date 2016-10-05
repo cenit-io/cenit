@@ -783,6 +783,24 @@ RailsAdmin.config do |config|
       'My Collections'
     end
 
+    group :compute
+
+    configure :translators do
+      group :compute
+    end
+
+    configure :algorithms do
+      group :compute
+    end
+
+    configure :applications do
+      group :compute
+    end
+
+    configure :snippets do
+      group :compute
+    end
+
     group :workflows
 
     configure :flows do
@@ -790,18 +808,6 @@ RailsAdmin.config do |config|
     end
 
     configure :events do
-      group :workflows
-    end
-
-    configure :translators do
-      group :workflows
-    end
-
-    configure :algorithms do
-      group :workflows
-    end
-
-    configure :applications do
       group :workflows
     end
 
@@ -873,13 +879,14 @@ RailsAdmin.config do |config|
       field :name
       field :flows
       field :connection_roles
-      field :translators
       field :events
       field :data_types
       field :schemas
       field :custom_validators
+      field :translators
       field :algorithms
       field :applications
+      field :snippets
       field :webhooks
       field :connections
       field :authorizations
@@ -896,13 +903,14 @@ RailsAdmin.config do |config|
       field :name
       field :flows
       field :connection_roles
-      field :translators
       field :events
       field :data_types
       field :schemas
       field :custom_validators
+      field :translators
       field :algorithms
       field :applications
+      field :snippets
       field :webhooks
       field :connections
       field :authorizations
@@ -2577,7 +2585,6 @@ RailsAdmin.config do |config|
   config.model Setup::Snippet do
     navigation_label 'Compute'
     weight 430
-    #visible { Account.current_super_admin? }
 
     configure :name
 

@@ -1,9 +1,11 @@
 module Setup
   class JsonDataType < DataType
 
-    include HashField
+    include Setup::SnippetCode
 
-    build_in_data_type.referenced_by(:namespace, :name).with(:namespace, :name, :title, :_type, :schema, :events, :before_save_callbacks, :records_methods, :data_type_methods)
+    legacy_code_attribute :schema
+
+    build_in_data_type.referenced_by(:namespace, :name).with(:namespace, :name, :title, :_type, :snippet, :events, :before_save_callbacks, :records_methods, :data_type_methods)
     build_in_data_type.and({
                              properties: {
                                slug: {
@@ -11,7 +13,20 @@ module Setup
                                }
                              }
                            }.deep_stringify_keys)
-    hash_field :schema
+
+    def schema
+      @schema ||= JSON.parse(code)
+    end
+
+    def schema=(sch)
+      sch = JSON.parse(sch.to_s) unless sch.is_a?(Hash)
+      self.code = JSON.pretty_generate(sch)
+      @schema = sch
+    end
+
+    def code_extension
+      '.json'
+    end
 
     def check_indices
       if schema_changed?
