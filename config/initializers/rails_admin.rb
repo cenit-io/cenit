@@ -165,7 +165,8 @@ RailsAdmin.config do |config|
           Setup::Translator,
           Setup::Flow,
           Setup::OauthClient,
-          Setup::Oauth2Scope
+          Setup::Oauth2Scope,
+          Setup::Snippet
         ] +
           Setup::DataType.class_hierarchy +
           Setup::Validator.class_hierarchy +
@@ -225,11 +226,9 @@ RailsAdmin.config do |config|
 
   config.model Setup::CrossSharedCollection do
     weight 000
-    label 'Cross Shared Collection'
+    label 'Shared Collection'
     navigation_label 'Collections'
     object_label_method :versioned_name
-
-    visible { Account.current_super_admin? }
 
     public_access true
     extra_associations do
@@ -330,6 +329,7 @@ RailsAdmin.config do |config|
     end
 
     edit do
+      field :title
       field :image
       field :logo_background, :color
       field :name
@@ -344,6 +344,7 @@ RailsAdmin.config do |config|
     end
 
     show do
+      field :title
       field :image
       field :name do
         pretty_value do
@@ -440,12 +441,14 @@ RailsAdmin.config do |config|
 
   config.model Setup::SharedCollection do
     weight 010
-    label 'Shared Collection'
+    label 'Legacy Shared Collection'
     register_instance_option(:discard_submit_buttons) do
       !(a = bindings[:action]) || a.key != :edit
     end
     navigation_label 'Collections'
     object_label_method { :versioned_name }
+
+    visible { Account.current_super_admin? }
 
     public_access true
     extra_associations do
@@ -862,6 +865,7 @@ RailsAdmin.config do |config|
     end
 
     edit do
+      field :title
       field :image
       field :readme do
         visible { Account.current_super_admin? }
@@ -886,6 +890,7 @@ RailsAdmin.config do |config|
     end
 
     show do
+      field :title
       field :image
       field :readme, :html_erb
       field :name
@@ -915,6 +920,7 @@ RailsAdmin.config do |config|
     end
 
     list do
+      field :title
       field :image do
         thumb_method :icon
       end
@@ -1616,6 +1622,7 @@ RailsAdmin.config do |config|
   end
 
   config.model Setup::ConnectionRole do
+    visible { Account.current_super_admin? }
     navigation_label 'Connectors'
     weight 210
     label 'Connection Role'
@@ -2477,7 +2484,6 @@ RailsAdmin.config do |config|
       field :style
       field :mime_type
       field :file_extension
-      field :transformation
       field :updated_at
     end
 
@@ -2568,30 +2574,43 @@ RailsAdmin.config do |config|
   config.model Setup::Snippet do
     navigation_label 'Compute'
     weight 430
-    object_label_method { :custom_title }
-    visible { Account.current_super_admin? }
-    configure :identifier
-    configure :registered, :boolean
+    #visible { Account.current_super_admin? }
+
+    configure :name
 
     edit do
-      field :namespace, :enum_edit
       field :name
       field :type
       field :description
-      field :code, :code_mirror do
+      field :code, :code do
         html_attributes do
           { cols: '74', rows: '15' }
         end
-        help { 'Required' }
-        config do
-          { mode: bindings[:object].type }
+        code_config do
+          {
+            mode: {
+              'auto': 'javascript',
+              'text': 'javascript',
+              'null': 'javascript',
+              'c': 'clike',
+              'cpp': 'clike',
+              'csharp': 'clike',
+              'csv': 'javascript',
+              'fsharp': 'mllike',
+              'java': 'clike',
+              'latex': 'stex',
+              'ocaml': 'mllike',
+              'scala': 'clike',
+              'squirrel': 'clike'
+            }[bindings[:object].type] || bindings[:object].type
+          }
         end
+
       end
       field :tags
     end
 
     show do
-      field :namespace, :enum_edit
       field :name
       field :type
       field :description
@@ -2604,12 +2623,11 @@ RailsAdmin.config do |config|
     end
 
     list do
-      field :namespace
       field :name
       field :type
       field :tags
     end
-    fields :namespace, :name, :type, :description, :code, :tags
+    fields :_id, :type, :description, :code, :tags
   end
 
   #Workflows
@@ -2637,7 +2655,13 @@ RailsAdmin.config do |config|
     end
 
     Setup::FlowConfig.config_fields.each do |f|
-      configure f.to_sym, Setup::Flow.data_type.schema['properties'][f]['type'].to_sym
+      schema = Setup::Flow.data_type.schema['properties'][f]
+      if schema['enum']
+        type = :enum
+      elsif (type = schema['type'].to_sym) == :string
+        type = :text
+      end
+      configure f.to_sym, type
     end
 
     edit do
@@ -2818,6 +2842,12 @@ RailsAdmin.config do |config|
         help I18n.t('admin.form.flow.events_wont_be_fired')
       end
       field :active do
+        visible do
+          f = bindings[:object]
+          f.ready_to_save?
+        end
+      end
+      field :auto_retry do
         visible do
           f = bindings[:object]
           f.ready_to_save?
@@ -3104,6 +3134,7 @@ RailsAdmin.config do |config|
 
     edit do
       field :description
+      field :auto_retry
     end
 
     fields :_type, :description, :scheduler, :attempts_succeded, :retries, :progress, :status, :updated_at
@@ -3120,6 +3151,7 @@ RailsAdmin.config do |config|
 
     edit do
       field :description
+      field :auto_retry
     end
 
     fields :flow, :description, :scheduler, :attempts_succeded, :retries, :progress, :status, :notifications, :updated_at
@@ -3136,6 +3168,7 @@ RailsAdmin.config do |config|
 
     edit do
       field :description
+      field :auto_retry
     end
 
     fields :description, :scheduler, :attempts_succeded, :retries, :progress, :status, :notifications, :updated_at
@@ -3152,6 +3185,7 @@ RailsAdmin.config do |config|
 
     edit do
       field :description
+      field :auto_retry
     end
 
     fields :description, :scheduler, :attempts_succeded, :retries, :progress, :status, :notifications, :updated_at
@@ -3168,6 +3202,7 @@ RailsAdmin.config do |config|
 
     edit do
       field :description
+      field :auto_retry
     end
 
     fields :translator, :description, :scheduler, :attempts_succeded, :retries, :progress, :status, :notifications, :updated_at
@@ -3184,6 +3219,7 @@ RailsAdmin.config do |config|
 
     edit do
       field :description
+      field :auto_retry
     end
 
     fields :translator, :data, :description, :scheduler, :attempts_succeded, :retries, :progress, :status, :notifications, :updated_at
@@ -3200,6 +3236,7 @@ RailsAdmin.config do |config|
 
     edit do
       field :description
+      field :auto_retry
     end
 
     fields :source_collection, :shared_collection, :description, :attempts_succeded, :retries, :progress, :status, :notifications, :updated_at
@@ -3223,6 +3260,7 @@ RailsAdmin.config do |config|
 
     edit do
       field :description
+      field :auto_retry
     end
 
     fields :_type, :pull_request, :pulled_request, :description, :scheduler, :attempts_succeded, :retries, :progress, :status, :notifications, :updated_at
@@ -3243,6 +3281,7 @@ RailsAdmin.config do |config|
 
     edit do
       field :description
+      field :auto_retry
     end
 
     fields :data, :pull_request, :pulled_request, :description, :scheduler, :attempts_succeded, :retries, :progress, :status, :notifications, :updated_at
@@ -3259,6 +3298,7 @@ RailsAdmin.config do |config|
 
     edit do
       field :description
+      field :auto_retry
     end
 
     fields :shared_collection, :pull_request, :pulled_request, :description, :scheduler, :attempts_succeded, :retries, :progress, :status, :notifications, :updated_at
@@ -3273,6 +3313,7 @@ RailsAdmin.config do |config|
     end
     edit do
       field :description
+      field :auto_retry
     end
     fields :base_uri, :data, :description, :scheduler, :attempts_succeded, :retries, :progress, :status, :notifications, :updated_at
   end
@@ -3299,6 +3340,7 @@ RailsAdmin.config do |config|
     end
     edit do
       field :description
+      field :auto_retry
     end
     fields :deletion_model, :description, :scheduler, :attempts_succeded, :retries, :progress, :status, :notifications, :updated_at
   end
@@ -3312,6 +3354,7 @@ RailsAdmin.config do |config|
     end
     edit do
       field :description
+      field :auto_retry
     end
     fields :algorithm, :description, :scheduler, :attempts_succeded, :retries, :progress, :status, :notifications, :updated_at
   end
@@ -3325,6 +3368,7 @@ RailsAdmin.config do |config|
     end
     edit do
       field :description
+      field :auto_retry
     end
     fields :webhook, :connection, :authorization, :description, :scheduler, :attempts_succeded, :retries, :progress, :status, :notifications, :updated_at
   end
@@ -3410,7 +3454,10 @@ RailsAdmin.config do |config|
     configure :flow do
       read_only true
     end
-    fields :flow, :active, :notify_request, :notify_response, :discard_events
+    configure :auto_retry do
+      help ''
+    end
+    fields :flow, :active, :auto_retry, :notify_request, :notify_response, :discard_events
 
     show_in_dashboard false
   end
@@ -3487,11 +3534,33 @@ RailsAdmin.config do |config|
   config.model Setup::Binding do
     navigation_label 'Configuration'
     weight 750
+    object_label_method { :label }
 
     configure :binder_model, :model
     configure :binder, :record
     configure :bind_model, :model
     configure :bind, :record
+
+    edit do
+      Setup::Binding.reflect_on_all_associations(:belongs_to).each do |relation|
+        if relation.name.to_s.ends_with?('binder')
+          field relation.name do
+            label { relation.klass.to_s.split('::').last.to_title }
+            read_only true
+            visible { value.present? }
+            help ''
+          end
+        else
+          field relation.name do
+            label { relation.klass.to_s.split('::').last.to_title }
+            inline_edit false
+            inline_add false
+            visible { value.present? }
+            help ''
+          end
+        end
+      end
+    end
 
     fields :binder_model, :binder, :bind_model, :bind, :updated_at
 

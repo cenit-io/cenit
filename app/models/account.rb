@@ -3,6 +3,7 @@ require 'cenit/heroku_client'
 class Account
   include Setup::CenitUnscoped
   include Cenit::MultiTenancy
+  include Cenit::Oauth::Tenant
   include NumberGenerator
   include TokenGenerator
 
@@ -59,6 +60,8 @@ class Account
   end
 
   before_save :inspect_updated_fields, :init_heroku_db, :validates_configuration
+
+  after_destroy { clean_up }
 
   def api_account
     self
@@ -141,6 +144,11 @@ class Account
 
   def time_zone_enum
     ActiveSupport::TimeZone.all.collect { |e| "#{e.name} | #{e.formatted_offset}" }
+  end
+
+  def clean_up
+    super
+    each_cenit_collection(&:drop)
   end
 
   class << self

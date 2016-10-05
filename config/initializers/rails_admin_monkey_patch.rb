@@ -99,11 +99,13 @@ module RailsAdmin
             #Patch
             if request.get? || params[:_restart] # NEW
 
-              unless (attrs = params[:attributes] || {}).is_a?(Hash)
-                attrs = JSON.parse(attrs) rescue {}
-                %w(_id origin).each { |attr| attrs.delete(attr) }
-              end
-              @object = @abstract_model.new(attrs)
+              @object =
+                if (token = Cenit::Token.where(token: params[:json_token]).first)
+                  hash = JSON.parse(token.data) rescue {}
+                  @abstract_model.model.data_type.new_from_json(hash)
+                else
+                  @abstract_model.new
+                end
               @authorization_adapter && @authorization_adapter.attributes_for(:new, @abstract_model).each do |name, value|
                 @object.send("#{name}=", value)
               end
@@ -613,10 +615,8 @@ module RailsAdmin
         text = current_account.label
         html << content_tag(:span, text, style: 'padding-right:5px')
         unless inspecting
-          if current_user && current_user.picture.present? && abstract_model && edit_action
-            html << image_tag(current_user.picture.icon.url, alt: '')
-          elsif current_user.email.present?
-            html << image_tag(current_user.gravatar_or_identicon_url(30), alt: '')
+          if current_user && abstract_model && edit_action
+            html << image_tag(current_user.picture_url, alt: '', width: '30px')
           end
         end
         html.join.html_safe
@@ -1038,6 +1038,10 @@ module RailsAdmin
     def get_model
       #Patch
       @model_name = to_model_name(name = params[:model_name].to_s)
+      #TODO Transferring shared collections to cross shared collections. REMOVE after migration
+      if @model_name == Setup::SharedCollection.to_s && !User.current_super_admin?
+        @model_name = Setup::CrossSharedCollection.to_s
+      end
       data_type = nil
       unless (@abstract_model = RailsAdmin::AbstractModel.new(@model_name))
         if (slugs = name.to_s.split('~')).size == 2

@@ -4,7 +4,8 @@ module Setup
     include CollectionBehavior
     include HashField
 
-    build_in_data_type.with(:name,
+    build_in_data_type.with(:title,
+                            :name,
                             :shared_version,
                             :authors,
                             :summary,
@@ -124,7 +125,11 @@ module Setup
       self.class.collection.find(_id: id).update_one('$inc' => { pull_count: 1 })
       if !installed && options[:install] && User.current_installer?
         self.pull_data = {}
-        pull_data[:readme] = readme if readme.present?
+        [:title, :readme].each do |field|
+          if (value = send(field))
+            pull_data[field] = value
+          end
+        end
         (collection = options[:collection]).cross(:shared)
         attributes = {}
         COLLECTING_PROPERTIES.each do |property|

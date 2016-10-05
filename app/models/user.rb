@@ -3,7 +3,7 @@ require 'identicon'
 
 class User
   include Mongoid::Document
-  include Cenit::MultiTenancy::UserScope
+  include Cenit::Oauth::User
   include Mongoid::Timestamps
   extend DeviseOverrides
   include NumberGenerator
@@ -71,6 +71,14 @@ class User
   end
 
   before_save :ensure_token, :inspect_updated_fields
+
+  def picture_url(size=50)
+    custom_picture_url(size) || gravatar_or_identicon_url(size)
+  end
+
+  def custom_picture_url(size)
+    picture && picture.url
+  end
 
   def code_theme_enum
     [nil, ''] +
@@ -150,29 +158,6 @@ class User
 
   def admin?
     has_role?(:admin) || has_role?(:super_admin)
-  end
-
-  def gravatar()
-    gravatar_check = "//gravatar.com/avatar/#{Digest::MD5.hexdigest(email.downcase)}.png?d=404"
-    uri = URI.parse(gravatar_check)
-    http = Net::HTTP.new(uri.host, uri.port)
-    request = Net::HTTP::Get.new("/avatar/#{Digest::MD5.hexdigest(email.downcase)}.png?d=404")
-    response = http.request(request)
-    response.code.to_i < 400 # from d=404 parameter
-  rescue
-    false
-  end
-
-  def identicon(size=50)
-    Identicon.data_url_for email.downcase, size
-  end
-
-  def gravatar_or_identicon_url(size=50)
-    if gravatar()
-      "//gravatar.com/avatar/#{Digest::MD5.hexdigest email}?s=#{size}"
-    else
-      identicon size
-    end
   end
 
   class << self

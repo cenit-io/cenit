@@ -57,7 +57,7 @@ module Setup
           new_property = property
           if property == 'object' || !(property =~ /\A[A-Za-z_]\w*\Z/)
             c = 1
-            new_property = prefix = (property == 'object') ? 'obj' : to_method_name(property)
+            new_property = prefix = (property == 'object') ? 'obj' : property.to_s.to_method_name
             while new_properties.has_key?(new_property) || properties.has_key?(new_property)
               new_property = "#{prefix}_#{c += 1}"
             end
@@ -125,48 +125,6 @@ module Setup
     end
 
     private
-
-    def to_method_name(str)
-      {
-        '+' => 'plus',
-        '@' => 'at',
-        '$' => 'dollar',
-        '%' => 'percentage',
-        '?' => 'question',
-        '=' => 'equals',
-        '*' => 'asterisk'
-      }.each do |char, word|
-        str = str.squeeze(char).gsub(char, word)
-      end
-      {
-        '-' => 'minus',
-        '.' => 'dot'
-      }.each do |char, replacement|
-        ch = true
-        while ch && (ch = str[0]) =~ /\W/
-          str = str.from(1)
-          if ch == char
-            str = "#{replacement}#{str}"
-            ch = false
-          end
-        end
-        ch = true
-        while ch && (ch = str.last) =~ /\W/
-          str = str.to(str.length - 2)
-          if ch == char
-            str = "#{str}#{replacement}"
-            ch = false
-          end
-        end
-        str = str.squeeze(char).gsub(char, '_')
-      end
-      if (str = str.gsub(/\W/, '')).empty?
-        str = '_property'
-      else
-        str = "_#{str}" unless str =~ /\A(_|[A-Za-z])/
-      end
-      str
-    end
 
     def do_merge_schema(schema, options = {})
       if schema.is_a?(Array)

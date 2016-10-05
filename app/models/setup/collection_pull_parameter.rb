@@ -1,5 +1,6 @@
 module Setup
-  class CollectionPullParameter < ReqRejValidator
+  class CollectionPullParameter
+    include ReqRejValidator
     include CenitUnscoped
     include HashField
 

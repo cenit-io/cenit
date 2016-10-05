@@ -19,7 +19,7 @@ module RailsAdmin
         register_instance_option :controller do
           proc do
             if params[:delete] # DELETE
-              Account.current.each_cenit_collection(&:drop)
+              Account.current.clean_up
               redirect_to dashboard_path
             else
               @object = Setup::Collection.new

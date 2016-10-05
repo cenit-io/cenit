@@ -54,7 +54,7 @@ en:
       or: 'or'
       not_selected: 'Not selected'
       help: 'help'
-      add_tenant: 'New account'
+      add_tenant: 'Add new'
     actions:
       dashboard:
         title: "Dashboard"
@@ -346,6 +346,7 @@ en:
         breadcrumb: "Run"
         done: "run"
         doing: "execution"
+        background_option: "Run in the background"
       run_script:
         title: "Run"
         menu: "Run"

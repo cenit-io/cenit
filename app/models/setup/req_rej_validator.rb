@@ -1,5 +1,6 @@
 module Setup
-  class ReqRejValidator
+  module ReqRejValidator
+    extend ActiveSupport::Concern
 
     def reject_message(field=nil)
       'is not allowed'

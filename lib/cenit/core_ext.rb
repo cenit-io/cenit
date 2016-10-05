@@ -37,6 +37,7 @@ class Hash
 end
 
 class String
+
   def to_title
     self.
       gsub(/([A-Z])(\d)/, '\1 \2').
@@ -45,6 +46,61 @@ class String
       tr('_', ' ').
       tr('-', ' ').
       capitalize
+  end
+
+  def sym2word
+    str = self
+    {
+      '+' => 'plus',
+      '@' => 'at',
+      '$' => 'dollar',
+      '%' => 'percentage',
+      '?' => 'question',
+      '=' => 'equals',
+      '*' => 'asterisk',
+      '&' => 'and'
+    }.each do |char, word|
+      str = str.squeeze(char).gsub(char, word)
+    end
+    str
+  end
+
+  def to_file_name
+    gsub(/[^\w\s_-]+/, '') #TODO Improve to_file_name method
+      .gsub(/(^|\b\s)\s+($|\s?\b)/, '\\1\\2')
+      .gsub(/\s+/, '_')
+  end
+
+  def to_method_name
+    str = sym2word
+    {
+      '-' => 'minus',
+      '.' => 'dot'
+    }.each do |char, replacement|
+      ch = true
+      while ch && (ch = str[0]) =~ /\W/
+        str = str.from(1)
+        if ch == char
+          str = "#{replacement}#{str}"
+          ch = false
+        end
+      end
+      ch = true
+      while ch && (ch = str.last) =~ /\W/
+        str = str.to(str.length - 2)
+        if ch == char
+          str = "#{str}#{replacement}"
+          ch = false
+        end
+      end
+      str = str.squeeze(char).gsub(char, '_')
+    end
+    if (str = str.gsub(/\W/, '')).empty?
+      str = '_property'
+    else
+      str = "_#{str}" unless str =~ /\A(_|[A-Za-z])/
+    end
+    str
   end
 end
 

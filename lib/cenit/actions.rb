@@ -26,9 +26,15 @@ module Cenit
         invariant_data = {}
 
         collection_data = { '_reset' => resetting = [] }
-        unless (collection = Setup::Collection.where(name: shared_collection.name).first) && (collection.readme == shared_collection.readme)
-          collection_data['readme'] = shared_collection.readme
-          resetting << 'readme'
+        unless (collection = Setup::Collection.where(name: shared_collection.name).first) &&
+          %w(readme title).all? { |field| collection.send(field) == shared_collection.send(field) }
+          %w(readme title).each do |field|
+            shared_value = shared_collection[field]
+            unless collection && (collection[field] == shared_value)
+              collection_data[field] = shared_value
+              resetting << field
+            end
+          end
         end
 
         Setup::Collection.reflect_on_all_associations(:has_and_belongs_to_many).each do |relation|

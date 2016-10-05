@@ -16,6 +16,7 @@ module Setup
         :schemas,
         :custom_validators,
         :algorithms,
+        :snippets,
         :webhooks,
         :connections,
         :authorizations,
@@ -28,6 +29,7 @@ module Setup
 
       build_in_data_type.embedding(*COLLECTING_PROPERTIES).excluding(:image)
 
+      field :title
       field :readme, type: String
 
       has_and_belongs_to_many :namespaces, class_name: Setup::Namespace.to_s, inverse_of: nil
@@ -37,6 +39,7 @@ module Setup
       has_and_belongs_to_many :events, class_name: Setup::Event.to_s, inverse_of: nil
       has_and_belongs_to_many :algorithms, class_name: Setup::Algorithm.to_s, inverse_of: nil
       has_and_belongs_to_many :applications, class_name: Setup::Application.to_s, inverse_of: nil
+      has_and_belongs_to_many :snippets, class_name: Setup::Snippet.to_s, inverse_of: nil
 
       has_and_belongs_to_many :connection_roles, class_name: Setup::ConnectionRole.to_s, inverse_of: nil
       has_and_belongs_to_many :webhooks, class_name: Setup::Webhook.to_s, inverse_of: nil
