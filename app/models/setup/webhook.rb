@@ -180,7 +180,8 @@ module Setup
               begin
                 http_response = HTTMultiParty.send(method, url, msg)
               rescue Timeout::Error => ex
-                http_response = ResponseProxy.new code: 408,
+                http_response = ResponseProxy.new true,
+                                                  code: 408,
                                                   content_type: 'application/json',
                                                   body: {
                                                     error: {
@@ -205,7 +206,7 @@ module Setup
                                               skip_notification_level: options[:skip_notification_level] || options[:notify_response])
 
               if block
-                http_response = ResponseProxy.new(http_response)
+                http_response = ResponseProxy.new(false, http_response)
                 last_response =
                   case block.arity
                   when 1
@@ -253,12 +254,15 @@ module Setup
 
     class ResponseProxy
 
-      def initialize(response)
+      attr_reader :requester_response
+
+      def initialize(requester_response, response)
+        @requester_response = requester_response
         @response = response
       end
 
       def requester_response?
-        @response.is_a?(Hash)
+        requester_response.to_b
       end
 
       def code
@@ -280,10 +284,10 @@ module Setup
       private
 
       def get(property)
-        if @response.is_a?(Hash)
+        if requester_response?
           @response[property]
         else
-          @response.send(property)
+          @response.instance_eval(property.to_s)
         end
       end
     end
