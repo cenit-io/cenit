@@ -3,16 +3,18 @@ require 'xsd/include_missing_exception'
 module Setup
   class Schema < Validator
     include SharedEditable
+    include SnippetCode
     include NamespaceNamed
     include Setup::FormatValidator
     include CustomTitle
 
-    build_in_data_type.with(:namespace, :uri, :schema).referenced_by(:namespace, :uri)
+    legacy_code_attribute :schema
+
+    build_in_data_type.with(:namespace, :uri, :snippet).referenced_by(:namespace, :uri)
 
     shared_deny :simple_generate, :bulk_generate
 
     field :uri, type: String
-    field :schema, type: String
     field :schema_type, type: Symbol
 
     belongs_to :schema_data_type, class_name: Setup::JsonDataType.to_s, inverse_of: nil
@@ -21,6 +23,25 @@ module Setup
 
     validates_presence_of :uri, :schema
     validates_uniqueness_of :uri, scope: :namespace
+
+    def code_extension
+      case schema_type
+      when :xml_schema
+        '.xsd'
+      when :json_schema
+        '.json'
+      else
+        super
+      end
+    end
+
+    def schema
+      code
+    end
+
+    def schema=(sch)
+      self.code = sch
+    end
 
     def title
       uri

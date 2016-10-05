@@ -1051,6 +1051,8 @@ RailsAdmin.config do |config|
     weight 101
     object_label_method { :custom_title }
 
+    configure :schema
+
     edit do
       field :namespace, :enum_edit do
         read_only { !bindings[:object].new_record? }
