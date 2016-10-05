@@ -270,7 +270,7 @@ module Setup
       end
 
       def headers
-        get(:headers).to_hash
+        (get(:headers) || {}).to_hash
       end
 
       def content_type
