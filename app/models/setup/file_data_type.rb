@@ -23,8 +23,10 @@ module Setup
       if validators.present?
         validators.each { |validator| validators_classes[validator.class] << validator }
         validators_classes.delete(Setup::AlgorithmValidator)
-        if validators_classes.size == 1 && validators_classes.values.first.size == 1
-          self.schema_data_type = validators_classes.values.first.first.schema_data_type
+        if validators_classes.size == 1 &&
+          (validators = validators_classes.values.first).size == 1 &&
+          validators[0].is_a?(Setup::EdiValidator)
+          self.schema_data_type = validators[0].first.schema_data_type
         else
           if schema_data_type.present?
             errors.add(:schema_data_type, 'is not allowed if no format validator is defined')

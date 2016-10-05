@@ -1,25 +1,24 @@
 module Setup
   class XsltValidator < CustomValidator
-    include CenitScoped
+    include SnippetCode
     include CustomTitle
+
+    legacy_code_attribute :xslt
 
     build_in_data_type.referenced_by(:namespace, :name)
 
-    field :xslt, type: String
-
     field :schema_type, type: Symbol
 
-    def before_save
-      errors.blank?
+    def code_extension
+      '.xsl'
     end
 
     def validate_data(data)
-      xslt = Nokogiri::XSLT(self.xslt)
       begin
-        xslt.transform(Nokogiri::XML(data.to_xml()))
-        validate = true
+        Nokogiri::XSLT(code).transform(Nokogiri::XML(data))
+        []
       rescue  Exception => ex
-        ex.message
+        [ex.message]
       end
     end
 

@@ -1123,13 +1123,30 @@ RailsAdmin.config do |config|
     label 'XSLT Validator'
     object_label_method { :custom_title }
 
+    configure :code, :code do
+      html_attributes do
+        { cols: '74', rows: '15' }
+      end
+      code_config do
+        {
+          mode: 'application/xml'
+        }
+      end
+    end
+
     list do
       field :namespace
-      field :xslt
+      field :name
       field :updated_at
     end
 
-    fields :namespace, :name, :xslt, :updated_at
+    edit do
+      field :namespace
+      field :name
+      field :code
+    end
+
+    fields :namespace, :name, :code, :updated_at
   end
 
   config.model Setup::EdiValidator do
