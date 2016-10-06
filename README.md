@@ -11,10 +11,10 @@
 * support@cenit.io
 
 
-**Cenit IO** is an open platform for data and business integration. This Integration Platform-as-a-Service (iPaaS) has been designed to orchestrate data flows that may involve several kind of endpoints (APIs, Datasets, EDI). It makes possible the automation of all operational processes in a company, connecting between organization's on-premises infrastructure and cloud provider services.
+**[Cenit IO](https://cenit.io)** is an open source Data and Enterprise Integration Platform as a Service (iPaaS). It has been designed to orchestrate data flows that may involve several kind of endpoints (APIs, Datasets, EDI). It makes possible the automation of all operational processes in a company, connecting between organization's on-premises infrastructure and cloud provider services.
 
 It allows the creation of custom data pipelines for process, storage and data movement between APIs –either public or 
-on premises-. The flows could be trigger by data events or be scheduled by our platform [Cenit IO](https://cenit.io).
+on premises-. The flows could be trigger by data events or be scheduled.
 
 
 ## Run your own Cenit
@@ -253,5 +253,3 @@ Thank you for your contributions:
 * [Daniel H. Bahr](https://github.com/dhbahr)
 * [Maria E. Guirola](https://github.com/maryguirola)
 * [José A. Cruz](https://github.com/jalbertcruz)
-
-
