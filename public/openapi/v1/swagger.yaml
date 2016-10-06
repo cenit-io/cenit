@@ -579,7 +579,8 @@ paths:
          responses:
             '200':
               description: OK
-              schema: '#/definitions/translator'
+              schema:
+                $ref: '#/definitions/translator'
   '/setup/translator/{id}':
         get:
           description: Retrieves the details of an existing translator. You need only supply the unique translator identifier that was returned upon translator creation.
@@ -617,7 +618,8 @@ paths:
           description: OK
           schema:
             type: array
-            $ref: '#/definitions/webhook'
+            items:
+              $ref: '#/definitions/webhook'
     post:
       description: Creates or updates the specified webhook. Any parameters not provided will be left unchanged.
       responses:
@@ -652,7 +654,7 @@ paths:
       responses:
         '200':
           description: OK
-        404':
+        '404':
           description: Item not found
   '/setup/namespace/':
     get:
@@ -662,7 +664,8 @@ paths:
           description: OK
           schema:
             type: array
-            $ref: '#/definitions/namespace'
+            items:
+              $ref: '#/definitions/namespace'
     post:
       description: Creates or updates the specified namespace. Any parameters not provided will be left unchanged.
       responses:

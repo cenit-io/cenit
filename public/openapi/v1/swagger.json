@@ -887,7 +887,9 @@
         "responses": {
           "200": {
             "description": "OK",
-            "schema": "#/definitions/translator"
+            "schema": {
+              "$ref": "#/definitions/translator"
+            }
           }
         }
       }
@@ -945,7 +947,9 @@
             "description": "OK",
             "schema": {
               "type": "array",
-              "$ref": "#/definitions/webhook"
+              "items": {
+                "$ref": "#/definitions/webhook"
+              }
             }
           }
         }
@@ -1001,7 +1005,7 @@
           "200": {
             "description": "OK"
           },
-          "404'": {
+          "404": {
             "description": "Item not found"
           }
         }
@@ -1015,7 +1019,9 @@
             "description": "OK",
             "schema": {
               "type": "array",
-              "$ref": "#/definitions/namespace"
+              "items": {
+                "$ref": "#/definitions/namespace"
+              }
             }
           }
         }
