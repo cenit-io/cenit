@@ -100,7 +100,7 @@ gem 'exception_notification'
 gem 'mime'
 gem 'deface'
 
-gem 'cross_origin', git: 'https://github.com/macarci/cross_origin.git'
+gem 'cross_origin', path: '../cross_origin'
 
 gem 'lodash-rails'
 gem 'identicon'

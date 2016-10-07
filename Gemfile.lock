@@ -41,17 +41,17 @@ GIT
       rails (>= 4.2.5)
 
 GIT
-  remote: https://github.com/macarci/cross_origin.git
-  revision: 872a8a6fe81794dc63d0f2397f4e81d188fc55f4
-  specs:
-    cross_origin (0.0.3)
-
-GIT
   remote: https://github.com/openjaf/cenit_cmd.git
   revision: b9f3ac98c6e082b2c1b25d74c7ecb55d00ee1511
   specs:
     cenit_cmd (0.0.6)
       thor (~> 0.14)
+
+PATH
+  remote: vendor/cache/cross_origin
+  specs:
+    cross_origin (0.0.3)
+      mongoid (>= 5.0.1)
 
 GEM
   remote: https://rubygems.org/

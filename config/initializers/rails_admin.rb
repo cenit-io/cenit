@@ -3504,7 +3504,7 @@ RailsAdmin.config do |config|
             unless (pin = bindings[:object]).nil? || pin.new_record?
               excluded_ids.delete(pin[field])
             end
-            Proc.new { |scope| scope.where(origin: :shared, :id.nin => excluded_ids) }
+            Proc.new { |scope| scope.where(:origin.ne => :default, :id.nin => excluded_ids) }
           end
         end
       end
