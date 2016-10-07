@@ -226,11 +226,9 @@ RailsAdmin.config do |config|
 
   config.model Setup::CrossSharedCollection do
     weight 000
-    label 'Cross Shared Collection'
+    label 'Shared Collection'
     navigation_label 'Collections'
     object_label_method :versioned_name
-
-    visible { Account.current_super_admin? }
 
     public_access true
     extra_associations do
@@ -443,12 +441,14 @@ RailsAdmin.config do |config|
 
   config.model Setup::SharedCollection do
     weight 010
-    label 'Shared Collection'
+    label 'Legacy Shared Collection'
     register_instance_option(:discard_submit_buttons) do
       !(a = bindings[:action]) || a.key != :edit
     end
     navigation_label 'Collections'
     object_label_method { :versioned_name }
+
+    visible { Account.current_super_admin? }
 
     public_access true
     extra_associations do
@@ -1649,6 +1649,7 @@ RailsAdmin.config do |config|
   end
 
   config.model Setup::ConnectionRole do
+    visible { Account.current_super_admin? }
     navigation_label 'Connectors'
     weight 210
     label 'Connection Role'
@@ -2677,7 +2678,13 @@ RailsAdmin.config do |config|
     end
 
     Setup::FlowConfig.config_fields.each do |f|
-      configure f.to_sym, Setup::Flow.data_type.schema['properties'][f]['type'].to_sym
+      schema = Setup::Flow.data_type.schema['properties'][f]
+      if schema['enum']
+        type = :enum
+      elsif (type = schema['type'].to_sym) == :string
+        type = :text
+      end
+      configure f.to_sym, type
     end
 
     edit do
@@ -2858,6 +2865,12 @@ RailsAdmin.config do |config|
         help I18n.t('admin.form.flow.events_wont_be_fired')
       end
       field :active do
+        visible do
+          f = bindings[:object]
+          f.ready_to_save?
+        end
+      end
+      field :auto_retry do
         visible do
           f = bindings[:object]
           f.ready_to_save?
@@ -3144,6 +3157,7 @@ RailsAdmin.config do |config|
 
     edit do
       field :description
+      field :auto_retry
     end
 
     fields :_type, :description, :scheduler, :attempts_succeded, :retries, :progress, :status, :updated_at
@@ -3160,6 +3174,7 @@ RailsAdmin.config do |config|
 
     edit do
       field :description
+      field :auto_retry
     end
 
     fields :flow, :description, :scheduler, :attempts_succeded, :retries, :progress, :status, :notifications, :updated_at
@@ -3176,6 +3191,7 @@ RailsAdmin.config do |config|
 
     edit do
       field :description
+      field :auto_retry
     end
 
     fields :description, :scheduler, :attempts_succeded, :retries, :progress, :status, :notifications, :updated_at
@@ -3192,6 +3208,7 @@ RailsAdmin.config do |config|
 
     edit do
       field :description
+      field :auto_retry
     end
 
     fields :description, :scheduler, :attempts_succeded, :retries, :progress, :status, :notifications, :updated_at
@@ -3208,6 +3225,7 @@ RailsAdmin.config do |config|
 
     edit do
       field :description
+      field :auto_retry
     end
 
     fields :translator, :description, :scheduler, :attempts_succeded, :retries, :progress, :status, :notifications, :updated_at
@@ -3224,6 +3242,7 @@ RailsAdmin.config do |config|
 
     edit do
       field :description
+      field :auto_retry
     end
 
     fields :translator, :data, :description, :scheduler, :attempts_succeded, :retries, :progress, :status, :notifications, :updated_at
@@ -3240,6 +3259,7 @@ RailsAdmin.config do |config|
 
     edit do
       field :description
+      field :auto_retry
     end
 
     fields :source_collection, :shared_collection, :description, :attempts_succeded, :retries, :progress, :status, :notifications, :updated_at
@@ -3263,6 +3283,7 @@ RailsAdmin.config do |config|
 
     edit do
       field :description
+      field :auto_retry
     end
 
     fields :_type, :pull_request, :pulled_request, :description, :scheduler, :attempts_succeded, :retries, :progress, :status, :notifications, :updated_at
@@ -3283,6 +3304,7 @@ RailsAdmin.config do |config|
 
     edit do
       field :description
+      field :auto_retry
     end
 
     fields :data, :pull_request, :pulled_request, :description, :scheduler, :attempts_succeded, :retries, :progress, :status, :notifications, :updated_at
@@ -3299,6 +3321,7 @@ RailsAdmin.config do |config|
 
     edit do
       field :description
+      field :auto_retry
     end
 
     fields :shared_collection, :pull_request, :pulled_request, :description, :scheduler, :attempts_succeded, :retries, :progress, :status, :notifications, :updated_at
@@ -3313,6 +3336,7 @@ RailsAdmin.config do |config|
     end
     edit do
       field :description
+      field :auto_retry
     end
     fields :base_uri, :data, :description, :scheduler, :attempts_succeded, :retries, :progress, :status, :notifications, :updated_at
   end
@@ -3339,6 +3363,7 @@ RailsAdmin.config do |config|
     end
     edit do
       field :description
+      field :auto_retry
     end
     fields :deletion_model, :description, :scheduler, :attempts_succeded, :retries, :progress, :status, :notifications, :updated_at
   end
@@ -3352,6 +3377,7 @@ RailsAdmin.config do |config|
     end
     edit do
       field :description
+      field :auto_retry
     end
     fields :algorithm, :description, :scheduler, :attempts_succeded, :retries, :progress, :status, :notifications, :updated_at
   end
@@ -3365,6 +3391,7 @@ RailsAdmin.config do |config|
     end
     edit do
       field :description
+      field :auto_retry
     end
     fields :webhook, :connection, :authorization, :description, :scheduler, :attempts_succeded, :retries, :progress, :status, :notifications, :updated_at
   end
@@ -3450,7 +3477,10 @@ RailsAdmin.config do |config|
     configure :flow do
       read_only true
     end
-    fields :flow, :active, :notify_request, :notify_response, :discard_events
+    configure :auto_retry do
+      help ''
+    end
+    fields :flow, :active, :auto_retry, :notify_request, :notify_response, :discard_events
 
     show_in_dashboard false
   end
@@ -3497,7 +3527,7 @@ RailsAdmin.config do |config|
             unless (pin = bindings[:object]).nil? || pin.new_record?
               excluded_ids.delete(pin[field])
             end
-            Proc.new { |scope| scope.where(origin: :shared, :id.nin => excluded_ids) }
+            Proc.new { |scope| scope.where(:origin.ne => :default, :id.nin => excluded_ids) }
           end
         end
       end

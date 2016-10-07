@@ -169,15 +169,35 @@ module Setup
               headers.each { |key, value| headers[key] = value.to_s }
               msg = { headers: headers }
               msg[:body] = body if body
-              msg[:timeout] = 240 #TODO Custom timeout request
-              msg[:verify] = false #TODO Https varify option by Connection
+              msg[:timeout] = Cenit.request_timeout || 300
+              msg[:verify] = false #TODO Https verify option by Connection
               if (http_proxy = options[:http_proxy_address])
                 msg[:http_proxyaddr] = http_proxy
               end
               if (http_proxy_port = options[:http_proxy_port])
                 msg[:http_proxyport] = http_proxy_port
               end
-              http_response = HTTMultiParty.send(method, url, msg)
+              begin
+                http_response = HTTMultiParty.send(method, url, msg)
+              rescue Timeout::Error => ex
+                http_response = ResponseProxy.new true,
+                                                  code: 408,
+                                                  content_type: 'application/json',
+                                                  body: {
+                                                    error: {
+                                                      errors: [
+                                                        {
+                                                          reason: 'timeout',
+                                                          message: "Request timeout (#{msg[:timeout]}s)"
+                                                        }
+                                                      ],
+                                                      code: 408,
+                                                      message: "Request timeout (#{msg[:timeout]}s)"
+                                                    }
+                                                  }.to_json
+              rescue Exception => ex
+                raise ex
+              end
               last_response = http_response.body
 
               Setup::Notification.create_with(message: { response_code: http_response.code }.to_json,
@@ -186,7 +206,7 @@ module Setup
                                               skip_notification_level: options[:skip_notification_level] || options[:notify_response])
 
               if block
-                http_response = ResponseProxy.new(http_response)
+                http_response = ResponseProxy.new(false, http_response)
                 last_response =
                   case block.arity
                   when 1
@@ -195,7 +215,10 @@ module Setup
                     block.call(http_response, template_parameters)
                   end
               end
-              verbose_response[:last_response] = last_response if verbose_response
+              if verbose_response
+                verbose_response[:last_response] = last_response
+                verbose_response[:http_response] = http_response
+              end
             rescue Exception => ex
               Setup::Notification.create_from(ex)
             end
@@ -231,24 +254,41 @@ module Setup
 
     class ResponseProxy
 
-      def initialize(response)
+      attr_reader :requester_response
+
+      def initialize(requester_response, response)
+        @requester_response = requester_response
         @response = response
       end
 
+      def requester_response?
+        requester_response.to_b
+      end
+
       def code
-        @response.code
+        get(:code)
       end
 
       def body
-        @response.body
+        get(:body)
       end
 
       def headers
-        @response.headers.to_hash
+        (get(:headers) || {}).to_hash
       end
 
       def content_type
-        @response.content_type
+        get(:content_type)
+      end
+
+      private
+
+      def get(property)
+        if requester_response?
+          @response[property]
+        else
+          @response.instance_eval(property.to_s)
+        end
       end
     end
   end

@@ -1038,6 +1038,10 @@ module RailsAdmin
     def get_model
       #Patch
       @model_name = to_model_name(name = params[:model_name].to_s)
+      #TODO Transferring shared collections to cross shared collections. REMOVE after migration
+      if @model_name == Setup::SharedCollection.to_s && !User.current_super_admin?
+        @model_name = Setup::CrossSharedCollection.to_s
+      end
       data_type = nil
       unless (@abstract_model = RailsAdmin::AbstractModel.new(@model_name))
         if (slugs = name.to_s.split('~')).size == 2

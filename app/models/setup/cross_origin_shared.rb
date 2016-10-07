@@ -8,13 +8,13 @@ module Setup
 
     included do
 
-      origins :shared
+      origins -> { Cenit::MultiTenancy.tenant_model.current && :owner }, :shared
 
       build_in_data_type.excluding(:origin, :tenant)
 
       shared_deny :delete
 
-      belongs_to :tenant, class_name: Account.to_s, inverse_of: nil
+      belongs_to :tenant, class_name: Cenit::MultiTenancy.tenant_model_name, inverse_of: nil
 
       before_validation :validates_before
 
@@ -60,7 +60,7 @@ module Setup
     end
 
     def shared?
-      origin == :shared
+      origin != :default
     end
 
     def account_version
@@ -118,7 +118,7 @@ module Setup
         # end
         # Account.current = current_account
         # c + where(origin: :shared).count
-        where(origin: :shared).count
+        where(:origin.ne => :default).count
       end
     end
   end

@@ -71,6 +71,7 @@ module Setup
 
     def read_attribute(name)
       if name.to_s == 'code'
+        code
       elsif name.to_s == self.class.legacy_code_attribute.to_s
         if respond_to?(name)
           send(name)
