@@ -162,6 +162,7 @@ RailsAdmin.config do |config|
           Setup::Algorithm,
           Setup::Connection,
           Setup::Webhook,
+          Setup::Resource,
           Setup::Translator,
           Setup::Flow,
           Setup::OauthClient,
@@ -1668,6 +1669,59 @@ RailsAdmin.config do |config|
 
     fields :namespace, :name, :webhooks, :connections, :updated_at
   end
+  
+  config.model Setup::Resource do
+    visible { Account.current_super_admin? }
+    navigation_label 'Connectors'
+    weight 210
+    label 'Resource'
+    object_label_method { :custom_title }
+    
+    configure :metadata, :json_value
+
+    configure :name, :string do
+      help 'Requiered.'
+      html_attributes do
+        { maxlength: 50, size: 50 }
+      end
+    end
+    configure :connection do
+      nested_form false
+    end
+    configure :path, :string do
+      help 'Requiered. Path of the resource relative to connection URL.'
+      html_attributes do
+        { maxlength: 255, size: 100 }
+      end
+    end
+    show do
+      field :namespace
+      field :name
+      field :path
+      field :description
+      field :webhooks
+      field :connection
+      field :metadata, :json_value
+
+      field :_id
+      field :created_at
+      #field :creator
+      field :updated_at
+      #field :updater
+    end
+
+    edit do
+      field :namespace, :enum_edit
+      field :name
+      field(:path, &shared_non_editable)
+      field(:description, &shared_non_editable)
+      field :webhooks
+      field :connection
+    end
+
+    fields :namespace, :name, :path, :description, :webhooks, :connection, :updated_at
+  end
+
 
   config.model Setup::Webhook do
     navigation_label 'Connectors'
