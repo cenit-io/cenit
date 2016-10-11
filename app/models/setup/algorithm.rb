@@ -1,6 +1,5 @@
 module Setup
   class Algorithm
-    include SharedEditable
     include SnippetCode
     include NamespaceNamed
 

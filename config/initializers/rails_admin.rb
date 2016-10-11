@@ -402,17 +402,22 @@ RailsAdmin.config do |config|
 
         field "#{prefix}translators".to_sym do
           label 'Translators'
-          group :workflows
+          group :compute
         end
 
         field "#{prefix}algorithms".to_sym do
           label 'Algorithms'
-          group :workflows
+          group :compute
         end
 
         field "#{prefix}applications".to_sym do
           label 'Applications'
-          group :workflows
+          group :compute
+        end
+
+        field "#{prefix}snippets".to_sym do
+          label 'Snippets'
+          group :compute
         end
 
         field "#{prefix}authorizations".to_sym do
@@ -1011,6 +1016,7 @@ RailsAdmin.config do |config|
       end
 
       field :schema_data_type do
+        shared_read_only
         inline_edit false
         inline_add false
       end
@@ -1069,8 +1075,8 @@ RailsAdmin.config do |config|
     end
 
     edit do
-      field :namespace
-      field :name
+      field :namespace, &shared_non_editable
+      field :name, &shared_non_editable
       field :code
     end
 
@@ -1290,7 +1296,6 @@ RailsAdmin.config do |config|
       field :namespace, :enum_edit, &shared_non_editable
       field :name, &shared_non_editable
       field :schema, :json_schema do
-        shared_read_only
         help { 'Required' }
       end
       field :title, &shared_non_editable
@@ -2231,10 +2236,10 @@ RailsAdmin.config do |config|
     configure :code, :code
 
     edit do
-      field :namespace, :enum_edit
-      field :name
-      field :description
-      field :parameters
+      field :namespace, :enum_edit, &shared_non_editable
+      field :name, &shared_non_editable
+      field :description, &shared_non_editable
+      field :parameters, &shared_non_editable
       field :code, :code do
         html_attributes do
           { cols: '74', rows: '15' }
@@ -2247,11 +2252,12 @@ RailsAdmin.config do |config|
         help { 'Required' }
       end
       field :call_links do
+        shared_read_only
         visible { bindings[:object].call_links.present? }
       end
-      field :store_output
-      field :output_datatype
-      field :validate_output
+      field :store_output, &shared_non_editable
+      field :output_datatype, &shared_non_editable
+      field :validate_output, &shared_non_editable
     end
     show do
       field :namespace
@@ -2302,12 +2308,13 @@ RailsAdmin.config do |config|
     configure :code, :code
 
     edit do
-      field :namespace, :enum_edit
-      field :name
+      field :namespace, :enum_edit, &shared_non_editable
+      field :name, &shared_non_editable
 
-      field :type
+      field :type, &shared_non_editable
 
       field :source_data_type do
+        shared_read_only
         inline_edit false
         inline_add false
         visible { [:Export, :Conversion].include?(bindings[:object].type) }
@@ -2315,6 +2322,7 @@ RailsAdmin.config do |config|
       end
 
       field :target_data_type do
+        shared_read_only
         inline_edit false
         inline_add false
         visible { [:Import, :Update, :Conversion].include?(bindings[:object].type) }
@@ -2322,30 +2330,36 @@ RailsAdmin.config do |config|
       end
 
       field :discard_events do
+        shared_read_only
         visible { [:Import, :Update, :Conversion].include?(bindings[:object].type) }
         help "Events won't be fired for created or updated records if checked"
       end
 
       field :style do
+        shared_read_only
         visible { bindings[:object].type.present? }
         help 'Required'
       end
 
       field :bulk_source do
+        shared_read_only
         visible { bindings[:object].type == :Export && bindings[:object].style.present? && bindings[:object].source_bulkable? }
       end
 
       field :mime_type do
+        shared_read_only
         label 'MIME type'
         visible { bindings[:object].type == :Export && bindings[:object].style.present? }
       end
 
       field :file_extension do
+        shared_read_only
         visible { bindings[:object].type == :Export && !bindings[:object].file_extension_enum.empty? }
         help { "Extensions for #{bindings[:object].mime_type}" }
       end
 
       field :source_handler do
+        shared_read_only
         visible { (t = bindings[:object]).style.present? && (t.type == :Update || (t.type == :Conversion && t.style == 'ruby')) }
         help { 'Handle sources on code' }
       end
@@ -2371,6 +2385,7 @@ RailsAdmin.config do |config|
       end
 
       field :source_exporter do
+        shared_read_only
         inline_add { bindings[:object].source_exporter.nil? }
         visible { bindings[:object].style == 'chain' && bindings[:object].source_data_type && bindings[:object].target_data_type }
         help 'Required'
@@ -2383,6 +2398,7 @@ RailsAdmin.config do |config|
       end
 
       field :target_importer do
+        shared_read_only
         inline_add { bindings[:object].target_importer.nil? }
         visible { bindings[:object].style == 'chain' && bindings[:object].source_data_type && bindings[:object].target_data_type && bindings[:object].source_exporter }
         help 'Required'
@@ -2404,6 +2420,7 @@ RailsAdmin.config do |config|
       end
 
       field :discard_chained_records do
+        shared_read_only
         visible { bindings[:object].style == 'chain' && bindings[:object].source_data_type && bindings[:object].target_data_type && bindings[:object].source_exporter }
         help "Chained records won't be saved if checked"
       end

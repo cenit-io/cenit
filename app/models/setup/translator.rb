@@ -1,7 +1,6 @@
 module Setup
   class Translator
     include ReqRejValidator
-    include SharedEditable
     include SnippetCode
     include NamespaceNamed
 

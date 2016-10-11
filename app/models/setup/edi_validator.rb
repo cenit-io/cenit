@@ -1,6 +1,6 @@
 module Setup
   class EdiValidator < CustomValidator
-    include CenitScoped
+    include SharedEditable
     include Setup::FormatValidator
 
     build_in_data_type.referenced_by(:namespace, :name)

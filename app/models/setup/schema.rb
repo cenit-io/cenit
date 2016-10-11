@@ -2,7 +2,6 @@ require 'xsd/include_missing_exception'
 
 module Setup
   class Schema < Validator
-    include SharedEditable
     include SnippetCode
     include NamespaceNamed
     include Setup::FormatValidator
