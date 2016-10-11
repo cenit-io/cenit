@@ -197,7 +197,6 @@ RailsAdmin.config do |config|
 
   collection_fields_config = Proc.new do
 
-
     if abstract_model.model == Setup::CrossSharedCollection
       configure :readme, :html_erb
       configure :pull_data, :json_value
@@ -305,7 +304,7 @@ RailsAdmin.config do |config|
     edit do
       field :name
       field :title
-      field :image
+      field :image, &sharing_collection_invisible
 
       if abstract_model.model == Setup::CrossSharedCollection
         field :shared_version, &sharing_collection_invisible
@@ -314,7 +313,7 @@ RailsAdmin.config do |config|
         field :summary
       end
 
-      field :readme, :html_erb
+      field :readme, :html_erb, &sharing_collection_invisible
 
       if abstract_model.model == Setup::CrossSharedCollection
         field :pull_parameters
