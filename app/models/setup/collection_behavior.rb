@@ -144,11 +144,18 @@ module Setup
       COLLECTING_PROPERTIES.all? { |property| send(property).empty? }
     end
 
-    def cross(origin)
+    def cross(origin = :default)
+      cross_to(origin)
+      if (super_method = method(__method__).super_method)
+        super_method.call(origin)
+      end
+    end
+
+    def cross_to(origin = :default, criteria= {})
       COLLECTING_PROPERTIES.each do |property|
         r = reflect_on_association(property)
         if (model = r.klass).include?(Setup::CrossOriginShared)
-          model.where(:id.in => send(r.foreign_key)).with_tracking.cross(origin) do |_, non_tracked_ids|
+          model.where(:id.in => send(r.foreign_key)).and(criteria).with_tracking.cross(origin) do |_, non_tracked_ids|
             if non_tracked_ids.present?
               Account.each do |account| #TODO Run as a task in the background
                 if account == Account.current

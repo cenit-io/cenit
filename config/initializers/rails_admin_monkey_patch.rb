@@ -855,7 +855,7 @@ module RailsAdmin
       if (model = model_config.abstract_model.model).is_a?(Class)
         if model.include?(CrossOrigin::Document)
           origins = []
-          ([:default] + model.origins).each { |origin| origins << origin if params[origin_param="#{origin}_origin"].to_i.even? }
+          model.origins.each { |origin| origins << origin if params[origin_param="#{origin}_origin"].to_i.even? }
           origins << nil if origins.include?(:default)
           scope = scope.any_in(origin: origins)
         end

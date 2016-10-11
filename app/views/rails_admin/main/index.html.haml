@@ -109,7 +109,7 @@
       -# Patch
       - if (model = @abstract_model.model).is_a?(Class) && model.include?(CrossOrigin::Document) && (origins = model.origins).present?
         %span{style: 'float:right'}
-          - ([:default] + origins).each do |origin|
+          - origins.each do |origin|
             %label= origin
             - param_value = params[origin_param="#{origin}_origin"].to_i
             %button.btn.toggle-origin

@@ -8,7 +8,7 @@ module Setup
 
     included do
 
-      origins -> { Cenit::MultiTenancy.tenant_model.current && :owner }, :shared
+      origins :default, -> { Cenit::MultiTenancy.tenant_model.current && :owner }, :shared
 
       build_in_data_type.excluding(:origin, :tenant)
 
