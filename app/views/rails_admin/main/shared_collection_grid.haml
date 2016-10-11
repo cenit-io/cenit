@@ -103,6 +103,15 @@
             %i.icon-white.icon-remove
       - if export_action
         %span{style: 'float:right'}= link_to wording_for(:link, export_action), export_path(params.except('set').except('page')), class: 'btn btn-info'
+      - # Origins
+      - if (model = @abstract_model.model).is_a?(Class) && model.include?(CrossOrigin::Document) && (origins = model.origins).present?
+        %span{style: 'float:right'}
+          - origins.each do |origin|
+            %label= origin
+            - param_value = params[origin_param="#{origin}_origin"].to_i
+            %button.btn.toggle-origin
+              %i{class: param_value.even? ? 'fa fa-toggle-on' : 'fa fa-toggle-off'}
+            %input{name: origin_param, value: param_value, type: 'hidden'}
 
   - unless @model_config.list.scopes.empty?
     %ul.nav.nav-tabs#scope_selector
@@ -121,7 +130,7 @@
               %ul.dropdown-menu= menu_for :member, @abstract_model, object
           .panel-heading
             =link_to show_path id: object.id do
-              =object.title || object.name.titleize
+              =object.title.presence || object.name.titleize
           .panel-body
             .panel-body-logo.text-center{style: "background-color:##{object.logo_background || 'inherit'}"}
               =link_to show_path id: object.id do 

@@ -2,7 +2,13 @@ module RailsAdmin
   module Config
     module Fields
       module Types
-        class HtmlErb < RailsAdmin::Config::Fields::Types::Text
+        class HtmlErb < RailsAdmin::Config::Fields::Types::Code
+
+          register_instance_option :code_config do
+            {
+              mode: 'text/html'
+            }
+          end
 
           register_instance_option :pretty_value do
             template = value.to_s.gsub('&lt;%', '<%').gsub('%&gt;', '%>').gsub('%3C%', '<%').gsub('%%3E', '%>')
