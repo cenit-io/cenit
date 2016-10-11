@@ -235,32 +235,32 @@ en:
         breadcrumb: "Disk"
         model: "Collection"
         usage: "Space used"
-      bulk_share:
-        title: "Share %{model_label_plural}"
-        bulk_link: "Share selected %{model_label_plural}"
-        menu: "Share"
-        breadcrumb: "Share"
-        submit: "Share"
-        done: "shared"
-      simple_share:
+      share:
         title: "Share %{model_label} '%{object_label}'"
         menu: "Share"
         breadcrumb: "Share"
         submit: "Share"
         done: "shared"
-      simple_cross_share:
-        title: "Cross share %{model_label} '%{object_label}'"
-        menu: "Cross share"
-        breadcrumb: "Cross share"
-        submit: "Cross share"
-        done: "cross shared"
-      bulk_cross_share:
-        title: "Cross share %{model_label_plural}"
-        bulk_link: "Cross share selected %{model_label_plural}"
-        menu: "Cross share"
-        breadcrumb: "Cross share"
-        submit: "Cross share"
-        done: "cross shared"
+      simple_cross:
+        title: "Cross %{model_label} '%{object_label}'"
+        menu: "Cross"
+        breadcrumb: "Cross"
+        submit: "Cross"
+        done: "crossed"
+      bulk_cross:
+        title: "Cross %{model_label_plural}"
+        bulk_link: "Cross selected %{model_label_plural}"
+        menu: "Cross"
+        breadcrumb: "Cross"
+        submit: "Cross"
+        done: "crossed"
+      reinstall:
+        title: "Re-Install Collection '%{object_label}'"
+        menu: "Re-Install"
+        breadcrumb: "Re-Install"
+        submit: "Re-Install"
+        done: "re-installed"
+        doing: "re-installation"
       pull:
         title: "Pull Collection '%{object_label}'"
         menu: "Pull"
