@@ -66,9 +66,7 @@ class String
   end
 
   def to_file_name
-    gsub(/[^\w\s_-]+/, '') #TODO Improve to_file_name method
-      .gsub(/(^|\b\s)\s+($|\s?\b)/, '\\1\\2')
-      .gsub(/\s+/, '_')
+    gsub(/ |\/|\\/, '_').squeeze('_')
   end
 
   def to_method_name

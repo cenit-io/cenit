@@ -40,7 +40,7 @@ module Setup
     end
 
     def snippet_name(suffix = '')
-      name = code_name.to_method_name.underscore
+      name = code_name
       if (ext = ".#{code_extension.to_s.strip}".squeeze('.')).length > 1
         if name.ends_with?(ext)
           name = name.to(name.rindex('.') - 1)
