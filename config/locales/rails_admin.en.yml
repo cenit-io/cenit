@@ -45,8 +45,8 @@ en:
       api: "API"
       directory: "Directory"
       shared_collections: find shared collections
-      title_search_shared_collections: "iPaaS to connect Cloud or On-Premise APIs"
-      sub_title_search_shared_collections: "Make data flows over %{count} built integrations"
+      title_search_shared_collections: "Open Platform for Data and Business Integration"
+      sub_title_search_shared_collections: "Find or create data flows over %{count} built integrations"
       pull: "Pull"
       show_all: "Show all"
       overview: "Overview"
