@@ -178,7 +178,7 @@ module RailsAdmin
               end
               changes = @object.changes
               if @object.save
-                if (warnings = @object.try(:warnings))
+                if (warnings = @object.try(:warnings)).present?
                   do_flash(:warning, 'Warning', warnings)
                 end
                 @auditing_adapter && @auditing_adapter.update_object(@object, @abstract_model, _current_user, changes)

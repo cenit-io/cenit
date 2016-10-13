@@ -184,6 +184,11 @@ module Setup
       origin = options[:origin] || (self.origin == :default ? self.class.default_origin : self.origin)
       collection.add_dependencies if options[:add_dependencies]
 
+      if collection.warnings.present?
+        collection.save(add_dependencies: false)
+        return false
+      end
+
       self.pull_data = {}
       [:title, :readme].each do |field|
         if (value = send(field))
