@@ -25,7 +25,8 @@ module RailsAdmin
             end
             shared = false
             if params[:_restart].nil? && shared_params
-              @form_object = Setup::CrossSharedCollection.new(shared_params.to_hash.merge(image: @object.image))
+              @form_object = Setup::CrossSharedCollection.new(shared_params.to_hash.merge(image: @object.image,
+                                                                                          readme: @object.readme))
               shared = params[:_save] && @form_object.install(collection: @object)
             end
             if shared
