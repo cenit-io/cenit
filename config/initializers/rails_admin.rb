@@ -2554,6 +2554,7 @@ RailsAdmin.config do |config|
     configure :name
 
     edit do
+      field :namespace, :enum_edit
       field :name
       field :type
       field :description
@@ -2585,6 +2586,7 @@ RailsAdmin.config do |config|
     end
 
     show do
+      field :namespace
       field :name
       field :type
       field :description
@@ -2595,7 +2597,7 @@ RailsAdmin.config do |config|
       end
     end
 
-    fields :name, :type, :description
+    fields :namespace, :name, :type, :description
   end
 
   #Workflows

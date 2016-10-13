@@ -1,10 +1,10 @@
 module Setup
   class Snippet
     include SharedEditable
+    include NamespaceNamed
 
-    build_in_data_type.referenced_by(:name)
+    build_in_data_type.referenced_by(:namespace,  :name)
 
-    field :name, type: String
     field :description, type: String
     field :type, type: Symbol, default: :auto
     field :code, type: String, default: ''

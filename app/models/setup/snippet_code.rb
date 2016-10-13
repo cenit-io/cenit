@@ -10,6 +10,7 @@ module Setup
 
       before_save do
         if snippet_ref.new_record?
+          snippet_ref.namespace = namespace
           name = snippet_name
           i = 0
           while Setup::Snippet.where(tenant: Cenit::MultiTenancy.tenant_model.current, name: name).exists?
@@ -52,7 +53,7 @@ module Setup
     end
 
     def code_name
-      "#{namespace}_#{name}".to_file_name
+      name.to_s.to_file_name
     end
 
     def code_extension
