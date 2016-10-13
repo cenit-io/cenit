@@ -58,7 +58,7 @@ module Setup
     validates_presence_of :authors, :summary
 
     after_save do
-      reinstall unless skip_reinstall_callback
+      reinstall(add_dependencies: false) unless skip_reinstall_callback
       self.skip_reinstall_callback = false
     end
 
@@ -175,8 +175,10 @@ module Setup
       end
     end
 
-    def reinstall
-      install(collection: self)
+    def reinstall(options = {})
+      options[:collection] = self
+      options[:add_dependencies] = true unless options.has_key?(:add_dependencies)
+      install(options)
     end
 
     def install(options)
@@ -185,7 +187,7 @@ module Setup
       collection.add_dependencies if options[:add_dependencies]
 
       if collection.warnings.present?
-        collection.save(add_dependencies: false)
+        collection.save(add_dependencies: false) if collection.changed?
         return false
       end
 
@@ -200,8 +202,11 @@ module Setup
       COLLECTING_PROPERTIES.each do |property|
         r = reflect_on_association(property)
         opts = { polymorphic: true }
+        opts[:include_id] = ->(record) do
+          record.is_a?(Setup::CrossOriginShared) && record.shared?
+        end
         pull_data[r.name] =
-          if r.klass.include?(Setup::CrossOriginShared)
+          if r.klass < Setup::CrossOriginShared
             if (ids = collection.send(r.foreign_key).dup).present?
               attributes[r.foreign_key]= ids
             end
