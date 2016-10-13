@@ -29,7 +29,7 @@ class Ability
         can [:import, :edit], Setup::SharedCollection
         can :destroy, [Setup::SharedCollection, Setup::Storage, Setup::CrossSharedCollection]
         can [:index, :show, :cancel], RabbitConsumer
-        can [:edit, :pull, :import], Setup::CrossSharedCollection
+        can [:index, :edit, :pull, :import], Setup::CrossSharedCollection
         can [:index, :show], Cenit::ApplicationId
         can(:destroy, Cenit::ApplicationId) do |app_id|
           app_id.app.nil?
@@ -43,6 +43,7 @@ class Ability
         cannot :access, [Setup::SharedName, Setup::DelayedMessage, Setup::SystemNotification]
         cannot :destroy, [Setup::SharedCollection, Setup::Storage]
 
+        can :index, Setup::CrossSharedCollection
         can :pull, Setup::CrossSharedCollection, installed: true
         can [:edit, :destroy], Setup::CrossSharedCollection, owner_id: user.id
         can :reinstall, Setup::CrossSharedCollection, owner_id: user.id, installed: true
