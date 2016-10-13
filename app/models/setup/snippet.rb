@@ -149,9 +149,5 @@ module Setup
         'Z80': :z80
       }
     end
-
-    def custom_title
-      name
-    end
   end
 end

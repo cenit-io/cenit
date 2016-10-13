@@ -2550,6 +2550,7 @@ RailsAdmin.config do |config|
   config.model Setup::Snippet do
     navigation_label 'Compute'
     weight 430
+    object_label_method { :custom_title }
 
     configure :name
 
