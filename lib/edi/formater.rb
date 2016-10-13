@@ -82,7 +82,7 @@ module Edi
       [:only].each { |option| options.delete(option) if options[option].empty? }
       options[:inspected_records] = Set.new
       options[:stack] = []
-      options[:include_id] = include_id.present?
+      options[:include_id] = include_id.respond_to?(:call) ? include_id : include_id.to_b
     end
 
     def split_name(name)
@@ -228,7 +228,9 @@ module Edi
         options[:inspected_records] << record
       end
       options[:stack] << record
-      store(json, 'id', record.id, options) if options[:include_id]
+      if (options[:include_id].respond_to?(:call) && options[:include_id].call(record)) || options[:include_id]
+        store(json, 'id', record.id, options)
+      end
       content_property = nil
       model.stored_properties_on(record).each do |property_name|
         next if (protected = (model.schema['protected'] || []).include?(property_name)) && options[:protected]
