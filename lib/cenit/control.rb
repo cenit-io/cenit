@@ -9,7 +9,7 @@ module Cenit
       {
         controller: ['app'],
         action: ['index'],
-        id_or_ns: [app.identifier, app.ns_slug],
+        id_or_ns: [app.slug_id, app.identifier, app.ns_slug],
         app_slug: [app.slug]
       }.each do |key, value|
         params.delete(key) if value.include?(params[key])
@@ -24,7 +24,7 @@ module Cenit
     end
 
     def identifier
-      app.identifier
+      app.slug_id
     end
 
     def secret_token
@@ -48,7 +48,7 @@ module Cenit
     end
 
     def base_path
-      "/app/#{app.identifier}"
+      "/app/#{app.slug_id}"
     end
 
     def redirect_to(*args)
