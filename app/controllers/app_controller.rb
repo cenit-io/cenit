@@ -72,7 +72,11 @@ class AppController < ApplicationController
         @authentication_method = :user_credentials
       end
     end
-    if (app_id = Cenit::ApplicationId.where(identifier: params[:id_or_ns]).first)
+    app_id = nil
+    [:identifier, :slug].each do |key|
+      break if (app_id = Cenit::ApplicationId.where(key => params[:id_or_ns]).first)
+    end
+    if app_id
       @id_routing = true
     elsif (app_id = params[:client_id])
       app_id = Cenit::ApplicationId.where(identifier: app_id).first
