@@ -1,0 +1,704 @@
+swagger: '2.0'
+schemes:
+  - https
+host: cenit.io
+basePath: /api/v1
+info:
+  description: |
+    Open platform for data and business integration.
+  version: v1
+  title: Cenit.io
+  contact:
+    email: support@cenit.io
+  termsOfService: 'https://cenit-portal.herokuapp.com/terms_of_service'
+  x-logo:
+    url: https://cenit.io/images/logo.png
+  x-providerName: cenit.io
+  x-origin:
+      format: swagger
+      url: 'https://cenit.io/api/v1/swagger.json'
+      version: '2.0'
+externalDocs:
+  url: 'http://cenit-io.github.io/docs/'
+consumes:
+  - application/json
+  - application/xml
+produces:
+  - application/json
+securityDefinitions:
+  X-User-Access-Key:
+      type: apiKey
+      in: header
+      name: X-User-Access-Key
+  X-User-Access-Token:
+        type: apiKey
+        in: header
+        name: X-User-Access-Token
+security:
+  - X-User-Access-Key: []
+    X-User-Access-Token: []
+definitions:
+  namespace:
+    type: object
+    properties:
+      id:
+        type: string
+      name:
+        type: string
+      slug:
+        type: string
+  data_type:
+    type: object
+    properties:
+      id:
+        type: string
+      namespace:
+        $ref: '#/definitions/namespace'
+      slug:
+        type: string
+      title:
+         type: string
+      name:
+         type: string
+      show_navigation_link:
+         type: string
+      type:
+        type: object
+      model_schema:
+         type: string
+  schema:
+    type: object
+    properties:
+      id:
+        type: string
+      namespace:
+        $ref: '#/definitions/namespace'
+      uri:
+        type: string
+      schema:
+        type: string
+  connection:
+    type: object
+    properties:
+      id:
+        type: string
+      namespace:
+        $ref: '#/definitions/namespace'
+      name:
+        type: string
+      url:
+        type: string
+      key:
+        type: string
+      token:
+        type: string
+      parameters:
+        type: array
+        items:
+          type: object
+          properties:
+            key:
+              type: string
+            value:
+              type: string
+      headers:
+        type: array
+        items:
+          type: object
+          properties:
+            key:
+              type: string
+            value:
+              type: string
+  webhook:
+    type: object
+    properties:
+      id:
+        type: string
+      namespace:
+        $ref: '#/definitions/namespace'
+      name:
+        type: string
+      path:
+        type: string
+      parameters:
+         type: array
+         items:
+           type: object
+           properties:
+             key:
+               type: string
+             value:
+               type: string
+      headers:
+         type: array
+         items:
+           type: object
+           properties:
+             key:
+               type: string
+             value:
+               type: string
+  connection_role:
+    type: object
+    properties:
+       id:
+         type: string
+       namespace:
+         $ref: '#/definitions/namespace'
+       name:
+         type: string
+       connection:
+         type: array
+         items:
+           $ref: '#/definitions/connection'
+       webhook:
+          type: array
+          items:
+            $ref: '#/definitions/webhook'
+  observer:
+    type: object
+    properties:
+      id:
+        type: string
+      namespace:
+        $ref: '#/definitions/namespace'
+      name:
+        type: string
+      type:
+        type: object
+      data_type:
+        $ref: '#/definitions/data_type'
+      triggers:
+        type: string
+  scheduler:
+    type: object
+    properties:
+      id:
+        type: string
+      namespace:
+        $ref: '#/definitions/namespace'
+      name:
+        type: string
+      expression:
+        type: string
+      activated:
+        type: boolean
+  translator:
+    type: object
+    properties:
+      id:
+        type: string
+      namespace:
+        $ref: '#/definitions/namespace'
+      name:
+        type: string
+      type:
+        type: string
+        enum:
+           - Import
+           - Export
+           - Convert
+           - Update
+      style:
+        type: string
+        enum:
+          - Ruby
+          - Liquid
+          - xslt
+      custom_data_type:
+        $ref: '#/definitions/data_type'
+      source_data_type:
+        $ref: '#/definitions/data_type'
+      target_data_type:
+        $ref: '#/definitions/data_type'
+      transformation:
+        type: string
+  flow:
+    type: object
+    properties:
+      id:
+        type: string
+      namespace:
+        $ref: '#/definitions/namespace'
+      name:
+        type: string
+      active:
+        type: boolean
+      event:
+        type: object
+      translator:
+        $ref: '#/definitions/translator'
+      response_translator:
+        $ref: '#/definitions/translator'
+      custom_data_type:
+        $ref: '#/definitions/data_type'
+      webhook:
+        $ref: '#/definitions/webhook'
+      connection_role:
+        $ref: '#/definitions/connection_role'
+      notify_request:
+        type: boolean
+      notify_response:
+        type: boolean
+paths:
+  '/setup/connection/{id}':
+    get:
+      description: Retrieves the details of an existing connection. You need only supply the unique connection identifier that was returned upon connection creation.
+      parameters:
+        - description: Connection ID
+          in: path
+          name: id
+          type: string
+          required: true
+      responses:
+        '200':
+          description: OK
+          schema:
+           $ref: '#/definitions/connection'
+        '404':
+          description: Item not found
+    delete:
+      description: Permanently deletes a connection. It cannot be undone.
+      parameters:
+        - description: Connection ID
+          in: path
+          name: id
+          type: string
+          required: true
+      responses:
+        '200':
+           description: OK
+        '404':
+           description: Item not found
+  '/setup/connection':
+    get:
+      description: Returns a list of connections you've previously created. The connections are returned in sorted order, with the most recent connection appearing first.
+      responses:
+        '200':
+          description: OK
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/connection'
+    post:
+      description: Creates or updates the specified connection by setting the values of the parameters passed. Any parameters not provided will be left unchanged.
+      responses:
+        '200':
+          description: OK
+          schema:
+            $ref: '#/definitions/connection'
+  '/setup/connection_role/{id}':
+    get:
+      description: Returns a connection role
+      parameters:
+        - description: Connection role ID
+          in: path
+          name: id
+          type: string
+          required: true
+      responses:
+        '200':
+          description: OK
+          schema:
+            $ref: '#/definitions/connection_role'
+        '404':
+          description: Item not found
+    delete:
+      description: Deletes the specified connection role.
+      parameters:
+        - description: Connection role ID
+          name: id
+          in: path
+          type: string
+          required: true
+      responses:
+        '200':
+          description: OK
+        '404':
+          description: Item not found
+  '/setup/connection_role':
+      get:
+        description: Returns a list of connection roles you've previously created. The connection roles are returned in sorted order, with the most recent connection role appearing first.
+        responses:
+          '200':
+            description: OK
+            schema:
+              type: array
+              items:
+                $ref: '#/definitions/connection_role'
+      post:
+        description: Creates or updates the specified connection role by setting the values of the parameters passed. Any parameters not provided will be left unchanged.
+        responses:
+          '200':
+            description: OK
+            schema:
+              $ref: '#/definitions/connection_role'
+  '/setup/data_type/':
+    get:
+      description: Returns a list of DataTypes you've previously created. The DataTypes are returned in sorted order, with the most recent DataType appearing first.
+      responses:
+        '200':
+          description: OK
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/data_type'
+    post:
+      description: Creates or updates the specified DataType by setting the values of the parameters passed. Any parameters not provided will be left unchanged.
+      responses:
+        '200':
+          description: OK
+          schema:
+            $ref: '#/definitions/data_type'
+  '/setup/data_type/{id}':
+    get:
+      description: Retrieves the details of an existing DataType. You need only supply the unique DataType identifier that was returned upon DataType creation.
+      parameters:
+        - description: DataType ID
+          in: path
+          name: id
+          type: string
+          required: true
+      responses:
+        '200':
+          description: OK
+          schema:
+            $ref: '#/definitions/data_type'
+        '404':
+          description: Item not found.
+    delete:
+      description: Deletes the specified data type.
+      parameters:
+        - description: DataType ID
+          in: path
+          name: id
+          type: string
+          required: true
+      responses:
+        '200':
+          description: OK
+        '404':
+          description: Item not found
+  '/setup/observer/':
+      get:
+        description: Returns a list of events you've previously created. The events are returned in sorted order, with the most recent event appearing first.
+        responses:
+          '200':
+            description: OK
+            schema:
+              type: array
+              items:
+                $ref: '#/definitions/observer'
+      post:
+        description: Creates or updates the specified event observer. Any parameters not provided will be left unchanged.
+        responses:
+          '200':
+            description: OK
+            schema:
+              $ref: '#/definitions/observer'
+  '/setup/observer/{id}':
+      get:
+        description: Retrieves the details of an existing event. You need only supply the unique event identifier that was returned upon event creation.
+        parameters:
+          - description: Observer ID
+            in: path
+            name: id
+            type: string
+            required: true
+        responses:
+          '200':
+            description: OK
+            schema:
+              $ref: '#/definitions/observer'
+          '404':
+            description: Item not found.
+      delete:
+        description: Deletes the specified event observer.
+        parameters:
+          - description: Observer ID
+            in: path
+            name: id
+            type: string
+            required: true
+        responses:
+          '200':
+            description: OK
+          '404':
+            description: Item not found
+  '/setup/scheduler/':
+    get:
+      description: Returns a list of schedulers you've previously created. The schedulers are returned in sorted order, with the most recent scheduler appearing first.
+      responses:
+        '200':
+          description: OK
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/scheduler'
+    post:
+      description: Creates or updates the specified scheduler. Any parameters not provided will be left unchanged.
+      responses:
+        '200':
+          description: OK
+          schema:
+            $ref: '#/definitions/scheduler'
+  '/setup/scheduler/{id}':
+        get:
+          description: Retrieves the details of an existing scheduler. You need only supply the unique scheduler identifier that was returned upon scheduler creation.
+          parameters:
+            - description: Scheduler ID
+              in: path
+              name: id
+              type: string
+              required: true
+          responses:
+            '200':
+              description: OK
+              schema:
+                $ref: '#/definitions/scheduler'
+            '404':
+              description: Item not found.
+        delete:
+          description: Deletes the specified scheduler.
+          parameters:
+            - description: Scheduler ID
+              in: path
+              name: id
+              type: string
+              required: true
+          responses:
+            '200':
+              description: OK
+            '404':
+              description: Item not found
+  '/setup/flow/':
+          get:
+            description: Returns a list of flows you've previously created. The flows are returned in sorted order, with the most recent flow appearing first.
+            responses:
+              '200':
+                description: OK
+                schema:
+                  type: array
+                  items:
+                    $ref: '#/definitions/flow'
+          post:
+            description: Creates or updates the specified flow. Any parameters not provided will be left unchanged.
+            responses:
+              '200':
+                description: OK
+                schema:
+                  $ref: '#/definitions/flow'
+  '/setup/flow/{id}':
+          get:
+            description: Retrieves the details of an existing flow. You need only supply the unique flow identifier that was returned upon flow creation.
+            parameters:
+              - description: Flow ID
+                in: path
+                name: id
+                type: string
+                required: true
+            responses:
+              '200':
+                description: OK
+                schema:
+                  $ref: '#/definitions/flow'
+              '404':
+                description: Item not found.
+          delete:
+            description: Deletes the specified flow.
+            parameters:
+              - description: Flow ID
+                in: path
+                name: id
+                type: string
+                required: true
+            responses:
+              '200':
+                description: OK
+              '404':
+                description: Item not found
+  '/setup/schema/':
+     get:
+       description: Returns a list of schemas you've previously created. The schemas are returned in sorted order, with the most recent schema appearing first.
+       responses:
+          '200':
+             description: OK
+             schema:
+               type: array
+               items:
+                 $ref: '#/definitions/schema'
+     post:
+       description: Creates or updates the specified schema. Any parameters not provided will be left unchanged.
+       responses:
+          '200':
+            description: OK
+            schema:
+              $ref: '#/definitions/schema'
+  '/setup/schema/{id}':
+      get:
+        description: Retrieves the details of an existing schema. You need only supply the unique schema identifier that was returned upon schema creation.
+        parameters:
+          - description: Schema ID
+            in: path
+            name: id
+            type: string
+            required: true
+        responses:
+          '200':
+             description: OK
+             schema:
+               $ref: '#/definitions/schema'
+          '404':
+              description: Item not found.
+      delete:
+        description: Deletes the specified schema.
+        parameters:
+          - description: Schema ID
+            in: path
+            name: id
+            type: string
+            required: true
+        responses:
+           '200':
+              description: OK
+           '404':
+              description: Item not found
+  '/setup/translator/':
+       get:
+         description: Returns a list of translators you've previously created. The translators are returned in sorted order, with the most recent translator appearing first.
+         responses:
+            '200':
+               description: OK
+               schema:
+                 type: array
+                 items:
+                   $ref: '#/definitions/translator'
+       post:
+         description: Creates or updates the specified translator. Any parameters not provided will be left unchanged.
+         responses:
+            '200':
+              description: OK
+              schema:
+                $ref: '#/definitions/translator'
+  '/setup/translator/{id}':
+        get:
+          description: Retrieves the details of an existing translator. You need only supply the unique translator identifier that was returned upon translator creation.
+          parameters:
+            - description: Translator ID.
+              in: path
+              name: id
+              type: string
+              required: true
+          responses:
+            '200':
+               description: OK
+               schema:
+                 $ref: '#/definitions/translator'
+            '404':
+                description: Item not found.
+        delete:
+          description: Deletes the specified translator.
+          parameters:
+            - description: Translator ID.
+              in: path
+              name: id
+              type: string
+              required: true
+          responses:
+            '200':
+              description: OK
+            '404':
+              description: Item not found
+  '/setup/webhook/':
+    get:
+      description: Returns a list of webhooks you've previously created. The webhooks are returned in sorted order, with the most recent webhook appearing first.
+      responses:
+        '200':
+          description: OK
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/webhook'
+    post:
+      description: Creates or updates the specified webhook. Any parameters not provided will be left unchanged.
+      responses:
+         '200':
+           description: OK
+           schema:
+             $ref: '#/definitions/webhook'
+  '/setup/webhook/{id}':
+    get:
+      description: Retrieves the details of an existing webhook. You need only supply the unique webhook identifier that was returned upon webhook creation.
+      parameters:
+        - description: Webhook ID.
+          in: path
+          name: id
+          type: string
+          required: true
+      responses:
+        '200':
+          description: OK
+          schema:
+            $ref: '#/definitions/webhook'
+        '404':
+          description: Item not found.
+    delete:
+      description: Deletes the specified webhook.
+      parameters:
+        - description: Webhook ID.
+          in: path
+          name: id
+          type: string
+          required: true
+      responses:
+        '200':
+          description: OK
+        '404':
+          description: Item not found
+  '/setup/namespace/':
+    get:
+      description: Returns a list of namespaces you've previously created. The namespaces are returned in sorted order, with the most recent namespace appearing first.
+      responses:
+        '200':
+          description: OK
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/namespace'
+    post:
+      description: Creates or updates the specified namespace. Any parameters not provided will be left unchanged.
+      responses:
+        '200':
+          description: OK
+          schema:
+            $ref: '#/definitions/namespace'
+  '/setup/namespace/{id}':
+    get:
+      description: Retrieves the details of an existing namespace. You need only supply the unique webhook namespace that was returned upon namespace creation.
+      parameters:
+        - description: Namespace ID.
+          in: path
+          name: id
+          type: string
+          required: true
+      responses:
+         '200':
+           description: OK
+           schema:
+             $ref: '#/definitions/namespace'
+         '404':
+           description: Item not found.
+    delete:
+      description: Deletes the specified namespace.
+      parameters:
+        - description: Namespace ID.
+          in: path
+          name: id
+          type: string
+          required: true
+      responses:
+        '200':
+          description: OK
+        '404':
+          description: Item not found
