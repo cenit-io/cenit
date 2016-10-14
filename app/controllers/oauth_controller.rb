@@ -49,7 +49,7 @@ class OauthController < ApplicationController
         authorization.metadata[:redirect_token] = redirect_token = Devise.friendly_token
         redirect_path =
           if (app = cenit_token.application)
-            "/app/#{app.identifier}/authorization/#{authorization.id}?redirect_token=#{redirect_token}" +
+            "/app/#{app.slug_id}/authorization/#{authorization.id}?redirect_token=#{redirect_token}" +
               case app.authentication_method
               when :user_credentials
                 "X-User-Access-Key=#{Account.current.owner.number}&X-User-Access-Token=#{Account.current.owner.token}"

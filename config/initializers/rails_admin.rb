@@ -3950,6 +3950,7 @@ RailsAdmin.config do |config|
     configure :redirect_uris, :json_value
 
     edit do
+      field :slug
       field :oauth_name do
         visible { bindings[:object].instance_variable_get(:@registering) }
       end
