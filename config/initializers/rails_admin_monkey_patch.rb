@@ -8,6 +8,13 @@ require 'rails_admin/lib/mongoff_abstract_model'
 
 module RailsAdmin
 
+  class ActionNotAllowed
+
+    def initialize(msg = 'Action not allowed')
+      super
+    end
+  end
+
   module Config
 
     class << self
