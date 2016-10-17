@@ -27,10 +27,7 @@ module Setup
     end
 
     def validates_before
-      if new_record?
-        self.origin = :default
-        self.tenant = Account.current
-      end
+      self.tenant = Account.current if new_record?
     end
 
     def track_history?

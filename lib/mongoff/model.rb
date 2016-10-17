@@ -409,7 +409,7 @@ module Mongoff
     end
 
     def caching?
-      !@data_type_id.is_a?(String)
+      !@data_type_id.is_a?(String) #TODO Check this, not a BSON::Id ?
     end
 
     def proto_schema

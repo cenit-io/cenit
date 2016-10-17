@@ -12,6 +12,10 @@ module Setup
                              }
                            }.deep_stringify_keys)
 
+    allow :new, :import, :pull_import, :bulk_cross, :simple_cross, :bulk_expand, :simple_expand, :download_file
+
+    shared_deny :simple_delete_data_type, :bulk_delete_data_type
+
     has_and_belongs_to_many :validators, class_name: Setup::Validator.to_s, inverse_of: nil
     belongs_to :schema_data_type, class_name: Setup::JsonDataType.to_s, inverse_of: nil
 

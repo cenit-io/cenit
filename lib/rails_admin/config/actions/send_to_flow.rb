@@ -34,19 +34,13 @@ module RailsAdmin
             model = @abstract_model.model rescue nil
             if model
               data_type = model.data_type
-              if data_type.is_a?(Setup::BuildInDataType)
-                data_type_id = model.to_s
-                data_type = nil
-              else
-                data_type_id = data_type.id
-              end
               if (select_data = params[selector_config.abstract_model.param_key])
                 flow = Setup::Flow.where(id: select_data[:flow_id]).first
                 if (@form_object = Forms::FlowSelector.new(flow: flow,
                                                            data_type: data_type)).valid?
                   begin
                     do_flash_process_result flow.process(object_ids: @bulk_ids,
-                                                         data_type_id: data_type_id)
+                                                         data_type_id: data_type.id.to_s)
                     render_form = false
                   rescue Exception => ex
                     flash[:error] = ex.message
