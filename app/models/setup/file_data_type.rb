@@ -12,7 +12,7 @@ module Setup
                              }
                            }.deep_stringify_keys)
 
-    allow :new, :import, :pull_import, :bulk_cross, :simple_cross, :bulk_expand, :simple_expand, :download_file
+    allow :new, :import, :pull_import, :bulk_cross, :simple_cross, :bulk_expand, :simple_expand, :download_file, :copy
 
     shared_deny :simple_delete_data_type, :bulk_delete_data_type
 

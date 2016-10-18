@@ -64,9 +64,4 @@ class ApplicationController < ActionController::Base
   def after_sign_out_path_for(resource_or_scope)
     ENV['SING_OUT_URL'] || root_path
   end
-
-  after_filter do
-    Account.current = nil
-  end
-
 end

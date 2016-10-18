@@ -58,7 +58,7 @@ module Setup
     validates_presence_of :authors, :summary
 
     after_save do
-      reinstall(add_dependencies: false) unless skip_reinstall_callback
+      reinstall(add_dependencies: false) unless !installed? || skip_reinstall_callback
       self.skip_reinstall_callback = false
     end
 

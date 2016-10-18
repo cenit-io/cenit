@@ -26,7 +26,7 @@ Cenit.config do
   schema_service_path '/schema'
 
   #Home page
-  homepage ENV['HOMEPAGE']
+  homepage ENV['HOMEPAGE'] || 'http://127.0.0.1:3000'
 
   #Captcha length
   captcha_length 5
