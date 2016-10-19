@@ -18,7 +18,7 @@
           %i{class: "#{action.link_icon} fa-fw", title: wording_for(:menu, action)}
           %span=wording_for(:menu, action)
     %li
-      =link_to "#{ENV['DOCS_API'] || 'https://cenit-io.github.io'}/openapi/", target: '_blank' do
+      =link_to "#{ENV['API_DOC_URL'] || 'https://cenit-io.github.io'}/openapi/", target: '_blank' do
         %i.fa.fa-fw.fa-send-o{title: t('admin.misc.api')}
         %span=t('admin.misc.api')
     %li
