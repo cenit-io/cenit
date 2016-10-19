@@ -18,11 +18,11 @@
           %i{class: "#{action.link_icon} fa-fw", title: wording_for(:menu, action)}
           %span=wording_for(:menu, action)
     %li
-      =link_to "#{ENV['DOCS_URL'] || 'http://cenit-io.github.io'}/docs/api", target: '_blank' do
+      =link_to "#{ENV['DOCS_API'] || 'https://cenit-io.github.io'}/openapi/", target: '_blank' do
         %i.fa.fa-fw.fa-send-o{title: t('admin.misc.api')}
         %span=t('admin.misc.api')
     %li
-      =link_to "#{ENV['DOCS_URL'] || 'http://cenit-io.github.io'}/docs", target: '_blank' do
+      =link_to "#{ENV['DOCS_URL'] || 'https://cenit-io.github.io'}/docs", target: '_blank' do
         %i.fa.fa-fw.fa-file-text{title: t('admin.misc.docs')}
         %span=t('admin.misc.docs')
     %li
