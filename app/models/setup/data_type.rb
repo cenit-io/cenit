@@ -24,7 +24,7 @@ module Setup
 
     deny :all
 
-    allow :index, :show, :bulk_export, :simple_export, :send_to_flow, :documentation
+    allow :index, :show, :bulk_export, :simple_export, :send_to_flow, :documentation, :records
 
     config_with Setup::DataTypeConfig, only: :slug
 
