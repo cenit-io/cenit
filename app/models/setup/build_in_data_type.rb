@@ -66,7 +66,7 @@ module Setup
 
     def all_data_type_storage_collections_names
       if model < CrossOrigin::Document
-        origins = model.origins.select {|origin| Setup::Crossing.authorized_crossing_origins.include?(origin) }
+        origins = model.origins.select { |origin| Setup::Crossing.authorized_crossing_origins.include?(origin) }
         origins.collect do |origin|
           if origin == :default
             model.collection_name
@@ -184,18 +184,18 @@ module Setup
 
     MONGOID_TYPE_MAP =
       {
-        BSON::ObjectId => { 'type' => 'string' },
-        Array => { 'type' => 'array' },
-        BigDecimal => { 'type' => 'integer' },
-        Mongoid::Boolean => { 'type' => 'boolean' },
-        Date => { 'type' => 'string', 'format' => 'date' },
-        DateTime => { 'type' => 'string', 'format' => 'date-time' },
-        Float => { 'type' => 'number' },
-        Hash => { 'type' => 'object' },
-        Integer => { 'type' => 'integer' },
-        String => { 'type' => 'string' },
-        Symbol => { 'type' => 'string' },
-        Time => { 'type' => 'string', 'format' => 'time' },
+        BSON::ObjectId => { type: 'string' },
+        Array => { type: 'array' },
+        BigDecimal => { type: 'integer' },
+        Mongoid::Boolean => { type: 'boolean' },
+        Date => { type: 'string', format: 'date' },
+        DateTime => { type: 'string', format: 'date-time' },
+        Float => { type: 'number' },
+        Hash => { type: 'object' },
+        Integer => { type: 'integer' },
+        String => { type: 'string' },
+        Symbol => { type: 'string' },
+        Time => { type: 'string', format: 'time' },
         nil => {},
         Object => {}
       }.freeze
@@ -212,13 +212,13 @@ module Setup
 
     def build_schema
       @discarding ||= []
-      schema = { 'type' => 'object', 'properties' => properties = { "_id" => { 'type' => 'string' } } }
-      schema[:referenced_by.to_s] = Cenit::Utility.stringfy(@referenced_by) if @referenced_by
+      schema = { type: 'object', properties: properties = { _id: { type: 'string' } } }
+      schema[:referenced_by] = Cenit::Utility.stringfy(@referenced_by) if @referenced_by
       model.fields.each do |field_name, field|
         if !field.is_a?(Mongoid::Fields::ForeignKey) && included?(field_name.to_s)
-          json_type = (properties[field_name] = json_schema_type(field.type))['type']
+          json_type = (properties[field_name] = json_schema_type(field.type))[:type]
           if @discarding.include?(field_name)
-            (properties[field_name]['edi'] ||= {})['discard'] = true
+            (properties[field_name][:edi] ||= {})[:discard] = true
           end
           if json_type.nil? || json_type == 'object' || json_type == 'array'
             unless (mongoff_models = model.instance_variable_get(:@mongoff_models))
@@ -244,27 +244,46 @@ module Setup
           property_schema =
             case relation.macro
             when :embeds_one
-              { '$ref' => relation.klass.to_s }
+              {
+                '$ref': relation.klass.to_s
+              }
             when :embeds_many
-              { 'type' => 'array', 'items' => { '$ref' => relation.klass.to_s } }
+              {
+                type: 'array',
+                items: { '$ref': relation.klass.to_s }
+              }
             when :has_one
-              { '$ref' => relation.klass.to_s, 'referenced' => true, 'export_embedded' => @embedding && @embedding.include?(relation_name) }
+              {
+                '$ref': relation.klass.to_s,
+                referenced: true,
+                export_embedded: (@embedding && @embedding.include?(relation_name)).to_b
+              }
             when :belongs_to
-              { '$ref' => relation.klass.to_s, 'referenced' => true, 'export_embedded' => @embedding && @embedding.include?(relation_name) } if (@including && @including.include?(relation_name.to_s)) || relation.inverse_of.nil?
+              ((@including && @including.include?(relation_name.to_s)) || relation.inverse_of.nil?) &&
+                {
+                  '$ref': relation.klass.to_s,
+                  referenced: true,
+                  export_embedded: (@embedding && @embedding.include?(relation_name)).to_b
+                }
             when :has_many, :has_and_belongs_to_many
-              { 'type' => 'array', 'items' => { '$ref' => relation.klass.to_s }, 'referenced' => true, 'export_embedded' => @embedding && @embedding.include?(relation_name) }
+              {
+                type: 'array',
+                items: { '$ref': relation.klass.to_s },
+                referenced: true,
+                export_embedded: (@embedding && @embedding.include?(relation_name)).to_b
+              }
             end
           if property_schema
             if @discarding.include?(relation_name.to_s)
-              (property_schema['edi'] ||= {})['discard'] = true
+              (property_schema[:edi] ||= {})[:discard] = true
             end
             properties[relation_name] = property_schema
           end
         end
       end
-      schema['protected'] = @protecting if @protecting.present?
+      schema[:protected] = @protecting if @protecting.present?
       schema = schema.deep_reverse_merge(@to_merge) if @to_merge
-      schema
+      schema.deep_stringify_keys
     end
 
     def json_schema_type(mongoid_type)
