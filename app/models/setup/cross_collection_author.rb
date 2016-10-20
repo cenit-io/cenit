@@ -12,7 +12,6 @@ module Setup
 
     validates_presence_of :email
     validates_length_of :name, maximum: 255
-    validates_format_of :email, with: /\A[a-z]+@[a-z]+(\.[a-z]+)+\Z/i
 
     def label
       "#{name} (#{email})"
