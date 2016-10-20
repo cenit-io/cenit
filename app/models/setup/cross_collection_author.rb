@@ -10,7 +10,7 @@ module Setup
 
     embedded_in :shared_collection, class_name: Setup::CrossSharedCollection.to_s, inverse_of: :authors
 
-    validates_presence_of :name, :email
+    validates_presence_of :email
     validates_length_of :name, maximum: 255
     validates_format_of :email, with: /\A[a-z]+@[a-z]+(\.[a-z]+)+\Z/i
 

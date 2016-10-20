@@ -55,8 +55,19 @@ module Mongoid
       end
 
       def storage_size(scale = 1)
+        subtype_count = data_type.subtype? && data_type.count
         data_type.all_data_type_storage_collections_names.inject(0) do |size, name|
-          s = mongo_client.command(collstats: name.to_s, scale: scale).first['size'] rescue 0
+          s =
+            begin
+              stats = mongo_client.command(collstats: name.to_s, scale: scale).first
+              if subtype_count
+                subtype_count + stats['avgObjSize']
+              else
+                stats['size']
+              end
+            rescue
+              0
+            end
           size + s
         end
       end
