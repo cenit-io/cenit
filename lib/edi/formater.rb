@@ -228,9 +228,10 @@ module Edi
         options[:inspected_records] << record
       end
       options[:stack] << record
-      if (options[:include_id].respond_to?(:call) && options[:include_id].call(record)) || options[:include_id]
-        store(json, 'id', record.id, options)
+      if (include_id = options[:include_id]).respond_to?(:call)
+        include_id = include_id.call(record)
       end
+      store(json, 'id', record.id, options) if include_id
       content_property = nil
       model.stored_properties_on(record).each do |property_name|
         next if (protected = (model.schema['protected'] || []).include?(property_name)) && options[:protected]
