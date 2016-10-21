@@ -65,13 +65,6 @@ module Setup
     accepts_nested_attributes_for :authors, allow_destroy: true
     accepts_nested_attributes_for :pull_parameters, allow_destroy: true
 
-    build_in_data_type.schema['properties'].each do |name, schema|
-      if COLLECTING_PROPERTIES.include?(name.to_sym)
-        edi_spec = schema['edi'] ||= {}
-        edi_spec['discard'] = true
-      end
-    end
-
     default_scope -> { desc(:pull_count) }
 
     def installed?
