@@ -231,6 +231,14 @@ class Ability
   end
 
   def crossing_models
-    user.super_admin? ? ADMIN_CROSSING_MODELS : CROSSING_MODELS
+    if user
+      if user.super_admin?
+        ADMIN_CROSSING_MODELS
+      else
+        CROSSING_MODELS
+      end
+    else
+      []
+    end
   end
 end
