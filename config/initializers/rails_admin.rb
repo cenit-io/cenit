@@ -1497,6 +1497,25 @@ RailsAdmin.config do |config|
 
     fields :namespace, :name, :slug, :storage_size, :updated_at
   end
+  
+  #Objects
+  
+  config.navigation 'Objects', icon: 'fa fa-database'
+  
+  config.model Setup::LinkJsonDataType do
+    weight 193
+    label 'Link to Object', icon: 'fa fa-plus'
+    navigation_label 'Objects'
+  end
+  
+  #Files
+  config.navigation 'Files', icon: 'fa fa-folder-open'
+  
+  config.model Setup::LinkFileDataType do
+    weight 197
+    label 'Link to File', icon: 'fa fa-plus'
+    navigation_label 'Files'
+  end
 
   #Connectors
 

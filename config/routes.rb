@@ -20,7 +20,7 @@ Cenit::Application.routes.draw do
     Cenit.routed_service_url(Cenit.service_url)
   else
     mount Cenit::Service::Engine => service_path
-    Cenit.routed_service_url(Cenit.homepage + service_path)
+  #  Cenit.routed_service_url(Cenit.homepage + service_path)
   end
 
 
