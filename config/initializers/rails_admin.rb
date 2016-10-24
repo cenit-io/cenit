@@ -1272,7 +1272,7 @@ RailsAdmin.config do |config|
   config.model Setup::JsonDataType do
     navigation_label 'Definitions'
     weight 111
-    label 'JSON Data Type'
+    label 'Object Type'
     object_label_method { :custom_title }
 
     group :behavior do
@@ -1390,7 +1390,7 @@ RailsAdmin.config do |config|
   config.model Setup::FileDataType do
     navigation_label 'Definitions'
     weight 112
-    label 'File Data Type'
+    label 'File Type'
     object_label_method { :custom_title }
 
     group :content do
@@ -1499,21 +1499,19 @@ RailsAdmin.config do |config|
   end
   
   #Objects
-  
   config.navigation 'Objects', icon: 'fa fa-database'
   
   config.model Setup::LinkJsonDataType do
-    weight 193
-    label 'Link to Object', icon: 'fa fa-plus'
+    weight 195
+    label 'Link Object Type', icon: 'fa fa-plus'
     navigation_label 'Objects'
   end
   
   #Files
   config.navigation 'Files', icon: 'fa fa-folder-open'
-  
   config.model Setup::LinkFileDataType do
-    weight 197
-    label 'Link to File', icon: 'fa fa-plus'
+    weight 196
+    label 'Link File Type', icon: 'fa fa-plus'
     navigation_label 'Files'
   end
 
