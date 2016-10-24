@@ -695,20 +695,29 @@ module RailsAdmin
       if mongoff_start_index
         mongoffs = main_labels.from(mongoff_start_index)
         main_labels = main_labels.to(mongoff_start_index - 1)
-        definitions_index ||= main_labels.length - 1
-        main_labels.insert definitions_index + 1, %(<div id='main-records' class='panel panel-default'>
-            <div class='panel-heading'>
-              <a data-toggle='collapse' data-parent='#main-accordion' href='#records-collapse' class='panel-title collapse in collapsed'>
-                <span class='nav-caret'><i class='fa fa-caret-down'></i></span>
-                <span class='nav-icon'><i class='fa fa-database'></i></span>
-                <span class='nav-caption'>Records</span>
-              </a>
-            </div>
-            <div id='records-collapse' class='nav nav-pills nav-stacked panel-collapse collapse'>
-              #{mongoffs.collect { |m| "<div class='panel panel-default'> #{m} </div>" }.join }
-            </div>
-          </div>)
+        objects_level = 5
+      else
+        objects_level = 3
       end
+      
+      main_labels[objects_level].gsub!(
+          %{<a class=\"pjax\" href=\"/setup~link_json_data_type\"><span class='nav-caption'>Link Object Types</span></a></li></div></div>},
+          %{<a class=\"pjax\" href=\"/setup~link_json_data_type\" style="color: #428bca">
+              <span class='nav-caption'>Link Object Types</span>
+              <span class='nav-icon' style="margin-left: 30px;">
+                <i class='fa fa-plus'></i>
+              </span>
+           </a></li>#{mongoffs.join if mongoff_start_index.present? }</div></div>}.html_safe)
+           
+        main_labels[files_level = objects_level+1].gsub!(
+          %{<a class=\"pjax\" href=\"/setup~link_file_data_type\"><span class='nav-caption'>Link File Types</span></a></li></div></div>},
+          %{<a class=\"pjax\" href=\"/setup~link_file_data_type\" style="color: #428bca">
+              <span class='nav-caption'>Link File Types</span>
+              <span class='nav-icon' style="margin-left: 30px;">
+                <i class='fa fa-plus'></i>
+              </span>
+           </a></li>#{'' if mongoff_start_index.present? }</div></div>}.html_safe)
+           
       main_labels.join.html_safe
     end
 
