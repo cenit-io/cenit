@@ -3,15 +3,15 @@
 [![license](https://img.shields.io/packagist/l/doctrine/orm.svg)]()
 [![Slack Status](http://cenit-slack.herokuapp.com/badge.svg)](http://cenitio.slack.com)
 
-* [Cenit IO](https://cenit.io)  [(https://cenit.io)](https://cenit.io)
+* [Cenit.IO](https://cenit.io)  [(https://cenit.io)](https://cenit.io)
 * [Join our Slack](http://cenit-slack.herokuapp.com/) [(cenitio.slack.com)](http://cenitio.slack.com)
 * [Shared Collections](https://cenit.io/setup~shared_collection)
-* [Cenit IO - 101 Intro](https://cenit-io.github.io/cenit-slides/#cover)
+* [Cenit.IO - 101 Intro](https://cenit-io.github.io/cenit-slides/#cover)
 * [Documentation](https://cenit-io.github.io/docs/)
 * support@cenit.io
 
 
-[Cenit IO](https://cenit.io)  [(https://cenit.io)](https://cenit.io) is an Open Platform for Data and Business Integration (iPaaS) to process, storage and move data in connection with Cloud or On-Premise services. It has been designed to orchestrate data flows that may involve several kind of endpoints (APIs, Datasets, EDI). It makes possible the automation of all operational processes in a company, connecting between organization's on-premises infrastructure and cloud provider services.
+[Cenit.IO](https://cenit.io)  [(https://cenit.io)](https://cenit.io) is an Open Platform for Data and Business Integration (iPaaS) to process, storage and move data in connection with Cloud or On-Premise services. It has been designed to orchestrate data flows that may involve several kind of endpoints (APIs, Datasets, EDI). It makes possible the automation of all operational processes in a company, connecting between organization's on-premises infrastructure and cloud provider services.
 
 It allows the creation of custom data pipelines for process, storage and data movement between APIs –either cloud or 
 on premises-. The flows could be trigger by data events or be scheduled.
@@ -100,7 +100,7 @@ fulfilment solutions, accounting, communications, ERP, multi-channels, etc.
 * RabbitMQ for internal pipeline messages.
 
 
-## Create Cenit IO local server.
+## Create Cenit.IO local server.
 
 Clone the [GitHub cenit-io/cenit repo](https://github.com/cenit-io/cenit) and move to the **cenit** folder.
 
@@ -135,7 +135,7 @@ Run the `bundle install` command to set up the required gems on your computer:
 $ bundle install
 ```
 
-Since Cenit IO uses Mongodb you don't need run any migrations, simply start the hub on port 3000, or any other of your 
+Since Cenit.IO uses Mongodb you don't need run any migrations, simply start the hub on port 3000, or any other of your 
 own choosing, just be mindful of that.
 
 ```
@@ -231,7 +231,7 @@ Bunny 0.9.0 and later versions (you will need at least RabbitMQ v2.0 to use with
 Contributing
 ----------------------
 
-Cenit IO is an open source project and we encourage contributions. 
+Cenit.IO is an open source project and we encourage contributions. 
 
 In the spirit of [free software](http://www.fsf.org/licensing/essays/free-sw.html), **everyone** is encouraged to help 
 improve this project.
