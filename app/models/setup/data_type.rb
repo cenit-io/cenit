@@ -22,9 +22,7 @@ module Setup
                              }
                            }.deep_stringify_keys)
 
-    deny :all
-
-    allow :index, :show, :bulk_export, :simple_export, :send_to_flow, :documentation, :records
+    deny :delete, :new, :switch_navigation, :copy
 
     config_with Setup::DataTypeConfig, only: :slug
 

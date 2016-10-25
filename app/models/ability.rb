@@ -156,6 +156,7 @@ class Ability
             shared_allowed_hash
           ].each do |hash|
             hash.each do |keys, models|
+              keys.delete(:simple_cross)
               if [:pull, :edit, :destroy, :import, :reinstall].any? { |key| keys.include?(key) }
                 models.delete(Setup::CrossSharedCollection)
               end
