@@ -66,8 +66,18 @@ module Setup
       case schema_type
       when :json_schema
         begin
+          unless data.is_a?(Hash)
+            data =
+              if data.respond_to?(:to_hash)
+                data.to_hash
+              elsif data.respond_to?(:to_json)
+                JSON.parse(data.to_json)
+              else
+                JSON.parse(data.to_s)
+              end
+          end
           JSON::Validator.fully_validate(JSON.parse(schema),
-                                         JSON.parse(data),
+                                         data,
                                          version: :mongoff,
                                          schema_reader: JSON::Schema::CenitReader.new(self),
                                          strict: true)
@@ -77,7 +87,18 @@ module Setup
         end
       when :xml_schema
         begin
-          Nokogiri::XML::Schema(cenit_ref_schema).validate(Nokogiri::XML(data))
+          unless data.is_a?(Nokogiri::XML::Document)
+            unless data.is_a?(String)
+              data =
+                if data.respond_to?(:to_xml)
+                  data.to_xml
+                else
+                  data
+                end.to_s
+            end
+            data = Nokogiri::XML(data)
+          end
+          Nokogiri::XML::Schema(cenit_ref_schema).validate(data)
         rescue Exception => ex
           [ex.message]
         end

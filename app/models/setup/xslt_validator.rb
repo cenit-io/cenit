@@ -15,9 +15,20 @@ module Setup
 
     def validate_data(data)
       begin
-        Nokogiri::XSLT(code).transform(Nokogiri::XML(data))
+        unless data.is_a?(Nokogiri::XML::Document)
+          unless data.is_a?(String)
+            data =
+              if data.respond_to?(:to_xml)
+                data.to_xml
+              else
+                data
+              end.to_s
+          end
+          data = Nokogiri::XML(data)
+        end
+        Nokogiri::XSLT(code).transform(data)
         []
-      rescue  Exception => ex
+      rescue Exception => ex
         [ex.message]
       end
     end
