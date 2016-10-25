@@ -21,6 +21,7 @@ class Ability
               User,
               Account,
               Setup::SharedName,
+              Setup::CrossSharedName,
               Cenit::BasicToken,
               Script,
               Setup::DelayedMessage,
@@ -40,7 +41,7 @@ class Ability
         can [:simple_cross, :reinstall], Setup::CrossSharedCollection, installed: true
         can :simple_cross, UNCONDITIONAL_ADMIN_CROSSING_MODELS
       else
-        cannot :access, [Setup::SharedName, Setup::DelayedMessage, Setup::SystemNotification]
+        cannot :access, [Setup::SharedName, Setup::CrossSharedName, Setup::DelayedMessage, Setup::SystemNotification]
         cannot :destroy, [Setup::SharedCollection, Setup::Storage]
 
         can :index, Setup::CrossSharedCollection

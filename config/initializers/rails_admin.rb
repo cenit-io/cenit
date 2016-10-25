@@ -3857,6 +3857,14 @@ RailsAdmin.config do |config|
     fields :name, :owners, :updated_at
   end
 
+  config.model Setup::CrossSharedName do
+    weight 881
+    navigation_label 'Administration'
+    visible { User.current_super_admin? }
+
+    fields :name, :owners, :updated_at
+  end
+
   config.model Script do
     weight 830
     navigation_label 'Administration'
