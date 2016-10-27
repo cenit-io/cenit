@@ -48,7 +48,7 @@ module RailsAdmin
                   end
                 @form_object = Forms::DataTypeSelector.new(scope: scope)
               end
-              if data_type_model && !data_type_model.where(:navigation_link.in => [nil, false]).exists?
+              if data_type_model && !data_type_model.where(navigation_link: { '$in': [nil, false] }).exists?
                 flash[:warning] = "All #{@action.bindings[:custom_model_config].label_plural} are already linked"
                 redirect_to dashboard_path
               else
