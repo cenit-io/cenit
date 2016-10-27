@@ -60,7 +60,11 @@ module Cenit
                   record = Cenit::Utility.find_record(criteria, relation.klass.all)
                 end
                 if record
-                  record_hash = record.share_hash(include_id: ->(r) { r.is_a?(Setup::CrossOriginShared) && r.shared? })
+                  share_hash_options = {}
+                  if shared_collection.installed?
+                    share_hash_options[:include_id] = ->(r) { r.is_a?(Setup::CrossOriginShared) && r.shared? }
+                  end
+                  record_hash = record.share_hash(share_hash_options)
                   record_hash = Cenit::Utility.stringfy(record_hash)
                   %w(id _id).each do |id_key|
                     record_hash[id_key] = item[id_key] if item.has_key?(id_key)
