@@ -139,6 +139,14 @@ module Cenit
           if value.is_a?(Hash)
             return false unless match?(property_value, value)
           else
+            property_value =
+              case property_value
+              when BSON::ObjectId
+                value = value.to_s
+                property_value.to_s
+              else
+                property_value
+              end
             return false unless property_value == value
           end
         end
