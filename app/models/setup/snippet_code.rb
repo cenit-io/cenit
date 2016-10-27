@@ -10,9 +10,12 @@ module Setup
 
       before_save do
         if snippet_ref.new_record?
+          snippet_ref.namespace = namespace
           name = snippet_name
           i = 0
-          while Setup::Snippet.where(tenant: Cenit::MultiTenancy.tenant_model.current, name: name).exists?
+          while Setup::Snippet.where(tenant: Cenit::MultiTenancy.tenant_model.current,
+                                     namespace: namespace,
+                                     name: name).exists?
             name = snippet_name("(#{i += 1})")
           end
           snippet_ref.name = name
@@ -21,7 +24,9 @@ module Setup
           self.snippet = Setup::Snippet.new(snippet_ref.attributes.reject { |key, _| %w(_id origin).include?(key) })
           name = snippet_ref.name
           i = 0
-          while Setup::Snippet.where(tenant: Cenit::MultiTenancy.tenant_model.current, name: name).exists?
+          while Setup::Snippet.where(tenant: Cenit::MultiTenancy.tenant_model.current,
+                                     namespace: namespace,
+                                     name: name).exists?
             name = snippet_name("(#{i += 1})")
           end
           snippet_ref.name = name
@@ -40,8 +45,8 @@ module Setup
     end
 
     def snippet_name(suffix = '')
-      name = code_name.to_method_name.underscore
-      if (ext = ".#{code_extension.strip}".squeeze('.')).length > 1
+      name = code_name
+      if (ext = ".#{code_extension.to_s.strip}".squeeze('.')).length > 1
         if name.ends_with?(ext)
           name = name.to(name.rindex('.') - 1)
         end
@@ -52,7 +57,7 @@ module Setup
     end
 
     def code_name
-      "#{namespace}_#{name}".to_file_name
+      name.to_s.to_file_name
     end
 
     def code_extension
@@ -65,6 +70,45 @@ module Setup
 
     def code=(code)
       snippet_ref.code = code
+    end
+
+    #TODO Only for legacy codes, remove after migration
+
+    def read_attribute(name)
+      if name.to_s == self.class.legacy_code_attribute.to_s
+        if respond_to?(name)
+          send(name)
+        else
+          code
+        end
+      elsif name.to_s == 'code'
+        code
+      else
+        super
+      end
+    end
+
+    module ClassMethods
+
+      def instantiate(attrs = nil, selected_fields = nil)
+        record = super
+        if record.snippet.nil? && (legacy_code = record.attributes[legacy_code_attribute])
+          if record.respond_to?(assign_legacy_code = "#{legacy_code_attribute}=")
+            record.send(assign_legacy_code, legacy_code)
+          else
+            record.code = legacy_code
+          end
+        end
+        record
+      end
+
+      def legacy_code_attribute(*args)
+        if args.length == 0
+          @legacy_code_attribute
+        else
+          @legacy_code_attribute = args[0].to_s
+        end
+      end
     end
   end
 end

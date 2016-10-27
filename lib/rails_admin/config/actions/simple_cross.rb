@@ -1,7 +1,7 @@
 module RailsAdmin
   module Config
     module Actions
-      class SimpleCrossShare < RailsAdmin::Config::Actions::BaseCrossShare
+      class SimpleCross < RailsAdmin::Config::Actions::BaseCross
 
         register_instance_option :member do
           true

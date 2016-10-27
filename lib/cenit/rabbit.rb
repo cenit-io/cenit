@@ -27,12 +27,8 @@ module Cenit
             end
           else
             task = task_class.create(message: message, scheduler: scheduler, auto_retry: auto_retry)
-            task.save
           end
-          unless task.auto_retry == auto_retry
-            task.auto_retry = auto_retry
-            task.save
-          end
+          task.update(auto_retry: auto_retry) unless task.auto_retry == auto_retry
           block.call(task) if block
           asynchronous_message ||= Cenit.send('asynchronous_' + task_class.to_s.split('::').last.underscore)
           if scheduler || publish_at || asynchronous_message

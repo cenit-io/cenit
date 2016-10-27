@@ -5,7 +5,7 @@ module Setup
     include ClassHierarchyAware
     include CrossOrigin::Document
 
-    origins -> { Account.current_super_admin? ? :admin : nil }
+    origins :default, -> { Account.current_super_admin? ? :admin : nil }
 
     abstract_class true
 

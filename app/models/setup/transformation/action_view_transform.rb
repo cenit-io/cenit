@@ -19,43 +19,38 @@ module Setup
       class << self
 
         def run(options = {})
-          transformation = options[:transformation]
+          code = options[:code]
           split_style = options[:style].split('.') if options[:style].present?
 
           format = options[:format] ||= split_style[0].to_sym if split_style[0].present?
           handler = options[:handler] ||= split_style[1].to_sym if split_style[1].present?
 
           if respond_to?(method = "preprocess_#{handler}_#{format}".to_sym)
-            transformation = send(method, transformation, options)
+            code = send(method, code, options)
           end
 
           if handler.present? && metaclass.instance_methods.include?(met = "run_#{handler}".to_sym)
             send(met, options)
           else
-            ActionView::Base.new.render inline: transformation, formats: format, type: handler || format, handlers: handler, locals: options
+            ActionView::Base.new.render inline: code, formats: format, type: handler || format, handlers: handler, locals: options
           end
         end
 
         def run_rabl(options = {})
-          Rabl::Renderer.new(options[:transformation], nil, { format: options[:format], locals: options }).render
+          Rabl::Renderer.new(options[:code], nil, { format: options[:format], locals: options }).render
         end
 
         def run_haml(options = {})
-          Haml::Engine.new(options[:transformation]).render(Object.new, options)
+          Haml::Engine.new(options[:code]).render(Object.new, options)
         end
 
-        # def run_prawn(options = {})
-        # result = PrawnRails::Engine.try(:new).try :render, inline: options[:transformation], format:  options[:format],  locals: options
-        # result
-        # end
-
-        def preprocess_erb(transformation, options)
-          return transformation if Capataz.disable?
+        def preprocess_erb(code, options)
+          return code if Capataz.disable?
           pattern = /(<%=?)(.*?)(%>)/m
           rb = []
           gs = Gensym.new
           marks = []
-          res = transformation.gsub(pattern) do
+          res = code.gsub(pattern) do
             match_1 = Regexp.last_match[1]
             match_2 = Regexp.last_match[2]
             match_3 = Regexp.last_match[3]
