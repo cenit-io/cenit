@@ -58,7 +58,7 @@ module Setup
         if expression.is_a?(Hash)
           config_options = {}
           config_model.config_fields.each do |field|
-            if expression.has_key?(key = field.to_sym) || expression.has_key?(key = field)
+            if (key = expression.keys.detect { |k| k.to_s == field.to_s })
               config_options[field] = expression.delete(key)
             end
           end
