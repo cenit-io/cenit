@@ -1481,6 +1481,13 @@ RailsAdmin.config do |config|
 
     configure :schema, :json_schema
 
+    edit do
+      field :namespace, &shared_non_editable
+      field :name, &shared_non_editable
+      field :slug
+      field :storage_size
+    end
+
     show do
       field :title
       field :namespace
