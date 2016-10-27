@@ -55,6 +55,11 @@ en:
       not_selected: 'Not selected'
       help: 'help'
       add_tenant: 'Add new'
+      main_navigation:
+        json_data_type: 'Objects'
+        file_data_type: 'Files'
+      link_json_data_type: 'Link Object Type'
+      link_file_data_type: 'Link File Type'
     actions:
       dashboard:
         title: "Dashboard"
@@ -441,6 +446,9 @@ en:
         title: "Docs"
         menu: "Docs"
         breadcrumb: "Docs"
+      link_data_type:
+        menu: "Link"
+        breadcrumb: "Link %{model_label}"
     form:
       flow:
         source_data_type: 'Source data type'

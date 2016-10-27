@@ -48,7 +48,8 @@ require 'account'
   RailsAdmin::Config::Actions::Documentation,
   RailsAdmin::Config::Actions::Push,
   RailsAdmin::Config::Actions::Share,
-  RailsAdmin::Config::Actions::Reinstall
+  RailsAdmin::Config::Actions::Reinstall,
+  RailsAdmin::Config::Actions::LinkDataType
 ].each { |a| RailsAdmin::Config::Actions.register(a) }
 
 RailsAdmin::Config::Actions.register(:export, RailsAdmin::Config::Actions::BulkExport)
@@ -103,6 +104,7 @@ RailsAdmin.config do |config|
     dashboard # mandatory
     # disk_usage
     shared_collection_index
+    link_data_type
     index # mandatory
     new { except [Setup::Event, Setup::DataType, Setup::Authorization, Setup::BaseOauthProvider] }
     import
@@ -1476,7 +1478,7 @@ RailsAdmin.config do |config|
       end
       read_only true
     end
-    
+
     configure :slug
 
     configure :schema, :json_schema
@@ -3851,6 +3853,14 @@ RailsAdmin.config do |config|
 
   config.model Setup::SharedName do
     weight 880
+    navigation_label 'Administration'
+    visible { User.current_super_admin? }
+
+    fields :name, :owners, :updated_at
+  end
+
+  config.model Setup::CrossSharedName do
+    weight 881
     navigation_label 'Administration'
     visible { User.current_super_admin? }
 
