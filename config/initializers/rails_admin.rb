@@ -1235,7 +1235,7 @@ RailsAdmin.config do |config|
   config.model Setup::JsonDataType do
     navigation_label 'Definitions'
     weight 111
-    label 'JSON Data Type'
+    label 'Object Type'
     object_label_method { :custom_title }
 
     group :behavior do
@@ -1349,7 +1349,7 @@ RailsAdmin.config do |config|
   config.model Setup::FileDataType do
     navigation_label 'Definitions'
     weight 112
-    label 'File Data Type'
+    label 'File Type'
     object_label_method { :custom_title }
 
     group :content do
@@ -1460,7 +1460,7 @@ RailsAdmin.config do |config|
   config.model Setup::CenitDataType do
     navigation_label 'Definitions'
     weight 113
-    label 'Cenit Data Type'
+    label 'Cenit Type'
     object_label_method { :custom_title }
 
     visible { Account.current_super_admin? }
