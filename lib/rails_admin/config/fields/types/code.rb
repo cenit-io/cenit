@@ -5,7 +5,7 @@ module RailsAdmin
         class Code < RailsAdmin::Config::Fields::Types::CodeMirror
 
           register_instance_option :pretty_value do
-            "<pre><code class='json'>#{JSON.pretty_generate(value)}</code></pre>".html_safe
+            "<pre><code class='json'>#{JSON.pretty_generate(value) rescue value}</code></pre>".html_safe
           end
 
           register_instance_option :js_location do
