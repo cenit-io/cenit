@@ -17,26 +17,30 @@ module Setup
     def process_on(hash_data, options = {})
       options ||= {}
       errors.clear
-      if location.present?
-        obj = hash_data
-        location.each do |key, criteria|
-          obj = obj && (obj = obj[key]) && Cenit::Utility.find_record(criteria, obj)
-        end
-        if obj
-          if property_name.present?
-            if (value = options[:value]).nil?
-              obj.delete(property_name) unless options[:keep_value]
+      if location.is_a?(Hash)
+        if location.present?
+          obj = hash_data
+          location.each do |key, criteria|
+            obj = obj && (obj = obj[key]) && Cenit::Utility.find_record(criteria, obj)
+          end
+          if obj
+            if property_name.present?
+              if (value = options[:value]).nil?
+                obj.delete(property_name) unless options[:keep_value]
+              else
+                obj[property_name] = value
+              end
             else
-              obj[property_name] = value
+              errors.add(:property_name, "can't be blank")
             end
           else
-            errors.add(:property_name, "can't be blank")
+            errors.add(:location, "can not locate value with #{location.to_json}")
           end
         else
-          errors.add(:base, "can not locate value with #{location.to_json}")
+          errors.add(:location, "can't be blank")
         end
       else
-        errors.add(:location, "can't be blank")
+        errors.add(:location, 'is not a valid JSON object')
       end
       errors.blank?
     end

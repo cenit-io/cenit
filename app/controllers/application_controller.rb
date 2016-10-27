@@ -5,7 +5,7 @@ class ApplicationController < ActionController::Base
   protect_from_forgery with: :null_session,
                        if: Proc.new { |c| c.request.format =~ %r{application/json} }
 
-  rescue_from CanCan::AccessDenied do |exception|
+  rescue_from CanCan::AccessDenied, RailsAdmin::ActionNotAllowed do |exception|
     redirect_to main_app.root_path, :alert => exception.message
   end
 
@@ -64,9 +64,4 @@ class ApplicationController < ActionController::Base
   def after_sign_out_path_for(resource_or_scope)
     ENV['SING_OUT_URL'] || root_path
   end
-
-  after_filter do
-    Account.current = nil
-  end
-
 end

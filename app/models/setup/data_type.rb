@@ -9,6 +9,8 @@ module Setup
     include ClassHierarchyAware
     include ModelConfigurable
 
+    origins origins_config, :cenit
+
     abstract_class true
 
     build_in_data_type.with(:title, :name, :before_save_callbacks, :records_methods, :data_type_methods).referenced_by(:namespace, :name)
@@ -20,9 +22,7 @@ module Setup
                              }
                            }.deep_stringify_keys)
 
-    deny :update, :bulk_delete, :delete, :delete_all
-
-    shared_deny :simple_delete_data_type, :bulk_delete_data_type, :simple_expand, :bulk_expand
+    deny :delete, :new, :switch_navigation, :copy
 
     config_with Setup::DataTypeConfig, only: :slug
 
@@ -135,6 +135,14 @@ module Setup
     end
 
     class << self
+
+      def inherited(subclass)
+        super
+        origins = origins_config.dup
+        origins.delete(:cenit)
+        subclass.origins origins
+      end
+
       def for_name(name)
         where(id: name.from(2)).first
       end
