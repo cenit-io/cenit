@@ -35,6 +35,7 @@ module RailsAdmin
               end
             end
             if render_form
+              data_type_model =nil
               unless @form_object
                 scope = { navigation_link: { '$in': [false, nil] } }
                 data_type_model = params[:data_type_model].to_s.constantize rescue nil
@@ -43,16 +44,21 @@ module RailsAdmin
                     scope[:_type] = data_type_model.to_s
                     RailsAdmin::Config.model(data_type_model)
                   else
-                    RailsAdmin::Config.model(Setup::DataType)
+                    RailsAdmin::Config.model(data_type_model = Setup::DataType)
                   end
                 @form_object = Forms::DataTypeSelector.new(scope: scope)
               end
-              @model_config = selector_config
-              if @form_object.errors.present?
-                do_flash_now(:error, 'There are errors selecting the data type', @form_object.errors.full_messages)
+              if data_type_model && !data_type_model.where(:navigation_link.in => [nil, false]).exists?
+                flash[:warning] = "All #{@action.bindings[:custom_model_config].label_plural} are already linked"
+                redirect_to dashboard_path
+              else
+                @model_config = selector_config
+                if @form_object.errors.present?
+                  do_flash_now(:error, 'There are errors selecting the data type', @form_object.errors.full_messages)
+                end
+                @form_object.save(validate: false)
+                render :form
               end
-              @form_object.save(validate: false)
-              render :form
             else
               if data_type
                 redirect_to rails_admin.index_path(model_name: data_type.records_model.to_s.underscore.gsub('/', '~'))
