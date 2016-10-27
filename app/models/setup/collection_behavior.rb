@@ -58,10 +58,10 @@ module Setup
 
       after_initialize { @add_dependencies = true }
 
-      attr_reader :warnings
+      field :warnings, type: Array
     end
 
-    NO_DATA_FIELDS = %w(name readme)
+    NO_DATA_FIELDS = %w(title name readme warnings)
 
     def collecting_data
       hash = {}
@@ -75,7 +75,7 @@ module Setup
 
     def add_dependencies
       return true unless @add_dependencies
-      @warnings = nil
+      self.warnings = []
       collecting_models = {}
       COLLECTING_PROPERTIES.each do |property|
         relation = reflect_on_association(property)
@@ -122,12 +122,13 @@ module Setup
         end
       end
       if (not_found_refs = params[:not_found]).present?
-        @warnings = not_found_refs.to_a.collect { |ref| "Reference not found #{ref.to_json}" }
+        self.warnings += not_found_refs.to_a.collect { |ref| "Reference not found #{ref.to_json}" }
       end
       dependencies.each do |property, set|
         set.merge(send(property))
         self.send("#{property}=", set.to_a)
       end
+
       nss = Set.new
       collecting_models.values.each do |relation|
         next unless relation.klass.include?(Setup::NamespaceNamed)
@@ -137,6 +138,17 @@ module Setup
       namespaces.each { |ns| nss.delete(ns.name) }
       nss.each { |ns| self.namespaces << Setup::Namespace.create(name: ns) }
 
+      collecting_models.each do |model, relation|
+        reference_keys = model.data_type.get_referenced_by - %w(_id)
+        send(relation.name).group_by { |record| reference_keys.collect { |key| record.send(key) } }.each do |keys, records|
+          if records.length > 1
+            keys_hash= {}
+            reference_keys.each_with_index { |key, index| keys_hash[key] = keys[index] }
+            self.warnings << "Multiple #{relation.name} with the same reference keys #{keys_hash.to_json}"
+          end
+        end
+      end
+
       errors.blank?
     end
 
@@ -144,11 +156,18 @@ module Setup
       COLLECTING_PROPERTIES.all? { |property| send(property).empty? }
     end
 
-    def cross(origin)
+    def cross(origin = :default)
+      cross_to(origin)
+      if (super_method = method(__method__).super_method)
+        super_method.call(origin)
+      end
+    end
+
+    def cross_to(origin = :default, criteria= {})
       COLLECTING_PROPERTIES.each do |property|
         r = reflect_on_association(property)
         if (model = r.klass).include?(Setup::CrossOriginShared)
-          model.where(:id.in => send(r.foreign_key)).with_tracking.cross(origin) do |_, non_tracked_ids|
+          model.where(:id.in => send(r.foreign_key)).and(criteria).with_tracking.cross(origin) do |_, non_tracked_ids|
             if non_tracked_ids.present?
               Account.each do |account| #TODO Run as a task in the background
                 if account == Account.current

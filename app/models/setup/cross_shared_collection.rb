@@ -1,8 +1,13 @@
 module Setup
   class CrossSharedCollection
     include CenitUnscoped
+    include CrossOrigin::Document
     include CollectionBehavior
     include HashField
+
+    origins -> { Cenit::MultiTenancy.tenant_model.current && :owner }, :shared
+
+    default_origin :owner
 
     build_in_data_type.with(:title,
                             :name,
@@ -19,6 +24,8 @@ module Setup
                             *COLLECTING_PROPERTIES).referenced_by(:name, :shared_version)
 
     deny :new, :translator_update, :convert, :send_to_flow, :copy, :delete_all
+
+    belongs_to :owner, class_name: Cenit::MultiTenancy.user_model_name, inverse_of: nil
 
     field :shared_version, type: String
     embeds_many :authors, class_name: Setup::CrossCollectionAuthor.to_s, inverse_of: :shared_collection
@@ -39,19 +46,24 @@ module Setup
     field :installed, type: Boolean, default: false
     field :pull_asynchronous, type: Boolean, default: false
 
+    before_validation do
+      self.shared_version ||= '0.0.1'
+      if authors.blank?
+        authors.new(name: User.current.name, email: User.current.email)
+      end
+    end
+
     validates_format_of :shared_version, with: /\A(0|[1-9]\d*)(\.(0|[1-9]\d*))*\Z/
     validates_length_of :shared_version, maximum: 255
     validates_presence_of :authors, :summary
 
+    after_save do
+      reinstall(add_dependencies: false) unless !installed? || skip_reinstall_callback
+      self.skip_reinstall_callback = false
+    end
+
     accepts_nested_attributes_for :authors, allow_destroy: true
     accepts_nested_attributes_for :pull_parameters, allow_destroy: true
-
-    build_in_data_type.schema['properties'].each do |name, schema|
-      if COLLECTING_PROPERTIES.include?(name.to_sym)
-        edi_spec = schema['edi'] ||= {}
-        edi_spec['discard'] = true
-      end
-    end
 
     default_scope -> { desc(:pull_count) }
 
@@ -76,11 +88,25 @@ module Setup
 
     def check_before_save
       super &&
+        ensure_shared_name &&
         check_dependencies &&
-        begin
-          self.data = {} if installed
-          true
-        end
+        validates_pull_parameters &&
+          begin
+            self.data = {} if installed
+            true
+          end
+    end
+
+    def ensure_shared_name
+      self.owner ||= Cenit::MultiTenancy.tenant_model.current.owner
+      shared_name = Setup::CrossSharedName.find_or_create_by(name: name)
+      if shared_name.owners.empty?
+        shared_name.owners << owner
+        shared_name.save
+      elsif shared_name.owners.exclude?(owner)
+        errors.add(:name, 'is already taken')
+      end
+      errors.blank?
     end
 
     def check_dependencies
@@ -100,6 +126,20 @@ module Setup
         block.call(dependence, stack)
         stack.pop
       end if block
+    end
+
+    def validates_pull_parameters
+      with_errors = false
+      pull_parameters.each do |pull_parameter|
+        pull_parameter.process_on(pull_data)
+        with_errors = with_errors || pull_parameter.errors.present?
+      end
+      if with_errors
+        errors.add(:pull_parameters, 'is not valid')
+        false
+      else
+        true
+      end
     end
 
     def generate_data
@@ -124,41 +164,69 @@ module Setup
     def pulled(options = {})
       self.class.collection.find(_id: id).update_one('$inc' => { pull_count: 1 })
       if !installed && options[:install] && User.current_installer?
-        self.pull_data = {}
-        [:title, :readme].each do |field|
-          if (value = send(field))
-            pull_data[field] = value
-          end
+        install(options)
+      end
+    end
+
+    def reinstall(options = {})
+      options[:collection] = self
+      options[:add_dependencies] = true unless options.has_key?(:add_dependencies)
+      install(options)
+    end
+
+    def install(options)
+      collection = options[:collection]
+      origin = options[:origin] || (self.origin == :default ? self.class.default_origin : self.origin)
+      collection.add_dependencies if options[:add_dependencies]
+
+      if collection.warnings.present?
+        collection.save(add_dependencies: false) if collection.changed?
+        return false
+      end
+
+      self.pull_data = {}
+      [:title, :readme].each do |field|
+        if (value = send(field))
+          pull_data[field] = value
         end
-        (collection = options[:collection]).cross(:shared)
-        attributes = {}
-        COLLECTING_PROPERTIES.each do |property|
-          send("#{property}=", [])
-          r = reflect_on_association(property)
-          opts = { polymorphic: true }
-          pull_data[r.name] =
-            if r.klass.include?(Setup::CrossOriginShared)
-              if (ids = collection.send(r.foreign_key)).present?
-                attributes[r.foreign_key]= ids
-              end
-              if r.klass.include?(Setup::SharedConfigurable)
-                configuring_fields = r.klass.data_type.get_referenced_by + r.klass.configuring_fields.to_a
-                configuring_fields = configuring_fields.collect(&:to_s)
-                collection.send(r.name).collect do |record|
-                  { _id: record.id.to_s }.merge record.share_hash(opts).reject { |k, _| configuring_fields.exclude?(k) }
-                end
-              else
-                collection.send(r.name).collect { |record| { _id: record.id.to_s } }
+      end
+
+      attributes = {}
+      COLLECTING_PROPERTIES.each do |property|
+        r = reflect_on_association(property)
+        opts = { polymorphic: true }
+        opts[:include_id] = ->(record) do
+          record.is_a?(Setup::CrossOriginShared) && record.shared?
+        end
+        pull_data[r.name] =
+          if r.klass < Setup::CrossOriginShared
+            if (ids = collection.send(r.foreign_key).dup).present?
+              attributes[r.foreign_key]= ids
+            end
+            if r.klass.include?(Setup::SharedConfigurable)
+              configuring_fields = r.klass.data_type.get_referenced_by + r.klass.configuring_fields.to_a
+              configuring_fields = configuring_fields.collect(&:to_s)
+              collection.send(r.name).collect do |record|
+                { _id: record.id.to_s }.merge record.share_hash(opts).reject { |k, _| configuring_fields.exclude?(k) }
               end
             else
-              collection.send(r.name).collect { |record| record.share_hash(opts) }
+              collection.send(r.name).collect { |record| { _id: record.id.to_s } }
             end
-          pull_data.delete_if { |_, value| value.blank? }
-        end
-        assign_attributes(attributes)
-        pull_parameters.each { |pull_parameter| pull_parameter.process_on(pull_data) }
-        self.installed = true
-        save(add_dependencies: false)
+          else
+            collection.send(r.name).collect { |record| record.share_hash(opts) }
+          end
+        pull_data.delete_if { |_, value| value.blank? }
+        send("#{property}=", [])
+      end
+
+      assign_attributes(attributes)
+      pull_data.deep_stringify_keys!
+
+      self.installed = true
+      self.skip_reinstall_callback = true
+      if save(add_dependencies: false)
+        collection.cross_to(origin, origin: :default)
+        true
       end
     end
 
@@ -200,5 +268,9 @@ module Setup
         super
       end
     end
+
+    protected
+
+    attr_accessor :skip_reinstall_callback
   end
 end

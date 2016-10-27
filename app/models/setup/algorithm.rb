@@ -1,13 +1,14 @@
 module Setup
   class Algorithm
-    include SharedEditable
+    include SnippetCode
     include NamespaceNamed
+
+    legacy_code_attribute :code
 
     build_in_data_type.referenced_by(:namespace, :name)
 
     field :description, type: String
     embeds_many :parameters, class_name: Setup::AlgorithmParameter.to_s, inverse_of: :algorithm
-    field :code, type: String
     embeds_many :call_links, class_name: Setup::CallLink.to_s, inverse_of: :algorithm
 
     validates_format_of :name, with: /\A[a-z]([a-z]|_|\d)*\Z/
@@ -22,6 +23,10 @@ module Setup
     before_save :validate_parameters, :validate_code, :validate_output_processing
 
     attr_reader :last_output
+
+    def code_extension
+      '.rb'
+    end
 
     def validate_parameters
       not_required = false

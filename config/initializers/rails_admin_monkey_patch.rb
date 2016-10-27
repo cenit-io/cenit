@@ -8,6 +8,13 @@ require 'rails_admin/lib/mongoff_abstract_model'
 
 module RailsAdmin
 
+  class ActionNotAllowed
+
+    def initialize(msg = 'Action not allowed')
+      super
+    end
+  end
+
   module Config
 
     class << self
@@ -178,7 +185,7 @@ module RailsAdmin
               end
               changes = @object.changes
               if @object.save
-                if (warnings = @object.try(:warnings))
+                if (warnings = @object.try(:warnings)).present?
                   do_flash(:warning, 'Warning', warnings)
                 end
                 @auditing_adapter && @auditing_adapter.update_object(@object, @abstract_model, _current_user, changes)
@@ -493,7 +500,7 @@ module RailsAdmin
     end
 
     def wording_for(label, action = @action, abstract_model = @abstract_model, object = @object)
-      model_config = abstract_model.try(:config)
+      model_config = abstract_model.try(:config) || action.bindings[:custom_model_config]
       #Patch
       object = abstract_model && object && object.is_a?(abstract_model.model) ? object : nil rescue nil
       action = RailsAdmin::Config::Actions.find(action.to_sym) if action.is_a?(Symbol) || action.is_a?(String)
@@ -647,21 +654,35 @@ module RailsAdmin
       i = -1
       mongoff_start_index = nil
       definitions_index = nil
-      main_labels =
-        nodes_stack.group_by(&:navigation_label).collect do |navigation_label, nodes|
+      main_labels = []
+      data_type_icons = { Setup::FileDataType => 'fa fa-file', Setup::JsonDataType => 'fa fa-database' }
+      non_setup_data_type_models =
+        [
+          Setup::FileDataType,
+          Setup::JsonDataType
+        ]
+      data_type_models =
+        {
+          Setup::BuildInDataType => main_labels
+        }
+      non_setup_data_type_models.each { |m| data_type_models[m] = [] }
+      nodes_stack.group_by(&:navigation_label).each do |navigation_label, nav_nodes|
+        nav_nodes.group_by do |node|
+          ((data_type = node.abstract_model.model.try(:data_type)) && data_type.class) || Setup::BuildInDataType
+        end.each do |data_type_model, nodes|
+          name = data_type_model.to_s.split('::').last.underscore
           i += 1
           collapse_id = "main-collapse#{i}"
-
           if nodes.first.is_a?(RailsAdmin::MongoffModelConfig)
             mongoff_start_index ||= i
           end
 
           nodes = nodes.select { |n| n.parent.nil? || !n.parent.to_s.in?(node_model_names) }
-          li_stack = navigation nodes_stack, nodes, collapse_id
+          li_stack = navigation(nodes_stack, nodes, collapse_id)
 
           label = navigation_label || t('admin.misc.navigation')
           if label == 'Definitions'
-            definitions_index = i
+            definitions_index = main_labels.length
           end
           html_id = "main-#{label.underscore.gsub(' ', '-')}"
 
@@ -676,10 +697,9 @@ module RailsAdmin
               nil
             end
 
-
           if li_stack.present?
             a = %(<div class='panel-heading'>
-              <a data-toggle='collapse' data-parent='##{mongoff_start_index ? 'records-collapse' : 'main-accordion'}' href='##{collapse_id}' class='panel-title collapse in collapsed'>
+              <a data-toggle='collapse' data-parent='##{mongoff_start_index ? "#{name}-collapse" : 'main-accordion'}' href='##{collapse_id}' class='panel-title collapse in collapsed'>
                 <span class='nav-caret'><i class='fa fa-caret-down'></i></span>) +
               (icon ? "<span class='nav-icon'>#{icon}</span>" : '') +
               %(<span class='nav-caption'>#{capitalize_first_letter label}</span>
@@ -689,23 +709,36 @@ module RailsAdmin
             unless mongoff_start_index
               a = "<div id='#{html_id}' class='panel panel-default'>#{a}</div>"
             end
-            a
+            data_type_models[data_type_model] << a
           end
         end
-      if mongoff_start_index
-        mongoffs = main_labels.from(mongoff_start_index)
-        main_labels = main_labels.to(mongoff_start_index - 1)
-        definitions_index ||= main_labels.length - 1
-        main_labels.insert definitions_index + 1, %(<div id='main-records' class='panel panel-default'>
+      end
+      definitions_index ||= main_labels.length - 1
+      i = 1
+      non_setup_data_type_models.each do |data_type_model|
+        links = data_type_models[data_type_model]
+        name = data_type_model.to_s.split('::').last.underscore
+        link_link = link_to url_for(action: :link_data_type,
+                                    controller: 'rails_admin/main',
+                                    data_type_model: data_type_model.to_s) do
+          %{<span class="nav-caption">#{t("admin.misc.link_#{name}")}</span>
+              <span class="nav-icon" style="margin-left: 30px;"/>
+                <i class="fa fa-plus"></i>
+             </span>}.html_safe
+        end
+        main_labels.insert definitions_index + i, %(<div id='main-#{name}' class='panel panel-default'>
             <div class='panel-heading'>
-              <a data-toggle='collapse' data-parent='#main-accordion' href='#records-collapse' class='panel-title collapse in collapsed'>
+              <a data-toggle='collapse' data-parent='#main-accordion' href='##{name}-collapse' class='panel-title collapse in collapsed'>
                 <span class='nav-caret'><i class='fa fa-caret-down'></i></span>
-                <span class='nav-icon'><i class='fa fa-database'></i></span>
-                <span class='nav-caption'>Records</span>
+                <span class='nav-icon'><i class='#{data_type_icons[data_type_model]}'></i></span>
+                <span class='nav-caption'>#{t("admin.misc.main_navigation.#{name}")}</span>
               </a>
             </div>
-            <div id='records-collapse' class='nav nav-pills nav-stacked panel-collapse collapse'>
-              #{mongoffs.collect { |m| "<div class='panel panel-default'> #{m} </div>" }.join }
+            <div id='#{name}-collapse' class='nav nav-pills nav-stacked panel-collapse collapse'>
+              <li>
+                #{link_link}
+              </li>
+              #{links.collect { |link| "<div class='panel panel-default'> #{link} </div>" }.join }
             </div>
           </div>)
       end
@@ -855,7 +888,7 @@ module RailsAdmin
       if (model = model_config.abstract_model.model).is_a?(Class)
         if model.include?(CrossOrigin::Document)
           origins = []
-          ([:default] + model.origins).each { |origin| origins << origin if params[origin_param="#{origin}_origin"].to_i.even? }
+          model.origins.each { |origin| origins << origin if params[origin_param="#{origin}_origin"].to_i.even? }
           origins << nil if origins.include?(:default)
           scope = scope.any_in(origin: origins)
         end

@@ -26,7 +26,11 @@ module Setup
         [
           Setup::Flow,
           Setup::Connection,
-          Setup::Webhook
+          Setup::Webhook,
+          Setup::Algorithm,
+          Setup::Translator,
+          Setup::DataType,
+          Setup::Validator
         ],
       bind: bind_models
     }.each do |role, models|

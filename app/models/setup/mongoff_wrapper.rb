@@ -1,5 +1,5 @@
 module Setup
-  module MongoffWrapper
+  module MongoffWrapper #TODO Delete this module
     extend ActiveSupport::Concern
 
     module ClassMethods
