@@ -1,0 +1,9 @@
+.icon-swagger {
+  &:before {
+    content: "X";
+    font-size: 18px;
+    color: transparent;
+    padding: 0px 1px 1px;
+    background: url("/swagger-editor/images/favicon-16x16.png") no-repeat center;
+  }
+}

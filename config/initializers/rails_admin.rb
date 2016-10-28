@@ -48,7 +48,8 @@ require 'account'
   RailsAdmin::Config::Actions::Documentation,
   RailsAdmin::Config::Actions::Push,
   RailsAdmin::Config::Actions::Share,
-  RailsAdmin::Config::Actions::Reinstall
+  RailsAdmin::Config::Actions::Reinstall,
+  RailsAdmin::Config::Actions::Swagger
 ].each { |a| RailsAdmin::Config::Actions.register(a) }
 
 RailsAdmin::Config::Actions.register(:export, RailsAdmin::Config::Actions::BulkExport)
@@ -117,6 +118,7 @@ RailsAdmin.config do |config|
     run
     run_script
     edit
+    swagger
     configure
     play
     copy

@@ -441,6 +441,10 @@ en:
         title: "Docs"
         menu: "Docs"
         breadcrumb: "Docs"
+      swagger:
+        title: "Swagger"
+        menu: "Swagger"
+        breadcrumb: "Swagger"
     form:
       flow:
         source_data_type: 'Source data type'
