@@ -49,7 +49,8 @@ require 'account'
   RailsAdmin::Config::Actions::Push,
   RailsAdmin::Config::Actions::Share,
   RailsAdmin::Config::Actions::Reinstall,
-  RailsAdmin::Config::Actions::Swagger
+  RailsAdmin::Config::Actions::Swagger,
+  RailsAdmin::Config::Actions::LinkDataType
 ].each { |a| RailsAdmin::Config::Actions.register(a) }
 
 RailsAdmin::Config::Actions.register(:export, RailsAdmin::Config::Actions::BulkExport)
@@ -104,6 +105,7 @@ RailsAdmin.config do |config|
     dashboard # mandatory
     # disk_usage
     shared_collection_index
+    link_data_type
     index # mandatory
     new { except [Setup::Event, Setup::DataType, Setup::Authorization, Setup::BaseOauthProvider] }
     import
@@ -1235,7 +1237,7 @@ RailsAdmin.config do |config|
   config.model Setup::JsonDataType do
     navigation_label 'Definitions'
     weight 111
-    label 'JSON Data Type'
+    label 'Object Type'
     object_label_method { :custom_title }
 
     group :behavior do
@@ -1349,7 +1351,7 @@ RailsAdmin.config do |config|
   config.model Setup::FileDataType do
     navigation_label 'Definitions'
     weight 112
-    label 'File Data Type'
+    label 'File Type'
     object_label_method { :custom_title }
 
     group :content do
@@ -1460,7 +1462,7 @@ RailsAdmin.config do |config|
   config.model Setup::CenitDataType do
     navigation_label 'Definitions'
     weight 113
-    label 'Cenit Data Type'
+    label 'Cenit Type'
     object_label_method { :custom_title }
 
     visible { Account.current_super_admin? }
@@ -1478,10 +1480,17 @@ RailsAdmin.config do |config|
       end
       read_only true
     end
-    
+
     configure :slug
 
     configure :schema, :json_schema
+
+    edit do
+      field :namespace, &shared_non_editable
+      field :name, &shared_non_editable
+      field :slug
+      field :storage_size
+    end
 
     show do
       field :title
@@ -3846,6 +3855,14 @@ RailsAdmin.config do |config|
 
   config.model Setup::SharedName do
     weight 880
+    navigation_label 'Administration'
+    visible { User.current_super_admin? }
+
+    fields :name, :owners, :updated_at
+  end
+
+  config.model Setup::CrossSharedName do
+    weight 881
     navigation_label 'Administration'
     visible { User.current_super_admin? }
 

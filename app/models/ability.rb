@@ -21,6 +21,7 @@ class Ability
               User,
               Account,
               Setup::SharedName,
+              Setup::CrossSharedName,
               Cenit::BasicToken,
               Script,
               Setup::DelayedMessage,
@@ -40,7 +41,7 @@ class Ability
         can [:simple_cross, :reinstall], Setup::CrossSharedCollection, installed: true
         can :simple_cross, UNCONDITIONAL_ADMIN_CROSSING_MODELS
       else
-        cannot :access, [Setup::SharedName, Setup::DelayedMessage, Setup::SystemNotification]
+        cannot :access, [Setup::SharedName, Setup::CrossSharedName, Setup::DelayedMessage, Setup::SystemNotification]
         cannot :destroy, [Setup::SharedCollection, Setup::Storage]
 
         can :index, Setup::CrossSharedCollection
@@ -156,6 +157,7 @@ class Ability
             shared_allowed_hash
           ].each do |hash|
             hash.each do |keys, models|
+              keys.delete(:simple_cross)
               if [:pull, :edit, :destroy, :import, :reinstall].any? { |key| keys.include?(key) }
                 models.delete(Setup::CrossSharedCollection)
               end
@@ -231,6 +233,14 @@ class Ability
   end
 
   def crossing_models
-    user.super_admin? ? ADMIN_CROSSING_MODELS : CROSSING_MODELS
+    if user
+      if user.super_admin?
+        ADMIN_CROSSING_MODELS
+      else
+        CROSSING_MODELS
+      end
+    else
+      []
+    end
   end
 end
