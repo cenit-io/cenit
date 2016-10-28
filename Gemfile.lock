@@ -15,7 +15,7 @@ GIT
 
 GIT
   remote: https://github.com/macarci/cenit-oauth.git
-  revision: c8fce37c8637ebcd582e38e408885da4d8be7b1b
+  revision: 4bfba92eb1cc62f131828b716d0a7360608557f8
   specs:
     cenit-oauth (0.0.1)
       cenit-token
@@ -42,7 +42,7 @@ GIT
 
 GIT
   remote: https://github.com/macarci/cross_origin.git
-  revision: 872a8a6fe81794dc63d0f2397f4e81d188fc55f4
+  revision: a82d001eb0f98a206739727397242e6d5a9c097f
   specs:
     cross_origin (0.0.3)
 

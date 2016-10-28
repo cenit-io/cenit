@@ -11,8 +11,14 @@ module Setup
 
     belongs_to :algorithm, class_name: Setup::Algorithm.to_s, inverse_of: nil
 
-    validates_presence_of :method, :path, :algorithm
+    before_validation do
+      self.path ||= '/'
+      self.path = "/#{path}" unless path.start_with?('/')
+    end
+
+    validates_presence_of :method, :algorithm, :path
     validates_length_of :path, maximum: 255
+    validates_format_of :path, with: /\A(\/:?(\w|-)+)*(\/)?\Z/
 
     def method_enum
       [:get, :post, :put, :delete, :patch, :copy, :head, :options, :link, :unlink, :purge, :lock, :unlock, :propfind]

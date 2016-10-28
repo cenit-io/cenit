@@ -11,8 +11,6 @@ require 'account'
   RailsAdmin::Config::Actions::DeleteAll,
   RailsAdmin::Config::Actions::TranslatorUpdate,
   RailsAdmin::Config::Actions::Convert,
-  RailsAdmin::Config::Actions::SimpleShare,
-  RailsAdmin::Config::Actions::BulkShare,
   RailsAdmin::Config::Actions::Pull,
   RailsAdmin::Config::Actions::RetryTask,
   RailsAdmin::Config::Actions::DownloadFile,
@@ -36,8 +34,8 @@ require 'account'
   RailsAdmin::Config::Actions::Copy,
   RailsAdmin::Config::Actions::Cancel,
   RailsAdmin::Config::Actions::Configure,
-  RailsAdmin::Config::Actions::SimpleCrossShare,
-  RailsAdmin::Config::Actions::BulkCrossShare,
+  RailsAdmin::Config::Actions::SimpleCross,
+  RailsAdmin::Config::Actions::BulkCross,
   RailsAdmin::Config::Actions::Regist,
   RailsAdmin::Config::Actions::SharedCollectionIndex,
   RailsAdmin::Config::Actions::BulkPull,
@@ -48,7 +46,10 @@ require 'account'
   RailsAdmin::Config::Actions::PullImport,
   RailsAdmin::Config::Actions::State,
   RailsAdmin::Config::Actions::Documentation,
-  RailsAdmin::Config::Actions::Push
+  RailsAdmin::Config::Actions::Push,
+  RailsAdmin::Config::Actions::Share,
+  RailsAdmin::Config::Actions::Reinstall,
+  RailsAdmin::Config::Actions::LinkDataType
 ].each { |a| RailsAdmin::Config::Actions.register(a) }
 
 RailsAdmin::Config::Actions.register(:export, RailsAdmin::Config::Actions::BulkExport)
@@ -103,6 +104,7 @@ RailsAdmin.config do |config|
     dashboard # mandatory
     # disk_usage
     shared_collection_index
+    link_data_type
     index # mandatory
     new { except [Setup::Event, Setup::DataType, Setup::Authorization, Setup::BaseOauthProvider] }
     import
@@ -120,10 +122,9 @@ RailsAdmin.config do |config|
     configure
     play
     copy
-    simple_share
-    bulk_share
-    simple_cross_share
-    bulk_cross_share
+    share
+    simple_cross
+    bulk_cross
     build_gem
     pull
     bulk_pull
@@ -146,6 +147,7 @@ RailsAdmin.config do |config|
     inspect
     cancel
     regist
+    reinstall
     simple_delete_data_type
     bulk_delete_data_type
     delete
@@ -189,6 +191,356 @@ RailsAdmin.config do |config|
   end
 
   #Collections
+
+  sharing_collection_invisible = Proc.new do
+    instance_eval do
+      visible { !(obj = bindings[:object]).instance_variable_get(:@sharing) }
+    end
+  end
+
+  collection_fields_config = Proc.new do
+
+    if abstract_model.model == Setup::CrossSharedCollection
+      configure :readme, :html_erb
+      configure :pull_data, :json_value
+      configure :data, :json_value
+      configure :swagger_spec, :json_value
+    end
+
+    group :compute do
+      active false
+    end
+
+    configure :translators do
+      group :compute
+    end
+
+    configure :algorithms do
+      group :compute
+    end
+
+    configure :applications do
+      group :compute
+    end
+
+    configure :snippets do
+      group :compute
+    end
+
+    group :workflows do
+      active false
+    end
+
+    configure :flows do
+      group :workflows
+    end
+
+    configure :events do
+      group :workflows
+    end
+
+    group :api_connectors do
+      label 'Connectors'
+      active false
+    end
+
+    configure :connections do
+      group :api_connectors
+    end
+
+    configure :webhooks do
+      group :api_connectors
+    end
+
+    configure :connection_roles do
+      group :api_connectors
+    end
+
+    group :data do
+      active false
+    end
+
+    configure :data_types do
+      group :data
+    end
+
+    configure :schemas do
+      group :data
+    end
+
+    configure :data do
+      group :data
+    end
+
+    configure :custom_validators do
+      group :data
+    end
+
+    group :security do
+      active false
+    end
+
+    configure :authorizations do
+      group :security
+    end
+
+    configure :oauth_providers do
+      group :security
+    end
+
+    configure :oauth_clients do
+      group :security
+    end
+
+    configure :oauth2_scopes do
+      group :security
+    end
+
+    group :config do
+      active false
+    end
+
+    configure :namespaces do
+      group :config
+    end
+
+    edit do
+      field :name
+      field :title
+      field :image, &sharing_collection_invisible
+
+      if abstract_model.model == Setup::CrossSharedCollection
+        field :shared_version, &sharing_collection_invisible
+        field :category, &sharing_collection_invisible
+        field :authors, &sharing_collection_invisible
+        field :summary
+      end
+
+      field :readme, :html_erb, &sharing_collection_invisible
+
+      if abstract_model.model == Setup::CrossSharedCollection
+        field :pull_parameters
+        field :pull_count do
+          visible do
+            User.current.super_admin? &&
+              !(obj = bindings[:object]).instance_variable_get(:@sharing)
+          end
+        end
+      end
+
+      field :flows, &sharing_collection_invisible
+      field :connection_roles, &sharing_collection_invisible
+      field :events, &sharing_collection_invisible
+      field :data_types, &sharing_collection_invisible
+      field :schemas, &sharing_collection_invisible
+      field :custom_validators, &sharing_collection_invisible
+      field :translators, &sharing_collection_invisible
+      field :algorithms, &sharing_collection_invisible
+      field :applications, &sharing_collection_invisible
+      field :snippets, &sharing_collection_invisible
+      field :webhooks, &sharing_collection_invisible
+      field :connections, &sharing_collection_invisible
+      field :authorizations, &sharing_collection_invisible
+      field :oauth_providers, &sharing_collection_invisible
+      field :oauth_clients, &sharing_collection_invisible
+      field :oauth2_scopes, &sharing_collection_invisible
+      field :data, &sharing_collection_invisible
+    end
+
+    show do
+      field :title
+      field :image
+      field :name
+
+      prefix =
+        if abstract_model.model == Setup::CrossSharedCollection
+          field :summary
+          field :authors
+          field :pull_count
+          'data_'
+        else
+          ''
+        end
+
+      field :readme, :html_erb
+
+      instance_eval do
+        field "#{prefix}schemas".to_sym do
+          label 'Schemas'
+          group :data
+        end
+        field "#{prefix}custom_validators".to_sym do
+          label 'Validators'
+          group :data
+        end
+        field "#{prefix}data_types".to_sym do
+          label 'Data Types'
+          group :data
+        end
+
+        field "#{prefix}connections".to_sym do
+          label 'Connections'
+          group :api_connectors
+        end
+
+        field "#{prefix}webhooks".to_sym do
+          label 'Webhooks'
+          group :api_connectors
+        end
+
+        field "#{prefix}connection_roles".to_sym do
+          label 'Connection Roles'
+          group :api_connectors
+        end
+
+        field "#{prefix}flows".to_sym do
+          label 'Flows'
+          group :workflows
+        end
+
+        field "#{prefix}events".to_sym do
+          label 'Events'
+          group :workflows
+        end
+
+        field "#{prefix}translators".to_sym do
+          label 'Translators'
+          group :compute
+        end
+
+        field "#{prefix}algorithms".to_sym do
+          label 'Algorithms'
+          group :compute
+        end
+
+        field "#{prefix}applications".to_sym do
+          label 'Applications'
+          group :compute
+        end
+
+        field "#{prefix}snippets".to_sym do
+          label 'Snippets'
+          group :compute
+        end
+
+        field "#{prefix}authorizations".to_sym do
+          label 'Authorizations'
+          group :security
+        end
+
+        field "#{prefix}oauth_clients".to_sym do
+          label 'OAuth Clients'
+          group :security
+        end
+
+        field "#{prefix}oauth_providers".to_sym do
+          label 'OAuth Providers'
+          group :security
+        end
+
+        field "#{prefix}oauth2_scopes".to_sym do
+          label 'OAuth 2.0 Scopes'
+          group :security
+        end
+
+        field "#{prefix}namespaces".to_sym do
+          label 'Namespaces'
+          group :config
+        end
+      end
+
+      field :_id
+      field :created_at
+      field :updated_at
+    end
+
+    unless abstract_model.model == Setup::CrossSharedCollection
+      list do
+        field :title
+        field :image do
+          thumb_method :icon
+        end
+        field :name
+        field :flows do
+          pretty_value do
+            value.count > 0 ? value.count : '-'
+          end
+        end
+        field :connection_roles do
+          pretty_value do
+            value.count > 0 ? value.count : '-'
+          end
+        end
+        field :translators do
+          pretty_value do
+            value.count > 0 ? value.count : '-'
+          end
+        end
+        field :events do
+          pretty_value do
+            value.count > 0 ? value.count : '-'
+          end
+        end
+        field :data_types do
+          pretty_value do
+            value.count > 0 ? value.count : '-'
+          end
+        end
+        field :schemas do
+          pretty_value do
+            value.count > 0 ? value.count : '-'
+          end
+        end
+        field :custom_validators do
+          pretty_value do
+            value.count > 0 ? value.count : '-'
+          end
+        end
+        field :algorithms do
+          pretty_value do
+            value.count > 0 ? value.count : '-'
+          end
+        end
+        field :applications do
+          pretty_value do
+            value.count > 0 ? value.count : '-'
+          end
+        end
+        field :webhooks do
+          pretty_value do
+            value.count > 0 ? value.count : '-'
+          end
+        end
+        field :connections do
+          pretty_value do
+            value.count > 0 ? value.count : '-'
+          end
+        end
+        field :authorizations do
+          pretty_value do
+            value.count > 0 ? value.count : '-'
+          end
+        end
+        field :oauth_providers do
+          pretty_value do
+            value.count > 0 ? value.count : '-'
+          end
+        end
+        field :oauth_clients do
+          pretty_value do
+            value.count > 0 ? value.count : '-'
+          end
+        end
+        field :oauth2_scopes do
+          pretty_value do
+            value.count > 0 ? value.count : '-'
+          end
+        end
+        field :data
+        field :updated_at
+      end
+    end
+  end
 
   config.navigation 'Collections', icon: 'fa fa-cubes'
 
@@ -243,201 +595,11 @@ RailsAdmin.config do |config|
     index_template_name :shared_collection_grid
     index_link_icon 'icon-th-large'
 
-    configure :readme, :html_erb
-    configure :pull_data, :json_value
-    configure :data, :json_value
-    configure :swagger_spec, :json_value
-
-    group :workflows
-
-    configure :flows do
-      group :workflows
+    register_instance_option(:discard_submit_buttons) do
+      !(a = bindings[:action]) || a.key != :edit
     end
 
-    configure :events do
-      group :workflows
-    end
-
-    configure :translators do
-      group :workflows
-    end
-
-    configure :algorithms do
-      group :workflows
-    end
-
-    configure :applications do
-      group :workflows
-    end
-
-    group :api_connectors do
-      label 'Connectors'
-      active true
-    end
-
-    configure :connections do
-      group :api_connectors
-    end
-
-    configure :webhooks do
-      group :api_connectors
-    end
-
-    configure :connection_roles do
-      group :api_connectors
-    end
-
-    group :data
-
-    configure :data_types do
-      group :data
-    end
-
-    configure :schemas do
-      group :data
-    end
-
-    configure :data do
-      group :data
-    end
-
-    configure :custom_validators do
-      group :data
-    end
-
-    group :security
-
-    configure :authorizations do
-      group :security
-    end
-
-    configure :oauth_providers do
-      group :security
-    end
-
-    configure :oauth_clients do
-      group :security
-    end
-
-    configure :oauth2_scopes do
-      group :security
-    end
-
-    group :config
-
-    configure :namespaces do
-      group :config
-    end
-
-    edit do
-      field :title
-      field :image
-      field :logo_background, :color
-      field :name
-      field :shared_version
-      field :summary
-      field :category
-      field :authors
-      field :pull_count
-      field :pull_parameters
-      field :dependencies
-      field :readme
-    end
-
-    show do
-      field :title
-      field :image
-      field :name do
-        pretty_value do
-          bindings[:object].versioned_name
-        end
-      end
-      field :summary
-      field :readme
-
-      field :authors
-      field :pull_count
-      field :_id
-      field :updated_at
-
-      field :data_schemas do
-        label 'Schemas'
-        group :data
-      end
-      field :data_custom_validators do
-        label 'Validators'
-        group :data
-      end
-      field :data_data_types do
-        label 'Data Types'
-        group :data
-      end
-
-      field :data_connections do
-        label 'Connections'
-        group :api_connectors
-      end
-
-      field :data_webhooks do
-        label 'Webhooks'
-        group :api_connectors
-      end
-
-      field :data_connection_roles do
-        label 'Connection Roles'
-        group :api_connectors
-      end
-
-      field :data_flows do
-        label 'Flows'
-        group :workflows
-      end
-
-      field :data_events do
-        label 'Events'
-        group :workflows
-      end
-
-      field :data_translators do
-        label 'Translators'
-        group :workflows
-      end
-
-      field :data_algorithms do
-        label 'Algorithms'
-        group :workflows
-      end
-
-      field :data_applications do
-        label 'Applications'
-        group :workflows
-      end
-
-      field :data_authorizations do
-        label 'Autorizations'
-        group :security
-      end
-
-      field :data_oauth_clients do
-        label 'OAuth Clients'
-        group :security
-      end
-
-      field :data_oauth_providers do
-        label 'OAuth Providers'
-        group :security
-      end
-
-      field :data_oauth2_scopes do
-        label 'OAuth 2.0 Scopes'
-        group :security
-      end
-
-      field :data_namespaces do
-        label 'Namespaces'
-        group :config
-      end
-    end
+    instance_eval &collection_fields_config
   end
 
   config.model Setup::SharedCollection do
@@ -784,226 +946,7 @@ RailsAdmin.config do |config|
       'My Collections'
     end
 
-    group :workflows
-
-    configure :flows do
-      group :workflows
-    end
-
-    configure :events do
-      group :workflows
-    end
-
-    configure :translators do
-      group :workflows
-    end
-
-    configure :algorithms do
-      group :workflows
-    end
-
-    configure :applications do
-      group :workflows
-    end
-
-    group :api_connectors do
-      label 'Connectors'
-      active true
-    end
-
-    configure :connections do
-      group :api_connectors
-    end
-
-    configure :webhooks do
-      group :api_connectors
-    end
-
-    configure :connection_roles do
-      group :api_connectors
-    end
-
-    group :data
-
-    configure :data_types do
-      group :data
-    end
-
-    configure :schemas do
-      group :data
-    end
-
-    configure :data do
-      group :data
-    end
-
-    configure :custom_validators do
-      group :data
-    end
-
-    group :security
-
-    configure :authorizations do
-      group :security
-    end
-
-    configure :oauth_providers do
-      group :security
-    end
-
-    configure :oauth_clients do
-      group :security
-    end
-
-    configure :oauth2_scopes do
-      group :security
-    end
-
-    group :config
-
-    configure :namespaces do
-      group :config
-    end
-
-    edit do
-      field :title
-      field :image
-      field :readme do
-        visible { Account.current_super_admin? }
-      end
-      field :name
-      field :flows
-      field :connection_roles
-      field :translators
-      field :events
-      field :data_types
-      field :schemas
-      field :custom_validators
-      field :algorithms
-      field :applications
-      field :webhooks
-      field :connections
-      field :authorizations
-      field :oauth_providers
-      field :oauth_clients
-      field :oauth2_scopes
-      field :data
-    end
-
-    show do
-      field :title
-      field :image
-      field :readme, :html_erb
-      field :name
-      field :flows
-      field :connection_roles
-      field :translators
-      field :events
-      field :data_types
-      field :schemas
-      field :custom_validators
-      field :algorithms
-      field :applications
-      field :webhooks
-      field :connections
-      field :authorizations
-      field :oauth_providers
-      field :oauth_clients
-      field :oauth2_scopes
-      field :data
-      field :namespaces
-
-      field :_id
-      field :created_at
-      #field :creator
-      field :updated_at
-      #field :updater
-    end
-
-    list do
-      field :title
-      field :image do
-        thumb_method :icon
-      end
-      field :name
-      field :flows do
-        pretty_value do
-          value.count > 0 ? value.count : '-'
-        end
-      end
-      field :connection_roles do
-        pretty_value do
-          value.count > 0 ? value.count : '-'
-        end
-      end
-      field :translators do
-        pretty_value do
-          value.count > 0 ? value.count : '-'
-        end
-      end
-      field :events do
-        pretty_value do
-          value.count > 0 ? value.count : '-'
-        end
-      end
-      field :data_types do
-        pretty_value do
-          value.count > 0 ? value.count : '-'
-        end
-      end
-      field :schemas do
-        pretty_value do
-          value.count > 0 ? value.count : '-'
-        end
-      end
-      field :custom_validators do
-        pretty_value do
-          value.count > 0 ? value.count : '-'
-        end
-      end
-      field :algorithms do
-        pretty_value do
-          value.count > 0 ? value.count : '-'
-        end
-      end
-      field :applications do
-        pretty_value do
-          value.count > 0 ? value.count : '-'
-        end
-      end
-      field :webhooks do
-        pretty_value do
-          value.count > 0 ? value.count : '-'
-        end
-      end
-      field :connections do
-        pretty_value do
-          value.count > 0 ? value.count : '-'
-        end
-      end
-      field :authorizations do
-        pretty_value do
-          value.count > 0 ? value.count : '-'
-        end
-      end
-      field :oauth_providers do
-        pretty_value do
-          value.count > 0 ? value.count : '-'
-        end
-      end
-      field :oauth_clients do
-        pretty_value do
-          value.count > 0 ? value.count : '-'
-        end
-      end
-      field :oauth2_scopes do
-        pretty_value do
-          value.count > 0 ? value.count : '-'
-        end
-      end
-      field :data
-      field :updated_at
-    end
+    instance_eval &collection_fields_config
   end
 
   #Definitions
@@ -1044,6 +987,8 @@ RailsAdmin.config do |config|
     weight 101
     object_label_method { :custom_title }
 
+    configure :schema
+
     edit do
       field :namespace, :enum_edit do
         read_only { !bindings[:object].new_record? }
@@ -1074,6 +1019,7 @@ RailsAdmin.config do |config|
       end
 
       field :schema_data_type do
+        shared_read_only
         inline_edit false
         inline_add false
       end
@@ -1114,13 +1060,30 @@ RailsAdmin.config do |config|
     label 'XSLT Validator'
     object_label_method { :custom_title }
 
+    configure :code, :code do
+      html_attributes do
+        { cols: '74', rows: '15' }
+      end
+      code_config do
+        {
+          mode: 'application/xml'
+        }
+      end
+    end
+
     list do
       field :namespace
-      field :xslt
+      field :name
       field :updated_at
     end
 
-    fields :namespace, :name, :xslt, :updated_at
+    edit do
+      field :namespace, &shared_non_editable
+      field :name, &shared_non_editable
+      field :code
+    end
+
+    fields :namespace, :name, :code, :updated_at
   end
 
   config.model Setup::EdiValidator do
@@ -1273,7 +1236,7 @@ RailsAdmin.config do |config|
   config.model Setup::JsonDataType do
     navigation_label 'Definitions'
     weight 111
-    label 'JSON Data Type'
+    label 'Object Type'
     object_label_method { :custom_title }
 
     group :behavior do
@@ -1291,9 +1254,6 @@ RailsAdmin.config do |config|
       html_attributes do
         { cols: '74', rows: '15' }
       end
-      # pretty_value do
-      #   "<pre><code class='json'>#{JSON.pretty_generate(value)}</code></pre>".html_safe
-      # end
     end
 
     configure :storage_size, :decimal do
@@ -1336,7 +1296,6 @@ RailsAdmin.config do |config|
       field :namespace, :enum_edit, &shared_non_editable
       field :name, &shared_non_editable
       field :schema, :json_schema do
-        shared_read_only
         help { 'Required' }
       end
       field :title, &shared_non_editable
@@ -1391,7 +1350,7 @@ RailsAdmin.config do |config|
   config.model Setup::FileDataType do
     navigation_label 'Definitions'
     weight 112
-    label 'File Data Type'
+    label 'File Type'
     object_label_method { :custom_title }
 
     group :content do
@@ -1494,6 +1453,55 @@ RailsAdmin.config do |config|
       #field :creator
       field :updated_at
       #field :updater
+    end
+
+    fields :namespace, :name, :slug, :storage_size, :updated_at
+  end
+
+  config.model Setup::CenitDataType do
+    navigation_label 'Definitions'
+    weight 113
+    label 'Cenit Type'
+    object_label_method { :custom_title }
+
+    visible { Account.current_super_admin? }
+
+    configure :storage_size, :decimal do
+      pretty_value do
+        if (objects = bindings[:controller].instance_variable_get(:@objects))
+          unless (max = bindings[:controller].instance_variable_get(:@max_storage_size))
+            bindings[:controller].instance_variable_set(:@max_storage_size, max = objects.collect { |data_type| data_type.storage_size }.max)
+          end
+          (bindings[:view].render partial: 'size_bar', locals: { max: max, value: bindings[:object].records_model.storage_size }).html_safe
+        else
+          bindings[:view].number_to_human_size(value)
+        end
+      end
+      read_only true
+    end
+
+    configure :slug
+
+    configure :schema, :json_schema
+
+    edit do
+      field :namespace, &shared_non_editable
+      field :name, &shared_non_editable
+      field :slug
+      field :storage_size
+    end
+
+    show do
+      field :title
+      field :namespace
+      field :name
+      field :slug
+      field :storage_size
+      field :schema
+
+      field :_id
+      field :created_at
+      field :updated_at
     end
 
     fields :namespace, :name, :slug, :storage_size, :updated_at
@@ -2327,11 +2335,13 @@ RailsAdmin.config do |config|
       [RailsAdmin::Adapters::Mongoid::Association.new(association, abstract_model.model)]
     end
 
+    configure :code, :code
+
     edit do
-      field :namespace, :enum_edit
-      field :name
-      field :description
-      field :parameters
+      field :namespace, :enum_edit, &shared_non_editable
+      field :name, &shared_non_editable
+      field :description, &shared_non_editable
+      field :parameters, &shared_non_editable
       field :code, :code do
         html_attributes do
           { cols: '74', rows: '15' }
@@ -2344,11 +2354,12 @@ RailsAdmin.config do |config|
         help { 'Required' }
       end
       field :call_links do
+        shared_read_only
         visible { bindings[:object].call_links.present? }
       end
-      field :store_output
-      field :output_datatype
-      field :validate_output
+      field :store_output, &shared_non_editable
+      field :output_datatype, &shared_non_editable
+      field :validate_output, &shared_non_editable
     end
     show do
       field :namespace
@@ -2388,7 +2399,7 @@ RailsAdmin.config do |config|
         [
           :source_data_type,
           :target_data_type,
-          :transformation,
+          :code,
           :target_importer,
           :source_exporter,
           :discard_chained_records
@@ -2396,13 +2407,16 @@ RailsAdmin.config do |config|
       end
     end
 
-    edit do
-      field :namespace, :enum_edit
-      field :name
+    configure :code, :code
 
-      field :type
+    edit do
+      field :namespace, :enum_edit, &shared_non_editable
+      field :name, &shared_non_editable
+
+      field :type, &shared_non_editable
 
       field :source_data_type do
+        shared_read_only
         inline_edit false
         inline_add false
         visible { [:Export, :Conversion].include?(bindings[:object].type) }
@@ -2410,6 +2424,7 @@ RailsAdmin.config do |config|
       end
 
       field :target_data_type do
+        shared_read_only
         inline_edit false
         inline_add false
         visible { [:Import, :Update, :Conversion].include?(bindings[:object].type) }
@@ -2417,35 +2432,41 @@ RailsAdmin.config do |config|
       end
 
       field :discard_events do
+        shared_read_only
         visible { [:Import, :Update, :Conversion].include?(bindings[:object].type) }
         help "Events won't be fired for created or updated records if checked"
       end
 
       field :style do
+        shared_read_only
         visible { bindings[:object].type.present? }
         help 'Required'
       end
 
       field :bulk_source do
+        shared_read_only
         visible { bindings[:object].type == :Export && bindings[:object].style.present? && bindings[:object].source_bulkable? }
       end
 
       field :mime_type do
+        shared_read_only
         label 'MIME type'
         visible { bindings[:object].type == :Export && bindings[:object].style.present? }
       end
 
       field :file_extension do
+        shared_read_only
         visible { bindings[:object].type == :Export && !bindings[:object].file_extension_enum.empty? }
         help { "Extensions for #{bindings[:object].mime_type}" }
       end
 
       field :source_handler do
+        shared_read_only
         visible { (t = bindings[:object]).style.present? && (t.type == :Update || (t.type == :Conversion && t.style == 'ruby')) }
-        help { 'Handle sources on transformation' }
+        help { 'Handle sources on code' }
       end
 
-      field :transformation, :code do
+      field :code, :code do
         visible { bindings[:object].style.present? && bindings[:object].style != 'chain' }
         help { 'Required' }
         html_attributes do
@@ -2466,6 +2487,7 @@ RailsAdmin.config do |config|
       end
 
       field :source_exporter do
+        shared_read_only
         inline_add { bindings[:object].source_exporter.nil? }
         visible { bindings[:object].style == 'chain' && bindings[:object].source_data_type && bindings[:object].target_data_type }
         help 'Required'
@@ -2478,6 +2500,7 @@ RailsAdmin.config do |config|
       end
 
       field :target_importer do
+        shared_read_only
         inline_add { bindings[:object].target_importer.nil? }
         visible { bindings[:object].style == 'chain' && bindings[:object].source_data_type && bindings[:object].target_data_type && bindings[:object].source_exporter }
         help 'Required'
@@ -2499,6 +2522,7 @@ RailsAdmin.config do |config|
       end
 
       field :discard_chained_records do
+        shared_read_only
         visible { bindings[:object].style == 'chain' && bindings[:object].source_data_type && bindings[:object].target_data_type && bindings[:object].source_exporter }
         help "Chained records won't be saved if checked"
       end
@@ -2515,7 +2539,7 @@ RailsAdmin.config do |config|
       field :style
       field :mime_type
       field :file_extension
-      field :transformation do
+      field :code do
         pretty_value do
           "<pre><code class='ruby'>#{value}</code></pre>".html_safe
         end
@@ -2541,7 +2565,7 @@ RailsAdmin.config do |config|
       field :updated_at
     end
 
-    fields :namespace, :name, :type, :style, :transformation, :updated_at
+    fields :namespace, :name, :type, :style, :code, :updated_at
   end
 
   config.model Setup::AlgorithmOutput do
@@ -2628,11 +2652,12 @@ RailsAdmin.config do |config|
   config.model Setup::Snippet do
     navigation_label 'Compute'
     weight 430
-    #visible { Account.current_super_admin? }
+    object_label_method { :custom_title }
 
     configure :name
 
     edit do
+      field :namespace, :enum_edit
       field :name
       field :type
       field :description
@@ -2661,10 +2686,10 @@ RailsAdmin.config do |config|
         end
 
       end
-      field :tags
     end
 
     show do
+      field :namespace
       field :name
       field :type
       field :description
@@ -2673,15 +2698,9 @@ RailsAdmin.config do |config|
           "<pre><code class='#{bindings[:object].type}'>#{value}</code></pre>".html_safe
         end
       end
-      field :tags
     end
 
-    list do
-      field :name
-      field :type
-      field :tags
-    end
-    fields :_id, :type, :description, :code, :tags
+    fields :namespace, :name, :type, :description
   end
 
   #Workflows
@@ -3427,6 +3446,20 @@ RailsAdmin.config do |config|
     fields :webhook, :connection, :authorization, :description, :scheduler, :attempts_succeded, :retries, :progress, :status, :notifications, :updated_at
   end
 
+  config.model Setup::Crossing do
+    navigation_label 'Monitors'
+    visible false
+    object_label_method { :to_s }
+    configure :attempts_succeded, :text do
+      label 'Attempts/Succedded'
+    end
+    edit do
+      field :description
+      field :auto_retry
+    end
+    fields :description, :scheduler, :attempts_succeded, :retries, :progress, :status, :notifications, :updated_at
+  end
+
   config.model Setup::Storage do
     navigation_label 'Monitors'
     show_in_dashboard false
@@ -3558,7 +3591,7 @@ RailsAdmin.config do |config|
             unless (pin = bindings[:object]).nil? || pin.new_record?
               excluded_ids.delete(pin[field])
             end
-            Proc.new { |scope| scope.where(origin: :shared, :id.nin => excluded_ids) }
+            Proc.new { |scope| scope.where(:origin.ne => :default, :id.nin => excluded_ids) }
           end
         end
       end
@@ -3880,6 +3913,14 @@ RailsAdmin.config do |config|
     fields :name, :owners, :updated_at
   end
 
+  config.model Setup::CrossSharedName do
+    weight 881
+    navigation_label 'Administration'
+    visible { User.current_super_admin? }
+
+    fields :name, :owners, :updated_at
+  end
+
   config.model Script do
     weight 830
     navigation_label 'Administration'
@@ -4004,6 +4045,7 @@ RailsAdmin.config do |config|
     configure :redirect_uris, :json_value
 
     edit do
+      field :slug
       field :oauth_name do
         visible { bindings[:object].instance_variable_get(:@registering) }
       end

@@ -1,11 +1,10 @@
 module RailsAdmin
   module Config
     module Actions
-
-      class BulkShare < RailsAdmin::Config::Actions::BaseShare
+      class BulkCross < RailsAdmin::Config::Actions::BaseCross
 
         register_instance_option :only do
-          [Setup::Translator, Setup::Algorithm]
+          ::Ability::CROSSING_MODELS
         end
 
         register_instance_option :collection do
@@ -15,9 +14,7 @@ module RailsAdmin
         register_instance_option :bulkable? do
           true
         end
-
       end
-
     end
   end
 end

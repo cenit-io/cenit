@@ -45,8 +45,8 @@ en:
       api: "API"
       directory: "Directory"
       shared_collections: find shared collections
-      title_search_shared_collections: "iPaaS to connect Cloud or On-Premise APIs"
-      sub_title_search_shared_collections: "Make data flows over %{count} built integrations"
+      title_search_shared_collections: "Open Platform for Data and Business Integration"
+      sub_title_search_shared_collections: "Find or create data flows over %{count} shared collections"
       pull: "Pull"
       show_all: "Show all"
       overview: "Overview"
@@ -55,6 +55,11 @@ en:
       not_selected: 'Not selected'
       help: 'help'
       add_tenant: 'Add new'
+      main_navigation:
+        json_data_type: 'Objects'
+        file_data_type: 'Files'
+      link_json_data_type: 'Link Object Type'
+      link_file_data_type: 'Link File Type'
     actions:
       dashboard:
         title: "Dashboard"
@@ -235,32 +240,32 @@ en:
         breadcrumb: "Disk"
         model: "Collection"
         usage: "Space used"
-      bulk_share:
-        title: "Share %{model_label_plural}"
-        bulk_link: "Share selected %{model_label_plural}"
-        menu: "Share"
-        breadcrumb: "Share"
-        submit: "Share"
-        done: "shared"
-      simple_share:
+      share:
         title: "Share %{model_label} '%{object_label}'"
         menu: "Share"
         breadcrumb: "Share"
         submit: "Share"
         done: "shared"
-      simple_cross_share:
-        title: "Cross share %{model_label} '%{object_label}'"
-        menu: "Cross share"
-        breadcrumb: "Cross share"
-        submit: "Cross share"
-        done: "cross shared"
-      bulk_cross_share:
-        title: "Cross share %{model_label_plural}"
-        bulk_link: "Cross share selected %{model_label_plural}"
-        menu: "Cross share"
-        breadcrumb: "Cross share"
-        submit: "Cross share"
-        done: "cross shared"
+      simple_cross:
+        title: "Cross %{model_label} '%{object_label}'"
+        menu: "Cross"
+        breadcrumb: "Cross"
+        submit: "Cross"
+        done: "crossed"
+      bulk_cross:
+        title: "Cross %{model_label_plural}"
+        bulk_link: "Cross selected %{model_label_plural}"
+        menu: "Cross"
+        breadcrumb: "Cross"
+        submit: "Cross"
+        done: "crossed"
+      reinstall:
+        title: "Re-Install Collection '%{object_label}'"
+        menu: "Re-Install"
+        breadcrumb: "Re-Install"
+        submit: "Re-Install"
+        done: "re-installed"
+        doing: "re-installation"
       pull:
         title: "Pull Collection '%{object_label}'"
         menu: "Pull"
@@ -441,6 +446,9 @@ en:
         title: "Docs"
         menu: "Docs"
         breadcrumb: "Docs"
+      link_data_type:
+        menu: "Link"
+        breadcrumb: "Link %{model_label}"
     form:
       flow:
         source_data_type: 'Source data type'

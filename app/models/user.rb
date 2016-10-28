@@ -19,7 +19,7 @@ class User
 
   devise :trackable, :validatable, :omniauthable, :database_authenticatable, :recoverable
   devise :registerable unless ENV['UNABLE_REGISTERABLE'].to_b
-  devise :confirmable unless ENV['UNABLE_CONFIRMABLE'].to_b
+  devise :confirmable if ENV.has_key?('UNABLE_CONFIRMABLE') && !ENV['UNABLE_CONFIRMABLE'].to_b
 
   # Database authenticatable
   field :email, type: String, default: ''

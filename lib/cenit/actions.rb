@@ -46,15 +46,29 @@ module Cenit
             refs =
               items.collect do |item|
                 criteria = ref_criteria = {}
-                items_data_type.get_referenced_by.each { |field| criteria[field.to_s] = item[field.to_s] }
+                items_data_type.get_referenced_by.each do |field|
+                  field = field.to_s
+                  if %w(id _id).include?(field)
+                    criteria['_id'] = item['_id'] || item['id']
+                  else
+                    criteria[field] = item[field]
+                  end
+                end
                 criteria.delete_if { |_, value| value.nil? }
                 criteria = Cenit::Utility.deep_remove(criteria, '_reference')
                 unless (on_collection = (record = collection && Cenit::Utility.find_record(criteria, collection.send(relation.name))))
                   record = Cenit::Utility.find_record(criteria, relation.klass.all)
                 end
                 if record
-                  record_hash = Cenit::Utility.stringfy(record.share_hash)
-                  record_hash['_id'] = item['_id'] if item.has_key?('_id')
+                  share_hash_options = {}
+                  if shared_collection.installed?
+                    share_hash_options[:include_id] = ->(r) { r.is_a?(Setup::CrossOriginShared) && r.shared? }
+                  end
+                  record_hash = record.share_hash(share_hash_options)
+                  record_hash = Cenit::Utility.stringfy(record_hash)
+                  %w(id _id).each do |id_key|
+                    record_hash[id_key] = item[id_key] if item.has_key?(id_key)
+                  end
                   if item['_type']
                     record_hash['_type'] = record.class.to_s unless record_hash['_type']
                   end

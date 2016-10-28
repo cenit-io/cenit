@@ -161,16 +161,31 @@ module Mongoff
     end
 
     def delete_all
-      all_collections_names.each { |name| Mongoid.default_client[name.to_sym].drop }
+      all_collections_names.each { |name| mongo_client[name.to_sym].drop }
     end
 
     def collection
-      Mongoid.default_client[collection_name]
+      mongo_client[collection_name]
+    end
+
+    def mongo_client
+      Mongoid.default_client
     end
 
     def storage_size(scale = 1)
+      subtype_count = data_type.subtype? && data_type.count
       data_type.all_data_type_storage_collections_names.inject(0) do |size, name|
-        s = Mongoid.default_client.command(collstats: name, scale: scale).first['size'] rescue 0
+        s =
+          begin
+            stats = mongo_client.command(collstats: name.to_s, scale: scale).first
+            if subtype_count
+              subtype_count + stats['avgObjSize']
+            else
+              stats['size']
+            end
+          rescue
+            0
+          end
         size + s
       end
     end
@@ -409,7 +424,7 @@ module Mongoff
     end
 
     def caching?
-      !@data_type_id.is_a?(String)
+      !@data_type_id.is_a?(String) #TODO Check this, not a BSON::Id ?
     end
 
     def proto_schema

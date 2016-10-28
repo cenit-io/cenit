@@ -64,6 +64,21 @@ module Setup
       model.to_s
     end
 
+    def all_data_type_storage_collections_names
+      if model < CrossOrigin::Document
+        origins = model.origins.select { |origin| Setup::Crossing.authorized_crossing_origins.include?(origin) }
+        origins.collect do |origin|
+          if origin == :default
+            model.collection_name
+          else
+            CrossOrigin[origin].collection_name_for(model)
+          end
+        end
+      else
+        [model.collection_name]
+      end
+    end
+
     def schema
       @schema ||= build_schema
     end
@@ -124,7 +139,11 @@ module Setup
         @build_ins ||= {}
       end
 
-      def regist(model)
+      def each(&block)
+        build_ins.values.each(&block)
+      end
+
+      def regist(model, &block)
         build_ins[model.to_s] ||=
           begin
             model.include(Setup::OrmModelAware)
@@ -132,7 +151,9 @@ module Setup
             model.include(Edi::Formatter)
             model.include(Edi::Filler)
             model.class.include(Mongoid::CenitExtension)
-            BuildInDataType.new(model)
+            build_in = BuildInDataType.new(model)
+            block.call(build_in) if block
+            build_in
           end
       end
     end
@@ -227,11 +248,11 @@ module Setup
             when :embeds_many
               { 'type' => 'array', 'items' => { '$ref' => relation.klass.to_s } }
             when :has_one
-              { '$ref' => relation.klass.to_s, 'referenced' => true, 'export_embedded' => @embedding && @embedding.include?(relation_name) }
+              { '$ref' => relation.klass.to_s, 'referenced' => true, 'export_embedded' => (@embedding && @embedding.include?(relation_name)).to_b }
             when :belongs_to
-              { '$ref' => relation.klass.to_s, 'referenced' => true, 'export_embedded' => @embedding && @embedding.include?(relation_name) } if (@including && @including.include?(relation_name.to_s)) || relation.inverse_of.nil?
+              { '$ref' => relation.klass.to_s, 'referenced' => true, 'export_embedded' => (@embedding && @embedding.include?(relation_name)).to_b } if (@including && @including.include?(relation_name.to_s)) || relation.inverse_of.nil?
             when :has_many, :has_and_belongs_to_many
-              { 'type' => 'array', 'items' => { '$ref' => relation.klass.to_s }, 'referenced' => true, 'export_embedded' => @embedding && @embedding.include?(relation_name) }
+              { 'type' => 'array', 'items' => { '$ref' => relation.klass.to_s }, 'referenced' => true, 'export_embedded' => (@embedding && @embedding.include?(relation_name)).to_b }
             end
           if property_schema
             if @discarding.include?(relation_name.to_s)

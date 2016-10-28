@@ -21,6 +21,7 @@ class Ability
               User,
               Account,
               Setup::SharedName,
+              Setup::CrossSharedName,
               Cenit::BasicToken,
               Script,
               Setup::DelayedMessage,
@@ -29,26 +30,36 @@ class Ability
         can [:import, :edit], Setup::SharedCollection
         can :destroy, [Setup::SharedCollection, Setup::Storage, Setup::CrossSharedCollection]
         can [:index, :show, :cancel], RabbitConsumer
-        can [:edit, :pull, :import], Setup::CrossSharedCollection
+        can [:index, :edit, :pull, :import], Setup::CrossSharedCollection
         can [:index, :show], Cenit::ApplicationId
         can(:destroy, Cenit::ApplicationId) do |app_id|
           app_id.app.nil?
         end
         can :inspect, Account
         can :push, Setup::Collection
+
+        can [:simple_cross, :reinstall], Setup::CrossSharedCollection, installed: true
+        can :simple_cross, UNCONDITIONAL_ADMIN_CROSSING_MODELS
       else
-        cannot :access, [Setup::SharedName, Setup::DelayedMessage, Setup::SystemNotification]
+        cannot :access, [Setup::SharedName, Setup::CrossSharedName, Setup::DelayedMessage, Setup::SystemNotification]
         cannot :destroy, [Setup::SharedCollection, Setup::Storage]
+
+        can :index, Setup::CrossSharedCollection
         can :pull, Setup::CrossSharedCollection, installed: true
+        can [:edit, :destroy], Setup::CrossSharedCollection, owner_id: user.id
+        can :reinstall, Setup::CrossSharedCollection, owner_id: user.id, installed: true
+
         can [:index, :show, :inspect, :edit], Account, :id.in => user.account_ids
         can :destroy, Account, :id.in => user.account_ids - [user.account_id]
         can :new, Account if user.partner?
+
+        can :simple_cross, CROSSING_MODELS_NO_ORIGIN
+        can :simple_cross, CROSSING_MODELS_WITH_ORIGIN, :origin.in => [:default, :owner]
       end
 
       can :destroy, Setup::Task,
           :status.in => Setup::Task::NON_ACTIVE_STATUS,
           :scheduler_id.in => Setup::Scheduler.where(activated: false).collect(&:id) + [nil]
-
 
       can RailsAdmin::Config::Actions.all(:root).collect(&:authorization_key)
 
@@ -146,7 +157,8 @@ class Ability
             shared_allowed_hash
           ].each do |hash|
             hash.each do |keys, models|
-              if [:pull, :edit, :destroy, :import].any? { |key| keys.include?(key) }
+              keys.delete(:simple_cross)
+              if [:pull, :edit, :destroy, :import, :reinstall].any? { |key| keys.include?(key) }
                 models.delete(Setup::CrossSharedCollection)
               end
             end
@@ -188,11 +200,47 @@ class Ability
     end
   end
 
+  CROSSING_MODELS_NO_ORIGIN = [Setup::Collection]
+
+  CROSSING_MODELS_WITH_ORIGIN =
+    [
+      Setup::OauthClient,
+      Setup::Oauth2Scope,
+      Setup::Algorithm,
+      Setup::Webhook,
+      Setup::Connection,
+      Setup::Translator,
+      Setup::Flow,
+      Setup::Snippet
+    ] +
+      Setup::BaseOauthProvider.class_hierarchy +
+      Setup::DataType.class_hierarchy +
+      Setup::Validator.class_hierarchy
+
+  CROSSING_MODELS = CROSSING_MODELS_WITH_ORIGIN + CROSSING_MODELS_NO_ORIGIN
+
+  UNCONDITIONAL_ADMIN_CROSSING_MODELS = CROSSING_MODELS + [Setup::Scheduler]
+
+  ADMIN_CROSSING_MODELS = UNCONDITIONAL_ADMIN_CROSSING_MODELS + [Setup::CrossSharedCollection]
+
   def can?(action, subject, *extra_args)
-    if subject == ScriptExecution && (user.nil? || !user.super_admin?)
+    if (action == :simple_cross && crossing_models.exclude?(subject.is_a?(Class) ? subject : subject.class)) ||
+      (subject == ScriptExecution && (user.nil? || !user.super_admin?))
       false
     else
       super
+    end
+  end
+
+  def crossing_models
+    if user
+      if user.super_admin?
+        ADMIN_CROSSING_MODELS
+      else
+        CROSSING_MODELS
+      end
+    else
+      []
     end
   end
 end

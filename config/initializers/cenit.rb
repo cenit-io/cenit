@@ -26,7 +26,7 @@ Cenit.config do
   schema_service_path '/schema'
 
   #Home page
-  homepage ENV['HOMEPAGE']
+  homepage ENV['HOMEPAGE'] || 'http://127.0.0.1:3000'
 
   #Captcha length
   captcha_length 5
@@ -66,6 +66,9 @@ Cenit.config do
 
   #Process shared collection pulls asynchronous
   asynchronous_shared_collection_pull true
+
+  #Performs crossing origins asynchronous
+  asynchronous_crossing true
 
   #oauth2 callback site
   oauth2_callback_site ENV['OAUTH2_CALLBACK_SITE']
