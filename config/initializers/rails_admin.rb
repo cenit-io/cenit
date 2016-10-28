@@ -164,7 +164,6 @@ RailsAdmin.config do |config|
           Setup::Algorithm,
           Setup::Connection,
           Setup::Webhook,
-          Setup::Resource,
           Setup::Translator,
           Setup::Flow,
           Setup::OauthClient,
@@ -1534,6 +1533,7 @@ RailsAdmin.config do |config|
   config.model Setup::Connection do
     navigation_label 'Connectors'
     weight 200
+    label 'API Connection'
     object_label_method { :custom_title }
 
     group :credentials do
@@ -1631,7 +1631,7 @@ RailsAdmin.config do |config|
   end
 
   config.model Setup::ConnectionRole do
-    visible { Account.current_super_admin? }
+    visible false
     navigation_label 'Connectors'
     weight 210
     label 'Connection Role'
@@ -1678,14 +1678,12 @@ RailsAdmin.config do |config|
     fields :namespace, :name, :webhooks, :connections, :updated_at
   end
   
-  config.model Setup::Resource do
+  config.model Setup::Section do
     visible { Account.current_super_admin? }
     navigation_label 'Connectors'
     weight 210
-    label 'Resource'
+    label 'Section'
     object_label_method { :custom_title }
-    
-    configure :metadata, :json_value
 
     configure :name, :string do
       help 'Requiered.'
@@ -1694,6 +1692,48 @@ RailsAdmin.config do |config|
       end
     end
     configure :connection do
+      nested_form false
+    end
+    show do
+      field :namespace
+      field :name
+      field :description
+      field :connection
+      field :resources
+      field :representations
+      field :_id
+      field :created_at
+      #field :creator
+      field :updated_at
+      #field :updater
+    end
+
+    edit do
+      field :namespace, :enum_edit
+      field :name
+      field(:description, &shared_non_editable)
+      field :connection
+      field :resources
+      field :representations
+    end
+
+    fields :namespace, :name, :description, :resources, :connection, :updated_at
+  end
+  
+  config.model Setup::Resource do
+    visible { Account.current_super_admin? }
+    navigation_label 'Connectors'
+    weight 215
+    label 'Resource'
+    object_label_method { :custom_title }
+
+    configure :name, :string do
+      help 'Requiered.'
+      html_attributes do
+        { maxlength: 50, size: 50 }
+      end
+    end
+    configure :section do
       nested_form false
     end
     configure :path, :string do
@@ -1707,9 +1747,8 @@ RailsAdmin.config do |config|
       field :name
       field :path
       field :description
-      field :webhooks
-      field :connection
-      field :metadata, :json_value
+      field :operations
+      field :section
 
       field :_id
       field :created_at
@@ -1723,17 +1762,94 @@ RailsAdmin.config do |config|
       field :name
       field(:path, &shared_non_editable)
       field(:description, &shared_non_editable)
-      field :webhooks
-      field :connection
+      field :operations
+      field :section
     end
 
-    fields :namespace, :name, :path, :description, :webhooks, :connection, :updated_at
+    fields :namespace, :name, :path, :description, :operations, :section, :updated_at
   end
 
+  config.model Setup::Operation do
+    navigation_label 'Connectors'
+    weight 217
+    object_label_method { :custom_title }
+
+    group :parameters do
+      label 'Parameters & Headers'
+    end
+
+    configure :parameters do
+      group :parameters
+    end
+
+    configure :headers do
+      group :parameters
+    end
+
+    configure :template_parameters do
+      group :parameters
+    end
+
+    edit do
+      field(:namespace, :enum_edit, &shared_non_editable)
+      field(:name, &shared_non_editable)
+      field(:method, &shared_non_editable)
+      field(:description, &shared_non_editable)
+
+      field :parameters
+      field :headers
+      field :template_parameters
+    end
+
+    show do
+      field :namespace
+      field :name
+      field :method
+
+      field :parameters
+      field :headers
+      field :template_parameters
+
+      field :_id
+      field :created_at
+      #field :creator
+      field :updated_at
+      #field :updater
+    end
+
+    fields :namespace, :name, :method, :description, :updated_at
+  end
+  
+  config.model Setup::Representation do
+    navigation_label 'Connectors'
+    weight 218
+    object_label_method { :custom_title }
+
+    edit do
+      field(:namespace, :enum_edit, &shared_non_editable)
+      field(:name, &shared_non_editable)
+      field(:description, &shared_non_editable)
+      field(:metadata, :json_value, &shared_non_editable)
+    end
+
+    show do
+      field :namespace
+      field :name
+      field :metadata, :json_value
+
+      field :_id
+      field :created_at
+      #field :creator
+      field :updated_at
+      #field :updater
+    end
+
+    fields :namespace, :name, :description, :updated_at
+  end  
 
   config.model Setup::Webhook do
-    navigation_label 'Connectors'
-    weight 220
+    navigation_label 'Workflows'
+    weight 515
     object_label_method { :custom_title }
 
     configure :metadata, :json_value

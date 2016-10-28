@@ -5,8 +5,6 @@ module Setup
     include WithTemplateParameters
     include JsonMetadata
     include AuthorizationHandler
-    
-    belongs_to :resource, class_name: Setup::Resource.to_s, inverse_of: :nil
 
     build_in_data_type.referenced_by(:namespace, :name).excluding(:connection_roles)
 
