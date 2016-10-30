@@ -54,7 +54,7 @@ en:
       or: 'or'
       not_selected: 'Not selected'
       help: 'help'
-      add_tenant: 'Add new'
+      add_tenant: 'Add new Tenant'
       main_navigation:
         json_data_type: 'Objects'
         file_data_type: 'Files'
