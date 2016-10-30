@@ -659,7 +659,7 @@ module RailsAdmin
         {
           Setup::FileDataType => 'fa fa-file', 
           Setup::JsonDataType => 'fa fa-database',
-          Setup::CrossSharedCollection => 'fa fa-shopping-cart',
+          Setup::CrossSharedCollection => 'fa fa-shopping-cart'
         }
       non_setup_data_type_models =
         [
