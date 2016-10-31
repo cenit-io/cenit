@@ -357,6 +357,9 @@ GEM
     prawn (2.0.2)
       pdf-core (~> 0.6.0)
       ttfunk (~> 1.4.0)
+    prawn-qrcode (0.2.2.1)
+      prawn (>= 0.11.1)
+      rqrcode (>= 0.4.1)
     prawn-rails (0.1.1)
       prawn
       prawn-table
@@ -430,6 +433,8 @@ GEM
       netrc (~> 0.7)
     rmagick (2.15.4)
     rolify (4.1.1)
+    rqrcode (0.10.1)
+      chunky_png (~> 1.0)
     rspec (3.4.0)
       rspec-core (~> 3.4.0)
       rspec-expectations (~> 3.4.0)
@@ -606,6 +611,7 @@ DEPENDENCIES
   omniauth-oauth2 (~> 1.3.1)
   parser
   poltergeist
+  prawn-qrcode
   prawn-rails
   rabl
   rails
