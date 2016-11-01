@@ -67,8 +67,7 @@ Cenit::Application.routes.draw do
 
   mount RailsAdmin::Engine => '/', as: 'rails_admin'
 
-  get '/:model_name/:id/swagger/editor' => 'rails_admin/main#swagger', show_editor: true, via: [:all]
-  get '/:model_name/:id/swagger/editor/config/defaults.json' => 'rails_admin/main#swagger', get_config: true, via: [:all]
+  match '/:model_name/:id/swagger/*path' => 'rails_admin/main#swagger', via: [:all]
 
   get '/:model_name/*id', to: 'rails_admin/main#show'
 end

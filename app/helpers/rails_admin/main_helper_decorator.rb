@@ -45,25 +45,14 @@ module RailsAdmin
 
           # List of example files to show to user to pick from. The URL to fetch each
           # example is a combination of `examplesFolder` and file name
-          exampleFiles: [
-              "default.yaml",
-              "heroku-pets.yaml",
-              "minimal.yaml",
-              "echo.yaml",
-              "petstore_simple.yaml",
-              "petstore_full.yaml",
-              "basic-auth.yaml",
-              "security.yaml",
-              "instagram.yaml",
-              "twitter.yaml"
-          ],
+          exampleFiles: [],
 
           # Keywords for auto-complete are generated from a JavaScript object.
           # See keyword-map.js for object format
           autocompleteExtension: {},
 
           # Use a back-end for storing the document instead of browser local storage
-          useBackendForStorage: false,
+          useBackendForStorage: true,
 
           # Change how many milliseconds after the last keypress the editor should
           # respond to change.
@@ -74,14 +63,14 @@ module RailsAdmin
 
           # URL of the Back-end for storing swagger document. Editor will PUT and GET
           # to this URL to **Save** and **Read** the Swagger document
-          backendEndpoint: "#{params[:model_name]}#{params[:id]}/swagger/editor/spec",
+          backendEndpoint: "/#{params[:model_name]}/#{params[:id]}/swagger/spec",
 
           # When using a back-end, editor by default PUTs JSON document for Saving.
           # Enable this to use YAML instead
-          useYamlBackend: false,
+          useYamlBackend: true,
 
           # Disables File menu which includes New, Open Example and Import commands
-          disableFileMenu: false,
+          disableFileMenu: true,
 
           # When it's enabled:
           #  * Editor will append `brandingCssClass` class to body tag
@@ -92,7 +81,7 @@ module RailsAdmin
           headerBranding: false,
 
           # Enables Try Operation functionality
-          enableTryIt: false,
+          enableTryIt: true,
 
           # When `headerBranding` is enabled, this will be appended to body tag
           brandingCssClass: "",
@@ -113,6 +102,14 @@ module RailsAdmin
           # More info: https://github.com/swagger-api/swagger-editor/issues/977#issuecomment-232254578
           pointerResolutionBasePath: nil
       }
+    end
+
+    def swagger_get_spec
+      {}
+    end
+
+    def swagger_set_spec
+      {}
     end
 
   end

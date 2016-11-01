@@ -1,3 +1,5 @@
+require 'yaml'
+Psych.dump("foo")
 module RailsAdmin
   module Config
     module Actions
@@ -14,14 +16,20 @@ module RailsAdmin
 
         register_instance_option :controller do
           proc do
-            if params[:show_editor].present?
-              render template: 'rails_admin/main/swagger-editor', layout: false
-            elsif params[:get_config].present?
-              render json: swagger_config
-            elsif request.get? # EDIT
-              # TODO: Init swagger-editor with connection json.
-            elsif request.put? # UPDATE
-              # TODO: Update connection from swagger-editor json.
+            if params[:path].present?
+              if params[:path] == 'editor'
+                render template: 'rails_admin/main/swagger-editor', layout: false
+              elsif params[:path] == 'editor/config/defaults'
+                render json: swagger_config
+              elsif params[:path] == 'spec'
+                if request.get?
+                  render template: 'rails_admin/main/swagger-spec.yml', layout: false, content_type: 'text/yaml'
+                elsif request.put?
+                  render text: 'success!'
+                end
+              else
+                render :nothing => true, :status => 404
+              end
             end
           end
         end
