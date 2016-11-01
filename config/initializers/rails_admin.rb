@@ -2514,7 +2514,7 @@ RailsAdmin.config do |config|
   end
 
   config.model Setup::Renderer do
-
+    weight 411
     configure :code, :code
 
     edit do
@@ -2566,11 +2566,206 @@ RailsAdmin.config do |config|
     end
   end
 
-  config.model Setup::Parser
+  config.model Setup::Parser do
+    weight 412
+    configure :code, :code
 
-  config.model Setup::Converter
+    edit do
+      field :namespace
+      field :name
 
-  config.model Setup::Updater
+      field :target_data_type do
+        shared_read_only
+        inline_edit false
+        inline_add false
+        help 'Optional'
+      end
+
+      field :discard_events do
+        shared_read_only
+        help "Events won't be fired for created or updated records if checked"
+      end
+
+      field :style do
+        shared_read_only
+        visible { bindings[:object].type.present? }
+        help 'Required'
+      end
+
+      field :code, :code do
+        visible { bindings[:object].style.present? && bindings[:object].style != 'chain' }
+        help { 'Required' }
+        html_attributes do
+          { cols: '74', rows: '15' }
+        end
+        code_config do
+          {
+            mode: case bindings[:object].style
+                  when 'html.erb'
+                    'text/html'
+                  when 'xslt'
+                    'application/xml'
+                  else
+                    'text/x-ruby'
+                  end
+          }
+        end
+      end
+    end
+  end
+
+  config.model Setup::Converter do
+    weight 413
+    configure :code, :code
+
+    edit do
+      field :namespace
+      field :name
+
+      field :source_data_type do
+        shared_read_only
+        inline_edit false
+        inline_add false
+        help 'Required'
+      end
+
+      field :target_data_type do
+        shared_read_only
+        inline_edit false
+        inline_add false
+        help 'Required'
+      end
+
+      field :discard_events do
+        shared_read_only
+        help "Events won't be fired for created or updated records if checked"
+      end
+
+      field :style do
+        shared_read_only
+        visible { bindings[:object].type.present? }
+        help 'Required'
+      end
+
+      field :source_handler do
+        shared_read_only
+        visible { (t = bindings[:object]).style.present? && (t.style == 'ruby') }
+        help { 'Handle sources on code' }
+      end
+
+      field :code, :code do
+        visible { bindings[:object].style.present? && bindings[:object].style != 'chain' }
+        help { 'Required' }
+        html_attributes do
+          { cols: '74', rows: '15' }
+        end
+        code_config do
+          {
+            mode: case bindings[:object].style
+                  when 'html.erb'
+                    'text/html'
+                  when 'xslt'
+                    'application/xml'
+                  else
+                    'text/x-ruby'
+                  end
+          }
+        end
+      end
+
+      field :source_exporter do
+        shared_read_only
+        inline_add { bindings[:object].source_exporter.nil? }
+        visible { bindings[:object].style == 'chain' && bindings[:object].source_data_type && bindings[:object].target_data_type }
+        help 'Required'
+        associated_collection_scope do
+          data_type = bindings[:object].source_data_type
+          Proc.new { |scope|
+            scope.all(type: :Conversion, source_data_type: data_type)
+          }
+        end
+      end
+
+      field :target_importer do
+        shared_read_only
+        inline_add { bindings[:object].target_importer.nil? }
+        visible { bindings[:object].style == 'chain' && bindings[:object].source_data_type && bindings[:object].target_data_type && bindings[:object].source_exporter }
+        help 'Required'
+        associated_collection_scope do
+          translator = bindings[:object]
+          source_data_type =
+            if translator.source_exporter
+              translator.source_exporter.target_data_type
+            else
+              translator.source_data_type
+            end
+          target_data_type = bindings[:object].target_data_type
+          Proc.new { |scope|
+            scope = scope.all(type: :Conversion,
+                              source_data_type: source_data_type,
+                              target_data_type: target_data_type)
+          }
+        end
+      end
+
+      field :discard_chained_records do
+        shared_read_only
+        visible { bindings[:object].style == 'chain' && bindings[:object].source_data_type && bindings[:object].target_data_type && bindings[:object].source_exporter }
+        help "Chained records won't be saved if checked"
+      end
+    end
+  end
+
+  config.model Setup::Updater do
+    weight 414
+    configure :code, :code
+    field :namespace
+    field :name
+
+    field :target_data_type do
+      shared_read_only
+      inline_edit false
+      inline_add false
+      help 'Optional'
+    end
+
+    field :discard_events do
+      shared_read_only
+      help "Events won't be fired for created or updated records if checked"
+    end
+
+    field :style do
+      shared_read_only
+      visible { bindings[:object].type.present? }
+      help 'Required'
+    end
+
+    field :source_handler do
+      shared_read_only
+      visible { (t = bindings[:object]).style.present? }
+      help { 'Handle sources on code' }
+    end
+
+    field :code, :code do
+      visible { bindings[:object].style.present? && bindings[:object].style != 'chain' }
+      help { 'Required' }
+      html_attributes do
+        { cols: '74', rows: '15' }
+      end
+      code_config do
+        {
+          mode: case bindings[:object].style
+                when 'html.erb'
+                  'text/html'
+                when 'xslt'
+                  'application/xml'
+                else
+                  'text/x-ruby'
+                end
+        }
+      end
+    end
+  end
 
   config.model Setup::AlgorithmOutput do
     navigation_label 'Compute'
