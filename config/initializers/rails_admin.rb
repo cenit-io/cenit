@@ -2393,7 +2393,6 @@ RailsAdmin.config do |config|
         shared_read_only
         visible { bindings[:object].type == :Export && bindings[:object].style.present? && bindings[:object].source_bulkable? }
       end
-
       field :mime_type do
         shared_read_only
         label 'MIME type'
@@ -2513,6 +2512,65 @@ RailsAdmin.config do |config|
 
     fields :namespace, :name, :type, :style, :code, :updated_at
   end
+
+  config.model Setup::Renderer do
+
+    configure :code, :code
+
+    edit do
+      field :namespace
+      field :name
+      field :source_data_type do
+        shared_read_only
+        inline_edit false
+        inline_add false
+      end
+      field :style do
+        shared_read_only
+        visible { bindings[:object].type.present? }
+        help 'Required'
+      end
+      field :bulk_source do
+        shared_read_only
+        visible { bindings[:object].style.present? && bindings[:object].source_bulkable? }
+      end
+      field :mime_type do
+        shared_read_only
+        label 'MIME type'
+        visible { bindings[:object].style.present? }
+      end
+      field :file_extension do
+        shared_read_only
+        visible { !bindings[:object].file_extension_enum.empty? }
+        help { "Extensions for #{bindings[:object].mime_type}" }
+      end
+      field :code, :code do
+        visible { bindings[:object].style.present? && bindings[:object].style != 'chain' }
+        help { 'Required' }
+        html_attributes do
+          { cols: '74', rows: '15' }
+        end
+        code_config do
+          {
+              mode: case bindings[:object].style
+                      when 'html.erb'
+                        'text/html'
+                      when 'xslt'
+                        'application/xml'
+                      else
+                        'text/x-ruby'
+                    end
+          }
+        end
+      end
+    end
+  end
+
+  config.model Setup::Parser
+
+  config.model Setup::Converter
+
+  config.model Setup::Updater
 
   config.model Setup::AlgorithmOutput do
     navigation_label 'Compute'
