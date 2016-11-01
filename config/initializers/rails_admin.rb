@@ -2338,6 +2338,7 @@ RailsAdmin.config do |config|
 
   config.model Setup::Translator do
     navigation_label 'Compute'
+    label 'Transformation'
     weight 410
     object_label_method { :custom_title }
     register_instance_option(:form_synchronized) do

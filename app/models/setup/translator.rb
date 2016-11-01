@@ -305,6 +305,14 @@ module Setup
 
     class << self
 
+      def mime_type_filter_enum
+        Setup::Renderer.all.distinct(:mime_type).flatten.uniq
+      end
+
+      def file_extension_filter_enum
+        Setup::Renderer.all.distinct(:file_extension).flatten.uniq
+      end
+
       def transformation_type(*args)
         if args.length > 0
           @transformation_type = args[0].to_s.to_sym

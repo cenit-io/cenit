@@ -3,6 +3,7 @@ require 'rails_admin/main_controller'
 require 'rails_admin/application_controller'
 require 'rails_admin/config/fields/types/carrierwave'
 require 'rails_admin/config/fields/types/file_upload'
+require 'rails_admin/config/fields/types/enum'
 require 'rails_admin/adapters/mongoid'
 require 'rails_admin/lib/mongoff_abstract_model'
 
@@ -468,6 +469,23 @@ module RailsAdmin
             end
           end
         end
+
+        class Enum
+
+          register_instance_option :filter_enum_method do
+            @filter_enum_method ||= bindings[:object].class.respond_to?("#{name}_filter_enum") || bindings[:object].respond_to?("#{name}_filter_enum") ? "#{name}_filter_enum" : name
+          end
+
+          register_instance_option :filter_enum do
+            if bindings[:object].class.respond_to?(filter_enum_method)
+              bindings[:object].class.send(filter_enum_method)
+            elsif bindings[:object].respond_to?(filter_enum_method)
+              bindings[:object].send(enum_method)
+            else
+              bindings[:object].send(enum_method)
+            end
+          end
+        end
       end
     end
   end
@@ -748,38 +766,77 @@ module RailsAdmin
     def navigation(nodes_stack, nodes, html_id)
       return if nodes.blank?
       i = -1
-      ("<div id='#{html_id}' class='nav nav-pills nav-stacked panel-collapse collapse'>" +
+      nav ="<div id='#{html_id}' class='nav nav-pills nav-stacked panel-collapse collapse'>" +
         nodes.collect do |node|
           i += 1
           stack_id = "#{html_id}-sub#{i}"
           model_count = node.abstract_model.count({ cache: true }, @authorization_adapter && @authorization_adapter.query(:index, node.abstract_model)) rescue -1
 
           children = nodes_stack.select { |n| n.parent.to_s == node.abstract_model.model_name }
-          if children.present?
-            li = %(<div class='panel panel-default'>
+          html =
+            if children.present?
+              li = %(<div class='panel panel-default'>
             <div class='panel-heading'>
               <a data-toggle='collapse' data-parent='##{html_id}' href='##{stack_id}' class='panel-title collapse in collapsed'>
                 <span class='nav-caret'><i class='fa fa-caret-down'></i></span>
                 <span class='nav-caption'>#{capitalize_first_letter node.label_navigation}</span>
               </a>
             </div>)
-            li + navigation(nodes_stack, children, stack_id) + '</div>'
-          else
-            model_param = node.abstract_model.to_param
-            url = url_for(action: :index, controller: 'rails_admin/main', model_name: model_param)
-            nav_icon = node.navigation_icon ? %(<i class="#{node.navigation_icon}"></i>).html_safe : ''
-            content_tag :li, data: { model: model_param } do
-              link_to url, class: 'pjax' do
-                rc = ""
-                if _current_user.present? && model_count>0
-                  rc += "<span class='nav-amount'>#{model_count}</span>"
+              li + navigation(nodes_stack, children, stack_id) + '</div>'
+            else
+              model_param = node.abstract_model.to_param
+              url = url_for(action: :index, controller: 'rails_admin/main', model_name: model_param)
+              nav_icon = node.navigation_icon ? %(<i class="#{node.navigation_icon}"></i>).html_safe : ''
+              content_tag :li, data: { model: model_param } do
+                link_to url, class: 'pjax' do
+                  rc = ""
+                  if _current_user.present? && model_count>0
+                    rc += "<span class='nav-amount'>#{model_count}</span>"
+                  end
+                  rc += "<span class='nav-caption'>#{capitalize_first_letter node.label_navigation}</span>"
+                  rc.html_safe
                 end
-                rc += "<span class='nav-caption'>#{capitalize_first_letter node.label_navigation}</span>"
-                rc.html_safe
               end
             end
+          if node.label=='Renderer'
+            mime_list= Setup::Renderer.all.distinct(:mime_type).flatten.uniq
+            extensions_list = []
+            mime_list.each do |mime_type|
+              types=MIME::Types[mime_type]
+              types.each { |type| extensions_list.concat(type.extensions) }
+            end
+
+            extensions_list.uniq
+            sub_links =''
+            extensions_list.each do |ext|
+              sub_links+= content_tag :li do
+                link_to ext.capitalize, class: 'pjax' do
+                  rc = ""
+                  if _current_user.present? && model_count>0
+                    rc += "<span class='nav-amount'>#{model_count}</span>"
+                  end
+                  rc += "<span class='nav-caption'>#{ext}</span>"
+                  rc.html_safe
+                end
+              end
+            end
+
+
+            html = %(<div class='panel panel-default'>
+            <div class='panel-heading'>
+              <a data-toggle='collapse' data-parent='#none' href='#renderer-collapse' class='panel-title collapse in collapsed'>
+                <span class='nav-caret'><i class='fa fa-caret-down'></i></span>
+                <span class='nav-caption'>#{node.label.pluralize}</span>
+              </a>
+            </div>
+             <div id='renderer-collapse' class='nav nav-pills nav-stacked panel-collapse collapse'>
+                #{sub_links}
+            </div>
+            </div>)
           end
-        end.join + '</div>').html_safe
+          html
+        end.join + '</div>'
+      nav.html_safe
     end
 
     def dashboard_main()
