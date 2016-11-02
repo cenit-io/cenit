@@ -38,6 +38,7 @@ require 'account'
   RailsAdmin::Config::Actions::BulkCross,
   RailsAdmin::Config::Actions::Regist,
   RailsAdmin::Config::Actions::SharedCollectionIndex,
+  RailsAdmin::Config::Actions::StoreIndex,
   RailsAdmin::Config::Actions::BulkPull,
   RailsAdmin::Config::Actions::CleanUp,
   RailsAdmin::Config::Actions::ShowRecords,
@@ -92,7 +93,7 @@ RailsAdmin.config do |config|
 
   ### More at https://github.com/sferik/rails_admin/wiki/Base-configuration
   config.authenticate_with do
-    warden.authenticate! scope: :user unless %w(dashboard shared_collection_index index show).include?(action_name)
+    warden.authenticate! scope: :user unless %w(dashboard shared_collection_index store_index index show).include?(action_name)
   end
   config.current_user_method { current_user }
   config.audit_with :mongoid_audit
@@ -104,6 +105,7 @@ RailsAdmin.config do |config|
     dashboard # mandatory
     # disk_usage
     shared_collection_index
+    store_index
     link_data_type
     index # mandatory
     new { except [Setup::Event, Setup::DataType, Setup::Authorization, Setup::BaseOauthProvider] }
@@ -2336,9 +2338,148 @@ RailsAdmin.config do |config|
     fields :namespace, :name, :description, :parameters, :call_links
   end
 
-  config.model Setup::Translator do
+  config.model Setup::AlgorithmOutput do
     navigation_label 'Compute'
-    weight 410
+    weight -405
+    visible false
+
+    configure :records_count
+    configure :input_parameters
+    configure :created_at do
+      label 'Recorded at'
+    end
+
+    extra_associations do
+      association = Mongoid::Relations::Metadata.new(
+        name: :records, relation: Mongoid::Relations::Referenced::Many,
+        inverse_class_name: Setup::AlgorithmOutput.to_s, class_name: Setup::AlgorithmOutput.to_s
+      )
+      [RailsAdmin::Adapters::Mongoid::Association.new(association, abstract_model.model)]
+    end
+
+    show do
+      field :created_at
+      field :input_parameters
+      field :records_count
+    end
+
+    fields :created_at, :input_parameters, :records_count
+  end
+
+  config.model Setup::Action do
+    visible false
+    navigation_label 'Compute'
+    weight -402
+    object_label_method { :to_s }
+
+    fields :method, :path, :algorithm
+  end
+
+  config.model Setup::Application do
+    navigation_label 'Compute'
+    weight 420
+    object_label_method { :custom_title }
+    visible
+    configure :identifier
+    configure :registered, :boolean
+
+    edit do
+      field :namespace, :enum_edit
+      field :name
+      field :slug
+      field :actions
+      field :application_parameters
+    end
+    list do
+      field :namespace
+      field :name
+      field :slug
+      field :registered
+      field :actions
+      field :application_parameters
+      field :updated_at
+    end
+    fields :namespace, :name, :slug, :identifier, :secret_token, :registered, :actions, :application_parameters
+  end
+
+  config.model Cenit::ApplicationParameter do
+    visible false
+    navigation_label 'Compute'
+    configure :group, :enum_edit
+
+    list do
+      field :name
+      field :type
+      field :many
+      field :group
+      field :description
+      field :updated_at
+    end
+
+    fields :name, :type, :many, :group, :description
+  end
+
+  config.model Setup::Snippet do
+    navigation_label 'Compute'
+    weight 430
+    object_label_method { :custom_title }
+
+    configure :name
+
+    edit do
+      field :namespace, :enum_edit
+      field :name
+      field :type
+      field :description
+      field :code, :code do
+        html_attributes do
+          { cols: '74', rows: '15' }
+        end
+        code_config do
+          {
+            mode: {
+              'auto': 'javascript',
+              'text': 'javascript',
+              'null': 'javascript',
+              'c': 'clike',
+              'cpp': 'clike',
+              'csharp': 'clike',
+              'csv': 'javascript',
+              'fsharp': 'mllike',
+              'java': 'clike',
+              'latex': 'stex',
+              'ocaml': 'mllike',
+              'scala': 'clike',
+              'squirrel': 'clike'
+            }[bindings[:object].type] || bindings[:object].type
+          }
+        end
+
+      end
+    end
+
+    show do
+      field :namespace
+      field :name
+      field :type
+      field :description
+      field :code do
+        pretty_value do
+          "<pre><code class='#{bindings[:object].type}'>#{value}</code></pre>".html_safe
+        end
+      end
+    end
+
+    fields :namespace, :name, :type, :description
+  end
+
+  #Transformations
+
+  config.navigation 'Transformations', icon: 'fa fa-random'
+
+  config.model Setup::Translator do
+    navigation_label 'Transformations'
+    weight 440
     object_label_method { :custom_title }
     register_instance_option(:form_synchronized) do
       if bindings[:object].not_shared?
@@ -2514,140 +2655,6 @@ RailsAdmin.config do |config|
     fields :namespace, :name, :type, :style, :code, :updated_at
   end
 
-  config.model Setup::AlgorithmOutput do
-    navigation_label 'Compute'
-    weight -405
-    visible false
-
-    configure :records_count
-    configure :input_parameters
-    configure :created_at do
-      label 'Recorded at'
-    end
-
-    extra_associations do
-      association = Mongoid::Relations::Metadata.new(
-        name: :records, relation: Mongoid::Relations::Referenced::Many,
-        inverse_class_name: Setup::AlgorithmOutput.to_s, class_name: Setup::AlgorithmOutput.to_s
-      )
-      [RailsAdmin::Adapters::Mongoid::Association.new(association, abstract_model.model)]
-    end
-
-    show do
-      field :created_at
-      field :input_parameters
-      field :records_count
-    end
-
-    fields :created_at, :input_parameters, :records_count
-  end
-
-  config.model Setup::Action do
-    visible false
-    navigation_label 'Compute'
-    weight -402
-    object_label_method { :to_s }
-
-    fields :method, :path, :algorithm
-  end
-
-  config.model Setup::Application do
-    navigation_label 'Compute'
-    weight 420
-    object_label_method { :custom_title }
-    visible
-    configure :identifier
-    configure :registered, :boolean
-
-    edit do
-      field :namespace, :enum_edit
-      field :name
-      field :slug
-      field :actions
-      field :application_parameters
-    end
-    list do
-      field :namespace
-      field :name
-      field :slug
-      field :registered
-      field :actions
-      field :application_parameters
-      field :updated_at
-    end
-    fields :namespace, :name, :slug, :identifier, :secret_token, :registered, :actions, :application_parameters
-  end
-
-  config.model Cenit::ApplicationParameter do
-    visible false
-    navigation_label 'Compute'
-    configure :group, :enum_edit
-
-    list do
-      field :name
-      field :type
-      field :many
-      field :group
-      field :description
-      field :updated_at
-    end
-
-    fields :name, :type, :many, :group, :description
-  end
-
-  config.model Setup::Snippet do
-    navigation_label 'Compute'
-    weight 430
-    object_label_method { :custom_title }
-
-    configure :name
-
-    edit do
-      field :namespace, :enum_edit
-      field :name
-      field :type
-      field :description
-      field :code, :code do
-        html_attributes do
-          { cols: '74', rows: '15' }
-        end
-        code_config do
-          {
-            mode: {
-              'auto': 'javascript',
-              'text': 'javascript',
-              'null': 'javascript',
-              'c': 'clike',
-              'cpp': 'clike',
-              'csharp': 'clike',
-              'csv': 'javascript',
-              'fsharp': 'mllike',
-              'java': 'clike',
-              'latex': 'stex',
-              'ocaml': 'mllike',
-              'scala': 'clike',
-              'squirrel': 'clike'
-            }[bindings[:object].type] || bindings[:object].type
-          }
-        end
-
-      end
-    end
-
-    show do
-      field :namespace
-      field :name
-      field :type
-      field :description
-      field :code do
-        pretty_value do
-          "<pre><code class='#{bindings[:object].type}'>#{value}</code></pre>".html_safe
-        end
-      end
-    end
-
-    fields :namespace, :name, :type, :description
-  end
 
   #Workflows
 

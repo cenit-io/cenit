@@ -185,7 +185,7 @@ class Ability
       can :manage, Mongoff::Record
 
     else
-      can [:dashboard, :shared_collection_index]
+      can [:dashboard, :shared_collection_index, :store_index]
       can [:index, :show, :pull, :simple_export], [Setup::SharedCollection, Setup::CrossSharedCollection]
       can :index, Setup::Models.all.to_a -
         [
