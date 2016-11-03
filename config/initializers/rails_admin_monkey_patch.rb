@@ -805,35 +805,37 @@ module RailsAdmin
                 end
               end
             end
-          if node.label=='Renderer'
-            mime_list= Setup::Renderer.all.distinct(:mime_type).flatten.uniq
-            extensions_list = []
-            mime_list.each do |mime_type|
-              types=MIME::Types[mime_type]
-              types.each { |type| extensions_list.concat(type.extensions) }
-            end
-
-            extensions_list.uniq
-            sub_links =''
+          if node.label=='Renderer' &&
+            (extensions_list = Setup::Renderer.file_extension_filter_enum).present?
+            ext_count = 0
+            sub_links = ''
             extensions_list.each do |ext|
-              cant=Setup::Renderer.where(:file_extension => ext).count
-              if cant>0
-                sub_links+= content_tag :li do
-                  #TODO review and improve the params for the sub_link_url generation and try to show the filter in the view
-                  sub_link_url = index_path(model_name: 'setup~renderer', "file_extension" => ext, "model_name" => "setup~renderer", "utf8" => "✓", "f" => { "file_extension" => { "60852" => { "v" => ext } } })
-                  link_to sub_link_url do
-                    rc = ""
-                    if _current_user.present? && model_count>0
-                      rc += "<span class='nav-amount'>#{cant}</span>"
-                    end
-                    rc += "<span class='nav-caption'>#{capitalize_first_letter ext}</span>"
-                    rc.html_safe
+              count = Setup::Renderer.where(:file_extension => ext).count
+              ext_count += count
+              sub_links += content_tag :li do
+                #TODO review and improve the params for the sub_link_url generation and try to show the filter in the view
+                sub_link_url = index_path(model_name: 'setup~renderer', file_extension: ext, utf8: '✓', f: { file_extension: { 0 => { v: ext } } })
+                link_to sub_link_url do
+                  rc = ''
+                  if _current_user.present? && model_count>0
+                    rc += "<span class='nav-amount'>#{count}</span>"
                   end
+                  rc += "<span class='nav-caption'>#{ext.upcase}</span>"
+                  rc.html_safe
                 end
               end
             end
 
-
+            show_all_link =
+              if ext_count < model_count
+                content_tag :li do
+                  link_to index_path(model_name: 'setup~renderer') do
+                    "<span class='nav-amount'>#{model_count}</span><span class='nav-caption'>Sow All</span>".html_safe
+                  end
+                end
+              else
+                ''
+              end
             html = %(<div class='panel panel-default'>
             <div class='panel-heading'>
               <a data-toggle='collapse' data-parent='#none' href='#renderer-collapse' class='panel-title collapse in collapsed'>
@@ -843,6 +845,7 @@ module RailsAdmin
             </div>
              <div id='renderer-collapse' class='nav nav-pills nav-stacked panel-collapse collapse'>
                 #{sub_links}
+            #{show_all_link}
             </div>
             </div>)
           end
