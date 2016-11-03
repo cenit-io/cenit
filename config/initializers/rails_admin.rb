@@ -122,7 +122,7 @@ RailsAdmin.config do |config|
     run
     run_script
     edit
-    swagger
+    swagger {only [Setup::Connection] }
     configure
     play
     copy
