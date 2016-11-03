@@ -64,7 +64,7 @@
         - @filterable_fields.each do |field|
           - field_options = case field.type
           - when :enum
-            - options_for_select(field.with(object: @abstract_model.model.new).enum)
+            - options_for_select(field.with(object: @abstract_model.model.new).filter_enum)
           - else
             - ''
           %li

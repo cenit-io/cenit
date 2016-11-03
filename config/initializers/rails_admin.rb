@@ -2537,8 +2537,9 @@ RailsAdmin.config do |config|
   config.navigation 'Transformations', icon: 'fa fa-random'
 
   config.model Setup::Translator do
-    navigation_label 'Transformations'
-    weight 440
+    label 'Transformation'
+    visible false
+    weight 410
     object_label_method { :custom_title }
     register_instance_option(:form_synchronized) do
       if bindings[:object].not_shared?
@@ -2714,6 +2715,523 @@ RailsAdmin.config do |config|
     fields :namespace, :name, :type, :style, :code, :updated_at
   end
 
+  config.model Setup::Renderer do
+    navigation_label 'Transformations'
+    weight 411
+    configure :code, :code
+
+    edit do
+      field :namespace, :enum_edit, &shared_non_editable
+      field :name, &shared_non_editable
+
+
+      field :source_data_type do
+        shared_read_only
+        inline_edit false
+        inline_add false
+      end
+      field :style do
+        shared_read_only
+        visible { bindings[:object].type.present? }
+        help 'Required'
+      end
+      field :bulk_source do
+        shared_read_only
+        visible { bindings[:object].style.present? && bindings[:object].source_bulkable? }
+      end
+      field :mime_type do
+        shared_read_only
+        label 'MIME type'
+        visible { bindings[:object].style.present? }
+      end
+      field :file_extension do
+        shared_read_only
+        visible { !bindings[:object].file_extension_enum.empty? }
+        help { "Extensions for #{bindings[:object].mime_type}" }
+      end
+      field :code, :code do
+        visible { bindings[:object].style.present? && bindings[:object].style != 'chain' }
+        help { 'Required' }
+        html_attributes do
+          { cols: '74', rows: '15' }
+        end
+        code_config do
+          {
+              mode: case bindings[:object].style
+                      when 'html.erb'
+                        'text/html'
+                      when 'xslt'
+                        'application/xml'
+                      else
+                        'text/x-ruby'
+                    end
+          }
+        end
+      end
+    end
+
+    show do
+      field :namespace
+      field :name
+      field :source_data_type
+      field :bulk_source
+      field :style
+      field :mime_type
+      field :file_extension
+      field :code do
+        pretty_value do
+          "<pre><code class='ruby'>#{value}</code></pre>".html_safe
+        end
+      end
+
+      field :_id
+      field :created_at
+      #field :creator
+      field :updated_at
+      #field :updater
+    end
+
+    list do
+      field :namespace
+      field :name
+      field :source_data_type
+      field :style
+      field :mime_type
+      field :file_extension
+      field :updated_at
+    end
+  end
+
+  config.model Setup::Parser do
+    weight 412
+    configure :code, :code
+    navigation_label 'Transformations'
+    edit do
+      field :namespace, :enum_edit, &shared_non_editable
+      field :name, &shared_non_editable
+
+      field :target_data_type do
+        shared_read_only
+        inline_edit false
+        inline_add false
+        help 'Optional'
+      end
+
+      field :discard_events do
+        shared_read_only
+        help "Events won't be fired for created or updated records if checked"
+      end
+
+      field :style do
+        shared_read_only
+        visible { bindings[:object].type.present? }
+        help 'Required'
+      end
+
+      field :code, :code do
+        visible { bindings[:object].style.present? && bindings[:object].style != 'chain' }
+        help { 'Required' }
+        html_attributes do
+          { cols: '74', rows: '15' }
+        end
+        code_config do
+          {
+            mode: case bindings[:object].style
+                  when 'html.erb'
+                    'text/html'
+                  when 'xslt'
+                    'application/xml'
+                  else
+                    'text/x-ruby'
+                  end
+          }
+        end
+      end
+    end
+
+    show do
+      field :namespace
+      field :name
+      field :target_data_type
+      field :discard_events
+      field :style
+      field :mime_type
+      field :file_extension
+      field :code do
+        pretty_value do
+          "<pre><code class='ruby'>#{value}</code></pre>".html_safe
+        end
+      end
+
+      field :_id
+      field :created_at
+      #field :creator
+      field :updated_at
+      #field :updater
+    end
+
+    list do
+      field :namespace
+      field :name
+      field :target_data_type
+      field :style
+      field :updated_at
+    end
+  end
+
+  config.model Setup::Converter do
+    weight 413
+    configure :code, :code
+    navigation_label 'Transformations'
+
+    edit do
+      field :namespace, :enum_edit, &shared_non_editable
+      field :name, &shared_non_editable
+
+      field :source_data_type do
+        shared_read_only
+        inline_edit false
+        inline_add false
+        help 'Required'
+      end
+
+      field :target_data_type do
+        shared_read_only
+        inline_edit false
+        inline_add false
+        help 'Required'
+      end
+
+      field :discard_events do
+        shared_read_only
+        help "Events won't be fired for created or updated records if checked"
+      end
+
+      field :style do
+        shared_read_only
+        visible { bindings[:object].type.present? }
+        help 'Required'
+      end
+
+      field :source_handler do
+        shared_read_only
+        visible { (t = bindings[:object]).style.present? && (t.style == 'ruby') }
+        help { 'Handle sources on code' }
+      end
+
+      field :code, :code do
+        visible { bindings[:object].style.present? && bindings[:object].style != 'chain' }
+        help { 'Required' }
+        html_attributes do
+          { cols: '74', rows: '15' }
+        end
+        code_config do
+          {
+            mode: case bindings[:object].style
+                  when 'html.erb'
+                    'text/html'
+                  when 'xslt'
+                    'application/xml'
+                  else
+                    'text/x-ruby'
+                  end
+          }
+        end
+      end
+
+      field :source_exporter do
+        shared_read_only
+        inline_add { bindings[:object].source_exporter.nil? }
+        visible { bindings[:object].style == 'chain' && bindings[:object].source_data_type && bindings[:object].target_data_type }
+        help 'Required'
+        associated_collection_scope do
+          data_type = bindings[:object].source_data_type
+          Proc.new { |scope|
+            scope.all(type: :Conversion, source_data_type: data_type)
+          }
+        end
+      end
+
+      field :target_importer do
+        shared_read_only
+        inline_add { bindings[:object].target_importer.nil? }
+        visible { bindings[:object].style == 'chain' && bindings[:object].source_data_type && bindings[:object].target_data_type && bindings[:object].source_exporter }
+        help 'Required'
+        associated_collection_scope do
+          translator = bindings[:object]
+          source_data_type =
+            if translator.source_exporter
+              translator.source_exporter.target_data_type
+            else
+              translator.source_data_type
+            end
+          target_data_type = bindings[:object].target_data_type
+          Proc.new { |scope|
+            scope = scope.all(type: :Conversion,
+                              source_data_type: source_data_type,
+                              target_data_type: target_data_type)
+          }
+        end
+      end
+
+      field :discard_chained_records do
+        shared_read_only
+        visible { bindings[:object].style == 'chain' && bindings[:object].source_data_type && bindings[:object].target_data_type && bindings[:object].source_exporter }
+        help "Chained records won't be saved if checked"
+      end
+    end
+
+    show do
+      field :namespace
+      field :name
+      field :source_data_type
+      field :target_data_type
+      field :discard_events
+      field :style
+      field :source_handler
+      field :code do
+        pretty_value do
+          "<pre><code class='ruby'>#{value}</code></pre>".html_safe
+        end
+      end
+      field :source_exporter
+      field :target_importer
+      field :discard_chained_records
+
+      field :_id
+      field :created_at
+      #field :creator
+      field :updated_at
+      #field :updater
+    end
+
+    list do
+      field :namespace
+      field :name
+      field :source_data_type
+      field :target_data_type
+      field :style
+      field :updated_at
+    end
+  end
+
+  config.model Setup::Updater do
+    weight 414
+    configure :code, :code
+    navigation_label 'Transformations'
+
+    edit do
+      field :namespace, :enum_edit, &shared_non_editable
+      field :name, &shared_non_editable
+
+      field :target_data_type do
+        shared_read_only
+        inline_edit false
+        inline_add false
+        help 'Optional'
+      end
+
+      field :discard_events do
+        shared_read_only
+        help "Events won't be fired for created or updated records if checked"
+      end
+
+      field :style do
+        shared_read_only
+        visible { bindings[:object].type.present? }
+        help 'Required'
+      end
+
+      field :source_handler do
+        shared_read_only
+        visible { (t = bindings[:object]).style.present? }
+        help { 'Handle sources on code' }
+      end
+
+      field :code, :code do
+        visible { bindings[:object].style.present? && bindings[:object].style != 'chain' }
+        help { 'Required' }
+        html_attributes do
+          { cols: '74', rows: '15' }
+        end
+        code_config do
+          {
+            mode: case bindings[:object].style
+                  when 'html.erb'
+                    'text/html'
+                  when 'xslt'
+                    'application/xml'
+                  else
+                    'text/x-ruby'
+                  end
+          }
+        end
+      end
+    end
+
+    show do
+      field :namespace
+      field :name
+      field :target_data_type
+      field :discard_events
+      field :style
+      field :source_handler
+      field :code do
+        pretty_value do
+          "<pre><code class='ruby'>#{value}</code></pre>".html_safe
+        end
+      end
+
+      field :_id
+      field :created_at
+      #field :creator
+      field :updated_at
+      #field :updater
+    end
+
+    list do
+      field :namespace
+      field :name
+      field :target_data_type
+      field :style
+      field :updated_at
+    end
+  end
+
+  config.model Setup::AlgorithmOutput do
+    navigation_label 'Compute'
+    weight -405
+    visible false
+
+    configure :records_count
+    configure :input_parameters
+    configure :created_at do
+      label 'Recorded at'
+    end
+
+    extra_associations do
+      association = Mongoid::Relations::Metadata.new(
+        name: :records, relation: Mongoid::Relations::Referenced::Many,
+        inverse_class_name: Setup::AlgorithmOutput.to_s, class_name: Setup::AlgorithmOutput.to_s
+      )
+      [RailsAdmin::Adapters::Mongoid::Association.new(association, abstract_model.model)]
+    end
+
+    show do
+      field :created_at
+      field :input_parameters
+      field :records_count
+    end
+
+    fields :created_at, :input_parameters, :records_count
+  end
+
+  config.model Setup::Action do
+    visible false
+    navigation_label 'Compute'
+    weight -402
+    object_label_method { :to_s }
+
+    fields :method, :path, :algorithm
+  end
+
+  config.model Setup::Application do
+    navigation_label 'Compute'
+    weight 420
+    object_label_method { :custom_title }
+    visible
+    configure :identifier
+    configure :registered, :boolean
+
+    edit do
+      field :namespace, :enum_edit
+      field :name
+      field :slug
+      field :actions
+      field :application_parameters
+    end
+    list do
+      field :namespace
+      field :name
+      field :slug
+      field :registered
+      field :actions
+      field :application_parameters
+      field :updated_at
+    end
+    fields :namespace, :name, :slug, :identifier, :secret_token, :registered, :actions, :application_parameters
+  end
+
+  config.model Cenit::ApplicationParameter do
+    visible false
+    navigation_label 'Compute'
+    configure :group, :enum_edit
+
+    list do
+      field :name
+      field :type
+      field :many
+      field :group
+      field :description
+      field :updated_at
+    end
+
+    fields :name, :type, :many, :group, :description
+  end
+
+  config.model Setup::Snippet do
+    navigation_label 'Compute'
+    weight 430
+    object_label_method { :custom_title }
+
+    configure :name
+
+    edit do
+      field :namespace, :enum_edit
+      field :name
+      field :type
+      field :description
+      field :code, :code do
+        html_attributes do
+          { cols: '74', rows: '15' }
+        end
+        code_config do
+          {
+            mode: {
+              'auto': 'javascript',
+              'text': 'javascript',
+              'null': 'javascript',
+              'c': 'clike',
+              'cpp': 'clike',
+              'csharp': 'clike',
+              'csv': 'javascript',
+              'fsharp': 'mllike',
+              'java': 'clike',
+              'latex': 'stex',
+              'ocaml': 'mllike',
+              'scala': 'clike',
+              'squirrel': 'clike'
+            }[bindings[:object].type] || bindings[:object].type
+          }
+        end
+
+      end
+    end
+
+    show do
+      field :namespace
+      field :name
+      field :type
+      field :description
+      field :code do
+        pretty_value do
+          "<pre><code class='#{bindings[:object].type}'>#{value}</code></pre>".html_safe
+        end
+      end
+    end
+
+    fields :namespace, :name, :type, :description
+  end
 
   #Workflows
 
