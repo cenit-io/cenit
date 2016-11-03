@@ -1,5 +1,5 @@
 module Setup
-  class Segment
+  class Query
     include CenitScoped
     include NamespaceNamed
     include TriggersFormatter
@@ -19,6 +19,10 @@ module Setup
 
     def to_s
       name ? name : super
+    end
+
+    def link_to_segment
+      eval triggers
     end
 
     private
@@ -41,7 +45,7 @@ module Setup
         n = "#{self.data_type.custom_title} on #{triggered_fields.to_sentence}"
         i = 1
         self.name = n
-        while Setup::Segment.where(name: name).present? do
+        while Setup::Query.where(name: name).present? do
           self.name = n + " (#{i+=1})"
         end
       end

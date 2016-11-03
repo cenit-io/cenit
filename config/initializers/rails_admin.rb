@@ -2473,6 +2473,65 @@ RailsAdmin.config do |config|
     fields :namespace, :name, :type, :description
   end
 
+  config.model Setup::Query do
+    navigation_label 'Compute'
+    weight 435
+    label 'Query'
+    object_label_method { :custom_title }
+
+    edit do
+      field :namespace, :enum_edit
+      field :name
+      field :data_type do
+        inline_add false
+        inline_edit false
+        associated_collection_scope do
+          data_type = bindings[:object].data_type
+          Proc.new { |scope|
+            if data_type
+              scope.where(id: data_type.id)
+            else
+              scope
+            end
+          }
+        end
+        help 'Required'
+      end
+      field :triggers do
+        visible do
+          bindings[:controller].instance_variable_set(:@_data_type, data_type = bindings[:object].data_type)
+          bindings[:controller].instance_variable_set(:@_update_field, 'data_type_id')
+          data_type.present?
+        end
+        partial 'form_triggers'
+        help false
+      end
+    end
+
+    show do
+      field :namespace
+      field :name
+      field :data_type
+      field :triggers
+      field :link_to_segment do
+        pretty_value do
+          (bindings[:view].render partial: 'link_to_segment', locals:
+            {
+              model_name: bindings[:object].data_type.records_model.to_s.downcase,
+              filter: bindings[:object].link_to_segment
+            }).html_safe
+        end
+      end
+      field :_id
+      field :created_at
+      #field :creator
+      field :updated_at
+      #field :updater
+    end
+
+    fields :namespace, :name, :data_type, :triggers, :updated_at
+  end
+
   #Transformations
 
   config.navigation 'Transformations', icon: 'fa fa-random'
@@ -2991,57 +3050,6 @@ RailsAdmin.config do |config|
     end
 
     fields :namespace, :name, :_type, :updated_at
-  end
-
-  config.model Setup::Segment do
-    navigation_label 'Workflows'
-    weight 511
-    label 'Segment'
-    object_label_method { :custom_title }
-
-    edit do
-      field :namespace, :enum_edit
-      field :name
-      field :data_type do
-        inline_add false
-        inline_edit false
-        associated_collection_scope do
-          data_type = bindings[:object].data_type
-          Proc.new { |scope|
-            if data_type
-              scope.where(id: data_type.id)
-            else
-              scope
-            end
-          }
-        end
-        help 'Required'
-      end
-      field :triggers do
-        visible do
-          bindings[:controller].instance_variable_set(:@_data_type, data_type = bindings[:object].data_type)
-          bindings[:controller].instance_variable_set(:@_update_field, 'data_type_id')
-          data_type.present?
-        end
-        partial 'form_triggers'
-        help false
-      end
-    end
-
-    show do
-      field :namespace
-      field :name
-      field :data_type
-      field :triggers
-
-      field :_id
-      field :created_at
-      #field :creator
-      field :updated_at
-      #field :updater
-    end
-
-    fields :namespace, :name, :data_type, :triggers, :updated_at
   end
 
   config.model Setup::Observer do

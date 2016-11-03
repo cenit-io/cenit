@@ -193,7 +193,7 @@
         $.triggers.update_triggers_menu();
     });
 
-    $(document).on('change', "#setup_segment_data_type_id", function (e) {
+    $(document).on('change', "#setup_query_data_type_id", function (e) {
         $.triggers.update_triggers_menu();
     });
 
