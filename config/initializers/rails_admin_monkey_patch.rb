@@ -673,9 +673,9 @@ module RailsAdmin
       mongoff_start_index = nil
       definitions_index = nil
       main_labels = []
-      data_type_icons = 
+      data_type_icons =
         {
-          Setup::FileDataType => 'fa fa-file', 
+          Setup::FileDataType => 'fa fa-file',
           Setup::JsonDataType => 'fa fa-database',
           Setup::CrossSharedCollection => 'fa fa-shopping-cart'
         }
@@ -816,14 +816,19 @@ module RailsAdmin
             extensions_list.uniq
             sub_links =''
             extensions_list.each do |ext|
-              sub_links+= content_tag :li do
-                link_to ext.capitalize, class: 'pjax' do
-                  rc = ""
-                  if _current_user.present? && model_count>0
-                    rc += "<span class='nav-amount'>#{model_count}</span>"
+              cant=Setup::Renderer.where(:file_extension => ext).count
+              if cant>0
+                sub_links+= content_tag :li do
+                  #TODO review and improve the params for the sub_link_url generation and try to show the filter in the view
+                  sub_link_url = index_path(model_name: 'setup~renderer', "file_extension" => ext, "model_name" => "setup~renderer", "utf8" => "✓", "f" => { "file_extension" => { "60852" => { "v" => ext } } })
+                  link_to sub_link_url do
+                    rc = ""
+                    if _current_user.present? && model_count>0
+                      rc += "<span class='nav-amount'>#{cant}</span>"
+                    end
+                    rc += "<span class='nav-caption'>#{capitalize_first_letter ext}</span>"
+                    rc.html_safe
                   end
-                  rc += "<span class='nav-caption'>#{ext}</span>"
-                  rc.html_safe
                 end
               end
             end

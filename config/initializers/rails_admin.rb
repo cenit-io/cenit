@@ -2478,7 +2478,7 @@ RailsAdmin.config do |config|
   config.navigation 'Transformations', icon: 'fa fa-random'
 
   config.model Setup::Translator do
-    navigation_label 'Transformations'
+    visible false
     weight 410
     object_label_method { :custom_title }
     register_instance_option(:form_synchronized) do
@@ -2656,6 +2656,7 @@ RailsAdmin.config do |config|
   end
 
   config.model Setup::Renderer do
+    navigation_label 'Transformations'
     weight 411
     configure :code, :code
 
@@ -2711,7 +2712,7 @@ RailsAdmin.config do |config|
   config.model Setup::Parser do
     weight 412
     configure :code, :code
-
+    navigation_label 'Transformations'
     edit do
       field :namespace
       field :name
@@ -2759,7 +2760,7 @@ RailsAdmin.config do |config|
   config.model Setup::Converter do
     weight 413
     configure :code, :code
-
+    navigation_label 'Transformations'
     edit do
       field :namespace
       field :name
@@ -2861,6 +2862,7 @@ RailsAdmin.config do |config|
   config.model Setup::Updater do
     weight 414
     configure :code, :code
+    navigation_label 'Transformations'
     field :namespace
     field :name
 
