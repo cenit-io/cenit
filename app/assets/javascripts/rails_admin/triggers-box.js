@@ -193,6 +193,10 @@
         $.triggers.update_triggers_menu();
     });
 
+    $(document).on('change', "#setup_query_data_type_id", function (e) {
+        $.triggers.update_triggers_menu();
+    });
+
     $(document).on('change', "#setup_flow_translator_id", function (e) {
         $.triggers.update_triggers_menu();
     });

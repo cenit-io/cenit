@@ -1,8 +1,8 @@
 module Api::V2
   class ApiController < ApplicationController
-    before_action :authorize_account, :save_request_data, except: [:new_account, :cors_check, :auth]
+    before_action :authorize_account, :save_request_data, except: [:new_user, :cors_check, :auth]
     before_action :find_item, only: [:show, :destroy, :pull, :run]
-    before_action :authorize_action, except: [:auth, :new_account, :cors_check, :push]
+    before_action :authorize_action, except: [:auth, :new_user, :cors_check, :push]
     rescue_from Exception, :with => :exception_handler
     respond_to :json
 
@@ -12,13 +12,22 @@ module Api::V2
     end
 
     def index
-      @page = 1
-      res = {:json => {error: 'no model found'}, :status => :not_found}
+      page = get_page
+      res =
+        {
+          json: { error: 'no model found' },
+          status: :not_found
+        }
       if (klass = self.klass)
-        @items = @criteria.present? ? select_items(klass) : klass.page(@page)
+        @items =
+          if @criteria.present?
+            select_items
+          else
+            accessible_records.page(page)
+          end
 
-        option = {including: :_type}
-        #option[:only] = self.klass.properties_index
+        option = { including: :_type }
+        #option[:only] = self.klass.properties_index TODO Review only option and index properties
         option[:ignore] = @ignore if @ignore
         option[:include_id] = true
         items_data = @items.map do |item|
@@ -26,10 +35,16 @@ module Api::V2
           hash.delete('_type') if item.class.eql?(klass)
           @view.nil? ? hash : hash[@view]
         end
-        res = {:json => {@model => items_data,
-                         :total_pages => (klass.count*1.0/Kaminari.config.default_per_page).ceil,
-                         :current_page => @page,
-                         :count => items_data.count}}
+        count = @items.count
+        res =
+          {
+            json: {
+              total_pages: (count*1.0/Kaminari.config.default_per_page).ceil,
+              current_page: page,
+              count: count,
+              @model.pluralize => items_data
+            }
+          }
       end
       render res
     end
@@ -39,6 +54,7 @@ module Api::V2
         send_data @item.data, filename: @item[:filename], type: @item[:contentType]
       else
         option = {}
+        option[:only] = @only if @only
         option[:ignore] = @ignore if @ignore
         option[:include_id] = true
         render json: @view.nil? ? @item.to_hash(option) : @item.to_hash(option)[@view]
@@ -46,15 +62,15 @@ module Api::V2
     end
 
     def content
-      render json: @view.nil? ? @item.to_hash : {@view => @item.to_hash[@view]}
+      render json: @view.nil? ? @item.to_hash : { @view => @item.to_hash[@view] }
     end
 
     def push
       response =
-          {
-              success: success_report = Hash.new { |h, k| h[k] = [] },
-              errors: broken_report = Hash.new { |h, k| h[k] = [] }
-          }
+        {
+          success: success_report = Hash.new { |h, k| h[k] = [] },
+          errors: broken_report = Hash.new { |h, k| h[k] = [] }
+        }
       @payload.each do |root, message|
         @model = root
         if authorize_action && (data_type = @payload.data_type_for(root))
@@ -65,7 +81,7 @@ module Api::V2
                                         (options = @payload.create_options))).errors.blank?
               success_report[root.pluralize] << record.inspect_json(include_id: :id, inspect_scope: options[:create_collector])
             else
-              broken_report[root] << {errors: record.errors.full_messages, item: item}
+              broken_report[root] << { errors: record.errors.full_messages, item: item }
             end
           end
         else
@@ -79,20 +95,24 @@ module Api::V2
 
     def new
       response =
-          {
-              success: success_report = {},
-              errors: broken_report = {}
-          }
+        {
+          success: success_report = {},
+          errors: broken_report = {}
+        }
       @payload.each do |root, message|
         if (data_type = @payload.data_type_for(root))
           message = [message] unless message.is_a?(Array)
           message.each do |item|
-            if (record = data_type.send(@payload.create_method,
-                                        @payload.process_item(item, data_type),
-                                        (options = @payload.create_options.merge(primary_field: @primary_field)))).errors.blank?
-              success_report[root] = record.inspect_json(include_id: :id, inspect_scope: options[:create_collector])
-            else
-              broken_report[root] = {errors: record.errors.full_messages, item: item}
+            begin
+              if (record = data_type.send(@payload.create_method,
+                                          @payload.process_item(item, data_type),
+                                          (options = @payload.create_options.merge(primary_field: @primary_field)))).errors.blank?
+                success_report[root] = record.inspect_json(include_id: :id, inspect_scope: options[:create_collector])
+              else
+                broken_report[root] = { errors: record.errors.full_messages, item: item }
+              end
+            rescue Exception => ex
+              broken_report[root] = { errors: ex.message, item: item }
             end
           end
         else
@@ -106,7 +126,7 @@ module Api::V2
 
     def destroy
       @item.destroy
-      render json: {status: :ok}
+      render json: { status: :ok }
     end
 
     def run
@@ -114,10 +134,10 @@ module Api::V2
         begin
           render plain: @item.run(@webhook_body)
         rescue Exception => ex
-          render json: {error: ex.message}, status: 406
+          render json: { error: ex.message }, status: 406
         end
       else
-        render json: {status: :not_allowed}, status: 405
+        render json: { status: :not_allowed }, status: 405
       end
     end
 
@@ -132,15 +152,15 @@ module Api::V2
             status = errors ? 202 : :bad_request
           elsif (updated_records = pull_request[:updated_records])
             updated_records.each do |key, records|
-              updated_records[key] = records.collect { |record| {id: record.id.to_s} }
+              updated_records[key] = records.collect { |record| { id: record.id.to_s } }
             end
           end
           render json: pull_request, status: status
         rescue Exception => ex
-          render json: {status: :bad_request}
+          render json: { error: ex.message, status: :bad_request }
         end
       else
-        render json: {status: :not_allowed}
+        render json: { status: :not_allowed }
       end
     end
 
@@ -148,69 +168,80 @@ module Api::V2
       authorize_account
       if Account.current
         self.cors_header
-        render json: {status: "Sucess Auth"}, status: 200
+        render json: { status: 'Sucess Auth' }, status: 200
       else
         self.cors_header
-        render json: {status: "Error Auth"}, status: 401
+        render json: { status: 'Error Auth' }, status: 401
       end
     end
 
-    def new_account
+    def new_user
       data = (JSON.parse(@webhook_body) rescue {}).keep_if { |key, _| %w(email password password_confirmation token code).include?(key) }
       data = data.with_indifferent_access
       data.reverse_merge!(email: params[:email], password: pwd = params[:password], password_confirmation: params[:password_confirmation] || pwd)
-      status = 406
+      status = :not_acceptable
       response =
-          if (token = data[:token] || params[:token])
-            if (tkaptcha = CaptchaToken.where(token: token).first)
-              if (code = data[:code] || params[:code])
-                if code == tkaptcha.code
-                  data.merge!(tkaptcha.data || {}) { |_, left, right| left || right }
-                  data[:password] = Devise.friendly_token unless data[:password]
-                  data[:password_confirmation] = data[:password] unless data[:password_confirmation]
-                  tkaptcha.destroy
-                  user =
-                      begin
-                        (user = ::User.new(data)).save
-                        user
-                      rescue
-                        user #TODO Handle sending confirmation email error
-                      end
-                  if user.errors.blank?
-                    status = 200
-                    {number: user.number, token: user.authentication_token}
-                  else
-                    user.errors.to_json
-                  end
-                else #invalid code
-                  {code: ['is not valid']}
-                end
-              else #code missing
-                {code: ['is missing']}
+        if (token = data[:token] || params[:token])
+          if (captcha_token = CaptchaToken.where(token: token).first)
+            if (code = data[:code] || params[:code])
+              if code == captcha_token.code
+                data.merge!(captcha_token.data || {}) { |_, left, right| left || right }
+                captcha_token.destroy
+                _, status, response = create_user_with(data)
+                response
+              else #invalid code
+                { code: ['is not valid'] }
               end
-            else #invalid token
-              {token: ['is not valid']}
+            else #code missing
+              { code: ['is missing'] }
             end
-          elsif data[:email]
-            data[:password] = Devise.friendly_token unless data[:password]
-            data[:password_confirmation] = data[:password] unless data[:password_confirmation]
-            if (user = User.new(data)).valid?(context: :create)
-              if (tkaptcha = CaptchaToken.create(email: data[:email], data: data)).errors.blank?
-                status = 200
-                {token: tkaptcha.token}
-              else
-                tkaptcha.errors.to_json
-              end
-            else
-              user.errors.to_json
-            end
-          else #bad request
-            {token: ['is missing'], email: ['is missing']}
+          else #invalid token
+            { token: ['is not valid'] }
           end
+        elsif data[:email]
+          data[:password] = Devise.friendly_token unless data[:password]
+          data[:password_confirmation] = data[:password] unless data[:password_confirmation]
+          if (user = User.new(data)).valid?(context: :create)
+            if (captcha_token = CaptchaToken.create(email: data[:email], data: data)).errors.blank?
+              status = :ok
+              { token: captcha_token.token }
+            else
+              captcha_token.errors.to_json
+            end
+          else
+            user.errors.to_json
+          end
+        else #bad request
+          status = :bad_request
+          { token: ['is missing'], email: ['is missing'] }
+        end
       render json: response, status: status
     end
 
     protected
+
+    def create_user_with(data)
+      status = :not_acceptable
+      data[:password] ||= Devise.friendly_token
+      data[:password_confirmation] ||= data[:password]
+      current_account = Account.current
+      begin
+        Account.current = nil
+        (user = ::User.new(data)).save
+      rescue
+        user #TODO Handle sending confirmation email error
+      ensure
+        Account.current = current_account
+      end
+      response=
+        if user.errors.blank?
+          status = :ok
+          { number: user.number, token: user.authentication_token }
+        else
+          user.errors.to_json
+        end
+      [user, status, response]
+    end
 
     def get_limit
       if (limit = @criteria.delete(:limit))
@@ -233,7 +264,7 @@ module Api::V2
       page
     end
 
-    def select_items(klass)
+    def select_items
       asc = true
       if (order = @criteria.delete(:order))
         order.strip!
@@ -243,7 +274,7 @@ module Api::V2
       limit = get_limit
       page = get_page
 
-      @compound_query = {:exists => false}
+      @compound_query = { :exists => false }
       if (where_data = @criteria.delete(:where))
         wh = JSON.parse(where_data)
 
@@ -261,7 +292,7 @@ module Api::V2
 
       end
 
-      items = klass.page(page).where(@criteria).limit(limit)
+      items = accessible_records.page(page).where(@criteria).limit(limit)
 
       if @compound_query[:exists]
         t = @compound_query[:operands].map {
@@ -283,34 +314,43 @@ module Api::V2
     end
 
     def authorize_account
+      user = nil
       key = params.delete('X-User-Access-Key')
       key = request.headers['X-User-Access-Key'] || key
       token = params.delete('X-User-Access-Token')
       token = request.headers['X-User-Access-Token'] || token
       if key || token
-        user = User.where(key: key).first
-        if user && Devise.secure_compare(user.token, token) && user.has_role?(:admin)
-          Account.current = user.account
+        [
+          User,
+          Account
+        ].each do |model|
+          next if user
+          record = model.where(key: key).first
+          if record && Devise.secure_compare(record[:authentication_token], token)
+            Account.current = record.api_account
+            user = record.user
+          end
         end
-      else
+      end
+      unless key || token
         key = request.headers['X-Hub-Store']
         token = request.headers['X-Hub-Access-Token']
         Account.set_current_with_connection(key, token) if key || token
       end
       User.current = user || (Account.current ? Account.current.owner : nil)
+      @ability = Ability.new(User.current)
       true
     end
 
     def authorize_action
       if klass
-        @ability = Ability.new(Account.current && Account.current.owner)
         action_symbol =
-            case @_action_name
-              when 'push'
-                get_data_type(@model).is_a?(Setup::FileDataType) ? :upload_file : :new
-              else
-                @_action_name.to_sym
-            end
+          case @_action_name
+          when 'push'
+            get_data_type(@model).is_a?(Setup::FileDataType) ? :upload_file : :new
+          else
+            @_action_name.to_sym
+          end
         if @ability.can?(action_symbol, @item || klass)
           true
         else
@@ -319,7 +359,7 @@ module Api::V2
           false
         end
       else
-        render json: {error: 'no model found'}, status: :not_found
+        render json: { error: 'no model found' }, status: :not_found
       end
       cors_header
       true
@@ -341,10 +381,10 @@ module Api::V2
     end
 
     def find_item
-      if (@item = klass.where(id: params[:id]).first)
+      if (@item = accessible_records.where(id: params[:id]).first)
         true
       else
-        render json: {status: 'item not found'}, status: :not_found
+        render json: { status: 'item not found' }, status: :not_found
         false
       end
     end
@@ -352,20 +392,20 @@ module Api::V2
     def get_data_type_by_slug(slug)
       if slug
         @data_types[slug] ||=
-            if @ns_slug == 'setup'
-              Setup::BuildInDataType["Setup::#{slug.camelize}"]
-            else
-              if @ns_name.nil?
-                ns = Setup::Namespace.where(slug: @ns_slug).first
-                @ns_name = (ns && ns.name) || ''
-              end
-              if @ns_name
-                Setup::DataType.where(namespace: @ns_name, slug: slug).first ||
-                    Setup::DataType.where(namespace: @ns_name, slug: slug.singularize).first
-              else
-                nil
-              end
+          if @ns_slug == 'setup'
+            Setup::BuildInDataType["Setup::#{slug.camelize}"] || Setup::BuildInDataType[slug.camelize]
+          else
+            if @ns_name.nil?
+              ns = Setup::Namespace.where(slug: @ns_slug).first
+              @ns_name = (ns && ns.name) || ''
             end
+            if @ns_name
+              Setup::DataType.where(namespace: @ns_name, slug: slug).first ||
+                Setup::DataType.where(namespace: @ns_name, slug: slug.singularize).first
+            else
+              nil
+            end
+          end
       else
         nil
       end
@@ -387,6 +427,10 @@ module Api::V2
       @klass ||= get_model(@model)
     end
 
+    def accessible_records
+      (@ability && klass.accessible_by(@ability)) || klass.all
+    end
+
     def save_request_data
       @data_types ||= {}
       @request_id = request.uuid
@@ -394,6 +438,7 @@ module Api::V2
       @ns_slug = params[:ns]
       @ns_name = nil
       @model = params[:model]
+      @only = params[:only].split(',') if params[:only]
       @ignore = params[:ignore].split(',') if params[:ignore]
       @primary_field = params[:primary_field]
       @include_root = params[:include_root]
@@ -402,9 +447,9 @@ module Api::V2
       @format = params[:format]
       @path = "#{params[:path]}.#{params[:format]}" if params[:path] && params[:format]
       pload = {
-          'application/json' => JSONPayload,
-          'application/xml' => XMLPayload
-      }
+        'application/json': JSONPayload,
+        'application/xml': XMLPayload
+      }.stringify_keys
       pload.default = BasicPayload
       @payload = pload[request.content_type].new(controller: self,
                                                  message: @webhook_body,
@@ -423,19 +468,20 @@ module Api::V2
 
       def initialize(config)
         @config =
-            {
-                create_method: case config[:content_type]
-                                 when 'application/json'
-                                   :create_from_json
-                                 when 'application/xml'
-                                   :create_from_xml
-                                 else
-                                   :create_from
-                               end,
-                message: ''
-            }.merge(config || {})
-        @data_type = (controller = config[:controller]).send(:get_data_type, (@root = controller.request.params[:model] || controller.request.headers['data-type'])) rescue nil
-        @create_options = {create_collector: Set.new}
+          {
+            create_method: case config[:content_type]
+                           when 'application/json'
+                             :create_from_json
+                           when 'application/xml'
+                             :create_from_xml
+                           else
+                             :create_from
+                           end,
+            message: ''
+          }.merge(config || {})
+        controller = config[:controller]
+        @data_type = controller.send(:get_data_type, (@root = controller.request.params[:model] || controller.request.headers['data-type'])) rescue nil
+        @create_options = { create_collector: Set.new }
         create_options_keys.each { |option| @create_options[option.to_sym] = controller.request[option] }
       end
 
@@ -486,9 +532,9 @@ module Api::V2
     class XMLPayload < BasicPayload
 
       def each_root(&block)
-        if roots = Nokogiri::XML::DocumentFragment.parse(config[:message]).element_children
+        if (roots = Nokogiri::XML::DocumentFragment.parse(config[:message]).element_children)
           roots.each do |root|
-            if elements = root.element_children
+            if (elements = root.element_children)
               elements.each { |e| block.call(root.name, e) }
             end
           end
