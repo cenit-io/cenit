@@ -3114,7 +3114,7 @@ RailsAdmin.config do |config|
 
   config.model Setup::Scheduler do
     navigation_label 'Workflows'
-    weight 513
+    weight 512
     object_label_method { :custom_title }
 
     configure :expression, :json_value
