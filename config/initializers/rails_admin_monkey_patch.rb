@@ -574,39 +574,34 @@ module RailsAdmin
       end
     end
 
-    def notifications_link
+    def notifications_links
       account, abstract_model, index_action = linking(Setup::Notification)
       return nil unless index_action
-      link_to url_for(action: index_action.action_name, model_name: abstract_model.to_param, controller: 'rails_admin/main'), class: 'pjax' do
-        html = '<i class="icon-bell" title="Notification" rel="tooltip"></i>'
-        counters = Hash.new { |h, k| h[k] = 0 }
-        scope =
-          if (from_date = account.notifications_listed_at)
-            Setup::Notification.where(:created_at.gte => from_date)
-          else
-            Setup::Notification.all
-          end
-        Setup::Notification.type_enum.each do |type|
-          if (count = scope.where(type: type).count) > 0
-            counters[Setup::Notification.type_color(type)] = count
-          end
-        end
-        counters.each do |color, count|
-          html +=
-            <<-HTML
-              <b class="label rounded label-xs up" style='border-radius: 500px;
-                position: relative;
-                top: -10px;
-                min-width: 4px;
-                min-height: 4px;
-                display: inline-block;
-                font-size: 9px;
-                background-color: #{color}'>#{count}
-              </b>
-          HTML
-        end
-        html.html_safe
+      all_links =[]
+      bell_link = link_to url_for(action: index_action.action_name, model_name: abstract_model.to_param, controller: 'rails_admin/main'), class: 'pjax' do
+        '<i class="icon-bell" title="Notification" rel="tooltip"></i>'.html_safe
       end
+      all_links << bell_link
+      counters = Hash.new { |h, k| h[k] = 0 }
+      scope =
+        if (from_date = account.notifications_listed_at)
+          Setup::Notification.where(:created_at.gte => from_date)
+        else
+          Setup::Notification.all
+        end
+      Setup::Notification.type_enum.each do |type|
+        if (count = scope.where(type: type).count) > 0
+          counters[Setup::Notification.type_color(type)] = count
+        end
+      end
+      counters.each do |color, count|
+        counter_links = link_to url_for(action: index_action.action_name, model_name: abstract_model.to_param, controller: 'rails_admin/main'), class: 'pjax' do
+          link = '<b class="label rounded label-xs up notify-counter-link '+ color + '">' + count.to_s + '</b>'
+          link.html_safe
+        end
+        all_links << counter_links.html_safe
+      end
+      all_links
     end
 
     def edit_user_link

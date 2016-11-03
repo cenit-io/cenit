@@ -896,3 +896,26 @@ ul#main-accordion .panel-heading .nav-icon {
 .toggle-origin:focus, .toggle-origin:active:focus, .toggle-origin.active:focus {
   outline: none;
 }
+
+.notify-counter-link {
+  border-radius: 500px;
+ // position: relative;
+  top: -10px;
+  min-width: 4px;
+  min-height: 4px;
+  display: inline-block;
+  font-size: 9px;
+
+  &.green {
+    background-color: green;
+  }
+  &.blue{
+    background-color: blue;
+  }
+  &.orange{
+    background-color: orange;
+  }
+  &.red{
+    background-color: red;
+  }
+}

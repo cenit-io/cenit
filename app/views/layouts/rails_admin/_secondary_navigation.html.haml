@@ -130,8 +130,10 @@
       %li#action-tasks= t_link
     - if (auth_link = authorizations_link)
       %li#action-auth= auth_link
-    - if (nlink = notifications_link)
-      %li#action-notify= nlink  
+    - if (links = notifications_links)
+      - links.each do |link|
+        %li#action-notify= link
+
 
 - else
 
