@@ -2993,6 +2993,57 @@ RailsAdmin.config do |config|
     fields :namespace, :name, :_type, :updated_at
   end
 
+  config.model Setup::Segment do
+    navigation_label 'Workflows'
+    weight 511
+    label 'Segment'
+    object_label_method { :custom_title }
+
+    edit do
+      field :namespace, :enum_edit
+      field :name
+      field :data_type do
+        inline_add false
+        inline_edit false
+        associated_collection_scope do
+          data_type = bindings[:object].data_type
+          Proc.new { |scope|
+            if data_type
+              scope.where(id: data_type.id)
+            else
+              scope
+            end
+          }
+        end
+        help 'Required'
+      end
+      field :triggers do
+        visible do
+          bindings[:controller].instance_variable_set(:@_data_type, data_type = bindings[:object].data_type)
+          bindings[:controller].instance_variable_set(:@_update_field, 'data_type_id')
+          data_type.present?
+        end
+        partial 'form_triggers'
+        help false
+      end
+    end
+
+    show do
+      field :namespace
+      field :name
+      field :data_type
+      field :triggers
+
+      field :_id
+      field :created_at
+      #field :creator
+      field :updated_at
+      #field :updater
+    end
+
+    fields :namespace, :name, :data_type, :triggers, :updated_at
+  end
+
   config.model Setup::Observer do
     navigation_label 'Workflows'
     weight 511
@@ -3055,7 +3106,7 @@ RailsAdmin.config do |config|
 
   config.model Setup::Scheduler do
     navigation_label 'Workflows'
-    weight 512
+    weight 513
     object_label_method { :custom_title }
 
     configure :expression, :json_value
