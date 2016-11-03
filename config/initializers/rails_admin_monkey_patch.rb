@@ -673,11 +673,17 @@ module RailsAdmin
       mongoff_start_index = nil
       definitions_index = nil
       main_labels = []
-      data_type_icons = { Setup::FileDataType => 'fa fa-file', Setup::JsonDataType => 'fa fa-database' }
+      data_type_icons = 
+        {
+          Setup::FileDataType => 'fa fa-file', 
+          Setup::JsonDataType => 'fa fa-database',
+          Setup::CrossSharedCollection => 'fa fa-shopping-cart'
+        }
       non_setup_data_type_models =
         [
           Setup::FileDataType,
-          Setup::JsonDataType
+          Setup::JsonDataType,
+          Setup::CrossSharedCollection
         ]
       data_type_models =
         {
@@ -736,7 +742,8 @@ module RailsAdmin
       non_setup_data_type_models.each do |data_type_model|
         links = data_type_models[data_type_model]
         name = data_type_model.to_s.split('::').last.underscore
-        link_link = link_to url_for(action: :link_data_type,
+        action = name == 'cross_shared_collection' ? :store_index : :link_data_type
+        link_link = link_to url_for(action: action,
                                     controller: 'rails_admin/main',
                                     data_type_model: data_type_model.to_s) do
           %{<span class="nav-caption">#{t("admin.misc.link_#{name}")}</span>

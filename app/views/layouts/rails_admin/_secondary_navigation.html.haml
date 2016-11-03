@@ -206,7 +206,7 @@
 - query = params[:query]
 %ul.nav.navbar-nav.navbar-right.root_links{style: 'padding-left: 0px;'}
   %li#navbar-search
-    - shared_path = index_path(model_name: 'setup~shared_collection')
+    - shared_path = index_path(model_name: 'setup~cross_shared_collection')
     = form_tag(shared_path, method: :get, class: 'pjax-form') do
       %input.navbar-brand{name: 'query', type: 'search', value: query, placeholder: t('admin.misc.shared_collections')}
       %button#search-toggle.btn.a.navbar-brand.toggle-btn
