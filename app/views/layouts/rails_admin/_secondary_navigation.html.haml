@@ -131,8 +131,10 @@
     - if (auth_link = authorizations_link)
       %li#action-auth= auth_link
     - if (links = notifications_links)
-      - links.each do |link|
-        %li#action-notify= link
+      %li#action-notify
+        .notification-links
+          - links.each do |link|
+            =link
 
 
 - else

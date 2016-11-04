@@ -1,9 +1,8 @@
 @import "bootstrap/bootstrap-tour.min";
-
 @import "rails_admin/custom/github";
 
 body.rails_admin {
-  padding-top: 55px!important;
+  padding-top: 55px !important;
 }
 
 .navbar-brand img {
@@ -12,9 +11,9 @@ body.rails_admin {
   padding-bottom: 4px;
 }
 
-ul#main-accordion{
+ul#main-accordion {
   z-index: -2;
-  .social-links{
+  .social-links {
     z-index: -1;
   }
 }
@@ -46,11 +45,11 @@ a#sign-in-link, a#sign-out-link {
   background-color: #ea7400;
 }
 
-ul.root_links li a i{
+ul.root_links li a i {
   color: white;
 }
 
-a#sign-in-link:hover, a#sign-out-link:hover  {
+a#sign-in-link:hover, a#sign-out-link:hover {
   border-color: #ea7400;
   transition: .5s;
 }
@@ -65,7 +64,7 @@ a#sign-in-link:hover, a#sign-out-link:hover  {
 #help-nav > li.dropdown.open > a,
 #user-nav > li.dropdown.open > a {
   background-color: white;
-  border-right: solid 1px rgba(0,0,0,0.15);
+  border-right: solid 1px rgba(0, 0, 0, 0.15);
   box-shadow: 0 6px 12px rgba(0, 0, 0, 0.175);
 }
 
@@ -93,7 +92,7 @@ a#sign-in-link:hover, a#sign-out-link:hover  {
 #help-menu .edit_user_root_link img,
 #user-menu .edit_user_root_link img {
   position: inherit;
-  border: solid 1px rgba(0,0,0,0.15);
+  border: solid 1px rgba(0, 0, 0, 0.15);
   border-radius: 50%;
 }
 
@@ -104,7 +103,7 @@ a#sign-in-link:hover, a#sign-out-link:hover  {
 }
 
 .toggle-btn {
-  color: white!important;
+  color: white !important;
   background-color: transparent;
   padding: 2px 0 0;
   border-color: transparent;
@@ -123,7 +122,7 @@ a#sign-in-link:hover, a#sign-out-link:hover  {
 }
 
 .toggle-btn:hover {
-  color: white!important;
+  color: white !important;
   border-color: transparent;
   background-color: transparent;
   font-size: 28px;
@@ -247,8 +246,8 @@ ul.drawer li a span {
   overflow-y: auto;
   overflow-x: hidden;
   transition: all 0.5s ease;
-  background: #ffffff!important;
-  border-right: solid 1px #e7e7e7!important;
+  background: #ffffff !important;
+  border-right: solid 1px #e7e7e7 !important;
 }
 
 #sidebar-wrapper .nav-caret,
@@ -270,6 +269,7 @@ ul.drawer li a span {
 #wrapper #sidebar-wrapper:hover {
   width: 250px;
 }
+
 #wrapper #sidebar-wrapper:hover .nav-caret,
 #wrapper #sidebar-wrapper:hover .nav-caption {
   opacity: 1;
@@ -285,24 +285,24 @@ ul.drawer li a span {
   padding-top: 10px;
 }
 
-.xyz{
+.xyz {
   min-width: 360px;
 }
 
-.fixed-brand{
+.fixed-brand {
   width: auto;
 }
 
 /*Sidebar styles*/
 
 .sidebar-nav {
-  position: absolute!important;
-  top: 0!important;
+  position: absolute !important;
+  top: 0 !important;
   width: 250px;
   padding: 0;
   list-style: none;
   margin: 2px 0 44px;
-  overflow-y: auto!important;
+  overflow-y: auto !important;
 }
 
 @media screen and (max-width: 280px) {
@@ -311,7 +311,7 @@ ul.drawer li a span {
   }
 }
 
-@media screen and (min-width:768px) {
+@media screen and (min-width: 768px) {
   .navbar-header {
     width: 250px;
     padding: 0 6px;
@@ -326,7 +326,7 @@ ul#main-accordion {
   padding: 0;
 }
 
-.panel-heading>a {
+.panel-heading > a {
   padding: 10px 0;
 }
 
@@ -342,22 +342,23 @@ ul#main-accordion .panel {
   width: 100%;
 }
 
-ul#main-accordion>.panel>.panel-heading {
+ul#main-accordion > .panel > .panel-heading {
   border: solid 1px rgba(221, 221, 221, 0.87);
   border-radius: 4px;
 }
 
-ul#main-accordion>.panel .panel .panel-heading {
-  background-color: rgba(0,0,0,0.065);
+ul#main-accordion > .panel .panel .panel-heading {
+  background-color: rgba(0, 0, 0, 0.065);
 }
 
-ul#main-accordion>.panel.active>.panel-heading {
+ul#main-accordion > .panel.active > .panel-heading {
   background-color: #d9edf7 !important;
   border-color: #bce8f1;
   border-bottom-left-radius: 0;
   border-bottom-right-radius: 0;
 }
-ul#main-accordion>.panel.active>.panel-heading a {
+
+ul#main-accordion > .panel.active > .panel-heading a {
   color: #31708f !important;
 }
 
@@ -365,32 +366,31 @@ ul#main-accordion .panel.active {
   background-color: rgba(0, 0, 0, 0.065);
 }
 
-ul#main-accordion>.panel.active .panel.active>.panel-heading {
+ul#main-accordion > .panel.active .panel.active > .panel-heading {
   background-color: transparent;
 }
 
 ul#main-accordion a:hover,
 ul#main-accordion a:focus,
 ul#main-accordion a:active,
-ul#main-accordion li.active>a {
+ul#main-accordion li.active > a {
   text-decoration: none;
 }
 
-ul#main-accordion div>a:hover,
-ul#main-accordion li>a:hover,
-ul#main-accordion li>a:focus,
-ul#main-accordion li>a:active,
-ul#main-accordion li.active>a {
+ul#main-accordion div > a:hover,
+ul#main-accordion li > a:hover,
+ul#main-accordion li > a:focus,
+ul#main-accordion li > a:active,
+ul#main-accordion li.active > a {
   background-color: rgba(0, 0, 0, 0.065);
 }
 
-ul#main-accordion>.panel>.panel-collapse a,
-ul#main-accordion>.panel>.panel-collapse>.panel>.panel-heading a {
+ul#main-accordion > .panel > .panel-collapse a,
+ul#main-accordion > .panel > .panel-collapse > .panel > .panel-heading a {
   padding-left: 2rem;
 }
 
-ul#main-accordion>.panel>.panel-collapse>.panel li>a
- {
+ul#main-accordion > .panel > .panel-collapse > .panel li > a {
   padding-left: 4rem;
 }
 
@@ -417,7 +417,7 @@ ul#main-accordion .nav-caret i {
   transition: transform 0.3s ease-in-out;
 }
 
-ul#main-accordion .panel.active>.panel-heading .nav-caret i {
+ul#main-accordion .panel.active > .panel-heading .nav-caret i {
   transform: rotate(180deg);
 }
 
@@ -532,8 +532,8 @@ ul#main-accordion .panel-heading .nav-icon {
 .user-auth .field input.form-control {
   padding: 6px;
   outline: none;
-  background-color: transparent!important;
-  color: #fff!important;
+  background-color: transparent !important;
+  color: #fff !important;
   border: none;
   border-bottom: solid 2px #ffffff;
   border-radius: 0;
@@ -659,7 +659,7 @@ ul#main-accordion .panel-heading .nav-icon {
 }
 
 #grid-wrapper .options-menu:hover > span {
-  border-color: rgba(0,0,0,0.15);
+  border-color: rgba(0, 0, 0, 0.15);
   background-color: #ffffff;
   border-bottom: none;
 }
@@ -677,14 +677,14 @@ ul#main-accordion .panel-heading .nav-icon {
 }
 
 #grid-wrapper .options-menu.open > span {
-  background-color: rgba(0,0,0,0.24);
-  border: solid 1px rgba(0,0,0,0.15);
+  background-color: rgba(0, 0, 0, 0.24);
+  border: solid 1px rgba(0, 0, 0, 0.15);
 }
 
 #grid-wrapper .options-menu .dropdown-menu {
-  right: 0!important;
-  left: auto!important;
-  margin-top: 0!important;
+  right: 0 !important;
+  left: auto !important;
+  margin-top: 0 !important;
   border-top-right-radius: 0;
 
   -webkit-transition: all 0.3s;
@@ -693,7 +693,7 @@ ul#main-accordion .panel-heading .nav-icon {
   -o-transition: all 0.3s;
   transition: all 0.3s;
 
-  display: block!important;
+  display: block !important;
   overflow: hidden;
   transform: translateY(-5%);
   opacity: 0;
@@ -705,7 +705,7 @@ ul#main-accordion .panel-heading .nav-icon {
   transform: none;
   opacity: 1;
   height: auto;
-  border-top: solid 1px rgba(0,0,0,0.15);
+  border-top: solid 1px rgba(0, 0, 0, 0.15);
 }
 
 #grid-wrapper .options-menu .dropdown-menu a {
@@ -746,7 +746,7 @@ ul#main-accordion .panel-heading .nav-icon {
   line-height: 1.2;
   overflow: hidden;
   text-overflow: ellipsis;
-  padding: 0!important;
+  padding: 0 !important;
 }
 
 #grid-wrapper .line-clamp-3 {
@@ -887,7 +887,6 @@ ul#main-accordion .panel-heading .nav-icon {
   visibility: collapse;
 }
 
-
 .toggle-origin {
   border: none;
   background-color: transparent;
@@ -899,7 +898,7 @@ ul#main-accordion .panel-heading .nav-icon {
 
 .notify-counter-link {
   border-radius: 500px;
- // position: relative;
+  // position: relative;
   top: -10px;
   min-width: 4px;
   min-height: 4px;
@@ -909,13 +908,16 @@ ul#main-accordion .panel-heading .nav-icon {
   &.green {
     background-color: green;
   }
-  &.blue{
+  &.blue {
     background-color: blue;
   }
-  &.orange{
+  &.orange {
     background-color: orange;
   }
-  &.red{
+  &.red {
     background-color: red;
   }
+}
+#action-notify{
+  padding: 15px;
 }
