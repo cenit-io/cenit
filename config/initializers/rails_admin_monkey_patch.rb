@@ -587,9 +587,11 @@ module RailsAdmin
         scope = Setup::Notification.where(type: type)
         if (scope.count > 0)
           meta = account.meta
-          from_date = meta["notifications_#{type.to_s}_listed_at"]
-          count = scope.where(:created_at.gte => from_date).count
-          if (count>0)
+          if (from_date = meta["#{type.to_s}_notifications_listed_at"])
+            scope = scope.where(:created_at.gte => from_date)
+          end
+          count = scope.count
+          if (count > 0)
             counters[type] = count
           end
         end

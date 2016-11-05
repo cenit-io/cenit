@@ -3519,12 +3519,11 @@ RailsAdmin.config do |config|
       field :created_at do
         visible do
           if (account = Account.current)
-            account.notifications_listed_at = Time.now
-            if (notification_type=bindings[:controller].params[:type])
-              account.meta["notifications_#{notification_type}_listed_at"] = Time.now
+            if (notification_type = bindings[:controller].params[:type])
+              account.meta["#{notification_type}_notifications_listed_at"] = Time.now
             else
               Setup::Notification.type_enum.each do |type|
-                account.meta["notifications_#{type.to_s}_listed_at"] = Time.now
+                account.meta["#{type.to_s}_notifications_listed_at"] = Time.now
               end
             end
           end
