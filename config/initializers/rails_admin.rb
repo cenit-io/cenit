@@ -5,6 +5,7 @@ require 'account'
   RailsAdmin::Config::Actions::SendToFlow,
   RailsAdmin::Config::Actions::SwitchNavigation,
   RailsAdmin::Config::Actions::DataType,
+  RailsAdmin::Config::Actions::Queries,
   RailsAdmin::Config::Actions::Import,
   #RailsAdmin::Config::Actions::EdiExport,
   RailsAdmin::Config::Actions::ImportSchema,
@@ -25,6 +26,7 @@ require 'account'
   RailsAdmin::Config::Actions::SimpleExpand,
   RailsAdmin::Config::Actions::BulkExpand,
   RailsAdmin::Config::Actions::Records,
+  RailsAdmin::Config::Actions::QueryDataType,
   RailsAdmin::Config::Actions::SwitchScheduler,
   RailsAdmin::Config::Actions::SimpleExport,
   RailsAdmin::Config::Actions::Schedule,
@@ -109,6 +111,7 @@ RailsAdmin.config do |config|
     link_data_type
     index # mandatory
     new { except [Setup::Event, Setup::DataType, Setup::Authorization, Setup::BaseOauthProvider] }
+    queries
     import
     import_schema
     pull_import
@@ -139,6 +142,7 @@ RailsAdmin.config do |config|
     simple_expand
     bulk_expand
     records
+    query_data_type
     switch_navigation
     switch_scheduler
     simple_export
@@ -2479,6 +2483,17 @@ RailsAdmin.config do |config|
     label 'Query'
     object_label_method { :custom_title }
 
+    configure :segment do
+      pretty_value do
+        (bindings[:view].render partial: 'link_to_segment', locals:
+          {
+            name: bindings[:object].custom_title,
+            model_name: bindings[:object].data_type.records_model.to_s.underscore.gsub('/', '~'),
+            filter: bindings[:object].segment
+          }).html_safe
+      end
+    end
+
     edit do
       field :namespace, :enum_edit
       field :name
@@ -2513,15 +2528,7 @@ RailsAdmin.config do |config|
       field :name
       field :data_type
       field :triggers
-      field :link_to_segment do
-        pretty_value do
-          (bindings[:view].render partial: 'link_to_segment', locals:
-            {
-              model_name: bindings[:object].data_type.records_model.to_s.downcase,
-              filter: bindings[:object].link_to_segment
-            }).html_safe
-        end
-      end
+      field :segment
       field :_id
       field :created_at
       #field :creator
@@ -2529,7 +2536,7 @@ RailsAdmin.config do |config|
       #field :updater
     end
 
-    fields :namespace, :name, :data_type, :triggers, :updated_at
+    fields :namespace, :name, :data_type, :segment, :triggers, :updated_at
   end
 
   #Transformations
