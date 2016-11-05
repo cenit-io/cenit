@@ -395,13 +395,19 @@ module RailsAdmin
             v.instance_variable_set(:@showing, false)
             table.html_safe
           else
-            values.collect do |associated|
+            max_associated_to_show = 3
+            count_associated= values.count
+            associated_links = values.collect do |associated|
               amc = polymorphic? ? RailsAdmin.config(associated) : associated_model_config # perf optimization for non-polymorphic associations
               am = amc.abstract_model
               wording = associated.send(amc.object_label_method)
               can_see = !am.embedded? && (show_action = v.action(:show, am, associated))
               can_see ? v.link_to(wording, v.url_for(action: show_action.action_name, model_name: am.to_param, id: associated.id), class: 'pjax') : ERB::Util.html_escape(wording)
-            end.to_sentence.html_safe
+            end.to(max_associated_to_show-1).to_sentence.html_safe
+            if (count_associated > max_associated_to_show)
+               associated_links = associated_links+ " and #{count_associated - max_associated_to_show} more".html_safe
+            end
+            associated_links
           end
         end
 
