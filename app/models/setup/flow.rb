@@ -174,25 +174,22 @@ module Setup
     end
 
     def translate(message, &block)
-      if translator.present?
-        begin
-          (flow_execution = current_thread_cache) << [id.to_s, message[:execution_graph] || {}]
-          data_type = Setup::BuildInDataType[message[:data_type_id]] ||
-            Setup::DataType.where(id: message[:data_type_id]).first
-          using_data_type(data_type) if data_type
-          send("translate_#{translator.type.to_s.downcase}", message, &block)
-          after_process_callbacks.each do |callback|
-            begin
-              callback.run(message[:task])
-            rescue Exception => ex
-              Setup::Notification.create(message: "Error executing after process callback #{callback.custom_title}: #{ex.message}")
-            end
+      return yield(message: "Flow translator can't be blank") unless translator.present?
+      begin
+        (flow_execution = current_thread_cache) << [id.to_s, message[:execution_graph] || {}]
+        data_type = Setup::BuildInDataType[message[:data_type_id]] ||
+          Setup::DataType.where(id: message[:data_type_id]).first
+        using_data_type(data_type) if data_type
+        send("translate_#{translator.type.to_s.downcase}", message, &block)
+        after_process_callbacks.each do |callback|
+          begin
+            callback.run(message[:task])
+          rescue Exception => ex
+            Setup::Notification.create(message: "Error executing after process callback #{callback.custom_title}: #{ex.message}")
           end
-        ensure
-          flow_execution.pop
         end
-      else
-        yield(message: "Flow translator can't be blank")
+      ensure
+        flow_execution.pop
       end
     end
 
