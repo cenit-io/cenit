@@ -132,10 +132,10 @@ module Setup
     end
 
     def ready_to_save?
-      shared? ||
-        ((t = translator).present? &&
-          (event.blank? || data_type_scope.present? || t.type == :Import) &&
-          ([:Export, :Import].exclude?(t.type) || webhook.present?))
+      return true if shared?
+      cond = (t = translator).present?
+      cond &&= event.blank? || data_type_scope.present? || t.type == :Import
+      cond && [:Export, :Import].exclude?(t.type) || webhook.present?
     end
 
     def can_be_restarted?
@@ -271,16 +271,13 @@ module Setup
 
     def validate_export
       return rejects(:lot_size, :response, :response_data_type) unless translator.type == :Export
-      if response.present?
-        if response.type == :Import
-          response.data_type ? rejects(:response_data_type) : requires(:response_data_type)
-        else
-          errors.add(:response, 'is not an import translator')
-        end
-      else
-        rejects(:response_data_type, :discard_events)
-      end
       rejects(:data_type_scope) if data_type.nil?
+      return rejects(:response_data_type, :discard_events) unless  response.present?
+      if response.type == :Import
+        response.data_type ? rejects(:response_data_type) : requires(:response_data_type)
+      else
+        errors.add(:response, 'is not an import translator')
+      end
     end
 
     def validate_callbacks
@@ -371,7 +368,8 @@ module Setup
             statusCode: response.code,
             task: message[:task]) # if response.code == 200
         end
-      if auto_retry == :automatic && (200...299).exclude?(verbose_response[:http_response].code)
+      r_code = (200...299).exclude?(verbose_response[:http_response].code)
+      if auto_retry == :automatic && r_code
         fail unsuccessful_response(verbose_response[:http_response], message)
       end
     end
@@ -411,15 +409,13 @@ module Setup
 
     def run_translator(message, template_parameters, offset, limit)
       translation_options =
-        {
-          object_ids: object_ids,
+        { object_ids: object_ids,
           source_data_type: data_type,
           offset: offset,
           limit: limit,
           discard_events: discard_events,
           parameters: template_parameters,
-          task: message[:task]
-        }
+          task: message[:task] }
       translator.run(translation_options)
     end
 
@@ -435,8 +431,7 @@ module Setup
     end
 
     def unsuccessful_response(http_response, task_msg)
-      {
-        error: 'Unsuccessful response code',
+      { error: 'Unsuccessful response code',
         code: http_response.code,
         user: ::User.current.label,
         user_id: ::User.current.id,
@@ -444,8 +439,7 @@ module Setup
         tenant_id: Account.current.id,
         task: task_msg,
         flow: to_hash,
-        flow_attributes: attributes
-      }.to_json
+        flow_attributes: attributes }.to_json
     end
 
     def attachment_from(http_response)
