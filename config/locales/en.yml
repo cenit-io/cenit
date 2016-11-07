@@ -21,3 +21,20 @@
 
 en:
   hello: "Hello world"
+  flows:
+    can_not_be_blank: "Flow translator can't be blank"
+    error_after_callback: "Error executing after process callback %{title}: %{message}"
+    cycle: "Cyclic flow execution: %{cycle}"
+    incompatible_data_type_scope: 'Not compatible with data type scope'
+    must_receive_one_parameter: 'Must receive one parameter'
+    must_receive_one_or_two_parameters: 'Must receive one or two parameters'
+    unexpected_parameter_size: "Contains algorithms with unexpected parameter size: %{title}"
+    error_handling_translation: "Error source handling translation of records of type %{data_type} with %{translator}: %{message}"
+    error_translating_record: "Error translating record with ID %{obj_id} of type %{data_type} with %{translator}: %{message}"
+    unsuccessful_response_code: 'Unsuccessful response code'
+    translator_already_defines_a_data_type: 'Is not allowed since translator already defines a data type'
+    not_allowed_import_translators: 'Is not allowed for import translators'
+    response_translator_already_defines_a_data_type: 'Is not allowed since response translator already defines a data type'
+    can_not_be_defined_until_response_translator: "can't be defined until response translator"
+    not_allowed_for_non_export_translators: "Is not allowed for non export translators"
+    illegal data_type_option: "Illegal data type option %{data_type}, a flow own data type %{flow_data_type} is already configured"

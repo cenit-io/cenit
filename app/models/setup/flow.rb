@@ -79,15 +79,19 @@ module Setup
     def reject_message(field = nil)
       case field
       when :custom_data_type
-        'is not allowed since translator already defines a data type'
+        I18n.t('flows.translator_already_defines_a_data_type')
       when :data_type_scope
-        'is not allowed for import translators'
+        I18n.t('flows.not_allowed_import_translators')
       when :response_data_type
-        response.present? ? 'is not allowed since response translator already defines a data type' : "can't be defined until response translator"
+        if response.present?
+          I18n.t('flows.response_translator_already_defines_a_data_type')
+        else
+          I18n.t('flows.can_not_be_defined_until_response_translator')
+        end
       when :discard_events
-        "can't be defined until response translator"
+        I18n.t('flows.can_not_be_defined_until_response_translator')
       when :lot_size, :response
-        'is not allowed for non export translators'
+        I18n.t('not_allowed_for_non_export_translators')
       else
         super
       end
@@ -104,7 +108,7 @@ module Setup
 
     def using_data_type(data_type)
       if (own_dt = own_data_type) && own_dt != data_type
-        fail "Illegal data type option #{data_type.custom_title}, a flow own data type #{flow_data_type} is already configured"
+        fail I18n.t('data_type_option', data_type: data_type.custom_title, flow_data_type: flow_data_type)
       else
         @_data_type = data_type if data_type
       end
@@ -157,24 +161,13 @@ module Setup
       if executing_id.present? && !(adjacency_list = execution_graph[executing_id] ||= []).include?(id.to_s)
         adjacency_list << id.to_s
       end
-      result =
-        if (cycle = cyclic_execution(execution_graph, executing_id))
-          cycle = cycle.collect { |id| ((flow = Setup::Flow.where(id: id).first) && flow.name) || id }
-          Setup::Notification.create(message: "Cyclic flow execution: #{cycle.join(' -> ')}")
-        else
-          message = message.merge(
-            flow_id: id.to_s,
-            tirgger_flow_id: executing_id,
-            execution_graph: execution_graph,
-            auto_retry: auto_retry)
-          Setup::FlowExecution.process(message, &block)
-        end
-      save
+      result = process_execution(message, execution_graph, executing_id)
+      save!
       result
     end
 
     def translate(message, &block)
-      return yield(message: "Flow translator can't be blank") unless translator.present?
+      return yield(message: I18n.t('flows.can_not_be_blank')) unless translator.present?
       begin
         (flow_execution = current_thread_cache) << [id.to_s, message[:execution_graph] || {}]
         data_type = Setup::BuildInDataType[message[:data_type_id]] ||
@@ -185,7 +178,8 @@ module Setup
           begin
             callback.run(message[:task])
           rescue StandardError => ex
-            Setup::Notification.create(message: "Error executing after process callback #{callback.custom_title}: #{ex.message}")
+            message = I18n.t('flows.error_after_callback', title: callback.custom_title, message: ex.message)
+            Setup::Notification.create(message: message)
           end
         end
       ensure
@@ -214,12 +208,27 @@ module Setup
 
     private
 
+    def process_execution(message, execution_graph, executing_id)
+      if (cycle = cyclic_execution(execution_graph, executing_id))
+        cycle = cycle.collect { |id| ((flow = Setup::Flow.where(id: id).first) && flow.name) || id }
+        message = I18n.t('flows.cyclic', cycle: cycle.join(' -> '))
+        Setup::Notification.create(message: message)
+      else
+        message = message.merge(
+          flow_id: id.to_s,
+          tirgger_flow_id: executing_id,
+          execution_graph: execution_graph,
+          auto_retry: auto_retry)
+        Setup::FlowExecution.process(message, &block)
+      end
+    end
+
     def validate_event
       if event.present?
         unless translator.type == :Import || requires(:data_type_scope)
           if scope_symbol == :event_source &&
              !(event.is_a?(Setup::Observer) && event.data_type == data_type)
-            errors.add(:event, 'not compatible with data type scope')
+            errors.add(:event, I18n.t('flows.incompatible_data_type_scope'))
           end
         end
       elsif scope_symbol == :event_source
@@ -242,7 +251,9 @@ module Setup
         format_triggers_on(:scope_filter, true)
         rejects(:scope_evaluator)
       when :evaluation
-        errors.add(:scope_evaluator, 'must receive one parameter') unless requires(:scope_evaluator) || scope_evaluator.parameters.count == 1
+        unless requires(:scope_evaluator) || scope_evaluator.parameters.count == 1
+          errors.add(:scope_evaluator, I18n.t('flows.must_receive_one_parameter'))
+        end
         rejects(:scope_filter)
       else
         rejects(:scope_filter, :scope_evaluator)
@@ -262,7 +273,7 @@ module Setup
     def validate_import
       if translator.type == :Import
         unless before_submit.nil? || before_submit.parameters.count == 1 || before_submit.parameters.count == 2
-          errors.add(:before_submit, 'must receive one or two parameter')
+          errors.add(:before_submit,  I18n.t('flows.must_receive_one_or_two_parameters'))
         end
       else
         rejects(:before_submit)
@@ -272,7 +283,7 @@ module Setup
     def validate_export
       return rejects(:lot_size, :response, :response_data_type) unless translator.type == :Export
       rejects(:data_type_scope) if data_type.nil?
-      return rejects(:response_data_type, :discard_events) unless  response.present?
+      return rejects(:response_data_type, :discard_events) unless response.present?
       if response.type == :Import
         response.data_type ? rejects(:response_data_type) : requires(:response_data_type)
       else
@@ -282,7 +293,11 @@ module Setup
 
     def validate_callbacks
       bad_callbacks = after_process_callbacks.select { |c| c.parameters.count != 1 }
-      errors.add(:after_process_callbacks, "contains algorithms with unexpected parameter size: #{bad_callbacks.collect(&:custom_title).to_sentence}") if bad_callbacks.present?
+      if bad_callbacks.present?
+        custom_titles = bad_callbacks.collect(&:custom_title).to_sentence
+        message = I18n.t('flows.unexpected_parameter_size', title: custom_titles)
+        errors.add(:after_process_callbacks, message)
+      end
     end
 
     def check_scheduler
@@ -313,7 +328,11 @@ module Setup
         begin
           translator.run(object_ids: object_ids, discard_events: discard_events, task: message[:task])
         rescue StandardError => ex
-          raise "Error source handling translation of records of type '#{data_type.custom_title}' with '#{translator.custom_title}': #{ex.message}"
+          raise I18n.t(
+            'flows.error_handling_translation',
+            data_type: data_type.custom_title,
+            translator: translator.custom_title,
+            message: ex.message)
         end
       else
         if object_ids
@@ -324,7 +343,12 @@ module Setup
           begin
             translator.run(object: obj, discard_events: discard_events, task: message[:task])
           rescue StandardError => ex
-            raise "Error translating record with ID '#{obj.id}' of type '#{data_type.custom_title}' when executing '#{translator.custom_title}': #{ex.message}"
+            raise I18n.t(
+              'flows.error_translating_record',
+              obj_id: obj.id,
+              data_type: data_type.custom_title,
+              translator: translator.custom_title,
+              message: ex.message)
           end
         end
       end
@@ -431,7 +455,7 @@ module Setup
     end
 
     def unsuccessful_response(http_response, task_msg)
-      { error: 'Unsuccessful response code',
+      { error: I18n.t('unsuccessful_response_code'),
         code: http_response.code,
         user: ::User.current.label,
         user_id: ::User.current.id,
@@ -444,23 +468,22 @@ module Setup
 
     def attachment_from(http_response)
       return unless notify_response && http_response
-      file_extension =
-        ((types = MIME::Types[http_response.content_type]).present? &&
-        (ext = types.first.extensions.first).present? && '.' + ext) || ''
-      {
-        filename: http_response.object_id.to_s + file_extension,
+      types = MIME::Types[http_response.content_type]
+      file_extension = types.present? && ext_text(types.first.extensions.first) || ''
+      { filename: http_response.object_id.to_s + file_extension,
         contentType: http_response.content_type,
-        body: http_response.body
-      }
+        body: http_response.body }
     end
 
     def request_attachment(attachment)
-      ext = translator.file_extension
-      ext_text = ext.present? ? ".#{ext}" : ''
       attachment[:filename] =
         ((data_type && data_type.title) || translator.name).collectionize +
-        attachment[:filename] + ext_text
+        attachment[:filename] + ext_text(translator.file_extension)
       attachment
+    end
+
+    def ext_text(ext)
+      ext.present? ? ".#{ext}" : ''
     end
 
     def source_ids_from(message)
