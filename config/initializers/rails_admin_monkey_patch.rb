@@ -930,21 +930,20 @@ module RailsAdmin
               pc = percent(model_count, @max)
               indicator = get_indicator(pc)
               anim = animate_width_to(pc)
+              menu = menu_for(:collection, node.abstract_model, nil)
 
-              rc += '<td>'
+              rc += '<td style="overflow:visible">'
               rc += "<div class='progress progress-#{indicator}' style='margin-bottom:0'>"
               rc += "<div class='animate-width-to progress-bar progress-bar-#{indicator}' data-animate-length='#{anim}' data-animate-width-to='#{anim}' style='width:2%'>"
               rc += "#{model_count}"
               rc += '</div>'
               rc += '</div>'
-              rc += '</td>'
-
-              menu = menu_for(:collection, node.abstract_model, nil, true)
-
-              rc += '<td class="links">'
-              rc += "<ul class='inline list-inline'>#{menu}</ul>"
-              rc += '</td>'
-
+              rc += '<div id="links" class="options-menu">
+                     <span aria-haspopup="true" class="btn dropdown-toggle" data-toggle="dropdown" type="button">
+                      <i class="fa fa-ellipsis-v"></i>
+                     </span>'
+              rc += "<ul class='dropdown-menu'>#{menu}</ul>"
+              rc += '</div></td>'
               rc.html_safe
             end
           end
