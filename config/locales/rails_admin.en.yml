@@ -413,6 +413,14 @@ en:
         title: "Copy"
         menu: "Copy"
         breadcrumb: "Copy"
+      queries:
+        title: "Queries"
+        menu: "Queries"
+        breadcrumb: "Queries"
+      query_data_type:
+        title: "Queries"
+        menu: "Queries"
+        breadcrumb: "Queries"
       cancel:
         title: "Cancel '%{object_label}'"
         menu: "Cancel"
@@ -440,7 +448,7 @@ en:
       shared_collection_index:
         menu: "Shared Collections"
       store_index:
-        menu: "Stores"  
+        menu: "Stores"
       clean_up:
         title: "Clean Up"
         menu: "Clean Up"
