@@ -1,0 +1,16 @@
+a.generate-api {
+  position: relative;
+  top: -2em;
+  right: 2em;
+  float: right;
+  opacity: 0.5;
+
+  img {
+    width: 32px;
+    height: 24px;
+  }
+
+  &:hover {
+    opacity: 1;
+  }
+}
