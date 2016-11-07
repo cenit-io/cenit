@@ -10,29 +10,30 @@ module Setup
     include ModelConfigurable
 
     build_in_data_type.referenced_by(:namespace, :name)
-    build_in_data_type.and({
-                             properties: {
-                               active: {
-                                 type: 'boolean',
-                                 default: true
-                               },
-                               notify_request: {
-                                 type: 'boolean',
-                                 default: false
-                               },
-                               notify_response: {
-                                 type: 'boolean',
-                                 default: false
-                               },
-                               discard_events: {
-                                 type: 'boolean'
-                               },
-                               auto_retry: {
-                                 type: 'string',
-                                 enum: Setup::Task.auto_retry_enum.collect(&:to_s)
-                               }
-                             }
-                           }.deep_stringify_keys)
+    build_in_data_type.and(
+      {
+        properties: {
+          active: {
+            type: 'boolean',
+            default: true
+          },
+          notify_request: {
+            type: 'boolean',
+            default: false
+          },
+          notify_response: {
+            type: 'boolean',
+            default: false
+          },
+          discard_events: {
+            type: 'boolean'
+          },
+          auto_retry: {
+            type: 'string',
+            enum: Setup::Task.auto_retry_enum.collect(&:to_s)
+          }
+        }
+      }.deep_stringify_keys)
 
     binding_belongs_to :event, class_name: Setup::Event.to_s, inverse_of: nil
 
@@ -65,76 +66,12 @@ module Setup
     def validates_configuration
       format_triggers_on(:scope_filter) if scope_filter.present?
       unless requires(:name, :translator)
-        if event.present?
-          unless translator.type == :Import || requires(:data_type_scope)
-            if scope_symbol == :event_source &&
-              !(event.is_a?(Setup::Observer) && event.data_type == data_type)
-              errors.add(:event, 'not compatible with data type scope')
-            end
-          end
-        elsif scope_symbol == :event_source
-          if persisted?
-            requires(:event)
-          else
-            rejects(:data_type_scope)
-          end
-        end
-        if translator.data_type.nil?
-          requires(:custom_data_type) if translator.type == :Conversion && event.present?
-        else
-          rejects(:custom_data_type)
-        end
-        if translator.type == :Import
-          rejects(:data_type_scope, :scope_filter, :scope_evaluator)
-        else
-          case scope_symbol
-          when :filtered
-            format_triggers_on(:scope_filter, true)
-            rejects(:scope_evaluator)
-          when :evaluation
-            unless requires(:scope_evaluator)
-              errors.add(:scope_evaluator, 'must receive one parameter') unless scope_evaluator.parameters.count == 1
-            end
-            rejects(:scope_filter)
-          else
-            rejects(:scope_filter, :scope_evaluator)
-          end
-        end
-        if [:Import, :Export].include?(translator.type)
-          requires(:webhook)
-          if translator.type == :Import
-            unless before_submit.nil? || before_submit.parameters.count == 1 || before_submit.parameters.count == 2
-              errors.add(:before_submit, 'must receive one or two parameter')
-            end
-          else
-            rejects(:before_submit)
-          end
-        else
-          rejects(:before_submit, :connection_role, :authorization, :webhook, :notify_request, :notify_response)
-        end
-
-        if translator.type == :Export
-          if response_translator.present?
-            if response_translator.type == :Import
-              if response_translator.data_type
-                rejects(:response_data_type)
-              else
-                requires(:response_data_type)
-              end
-            else
-              errors.add(:response_translator, 'is not an import translator')
-            end
-          else
-            rejects(:response_data_type, :discard_events)
-          end
-          rejects(:data_type_scope) if data_type.nil?
-        else
-          rejects(:lot_size, :response_translator, :response_data_type)
-        end
+        validate_event
+        validate_custom_data_type
+        validate_scope
+        validate_import_and_export
       end
-      if (bad_callbacks = after_process_callbacks.select { |c| c.parameters.count != 1 }).present?
-        errors.add(:after_process_callbacks, "contains algorithms with unexpected parameter size: #{bad_callbacks.collect(&:custom_title).to_sentence}")
-      end
+      validate_callbacks
       errors.blank?
     end
 
@@ -156,9 +93,7 @@ module Setup
     end
 
     def with(options)
-      if options && (data_type = options.delete(:data_type))
-        using_data_type(data_type)
-      end
+      using_data_type(data_type) if options && (data_type = options.delete(:data_type))
       super
     end
 
@@ -206,19 +141,17 @@ module Setup
       event || translator
     end
 
-    def join_process(message={})
+    def join_process(message = {})
       if (task_token = Thread.current[:task_token]) &&
         (thread_token = ThreadToken.where(token: task_token).first) &&
         (current_task = Task.where(thread_token: thread_token).first)
-        process(message) do |task|
-          task.join(current_task)
-        end
+        process(message) { |task| task.join(current_task) }
       else
         process(message)
       end
     end
 
-    def process(message={}, &block)
+    def process(message = {}, &block)
       executing_id, execution_graph = current_thread_cache.last || [nil, {}]
       if executing_id.present? && !(adjacency_list = execution_graph[executing_id] ||= []).include?(id.to_s)
         adjacency_list << id.to_s
@@ -228,10 +161,11 @@ module Setup
           cycle = cycle.collect { |id| ((flow = Setup::Flow.where(id: id).first) && flow.name) || id }
           Setup::Notification.create(message: "Cyclic flow execution: #{cycle.join(' -> ')}")
         else
-          message = message.merge(flow_id: id.to_s,
-                                  tirgger_flow_id: executing_id,
-                                  execution_graph: execution_graph,
-                                  auto_retry: auto_retry)
+          message = message.merge(
+            flow_id: id.to_s,
+            tirgger_flow_id: executing_id,
+            execution_graph: execution_graph,
+            auto_retry: auto_retry)
           Setup::FlowExecution.process(message, &block)
         end
       save
@@ -262,18 +196,15 @@ module Setup
     end
 
     def scope_symbol
-      if data_type_scope.present?
-        if data_type_scope.start_with?('Event')
-          :event_source
-        elsif data_type_scope.start_with?('Filter')
-          :filtered
-        elsif data_type_scope.start_with?('Eval')
-          :evaluation
-        else
-          :all
-        end
+      return unless data_type_scope.nil?
+      if data_type_scope.start_with?('Event')
+        :event_source
+      elsif data_type_scope.start_with?('Filter')
+        :filtered
+      elsif data_type_scope.start_with?('Eval')
+        :evaluation
       else
-        nil
+        :all
       end
     end
 
@@ -285,12 +216,85 @@ module Setup
 
     private
 
-    def check_scheduler
-      if @scheduler_checked.nil?
-        @scheduler_checked = changed_attributes.has_key?(:event_id.to_s) && event.is_a?(Setup::Scheduler)
-      else
-        @scheduler_checked = false
+    def validate_event
+      if event.present?
+        unless translator.type == :Import || requires(:data_type_scope)
+          if scope_symbol == :event_source &&
+            !(event.is_a?(Setup::Observer) && event.data_type == data_type)
+            errors.add(:event, 'not compatible with data type scope')
+          end
+        end
+      elsif scope_symbol == :event_source
+        persisted? ? requires(:event) : rejects(:data_type_scope)
       end
+    end
+
+    def validate_custom_data_type
+      if translator.data_type.nil?
+        requires(:custom_data_type) if translator.type == :Conversion && event.present?
+      else
+        rejects(:custom_data_type)
+      end
+    end
+
+    def validate_scope
+      if translator.type == :Import
+        rejects(:data_type_scope, :scope_filter, :scope_evaluator)
+      else
+        case scope_symbol
+        when :filtered
+          format_triggers_on(:scope_filter, true)
+          rejects(:scope_evaluator)
+        when :evaluation
+          unless requires(:scope_evaluator)
+            errors.add(:scope_evaluator, 'must receive one parameter') unless scope_evaluator.parameters.count == 1
+          end
+          rejects(:scope_filter)
+        else
+          rejects(:scope_filter, :scope_evaluator)
+        end
+      end
+    end
+
+    def validate_import_and_export
+      if [:Import, :Export].include?(translator.type)
+        requires(:webhook)
+        if translator.type == :Import
+          unless before_submit.nil? || before_submit.parameters.count == 1 || before_submit.parameters.count == 2
+            errors.add(:before_submit, 'must receive one or two parameter')
+          end
+        else
+          rejects(:before_submit)
+        end
+      else
+        rejects(:before_submit, :connection_role, :authorization, :webhook, :notify_request, :notify_response)
+      end
+
+      if translator.type == :Export
+        if response_translator.present?
+          if response_translator.type == :Import
+            response_translator.data_type ? rejects(:response_data_type) : requires(:response_data_type)
+          else
+            errors.add(:response_translator, 'is not an import translator')
+          end
+        else
+          rejects(:response_data_type, :discard_events)
+        end
+        rejects(:data_type_scope) if data_type.nil?
+      else
+        rejects(:lot_size, :response_translator, :response_data_type)
+      end
+    end
+
+    def validate_callbacks
+      if (bad_callbacks = after_process_callbacks.select { |c| c.parameters.count != 1 }).present?
+        errors.add(:after_process_callbacks, "contains algorithms with unexpected parameter size: #{bad_callbacks.collect(&:custom_title).to_sentence}")
+      end
+    end
+
+    def check_scheduler
+      @scheduler_checked =
+        @scheduler_checked ? false : changed_attributes.has_key?(:event_id.to_s) && event.is_a?(Setup::Scheduler)
       true
     end
 
@@ -316,7 +320,7 @@ module Setup
         begin
           translator.run(object_ids: object_ids, discard_events: discard_events, task: message[:task])
         rescue Exception => ex
-          fail "Error source handling translation of records of type '#{data_type.custom_title}' with '#{translator.custom_title}': #{ex.message}"
+          raise "Error source handling translation of records of type '#{data_type.custom_title}' with '#{translator.custom_title}': #{ex.message}"
         end
       else
         if object_ids
@@ -327,7 +331,7 @@ module Setup
           begin
             translator.run(object: obj, discard_events: discard_events, task: message[:task])
           rescue Exception => ex
-            fail "Error translating record with ID '#{obj.id}' of type '#{data_type.custom_title}' when executing '#{translator.custom_title}': #{ex.message}"
+            raise "Error translating record with ID '#{obj.id}' of type '#{data_type.custom_title}' when executing '#{translator.custom_title}': #{ex.message}"
           end
         end
       end
@@ -362,13 +366,14 @@ module Setup
       end
       verbose_response =
         webhook.with(connection_role).and(authorization).submit(options) do |response, template_parameters|
-          translator.run(target_data_type: data_type,
-                         data: response.body,
-                         discard_events: discard_events,
-                         parameters: template_parameters,
-                         headers: response.headers.to_hash,
-                         statusCode: response.code,
-                         task: message[:task]) #if response.code == 200
+          translator.run(
+            target_data_type: data_type,
+            data: response.body,
+            discard_events: discard_events,
+            parameters: template_parameters,
+            headers: response.headers.to_hash,
+            statusCode: response.code,
+            task: message[:task]) #if response.code == 200
         end
       if auto_retry == :automatic && (200...299).exclude?(verbose_response[:http_response].code)
         fail unsuccessful_response(verbose_response[:http_response], message)
@@ -390,7 +395,7 @@ module Setup
       0.step(max, limit) do |offset|
         next unless connections_present
         verbose_response =
-          webhook.target.with(connection_role).and(authorization).submit ->(template_parameters) {
+          webhook.target.with(connection_role).and(authorization).submit ->(template_parameters) do
             translation_options =
               {
                 object_ids: object_ids,
@@ -401,28 +406,31 @@ module Setup
                 parameters: template_parameters,
                 task: message[:task]
               }
-            translator.run(translation_options)
-          },
-                                                                         contentType: translator.mime_type,
-                                                                         notify_request: notify_request,
-                                                                         request_attachment: ->(attachment) do
-                                                                           attachment[:filename] = ((data_type && data_type.title) || translator.name).collectionize +
-                                                                             attachment[:filename] +
-                                                                             ((ext = translator.file_extension).present? ? ".#{ext}" : '')
-                                                                           attachment
-                                                                         end,
-                                                                         notify_response: notify_response,
-                                                                         verbose_response: true do |response|
-            if response_translator #&& response.code == 200
-              response_translator.run(translation_options.merge(target_data_type: response_translator.data_type || response_data_type,
-                                                                data: response.body,
-                                                                headers: response.headers.to_hash,
-                                                                statusCode: response.code, #TODO Remove after deprecation migration
-                                                                response_code: response.code,
-                                                                requester_response: response.requester_response?))
+              translator.run(translation_options)
+            end,
+            contentType: translator.mime_type,
+            notify_request: notify_request,
+            request_attachment: ->(attachment) do
+              attachment[:filename] =
+                ((data_type && data_type.title) || translator.name).collectionize +
+                attachment[:filename] + ((ext = translator.file_extension).present? ? ".#{ext}" : '')
+              attachment
+            end,
+            notify_response: notify_response,
+            verbose_response: true do |response|
+              if response_translator # && response.code == 200
+                response_translator.run(
+                  translation_options.merge(
+                    target_data_type: response_translator.data_type || response_data_type,
+                    data: response.body,
+                    headers: response.headers.to_hash,
+                    statusCode: response.code, # TODO: Remove after deprecation migration
+                    response_code: response.code,
+                    requester_response: response.requester_response?))
+              end
+              true
             end
-            true
-          end
+
         if auto_retry == :automatic && (200...299).exclude?(verbose_response[:http_response].code)
           fail unsuccessful_response(verbose_response[:http_response], message)
         end
@@ -445,13 +453,14 @@ module Setup
     end
 
     def attachment_from(http_response)
-      file_extension = ((types =MIME::Types[http_response.content_type]).present? &&
+      return unless notify_response && http_response
+      file_extension = ((types = MIME::Types[http_response.content_type]).present? &&
         (ext = types.first.extensions.first).present? && '.' + ext) || ''
       {
         filename: http_response.object_id.to_s + file_extension,
         contentType: http_response.content_type,
         body: http_response.body
-      } if notify_response && http_response
+      }
     end
 
     def source_ids_from(message)
@@ -463,8 +472,6 @@ module Setup
         data_type.records_model.all.select { |record| field_triggers_apply_to?(:scope_filter, record) }.collect(&:id)
       elsif scope_symbol == :evaluation
         data_type.records_model.all.select { |record| scope_evaluator.run(record).present? }.collect(&:id)
-      else
-        nil
       end
     end
   end
