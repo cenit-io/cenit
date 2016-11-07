@@ -94,7 +94,7 @@ module Setup
     end
 
     def with(options)
-      using_data_type(data_type) if options && (data_type = options.delete(:data_type))
+      using_data_type(data_type) if options && options.delete(:data_type)
       super
     end
 
@@ -144,8 +144,8 @@ module Setup
 
     def join_process(message = {})
       if (task_token = Thread.current[:task_token]) &&
-        (thread_token = ThreadToken.where(token: task_token).first) &&
-        (current_task = Task.where(thread_token: thread_token).first)
+         (thread_token = ThreadToken.where(token: task_token).first) &&
+         (current_task = Task.where(thread_token: thread_token).first)
         process(message) { |task| task.join(current_task) }
       else
         process(message)
@@ -178,13 +178,13 @@ module Setup
       begin
         (flow_execution = current_thread_cache) << [id.to_s, message[:execution_graph] || {}]
         data_type = Setup::BuildInDataType[message[:data_type_id]] ||
-          Setup::DataType.where(id: message[:data_type_id]).first
+                    Setup::DataType.where(id: message[:data_type_id]).first
         using_data_type(data_type) if data_type
         send("translate_#{translator.type.to_s.downcase}", message, &block)
         after_process_callbacks.each do |callback|
           begin
             callback.run(message[:task])
-          rescue Exception => ex
+          rescue StandardError => ex
             Setup::Notification.create(message: "Error executing after process callback #{callback.custom_title}: #{ex.message}")
           end
         end
@@ -218,7 +218,7 @@ module Setup
       if event.present?
         unless translator.type == :Import || requires(:data_type_scope)
           if scope_symbol == :event_source &&
-          !(event.is_a?(Setup::Observer) && event.data_type == data_type)
+             !(event.is_a?(Setup::Observer) && event.data_type == data_type)
             errors.add(:event, 'not compatible with data type scope')
           end
         end
@@ -270,20 +270,17 @@ module Setup
     end
 
     def validate_export
-      if translator.type == :Export
-        if response.present?
-          if response.type == :Import
-            response.data_type ? rejects(:response_data_type) : requires(:response_data_type)
-          else
-            errors.add(:response, 'is not an import translator')
-          end
+      return rejects(:lot_size, :response, :response_data_type) unless translator.type == :Export
+      if response.present?
+        if response.type == :Import
+          response.data_type ? rejects(:response_data_type) : requires(:response_data_type)
         else
-          rejects(:response_data_type, :discard_events)
+          errors.add(:response, 'is not an import translator')
         end
-        rejects(:data_type_scope) if data_type.nil?
       else
-        rejects(:lot_size, :response, :response_data_type)
+        rejects(:response_data_type, :discard_events)
       end
+      rejects(:data_type_scope) if data_type.nil?
     end
 
     def validate_callbacks
@@ -318,7 +315,7 @@ module Setup
       if translator.source_handler
         begin
           translator.run(object_ids: object_ids, discard_events: discard_events, task: message[:task])
-        rescue Exception => ex
+        rescue StandardError => ex
           raise "Error source handling translation of records of type '#{data_type.custom_title}' with '#{translator.custom_title}': #{ex.message}"
         end
       else
@@ -329,12 +326,12 @@ module Setup
         end.each do |obj|
           begin
             translator.run(object: obj, discard_events: discard_events, task: message[:task])
-          rescue Exception => ex
+          rescue StandardError => ex
             raise "Error translating record with ID '#{obj.id}' of type '#{data_type.custom_title}' when executing '#{translator.custom_title}': #{ex.message}"
           end
         end
       end
-    rescue Exception => ex
+    rescue StandardError => ex
       block.yield(ex) if block
     end
 
@@ -396,21 +393,15 @@ module Setup
         next unless connections_present
         verbose_response =
           webhook.target.with(connection_role).and(authorization)
-          .submit ->(template_parameters) { run_translator(message, template_parameters, offset, limit) },
-            contentType: translator.mime_type,
-            notify_request: notify_request,
-            request_attachment: ->(attachment) do
-              attachment[:filename] =
-                ((data_type && data_type.title) || translator.name).collectionize +
-                attachment[:filename] + ((ext = translator.file_extension).present? ? ".#{ext}" : '')
-              attachment
-            end,
-            notify_response: notify_response,
-            verbose_response: true do |response|
-              run_response(response, translation_options) if response # && response.code == 200
-              true
-            end
-
+          .submit lambda(template_parameters) { run_translator(message, template_parameters, offset, limit) },
+                  contentType: translator.mime_type,
+                  notify_request: notify_request,
+                  request_attachment: lambda(attachment) { request_attachment(attachment) },
+                  notify_response: notify_response,
+                  verbose_response: true do |response|
+                    run_response(response, translation_options) if response # && response.code == 200
+                    true
+                  end
         if auto_retry == :automatic && (200...299).exclude?(verbose_response[:http_response].code)
           fail unsuccessful_response(verbose_response[:http_response], message)
         end
@@ -467,6 +458,15 @@ module Setup
         contentType: http_response.content_type,
         body: http_response.body
       }
+    end
+
+    def request_attachment(attachment)
+      ext = translator.file_extension
+      ext_text = ext.present? ? ".#{ext}" : ''
+      attachment[:filename] =
+        ((data_type && data_type.title) || translator.name).collectionize +
+        attachment[:filename] + ext_text
+      attachment
     end
 
     def source_ids_from(message)
