@@ -71,6 +71,21 @@ class Account
     owner
   end
 
+  def core_handling(*arg)
+    @core_handling = arg[0].to_s.to_b
+  end
+
+  def core_handling?
+    @core_handling
+  end
+
+  def code_handle(&block)
+    core_handling true
+    instance_eval &block
+  ensure
+    core_handling false
+  end
+
   def read_attribute(name)
     (!(value = super).nil? &&
 
@@ -84,7 +99,7 @@ class Account
     users << owner unless user_ids.include?(owner.id)
     changed_attributes.keys.each do |attr|
       reset_attribute!(attr) unless %w(name notification_level time_zone).include?(attr)
-    end unless new_record? || Account.current_super_admin?
+    end unless core_handling? || new_record? || Account.current_super_admin?
     errors.blank?
   end
 
