@@ -3,12 +3,17 @@ module Setup
     include ReqRejValidator
     include SnippetCode
     include NamespaceNamed
+    include ClassHierarchyAware
+
+    abstract_class true
 
     legacy_code_attribute :transformation
 
     build_in_data_type.referenced_by(:namespace, :name)
 
-    field :type, type: Symbol
+    deny :new
+
+    field :type, type: Symbol, default: -> { self.class.transformation_type }
 
     belongs_to :source_data_type, class_name: Setup::DataType.to_s, inverse_of: nil
     belongs_to :target_data_type, class_name: Setup::DataType.to_s, inverse_of: nil
@@ -28,6 +33,12 @@ module Setup
     field :discard_chained_records, type: Boolean
 
     before_save :validates_configuration, :validates_code
+
+    before_validation do
+      if (t = self.class.transformation_type)
+        self.type = t
+      end
+    end
 
     def validates_configuration
       requires(:name)
@@ -290,6 +301,24 @@ module Setup
 
     def linker_id
       't' + id.to_s
+    end
+
+    class << self
+
+      def mime_type_filter_enum
+        Setup::Renderer.where(:mime_type.ne => nil).distinct(:mime_type).flatten.uniq
+      end
+
+      def file_extension_filter_enum
+        Setup::Renderer.where(:file_extension.ne => nil).distinct(:file_extension).flatten.uniq
+      end
+
+      def transformation_type(*args)
+        if args.length > 0
+          @transformation_type = args[0].to_s.to_sym
+        end
+        @transformation_type
+      end
     end
   end
 

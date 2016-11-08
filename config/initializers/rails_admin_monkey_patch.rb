@@ -3,6 +3,7 @@ require 'rails_admin/main_controller'
 require 'rails_admin/application_controller'
 require 'rails_admin/config/fields/types/carrierwave'
 require 'rails_admin/config/fields/types/file_upload'
+require 'rails_admin/config/fields/types/enum'
 require 'rails_admin/adapters/mongoid'
 require 'rails_admin/lib/mongoff_abstract_model'
 
@@ -394,13 +395,19 @@ module RailsAdmin
             v.instance_variable_set(:@showing, false)
             table.html_safe
           else
-            values.collect do |associated|
+            max_associated_to_show = 3
+            count_associated= values.count
+            associated_links = values.collect do |associated|
               amc = polymorphic? ? RailsAdmin.config(associated) : associated_model_config # perf optimization for non-polymorphic associations
               am = amc.abstract_model
               wording = associated.send(amc.object_label_method)
               can_see = !am.embedded? && (show_action = v.action(:show, am, associated))
               can_see ? v.link_to(wording, v.url_for(action: show_action.action_name, model_name: am.to_param, id: associated.id), class: 'pjax') : ERB::Util.html_escape(wording)
-            end.to_sentence.html_safe
+            end.to(max_associated_to_show-1).to_sentence.html_safe
+            if (count_associated > max_associated_to_show)
+               associated_links = associated_links+ " and #{count_associated - max_associated_to_show} more".html_safe
+            end
+            associated_links
           end
         end
 
@@ -465,6 +472,23 @@ module RailsAdmin
               else
                 v.link_to(nil, url, target: '_blank')
               end
+            end
+          end
+        end
+
+        class Enum
+
+          register_instance_option :filter_enum_method do
+            @filter_enum_method ||= bindings[:object].class.respond_to?("#{name}_filter_enum") || bindings[:object].respond_to?("#{name}_filter_enum") ? "#{name}_filter_enum" : ''
+          end
+
+          register_instance_option :filter_enum do
+            if (obj = bindings[:object].class).respond_to?(filter_enum_method)
+              obj.send(filter_enum_method)
+            elsif (obj = bindings[:object]).respond_to?(filter_enum_method)
+              obj.send(filter_enum_method)
+            else
+              obj.send(enum_method)
             end
           end
         end
@@ -556,39 +580,38 @@ module RailsAdmin
       end
     end
 
-    def notifications_link
+    def notifications_links
       account, abstract_model, index_action = linking(Setup::Notification)
       return nil unless index_action
-      link_to url_for(action: index_action.action_name, model_name: abstract_model.to_param, controller: 'rails_admin/main'), class: 'pjax' do
-        html = '<i class="icon-bell" title="Notification" rel="tooltip"></i>'
-        counters = Hash.new { |h, k| h[k] = 0 }
-        scope =
-          if (from_date = account.notifications_listed_at)
-            Setup::Notification.where(:created_at.gte => from_date)
-          else
-            Setup::Notification.all
-          end
-        Setup::Notification.type_enum.each do |type|
-          if (count = scope.where(type: type).count) > 0
-            counters[Setup::Notification.type_color(type)] = count
-          end
-        end
-        counters.each do |color, count|
-          html +=
-            <<-HTML
-              <b class="label rounded label-xs up" style='border-radius: 500px;
-                position: relative;
-                top: -10px;
-                min-width: 4px;
-                min-height: 4px;
-                display: inline-block;
-                font-size: 9px;
-                background-color: #{color}'>#{count}
-              </b>
-          HTML
-        end
-        html.html_safe
+      all_links =[]
+      bell_link = link_to url_for(action: index_action.action_name, model_name: abstract_model.to_param, controller: 'rails_admin/main'), class: 'pjax' do
+        '<i class="icon-bell" title="Notification" rel="tooltip"></i>'.html_safe
       end
+      all_links << bell_link
+      counters = Hash.new { |h, k| h[k] = 0 }
+      Setup::Notification.type_enum.each do |type|
+        scope = Setup::Notification.where(type: type)
+        if (scope.count > 0)
+          meta = account.meta
+          if (from_date = meta["#{type.to_s}_notifications_listed_at"])
+            scope = scope.where(:created_at.gte => from_date)
+          end
+          count = scope.count
+          if (count > 0)
+            counters[type] = count
+          end
+        end
+      end
+      counters.each do |type, count|
+        color = Setup::Notification.type_color(type)
+        a=index_path(model_name: abstract_model.to_param, "type" => type, "model_name" => abstract_model.to_param, "utf8" => "✓", "f" => { "type" => { "60852" => { "v" => type } } })
+        counter_links = link_to a, class: 'pjax' do
+          link = '<b class="label rounded label-xs up notify-counter-link '+ color + '">' + count.to_s + '</b>'
+          link.html_safe
+        end
+        all_links << counter_links.html_safe
+      end
+      all_links
     end
 
     def edit_user_link
@@ -655,9 +678,9 @@ module RailsAdmin
       mongoff_start_index = nil
       definitions_index = nil
       main_labels = []
-      data_type_icons = 
+      data_type_icons =
         {
-          Setup::FileDataType => 'fa fa-file', 
+          Setup::FileDataType => 'fa fa-file',
           Setup::JsonDataType => 'fa fa-database',
           Setup::CrossSharedCollection => 'fa fa-shopping-cart'
         }
@@ -755,38 +778,85 @@ module RailsAdmin
     def navigation(nodes_stack, nodes, html_id)
       return if nodes.blank?
       i = -1
-      ("<div id='#{html_id}' class='nav nav-pills nav-stacked panel-collapse collapse'>" +
+      nav ="<div id='#{html_id}' class='nav nav-pills nav-stacked panel-collapse collapse'>" +
         nodes.collect do |node|
           i += 1
           stack_id = "#{html_id}-sub#{i}"
           model_count = node.abstract_model.count({ cache: true }, @authorization_adapter && @authorization_adapter.query(:index, node.abstract_model)) rescue -1
 
           children = nodes_stack.select { |n| n.parent.to_s == node.abstract_model.model_name }
-          if children.present?
-            li = %(<div class='panel panel-default'>
+          html =
+            if children.present?
+              li = %(<div class='panel panel-default'>
             <div class='panel-heading'>
               <a data-toggle='collapse' data-parent='##{html_id}' href='##{stack_id}' class='panel-title collapse in collapsed'>
                 <span class='nav-caret'><i class='fa fa-caret-down'></i></span>
                 <span class='nav-caption'>#{capitalize_first_letter node.label_navigation}</span>
               </a>
             </div>)
-            li + navigation(nodes_stack, children, stack_id) + '</div>'
-          else
-            model_param = node.abstract_model.to_param
-            url = url_for(action: :index, controller: 'rails_admin/main', model_name: model_param)
-            nav_icon = node.navigation_icon ? %(<i class="#{node.navigation_icon}"></i>).html_safe : ''
-            content_tag :li, data: { model: model_param } do
-              link_to url, class: 'pjax' do
-                rc = ""
-                if _current_user.present? && model_count>0
-                  rc += "<span class='nav-amount'>#{model_count}</span>"
+              li + navigation(nodes_stack, children, stack_id) + '</div>'
+            else
+              model_param = node.abstract_model.to_param
+              url = url_for(action: :index, controller: 'rails_admin/main', model_name: model_param)
+              nav_icon = node.navigation_icon ? %(<i class="#{node.navigation_icon}"></i>).html_safe : ''
+              content_tag :li, data: { model: model_param } do
+                link_to url, class: 'pjax' do
+                  rc = ""
+                  if _current_user.present? && model_count>0
+                    rc += "<span class='nav-amount'>#{model_count}</span>"
+                  end
+                  rc += "<span class='nav-caption'>#{capitalize_first_letter node.label_navigation}</span>"
+                  rc.html_safe
                 end
-                rc += "<span class='nav-caption'>#{capitalize_first_letter node.label_navigation}</span>"
-                rc.html_safe
               end
             end
+          if node.label=='Renderer' &&
+            (extensions_list = Setup::Renderer.file_extension_filter_enum).present?
+            ext_count = 0
+            sub_links = ''
+            extensions_list.each do |ext|
+              count = Setup::Renderer.where(:file_extension => ext).count
+              ext_count += count
+              sub_links += content_tag :li do
+                #TODO review and improve the params for the sub_link_url generation and try to show the filter in the view
+                sub_link_url = index_path(model_name: 'setup~renderer', file_extension: ext, utf8: '✓', f: { file_extension: { 0 => { v: ext } } })
+                link_to sub_link_url do
+                  rc = ''
+                  if _current_user.present? && model_count>0
+                    rc += "<span class='nav-amount'>#{count}</span>"
+                  end
+                  rc += "<span class='nav-caption'>#{ext.upcase}</span>"
+                  rc.html_safe
+                end
+              end
+            end
+
+            show_all_link =
+              if ext_count < model_count
+                content_tag :li do
+                  link_to index_path(model_name: 'setup~renderer') do
+                    "<span class='nav-amount'>#{model_count}</span><span class='nav-caption'>Sow All</span>".html_safe
+                  end
+                end
+              else
+                ''
+              end
+            html = %(<div class='panel panel-default'>
+            <div class='panel-heading'>
+              <a data-toggle='collapse' data-parent='#none' href='#renderer-collapse' class='panel-title collapse in collapsed'>
+                <span class='nav-caret'><i class='fa fa-caret-down'></i></span>
+                <span class='nav-caption'>#{node.label.pluralize}</span>
+              </a>
+            </div>
+             <div id='renderer-collapse' class='nav nav-pills nav-stacked panel-collapse collapse'>
+                #{sub_links}
+            #{show_all_link}
+            </div>
+            </div>)
           end
-        end.join + '</div>').html_safe
+          html
+        end.join + '</div>'
+      nav.html_safe
     end
 
     def dashboard_main()
@@ -863,21 +933,20 @@ module RailsAdmin
               pc = percent(model_count, @max)
               indicator = get_indicator(pc)
               anim = animate_width_to(pc)
+              menu = menu_for(:collection, node.abstract_model, nil)
 
-              rc += '<td>'
+              rc += '<td style="overflow:visible">'
               rc += "<div class='progress progress-#{indicator}' style='margin-bottom:0'>"
               rc += "<div class='animate-width-to progress-bar progress-bar-#{indicator}' data-animate-length='#{anim}' data-animate-width-to='#{anim}' style='width:2%'>"
               rc += "#{model_count}"
               rc += '</div>'
               rc += '</div>'
-              rc += '</td>'
-
-              menu = menu_for(:collection, node.abstract_model, nil, true)
-
-              rc += '<td class="links">'
-              rc += "<ul class='inline list-inline'>#{menu}</ul>"
-              rc += '</td>'
-
+              rc += '<div id="links" class="options-menu">
+                     <span aria-haspopup="true" class="btn dropdown-toggle" data-toggle="dropdown" type="button">
+                      <i class="fa fa-ellipsis-v"></i>
+                     </span>'
+              rc += "<ul class='dropdown-menu'>#{menu}</ul>"
+              rc += '</div></td>'
               rc.html_safe
             end
           end

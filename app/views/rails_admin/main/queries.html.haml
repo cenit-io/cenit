@@ -1,0 +1,22 @@
+%table.table.table-condensed.table-striped
+  %thead
+    %tr
+      %th{class: "header pjax"}= ' '
+      %th{class: "header pjax"}= 'Namespace'
+      %th{class: "header pjax"}= 'Name'
+      %th{class: "header pjax"}= 'Segment'
+      %th{class: "header pjax"}= 'Triggers'
+      %th{class: "header pjax"}= 'Updated at'
+  %tbody
+    - @queries.each do |query|
+      %tr{class: "#{@abstract_model.param_key}_row"}
+        %td= ' '
+        %td= query.namespace
+        %td
+          - params = { model_name: @model_name }
+          %a{href: index_path(params), class: 'pjax'}= query.name
+        %td
+          - params = { model_name: @model_name, f: query.segment }
+          %a{href: index_path(params), class: 'pjax'}= query.custom_title
+        %td= query.triggers
+        %td= query.updated_at
