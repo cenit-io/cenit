@@ -98,7 +98,9 @@ module Setup
     end
 
     def with(options)
-      using_data_type(data_type) if options && options.delete(:data_type)
+      if options && (data_type = options.delete(:data_type))
+        using_data_type(data_type)
+      end
       super
     end
 
@@ -139,7 +141,7 @@ module Setup
       return true if shared?
       cond = (t = translator).present?
       cond &&= event.blank? || data_type_scope.present? || t.type == :Import
-      cond && [:Export, :Import].exclude?(t.type) || webhook.present?
+      cond && ([:Export, :Import].exclude?(t.type) || webhook.present?)
     end
 
     def can_be_restarted?
