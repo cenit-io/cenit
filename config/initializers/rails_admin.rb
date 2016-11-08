@@ -2473,11 +2473,71 @@ RailsAdmin.config do |config|
     fields :namespace, :name, :type, :description
   end
 
+  config.model Setup::Query do
+    navigation_label 'Compute'
+    weight 435
+    label 'Query'
+    object_label_method { :custom_title }
+
+    edit do
+      field :namespace, :enum_edit
+      field :name
+      field :data_type do
+        inline_add false
+        inline_edit false
+        associated_collection_scope do
+          data_type = bindings[:object].data_type
+          Proc.new { |scope|
+            if data_type
+              scope.where(id: data_type.id)
+            else
+              scope
+            end
+          }
+        end
+        help 'Required'
+      end
+      field :triggers do
+        visible do
+          bindings[:controller].instance_variable_set(:@_data_type, data_type = bindings[:object].data_type)
+          bindings[:controller].instance_variable_set(:@_update_field, 'data_type_id')
+          data_type.present?
+        end
+        partial 'form_triggers'
+        help false
+      end
+    end
+
+    show do
+      field :namespace
+      field :name
+      field :data_type
+      field :triggers
+      field :link_to_segment do
+        pretty_value do
+          (bindings[:view].render partial: 'link_to_segment', locals:
+            {
+              model_name: bindings[:object].data_type.records_model.to_s.downcase,
+              filter: bindings[:object].link_to_segment
+            }).html_safe
+        end
+      end
+      field :_id
+      field :created_at
+      #field :creator
+      field :updated_at
+      #field :updater
+    end
+
+    fields :namespace, :name, :data_type, :triggers, :updated_at
+  end
+
   #Transformations
 
   config.navigation 'Transformations', icon: 'fa fa-random'
 
   config.model Setup::Translator do
+    label 'Transformation'
     visible false
     weight 410
     object_label_method { :custom_title }
@@ -2661,8 +2721,10 @@ RailsAdmin.config do |config|
     configure :code, :code
 
     edit do
-      field :namespace
-      field :name
+      field :namespace, :enum_edit, &shared_non_editable
+      field :name, &shared_non_editable
+
+
       field :source_data_type do
         shared_read_only
         inline_edit false
@@ -2707,6 +2769,37 @@ RailsAdmin.config do |config|
         end
       end
     end
+
+    show do
+      field :namespace
+      field :name
+      field :source_data_type
+      field :bulk_source
+      field :style
+      field :mime_type
+      field :file_extension
+      field :code do
+        pretty_value do
+          "<pre><code class='ruby'>#{value}</code></pre>".html_safe
+        end
+      end
+
+      field :_id
+      field :created_at
+      #field :creator
+      field :updated_at
+      #field :updater
+    end
+
+    list do
+      field :namespace
+      field :name
+      field :source_data_type
+      field :style
+      field :mime_type
+      field :file_extension
+      field :updated_at
+    end
   end
 
   config.model Setup::Parser do
@@ -2714,8 +2807,8 @@ RailsAdmin.config do |config|
     configure :code, :code
     navigation_label 'Transformations'
     edit do
-      field :namespace
-      field :name
+      field :namespace, :enum_edit, &shared_non_editable
+      field :name, &shared_non_editable
 
       field :target_data_type do
         shared_read_only
@@ -2755,15 +2848,45 @@ RailsAdmin.config do |config|
         end
       end
     end
+
+    show do
+      field :namespace
+      field :name
+      field :target_data_type
+      field :discard_events
+      field :style
+      field :mime_type
+      field :file_extension
+      field :code do
+        pretty_value do
+          "<pre><code class='ruby'>#{value}</code></pre>".html_safe
+        end
+      end
+
+      field :_id
+      field :created_at
+      #field :creator
+      field :updated_at
+      #field :updater
+    end
+
+    list do
+      field :namespace
+      field :name
+      field :target_data_type
+      field :style
+      field :updated_at
+    end
   end
 
   config.model Setup::Converter do
     weight 413
     configure :code, :code
     navigation_label 'Transformations'
+
     edit do
-      field :namespace
-      field :name
+      field :namespace, :enum_edit, &shared_non_editable
+      field :name, &shared_non_editable
 
       field :source_data_type do
         shared_read_only
@@ -2857,57 +2980,121 @@ RailsAdmin.config do |config|
         help "Chained records won't be saved if checked"
       end
     end
+
+    show do
+      field :namespace
+      field :name
+      field :source_data_type
+      field :target_data_type
+      field :discard_events
+      field :style
+      field :source_handler
+      field :code do
+        pretty_value do
+          "<pre><code class='ruby'>#{value}</code></pre>".html_safe
+        end
+      end
+      field :source_exporter
+      field :target_importer
+      field :discard_chained_records
+
+      field :_id
+      field :created_at
+      #field :creator
+      field :updated_at
+      #field :updater
+    end
+
+    list do
+      field :namespace
+      field :name
+      field :source_data_type
+      field :target_data_type
+      field :style
+      field :updated_at
+    end
   end
 
   config.model Setup::Updater do
     weight 414
     configure :code, :code
     navigation_label 'Transformations'
-    field :namespace
-    field :name
 
-    field :target_data_type do
-      shared_read_only
-      inline_edit false
-      inline_add false
-      help 'Optional'
-    end
+    edit do
+      field :namespace, :enum_edit, &shared_non_editable
+      field :name, &shared_non_editable
 
-    field :discard_events do
-      shared_read_only
-      help "Events won't be fired for created or updated records if checked"
-    end
-
-    field :style do
-      shared_read_only
-      visible { bindings[:object].type.present? }
-      help 'Required'
-    end
-
-    field :source_handler do
-      shared_read_only
-      visible { (t = bindings[:object]).style.present? }
-      help { 'Handle sources on code' }
-    end
-
-    field :code, :code do
-      visible { bindings[:object].style.present? && bindings[:object].style != 'chain' }
-      help { 'Required' }
-      html_attributes do
-        { cols: '74', rows: '15' }
+      field :target_data_type do
+        shared_read_only
+        inline_edit false
+        inline_add false
+        help 'Optional'
       end
-      code_config do
-        {
-          mode: case bindings[:object].style
-                when 'html.erb'
-                  'text/html'
-                when 'xslt'
-                  'application/xml'
-                else
-                  'text/x-ruby'
-                end
-        }
+
+      field :discard_events do
+        shared_read_only
+        help "Events won't be fired for created or updated records if checked"
       end
+
+      field :style do
+        shared_read_only
+        visible { bindings[:object].type.present? }
+        help 'Required'
+      end
+
+      field :source_handler do
+        shared_read_only
+        visible { (t = bindings[:object]).style.present? }
+        help { 'Handle sources on code' }
+      end
+
+      field :code, :code do
+        visible { bindings[:object].style.present? && bindings[:object].style != 'chain' }
+        help { 'Required' }
+        html_attributes do
+          { cols: '74', rows: '15' }
+        end
+        code_config do
+          {
+            mode: case bindings[:object].style
+                  when 'html.erb'
+                    'text/html'
+                  when 'xslt'
+                    'application/xml'
+                  else
+                    'text/x-ruby'
+                  end
+          }
+        end
+      end
+    end
+
+    show do
+      field :namespace
+      field :name
+      field :target_data_type
+      field :discard_events
+      field :style
+      field :source_handler
+      field :code do
+        pretty_value do
+          "<pre><code class='ruby'>#{value}</code></pre>".html_safe
+        end
+      end
+
+      field :_id
+      field :created_at
+      #field :creator
+      field :updated_at
+      #field :updater
+    end
+
+    list do
+      field :namespace
+      field :name
+      field :target_data_type
+      field :style
+      field :updated_at
     end
   end
 

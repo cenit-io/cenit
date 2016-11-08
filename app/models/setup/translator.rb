@@ -306,11 +306,11 @@ module Setup
     class << self
 
       def mime_type_filter_enum
-        Setup::Renderer.all.distinct(:mime_type).flatten.uniq
+        Setup::Renderer.where(:mime_type.ne => nil).distinct(:mime_type).flatten.uniq
       end
 
       def file_extension_filter_enum
-        Setup::Renderer.all.distinct(:file_extension).flatten.uniq
+        Setup::Renderer.where(:file_extension.ne => nil).distinct(:file_extension).flatten.uniq
       end
 
       def transformation_type(*args)

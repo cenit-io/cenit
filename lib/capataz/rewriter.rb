@@ -72,7 +72,7 @@ module Capataz
     end
 
     def on_module(node)
-      report_error('can not make yield calls') unless Capataz.can_declare?(:yield)
+      report_error('can not define modules') unless Capataz.can_declare?(:module)
       super
     end
 
