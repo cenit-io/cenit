@@ -22,7 +22,7 @@
 en:
   hello: "Hello world"
   flows:
-    can_not_be_blank: "Flow translator can't be blank"
+    not_blank: "Flow translator can't be blank"
     error_after_callback: "Error executing after process callback %{title}: %{message}"
     cycle: "Cyclic flow execution: %{cycle}"
     incompatible_data_type_scope: 'Not compatible with data type scope'
