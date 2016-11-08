@@ -473,16 +473,16 @@ module RailsAdmin
         class Enum
 
           register_instance_option :filter_enum_method do
-            @filter_enum_method ||= bindings[:object].class.respond_to?("#{name}_filter_enum") || bindings[:object].respond_to?("#{name}_filter_enum") ? "#{name}_filter_enum" : name
+            @filter_enum_method ||= bindings[:object].class.respond_to?("#{name}_filter_enum") || bindings[:object].respond_to?("#{name}_filter_enum") ? "#{name}_filter_enum" : ''
           end
 
           register_instance_option :filter_enum do
-            if bindings[:object].class.respond_to?(filter_enum_method)
-              bindings[:object].class.send(filter_enum_method)
-            elsif bindings[:object].respond_to?(filter_enum_method)
-              bindings[:object].send(enum_method)
+            if (obj = bindings[:object].class).respond_to?(filter_enum_method)
+              obj.send(filter_enum_method)
+            elsif (obj = bindings[:object]).respond_to?(filter_enum_method)
+              obj.send(filter_enum_method)
             else
-              bindings[:object].send(enum_method)
+              obj.send(enum_method)
             end
           end
         end
