@@ -1,14 +1,22 @@
 module Setup
   class Resource
-    include CenitScoped
+    include ShareWithBindingsAndParameters
     include NamespaceNamed
+    include WithTemplateParameters
     
-    belongs_to :section, class_name: Setup::Section.to_s, inverse_of: :nil
-    has_many :operations, class_name: Setup::Operation.to_s, inverse_of: :nil
-    
+    field :section, type: String
+
     field :path, type: String
     field :description, type: String
+
+    parameters :template_parameters
+
+    has_many :operations, class_name: Setup::Webhook.to_s, inverse_of: :resource
     
     validates_presence_of :path
+
+    def conformed_path(options = {})
+      conform_field_value(:path, options)
+    end
   end
 end

@@ -1766,19 +1766,20 @@ RailsAdmin.config do |config|
     edit do
       field :namespace, :enum_edit
       field :name
+      field :section
       field(:path, &shared_non_editable)
       field(:description, &shared_non_editable)
       field :operations
-      field :section
     end
 
-    fields :namespace, :name, :path, :description, :operations, :section, :updated_at
+    fields :namespace, :name, :section, :path, :description, :updated_at
   end
 
   config.model Setup::Operation do
     navigation_label 'Connectors'
     weight 217
     object_label_method { :custom_title }
+    visible false
 
     group :parameters do
       label 'Parameters & Headers'
@@ -1830,6 +1831,7 @@ RailsAdmin.config do |config|
     navigation_label 'Connectors'
     weight 218
     object_label_method { :custom_title }
+    visible false
 
     edit do
       field(:namespace, :enum_edit, &shared_non_editable)

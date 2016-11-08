@@ -8,22 +8,24 @@ module Setup
 
     build_in_data_type.referenced_by(:namespace, :name).excluding(:connection_roles)
 
-    field :path, type: String
+    belongs_to :resource, class_name: Setup::Resource.to_s, inverse_of: :operations
+
     field :method, type: String, default: :post
     field :description, type: String
 
-    parameters :parameters, :headers, :template_parameters
+    parameters :parameters, :headers
 
     def method_enum
       self.class.method_enum
     end
 
-    validates_presence_of :path
-
     def conformed_path(options = {})
-      conform_field_value(:path, options)
+      resource && resource.conformed_path(options)
     end
 
+    def template_parameters
+      (resource && resource.template_parameters) || []
+    end
     def upon(connections, options = {})
       @connections = connections
       @connection_role_options = options || {}
@@ -76,14 +78,14 @@ module Setup
         options = args[1] || {}
       end
       last_response = nil
-      template_parameters_hash = self.template_parameters_hash.merge!(options[:template_parameters] || {})
+      template_parameters_hash = resource.template_parameters_hash.merge!(options[:template_parameters] || {})
       verbose_response = options[:verbose_response] ? {} : nil
       if (connections = self.connections).present?
         verbose_response[:connections_present] = true if verbose_response
         common_submitter_body = (body_caller = body_argument.respond_to?(:call)) ? nil : body_argument
         common_template_parameters = nil
         connections.each do |connection|
-          template_parameters = template_parameters_hash.dup
+          template_parameters = resource.template_parameters_hash.dup
           template_parameters.reverse_merge!(connection.template_parameters_hash)
           submitter_body =
             if body_caller
@@ -247,6 +249,16 @@ module Setup
     end
 
     class << self
+
+      def new(attrs)
+        path = attrs.delete(:path) || attrs.delete('path')
+        webhook = super
+        if path
+          webhook.resource = Setup::Resource.new(path: path)
+        end
+        webhook
+      end
+
       def method_enum
         [:get, :post, :put, :delete, :patch, :copy, :head, :options, :link, :unlink, :purge, :lock, :unlock, :propfind]
       end

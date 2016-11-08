@@ -207,6 +207,7 @@ class Ability
       Setup::OauthClient,
       Setup::Oauth2Scope,
       Setup::Algorithm,
+      Setup::Resource,
       Setup::Webhook,
       Setup::Connection,
       Setup::Translator,

@@ -42,6 +42,7 @@ module Setup
       has_and_belongs_to_many :snippets, class_name: Setup::Snippet.to_s, inverse_of: nil
 
       has_and_belongs_to_many :connection_roles, class_name: Setup::ConnectionRole.to_s, inverse_of: nil
+      has_and_belongs_to_many :resources, class_name: Setup::Resource.to_s, inverse_of: nil
       has_and_belongs_to_many :webhooks, class_name: Setup::Webhook.to_s, inverse_of: nil
       has_and_belongs_to_many :connections, class_name: Setup::Connection.to_s, inverse_of: nil
 
