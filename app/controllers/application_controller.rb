@@ -51,12 +51,14 @@ class ApplicationController < ActionController::Base
       current_user.core_handling true
       current_user.save(validate: false)
     end
-    Account.current = current_user.account if signed_in?
+    Account.current = current_user.account.target if signed_in?
     yield
   ensure
     optimize
     if (account = Account.current)
-      account.save
+      account.code_handle do
+        save
+      end
     end
     clean_thread_cache
   end
