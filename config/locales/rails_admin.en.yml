@@ -54,12 +54,14 @@ en:
       or: 'or'
       not_selected: 'Not selected'
       help: 'help'
-      add_tenant: 'Add new'
+      add_tenant: 'Add new Tenant'
       main_navigation:
         json_data_type: 'Objects'
         file_data_type: 'Files'
+        cross_shared_collection: 'Ecommerce'
       link_json_data_type: 'Link Object Type'
       link_file_data_type: 'Link File Type'
+      link_cross_shared_collection: 'Connect Store'
     actions:
       dashboard:
         title: "Dashboard"
@@ -437,6 +439,8 @@ en:
         breadcrumb: "State"
       shared_collection_index:
         menu: "Shared Collections"
+      store_index:
+        menu: "Stores"  
       clean_up:
         title: "Clean Up"
         menu: "Clean Up"
