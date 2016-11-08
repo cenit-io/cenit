@@ -1683,7 +1683,7 @@ RailsAdmin.config do |config|
 
     fields :namespace, :name, :webhooks, :connections, :updated_at
   end
-  
+
   config.model Setup::Section do
     visible { Account.current_super_admin? }
     navigation_label 'Connectors'
@@ -1725,7 +1725,7 @@ RailsAdmin.config do |config|
 
     fields :namespace, :name, :description, :resources, :connection, :updated_at
   end
-  
+
   config.model Setup::Resource do
     visible { Account.current_super_admin? }
     navigation_label 'Connectors'
@@ -1825,7 +1825,7 @@ RailsAdmin.config do |config|
 
     fields :namespace, :name, :method, :description, :updated_at
   end
-  
+
   config.model Setup::Representation do
     navigation_label 'Connectors'
     weight 218
@@ -1851,7 +1851,7 @@ RailsAdmin.config do |config|
     end
 
     fields :namespace, :name, :description, :updated_at
-  end  
+  end
 
   config.model Setup::Webhook do
     navigation_label 'Workflows'
@@ -2934,14 +2934,14 @@ RailsAdmin.config do |config|
         end
         code_config do
           {
-              mode: case bindings[:object].style
-                      when 'html.erb'
-                        'text/html'
-                      when 'xslt'
-                        'application/xml'
-                      else
-                        'text/x-ruby'
-                    end
+            mode: case bindings[:object].style
+                  when 'html.erb'
+                    'text/html'
+                  when 'xslt'
+                    'application/xml'
+                  else
+                    'text/x-ruby'
+                  end
           }
         end
       end
@@ -3585,7 +3585,7 @@ RailsAdmin.config do |config|
             ((f.persisted? || f.custom_data_type_selected? || f.data_type) && (t.type == :Import || f.event.blank? || f.data_type.blank? || f.data_type_scope.present?))
         end
         associated_collection_scope do
-          Proc.new { |scope| scope.where(:parameters.with_size => 1).or(:parameters.with_size => 2) }
+          Proc.new { |scope| scope.where('$or': [{ parameters: { '$size': 1 } }, { parameters: { '$size': 2 } }]) }
         end
       end
       field :response_translator do
