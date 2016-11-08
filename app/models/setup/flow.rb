@@ -51,7 +51,7 @@ module Setup
     binding_belongs_to :connection_role, class_name: Setup::ConnectionRole.to_s, inverse_of: nil
     belongs_to :before_submit, class_name: Setup::Algorithm.to_s, inverse_of: nil
 
-    belongs_to :response, class_name: Setup::Translator.to_s, inverse_of: nil
+    belongs_to :response_translator, class_name: Setup::Translator.to_s, inverse_of: nil
     belongs_to :response_data_type, class_name: Setup::DataType.to_s, inverse_of: nil
 
     has_and_belongs_to_many :after_process_callbacks, class_name: Setup::Algorithm.to_s, inverse_of: nil
@@ -83,14 +83,14 @@ module Setup
       when :data_type_scope
         I18n.t('flows.not_allowed_import_translators')
       when :response_data_type
-        if response.present?
+        if response_translator.present?
           I18n.t('flows.response_translator_already_defines_a_data_type')
         else
           I18n.t('flows.can_not_be_defined_until_response_translator')
         end
       when :discard_events
         I18n.t('flows.can_not_be_defined_until_response_translator')
-      when :lot_size, :response
+      when :lot_size, :response_translator
         I18n.t('not_allowed_for_non_export_translators')
       else
         super
@@ -281,13 +281,13 @@ module Setup
     end
 
     def validate_export
-      return rejects(:lot_size, :response, :response_data_type) unless translator.type == :Export
+      return rejects(:lot_size, :response_translator, :response_data_type) unless translator.type == :Export
       rejects(:data_type_scope) if data_type.nil?
-      return rejects(:response_data_type, :discard_events) unless response.present?
-      if response.type == :Import
-        response.data_type ? rejects(:response_data_type) : requires(:response_data_type)
+      return rejects(:response_data_type, :discard_events) unless response_translator.present?
+      if response_translator.type == :Import
+        response_translator.data_type ? rejects(:response_data_type) : requires(:response_data_type)
       else
-        errors.add(:response, 'is not an import translator')
+        errors.add(:response, I18n.t('flows.not_an_import_translator'))
       end
     end
 
@@ -443,10 +443,10 @@ module Setup
       translator.run(translation_options)
     end
 
-    def run_response(response, translation_options)
-      response.run(
+    def run_response(response_translator, translation_options)
+      response_translator.run(
         translation_options.merge(
-          target_data_type: response.data_type || response_data_type,
+          target_data_type: response_translator.data_type || response_data_type,
           data: response.body,
           headers: response.headers.to_hash,
           statusCode: response.code, # TODO: Remove after deprecation migration

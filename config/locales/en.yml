@@ -38,3 +38,4 @@ en:
     can_not_be_defined_until_response_translator: "can't be defined until response translator"
     not_allowed_for_non_export_translators: "Is not allowed for non export translators"
     illegal data_type_option: "Illegal data type option %{data_type}, a flow own data type %{flow_data_type} is already configured"
+    not_an_import_translator: 'is not an import translator'
