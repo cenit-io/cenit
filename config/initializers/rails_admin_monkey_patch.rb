@@ -90,6 +90,13 @@ module RailsAdmin
       register_instance_option :extra_associations do
         []
       end
+      register_instance_option :wizard_steps do
+        {}
+      end
+
+      register_instance_option :current_step do
+        0
+      end
     end
 
     module Actions
