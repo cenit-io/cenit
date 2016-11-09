@@ -29,20 +29,21 @@ module RailsAdmin
       path_parameters, query_parameters = api_parameters(method, path)
 
       # Get the uri parts.
-      base_path, host, path = api_uri_parts(path)
+      schema, base_path, host, path = api_uri_parts(path)
 
-      # Get security token header.
-      token, token_header = api_token_header
+      # Get security headers.
+      token, token_header, key, key_header = api_security_headers
 
       # Set value of path parameters
       path_parameters.each { |p| path.gsub!("{#{p[:name]}}", @object.send(p[:name])) } if @object
 
       # Generate uri and command.
       command = "curl -X #{method.upcase} \\\n"
+      command << "     -H '#{key_header}: #{key}' \\\n"
       command << "     -H '#{token_header}: #{token}' \\\n"
       command << "     -H 'Content-Type: application/json' \\\n"
       command << "     -d '#{api_data(query_parameters).to_json}' \\\n" unless query_parameters.empty?
-      command << "     '#{@@cenit_api_spec[:schemes].first}://#{host}/#{base_path}/#{path}.json'\n\n"
+      command << "     '#{schema}://#{host}/#{base_path}/#{path}.json'\n\n"
 
       URI.encode(command)
     end
@@ -63,20 +64,28 @@ module RailsAdmin
     ###
     # Get the uri parts.
     def api_uri_parts(path)
+      if Rails.env.development?
+        schema = 'http'
+        host = '127.0.0.1:3000'
+      else
+        schema = @@cenit_api_spec[:schemes].first
+        host = @@cenit_api_spec[:host].chomp('/')
+      end
       base_path = @@cenit_api_spec[:basePath].chomp('/').reverse.chomp('/').reverse
-      host = @@cenit_api_spec[:host].chomp('/')
       path = path.reverse.chomp('/').reverse
 
-      [base_path, host, path]
+      [schema, base_path, host, path]
     end
 
     ###
-    # Get security token header.
-    def api_token_header
-      token = User.current.authentication_token
+    # Get security headers.
+    def api_security_headers
+      token = Account.current.token
       token_header = @@cenit_api_spec[:securityDefinitions]['X-User-Access-Token'][:name]
+      key = Account.current.key
+      key_header = @@cenit_api_spec[:securityDefinitions]['X-User-Access-Key'][:name]
 
-      [token, token_header]
+      [token, token_header, key, key_header]
     end
 
     ###
