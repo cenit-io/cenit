@@ -3,6 +3,7 @@ module Setup
     include CenitScoped
     include NamespaceNamed
     include TriggersFormatter
+    include CustomTitle
 
     belongs_to :data_type, class_name: Setup::DataType.to_s, inverse_of: nil
     field :triggers, type: String
@@ -21,8 +22,8 @@ module Setup
       name ? name : super
     end
 
-    def link_to_segment
-      eval triggers
+    def segment
+      JSON.parse triggers.gsub(/:(\w+)/){"\"#{$1}\""}.gsub('=>', ':')
     end
 
     private
