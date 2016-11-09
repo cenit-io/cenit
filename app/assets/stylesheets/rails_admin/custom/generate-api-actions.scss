@@ -1,13 +1,14 @@
-a.generate-api {
+.generate-api {
   position: relative;
-  top: -2em;
-  right: 2em;
+  right: 12px;
+  top: -51px;
   float: right;
   opacity: 0.5;
 
-  img {
-    width: 32px;
-    height: 24px;
+  button {
+    padding: 2px 10px;
+    background-color: transparent;
+    color: inherit;
   }
 
   &:hover {
