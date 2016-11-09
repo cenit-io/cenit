@@ -545,3 +545,12 @@ en:
           end:
             label: 'Save when done'
             description: 'Please save when done'
+      parser:
+        wizard:
+          start:
+            label: 'Select the parser style'
+            description: 'Please select the parser style and other required fields'
+          end:
+            label: 'Save when done'
+            description: 'Please save when done'
+
