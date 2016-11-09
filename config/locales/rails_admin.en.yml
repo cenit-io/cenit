@@ -564,5 +564,13 @@ en:
           end:
             label: 'Save when done'
             description: 'Please save when done'
+      updater:
+        wizard:
+          start:
+            label: 'Select the updater style'
+            description: 'Please select the updater style and other required fields'
+          end:
+            label: 'Save when done'
+            description: 'Please save when done'
 
 

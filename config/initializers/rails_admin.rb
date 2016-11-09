@@ -2864,7 +2864,7 @@ RailsAdmin.config do |config|
     end
 
     current_step do
-      style = (obj = bindings[:object]).style
+      obj = bindings[:object]
       if obj.style.blank?
         :start
       else
@@ -3120,6 +3120,31 @@ RailsAdmin.config do |config|
     weight 414
     configure :code, :code
     navigation_label 'Transformations'
+
+    wizard_steps do
+      steps =
+        {
+          start:
+            {
+              :label => I18n.t('admin.config.updater.wizard.start.label'),
+              :description => I18n.t('admin.config.updater.wizard.start.description')
+            },
+          end:
+            {
+              label: I18n.t('admin.config.updater.wizard.end.label'),
+              description: I18n.t('admin.config.parser.updater.end.description')
+            }
+        }
+    end
+
+    current_step do
+      obj = bindings[:object]
+      if obj.style.blank?
+        :start
+      else
+        :end
+      end
+    end
 
     edit do
       field :namespace, :enum_edit, &shared_non_editable
