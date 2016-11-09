@@ -2764,14 +2764,14 @@ RailsAdmin.config do |config|
         end
         code_config do
           {
-              mode: case bindings[:object].style
-                      when 'html.erb'
-                        'text/html'
-                      when 'xslt'
-                        'application/xml'
-                      else
-                        'text/x-ruby'
-                    end
+            mode: case bindings[:object].style
+                  when 'html.erb'
+                    'text/html'
+                  when 'xslt'
+                    'application/xml'
+                  else
+                    'text/x-ruby'
+                  end
           }
         end
       end
@@ -2890,6 +2890,41 @@ RailsAdmin.config do |config|
     weight 413
     configure :code, :code
     navigation_label 'Transformations'
+
+    wizard_steps do
+      steps =
+        {
+          start:
+            {
+              :label => I18n.t('admin.config.converter.wizard.start.label'),
+              :description => I18n.t('admin.config.converter.wizard.start.description')
+            }
+        }
+      if bindings[:object].style == 'chain'
+        steps[:select_exporter] =
+          {
+            label: I18n.t('admin.config.converter.wizard.select_exporter.label'),
+            description: I18n.t('admin.config.converter.wizard.select_exporter.description')
+          }
+      end
+      steps[:end] =
+        {
+          label: I18n.t('admin.config.converter.wizard.end.label'),
+          description: I18n.t('admin.config.converter.wizard.end.description')
+        }
+      steps
+    end
+
+    current_step do
+      style = (obj = bindings[:object]).style
+      if obj.source_data_type.blank? || obj.target_data_type.blank? || obj.style.blank?
+        :start
+      elsif style == 'chain' && obj.source_exporter.blank?
+        :select_exporter
+      else
+        :end
+      end
+    end
 
     edit do
       field :namespace, :enum_edit, &shared_non_editable

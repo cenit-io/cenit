@@ -531,3 +531,17 @@ en:
         d: 'days'
         w: 'weeks'
         M: 'months'
+
+
+    config:
+      converter:
+        wizard:
+          start:
+            label: 'Select the converter style'
+            description: 'Please select the converter style and other required fields'
+          select_exporter:
+            label: 'Select the source exporter'
+            description: 'Please select the source exporter and other required fields'
+          end:
+            label: 'Save when done'
+            description: 'Please save when done'
