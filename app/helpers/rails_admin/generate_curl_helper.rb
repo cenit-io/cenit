@@ -12,10 +12,14 @@ module RailsAdmin
     ###
     # Get api specification paths for current namespace and model.
     def api_current_paths
-      ns, model_name = params[:model_name].split(/~/)
-      pattern = Regexp.new "^/#{ns}/#{model_name}"
+      if (params[:model_name].present?)
+        ns, model_name = params[:model_name].split(/~/)
+        pattern = Regexp.new "^/#{ns}/#{model_name}"
 
-      api_specification[:paths].select { |k, v| k =~ pattern }
+        api_specification[:paths].select { |k, v| k =~ pattern }
+      else
+        {}
+      end
     end
 
     ###
