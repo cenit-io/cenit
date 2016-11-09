@@ -3417,7 +3417,7 @@ RailsAdmin.config do |config|
             ((f.persisted? || f.custom_data_type_selected? || f.data_type) && (t.type == :Import || f.event.blank? || f.data_type.blank? || f.data_type_scope.present?))
         end
         associated_collection_scope do
-          Proc.new { |scope| scope.where(:parameters.with_size => 1).or(:parameters.with_size => 2) }
+          Proc.new { |scope| scope.where('$or': [{ parameters: { '$size': 1 } }, { parameters: { '$size': 2 } }]) }
         end
       end
       field :response_translator do
@@ -3715,7 +3715,13 @@ RailsAdmin.config do |config|
       field :created_at do
         visible do
           if (account = Account.current)
-            account.notifications_listed_at = Time.now
+            if (notification_type = bindings[:controller].params[:type])
+              account.meta["#{notification_type}_notifications_listed_at"] = Time.now
+            else
+              Setup::Notification.type_enum.each do |type|
+                account.meta["#{type.to_s}_notifications_listed_at"] = Time.now
+              end
+            end
           end
           true
         end

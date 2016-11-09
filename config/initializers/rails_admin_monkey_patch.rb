@@ -395,13 +395,19 @@ module RailsAdmin
             v.instance_variable_set(:@showing, false)
             table.html_safe
           else
-            values.collect do |associated|
+            max_associated_to_show = 3
+            count_associated= values.count
+            associated_links = values.collect do |associated|
               amc = polymorphic? ? RailsAdmin.config(associated) : associated_model_config # perf optimization for non-polymorphic associations
               am = amc.abstract_model
               wording = associated.send(amc.object_label_method)
               can_see = !am.embedded? && (show_action = v.action(:show, am, associated))
               can_see ? v.link_to(wording, v.url_for(action: show_action.action_name, model_name: am.to_param, id: associated.id), class: 'pjax') : ERB::Util.html_escape(wording)
-            end.to_sentence.html_safe
+            end.to(max_associated_to_show-1).to_sentence.html_safe
+            if (count_associated > max_associated_to_show)
+               associated_links = associated_links+ " and #{count_associated - max_associated_to_show} more".html_safe
+            end
+            associated_links
           end
         end
 
@@ -473,16 +479,16 @@ module RailsAdmin
         class Enum
 
           register_instance_option :filter_enum_method do
-            @filter_enum_method ||= bindings[:object].class.respond_to?("#{name}_filter_enum") || bindings[:object].respond_to?("#{name}_filter_enum") ? "#{name}_filter_enum" : name
+            @filter_enum_method ||= bindings[:object].class.respond_to?("#{name}_filter_enum") || bindings[:object].respond_to?("#{name}_filter_enum") ? "#{name}_filter_enum" : ''
           end
 
           register_instance_option :filter_enum do
-            if bindings[:object].class.respond_to?(filter_enum_method)
-              bindings[:object].class.send(filter_enum_method)
-            elsif bindings[:object].respond_to?(filter_enum_method)
-              bindings[:object].send(enum_method)
+            if (obj = bindings[:object].class).respond_to?(filter_enum_method)
+              obj.send(filter_enum_method)
+            elsif (obj = bindings[:object]).respond_to?(filter_enum_method)
+              obj.send(filter_enum_method)
             else
-              bindings[:object].send(enum_method)
+              obj.send(enum_method)
             end
           end
         end
@@ -574,39 +580,38 @@ module RailsAdmin
       end
     end
 
-    def notifications_link
+    def notifications_links
       account, abstract_model, index_action = linking(Setup::Notification)
       return nil unless index_action
-      link_to url_for(action: index_action.action_name, model_name: abstract_model.to_param, controller: 'rails_admin/main'), class: 'pjax' do
-        html = '<i class="icon-bell" title="Notification" rel="tooltip"></i>'
-        counters = Hash.new { |h, k| h[k] = 0 }
-        scope =
-          if (from_date = account.notifications_listed_at)
-            Setup::Notification.where(:created_at.gte => from_date)
-          else
-            Setup::Notification.all
-          end
-        Setup::Notification.type_enum.each do |type|
-          if (count = scope.where(type: type).count) > 0
-            counters[Setup::Notification.type_color(type)] = count
-          end
-        end
-        counters.each do |color, count|
-          html +=
-            <<-HTML
-              <b class="label rounded label-xs up" style='border-radius: 500px;
-                position: relative;
-                top: -10px;
-                min-width: 4px;
-                min-height: 4px;
-                display: inline-block;
-                font-size: 9px;
-                background-color: #{color}'>#{count}
-              </b>
-          HTML
-        end
-        html.html_safe
+      all_links =[]
+      bell_link = link_to url_for(action: index_action.action_name, model_name: abstract_model.to_param, controller: 'rails_admin/main'), class: 'pjax' do
+        '<i class="icon-bell" title="Notification" rel="tooltip"></i>'.html_safe
       end
+      all_links << bell_link
+      counters = Hash.new { |h, k| h[k] = 0 }
+      Setup::Notification.type_enum.each do |type|
+        scope = Setup::Notification.where(type: type)
+        if (scope.count > 0)
+          meta = account.meta
+          if (from_date = meta["#{type.to_s}_notifications_listed_at"])
+            scope = scope.where(:created_at.gte => from_date)
+          end
+          count = scope.count
+          if (count > 0)
+            counters[type] = count
+          end
+        end
+      end
+      counters.each do |type, count|
+        color = Setup::Notification.type_color(type)
+        a=index_path(model_name: abstract_model.to_param, "type" => type, "model_name" => abstract_model.to_param, "utf8" => "✓", "f" => { "type" => { "60852" => { "v" => type } } })
+        counter_links = link_to a, class: 'pjax' do
+          link = '<b class="label rounded label-xs up notify-counter-link '+ color + '">' + count.to_s + '</b>'
+          link.html_safe
+        end
+        all_links << counter_links.html_safe
+      end
+      all_links
     end
 
     def edit_user_link
@@ -928,21 +933,20 @@ module RailsAdmin
               pc = percent(model_count, @max)
               indicator = get_indicator(pc)
               anim = animate_width_to(pc)
+              menu = menu_for(:collection, node.abstract_model, nil)
 
-              rc += '<td>'
+              rc += '<td style="overflow:visible">'
               rc += "<div class='progress progress-#{indicator}' style='margin-bottom:0'>"
               rc += "<div class='animate-width-to progress-bar progress-bar-#{indicator}' data-animate-length='#{anim}' data-animate-width-to='#{anim}' style='width:2%'>"
               rc += "#{model_count}"
               rc += '</div>'
               rc += '</div>'
-              rc += '</td>'
-
-              menu = menu_for(:collection, node.abstract_model, nil, true)
-
-              rc += '<td class="links">'
-              rc += "<ul class='inline list-inline'>#{menu}</ul>"
-              rc += '</td>'
-
+              rc += '<div id="links" class="options-menu">
+                     <span aria-haspopup="true" class="btn dropdown-toggle" data-toggle="dropdown" type="button">
+                      <i class="fa fa-ellipsis-v"></i>
+                     </span>'
+              rc += "<ul class='dropdown-menu'>#{menu}</ul>"
+              rc += '</div></td>'
               rc.html_safe
             end
           end

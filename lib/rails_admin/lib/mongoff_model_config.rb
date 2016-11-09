@@ -21,7 +21,10 @@ module RailsAdmin
           required { property.required? }
           queryable { property.queryable? }
           valid_length { {} }
-          enum { enumeration } if enumeration
+          if enumeration
+            enum { enumeration }
+            filter_enum { enumeration }
+          end
           if (title = property.title)
             label { title }
           end
@@ -77,11 +80,17 @@ module RailsAdmin
                 v.instance_variable_set(:@showing, false)
                 table.html_safe
               else
-                [value].flatten.select(&:present?).collect do |associated|
+                max_associated_to_show = 3
+                count_associated = [value].flatten.count
+                associated_links = [value].flatten.select(&:present?).collect do |associated|
                   wording = associated.send(amc.object_label_method)
                   can_see = !am.embedded_in?(bindings[:controller].instance_variable_get(:@abstract_model)) && (show_action = v.action(:show, am, associated))
                   can_see ? v.link_to(wording, v.url_for(action: show_action.action_name, model_name: am.to_param, id: associated.id), class: 'pjax') : wording
-                end.to_sentence.html_safe
+                end.to(max_associated_to_show-1).to_sentence.html_safe
+                if (count_associated > max_associated_to_show)
+                  associated_links = associated_links+ " and #{count_associated - max_associated_to_show} more".html_safe
+                end
+                associated_links
               end
             end
           end
