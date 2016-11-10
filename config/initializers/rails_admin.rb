@@ -253,6 +253,10 @@ RailsAdmin.config do |config|
       group :api_connectors
     end
 
+    configure :resources do
+      group :api_connectors
+    end
+
     configure :webhooks do
       group :api_connectors
     end
@@ -345,6 +349,7 @@ RailsAdmin.config do |config|
       field :snippets, &sharing_collection_invisible
       field :webhooks, &sharing_collection_invisible
       field :connections, &sharing_collection_invisible
+      field :resources, &sharing_collection_invisible
       field :authorizations, &sharing_collection_invisible
       field :oauth_providers, &sharing_collection_invisible
       field :oauth_clients, &sharing_collection_invisible
