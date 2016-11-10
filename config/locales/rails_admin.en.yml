@@ -534,3 +534,46 @@ en:
         d: 'days'
         w: 'weeks'
         M: 'months'
+
+
+    config:
+      converter:
+        wizard:
+          start:
+            label: 'Select the converter style'
+            description: 'Please select the converter style and other required fields'
+          select_exporter:
+            label: 'Select the source exporter'
+            description: 'Please select the source exporter and other required fields'
+          end:
+            label: 'Save when done'
+            description: 'Please save when done'
+      parser:
+        wizard:
+          start:
+            label: 'Select the parser style'
+            description: 'Please select the parser style and other required fields'
+          end:
+            label: 'Save when done'
+            description: 'Please save when done'
+      renderer:
+        wizard:
+          start:
+            label: 'Select the renderer style'
+            description: 'Please select the renderer style and other required fields'
+          select_file_extension:
+            label: 'Fill the require fields and save'
+            description: 'Please fill the require fields and save'
+          end:
+            label: 'Save when done'
+            description: 'Please save when done'
+      updater:
+        wizard:
+          start:
+            label: 'Select the updater style'
+            description: 'Please select the updater style and other required fields'
+          end:
+            label: 'Save when done'
+            description: 'Please save when done'
+
+
