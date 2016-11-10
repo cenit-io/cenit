@@ -3,16 +3,20 @@ module Setup
     include ShareWithBindingsAndParameters
     include NamespaceNamed
     include WithTemplateParameters
+
+    build_in_data_type.embedding(:operations).referenced_by(:name, :namespace)
     
     field :section, type: String
 
     field :path, type: String
     field :description, type: String
 
-    parameters :template_parameters
+    parameters :parameters, :headers, :template_parameters
 
-    has_many :operations, class_name: Setup::Webhook.to_s, inverse_of: :resource
-    
+    has_many :operations, class_name: Setup::Operation.to_s, inverse_of: :resource, dependent: :destroy
+
+    accepts_nested_attributes_for :operations, allow_destroy: true
+
     validates_presence_of :path
 
     def conformed_path(options = {})

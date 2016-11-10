@@ -5,7 +5,6 @@ module Setup
     include WithTemplateParameters
     include AuthorizationHandler
     include ModelConfigurable
-    has_many :sections, class_name: Setup::Section.to_s, inverse_of: :nil
 
     build_in_data_type.referenced_by(:namespace, :name).excluding(:connection_roles)
     build_in_data_type.and({
