@@ -5,8 +5,6 @@ module Setup
     include WithTemplateParameters
 
     build_in_data_type.embedding(:operations).referenced_by(:name, :namespace)
-    
-    field :section, type: String
 
     field :path, type: String
     field :description, type: String
