@@ -1536,10 +1536,25 @@ RailsAdmin.config do |config|
     end
   end
 
-  config.model Setup::Connection do
+  config.model Setup::Api do
     navigation_label 'Connectors'
     weight 200
-    label 'API Connection'
+    label 'API'
+
+    configure :specification, :code do
+      code_config do
+        {
+          mode: 'text/x-yaml'
+        }
+      end
+    end
+
+    fields :name, :specification
+  end
+
+  config.model Setup::Connection do
+    navigation_label 'Connectors'
+    weight 201
     object_label_method { :custom_title }
 
     group :credentials do
@@ -1690,6 +1705,7 @@ RailsAdmin.config do |config|
     weight 210
     label 'Section'
     object_label_method { :custom_title }
+    visible false
 
     configure :name, :string do
       help 'Requiered.'
@@ -1739,47 +1755,17 @@ RailsAdmin.config do |config|
         { maxlength: 50, size: 50 }
       end
     end
+
     configure :section do
       nested_form false
     end
+
     configure :path, :string do
       help 'Requiered. Path of the resource relative to connection URL.'
       html_attributes do
         { maxlength: 255, size: 100 }
       end
     end
-    show do
-      field :namespace
-      field :name
-      field :path
-      field :description
-      field :operations
-      field :section
-
-      field :_id
-      field :created_at
-      #field :creator
-      field :updated_at
-      #field :updater
-    end
-
-    edit do
-      field :namespace, :enum_edit
-      field :name
-      field :section
-      field(:path, &shared_non_editable)
-      field(:description, &shared_non_editable)
-      field :operations
-    end
-
-    fields :namespace, :name, :section, :path, :description, :updated_at
-  end
-
-  config.model Setup::Operation do
-    navigation_label 'Connectors'
-    weight 217
-    object_label_method { :custom_title }
-    visible false
 
     group :parameters do
       label 'Parameters & Headers'
@@ -1797,25 +1783,13 @@ RailsAdmin.config do |config|
       group :parameters
     end
 
-    edit do
-      field(:namespace, :enum_edit, &shared_non_editable)
-      field(:name, &shared_non_editable)
-      field(:method, &shared_non_editable)
-      field(:description, &shared_non_editable)
-
-      field :parameters
-      field :headers
-      field :template_parameters
-    end
-
     show do
       field :namespace
       field :name
-      field :method
-
-      field :parameters
-      field :headers
-      field :template_parameters
+      field :section
+      field :path
+      field :description
+      field :operations
 
       field :_id
       field :created_at
@@ -1824,7 +1798,41 @@ RailsAdmin.config do |config|
       #field :updater
     end
 
-    fields :namespace, :name, :method, :description, :updated_at
+    edit do
+      field :namespace, :enum_edit, &shared_non_editable
+      field :name, &shared_non_editable
+      field :section, &shared_non_editable
+      field :path, &shared_non_editable
+      field :description, &shared_non_editable
+      field :operations, &shared_non_editable
+      field :parameters
+      field :headers
+      field :template_parameters
+    end
+
+    fields :namespace, :name, :section, :path, :description, :operations, :updated_at
+  end
+
+  config.model Setup::Operation do
+    navigation_label 'Connectors'
+    weight 217
+    object_label_method { :label }
+    visible false
+
+    configure :resource do
+      read_only true
+      shared_non_editable
+    end
+
+    configure :description do
+      shared_non_editable
+    end
+
+    configure :method do
+      shared_non_editable
+    end
+
+    fields :method, :description, :parameters, :headers, :resource
   end
 
   config.model Setup::Representation do
@@ -2985,6 +2993,7 @@ RailsAdmin.config do |config|
     weight 412
     configure :code, :code
     navigation_label 'Transformations'
+
     edit do
       field :namespace, :enum_edit, &shared_non_editable
       field :name, &shared_non_editable
