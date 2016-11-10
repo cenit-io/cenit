@@ -9,7 +9,7 @@ module RailsAdmin
         end
 
         register_instance_option :only do
-          [Setup::SharedCollection, Setup::CrossSharedCollection]
+          [Setup::SharedCollection, Setup::CrossSharedCollection, Setup::Api]
         end
 
         register_instance_option :member do
@@ -23,7 +23,15 @@ module RailsAdmin
         register_instance_option :controller do
           proc do
 
-            if @object.pull_asynchronous
+            if @object.is_a?(Setup::Api)
+              begin
+                do_flash_process_result Setup::PullImport.process(data: @object.cenit_collection_hash.to_json,
+                                                                  discard_collection: false)
+              rescue Exception => ex
+                flash[:error] = ex.message
+              end
+              redirect_to back_or_index
+            elsif @object.pull_asynchronous
               do_flash_process_result Setup::SharedCollectionPull.process(@object)
               redirect_to back_or_index
             else
