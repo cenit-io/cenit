@@ -29,7 +29,7 @@ module Setup
 
     included do
 
-      build_in_data_type.embedding(*COLLECTING_PROPERTIES).excluding(:image)
+      build_in_data_type.embedding(*COLLECTING_PROPERTIES - [:operations]).excluding(:image, :operations)
 
       field :title, type: String, default: ''
       field :readme, type: String

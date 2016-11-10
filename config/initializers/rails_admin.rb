@@ -393,6 +393,16 @@ RailsAdmin.config do |config|
           group :api_connectors
         end
 
+        field "#{prefix}resources".to_sym do
+          label 'Resources'
+          group :api_connectors
+        end
+
+        field "#{prefix}operations".to_sym do
+          label 'Operations'
+          group :api_connectors
+        end
+
         field "#{prefix}webhooks".to_sym do
           label 'Webhooks'
           group :api_connectors
@@ -522,6 +532,16 @@ RailsAdmin.config do |config|
           end
         end
         field :connections do
+          pretty_value do
+            value.count > 0 ? value.count : '-'
+          end
+        end
+        field :resources do
+          pretty_value do
+            value.count > 0 ? value.count : '-'
+          end
+        end
+        field :operations do
           pretty_value do
             value.count > 0 ? value.count : '-'
           end
@@ -1761,10 +1781,6 @@ RailsAdmin.config do |config|
       end
     end
 
-    configure :section do
-      nested_form false
-    end
-
     configure :path, :string do
       help 'Requiered. Path of the resource relative to connection URL.'
       html_attributes do
@@ -1791,7 +1807,6 @@ RailsAdmin.config do |config|
     show do
       field :namespace
       field :name
-      field :section
       field :path
       field :description
       field :operations
@@ -1806,7 +1821,6 @@ RailsAdmin.config do |config|
     edit do
       field :namespace, :enum_edit, &shared_non_editable
       field :name, &shared_non_editable
-      field :section, &shared_non_editable
       field :path, &shared_non_editable
       field :description, &shared_non_editable
       field :operations, &shared_non_editable
@@ -1815,7 +1829,7 @@ RailsAdmin.config do |config|
       field :template_parameters
     end
 
-    fields :namespace, :name, :section, :path, :description, :operations, :updated_at
+    fields :namespace, :name, :path, :description, :operations, :updated_at
   end
 
   config.model Setup::Operation do
@@ -3899,7 +3913,7 @@ RailsAdmin.config do |config|
       field :created_at do
         visible do
           if (account = Account.current)
-            if (notification_type = bindings[:controller].params[:type])
+            if (notification_type = (bindings[:controller].try(:params) || {})[:type])
               account.meta["#{notification_type}_notifications_listed_at"] = Time.now
             else
               Setup::Notification.type_enum.each do |type|
