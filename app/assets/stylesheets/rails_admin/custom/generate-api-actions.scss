@@ -1,0 +1,17 @@
+.generate-api {
+  position: relative;
+  right: 12px;
+  top: -51px;
+  float: right;
+  opacity: 0.5;
+
+  button {
+    padding: 2px 10px;
+    background-color: transparent;
+    color: inherit;
+  }
+
+  &:hover {
+    opacity: 1;
+  }
+}

@@ -135,7 +135,8 @@
         .notification-links
           - links.each do |link|
             =link
-
+    - if (t_link = storage_link)
+      %li#action-storage= t_link
 
 - else
 
