@@ -90,6 +90,13 @@ module RailsAdmin
       register_instance_option :extra_associations do
         []
       end
+      register_instance_option :wizard_steps do
+        {}
+      end
+
+      register_instance_option :current_step do
+        0
+      end
     end
 
     module Actions
@@ -553,6 +560,15 @@ module RailsAdmin
       link_to url_for(action: index_action.action_name, model_name: abstract_model.to_param, controller: 'rails_admin/main'), class: 'pjax' do
         html = '<i class="icon-tasks" title="Tasks" rel="tooltip"/></i>'
         #...
+        html.html_safe
+      end
+    end
+
+    def storage_link
+      _, abstract_model, index_action = linking(Setup::Storage)
+      return nil unless index_action
+      link_to url_for(action: index_action.action_name, model_name: abstract_model.to_param, controller: 'rails_admin/main'), class: 'pjax' do
+        html = '<i class="icon-hdd" title="Storages" rel="tooltip"/></i>'
         html.html_safe
       end
     end
