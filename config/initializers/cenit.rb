@@ -106,5 +106,5 @@ Cenit.config do
 
   request_timeout 300
 
-  ecommerce_data_types Ecommerce: %w(costumer.json product.json inventory.json cart.json order.json shipment.json)
+  ecommerce_data_types Ecommerce: %w(customer.json product.json inventory.json cart.json order.json shipment.json)
 end
