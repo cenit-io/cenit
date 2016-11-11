@@ -924,7 +924,7 @@ ul#main-accordion .panel-heading .nav-icon {
   padding: 15px;
 }
 
-.dashboard {
+.dashboard,#actions-menu-list{
   .progress {
     margin-bottom: 0;
     float: left;
@@ -986,6 +986,9 @@ ul#main-accordion .panel-heading .nav-icon {
           opacity: 1;
           height: auto;
           border-top: solid 1px rgba(0, 0, 0, 0.15);
+          ul li{
+           list-style-type: none;
+          }
           a {
             color: #428bca;
           }
@@ -1027,4 +1030,7 @@ ul#main-accordion .panel-heading .nav-icon {
 }
 .filter_by_token > span span {
   padding-left: 3px;
+}
+#actions-menu-list{
+  overflow:visible
 }
