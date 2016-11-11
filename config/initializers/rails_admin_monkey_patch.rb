@@ -395,10 +395,8 @@ module RailsAdmin
             if multiple?
               table += "<div class=\"clearfix total-count\">" +
                 if total > count
-                  if values.is_a?(Mongoid::Criteria) && !am.embedded? && (index_action = v.action(:index, am))
-                    message = "<span>Showing #{label.downcase} of <em>#{bindings[:object].send(bindings[:controller].model_config.object_label_method)}</em></span>"
-                    filter_token = Cenit::Token.create(data: { criteria: values.selector, message: message }, token_span: 1.hours)
-                    v.link_to("#{total} #{amc.label_plural}", v.url_for(action: index_action.action_name, model_name: am.to_param, filter_token: filter_token.token), class: 'pjax')
+                  if values.is_a?(Mongoid::Criteria) && !am.embedded? && (v.action(:index, am))
+                    all_associated_link(values, am, "#{total} #{amc.label_plural}")
                   else
                     "#{total} #{amc.label_plural}"
                   end +
@@ -421,9 +419,21 @@ module RailsAdmin
               can_see ? v.link_to(wording, v.url_for(action: show_action.action_name, model_name: am.to_param, id: associated.id), class: 'pjax') : ERB::Util.html_escape(wording)
             end.to(max_associated_to_show-1).to_sentence.html_safe
             if (count_associated > max_associated_to_show)
-              associated_links = associated_links + " and #{count_associated - max_associated_to_show} more".html_safe
+              more_link = all_associated_link(values, am, "#{count_associated - max_associated_to_show} more")
+              associated_links = associated_links + ' and '+more_link.html_safe
             end
             associated_links
+          end
+        end
+
+        def all_associated_link(values, am, link_content)
+          v = bindings[:view]
+          if values.is_a?(Mongoid::Criteria) && !am.embedded? && (index_action = v.action(:index, am))
+            message = "<span>Showing #{label.downcase} of <em>#{bindings[:object].send(bindings[:controller].model_config.object_label_method)}</em></span>"
+            filter_token = Cenit::Token.create(data: { criteria: values.selector, message: message }, token_span: 1.hours)
+            v.link_to(link_content, v.url_for(action: index_action.action_name, model_name: am.to_param, filter_token: filter_token.token), class: 'pjax')
+          else
+            ''
           end
         end
 
