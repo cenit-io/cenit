@@ -91,6 +91,9 @@ en:
         action_name: "Test"
         sample_data: "Sample data"
         result: "Result"
+      generate_api:
+        curl:
+          title: "Generate cURL command for access to API of this action."
       switch_navigation:
         show:
           title: "Show navigation link"
