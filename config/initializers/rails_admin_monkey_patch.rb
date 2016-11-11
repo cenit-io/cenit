@@ -263,7 +263,7 @@ module RailsAdmin
         end
       end
 
-      class Index < RailsAdmin::Config::Actions::Base
+      class Index
 
         register_instance_option :controller do
           proc do
@@ -393,10 +393,19 @@ module RailsAdmin
             </table>
             HTML
             if multiple?
-              table += "<div class=\"clearfix total-count\">#{total} #{amc.label_plural}"
-              if total > count
-                table += " (showing #{count})"
-              end
+              table += "<div class=\"clearfix total-count\">" +
+                if total > count
+                  if values.is_a?(Mongoid::Criteria) && !am.embedded? && (index_action = v.action(:index, am))
+                    message = "<span>Showing #{label.downcase} of <em>#{bindings[:object].send(bindings[:controller].model_config.object_label_method)}</em></span>"
+                    filter_token = Cenit::Token.create(data: { criteria: values.selector, message: message }, token_span: 1.hours)
+                    v.link_to("#{total} #{amc.label_plural}", v.url_for(action: index_action.action_name, model_name: am.to_param, filter_token: filter_token.token), class: 'pjax')
+                  else
+                    "#{total} #{amc.label_plural}"
+                  end +
+                    " (showing #{count})"
+                else
+                  "#{total} #{amc.label_plural}"
+                end
               table += '</div>'
             end
             v.instance_variable_set(:@showing, false)
@@ -676,6 +685,20 @@ module RailsAdmin
       link
     end
 
+    def filter_by_token
+      if (filter_token = params[:filter_token]) && (filter_token = Cenit::Token.where(token: filter_token).first)
+        if (message = filter_token.data && filter_token.data['message']).is_a?(String)
+          delete_filter_url = @action.bindings[:controller].url_for()
+          filter = '<p class="filter form-search filter_by_token">'
+          filter += '<span class="label label-info form-label">'
+          filter += "<a href=\"#{delete_filter_url}\">"
+          filter += '<i class="icon-trash icon-white"></i></a>'
+          filter += "#{message}</span>"
+          filter += '</p>'
+          filter.html_safe
+        end
+      end
+    end
 
     def main_navigation
       #Patch
@@ -983,6 +1006,11 @@ module RailsAdmin
           model.origins.each { |origin| origins << origin if params[origin_param="#{origin}_origin"].to_i.even? }
           origins << nil if origins.include?(:default)
           scope = scope.any_in(origin: origins)
+        end
+        if (filter_token = params[:filter_token]) && (filter_token = Cenit::Token.where(token: filter_token).first)
+          if (criteria = filter_token.data && filter_token.data['criteria']).is_a?(Hash)
+            scope = scope.and(criteria)
+          end
         end
       elsif (output = Setup::AlgorithmOutput.where(id: params[:algorithm_output]).first) &&
         output.data_type == model.data_type

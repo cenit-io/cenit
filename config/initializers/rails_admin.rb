@@ -779,10 +779,14 @@ RailsAdmin.config do |config|
 
       field :data_translators do
         group :workflows
-        label 'Translators'
+        label 'Transformations'
         list_fields do
           %w(namespace name type style)
         end
+      end
+
+      field :data_snippets do
+        label 'Snippets'
       end
 
       field :data_events do
