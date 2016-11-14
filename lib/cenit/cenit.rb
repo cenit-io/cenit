@@ -6,7 +6,8 @@ module Cenit
 
     def default_options
       super.merge service_url: '/service',
-                  reserved_namespaces: %w(cenit default)
+                  reserved_namespaces: %w(cenit default),
+                  ecommerce_data_types: {}
     end
 
     def http_proxy

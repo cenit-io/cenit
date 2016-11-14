@@ -1677,7 +1677,7 @@ RailsAdmin.config do |config|
   end
 
   config.model Setup::ConnectionRole do
-    visible false
+    visible { Account.current_super_admin? }
     navigation_label 'Connectors'
     weight 210
     label 'Connection Role'
@@ -2926,6 +2926,39 @@ RailsAdmin.config do |config|
     weight 411
     configure :code, :code
 
+    wizard_steps do
+      steps =
+        {
+          start:
+            {
+              :label => I18n.t('admin.config.renderer.wizard.start.label'),
+              :description => I18n.t('admin.config.renderer.wizard.start.description')
+            },
+          end:
+            {
+              label: I18n.t('admin.config.renderer.wizard.end.label'),
+              description: I18n.t('admin.config.renderer.wizard.end.description')
+            }
+        }
+      if !bindings[:object].file_extension_enum.empty?
+        steps[:end] =
+          {
+            label: I18n.t('admin.config.renderer.wizard.select_file_extension.label'),
+            description: I18n.t('admin.config.renderer.wizard.select_file_extension.description')
+          }
+      end
+        steps
+    end
+
+    current_step do
+      obj = bindings[:object]
+      if obj.style.blank?
+        :start
+      else
+        :end
+      end
+    end
+
     edit do
       field :namespace, :enum_edit, &shared_non_editable
       field :name, &shared_non_editable
@@ -3013,6 +3046,31 @@ RailsAdmin.config do |config|
     configure :code, :code
     navigation_label 'Transformations'
 
+    wizard_steps do
+      steps =
+        {
+          start:
+            {
+              :label => I18n.t('admin.config.parser.wizard.start.label'),
+              :description => I18n.t('admin.config.parser.wizard.start.description')
+            },
+          end:
+            {
+              label: I18n.t('admin.config.parser.wizard.end.label'),
+              description: I18n.t('admin.config.parser.wizard.end.description')
+            }
+        }
+    end
+
+    current_step do
+      obj = bindings[:object]
+      if obj.style.blank?
+        :start
+      else
+        :end
+      end
+    end
+
     edit do
       field :namespace, :enum_edit, &shared_non_editable
       field :name, &shared_non_editable
@@ -3090,6 +3148,41 @@ RailsAdmin.config do |config|
     weight 413
     configure :code, :code
     navigation_label 'Transformations'
+
+    wizard_steps do
+      steps =
+        {
+          start:
+            {
+              :label => I18n.t('admin.config.converter.wizard.start.label'),
+              :description => I18n.t('admin.config.converter.wizard.start.description')
+            }
+        }
+      if bindings[:object].style == 'chain'
+        steps[:select_exporter] =
+          {
+            label: I18n.t('admin.config.converter.wizard.select_exporter.label'),
+            description: I18n.t('admin.config.converter.wizard.select_exporter.description')
+          }
+      end
+      steps[:end] =
+        {
+          label: I18n.t('admin.config.converter.wizard.end.label'),
+          description: I18n.t('admin.config.converter.wizard.end.description')
+        }
+      steps
+    end
+
+    current_step do
+      style = (obj = bindings[:object]).style
+      if obj.source_data_type.blank? || obj.target_data_type.blank? || obj.style.blank?
+        :start
+      elsif style == 'chain' && obj.source_exporter.blank?
+        :select_exporter
+      else
+        :end
+      end
+    end
 
     edit do
       field :namespace, :enum_edit, &shared_non_editable
@@ -3226,6 +3319,31 @@ RailsAdmin.config do |config|
     weight 414
     configure :code, :code
     navigation_label 'Transformations'
+
+    wizard_steps do
+      steps =
+        {
+          start:
+            {
+              :label => I18n.t('admin.config.updater.wizard.start.label'),
+              :description => I18n.t('admin.config.updater.wizard.start.description')
+            },
+          end:
+            {
+              label: I18n.t('admin.config.updater.wizard.end.label'),
+              description: I18n.t('admin.config.parser.updater.end.description')
+            }
+        }
+    end
+
+    current_step do
+      obj = bindings[:object]
+      if obj.style.blank?
+        :start
+      else
+        :end
+      end
+    end
 
     edit do
       field :namespace, :enum_edit, &shared_non_editable
