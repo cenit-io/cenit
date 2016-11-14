@@ -532,21 +532,61 @@ module RailsAdmin
   module ApplicationHelper
 
     # parent => :root, :collection, :member
-    def menu_for(parent, abstract_model = nil, object = nil, only_icon = false) # perf matters here (no action view trickery)
+    def menu_for(parent, abstract_model = nil, object = nil, only_icon = false, limit = 0) # perf matters here (no action view trickery)
       actions = actions(parent, abstract_model, object).select { |a| a.http_methods.include?(:get) }
-      actions.collect do |action|
-        wording = wording_for(:menu, action)
-        #Patch
-        link_icon = (abstract_model && abstract_model.config.send("#{action.key}_link_icon")) || action.link_icon
-        %(
-          <li title="#{wording if only_icon}" rel="#{'tooltip' if only_icon}" class="icon #{action.key}_#{parent}_link #{'active' if current_action?(action)}">
-            <a class="#{action.pjax? ? 'pjax' : ''}" href="#{url_for(action: action.action_name, controller: 'rails_admin/main', model_name: abstract_model.try(:to_param), id: (object.try(:persisted?) && object.try(:id) || nil))}">
-              <i class="#{link_icon}"></i>
-              <span#{only_icon ? " style='display:none'" : ''}>#{wording}</span>
-            </a>
-          </li>
-        )
-      end.join.html_safe
+
+      if (limited = limit > 0)
+        count_links = 0
+        more_actions_links = []
+      end
+
+      actions_links =
+        actions.collect do |action|
+          menu_item = menu_item(only_icon, action, abstract_model, parent, object)
+          if limited
+            if count_links < limit
+              count_links += 1
+              menu_item
+            else
+              more_actions_links << menu_item
+              ''
+            end
+          else
+            menu_item
+          end
+        end
+
+      if limited
+        unless more_actions_links.empty?
+          label = 'Actions'
+          content =
+            %(
+              <li class="dropdown">
+                <a class="dropdown-toggle" data-toggle="dropdown" href="#">
+                  <span>#{label}</span>
+                  <b class="caret"></b>
+                </a>
+                <ul class="dropdown-menu">
+            )
+          more_actions_links.unshift(content)
+          more_actions_links << '</ul> </li>'
+          actions_links+= more_actions_links
+        end
+      end
+
+      actions_links.join.html_safe
+    end
+
+    def menu_item(only_icon, action, abstract_model, parent, object)
+      wording = wording_for(:menu, action)
+      %(
+        <li title="#{wording if only_icon}" rel="#{'tooltip' if only_icon}" class="icon #{action.key}_#{parent}_link #{'active' if current_action?(action)}">
+          <a class="#{action.pjax? ? 'pjax' : ''}" href="#{url_for(action: action.action_name, controller: 'rails_admin/main', model_name: abstract_model.try(:to_param), id: (object.try(:persisted?) && object.try(:id) || nil))}">
+            <i class="#{(abstract_model && abstract_model.config.send("#{action.key}_link_icon")) || action.link_icon}"></i>
+            <span#{only_icon ? " style='display:none'" : ''}>#{wording}</span>
+          </a>
+        </li>
+      )
     end
 
     def wording_for(label, action = @action, abstract_model = @abstract_model, object = @object)
