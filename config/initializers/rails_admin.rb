@@ -125,7 +125,7 @@ RailsAdmin.config do |config|
     run
     run_script
     edit
-    swagger {only [Setup::Connection] }
+    swagger {only [Setup::Api] }
     configure
     play
     copy

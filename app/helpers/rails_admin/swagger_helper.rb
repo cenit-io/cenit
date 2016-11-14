@@ -105,11 +105,18 @@ module RailsAdmin
     end
 
     def swagger_get_spec
-      {}
+      render text: @object.specification, content_type: 'text/yaml'
     end
 
     def swagger_set_spec
-      {}
+      spec = request.body.read
+
+      if (@object.specification != spec)
+        @object.specification =  spec
+        @object.save!
+      end
+
+      render text: 'success!'
     end
 
   end

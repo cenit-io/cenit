@@ -23,9 +23,9 @@ module RailsAdmin
                 render json: swagger_config
               elsif params[:path] == 'spec'
                 if request.get?
-                  render template: 'rails_admin/main/swagger-spec.yml', layout: false, content_type: 'text/yaml'
+                  swagger_get_spec
                 elsif request.put?
-                  render text: 'success!'
+                  swagger_set_spec
                 end
               else
                 render :nothing => true, :status => 404
