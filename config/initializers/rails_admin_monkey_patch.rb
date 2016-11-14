@@ -566,7 +566,7 @@ module RailsAdmin
                   <span>#{label}</span>
                   <b class="caret"></b>
                 </a>
-                <ul class="dropdown-menu">
+                <ul id="more_actions" class="dropdown-menu">
             )
           more_actions_links.unshift(content)
           more_actions_links << '</ul> </li>'

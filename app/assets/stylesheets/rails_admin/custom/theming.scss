@@ -2,6 +2,10 @@
 @import "rails_admin/custom/github";
 @import "rails_admin/custom/generate-api-actions";
 
+/*Theming variables*/
+
+$link_color: rgb(66, 139, 202);
+
 body.rails_admin {
   padding-top: 55px !important;
 }
@@ -710,7 +714,7 @@ ul#main-accordion .panel-heading .nav-icon {
 }
 
 #grid-wrapper .options-menu .dropdown-menu a {
-  color: #428bca;
+  color: $link_color;
 }
 
 #grid-wrapper .panel-heading {
@@ -990,7 +994,7 @@ ul#main-accordion .panel-heading .nav-icon {
            list-style-type: none;
           }
           a {
-            color: #428bca;
+            color: $link_color;
           }
         }
       }
@@ -1033,4 +1037,7 @@ ul#main-accordion .panel-heading .nav-icon {
 }
 #actions-menu-list{
   overflow:visible
+}
+ul#more_actions a{
+  color: $link_color;
 }
