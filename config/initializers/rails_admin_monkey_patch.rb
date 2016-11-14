@@ -412,7 +412,7 @@ module RailsAdmin
               can_see ? v.link_to(wording, v.url_for(action: show_action.action_name, model_name: am.to_param, id: associated.id), class: 'pjax') : ERB::Util.html_escape(wording)
             end.to(max_associated_to_show-1).to_sentence.html_safe
             if (count_associated > max_associated_to_show)
-               associated_links = associated_links+ " and #{count_associated - max_associated_to_show} more".html_safe
+              associated_links = associated_links + " and #{count_associated - max_associated_to_show} more".html_safe
             end
             associated_links
           end
@@ -711,9 +711,26 @@ module RailsAdmin
           Setup::BuildInDataType => main_labels
         }
       non_setup_data_type_models.each { |m| data_type_models[m] = [] }
-      nodes_stack.group_by(&:navigation_label).each do |navigation_label, nav_nodes|
+      nav_groups = nodes_stack.group_by(&:navigation_label)
+      ecommerce_models = []
+      Cenit.ecommerce_data_types.each do |ns, names|
+        names.each do |name|
+          if (data_type = Setup::DataType.where(namespace: ns, name: name).first)
+            ecommerce_models << data_type.records_model
+          end
+        end
+      end
+      ecommerce_models = ecommerce_models.collect { |model| RailsAdmin.config(model) }
+      nav_groups['Ecommerce'] = ecommerce_models
+      ecoindex = nav_groups.size
+      nav_groups.each do |navigation_label, nav_nodes|
+        ecoindex -= 1
         nav_nodes.group_by do |node|
-          ((data_type = node.abstract_model.model.try(:data_type)) && data_type.class) || Setup::BuildInDataType
+          if ecoindex == 0
+            Setup::CrossSharedCollection
+          else
+            ((data_type = node.abstract_model.model.try(:data_type)) && data_type.class) || Setup::BuildInDataType
+          end
         end.each do |data_type_model, nodes|
           name = data_type_model.to_s.split('::').last.underscore
           i += 1
@@ -722,8 +739,8 @@ module RailsAdmin
             mongoff_start_index ||= i
           end
 
-          nodes = nodes.select { |n| n.parent.nil? || !n.parent.to_s.in?(node_model_names) }
-          li_stack = navigation(nodes_stack, nodes, collapse_id)
+          nodes = nodes.select { |n| n.parent.nil? || !n.parent.to_s.in?(node_model_names) } if ecoindex > 0
+          li_stack = navigation(nodes_stack, nodes, collapse_id, just_li: ecoindex == 0)
 
           label = navigation_label || t('admin.misc.navigation')
           if label == 'Definitions'
@@ -743,18 +760,20 @@ module RailsAdmin
             end
 
           if li_stack.present?
-            a = %(<div class='panel-heading'>
+            unless ecoindex == 0
+              li_stack = %(<div class='panel-heading'>
               <a data-toggle='collapse' data-parent='##{mongoff_start_index ? "#{name}-collapse" : 'main-accordion'}' href='##{collapse_id}' class='panel-title collapse in collapsed'>
                 <span class='nav-caret'><i class='fa fa-caret-down'></i></span>) +
-              (icon ? "<span class='nav-icon'>#{icon}</span>" : '') +
-              %(<span class='nav-caption'>#{capitalize_first_letter label}</span>
+                (icon ? "<span class='nav-icon'>#{icon}</span>" : '') +
+                %(<span class='nav-caption'>#{capitalize_first_letter label}</span>
               </a>
             </div>
             #{li_stack})
-            unless mongoff_start_index
-              a = "<div id='#{html_id}' class='panel panel-default'>#{a}</div>"
+              unless mongoff_start_index
+                li_stack = "<div id='#{html_id}' class='panel panel-default'>#{li_stack}</div>"
+              end
             end
-            data_type_models[data_type_model] << a
+            data_type_models[data_type_model] << li_stack
           end
         end
       end
@@ -784,80 +803,79 @@ module RailsAdmin
               <li>
                 #{link_link}
               </li>
-              #{links.collect { |link| "<div class='panel panel-default'> #{link} </div>" }.join }
+              #{links.collect { |link| data_type_model == Setup::CrossSharedCollection ? link : "<div class='panel panel-default'> #{link} </div>" }.join }
             </div>
           </div>)
       end
       main_labels.join.html_safe
     end
 
-    def navigation(nodes_stack, nodes, html_id)
+    def navigation(nodes_stack, nodes, html_id, options = {})
       return if nodes.blank?
       i = -1
-      nav ="<div id='#{html_id}' class='nav nav-pills nav-stacked panel-collapse collapse'>" +
-        nodes.collect do |node|
-          i += 1
-          stack_id = "#{html_id}-sub#{i}"
-          model_count = node.abstract_model.count({ cache: true }, @authorization_adapter && @authorization_adapter.query(:index, node.abstract_model)) rescue -1
+      nav = nodes.collect do |node|
+        i += 1
+        stack_id = "#{html_id}-sub#{i}"
+        model_count = node.abstract_model.count({ cache: true }, @authorization_adapter && @authorization_adapter.query(:index, node.abstract_model)) rescue -1
 
-          children = nodes_stack.select { |n| n.parent.to_s == node.abstract_model.model_name }
-          html =
-            if children.present?
-              li = %(<div class='panel panel-default'>
+        children = nodes_stack.select { |n| n.parent.to_s == node.abstract_model.model_name }
+        html =
+          if children.present?
+            li = %(<div class='panel panel-default'>
             <div class='panel-heading'>
               <a data-toggle='collapse' data-parent='##{html_id}' href='##{stack_id}' class='panel-title collapse in collapsed'>
                 <span class='nav-caret'><i class='fa fa-caret-down'></i></span>
                 <span class='nav-caption'>#{capitalize_first_letter node.label_navigation}</span>
               </a>
             </div>)
-              li + navigation(nodes_stack, children, stack_id) + '</div>'
-            else
-              model_param = node.abstract_model.to_param
-              url = url_for(action: :index, controller: 'rails_admin/main', model_name: model_param)
-              nav_icon = node.navigation_icon ? %(<i class="#{node.navigation_icon}"></i>).html_safe : ''
-              content_tag :li, data: { model: model_param } do
-                link_to url, class: 'pjax' do
-                  rc = ""
-                  if _current_user.present? && model_count>0
-                    rc += "<span class='nav-amount'>#{model_count}</span>"
-                  end
-                  rc += "<span class='nav-caption'>#{capitalize_first_letter node.label_navigation}</span>"
-                  rc.html_safe
+            li + navigation(nodes_stack, children, stack_id) + '</div>'
+          else
+            model_param = node.abstract_model.to_param
+            url = url_for(action: :index, controller: 'rails_admin/main', model_name: model_param)
+            nav_icon = node.navigation_icon ? %(<i class="#{node.navigation_icon}"></i>).html_safe : ''
+            content_tag :li, data: { model: model_param } do
+              link_to url, class: 'pjax' do
+                rc = ""
+                if _current_user.present? && model_count>0
+                  rc += "<span class='nav-amount'>#{model_count}</span>"
                 end
+                rc += "<span class='nav-caption'>#{capitalize_first_letter node.label_navigation}</span>"
+                rc.html_safe
               end
             end
-          if node.label=='Renderer' &&
-            (extensions_list = Setup::Renderer.file_extension_filter_enum).present?
-            ext_count = 0
-            sub_links = ''
-            extensions_list.each do |ext|
-              count = Setup::Renderer.where(:file_extension => ext).count
-              ext_count += count
-              sub_links += content_tag :li do
-                #TODO review and improve the params for the sub_link_url generation and try to show the filter in the view
-                sub_link_url = index_path(model_name: 'setup~renderer', file_extension: ext, utf8: '✓', f: { file_extension: { 0 => { v: ext } } })
-                link_to sub_link_url do
-                  rc = ''
-                  if _current_user.present? && model_count>0
-                    rc += "<span class='nav-amount'>#{count}</span>"
-                  end
-                  rc += "<span class='nav-caption'>#{ext.upcase}</span>"
-                  rc.html_safe
+          end
+        if node.label=='Renderer' &&
+          (extensions_list = Setup::Renderer.file_extension_filter_enum).present?
+          ext_count = 0
+          sub_links = ''
+          extensions_list.each do |ext|
+            count = Setup::Renderer.where(:file_extension => ext).count
+            ext_count += count
+            sub_links += content_tag :li do
+              #TODO review and improve the params for the sub_link_url generation and try to show the filter in the view
+              sub_link_url = index_path(model_name: 'setup~renderer', file_extension: ext, utf8: '✓', f: { file_extension: { 0 => { v: ext } } })
+              link_to sub_link_url do
+                rc = ''
+                if _current_user.present? && model_count>0
+                  rc += "<span class='nav-amount'>#{count}</span>"
                 end
+                rc += "<span class='nav-caption'>#{ext.upcase}</span>"
+                rc.html_safe
               end
             end
+          end
 
-            show_all_link =
-              if ext_count < model_count
-                content_tag :li do
-                  link_to index_path(model_name: 'setup~renderer') do
-                    "<span class='nav-amount'>#{model_count}</span><span class='nav-caption'>Sow All</span>".html_safe
-                  end
+          show_all_link =
+            if ext_count < model_count
+              content_tag :li do
+                link_to index_path(model_name: 'setup~renderer') do
+                  "<span class='nav-amount'>#{model_count}</span><span class='nav-caption'>Sow All</span>".html_safe
                 end
-              else
-                ''
               end
-            html = %(<div class='panel panel-default'>
+            else
+              ''
+            end
+          html = %(<div class='panel panel-default'>
             <div class='panel-heading'>
               <a data-toggle='collapse' data-parent='#none' href='#renderer-collapse' class='panel-title collapse in collapsed'>
                 <span class='nav-caret'><i class='fa fa-caret-down'></i></span>
@@ -866,12 +884,13 @@ module RailsAdmin
             </div>
              <div id='renderer-collapse' class='nav nav-pills nav-stacked panel-collapse collapse'>
                 #{sub_links}
-            #{show_all_link}
+          #{show_all_link}
             </div>
             </div>)
-          end
-          html
-        end.join + '</div>'
+        end
+        html
+      end.join
+      nav = "<div id='#{html_id}' class='nav nav-pills nav-stacked panel-collapse collapse'>#{nav}</div>" unless options[:just_li]
       nav.html_safe
     end
 
