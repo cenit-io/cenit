@@ -4238,6 +4238,23 @@ RailsAdmin.config do |config|
     fields :shared_collection, :pull_request, :pulled_request, :description, :scheduler, :attempts_succeded, :retries, :progress, :status, :notifications, :updated_at
   end
 
+  config.model Setup::ApiPull do
+    navigation_label 'Monitors'
+    visible false
+    object_label_method { :to_s }
+
+    configure :attempts_succeded, :text do
+      label 'Attempts/Succedded'
+    end
+
+    edit do
+      field :description
+      field :auto_retry
+    end
+
+    fields :api, :pull_request, :pulled_request, :description, :scheduler, :attempts_succeded, :retries, :progress, :status, :notifications, :updated_at
+  end
+
   config.model Setup::SchemasImport do
     navigation_label 'Monitors'
     visible false

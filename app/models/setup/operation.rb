@@ -17,6 +17,9 @@ module Setup
 
     validates_presence_of :resource, :method
 
+    def name
+      "#{method.to_s.upcase} #{resource && resource.custom_title}"
+    end
     def template_parameters
       (resource && resource.template_parameters) || []
     end

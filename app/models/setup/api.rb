@@ -11,6 +11,10 @@ module Setup
       self.class.swagger_to_cenit(specification, options)
     end
 
+    def pull_asynchronous
+      true
+    end
+
     class << self
 
       def swagger_to_cenit(spec, options = {})
@@ -312,12 +316,11 @@ module Setup
         end
 
         shared['data']['oauth2_scopes'] = current_oauth2_scopes unless current_oauth2_scopes.empty?
-        if options[:shared_format]
-          shared
-        else
+        unless options[:shared_format]
           [:name, :readme, :title].each { |key| shared['data'][key] = shared[key] }
-          shared['data']
+          shared = shared['data']
         end
+        Cenit::Utility.stringfy(shared)
       end
 
       private
