@@ -6,7 +6,8 @@ module RailsAdmin
 
           register_instance_option :pretty_value do
             code = JSON.pretty_generate(value) rescue value
-            if bindings[:view].instance_variable_get(:@action).is_a?(RailsAdmin::Config::Actions::Index)
+            if bindings[:view].instance_variable_get(:@action).is_a?(RailsAdmin::Config::Actions::Index) ||
+            !bindings[:object].is_a?(bindings[:view].controller.abstract_model.model)
               code = code.lines[0, 4].join
               if code.length > 50
                 code = "#{code.to(50)}..."
