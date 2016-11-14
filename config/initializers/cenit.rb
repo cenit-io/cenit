@@ -107,4 +107,6 @@ Cenit.config do
   request_timeout 300
 
   ecommerce_data_types Ecommerce: %w(customer.json product.json inventory.json cart.json order.json shipment.json)
+
+  swagger_spec_url 'https://cenit-io.github.io/openapi/swagger.json'
 end
