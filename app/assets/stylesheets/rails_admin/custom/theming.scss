@@ -1,6 +1,7 @@
 @import "bootstrap/bootstrap-tour.min";
 @import "rails_admin/custom/github";
 @import "rails_admin/custom/swagger";
+@import "rails_admin/custom/generate-api-actions";
 
 body.rails_admin {
   padding-top: 55px !important;
@@ -993,4 +994,35 @@ ul#main-accordion .panel-heading .nav-icon {
       }
     }
   }
+}
+
+.wizard {
+  li {
+    padding: 15px;
+    &.next {
+      padding: 0;
+      color: #3d4046;
+      i{
+        top: 10px;
+        position: relative;
+      }
+    }
+    &.done {
+      color: black;
+      font-weight: bold;
+    }
+    &.active {
+      color: #5bc0de;
+      font-weight: bold;
+    }
+    &.pending {
+      color: gray;
+    }
+  }
+  h6 {
+    padding-left: 15px;
+    margin-top: 30px;
+    display: block;
+  }
+
 }
