@@ -5,14 +5,18 @@ module RailsAdmin
     ###
     # Get api specification from swagger.json file.
     def api_specification
-      spec_url = 'https://cenit-io.github.io/openapi/swagger.json'
-      @@cenit_api_spec ||= ActiveSupport::HashWithIndifferentAccess.new(JSON.parse(open(spec_url).read))
+      @@cenit_api_spec ||= begin
+        spec_url = 'https://cenit-io.github.io/openapi/swagger.json'
+        ActiveSupport::HashWithIndifferentAccess.new(JSON.parse(open(spec_url).read))
+      end
+    rescue
+      false
     end
 
     ###
     # Get api specification paths for current namespace and model.
     def api_current_paths
-      if params[:model_name].present?
+      if params[:model_name].present? && api_specification
         ns, model_name = params[:model_name].split(/~/)
         pattern = Regexp.new "^/#{ns}/#{model_name}"
 
