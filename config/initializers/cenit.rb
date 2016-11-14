@@ -109,4 +109,6 @@ Cenit.config do
   ecommerce_data_types Ecommerce: %w(customer.json product.json inventory.json cart.json order.json shipment.json)
 
   swagger_spec_url 'https://cenit-io.github.io/openapi/swagger.json'
+
+  using_accounts_dbs ENV['USING_ACCOUNTS_DBS']
 end
