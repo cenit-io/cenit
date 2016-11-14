@@ -25,7 +25,8 @@ class Ability
               Cenit::BasicToken,
               Script,
               Setup::DelayedMessage,
-              Setup::SystemNotification
+              Setup::SystemNotification,
+              Setup::Operation
             ]
         can [:import, :edit], Setup::SharedCollection
         can :destroy, [Setup::SharedCollection, Setup::Storage, Setup::CrossSharedCollection]
