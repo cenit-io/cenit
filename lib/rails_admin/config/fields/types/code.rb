@@ -5,7 +5,14 @@ module RailsAdmin
         class Code < RailsAdmin::Config::Fields::Types::CodeMirror
 
           register_instance_option :pretty_value do
-            "<pre><code class='json'>#{JSON.pretty_generate(value) rescue value}</code></pre>".html_safe
+            code = JSON.pretty_generate(value) rescue value
+            if bindings[:view].instance_variable_get(:@action).is_a?(RailsAdmin::Config::Actions::Index)
+              code = code.lines[0, 4].join
+              if code.length > 50
+                code = "#{code.to(50)}..."
+              end
+            end
+            "<pre><code class='#{mode_file}'>#{code}</code></pre>".html_safe
           end
 
           register_instance_option :js_location do
@@ -51,6 +58,7 @@ module RailsAdmin
               'text/html': 'xml',
               'text/plain': 'javascript',
               'text/x-ruby': 'ruby',
+              'text/x-yaml': 'yaml',
               '': 'javascript'
             }[config[:mode].to_s.to_sym] || config[:mode].to_sym
           end
