@@ -108,6 +108,8 @@ Cenit.config do
 
   ecommerce_data_types Ecommerce: %w(customer.json product.json inventory.json cart.json order.json shipment.json)
 
+  swagger_spec_url 'https://cenit-io.github.io/openapi/swagger.json'
+
   # Max count of tab actions to show before the More Actions tab if there are more actions to show
   max_tab_actions_count 2
 end
