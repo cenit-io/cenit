@@ -5,8 +5,9 @@ module RailsAdmin
     ###
     # Get api specification from swagger.json file.
     def api_specification
-      spec_url = 'https://cenit-io.github.io/openapi/swagger.json'
-      @@cenit_api_spec ||= ActiveSupport::HashWithIndifferentAccess.new(JSON.parse(open(spec_url).read))
+      @@cenit_api_spec ||= ActiveSupport::HashWithIndifferentAccess.new(JSON.parse(open(Cenit.swagger_spec_url).read))
+    rescue
+      {}
     end
 
     ###
