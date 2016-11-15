@@ -8,7 +8,7 @@ module Setup
 
     def source_shared_collection
       unless @shared_collection
-        pull_data = api.cenit_collection_hash
+        pull_data = api.cenit_collection_hash(task: self)
         @shared_collection= Setup::CrossSharedCollection.new(pull_data: pull_data)
         %w(name title readme).each { |key| @shared_collection[key] = pull_data[key] }
       end
