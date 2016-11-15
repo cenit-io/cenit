@@ -67,6 +67,9 @@ Cenit.config do
   #Process shared collection pulls asynchronous
   asynchronous_shared_collection_pull true
 
+  #Process API pulls asynchronous
+  asynchronous_api_pull true
+
   #Performs crossing origins asynchronous
   asynchronous_crossing true
 
