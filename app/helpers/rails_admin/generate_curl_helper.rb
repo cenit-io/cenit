@@ -3,7 +3,7 @@ module RailsAdmin
   # Generate cURL command for api service.
   module GenerateCurlHelper
     ###
-    # Get api specification from swagger.json file.
+    # Returns api specification from swagger.json file.
     def api_specification
       @@cenit_api_spec ||= begin
         spec_url = 'https://cenit-io.github.io/openapi/swagger.json'
@@ -18,7 +18,7 @@ module RailsAdmin
     end
 
     ###
-    # Get custom api specification for data_type model.
+    # Returns custom api specification for data_type model.
     def api_specification_for_data_types
       ns, model_name, data_type = api_model_from_data_type
 
@@ -38,7 +38,7 @@ module RailsAdmin
     end
 
     ###
-    # Get api specification paths for current namespace and model.
+    # Returns api specification paths for current namespace and model.
     def api_current_paths
       spec = api_specification
       if params[:model_name].present? && spec
@@ -52,7 +52,7 @@ module RailsAdmin
     end
 
     ###
-    # Get cURL command for service with given method and path.
+    # Returns cURL command for service with given method and path.
     def api_curl(method, path)
       # Get parameters definition.
       path_parameters, query_parameters = api_parameters(method, path)
@@ -74,13 +74,13 @@ module RailsAdmin
       command << "     -H '#{token_header}: #{token}' \\\n"
       command << "     -H 'Content-Type: application/json' \\\n"
       command << "     -d '#{api_data(query_parameters).to_json}' \\\n" unless query_parameters.empty?
-      command << "     '#{schema}://#{host}/#{base_path}/#{path}.json'\n\n"
+      command << "     '#{schema}://#{host}/#{base_path}/#{path}'\n\n"
 
       URI.encode(command)
     end
 
     ###
-    # Get parameters for service with given method and path.
+    # Returns parameters for service with given method and path.
     def api_parameters(method, path)
       parameters = api_specification[:paths][path][method][:parameters] || []
 
@@ -93,7 +93,7 @@ module RailsAdmin
     end
 
     ###
-    # Get the uri parts.
+    # Returns the uri parts.
     def api_uri_parts(path)
       if Rails.env.development?
         schema = 'http'
@@ -109,7 +109,7 @@ module RailsAdmin
     end
 
     ###
-    # Get security headers.
+    # Returns security headers.
     def api_security_headers
       token = Account.current.token
       token_header = @@cenit_api_spec[:securityDefinitions]['X-User-Access-Token'][:name]
@@ -120,7 +120,7 @@ module RailsAdmin
     end
 
     ###
-    # Get data object from service parameters definition.
+    # Returns data object from service parameters definition.
     def api_data(parameters)
       data = {}
       parameters.each { |p| data[p[:name]] = api_default_param_value(p) }
@@ -128,34 +128,38 @@ module RailsAdmin
     end
 
     ###
-    # Get default value from parameter.
+    # Returns default value from parameter.
     def api_default_param_value(param)
       values = { 'integer' => 0, 'number' => 0, 'real' => 0, 'boolean' => false, 'object' => {}, 'array' => [] }
       param[:default] || values[param[:type]] || ''
     end
 
     ###
-    # Get data type service get specification.
+    # Returns data type service get specification.
     def api_data_type_spec_get(data_type)
+      name = data_type.name.chomp('.json').humanize
+
       {
-        tags: [data_type.name],
-        summary: "Retrieve an existing #{data_type.name}",
+        tags: [name],
+        summary: "Retrieve an existing #{name}",
         description: [
-          "Retrieves the details of an existing #{data_type.name}.",
-          "You need only supply the unique #{data_type.name} identifier",
-          "that was returned upon #{data_type.name} creation."
+          "Retrieves the details of an existing #{name}.",
+          "You need only supply the unique #{name} identifier",
+          "that was returned upon #{name} creation."
         ].join(' '),
         parameters: [{ description: 'Identifier', in: 'path', name: 'id', type: 'string', required: true }]
       }
     end
 
     ###
-    # Get data type service get specification.
+    # Returns data type service get specification.
     def api_data_type_spec_get_with_view(data_type)
+      name = data_type.name.chomp('.json').humanize
+
       {
-        tags: [data_type.name],
-        summary: "Retrieve one attribute of an existing #{data_type.name}",
-        description: "Retrieves one attribute of an existing #{data_type.name}.",
+        tags: [name],
+        summary: "Retrieve one attribute of an existing #{name}",
+        description: "Retrieves one attribute of an existing #{name}.",
         parameters: [
           { description: 'Identifier', in: 'path', name: 'id', type: 'string', required: true },
           { description: 'Attribute name', in: 'path', name: 'view', type: 'string', required: true }
@@ -164,12 +168,14 @@ module RailsAdmin
     end
 
     ###
-    # Get data type service delete specification.
+    # Returns data type service delete specification.
     def api_data_type_spec_delete(data_type)
+      name = data_type.name.chomp('.json').humanize
+
       {
-        tags: [data_type.name],
-        summary: "Delete an existing #{data_type.name}",
-        description: "Permanently deletes an existing #{data_type.name}. It cannot be undone.",
+        tags: [name],
+        summary: "Delete an existing #{name}",
+        description: "Permanently deletes an existing #{name}. It cannot be undone.",
         parameters: [
           { description: 'Identifier', in: 'path', name: 'id', type: 'string', required: true }
         ]
@@ -177,13 +183,15 @@ module RailsAdmin
     end
 
     ###
-    # Get data type service list specification.
+    # Returns data type service list specification.
     def api_data_type_spec_list(data_type)
+      name = data_type.name.chomp('.json').humanize.pluralize
       limit = Kaminari.config.default_per_page
+
       {
-        tags: [data_type.name],
-        summary: "Retrieve all existing #{data_type.name.pluralize}",
-        description: "Retrieve all existing #{data_type.name.pluralize} you've previously created.",
+        tags: [name],
+        summary: "Retrieve all existing #{name}",
+        description: "Retrieve all existing #{name} you've previously created.",
         parameters: [
           { description: 'Page number', in: 'query', name: 'page', type: 'integer', required: false, default: 1 },
           { description: 'Page size', in: 'query', name: 'limit', type: 'integer', required: false, default: limit },
@@ -194,16 +202,17 @@ module RailsAdmin
     end
 
     ###
-    # Get data type service create or update specification.
+    # Returns data type service create or update specification.
     def api_data_type_spec_create(data_type)
+      name = data_type.name.chomp('.json').humanize
       code = JSON.parse(data_type.code)
       parameters = code['properties'].map { |k, v| { in: 'query', name: k, type: v['type'], required: false } }
 
       {
-        tags: [data_type.name],
-        summary: "Create or update an #{data_type.name}",
+        tags: [name],
+        summary: "Create or update an #{name}",
         description: [
-          "Creates or updates the specified #{data_type.name}.",
+          "Creates or updates the specified #{name}.",
           'Any parameters not provided will be left unchanged'
         ].join(' '),
         parameters: [
@@ -212,10 +221,12 @@ module RailsAdmin
       }
     end
 
+    ###
+    # Returns current namespace, model name and data type instance.
     def api_model_from_data_type
       data_type = Setup::DataType.find(params[:model_name].from(2))
       ns = data_type.namespace.parameterize.underscore.downcase
-      model_name = data_type.name.parameterize.underscore.downcase
+      model_name = data_type.slug
 
       [ns, model_name, data_type]
     end
