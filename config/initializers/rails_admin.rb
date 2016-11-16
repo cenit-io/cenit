@@ -1851,7 +1851,9 @@ RailsAdmin.config do |config|
       shared_non_editable
     end
 
-    fields :method, :description, :parameters, :headers, :resource
+    configure :metadata, :json_value
+
+    fields :method, :description, :parameters, :headers, :resource, :metadata
   end
 
   config.model Setup::Representation do

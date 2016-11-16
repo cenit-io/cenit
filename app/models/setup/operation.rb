@@ -2,6 +2,7 @@ module Setup
   class Operation
     include ShareWithBindingsAndParameters
     include WithTemplateParameters
+    include JsonMetadata
 
     build_in_data_type.referenced_by(:resource, :method)
 
