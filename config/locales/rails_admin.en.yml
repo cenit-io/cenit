@@ -591,3 +591,13 @@ en:
           end:
             label: 'Save when done'
             description: 'Please fill the require fields and save'
+      query:
+        wizard:
+          start:
+            label: 'Select the data type'
+            description: 'Please select the data type and other required fields'
+          end:
+            label: 'Add the triggers and save'
+            description: 'Please add the triggers and save when done'
+
+

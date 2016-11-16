@@ -2487,6 +2487,31 @@ RailsAdmin.config do |config|
     label 'Query'
     object_label_method { :custom_title }
 
+    wizard_steps do
+      steps =
+        {
+          start:
+            {
+              :label => I18n.t('admin.config.query.wizard.start.label'),
+              :description => I18n.t('admin.config.query.wizard.start.description')
+            },
+          end:
+            {
+              label: I18n.t('admin.config.query.wizard.end.label'),
+              description: I18n.t('admin.config.query.wizard.end.description')
+            }
+        }
+    end
+
+    current_step do
+      obj = bindings[:object]
+      if obj.data_type.blank?
+        :start
+      else
+        :end
+      end
+    end
+
     configure :segment do
       pretty_value do
         (bindings[:view].render partial: 'link_to_segment', locals:
@@ -3136,7 +3161,7 @@ RailsAdmin.config do |config|
           end:
             {
               label: I18n.t('admin.config.updater.wizard.end.label'),
-              description: I18n.t('admin.config.parser.updater.end.description')
+              description: I18n.t('admin.config.updater.wizard.end.description')
             }
         }
     end
