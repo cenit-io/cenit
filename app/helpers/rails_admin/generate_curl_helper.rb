@@ -3,52 +3,34 @@ module RailsAdmin
   # Generate cURL command for api service.
   module GenerateCurlHelper
     ###
-    # Returns api specification from swagger.json file.
-    def api_specification
-      @@cenit_api_spec ||= begin
-        spec_url = 'https://cenit-io.github.io/openapi/swagger.json'
-        ActiveSupport::HashWithIndifferentAccess.new(JSON.parse(open(spec_url).read))
-      end
-
-      api_specification_for_data_types if @@cenit_api_spec && params[:model_name].start_with?('dt')
-
-      @@cenit_api_spec
-    rescue
-      false
-    end
-
-    ###
-    # Returns custom api specification for data_type model.
-    def api_specification_for_data_types
-      ns, model_name, data_type = api_model_from_data_type
-
-      @@cenit_api_spec[:paths]["/#{ns}/#{model_name}/{id}"] = {
-        get: api_data_type_spec_get(data_type),
-        delete: api_data_type_spec_delete(data_type)
-      }
-
-      @@cenit_api_spec[:paths]["/#{ns}/#{model_name}/{id}/{view}"] = {
-        get: api_data_type_spec_get_with_view(data_type)
-      }
-
-      @@cenit_api_spec[:paths]["/#{ns}/#{model_name}"] = {
-        get: api_data_type_spec_list(data_type),
-        post: api_data_type_spec_create(data_type)
-      }
-    end
-
-    ###
     # Returns api specification paths for current namespace and model.
     def api_current_paths
-      spec = api_specification
-      if params[:model_name].present? && spec
-        ns, model_name = params[:model_name].start_with?('dt') ? api_model_from_data_type : params[:model_name].split(/~/)
-        pattern = Regexp.new "^/#{ns}/#{model_name}"
+      @api_current_paths ||= begin
+        if params[:model_name].start_with?('dt')
+          ns, model_name, data_type = api_model_from_data_type
+          display_name = data_type.name.chomp('.json').humanize
+        else
+          ns, model_name = params[:model_name].split(/~/)
+          display_name = model_name.humanize
+        end
 
-        spec[:paths].select { |k, _v| k =~ pattern }
-      else
-        {}
-      end
+        {
+          "#{ns}/#{model_name}/{id}" => {
+            get: api_spec_for_get(display_name),
+            delete: api_spec_for_delete(display_name)
+          },
+          "#{ns}/#{model_name}/{id}/{view}" => {
+            get: api_spec_for_get_with_view(display_name)
+          },
+          "#{ns}/#{model_name}" => {
+            get: api_spec_for_list(display_name),
+            post: api_spec_for_create(display_name, data_type)
+          }
+        }
+
+      end if params[:model_name].present?
+    rescue
+      nil
     end
 
     ###
@@ -57,74 +39,31 @@ module RailsAdmin
       # Get parameters definition.
       path_parameters, query_parameters = api_parameters(method, path)
 
-      # Get the uri parts.
-      schema, base_path, host, path = api_uri_parts(path)
-
-      # Get security headers.
-      token, token_header, key, key_header = api_security_headers
-
-      # Set value of path parameters
-      path_parameters.each do |p|
-        path.gsub!("{#{p[:name]}}", @object.send(p[:name])) if @object.respond_to?(p[:name])
-      end if @object
+      # Get data object from query parameters.
+      data = query_parameters.map { |p| [p[:name], api_default_param_value(p)] }.to_h
 
       # Generate uri and command.
       command = "curl -X #{method.upcase} \\\n"
-      command << "     -H '#{key_header}: #{key}' \\\n"
-      command << "     -H '#{token_header}: #{token}' \\\n"
+      command << "     -H 'X-User-Access-Key: #{Account.current.key}' \\\n"
+      command << "     -H 'X-User-Access-Token: #{Account.current.token}' \\\n"
       command << "     -H 'Content-Type: application/json' \\\n"
-      command << "     -d '#{api_data(query_parameters).to_json}' \\\n" unless query_parameters.empty?
-      command << "     '#{schema}://#{host}/#{base_path}/#{path}'\n\n"
+      command << "     -d '#{data.to_json}' \\\n" unless data.empty?
+      command << "     '#{api_uri(path, path_parameters)}'\n\n"
 
       URI.encode(command)
     end
 
+    protected
+
     ###
     # Returns parameters for service with given method and path.
     def api_parameters(method, path)
-      parameters = api_specification[:paths][path][method][:parameters] || []
-
-      # TODO: Reemplazar las referencias ($ref) por su valor real.
+      parameters = api_current_paths[path][method][:parameters] || []
 
       path_parameters = parameters.select { |p| p[:in] == 'path' }
       query_parameters = parameters.select { |p| p[:in] == 'query' }
 
       [path_parameters, query_parameters]
-    end
-
-    ###
-    # Returns the uri parts.
-    def api_uri_parts(path)
-      if Rails.env.development?
-        schema = 'http'
-        host = '127.0.0.1:3000'
-      else
-        schema = @@cenit_api_spec[:schemes].first
-        host = @@cenit_api_spec[:host].chomp('/')
-      end
-      base_path = @@cenit_api_spec[:basePath].sub(%r{^/|/$}, '')
-      path = path.sub(%r{^/}, '')
-
-      [schema, base_path, host, path]
-    end
-
-    ###
-    # Returns security headers.
-    def api_security_headers
-      token = Account.current.token
-      token_header = @@cenit_api_spec[:securityDefinitions]['X-User-Access-Token'][:name]
-      key = Account.current.key
-      key_header = @@cenit_api_spec[:securityDefinitions]['X-User-Access-Key'][:name]
-
-      [token, token_header, key, key_header]
-    end
-
-    ###
-    # Returns data object from service parameters definition.
-    def api_data(parameters)
-      data = {}
-      parameters.each { |p| data[p[:name]] = api_default_param_value(p) }
-      data
     end
 
     ###
@@ -135,31 +74,43 @@ module RailsAdmin
     end
 
     ###
-    # Returns data type service get specification.
-    def api_data_type_spec_get(data_type)
-      name = data_type.name.chomp('.json').humanize
+    # Returns api uri.
+    def api_uri(path, path_parameters)
+      uri = (Rails.env.development? ? 'http://127.0.0.1:3000' : 'https://cenit.io') + "/api/v2/#{path}"
 
+      # Set value of uri path parameters
+      path_parameters.each do |p|
+        if @object.respond_to?(p[:name])
+          value = @object.send(p[:name])
+          uri.gsub!("{#{p[:name]}}", value) unless value.to_s.empty?
+        end
+      end if @object
+
+      uri
+    end
+
+    ###
+    # Returns service get specification.
+    def api_spec_for_get(display_name)
       {
-        tags: [name],
-        summary: "Retrieve an existing #{name}",
+        tags: [display_name],
+        summary: "Retrieve an existing '#{display_name}'",
         description: [
-          "Retrieves the details of an existing #{name}.",
-          "You need only supply the unique #{name} identifier",
-          "that was returned upon #{name} creation."
+          "Retrieves the details of an existing '#{display_name}'.",
+          "You need only supply the unique '#{display_name}' identifier",
+          "that was returned upon '#{display_name}' creation."
         ].join(' '),
         parameters: [{ description: 'Identifier', in: 'path', name: 'id', type: 'string', required: true }]
       }
     end
 
     ###
-    # Returns data type service get specification.
-    def api_data_type_spec_get_with_view(data_type)
-      name = data_type.name.chomp('.json').humanize
-
+    # Returns service get specification with view parameter.
+    def api_spec_for_get_with_view(display_name)
       {
-        tags: [name],
-        summary: "Retrieve one attribute of an existing #{name}",
-        description: "Retrieves one attribute of an existing #{name}.",
+        tags: [display_name],
+        summary: "Retrieve one attribute of an existing '#{display_name}'",
+        description: "Retrieves one attribute of an existing '#{display_name}'.",
         parameters: [
           { description: 'Identifier', in: 'path', name: 'id', type: 'string', required: true },
           { description: 'Attribute name', in: 'path', name: 'view', type: 'string', required: true }
@@ -168,14 +119,12 @@ module RailsAdmin
     end
 
     ###
-    # Returns data type service delete specification.
-    def api_data_type_spec_delete(data_type)
-      name = data_type.name.chomp('.json').humanize
-
+    # Returns service delete specification.
+    def api_spec_for_delete(display_name)
       {
-        tags: [name],
-        summary: "Delete an existing #{name}",
-        description: "Permanently deletes an existing #{name}. It cannot be undone.",
+        tags: [display_name],
+        summary: "Delete an existing '#{display_name}'",
+        description: "Permanently deletes an existing '#{display_name}'. It cannot be undone.",
         parameters: [
           { description: 'Identifier', in: 'path', name: 'id', type: 'string', required: true }
         ]
@@ -183,42 +132,52 @@ module RailsAdmin
     end
 
     ###
-    # Returns data type service list specification.
-    def api_data_type_spec_list(data_type)
-      name = data_type.name.chomp('.json').humanize.pluralize
+    # Returns service list specification.
+    def api_spec_for_list(display_name)
       limit = Kaminari.config.default_per_page
 
       {
-        tags: [name],
-        summary: "Retrieve all existing #{name}",
-        description: "Retrieve all existing #{name} you've previously created.",
+        tags: [display_name],
+        summary: "Retrieve all existing '#{display_name.pluralize}'",
+        description: "Retrieve all existing '#{display_name.pluralize}' you've previously created.",
         parameters: [
-          { description: 'Page number', in: 'query', name: 'page', type: 'integer', required: false, default: 1 },
-          { description: 'Page size', in: 'query', name: 'limit', type: 'integer', required: false, default: limit },
-          { description: 'Items order', in: 'query', name: 'order', type: 'string', required: false, default: 'id' },
-          { description: 'JSON Criteria', in: 'query', name: 'where', type: 'string', required: false, default: '{}' }
+          { description: 'Page number', in: 'query', name: 'page', type: 'integer', default: 1 },
+          { description: 'Page size', in: 'query', name: 'limit', type: 'integer', default: limit },
+          { description: 'Items order', in: 'query', name: 'order', type: 'string', default: 'id' },
+          { description: 'JSON Criteria', in: 'query', name: 'where', type: 'string', default: '{}' }
         ]
       }
     end
 
     ###
-    # Returns data type service create or update specification.
-    def api_data_type_spec_create(data_type)
-      name = data_type.name.chomp('.json').humanize
-      code = JSON.parse(data_type.code)
-      parameters = code['properties'].map { |k, v| { in: 'query', name: k, type: v['type'], required: false } }
+    # Returns service create or update specification.
+    def api_spec_for_create(display_name, data_type = nil)
+      parameters = data_type ? api_params_from_data_type(data_type) : api_params_from_current_model
 
       {
-        tags: [name],
-        summary: "Create or update an #{name}",
+        tags: [display_name],
+        summary: "Create or update an '#{display_name}'",
         description: [
-          "Creates or updates the specified #{name}.",
+          "Creates or updates the specified '#{display_name}'.",
           'Any parameters not provided will be left unchanged'
         ].join(' '),
-        parameters: [
-          { description: 'Identifier', in: 'path', name: 'id', type: 'string', required: false }
-        ] + parameters
+        parameters: [{ description: 'Identifier', in: 'path', name: 'id', type: 'string' }] + parameters
       }
+    end
+
+    ###
+    # Returns prepared parameters from data type code properties.
+    def api_params_from_data_type(data_type)
+      code = JSON.parse(data_type.code)
+      code['properties'].map { |k, v| { in: 'query', name: k, type: v['type'] } }
+    end
+
+    ###
+    # Returns prepared parameters from current model properties.
+    def api_params_from_current_model
+      exclude = /^(created_at|updated_at|version|origin)$|_ids?$/
+      params = @properties.map { |p| { in: 'query', name: p.property.name, type: p.property.type } }
+      params.select { |p| !p[:name].match(exclude) }
     end
 
     ###
