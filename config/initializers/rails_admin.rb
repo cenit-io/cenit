@@ -4318,6 +4318,38 @@ RailsAdmin.config do |config|
     configure :model, :model
     configure :record, :record
 
+    wizard_steps do
+      steps =
+        {
+          model:
+            {
+              :label => I18n.t('admin.config.pin.wizard.model.label'),
+              :description => I18n.t('admin.config.pin.wizard.model.description')
+            },
+          record:
+            {
+              label: I18n.t('admin.config.pin.wizard.record.label'),
+              description: I18n.t('admin.config.pin.wizard.record.description')
+            },
+          version:
+            {
+              label: I18n.t('admin.config.pin.wizard.version.label'),
+              description: I18n.t('admin.config.pin.wizard.version.description')
+            }
+        }
+    end
+
+    current_step do
+      obj = bindings[:object]
+      if obj.record_model.blank?
+        :model
+      elsif obj.record.blank?
+        :record
+      else
+        :version
+      end
+    end
+
     edit do
       field :record_model do
         label 'Model'
