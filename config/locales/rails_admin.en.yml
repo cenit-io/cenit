@@ -577,3 +577,17 @@ en:
             description: 'Please save when done'
 
 
+      flow:
+        wizard:
+          start:
+            label: 'Select the translator'
+            description: 'Please select the translator and other required fields'
+          source_data_type:
+            label: 'Select the'
+            description: 'Please select the'
+          webhook:
+            label: 'Select the webhook'
+            description: 'Please select the webhook'
+          end:
+            label: 'Save when done'
+            description: 'Please fill the require fields and save'

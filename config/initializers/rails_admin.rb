@@ -2752,7 +2752,7 @@ RailsAdmin.config do |config|
             description: I18n.t('admin.config.renderer.wizard.select_file_extension.description')
           }
       end
-        steps
+      steps
     end
 
     current_step do
@@ -3384,6 +3384,60 @@ RailsAdmin.config do |config|
           :response_translator,
           :response_data_type
         ]
+      end
+    end
+
+    wizard_steps do
+      steps =
+        {
+          start:
+            {
+              :label => I18n.t('admin.config.flow.wizard.start.label'),
+              :description => I18n.t('admin.config.flow.wizard.start.description')
+            }
+        }
+
+      if (translator = bindings[:object].translator)
+        unless [Setup::Updater, Setup::Converter].include?(translator.class) || translator.data_type
+          data_type_label =
+            if [Setup::Renderer, Setup::Converter].include?(translator.class)
+              I18n.t('admin.form.flow.source_data_type')
+            else
+              I18n.t('admin.form.flow.target_data_type')
+            end
+          # Adjusting steps for custom_data_type field
+          steps[:data_type] =
+            {
+              :label => "#{I18n.t('admin.config.flow.wizard.source_data_type.label')} #{data_type_label}",
+              :description => "#{I18n.t('admin.config.flow.wizard.source_data_type.description')} #{data_type_label}"
+            }
+        end
+        if [Setup::Parser, Setup::Renderer].include?(translator.class)
+          steps[:webhook] =
+            {
+              :label => I18n.t('admin.config.flow.wizard.webhook.label'),
+              :description => I18n.t('admin.config.flow.wizard.webhook.description')
+            }
+        end
+      end
+      steps[:end] =
+        {
+          label: I18n.t('admin.config.flow.wizard.end.label'),
+          description: I18n.t('admin.config.flow.wizard.end.description')
+        } if translator
+      steps
+    end
+
+    current_step do
+      obj = bindings[:object]
+      if obj.translator.blank?
+        :start
+      elsif obj.translator.data_type.blank? && ((p = bindings[:controller].params[abstract_model.param_key]).nil? || p[field(:custom_data_type).foreign_key].nil?)
+        :data_type
+      elsif wizard_steps.has_key?(:webhook) && obj.webhook.blank?
+        :webhook
+      else
+        :end
       end
     end
 
