@@ -287,8 +287,13 @@ module Cenit
               end
             end
           else
-            item['_reset'] ||= []
-            item['_reset'] << property
+            if (reset = item['_reset'])
+              reset = [reset] unless reset.is_a?(Array)
+            else
+              reset = []
+            end
+            reset << property
+            item['_reset'] = reset
             if (association = record.send(property).to_a).present?
               property_value.each do |sub_item|
                 criteria = {}
