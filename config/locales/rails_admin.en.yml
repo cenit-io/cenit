@@ -610,6 +610,15 @@ en:
           version:
             label: 'Select the version and save'
             description: 'Please select the version and save'
+      observer:
+        wizard:
+          start:
+            label: 'Select the data type'
+            description: 'Please select the data type and other required fields'
+          end:
+            label: 'Add the triggers and save'
+            description: 'Please add the triggers and save when done'
+
 
 
 

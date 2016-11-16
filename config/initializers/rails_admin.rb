@@ -3785,6 +3785,31 @@ RailsAdmin.config do |config|
     label 'Data Event'
     object_label_method { :custom_title }
 
+    wizard_steps do
+      steps =
+        {
+          start:
+            {
+              :label => I18n.t('admin.config.observer.wizard.start.label'),
+              :description => I18n.t('admin.config.observer.wizard.start.description')
+            },
+          end:
+            {
+              label: I18n.t('admin.config.observer.wizard.end.label'),
+              description: I18n.t('admin.config.observer.wizard.end.description')
+            }
+        }
+    end
+
+    current_step do
+      obj = bindings[:object]
+      if obj.data_type.blank?
+        :start
+      else
+        :end
+      end
+    end
+
     edit do
       field :namespace, :enum_edit
       field :name
