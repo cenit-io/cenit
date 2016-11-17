@@ -113,3 +113,5 @@ gem 'cenit-multi_tenancy', git: 'https://github.com/macarci/cenit-multi_tenancy.
 gem 'cenit-token', git: 'https://github.com/macarci/cenit-token.git'
 gem 'cenit-service', git: 'https://github.com/macarci/cenit-service.git'
 gem 'cenit-oauth', git: 'https://github.com/macarci/cenit-oauth.git'
+
+gem 'capataz', git: 'https://github.com/macarci/capataz.git'

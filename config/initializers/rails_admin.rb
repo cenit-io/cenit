@@ -779,10 +779,14 @@ RailsAdmin.config do |config|
 
       field :data_translators do
         group :workflows
-        label 'Translators'
+        label 'Transformations'
         list_fields do
           %w(namespace name type style)
         end
+      end
+
+      field :data_snippets do
+        label 'Snippets'
       end
 
       field :data_events do
@@ -2483,6 +2487,31 @@ RailsAdmin.config do |config|
     label 'Query'
     object_label_method { :custom_title }
 
+    wizard_steps do
+      steps =
+        {
+          start:
+            {
+              :label => I18n.t('admin.config.query.wizard.start.label'),
+              :description => I18n.t('admin.config.query.wizard.start.description')
+            },
+          end:
+            {
+              label: I18n.t('admin.config.query.wizard.end.label'),
+              description: I18n.t('admin.config.query.wizard.end.description')
+            }
+        }
+    end
+
+    current_step do
+      obj = bindings[:object]
+      if obj.data_type.blank?
+        :start
+      else
+        :end
+      end
+    end
+
     configure :segment do
       pretty_value do
         (bindings[:view].render partial: 'link_to_segment', locals:
@@ -2748,7 +2777,7 @@ RailsAdmin.config do |config|
             description: I18n.t('admin.config.renderer.wizard.select_file_extension.description')
           }
       end
-        steps
+      steps
     end
 
     current_step do
@@ -3132,7 +3161,7 @@ RailsAdmin.config do |config|
           end:
             {
               label: I18n.t('admin.config.updater.wizard.end.label'),
-              description: I18n.t('admin.config.parser.updater.end.description')
+              description: I18n.t('admin.config.updater.wizard.end.description')
             }
         }
     end
@@ -3380,6 +3409,60 @@ RailsAdmin.config do |config|
           :response_translator,
           :response_data_type
         ]
+      end
+    end
+
+    wizard_steps do
+      steps =
+        {
+          start:
+            {
+              :label => I18n.t('admin.config.flow.wizard.start.label'),
+              :description => I18n.t('admin.config.flow.wizard.start.description')
+            }
+        }
+
+      if (translator = bindings[:object].translator)
+        unless [Setup::Updater, Setup::Converter].include?(translator.class) || translator.data_type
+          data_type_label =
+            if [Setup::Renderer, Setup::Converter].include?(translator.class)
+              I18n.t('admin.form.flow.source_data_type')
+            else
+              I18n.t('admin.form.flow.target_data_type')
+            end
+          # Adjusting steps for custom_data_type field
+          steps[:data_type] =
+            {
+              :label => "#{I18n.t('admin.config.flow.wizard.source_data_type.label')} #{data_type_label}",
+              :description => "#{I18n.t('admin.config.flow.wizard.source_data_type.description')} #{data_type_label}"
+            }
+        end
+        if [Setup::Parser, Setup::Renderer].include?(translator.class)
+          steps[:webhook] =
+            {
+              :label => I18n.t('admin.config.flow.wizard.webhook.label'),
+              :description => I18n.t('admin.config.flow.wizard.webhook.description')
+            }
+        end
+      end
+      steps[:end] =
+        {
+          label: I18n.t('admin.config.flow.wizard.end.label'),
+          description: I18n.t('admin.config.flow.wizard.end.description')
+        } if translator
+      steps
+    end
+
+    current_step do
+      obj = bindings[:object]
+      if obj.translator.blank?
+        :start
+      elsif obj.translator.data_type.blank? && ((p = bindings[:controller].params[abstract_model.param_key]).nil? || p[field(:custom_data_type).foreign_key].nil?)
+        :data_type
+      elsif wizard_steps.has_key?(:webhook) && obj.webhook.blank?
+        :webhook
+      else
+        :end
       end
     end
 
@@ -3702,6 +3785,31 @@ RailsAdmin.config do |config|
     label 'Data Event'
     object_label_method { :custom_title }
 
+    wizard_steps do
+      steps =
+        {
+          start:
+            {
+              :label => I18n.t('admin.config.observer.wizard.start.label'),
+              :description => I18n.t('admin.config.observer.wizard.start.description')
+            },
+          end:
+            {
+              label: I18n.t('admin.config.observer.wizard.end.label'),
+              description: I18n.t('admin.config.observer.wizard.end.description')
+            }
+        }
+    end
+
+    current_step do
+      obj = bindings[:object]
+      if obj.data_type.blank?
+        :start
+      else
+        :end
+      end
+    end
+
     edit do
       field :namespace, :enum_edit
       field :name
@@ -3832,7 +3940,8 @@ RailsAdmin.config do |config|
       field :created_at do
         visible do
           if (account = Account.current)
-            if (notification_type = bindings[:controller].params[:type])
+            request_params = bindings[:controller].params rescue {}
+            if (notification_type = params[:type])
               account.meta["#{notification_type}_notifications_listed_at"] = Time.now
             else
               Setup::Notification.type_enum.each do |type|
@@ -4234,6 +4343,38 @@ RailsAdmin.config do |config|
 
     configure :model, :model
     configure :record, :record
+
+    wizard_steps do
+      steps =
+        {
+          model:
+            {
+              :label => I18n.t('admin.config.pin.wizard.model.label'),
+              :description => I18n.t('admin.config.pin.wizard.model.description')
+            },
+          record:
+            {
+              label: I18n.t('admin.config.pin.wizard.record.label'),
+              description: I18n.t('admin.config.pin.wizard.record.description')
+            },
+          version:
+            {
+              label: I18n.t('admin.config.pin.wizard.version.label'),
+              description: I18n.t('admin.config.pin.wizard.version.description')
+            }
+        }
+    end
+
+    current_step do
+      obj = bindings[:object]
+      if obj.record_model.blank?
+        :model
+      elsif obj.record.blank?
+        :record
+      else
+        :version
+      end
+    end
 
     edit do
       field :record_model do

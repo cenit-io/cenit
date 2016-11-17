@@ -41,10 +41,6 @@ module Setup
         (origin == :admin ? ' (ADMIN)' : '')
     end
 
-    def ready_to_save?
-      true
-    end
-
     def activated?
       activated.present?
     end
