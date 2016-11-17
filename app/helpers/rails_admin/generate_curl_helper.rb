@@ -37,7 +37,7 @@ module RailsAdmin
     # Returns cURL command for service with given method and path.
     def api_curl(method, path)
       # Get parameters definition.
-      path_parameters, query_parameters = api_parameters(method, path)
+      query_parameters = api_parameters(method, path, 'query')
 
       # Get data object from query parameters.
       data = query_parameters.map { |p| [p[:name], api_default_param_value(p)] }.to_h
@@ -48,22 +48,27 @@ module RailsAdmin
       command << "     -H 'X-User-Access-Token: #{Account.current.token}' \\\n"
       command << "     -H 'Content-Type: application/json' \\\n"
       command << "     -d '#{data.to_json}' \\\n" unless data.empty?
-      command << "     '#{api_uri(path, path_parameters)}'\n\n"
+      command << "     '#{api_uri(method, path)}'\n\n"
 
       URI.encode(command)
+    end
+
+    ###
+    # Returns URL command for service with given method and path.
+    def api_url(method, path)
+      # Get parameters definition.
+      path_parameters = api_parameters(method, path)
+
+      api_uri(path, path_parameters)
     end
 
     protected
 
     ###
     # Returns parameters for service with given method and path.
-    def api_parameters(method, path)
+    def api_parameters(method, path, _in = 'path')
       parameters = api_current_paths[path][method][:parameters] || []
-
-      path_parameters = parameters.select { |p| p[:in] == 'path' }
-      query_parameters = parameters.select { |p| p[:in] == 'query' }
-
-      [path_parameters, query_parameters]
+      parameters.select { |p| p[:in] == _in }
     end
 
     ###
@@ -75,7 +80,8 @@ module RailsAdmin
 
     ###
     # Returns api uri.
-    def api_uri(path, path_parameters)
+    def api_uri(method, path)
+      path_parameters = api_parameters(method, path, 'path')
       uri = (Rails.env.development? ? 'http://127.0.0.1:3000' : 'https://cenit.io') + "/api/v2/#{path}"
 
       # Set value of uri path parameters

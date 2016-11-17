@@ -14,4 +14,33 @@
       opacity: 1;
     }
   }
+
+  .dropdown-menu {
+    background-color: #3d4046;
+    color: white;
+
+    [role=menuitem] {
+      .method {
+        width: 6em;
+        padding: 1pt;
+        text-transform: uppercase;
+
+        &.get {
+          background-color: lightgreen;
+        }
+
+        &.delete {
+          background-color: red;
+        }
+
+        &.post, &.put {
+          background-color: gold;
+        }
+      }
+
+      .label {
+      }
+    }
+  }
+
 }
