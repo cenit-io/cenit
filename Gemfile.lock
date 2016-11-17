@@ -1,4 +1,11 @@
 GIT
+  remote: https://github.com/macarci/capataz.git
+  revision: ac5c8b9ab34ae79901eabcbfb23d3aba318564be
+  specs:
+    capataz (0.0.1)
+      parser
+
+GIT
   remote: https://github.com/macarci/cenit-config.git
   revision: 16b19de12378719f3d967f61f088e7b021c4e6ba
   specs:
@@ -556,6 +563,7 @@ DEPENDENCIES
   builder
   bunny
   cancan
+  capataz!
   capistrano
   capistrano-bundler
   capistrano-rails
