@@ -95,6 +95,7 @@
   = form_tag(index_path(params.except(*%w[page f query])), method: :get, class: "pjax-form form-inline") do
     .well
       %span#filters_box
+        = filter_by_token
       %hr.filters_box{style: "display:#{@ordered_filters.empty? ? 'none' : 'block'}"}
       .input-group
         %input.form-control.input-small{name: "query", type: "search", value: query, placeholder: t("admin.misc.filter")}
@@ -155,8 +156,12 @@
               %td{class: "#{property.css_class} #{property.type_css_class}", title: strip_tags(value.to_s)}= value
             - if @other_right_link ||= other_right && index_path(params.merge(set: (params[:set].to_i + 1)))
               %td.other.right= link_to "...", @other_right_link, class: 'pjax'
-            %td.last.links
-              %ul.inline.list-inline= menu_for :member, @abstract_model, object, true
+            %td#actions-menu-list
+              #links.options-menu
+                %span{class: 'btn dropdown-toggle', "data-toggle"=> 'dropdown', type: "button"}
+                  %i.fa.fa-ellipsis-v
+                %ul.dropdown-menu
+                  = menu_for :member, @abstract_model, object
     - if @objects.respond_to?(:total_count)
       - total_count = @objects.total_count.to_i
       .row

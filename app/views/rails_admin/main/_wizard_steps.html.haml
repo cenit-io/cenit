@@ -2,7 +2,7 @@
 - count_steps = wizard_steps.count
 
 - if count_steps > 0
-  - current_step = @model_config.with(object: @object).current_step
+  - current_step = @model_config.with(object: @object, controller: controller).current_step
   .wizard
     %ul.nav.nav-tabs
       - c = 0
