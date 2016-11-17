@@ -527,6 +527,10 @@ module RailsAdmin
     def embedded_in?(abstract_model = nil)
       embedded?
     end
+
+    def to_param
+      @model_name.split('::').last.underscore
+    end
   end
 
   module ApplicationHelper
@@ -926,7 +930,8 @@ module RailsAdmin
             ext_count += count
             sub_links += content_tag :li do
               #TODO review and improve the params for the sub_link_url generation and try to show the filter in the view
-              sub_link_url = index_path(model_name: 'setup~renderer', file_extension: ext, utf8: '✓', f: { file_extension: { 0 => { v: ext } } })
+              filter = { file_extension: { 80082 => { v: ext } } }
+              sub_link_url = index_path(model_name: node.abstract_model.to_param, utf8: '✓', f: filter)
               link_to sub_link_url do
                 rc = ''
                 if _current_user.present? && model_count>0
@@ -941,7 +946,7 @@ module RailsAdmin
           show_all_link =
             if ext_count < model_count
               content_tag :li do
-                link_to index_path(model_name: 'setup~renderer') do
+                link_to index_path(model_name: node.abstract_model.to_param) do
                   "<span class='nav-amount'>#{model_count}</span><span class='nav-caption'>Sow All</span>".html_safe
                 end
               end
@@ -1256,6 +1261,17 @@ module RailsAdmin
   end
 
   class ApplicationController
+
+    alias_method :rails_admin_to_model_name, :to_model_name
+
+    def to_model_name(param)
+      model_name = rails_admin_to_model_name(param)
+      if (m = [Setup, Cenit, Forms].detect { |m| m.const_defined?(model_name, false) })
+        "#{m}::#{model_name}"
+      else
+        model_name
+      end
+    end
 
     def get_model
       #Patch
