@@ -14,7 +14,7 @@
 - unless page_slug == 'dashboard'
   = breadcrumb
 
-= render :partial => 'rails_admin/curl/menu' if respond_to?(:api_specification) && api_specification.present? && api_current_paths.present?
+= render :partial => 'rails_admin/curl/menu' if respond_to?(:api_current_paths) && api_current_paths
 
 - if ['dashboard', 'list-of-shared-collections'].include? page_slug
   - @count ||= {}
