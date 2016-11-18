@@ -42,10 +42,13 @@ module RailsAdmin
       # Get data object from query parameters.
       data = query_parameters.map { |p| [p[:name], api_default_param_value(p)] }.to_h
 
+      # Get login account or user.
+      login = Account.current || User.current
+
       # Generate uri and command.
       command = "curl -X #{method.upcase} \\\n"
-      command << "     -H 'X-User-Access-Key: #{Account.current.key}' \\\n"
-      command << "     -H 'X-User-Access-Token: #{Account.current.token}' \\\n"
+      command << "     -H 'X-User-Access-Key: #{login ? login.key : '-'}' \\\n"
+      command << "     -H 'X-User-Access-Token: #{login ? login.token : '-'}' \\\n"
       command << "     -H 'Content-Type: application/json' \\\n"
       command << "     -d '#{data.to_json}' \\\n" unless data.empty?
       command << "     '#{api_uri(method, path)}'\n\n"
