@@ -13,9 +13,9 @@
                  data-curl="<%= api_curl(method, path) %>"
                  data-uri="<%= api_uri(method, path) %>"
                  data-label="<%= definition[:summary].strip %>"
-                 data-method="<%= method %>">
+                 data-rmethod="<%= method %>">
                 <span class="btn method <%= method %>"><%= method %></span>
-                <span class="label"><%= definition[:summary].strip %></span>
+                <span class="option"><%= definition[:summary].strip %></span>
               </a>
             </li>
         <% end %>
@@ -45,12 +45,12 @@
         dlg = $('#curl-dlg'),
         body = [
           '<div class="cURL-command">',
+          '  <p>' + $(this).prop('title') + '</p>',
+          '  <hr/>',
           '  <p>',
-          '    <span class="btn method ' + data.method + '">' + data.method + '</span>',
+          '    <span class="btn method ' + data.rmethod + '">' + data.rmethod + '</span>',
           '    <span class="label">' + data.uri + '</span>',
           '  </p>',
-          '  <hr/>',
-          '  <p>' + $(this).prop('title') + '</p>',
           '  <hr/>',
           '  <pre>' + command + '</pre>',
           '</div>'
@@ -59,7 +59,5 @@
     dlg.find('.modal-title').html(data.label + ':');
     dlg.find('.modal-body').html(body.join("\n"));
     dlg.modal();
-    
-    e.preventDefault();
   });
 </script>
