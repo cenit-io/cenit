@@ -49,7 +49,7 @@ module RailsAdmin
       command << "     -H 'X-User-Access-Token: #{login ? login.token : '-'}' \\\n"
       command << "     -H 'Content-Type: application/json' \\\n"
       command << "     -d '#{data.to_json}' \\\n" unless data.empty?
-      command << "     '#{api_uri(method, path)}'\n\n"
+      command << "     '#{api_uri(method, path)}'"
 
       URI.encode(command)
     end

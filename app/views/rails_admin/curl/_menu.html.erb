@@ -33,11 +33,19 @@
         <h4 class="modal-title">...</h4>
       </div>
       <div class="modal-body">...</div>
+      <div class="modal-footer">
+        <button id="copy-to-clipboard" type="button" class="btn btn-default"
+                data-clipboard-action="copy"
+                data-clipboard-target="#command">Copy
+        </button>
+      </div>
     </div>
   </div>
 </div>
 
 <script type="text/javascript">
+  var clipboard = new Clipboard('#copy-to-clipboard');
+
   $('.generate-api .dropdown-menu li a').on('click', function (e) {
     var data = $(this).data(),
         command = decodeURI(data.curl),
@@ -51,7 +59,7 @@
           '    <span class="uri">' + data.uri + '</span>',
           '  </p>',
           '  <hr/>',
-          '  <pre>' + command + '</pre>',
+          '  <pre id="command">' + command + '</pre>',
           '</div>'
         ];
 
