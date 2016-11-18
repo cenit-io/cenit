@@ -281,12 +281,12 @@ ul.drawer li a span {
 }
 
 #content-wrapper {
-  //width: calc(100% - 250px);
+  width: calc(100% - 250px);
   background: #fff;
-  position: relative;
+  position: fixed;
   padding: 10px 15px 15px;
   overflow: auto;
-  //height: calc(100% - 50px);
+  height: calc(100% - 50px);
 }
 
 .xyz {

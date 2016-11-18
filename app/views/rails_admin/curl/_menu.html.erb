@@ -23,7 +23,7 @@
   </ul>
 </div>
 
-<div id="curl-dlg" class="modal fade" role="dialog">
+<div id="rest-api-dlg" class="modal fade" role="dialog">
   <div class="modal-dialog">
 
     <!-- Modal content-->
@@ -35,26 +35,27 @@
       <div class="modal-body">...</div>
     </div>
   </div>
-
 </div>
 
 <script type="text/javascript">
   $('.generate-api .dropdown-menu li a').on('click', function (e) {
     var data = $(this).data(),
         command = decodeURI(data.curl),
-        dlg = $('#curl-dlg'),
+        dlg = $('#rest-api-dlg'),
         body = [
-          '<div class="cURL-command">',
+          '<div class="sdk-code">',
           '  <p>' + $(this).prop('title') + '</p>',
           '  <hr/>',
           '  <p>',
           '    <span class="btn method ' + data.rmethod + '">' + data.rmethod + '</span>',
-          '    <span class="label">' + data.uri + '</span>',
+          '    <span class="uri">' + data.uri + '</span>',
           '  </p>',
           '  <hr/>',
           '  <pre>' + command + '</pre>',
           '</div>'
         ];
+
+    if (!dlg.parent().is('body')) $('body').append(dlg);
 
     dlg.find('.modal-title').html(data.label + ':');
     dlg.find('.modal-body').html(body.join("\n"));
