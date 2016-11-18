@@ -7,11 +7,9 @@ module RailsAdmin
     def api_current_paths
       @api_current_paths ||= begin
         if params[:model_name].start_with?('dt')
-          ns, model_name, data_type = api_model_from_data_type
-          display_name = data_type.name.chomp('.json').humanize
+          ns, model_name, display_name, data_type = api_model_from_data_type
         else
-          ns, model_name = params[:model_name].split(/~/)
-          display_name = model_name.humanize
+          ns, model_name, display_name = api_model
         end
 
         {
@@ -190,13 +188,24 @@ module RailsAdmin
     end
 
     ###
-    # Returns current namespace, model name and data type instance.
+    # Returns current namespace, model name and display name.
+    def api_model
+      ns = 'setup'
+      model_name = params[:model_name]
+      display_name = model_name.humanize
+
+      [ns, model_name, display_name]
+    end
+
+    ###
+    # Returns current namespace, model name, display name and data type instance.
     def api_model_from_data_type
       data_type = Setup::DataType.find(params[:model_name].from(2))
       ns = data_type.namespace.parameterize.underscore.downcase
       model_name = data_type.slug
+      display_name = data_type.name.chomp('.json').humanize
 
-      [ns, model_name, data_type]
+      [ns, model_name, display_name, data_type]
     end
   end
 end
