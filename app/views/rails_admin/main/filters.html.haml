@@ -8,15 +8,15 @@
       %th{class: "header pjax"}= 'Triggers'
       %th{class: "header pjax"}= 'Updated at'
   %tbody
-    - @queries.each do |query|
+    - @filters.each do |filter|
       %tr{class: "#{@abstract_model.param_key}_row"}
         %td= ' '
-        %td= query.namespace
+        %td= filter.namespace
         %td
           - params = { model_name: @model_name }
-          %a{href: index_path(params), class: 'pjax'}= query.name
+          %a{href: index_path(params), class: 'pjax'}= filter.name
         %td
-          - params = { model_name: @model_name, f: query.segment }
-          %a{href: index_path(params), class: 'pjax'}= query.custom_title
-        %td= query.triggers
-        %td= query.updated_at
+          - params = { model_name: @model_name, f: filter.segment }
+          %a{href: index_path(params), class: 'pjax'}= filter.custom_title
+        %td= filter.triggers
+        %td= filter.updated_at

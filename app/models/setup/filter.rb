@@ -1,5 +1,5 @@
 module Setup
-  class Query
+  class Filter
     include CenitScoped
     include NamespaceNamed
     include TriggersFormatter
@@ -46,7 +46,7 @@ module Setup
         n = "#{self.data_type.custom_title} on #{triggered_fields.to_sentence}"
         i = 1
         self.name = n
-        while Setup::Query.where(name: name).present? do
+        while where(name: name).present? do
           self.name = n + " (#{i+=1})"
         end
       end
