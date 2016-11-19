@@ -2,7 +2,7 @@
   <button class="btn btn-primary dropdown-toggle" type="button"
           title="<%= t('admin.actions.generate_api.curl.title') %>"
           data-toggle="dropdown">
-    <span class="text">cURL</span>
+    <span class="text">REST API</span>
     <span class="caret"></span>
   </button>
   <ul class="dropdown-menu dropdown-menu-right">
@@ -10,8 +10,12 @@
         <% methods.each do |method, definition| %>
             <li>
               <a href="#" role="menuitem" title="<%= definition[:description].strip %>"
-                 data-curl="<%= api_curl(method, path) %>">
-                <%= definition[:summary].strip %>
+                 data-curl="<%= api_curl(method, path) %>"
+                 data-uri="<%= api_uri(method, path) %>"
+                 data-label="<%= definition[:summary].strip %>"
+                 data-rmethod="<%= method %>">
+                <span class="btn method <%= method %>"><%= method %></span>
+                <span class="option"><%= definition[:summary].strip %></span>
               </a>
             </li>
         <% end %>
@@ -19,7 +23,7 @@
   </ul>
 </div>
 
-<div id="curl-dlg" class="modal fade" role="dialog">
+<div id="rest-api-dlg" class="modal fade" role="dialog">
   <div class="modal-dialog">
 
     <!-- Modal content-->
@@ -29,18 +33,40 @@
         <h4 class="modal-title">...</h4>
       </div>
       <div class="modal-body">...</div>
+      <div class="modal-footer">
+        <button id="copy-to-clipboard" type="button" class="btn btn-default"
+                data-clipboard-action="copy"
+                data-clipboard-target="#command">Copy
+        </button>
+      </div>
     </div>
   </div>
-
 </div>
 
 <script type="text/javascript">
-  $('.generate-api .dropdown-menu li a').on('click', function (e) {
-    var command = decodeURI($(this).data('curl')),
-        dlg = $('#curl-dlg');
+  var clipboard = new Clipboard('#copy-to-clipboard');
 
-    dlg.find('.modal-title').html($(this).html().trim() + ':');
-    dlg.find('.modal-body').html('<p>' + $(this).prop('title') + '</p><hr/><pre>' + command + '</pre>');
+  $('.generate-api .dropdown-menu li a').on('click', function (e) {
+    var data = $(this).data(),
+        command = decodeURI(data.curl),
+        dlg = $('#rest-api-dlg'),
+        body = [
+          '<div class="sdk-code">',
+          '  <p>' + $(this).prop('title') + '</p>',
+          '  <hr/>',
+          '  <p>',
+          '    <span class="btn method ' + data.rmethod + '">' + data.rmethod + '</span>',
+          '    <span class="uri">' + data.uri + '</span>',
+          '  </p>',
+          '  <hr/>',
+          '  <pre id="command">' + command + '</pre>',
+          '</div>'
+        ];
+
+    if (!dlg.parent().is('body')) $('body').append(dlg);
+
+    dlg.find('.modal-title').html(data.label + ':');
+    dlg.find('.modal-body').html(body.join("\n"));
     dlg.modal();
   });
 </script>
