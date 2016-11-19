@@ -1,6 +1,3 @@
-require 'capataz/capataz'
-require 'capataz/proxy'
-require 'capataz/hash_proxy'
 
 Capataz.config do
 

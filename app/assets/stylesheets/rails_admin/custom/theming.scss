@@ -2,6 +2,10 @@
 @import "rails_admin/custom/github";
 @import "rails_admin/custom/generate-api-actions";
 
+/*Theming variables*/
+
+$link_color: rgb(66, 139, 202);
+
 body.rails_admin {
   padding-top: 55px !important;
 }
@@ -277,13 +281,12 @@ ul.drawer li a span {
 }
 
 #content-wrapper {
-  width: 100%;
-  overflow-x: hidden;
+  width: calc(100% - 250px);
   background: #fff;
-  position: relative;
-  padding-left: 15px;
-  padding-right: 15px;
-  padding-top: 10px;
+  position: fixed;
+  padding: 10px 15px 15px;
+  overflow: auto;
+  height: calc(100% - 50px);
 }
 
 .xyz {
@@ -710,7 +713,7 @@ ul#main-accordion .panel-heading .nav-icon {
 }
 
 #grid-wrapper .options-menu .dropdown-menu a {
-  color: #428bca;
+  color: $link_color;
 }
 
 #grid-wrapper .panel-heading {
@@ -924,7 +927,7 @@ ul#main-accordion .panel-heading .nav-icon {
   padding: 15px;
 }
 
-.dashboard {
+.dashboard,#actions-menu-list{
   .progress {
     margin-bottom: 0;
     float: left;
@@ -986,8 +989,12 @@ ul#main-accordion .panel-heading .nav-icon {
           opacity: 1;
           height: auto;
           border-top: solid 1px rgba(0, 0, 0, 0.15);
+          margin-bottom: 25px;
+          ul li{
+           list-style-type: none;
+          }
           a {
-            color: #428bca;
+            color: $link_color;
           }
         }
       }
@@ -1024,4 +1031,14 @@ ul#main-accordion .panel-heading .nav-icon {
     display: block;
   }
 
+}
+.filter_by_token > span span {
+  padding-left: 3px;
+}
+#actions-menu-list{
+  overflow:visible;
+  width: 40px;
+}
+ul#more_actions a{
+  color: $link_color;
 }

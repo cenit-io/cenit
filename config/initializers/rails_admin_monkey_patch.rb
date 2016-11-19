@@ -263,7 +263,7 @@ module RailsAdmin
         end
       end
 
-      class Index < RailsAdmin::Config::Actions::Base
+      class Index
 
         register_instance_option :controller do
           proc do
@@ -393,10 +393,17 @@ module RailsAdmin
             </table>
             HTML
             if multiple?
-              table += "<div class=\"clearfix total-count\">#{total} #{amc.label_plural}"
-              if total > count
-                table += " (showing #{count})"
-              end
+              table += "<div class=\"clearfix total-count\">" +
+                if total > count
+                  if values.is_a?(Mongoid::Criteria) && !am.embedded? && (v.action(:index, am))
+                    all_associated_link(values, am, "#{total} #{amc.label_plural}")
+                  else
+                    "#{total} #{amc.label_plural}"
+                  end +
+                    " (showing #{count})"
+                else
+                  "#{total} #{amc.label_plural}"
+                end
               table += '</div>'
             end
             v.instance_variable_set(:@showing, false)
@@ -412,9 +419,21 @@ module RailsAdmin
               can_see ? v.link_to(wording, v.url_for(action: show_action.action_name, model_name: am.to_param, id: associated.id), class: 'pjax') : ERB::Util.html_escape(wording)
             end.to(max_associated_to_show-1).to_sentence.html_safe
             if (count_associated > max_associated_to_show)
-              associated_links = associated_links + " and #{count_associated - max_associated_to_show} more".html_safe
+              more_link = all_associated_link(values, am, "#{count_associated - max_associated_to_show} more")
+              associated_links = associated_links + ' and '+more_link.html_safe
             end
             associated_links
+          end
+        end
+
+        def all_associated_link(values, am, link_content)
+          v = bindings[:view]
+          if values.is_a?(Mongoid::Criteria) && !am.embedded? && (index_action = v.action(:index, am))
+            message = "<span>Showing #{label.downcase} of <em>#{bindings[:object].send(bindings[:controller].model_config.object_label_method)}</em></span>"
+            filter_token = Cenit::Token.create(data: { criteria: values.selector, message: message }, token_span: 1.hours)
+            v.link_to(link_content, v.url_for(action: index_action.action_name, model_name: am.to_param, filter_token: filter_token.token), class: 'pjax')
+          else
+            ''
           end
         end
 
@@ -508,26 +527,70 @@ module RailsAdmin
     def embedded_in?(abstract_model = nil)
       embedded?
     end
+
+    def to_param
+      @model_name.split('::').last.underscore
+    end
   end
 
   module ApplicationHelper
 
     # parent => :root, :collection, :member
-    def menu_for(parent, abstract_model = nil, object = nil, only_icon = false) # perf matters here (no action view trickery)
+    def menu_for(parent, abstract_model = nil, object = nil, only_icon = false, limit = 0) # perf matters here (no action view trickery)
       actions = actions(parent, abstract_model, object).select { |a| a.http_methods.include?(:get) }
-      actions.collect do |action|
-        wording = wording_for(:menu, action)
-        #Patch
-        link_icon = (abstract_model && abstract_model.config.send("#{action.key}_link_icon")) || action.link_icon
-        %(
-          <li title="#{wording if only_icon}" rel="#{'tooltip' if only_icon}" class="icon #{action.key}_#{parent}_link #{'active' if current_action?(action)}">
-            <a class="#{action.pjax? ? 'pjax' : ''}" href="#{url_for(action: action.action_name, controller: 'rails_admin/main', model_name: abstract_model.try(:to_param), id: (object.try(:persisted?) && object.try(:id) || nil))}">
-              <i class="#{link_icon}"></i>
-              <span#{only_icon ? " style='display:none'" : ''}>#{wording}</span>
-            </a>
-          </li>
-        )
-      end.join.html_safe
+
+      if (limited = limit > 0)
+        count_links = 0
+        more_actions_links = []
+      end
+
+      actions_links =
+        actions.collect do |action|
+          menu_item = menu_item(only_icon, action, abstract_model, parent, object)
+          if limited
+            if count_links < limit
+              count_links += 1
+              menu_item
+            else
+              more_actions_links << menu_item
+              ''
+            end
+          else
+            menu_item
+          end
+        end
+
+      if limited
+        unless more_actions_links.empty?
+          label = 'Actions'
+          content =
+            %(
+              <li class="dropdown">
+                <a class="dropdown-toggle" data-toggle="dropdown" href="#">
+                  <span>#{label}</span>
+                  <b class="caret"></b>
+                </a>
+                <ul id="more_actions" class="dropdown-menu">
+            )
+          more_actions_links.unshift(content)
+          more_actions_links << '</ul> </li>'
+          actions_links+= more_actions_links
+        end
+      end
+
+      actions_links.join.html_safe
+    end
+
+    def menu_item(only_icon, action, abstract_model, parent, object)
+      wording = wording_for(:menu, action)
+      %(
+        <li title="#{wording if only_icon}" rel="#{'tooltip' if only_icon}" class="icon #{action.key}_#{parent}_link #{'active' if current_action?(action)}">
+          <a class="#{action.pjax? ? 'pjax' : ''}" href="#{url_for(action: action.action_name, controller: 'rails_admin/main', model_name: abstract_model.try(:to_param), id: (object.try(:persisted?) && object.try(:id) || nil))}">
+            <i class="#{(abstract_model && abstract_model.config.send("#{action.key}_link_icon")) || action.link_icon}"></i>
+            <span#{only_icon ? " style='display:none'" : ''}>#{wording}</span>
+          </a>
+        </li>
+      )
     end
 
     def wording_for(label, action = @action, abstract_model = @abstract_model, object = @object)
@@ -676,6 +739,20 @@ module RailsAdmin
       link
     end
 
+    def filter_by_token
+      if (filter_token = params[:filter_token]) && (filter_token = Cenit::Token.where(token: filter_token).first)
+        if (message = filter_token.data && filter_token.data['message']).is_a?(String)
+          delete_filter_url = @action.bindings[:controller].url_for()
+          filter = '<p class="filter form-search filter_by_token">'
+          filter += '<span class="label label-info form-label">'
+          filter += "<a href=\"#{delete_filter_url}\">"
+          filter += '<i class="icon-trash icon-white"></i></a>'
+          filter += "#{message}</span>"
+          filter += '</p>'
+          filter.html_safe
+        end
+      end
+    end
 
     def main_navigation
       #Patch
@@ -853,7 +930,8 @@ module RailsAdmin
             ext_count += count
             sub_links += content_tag :li do
               #TODO review and improve the params for the sub_link_url generation and try to show the filter in the view
-              sub_link_url = index_path(model_name: 'setup~renderer', file_extension: ext, utf8: '✓', f: { file_extension: { 0 => { v: ext } } })
+              filter = { file_extension: { 80082 => { v: ext } } }
+              sub_link_url = index_path(model_name: node.abstract_model.to_param, utf8: '✓', f: filter)
               link_to sub_link_url do
                 rc = ''
                 if _current_user.present? && model_count>0
@@ -868,7 +946,7 @@ module RailsAdmin
           show_all_link =
             if ext_count < model_count
               content_tag :li do
-                link_to index_path(model_name: 'setup~renderer') do
+                link_to index_path(model_name: node.abstract_model.to_param) do
                   "<span class='nav-amount'>#{model_count}</span><span class='nav-caption'>Sow All</span>".html_safe
                 end
               end
@@ -1002,6 +1080,11 @@ module RailsAdmin
           model.origins.each { |origin| origins << origin if params[origin_param="#{origin}_origin"].to_i.even? }
           origins << nil if origins.include?(:default)
           scope = scope.any_in(origin: origins)
+        end
+        if (filter_token = params[:filter_token]) && (filter_token = Cenit::Token.where(token: filter_token).first)
+          if (criteria = filter_token.data && filter_token.data['criteria']).is_a?(Hash)
+            scope = scope.and(criteria)
+          end
         end
       elsif (output = Setup::AlgorithmOutput.where(id: params[:algorithm_output]).first) &&
         output.data_type == model.data_type
@@ -1178,6 +1261,17 @@ module RailsAdmin
   end
 
   class ApplicationController
+
+    alias_method :rails_admin_to_model_name, :to_model_name
+
+    def to_model_name(param)
+      model_name = rails_admin_to_model_name(param)
+      if (m = [Setup, Cenit, Forms].detect { |m| m.const_defined?(model_name, false) })
+        "#{m}::#{model_name}"
+      else
+        model_name
+      end
+    end
 
     def get_model
       #Patch
