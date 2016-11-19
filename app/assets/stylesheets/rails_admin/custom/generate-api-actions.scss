@@ -14,4 +14,69 @@
       opacity: 1;
     }
   }
+
+  .dropdown-menu {
+    background-color: #3d4046;
+
+    li {
+      a {
+        .option {
+          color: white;
+        }
+
+        .method {
+          width: 6em;
+          padding: 1pt;
+          text-transform: uppercase;
+
+          &.get {
+            background-color: lightgreen;
+          }
+
+          &.delete {
+            background-color: red;
+          }
+
+          &.post, &.put {
+            background-color: gold;
+          }
+        }
+
+        &:hover {
+          .option {
+            color: black;
+          }
+        }
+      }
+    }
+  }
+}
+
+.sdk-code {
+  .method {
+    width: 6em;
+    padding: 1pt;
+    text-transform: uppercase;
+
+    &.get {
+      background-color: lightgreen;
+    }
+
+    &.delete {
+      background-color: red;
+    }
+
+    &.post, &.put {
+      background-color: gold;
+    }
+  }
+
+  .uri {
+    color: black;
+  }
+
+  hr {
+    margin-top: 10px;
+    margin-bottom: 10px;
+  }
 }
