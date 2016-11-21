@@ -444,6 +444,10 @@ en:
         submit: "Regist"
         done: "registered"
         doing: "registering"
+      rest_api:
+        title: "Rest API"
+        menu: "Rest API"
+        breadcrumb: "Rest API"
       state:
         title: "State"
         menu: "State"

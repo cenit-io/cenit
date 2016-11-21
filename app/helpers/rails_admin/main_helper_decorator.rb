@@ -1,7 +1,7 @@
 module RailsAdmin
   MainHelper.module_eval do
 
-    include GenerateCurlHelper
+    include RestApiHelper
 
   end
 end
