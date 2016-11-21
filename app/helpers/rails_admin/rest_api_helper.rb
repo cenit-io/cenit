@@ -1,7 +1,7 @@
 module RailsAdmin
   ###
-  # Generate cURL command for api service.
-  module GenerateCurlHelper
+  # Generate sdk code for api service.
+  module RestApiHelper
     ###
     # Returns api specification paths for current namespace and model.
     def api_current_paths
@@ -33,7 +33,7 @@ module RailsAdmin
 
     ###
     # Returns cURL command for service with given method and path.
-    def api_curl(method, path)
+    def api_curl_code(method, path)
       # Get parameters definition.
       query_parameters = api_parameters(method, path, 'query')
 
@@ -51,7 +51,7 @@ module RailsAdmin
       command << "     -d '#{data.to_json}' \\\n" unless data.empty?
       command << "     '#{api_uri(method, path)}'"
 
-      URI.encode(command)
+      command
     end
 
     ###

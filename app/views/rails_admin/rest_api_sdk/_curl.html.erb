@@ -1,0 +1,16 @@
+<% api_current_paths.each do |path, methods| %>
+    <% methods.each do |method, definition| %>
+        <div class="sdk-code">
+          <h3><%= definition[:summary].strip %></h3>
+          <hr/>
+          <p><%= definition[:description].strip %></p>
+          <hr/>
+          <p>
+            <span class="btn method <%= method %>"><%= method %></span>
+            <span class="uri"><%= api_uri(method, path) %></span>
+          </p>
+          <hr/>
+          <pre><%= api_curl_code(method, path).html_safe %></pre>
+        </div>
+    <% end %>
+<% end %>

@@ -10,7 +10,7 @@
         <% methods.each do |method, definition| %>
             <li>
               <a href="#" role="menuitem" title="<%= definition[:description].strip %>"
-                 data-curl="<%= api_curl(method, path) %>"
+                 data-curl="<%= api_curl_code(method, path) %>"
                  data-uri="<%= api_uri(method, path) %>"
                  data-label="<%= definition[:summary].strip %>"
                  data-rmethod="<%= method %>">
