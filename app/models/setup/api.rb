@@ -296,11 +296,10 @@ module Setup
             end
           end
           operations.each do |op|
-            op_template_parameters = []
+            op_template_parameters = {}
             op[:metadata].delete(:template_parameters).each do |p|
               if (p = template_parameters[(key = p[:key])].difference(p)).present?
-                p[:key] = key
-                op_template_parameters << p
+                op_template_parameters[key] = p
               end
             end
             if op_template_parameters.present?
