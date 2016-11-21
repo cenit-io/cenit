@@ -542,6 +542,9 @@ module RailsAdmin
       if (limited = limit > 0)
         count_links = 0
         more_actions_links = []
+        current_action = nil
+        actions.delete_if { |a| a.action_name == @action.action_name && current_action = a }
+        actions.unshift(current_action) if current_action
       end
 
       actions_links =
