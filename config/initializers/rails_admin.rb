@@ -5,7 +5,7 @@ require 'account'
   RailsAdmin::Config::Actions::SendToFlow,
   RailsAdmin::Config::Actions::SwitchNavigation,
   RailsAdmin::Config::Actions::DataType,
-  RailsAdmin::Config::Actions::Queries,
+  RailsAdmin::Config::Actions::Filters,
   RailsAdmin::Config::Actions::Import,
   #RailsAdmin::Config::Actions::EdiExport,
   RailsAdmin::Config::Actions::ImportSchema,
@@ -26,7 +26,7 @@ require 'account'
   RailsAdmin::Config::Actions::SimpleExpand,
   RailsAdmin::Config::Actions::BulkExpand,
   RailsAdmin::Config::Actions::Records,
-  RailsAdmin::Config::Actions::QueryDataType,
+  RailsAdmin::Config::Actions::FilterDataType,
   RailsAdmin::Config::Actions::SwitchScheduler,
   RailsAdmin::Config::Actions::SimpleExport,
   RailsAdmin::Config::Actions::Schedule,
@@ -112,7 +112,7 @@ RailsAdmin.config do |config|
     link_data_type
     index # mandatory
     new { except [Setup::Event, Setup::DataType, Setup::Authorization, Setup::BaseOauthProvider] }
-    queries
+    filters
     import
     import_schema
     pull_import
@@ -143,7 +143,7 @@ RailsAdmin.config do |config|
     simple_expand
     bulk_expand
     records
-    query_data_type
+    filter_data_type
     switch_navigation
     switch_scheduler
     simple_export
@@ -2483,10 +2483,10 @@ RailsAdmin.config do |config|
     fields :namespace, :name, :type, :description
   end
 
-  config.model Setup::Query do
+  config.model Setup::Filter do
     navigation_label 'Compute'
     weight 435
-    label 'Query'
+    label 'Filter'
     object_label_method { :custom_title }
 
     wizard_steps do
@@ -2494,13 +2494,13 @@ RailsAdmin.config do |config|
         {
           start:
             {
-              :label => I18n.t('admin.config.query.wizard.start.label'),
-              :description => I18n.t('admin.config.query.wizard.start.description')
+              :label => I18n.t('admin.config.filter.wizard.start.label'),
+              :description => I18n.t('admin.config.filter.wizard.start.description')
             },
           end:
             {
-              label: I18n.t('admin.config.query.wizard.end.label'),
-              description: I18n.t('admin.config.query.wizard.end.description')
+              label: I18n.t('admin.config.filter.wizard.end.label'),
+              description: I18n.t('admin.config.filter.wizard.end.description')
             }
         }
     end

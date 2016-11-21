@@ -1,7 +1,7 @@
 module RailsAdmin
   module Config
     module Actions
-      class QueryDataType < RailsAdmin::Config::Actions::Base
+      class FilterDataType < RailsAdmin::Config::Actions::Base
 
         register_instance_option :only do
           Setup::DataType.class_hierarchy
@@ -24,7 +24,7 @@ module RailsAdmin
             error_msg = nil
             begin
               if (model = @object.records_model).modelable?
-                redirect_to rails_admin.queries_path(model_name: model.to_s.underscore.gsub('/', '~'))
+                redirect_to rails_admin.filters_path(model_name: model.to_s.underscore.gsub('/', '~'))
               else
                 error_msg = "Model #{@object.title} is not an object model"
               end
