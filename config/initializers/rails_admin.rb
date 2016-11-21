@@ -169,7 +169,9 @@ RailsAdmin.config do |config|
         [
           Setup::Algorithm,
           Setup::Connection,
-          Setup::Webhook,
+          Setup::PlainWebhook,
+          Setup::Operation,
+          Setup::Resource,
           Setup::Translator,
           Setup::Flow,
           Setup::OauthClient,
@@ -1836,6 +1838,25 @@ RailsAdmin.config do |config|
     fields :namespace, :name, :path, :description, :operations, :updated_at
   end
 
+  config.model Setup::Webhook do
+    label 'All Webhook'
+    visible false
+    object_label_method { :custom_title }
+
+    configure :namespace
+    configure :path
+    configure :method
+    configure :description
+    configure :_type do
+      label 'Type'
+      pretty_value do
+        value.to_s.split('::').last.to_title
+      end
+    end
+
+    fields :namespace, :path, :method, :description, :_type, :updated_at
+  end
+
   config.model Setup::Operation do
     navigation_label 'Connectors'
     weight 217
@@ -1888,8 +1909,9 @@ RailsAdmin.config do |config|
     fields :namespace, :name, :description, :updated_at
   end
 
-  config.model Setup::Webhook do
+  config.model Setup::PlainWebhook do
     navigation_label 'Workflows'
+    label 'Webhook'
     weight 515
     object_label_method { :custom_title }
 
@@ -4142,7 +4164,7 @@ RailsAdmin.config do |config|
         visible do
           if (account = Account.current)
             request_params = bindings[:controller].params rescue {}
-            if (notification_type = params[:type])
+            if (notification_type = request_params[:type])
               account.meta["#{notification_type}_notifications_listed_at"] = Time.now
             else
               Setup::Notification.type_enum.each do |type|

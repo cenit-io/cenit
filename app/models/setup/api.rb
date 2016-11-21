@@ -263,7 +263,10 @@ module Setup
             request_desc = path_desc[method]
             operation =
               {
+                _type: Setup::Operation.to_s,
                 method: method.to_s.downcase,
+                parameters: [],
+                headers: [],
                 metadata: metadata = request_desc.reject { |k| %w(description parameters).include?(k) }.reverse_merge('consumes' => default_consumes)
               }
             if (description = request_desc['description'])
