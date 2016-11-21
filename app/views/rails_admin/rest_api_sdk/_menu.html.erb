@@ -10,11 +10,11 @@
         <% methods.each do |method, definition| %>
             <li>
               <a href="#" role="menuitem" title="<%= definition[:description].strip %>"
-                 data-curl="<%= api_curl(method, path) %>"
+                 data-curl="<%= api_curl_code(method, path) %>"
                  data-uri="<%= api_uri(method, path) %>"
                  data-label="<%= definition[:summary].strip %>"
                  data-rmethod="<%= method %>">
-                <span class="btn method <%= method %>"><%= method %></span>
+                <span class="label method <%= method %>"><%= method %></span>
                 <span class="option"><%= definition[:summary].strip %></span>
               </a>
             </li>
@@ -55,7 +55,7 @@
           '  <p>' + $(this).prop('title') + '</p>',
           '  <hr/>',
           '  <p>',
-          '    <span class="btn method ' + data.rmethod + '">' + data.rmethod + '</span>',
+          '    <span class="label method ' + data.rmethod + '">' + data.rmethod + '</span>',
           '    <span class="uri">' + data.uri + '</span>',
           '  </p>',
           '  <hr/>',
