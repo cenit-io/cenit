@@ -17,6 +17,8 @@ module Setup
         :custom_validators,
         :algorithms,
         :snippets,
+        :resources,
+        :operations,
         :webhooks,
         :connections,
         :authorizations,
@@ -27,7 +29,7 @@ module Setup
 
     included do
 
-      build_in_data_type.embedding(*COLLECTING_PROPERTIES).excluding(:image)
+      build_in_data_type.embedding(*COLLECTING_PROPERTIES - [:operations]).excluding(:image, :operations)
 
       field :title, type: String, default: ''
       field :readme, type: String
@@ -42,7 +44,9 @@ module Setup
       has_and_belongs_to_many :snippets, class_name: Setup::Snippet.to_s, inverse_of: nil
 
       has_and_belongs_to_many :connection_roles, class_name: Setup::ConnectionRole.to_s, inverse_of: nil
-      has_and_belongs_to_many :webhooks, class_name: Setup::Webhook.to_s, inverse_of: nil
+      has_and_belongs_to_many :resources, class_name: Setup::Resource.to_s, inverse_of: nil
+      has_and_belongs_to_many :operations, class_name: Setup::Operation.to_s, inverse_of: nil
+      has_and_belongs_to_many :webhooks, class_name: Setup::PlainWebhook.to_s, inverse_of: nil
       has_and_belongs_to_many :connections, class_name: Setup::Connection.to_s, inverse_of: nil
 
       has_and_belongs_to_many :data_types, class_name: Setup::DataType.to_s, inverse_of: nil

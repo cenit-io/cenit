@@ -9,7 +9,7 @@ module RailsAdmin
         end
 
         register_instance_option :only do
-          [Setup::SharedCollection, Setup::CrossSharedCollection]
+          [Setup::SharedCollection, Setup::CrossSharedCollection, Setup::Api]
         end
 
         register_instance_option :member do
@@ -24,7 +24,7 @@ module RailsAdmin
           proc do
 
             if @object.pull_asynchronous
-              do_flash_process_result Setup::SharedCollectionPull.process(@object)
+              do_flash_process_result @object.pull
               redirect_to back_or_index
             else
               @pull_request = Cenit::Actions.pull_request(@object, pull_parameters: params[:pull_parameters])

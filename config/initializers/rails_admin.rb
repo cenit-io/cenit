@@ -67,8 +67,11 @@ RailsAdmin::Config::Actions.register(:export, RailsAdmin::Config::Actions::BulkE
   RailsAdmin::Config::Fields::Types::Record,
   RailsAdmin::Config::Fields::Types::HtmlErb,
   RailsAdmin::Config::Fields::Types::OptionalBelongsTo,
-  RailsAdmin::Config::Fields::Types::Code
+  RailsAdmin::Config::Fields::Types::Code,
+  RailsAdmin::Config::Fields::Types::Tag
 ].each { |f| RailsAdmin::Config::Fields::Types.register(f) }
+
+require 'rails_admin/config/fields/factories/tag'
 
 module RailsAdmin
 
@@ -170,7 +173,9 @@ RailsAdmin.config do |config|
         [
           Setup::Algorithm,
           Setup::Connection,
-          Setup::Webhook,
+          Setup::PlainWebhook,
+          Setup::Operation,
+          Setup::Resource,
           Setup::Translator,
           Setup::Flow,
           Setup::OauthClient,
@@ -252,6 +257,10 @@ RailsAdmin.config do |config|
     end
 
     configure :connections do
+      group :api_connectors
+    end
+
+    configure :resources do
       group :api_connectors
     end
 
@@ -347,6 +356,7 @@ RailsAdmin.config do |config|
       field :snippets, &sharing_collection_invisible
       field :webhooks, &sharing_collection_invisible
       field :connections, &sharing_collection_invisible
+      field :resources, &sharing_collection_invisible
       field :authorizations, &sharing_collection_invisible
       field :oauth_providers, &sharing_collection_invisible
       field :oauth_clients, &sharing_collection_invisible
@@ -387,6 +397,16 @@ RailsAdmin.config do |config|
 
         field "#{prefix}connections".to_sym do
           label 'Connections'
+          group :api_connectors
+        end
+
+        field "#{prefix}resources".to_sym do
+          label 'Resources'
+          group :api_connectors
+        end
+
+        field "#{prefix}operations".to_sym do
+          label 'Operations'
           group :api_connectors
         end
 
@@ -519,6 +539,16 @@ RailsAdmin.config do |config|
           end
         end
         field :connections do
+          pretty_value do
+            value.count > 0 ? value.count : '-'
+          end
+        end
+        field :resources do
+          pretty_value do
+            value.count > 0 ? value.count : '-'
+          end
+        end
+        field :operations do
           pretty_value do
             value.count > 0 ? value.count : '-'
           end
@@ -1542,9 +1572,25 @@ RailsAdmin.config do |config|
     end
   end
 
-  config.model Setup::Connection do
+  config.model Setup::Api do
     navigation_label 'Connectors'
     weight 200
+    label 'API'
+
+    configure :specification, :code do
+      code_config do
+        {
+          mode: 'text/x-yaml'
+        }
+      end
+    end
+
+    fields :name, :specification
+  end
+
+  config.model Setup::Connection do
+    navigation_label 'Connectors'
+    weight 201
     object_label_method { :custom_title }
 
     group :credentials do
@@ -1642,7 +1688,7 @@ RailsAdmin.config do |config|
   end
 
   config.model Setup::ConnectionRole do
-    #visible { Account.current_super_admin? }
+    visible { Account.current_super_admin? }
     navigation_label 'Connectors'
     weight 210
     label 'Connection Role'
@@ -1689,9 +1735,189 @@ RailsAdmin.config do |config|
     fields :namespace, :name, :webhooks, :connections, :updated_at
   end
 
-  config.model Setup::Webhook do
+  config.model Setup::Section do
+    visible { Account.current_super_admin? }
     navigation_label 'Connectors'
-    weight 220
+    weight 210
+    label 'Section'
+    object_label_method { :custom_title }
+    visible false
+
+    configure :name, :string do
+      help 'Requiered.'
+      html_attributes do
+        { maxlength: 50, size: 50 }
+      end
+    end
+    configure :connection do
+      nested_form false
+    end
+    show do
+      field :namespace
+      field :name
+      field :description
+      field :connection
+      field :resources
+      field :representations
+      field :_id
+      field :created_at
+      #field :creator
+      field :updated_at
+      #field :updater
+    end
+
+    edit do
+      field :namespace, :enum_edit
+      field :name
+      field(:description, &shared_non_editable)
+      field :connection
+      field :resources
+      field :representations
+    end
+
+    fields :namespace, :name, :description, :resources, :connection, :updated_at
+  end
+
+  config.model Setup::Resource do
+    visible { Account.current_super_admin? }
+    navigation_label 'Connectors'
+    weight 215
+    label 'Resource'
+    object_label_method { :custom_title }
+
+    configure :name, :string do
+      help 'Requiered.'
+      html_attributes do
+        { maxlength: 50, size: 50 }
+      end
+    end
+
+    configure :path, :string do
+      help 'Requiered. Path of the resource relative to connection URL.'
+      html_attributes do
+        { maxlength: 255, size: 100 }
+      end
+    end
+
+    group :parameters do
+      label 'Parameters & Headers'
+    end
+
+    configure :parameters do
+      group :parameters
+    end
+
+    configure :headers do
+      group :parameters
+    end
+
+    configure :template_parameters do
+      group :parameters
+    end
+
+    show do
+      field :namespace
+      field :name
+      field :path
+      field :description
+      field :operations
+
+      field :_id
+      field :created_at
+      #field :creator
+      field :updated_at
+      #field :updater
+    end
+
+    edit do
+      field :namespace, :enum_edit, &shared_non_editable
+      field :name, &shared_non_editable
+      field :path, &shared_non_editable
+      field :description, &shared_non_editable
+      field :operations, &shared_non_editable
+      field :parameters
+      field :headers
+      field :template_parameters
+    end
+
+    fields :namespace, :name, :path, :description, :operations, :updated_at
+  end
+
+  config.model Setup::Webhook do
+    label 'All Webhook'
+    visible false
+    object_label_method { :custom_title }
+
+    configure :namespace
+    configure :path
+    configure :method
+    configure :description
+    configure :_type do
+      label 'Type'
+      pretty_value do
+        value.to_s.split('::').last.to_title
+      end
+    end
+
+    fields :namespace, :path, :method, :description, :_type, :updated_at
+  end
+
+  config.model Setup::Operation do
+    navigation_label 'Connectors'
+    weight 217
+    object_label_method { :label }
+    visible { Account.current_super_admin? }
+
+    configure :resource do
+      read_only true
+      shared_non_editable
+    end
+
+    configure :description do
+      shared_non_editable
+    end
+
+    configure :method do
+      shared_non_editable
+    end
+
+    configure :metadata, :json_value
+
+    fields :method, :description, :parameters, :headers, :resource, :metadata
+  end
+
+  config.model Setup::Representation do
+    navigation_label 'Connectors'
+    weight 218
+    object_label_method { :custom_title }
+    visible false
+
+    edit do
+      field(:namespace, :enum_edit, &shared_non_editable)
+      field(:name, &shared_non_editable)
+      field(:description, &shared_non_editable)
+      field(:metadata, :json_value, &shared_non_editable)
+    end
+
+    show do
+      field :namespace
+      field :name
+      field :metadata, :json_value
+
+      field :_id
+      field :created_at
+      #field :creator
+      field :updated_at
+      #field :updater
+    end
+
+    fields :namespace, :name, :description, :updated_at
+  end
+
+  config.model Setup::PlainWebhook do
+    navigation_label 'Workflows'
+    label 'Webhook'
+    weight 515
     object_label_method { :custom_title }
 
     configure :metadata, :json_value
@@ -2318,6 +2544,7 @@ RailsAdmin.config do |config|
       field :store_output, &shared_non_editable
       field :output_datatype, &shared_non_editable
       field :validate_output, &shared_non_editable
+      field :tags
     end
     show do
       field :namespace
@@ -2331,6 +2558,7 @@ RailsAdmin.config do |config|
         end
       end
       field :call_links
+      field :tags
       field :_id
 
       field :stored_outputs
@@ -2342,10 +2570,11 @@ RailsAdmin.config do |config|
       field :description
       field :parameters
       field :call_links
+      field :tags
       field :updated_at
     end
 
-    fields :namespace, :name, :description, :parameters, :call_links
+    fields :namespace, :name, :description, :parameters, :call_links, :tags
   end
 
   config.model Setup::AlgorithmOutput do
@@ -3943,7 +4172,7 @@ RailsAdmin.config do |config|
         visible do
           if (account = Account.current)
             request_params = bindings[:controller].params rescue {}
-            if (notification_type = params[:type])
+            if (notification_type = request_params[:type])
               account.meta["#{notification_type}_notifications_listed_at"] = Time.now
             else
               Setup::Notification.type_enum.each do |type|
@@ -4148,6 +4377,23 @@ RailsAdmin.config do |config|
     end
 
     fields :shared_collection, :pull_request, :pulled_request, :description, :scheduler, :attempts_succeded, :retries, :progress, :status, :notifications, :updated_at
+  end
+
+  config.model Setup::ApiPull do
+    navigation_label 'Monitors'
+    visible false
+    object_label_method { :to_s }
+
+    configure :attempts_succeded, :text do
+      label 'Attempts/Succedded'
+    end
+
+    edit do
+      field :description
+      field :auto_retry
+    end
+
+    fields :api, :pull_request, :pulled_request, :description, :scheduler, :attempts_succeded, :retries, :progress, :status, :notifications, :updated_at
   end
 
   config.model Setup::SchemasImport do
