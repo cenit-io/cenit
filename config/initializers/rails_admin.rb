@@ -67,8 +67,11 @@ RailsAdmin::Config::Actions.register(:export, RailsAdmin::Config::Actions::BulkE
   RailsAdmin::Config::Fields::Types::Record,
   RailsAdmin::Config::Fields::Types::HtmlErb,
   RailsAdmin::Config::Fields::Types::OptionalBelongsTo,
-  RailsAdmin::Config::Fields::Types::Code
+  RailsAdmin::Config::Fields::Types::Code,
+  RailsAdmin::Config::Fields::Types::Tag
 ].each { |f| RailsAdmin::Config::Fields::Types.register(f) }
+
+require 'rails_admin/config/fields/factories/tag'
 
 module RailsAdmin
 
@@ -2541,6 +2544,7 @@ RailsAdmin.config do |config|
       field :store_output, &shared_non_editable
       field :output_datatype, &shared_non_editable
       field :validate_output, &shared_non_editable
+      field :tags
     end
     show do
       field :namespace
@@ -2554,6 +2558,7 @@ RailsAdmin.config do |config|
         end
       end
       field :call_links
+      field :tags
       field :_id
 
       field :stored_outputs
@@ -2565,10 +2570,11 @@ RailsAdmin.config do |config|
       field :description
       field :parameters
       field :call_links
+      field :tags
       field :updated_at
     end
 
-    fields :namespace, :name, :description, :parameters, :call_links
+    fields :namespace, :name, :description, :parameters, :call_links, :tags
   end
 
   config.model Setup::AlgorithmOutput do

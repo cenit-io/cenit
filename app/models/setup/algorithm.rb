@@ -2,6 +2,7 @@ module Setup
   class Algorithm
     include SnippetCode
     include NamespaceNamed
+    include Taggable
 
     legacy_code_attribute :code
 
