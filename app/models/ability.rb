@@ -25,7 +25,8 @@ class Ability
               Cenit::BasicToken,
               Script,
               Setup::DelayedMessage,
-              Setup::SystemNotification
+              Setup::SystemNotification,
+              Setup::Operation
             ]
         can [:import, :edit], Setup::SharedCollection
         can :destroy, [Setup::SharedCollection, Setup::Storage, Setup::CrossSharedCollection]
@@ -207,7 +208,9 @@ class Ability
       Setup::OauthClient,
       Setup::Oauth2Scope,
       Setup::Algorithm,
-      Setup::Webhook,
+      Setup::Resource,
+      Setup::Operation,
+      Setup::PlainWebhook,
       Setup::Connection,
       Setup::Translator,
       Setup::Flow,

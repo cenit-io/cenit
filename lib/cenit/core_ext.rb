@@ -34,6 +34,36 @@ class Hash
     end if block_given?
   end
 
+  def intersection(other)
+    hash = {}
+    each do |key, value|
+      if (other_value = other[key]).is_a?(Hash) && value.is_a?(Hash)
+        hash[key] = value.intersection(other_value)
+      elsif Cenit::Utility.eql_content?(value, other[key])
+        hash[key] = value
+      end
+    end
+    hash
+  end
+
+  def difference(other)
+    hash = {}
+    other.each do |other_key, other_value|
+      unless has_key?(other_key)
+        hash[other_key] = other_value
+      end
+    end
+    each do |key, value|
+      if (other_value = other[key]).is_a?(Hash) && value.is_a?(Hash)
+        unless (diff = value.difference(other_value)).empty?
+          hash[key] = diff
+        end
+      elsif !Cenit::Utility.eql_content?(value, other[key])
+        hash[key] = value
+      end
+    end
+    hash
+  end
 end
 
 class String

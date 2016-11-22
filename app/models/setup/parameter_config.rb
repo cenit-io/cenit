@@ -3,7 +3,7 @@ module Setup
     include CenitScoped
 
     deny :all
-    allow :index, :show, :edit
+    allow :index, :show, :edit, :delete
 
     build_in_data_type
 

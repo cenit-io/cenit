@@ -1,5 +1,5 @@
 FactoryGirl.define do
-  factory :add_product_webhook, class: Setup::Webhook do
+  factory :add_product_webhook, class: Setup::PlainWebhook do
     name 'Add Product'
     path 'add_product'
     data_type { Setup::JsonDataType.where(name: 'Product').first }
@@ -8,7 +8,7 @@ FactoryGirl.define do
     before(:create) { create(:product_schema) if Setup::Schema.where(uri: 'Product').count == 0 }
   end
 
-  factory :update_product_webhook, class: Setup::Webhook do
+  factory :update_product_webhook, class: Setup::PlainWebhook do
     name 'Update Product'
     path 'update_product'
     data_type { Setup::JsonDataType.where(name: 'Product').first }
