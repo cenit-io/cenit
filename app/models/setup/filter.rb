@@ -1,5 +1,5 @@
 module Setup
-  class Query
+  class Filter
     include CenitScoped
     include NamespaceNamed
     include TriggersFormatter

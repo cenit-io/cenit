@@ -1,17 +1,15 @@
 module RailsAdmin
   ###
-  # Generate cURL command for api service.
-  module GenerateCurlHelper
+  # Generate sdk code for api service.
+  module RestApiHelper
     ###
     # Returns api specification paths for current namespace and model.
     def api_current_paths
       @api_current_paths ||= begin
         if params[:model_name].start_with?('dt')
-          ns, model_name, data_type = api_model_from_data_type
-          display_name = data_type.name.chomp('.json').humanize
+          ns, model_name, display_name, data_type = api_model_from_data_type
         else
-          ns, model_name = params[:model_name].split(/~/)
-          display_name = model_name.humanize
+          ns, model_name, display_name = api_model
         end
 
         {
@@ -35,35 +33,43 @@ module RailsAdmin
 
     ###
     # Returns cURL command for service with given method and path.
-    def api_curl(method, path)
+    def api_curl_code(method, path)
       # Get parameters definition.
-      path_parameters, query_parameters = api_parameters(method, path)
+      query_parameters = api_parameters(method, path, 'query')
 
       # Get data object from query parameters.
       data = query_parameters.map { |p| [p[:name], api_default_param_value(p)] }.to_h
 
+      # Get login account or user.
+      login = Account.current || User.current
+
       # Generate uri and command.
       command = "curl -X #{method.upcase} \\\n"
-      command << "     -H 'X-User-Access-Key: #{Account.current.key}' \\\n"
-      command << "     -H 'X-User-Access-Token: #{Account.current.token}' \\\n"
+      command << "     -H 'X-User-Access-Key: #{login ? login.key : '-'}' \\\n"
+      command << "     -H 'X-User-Access-Token: #{login ? login.token : '-'}' \\\n"
       command << "     -H 'Content-Type: application/json' \\\n"
       command << "     -d '#{data.to_json}' \\\n" unless data.empty?
-      command << "     '#{api_uri(path, path_parameters)}'\n\n"
+      command << "     '#{api_uri(method, path)}'"
 
-      URI.encode(command)
+      command
+    end
+
+    ###
+    # Returns URL command for service with given method and path.
+    def api_url(method, path)
+      # Get parameters definition.
+      path_parameters = api_parameters(method, path)
+
+      api_uri(path, path_parameters)
     end
 
     protected
 
     ###
     # Returns parameters for service with given method and path.
-    def api_parameters(method, path)
+    def api_parameters(method, path, _in = 'path')
       parameters = api_current_paths[path][method][:parameters] || []
-
-      path_parameters = parameters.select { |p| p[:in] == 'path' }
-      query_parameters = parameters.select { |p| p[:in] == 'query' }
-
-      [path_parameters, query_parameters]
+      parameters.select { |p| p[:in] == _in }
     end
 
     ###
@@ -75,7 +81,8 @@ module RailsAdmin
 
     ###
     # Returns api uri.
-    def api_uri(path, path_parameters)
+    def api_uri(method, path)
+      path_parameters = api_parameters(method, path, 'path')
       uri = (Rails.env.development? ? 'http://127.0.0.1:3000' : 'https://cenit.io') + "/api/v2/#{path}"
 
       # Set value of uri path parameters
@@ -181,13 +188,24 @@ module RailsAdmin
     end
 
     ###
-    # Returns current namespace, model name and data type instance.
+    # Returns current namespace, model name and display name.
+    def api_model
+      ns = 'setup'
+      model_name = params[:model_name]
+      display_name = model_name.humanize
+
+      [ns, model_name, display_name]
+    end
+
+    ###
+    # Returns current namespace, model name, display name and data type instance.
     def api_model_from_data_type
       data_type = Setup::DataType.find(params[:model_name].from(2))
       ns = data_type.namespace.parameterize.underscore.downcase
       model_name = data_type.slug
+      display_name = data_type.name.chomp('.json').humanize
 
-      [ns, model_name, data_type]
+      [ns, model_name, display_name, data_type]
     end
   end
 end

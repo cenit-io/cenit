@@ -416,14 +416,14 @@ en:
         title: "Copy"
         menu: "Copy"
         breadcrumb: "Copy"
-      queries:
-        title: "Queries"
-        menu: "Queries"
-        breadcrumb: "Queries"
-      query_data_type:
-        title: "Queries"
-        menu: "Queries"
-        breadcrumb: "Queries"
+      filters:
+        title: "Filters"
+        menu: "Filters"
+        breadcrumb: "Filters"
+      filter_data_type:
+        title: "Filters"
+        menu: "Filters"
+        breadcrumb: "Filters"
       cancel:
         title: "Cancel '%{object_label}'"
         menu: "Cancel"
@@ -444,6 +444,10 @@ en:
         submit: "Regist"
         done: "registered"
         doing: "registering"
+      rest_api:
+        title: "Rest API"
+        menu: "Rest API"
+        breadcrumb: "Rest API"
       state:
         title: "State"
         menu: "State"
@@ -591,7 +595,7 @@ en:
           end:
             label: 'Save when done'
             description: 'Please fill the require fields and save'
-      query:
+      filter:
         wizard:
           start:
             label: 'Select the data type'
@@ -618,7 +622,3 @@ en:
           end:
             label: 'Add the triggers and save'
             description: 'Please add the triggers and save when done'
-
-
-
-

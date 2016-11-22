@@ -1,7 +1,7 @@
 module RailsAdmin
   module Config
     module Actions
-      class Queries < RailsAdmin::Config::Actions::Base
+      class Filters < RailsAdmin::Config::Actions::Base
 
         register_instance_option :collection do
           true
@@ -16,11 +16,11 @@ module RailsAdmin
             model = abstract_model.model rescue nil
             model_name = model.name
             @model_name = model.to_s.underscore.gsub('/', '~')
-            @queries = []
+            @filters = []
             if model_name.start_with? 'Dt'
-              @queries = Setup::Query.where(data_type: model.data_type)
+              @filters = Setup::Filter.where(data_type: model.data_type)
             elsif (split = model_name.split('Setup::')).size > 1
-              @queries = Setup::Query.all.select { |query| query.data_type.name == split[1] }
+              @filters = Setup::Filter.all.select { |filter| filter.data_type.name == split[1] }
             end
           end
         end
