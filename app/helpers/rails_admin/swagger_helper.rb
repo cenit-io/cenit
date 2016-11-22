@@ -1,6 +1,9 @@
 module RailsAdmin
+  ###
+  # Features to embed swagger editor.
   module SwaggerHelper
-
+    ###
+    # Return swagger editor configuration.
     def swagger_config
       {
           # Analytics section is used for user tracking configurations. At the moment
@@ -104,10 +107,14 @@ module RailsAdmin
       }
     end
 
+    ###
+    # Returns api specification.
     def swagger_get_spec
       render text: @object.specification, content_type: 'text/yaml'
     end
 
+    ###
+    # Update api specification.
     def swagger_set_spec
       spec = request.body.read
 
