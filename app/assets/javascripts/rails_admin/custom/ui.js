@@ -6,6 +6,7 @@
 //= require rails_admin/highlight_js/highlight.pack.js
 //= require rails_admin/handlers
 //= require lodash.min
+//= require rails_admin/select2.full.min
 
 $(document).on('rails_admin.dom_ready', function () {
     $('pre code').each(function (i, block) {
