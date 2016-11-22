@@ -11,6 +11,10 @@ module Setup
       self.class.swagger_to_cenit(specification, options)
     end
 
+    def pull_asynchronous
+      true
+    end
+
     class << self
 
       def swagger_to_cenit(spec, options = {})
@@ -27,7 +31,7 @@ module Setup
               elsif value.start_with?('#/')
                 hash[key] = value.from(2)
               else
-                fail "ERROR: ref #{value} is not valid"
+                fail "Reference #{value} is not valid"
               end
             end
           end if schema_container
@@ -41,23 +45,23 @@ module Setup
             schema['title'] = name
             if schema['type'].nil? && schema['properties'].nil?
               definitions.delete(name)
-              puts "WARN: schema #{name} has no properties and type"
+              notify(:warning, "Schema #{name} with no properties and no type", options)
             elsif schema['type'] == 'object' && (properties = schema['properties'])
-              properties.each do |property, property_schema|
+              properties.each do |_, property_schema|
                 if (ref = property_schema['$ref'])
-                  check_referenced_schema(ref, property_schema, definitions)
+                  check_referenced_schema(ref, property_schema, definitions, options)
                 elsif property_schema['items'].is_a? Hash
                   if property_schema['type'] == 'array' && (items_schema = property_schema['items']) && (ref = items_schema['$ref'])
-                    check_referenced_schema(ref, property_schema, definitions)
+                    check_referenced_schema(ref, property_schema, definitions, options)
                   end
                 end
               end
             else
-              puts "WARN: schema #{name} is not object with properties" if options[:notify_properties_no_object]
+              notify(:warning, "Schema #{name} properties but not object type", options)
             end
           end
         else
-          puts 'WARN: no definitions'
+          notify(:warning, 'No definitions', options)
         end
 
         title = spec['info']['title']
@@ -135,7 +139,7 @@ module Setup
                 end
                 authorizations << auth
               else
-                fail "Unknown oauth2 config for authorization URL: #{security['authorizationUrl']}"
+                fail "OAuth 2.0 provider and client not found for authorization URL: #{security['authorizationUrl']}"
               end
             when 'apiKey'
               shared[:pull_parameters] = pull_parameters = []
@@ -192,7 +196,7 @@ module Setup
             end
           end
         else
-          puts 'WARN: No security definitions'
+          notify(:warning, 'No security definitions', options)
           base_connections.each do |scheme, base_connection|
             connections << base_connection
             connection_roles << { namespace: namespace, name: "#{scheme.upcase} Connections", connections: [{ _reference: true, namespace: namespace, name: base_connection[:name] }] }
@@ -216,7 +220,7 @@ module Setup
             schemas.each do |name, schema|
               name = name.delete '$'
               slug = slug_prefix.to_s + slugify(name)
-              fail "Slug already taken: #{slug}" unless slugs.add?(slug)
+              fail "Slug name clash: #{slug}" unless slugs.add?(slug)
               data_type = Setup::JsonDataType.new namespace: namespace,
                                                   name: name,
                                                   slug: slug,
@@ -229,7 +233,7 @@ module Setup
                 snippets << data_type.snippet.share_hash
                 data_types << data_type.share_hash
               else
-                fails data_type.errors.full_messages.to_sentence
+                fail "Schema #{name} is not valid because #{data_type.errors.full_messages.to_sentence}"
               end
             end
           end
@@ -246,21 +250,23 @@ module Setup
                 if (param = parameters[ref])
                   param
                 else
-                  fail "ERROR: Parameter reference not found: #{ref}"
+                  fail "Path #{path} parameter reference not found: #{ref}"
                 end
               else
                 (path_parameters[LOCATION_MAP[param['in']] || 'parameters'] ||= []) << to_cenit_parameter(param_desc)
-                #puts "ERROR: Invalid parameter description: #{param_desc.to_json}"
               end
             else
-              fail "ERROR: Invalid parameter description type: #{param_desc.class}"
+              fail "Path #{path} parameter description type is not valid: #{param_desc.class}"
             end
           end
           operations = path_desc.keys.collect do |method|
             request_desc = path_desc[method]
             operation =
               {
+                _type: Setup::Operation.to_s,
                 method: method.to_s.downcase,
+                parameters: [],
+                headers: [],
                 metadata: metadata = request_desc.reject { |k| %w(description parameters).include?(k) }.reverse_merge('consumes' => default_consumes)
               }
             if (description = request_desc['description'])
@@ -290,11 +296,10 @@ module Setup
             end
           end
           operations.each do |op|
-            op_template_parameters = []
+            op_template_parameters = {}
             op[:metadata].delete(:template_parameters).each do |p|
               if (p = template_parameters[(key = p[:key])].difference(p)).present?
-                p[:key] = key
-                op_template_parameters << p
+                op_template_parameters[key] = p
               end
             end
             if op_template_parameters.present?
@@ -312,15 +317,23 @@ module Setup
         end
 
         shared['data']['oauth2_scopes'] = current_oauth2_scopes unless current_oauth2_scopes.empty?
-        if options[:shared_format]
-          shared
-        else
+        unless options[:shared_format]
           [:name, :readme, :title].each { |key| shared['data'][key] = shared[key] }
-          shared['data']
+          shared = shared['data']
         end
+        Cenit::Utility.stringfy(shared)
       end
 
       private
+
+      def notify(type, msg, opts)
+        if (task = opts[:task])
+          task.notify(type: type, message: msg)
+        else
+          opts[:notifications] ||= []
+          opts[:notifications] << "#{type.to_s.upcase}: #{msg}"
+        end
+      end
 
       LOCATION_MAP =
         {
@@ -329,15 +342,15 @@ module Setup
           path: 'template_parameters'
         }.stringify_keys
 
-      def check_referenced_schema(ref, container_schema, all_schemas)
+      def check_referenced_schema(ref, container_schema, all_schemas, options)
         if (ref_schema = all_schemas[ref])
           if identificable?(ref, ref_schema)
             container_schema['referenced'] = true
           else
-            puts "WARN: embedding #{ref}"
+            notify(:warning, "Embedding reference #{ref} since refereneced schema does not defines ID property", options)
           end
         else
-          fail "ERROR: ref #{ref} not found"
+          fail "Reference #{ref} not found"
         end
       end
 

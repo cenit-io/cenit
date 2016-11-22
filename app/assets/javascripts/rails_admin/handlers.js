@@ -1,9 +1,10 @@
 function schedulerInit() {
     var top_level = $('#setup_scheduler_expression_field');
-    function zp(num){
+
+    function zp(num) {
         if (parseInt(num) > 9)
             return num;
-        return '0'+num;
+        return '0' + num;
     }
 
     var date_start_input = $('#start_date');
@@ -16,7 +17,7 @@ function schedulerInit() {
     var time_start = time_start_input.val();
     time_start_input.timepicker();
     var t = time_start.split(':');
-    time_start_input.val(zp(t[0])+':'+zp(t[1]));
+    time_start_input.val(zp(t[0]) + ':' + zp(t[1]));
 
     var date_end_input = $('#end_date');
     var date_end = date_end_input.val();
@@ -64,7 +65,7 @@ function schedulerInit() {
         var min = 1;
         var max = 1000;
 
-        if (cyclic_unit.val() == 'm'){
+        if (cyclic_unit.val() == 'm') {
             min = 20;
             max = 110;
         }
@@ -159,7 +160,7 @@ function algorithmInit() {
 
     var parameters_root = $('#setup_algorithm_parameters_attributes_field');
 
-    if (! output_store)
+    if (!output_store)
         return;
 
     function updateView() {
@@ -183,6 +184,7 @@ function algorithmInit() {
             output_validate.removeAttr('checked');
         }
     }
+
     output_store.on('change', updateView);
     output_datatype.on('change', updateView);
     updateView();
@@ -201,13 +203,18 @@ function algorithmInit() {
 
         default_field.find('.help-block').hide();
     }
+
     parameters_root.find('.tab-pane').each(function () {
         var root = this;
         updateParameter(root);
-        $(root).find('.required_field input[type=checkbox]').on('change', function(){
+        $(root).find('.required_field input[type=checkbox]').on('change', function () {
             updateParameter(root);
         })
     });
+}
+
+function selectTagsInit() {
+    $('.select-tag').select2({theme: "bootstrap", tags: true})
 }
 
 function handlerInit() {
@@ -218,4 +225,7 @@ function handlerInit() {
 
     if ($('#setup_algorithm_store_output').length > 0)
         algorithmInit();
+
+    if ($('.select-tag').length > 0)
+        selectTagsInit();
 }

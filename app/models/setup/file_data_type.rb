@@ -50,10 +50,6 @@ module Setup
       errors.blank?
     end
 
-    def ready_to_save?
-      @validators_selected
-    end
-
     def format_validator
       @format_validator ||= validators.detect { |validator| validator.is_a?(Setup::FormatValidator) }
     end

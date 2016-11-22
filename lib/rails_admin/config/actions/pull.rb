@@ -23,16 +23,8 @@ module RailsAdmin
         register_instance_option :controller do
           proc do
 
-            if @object.is_a?(Setup::Api)
-              begin
-                do_flash_process_result Setup::PullImport.process(data: @object.cenit_collection_hash.to_json,
-                                                                  discard_collection: false)
-              rescue Exception => ex
-                flash[:error] = ex.message
-              end
-              redirect_to back_or_index
-            elsif @object.pull_asynchronous
-              do_flash_process_result Setup::SharedCollectionPull.process(@object)
+            if @object.pull_asynchronous
+              do_flash_process_result @object.pull
               redirect_to back_or_index
             else
               @pull_request = Cenit::Actions.pull_request(@object, pull_parameters: params[:pull_parameters])

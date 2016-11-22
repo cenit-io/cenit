@@ -416,14 +416,14 @@ en:
         title: "Copy"
         menu: "Copy"
         breadcrumb: "Copy"
-      queries:
-        title: "Queries"
-        menu: "Queries"
-        breadcrumb: "Queries"
-      query_data_type:
-        title: "Queries"
-        menu: "Queries"
-        breadcrumb: "Queries"
+      filters:
+        title: "Filters"
+        menu: "Filters"
+        breadcrumb: "Filters"
+      filter_data_type:
+        title: "Filters"
+        menu: "Filters"
+        breadcrumb: "Filters"
       cancel:
         title: "Cancel '%{object_label}'"
         menu: "Cancel"
@@ -444,6 +444,10 @@ en:
         submit: "Regist"
         done: "registered"
         doing: "registering"
+      rest_api:
+        title: "Rest API"
+        menu: "Rest API"
+        breadcrumb: "Rest API"
       state:
         title: "State"
         menu: "State"
@@ -581,3 +585,44 @@ en:
             description: 'Please save when done'
 
 
+      flow:
+        wizard:
+          start:
+            label: 'Select the translator'
+            description: 'Please select the translator and other required fields'
+          source_data_type:
+            label: 'Select the'
+            description: 'Please select the'
+          webhook:
+            label: 'Select the webhook'
+            description: 'Please select the webhook'
+          end:
+            label: 'Save when done'
+            description: 'Please fill the require fields and save'
+      filter:
+        wizard:
+          start:
+            label: 'Select the data type'
+            description: 'Please select the data type and other required fields'
+          end:
+            label: 'Add the triggers and save'
+            description: 'Please add the triggers and save when done'
+      pin:
+        wizard:
+          model:
+            label: 'Select the model'
+            description: 'Please select the model'
+          record:
+            label: 'Select the record'
+            description: 'Please select the record'
+          version:
+            label: 'Select the version and save'
+            description: 'Please select the version and save'
+      observer:
+        wizard:
+          start:
+            label: 'Select the data type'
+            description: 'Please select the data type and other required fields'
+          end:
+            label: 'Add the triggers and save'
+            description: 'Please add the triggers and save when done'

@@ -1,7 +1,7 @@
 module RailsAdmin
   MainController.class_eval do
 
-    include GenerateCurlHelper
+    include RestApiHelper
     include SwaggerHelper
 
   end

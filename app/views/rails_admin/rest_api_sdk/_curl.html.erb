@@ -1,0 +1,21 @@
+<% api_current_paths.each do |path, methods| %>
+    <% methods.each do |method, definition| %>
+        <% id = "#{method}-#{path}".parameterize %>
+        <div class="sdk-code">
+          <h3><%= definition[:summary].strip %></h3>
+          <hr/>
+          <p><%= definition[:description].strip %></p>
+          <hr/>
+          <p>
+            <span class="label method <%= method %>"><%= method %></span>
+            <span class="uri"><%= api_uri(method, path) %></span>
+          </p>
+          <hr/>
+          <button type="button" class="btn btn-default copy-to-clipboard"
+                  data-clipboard-action="copy"
+                  data-clipboard-target="#<%= id %>">Copy to clipboard
+          </button>
+          <pre id="<%= id %>"><%= api_curl_code(method, path).html_safe %></pre>
+        </div>
+    <% end %>
+<% end %>

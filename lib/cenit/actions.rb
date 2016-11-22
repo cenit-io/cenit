@@ -72,6 +72,7 @@ module Cenit
                   if item['_type']
                     record_hash['_type'] = record.class.to_s unless record_hash['_type']
                   end
+                  record_hash['_reset'] ||= item['_reset'] if item['_reset']
                   record_hash.reject! { |key, _| !item.has_key?(key) }
                   invariant = Cenit::Utility.eql_content?(record_hash, item) do |record_value, item_value|
                     (record_value.nil? && item_value.blank?) || (item_value.nil? && record_value.blank?)
@@ -286,8 +287,13 @@ module Cenit
               end
             end
           else
-            item['_reset'] ||= []
-            item['_reset'] << property
+            if (reset = item['_reset'])
+              reset = [reset] unless reset.is_a?(Array)
+            else
+              reset = []
+            end
+            reset << property
+            item['_reset'] = reset
             if (association = record.send(property).to_a).present?
               property_value.each do |sub_item|
                 criteria = {}

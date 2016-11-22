@@ -42,13 +42,10 @@ module Cenit
       RabbitConsumer.delete_all
 
       Account.all.each do |account|
-
-        next if account.meta.present?
-
         Account.current = account
 
         ThreadToken.destroy_all
-        Setup::Task.all.any_in(status: Setup::Task::ACTIVE_STATUS).update_all(status: :broken)
+        Setup::Task.where(:status.in => Setup::Task::ACTIVE_STATUS).update_all(status: :broken)
 
       end
 

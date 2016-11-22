@@ -1,0 +1,71 @@
+@mixin request-methods() {
+  .method {
+    width: 6em;
+    padding-top: 4px;
+    display: inline-block;
+    text-transform: uppercase;
+
+    &.get {
+      @include label-variant($label-success-bg);
+    }
+
+    &.delete {
+      @include label-variant($label-danger-bg);
+    }
+
+    &.post, &.put {
+      @include label-variant($label-info-bg);
+    }
+
+    &.put {
+      @include label-variant($label-warning-bg);
+    }
+  }
+}
+
+.generate-api {
+  position: relative;
+  right: 12px;
+  top: -51px;
+  float: right;
+
+  button {
+    padding: 2px 10px;
+    background-color: transparent;
+    color: inherit;
+    opacity: 0.5;
+
+    &:hover, &:active {
+      opacity: 1;
+    }
+  }
+
+  .dropdown-menu {
+    li {
+      a {
+        @include request-methods();
+      }
+    }
+  }
+}
+
+.sdk-code {
+  @include request-methods();
+
+  .uri {
+    color: black;
+  }
+
+  .copy-to-clipboard {
+    float: right;
+  }
+
+  pre {
+    padding-left: 2em;
+  }
+
+  hr {
+    margin-top: 10px;
+    margin-bottom: 10px;
+  }
+}

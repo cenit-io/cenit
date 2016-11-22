@@ -5,7 +5,7 @@ require 'account'
   RailsAdmin::Config::Actions::SendToFlow,
   RailsAdmin::Config::Actions::SwitchNavigation,
   RailsAdmin::Config::Actions::DataType,
-  RailsAdmin::Config::Actions::Queries,
+  RailsAdmin::Config::Actions::Filters,
   RailsAdmin::Config::Actions::Import,
   #RailsAdmin::Config::Actions::EdiExport,
   RailsAdmin::Config::Actions::ImportSchema,
@@ -26,7 +26,7 @@ require 'account'
   RailsAdmin::Config::Actions::SimpleExpand,
   RailsAdmin::Config::Actions::BulkExpand,
   RailsAdmin::Config::Actions::Records,
-  RailsAdmin::Config::Actions::QueryDataType,
+  RailsAdmin::Config::Actions::FilterDataType,
   RailsAdmin::Config::Actions::SwitchScheduler,
   RailsAdmin::Config::Actions::SimpleExport,
   RailsAdmin::Config::Actions::Schedule,
@@ -53,6 +53,7 @@ require 'account'
   RailsAdmin::Config::Actions::Share,
   RailsAdmin::Config::Actions::Reinstall,
   RailsAdmin::Config::Actions::Swagger,
+  RailsAdmin::Config::Actions::RestApi,
   RailsAdmin::Config::Actions::LinkDataType
 ].each { |a| RailsAdmin::Config::Actions.register(a) }
 
@@ -67,8 +68,11 @@ RailsAdmin::Config::Actions.register(:export, RailsAdmin::Config::Actions::BulkE
   RailsAdmin::Config::Fields::Types::Record,
   RailsAdmin::Config::Fields::Types::HtmlErb,
   RailsAdmin::Config::Fields::Types::OptionalBelongsTo,
-  RailsAdmin::Config::Fields::Types::Code
+  RailsAdmin::Config::Fields::Types::Code,
+  RailsAdmin::Config::Fields::Types::Tag
 ].each { |f| RailsAdmin::Config::Fields::Types.register(f) }
+
+require 'rails_admin/config/fields/factories/tag'
 
 module RailsAdmin
 
@@ -112,7 +116,7 @@ RailsAdmin.config do |config|
     link_data_type
     index # mandatory
     new { except [Setup::Event, Setup::DataType, Setup::Authorization, Setup::BaseOauthProvider] }
-    queries
+    filters
     import
     import_schema
     pull_import
@@ -144,7 +148,7 @@ RailsAdmin.config do |config|
     simple_expand
     bulk_expand
     records
-    query_data_type
+    filter_data_type
     switch_navigation
     switch_scheduler
     simple_export
@@ -171,7 +175,9 @@ RailsAdmin.config do |config|
         [
           Setup::Algorithm,
           Setup::Connection,
-          Setup::Webhook,
+          Setup::PlainWebhook,
+          Setup::Operation,
+          Setup::Resource,
           Setup::Translator,
           Setup::Flow,
           Setup::OauthClient,
@@ -184,6 +190,7 @@ RailsAdmin.config do |config|
       end
       visible { only.include?((obj = bindings[:object]).class) && obj.try(:shared?) }
     end
+    rest_api
     documentation
   end
 
@@ -806,10 +813,14 @@ RailsAdmin.config do |config|
 
       field :data_translators do
         group :workflows
-        label 'Translators'
+        label 'Transformations'
         list_fields do
           %w(namespace name type style)
         end
+      end
+
+      field :data_snippets do
+        label 'Snippets'
       end
 
       field :data_events do
@@ -1679,7 +1690,7 @@ RailsAdmin.config do |config|
   end
 
   config.model Setup::ConnectionRole do
-    visible false
+    visible { Account.current_super_admin? }
     navigation_label 'Connectors'
     weight 210
     label 'Connection Role'
@@ -1834,11 +1845,30 @@ RailsAdmin.config do |config|
     fields :namespace, :name, :path, :description, :operations, :updated_at
   end
 
+  config.model Setup::Webhook do
+    label 'All Webhook'
+    visible false
+    object_label_method { :custom_title }
+
+    configure :namespace
+    configure :path
+    configure :method
+    configure :description
+    configure :_type do
+      label 'Type'
+      pretty_value do
+        value.to_s.split('::').last.to_title
+      end
+    end
+
+    fields :namespace, :path, :method, :description, :_type, :updated_at
+  end
+
   config.model Setup::Operation do
     navigation_label 'Connectors'
     weight 217
     object_label_method { :label }
-    visible false
+    visible { Account.current_super_admin? }
 
     configure :resource do
       read_only true
@@ -1853,7 +1883,9 @@ RailsAdmin.config do |config|
       shared_non_editable
     end
 
-    fields :method, :description, :parameters, :headers, :resource
+    configure :metadata, :json_value
+
+    fields :method, :description, :parameters, :headers, :resource, :metadata
   end
 
   config.model Setup::Representation do
@@ -1884,8 +1916,9 @@ RailsAdmin.config do |config|
     fields :namespace, :name, :description, :updated_at
   end
 
-  config.model Setup::Webhook do
+  config.model Setup::PlainWebhook do
     navigation_label 'Workflows'
+    label 'Webhook'
     weight 515
     object_label_method { :custom_title }
 
@@ -2513,6 +2546,7 @@ RailsAdmin.config do |config|
       field :store_output, &shared_non_editable
       field :output_datatype, &shared_non_editable
       field :validate_output, &shared_non_editable
+      field :tags
     end
     show do
       field :namespace
@@ -2526,6 +2560,7 @@ RailsAdmin.config do |config|
         end
       end
       field :call_links
+      field :tags
       field :_id
 
       field :stored_outputs
@@ -2537,10 +2572,11 @@ RailsAdmin.config do |config|
       field :description
       field :parameters
       field :call_links
+      field :tags
       field :updated_at
     end
 
-    fields :namespace, :name, :description, :parameters, :call_links
+    fields :namespace, :name, :description, :parameters, :call_links, :tags
   end
 
   config.model Setup::AlgorithmOutput do
@@ -2678,11 +2714,36 @@ RailsAdmin.config do |config|
     fields :namespace, :name, :type, :description
   end
 
-  config.model Setup::Query do
+  config.model Setup::Filter do
     navigation_label 'Compute'
     weight 435
-    label 'Query'
+    label 'Filter'
     object_label_method { :custom_title }
+
+    wizard_steps do
+      steps =
+        {
+          start:
+            {
+              :label => I18n.t('admin.config.filter.wizard.start.label'),
+              :description => I18n.t('admin.config.filter.wizard.start.description')
+            },
+          end:
+            {
+              label: I18n.t('admin.config.filter.wizard.end.label'),
+              description: I18n.t('admin.config.filter.wizard.end.description')
+            }
+        }
+    end
+
+    current_step do
+      obj = bindings[:object]
+      if obj.data_type.blank?
+        :start
+      else
+        :end
+      end
+    end
 
     configure :segment do
       pretty_value do
@@ -2949,7 +3010,7 @@ RailsAdmin.config do |config|
             description: I18n.t('admin.config.renderer.wizard.select_file_extension.description')
           }
       end
-        steps
+      steps
     end
 
     current_step do
@@ -3333,7 +3394,7 @@ RailsAdmin.config do |config|
           end:
             {
               label: I18n.t('admin.config.updater.wizard.end.label'),
-              description: I18n.t('admin.config.parser.updater.end.description')
+              description: I18n.t('admin.config.updater.wizard.end.description')
             }
         }
     end
@@ -3581,6 +3642,60 @@ RailsAdmin.config do |config|
           :response_translator,
           :response_data_type
         ]
+      end
+    end
+
+    wizard_steps do
+      steps =
+        {
+          start:
+            {
+              :label => I18n.t('admin.config.flow.wizard.start.label'),
+              :description => I18n.t('admin.config.flow.wizard.start.description')
+            }
+        }
+
+      if (translator = bindings[:object].translator)
+        unless [Setup::Updater, Setup::Converter].include?(translator.class) || translator.data_type
+          data_type_label =
+            if [Setup::Renderer, Setup::Converter].include?(translator.class)
+              I18n.t('admin.form.flow.source_data_type')
+            else
+              I18n.t('admin.form.flow.target_data_type')
+            end
+          # Adjusting steps for custom_data_type field
+          steps[:data_type] =
+            {
+              :label => "#{I18n.t('admin.config.flow.wizard.source_data_type.label')} #{data_type_label}",
+              :description => "#{I18n.t('admin.config.flow.wizard.source_data_type.description')} #{data_type_label}"
+            }
+        end
+        if [Setup::Parser, Setup::Renderer].include?(translator.class)
+          steps[:webhook] =
+            {
+              :label => I18n.t('admin.config.flow.wizard.webhook.label'),
+              :description => I18n.t('admin.config.flow.wizard.webhook.description')
+            }
+        end
+      end
+      steps[:end] =
+        {
+          label: I18n.t('admin.config.flow.wizard.end.label'),
+          description: I18n.t('admin.config.flow.wizard.end.description')
+        } if translator
+      steps
+    end
+
+    current_step do
+      obj = bindings[:object]
+      if obj.translator.blank?
+        :start
+      elsif obj.translator.data_type.blank? && ((p = bindings[:controller].params[abstract_model.param_key]).nil? || p[field(:custom_data_type).foreign_key].nil?)
+        :data_type
+      elsif wizard_steps.has_key?(:webhook) && obj.webhook.blank?
+        :webhook
+      else
+        :end
       end
     end
 
@@ -3903,6 +4018,31 @@ RailsAdmin.config do |config|
     label 'Data Event'
     object_label_method { :custom_title }
 
+    wizard_steps do
+      steps =
+        {
+          start:
+            {
+              :label => I18n.t('admin.config.observer.wizard.start.label'),
+              :description => I18n.t('admin.config.observer.wizard.start.description')
+            },
+          end:
+            {
+              label: I18n.t('admin.config.observer.wizard.end.label'),
+              description: I18n.t('admin.config.observer.wizard.end.description')
+            }
+        }
+    end
+
+    current_step do
+      obj = bindings[:object]
+      if obj.data_type.blank?
+        :start
+      else
+        :end
+      end
+    end
+
     edit do
       field :namespace, :enum_edit
       field :name
@@ -4033,7 +4173,8 @@ RailsAdmin.config do |config|
       field :created_at do
         visible do
           if (account = Account.current)
-            if (notification_type = (bindings[:controller].try(:params) || {})[:type])
+            request_params = bindings[:controller].params rescue {}
+            if (notification_type = request_params[:type])
               account.meta["#{notification_type}_notifications_listed_at"] = Time.now
             else
               Setup::Notification.type_enum.each do |type|
@@ -4240,6 +4381,23 @@ RailsAdmin.config do |config|
     fields :shared_collection, :pull_request, :pulled_request, :description, :scheduler, :attempts_succeded, :retries, :progress, :status, :notifications, :updated_at
   end
 
+  config.model Setup::ApiPull do
+    navigation_label 'Monitors'
+    visible false
+    object_label_method { :to_s }
+
+    configure :attempts_succeded, :text do
+      label 'Attempts/Succedded'
+    end
+
+    edit do
+      field :description
+      field :auto_retry
+    end
+
+    fields :api, :pull_request, :pulled_request, :description, :scheduler, :attempts_succeded, :retries, :progress, :status, :notifications, :updated_at
+  end
+
   config.model Setup::SchemasImport do
     navigation_label 'Monitors'
     visible false
@@ -4435,6 +4593,38 @@ RailsAdmin.config do |config|
 
     configure :model, :model
     configure :record, :record
+
+    wizard_steps do
+      steps =
+        {
+          model:
+            {
+              :label => I18n.t('admin.config.pin.wizard.model.label'),
+              :description => I18n.t('admin.config.pin.wizard.model.description')
+            },
+          record:
+            {
+              label: I18n.t('admin.config.pin.wizard.record.label'),
+              description: I18n.t('admin.config.pin.wizard.record.description')
+            },
+          version:
+            {
+              label: I18n.t('admin.config.pin.wizard.version.label'),
+              description: I18n.t('admin.config.pin.wizard.version.description')
+            }
+        }
+    end
+
+    current_step do
+      obj = bindings[:object]
+      if obj.record_model.blank?
+        :model
+      elsif obj.record.blank?
+        :record
+      else
+        :version
+      end
+    end
 
     edit do
       field :record_model do

@@ -67,6 +67,9 @@ Cenit.config do
   #Process shared collection pulls asynchronous
   asynchronous_shared_collection_pull true
 
+  #Process API pulls asynchronous
+  asynchronous_api_pull true
+
   #Performs crossing origins asynchronous
   asynchronous_crossing true
 
@@ -107,4 +110,9 @@ Cenit.config do
   request_timeout 300
 
   ecommerce_data_types Ecommerce: %w(customer.json product.json inventory.json cart.json order.json shipment.json)
+
+  using_accounts_dbs ENV['USING_ACCOUNTS_DBS']
+
+  # Max count of tab actions to show before the More Actions tab if there are more actions to show
+  max_tab_actions_count 2
 end
