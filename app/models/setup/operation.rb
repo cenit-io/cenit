@@ -16,6 +16,10 @@ module Setup
 
     validates_presence_of :resource, :method
 
+    def params_stack
+      super.insert(-2, resource)
+    end
+
     def scope_title
       resource && resource.custom_title
     end

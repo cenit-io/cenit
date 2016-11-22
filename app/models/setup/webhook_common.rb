@@ -20,6 +20,14 @@ module Setup
       self
     end
 
+    def params_stack
+      stack = [self]
+      if @connections.is_a?(Setup::Connection)
+        stack.unshift(@connections)
+      end
+      stack
+    end
+
     def with(options)
       case options
       when NilClass
