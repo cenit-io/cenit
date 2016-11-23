@@ -112,7 +112,16 @@ RailsAdmin.config do |config|
     shared_collection_index
     store_index
     link_data_type
-    index # mandatory
+    index do # mandatory
+      breadcrumb_parent do
+        parent_model = bindings[:abstract_model].try(:config).try(:parent)
+        if am = parent_model && RailsAdmin.config(parent_model).try(:abstract_model)
+          [:index, am]
+        else
+          parent_model.is_a?(RailsAdmin::MongoffModelConfig)? nil:[:dashboard]
+        end
+      end
+    end
     new { except [Setup::Event, Setup::DataType, Setup::Authorization, Setup::BaseOauthProvider] }
     queries
     import
