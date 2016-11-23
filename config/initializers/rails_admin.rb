@@ -585,8 +585,18 @@ RailsAdmin.config do |config|
     fields :label, :property_name, :location
   end
 
-  config.model Setup::CrossSharedCollection do
+  config.model Setup::Collection do
     weight 000
+    navigation_label 'Collections'
+    register_instance_option :label_navigation do
+      'My Collections'
+    end
+
+    instance_eval &collection_fields_config
+  end
+
+  config.model Setup::CrossSharedCollection do
+    weight 010
     label 'Shared Collection'
     navigation_label 'Collections'
     object_label_method :versioned_name
@@ -611,7 +621,7 @@ RailsAdmin.config do |config|
   end
 
   config.model Setup::SharedCollection do
-    weight 010
+    weight 020
     label 'Legacy Shared Collection'
     register_instance_option(:discard_submit_buttons) do
       !(a = bindings[:action]) || a.key != :edit
@@ -951,15 +961,7 @@ RailsAdmin.config do |config|
     object_label_method { :label }
   end
 
-  config.model Setup::Collection do
-    weight 020
-    navigation_label 'Collections'
-    register_instance_option :label_navigation do
-      'My Collections'
-    end
 
-    instance_eval &collection_fields_config
-  end
 
   #Definitions
 
