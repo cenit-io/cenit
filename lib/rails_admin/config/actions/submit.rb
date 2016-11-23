@@ -105,7 +105,6 @@ module RailsAdmin
                     template_parameters: {}
                   }
                 webhook.with(connection).params_stack.inject({}) do |hash, entity|
-                  entity_metadata = entity.try(:metadata) || {}
                   entity_hash = property_names.keys.inject({}) do |hash, params|
                     h = entity.send(params).inject({}) do |params_hash, param|
                       unless (property_name = property_names[params][param.key])
@@ -116,10 +115,6 @@ module RailsAdmin
                           (param.metadata || {}).deep_dup.merge!('title' => param.key,
                                                                  'description' => param.description,
                                                                  'group' => params.to_s)
-                      if (metadata = entity_metadata[params]).is_a?(Hash) &&
-                        (metadata = metadata[param.key]).is_a?(Hash)
-                        ph.merge!(metadata)
-                      end
                       ph['type'] ||= 'string'
                       if (value = param.value)
                         ph['default'] = value
@@ -127,6 +122,14 @@ module RailsAdmin
                       required << property_name if ph.delete('required')
                       content_type_header ||= params == :headers && param.key == 'Content-Type'
                       params_hash
+                    end
+                    if (metadata = entity.try(:metadata)).is_a?(Hash) &&
+                      (params_metadata = metadata[params]).is_a?(Hash)
+                      params_metadata.each do |key, param_hash|
+                        if (property_name = property_names[params][key])
+                          h.merge!(property_name => param_hash)
+                        end
+                      end
                     end
                     hash.merge! h
                   end
