@@ -16,8 +16,8 @@ module Setup
       @title ||= model.to_s.to_title
     end
 
-    def custom_title
-      "#{Setup.to_s} | #{title}"
+    def custom_title(separator = '|')
+      "#{Setup.to_s} #{separator} #{title}"
     end
 
     def name

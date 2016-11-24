@@ -377,11 +377,15 @@ module RailsAdmin
                     field.bind(object: associated, view: v)
                     "<td class=\"#{field.css_class} #{field.type_css_class}\" title=\"#{v.strip_tags(associated.to_s)}\">#{field.pretty_value}</td>"
                   end.join +
-                  '<td class="last links"><ul class="inline list-inline">' +
                   if can_see
-                    v.menu_for(:member, am, associated, true)
+                    '<td id="actions-menu-list">
+                    <div class="options-menu" id="links">
+                    <span class="btn dropdown-toggle" data-toggle="dropdown" type="button">
+                    <i class="fa fa-ellipsis-v"></i>
+                    </span>
+                    <ul class="dropdown-menu">' + v.menu_for(:member, am, associated)
                   else
-                    ''
+                    '<td class="last links"><ul class="inline list-inline">'
                   end +
                   '</ul></td>' +
                   '</tr>'
@@ -587,7 +591,7 @@ module RailsAdmin
     def menu_item(only_icon, action, abstract_model, parent, object)
       wording = wording_for(:menu, action)
       %(
-        <li title="#{wording if only_icon}" rel="#{'tooltip' if only_icon}" class="icon #{action.key}_#{parent}_link #{'active' if current_action?(action)}">
+        <li title="#{wording if only_icon}" rel="#{'tooltip' if only_icon}" class="icon #{action.key}_#{parent}_link #{'active' if current_action?(action, abstract_model)}">
           <a class="#{action.pjax? ? 'pjax' : ''}" href="#{url_for(action: action.action_name, controller: 'rails_admin/main', model_name: abstract_model.try(:to_param), id: (object.try(:persisted?) && object.try(:id) || nil))}">
             <i class="#{(abstract_model && abstract_model.config.send("#{action.key}_link_icon")) || action.link_icon}"></i>
             <span#{only_icon ? " style='display:none'" : ''}>#{wording}</span>
