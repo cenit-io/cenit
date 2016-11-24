@@ -118,7 +118,7 @@ RailsAdmin.config do |config|
         if am = parent_model && RailsAdmin.config(parent_model).try(:abstract_model)
           [:index, am]
         else
-          parent_model.is_a?(RailsAdmin::MongoffModelConfig)? nil:[:dashboard]
+          parent_model.is_a?(RailsAdmin::MongoffModelConfig) ? nil : [:dashboard]
         end
       end
     end
@@ -1023,9 +1023,6 @@ RailsAdmin.config do |config|
       end
 
       field :schema, :code do
-        html_attributes do
-          { cols: '74', rows: '15' }
-        end
         code_config do
           if bindings[:object].schema_type == :json_schema
             {
@@ -1082,9 +1079,6 @@ RailsAdmin.config do |config|
     object_label_method { :custom_title }
 
     configure :code, :code do
-      html_attributes do
-        { cols: '74', rows: '15' }
-      end
       code_config do
         {
           mode: 'application/xml'
@@ -1272,9 +1266,6 @@ RailsAdmin.config do |config|
     end
 
     configure :schema, :json_schema do
-      html_attributes do
-        { cols: '74', rows: '15' }
-      end
     end
 
     configure :storage_size, :decimal do
@@ -2311,9 +2302,6 @@ RailsAdmin.config do |config|
       field :description, &shared_non_editable
       field :parameters, &shared_non_editable
       field :code, :code do
-        html_attributes do
-          { cols: '74', rows: '15' }
-        end
         code_config do
           {
             mode: 'text/x-ruby'
@@ -2335,10 +2323,12 @@ RailsAdmin.config do |config|
       field :name
       field :description
       field :parameters
-      field :code do
-        pretty_value do
-          v = value.gsub('<', '&lt;').gsub('>', '&gt;')
-          "<pre><code class='ruby'>#{v}</code></pre>".html_safe
+      field :code, :code do
+        code_config do
+          {
+            mode: 'text/x-ruby',
+            readOnly: 'nocursor'
+          }
         end
       end
       field :call_links
@@ -2440,60 +2430,6 @@ RailsAdmin.config do |config|
     end
 
     fields :name, :type, :many, :group, :description
-  end
-
-  config.model Setup::Snippet do
-    navigation_label 'Compute'
-    weight 430
-    object_label_method { :custom_title }
-
-    configure :name
-
-    edit do
-      field :namespace, :enum_edit
-      field :name
-      field :type
-      field :description
-      field :code, :code do
-        html_attributes do
-          { cols: '74', rows: '15' }
-        end
-        code_config do
-          {
-            mode: {
-              'auto': 'javascript',
-              'text': 'javascript',
-              'null': 'javascript',
-              'c': 'clike',
-              'cpp': 'clike',
-              'csharp': 'clike',
-              'csv': 'javascript',
-              'fsharp': 'mllike',
-              'java': 'clike',
-              'latex': 'stex',
-              'ocaml': 'mllike',
-              'scala': 'clike',
-              'squirrel': 'clike'
-            }[bindings[:object].type] || bindings[:object].type
-          }
-        end
-
-      end
-    end
-
-    show do
-      field :namespace
-      field :name
-      field :type
-      field :description
-      field :code do
-        pretty_value do
-          "<pre><code class='#{bindings[:object].type}'>#{value}</code></pre>".html_safe
-        end
-      end
-    end
-
-    fields :namespace, :name, :type, :description
   end
 
   config.model Setup::Query do
@@ -2667,9 +2603,6 @@ RailsAdmin.config do |config|
       field :code, :code do
         visible { bindings[:object].style.present? && bindings[:object].style != 'chain' }
         help { 'Required' }
-        html_attributes do
-          { cols: '74', rows: '15' }
-        end
         code_config do
           {
             mode: case bindings[:object].style
@@ -2836,9 +2769,6 @@ RailsAdmin.config do |config|
       field :code, :code do
         visible { bindings[:object].style.present? && bindings[:object].style != 'chain' }
         help { 'Required' }
-        html_attributes do
-          { cols: '74', rows: '15' }
-        end
         code_config do
           {
             mode: case bindings[:object].style
@@ -2941,9 +2871,6 @@ RailsAdmin.config do |config|
       field :code, :code do
         visible { bindings[:object].style.present? && bindings[:object].style != 'chain' }
         help { 'Required' }
-        html_attributes do
-          { cols: '74', rows: '15' }
-        end
         code_config do
           {
             mode: case bindings[:object].style
@@ -3067,9 +2994,6 @@ RailsAdmin.config do |config|
       field :code, :code do
         visible { bindings[:object].style.present? && bindings[:object].style != 'chain' }
         help { 'Required' }
-        html_attributes do
-          { cols: '74', rows: '15' }
-        end
         code_config do
           {
             mode: case bindings[:object].style
@@ -3221,9 +3145,6 @@ RailsAdmin.config do |config|
       field :code, :code do
         visible { bindings[:object].style.present? && bindings[:object].style != 'chain' }
         help { 'Required' }
-        html_attributes do
-          { cols: '74', rows: '15' }
-        end
         code_config do
           {
             mode: case bindings[:object].style
@@ -3355,37 +3276,34 @@ RailsAdmin.config do |config|
     object_label_method { :custom_title }
 
     configure :name
+    configure :code, :code do
+      code_config do
+        {
+          mode: {
+            'auto': 'javascript',
+            'text': 'javascript',
+            'null': 'javascript',
+            'c': 'clike',
+            'cpp': 'clike',
+            'csharp': 'clike',
+            'csv': 'javascript',
+            'fsharp': 'mllike',
+            'java': 'clike',
+            'latex': 'stex',
+            'ocaml': 'mllike',
+            'scala': 'clike',
+            'squirrel': 'clike'
+          }[bindings[:object].type] || bindings[:object].type
+        }
+      end
+    end
 
     edit do
       field :namespace, :enum_edit
       field :name
       field :type
       field :description
-      field :code, :code do
-        html_attributes do
-          { cols: '74', rows: '15' }
-        end
-        code_config do
-          {
-            mode: {
-              'auto': 'javascript',
-              'text': 'javascript',
-              'null': 'javascript',
-              'c': 'clike',
-              'cpp': 'clike',
-              'csharp': 'clike',
-              'csv': 'javascript',
-              'fsharp': 'mllike',
-              'java': 'clike',
-              'latex': 'stex',
-              'ocaml': 'mllike',
-              'scala': 'clike',
-              'squirrel': 'clike'
-            }[bindings[:object].type] || bindings[:object].type
-          }
-        end
-
-      end
+      field :code
     end
 
     show do
@@ -3393,11 +3311,7 @@ RailsAdmin.config do |config|
       field :name
       field :type
       field :description
-      field :code do
-        pretty_value do
-          "<pre><code class='#{bindings[:object].type}'>#{value}</code></pre>".html_safe
-        end
-      end
+      field :code
     end
 
     fields :namespace, :name, :type, :description
@@ -4748,9 +4662,6 @@ RailsAdmin.config do |config|
       field :name
       field :description
       field :code, :code do
-        html_attributes do
-          { cols: '74', rows: '15' }
-        end
         code_config do
           {
             mode: 'text/x-ruby'
