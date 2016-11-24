@@ -52,7 +52,7 @@ class Ability
 
         can [:index, :show, :inspect, :edit], Account, :id.in => user.account_ids
         can :destroy, Account, :id.in => user.account_ids - [user.account_id]
-        can :new, Account if user.partner?
+        can :new, Account
 
         can :simple_cross, CROSSING_MODELS_NO_ORIGIN
         can :simple_cross, CROSSING_MODELS_WITH_ORIGIN, :origin.in => [:default, :owner]

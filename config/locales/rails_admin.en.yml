@@ -69,7 +69,9 @@ en:
           title: 'Thank you for joining us!'
           more: "More than %{count} users"
         tenant_users:
-          title: "Only you in your tenant"
+          title: "Only you in this tenant"
+        your_tenants:
+          owner: "Owner of %{count}"
         monitors:
           tasks: 'running tasks'
           auths: 'authorizations'

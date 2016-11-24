@@ -54,14 +54,14 @@
 
 
 - if _current_user.present?
-  %ul#user-nav.nav.navbar-nav.navbar-right
+  %ul#user-nav.nav.navbar-nav.navbar-right{style: 'padding-left: 0px;'}
     %li.dropdown
       %a.dropdown-toggle{href:'#', role:'button','data-toggle':'dropdown','aria-haspopup':'true','aria-expanded':'false'}
         %i.fa.fa-fw.fa-user
         - if _current_user.name.present?
           = _current_user.name
         - else
-          = _current_user.email.split('@')[0]
+          = _current_user.email
         %span.caret
       %ul#user-menu.dropdown-menu
         - if (user_link = edit_user_link)
@@ -79,15 +79,15 @@
 
   - acc_am = RailsAdmin::Config.model(Cenit::MultiTenancy.tenant_model).abstract_model
   %ul#tenant-nav.nav.navbar-nav.navbar-right
-    %li.dropdown
+    %li.dropdown{style: 'min-width: 125px;'}
       %a.dropdown-toggle{href:'#', role:'button','data-toggle':'dropdown','aria-haspopup':'true','aria-expanded':'false'}
         %i.fa.fa-fw.fa-home
-        = _current_user.account.name
+        = _current_user.account.name.split('@')[0]
         %span.caret
       %ul#tenant-menu.dropdown-menu
         - _current_user.accounts.each do | a |
           - if a != _current_user.account
-            %li= link_to a.name, inspect_path(model_name: acc_am.to_param, id: a.id)
+            %li= link_to a.name.split('@')[0], inspect_path(model_name: acc_am.to_param, id: a.id)
         - if (new_action = action(:new, acc_am))
           %li.divider{role:'separator'}
           .actions.clearfix

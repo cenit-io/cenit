@@ -20,7 +20,7 @@
   - @count ||= {}
   - query = params[:query]
   .clearfix
-    .col-md-7{style: 'margin: 10px 0 20px;'}
+    .col-md-6{style: 'margin: 10px 0 20px;'}
       %h3.label-heading{style: 'margin: 0;'}
         %small=  t("admin.misc.title_search_shared_collections")
         %h4{style: "margin-top: 0px;"}= t("admin.misc.sub_title_search_shared_collections", count: @count[Setup::CrossSharedCollection.name])
@@ -35,7 +35,7 @@
       = link_to('gmail', index_path(model_name: "setup~cross_shared_collection", query: 'gmail'))+','
       = link_to('twilio', index_path(model_name: "setup~cross_shared_collection", query: 'twilio'))+' or'
       = link_to('shipstation', index_path(model_name: "setup~cross_shared_collection", query: 'shipstation'))
-    .col-md-5
+    .col-md-4
       %h4.text-muted{style:'margin-top: 30px;'}
         - if current_user
           = t('admin.actions.dashboard.tenant_users.title')
@@ -54,6 +54,22 @@
         %span.text-muted
           = t('admin.actions.dashboard.recent_users.more', count: (User.all.count/5 * 5))
 
+    .col-md-2
+      %h4.text-muted{style:'margin-top: 30px;'}
+        - if current_user
+          = pluralize(current_user.accounts.count, 'tenant')
+        - else
+          = pluralize(Account.count, 'tenant')
+      %ul.list-inline.list-unstyled{style: 'margin-left: -11px;'}
+        %li
+          .block
+            .icon
+              %i.fa.fa-fw.fa-home
+            .icon{style: 'margin-left: -20px;'}
+              %i.fa.fa-fw.fa-home{style: 'font-size: 20px;'}
+      - if current_user
+        %span.text-muted
+          = t('admin.actions.dashboard.your_tenants.owner', count: current_user.accounts.count)
 
 %ul.nav.nav-tabs
   = menu_for((@abstract_model ? (@object.try(:persisted?) ? :member : :collection) : :root), @abstract_model, @object, false, Cenit.max_tab_actions_count.to_i.abs)
