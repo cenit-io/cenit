@@ -4,6 +4,7 @@ module Setup
     include CrossOrigin::Document
     include CollectionBehavior
     include HashField
+    include Taggable
 
     origins -> { Cenit::MultiTenancy.tenant_model.current && :owner }, :shared
 

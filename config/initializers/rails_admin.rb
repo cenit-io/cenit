@@ -324,6 +324,7 @@ RailsAdmin.config do |config|
         field :summary
       end
 
+      field :tags
       field :readme, :html_erb, &sharing_collection_invisible
 
       if abstract_model.model == Setup::CrossSharedCollection
@@ -359,6 +360,7 @@ RailsAdmin.config do |config|
       field :title
       field :image
       field :name
+      field :tags
 
       prefix =
         if abstract_model.model == Setup::CrossSharedCollection
@@ -666,6 +668,7 @@ RailsAdmin.config do |config|
       end
       field :authors
       field :summary
+      field :tags
       field :source_collection do
         visible { !((source_collection = bindings[:object].source_collection) && source_collection.new_record?) }
         inline_edit false
@@ -769,6 +772,7 @@ RailsAdmin.config do |config|
           value.html_safe
         end
       end
+      field :tags
       field :readme, :html_erb
       field :authors
       field :dependencies
@@ -914,6 +918,7 @@ RailsAdmin.config do |config|
       end
       field :authors
       field :summary
+      field :tags
       field :pull_count
       field :dependencies
     end

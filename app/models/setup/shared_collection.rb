@@ -3,6 +3,7 @@ module Setup
     include CenitUnscoped
     include Trackable
     include CollectionName
+    include Taggable
 
     deny :copy, :new, :edit, :translator_update, :convert, :send_to_flow, :delete_all, :delete, :import
 
