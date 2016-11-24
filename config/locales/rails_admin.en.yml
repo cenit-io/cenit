@@ -467,6 +467,10 @@ en:
         title: "Docs"
         menu: "Docs"
         breadcrumb: "Docs"
+      swagger:
+        title: "Swagger"
+        menu: "Swagger"
+        breadcrumb: "Swagger"  
       link_data_type:
         menu: "Link"
         breadcrumb: "Link %{model_label}"
