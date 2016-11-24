@@ -4,6 +4,10 @@ module RailsAdmin
       module Types
         class Code < RailsAdmin::Config::Fields::Types::CodeMirror
 
+          register_instance_option :html_attributes do
+            { cols: '74', rows: '15' }
+          end
+
           register_instance_option :pretty_value do
             code = JSON.pretty_generate(value) rescue value
             if bindings[:view].instance_variable_get(:@action).is_a?(RailsAdmin::Config::Actions::Index) ||

@@ -69,6 +69,10 @@ module RailsAdmin
       @properties
     end
 
+    def to_param
+      "#{model.data_type.ns_slug}~#{model.data_type.slug}"
+    end
+
     class << self
 
       def new(m)

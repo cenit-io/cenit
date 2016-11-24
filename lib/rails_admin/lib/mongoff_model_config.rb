@@ -169,6 +169,8 @@ module RailsAdmin
         case context
         when nil
           target.data_type.title
+        when :breadcrumb
+          target.data_type.custom_title('/')
         else
           target.data_type.custom_title
         end
