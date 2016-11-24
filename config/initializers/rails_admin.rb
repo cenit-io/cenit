@@ -4898,6 +4898,7 @@ RailsAdmin.config do |config|
   config.model Account do
     weight 810
     navigation_label 'Administration'
+    label 'Tenants'
     object_label_method { :label }
 
     configure :_id do
