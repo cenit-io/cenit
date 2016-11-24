@@ -721,10 +721,7 @@ module RailsAdmin
       return nil unless current_user && abstract_model && edit_action
       link = link_to url_for(action: edit_action.action_name, model_name: abstract_model.to_param, id: current_user.id, controller: 'rails_admin/main'), class: 'pjax' do
         html = []
-        # Patch
-        # text = _current_user.name
-        # Patch
-        text = current_account.label
+        text = current_user.email
         html << content_tag(:span, text, style: 'padding-right:5px')
         unless inspecting
           if current_user && abstract_model && edit_action
