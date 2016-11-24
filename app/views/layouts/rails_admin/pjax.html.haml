@@ -20,7 +20,7 @@
   - @count ||= {}
   - query = params[:query]
   .clearfix
-    .col-md-6{style: 'margin: 10px 0 20px;'}
+    .col-md-7{style: 'margin: 10px 0 20px;'}
       %h3.label-heading{style: 'margin: 0;'}
         %small=  t("admin.misc.title_search_shared_collections")
         %h4{style: "margin-top: 0px;"}= t("admin.misc.sub_title_search_shared_collections", count: @count[Setup::CrossSharedCollection.name])
@@ -35,7 +35,7 @@
       = link_to('gmail', index_path(model_name: "setup~cross_shared_collection", query: 'gmail'))+','
       = link_to('twilio', index_path(model_name: "setup~cross_shared_collection", query: 'twilio'))+' or'
       = link_to('shipstation', index_path(model_name: "setup~cross_shared_collection", query: 'shipstation'))
-    .col-md-4
+    .col-md-3
       %h4.text-muted{style:'margin-top: 30px;'}
         - if current_user
           = t('admin.actions.dashboard.tenant_users.title')
