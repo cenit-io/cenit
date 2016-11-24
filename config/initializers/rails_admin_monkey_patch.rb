@@ -428,7 +428,7 @@ module RailsAdmin
 
         def all_associated_link(values, am, link_content)
           v = bindings[:view]
-          if values.is_a?(Mongoid::Criteria) && !am.embedded? && (index_action = v.action(:index, am))
+          if bindings[:controller] && values.is_a?(Mongoid::Criteria) && !am.embedded? && (index_action = v.action(:index, am))
             message = "<span>Showing #{label.downcase} of <em>#{bindings[:object].send(bindings[:controller].model_config.object_label_method)}</em></span>"
             filter_token = Cenit::Token.create(data: { criteria: values.selector, message: message }, token_span: 1.hours)
             v.link_to(link_content, v.url_for(action: index_action.action_name, model_name: am.to_param, filter_token: filter_token.token), class: 'pjax')
