@@ -158,6 +158,10 @@ module Setup
       end
     end
 
+    def ns_slug
+      Setup.to_s.underscore
+    end
+
     EXCLUDED_FIELDS = %w{_id created_at updated_at version}
     EXCLUDED_RELATIONS = %w{account creator updater}
 
