@@ -3,7 +3,6 @@ module Setup
     include CenitUnscoped
     include CrossOrigin::Document
     include CollectionBehavior
-    include HashField
 
     origins -> { Cenit::MultiTenancy.tenant_model.current && :owner }, :shared
 
@@ -220,6 +219,7 @@ module Setup
       end
 
       assign_attributes(attributes)
+      self.metadata = collection.metadata
       pull_data.deep_stringify_keys!
 
       self.installed = true
