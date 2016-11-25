@@ -716,7 +716,7 @@ module RailsAdmin
         user_config = account_config
         abstract_model = account_abstract_model
         edit_action = inspect_action
-        current_user = current_account
+        # current_user = current_account #TODO: review danger assignation
       end
       return nil unless current_user && abstract_model && edit_action
       link = link_to url_for(action: edit_action.action_name, model_name: abstract_model.to_param, id: current_user.id, controller: 'rails_admin/main'), class: 'pjax' do

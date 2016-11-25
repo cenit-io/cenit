@@ -37,7 +37,7 @@
     .col-md-3
       %h4.text-muted
         - if current_user
-          = t('admin.actions.dashboard.tenant_users.title')
+          = "#{current_user.account.name.split('@')[0]} tenant"
           - users = tenant_users
         - else
           = t('admin.actions.dashboard.recent_users.title')
@@ -49,26 +49,27 @@
           - title = u.name.present? ? u.name : alt
           %li
             = image_tag url, alt: alt, title: title, class: 'img-circle', height: 50, width: 50
-      - unless current_user
+      - if current_user
+        = pluralize(current_user.account.users.count, 'member')
+      - else
         %span.text-muted
           = t('admin.actions.dashboard.recent_users.more', count: (User.all.count/5 * 5))
 
     .col-md-2{style:'padding-left: 30px;'}
       %h4.text-muted{style:'margin-top: 10px;'}
         - if current_user
-          = pluralize(current_user.accounts.count, 'tenant')
+          = link_to(pluralize(current_user.all_accounts.count, 'tenant'), index_path(model_name: 'account'))
         - else
           = pluralize(Account.count, 'tenant')
       %ul.list-inline.list-unstyled{style: 'margin-left: -11px;'}
         %li
           .block
             .icon
-              %i.fa.fa-fw.fa-home
+              %i.fa.fa-fw.fa-home{style: 'font-size: 40px;'}
             .icon{style: 'margin-left: -20px;'}
-              %i.fa.fa-fw.fa-home{style: 'font-size: 20px;'}
-      - if current_user
-        %span.text-muted
-          = t('admin.actions.dashboard.your_tenants.owner', count: current_user.accounts.count)
+              %i.fa.fa-fw.fa-home{style: 'font-size: 24px;'}
+      %span.text-muted
+        = link_to(t('admin.misc.add_tenant'), new_path(model_name: 'account'))
 
 %ul.nav.nav-tabs
   = menu_for((@abstract_model ? (@object.try(:persisted?) ? :member : :collection) : :root), @abstract_model, @object, false, Cenit.max_tab_actions_count.to_i.abs)
