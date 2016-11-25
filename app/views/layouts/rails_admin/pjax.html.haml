@@ -53,7 +53,7 @@
         %span.text-muted
           = t('admin.actions.dashboard.recent_users.more', count: (User.all.count/5 * 5))
 
-    .col-md-2
+    .col-md-2{style:'padding-left: 30px;'}
       %h4.text-muted{style:'margin-top: 10px;'}
         - if current_user
           = pluralize(current_user.accounts.count, 'tenant')
