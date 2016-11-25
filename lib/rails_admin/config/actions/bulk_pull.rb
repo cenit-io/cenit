@@ -87,7 +87,7 @@ module RailsAdmin
                 else
                   t('admin.actions.bulk_pull.warn_all')
                 end
-              render :form
+              render :form, locals: { bulk_alert: true }
             end
           end
         end

@@ -62,6 +62,7 @@ en:
       link_json_data_type: 'Link Object Type'
       link_file_data_type: 'Link File Type'
       link_cross_shared_collection: 'Connect Store'
+      and_more: "and %{count} more"
     actions:
       dashboard:
         title: "Dashboard"
@@ -241,6 +242,7 @@ en:
         records: "records"
       action_will:
         also: 'These action will also'
+        just: 'These action will'
       disk_usage:
         title: "Disk Usage"
         menu: "Disk"

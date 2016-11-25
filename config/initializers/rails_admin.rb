@@ -331,6 +331,14 @@ RailsAdmin.config do |config|
       group :config
     end
 
+    group :metadata do
+      active false
+    end
+
+    configure :metadata, :json_value do
+      group :metadata
+    end
+
     edit do
       field :name
       field :title
@@ -373,6 +381,7 @@ RailsAdmin.config do |config|
       field :oauth_clients, &sharing_collection_invisible
       field :oauth2_scopes, &sharing_collection_invisible
       field :data, &sharing_collection_invisible
+      field :metadata, &sharing_collection_invisible
     end
 
     show do
@@ -485,6 +494,8 @@ RailsAdmin.config do |config|
           label 'Namespaces'
           group :config
         end
+
+        field :metadata
       end
 
       field :_id

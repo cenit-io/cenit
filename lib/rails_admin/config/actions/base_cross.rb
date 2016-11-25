@@ -29,7 +29,7 @@ module RailsAdmin
                 do_flash_now(:error, 'Error selecting origin', @form_object.errors.full_messages)
               end
 
-              render :form
+              render :form, locals: { bulk_alert: true }
             else
               redirect_to back_or_index
             end

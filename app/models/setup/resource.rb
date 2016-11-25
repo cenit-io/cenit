@@ -5,7 +5,7 @@ module Setup
     include WithTemplateParameters
     include JsonMetadata
 
-    build_in_data_type.embedding(:operations).referenced_by(:name, :namespace)
+    build_in_data_type.referenced_by(:name, :namespace)
 
     field :path, type: String
     field :description, type: String
