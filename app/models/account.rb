@@ -29,7 +29,7 @@ class Account
   deny :all
 
   belongs_to :owner, class_name: User.to_s, inverse_of: :accounts
-  has_and_belongs_to_many :users, class_name: User.to_s, inverse_of: nil
+  has_and_belongs_to_many :users, class_name: User.to_s, inverse_of: :member_accounts
 
   field :name, type: String
   field :meta, type: Hash, default: {}
