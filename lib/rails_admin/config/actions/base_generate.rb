@@ -46,7 +46,7 @@ module RailsAdmin
                 @object.instance_variable_set(:@_to_override, conflicting_data_types)
               end
               @model_config = options_config
-              render :form
+              render :form, locals: { bulk_alert: true }
             end
           end
         end

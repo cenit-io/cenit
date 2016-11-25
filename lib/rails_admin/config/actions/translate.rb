@@ -64,7 +64,7 @@ module RailsAdmin
                 do_flash_now(:error, "There are errors in the #{@action.class.translator_type.to_s.downcase} data specification", @form_object.errors.full_messages)
               end
               @form_object.save(validate: false)
-              render :form
+              render :form, locals: { bulk_alert: true }
             end
 
           end
