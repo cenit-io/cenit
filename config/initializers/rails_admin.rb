@@ -4704,6 +4704,10 @@ RailsAdmin.config do |config|
       group :accounts
       read_only { !Account.current_super_admin? }
     end
+    configure :member_accounts do
+      group :member_accounts
+      read_only { !Account.current_super_admin? }
+    end
     configure :password do
       group :credentials
     end
@@ -4750,6 +4754,9 @@ RailsAdmin.config do |config|
       field :accounts do
         visible { Account.current_super_admin? }
       end
+      field :member_accounts do
+        visible { Account.current_super_admin? }
+      end
       field :password do
         visible { Account.current_super_admin? }
       end
@@ -4792,6 +4799,7 @@ RailsAdmin.config do |config|
       field :account
       field :api_account
       field :accounts
+      field :member_accounts
       field :roles
       field :key
       field :authentication_token
@@ -4811,12 +4819,10 @@ RailsAdmin.config do |config|
       field :account
       field :api_account
       field :accounts
+      field :member_accounts
       field :roles
-      field :key
-      field :authentication_token
       field :sign_in_count
       field :created_at
-      field :updated_at
     end
   end
 
@@ -4829,10 +4835,6 @@ RailsAdmin.config do |config|
     configure :_id do
       visible { Account.current_super_admin? }
     end
-    configure :owner do
-      visible { Account.current_super_admin? }
-      help { nil }
-    end
     configure :key do
       pretty_value do
         (value || '<i class="icon-lock"/>').html_safe
@@ -4843,17 +4845,27 @@ RailsAdmin.config do |config|
         (value || '<i class="icon-lock"/>').html_safe
       end
     end
-    configure :users do
-      visible { Account.current_super_admin? }
-    end
     configure :notification_level
     configure :time_zone do
       label 'Time Zone'
     end
 
+    show do
+      field :name
+      field :key
+      field :token
+      field :owner
+      field :users
+      field :notification_level
+      field :time_zone
+    end
+
     edit do
       field :name
       field :owner do
+        visible { Account.current_super_admin? }
+      end
+      field :users do
         visible { Account.current_super_admin? }
       end
       field :key do
@@ -4862,14 +4874,11 @@ RailsAdmin.config do |config|
       field :token do
         visible { Account.current_super_admin? }
       end
-      field :users do
-        visible { Account.current_super_admin? }
-      end
       field :notification_level
       field :time_zone
     end
 
-    fields :_id, :name, :owner, :key, :token, :users, :notification_level, :time_zone
+    fields :_id, :name, :owner, :users, :notification_level, :time_zone
   end
 
   config.model Role do

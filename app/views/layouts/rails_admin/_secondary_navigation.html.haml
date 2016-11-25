@@ -85,7 +85,7 @@
         = _current_user.account.name.split('@')[0]
         %span.caret
       %ul#tenant-menu.dropdown-menu
-        - _current_user.accounts.each do | a |
+        - _current_user.all_accounts.each do |a|
           - if a != _current_user.account
             %li= link_to a.name.split('@')[0], inspect_path(model_name: acc_am.to_param, id: a.id)
         - if (new_action = action(:new, acc_am))

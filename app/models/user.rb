@@ -11,6 +11,7 @@ class User
   rolify
 
   has_many :accounts, class_name: Account.to_s, inverse_of: :owner
+  has_and_belongs_to_many :member_accounts, class_name: Account.to_s, inverse_of: :users
   belongs_to :account, class_name: Account.to_s, inverse_of: :nil
   belongs_to :api_account, class_name: Account.to_s, inverse_of: :nil
 
@@ -72,6 +73,10 @@ class User
 
   before_save :ensure_token, :inspect_updated_fields
 
+  def all_accounts
+    (accounts + member_accounts).uniq
+  end
+
   def picture_url(size=50)
     custom_picture_url(size) || gravatar_or_identicon_url(size)
   end
@@ -91,6 +96,10 @@ class User
 
   def owns?(account)
     !account.nil? && account.owner_id == id
+  end
+
+  def member?(account)
+    !account.nil? && account.users.map(&:id).include?(id)
   end
 
   def account_ids #TODO look for usages and try to optimize
@@ -181,6 +190,7 @@ class User
     def current_token
       (current && current.token) || 'XXXXXXXXXXXXXXXX'
     end
+
   end
 
 end
