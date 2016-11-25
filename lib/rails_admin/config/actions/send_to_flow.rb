@@ -55,7 +55,7 @@ module RailsAdmin
                 do_flash_now(:error, 'There are errors selecting the flow', @form_object.errors.full_messages)
               end
 
-              render :form
+              render :form, locals: { bulk_alert: true }
             else
               redirect_to back_or_index
             end
