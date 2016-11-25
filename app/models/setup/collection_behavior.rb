@@ -3,6 +3,7 @@ module Setup
     extend ActiveSupport::Concern
 
     include CollectionName
+    include JsonMetadata
 
     COLLECTING_PROPERTIES =
       [
@@ -29,7 +30,7 @@ module Setup
 
     included do
 
-      build_in_data_type.embedding(*COLLECTING_PROPERTIES - [:operations]).excluding(:image, :operations)
+      build_in_data_type.embedding(*COLLECTING_PROPERTIES).excluding(:image)
 
       field :title, type: String, default: ''
       field :readme, type: String

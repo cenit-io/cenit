@@ -32,7 +32,7 @@ module RailsAdmin
               redirect_to back_or_index
             else
               @model_config = options_config
-              render :form
+              render :form, locals: { bulk_alert: true }
             end
           end
         end
