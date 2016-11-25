@@ -11,16 +11,15 @@
     %a.close{href: '#', :'data-dismiss' => "alert"} &times;
     = value
 
-- unless page_slug == 'dashboard'
-  = breadcrumb
+= breadcrumb
 
 = render :partial => 'rails_admin/rest_api_sdk/menu' if respond_to?(:api_current_paths) && api_current_paths
 
 - if ['dashboard', 'list-of-shared-collections'].include? page_slug
   - @count ||= {}
   - query = params[:query]
-  .clearfix
-    .col-md-7{style: 'margin: 10px 0 20px;'}
+  .col-md-12{style: 'margin-bottom: 20px;'}
+    .col-md-7
       %h3.label-heading{style: 'margin: 0;'}
         %small=  t("admin.misc.title_search_shared_collections")
         %h4{style: "margin-top: 0px;"}= t("admin.misc.sub_title_search_shared_collections", count: @count[Setup::CrossSharedCollection.name])
@@ -36,7 +35,7 @@
       = link_to('twilio', index_path(model_name: "setup~cross_shared_collection", query: 'twilio'))+' or'
       = link_to('shipstation', index_path(model_name: "setup~cross_shared_collection", query: 'shipstation'))
     .col-md-3
-      %h4.text-muted{style:'margin-top: 30px;'}
+      %h4.text-muted
         - if current_user
           = t('admin.actions.dashboard.tenant_users.title')
           - users = tenant_users
@@ -55,7 +54,7 @@
           = t('admin.actions.dashboard.recent_users.more', count: (User.all.count/5 * 5))
 
     .col-md-2
-      %h4.text-muted{style:'margin-top: 30px;'}
+      %h4.text-muted{style:'margin-top: 10px;'}
         - if current_user
           = pluralize(current_user.accounts.count, 'tenant')
         - else

@@ -79,7 +79,7 @@
 
   - acc_am = RailsAdmin::Config.model(Cenit::MultiTenancy.tenant_model).abstract_model
   %ul#tenant-nav.nav.navbar-nav.navbar-right
-    %li.dropdown{style: 'min-width: 125px;'}
+    %li.dropdown{style: 'min-width: 140px;'}
       %a.dropdown-toggle{href:'#', role:'button','data-toggle':'dropdown','aria-haspopup':'true','aria-expanded':'false'}
         %i.fa.fa-fw.fa-home
         = _current_user.account.name.split('@')[0]

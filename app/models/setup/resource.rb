@@ -3,6 +3,7 @@ module Setup
     include ShareWithBindingsAndParameters
     include NamespaceNamed
     include WithTemplateParameters
+    include JsonMetadata
 
     build_in_data_type.embedding(:operations).referenced_by(:name, :namespace)
 

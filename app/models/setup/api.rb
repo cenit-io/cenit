@@ -101,6 +101,11 @@ module Setup
             }
         end
 
+        connections_params = {}
+        parameters.values.each do |param|
+          (connections_params[LOCATION_MAP[param['in']]] ||= []) << to_cenit_parameter(param)
+        end
+
         data['connection_roles'] = connection_roles = []
         data['connections'] = connections = []
 
@@ -248,13 +253,12 @@ module Setup
             if param_desc.is_a?(Hash)
               if param_desc.size == 1 && (ref = param_desc['$ref']).is_a?(String)
                 if (param = parameters[ref])
-                  param
+                  param_desc = param
                 else
                   fail "Path #{path} parameter reference not found: #{ref}"
                 end
-              else
-                (path_parameters[LOCATION_MAP[param['in']] || 'parameters'] ||= []) << to_cenit_parameter(param_desc)
               end
+              (path_parameters[LOCATION_MAP[param_desc['in']]] ||= []) << to_cenit_parameter(param_desc)
             else
               fail "Path #{path} parameter description type is not valid: #{param_desc.class}"
             end
@@ -273,13 +277,23 @@ module Setup
               operation[:description] = description
             end
             metadata[:template_parameters] = []
-            (request_desc['parameters'] || []).each do |param|
-              if (location = LOCATION_MAP[param['in']])
+            (request_desc['parameters'] || []).each do |param_desc|
+              if param_desc.is_a?(Hash)
+                if param_desc.size == 1 && (ref = param_desc['$ref']).is_a?(String)
+                  if (param_desc = parameters[ref])
+                    param_desc = param_desc
+                  else
+                    fail "Operation #{method.to_s.upcase} #{path} parameter reference not found: #{ref}"
+                  end
+                end
+                location = LOCATION_MAP[param_desc['in']]
                 if location == 'template_parameters'
                   metadata[:template_parameters]
                 else
                   operation[location] ||= []
-                end << to_cenit_parameter(param)
+                end << to_cenit_parameter(param_desc)
+              else
+                fail "Operation #{method.to_s.upcase} #{path} parameter description type is not valid: #{param_desc.class}"
               end
             end
             operation
@@ -307,13 +321,28 @@ module Setup
             end
           end
           path_parameters['template_parameters'] = template_parameters.values.to_a
-          {
-            namespace: namespace,
-            name: path.split('/').collect { |token| token.capitalize }.join(' ').strip,
-            path: path.gsub('{', '{{').gsub('}', '}}'),
-            operations: operations,
-            _reset: :operations
-          }.merge(path_parameters)
+          resource =
+            {
+              namespace: namespace,
+              name: path.split('/').collect { |token| token.capitalize }.join(' ').strip,
+              path: path.gsub('{', '{{').gsub('}', '}}'),
+              operations: operations,
+              _reset: :operations,
+              metadata: {}
+            }.merge(path_parameters)
+          factorize_params(resource, operations)
+          resource
+        end
+        factorize_params(connections_params, data['resources'])
+        connections_params.each do |params_key, params|
+          connections_params[params_key] = params.inject({}) { |h, p| h[p[:key]] = p; h }
+        end
+        connections.each do |connection|
+          connections_params.each do |params_key, params|
+            conn_params = (connection.delete(params_key) || []).inject({}) { |h, p| h[p[:key]] = p; h }
+            conn_params.deep_merge!(params)
+            connection[params_key] = conn_params.values.to_a
+          end
         end
 
         shared['data']['oauth2_scopes'] = current_oauth2_scopes unless current_oauth2_scopes.empty?
@@ -326,6 +355,57 @@ module Setup
 
       private
 
+      def factorize_params(parent, childs)
+        if childs.size > 1
+          [:headers, :parameters].each { |params| factorize(params, parent, childs) }
+        end
+      end
+
+      def factorize(params, parent, children)
+        return if children.blank?
+        keys = Set.new((children.first[params] || []).collect { |p| p[:key] })
+        if keys.present?
+          children.each do |child|
+            next if keys.blank?
+            child_params = child[params] || []
+            keys.each { |key| keys.delete(key) unless child_params.any? { |p| p[:key] == key } }
+          end
+        end
+        if keys.present?
+          parent_params = parent.delete(params) || []
+          parent_params = parent_params.inject({}) { |h, p| h[p[:key]] = p; h }
+          children.each do |child|
+            next unless (child_params = child[params]).present?
+            child_params, child[params] = child_params.partition { |child_param| keys.include?(child_param[:key]) }
+            child_params.each do |child_param|
+              key = child_param[:key]
+              parent_params[key] =
+                if (parent_param = parent_params[key])
+                  parent_param.intersection(child_param)
+                else
+                  child_param
+                end
+              (child[:metadata][params] ||= []) << child_param
+            end
+          end
+          children.each do |child|
+            child_params = {}
+            child[:metadata].delete(params).each do |p|
+              if keys.exclude?(key = p[:key]) ||
+                (p = parent_params[key].difference(p)).present?
+                child_params[key] = p
+              end
+            end
+            if child_params.present?
+              child[:metadata][params] = child_params
+            end
+          end
+          if parent_params.present?
+            parent[params] = parent_params.values.to_a
+          end
+        end
+      end
+
       def notify(type, msg, opts)
         if (task = opts[:task])
           task.notify(type: type, message: msg)
@@ -337,10 +417,12 @@ module Setup
 
       LOCATION_MAP =
         {
-          header: 'headers',
-          query: 'parameters',
-          path: 'template_parameters'
+          header: :headers,
+          query: :parameters,
+          path: :template_parameters
         }.stringify_keys
+
+      LOCATION_MAP.default :parameters
 
       def check_referenced_schema(ref, container_schema, all_schemas, options)
         if (ref_schema = all_schemas[ref])
