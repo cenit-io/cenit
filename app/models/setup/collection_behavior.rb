@@ -3,6 +3,7 @@ module Setup
     extend ActiveSupport::Concern
 
     include CollectionName
+    include JsonMetadata
 
     COLLECTING_PROPERTIES =
       [

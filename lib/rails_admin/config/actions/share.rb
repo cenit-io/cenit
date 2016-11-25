@@ -35,7 +35,10 @@ module RailsAdmin
               @form_object ||= Setup::CrossSharedCollection.new(title: @object.title,
                                                                 name: @object.name,
                                                                 image: @object.image,
-                                                                readme: @object.readme)
+                                                                readme: @object.readme,
+                                                                summary: (metadata = @object.metadata) &&
+                                                                  (metadata = metadata['info']) &&
+                                                                  (metadata['description'] || metadata['title']))
               @form_object.instance_variable_set(:@sharing, true)
               @model_config = shared_collection_config
               if params[:_save] &&
