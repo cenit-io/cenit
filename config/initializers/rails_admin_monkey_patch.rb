@@ -542,7 +542,9 @@ module RailsAdmin
     # parent => :root, :collection, :member
     def menu_for(parent, abstract_model = nil, object = nil, only_icon = false, limit = 0) # perf matters here (no action view trickery)
       actions = actions(parent, abstract_model, object).select { |a| a.http_methods.include?(:get) }
-
+      if parent == :root
+        limit = 0
+      end
       if (limited = limit > 0)
         count_links = 0
         more_actions_links = []
