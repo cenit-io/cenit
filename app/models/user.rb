@@ -18,7 +18,7 @@ class User
   # Include default devise modules. Others available are:
   # :lockable, :timeoutable, :rememberable
 
-  devise :trackable, :validatable, :omniauthable, :database_authenticatable, :recoverable
+  devise :invitable, :trackable, :validatable, :omniauthable, :database_authenticatable, :recoverable
   devise :registerable unless ENV['UNABLE_REGISTERABLE'].to_b
   devise :confirmable if ENV.has_key?('UNABLE_CONFIRMABLE') && !ENV['UNABLE_CONFIRMABLE'].to_b
 
@@ -48,6 +48,13 @@ class User
   field :doorkeeper_access_token, type: String
   field :doorkeeper_refresh_token, type: String
   field :doorkeeper_expires_at, type: Integer
+
+  ## Invitation
+  field :invitation_token, type: String
+  field :invitation_created_at, type: Time
+  field :invitation_sent_at, type: Time
+  field :invitation_accepted_at, type: Time
+  field :invitation_limit, type: Integer
 
   #Profile
   mount_uploader :picture, ImageUploader

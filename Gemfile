@@ -11,6 +11,7 @@ gem 'turbolinks'
 gem 'therubyracer', platforms: :ruby
 gem 'jbuilder'
 gem 'devise'
+gem 'devise_invitable'
 gem 'omniauth'
 gem 'omniauth-oauth2', '~> 1.3.1'
 gem 'rabl'

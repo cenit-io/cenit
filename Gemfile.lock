@@ -193,6 +193,9 @@ GEM
       responders
       thread_safe (~> 0.1)
       warden (~> 1.2.3)
+    devise_invitable (1.6.1)
+      actionmailer (>= 3.2.6)
+      devise (>= 3.2.0)
     diff-lcs (1.2.5)
     docile (1.1.5)
     domain_name (0.5.25)
@@ -588,6 +591,7 @@ DEPENDENCIES
   deface
   descriptive_statistics
   devise
+  devise_invitable
   exception_notification
   factory_girl_rails
   ffaker
@@ -643,3 +647,9 @@ DEPENDENCIES
   unicorn (= 4.9.0)
   wannabe_bool
   xmldsig
+
+RUBY VERSION
+   ruby 2.2.1p85
+
+BUNDLED WITH
+   1.12.5
