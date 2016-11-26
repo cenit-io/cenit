@@ -251,8 +251,10 @@ Thank you for your contributions:
 
 * [Maikel Arcia](https://github.com/macarci)
 * [Miguel Sancho](https://github.com/sanchojaf)
+* [Maria E. Guirola](https://github.com/maryguirola)
 * [Asnioby Hernandez](https://github.com/Asnioby)
 * [Daniel H. Bahr](https://github.com/dhbahr)
-* [Maria E. Guirola](https://github.com/maryguirola)
 * [Cesar Lage](https://github.com/kaerdsar)
+* [Yoandry Pacheco](https://github.com/yoandrypa)
+* [Aneli Valdés](https://github.com/avaldesa)
 * [José A. Cruz](https://github.com/jalbertcruz)
