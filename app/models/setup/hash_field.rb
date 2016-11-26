@@ -24,8 +24,16 @@ module Setup
 
     module ClassMethods
 
-      def hash_fields
+      def local_hash_fields
         @hash_fields ||= []
+      end
+
+      def hash_fields
+        if superclass < HashField
+          superclass.hash_fields
+        else
+          []
+        end + local_hash_fields
       end
 
       def hash_field(*field_names)
@@ -34,12 +42,12 @@ module Setup
 
         field_names.each do |field_name|
           field field_name, default: {}
-          hash_fields << field_name
+          local_hash_fields << field_name
         end
 
         before_save do
           check_before_save &&
-            field_names.each do |field|
+            self.class.hash_fields.each do |field|
               if (value = attributes[field]).is_a?(Hash)
                 attributes[field] = value = value.to_json
               end
