@@ -35,6 +35,12 @@ $(function () {
         e.preventDefault();
         $("#wrapper").toggleClass("toggled");
         $(this).toggleClass("toggled");
+        var $conten_wraper= $("#content-wrapper");
+        if ($("#sidebar-wrapper").css('width') == "55px") {
+            $conten_wraper.css('width', 'calc(100% - 250px)');
+        } else {
+            $conten_wraper.css('width', 'calc(100% - 55px)');
+        }
     });
 
     $('#main-accordion').find('.panel-heading a.panel-title').click(function () {
