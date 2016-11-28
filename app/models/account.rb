@@ -6,6 +6,9 @@ class Account
   include Cenit::Oauth::Tenant
   include NumberGenerator
   include TokenGenerator
+  include FieldsInspection
+
+  inspect_fields :name, :notification_level, :time_zone
 
   build_in_data_type.with(:name, :notification_level, :time_zone, :number, :authentication_token)
   build_in_data_type.protecting(:number, :authentication_token)
@@ -59,7 +62,7 @@ class Account
     errors.blank?
   end
 
-  before_save :inspect_updated_fields, :init_heroku_db, :validates_configuration
+  before_save :init_heroku_db, :validates_configuration
 
   after_destroy { clean_up }
 
@@ -69,21 +72,6 @@ class Account
 
   def user
     owner
-  end
-
-  def core_handling(*arg)
-    @core_handling = arg[0].to_s.to_b
-  end
-
-  def core_handling?
-    @core_handling
-  end
-
-  def code_handle(&block)
-    core_handling true
-    instance_eval &block
-  ensure
-    core_handling false
   end
 
   def read_attribute(name)
@@ -97,10 +85,7 @@ class Account
 
   def inspect_updated_fields
     users << owner unless user_ids.include?(owner.id)
-    changed_attributes.keys.each do |attr|
-      reset_attribute!(attr) unless %w(name notification_level time_zone).include?(attr)
-    end unless core_handling? || new_record? || Account.current_super_admin?
-    errors.blank?
+    super
   end
 
   def init_heroku_db
