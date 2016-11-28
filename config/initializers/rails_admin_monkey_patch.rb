@@ -192,7 +192,12 @@ module RailsAdmin
                 @object.send("#{name}=", value)
               end
               changes = @object.changes
-              if @object.save
+              #Patch
+              save_options = {}
+              if @abstract_model.model < FieldsInspection
+                save_options[:inspect_fields] = Account.current.nil? || !Account.current_super_admin?
+              end
+              if @object.save(save_options)
                 if (warnings = @object.try(:warnings)).present?
                   do_flash(:warning, 'Warning', warnings)
                 end

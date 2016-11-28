@@ -80,9 +80,13 @@ module Api::V1
         if authorize_action && (data_type = @payload.data_type_for(root))
           message = [message] unless message.is_a?(Array)
           message.each do |item|
+            options = @payload.create_options
+            if data_type.records_model < FieldsInspection
+              options[:inspect_fields] = Account.current.nil? || !Account.current_super_admin?
+            end
             if (record = data_type.send(@payload.create_method,
                                         @payload.process_item(item, data_type),
-                                        (options = @payload.create_options))).errors.blank?
+                                        options)).errors.blank?
               success_report[root.pluralize] << record.inspect_json(include_id: :id, inspect_scope: options[:create_collector])
             else
               broken_report[root] << { errors: record.errors.full_messages, item: item }
@@ -108,9 +112,13 @@ module Api::V1
           message = [message] unless message.is_a?(Array)
           message.each do |item|
             begin
+              options = @payload.create_optionsmerge(primary_field: @primary_field)
+              if data_type.records_model < FieldsInspection
+                options[:inspect_fields] = Account.current.nil? || !Account.current_super_admin?
+              end
               if (record = data_type.send(@payload.create_method,
                                           @payload.process_item(item, data_type),
-                                          (options = @payload.create_options.merge(primary_field: @primary_field)))).errors.blank?
+                                          options)).errors.blank?
                 success_report[root] = record.inspect_json(include_id: :id, inspect_scope: options[:create_collector])
               else
                 broken_report[root] = { errors: record.errors.full_messages, item: item }
