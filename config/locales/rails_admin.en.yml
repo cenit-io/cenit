@@ -55,6 +55,7 @@ en:
       not_selected: 'Not selected'
       help: 'help'
       add_tenant: 'Add new Tenant'
+      add_membership: 'Add new Member'
       main_navigation:
         json_data_type: 'Objects'
         file_data_type: 'Files'
@@ -470,7 +471,7 @@ en:
       swagger:
         title: "Swagger"
         menu: "Swagger"
-        breadcrumb: "Swagger"  
+        breadcrumb: "Swagger"
       link_data_type:
         menu: "Link"
         breadcrumb: "Link %{model_label}"

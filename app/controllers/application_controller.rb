@@ -45,11 +45,19 @@ class ApplicationController < ActionController::Base
   def scope_current_account
     Account.current = nil
     clean_thread_cache
-    if current_user && current_user.account.nil?
-      current_user.add_role(:admin) unless current_user.has_role?(:admin)
-      current_user.account = Account.create_with_owner(owner: current_user)
-      current_user.core_handling true
-      current_user.save(validate: false)
+    if current_user
+      if current_user.account.nil?
+        current_user.add_role(:admin) unless current_user.has_role?(:admin)
+        current_user.account = Account.create_with_owner(owner: current_user)
+        current_user.core_handling true
+        current_user.save(validate: false)
+      end
+    else
+      if (orig_invitation_token = (params[:invitation_token] || (params[:user] && params[:user][:invitation_token]))).present?
+        invitation_token = Devise.token_generator.digest(self, :invitation_token, orig_invitation_token)
+        membership = Membership.where(invitation_token: invitation_token).first
+        Account.current = membership.account if membership.present?
+      end
     end
     Account.current = current_user.account.target if signed_in?
     yield

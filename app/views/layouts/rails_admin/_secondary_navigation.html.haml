@@ -58,10 +58,10 @@
     %li.dropdown
       %a.dropdown-toggle{href:'#', role:'button','data-toggle':'dropdown','aria-haspopup':'true','aria-expanded':'false'}
         %i.fa.fa-fw.fa-user
-        - if _current_user.name.present?
-          = _current_user.name
+        - if current_user.name.present?
+          = current_user.name
         - else
-          = _current_user.email
+          = current_user.email
         %span.caret
       %ul#user-menu.dropdown-menu
         - if (user_link = edit_user_link)

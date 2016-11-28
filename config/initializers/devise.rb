@@ -132,7 +132,7 @@ Devise.setup do |config|
   # The class name of the inviting model. If this is nil,
   # the #invited_by association is declared to be polymorphic.
   # Default: nil
-  # config.invited_by_class_name = 'User'
+  config.invited_by_class_name = 'User'
 
   # The foreign key to the inviting model (if invited_by_class_name is set)
   # Default: :invited_by_id
@@ -303,4 +303,6 @@ Devise.setup do |config|
   # When using omniauth, Devise cannot automatically set Omniauth path,
   # so you need to do it manually. For the users scope, it would be:
   # config.omniauth_path_prefix = '/my_engine/users/auth'
+
+  config.scoped_views = true
 end

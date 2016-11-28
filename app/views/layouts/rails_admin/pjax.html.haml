@@ -37,7 +37,7 @@
     .col-md-3
       %h4.text-muted
         - if current_user
-          = "#{current_user.account.name.split('@')[0]} tenant"
+          = link_to(pluralize(current_user.account.users.count, 'member'), index_path(model_name: 'membership'))
           - users = tenant_users
         - else
           = t('admin.actions.dashboard.recent_users.title')
@@ -50,7 +50,7 @@
           %li
             = image_tag url, alt: alt, title: title, class: 'img-circle', height: 50, width: 50
       - if current_user
-        = pluralize(current_user.account.users.count, 'member')
+        = link_to(t('admin.misc.add_membership'), new_path(model_name: 'membership'))
       - else
         %span.text-muted
           = t('admin.actions.dashboard.recent_users.more', count: (User.all.count/5 * 5))

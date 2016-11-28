@@ -20,6 +20,7 @@ class Ability
               Role,
               User,
               Account,
+              Membership,
               Setup::SharedName,
               Setup::CrossSharedName,
               Cenit::BasicToken,
@@ -49,6 +50,11 @@ class Ability
         can :pull, Setup::CrossSharedCollection, installed: true
         can [:edit, :destroy], Setup::CrossSharedCollection, owner_id: user.id
         can :reinstall, Setup::CrossSharedCollection, owner_id: user.id, installed: true
+
+        can :edit, Membership, :id.in => user.memberships.map(&:id)
+        can [:index, :show, :edit, :inspect, :destroy], Membership, :id.in => user.memberships.map(&:id)
+        can :new, Membership
+
         can :edit, Account, :id.in => user.account_ids
         can [:index, :show, :edit, :inspect], Account, :id.in => user.account_ids + user.member_accounts.map(&:id)
         can :destroy, Account, :id.in => user.account_ids - [user.account_id]

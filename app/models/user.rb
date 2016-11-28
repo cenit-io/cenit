@@ -8,12 +8,17 @@ class User
   extend DeviseOverrides
   include NumberGenerator
   include TokenGenerator
+  include DeviseInvitable::Inviter
+
   rolify
 
   has_many :accounts, class_name: Account.to_s, inverse_of: :owner
-  has_and_belongs_to_many :member_accounts, class_name: Account.to_s, inverse_of: :users
   belongs_to :account, class_name: Account.to_s, inverse_of: :nil
   belongs_to :api_account, class_name: Account.to_s, inverse_of: :nil
+
+  has_many :memberships
+  has_many :invitations, class_name: Membership.to_s, as: :invited_by
+
 
   # Include default devise modules. Others available are:
   # :lockable, :timeoutable, :rememberable
@@ -80,8 +85,35 @@ class User
 
   before_save :ensure_token, :inspect_updated_fields
 
+  after_invitation_created :set_invitation_token
+  def set_invitation_token
+    if (membership = Membership.where(email: self.email, account: Account.current).first).present?
+      membership.update_attributes!(invitation_token: self.invitation_token)
+    end
+  end
+
+  before_invitation_accepted :set_invitation_accepted_at
+  def set_invitation_accepted_at
+    if (membership = Membership.where(invitation_token: user.invitation_token).first).present?
+      membership.update_attributes!(invitation_accepted_at: Time.now)
+    end
+  end
+
+  after_invitation_accepted :clear_invitation_accepted_at
+  def clear_invitation_accepted_at
+    self.update_attributes!(invitation_accepted_at: nil, invitation_created_at: nil)
+  end
+
   def all_accounts
-    (accounts + member_accounts).uniq
+    (accounts + member_accounts).compact.uniq
+  end
+
+  def block_from_invitation?
+    false
+  end
+
+  def member_accounts
+    memberships.map(&:account).compact
   end
 
   def picture_url(size=50)
@@ -106,7 +138,7 @@ class User
   end
 
   def member?(account)
-    !account.nil? && account.users.map(&:id).include?(id)
+    member_accounts.include?(account)
   end
 
   def account_ids #TODO look for usages and try to optimize

@@ -1,6 +1,6 @@
 class SessionsController < Devise::SessionsController
 
-  def new
+  def new  
     if (provider = params[:with])
       state =
         if (user_options = resource_params)

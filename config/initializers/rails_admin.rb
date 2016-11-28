@@ -4704,8 +4704,7 @@ RailsAdmin.config do |config|
       group :accounts
       read_only { !Account.current_super_admin? }
     end
-    configure :member_accounts do
-      group :member_accounts
+    configure :memberships do
       read_only { !Account.current_super_admin? }
     end
     configure :password do
@@ -4754,7 +4753,7 @@ RailsAdmin.config do |config|
       field :accounts do
         visible { Account.current_super_admin? }
       end
-      field :member_accounts do
+      field :memberships do
         visible { Account.current_super_admin? }
       end
       field :password do
@@ -4799,7 +4798,7 @@ RailsAdmin.config do |config|
       field :account
       field :api_account
       field :accounts
-      field :member_accounts
+      field :memberships
       field :roles
       field :key
       field :authentication_token
@@ -4819,7 +4818,7 @@ RailsAdmin.config do |config|
       field :account
       field :api_account
       field :accounts
-      field :member_accounts
+      field :memberships
       field :roles
       field :sign_in_count
       field :created_at
@@ -4855,7 +4854,7 @@ RailsAdmin.config do |config|
       field :key
       field :token
       field :owner
-      field :users
+      field :memberships
       field :notification_level
       field :time_zone
     end
@@ -4865,7 +4864,7 @@ RailsAdmin.config do |config|
       field :owner do
         visible { Account.current_super_admin? }
       end
-      field :users do
+      field :memberships do
         visible { Account.current_super_admin? }
       end
       field :key do
@@ -4878,7 +4877,41 @@ RailsAdmin.config do |config|
       field :time_zone
     end
 
-    fields :_id, :name, :owner, :users, :notification_level, :time_zone
+    fields :_id, :name, :owner, :memberships, :notification_level, :time_zone
+  end
+
+  config.model Membership do
+    weight 810
+    navigation_label 'Administration'
+    object_label_method { :to_s }
+    configure :account do
+      visible { Account.current_super_admin? }
+    end
+    configure :user do
+      visible { Account.current_super_admin? }
+    end
+    edit do
+      field :email do
+        visible do
+          bindings[:object].email.nil?
+        end
+      end
+      field :roles
+      field :invited_by_id, :hidden do
+        default_value do
+          bindings[:view]._current_user.id
+        end
+      end
+    end
+    show do
+      field :email
+      field :user
+      field :account
+      field :roles
+      field :invited_by
+      field :invitation_accepted_at
+    end
+    fields :email, :user, :roles, :invitation_accepted_at
   end
 
   config.model Role do

@@ -29,7 +29,7 @@ class Account
   deny :all
 
   belongs_to :owner, class_name: User.to_s, inverse_of: :accounts
-  has_and_belongs_to_many :users, class_name: User.to_s, inverse_of: :member_accounts
+  has_many :memberships
 
   field :name, type: String
   field :meta, type: Hash, default: {}
@@ -71,6 +71,10 @@ class Account
     owner
   end
 
+  def users
+    ([owner] + memberships.map(&:user)).compact.uniq
+  end
+
   def core_handling(*arg)
     @core_handling = arg[0].to_s.to_b
   end
@@ -96,7 +100,7 @@ class Account
   end
 
   def inspect_updated_fields
-    users << owner unless user_ids.include?(owner.id)
+    Membership.create(user: owner, account: self) unless users.map(&:id).include?(owner.id)
     changed_attributes.keys.each do |attr|
       reset_attribute!(attr) unless %w(name notification_level time_zone).include?(attr)
     end unless core_handling? || new_record? || Account.current_super_admin?
