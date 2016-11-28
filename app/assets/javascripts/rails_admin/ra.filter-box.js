@@ -116,7 +116,8 @@
         );
         if($('#save_filter_button').length == 0)
         {
-            $('.filters-buttons').append('<span style="float:right" id="save_filter_button"><a class="btn btn-info" href="">Save Filter</a></span>')
+            $save_button = $('<button class="btn btn-primary" type="submit" id="save_filter_button"><i class="icon-white fa fa-filter"></i> Save Filter </button>')
+            $('.filters-buttons').append($save_button);
         }
     });
 
