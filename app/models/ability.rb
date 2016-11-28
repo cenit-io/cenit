@@ -26,7 +26,8 @@ class Ability
               Script,
               Setup::DelayedMessage,
               Setup::SystemNotification,
-              Setup::Operation
+              Setup::Operation,
+              TourTrack
             ]
         can [:import, :edit], Setup::SharedCollection
         can :destroy, [Setup::SharedCollection, Setup::Storage, Setup::CrossSharedCollection]

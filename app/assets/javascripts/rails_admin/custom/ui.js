@@ -1,6 +1,7 @@
 // require rails_admin/d3
 // require rails_admin/highcharts
 //= require rails_admin/toggle-origin.js
+//= require rails_admin/bootstrap-tour.min
 //= require rails_admin/triggers-box
 //= require rails_admin/test-flow-transformation
 //= require rails_admin/highlight_js/highlight.pack.js
@@ -35,7 +36,7 @@ $(function () {
         e.preventDefault();
         $("#wrapper").toggleClass("toggled");
         $(this).toggleClass("toggled");
-        var $conten_wraper= $("#content-wrapper");
+        var $conten_wraper = $("#content-wrapper");
         if ($("#sidebar-wrapper").css('width') == "55px") {
             $conten_wraper.css('width', 'calc(100% - 250px)');
         } else {
@@ -114,152 +115,154 @@ $(function () {
         }
     });
 });
+function initializeTour() {
+    var toggle_collapse = function (id) {
+            $('.panel-collapse', id).first().collapse('toggle');
+            $(id).toggleClass('active');
+        },
+        tour = new Tour({
+            name: 'anonymous',
+            steps: [
+                {
+                    title: "Welcome to cenit.io!",
+                    content: "Thanks for visiting us! Click 'Next' to start the tour.",
+                    orphan: true
+                },
+                {
+                    title: "Browse our Collections",
+                    content: "Install any available collection in the blink of an eye, and create your own",
+                    element: "#main-collections",
+                    placement: "right",
+                    onShow: function () {
+                        that = this.element;
+                        toggle_collapse(that);
+                    },
+                    onHide: function () {
+                        that = this.element;
+                        toggle_collapse(that);
+                    }
+                },
+                {
+                    title: "Define data",
+                    content: "Create your schemas and data types",
+                    element: "#main-definitions",
+                    placement: "right",
+                    onShow: function () {
+                        that = this.element;
+                        toggle_collapse(that);
+                    },
+                    onHide: function () {
+                        that = this.element;
+                        toggle_collapse(that);
+                    }
+                },
+                {
+                    title: "Store data",
+                    content: "Store your objects",
+                    element: "#main-json_data_type",
+                    placement: "right",
+                    onShow: function () {
+                        that = this.element;
+                        toggle_collapse(that);
+                    },
+                    onHide: function () {
+                        that = this.element;
+                        toggle_collapse(that);
+                    }
+                },
+                {
+                    title: "Setup your endpoints",
+                    content: "Register connections and webhooks",
+                    element: "#main-connectors",
+                    placement: "right",
+                    onShow: function () {
+                        that = this.element;
+                        toggle_collapse(that);
+                    },
+                    onHide: function () {
+                        that = this.element;
+                        toggle_collapse(that);
+                    }
+                },
+                {
+                    title: "Transform and dispatch",
+                    content: "Send your data away or pull it from a remote endpoint or simply translate it from one data type to another",
+                    element: "#main-transformations",
+                    placement: "right",
+                    onShow: function () {
+                        that = this.element;
+                        toggle_collapse(that);
+                    },
+                    onHide: function () {
+                        that = this.element;
+                        toggle_collapse(that);
+                    }
 
+                },
+                {
+                    title: "Safety first",
+                    content: "Control who may access your stuff, and define hoy you access other's",
+                    element: "#main-security",
+                    placement: "right",
+                    onShow: function () {
+                        that = this.element;
+                        toggle_collapse(that);
+                    },
+                    onHide: function () {
+                        that = this.element;
+                        toggle_collapse(that);
+                    }
+                },
+                {
+                    title: "Monitoring",
+                    content: "Consult the status of every action",
+                    element: "#main-monitors",
+                    placement: "right",
+                    onShow: function () {
+                        that = this.element;
+                        toggle_collapse(that);
+                    },
+                    onHide: function () {
+                        that = this.element;
+                        toggle_collapse(that);
+                    }
+                },
+                // TODO: Where to go on this step
+                {
+                    title: "Check the Dashboard",
+                    content: "All models are there",
+                    element: ".dashboard_root_link",
+                    placement: "bottom"
+                },
+                {
+                    title: "Tasks",
+                    content: "Check your tasks",
+                    element: "#action-tasks",
+                    placement: "bottom"
+                },
+                {
+                    title: "Authentications",
+                    content: "Authentications here",
+                    element: "#action-auth",
+                    placement: "bottom"
+                },
+                {
+                    title: "Get notified",
+                    content: "Different kinds of notifications",
+                    element: "#action-notify",
+                    placement: "bottom"
+                }
+            ]
+        });
+    // Initialize the tour
+    tour.init();
+
+    // Start the tour
+    tour.restart(true);
+}
 $(function () {
     $('#take-tour').click(function (e) {
         e.preventDefault();
-        var toggle_collapse = function (id) {
-                $('.panel-collapse', id).first().collapse('toggle');
-                $(id).toggleClass('active');
-            },
-            tour = new Tour({
-                name: 'anonymous',
-                steps: [
-                    {
-                        title: "Welcome to cenit.io!",
-                        content: "Thanks for visiting us! Click 'Next' to start the tour.",
-                        orphan: true
-                    },
-                    {
-                        title: "Browse our Collections",
-                        content: "Install any available collection in the blink of an eye, and create your own",
-                        element: "#main-collections",
-                        placement: "right",
-                        onShow: function () {
-                            that = this.element;
-                            toggle_collapse(that);
-                        },
-                        onHide: function () {
-                            that = this.element;
-                            toggle_collapse(that);
-                        }
-                    },
-                    {
-                        title: "Define data",
-                        content: "Create your schemas and data types",
-                        element: "#main-definitions",
-                        placement: "right",
-                        onShow: function () {
-                            that = this.element;
-                            toggle_collapse(that);
-                        },
-                        onHide: function () {
-                            that = this.element;
-                            toggle_collapse(that);
-                        }
-                    },
-                    {
-                        title: "Store data",
-                        content: "Store your objects",
-                        element: "#main-json_data_type",
-                        placement: "right",
-                        onShow: function () {
-                            that = this.element;
-                            toggle_collapse(that);
-                        },
-                        onHide: function () {
-                            that = this.element;
-                            toggle_collapse(that);
-                        }
-                    },
-                    {
-                        title: "Setup your endpoints",
-                        content: "Register connections and webhooks",
-                        element: "#main-connectors",
-                        placement: "right",
-                        onShow: function () {
-                            that = this.element;
-                            toggle_collapse(that);
-                        },
-                        onHide: function () {
-                            that = this.element;
-                            toggle_collapse(that);
-                        }
-                    },
-                    {
-                        title: "Transform and dispatch",
-                        content: "Send your data away or pull it from a remote endpoint or simply translate it from one data type to another",
-                        element: "#main-transformations",
-                        placement: "right",
-                        onShow: function () {
-                            that = this.element;
-                            toggle_collapse(that);
-                        },
-                        onHide: function () {
-                            that = this.element;
-                            toggle_collapse(that);
-                        }
-
-                    },
-                    {
-                        title: "Safety first",
-                        content: "Control who may access your stuff, and define hoy you access other's",
-                        element: "#main-security",
-                        placement: "right",
-                        onShow: function () {
-                            that = this.element;
-                            toggle_collapse(that);
-                        },
-                        onHide: function () {
-                            that = this.element;
-                            toggle_collapse(that);
-                        }
-                    },
-                    {
-                        title: "Monitoring",
-                        content: "Consult the status of every action",
-                        element: "#main-monitors",
-                        placement: "right",
-                        onShow: function () {
-                            that = this.element;
-                            toggle_collapse(that);
-                        },
-                        onHide: function () {
-                            that = this.element;
-                            toggle_collapse(that);
-                        }
-                    },
-                    // TODO: Where to go on this step
-                    {
-                        title: "Check the Dashboard",
-                        content: "All models are there",
-                        element: ".dashboard_root_link",
-                        placement: "bottom"
-                    },
-                    {
-                        title: "Tasks",
-                        content: "Check your tasks",
-                        element: "#action-tasks",
-                        placement: "bottom"
-                    },
-                    {
-                        title: "Authentications",
-                        content: "Authentications here",
-                        element: "#action-auth",
-                        placement: "bottom"
-                    },
-                    {
-                        title: "Get notified",
-                        content: "Different kinds of notifications",
-                        element: "#action-notify",
-                        placement: "bottom"
-                    }
-                ]
-            });
-// Initialize the tour
-        tour.init();
-
-// Start the tour
-        tour.restart(true);
+        initializeTour();
     });
 });
