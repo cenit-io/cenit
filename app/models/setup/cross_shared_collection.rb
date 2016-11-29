@@ -153,6 +153,7 @@ module Setup
       pull_parameters.each do |pull_parameter|
         pull_parameter.process_on(hash_data, value: parameters[pull_parameter.id] || parameters[pull_parameter.id.to_s])
       end
+      hash_data['metadata'] = metadata
       hash_data
     end
 
