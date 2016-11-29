@@ -129,7 +129,7 @@ RailsAdmin.config do |config|
     run
     run_script
     edit
-    swagger {only [Setup::Api] }
+    swagger { only [Setup::Api] }
     configure
     play
     copy
@@ -337,9 +337,9 @@ RailsAdmin.config do |config|
 
       if abstract_model.model == Setup::CrossSharedCollection
         field :shared_version, &sharing_collection_invisible
-        field :category, &sharing_collection_invisible
         field :authors, &sharing_collection_invisible
         field :summary
+        field :categories
       end
 
       field :readme, :html_erb, &sharing_collection_invisible
@@ -383,6 +383,7 @@ RailsAdmin.config do |config|
       prefix =
         if abstract_model.model == Setup::CrossSharedCollection
           field :summary
+          field :categories
           field :authors
           field :pull_count
           'data_'
@@ -5079,6 +5080,22 @@ RailsAdmin.config do |config|
     fields :script, :description, :scheduler, :attempts_succeded, :retries, :progress, :status, :notifications
   end
 
+  config.model Setup::Category do
+    weight 850
+    navigation_label 'Administration'
+    visible { User.current_super_admin? }
+
+    edit do
+      field :_id do
+        read_only { !bindings[:object].new_record? }
+      end
+      field :title
+      field :description
+    end
+
+    fields :_id, :title, :description, :updated_at
+  end
+
   config.model TourTrack do
     weight 841
     navigation_label 'Administration'
@@ -5087,4 +5104,5 @@ RailsAdmin.config do |config|
 
     fields :ip, :user_email, :updated_at
   end
+
 end

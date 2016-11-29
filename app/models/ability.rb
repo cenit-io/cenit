@@ -27,6 +27,7 @@ class Ability
               Setup::DelayedMessage,
               Setup::SystemNotification,
               Setup::Operation,
+              Setup::Category,
               TourTrack
             ]
         can [:import, :edit], Setup::SharedCollection

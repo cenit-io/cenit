@@ -139,7 +139,7 @@
               %p #{object.summary.html_safe if object.summary.present?}
           .panel-footer
             .footer-description
-              #{object.category} - v #{object.shared_version}
+              #{object.categories.collect(&:title).to_sentence} - v #{object.shared_version}
             .versions
               %span.truncate
                 - if (pull_action = RailsAdmin::Config::Actions.find(:pull, controller: controller, abstract_model: @abstract_model, object: object))
