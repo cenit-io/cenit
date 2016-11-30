@@ -932,29 +932,34 @@ module RailsAdmin
               end
             end
           end
-        if node.label=='Shared Collection'
-          categories = %w(Category1 Category2 Category3)
+        if node.abstract_model.model == Setup::CrossSharedCollection
           sub_links = ''
-          categories.each do |cat|
-            api_from_category = 1
-            sub_links += content_tag :li do
-              sub_link_url = "url for#{cat}"
-              link_to sub_link_url do
-                rc = ''
-                if _current_user.present? && api_from_category > 0
-                  rc += "<span class='nav-amount'>#{api_from_category}</span>"
+          category_count = 0
+          Setup::Category.all.each do |cat|
+            count = (values = Setup::CrossSharedCollection.where(:category_ids => cat.id)).count
+            if count > 0
+              category_count += count
+              message = "<span><em>#{node.label_plural}</em> with category <em>#{cat.title}</em></span>"
+              filter_token =  Cenit::Token.where('data.category_id' => cat.id).first || Cenit::Token.create(data: { criteria: values.selector, message: message, category_id: cat.id })
+              sub_links += content_tag :li do
+                sub_link_url = index_path(model_name: node.abstract_model.to_param, filter_token: filter_token.token)
+                link_to sub_link_url do
+                  rc = ''
+                  if _current_user.present? && count > 0
+                    rc += "<span class='nav-amount'>#{count}</span>"
+                  end
+                  rc += "<span class='nav-caption'>#{cat.title}</span>"
+                  rc.html_safe
                 end
-                rc += "<span class='nav-caption'>#{cat.upcase}</span>"
-                rc.html_safe
               end
             end
           end
 
           show_all_link =
-            if true
+            if category_count < model_count
               content_tag :li do
                 link_to index_path(model_name: node.abstract_model.to_param) do
-                  "<span class='nav-amount'>#{model_count}</span><span class='nav-caption'>Sow All</span>".html_safe
+                  "<span class='nav-amount'>#{model_count}</span><span class='nav-caption'>Show All</span>".html_safe
                 end
               end
             else
@@ -974,7 +979,7 @@ module RailsAdmin
             </div>)
 
         end
-        if node.label=='Renderer' &&
+        if node.abstract_model.model == Setup::Renderer &&
           (extensions_list = Setup::Renderer.file_extension_filter_enum).present?
           ext_count = 0
           sub_links = ''
@@ -1000,52 +1005,7 @@ module RailsAdmin
             if ext_count < model_count
               content_tag :li do
                 link_to index_path(model_name: node.abstract_model.to_param) do
-                  "<span class='nav-amount'>#{model_count}</span><span class='nav-caption'>Sow All</span>".html_safe
-                end
-              end
-            else
-              ''
-            end
-          html = %(<div class='panel panel-default'>
-            <div class='panel-heading'>
-              <a data-toggle='collapse' data-parent='#none' href='#renderer-collapse' class='panel-title collapse in collapsed'>
-                <span class='nav-caret'><i class='fa fa-caret-down'></i></span>
-                <span class='nav-caption'>#{node.label.pluralize}</span>
-              </a>
-            </div>
-             <div id='renderer-collapse' class='nav nav-pills nav-stacked panel-collapse collapse'>
-                #{sub_links}
-          #{show_all_link}
-            </div>
-            </div>)
-        end
-        if node.label=='Shared Collections' &&
-          (extensions_list = Setup::Renderer.file_extension_filter_enum).present?
-          ext_count = 0
-          sub_links = ''
-          extensions_list.each do |ext|
-            count = Setup::Renderer.where(:file_extension => ext).count
-            ext_count += count
-            sub_links += content_tag :li do
-              #TODO review and improve the params for the sub_link_url generation and try to show the filter in the view
-              filter = { file_extension: { 80082 => { v: ext } } }
-              sub_link_url = index_path(model_name: node.abstract_model.to_param, utf8: '✓', f: filter)
-              link_to sub_link_url do
-                rc = ''
-                if _current_user.present? && model_count>0
-                  rc += "<span class='nav-amount'>#{count}</span>"
-                end
-                rc += "<span class='nav-caption'>#{ext.upcase}</span>"
-                rc.html_safe
-              end
-            end
-          end
-
-          show_all_link =
-            if ext_count < model_count
-              content_tag :li do
-                link_to index_path(model_name: node.abstract_model.to_param) do
-                  "<span class='nav-amount'>#{model_count}</span><span class='nav-caption'>Sow All</span>".html_safe
+                  "<span class='nav-amount'>#{model_count}</span><span class='nav-caption'>Show All</span>".html_safe
                 end
               end
             else
