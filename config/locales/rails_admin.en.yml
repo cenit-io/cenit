@@ -62,6 +62,7 @@ en:
       link_json_data_type: 'Link Object Type'
       link_file_data_type: 'Link File Type'
       link_cross_shared_collection: 'Connect Store'
+      and_more: "and %{count} more"
     actions:
       dashboard:
         title: "Dashboard"
@@ -69,7 +70,9 @@ en:
           title: 'Thank you for joining us!'
           more: "More than %{count} users"
         tenant_users:
-          title: "Only you in your tenant"
+          title: "Only you in this tenant"
+        your_tenants:
+          owner: "Owner of %{count}"
         monitors:
           tasks: 'running tasks'
           auths: 'authorizations'
@@ -239,6 +242,7 @@ en:
         records: "records"
       action_will:
         also: 'These action will also'
+        just: 'These action will'
       disk_usage:
         title: "Disk Usage"
         menu: "Disk"
@@ -416,14 +420,14 @@ en:
         title: "Copy"
         menu: "Copy"
         breadcrumb: "Copy"
-      queries:
-        title: "Queries"
-        menu: "Queries"
-        breadcrumb: "Queries"
-      query_data_type:
-        title: "Queries"
-        menu: "Queries"
-        breadcrumb: "Queries"
+      filters:
+        title: "Filters"
+        menu: "Filters"
+        breadcrumb: "Filters"
+      filter_data_type:
+        title: "Filters"
+        menu: "Filters"
+        breadcrumb: "Filters"
       cancel:
         title: "Cancel '%{object_label}'"
         menu: "Cancel"
@@ -444,6 +448,10 @@ en:
         submit: "Regist"
         done: "registered"
         doing: "registering"
+      rest_api:
+        title: "Rest API"
+        menu: "Rest API"
+        breadcrumb: "Rest API"
       state:
         title: "State"
         menu: "State"
@@ -461,6 +469,10 @@ en:
         title: "Docs"
         menu: "Docs"
         breadcrumb: "Docs"
+      swagger:
+        title: "Swagger"
+        menu: "Swagger"
+        breadcrumb: "Swagger"  
       link_data_type:
         menu: "Link"
         breadcrumb: "Link %{model_label}"
@@ -591,7 +603,7 @@ en:
           end:
             label: 'Save when done'
             description: 'Please fill the require fields and save'
-      query:
+      filter:
         wizard:
           start:
             label: 'Select the data type'
@@ -618,7 +630,3 @@ en:
           end:
             label: 'Add the triggers and save'
             description: 'Please add the triggers and save when done'
-
-
-
-

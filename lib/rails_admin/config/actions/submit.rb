@@ -4,7 +4,7 @@ module RailsAdmin
       class Submit < RailsAdmin::Config::Actions::Base
 
         register_instance_option :only do
-          Setup::Webhook
+          Setup::Webhook.class_hierarchy
         end
 
         register_instance_option :member do
@@ -95,13 +95,22 @@ module RailsAdmin
           def params_schema(webhook, connection)
             required = ['connection']
             content_type_header = false
-            pararms_properties =
+            params_properties =
               if connection
                 c = 0
-                [connection, webhook].inject({}) do |hash, entity|
-                  entity_hash = [:headers, :parameters, :template_parameters].inject({}) do |hash, params|
+                property_names =
+                  {
+                    headers: {},
+                    parameters: {},
+                    template_parameters: {}
+                  }
+                webhook.with(connection).params_stack.inject({}) do |hash, entity|
+                  entity_hash = property_names.keys.inject({}) do |hash, params|
                     h = entity.send(params).inject({}) do |params_hash, param|
-                      params_hash[property_name = "property_#{c += 1}"] =
+                      unless (property_name = property_names[params][param.key])
+                        property_name = property_names[params][param.key] = "property_#{c += 1}"
+                      end
+                      params_hash[property_name] =
                         ph =
                           (param.metadata || {}).deep_dup.merge!('title' => param.key,
                                                                  'description' => param.description,
@@ -113,6 +122,14 @@ module RailsAdmin
                       required << property_name if ph.delete('required')
                       content_type_header ||= params == :headers && param.key == 'Content-Type'
                       params_hash
+                    end
+                    if (metadata = entity.try(:metadata)).is_a?(Hash) &&
+                      (params_metadata = metadata[params]).is_a?(Hash)
+                      params_metadata.each do |key, param_hash|
+                        if (property_name = property_names[params][key])
+                          h.merge!(property_name => param_hash)
+                        end
+                      end
                     end
                     hash.merge! h
                   end
@@ -141,7 +158,7 @@ module RailsAdmin
                   content_type_property['default'] = consumes.first.to_s
                 end
               end
-              pararms_properties.merge!(body_properties)
+              params_properties.merge!(body_properties)
             end
             {
               'type' => 'object',
@@ -155,7 +172,7 @@ module RailsAdmin
                   '$ref' => Setup::Authorization.to_s,
                   'referenced' => true
                 }
-              }.merge!(pararms_properties)
+              }.merge!(params_properties)
             }
           end
         end

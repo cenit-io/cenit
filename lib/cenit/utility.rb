@@ -72,8 +72,10 @@ module Cenit
             references[obj] = record_refs
           end
         end
-        if references.present?
-          options.delete(:visited).each do |obj|
+        start_size = references.size + 1
+        while references.present? && references.size < start_size
+          start_size = references.size
+          options[:visited].each do |obj|
             references.each do |obj_waiting, to_bind|
               to_bind.each do |property_name, property_binds|
                 is_array = property_binds.is_a?(Array) ? true : (property_binds = [property_binds]; false)
@@ -96,6 +98,8 @@ module Cenit
             end
           end
         end
+
+        options.delete(:visited)
 
         if references.present?
           references.each do |obj, to_bind|

@@ -12,7 +12,8 @@ module RailsAdmin
           authorized? && (obj = bindings[:object]) &&
             [
               Setup::PullImport,
-              Setup::SharedCollectionPull
+              Setup::SharedCollectionPull,
+              Setup::ApiPull
             ].include?(obj.class)
         end
 
@@ -87,6 +88,14 @@ module RailsAdmin
           end
 
           def post_shared_collection_pull(controller, params, task)
+            post_base_pull(controller, params, task)
+          end
+
+          def get_api_pull(controller, params, task)
+            get_base_pull(controller, params, task)
+          end
+
+          def post_api_pull(controller, params, task)
             post_base_pull(controller, params, task)
           end
         end

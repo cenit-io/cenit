@@ -8,9 +8,14 @@ class User
   extend DeviseOverrides
   include NumberGenerator
   include TokenGenerator
+  include FieldsInspection
+
+  inspect_fields :name, :picture, :account_id, :api_account_id, :code_theme
+
   rolify
 
   has_many :accounts, class_name: Account.to_s, inverse_of: :owner
+  has_and_belongs_to_many :member_accounts, class_name: Account.to_s, inverse_of: :users
   belongs_to :account, class_name: Account.to_s, inverse_of: :nil
   belongs_to :api_account, class_name: Account.to_s, inverse_of: :nil
 
@@ -70,7 +75,11 @@ class User
     errors.blank?
   end
 
-  before_save :ensure_token, :inspect_updated_fields
+  before_save :ensure_token
+
+  def all_accounts
+    (accounts + member_accounts).uniq
+  end
 
   def picture_url(size=50)
     custom_picture_url(size) || gravatar_or_identicon_url(size)
@@ -93,6 +102,10 @@ class User
     !account.nil? && account.owner_id == id
   end
 
+  def member?(account)
+    !account.nil? && account.users.map(&:id).include?(id)
+  end
+
   def account_ids #TODO look for usages and try to optimize
     accounts.collect(&:id)
   end
@@ -105,32 +118,11 @@ class User
     end
   end
 
-  def inspect_updated_fields
-    changed_attributes.keys.each do |attr|
-      reset_attribute!(attr) unless %w(name picture account_id api_account_id code_theme).include?(attr)
-    end unless core_handling? || new_record? || (Account.current && Account.current_super_admin?)
-    errors.blank?
-  end
-
-  def core_handling(*arg)
-    @core_handling = arg[0].to_s.to_b
-  end
-
-  def core_handling?
-    @core_handling
-  end
-
-  def confirm(args={})
-    core_handling true
-    super
-  end
-
   def self.find_or_initialize_for_doorkeeper_oauth(oauth_data)
     user = User.where(email: oauth_data.info.email).first
     user ||= User.new(email: oauth_data.info.email, password: Devise.friendly_token[0, 20])
     user.confirmed_at ||= Time.now
     user.doorkeeper_uid = oauth_data.uid
-    user.core_handling true
     user
   end
 
@@ -181,6 +173,7 @@ class User
     def current_token
       (current && current.token) || 'XXXXXXXXXXXXXXXX'
     end
+
   end
 
 end

@@ -16,8 +16,8 @@ module Setup
       @title ||= model.to_s.to_title
     end
 
-    def custom_title
-      "#{Setup.to_s} | #{title}"
+    def custom_title(separator = '|')
+      "#{Setup.to_s} #{separator} #{title}"
     end
 
     def name
@@ -156,6 +156,10 @@ module Setup
             build_in
           end
       end
+    end
+
+    def ns_slug
+      Setup.to_s.underscore
     end
 
     EXCLUDED_FIELDS = %w{_id created_at updated_at version}

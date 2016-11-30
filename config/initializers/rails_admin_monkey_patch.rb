@@ -192,7 +192,12 @@ module RailsAdmin
                 @object.send("#{name}=", value)
               end
               changes = @object.changes
-              if @object.save
+              #Patch
+              save_options = {}
+              if @abstract_model.model < FieldsInspection
+                save_options[:inspect_fields] = Account.current.nil? || !Account.current_super_admin?
+              end
+              if @object.save(save_options)
                 if (warnings = @object.try(:warnings)).present?
                   do_flash(:warning, 'Warning', warnings)
                 end
@@ -377,11 +382,15 @@ module RailsAdmin
                     field.bind(object: associated, view: v)
                     "<td class=\"#{field.css_class} #{field.type_css_class}\" title=\"#{v.strip_tags(associated.to_s)}\">#{field.pretty_value}</td>"
                   end.join +
-                  '<td class="last links"><ul class="inline list-inline">' +
                   if can_see
-                    v.menu_for(:member, am, associated, true)
+                    '<td id="actions-menu-list">
+                    <div class="options-menu" id="links">
+                    <span class="btn dropdown-toggle" data-toggle="dropdown" type="button">
+                    <i class="fa fa-ellipsis-v"></i>
+                    </span>
+                    <ul class="dropdown-menu">' + v.menu_for(:member, am, associated)
                   else
-                    ''
+                    '<td class="last links"><ul class="inline list-inline">'
                   end +
                   '</ul></td>' +
                   '</tr>'
@@ -428,7 +437,7 @@ module RailsAdmin
 
         def all_associated_link(values, am, link_content)
           v = bindings[:view]
-          if values.is_a?(Mongoid::Criteria) && !am.embedded? && (index_action = v.action(:index, am))
+          if bindings[:controller] && values.is_a?(Mongoid::Criteria) && !am.embedded? && (index_action = v.action(:index, am))
             message = "<span>Showing #{label.downcase} of <em>#{bindings[:object].send(bindings[:controller].model_config.object_label_method)}</em></span>"
             filter_token = Cenit::Token.create(data: { criteria: values.selector, message: message }, token_span: 1.hours)
             v.link_to(link_content, v.url_for(action: index_action.action_name, model_name: am.to_param, filter_token: filter_token.token), class: 'pjax')
@@ -538,7 +547,9 @@ module RailsAdmin
     # parent => :root, :collection, :member
     def menu_for(parent, abstract_model = nil, object = nil, only_icon = false, limit = 0) # perf matters here (no action view trickery)
       actions = actions(parent, abstract_model, object).select { |a| a.http_methods.include?(:get) }
-
+      if parent == :root
+        limit = 0
+      end
       if (limited = limit > 0)
         count_links = 0
         more_actions_links = []
@@ -587,7 +598,7 @@ module RailsAdmin
     def menu_item(only_icon, action, abstract_model, parent, object)
       wording = wording_for(:menu, action)
       %(
-        <li title="#{wording if only_icon}" rel="#{'tooltip' if only_icon}" class="icon #{action.key}_#{parent}_link #{'active' if current_action?(action)}">
+        <li title="#{wording if only_icon}" rel="#{'tooltip' if only_icon}" class="icon #{action.key}_#{parent}_link #{'active' if current_action?(action, abstract_model)}">
           <a class="#{action.pjax? ? 'pjax' : ''}" href="#{url_for(action: action.action_name, controller: 'rails_admin/main', model_name: abstract_model.try(:to_param), id: (object.try(:persisted?) && object.try(:id) || nil))}">
             <i class="#{(abstract_model && abstract_model.config.send("#{action.key}_link_icon")) || action.link_icon}"></i>
             <span#{only_icon ? " style='display:none'" : ''}>#{wording}</span>
@@ -716,15 +727,12 @@ module RailsAdmin
         user_config = account_config
         abstract_model = account_abstract_model
         edit_action = inspect_action
-        current_user = current_account
+        # current_user = current_account #TODO: review danger assignation
       end
       return nil unless current_user && abstract_model && edit_action
       link = link_to url_for(action: edit_action.action_name, model_name: abstract_model.to_param, id: current_user.id, controller: 'rails_admin/main'), class: 'pjax' do
         html = []
-        # Patch
-        # text = _current_user.name
-        # Patch
-        text = current_account.label
+        text = current_user.email
         html << content_tag(:span, text, style: 'padding-right:5px')
         unless inspecting
           if current_user && abstract_model && edit_action

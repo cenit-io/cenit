@@ -26,10 +26,21 @@ module Cenit
         invariant_data = {}
 
         collection_data = { '_reset' => resetting = [] }
-        unless (collection = Setup::Collection.where(name: shared_collection.name).first) &&
-          %w(readme title).all? { |field| collection.send(field) == shared_collection.send(field) }
-          %w(readme title).each do |field|
+        collection = Setup::Collection.where(name: shared_collection.name).first
+        fields = %w(readme title)
+        unless collection && fields.all? { |field| collection.send(field) == shared_collection.send(field) }
+          fields.each do |field|
             shared_value = shared_collection[field]
+            unless collection && (collection[field] == shared_value)
+              collection_data[field] = shared_value
+              resetting << field
+            end
+          end
+        end
+        fields = %w(metadata)
+        unless collection && fields.all? { |field| collection.send(field) == pull_data[field] }
+          fields.each do |field|
+            shared_value = pull_data[field]
             unless collection && (collection[field] == shared_value)
               collection_data[field] = shared_value
               resetting << field
@@ -72,6 +83,7 @@ module Cenit
                   if item['_type']
                     record_hash['_type'] = record.class.to_s unless record_hash['_type']
                   end
+                  record_hash['_reset'] ||= item['_reset'] if item['_reset']
                   record_hash.reject! { |key, _| !item.has_key?(key) }
                   invariant = Cenit::Utility.eql_content?(record_hash, item) do |record_value, item_value|
                     (record_value.nil? && item_value.blank?) || (item_value.nil? && record_value.blank?)
@@ -286,8 +298,13 @@ module Cenit
               end
             end
           else
-            item['_reset'] ||= []
-            item['_reset'] << property
+            if (reset = item['_reset'])
+              reset = [reset] unless reset.is_a?(Array)
+            else
+              reset = []
+            end
+            reset << property
+            item['_reset'] = reset
             if (association = record.send(property).to_a).present?
               property_value.each do |sub_item|
                 criteria = {}

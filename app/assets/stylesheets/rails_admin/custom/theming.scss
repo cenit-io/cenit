@@ -1,8 +1,9 @@
 @import "bootstrap/bootstrap-tour.min";
 @import "rails_admin/custom/github";
-@import "rails_admin/custom/generate-api-actions";
 @import "rails_admin/custom/select2.min";
 @import "rails_admin/custom/select2-bootstrap.min";
+@import "rails_admin/custom/swagger";
+@import "rails_admin/custom/rest-api";
 
 /*Theming variables*/
 
@@ -1068,5 +1069,17 @@ ul#more_actions a {
     float: left;
     margin: 5px 0 0 6px;
     padding: 0 6px;
+  }
+}
+
+body.rails_admin .form-horizontal.denser fieldset {
+  margin-bottom: 30px;
+}
+
+.filters-buttons {
+  overflow: auto;
+  float: right;
+  span {
+    margin-left: 19px;
   }
 }

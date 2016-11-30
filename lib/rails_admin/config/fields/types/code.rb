@@ -4,8 +4,25 @@ module RailsAdmin
       module Types
         class Code < RailsAdmin::Config::Fields::Types::CodeMirror
 
+          register_instance_option :html_attributes do
+            { cols: '74', rows: '15' }
+          end
+
           register_instance_option :pretty_value do
-            "<pre><code class='json'>#{JSON.pretty_generate(value) rescue value}</code></pre>".html_safe
+            code = JSON.pretty_generate(value) rescue value
+            if code && (bindings[:view].instance_variable_get(:@action).is_a?(RailsAdmin::Config::Actions::Index) ||
+              !bindings[:object].is_a?(bindings[:view].controller.abstract_model.model))
+              if ((code = code.lines).length > 4)
+                code = code[0, 4] + ['...']
+              end
+              code.each_with_index do |line, index|
+                if line.length > 50
+                  code[index] = "#{line.to(50)}..."
+                end
+              end
+              code = code.join
+            end
+            "<pre><code class='#{mode_file}'>#{code}</code></pre>".html_safe
           end
 
           register_instance_option :js_location do
@@ -30,7 +47,7 @@ module RailsAdmin
           register_instance_option :default_config do
             {
               lineNumbers: true,
-              theme: (theme = User.current.code_theme).present? ? theme : (Cenit.default_code_theme || 'monokai')
+              theme: (theme = User.current.try(:code_theme)).present? ? theme : (Cenit.default_code_theme || 'monokai')
             }
           end
 
@@ -51,6 +68,7 @@ module RailsAdmin
               'text/html': 'xml',
               'text/plain': 'javascript',
               'text/x-ruby': 'ruby',
+              'text/x-yaml': 'yaml',
               '': 'javascript'
             }[config[:mode].to_s.to_sym] || config[:mode].to_sym
           end
