@@ -73,6 +73,9 @@ Cenit.config do
   #Performs crossing origins asynchronous
   asynchronous_crossing true
 
+  #Performs pushes asynchronous
+  asynchronous_push true
+
   #oauth2 callback site
   oauth2_callback_site ENV['OAUTH2_CALLBACK_SITE']
 
