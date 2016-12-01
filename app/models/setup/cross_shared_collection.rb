@@ -3,6 +3,7 @@ module Setup
     include CenitUnscoped
     include CrossOrigin::Document
     include CollectionBehavior
+    include Taggable
 
     origins -> { Cenit::MultiTenancy.tenant_model.current && :owner }, :shared
 
@@ -29,6 +30,7 @@ module Setup
     field :shared_version, type: String
     embeds_many :authors, class_name: Setup::CrossCollectionAuthor.to_s, inverse_of: :shared_collection
 
+    field :category, type: String
     field :summary, type: String
     has_and_belongs_to_many :categories, class_name: Setup::Category.to_s, inverse_of: nil
 
