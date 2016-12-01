@@ -12,7 +12,6 @@ class Membership
   field :email, type: String
   field :invited_by_id, type: String
   field :invitation_token, type: String
-  field :invitation_created_at, type: Time
   field :invitation_accepted_at, type: Time
 
 
