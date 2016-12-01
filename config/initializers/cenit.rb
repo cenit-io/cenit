@@ -55,6 +55,9 @@ Cenit.config do
   #Execute algorithms asynchronous
   asynchronous_algorithm_execution true
 
+  #Execute algorithms asynchronous
+  asynchronous_stored_procedure_execution true
+
   #Execute scripts asynchronous
   asynchronous_script_execution true
 

@@ -18,6 +18,7 @@ require 'account'
   RailsAdmin::Config::Actions::ProcessFlow,
   RailsAdmin::Config::Actions::BuildGem,
   RailsAdmin::Config::Actions::Run,
+  RailsAdmin::Config::Actions::RunStoredProcedure,
   RailsAdmin::Config::Actions::Authorize,
   RailsAdmin::Config::Actions::SimpleDeleteDataType,
   RailsAdmin::Config::Actions::BulkDeleteDataType,
@@ -137,6 +138,7 @@ RailsAdmin.config do |config|
     show_records
     run
     run_script
+    run_stored_procedure
     edit
     swagger {only [Setup::Api] }
     configure
@@ -2587,6 +2589,8 @@ RailsAdmin.config do |config|
 
     fields :namespace, :name, :description, :parameters, :call_links, :tags
   end
+
+  config.model Setup::StoredProcedure
 
   config.model Setup::AlgorithmOutput do
     navigation_label 'Compute'
