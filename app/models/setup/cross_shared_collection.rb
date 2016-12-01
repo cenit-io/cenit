@@ -3,6 +3,7 @@ module Setup
     include CenitUnscoped
     include CrossOrigin::Document
     include CollectionBehavior
+    include Taggable
 
     origins -> { Cenit::MultiTenancy.tenant_model.current && :owner }, :shared
 
@@ -31,6 +32,7 @@ module Setup
 
     field :category, type: String
     field :summary, type: String
+    has_and_belongs_to_many :categories, class_name: Setup::Category.to_s, inverse_of: nil
 
     embeds_many :pull_parameters, class_name: Setup::CrossCollectionPullParameter.to_s, inverse_of: :shared_collection
     has_and_belongs_to_many :dependencies, class_name: Setup::CrossSharedCollection.to_s, inverse_of: nil
@@ -153,6 +155,7 @@ module Setup
       pull_parameters.each do |pull_parameter|
         pull_parameter.process_on(hash_data, value: parameters[pull_parameter.id] || parameters[pull_parameter.id.to_s])
       end
+      hash_data['metadata'] = metadata if metadata.present?
       hash_data
     end
 

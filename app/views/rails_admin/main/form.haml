@@ -3,7 +3,8 @@
   %h4{style: 'color:#b94a48'}= @warning_message.to_s
 = rails_admin_form_for @form_object, url: url_for(action: @action.action_name, params: params.merge(object_ids: @bulk_ids)), html: { multipart: true, class: "form-horizontal denser", data: { title: @page_name }} do |form|
   - if bulk_alert
-    - to_action =  @bulk_ids.nil? ? @abstract_model.all : @abstract_model.model.where(:id.in => @bulk_ids)
+    - @bulk_ids ||= @object && [@object.id]
+    - to_action =  @bulk_ids ? @abstract_model.model.where(:id.in => @bulk_ids) : @abstract_model.all
     - if (count = to_action.count) && count > 0
       - max = 5
       %fieldset
@@ -12,9 +13,10 @@
           = "#{t('admin.actions.action_will.just')} #{wording_for(:menu, @action)} #{count} #{@abstract_model.model.data_type.custom_title}"
         %models.control-group{style: 'display: none'}
           %ul
-            - to_action.limit(max).each_with_index do |record, index|
+            - label_method = @abstract_model.config.object_label_method
+            - to_action.limit(max).each do |record|
               %li
-                - label = record.title
+                - label = record.send(label_method)
                 - path = rails_admin.show_path(model_name: record.class.to_s.underscore.gsub('/', '~'), id: record.id)
                 = link_to(label, path, class: 'pjax')
             - if count > max

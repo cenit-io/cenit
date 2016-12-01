@@ -115,16 +115,7 @@ RailsAdmin.config do |config|
     shared_collection_index
     store_index
     link_data_type
-    index do # mandatory
-      breadcrumb_parent do
-        parent_model = bindings[:abstract_model].try(:config).try(:parent)
-        if am = parent_model && RailsAdmin.config(parent_model).try(:abstract_model)
-          [:index, am]
-        else
-          parent_model.is_a?(RailsAdmin::MongoffModelConfig) ? nil : [:dashboard]
-        end
-      end
-    end
+    index # mandatory
     new { except [Setup::Event, Setup::DataType, Setup::Authorization, Setup::BaseOauthProvider] }
     filters
     import
@@ -140,7 +131,7 @@ RailsAdmin.config do |config|
     run_script
     run_stored_procedure
     edit
-    swagger {only [Setup::Api] }
+    swagger { only [Setup::Api] }
     configure
     play
     copy
@@ -348,11 +339,12 @@ RailsAdmin.config do |config|
 
       if abstract_model.model == Setup::CrossSharedCollection
         field :shared_version, &sharing_collection_invisible
-        field :category, &sharing_collection_invisible
         field :authors, &sharing_collection_invisible
         field :summary
+        field :categories
       end
 
+      field :tags
       field :readme, :html_erb, &sharing_collection_invisible
 
       if abstract_model.model == Setup::CrossSharedCollection
@@ -390,10 +382,12 @@ RailsAdmin.config do |config|
       field :title
       field :image
       field :name
+      field :tags
 
       prefix =
         if abstract_model.model == Setup::CrossSharedCollection
           field :summary
+          field :categories
           field :authors
           field :pull_count
           'data_'
@@ -638,8 +632,18 @@ RailsAdmin.config do |config|
     fields :label, :property_name, :location
   end
 
-  config.model Setup::CrossSharedCollection do
+  config.model Setup::Collection do
     weight 000
+    navigation_label 'Collections'
+    register_instance_option :label_navigation do
+      'My Collections'
+    end
+
+    instance_eval &collection_fields_config
+  end
+
+  config.model Setup::CrossSharedCollection do
+    weight 010
     label 'Shared Collection'
     navigation_label 'Collections'
     object_label_method :versioned_name
@@ -664,7 +668,7 @@ RailsAdmin.config do |config|
   end
 
   config.model Setup::SharedCollection do
-    weight 010
+    weight 020
     label 'Legacy Shared Collection'
     register_instance_option(:discard_submit_buttons) do
       !(a = bindings[:action]) || a.key != :edit
@@ -709,6 +713,7 @@ RailsAdmin.config do |config|
       end
       field :authors
       field :summary
+      field :tags
       field :source_collection do
         visible { !((source_collection = bindings[:object].source_collection) && source_collection.new_record?) }
         inline_edit false
@@ -812,6 +817,7 @@ RailsAdmin.config do |config|
           value.html_safe
         end
       end
+      field :tags
       field :readme, :html_erb
       field :authors
       field :dependencies
@@ -957,6 +963,7 @@ RailsAdmin.config do |config|
       end
       field :authors
       field :summary
+      field :tags
       field :pull_count
       field :dependencies
     end
@@ -1004,15 +1011,7 @@ RailsAdmin.config do |config|
     object_label_method { :label }
   end
 
-  config.model Setup::Collection do
-    weight 020
-    navigation_label 'Collections'
-    register_instance_option :label_navigation do
-      'My Collections'
-    end
 
-    instance_eval &collection_fields_config
-  end
 
   #Definitions
 
@@ -5091,4 +5090,30 @@ RailsAdmin.config do |config|
 
     fields :script, :description, :scheduler, :attempts_succeded, :retries, :progress, :status, :notifications
   end
+
+  config.model Setup::Category do
+    weight 850
+    navigation_label 'Administration'
+    visible { User.current_super_admin? }
+
+    edit do
+      field :_id do
+        read_only { !bindings[:object].new_record? }
+      end
+      field :title
+      field :description
+    end
+
+    fields :_id, :title, :description, :updated_at
+  end
+
+  config.model TourTrack do
+    weight 841
+    navigation_label 'Administration'
+    object_label_method { :to_s }
+    visible { User.current_super_admin? }
+
+    fields :ip, :user_email, :updated_at
+  end
+
 end

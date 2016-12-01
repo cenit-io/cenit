@@ -192,7 +192,12 @@ module RailsAdmin
                 @object.send("#{name}=", value)
               end
               changes = @object.changes
-              if @object.save
+              #Patch
+              save_options = {}
+              if @abstract_model.model < FieldsInspection
+                save_options[:inspect_fields] = Account.current.nil? || !Account.current_super_admin?
+              end
+              if @object.save(save_options)
                 if (warnings = @object.try(:warnings)).present?
                   do_flash(:warning, 'Warning', warnings)
                 end
@@ -542,7 +547,9 @@ module RailsAdmin
     # parent => :root, :collection, :member
     def menu_for(parent, abstract_model = nil, object = nil, only_icon = false, limit = 0) # perf matters here (no action view trickery)
       actions = actions(parent, abstract_model, object).select { |a| a.http_methods.include?(:get) }
-
+      if parent == :root
+        limit = 0
+      end
       if (limited = limit > 0)
         count_links = 0
         more_actions_links = []
@@ -925,7 +932,54 @@ module RailsAdmin
               end
             end
           end
-        if node.label=='Renderer' &&
+        if node.abstract_model.model == Setup::CrossSharedCollection
+          sub_links = ''
+          category_count = 0
+          Setup::Category.all.each do |cat|
+            count = (values = Setup::CrossSharedCollection.where(:category_ids => cat.id)).count
+            if count > 0
+              category_count += count
+              message = "<span><em>#{node.label_plural}</em> with category <em>#{cat.title}</em></span>"
+              filter_token =  Cenit::Token.where('data.category_id' => cat.id).first || Cenit::Token.create(data: { criteria: values.selector, message: message, category_id: cat.id })
+              sub_links += content_tag :li do
+                sub_link_url = index_path(model_name: node.abstract_model.to_param, filter_token: filter_token.token)
+                link_to sub_link_url do
+                  rc = ''
+                  if _current_user.present? && count > 0
+                    rc += "<span class='nav-amount'>#{count}</span>"
+                  end
+                  rc += "<span class='nav-caption'>#{cat.title}</span>"
+                  rc.html_safe
+                end
+              end
+            end
+          end
+
+          show_all_link =
+            if category_count < model_count
+              content_tag :li do
+                link_to index_path(model_name: node.abstract_model.to_param) do
+                  "<span class='nav-amount'>#{model_count}</span><span class='nav-caption'>Show All</span>".html_safe
+                end
+              end
+            else
+              ''
+            end
+          html = %(<div class='panel panel-default'>
+            <div class='panel-heading'>
+              <a data-toggle='collapse' data-parent='#none' href='#shared-collapse' class='panel-title collapse in collapsed'>
+                <span class='nav-caret'><i class='fa fa-caret-down'></i></span>
+                <span class='nav-caption'>#{node.label.pluralize}</span>
+              </a>
+            </div>
+             <div id='shared-collapse' class='nav nav-pills nav-stacked panel-collapse collapse'>
+                #{sub_links}
+          #{show_all_link}
+            </div>
+            </div>)
+
+        end
+        if node.abstract_model.model == Setup::Renderer &&
           (extensions_list = Setup::Renderer.file_extension_filter_enum).present?
           ext_count = 0
           sub_links = ''
@@ -951,7 +1005,7 @@ module RailsAdmin
             if ext_count < model_count
               content_tag :li do
                 link_to index_path(model_name: node.abstract_model.to_param) do
-                  "<span class='nav-amount'>#{model_count}</span><span class='nav-caption'>Sow All</span>".html_safe
+                  "<span class='nav-amount'>#{model_count}</span><span class='nav-caption'>Show All</span>".html_safe
                 end
               end
             else

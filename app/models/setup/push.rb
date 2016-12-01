@@ -15,13 +15,18 @@ module Setup
     def run(message)
       if (source_collection = Setup::Collection.where(id: (source_collection_id = message[:source_collection_id])).first)
         if (shared_collection = Setup::CrossSharedCollection.where(id: (shared_collection_id = message[:shared_collection_id])).first)
-          fail "Can not pull up on an installed shared collection #{shared_collection.versioned_name}" if shared_collection.installed?
           begin
-            shared_collection.readme = source_collection.readme
-            shared_collection.data = source_collection.collecting_data
-            fail shared_collection.errors.full_messages.to_sentence unless shared_collection.save
+            if shared_collection.installed?
+              shared_collection.reinstall(collection: source_collection)
+            else
+              [:title, :readme, :metadata].each do |attr|
+                shared_collection.send("#{attr}=", source_collection.send(attr))
+              end
+              shared_collection.data = source_collection.collecting_data
+              fail shared_collection.errors.full_messages.to_sentence unless shared_collection.save
+            end
           rescue ::Exception => ex
-            fail "Error updating shared collection #{shared_collection.versioned_name} (#{ex.message})"
+            fail "Error pushing on shared collection #{shared_collection.versioned_name} (#{ex.message})"
           end
         else
           fail "Shared Collection with id #{shared_collection_id} not found"
