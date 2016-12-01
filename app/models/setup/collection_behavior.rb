@@ -75,6 +75,7 @@ module Setup
           hash[property] = items
         end
       end
+      hash[:metadata] = metadata
       hash
     end
 

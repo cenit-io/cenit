@@ -2,7 +2,7 @@ module Setup
   class Collection
     include CenitScoped
     include CollectionBehavior
-
+    include Taggable
     deny :push
 
     image_with AccountImageUploader

@@ -92,6 +92,7 @@
   = form_tag(index_path(params.except(*%w[page f query])), method: :get, class: "pjax-form form-inline") do
     .well
       %span#filters_box
+        = filter_by_token
       %hr.filters_box{style: "display:#{@ordered_filters.empty? ? 'none' : 'block'}"}
       .input-group
         %input.form-control.input-small{name: "query", type: "search", value: query, placeholder: t("admin.misc.filter")}
@@ -139,7 +140,7 @@
               %p #{object.summary.html_safe if object.summary.present?}
           .panel-footer
             .footer-description
-              #{object.category} - v #{object.shared_version}
+              #{object.categories.collect(&:title).to_sentence} - v #{object.shared_version}
             .versions
               %span.truncate
                 - if (pull_action = RailsAdmin::Config::Actions.find(:pull, controller: controller, abstract_model: @abstract_model, object: object))

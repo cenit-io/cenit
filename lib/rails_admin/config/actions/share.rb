@@ -38,7 +38,8 @@ module RailsAdmin
                                                                 readme: @object.readme,
                                                                 summary: (metadata = @object.metadata) &&
                                                                   (metadata = metadata['info']) &&
-                                                                  (metadata['description'] || metadata['title']))
+                                                                  (metadata['description'] || metadata['title']),
+                                                                categories: (metadata && Setup::Category.where(:id.in => metadata['x-apisguru-categories']) || []))
               @form_object.instance_variable_set(:@sharing, true)
               @model_config = shared_collection_config
               if params[:_save] &&
