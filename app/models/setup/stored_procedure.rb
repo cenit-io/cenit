@@ -17,10 +17,6 @@ module Setup
 
     validates_format_of :name, with: /\A[a-z]([a-z]|_|\d)*\Z/
 
-    def run(input)
-      input
-    end
-
     def language_enum
       [:NodeJS, :Ruby, :Python, :PHP]
     end

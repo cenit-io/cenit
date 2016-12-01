@@ -366,6 +366,8 @@ en:
         menu: "Run"
         submit: "Run"
         breadcrumb: "Run"
+        done: "run"
+        doing: "execution"
       run_script:
         title: "Run"
         menu: "Run"

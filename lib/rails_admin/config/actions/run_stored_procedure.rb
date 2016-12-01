@@ -33,7 +33,7 @@ module RailsAdmin
                 if @form_object.valid?
                   do_flash_process_result Setup::StoredProcedureExecution.process(
                     stored_procedure_id: @object.id,
-                    input: @form_object.to_hash.values.to_a,
+                    input: @form_object.to_json,
                     skip_notification_level: true
                   )
                   redirect_to back_or_index
