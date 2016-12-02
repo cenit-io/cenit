@@ -35,14 +35,16 @@ module Setup
         [RailsAdmin::Adapters::Mongoid::Association.new(association, abstract_model.model)]
       end
 
-      fields :namespace, :name, :language, :description, :parameters
+      fields :namespace, :name, :description, :parameters, :language
 
       edit do
         field :namespace, :enum_edit
         field :name
         field :description
         field :parameters
-        field :language, :enum_edit
+        field :language do
+          partial "form_languages"
+        end
         field :code, :code do
           help { 'Required' }
         end
