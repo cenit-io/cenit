@@ -48,6 +48,7 @@
       ''
     end
     %{
+      $.filters.options.save_button_label = "#{t("admin.misc.save_filter")}"
       $.filters.append(#{field.label.to_json}, #{field.name.to_json}, #{field.type.to_json}, #{filter_hash['v'].to_json}, #{filter_hash['o'].to_json}, #{field_options.to_json}, #{filter_index.to_json});
     }
   end.join.html_safe if @ordered_filters

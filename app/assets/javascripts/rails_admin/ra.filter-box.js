@@ -105,7 +105,7 @@
         },
         add_save_filter: function () {
             if ($('#save_filters_button').length == 0) {
-                $save_button = $('<button class="btn btn-primary" type="submit" id="save_filters_button"><i class="icon-white fa fa-filter"></i>' + $.filters.options.save_button_label + '</button>')
+                $save_button = $('<button class="btn btn-primary" type="submit" id="save_filters_button"><i class="icon-white fa fa-filter"></i><span>' + $.filters.options.save_button_label + '</span></button>')
                 $save_button.on('click', function (e) {
                     var $hidden_save_filters = $('<input type="hidden" value="true" name="save_filters">');
                     $('.filters-buttons').append($hidden_save_filters);
