@@ -3,6 +3,7 @@ module Setup
     include CenitScoped
     include NamespaceNamed
     include ClassHierarchyAware
+    include RailsAdmin::Models::Setup::ValidatorAdmin
 
     build_in_data_type.referenced_by(:namespace, :name)
 

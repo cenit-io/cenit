@@ -3,6 +3,7 @@ module Setup
     include CenitScoped
     include ClassHierarchyAware
     include CrossOrigin::Document
+    include RailsAdmin::Models::Setup::TaskAdmin
 
     origins :default, -> { Account.current_super_admin? ? :admin : nil }
 

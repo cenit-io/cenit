@@ -2,6 +2,7 @@ module Setup
   class CollectionAuthor
     include ReqRejValidator
     include CenitUnscoped
+        include RailsAdmin::Models::Setup::CollectionAuthorAdmin
 
     build_in_data_type
 

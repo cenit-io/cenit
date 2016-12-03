@@ -2,6 +2,7 @@ module Setup
   class XsltValidator < CustomValidator
     include SnippetCode
     include CustomTitle
+    include RailsAdmin::Models::Setup::XsltValidatorAdmin
 
     legacy_code_attribute :xslt
 

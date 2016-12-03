@@ -1,6 +1,7 @@
 module Setup
   class Notification
     include CenitScoped
+    include RailsAdmin::Models::Setup::NotificationAdmin
 
     build_in_data_type
 
