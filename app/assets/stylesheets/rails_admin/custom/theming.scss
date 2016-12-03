@@ -1087,3 +1087,9 @@ body.rails_admin .form-horizontal.denser fieldset {
 #save_filters_button span {
   margin-left: 5px;
 }
+
+#code_show_view{
+  .CodeMirror {
+    height: auto;
+  }
+}

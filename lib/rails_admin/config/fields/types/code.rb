@@ -9,20 +9,19 @@ module RailsAdmin
           end
 
           register_instance_option :pretty_value do
-            code = JSON.pretty_generate(value) rescue value
-            if code && (bindings[:view].instance_variable_get(:@action).is_a?(RailsAdmin::Config::Actions::Index) ||
-              !bindings[:object].is_a?(bindings[:view].controller.abstract_model.model))
-              if ((code = code.lines).length > 4)
-                code = code[0, 4] + ['...']
-              end
-              code.each_with_index do |line, index|
-                if line.length > 50
-                  code[index] = "#{line.to(50)}..."
-                end
-              end
-              code = code.join
-            end
-            "<pre><code class='#{mode_file}'>#{code}</code></pre>".html_safe
+            js_data = {
+              csspath: css_location,
+              jspath: js_location,
+              options: config,
+              locations: assets
+            }.to_json.to_s
+
+            pretty_value = <<-HTML
+            <form id="code_show_view"><textarea data-richtext="codemirror" data-options=#{js_data}> #{value}
+            </textarea></form>
+            HTML
+
+            pretty_value.html_safe
           end
 
           register_instance_option :js_location do
