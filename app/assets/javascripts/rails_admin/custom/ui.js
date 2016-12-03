@@ -201,7 +201,7 @@ function initializeTour() {
                 },
                 {
                     title: "Safety first",
-                    content: "Control who may access your stuff, and define hoy you access other's",
+                    content: "Control who may access your stuff, and define how you access other's",
                     element: "#main-security",
                     placement: "right",
                     onShow: function () {
