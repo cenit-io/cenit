@@ -9,6 +9,7 @@ class User
   include NumberGenerator
   include TokenGenerator
   include FieldsInspection
+  include RailsAdmin::Models::UserAdmin
 
   inspect_fields :name, :picture, :account_id, :api_account_id, :code_theme
 

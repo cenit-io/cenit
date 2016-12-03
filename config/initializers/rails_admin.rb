@@ -4676,283 +4676,29 @@ RailsAdmin.config do |config|
 
   config.navigation 'Administration', icon: 'fa fa-user-secret'
 
-  config.model User do
-    weight 800
-    navigation_label 'Administration'
-    visible { User.current_super_admin? }
-    object_label_method { :label }
+#  config.model User do
+#    weight 800
+#  end
 
-    group :accounts do
-      label 'Accounts'
-      active true
-    end
+#  config.model Account do
+#    weight 810
+#  end
 
-    group :credentials do
-      label 'Credentials'
-      active true
-    end
+#  config.model Role do
+#    weight 810
+#  end
 
-    group :activity do
-      label 'Activity'
-      active true
-    end
+#  config.model Setup::SharedName do
+#    weight 880
+#  end
 
-    configure :name
-    configure :email
-    configure :code_theme
-    configure :roles
-    configure :account do
-      group :accounts
-      label 'Current Account'
-    end
-    configure :api_account do
-      group :accounts
-      label 'API Account'
-    end
-    configure :accounts do
-      group :accounts
-      read_only { !Account.current_super_admin? }
-    end
-    configure :member_accounts do
-      group :member_accounts
-      read_only { !Account.current_super_admin? }
-    end
-    configure :password do
-      group :credentials
-    end
-    configure :password_confirmation do
-      group :credentials
-    end
-    configure :key do
-      group :credentials
-    end
-    configure :authentication_token do
-      group :credentials
-    end
-    configure :confirmed_at do
-      group :activity
-    end
-    configure :sign_in_count do
-      group :activity
-    end
-    configure :current_sign_in_at do
-      group :activity
-    end
-    configure :last_sign_in_at do
-      group :activity
-    end
-    configure :current_sign_in_ip do
-      group :activity
-    end
-    configure :last_sign_in_ip do
-      group :activity
-    end
+#  config.model Setup::CrossSharedName do
+#    weight 881
+#  end
 
-    edit do
-      field :picture
-      field :name
-      field :code_theme
-      field :email do
-        visible { Account.current_super_admin? }
-      end
-      field :roles do
-        visible { Account.current_super_admin? }
-      end
-      field :account
-      field :api_account
-      field :accounts do
-        visible { Account.current_super_admin? }
-      end
-      field :member_accounts do
-        visible { Account.current_super_admin? }
-      end
-      field :password do
-        visible { Account.current_super_admin? }
-      end
-      field :password_confirmation do
-        visible { Account.current_super_admin? }
-      end
-      field :key do
-        visible { !bindings[:object].new_record? && Account.current_super_admin? }
-      end
-      field :authentication_token do
-        visible { !bindings[:object].new_record? && Account.current_super_admin? }
-      end
-      field :confirmed_at do
-        visible { !bindings[:object].new_record? && Account.current_super_admin? }
-      end
-      field :sign_in_count do
-        visible { !bindings[:object].new_record? && Account.current_super_admin? }
-      end
-      field :current_sign_in_at do
-        visible { !bindings[:object].new_record? && Account.current_super_admin? }
-      end
-      field :last_sign_in_at do
-        visible { !bindings[:object].new_record? && Account.current_super_admin? }
-      end
-      field :current_sign_in_ip do
-        visible { !bindings[:object].new_record? && Account.current_super_admin? }
-      end
-      field :last_sign_in_ip do
-        visible { !bindings[:object].new_record? && Account.current_super_admin? }
-      end
-    end
-
-    show do
-      field :picture
-      field :name
-      field :email
-      field :code_theme do
-        label 'Code Theme'
-      end
-      field :account
-      field :api_account
-      field :accounts
-      field :member_accounts
-      field :roles
-      field :key
-      field :authentication_token
-      field :sign_in_count
-      field :current_sign_in_at
-      field :last_sign_in_at
-      field :current_sign_in_ip
-      field :last_sign_in_ip
-    end
-
-    list do
-      field :picture do
-        thumb_method :icon
-      end
-      field :name
-      field :email
-      field :account
-      field :api_account
-      field :accounts
-      field :member_accounts
-      field :roles
-      field :sign_in_count
-      field :created_at
-    end
-  end
-
-  config.model Account do
-    weight 810
-    navigation_label 'Administration'
-    label 'Tenants'
-    object_label_method { :label }
-
-    configure :_id do
-      visible { Account.current_super_admin? }
-    end
-    configure :key do
-      pretty_value do
-        (value || '<i class="icon-lock"/>').html_safe
-      end
-    end
-    configure :token do
-      pretty_value do
-        (value || '<i class="icon-lock"/>').html_safe
-      end
-    end
-    configure :notification_level
-    configure :time_zone do
-      label 'Time Zone'
-    end
-
-    show do
-      field :name
-      field :key
-      field :token
-      field :owner
-      field :users
-      field :notification_level
-      field :time_zone
-    end
-
-    edit do
-      field :name
-      field :owner do
-        visible { Account.current_super_admin? }
-      end
-      field :users do
-        visible { Account.current_super_admin? }
-      end
-      field :key do
-        visible { Account.current_super_admin? }
-      end
-      field :token do
-        visible { Account.current_super_admin? }
-      end
-      field :notification_level
-      field :time_zone
-    end
-
-    fields :_id, :name, :owner, :users, :notification_level, :time_zone
-  end
-
-  config.model Role do
-    weight 810
-    navigation_label 'Administration'
-    visible { User.current_super_admin? }
-    configure :users do
-      visible { Account.current_super_admin? }
-    end
-    fields :name, :users
-  end
-
-  config.model Setup::SharedName do
-    weight 880
-    navigation_label 'Administration'
-    visible { User.current_super_admin? }
-
-    fields :name, :owners, :updated_at
-  end
-
-  config.model Setup::CrossSharedName do
-    weight 881
-    navigation_label 'Administration'
-    visible { User.current_super_admin? }
-
-    fields :name, :owners, :updated_at
-  end
-
-  config.model Script do
-    weight 830
-    navigation_label 'Administration'
-    visible { User.current_super_admin? }
-
-    edit do
-      field :name
-      field :description
-      field :code, :code do
-        code_config do
-          {
-            mode: 'text/x-ruby'
-          }
-        end
-      end
-    end
-
-    show do
-      field :name
-      field :description
-      field :code do
-        pretty_value do
-          v = value.gsub('<', '&lt;').gsub('>', '&gt;')
-          "<pre><code class='ruby'>#{v}</code></pre>".html_safe
-        end
-      end
-    end
-
-    list do
-      field :name
-      field :description
-      field :code
-      field :updated_at
-    end
-
-    fields :name, :description, :code, :updated_at
-  end
+#  config.model Script do
+#    weight 830
+#  end
 
   config.model Cenit::BasicToken do
     weight 890
@@ -4968,61 +4714,21 @@ RailsAdmin.config do |config|
     visible { User.current_super_admin? }
   end
 
-  config.model Setup::TaskToken do
-    weight 890
-    navigation_label 'Administration'
-    parent Cenit::BasicToken
-    visible { User.current_super_admin? }
-  end
+#  config.model Setup::TaskToken do
+#    weight 890
+#  end
 
-  config.model Setup::DelayedMessage do
-    weight 880
-    navigation_label 'Administration'
-    visible { User.current_super_admin? }
-  end
+#  config.model Setup::DelayedMessage do
+#    weight 880
+#  end
 
-  config.model Setup::SystemNotification do
-    weight 880
-    navigation_label 'Administration'
-    visible { User.current_super_admin? }
-  end
+#  config.model Setup::SystemNotification do
+#    weight 880
+#  end
 
-  config.model RabbitConsumer do
-    weight 850
-    navigation_label 'Administration'
-    visible { User.current_super_admin? }
-    object_label_method { :to_s }
-
-    configure :task_id do
-      pretty_value do
-        if (executor = (obj = bindings[:object]).executor) && (task = obj.executing_task)
-          v = bindings[:view]
-          amc = RailsAdmin.config(task.class)
-          am = amc.abstract_model
-          wording = task.send(amc.object_label_method)
-          amc = RailsAdmin.config(Account)
-          am = amc.abstract_model
-          if (inspect_action = v.action(:inspect, am, executor))
-            task_path = v.show_path(model_name: task.class.to_s.underscore.gsub('/', '~'), id: task.id.to_s)
-            v.link_to(wording, v.url_for(action: inspect_action.action_name, model_name: am.to_param, id: executor.id, params: { return_to: task_path }))
-          else
-            wording
-          end.html_safe
-        end
-      end
-    end
-
-    list do
-      field :channel
-      field :tag
-      field :executor
-      field :task_id
-      field :alive
-      field :updated_at
-    end
-
-    fields :created_at, :channel, :tag, :executor, :task_id, :alive, :created_at, :updated_at
-  end
+#  config.model RabbitConsumer do
+#    weight 850
+#  end
 
   config.model Cenit::ApplicationId do
     weight 830
@@ -5057,59 +4763,16 @@ RailsAdmin.config do |config|
     fields :created_at, :name, :registered, :tenant, :identifier, :created_at, :updated_at
   end
 
-  config.model Setup::ScriptExecution do
-    weight 840
-    parent { nil }
-    navigation_label 'Administration'
-    object_label_method { :to_s }
-    visible { User.current_super_admin? }
+#  config.model ScriptExecution do
+#    weight 840
+#  end
 
-    configure :attempts_succeded, :text do
-      label 'Attempts/Succedded'
-    end
+#  config.model Setup::Category do
+#    weight 850
+#  end
 
-    edit do
-      field :description
-    end
-
-    list do
-      field :script
-      field :description
-      field :scheduler
-      field :attempts_succeded
-      field :retries
-      field :progress
-      field :status
-      field :notifications
-      field :updated_at
-    end
-
-    fields :script, :description, :scheduler, :attempts_succeded, :retries, :progress, :status, :notifications
-  end
-
-  config.model Setup::Category do
-    weight 850
-    navigation_label 'Administration'
-    visible { User.current_super_admin? }
-
-    edit do
-      field :_id do
-        read_only { !bindings[:object].new_record? }
-      end
-      field :title
-      field :description
-    end
-
-    fields :_id, :title, :description, :updated_at
-  end
-
-  config.model TourTrack do
-    weight 841
-    navigation_label 'Administration'
-    object_label_method { :to_s }
-    visible { User.current_super_admin? }
-
-    fields :ip, :user_email, :updated_at
-  end
+#  config.model TourTrack do
+#    weight 841
+#  end
 
 end
