@@ -114,7 +114,8 @@ module RailsAdmin
               #field :updater
             end
 
-            fields :namespace, :name, :slug, :storage_size, :updated_at          end
+            fields :namespace, :name, :slug, :storage_size, :updated_at
+          end
         end
 
       end
