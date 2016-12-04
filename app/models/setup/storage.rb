@@ -1,6 +1,7 @@
 module Setup
   class Storage
     include CenitUnscoped
+    include RailsAdmin::Models::Setup::StorageAdmin
 
     store_in collection: Proc.new { Account.tenant_collection_prefix + '.files' }
 

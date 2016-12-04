@@ -1,6 +1,7 @@
 module Setup
   class SharedCollectionPull < Setup::BasePull
     include PullingField
+    include RailsAdmin::Models::Setup::SharedCollectionPullAdmin
 
     build_in_data_type
 

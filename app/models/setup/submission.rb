@@ -1,5 +1,6 @@
 module Setup
   class Submission < Setup::Task
+    include RailsAdmin::Models::Setup::SubmissionAdmin
 
     build_in_data_type
 
