@@ -220,10 +220,12 @@ RailsAdmin.config do |config|
 
 #  config.model Setup::CrossSharedCollection do
 #    weight 010
+#    label 'Shared Collection'
 #  end
 
 #  config.model Setup::SharedCollection do
 #    weight 020
+#    label 'Legacy Shared Collection'
 #  end
 
 #  config.model Setup::CollectionAuthor do
@@ -242,7 +244,12 @@ RailsAdmin.config do |config|
 
 #  config.model Setup::Validator do
 #    weight 100
+#    label 'Validators
 #  end
+
+#   config.model Setup::CustomValidator do
+#     visible false
+#   end
 
 #  config.model Setup::Schema do
 #    parent Setup::Validator
@@ -252,11 +259,13 @@ RailsAdmin.config do |config|
 #  config.model Setup::XsltValidator do
 #    parent Setup::Validator
 #    weight 102
+#    label 'XSLT Validator'
 #  end
 
 #  config.model Setup::EdiValidator do
 #    parent Setup::Validator
 #    weight 103
+#    label 'EDI Validator'
 #  end
 
 #  config.model Setup::AlgorithmValidator do
@@ -266,19 +275,16 @@ RailsAdmin.config do |config|
 #  end
 
 #  config.model Setup::DataType do
-#    navigation_label 'Definitions'
 #    weight 110
 #    label 'Data Type'
 #  end
 
 #  config.model Setup::JsonDataType do
-#    navigation_label 'Definitions'
 #    weight 111
 #    label 'Object Type'
 #  end
 
 #  config.model Setup::FileDataType do
-#    navigation_label 'Definitions'
 #    weight 112
 #    label 'File Type'
 #  end
@@ -288,62 +294,60 @@ RailsAdmin.config do |config|
 #    weight 113
 #    label 'Cenit Type'
 #  end
+
   config.navigation 'Connectors', icon: 'fa fa-plug'
 
+#  config.model Setup::Parameter do
+#    visible false
+#  end
+
 #  config.model Setup::Api do
-#    navigation_label 'Connectors'
 #    weight 200
 #    label 'API'
 #  end
 
 #  config.model Setup::Connection do
-#    navigation_label 'Connectors'
 #    weight 201
 #  end
 
 #  config.model Setup::ConnectionRole do
-#    navigation_label 'Connectors'
 #    weight 210
 #    label 'Connection Role'
 #  end
 
+# config.model Setup::Section do
+#   weight 210
+#   label 'Section'
+#   visible false
+#  end
+
+# config.model Setup::Webhook do
+#   label 'All Webhook'
+#   visible false
+#  end
+
 #  config.model Setup::Resource do
-#    visible { Account.current_super_admin? }
-#    navigation_label 'Connectors'
 #    weight 215
 #    label 'Resource'
 #  end
 
 #  config.model Setup::Operation do
-#    navigation_label 'Connectors'
 #    weight 217
-#    object_label_method { :label }
 #  end
 
 #  config.model Setup::Representation do
-#    navigation_label 'Connectors'
 #    weight 218
 #    visible false
 #  end
 
-#  config.model Setup::PlainWebhook do
-#    navigation_label 'Workflows'
-#    label 'Webhook'
-#    weight 515
-#  end
-
-  #Security
-
   config.navigation 'Security', icon: 'fa fa-shield'
 
 #  config.model Setup::OauthClient do
-#    navigation_label 'Security'
 #    label 'OAuth Client'
 #    weight 300
 #  end
 
 #  config.model Setup::BaseOauthProvider do
-#    navigation_label 'Security'
 #    weight 310
 #    label 'Provider'
 #  end
@@ -359,13 +363,11 @@ RailsAdmin.config do |config|
 #  end
 
 #  config.model Setup::Oauth2Scope do
-#    navigation_label 'Security'
 #    weight 320
 #    label 'OAuth 2.0 Scope'
 #  end
 
 #  config.model Setup::Authorization do
-#    navigation_label 'Security'
 #    weight 330
 #  end
 
@@ -389,13 +391,10 @@ RailsAdmin.config do |config|
 #    weight -334
 #  end
 
-  config.model Cenit::OauthAccessGrant do
-    navigation_label 'Security'
-    label 'Access Grants'
-    weight 340
-
-    fields :created_at, :application_id, :scope
-  end
+#  config.model Cenit::OauthAccessGrant do
+#    label 'Access Grants'
+#    weight 340
+#  end
 
   config.navigation 'Compute', icon: 'fa fa-cog'
 
@@ -408,46 +407,31 @@ RailsAdmin.config do |config|
 #  end
 
 #  config.model Setup::Algorithm do
-#    navigation_label 'Compute'
 #    weight 400
 #  end
 
 #  config.model Setup::AlgorithmOutput do
-#    navigation_label 'Compute'
 #    weight -405
 #    visible false
 #  end
 
 #  config.model Setup::Action do
 #    visible false
-#    navigation_label 'Compute'
 #    weight -402
 #  end
 
 #  config.model Setup::Application do
-#    navigation_label 'Compute'
 #    weight 420
 #  end
 
-  config.model Cenit::ApplicationParameter do
-    visible false
-    navigation_label 'Compute'
-    configure :group, :enum_edit
+#  config.model Cenit::ApplicationParameter do
+#  end
 
-    list do
-      field :name
-      field :type
-      field :many
-      field :group
-      field :description
-      field :updated_at
-    end
-
-    fields :name, :type, :many, :group, :description
-  end
+#  config.model Setup::Snippet do
+#    weight 430
+#  end
 
 #  config.model Setup::Filter do
-#    navigation_label 'Compute'
 #    weight 435
 #    label 'Filter'
 #  end
@@ -461,144 +445,118 @@ RailsAdmin.config do |config|
 #  end
 
 #  config.model Setup::Renderer do
-#    navigation_label 'Transformations'
 #    weight 411
 #  end
 
 #  config.model Setup::Parser do
 #    weight 412
-#    navigation_label 'Transformations'
 #  end
 
 #  config.model Setup::Converter do
 #    weight 413
-#    navigation_label 'Transformations'
 #  end
 
 #  config.model Setup::Updater do
 #    weight 414
-#    navigation_label 'Transformations'
-#  end
-
-#  config.model Setup::Snippet do
-#    navigation_label 'Compute'
-#    weight 430
 #  end
 
   config.navigation 'Workflows', icon: 'fa fa-cogs'
 
 #  config.model Setup::Flow do
-#    navigation_label 'Workflows'
 #    weight 500
 #  end
 
 #  config.model Setup::Event do
-#    navigation_label 'Workflows'
 #    weight 510
 #    visible false
 #  end
 
 # config.model Setup::Observer do
-#   navigation_label 'Workflows'
 #   weight 511
 #   label 'Data Event'
 # end
 
 #  config.model Setup::Scheduler do
-#    navigation_label 'Workflows'
 #    weight 512
+#  end
+
+#  config.model Setup::PlainWebhook do
+#    label 'Webhook'
+#    weight 515
 #  end
 
   config.navigation 'Monitors', icon: 'fa fa-heartbeat'
 
 #  config.model Setup::Notification do
-#    navigation_label 'Monitors'
 #    weight 600
 #  end
 
 #  config.model Setup::Task do
-#    navigation_label 'Monitors'
 #    weight 610
 #  end
 
 #  config.model Setup::FlowExecution do
-#    navigation_label 'Monitors'
 #    visible false
 #  end
 
 #  config.model Setup::DataTypeGeneration do
-#    navigation_label 'Monitors'
 #    visible false
 #  end
 
 #  config.model Setup::DataTypeExpansion do
-#    navigation_label 'Monitors'
 #    visible false
 #  end
 
 #  config.model Setup::Translation do
-#    navigation_label 'Monitors'
 #    visible false
 #  end
 
 #  config.model Setup::DataImport do
-#    navigation_label 'Monitors'
 #    visible false
 #  end
 
 #  config.model Setup::Push do
-#    navigation_label 'Monitors'
 #    visible false
 #  end
 
 #  config.model Setup::BasePull do
-#    navigation_label 'Monitors'
 #    visible false
 #    label 'Pull'
 #  end
 
 #  config.model Setup::PullImport do
-#    navigation_label 'Monitors'
 #    visible false
 #  end
 
 #  config.model Setup::SharedCollectionPull do
-#    navigation_label 'Monitors'
 #    visible false
 #  end
 
 #  config.model Setup::ApiPull do
-#    navigation_label 'Monitors'
 #    visible false
 #  end
 
 #  config.model Setup::SchemasImport do
-#    navigation_label 'Monitors'
 #    visible false
 #  end
 
 #  config.model Setup::Deletion do
-#    navigation_label 'Monitors'
 #    visible false
 #  end
 
 #  config.model Setup::AlgorithmExecution do
-#    navigation_label 'Monitors'
 #    visible false
 #  end
 
 #  config.model Setup::Submission do
-#    navigation_label 'Monitors'
 #    visible false
 #  end
 
 #  config.model Setup::Crossing do
-#    navigation_label 'Monitors'
 #    visible false
 #  end
 
 #  config.model Setup::Storage do
-#    navigation_label 'Monitors'
 #    show_in_dashboard false
 #    weight 620
 #  end
@@ -606,40 +564,33 @@ RailsAdmin.config do |config|
   config.navigation 'Configuration', icon: 'fa fa-sliders'
 
 #  config.model Setup::Namespace do
-#    navigation_label 'Configuration'
 #    weight 700
 #  end
 
 #  config.model Setup::DataTypeConfig do
-#    navigation_label 'Configuration'
 #    label 'Data Type Config'
 #    weight 710
 #  end
 
 #  config.model Setup::FlowConfig do
-#    navigation_label 'Configuration'
 #    label 'Flow Config'
 #    weight 720
 #  end
 
 #  config.model Setup::ConnectionConfig do
-#    navigation_label 'Configuration'
 #    label 'Connection Config'
 #    weight 730
 #  end
 
 #  config.model Setup::Pin do
-#    navigation_label 'Configuration'
 #    weight 740
 #  end
 
 #  config.model Setup::Binding do
-#    navigation_label 'Configuration'
 #    weight 750
 #  end
 
 #  config.model Setup::ParameterConfig do
-#    navigation_label 'Configuration'
 #    label 'Parameter'
 #    weight 760
 #  end
@@ -648,115 +599,69 @@ RailsAdmin.config do |config|
 
 #  config.model User do
 #    weight 800
-#    navigation_label 'Administration'
 #  end
 
 #  config.model Account do
 #    weight 810
-#    navigation_label 'Administration'
 #    label 'Tenants'
 #  end
 
 #  config.model Role do
 #    weight 810
-#    navigation_label 'Administration'
 #  end
 
 #  config.model Setup::SharedName do
 #    weight 880
-#    navigation_label 'Administration'
 #  end
 
 #  config.model Setup::CrossSharedName do
 #    weight 881
-#    navigation_label 'Administration'
 #  end
 
 #  config.model Script do
 #    weight 830
-#    navigation_label 'Administration'
 #  end
 
-  config.model Cenit::BasicToken do
-    weight 890
-    navigation_label 'Administration'
-    label 'Token'
-    visible { User.current_super_admin? }
-  end
+#  config.model Cenit::BasicToken do
+#    weight 890
+#    label 'Token'
+#  end
 
-  config.model Cenit::BasicTenantToken do
-    weight 890
-    navigation_label 'Administration'
-    label 'Tenant token'
-    visible { User.current_super_admin? }
-  end
+#  config.model Cenit::BasicTenantToken do
+#    weight 890
+#    label 'Tenant token'
+#  end
 
 #  config.model Setup::TaskToken do
 #    weight 890
-#    navigation_label 'Administration'
 #  end
 
 #  config.model Setup::DelayedMessage do
 #    weight 880
-#    navigation_label 'Administration'
 #  end
 
 #  config.model Setup::SystemNotification do
 #    weight 880
-#    navigation_label 'Administration'
 #  end
 
 #  config.model RabbitConsumer do
 #    weight 850
-#    navigation_label 'Administration'
 #  end
 
-  config.model Cenit::ApplicationId do
-    weight 830
-    navigation_label 'Administration'
-    visible { User.current_super_admin? }
-    label 'Application ID'
-
-    register_instance_option(:discard_submit_buttons) { bindings[:object].instance_variable_get(:@registering) }
-
-    configure :name
-    configure :registered, :boolean
-    configure :redirect_uris, :json_value
-
-    edit do
-      field :slug
-      field :oauth_name do
-        visible { bindings[:object].instance_variable_get(:@registering) }
-      end
-      field :redirect_uris do
-        visible { bindings[:object].instance_variable_get(:@registering) }
-      end
-    end
-
-    list do
-      field :name
-      field :registered
-      field :tenant
-      field :identifier
-      field :updated_at
-    end
-
-    fields :created_at, :name, :registered, :tenant, :identifier, :created_at, :updated_at
-  end
+#  config.model Cenit::ApplicationId do
+#    weight 830
+#  end
 
 #  config.model ScriptExecution do
 #    weight 840
-#    navigation_label 'Administration'
 #  end
 
 #  config.model Setup::Category do
 #    weight 850
-#    navigation_label 'Administration'
 #  end
 
 #  config.model TourTrack do
 #    weight 841
-#    navigation_label 'Administration'
 #  end
 
 end
