@@ -49,26 +49,26 @@ module RailsAdmin
 
 
               field :source_data_type do
-                shared_read_only
+                RailsAdmin::Models::Setup::FieldsConfigAdmin.shared_read_only
                 inline_edit false
                 inline_add false
               end
               field :style do
-                shared_read_only
+                RailsAdmin::Models::Setup::FieldsConfigAdmin.shared_read_only
                 visible { bindings[:object].type.present? }
                 help 'Required'
               end
               field :bulk_source do
-                shared_read_only
+                RailsAdmin::Models::Setup::FieldsConfigAdmin.shared_read_only
                 visible { bindings[:object].style.present? && bindings[:object].source_bulkable? }
               end
               field :mime_type do
-                shared_read_only
+                RailsAdmin::Models::Setup::FieldsConfigAdmin.shared_read_only
                 label 'MIME type'
                 visible { bindings[:object].style.present? }
               end
               field :file_extension do
-                shared_read_only
+                RailsAdmin::Models::Setup::FieldsConfigAdmin.shared_read_only
                 visible { !bindings[:object].file_extension_enum.empty? }
                 help { "Extensions for #{bindings[:object].mime_type}" }
               end

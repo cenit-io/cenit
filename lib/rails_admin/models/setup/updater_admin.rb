@@ -40,25 +40,25 @@ module RailsAdmin
               field :name, &RailsAdmin::Models::Setup::FieldsConfigAdmin.shared_non_editable
 
               field :target_data_type do
-                shared_read_only
+                RailsAdmin::Models::Setup::FieldsConfigAdmin.shared_read_only
                 inline_edit false
                 inline_add false
                 help 'Optional'
               end
 
               field :discard_events do
-                shared_read_only
+                RailsAdmin::Models::Setup::FieldsConfigAdmin.shared_read_only
                 help "Events won't be fired for created or updated records if checked"
               end
 
               field :style do
-                shared_read_only
+                RailsAdmin::Models::Setup::FieldsConfigAdmin.shared_read_only
                 visible { bindings[:object].type.present? }
                 help 'Required'
               end
 
               field :source_handler do
-                shared_read_only
+                RailsAdmin::Models::Setup::FieldsConfigAdmin.shared_read_only
                 visible { (t = bindings[:object]).style.present? }
                 help { 'Handle sources on code' }
               end
@@ -110,33 +110,6 @@ module RailsAdmin
             end
           end
 
-          config.model ::Setup::AlgorithmOutput do
-            navigation_label 'Compute'
-            weight -405
-            visible false
-
-            configure :records_count
-            configure :input_parameters
-            configure :created_at do
-              label 'Recorded at'
-            end
-
-            extra_associations do
-              association = Mongoid::Relations::Metadata.new(
-                name: :records, relation: Mongoid::Relations::Referenced::Many,
-                inverse_class_name: ::Setup::AlgorithmOutput.to_s, class_name: ::Setup::AlgorithmOutput.to_s
-              )
-              [RailsAdmin::Adapters::Mongoid::Association.new(association, abstract_model.model)]
-            end
-
-            show do
-              field :created_at
-              field :input_parameters
-              field :records_count
-            end
-
-            fields :created_at, :input_parameters, :records_count
-          end
         end
 
       end

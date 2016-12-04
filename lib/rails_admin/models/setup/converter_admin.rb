@@ -50,32 +50,32 @@ module RailsAdmin
               field :name, &RailsAdmin::Models::Setup::FieldsConfigAdmin.shared_non_editable
 
               field :source_data_type do
-                shared_read_only
+                RailsAdmin::Models::Setup::FieldsConfigAdmin.shared_read_only
                 inline_edit false
                 inline_add false
                 help 'Required'
               end
 
               field :target_data_type do
-                shared_read_only
+                RailsAdmin::Models::Setup::FieldsConfigAdmin.shared_read_only
                 inline_edit false
                 inline_add false
                 help 'Required'
               end
 
               field :discard_events do
-                shared_read_only
+                RailsAdmin::Models::Setup::FieldsConfigAdmin.shared_read_only
                 help "Events won't be fired for created or updated records if checked"
               end
 
               field :style do
-                shared_read_only
+                RailsAdmin::Models::Setup::FieldsConfigAdmin.shared_read_only
                 visible { bindings[:object].type.present? }
                 help 'Required'
               end
 
               field :source_handler do
-                shared_read_only
+                RailsAdmin::Models::Setup::FieldsConfigAdmin.shared_read_only
                 visible { (t = bindings[:object]).style.present? && (t.style == 'ruby') }
                 help { 'Handle sources on code' }
               end
@@ -98,7 +98,7 @@ module RailsAdmin
               end
 
               field :source_exporter do
-                shared_read_only
+                RailsAdmin::Models::Setup::FieldsConfigAdmin.shared_read_only
                 inline_add { bindings[:object].source_exporter.nil? }
                 visible { bindings[:object].style == 'chain' && bindings[:object].source_data_type && bindings[:object].target_data_type }
                 help 'Required'
@@ -111,7 +111,7 @@ module RailsAdmin
               end
 
               field :target_importer do
-                shared_read_only
+                RailsAdmin::Models::Setup::FieldsConfigAdmin.shared_read_only
                 inline_add { bindings[:object].target_importer.nil? }
                 visible { bindings[:object].style == 'chain' && bindings[:object].source_data_type && bindings[:object].target_data_type && bindings[:object].source_exporter }
                 help 'Required'
@@ -133,7 +133,7 @@ module RailsAdmin
               end
 
               field :discard_chained_records do
-                shared_read_only
+                RailsAdmin::Models::Setup::FieldsConfigAdmin.shared_read_only
                 visible { bindings[:object].style == 'chain' && bindings[:object].source_data_type && bindings[:object].target_data_type && bindings[:object].source_exporter }
                 help "Chained records won't be saved if checked"
               end

@@ -1,0 +1,181 @@
+Collections:
+  Setup::Collection:
+    - weight 000
+  Setup::CrossSharedCollection:
+    - weight 010
+    - label 'Shared Collection'
+  Setup::SharedCollection:
+    - weight 020
+    - label 'Legacy Shared Collection'
+Definitions:
+  Setup::Validator:
+    - weight 100
+    - label 'Validators
+  Setup::Schema:
+    - parent Setup::Validator
+    - weight 101
+  Setup::XsltValidator:
+    - parent Setup::Validator
+    - weight 102
+    - label 'XSLT Validator'
+  Setup::EdiValidator:
+    - parent Setup::Validator
+    - weight 103
+    - label 'EDI Validator'
+  Setup::AlgorithmValidator:
+    - parent Setup::Validator
+    - weight 104
+    - label 'Algorithm Validator'
+  Setup::DataType:
+    - weight 110
+    - label 'Data Type'
+  Setup::JsonDataType:
+    - weight 111
+    - label 'Object Type'
+  Setup::FileDataType:
+    - weight 112
+    - label 'File Type'
+  Setup::CenitDataType:
+    - weight 113
+    - label 'Cenit Type'
+Connectors:
+  Setup::Api:
+    - weight 200
+    - label 'API'
+  Setup::Connection:
+    - weight 201
+  Setup::ConnectionRole:
+    - weight 210
+    - label 'Connection Role'
+  Setup::Resource:
+    - weight 215
+    - label 'Resource'
+  Setup::Operation:
+    - weight 217
+Security:
+  Setup::OauthClient:
+    - label 'OAuth Client'
+    - weight 300
+  Setup::BaseOauthProvider:
+    - weight 310
+    - label 'Provider'
+  Setup::OauthProvider:
+    - weight 311
+    - label 'OAuth 1.0 provider'
+  Setup::Oauth2Provider:
+    - weight 312
+    - label 'OAuth 2.0 provider'
+  Setup::Oauth2Scope:
+    - weight 320
+    - label 'OAuth 2.0 Scope'
+  Setup::Authorization:
+    - weight 330
+  Setup::BasicAuthorization:
+    - weight 331
+  Setup::OauthAuthorization:
+    - weight 332
+    - label 'OAuth 1.0 authorization'
+    - parent Setup::Authorization
+  Setup::Oauth2Authorization:
+    - weight 333
+    - label 'OAuth 2.0 authorization'
+    - parent Setup::Authorization
+  Setup::AwsAuthorization:
+    - weight -334
+  Cenit::OauthAccessGrant:
+    - label 'Access Grants'
+    - weight 340
+Transformations:
+  Setup::Renderer:
+    - weight 411
+  Setup::Parser:
+    - weight 412
+  Setup::Converter:
+    - weight 413
+  Setup::Updater:
+    - weight 414
+Compute:
+  Setup::Algorithm:
+    - weight 400
+  Setup::Application:
+    - weight 420
+  Cenit::ApplicationParameter:
+  Setup::Snippet:
+    - weight 430
+  Setup::Filter:
+    - weight 435
+    - label 'Filter'
+Workflows:
+  Setup::Flow:
+    - weight 500
+  Setup::Observer:
+    - weight 511
+    - label 'Data Event'
+  Setup::Scheduler:
+    - weight 512
+  Setup::PlainWebhook:
+    - label 'Webhook'
+    - weight 515
+Monitors:
+  Setup::Notification:
+    - weight 600
+  Setup::Task:
+    - weight 610
+  Setup::Storage:
+    - show_in_dashboard false
+    - weight 620
+Configuration:
+  Setup::Namespace:
+    - weight 700
+  Setup::DataTypeConfig:
+    - label 'Data Type Config'
+    - weight 710
+  Setup::FlowConfig:
+    - label 'Flow Config'
+    - weight 720
+  Setup::ConnectionConfig:
+    - label 'Connection Config'
+    - weight 730
+  Setup::Pin:
+    - weight 740
+  Setup::Binding:
+    - weight 750
+  Setup::ParameterConfig:
+    - label 'Parameter'
+    - weight 760
+Administration:
+  User:
+    - weight 800
+  Account:
+    - weight 810
+    - label 'Tenants'
+   Role:
+    - weight 810
+   Script:
+    - weight 830
+  Cenit::ApplicationId:
+    - weight 830
+   ScriptExecution:
+    - weight 840
+   TourTrack:
+    - weight 841
+  Setup::Category:
+    - weight 850
+   RabbitConsumer:
+    - weight 850
+  Setup::SharedName:
+    - weight 880
+  Setup::DelayedMessage:
+    - weight 880
+  Setup::SystemNotification:
+    - weight 880
+  Setup::CrossSharedName:
+    - weight 881
+  Cenit::BasicToken:
+    - weight 890
+    - label 'Token'
+  Cenit::BasicTenantToken:
+    - weight 890
+    - label 'Tenant token'
+  Setup::TaskToken:
+    - weight 890

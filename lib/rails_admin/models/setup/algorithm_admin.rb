@@ -34,7 +34,7 @@ module RailsAdmin
                 help { 'Required' }
               end
               field :call_links do
-                shared_read_only
+                RailsAdmin::Models::Setup::FieldsConfigAdmin.shared_read_only
                 visible { bindings[:object].call_links.present? }
               end
               field :store_output, &RailsAdmin::Models::Setup::FieldsConfigAdmin.shared_non_editable

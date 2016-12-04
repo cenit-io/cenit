@@ -3,10 +3,18 @@ module RailsAdmin
     module Setup
       module FieldsConfigAdmin
 
-        def self.shared_non_editable
+        def self.shared_read_only
           Proc.new do
             instance_eval do
               read_only { (obj = bindings[:object]).creator_id != User.current.id && obj.shared? }
+            end
+          end
+        end
+
+        def self.shared_non_editable
+          Proc.new do
+            instance_eval do
+              RailsAdmin::Models::Setup::FieldsConfigAdmin.shared_read_only
             end
           end
         end
