@@ -17,6 +17,8 @@ module Setup
 
       result = run_in_language_bridge(message[:input])
 
+      store_output(message[:input], result) if result.present? && @stored_procedure.store_output
+
       result = (result.is_a?(Hash) || result.is_a?(Array)) ? JSON.pretty_generate(result) : result.to_s
 
       attachment = result.present? ? {
@@ -34,6 +36,66 @@ module Setup
     end
 
     private
+
+    def store_output(input, output)
+      fail 'Execution failed! The output data type is not defined.' unless @stored_procedure.output_datatype
+      objects = output_objects(output)
+      input = JSON.parse(input) if input.is_a?(String)
+
+      begin
+        @last_output = StoredProcedureOutput.create(
+          stored_procedure: @stored_procedure,
+          data_type: @stored_procedure.output_datatype,
+          input_params: input,
+          output_ids: objects.collect { |o| o.id }
+        )
+      rescue Exception => e
+        fail 'Execution failed!' + e.message if @stored_procedure.validate_output
+      end
+    end
+
+    def output_objects(output)
+      @stored_procedure.output_datatype.is_a?(Setup::FileDataType) ?
+        output_file_datatype(output, @stored_procedure.output_datatype) :
+        output_db_datatype(output, @stored_procedure.output_datatype)
+    end
+
+    def output_db_datatype(output, output_datatype)
+      objects = []
+
+      case output
+      when Hash, String
+        objects << output_datatype.create_from_json!(output)
+      when Array
+        output.each { |item| objects << output_datatype.create_from_json!(item) }
+      else
+        raise
+      end
+    rescue Exception
+      fail 'Output failed to validate against Output DataType.'
+    end
+
+    def output_file_datatype(output, output_datatype)
+      objects = []
+
+      case output
+      when Hash, Array
+        objects << output_datatype.create_from!(output.to_json, contentType: 'application/json')
+      when String
+        content_type = 'text/plain'
+        begin
+          JSON.parse(output)
+          content_type = 'application/json'
+        rescue JSON::ParserError
+          content_type = 'application/xml' unless Nokogiri.XML(output).errors.present?
+        end
+        objects << output_datatype.create_from!(output, contentType: content_type)
+      else
+        objects << output_datatype.create_from!(output.to_s)
+      end
+    rescue Exception
+      objects << output_datatype.create_from!(output.to_s)
+    end
 
     def run_in_language_bridge(input)
       # Get login account or user.
