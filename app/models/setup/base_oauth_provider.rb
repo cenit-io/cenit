@@ -3,6 +3,7 @@ module Setup
     include SharedEditable
     include MandatoryNamespace
     include ClassHierarchyAware
+    include RailsAdmin::Models::Setup::BaseOauthProviderAdmin    
 
     abstract_class true
 

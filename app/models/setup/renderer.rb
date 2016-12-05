@@ -1,5 +1,6 @@
 module Setup
   class Renderer < Translator
+    include RailsAdmin::Models::Setup::RendererAdmin
 
     transformation_type :Export
     allow :new

@@ -1,6 +1,7 @@
 module Setup
   class FlowConfig
     include CenitScoped
+    include RailsAdmin::Models::Setup::FlowConfigAdmin
 
     deny :all
     allow :index, :show, :edit

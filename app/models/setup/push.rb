@@ -1,6 +1,7 @@
 module Setup
   class Push < Setup::Task
     include HashField
+    include RailsAdmin::Models::Setup::PushAdmin
 
     build_in_data_type
 

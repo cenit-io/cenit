@@ -4,6 +4,7 @@ module Setup
     include Trackable
     include CollectionName
     include Taggable
+    include RailsAdmin::Models::Setup::SharedCollectionAdmin
 
     deny :copy, :new, :edit, :translator_update, :convert, :send_to_flow, :delete_all, :delete, :import
 

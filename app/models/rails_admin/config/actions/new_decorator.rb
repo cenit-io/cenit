@@ -1,0 +1,57 @@
+module RailsAdmin
+  module Config
+    module Actions
+      New.class_eval do
+        register_instance_option :controller do
+          proc do
+
+            #Patch
+            if request.get? || params[:_restart] # NEW
+
+              @object =
+                if (token = Cenit::Token.where(token: params[:json_token]).first)
+                  hash = JSON.parse(token.data) rescue {}
+                  @abstract_model.model.data_type.new_from_json(hash)
+                else
+                  @abstract_model.new
+                end
+              @authorization_adapter && @authorization_adapter.attributes_for(:new, @abstract_model).each do |name, value|
+                @object.send("#{name}=", value)
+              end
+              if (object_params = params[@abstract_model.to_param])
+                @object.set_attributes(@object.attributes.merge(object_params))
+              end
+              respond_to do |format|
+                format.html { render @action.template_name }
+                format.js { render @action.template_name, layout: false }
+              end
+
+            elsif request.post? # CREATE
+
+              @modified_assoc = []
+              @object = @abstract_model.new
+              sanitize_params_for!(request.xhr? ? :modal : :create)
+
+              @object.set_attributes(params[@abstract_model.param_key])
+              @authorization_adapter && @authorization_adapter.attributes_for(:create, @abstract_model).each do |name, value|
+                @object.send("#{name}=", value)
+              end
+
+              #Patch
+              if params[:_next].nil? && @object.save
+                @auditing_adapter && @auditing_adapter.create_object(@object, @abstract_model, _current_user)
+                respond_to do |format|
+                  format.html { redirect_to_on_success }
+                  format.js { render json: { id: @object.id.to_s, label: @model_config.with(object: @object).object_label } }
+                end
+              else
+                handle_save_error
+              end
+
+            end
+          end
+        end
+      end
+    end
+  end
+end

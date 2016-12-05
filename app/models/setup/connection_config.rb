@@ -2,6 +2,7 @@ module Setup
   class ConnectionConfig
     include CenitScoped
     include NumberGenerator
+    include RailsAdmin::Models::Setup::ConnectionConfigAdmin
 
     deny :all
     allow :index, :show, :edit

@@ -2,6 +2,7 @@ module Setup
   class OauthClient
     include SharedEditable
     include CustomTitle
+    include RailsAdmin::Models::Setup::OauthClientAdmin
 
     build_in_data_type.including(:provider).referenced_by(:provider, :name).protecting(:identifier, :secret)
 

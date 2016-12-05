@@ -3,6 +3,7 @@ module Setup
     include CenitUnscoped
     include Trackable
     include CollectionName
+    include RailsAdmin::Models::Setup::SharedNameAdmin
 
     deny :all
 

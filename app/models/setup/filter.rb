@@ -4,6 +4,7 @@ module Setup
     include NamespaceNamed
     include TriggersFormatter
     include CustomTitle
+    include RailsAdmin::Models::Setup::FilterAdmin
 
     belongs_to :data_type, class_name: Setup::DataType.to_s, inverse_of: nil
     field :triggers, type: String
