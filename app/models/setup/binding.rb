@@ -1,6 +1,7 @@
 module Setup
   class Binding
     include CenitScoped
+    include RailsAdmin::Models::Setup::BindingAdmin
 
     build_in_data_type
 

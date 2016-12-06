@@ -1,5 +1,6 @@
 module Setup
   class CenitDataType < DataType
+    include RailsAdmin::Models::Setup::CenitDataTypeAdmin
 
     origins :cenit
 

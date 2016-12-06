@@ -1,4 +1,5 @@
 class ScriptExecution < Setup::Task
+  include RailsAdmin::Models::ScriptExecutionAdmin
 
   default_origin :admin
 

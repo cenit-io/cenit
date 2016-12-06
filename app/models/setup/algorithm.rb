@@ -3,6 +3,7 @@ module Setup
     include SnippetCode
     include NamespaceNamed
     include Taggable
+    include RailsAdmin::Models::Setup::AlgorithmAdmin
 
     legacy_code_attribute :code
 

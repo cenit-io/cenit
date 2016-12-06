@@ -2,6 +2,7 @@ module Setup
   class DataTypeConfig
     include CenitScoped
     include Slug
+    include RailsAdmin::Models::Setup::DataTypeConfigAdmin
 
     deny :all
     allow :index, :show, :edit

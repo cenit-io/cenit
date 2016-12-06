@@ -3,6 +3,7 @@ module Setup
     include ReqRejValidator
     include CenitUnscoped
     include HashField
+    include RailsAdmin::Models::Setup::CollectionPullParameterAdmin
 
     build_in_data_type.referenced_by(:type, :name, :property, :key)
 

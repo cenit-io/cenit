@@ -1,6 +1,7 @@
 module Setup
   class Api
     include SharedEditable
+    include RailsAdmin::Models::Setup::ApiAdmin
 
     build_in_data_type.referenced_by(:name)
 
