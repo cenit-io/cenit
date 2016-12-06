@@ -25,6 +25,6 @@ module Setup
       Setup::BuildInDataType[data_type_name]
     end
 
-    delegate :schema, :subtype?, to: :build_in
+    delegate :title, :schema, :subtype?, to: :build_in
   end
 end
