@@ -2,6 +2,7 @@ module RailsAdmin
   ApplicationController.class_eval do
 
     alias_method :rails_admin_to_model_name, :to_model_name
+
     def to_model_name(param)
       model_name = rails_admin_to_model_name(param)
       if (m = [Setup, Cenit, Forms].detect { |m| m.const_defined?(model_name, false) })

@@ -13,11 +13,11 @@ module Setup
     end
 
     def title
-      @title ||= model.to_s.to_title
+      @title ||= model.to_s.split('::').last.to_title
     end
 
     def custom_title(separator = '|')
-      "#{Setup.to_s} #{separator} #{title}"
+      model.to_s.split('::').collect(&:to_title).join(" #{separator} ")
     end
 
     def name

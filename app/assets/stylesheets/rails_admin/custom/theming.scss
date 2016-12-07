@@ -1083,3 +1083,13 @@ body.rails_admin .form-horizontal.denser fieldset {
     margin-left: 19px;
   }
 }
+
+#save_filters_button span {
+  margin-left: 5px;
+}
+
+#code_show_view{
+  .CodeMirror {
+    height: auto;
+  }
+}

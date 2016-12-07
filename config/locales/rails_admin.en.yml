@@ -63,6 +63,7 @@ en:
       link_file_data_type: 'Link File Type'
       link_cross_shared_collection: 'Connect Store'
       and_more: "and %{count} more"
+      save_filter: 'Save Filter'
     actions:
       dashboard:
         title: "Dashboard"
