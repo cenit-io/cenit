@@ -2,6 +2,7 @@ module Setup
   class CrossCollectionPullParameter
     include CenitUnscoped
     include HashField
+    include RailsAdmin::Models::Setup::CrossCollectionPullParameterAdmin
 
     build_in_data_type.referenced_by(:location, :property_name)
 

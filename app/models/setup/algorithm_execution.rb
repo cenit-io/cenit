@@ -1,5 +1,6 @@
 module Setup
   class AlgorithmExecution < Setup::Task
+    include RailsAdmin::Models::Setup::AlgorithmExecutionAdmin
 
     build_in_data_type
 

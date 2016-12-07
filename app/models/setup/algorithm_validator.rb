@@ -2,6 +2,7 @@ module Setup
   class AlgorithmValidator < CustomValidator
     include SharedEditable
     include CenitScoped
+    include RailsAdmin::Models::Setup::AlgorithmValidatorAdmin
 
     build_in_data_type.referenced_by(:namespace, :name)
 

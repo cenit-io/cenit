@@ -1,0 +1,97 @@
+module RailsAdmin
+  module Models
+    module Setup
+      module PlainWebhookAdmin
+        extend ActiveSupport::Concern
+
+        included do
+          rails_admin do
+            navigation_label 'Workflows'
+            label 'Webhook'
+            weight 515
+            object_label_method { :custom_title }
+
+            configure :metadata, :json_value
+
+            group :credentials do
+              label 'Credentials'
+            end
+
+            configure :authorization do
+              group :credentials
+              inline_edit false
+            end
+
+            configure :authorization_handler do
+              group :credentials
+            end
+
+            group :parameters do
+              label 'Parameters & Headers'
+            end
+
+            configure :path, :string do
+              help 'Requiered. Path of the webhook relative to connection URL.'
+              html_attributes do
+                { maxlength: 255, size: 100 }
+              end
+            end
+
+            configure :parameters do
+              group :parameters
+            end
+
+            configure :headers do
+              group :parameters
+            end
+
+            configure :template_parameters do
+              group :parameters
+            end
+
+            edit do
+              field(:namespace, :enum_edit, &RailsAdmin::Models::Setup::FieldsConfigAdmin.shared_non_editable)
+              field(:name, &RailsAdmin::Models::Setup::FieldsConfigAdmin.shared_non_editable)
+              field(:path, &RailsAdmin::Models::Setup::FieldsConfigAdmin.shared_non_editable)
+              field(:method, &RailsAdmin::Models::Setup::FieldsConfigAdmin.shared_non_editable)
+              field(:description, &RailsAdmin::Models::Setup::FieldsConfigAdmin.shared_non_editable)
+              field(:metadata, :json_value, &RailsAdmin::Models::Setup::FieldsConfigAdmin.shared_non_editable)
+
+              field :authorization
+              field(:authorization_handler, &RailsAdmin::Models::Setup::FieldsConfigAdmin.shared_non_editable)
+
+              field :parameters
+              field :headers
+              field :template_parameters
+            end
+
+            show do
+              field :namespace
+              field :name
+              field :path
+              field :method
+              field :description
+              field :metadata, :json_value
+
+              field :authorization
+              field :authorization_handler
+
+              field :parameters
+              field :headers
+              field :template_parameters
+
+              field :_id
+              field :created_at
+              #field :creator
+              field :updated_at
+              #field :updater
+            end
+
+            fields :namespace, :name, :path, :method, :description, :authorization, :updated_at
+          end
+        end
+
+      end
+    end
+  end
+end

@@ -1,6 +1,7 @@
 module Setup
   class Scheduler < Event
     include HashField
+    include RailsAdmin::Models::Setup::SchedulerAdmin
 
     build_in_data_type.with(:namespace, :name, :expression, :activated).referenced_by(:namespace, :name)
 

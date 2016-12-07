@@ -4,6 +4,7 @@ module Setup
     include NamespaceNamed
     include WithTemplateParameters
     include JsonMetadata
+    include RailsAdmin::Models::Setup::ResourceAdmin    
 
     build_in_data_type.referenced_by(:name, :namespace)
 

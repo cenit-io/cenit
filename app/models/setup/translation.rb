@@ -1,6 +1,7 @@
 module Setup
   class Translation < Setup::Task
     include Setup::TranslationCommon
+    include RailsAdmin::Models::Setup::TranslationAdmin
 
     build_in_data_type
 

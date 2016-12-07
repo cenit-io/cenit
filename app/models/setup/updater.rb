@@ -1,5 +1,6 @@
 module Setup
   class Updater < Translator
+    include RailsAdmin::Models::Setup::UpdaterAdmin
 
     transformation_type :Update
     allow :new

@@ -7,6 +7,7 @@ class Account
   include NumberGenerator
   include TokenGenerator
   include FieldsInspection
+  include RailsAdmin::Models::AccountAdmin
 
   inspect_fields :name, :notification_level, :time_zone
 

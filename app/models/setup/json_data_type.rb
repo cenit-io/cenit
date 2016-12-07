@@ -2,6 +2,7 @@ module Setup
   class JsonDataType < DataType
 
     include Setup::SnippetCode
+    include RailsAdmin::Models::Setup::JsonDataTypeAdmin    
 
     legacy_code_attribute :schema
 

@@ -1,6 +1,7 @@
 module Setup
   class AlgorithmParameter
     include CenitScoped
+    include RailsAdmin::Models::Setup::AlgorithmParameterAdmin
 
     build_in_data_type.referenced_by(:name)
 
