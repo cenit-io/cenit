@@ -129,7 +129,7 @@ RailsAdmin.config do |config|
     run
     run_script
     edit
-    swagger { only [Setup::Api] }
+    swagger { only [Setup::ApiSpec] }
     configure
     play
     copy
@@ -1584,10 +1584,10 @@ RailsAdmin.config do |config|
     end
   end
 
-  config.model Setup::Api do
+  config.model Setup::ApiSpec do
     navigation_label 'Connectors'
     weight 200
-    label 'API'
+    label 'API Spec'
 
     configure :specification, :code do
       code_config do
@@ -1597,7 +1597,7 @@ RailsAdmin.config do |config|
       end
     end
 
-    fields :name, :specification
+    fields :title, :specification
   end
 
   config.model Setup::Connection do

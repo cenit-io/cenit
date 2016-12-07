@@ -5,7 +5,7 @@ module Setup
 
     build_in_data_type
 
-    pulling :api, class: Setup::Api
+    pulling :api, class: Setup::ApiSpec
     hash_field :collection_data
 
     def source_shared_collection
