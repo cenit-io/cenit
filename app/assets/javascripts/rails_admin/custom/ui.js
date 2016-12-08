@@ -1,39 +1,126 @@
 // require rails_admin/d3
 // require rails_admin/highcharts
+//= require rails_admin/toggle-origin.js
+//= require rails_admin/bootstrap-tour.min
 //= require rails_admin/triggers-box
 //= require rails_admin/test-flow-transformation
 //= require rails_admin/highlight_js/highlight.pack.js
+//= require rails_admin/handlers
+//= require lodash.min
+//= require rails_admin/select2.full.min
 
-$(document).on('rails_admin.dom_ready', function() {
-  $('pre code').each(function(i, block) {
-     hljs.highlightBlock(block);
-   });
+$(document).on('rails_admin.dom_ready', function () {
+    $('pre code').each(function (i, block) {
+        hljs.highlightBlock(block);
+    });
+    handlerInit();
 });
 
-$(function(){
-    $("#sidebar-toggle").click(function(e) {
-        e.preventDefault();
-        $("#wrapper").toggleClass("toggled");
-        $(this).toggleClass("toggled");
-    });
+$(function () {
+    $(".soc-btn").on("click", function (ev) {
+        $(this).addClass("selected");
+        $(this).siblings().addClass("unused");
 
-    $('#main-accordion').find('.panel-heading a.panel-title').click(function(){
-        var parent = $(this).parent().parent();
-        if ($(parent).hasClass('active'))
-            $(parent).removeClass('active');
-        else {
-            $(parent).addClass('active');
-            $(parent).siblings().each(function () {
-                $(this).removeClass('active');
-            });
-        }
+        var overlay = $('<div id="modal-overlay"></div>');
+        overlay.appendTo(document.body);
     });
 });
 
 $(function () {
-    $('#take-tour').click(function(e){
+    if ($(window).width() > 767) {
+        $("#wrapper").addClass('toggled');
+        $("#sidebar-toggle").addClass('toggled');
+    }
+
+    $("#sidebar-toggle").click(function (e) {
         e.preventDefault();
-        var tour = new Tour({
+        $("#wrapper").toggleClass("toggled");
+        $(this).toggleClass("toggled");
+        var $conten_wraper = $("#content-wrapper");
+        if ($("#sidebar-wrapper").css('width') == "55px") {
+            $conten_wraper.css('width', 'calc(100% - 250px)');
+        } else {
+            $conten_wraper.css('width', 'calc(100% - 55px)');
+        }
+    });
+
+    $('#main-accordion').find('.panel-heading a.panel-title').click(function () {
+        var parent = $(this).parent().parent();
+        $(parent).toggleClass('active');
+        if ($(parent).hasClass('active'))
+            $(parent).siblings().each(function () {
+                $(this).removeClass('active');
+            });
+    });
+
+    $("#nav-drawer-toggle").click(function (e) {
+        e.preventDefault();
+        $("#nav-drawer").toggleClass('open');
+        $(this).toggleClass("toggled");
+
+        $("#sign-drawer").removeClass('open');
+    });
+
+    $("#sign-in-link").click(function (e) {
+        e.preventDefault();
+        $("#sign-drawer").toggleClass('open');
+        // $(this).toggleClass("toggled");
+
+        $("#nav-drawer").removeClass('open');
+        $("#nav-drawer-toggle").removeClass("toggled");
+    });
+
+    $('.user-auth .actions .btn-xs').click(function (e) {
+        e.preventDefault();
+
+        var id = '#' + $(this).attr('id') + '-form';
+        var form = $(this).parents('form.local');
+        var sibling = $(form).parent().find(id);
+
+        $(form).removeClass('active');
+        $(sibling).addClass('active');
+    });
+
+    function getAbsolute() {
+        var outer = $("#nav-drawer").height();
+        var inner = $("#nav-links").height() + $("#social-links").height();
+
+        return outer > inner;
+    }
+
+    $(window).on('resize', function (e) {
+        if (getAbsolute()) {
+            $(".social-links").addClass("absolute");
+        } else {
+            $(".social-links").removeClass("absolute");
+        }
+    });
+    if (getAbsolute()) {
+        $(".social-links").addClass("absolute");
+    }
+
+    $("#search-toggle").click(function (e) {
+        var parent = $("#navbar-search");
+        if (!$(parent).hasClass('open')) {
+            e.preventDefault();
+            $(parent).addClass('open');
+            $(this).addClass('toggled');
+        } else {
+            query = $(parent).find('input[type="search"]').val();
+            if (query == "") {
+                e.preventDefault();
+                $(parent).removeClass("open");
+            }
+            $(this).removeClass('toggled');
+        }
+    });
+});
+function initializeTour() {
+    var toggle_collapse = function (id) {
+            $('.panel-collapse', id).first().collapse('toggle');
+            $(id).toggleClass('active');
+        },
+        tour = new Tour({
             name: 'anonymous',
             steps: [
                 {
@@ -45,38 +132,102 @@ $(function () {
                     title: "Browse our Collections",
                     content: "Install any available collection in the blink of an eye, and create your own",
                     element: "#main-collections",
-                    placement: "right"
+                    placement: "right",
+                    onShow: function () {
+                        that = this.element;
+                        toggle_collapse(that);
+                    },
+                    onHide: function () {
+                        that = this.element;
+                        toggle_collapse(that);
+                    }
                 },
                 {
-                    title: "Define and store data",
+                    title: "Define data",
                     content: "Create your schemas and data types",
-                    element: "#main-data",
-                    placement: "right"
+                    element: "#main-definitions",
+                    placement: "right",
+                    onShow: function () {
+                        that = this.element;
+                        toggle_collapse(that);
+                    },
+                    onHide: function () {
+                        that = this.element;
+                        toggle_collapse(that);
+                    }
+                },
+                {
+                    title: "Store data",
+                    content: "Store your objects",
+                    element: "#main-json_data_type",
+                    placement: "right",
+                    onShow: function () {
+                        that = this.element;
+                        toggle_collapse(that);
+                    },
+                    onHide: function () {
+                        that = this.element;
+                        toggle_collapse(that);
+                    }
                 },
                 {
                     title: "Setup your endpoints",
                     content: "Register connections and webhooks",
-                    element: "#main-api-connectors",
-                    placement: "right"
+                    element: "#main-connectors",
+                    placement: "right",
+                    onShow: function () {
+                        that = this.element;
+                        toggle_collapse(that);
+                    },
+                    onHide: function () {
+                        that = this.element;
+                        toggle_collapse(that);
+                    }
                 },
                 {
                     title: "Transform and dispatch",
                     content: "Send your data away or pull it from a remote endpoint or simply translate it from one data type to another",
-                    element: "#main-workflows",
-                    placement: "right"
+                    element: "#main-transformations",
+                    placement: "right",
+                    onShow: function () {
+                        that = this.element;
+                        toggle_collapse(that);
+                    },
+                    onHide: function () {
+                        that = this.element;
+                        toggle_collapse(that);
+                    }
+
                 },
                 {
                     title: "Safety first",
-                    content: "Control who may access your stuff, and define hoy you access other's",
+                    content: "Control who may access your stuff, and define how you access other's",
                     element: "#main-security",
-                    placement: "right"
+                    placement: "right",
+                    onShow: function () {
+                        that = this.element;
+                        toggle_collapse(that);
+                    },
+                    onHide: function () {
+                        that = this.element;
+                        toggle_collapse(that);
+                    }
                 },
                 {
                     title: "Monitoring",
                     content: "Consult the status of every action",
                     element: "#main-monitors",
-                    placement: "right"
+                    placement: "right",
+                    onShow: function () {
+                        that = this.element;
+                        toggle_collapse(that);
+                    },
+                    onHide: function () {
+                        that = this.element;
+                        toggle_collapse(that);
+                    }
                 },
+                // TODO: Where to go on this step
                 {
                     title: "Check the Dashboard",
                     content: "All models are there",
@@ -101,11 +252,17 @@ $(function () {
                     element: "#action-notify",
                     placement: "bottom"
                 }
-            ]});
-// Initialize the tour
-        tour.init();
+            ]
+        });
+    // Initialize the tour
+    tour.init();
 
-// Start the tour
-        tour.start(true);
+    // Start the tour
+    tour.restart(true);
+}
+$(function () {
+    $('#take-tour').click(function (e) {
+        e.preventDefault();
+        initializeTour();
     });
 });

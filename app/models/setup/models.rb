@@ -4,45 +4,21 @@ module Setup
       include Enumerable
 
       def unregist(model)
-        excluded_actions.delete(model)
-        included_actions.delete(model)
+        instance_values.values.each { |hash| hash.delete(model) }
       end
 
       def regist(model)
-        excluded_actions[model]
-      end
-
-      def each_excluded_action(&block)
-        excluded_actions.each(&block)
-      end
-
-      def exclude_actions_for(model, *actions)
-        excluded_actions[model] += actions
-      end
-
-      def excluded_actions_for(model)
-        excluded_actions[model]
+        excluded_actions_for(model)
       end
 
       def registered?(model)
-        excluded_actions.include?(model)
-      end
-
-      def each_included_action(&block)
-        included_actions.each(&block)
-      end
-
-      def include_actions_for(model, *actions)
-        included_actions[model] += actions
-      end
-
-      def included_actions_for(model)
-        included_actions[model]
+        instance_values.values.each { |hash| return true if hash.has_key?(model) }
+        false
       end
 
       def all
-        set = Set.new(@excluded_actions.keys)
-        @included_actions.each_key { |m| set << m } if @included_actions
+        set = Set.new
+        instance_values.values.each { |hash| set.merge(hash.keys) }
         set
       end
 
@@ -50,14 +26,24 @@ module Setup
         all.each(&block)
       end
 
-      private
-
-      def excluded_actions
-        @excluded_actions ||= Hash.new { |h, k| h[k] = [] }
-      end
-
-      def included_actions
-        @included_actions ||= Hash.new { |h, k| h[k] = [] }
+      def method_missing(symbol, *args)
+        if (name = symbol.to_s).end_with?('_actions_for')
+          name = name.to(name.length - '_actions_for'.length - 1)
+          instance_eval <<-RUBY
+          def #{name}_actions
+            @#{name}_actions ||= Hash.new { |h, k| h[k] = [] }
+          end
+          def #{symbol}(model, *actions)
+            #{name}_actions[model] += actions.flatten
+          end
+          def each_#{name}_action(&block)
+            #{name}_actions.each(&block)
+          end
+          RUBY
+          send(symbol, *args)
+        else
+          super
+        end
       end
     end
   end

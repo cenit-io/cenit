@@ -2,10 +2,9 @@ module Setup
   class Namespace
     include CenitScoped
     include Slug
+    include RailsAdmin::Models::Setup::NamespaceAdmin
 
-    # Setup::Models.exclude_actions_for self, :delete, :bulk_delete, :delete_all
-
-    BuildInDataType.regist(self).referenced_by(:name)
+    build_in_data_type.referenced_by(:name)
 
     field :name, type: String
 
@@ -16,6 +15,12 @@ module Setup
         else
           name.strip
         end.strip
+    end
+
+    after_save do
+      if (old_name = changed_attributes['name'])
+        #TODO Refactor namespace name on setup models
+      end
     end
 
     validates_uniqueness_of :name
@@ -30,8 +35,20 @@ module Setup
       if (schema = @schemas_scope[uri])
         schema
       else
-        schemas.where(namespace: name, uri: uri).first
+        Setup::Schema.where(namespace: name, uri: uri).first
       end
+    end
+
+    def method_missing(symbol, *args)
+      if (relation_name = Setup::Collection::COLLECTING_PROPERTIES.detect { |name| name.to_s.singularize == symbol.to_s })
+        Setup::Collection.reflect_on_association(relation_name).klass.where(namespace: name, name: args[0].to_s).first
+      else
+        super
+      end
+    end
+
+    def respond_to?(*args)
+      super || Setup::Collection::COLLECTING_PROPERTIES.any? { |name| name.to_s.singularize == args.first.to_s }
     end
   end
 end

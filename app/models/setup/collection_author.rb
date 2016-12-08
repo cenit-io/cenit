@@ -1,8 +1,10 @@
 module Setup
-  class CollectionAuthor < ReqRejValidator
+  class CollectionAuthor
+    include ReqRejValidator
     include CenitUnscoped
+    include RailsAdmin::Models::Setup::CollectionAuthorAdmin
 
-    BuildInDataType.regist(self)
+    build_in_data_type
 
     field :name, type: String
     field :email, type: String

@@ -1,8 +1,9 @@
 module Setup
   class CallLink
     include CenitScoped
+    include RailsAdmin::Models::Setup::CallLinkAdmin
 
-    BuildInDataType.regist(self).referenced_by(:name)
+    build_in_data_type.referenced_by(:name)
 
     field :name, type: String
     belongs_to :link, class_name: Setup::Algorithm.to_s, inverse_of: nil

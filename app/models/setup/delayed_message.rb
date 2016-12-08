@@ -1,10 +1,11 @@
 module Setup
   class DelayedMessage
     include CenitUnscoped
+    include RailsAdmin::Models::Setup::DelayedMessageAdmin
 
-    Setup::Models.exclude_actions_for self, :all
+    deny :all
 
-    Setup::BuildInDataType.regist(self)
+    build_in_data_type
 
     field :message, type: String
     field :publish_at, type: DateTime
@@ -16,8 +17,18 @@ module Setup
 
     before_save do
       unless publish_at.present?
-        self.publish_at = (scheduler && scheduler.next_time) || Time.now + (Cenit.default_delay || Cenit.scheduler_lookup_interval || 0)
+        self.publish_at =
+          if (n_time = (scheduler && scheduler.next_time))
+            n_time
+          else
+            if scheduler
+              nil
+            else
+              Time.now + (Cenit.default_delay || Cenit.scheduler_lookup_interval || 0)
+            end
+          end
       end
+      publish_at.present?
     end
   end
 end

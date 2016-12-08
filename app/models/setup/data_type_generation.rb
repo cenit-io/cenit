@@ -1,9 +1,10 @@
 module Setup
   class DataTypeGeneration < Setup::Task
+    include RailsAdmin::Models::Setup::DataTypeGenerationAdmin
 
-    BuildInDataType.regist(self)
+    build_in_data_type
 
-    Setup::Models.exclude_actions_for self, :copy, :new, :edit, :translator_update, :import, :convert, :delete_all
+    deny :copy, :new, :edit, :translator_update, :import, :convert, :delete_all
 
     def run(message)
       message = message.with_indifferent_access
@@ -12,7 +13,6 @@ module Setup
         existing_data_types = Setup::DataType.any_in(namespace: ns, name: data_type_schemas.keys)
         if existing_data_types.present?
           if message[:override_data_types].to_b
-            Setup::DataType.shutdown(existing_data_types, deactivate: true)
             existing_data_types.each do |data_type|
               data_type.schema = data_type_schemas.delete(data_type.name)
               data_type.save
@@ -25,6 +25,7 @@ module Setup
           new_data_types_attributes = []
           data_type_schemas.each do |name, schema|
             data_type = Setup::JsonDataType.new(name: name, schema: schema, namespace: ns)
+            data_type.validates_before
             data_type_schemas[name] =
               if data_type.validate_model
                 new_data_types_attributes << data_type.attributes

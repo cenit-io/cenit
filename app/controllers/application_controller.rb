@@ -5,7 +5,7 @@ class ApplicationController < ActionController::Base
   protect_from_forgery with: :null_session,
                        if: Proc.new { |c| c.request.format =~ %r{application/json} }
 
-  rescue_from CanCan::AccessDenied do |exception|
+  rescue_from CanCan::AccessDenied, RailsAdmin::ActionNotAllowed do |exception|
     redirect_to main_app.root_path, :alert => exception.message
   end
 
@@ -42,7 +42,7 @@ class ApplicationController < ActionController::Base
   end
 
   def clean_thread_cache
-    Thread.current.keys.each { |key| Thread.current[key] = nil if key.to_s.start_with?('[cenit]') }
+    Thread.clean_keys_prefixed_with('[cenit]')
   end
 
   def scope_current_account
@@ -51,10 +51,9 @@ class ApplicationController < ActionController::Base
     if current_user && current_user.account.nil?
       current_user.add_role(:admin) unless current_user.has_role?(:admin)
       current_user.account = Account.create_with_owner(owner: current_user)
-      current_user.core_handling = true
       current_user.save(validate: false)
     end
-    Account.current = current_user.account if signed_in?
+    Account.current = current_user.account.target if signed_in?
     yield
   ensure
     optimize
@@ -67,9 +66,4 @@ class ApplicationController < ActionController::Base
   def after_sign_out_path_for(resource_or_scope)
     ENV['SING_OUT_URL'] || root_path
   end
-
-  after_filter do
-    Account.current = nil
-  end
-
 end

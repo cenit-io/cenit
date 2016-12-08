@@ -20,7 +20,7 @@ gem 'figaro'
 gem 'unicorn', '4.9.0'
 gem 'xmldsig'
 gem 'spreadsheet'
-gem 'contact_us'
+gem 'newrelic_rpm'
 
 group :doc do
   gem 'sdoc', require: false
@@ -78,6 +78,7 @@ gem 'rolify'
 gem 'rufus-scheduler'
 gem 'rubyzip'
 gem 'prawn-rails'
+gem 'prawn-qrcode'
 gem 'carrierwave-mongoid'
 gem 'mini_magick'
 gem 'liquid'
@@ -98,5 +99,19 @@ gem "octokit"
 gem 'exception_notification'
 
 gem 'mime'
+gem 'deface'
 
-gem 'cross_origin'
+gem 'cross_origin', git: 'https://github.com/macarci/cross_origin.git'
+
+gem 'lodash-rails'
+gem 'identicon'
+
+gem 'language_sniffer'
+
+gem 'cenit-config', git: 'https://github.com/macarci/cenit-config.git'
+gem 'cenit-multi_tenancy', git: 'https://github.com/macarci/cenit-multi_tenancy.git'
+gem 'cenit-token', git: 'https://github.com/macarci/cenit-token.git'
+gem 'cenit-service', git: 'https://github.com/macarci/cenit-service.git'
+gem 'cenit-oauth', git: 'https://github.com/macarci/cenit-oauth.git'
+
+gem 'capataz', git: 'https://github.com/macarci/capataz.git'

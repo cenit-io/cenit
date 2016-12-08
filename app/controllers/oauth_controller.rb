@@ -10,27 +10,29 @@ class OauthController < ApplicationController
 
   def index
     if request.get?
-      if @app_id.account == Account.current || @app_id.registered?
-        @token = CenitToken.create(data: { scope: @scope.to_s, redirect_uri: @redirect_uri, state: params[:state] }).token
+      if @app_id && (@app_id.tenant == Account.current || @app_id.registered?)
+        @token = Cenit::Token.create(data: { scope: @scope.to_s, redirect_uri: @redirect_uri, state: params[:state] }).token
       else
         @errors << 'Unregistered app'
       end
     else
-      if (token = CenitToken.where(token: @token).first) &&
+      if (token = Cenit::Token.where(token: @token).first) &&
         token.data.is_a?(Hash) &&
-        (redirect_uri = token.data['redirect_uri']) &&
+        (redirect_uri = URI.parse(token.data['redirect_uri'])) &&
         (scope = token.data['scope'])
         token.destroy
-        if @consent_action == :allow
-          code_token = OauthCodeToken.create(scope: scope)
-          redirect_uri += "?code=#{URI.encode(code_token.token)}"
-          if (state = token.data['state'])
-            redirect_uri += "&state=#{URI.encode(state)}"
-          end
-        else
-          redirect_uri += "?error=#{URI.encode('Access denied')}"
+        params = {}
+        if (state = token.data['state'])
+          params[:state] = state
         end
-        redirect_to redirect_uri
+        if @consent_action == :allow
+          code_token = Cenit::OauthCodeToken.create(scope: scope, user_id: User.current.id)
+          params[:code] = code_token.token
+        else
+          params[:error] ='Access denied'
+        end
+        redirect_uri.query = redirect_uri.query.to_s + params.to_param
+        redirect_to redirect_uri.to_s
       else
         @errors << 'Consent time out'
       end
@@ -42,17 +44,18 @@ class OauthController < ApplicationController
     redirect_path = rails_admin.index_path(Setup::Authorization.to_s.underscore.gsub('/', '~'))
     error = params[:error]
     if (cenit_token = OauthAuthorizationToken.where(token: params[:state] || session[:oauth_state]).first) &&
-      cenit_token.set_current_account && (authorization = cenit_token.authorization)
+      cenit_token.set_current_tenant! && (authorization = cenit_token.authorization)
       begin
         authorization.metadata[:redirect_token] = redirect_token = Devise.friendly_token
         redirect_path =
-          if (app = cenit_token.application) && (ns = Setup::Namespace.where(name: app.namespace).first)
-            "/app/#{ns.slug}/#{app.slug}/authorization/#{authorization.id}?redirect_token=#{redirect_token}&" +
+          if (app = cenit_token.application)
+            "/app/#{app.slug_id}/authorization/#{authorization.id}?redirect_token=#{redirect_token}" +
               case app.authentication_method
-              when :application_id
-                "client_id=#{app.identifier}"
-              else
+              when :user_credentials
                 "X-User-Access-Key=#{Account.current.owner.number}&X-User-Access-Token=#{Account.current.owner.token}"
+              else
+                #:application_id
+                ''
               end
           else
             rails_admin.show_path(model_name: authorization.class.to_s.underscore.gsub('/', '~'), id: authorization.id.to_s) + "?redirect_token=#{redirect_token}"
@@ -97,7 +100,7 @@ class OauthController < ApplicationController
       end
       @errors << 'Missing redirect_uri.' unless (@redirect_uri = params[:redirect_uri])
       @errors << 'Missing scope.' unless (@scope = params[:scope])
-      if (@app_id = ApplicationId.where(identifier: @client_id).first)
+      if (@app_id = Cenit::ApplicationId.where(identifier: @client_id).first)
         unless @app_id.redirect_uris.include?(@redirect_uri)
           @errors << 'Invalid redirect_uri'
         end
@@ -105,11 +108,11 @@ class OauthController < ApplicationController
         @errors << 'Invalid credentials'
       end if @errors.blank?
       if @scope.is_a?(String)
-        @scope = Cenit::Scope.new(@scope)
+        @scope = Cenit::OauthScope.new(@scope)
       end
       @errors << 'Invalid scope' unless @scope.nil? || @scope.valid?
     else
-      @errors << 'Conent time out' unless (@token = params[:token])
+      @errors << 'Consent time out' unless (@token = params[:token])
       @consent_action = params[:allow] ? :allow : :deny
     end
     true

@@ -2,15 +2,17 @@ module Setup
   class DataImport < Setup::Task
     include Setup::TranslationCommon
     include Setup::DataUploader
+    include Setup::DataIterator
+    include RailsAdmin::Models::Setup::DataImportAdmin
 
-    BuildInDataType.regist(self)
-
-    Setup::Models.exclude_actions_for self, :copy, :new, :edit, :translator_update, :import, :convert, :delete_all
+    build_in_data_type
 
     protected
 
     def translate_import(message)
-      translator.run(target_data_type: data_type_from(message), data: data.read)
+      each_entry do |_, data|
+        translator.run(target_data_type: data_type_from(message), data: data)
+      end
     end
 
   end

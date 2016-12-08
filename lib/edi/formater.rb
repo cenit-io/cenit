@@ -32,9 +32,21 @@ module Edi
       options[:pretty] ? JSON.pretty_generate(hash) : hash.to_json
     end
 
+    def share_hash(options = {})
+      if self.class.respond_to?(:share_options)
+        options = options.reverse_merge(self.class.share_options) rescue options
+      end
+      to_hash(options)
+    end
+
+    def share_json(options={})
+      hash = share_hash(options)
+      options[:pretty] ? JSON.pretty_generate(hash) : hash.to_json
+    end
+
     def to_xml_element(options = {})
       prepare_options(options)
-      unless xml_doc = options[:xml_doc]
+      unless (xml_doc = options[:xml_doc])
         options[:xml_doc] = xml_doc = Nokogiri::XML::Document.new
       end
       element = record_to_xml_element(data_type = self.orm_model.data_type, self.orm_model.schema, self, xml_doc, nil, options, namespaces = {})
@@ -70,7 +82,7 @@ module Edi
       [:only].each { |option| options.delete(option) if options[option].empty? }
       options[:inspected_records] = Set.new
       options[:stack] = []
-      options[:include_id] = include_id.present?
+      options[:include_id] = include_id.respond_to?(:call) ? include_id : include_id.to_b
     end
 
     def split_name(name)
@@ -78,9 +90,9 @@ module Edi
       [tokens.join(':'), name]
     end
 
-    def ns_for(ns, namespaces)
+    def ns_prefix_for(ns, namespaces, preferred = nil)
       letters = true
-      ns = ns.split(':').last.split('/').last.underscore.split('_').collect { |token| (letters &&= token[0] =~ /[[:alpha:]]/) ? token[0] : '' }.join
+      ns = preferred || ns.split(':').last.split('/').last.underscore.split('_').collect { |token| (letters &&= token[0] =~ /[[:alpha:]]/) ? token[0] : '' }.join
       ns = 'ns' if ns.blank?
       if namespaces.values.include?(ns)
         i = 1
@@ -96,13 +108,20 @@ module Edi
       return unless record
       return Nokogiri::XML({ enclosed_property_name => record }.to_xml(dasherize: false)).root.first_element_child if Cenit::Utility.json_object?(record)
 
+      if schema['xml'] && (xmlnss = schema['xml']['xmlns']).is_a?(Hash)
+        xmlnss.each do |ns, xmlns|
+          namespaces[ns] = ns_prefix_for(ns, namespaces, xmlns) unless namespaces.has_key?(ns)
+        end
+      end
+
       element_name = schema['edi']['segment'] if schema['edi']
       element_name ||= enclosed_property_name || record.orm_model.data_type.name
       ns, element_name = split_name(element_name)
-      unless xmlns = namespaces[ns]
+      xmlns = ''
+      unless ns.empty? || (xmlns = namespaces[ns])
         xmlns = namespaces[ns] =
           if namespaces.values.include?('')
-            ns_for(ns, namespaces)
+            ns_prefix_for(ns, namespaces)
           else
             ''
           end
@@ -119,7 +138,7 @@ module Edi
         name = property_schema['edi']['segment'] if property_schema['edi']
         name ||= property_name
         property_model = record.orm_model.property_model(property_name)
-        if inspecting = options[:inspecting].present? #TODO Factorize for all format formatting
+        if (inspecting = options[:inspecting].present?) #TODO Factorize for all format formatting
           next unless (property_model || inspecting.include?(name.to_sym))
         else
           next if property_schema['virtual'] ||
@@ -187,7 +206,7 @@ module Edi
           when Hash
             Nokogiri::XML(content.to_xml).root.element_children
           else
-            [json_value(content).to_s]
+            [json_value(content, options).to_s]
           end
         content.each { |e| element << e }
       else
@@ -199,7 +218,8 @@ module Edi
 
     def record_to_hash(record, options = {}, referenced = false, enclosed_model = nil)
       return record if Cenit::Utility.json_object?(record)
-      model = record.orm_model
+      model = record.orm_model rescue nil
+      return nil unless model
       schema = model.schema
       key_properties = schema['referenced_by'] || []
       json = (referenced = referenced && key_properties.present?) ? { '_reference' => true } : {}
@@ -208,9 +228,13 @@ module Edi
         options[:inspected_records] << record
       end
       options[:stack] << record
-      store(json, 'id', record.id, options) if options[:include_id]
+      if (include_id = options[:include_id]).respond_to?(:call)
+        include_id = include_id.call(record)
+      end
+      store(json, 'id', record.id, options) if include_id
       content_property = nil
       model.stored_properties_on(record).each do |property_name|
+        next if (protected = (model.schema['protected'] || []).include?(property_name)) && options[:protected]
         property_schema = model.property_schema(property_name)
         property_model = model.property_model(property_name)
         name = property_schema['edi']['segment'] if property_schema['edi']
@@ -247,13 +271,22 @@ module Edi
           value = record_to_hash(sub_record, options, can_be_referenced && property_schema['referenced'] && !property_schema['export_embedded'], property_model)
           store(json, name, value, options, key_properties.include?(property_name))
         else
-          if (value = record.send(property_name)).nil?
+          value =
+            begin
+              record.send(property_name) || (protected ? nil : record[property_name])
+            rescue
+              nil
+            end
+          if value.nil?
             value = property_schema['default']
           end
           store(json, name, value, options, key_properties.include?(property_name)) #TODO Default values should came from record attributes
         end
       end
-      if (options[:inspecting].include?(:_type) || options[:including].include?(:_type) || (enclosed_model && !record.orm_model.eql?(enclosed_model))) && !json['_reference'] && !options[:ignore].include?(:_type) && (!options[:only] || options[:only].include?(:_type))
+      if (options[:inspecting].include?(:_type) ||
+        options[:including].include?(:_type) ||
+        (enclosed_model && !record.orm_model.eql?(enclosed_model)) ||
+        (options[:polymorphic] && record.orm_model.hereditary?)) && !json['_reference'] && !options[:ignore].include?(:_type) && (!options[:only] || options[:only].include?(:_type))
         json['_type'] = model.to_s
       end
       options[:stack].pop
@@ -275,17 +308,28 @@ module Edi
           json[key] = value if store_anyway || value.present? || options[:include_blanks] || options[:include_empty]
         else
           value = value.to_s if [BSON::ObjectId, Symbol].any? { |klass| value.is_a?(klass) }
-          json[key] = json_value(value) if store_anyway || !(value.nil? || value.try(:empty?)) || options[:include_blanks] #TODO String blanks!
+          json[key] = json_value(value, options) if store_anyway || !(value.nil? || value.try(:empty?)) || options[:include_blanks] #TODO String blanks!
         end
       end
     end
 
-    def json_value(value)
+    def json_value(value, options)
       case value
       when Time
         value.strftime('%H:%M:%S')
       else
-        value
+        if Cenit::Utility.json_object?(value)
+          value
+        else
+          options = options.dup
+          if (hash = value.try(:to_hash, options))
+            hash
+          elsif (json = value.try(:to_json, options))
+            JSON.parse(json.to_s) rescue json.to_s
+          else
+            value.to_s
+          end
+        end
       end
     end
 
@@ -316,11 +360,11 @@ module Edi
               end
             end
           else
-            if sub_record = record.send(property_name)
+            if (sub_record = record.send(property_name))
               if property_schema['edi'] && property_schema['edi']['inline']
                 value = []
-                property_model.properties_schemas.each do |property_name, property_schema|
-                  value << edi_value(sub_record, property_name, property_schema, sub_record.orm_model.property_model(property_name), options)
+                property_model.properties_schemas.each do |sub_property_name, sub_property_schema|
+                  value << edi_value(sub_record, sub_property_name, sub_property_schema, sub_record.orm_model.property_model(sub_property_name), options)
                 end
                 segment +=
                   if field_sep == :by_fixed_length
@@ -366,10 +410,9 @@ module Edi
         end
       if options[:field_separator] == :by_fixed_length
         if (max_len = property_schema['maxLength']) && (auto_fill = property_schema['auto_fill'])
-          case auto_fill[0]
-          when 'R'
+          if auto_fill[0] == 'R'
             value += auto_fill[1] until value.length == max_len
-          when 'L'
+          else #should be 'L'
             value = auto_fill[1] + value until value.length == max_len
           end
         end

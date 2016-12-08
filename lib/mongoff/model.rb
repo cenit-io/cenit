@@ -3,7 +3,6 @@ require 'json-schema/validators/mongoff'
 
 module Mongoff
   class Model
-    include Setup::InstanceAffectRelation
     include Setup::InstanceModelParser
     include MetadataAccess
     include ThreadAware
@@ -22,7 +21,11 @@ module Mongoff
     end
 
     def data_type
-      @data_type_id.is_a?(Setup::DataType) || @data_type_id.is_a?(Setup::BuildInDataType) ? @data_type_id : Setup::DataType.where(id: @data_type_id).first
+      if @data_type_id.is_a?(Setup::DataType) || @data_type_id.is_a?(Setup::BuildInDataType)
+        @data_type_id
+      else
+        Setup::DataType.where(id: @data_type_id).first
+      end
     end
 
     def new(attributes = {})
@@ -82,7 +85,11 @@ module Mongoff
           ref, property_dt = check_referenced_schema(property_schema)
           model =
             if ref
-              property_dt.records_model
+              if property_dt
+                property_dt.records_model
+              else
+                fail "Data type reference not found: #{ref}"
+              end
             else
               property_schema = data_type.merge_schema(property_schema)
               records_schema =
@@ -137,6 +144,10 @@ module Mongoff
       end
     end
 
+    def hereditary?
+      data_type.subtype?
+    end
+
     def all_collections_names
       persistable? ? data_type.all_data_type_collections_names : [:empty_collection]
     end
@@ -150,16 +161,31 @@ module Mongoff
     end
 
     def delete_all
-      all_collections_names.each { |name| Mongoid.default_client[name.to_sym].drop }
+      all_collections_names.each { |name| mongo_client[name.to_sym].drop }
     end
 
     def collection
-      Mongoid.default_client[collection_name]
+      mongo_client[collection_name]
+    end
+
+    def mongo_client
+      Mongoid.default_client
     end
 
     def storage_size(scale = 1)
+      subtype_count = data_type.subtype? && data_type.count
       data_type.all_data_type_storage_collections_names.inject(0) do |size, name|
-        s = Mongoid.default_client.command(collstats: name, scale: scale).first['size'] rescue 0
+        s =
+          begin
+            stats = mongo_client.command(collstats: name.to_s, scale: scale).first
+            if subtype_count
+              subtype_count + stats['avgObjSize']
+            else
+              stats['size']
+            end
+          rescue
+            0
+          end
         size + s
       end
     end
@@ -212,7 +238,7 @@ module Mongoff
     end
 
     def attribute_key(field, field_metadata = {})
-      if (field_metadata[:model] ||= property_model(field)) &&
+      if (field_metadata[:model] ||= property_model(field)) && field_metadata[:model].persistable?
         (schema = (field_metadata[:schema] ||= property_schema(field)))['referenced']
         ((schema['type'] == 'array') ? field.to_s.singularize + '_ids' : "#{field}_id").to_sym
       else
@@ -225,7 +251,7 @@ module Mongoff
         name
       else
         name = name.gsub(/_id(s)?\Z/, '')
-        if property?(name)
+        if (name = [name.pluralize, name].detect { |n| property?(n) })
           name
         else
           nil
@@ -243,6 +269,7 @@ module Mongoff
     end
 
     CONVERSION = {
+
       BSON::ObjectId => ->(value) do
         if (id = value.try(:id)).is_a?(BSON::ObjectId)
           id
@@ -250,31 +277,61 @@ module Mongoff
           BSON::ObjectId.from_string(value.to_s) rescue nil
         end
       end,
+
       BSON::Binary => ->(value) { BSON::Binary.new(value.to_s) },
       Boolean => ->(value) { value.to_s.to_b },
-      String => ->(value) { value.to_s },
+
+      String => ->(value) do
+        case value
+        when Array, Hash
+          value.to_json
+        else
+          value.to_s
+        end
+      end,
+
       Integer => ->(value) { value.to_s.to_i },
       Float => ->(value) { value.to_s.to_f },
       Date => ->(value) { Date.parse(value.to_s) rescue nil },
       DateTime => ->(value) { DateTime.parse(value.to_s) rescue nil },
       Time => ->(value) { Time.parse(value.to_s) rescue nil },
-      Hash => ->(value) { JSON.parse(value.to_s) rescue nil },
-      Array => ->(value) { JSON.parse(value.to_s) rescue nil },
+
+      Hash => ->(value) do
+        unless value.is_a?(Hash)
+          value = JSON.parse(value.to_s) rescue nil
+          value = nil unless value.is_a?(Hash)
+        end
+        value
+      end,
+
+      Array => ->(value) do
+        unless value.is_a?(Array)
+          value = JSON.parse(value.to_s) rescue nil
+          value = nil unless value.is_a?(Array)
+        end
+        value
+      end,
+
       NilClass => ->(value) { Cenit::Utility.json_object?(value) ? value : nil }
     }
 
     def mongo_value(value, field, schema = nil)
-      type =
+      types =
         if !caching? || schema
           mongo_type_for(field, schema)
         else
           @mongo_types[field] ||= mongo_type_for(field, schema)
         end
-      if type && value.is_a?(type)
-        value
-      else
-        convert(type, value)
+      types.each do |type|
+        v =
+          if value.is_a?(type)
+            value
+          else
+            convert(type, value)
+          end
+        return v if v
       end
+      nil
     end
 
     def convert(type, value)
@@ -333,7 +390,7 @@ module Mongoff
 
       def for(options = {})
         model_name = options[:name]
-        cache_model = (cache_models = Thread.current[thread_key] ||= {})[model_name]
+        cache_model = (cache_models = current_thread_cache)[model_name]
         unless (data_type = (options[:data_type] || (cache_model && cache_model.data_type)))
           raise Exception.new('name or data type required') unless model_name
           unless (data_type = Setup::DataType.for_name(model_name.split('::').first))
@@ -367,13 +424,13 @@ module Mongoff
     end
 
     def caching?
-      !@data_type_id.is_a?(String)
+      !@data_type_id.is_a?(String) #TODO Check this, not a BSON::Id ?
     end
 
     def proto_schema
       sch = data_type.merged_schema #(recursive: caching?)
       if (properties = sch['properties'])
-        sch[properties] = data_type.merge_schema(properties)
+        sch['properties'] = data_type.merge_schema(properties)
       end
       sch
     end
@@ -382,12 +439,20 @@ module Mongoff
 
     def check_referenced_schema(schema, check_for_array = true)
       if schema.is_a?(Hash) && (schema = schema.reject { |key, _| %w(title description edi group).include?(key) })
-        (((ref = schema['$ref']).is_a?(String) && (schema.size == 1 || (schema.size == 2 && schema.has_key?('referenced')))) ||
+        ns = data_type.namespace
+        ref = schema['$ref']
+        if ref.is_a?(Hash)
+          (ns = ref['namespace'].to_s)
+          ref = ref['name']
+        end
+        ((ref.is_a?(String) && (schema.size == 1 || (schema.size == 2 && schema.has_key?('referenced')))) ||
           (schema['type'] == 'array' && (items=schema['items']) &&
             (schema.size == 2 || (schema.size == 3 && schema.has_key?('referenced'))) &&
             (items = items.reject { |key, _| %w(title description edi).include?(key) }) &&
-            items.size == 1 && (ref = items['$ref']).is_a?(String))) &&
-          (property_dt = data_type.find_data_type(ref))
+            items.size == 1 &&
+            ((ref = items['$ref']).is_a?(String) ||
+              (ref.is_a?(Hash) && (ns = ref['namespace'].to_s) && (ref = ref['name']).is_a?(String))))) &&
+          (property_dt = data_type.find_data_type(ref, ns))
         [ref, property_dt]
       else
         [nil, nil]

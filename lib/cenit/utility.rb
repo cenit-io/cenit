@@ -72,53 +72,57 @@ module Cenit
             references[obj] = record_refs
           end
         end
-        options.delete(:visited).each do |obj|
-          references.each do |obj_waiting, to_bind|
-            to_bind.each do |property_name, property_binds|
-              is_array = property_binds.is_a?(Array) ? true : (property_binds = [property_binds]; false)
-              property_binds.each do |property_bind|
-                if obj.is_a?(property_bind[:model]) && match?(obj, property_bind[:criteria])
-                  if is_array
-                    unless (array_property = obj_waiting.send(property_name))
-                      obj_waiting.send("#{property_name}=", array_property = [])
-                    end
-                    array_property << obj
-                  else
-                    obj_waiting.send("#{property_name}=", obj)
-                  end
-                  property_binds.delete(property_bind)
-                end
-                to_bind.delete(property_name) if property_binds.empty?
-              end
-              references.delete(obj_waiting) if to_bind.empty?
-            end
-          end
-        end if references.present?
-
-        if references.present?
-          options[:stack] = stack = []
-          for_each_node_starting_at(record, options) do |obj|
-            if (to_bind = references[obj])
+        start_size = references.size + 1
+        while references.present? && references.size < start_size
+          start_size = references.size
+          options[:visited].each do |obj|
+            references.each do |obj_waiting, to_bind|
               to_bind.each do |property_name, property_binds|
                 is_array = property_binds.is_a?(Array) ? true : (property_binds = [property_binds]; false)
                 property_binds.each do |property_bind|
-                  if (value = Cenit::Utility.find_record(property_bind[:criteria], obj.orm_model.property_model(property_name)))
+                  if obj.is_a?(property_bind[:model]) && match?(obj, property_bind[:criteria])
                     if is_array
-                      unless (association = obj.send(property_name)).include?(value)
-                        association << value
+                      unless (array_property = obj_waiting.send(property_name))
+                        obj_waiting.send("#{property_name}=", array_property = [])
                       end
+                      array_property << obj
                     else
-                      obj.send("#{property_name}=", value)
+                      obj_waiting.send("#{property_name}=", obj)
                     end
-                  elsif !options[:skip_error_report]
-                    message = "#{property_bind[:model]} reference not found with criteria #{property_bind[:criteria].to_json}"
-                    obj.errors.add(property_name, message)
-                    message = "#{obj.class} on attribute #{property_name} #{message}"
-                    stack.reverse_each do |node|
-                      message = "#{node[:record].class} '#{node[:record].name}' on attribute #{node[:attribute]} -> #{message}"
-                      node[:record].errors.add(node[:attribute], message)
-                    end
+                    property_binds.delete(property_bind)
                   end
+                  to_bind.delete(property_name) if property_binds.empty?
+                end
+                references.delete(obj_waiting) if to_bind.empty?
+              end
+            end
+          end
+        end
+
+        options.delete(:visited)
+
+        if references.present?
+          references.each do |obj, to_bind|
+            to_bind.each do |property_name, property_binds|
+              is_array = property_binds.is_a?(Array) ? true : (property_binds = [property_binds]; false)
+              property_binds.each do |property_bind|
+                if (value = Cenit::Utility.find_record(property_bind[:criteria], obj.orm_model.property_model(property_name)))
+                  if is_array
+                    unless (association = obj.send(property_name)).include?(value)
+                      association << value
+                    end
+                  else
+                    obj.send("#{property_name}=", value)
+                  end
+                elsif !options[:skip_error_report]
+                  message = "#{property_bind[:model]} reference not found with criteria #{property_bind[:criteria].to_json}"
+                  obj.errors.add(property_name, message)
+                  # TODO Report errors to parents
+                  # message = "#{obj.class} on attribute #{property_name} #{message}"
+                  # stack.reverse_each do |node|
+                  #   message = "#{node[:record].class} '#{node[:record].name}' on attribute #{node[:attribute]} -> #{message}"
+                  #   node[:record].errors.add(node[:attribute], message)
+                  # end
                 end
               end
             end
@@ -139,6 +143,14 @@ module Cenit
           if value.is_a?(Hash)
             return false unless match?(property_value, value)
           else
+            property_value =
+              case property_value
+              when BSON::ObjectId
+                value = value.to_s
+                property_value.to_s
+              else
+                property_value
+              end
             return false unless property_value == value
           end
         end
@@ -245,13 +257,6 @@ module Cenit
         end
       end
 
-      def memory_usage_of(model)
-        return 0 unless model
-        size = ObjectSpace.memsize_of(model)
-        model.constants(false).each { |c| size += memory_usage_of(c) } if model.is_a?(Class) || model.is_a?(Module)
-        size > 0 ? size : 100
-      end
-
       def stringfy(obj)
         if obj.is_a?(Hash)
           hash = {}
@@ -315,39 +320,37 @@ module Cenit
         end
       end
 
-      def abs_uri(base_uri, uri)
-        uri = URI.parse(uri.to_s)
-        return uri.to_s unless uri.relative?
-
-        base_uri = URI.parse(base_uri.to_s)
-        uri = uri.to_s.split('/')
-        path = base_uri.path.split('/')
-        begin
-          path.pop
-        end while uri[0] == '..' ? uri.shift && true : false
-
-        path = (path + uri).join('/')
-
-        uri = URI.parse(path)
-        uri.scheme = base_uri.scheme
-        uri.host = base_uri.host
-        uri.to_s
-      end
-
-      def eql_content?(a, b)
+      def eql_content?(a, b, &block)
         case a
         when Hash
-          return false unless b.is_a?(Hash) && a.size == b.size
-          a.each do |key, value|
-            return false unless eql_content?(value, b[key])
+          if b.is_a?(Hash)
+            if a.size < b.size
+              a, b = b, a
+            end
+            a.each do |key, value|
+              return false unless eql_content?(value, b[key], &block)
+            end
+          else
+            return block && block.call(a, b)
           end
         when Array
-          return false unless b.is_a?(Array) && a.length == b.length
-          a.each do |a_value|
-            return false unless b.any? { |b_value| eql_content?(a_value, b_value) }
+          if b.is_a?(Array) && a.length == b.length
+            a = a.dup
+            b = b.dup
+            until a.empty?
+              a_value = a.shift
+              b_len = b.length
+              b.delete_if { |b_value| eql_content?(a_value, b_value, &block) }
+              if b.length < b_len
+                a.delete_if { |value| eql_content?(a_value, value, &block) }
+              end
+              return false unless a.length == b.length
+            end
+          else
+            return block && block.call(a, b)
           end
         else
-          return a.eql?(b)
+          return a.eql?(b) || (block && block.call(a, b))
         end
         true
       end

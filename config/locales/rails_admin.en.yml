@@ -1,9 +1,36 @@
 en:
+  help:
+    label: 'help'
+    open_source: 'open source code'
+    suggest: 'suggest a'
+    feature: 'feature'
+    report: 'report an'
+    issue: 'issue'
+    docs: 'documentation'
+    support: 'support channel'
   admin:
+    placeholders:
+      email: 'Email'
+      password: 'Password'
+      pass_confirm: 'Password confirmation'
     session:
       new: 'sign in'
+      register: "Don't have a user?"
+      new_title: 'Sign in with'
+      submit: 'Log in'
+      forgotten: 'Forgot your password?'
     registration:
-      new: "free sign up"
+      new: "try it free"
+      new_title: 'Sign up with'
+      sign: 'Already have a user?'
+      submit: 'Sign up'
+      terms_preface: 'By signing up you agree with the'
+    forgotten:
+      new_title: 'Forgot your password?'
+      new_submit: 'Send me reset password instructions'
+      short_submit: 'Reset'
+      edit_title: 'Change your password'
+      edit_submit: 'Change my password'
     js:
       present_and_change: Present & Change
     flash:
@@ -13,15 +40,44 @@ en:
       log_out: "Sign out"
       terms: "Terms of service"
       tour: "Take Tour"
-      blog: "Read our Blog"
-      docs: "Read our Docs"
-      dir: "Directory"
+      blog: "Blog"
+      docs: "Docs"
+      api: "API"
+      directory: "Directory"
       shared_collections: find shared collections
-      title_search_shared_collections: Find data and code you can use
-      sub_title_search_shared_collections: "Search over %{count} shared collections"
+      title_search_shared_collections: "Open Platform for Data and Business Integration"
+      sub_title_search_shared_collections: "Find or create data flows over %{count} shared collections"
+      pull: "Pull"
+      show_all: "Show all"
+      overview: "Overview"
+      prices: "Prices"
+      or: 'or'
+      not_selected: 'Not selected'
+      help: 'help'
+      add_tenant: 'Add new Tenant'
+      main_navigation:
+        json_data_type: 'Objects'
+        file_data_type: 'Files'
+        cross_shared_collection: 'Ecommerce'
+      link_json_data_type: 'Link Object Type'
+      link_file_data_type: 'Link File Type'
+      link_cross_shared_collection: 'Connect Store'
+      and_more: "and %{count} more"
+      save_filter: 'Save Filter'
     actions:
       dashboard:
         title: "Dashboard"
+        recent_users:
+          title: 'Thank you for joining us!'
+          more: "More than %{count} users"
+        tenant_users:
+          title: "Only you in this tenant"
+        your_tenants:
+          owner: "Owner of %{count}"
+        monitors:
+          tasks: 'running tasks'
+          auths: 'authorizations'
+          notif: 'notifications'
       send_to_flow:
         title: "Send %{model_label_plural} to flow"
         menu: "Send to flow"
@@ -39,17 +95,9 @@ en:
         action_name: "Test"
         sample_data: "Sample data"
         result: "Result"
-      load_model:
-        title: "Load '%{object_label}'"
-        menu: "Load"
-        breadcrumb: "Load"
-      shutdown_model:
-        title: "Shutdown '%{object_label}'"
-        menu: "Shutdown"
-        breadcrumb: "Shutdown"
-        shutting_down: "Shutting down '%{model_name}' will also"
-        shutdown_data_types: "shutdown %{shutdown_count} data types"
-        reload_data_types: "reload %{reload_count} data types"
+      generate_api:
+        curl:
+          title: "Generate cURL command for access to API of this action."
       switch_navigation:
         show:
           title: "Show navigation link"
@@ -76,6 +124,10 @@ en:
         title: "Records"
         menu: "Records"
         breadcrumb: "Records"
+      show_records:
+        title: "Records"
+        menu: "Records"
+        breadcrumb: "Records"
       import:
         title: "Import"
         menu: "Import"
@@ -84,6 +136,21 @@ en:
         submit: "Import"
         done: "created"
         doing: "import"
+      pull_import:
+        title: "Pull import"
+        menu: "Pull import"
+        breadcrumb: "Pull import"
+        file_content_label: "File content"
+        submit: "Pull import"
+        done: "pulled"
+        doing: "pull import"
+      push:
+        title: "Push"
+        menu: "Push"
+        breadcrumb: "Push"
+        submit: "Push"
+        done: "Pushed"
+        doing: "push"
       submit:
         title: "Submit"
         menu: "Submit"
@@ -122,7 +189,7 @@ en:
         will_be_deleted: "objects will be deleted"
         done: "deleted"
         doing: "deletion"
-      delete_collection:
+      trash:
         title: "Trash collection '%{object_label}'"
         menu: "Trash collection"
         breadcrumb: "Trash collection"
@@ -168,50 +235,47 @@ en:
         breadcrumb: "Delete"
       confirmation:
         are_you_sure: "Are you sure you want to proceed?"
-      shutdown_and_reload:
-        shutdown_data_types: "shutdown %{shutdown_count} data types"
+      data_type_warnings:
         delete_data_types_and_records: "delete %{data_type_count} data types including %{records_count} records"
         another: "Another %{count}"
-        delete_schemas: "delete %{schemas_count} schemas"
         delete_data_types: "delete %{data_type_count} data types"
-        shutdown_data_types: "shutdown %{shutdown_count} data types"
-        reload_data_types: "reload %{count} data types"
         override_data_types: "override %{count} data types"
         records: "records"
       action_will:
         also: 'These action will also'
-      memory_usage:
-        title: "Memory Usage"
-        menu: "Memory"
-        breadcrumb: "Memory"
-        model: "Model"
-        used_memory: "Used memory"
+        just: 'These action will'
       disk_usage:
         title: "Disk Usage"
         menu: "Disk"
         breadcrumb: "Disk"
         model: "Collection"
-        used_memory: "Space used"
-      bulk_share:
-        title: "Share %{model_label_plural}"
-        bulk_link: "Share selected %{model_label_plural}"
-        menu: "Share"
-        breadcrumb: "Share"
-        submit: "Share"
-        done: "shared"
-      simple_share:
+        usage: "Space used"
+      share:
         title: "Share %{model_label} '%{object_label}'"
         menu: "Share"
         breadcrumb: "Share"
         submit: "Share"
         done: "shared"
-      cross_share:
-        title: "Cross share %{model_label_plural}"
-        bulk_link: "Cross share selected %{model_label_plural}"
-        menu: "Cross share"
-        breadcrumb: "Cross share"
-        submit: "Cross share"
-        done: "cross shared"
+      simple_cross:
+        title: "Cross %{model_label} '%{object_label}'"
+        menu: "Cross"
+        breadcrumb: "Cross"
+        submit: "Cross"
+        done: "crossed"
+      bulk_cross:
+        title: "Cross %{model_label_plural}"
+        bulk_link: "Cross selected %{model_label_plural}"
+        menu: "Cross"
+        breadcrumb: "Cross"
+        submit: "Cross"
+        done: "crossed"
+      reinstall:
+        title: "Re-Install Collection '%{object_label}'"
+        menu: "Re-Install"
+        breadcrumb: "Re-Install"
+        submit: "Re-Install"
+        done: "re-installed"
+        doing: "re-installation"
       pull:
         title: "Pull Collection '%{object_label}'"
         menu: "Pull"
@@ -222,11 +286,26 @@ en:
         create_warning: "The following objects will be created"
         update_warning: "The following objects will be updated"
         ready: "Ready to pull!"
-        nothing_to_pull: "Nothing to pull from here"
+        nothing_to_pull: "Nothing to pull"
         fixed_errors_header: "The following errors where fixed when pulling the collection"
         missing_parameters: "Missing parameters"
         uptodate: "Your %{collection} collection is already synchronized with %{shared_collection}"
+        uptodate_data: "The pull data is already synchronized with your collections"
         another: "another"
+        not_installed: "This collection is not installed"
+        install: "Install"
+        install_help: "The collection will be installed after pulled if checked"
+        not_installer: "You can not install these collection since you have not the installer role"
+        doing: 'pull'
+      bulk_pull:
+        title: "Pulling Collections"
+        menu: "Pull"
+        breadcrumb: "Pull"
+        submit: "Pull"
+        done: "pulled"
+        bulk_link: "Pull selected %{model_label_plural}"
+        warn: "You are about to pull %{pull_size} collections"
+        warn_all: "You are about to pull all collections"
       retry_task:
         title: "Retry"
         menu: "Retry"
@@ -282,6 +361,21 @@ en:
         breadcrumb: "Run"
         done: "run"
         doing: "execution"
+        background_option: "Run in the background"
+      run_script:
+        title: "Run"
+        menu: "Run"
+        submit: "Run"
+        breadcrumb: "Run"
+        done: "run"
+        doing: "execution"
+      play:
+        title: "Play"
+        menu: "Play"
+        submit: "Play"
+        breadcrumb: "Play"
+        done: "played"
+        doing: "playing"
       user_info:
         title: "My Profile"
         menu: "My Profile"
@@ -327,6 +421,14 @@ en:
         title: "Copy"
         menu: "Copy"
         breadcrumb: "Copy"
+      filters:
+        title: "Filters"
+        menu: "Filters"
+        breadcrumb: "Filters"
+      filter_data_type:
+        title: "Filters"
+        menu: "Filters"
+        breadcrumb: "Filters"
       cancel:
         title: "Cancel '%{object_label}'"
         menu: "Cancel"
@@ -347,5 +449,185 @@ en:
         submit: "Regist"
         done: "registered"
         doing: "registering"
+      rest_api:
+        title: "Rest API"
+        menu: "Rest API"
+        breadcrumb: "Rest API"
+      state:
+        title: "State"
+        menu: "State"
+        breadcrumb: "State"
       shared_collection_index:
         menu: "Shared Collections"
+      store_index:
+        menu: "Stores"
+      clean_up:
+        title: "Clean Up"
+        menu: "Clean Up"
+        breadcrumb: "Clean Up"
+        warn: "All your data will be destroyed"
+      documentation:
+        title: "Docs"
+        menu: "Docs"
+        breadcrumb: "Docs"
+      swagger:
+        title: "Swagger"
+        menu: "Swagger"
+        breadcrumb: "Swagger"  
+      link_data_type:
+        menu: "Link"
+        breadcrumb: "Link %{model_label}"
+    form:
+      flow:
+        source_data_type: 'Source data type'
+        target_data_type: 'Target data type'
+        data_type: 'Data type'
+        source_scope: 'Source scope'
+        target_scope: 'Target scope'
+        data_type_scope: 'Data type scope'
+        events_wont_be_fired: "Events won't be fired for created or updated records if checked"
+        notify_request: 'Track request with notifications if checked'
+        notify_response: 'Track responses via notification if checked'
+        after_process_callbacks: 'Algorithms executed after flow processing, execution state is supplied as argument'
+    scheduler:
+      cyclic: 'Cyclic'
+      appointed: 'Appointed'
+      duration: 'Duration'
+      last: 'Last'
+      first: 'First'
+      start: 'Start'
+      end: 'End'
+      after: 'After'
+      repeat: 'Repeat'
+      repetitions: 'Repetitions'
+      at: 'At'
+      on: 'On'
+      never: 'Never'
+      asap: 'Immediately'
+      frequency:
+        label: 'Frequency'
+        daily: 'Daily at'
+        weekly: 'Weekly on'
+        monthly: 'Monthly on'
+        annually: 'On months'
+        once: 'Only once'
+        never: 'Never'
+        every: 'Every ...'
+        manual: 'Select manually'
+      months:
+        label: 'Months'
+        names: 'Jan Feb Mar Apr May Jun Jul Aug Sep Oct Nov Dec'
+      weeks:
+        label: 'Weeks'
+        monthly: 'Weeks every Month'
+        month: 'First Second Third Fourth'
+      days:
+        monthly: 'Month days'
+        weekly: 'Week days'
+        last: 'Last day'
+        label: 'Days'
+        names: 'Sun Mon Tue Wed Thu Fri Sat'
+      hours:
+        label: 'Hours'
+      minutes:
+        label: 'Minutes'
+      every:
+        zero: "(Leave '0' for all, '1' for every other, etc...)"
+        label: 'Every'
+        month: 'Every month'
+        months: "Every %{d} months"
+        day: 'Every day'
+        days: "Every %{d} days"
+        hour: 'Every hour'
+        hours: "Every %{d} hours"
+        minute: 'Every minute'
+        minutes: "Every %{d} minutes"
+        m: 'minutes'
+        h: 'hours'
+        d: 'days'
+        w: 'weeks'
+        M: 'months'
+
+
+    config:
+      converter:
+        wizard:
+          start:
+            label: 'Select the converter style'
+            description: 'Please select the converter style and other required fields'
+          select_exporter:
+            label: 'Select the source exporter'
+            description: 'Please select the source exporter and other required fields'
+          end:
+            label: 'Save when done'
+            description: 'Please save when done'
+      parser:
+        wizard:
+          start:
+            label: 'Select the parser style'
+            description: 'Please select the parser style and other required fields'
+          end:
+            label: 'Save when done'
+            description: 'Please save when done'
+      renderer:
+        wizard:
+          start:
+            label: 'Select the renderer style'
+            description: 'Please select the renderer style and other required fields'
+          select_file_extension:
+            label: 'Fill the require fields and save'
+            description: 'Please fill the require fields and save'
+          end:
+            label: 'Save when done'
+            description: 'Please save when done'
+      updater:
+        wizard:
+          start:
+            label: 'Select the updater style'
+            description: 'Please select the updater style and other required fields'
+          end:
+            label: 'Save when done'
+            description: 'Please save when done'
+
+
+      flow:
+        wizard:
+          start:
+            label: 'Select the translator'
+            description: 'Please select the translator and other required fields'
+          source_data_type:
+            label: 'Select the'
+            description: 'Please select the'
+          webhook:
+            label: 'Select the webhook'
+            description: 'Please select the webhook'
+          end:
+            label: 'Save when done'
+            description: 'Please fill the require fields and save'
+      filter:
+        wizard:
+          start:
+            label: 'Select the data type'
+            description: 'Please select the data type and other required fields'
+          end:
+            label: 'Add the triggers and save'
+            description: 'Please add the triggers and save when done'
+      pin:
+        wizard:
+          model:
+            label: 'Select the model'
+            description: 'Please select the model'
+          record:
+            label: 'Select the record'
+            description: 'Please select the record'
+          version:
+            label: 'Select the version and save'
+            description: 'Please select the version and save'
+      observer:
+        wizard:
+          start:
+            label: 'Select the data type'
+            description: 'Please select the data type and other required fields'
+          end:
+            label: 'Add the triggers and save'
+            description: 'Please add the triggers and save when done'

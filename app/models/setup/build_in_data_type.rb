@@ -13,11 +13,11 @@ module Setup
     end
 
     def title
-      @title ||= model.to_s.to_title
+      @title ||= model.to_s.split('::').last.to_title
     end
 
-    def custom_title
-      "#{Setup.to_s} | #{title}"
+    def custom_title(separator = '|')
+      model.to_s.split('::').collect(&:to_title).join(" #{separator} ")
     end
 
     def name
@@ -40,6 +40,10 @@ module Setup
       []
     end
 
+    def count
+      model.count
+    end
+
     def initialize(model)
       @model = model
     end
@@ -60,12 +64,28 @@ module Setup
       model.to_s
     end
 
+    def all_data_type_storage_collections_names
+      if model < CrossOrigin::Document
+        origins = model.origins.select { |origin| Setup::Crossing.authorized_crossing_origins.include?(origin) }
+        origins.collect do |origin|
+          if origin == :default
+            model.collection_name
+          else
+            CrossOrigin[origin].collection_name_for(model)
+          end
+        end
+      else
+        [model.collection_name]
+      end
+    end
+
     def schema
       @schema ||= build_schema
     end
 
     def find_data_type(ref, ns = namespace)
-      BuildInDataType.build_ins[ref]
+      BuildInDataType.build_ins[ref] ||
+        Setup::DataType.find_data_type(ref, ns)
     end
 
     def protecting?(field)
@@ -89,7 +109,7 @@ module Setup
     end
 
     def and(to_merge)
-      @to_merge = to_merge.deep_stringify_keys
+      @to_merge = (@to_merge || {}).merge(to_merge.deep_stringify_keys)
       self
     end
 
@@ -98,15 +118,15 @@ module Setup
     end
 
     def including(*fields)
-      store_fields(:@including, *fields)
+      store_fields(:@including, fields, @including)
     end
 
     def discarding(*fields)
-      store_fields(:@discarding, *fields)
+      store_fields(:@discarding, *fields, @discarding)
     end
 
     def excluding(*fields)
-      store_fields(:@excluding, *fields)
+      store_fields(:@excluding, *fields, @excluding)
     end
 
     class << self
@@ -119,22 +139,35 @@ module Setup
         @build_ins ||= {}
       end
 
-      def regist(model)
-        model.include(Setup::OrmModelAware)
-        model.include(Setup::SchemaModelAware)
-        model.include(Edi::Formatter)
-        model.include(Edi::Filler)
-        model.class.include(Mongoid::CenitExtension)
-        build_ins[model.to_s] = BuildInDataType.new(model)
+      def each(&block)
+        build_ins.values.each(&block)
       end
+
+      def regist(model, &block)
+        build_ins[model.to_s] ||=
+          begin
+            model.include(Setup::OrmModelAware)
+            model.include(Setup::SchemaModelAware)
+            model.include(Edi::Formatter)
+            model.include(Edi::Filler)
+            model.class.include(Mongoid::CenitExtension)
+            build_in = BuildInDataType.new(model)
+            block.call(build_in) if block
+            build_in
+          end
+      end
+    end
+
+    def ns_slug
+      Setup.to_s.underscore
     end
 
     EXCLUDED_FIELDS = %w{_id created_at updated_at version}
     EXCLUDED_RELATIONS = %w{account creator updater}
 
     def method_missing(symbol, *args)
-      if symbol.to_s.start_with?('get_') && (value = instance_variable_get(:"@#{symbol.to_s.from(4)}"))
-        value
+      if symbol.to_s.start_with?('get_')
+        instance_variable_get(:"@#{symbol.to_s.from(4)}")
       else
         super
       end
@@ -146,7 +179,7 @@ module Setup
       if fields
         raise Exception.new('Illegal argument') unless fields.present?
         fields = [fields] unless fields.is_a?(Enumerable)
-        instance_variable_set(instance_variable, fields.collect(&:to_s).uniq)
+        instance_variable_set(instance_variable, fields.flatten.collect(&:to_s).uniq.select(&:present?))
       else
         instance_variable_set(instance_variable, nil)
       end
@@ -219,11 +252,11 @@ module Setup
             when :embeds_many
               { 'type' => 'array', 'items' => { '$ref' => relation.klass.to_s } }
             when :has_one
-              { '$ref' => relation.klass.to_s, 'referenced' => true, 'export_embedded' => @embedding && @embedding.include?(relation_name) }
+              { '$ref' => relation.klass.to_s, 'referenced' => true, 'export_embedded' => (@embedding && @embedding.include?(relation_name)).to_b }
             when :belongs_to
-              { '$ref' => relation.klass.to_s, 'referenced' => true, 'export_embedded' => @embedding && @embedding.include?(relation_name) } if (@including && @including.include?(relation_name.to_s)) || relation.inverse_of.nil?
+              { '$ref' => relation.klass.to_s, 'referenced' => true, 'export_embedded' => (@embedding && @embedding.include?(relation_name)).to_b } if (@including && @including.include?(relation_name.to_s)) || relation.inverse_of.nil?
             when :has_many, :has_and_belongs_to_many
-              { 'type' => 'array', 'items' => { '$ref' => relation.klass.to_s }, 'referenced' => true, 'export_embedded' => @embedding && @embedding.include?(relation_name) }
+              { 'type' => 'array', 'items' => { '$ref' => relation.klass.to_s }, 'referenced' => true, 'export_embedded' => (@embedding && @embedding.include?(relation_name)).to_b }
             end
           if property_schema
             if @discarding.include?(relation_name.to_s)

@@ -1,3 +1,18 @@
+class Thread
+
+  def clean_keys_prefixed_with(prefix)
+    unless (prefix = prefix.to_s).empty?
+      Thread.current.keys.each { |key| Thread.current[key] = nil if key.to_s.start_with?(prefix) }
+    end
+  end
+
+  class << self
+    def clean_keys_prefixed_with(prefix)
+      current.clean_keys_prefixed_with(prefix)
+    end
+  end
+end
+
 class Hash
   def plain_query(namespace = nil)
     collect do |key, value|
@@ -11,24 +26,109 @@ class Hash
     each_pair do |key, value|
       yield(self, key, value)
       case value
-        when Hash
-          value.each_deep_pair(&block)
-        when Array
-          value.each { |sub_value| sub_value.each_deep_pair(&block) if sub_value.is_a?(Hash) }
+      when Hash
+        value.each_deep_pair(&block)
+      when Array
+        value.each { |sub_value| sub_value.each_deep_pair(&block) if sub_value.is_a?(Hash) }
       end
     end if block_given?
   end
 
+  def intersection(other)
+    hash = {}
+    each do |key, value|
+      if (other_value = other[key]).is_a?(Hash) && value.is_a?(Hash)
+        hash[key] = value.intersection(other_value)
+      elsif Cenit::Utility.eql_content?(value, other[key])
+        hash[key] = value
+      end
+    end
+    hash
+  end
+
+  def difference(other)
+    hash = {}
+    other.each do |other_key, other_value|
+      unless has_key?(other_key)
+        hash[other_key] = other_value
+      end
+    end
+    each do |key, value|
+      if (other_value = other[key]).is_a?(Hash) && value.is_a?(Hash)
+        unless (diff = value.difference(other_value)).empty?
+          hash[key] = diff
+        end
+      elsif !Cenit::Utility.eql_content?(value, other[key])
+        hash[key] = value
+      end
+    end
+    hash
+  end
 end
 
 class String
+
   def to_title
     self.
-        gsub(/([A-Z])(\d)/, '\1 \2').
-        gsub(/([a-z])(\d|[A-Z])/, '\1 \2').
-        gsub(/(\d)([a-z]|[A-Z])/, '\1 \2').
-        tr('_', ' ').
-        tr('-', ' ')
+      gsub(/([A-Z])(\d)/, '\1 \2').
+      gsub(/([a-z])(\d|[A-Z])/, '\1 \2').
+      gsub(/(\d)([a-z]|[A-Z])/, '\1 \2').
+      tr('_', ' ').
+      tr('-', ' ').
+      capitalize
+  end
+
+  def sym2word
+    str = self
+    {
+      '+' => 'plus',
+      '@' => 'at',
+      '$' => 'dollar',
+      '%' => 'percentage',
+      '?' => 'question',
+      '=' => 'equals',
+      '*' => 'asterisk',
+      '&' => 'and'
+    }.each do |char, word|
+      str = str.squeeze(char).gsub(char, word)
+    end
+    str
+  end
+
+  def to_file_name
+    gsub(/ |\/|\\/, '_').squeeze('_')
+  end
+
+  def to_method_name
+    str = sym2word
+    {
+      '-' => 'minus',
+      '.' => 'dot'
+    }.each do |char, replacement|
+      ch = true
+      while ch && (ch = str[0]) =~ /\W/
+        str = str.from(1)
+        if ch == char
+          str = "#{replacement}#{str}"
+          ch = false
+        end
+      end
+      ch = true
+      while ch && (ch = str.last) =~ /\W/
+        str = str.to(str.length - 2)
+        if ch == char
+          str = "#{str}#{replacement}"
+          ch = false
+        end
+      end
+      str = str.squeeze(char).gsub(char, '_')
+    end
+    if (str = str.gsub(/\W/, '')).empty?
+      str = '_property'
+    else
+      str = "_#{str}" unless str =~ /\A(_|[A-Za-z])/
+    end
+    str
   end
 end
 
@@ -49,70 +149,30 @@ module Enumerable
 
 end
 
-module OpenSSL
-  class Digest
-    class << self
-      def new_sign(*args)
-        args = args.collect { |a| a.capataz_proxy? ? a.capataz_slave : a }
-        new(*args)
-      end
-    end
-  end
+{
+  OpenSSL::Digest => :new_sign,
+  OpenSSL::Digest::SHA1 => :new_sha1,
+  OpenSSL::PKey::RSA => :new_rsa,
+  OpenSSL::X509::Certificate => :new_certificate,
+  Xmldsig::SignedDocument => :new_document,
+  StringIO => :new_io,
+  Spreadsheet::Workbook => :new_workbook,
+  Nokogiri::XML::Builder => :new_builder,
+  MIME::Mail => :new_message,
+  MIME::Message => :new_message,
+  MIME::Text => :new_text,
+  MIME::Multipart::Mixed => :new_message
+}.each do |entity, method|
+  entity.class_eval("def self.#{method}(*args)
+    new(*args)
+  end")
 end
 
-module OpenSSL
-  module PKey
-    class RSA
-      class << self
-        def new_rsa(*args)
-          args = args.collect { |a| a.capataz_proxy? ? a.capataz_slave : a }
-          new(*args)
-        end
-      end
-    end
-  end
-end
-
-module Xmldsig
-  class SignedDocument
-    class << self
-      def new_document(*args)
-        args = args.collect { |a| a.capataz_proxy? ? a.capataz_slave : a }
-        new(*args)
-      end
-    end
-  end
-end
-
-class StringIO
-  class << self
-    def new_io(*args)
-      args = args.collect { |a| a.capataz_proxy? ? a.capataz_slave : a }
-      new(*args)
-    end
-  end
-end
-
-module Spreadsheet
-  class Workbook
-    class << self
-      def new_workbook(*args)
-        args = args.collect { |a| a.capataz_proxy? ? a.capataz_slave : a }
-        new(*args)
-      end
-    end
-  end
-end
 
 module Nokogiri
   module XML
+
     class Builder
-      class << self
-        def new_builder(*args)
-          args = args.collect { |a| a.capataz_proxy? ? a.capataz_slave : a }
-          new(*args)
-        end
-      end
 
       def respond_to?(*args)
         true
@@ -120,9 +180,14 @@ module Nokogiri
 
       class NodeBuilder
         def respond_to?(*args)
-          MIME::Mail.new
           true
         end
+      end
+    end
+
+    class SyntaxError
+      def empty?
+        false
       end
     end
   end
@@ -131,22 +196,6 @@ end
 require 'mime'
 
 module MIME
-  class Mail
-    class << self
-      def new_message(*args)
-        new(*args)
-      end
-    end
-  end
-
-  class Text
-    class << self
-      def new_text(*args)
-        new(*args)
-      end
-    end
-  end
-
   class Multipart
     class Mixed
 
@@ -168,12 +217,6 @@ module MIME
             end.new(entity.data, subtype, { 'Content-Type' => entity.contentType, 'name' => entity.filename })
         end
         super
-      end
-
-      class << self
-        def new_message(*args)
-          new(*args)
-        end
       end
     end
   end

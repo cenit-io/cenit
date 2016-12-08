@@ -1,20 +1,41 @@
 require 'nokogiri'
 
 module Setup
-  class Flow < ReqRejValidator
-    include CenitScoped
+  class Flow
+    include ReqRejValidator
+    include ShareWithBindings
     include NamespaceNamed
     include TriggersFormatter
     include ThreadAware
+    include ModelConfigurable
+    include RailsAdmin::Models::Setup::FlowAdmin
 
-    BuildInDataType.regist(self).referenced_by(:namespace, :name).excluding(:notify_response, :notify_request)
+    build_in_data_type.referenced_by(:namespace, :name)
+    build_in_data_type.and({
+                             properties: {
+                               active: {
+                                 type: 'boolean',
+                                 default: true
+                               },
+                               notify_request: {
+                                 type: 'boolean',
+                                 default: false
+                               },
+                               notify_response: {
+                                 type: 'boolean',
+                                 default: false
+                               },
+                               discard_events: {
+                                 type: 'boolean'
+                               },
+                               auto_retry: {
+                                 type: 'string',
+                                 enum: Setup::Task.auto_retry_enum.collect(&:to_s)
+                               }
+                             }
+                           }.deep_stringify_keys)
 
-    field :active, type: Boolean, default: :true
-    field :notify_request, type: Boolean, default: :false
-    field :notify_response, type: Boolean, default: :false
-    field :discard_events, type: Boolean
-
-    belongs_to :event, class_name: Setup::Event.to_s, inverse_of: nil
+    binding_belongs_to :event, class_name: Setup::Event.to_s, inverse_of: nil
 
     belongs_to :translator, class_name: Setup::Translator.to_s, inverse_of: nil
     belongs_to :custom_data_type, class_name: Setup::DataType.to_s, inverse_of: nil
@@ -25,7 +46,9 @@ module Setup
     field :lot_size, type: Integer
 
     belongs_to :webhook, class_name: Setup::Webhook.to_s, inverse_of: nil
-    belongs_to :connection_role, class_name: Setup::ConnectionRole.to_s, inverse_of: nil
+    binding_belongs_to :authorization, class_name: Setup::Authorization.to_s, inverse_of: nil
+    binding_belongs_to :connection_role, class_name: Setup::ConnectionRole.to_s, inverse_of: nil
+    belongs_to :before_submit, class_name: Setup::Algorithm.to_s, inverse_of: nil
 
     belongs_to :response_translator, class_name: Setup::Translator.to_s, inverse_of: nil
     belongs_to :response_data_type, class_name: Setup::DataType.to_s, inverse_of: nil
@@ -33,22 +56,38 @@ module Setup
     has_and_belongs_to_many :after_process_callbacks, class_name: Setup::Algorithm.to_s, inverse_of: nil
 
     validates_numericality_in_presence_of :lot_size, greater_than_or_equal_to: 1
+
+    config_with Setup::FlowConfig
+
     before_save :validates_configuration, :check_scheduler
+
     after_save :schedule_task
 
     def validates_configuration
       format_triggers_on(:scope_filter) if scope_filter.present?
-      # return false unless ready_to_save?
       unless requires(:name, :translator)
+        if event.present?
+          unless translator.type == :Import || requires(:data_type_scope)
+            if scope_symbol == :event_source &&
+              !(event.is_a?(Setup::Observer) && event.data_type == data_type)
+              errors.add(:event, 'not compatible with data type scope')
+            end
+          end
+        elsif scope_symbol == :event_source
+          if persisted?
+            requires(:event)
+          else
+            rejects(:data_type_scope)
+          end
+        end
         if translator.data_type.nil?
-          requires(:custom_data_type) unless translator.type == :Export && nil_data_type
+          requires(:custom_data_type) if translator.type == :Conversion && event.present?
         else
           rejects(:custom_data_type)
         end
         if translator.type == :Import
           rejects(:data_type_scope, :scope_filter, :scope_evaluator)
         else
-          requires(:data_type_scope) unless translator.type == :Export && data_type.nil?
           case scope_symbol
           when :filtered
             format_triggers_on(:scope_filter, true)
@@ -64,8 +103,15 @@ module Setup
         end
         if [:Import, :Export].include?(translator.type)
           requires(:webhook)
+          if translator.type == :Import
+            unless before_submit.nil? || before_submit.parameters.count == 1 || before_submit.parameters.count == 2
+              errors.add(:before_submit, 'must receive one or two parameter')
+            end
+          else
+            rejects(:before_submit)
+          end
         else
-          rejects(:connection_role, :webhook, :notify_request, :notify_response)
+          rejects(:before_submit, :connection_role, :authorization, :webhook, :notify_request, :notify_response)
         end
 
         if translator.type == :Export
@@ -82,7 +128,7 @@ module Setup
           else
             rejects(:response_data_type, :discard_events)
           end
-          rejects(:custom_data_type, :data_type_scope, :lot_size) if nil_data_type
+          rejects(:data_type_scope) if data_type.nil?
         else
           rejects(:lot_size, :response_translator, :response_data_type)
         end
@@ -110,8 +156,27 @@ module Setup
       end
     end
 
-    def data_type
+    def with(options)
+      if options && (data_type = options.delete(:data_type))
+        using_data_type(data_type)
+      end
+      super
+    end
+
+    def own_data_type
       (translator && translator.data_type) || custom_data_type
+    end
+
+    def using_data_type(data_type)
+      if (own_dt = own_data_type) && own_dt != data_type
+        fail "Illegal data type option #{data_type.custom_title}, a flow own data type #{flow_data_type} is already configured"
+      else
+        @_data_type = data_type if data_type
+      end
+    end
+
+    def data_type
+      @_data_type || own_data_type
     end
 
     def data_type_scope_enum
@@ -121,12 +186,21 @@ module Setup
         enum << "All #{data_type.title.downcase.pluralize}"
         enum << 'Filter'
         enum << 'Evaluator'
+      else
+        enum << nil
       end
       enum
     end
 
+    def auto_retry_enum
+      Setup::Task.auto_retry_enum
+    end
+
     def ready_to_save?
-      translator.present? && (translator.type == :Import || data_type_scope.present? || (translator.type == :Export && nil_data_type && webhook.present?))
+      shared? ||
+        ((t = translator).present? &&
+          (event.blank? || data_type_scope.present? || t.type == :Import) &&
+          ([:Export, :Import].exclude?(t.type) || webhook.present?))
     end
 
     def can_be_restarted?
@@ -146,7 +220,7 @@ module Setup
     end
 
     def process(message={}, &block)
-      executing_id, execution_graph = (Thread.current[thread_key] ||= []).last || [nil, {}]
+      executing_id, execution_graph = current_thread_cache.last || [nil, {}]
       if executing_id.present? && !(adjacency_list = execution_graph[executing_id] ||= []).include?(id.to_s)
         adjacency_list << id.to_s
       end
@@ -155,7 +229,10 @@ module Setup
           cycle = cycle.collect { |id| ((flow = Setup::Flow.where(id: id).first) && flow.name) || id }
           Setup::Notification.create(message: "Cyclic flow execution: #{cycle.join(' -> ')}")
         else
-          message = message.merge(flow_id: id.to_s, tirgger_flow_id: executing_id, execution_graph: execution_graph)
+          message = message.merge(flow_id: id.to_s,
+                                  tirgger_flow_id: executing_id,
+                                  execution_graph: execution_graph,
+                                  auto_retry: auto_retry)
           Setup::FlowExecution.process(message, &block)
         end
       save
@@ -165,7 +242,10 @@ module Setup
     def translate(message, &block)
       if translator.present?
         begin
-          (flow_execution = Thread.current[thread_key] ||= []) << [id.to_s, message[:execution_graph] || {}]
+          (flow_execution = current_thread_cache) << [id.to_s, message[:execution_graph] || {}]
+          data_type = Setup::BuildInDataType[message[:data_type_id]] ||
+            Setup::DataType.where(id: message[:data_type_id]).first
+          using_data_type(data_type) if data_type
           send("translate_#{translator.type.to_s.downcase}", message, &block)
           after_process_callbacks.each do |callback|
             begin
@@ -195,6 +275,12 @@ module Setup
         end
       else
         nil
+      end
+    end
+
+    class << self
+      def default_thread_value
+        []
       end
     end
 
@@ -259,27 +345,53 @@ module Setup
     end
 
     def translate_import(message, &block)
-      webhook.upon(connection_role).submit(notify_request: notify_request,
-                                           notify_response: notify_response) do |response, template_parameters|
-        translator.run(target_data_type: data_type,
-                       data: response.body,
-                       discard_events: discard_events,
-                       parameters: template_parameters,
-                       headers: response.headers.to_hash,
-                       statusCode: response.code,
-                       task: message[:task]) #if response.code == 200
+      options =
+        {
+          headers: {},
+          parameters: {},
+          template_parameters: {},
+          notify_request: notify_request,
+          notify_response: notify_response,
+          verbose_response: true
+        }
+      if before_submit
+        if before_submit.parameters.count == 1
+          before_submit.run(options)
+        elsif before_submit.parameters.count == 2
+          before_submit.run([options, message[:task]])
+        end
+      end
+      verbose_response =
+        webhook.with(connection_role).and(authorization).submit(options) do |response, template_parameters|
+          translator.run(target_data_type: data_type,
+                         data: response.body,
+                         discard_events: discard_events,
+                         parameters: template_parameters,
+                         headers: response.headers.to_hash,
+                         statusCode: response.code,
+                         task: message[:task]) #if response.code == 200
+        end
+      if auto_retry == :automatic && (200...299).exclude?(verbose_response[:http_response].code)
+        fail unsuccessful_response(verbose_response[:http_response], message)
       end
     end
 
     def translate_export(message, &block)
       limit = translator.bulk_source ? lot_size || 1000 : 1
-      max = ((object_ids = source_ids_from(message)) ? object_ids.size : data_type.count) - (scope_symbol ? 1 : 0)
+      max =
+        if (object_ids = source_ids_from(message))
+          object_ids.size
+        elsif data_type
+          data_type.count
+        else
+          0
+        end - (scope_symbol ? 1 : 0)
       translation_options = nil
       connections_present = true
       0.step(max, limit) do |offset|
         next unless connections_present
         verbose_response =
-          webhook.upon(connection_role).submit ->(template_parameters) {
+          webhook.target.with(connection_role).and(authorization).submit ->(template_parameters) {
             translation_options =
               {
                 object_ids: object_ids,
@@ -292,26 +404,45 @@ module Setup
               }
             translator.run(translation_options)
           },
-                                               contentType: translator.mime_type,
-                                               notify_request: notify_request,
-                                               request_attachment: ->(attachment) do
-                                                 attachment[:filename] = ((data_type && data_type.title) || translator.name).collectionize +
-                                                   attachment[:filename] +
-                                                   ((ext = translator.file_extension).present? ? ".#{ext}" : '')
-                                                 attachment
-                                               end,
-                                               notify_response: notify_response,
-                                               verbose_response: true do |response|
+                                                                         contentType: translator.mime_type,
+                                                                         notify_request: notify_request,
+                                                                         request_attachment: ->(attachment) do
+                                                                           attachment[:filename] = ((data_type && data_type.title) || translator.name).collectionize +
+                                                                             attachment[:filename] +
+                                                                             ((ext = translator.file_extension).present? ? ".#{ext}" : '')
+                                                                           attachment
+                                                                         end,
+                                                                         notify_response: notify_response,
+                                                                         verbose_response: true do |response|
             if response_translator #&& response.code == 200
               response_translator.run(translation_options.merge(target_data_type: response_translator.data_type || response_data_type,
                                                                 data: response.body,
                                                                 headers: response.headers.to_hash,
-                                                                statusCode: response.code))
+                                                                statusCode: response.code, #TODO Remove after deprecation migration
+                                                                response_code: response.code,
+                                                                requester_response: response.requester_response?))
             end
             true
           end
+        if auto_retry == :automatic && (200...299).exclude?(verbose_response[:http_response].code)
+          fail unsuccessful_response(verbose_response[:http_response], message)
+        end
         connections_present = verbose_response[:connections_present]
       end
+    end
+
+    def unsuccessful_response(http_response, task_msg)
+      {
+        error: 'Unsuccessful response code',
+        code: http_response.code,
+        user: ::User.current.label,
+        user_id: ::User.current.id,
+        tenant: Account.current.label,
+        tenant_id: Account.current.id,
+        task: task_msg,
+        flow: to_hash,
+        flow_attributes: attributes
+      }.to_json
     end
 
     def attachment_from(http_response)
@@ -327,8 +458,6 @@ module Setup
     def source_ids_from(message)
       if (object_ids = message[:object_ids])
         object_ids
-      elsif scope_symbol.nil?
-        []
       elsif scope_symbol == :event_source && id = message[:source_id]
         [id]
       elsif scope_symbol == :filtered

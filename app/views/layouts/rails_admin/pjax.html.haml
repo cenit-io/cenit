@@ -1,0 +1,77 @@
+:javascript
+  $('.nav.nav-pills li.active').removeClass('active');
+  $('.nav.nav-pills li[data-model="#{@abstract_model.to_param}"]').addClass('active');
+
+%title= "#{@abstract_model.try(:pretty_name) || @page_name} | #{[_get_plugin_name[0] || 'Rails', _get_plugin_name[1] || 'Admin'].join(' ')}"
+
+- page_slug = @page_name.parameterize
+
+- flash && flash.each do |key, value|
+  .alert{class: flash_alert_class(key), style: "margin-bottom: #{page_slug=='dashboard' ? '0' : '20px'}"}
+    %a.close{href: '#', :'data-dismiss' => "alert"} &times;
+    = value
+
+= breadcrumb
+
+= render :partial => 'rails_admin/rest_api_sdk/menu' if respond_to?(:api_current_paths) && api_current_paths
+
+- if ['dashboard', 'list-of-shared-collections'].include? page_slug
+  - @count ||= {}
+  - query = params[:query]
+  .col-md-12{style: 'margin-bottom: 20px;'}
+    .col-md-7
+      %h3.label-heading{style: 'margin: 0;'}
+        %small=  t("admin.misc.title_search_shared_collections")
+        %h4{style: "margin-top: 0px;"}= t("admin.misc.sub_title_search_shared_collections", count: @count[Setup::CrossSharedCollection.name])
+        - shared_path = index_path(model_name: "setup~cross_shared_collection", query: query)
+        = form_tag(shared_path, method: :get, class: "pjax-form form-inline") do
+          .input-group.col-xs-12
+            %input.form-control.btb.btn-default{name: "query", type: "search", value: query}
+              %span.input-group-btn
+                %button.btn.btn-primary
+                  %i.fa.fa-search
+      = 'Try'
+      = link_to('gmail', index_path(model_name: "setup~cross_shared_collection", query: 'gmail'))+','
+      = link_to('twilio', index_path(model_name: "setup~cross_shared_collection", query: 'twilio'))+' or'
+      = link_to('shipstation', index_path(model_name: "setup~cross_shared_collection", query: 'shipstation'))
+    .col-md-3
+      %h4.text-muted
+        - if current_user
+          = "#{current_user.account.name.split('@')[0]} tenant"
+          - users = tenant_users
+        - else
+          = t('admin.actions.dashboard.recent_users.title')
+          - users = recent_users
+      %ul.list-inline.list-unstyled
+        - users.each do |u|
+          - url = u.picture_url(50)
+          - alt = (u.email.split('@'))[0]
+          - title = u.name.present? ? u.name : alt
+          %li
+            = image_tag url, alt: alt, title: title, class: 'img-circle', height: 50, width: 50
+      - if current_user
+        = pluralize(current_user.account.users.count, 'member')
+      - else
+        %span.text-muted
+          = t('admin.actions.dashboard.recent_users.more', count: (User.all.count/5 * 5))
+
+    .col-md-2{style:'padding-left: 30px;'}
+      %h4.text-muted{style:'margin-top: 10px;'}
+        - if current_user
+          = link_to(pluralize(current_user.all_accounts.count, 'tenant'), index_path(model_name: 'account'))
+        - else
+          = pluralize(Account.count, 'tenant')
+      %ul.list-inline.list-unstyled{style: 'margin-left: -11px;'}
+        %li
+          .block
+            .icon
+              %i.fa.fa-fw.fa-home{style: 'font-size: 40px;'}
+            .icon{style: 'margin-left: -20px;'}
+              %i.fa.fa-fw.fa-home{style: 'font-size: 24px;'}
+      %span.text-muted
+        = link_to(t('admin.misc.add_tenant'), new_path(model_name: 'account'))
+
+%ul.nav.nav-tabs
+  = menu_for((@abstract_model ? (@object.try(:persisted?) ? :member : :collection) : :root), @abstract_model, @object, false, Cenit.max_tab_actions_count.to_i.abs)
+  = content_for :contextual_tabs
+= yield

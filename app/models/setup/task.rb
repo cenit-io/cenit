@@ -2,12 +2,16 @@ module Setup
   class Task
     include CenitScoped
     include ClassHierarchyAware
+    include CrossOrigin::Document
+    include RailsAdmin::Models::Setup::TaskAdmin
 
-    BuildInDataType.regist(self)
+    origins :default, -> { Account.current_super_admin? ? :admin : nil }
 
-    Setup::Models.exclude_actions_for self, :copy, :new, :translator_update, :import, :convert, :send_to_flow
+    build_in_data_type
 
-    field :message, type: Hash
+    deny :copy, :new, :translator_update, :import, :convert, :send_to_flow
+
+    field :message, type: Hash, default: {}
     field :description, type: String
     field :status, type: Symbol, default: :pending
     field :progress, type: Float, default: 0
@@ -15,6 +19,7 @@ module Setup
     field :succeded, type: Integer, default: 0
     field :retries, type: Integer, default: 0
     field :state, type: Hash, default: {}
+    field :auto_retry, type: Symbol, default: -> { auto_retry_enum.first }
 
     has_many :notifications, class_name: Setup::Notification.to_s, inverse_of: :task, dependent: :destroy
 
@@ -26,18 +31,28 @@ module Setup
 
     validates_inclusion_of :status, in: ->(t) { t.status_enum }
     validates_numericality_of :progress, greater_than_or_equal_to: 0, less_than_or_equal_to: 100
+    validates_presence_of :auto_retry
 
     before_save do
       message.delete(:task)
       self.description = auto_description if description.blank?
+      if scheduler && scheduler.origin != origin
+        errors.add(:scheduler, "with incompatible origin (#{scheduler.origin}), #{origin} origin is expected")
+      end
+      errors.blank?
     end
 
-    before_destroy { NOT_RUNNING_STATUS.include?(status) }
+    before_destroy { NON_ACTIVE_STATUS.include?(status) && (scheduler.nil? || scheduler.deactivated?) }
 
     def _type_enum
       classes = Setup::Task.class_hierarchy
       classes.delete(Setup::Task)
+      classes.delete(::ScriptExecution)
       classes.collect(&:to_s)
+    end
+
+    def auto_retry_enum
+      self.class.auto_retry_enum
     end
 
     def auto_description
@@ -57,30 +72,32 @@ module Setup
     end
 
     STATUS = [:pending, :running, :failed, :completed, :retrying, :broken, :unscheduled, :paused]
-    RUNNING_STATUS = [:running, :retrying, :paused]
+    ACTIVE_STATUS = [:running, :retrying]
+    NON_ACTIVE_STATUS = STATUS.reject { |status| ACTIVE_STATUS.include?(status) }
+    RUNNING_STATUS = ACTIVE_STATUS + [:paused]
     NOT_RUNNING_STATUS = STATUS.reject { |status| RUNNING_STATUS.include?(status) }
 
-    def runnin_status?
+    def running_status?
       RUNNING_STATUS.include?(status)
     end
 
     def running?
-      runnin_status? &&
+      running_status? &&
         thread_token.present? &&
         Thread.list.any? { |thread| thread[:task_token] == thread_token.token }
     end
 
     def execute
-      if running?
+      if running? || !Cenit::Locker.lock(self)
         notify(message: "Executing task ##{id} at #{Time.now} but it is already running")
       else
         thread_token.destroy if thread_token.present?
         self.thread_token = ThreadToken.create
         Thread.current[:task_token] = thread_token.token
-        if status == :retrying
+        if status == :retrying || status == :failed
           self.retries += 1
         end
-        if runnin_status?
+        if running_status?
           notify(message: "Restarting task ##{id} at #{Time.now}", type: :notice)
         else
           self.attempts += 1
@@ -115,6 +132,7 @@ module Setup
         joining_tasks.each { |task| task.retry }
         joining_tasks.nullify
       end
+      Cenit::Locker.unlock(self)
     end
 
     def run(message)
@@ -150,27 +168,40 @@ module Setup
     def schedule(scheduler)
       if can_schedule?
         self.scheduler = scheduler
-        self.retry
+        self.retry(action: 'scheduled')
       end
     end
 
-    def retry
+    def retry(options = {})
       if can_retry?
         self.status = (status == :failed ? :retrying : :pending)
-        notify(type: :notice, message: "Task ##{id} executed at #{Time.now}")
+        notify(type: :notice, message: "Task ##{id} #{options[:action] || 'executed'} at #{Time.now}")
         Cenit::Rabbit.enqueue(message.merge(task: self))
       end
     end
 
     attr_reader :finish_attachment
 
+    def resuming_manually?
+      @resuming_manually
+    end
+
+    def resume_manually
+      resume_later
+      @resuming_manually = true
+    end
+
     def resuming_later?
       @resuming_later
     end
 
-    def resume_in(interval)
+    def resume_later
       fail 'Resume later is already invoked for these task' if @resuming_later
       @resuming_later = true
+    end
+
+    def resume_in(interval)
+      resume_later
       @resume_in =
         if interval.is_a?(Integer)
           interval
@@ -198,15 +229,13 @@ module Setup
 
     class << self
 
-      def process(message = {}, &block)
-        Cenit::Rabbit.enqueue(message.merge(task: self), &block)
+      def auto_retry_enum
+        %w(manually automatic).collect(&:to_sym)
       end
 
-      def destroy_conditions
-        {
-          'status' => { '$in' => Setup::Task::NOT_RUNNING_STATUS },
-          'scheduler_id' => { '$in' => Setup::Scheduler.where(activated: false).collect(&:id) + [nil] }
-        }
+      def process(message = {}, &block)
+        message[:task] = self unless (task = message[:task]).is_a?(self) || (task.is_a?(Class) && task < self)
+        Cenit::Rabbit.enqueue(message, &block)
       end
     end
 
@@ -242,6 +271,27 @@ module Setup
       if status == :completed
         self.succeded += 1
         self.retries = 0
+      elsif status == :failed
+        if auto_retry == :automatic
+          resume_in case retries
+                    when 0
+                      '5s'
+                    when 1
+                      '1m'
+                    when 2
+                      '3m'
+                    when 3
+                      '5m'
+                    when 4
+                      '10m'
+                    when 5
+                      '30m'
+                    when 6
+                      '1h'
+                    else
+                      '1d'
+                    end
+        end
       end
       notify(type: message_type, message: message, attachment: finish_attachment)
     end

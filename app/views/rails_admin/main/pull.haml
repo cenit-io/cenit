@@ -1,21 +1,46 @@
-- missing_parameters = @pull_request[:missing_parameters]
-- pull_parameters = @pull_request[:pull_parameters]
-- new_records = @pull_request[:new_records]
-- updated_records = @pull_request[:updated_records]
-- pull_data = @pull_request[:pull_data]
-- limit = 10
+:ruby
+  shared_collection ||= nil
+  pull_request ||= {}
+  bulk_ids ||= nil
+  object_id ||= nil
+  options ||= {}
+  options_key ||= {}
+  pull_anyway ||= false
+
+  missing_parameters = pull_request[:missing_parameters] || []
+  pull_parameters = pull_request[:pull_parameters] || {}
+  new_records = pull_request[:new_records] || []
+  updated_records = pull_request[:updated_records] || []
+  pull_data = pull_request[:pull_data] #TODO When records data included in collections
+  limit ||= 10
+
+  before_form_partials ||= []
+  before_form_partials = [before_form_partials] unless before_form_partials.is_a?(Enumerable)
+  before_form_partials = before_form_partials.collect(&:to_s)
+
 %form{method: 'post', class: 'form-horizontal denser'}
+  - before_form_partials.each do |partial|
+    = render partial: partial
+  - if bulk_ids
+    %select{name: 'new_bulk_ids[]', multiple: 'multiple', style: 'display:none'}
+      - bulk_ids.each do |id|
+        %option{value: id, selected: 'selected'}
+  - if object_id
+    %input{name: 'object_id', value: object_id, type: 'hidden'}
+  - if options_key
+    - options.each do |key, value|
+      %input{name: "#{options_key}[#{key}]", value: value.to_s, type: 'hidden'}
   - uptodate = true
-  - if @object.pull_parameters.present?
+  - if shared_collection && shared_collection.pull_parameters.present?
     - uptodate = false
     %h4= t('admin.actions.pull.fill_parameters')
     .fieldset
-      - @object.pull_parameters.each do |pull_parameter|
+      - shared_collection.pull_parameters.each do |pull_parameter|
         .control-group{class: (error = missing_parameters.include?(pull_parameter.id.to_s)) ? 'error' : ''}
           %label.col-sm-2.control-label
             = pull_parameter.label
           .col-sm-10.controls
-            %input{type: 'text', size: 50, name: "pull_parameters[#{pull_parameter.id}]", value:  pull_parameters[pull_parameter.id.to_s]}
+            %input{type: 'text', size: 50, name: "pull_parameters[#{pull_parameter.id}]", value:  pull_parameters[pull_parameter.id.to_s], required: 'required'}
             - if error
               %span{class: 'help-inline'}
                 = "can't be blank"
@@ -41,6 +66,11 @@
     %h4{style: 'color:#b94a48'}= t('admin.actions.pull.update_warning')
     .fieldset
       - updated_records.each do |key, records|
+        - if pull_request[:updated_records_ids]
+          - if key == 'collections'
+            - records = Setup::Collection.where(:id.in => records)
+          -else
+            - records = Setup::CrossSharedCollection.reflect_on_association(key).klass.where(:id.in => records)
         .control-group
           %label.col-sm-2.control-label
             = key.titleize
@@ -53,20 +83,21 @@
             %p.help-block
               = "#{records.count} #{key.titleize.downcase.pluralize}"
   - if uptodate
-    - collection_link = link_to(@object.name, rails_admin.show_path(model_name: Setup::Collection.to_s.underscore.gsub('/', '~'), id: @object.name), class: 'pjax')
-    %h4=  t('admin.actions.pull.uptodate', collection: collection_link, shared_collection: @object.versioned_name).html_safe
+    - if pull_request[:collection_discarded]
+      %h4=  t('admin.actions.pull.nothing_to_pull')
+    - elsif shared_collection
+      - collection_link = link_to(shared_collection.name, rails_admin.show_path(model_name: Setup::Collection.to_s.underscore.gsub('/', '~'), id: shared_collection.name), class: 'pjax')
+      - shared_collection_link = link_to(shared_collection.versioned_name, rails_admin.show_path(model_name: shared_collection.class.to_s.underscore.gsub('/', '~'), id: shared_collection.id), class: 'pjax')
+      %h4=  t('admin.actions.pull.uptodate', collection: collection_link, shared_collection: shared_collection_link).html_safe
+    - else
+      %h4=  t('admin.actions.pull.uptodate_data').html_safe
   .form-group.form-actions
   .col-sm-offset-2.col-sm-10
-    - if uptodate
-      %span.extra_buttons
-        %button.btn{type: 'submit', name: '_pull', :'data-disable-with' => t('admin.form.ok')}
-          %i.icon-ok
-          = t('admin.form.ok')
-    - else
+    - if !uptodate || pull_anyway
       %button.btn.btn-primary{type: 'submit', name: '_pull', :'data-disable-with' => t('admin.actions.pull.submit')}
-        %i{class: @action.try(:link_icon)}
+        %i{class: 'icon-arrow-down'}
         = t('admin.actions.pull.submit')
-      %span.extra_buttons
-        %button.btn{type: 'submit', name: '_continue', :'data-disable-with' => t('admin.form.cancel')}
-          %i.icon-remove
-          = t('admin.form.cancel')
+    %span.extra_buttons
+      %button.btn{type: 'submit', name: '_continue', :'data-disable-with' => uptodate ? t('admin.form.ok') : t('admin.form.cancel')}
+        %i{class: "icon-#{uptodate ? 'ok' : 'remove'}"}
+        = uptodate ? t('admin.form.ok') : t('admin.form.cancel')

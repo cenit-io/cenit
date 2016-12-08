@@ -13,6 +13,14 @@ module RailsAdmin
                 (JSON.pretty_generate(value) rescue nil) || value
               end
             end
+
+            register_instance_option :code_config do
+              {
+                matchBrackets: true,
+                autoCloseBrackets: true,
+                mode: 'application/ld+json'
+              }
+            end
           end
 
           def parse_input(params)

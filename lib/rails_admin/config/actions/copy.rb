@@ -16,8 +16,8 @@ module RailsAdmin
 
             model = abstract_model.model rescue nil
             if model
-              attrs = @object.attributes.deep_dup
-              redirect_to rails_admin.new_path(model_name: model.to_s.underscore.gsub('/', '~'), params: { attributes: attrs.to_json })
+              token = Cenit::Token.create(data: @object.share_json, token_span: 300).token
+              redirect_to rails_admin.new_path(model_name: model.to_s.underscore.gsub('/', '~'), params: { json_token: token })
             else
               redirect_to back_or_index
             end

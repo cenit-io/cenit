@@ -1,7 +1,8 @@
 module Setup
   class AlgorithmExecution < Setup::Task
+    include RailsAdmin::Models::Setup::AlgorithmExecutionAdmin
 
-    BuildInDataType.regist(self)
+    build_in_data_type
 
     belongs_to :algorithm, class_name: Setup::Algorithm.to_s, inverse_of: nil
 
@@ -10,7 +11,7 @@ module Setup
     end
 
     def run(message)
-      if algorithm = Setup::Algorithm.where(id: algorithm_id = message[:algorithm_id]).first
+      if (algorithm = Setup::Algorithm.where(id: algorithm_id = message[:algorithm_id]).first)
         result =
           case result = algorithm.run(message[:input])
           when Hash, Array

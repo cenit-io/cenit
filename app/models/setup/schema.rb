@@ -2,15 +2,19 @@ require 'xsd/include_missing_exception'
 
 module Setup
   class Schema < Validator
-    include CenitScoped
+    include SnippetCode
     include NamespaceNamed
     include Setup::FormatValidator
     include CustomTitle
+    include RailsAdmin::Models::Setup::SchemaAdmin
 
-    BuildInDataType.regist(self).with(:namespace, :uri, :schema).referenced_by(:namespace, :uri)
+    legacy_code_attribute :schema
+
+    build_in_data_type.with(:namespace, :uri, :snippet).referenced_by(:namespace, :uri)
+
+    shared_deny :simple_generate, :bulk_generate
 
     field :uri, type: String
-    field :schema, type: String
     field :schema_type, type: Symbol
 
     belongs_to :schema_data_type, class_name: Setup::JsonDataType.to_s, inverse_of: nil
@@ -20,13 +24,31 @@ module Setup
     validates_presence_of :uri, :schema
     validates_uniqueness_of :uri, scope: :namespace
 
+    def code_extension
+      case schema_type
+      when :xml_schema
+        '.xsd'
+      when :json_schema
+        '.json'
+      else
+        super
+      end
+    end
+
+    def schema
+      code
+    end
+
+    def schema=(sch)
+      self.code = sch
+    end
+
     def title
       uri
     end
 
-    before_validation :prepare_configuration
-
-    def prepare_configuration
+    def validates_before
+      super
       self.name = uri unless name.present?
       self.schema = schema.strip
       self.schema_type =
@@ -37,22 +59,26 @@ module Setup
         end
     end
 
-    def cenit_ref_schema(options = {})
-      options = {service_url: Cenit.service_url, service_schema_path: Cenit.service_schema_path}.merge(options)
-      send("cenit_ref_#{schema_type}", options)
-    end
-
     def data_format
       schema_type.to_s.split('_').first.to_sym
     end
 
-
-    def validate_file_record(file)
+    def validate_data(data)
       case schema_type
       when :json_schema
         begin
+          unless data.is_a?(Hash)
+            data =
+              if data.respond_to?(:to_hash)
+                data.to_hash
+              elsif data.respond_to?(:to_json)
+                JSON.parse(data.to_json)
+              else
+                JSON.parse(data.to_s)
+              end
+          end
           JSON::Validator.fully_validate(JSON.parse(schema),
-                                         JSON.parse(file.data),
+                                         data,
                                          version: :mongoff,
                                          schema_reader: JSON::Schema::CenitReader.new(self),
                                          strict: true)
@@ -61,17 +87,36 @@ module Setup
           [ex.message]
         end
       when :xml_schema
-        Nokogiri::XML::Schema(cenit_ref_schema).validate(Nokogiri::XML(file.data))
+        begin
+          unless data.is_a?(Nokogiri::XML::Document)
+            unless data.is_a?(String)
+              data =
+                if data.respond_to?(:to_xml)
+                  data.to_xml
+                else
+                  data
+                end.to_s
+            end
+            data = Nokogiri::XML(data)
+          end
+          Nokogiri::XML::Schema(cenit_ref_schema).validate(data)
+        rescue Exception => ex
+          [ex.message]
+        end
       end
     end
 
     def find_ref_schema(ref)
       if ref == uri
         self
-      elsif (sch = Setup::Schema.where(namespace: namespace, uri: ref).first)
-        sch.schema
       else
-        nil
+        ns = namespace
+        if ref.is_a?(Hash)
+          ns = ref['namespace']
+          ref = ref['name']
+        end
+        (sch = Setup::Schema.where(namespace: ns, uri: ref).first) &&
+          sch.schema
       end
     end
 
@@ -118,15 +163,15 @@ module Setup
       end
     end
 
+    def cenit_ref_schema(options = {})
+      options = {
+        service_url: Cenit.routed_service_url,
+        schema_service_path: Cenit.schema_service_path
+      }.merge(options)
+      send("cenit_ref_#{schema_type}", options)
+    end
+
     private
-
-    def parse_json_schema
-      {uri => JSON.parse(self.schema)}
-    end
-
-    def parse_xml_schema
-      Xsd::Document.new(uri, self.schema).schema
-    end
 
     def cenit_ref_json_schema(options = {})
       schema
@@ -137,16 +182,40 @@ module Setup
       cursor = doc.root.first_element_child
       while cursor
         if %w(import include redefine).include?(cursor.name) && (attr = cursor.attributes['schemaLocation'])
-          attr.value = options[:service_url].to_s + options[:service_schema_path] + '?' +
-            {
-              key: Account.current.owner.unique_key,
-              ns: namespace,
-              uri: Cenit::Utility.abs_uri(uri, attr.value)
-            }.to_param
+          token = Cenit::TenantToken.create data: { ns: namespace, uri: abs_uri(uri, attr.value) },
+                                            token_span: 1.hour
+          attr.value = "#{options[:service_url]}#{"/#{options[:schema_service_path]}".squeeze('/')}?token=#{token.token}"
         end
         cursor = cursor.next_element
       end
       doc.to_xml
+    end
+
+    def parse_json_schema
+      { uri => JSON.parse(self.schema) }
+    end
+
+    def parse_xml_schema
+      Xsd::Document.new(uri, self.schema).schema
+    end
+
+    def abs_uri(base_uri, uri)
+      uri = URI.parse(uri.to_s)
+      return uri.to_s unless uri.relative?
+
+      base_uri = URI.parse(base_uri.to_s)
+      uri = uri.to_s.split('/')
+      path = base_uri.path.split('/')
+      begin
+        path.pop
+      end while uri[0] == '..' ? uri.shift && true : false
+
+      path = (path + uri).join('/')
+
+      uri = URI.parse(path)
+      uri.scheme = base_uri.scheme
+      uri.host = base_uri.host
+      uri.to_s
     end
   end
 end

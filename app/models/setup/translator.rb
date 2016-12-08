@@ -1,11 +1,20 @@
 module Setup
-  class Translator < ReqRejValidator
-    include CenitScoped
+  class Translator
+    include ReqRejValidator
+    include SnippetCode
     include NamespaceNamed
+    include ClassHierarchyAware
+    include RailsAdmin::Models::Setup::TranslatorAdmin
 
-    BuildInDataType.regist(self).referenced_by(:namespace, :name)
+    abstract_class true
 
-    field :type, type: Symbol
+    legacy_code_attribute :transformation
+
+    build_in_data_type.referenced_by(:namespace, :name)
+
+    deny :new
+
+    field :type, type: Symbol, default: -> { self.class.transformation_type }
 
     belongs_to :source_data_type, class_name: Setup::DataType.to_s, inverse_of: nil
     belongs_to :target_data_type, class_name: Setup::DataType.to_s, inverse_of: nil
@@ -19,14 +28,18 @@ module Setup
 
     field :source_handler, type: Boolean
 
-    field :transformation, type: String
-
     belongs_to :source_exporter, class_name: Setup::Translator.to_s, inverse_of: nil
     belongs_to :target_importer, class_name: Setup::Translator.to_s, inverse_of: nil
 
     field :discard_chained_records, type: Boolean
 
-    before_save :validates_configuration, :validates_transformation
+    before_save :validates_configuration, :validates_code
+
+    before_validation do
+      if (t = self.class.transformation_type)
+        self.type = t
+      end
+    end
 
     def validates_configuration
       requires(:name)
@@ -35,11 +48,11 @@ module Setup
       case type
       when :Import, :Update
         rejects(:source_data_type, :mime_type, :file_extension, :bulk_source, :source_exporter, :target_importer, :discard_chained_records)
-        requires(:transformation)
+        requires(:code)
         rejects(:source_handler) if type == :Import
       when :Export
         rejects(:target_data_type, :source_handler, :source_exporter, :target_importer, :discard_chained_records)
-        requires(:transformation)
+        requires(:code)
         if bulk_source && NON_BULK_SOURCE_STYLES.include?(style)
           errors.add(:bulk_source, "is not allowed with '#{style}' style")
           self.bulk_source = false
@@ -64,9 +77,9 @@ module Setup
             errors.add(:source_exporter, "can't be applied to #{source_data_type.title}") unless source_exporter.apply_to_source?(source_data_type)
             errors.add(:target_importer, "can't be applied to #{target_data_type.title}") unless target_importer.apply_to_target?(target_data_type)
           end
-          self.transformation = "#{source_data_type.title} -> [#{source_exporter.name} : #{target_importer.name}] -> #{target_data_type.title}" if errors.blank?
+          self.code = "#{source_data_type.title} -> [#{source_exporter.name} : #{target_importer.name}] -> #{target_data_type.title}" if errors.blank?
         else
-          requires(:transformation)
+          requires(:code)
           rejects(:source_exporter, :target_importer)
           rejects(:source_handler) unless style == 'ruby'
         end
@@ -74,9 +87,9 @@ module Setup
       errors.blank?
     end
 
-    def validates_transformation
+    def validates_code
       if style == 'ruby'
-        Capataz.validate(transformation).each { |error| errors.add(:transformation, error) }
+        Capataz.validate(code).each { |error| errors.add(:code, error) }
       end
       errors.blank?
     end
@@ -96,21 +109,32 @@ module Setup
     NON_BULK_SOURCE_STYLES = %w(double_curly_braces xslt liquid)
 
     STYLES_MAP = {
-      'liquid' => {Setup::Transformation::LiquidExportTransform => [:Export]},
-      'xslt' => {Setup::Transformation::XsltConversionTransform => [:Conversion],
-                 Setup::Transformation::XsltExportTransform => [:Export]},
+      'liquid' => { Setup::Transformation::LiquidExportTransform => [:Export] },
+      'xslt' => { Setup::Transformation::XsltConversionTransform => [:Conversion],
+                  Setup::Transformation::XsltExportTransform => [:Export] },
       # 'json.rabl' => {Setup::Transformation::ActionViewTransform => [:Export]},
       # 'xml.rabl' => {Setup::Transformation::ActionViewTransform => [:Export]},
       # 'xml.builder' => {Setup::Transformation::ActionViewTransform => [:Export]},
       # 'html.haml' => {Setup::Transformation::ActionViewTransform => [:Export]},
-      'html.erb' => {Setup::Transformation::ActionViewTransform => [:Export]},
+      'html.erb' => { Setup::Transformation::ActionViewTransform => [:Export] },
       # 'csv.erb' => {Setup::Transformation::ActionViewTransform => [:Export]},
-      'js.erb' => {Setup::Transformation::ActionViewTransform => [:Export]},
+      'js.erb' => { Setup::Transformation::ActionViewTransform => [:Export] },
       # 'text.erb' => {Setup::Transformation::ActionViewTransform => [:Export]},
-      'ruby' => {Setup::Transformation::Ruby => [:Import, :Export, :Update, :Conversion]},
-      # 'pdf.prawn' => {Setup::Transformation::PrawnTransform => [:Export]},
-      'chain' => {Setup::Transformation::ChainTransform => [:Conversion]}
+      'ruby' => { Setup::Transformation::Ruby => [:Import, :Export, :Update, :Conversion] },
+      'pdf.prawn' => { Setup::Transformation::PrawnTransform => [:Export] },
+      'chain' => { Setup::Transformation::ChainTransform => [:Conversion] }
     }
+
+    def code_extension
+      case style
+      when 'ruby', 'pdf.prawn'
+        '.rb'
+      when 'chain'
+        ''
+      else
+        ".#{style}"
+      end
+    end
 
     EXPORT_MIME_FILTER = {
       'double_curly_braces' => ['application/json'],
@@ -170,7 +194,8 @@ module Setup
       self.class.relations.keys.each { |key| context_options[key.to_sym] = send(key) }
       context_options[:data_type] = data_type
       context_options.merge!(options) { |_, context_val, options_val| !context_val ? options_val : context_val }
-      context_options[:transformation] = transformation
+      #TODO Remove transformation local after migration
+      context_options[:transformation] = context_options[:code] = code
 
       context_options[:target_data_type].regist_creation_listener(self) if context_options[:target_data_type]
       context_options[:source_data_type].regist_creation_listener(self) if context_options[:source_data_type]
@@ -197,7 +222,7 @@ module Setup
 
     def context_options_for_import(options)
       raise Exception.new('Target data type not defined') unless (data_type = target_data_type || options[:target_data_type])
-      {target_data_type: data_type, targets: Set.new}
+      { target_data_type: data_type, targets: Set.new }
     end
 
     def source_options(options, source_key_options)
@@ -228,7 +253,7 @@ module Setup
                 end
             }
           end
-        {source_data_type: data_type}.merge(source_options)
+        { source_data_type: data_type }.merge(source_options)
       else
         {}
       end
@@ -246,7 +271,7 @@ module Setup
       if source_handler
         source_options(options, bulk: true)
       else
-        {source: options[:object], target: style == 'chain' ? nil : target_data_type.records_model.new}
+        { source: options[:object], target: style == 'chain' ? nil : target_data_type.records_model.new }
       end
     end
 
@@ -277,6 +302,24 @@ module Setup
 
     def linker_id
       't' + id.to_s
+    end
+
+    class << self
+
+      def mime_type_filter_enum
+        Setup::Renderer.where(:mime_type.ne => nil).distinct(:mime_type).flatten.uniq
+      end
+
+      def file_extension_filter_enum
+        Setup::Renderer.where(:file_extension.ne => nil).distinct(:file_extension).flatten.uniq
+      end
+
+      def transformation_type(*args)
+        if args.length > 0
+          @transformation_type = args[0].to_s.to_sym
+        end
+        @transformation_type
+      end
     end
   end
 

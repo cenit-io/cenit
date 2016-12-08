@@ -3,10 +3,12 @@ module Setup
     include CenitUnscoped
     include Trackable
     include CollectionName
+    include Taggable
+    include RailsAdmin::Models::Setup::SharedCollectionAdmin
 
-    Setup::Models.exclude_actions_for self, :copy, :new, :edit, :translator_update, :convert, :send_to_flow, :delete_all, :delete, :import
+    deny :copy, :new, :edit, :translator_update, :convert, :send_to_flow, :delete_all, :delete, :import
 
-    BuildInDataType.regist(self).with(:name, :shared_version, :authors, :summary, :pull_parameters, :dependencies, :data, :readme, :swagger_json).referenced_by(:name, :shared_version)
+    build_in_data_type.with(:name, :shared_version, :authors, :summary, :pull_parameters, :dependencies, :data, :readme, :swagger_json).referenced_by(:name, :shared_version)
 
     belongs_to :shared_name, class_name: Setup::SharedName.to_s, inverse_of: nil
 
@@ -23,10 +25,12 @@ module Setup
     embeds_many :pull_parameters, class_name: Setup::CollectionPullParameter.to_s, inverse_of: :shared_collection
     has_and_belongs_to_many :dependencies, class_name: Setup::SharedCollection.to_s, inverse_of: nil
 
-    field :pull_count, type: Integer
+    field :pull_count, type: Integer, default: 0
     field :readme, type: String
     field :data
     field :swagger_json, type: String
+
+    default_scope -> { desc(:pull_count) }
 
     before_validation do
       authors << Setup::CollectionAuthor.new(name: ::User.current.name, email: ::User.current.email) if authors.empty?
@@ -39,7 +43,25 @@ module Setup
     accepts_nested_attributes_for :authors, allow_destroy: true
     accepts_nested_attributes_for :pull_parameters, allow_destroy: true
 
-    before_save :check_ready, :check_dependencies, :validate_configuration, :ensure_shared_name, :save_source_collection, :categorize, :sanitize_data, :on_saving
+    attr_reader :relocated
+
+    after_initialize do
+      pull_parameters.each { |pp| @relocated = pp.relocate || @relocated }
+    end
+
+    before_save :hook, :check_ready, :check_dependencies, :validate_configuration, :ensure_shared_name, :save_source_collection, :categorize, :sanitize_data, :on_saving
+
+    def pulled(options = {})
+      self.class.collection.find(_id: id).update_one('$inc' => { pull_count: 1 })
+    end
+
+    def hook
+      true
+    end
+
+    def title
+      nil
+    end
 
     def check_ready
       ready_to_save?
@@ -97,6 +119,13 @@ module Setup
 
     def on_saving
       attributes['data'] = attributes['data'].to_json unless attributes['data'].is_a?(String)
+      if (changed_value = changed_attributes['data']) &&
+        (changed_value.is_a?(String) || (changed_value = changed_value.to_json)) &&
+        attributes['data'] == changed_value
+        changed_attributes.delete('data')
+      else
+        changed_attributes['data'] = changed_value
+      end
       changed_attributes.keys.each do |attr|
         reset_attribute!(attr) if %w(shared_version).include?(attr) || (%w(pull_count).include?(attr) && !pulling)
       end unless Account.current && Account.current_super_admin?
@@ -131,15 +160,9 @@ module Setup
       end if connections.present?
       dependencies_hash_data = dependencies_data
       if pull_parameters.present?
-        pull_parameters_enum = enum_for_pull_parameters
         pull_parameters.each do |pull_parameter|
-          if pull_parameter.validate_configuration
-            if (parameter = pull_parameter.parameter) && pull_parameters_enum.include?(parameter)
-              pull_parameter.process_on(hash_data) || pull_parameter.process_on(dependencies_hash_data)
-            else
-              pull_parameter.errors.add(:base, 'is not valid')
-            end
-          end
+          pull_parameter.process_on(hash_data, keep_value: true) ||
+            pull_parameter.process_on(dependencies_hash_data, keep_value: true)
         end
         errors.add(:pull_parameters, 'is not valid') if pull_parameters.any? { |pull_parameter| pull_parameter.errors.present? }
       end
@@ -227,7 +250,7 @@ module Setup
     end
 
     def versioned_name
-      name + '-' + shared_version
+      "#{name}-#{shared_version}"
     end
 
     def data_with(parameters = {})
@@ -247,7 +270,7 @@ module Setup
       end
       parameters.each do |id, value|
         if (pull_parameter = pull_parameters.where(id: id).first)
-          pull_parameter.process_on(hash_data, value)
+          pull_parameter.process_on(hash_data, value: value)
         end
       end
       hash_data
@@ -255,11 +278,6 @@ module Setup
 
     def dependencies_data(parameters = {})
       dependencies.inject({}) { |hash_data, dependency| hash_data.deep_merge(dependency.data_with(parameters)) { |_, val1, val2| Cenit::Utility.array_hash_merge(val1, val2) } }
-    end
-
-    def enum_for_pull_parameters
-      collect_pull_parameters unless pull_parameters.present?
-      (pull_parameters.collect(&:parameter) + source_pull_parameters_enum).uniq
     end
 
     def collect_pull_parameters
@@ -272,25 +290,12 @@ module Setup
       end
     end
 
-    def source_pull_parameters_enum(source_collection = self.source_collection, connections = self.connections)
-      enum = []
-      if source_collection
-        connections ||= []
-        source_collection.connections.each do |connection|
-          if connections.include?(connection)
-            enum << CollectionPullParameter.parameter_for(connection, :url)
-            [:headers, :parameters, :template_parameters].each do |property|
-              enum += connection.send(property).collect { |value| CollectionPullParameter.parameter_for(connection, property, value.key) }
-            end
-          end
-        end
-        source_collection.webhooks.each do |webhook|
-          [:headers, :parameters, :template_parameters].each do |property|
-            enum += webhook.send(property).collect { |value| CollectionPullParameter.parameter_for(webhook, property, value.key) }
-          end
-        end
-      end
-      enum
+    def shared?
+      true
+    end
+
+    def installed?
+      true
     end
 
     class << self
@@ -324,6 +329,43 @@ module Setup
             end
           end
         end")
+    end
+
+    def cross
+      cross_shared = Setup::CrossSharedCollection.new
+
+      cross_shared.name = name
+      cross_shared.shared_version = shared_version
+      authors.each do |author|
+        cross_shared.authors.new(name: author.name,
+                                 email: author.email)
+      end
+
+      cross_shared.category = category
+      cross_shared.summary = summary
+      cross_shared.readme = readme
+
+      pull_parameters.each do |pp|
+        cross_shared.pull_parameters.new(label: pp.label,
+                                         location: pp.location,
+                                         property_name: pp.property_name)
+      end
+      dependencies.each do |d|
+        cross_shared.dependencies << Setup::CrossSharedCollection.where(name: d.name, shared_version: d.shared_version).first
+      end
+
+      cross_shared.pull_count = pull_count
+
+      cross_shared.data = data
+
+      cross_shared.image = image
+      cross_shared.logo_background = logo_background
+
+      cross_shared.save
+    end
+
+    def pull_asynchronous
+      false
     end
 
     protected

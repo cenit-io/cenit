@@ -3,10 +3,11 @@ module Setup
     include CenitUnscoped
     include Trackable
     include CollectionName
+    include RailsAdmin::Models::Setup::SharedNameAdmin
 
-    Setup::Models.exclude_actions_for self, :all
+    deny :all
 
-    BuildInDataType.regist(self).with(:name)
+    build_in_data_type.with(:name)
 
     has_and_belongs_to_many :owners, class_name: ::User.to_s, inverse_of: nil
 

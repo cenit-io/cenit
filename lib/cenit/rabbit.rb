@@ -9,6 +9,12 @@ module Cenit
 
       def enqueue(message, &block)
         message = message.with_indifferent_access
+        auto_retry =
+          if message.has_key?(:auto_retry)
+            message[:auto_retry]
+          else
+            Setup::Task.auto_retry_enum.first
+          end
         asynchronous_message = message.delete(:asynchronous).present? |
           (scheduler = message.delete(:scheduler)).present? |
           (publish_at = message.delete(:publish_at))
@@ -20,18 +26,21 @@ module Cenit
               scheduler = task.scheduler
             end
           else
-            task = task_class.create(message: message, scheduler: scheduler)
-            task.save
+            task = task_class.create(message: message, scheduler: scheduler, auto_retry: auto_retry)
           end
+          task.update(auto_retry: auto_retry) unless task.auto_retry == auto_retry
           block.call(task) if block
           asynchronous_message ||= Cenit.send('asynchronous_' + task_class.to_s.split('::').last.underscore)
           if scheduler || publish_at || asynchronous_message
-            if (token = message[:token]) && (token = AccountToken.where(token: token).first)
-              token.destroy
+            tokens = TaskToken.where(task_id: task.id)
+            if (token = message[:token])
+              tokens = tokens.or(token: token)
             end
-            message[:token] = AccountToken.create.token
+            tokens.delete_all
             message[:task_id] = task.id.to_s
-            message = message.to_json
+            message = TaskToken.create(data: message.to_json,
+                                       task: task,
+                                       user: Cenit::MultiTenancy.user_model.current).token
             if scheduler || publish_at
               Setup::DelayedMessage.create(message: message, publish_at: publish_at, scheduler: scheduler)
             else
@@ -56,17 +65,22 @@ module Cenit
       end
 
       def process_message(message, options = {})
-        message = JSON.parse(message) unless message.is_a?(Hash)
+        unless message.is_a?(Hash)
+          message = JSON.parse(message) rescue { token: message }
+        end
         message = message.with_indifferent_access
         message_token = message.delete(:token)
-        if (token = AccountToken.where(token: message_token).first)
-          account = token.set_current_account
+        if (token = TaskToken.where(token: message_token).first)
           token.destroy
+          Cenit::MultiTenancy.user_model.current = token.user
+          tenant = token.set_current_tenant
+          message = JSON.parse(token.data).with_indifferent_access if token.data
         else
-          account = nil
+          tenant = nil
         end
-        if Account.current.nil? || (message_token.present? && Account.current != account)
-          Setup::Notification.create(message: "Can not determine account for message: #{message}")
+        if Cenit::MultiTenancy.tenant_model.current.nil? ||
+          (message_token.present? && Cenit::MultiTenancy.tenant_model.current != tenant)
+          Setup::Notification.create(message: "Can not determine tenant for message: #{message}")
         else
           begin
             rabbit_consumer = nil
@@ -76,7 +90,7 @@ module Cenit
             else
               if task ||= task_class && task_class.create(message: message)
                 if (rabbit_consumer = options[:rabbit_consumer] || RabbitConsumer.where(tag: options[:consumer_tag]).first)
-                  rabbit_consumer.update(executor_id: account.id, task_id: task.id)
+                  rabbit_consumer.update(executor_id: tenant.id, task_id: task.id)
                 end
                 task.execute
               else
@@ -92,7 +106,9 @@ module Cenit
           ensure
             rabbit_consumer.update(executor_id: nil, task_id: nil) if rabbit_consumer
           end
-          if task && (task.resuming_later? || ((scheduler = task.scheduler) && scheduler.activated?))
+          if task && !task.resuming_manually? &&
+            (task.resuming_later? ||
+              ((scheduler = task.scheduler) && scheduler.activated?))
             message[:task] = task
             if (resume_interval = task.resume_interval)
               message[:publish_at] = Time.now + resume_interval
@@ -110,9 +126,14 @@ module Cenit
         channel_mutex.lock
         if @connection.nil? || @channel.nil? || @channel.closed?
           unless @connection
-            @connection = Bunny.new(automatically_recover: true,
-                                    user: Cenit.rabbit_mq_user,
-                                    password: Cenit.rabbit_mq_password)
+            @connection =
+              if (rabbit_url = ENV['RABBITMQ_BIGWIG_TX_URL']).present?
+                Bunny.new(rabbit_url)
+              else
+                Bunny.new(automatically_recover: true,
+                          user: Cenit.rabbit_mq_user,
+                          password: Cenit.rabbit_mq_password)
+              end
             connection.start
           end
 
@@ -150,13 +171,17 @@ module Cenit
             consumer = delivery_info.consumer
             if (rabbit_consumer = RabbitConsumer.where(tag: consumer.consumer_tag).first)
               begin
-                Account.current = nil
+                Cenit::MultiTenancy.tenant_model.current =
+                  Cenit::MultiTenancy.user_model.current = nil
+                Thread.clean_keys_prefixed_with('[cenit]')
                 options = (properties[:headers] || {}).merge(rabbit_consumer: rabbit_consumer)
                 Cenit::Rabbit.process_message(body, options)
               rescue Exception => ex
                 Setup::Notification.create(message: "Error (#{ex.message}) consuming message: #{body}")
               ensure
-                Account.current = nil
+                Cenit::MultiTenancy.tenant_model.current =
+                  Cenit::MultiTenancy.user_model.current = nil
+                Thread.clean_keys_prefixed_with('[cenit]')
               end unless rabbit_consumer.cancelled?
             else
               Setup::Notification.create(message: "Rabbit consumer with tag '#{consumer.consumer_tag}' not found")

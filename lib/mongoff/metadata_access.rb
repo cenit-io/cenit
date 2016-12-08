@@ -7,14 +7,14 @@ module Mongoff
       unless @properties_by_mane.has_key?(name)
         segment_property = nil
         name_property = nil
-        if (edi_opts = schema['edi']) && segments = edi_opts['segments']
+        if (edi_opts = schema['edi']) && (segments = edi_opts['segments'])
           segment_property = segments[name]
           name_property = name if property?(name)
         else
           properties.each do |property|
             next if segment_property
             schema = property_model(property).schema
-            if ((edi_opts = schema['edi']) && edi_opts['segment'] == name)
+            if (edi_opts = schema['edi']) && edi_opts['segment'] == name
               segment_property = property
             else
               schema = property_schema(property)
@@ -32,6 +32,10 @@ module Mongoff
       @properties_schemas ||= ((schema = self.schema).is_a?(Hash) && schema['type'] == 'object' && schema['properties']) || {}
     end
 
+    def model_properties_schemas
+      properties_schemas.select { |_, schema| (%w(integer number boolean string) + [nil]).exclude?(schema['type']) }
+    end
+
     def simple_properties_schemas
       properties_schemas.select { |_, schema| %w(integer number boolean string).include?(schema['type']) }
     end
@@ -41,7 +45,7 @@ module Mongoff
     end
 
     def property_schema(property)
-      if sch = properties_schemas[property.to_s]
+      if (sch = properties_schemas[property.to_s])
         data_type.merge_schema(sch)
       else
         nil
@@ -81,31 +85,25 @@ module Mongoff
       property_model ||= property_model(field) if field
       schema ||= property_schema(field)
       if property_model && schema['referenced']
-        property_model.mongo_type_for(:id, nil) #TODO Set schema parameter default to nil
+        property_model.mongo_type_for(:_id, nil) #TODO Set schema parameter default to nil
       elsif schema
-        key = schema['type']
-        if (type = MONGO_TYPE_MAP[key]).is_a?(Hash)
-          type = type['format'][schema['format']] || type['default']
+        if (key = schema['type']).nil? && (one_of = schema['oneOf']).is_a?(Array)
+          one_of.collect { |sch| mongo_type_for(nil, sch) }.flatten.uniq
+        else
+          if (type = MONGO_TYPE_MAP[key]).is_a?(Hash)
+            type = type['format'][schema['format']] || type['default']
+          end
+          [type]
         end
-        type
-      elsif %w(id _id).include?(str = field.to_s) || str.end_with?('_id')
-        BSON::ObjectId
+      elsif %w(id _id).include?((str = field.to_s)) || str.end_with?('_id')
+        [BSON::ObjectId]
       else
-        NilClass
+        [NilClass]
       end
     end
 
     def type_symbol_for(schema)
-      mongo_type_for(nil, schema).to_s.downcase.to_sym
-    end
-
-    def simple_properties_mongo_types
-      (hash = simple_properties_schemas).each { |property, schema| hash[property] = mongo_type_for(property, schema) }
-      hash
-    end
-
-    def property_type_symbol(property)
-      type_symbol_for(property_schema(property))
+      mongo_type_for(nil, schema).collect(&:to_s).collect(&:downcase).collect(&:to_sym)
     end
   end
 end

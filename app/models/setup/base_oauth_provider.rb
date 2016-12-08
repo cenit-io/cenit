@@ -1,19 +1,18 @@
 module Setup
   class BaseOauthProvider
-    include CrossTenancy
+    include SharedEditable
     include MandatoryNamespace
     include ClassHierarchyAware
+    include RailsAdmin::Models::Setup::BaseOauthProviderAdmin    
 
     abstract_class true
 
-    BuildInDataType[self].referenced_by(:namespace, :name)
+    build_in_data_type.referenced_by(:namespace, :name)
 
     field :response_type, type: String
     field :authorization_endpoint, type: String
     field :token_endpoint, type: String
     field :token_method, type: String
-
-    has_many :clients, class_name: Setup::OauthClient.to_s, inverse_of: :provider
 
     field :refresh_token_strategy, type: String, default: :none.to_s
     belongs_to :refresh_token_algorithm, class_name: Setup::Algorithm.to_s, inverse_of: nil

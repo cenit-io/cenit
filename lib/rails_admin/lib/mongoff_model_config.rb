@@ -19,8 +19,12 @@ module RailsAdmin
           label { property.name.to_s.to_title }
           filterable { property.filterable? }
           required { property.required? }
+          queryable { property.queryable? }
           valid_length { {} }
-          enum { enumeration } if enumeration
+          if enumeration
+            enum { enumeration }
+            filter_enum { enumeration }
+          end
           if (title = property.title)
             label { title }
           end
@@ -76,11 +80,17 @@ module RailsAdmin
                 v.instance_variable_set(:@showing, false)
                 table.html_safe
               else
-                [value].flatten.select(&:present?).collect do |associated|
+                max_associated_to_show = 3
+                count_associated = [value].flatten.count
+                associated_links = [value].flatten.select(&:present?).collect do |associated|
                   wording = associated.send(amc.object_label_method)
                   can_see = !am.embedded_in?(bindings[:controller].instance_variable_get(:@abstract_model)) && (show_action = v.action(:show, am, associated))
                   can_see ? v.link_to(wording, v.url_for(action: show_action.action_name, model_name: am.to_param, id: associated.id), class: 'pjax') : wording
-                end.to_sentence.html_safe
+                end.to(max_associated_to_show-1).to_sentence.html_safe
+                if (count_associated > max_associated_to_show)
+                  associated_links = associated_links+ " and #{count_associated - max_associated_to_show} more".html_safe
+                end
+                associated_links
               end
             end
           end
@@ -92,12 +102,12 @@ module RailsAdmin
         end
         configure :length do
           label 'Size'
-          pretty_value do #TODO Factorie these code in custom rails admin field type
+          pretty_value do #TODO Factorize these code in custom rails admin field type
             if objects = bindings[:controller].instance_variable_get(:@objects)
               unless max = bindings[:controller].instance_variable_get(:@max_length)
                 bindings[:controller].instance_variable_set(:@max_length, max = objects.collect { |storage| storage.length }.reject(&:nil?).max)
               end
-              (bindings[:view].render partial: 'used_memory_bar', locals: { max: max, value: bindings[:object].length }).html_safe
+              (bindings[:view].render partial: 'size_bar', locals: { max: max, value: bindings[:object].length }).html_safe
             else
               bindings[:view].number_to_human_size(value)
             end
@@ -127,7 +137,7 @@ module RailsAdmin
         end
       end
 
-      navigation_label { target.data_type.navigation_label }
+      navigation_label { target.data_type.namespace }
 
       object_label_method { @object_label_method ||= Config.label_methods.detect { |method| target.property?(method) } || :to_s }
     end
@@ -159,6 +169,8 @@ module RailsAdmin
         case context
         when nil
           target.data_type.title
+        when :breadcrumb
+          target.data_type.custom_title('/')
         else
           target.data_type.custom_title
         end

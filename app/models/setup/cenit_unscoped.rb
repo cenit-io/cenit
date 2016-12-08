@@ -7,19 +7,43 @@ module Setup
     include Mongoid::CenitDocument
     include Mongoid::Timestamps
     include Mongoid::CenitExtension
-    # include Trackable
 
     included do
       Setup::Models.regist(self)
     end
 
-    def share_hash
-      to_hash(ignore: [:id, :number, :token], include_blanks: true)
-    end
-
     module ClassMethods
+
+      def inherited(subclass)
+        super
+        Setup::Models.regist(subclass)
+        subclass.deny Setup::Models.excluded_actions_for(self)
+        subclass.build_in_data_type.excluding(build_in_data_type.get_excluding)
+      end
+
+      def share_options
+        {
+          ignore: [:id],
+          include_blanks: true,
+          protected: true,
+          polymorphic: true
+        }
+      end
+
       def super_count
         count
+      end
+
+      def build_in_data_type
+        BuildInDataType.regist(self)
+      end
+
+      def allow(*actions)
+        Setup::Models.included_actions_for self, *actions
+      end
+
+      def deny(*actions)
+        Setup::Models.excluded_actions_for self, *actions
       end
     end
   end

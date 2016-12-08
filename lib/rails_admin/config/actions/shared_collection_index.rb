@@ -13,14 +13,12 @@ module RailsAdmin
 
         register_instance_option :controller do
           proc do
-
-            redirect_to rails_admin.index_path(model_name: Setup::SharedCollection.to_s.underscore.gsub('/', '~'))
-
+            redirect_to rails_admin.index_path(model_name: Setup::CrossSharedCollection.to_s.underscore.gsub('/', '~'))
           end
         end
 
         register_instance_option :link_icon do
-          'fa fa-cubes'
+          'fa fa-cube'
         end
       end
     end

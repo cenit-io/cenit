@@ -50,7 +50,7 @@ module Mongoff
     def each(*args, &blk)
       query.each do |document|
         m =
-          if type = document['_type']
+          if (type = document['_type'])
             model.class.for(name: type)
           else
             model
@@ -116,12 +116,15 @@ module Mongoff
       def evolve(value)
         if value.respond_to?(:orm_model) && value.respond_to?(:id)
           value.id
-        elsif value.is_a?(Hash)
-          value
-        elsif value.is_a?(Enumerable)
-          value.collect { |v| model.mongo_value(v, field) }
         else
-          model.mongo_value(value, field)
+          case value
+          when Hash, Regexp
+            value
+          when Enumerable
+            value.collect { |v| model.mongo_value(v, field) }
+          else
+            model.mongo_value(value, field)
+          end
         end
       end
     end

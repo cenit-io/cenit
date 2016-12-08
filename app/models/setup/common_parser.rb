@@ -10,12 +10,16 @@ module Setup
     end
 
     def new_from(data, options = {})
-      if formatted_data = JSON.parse(data) rescue nil
+      formatted_data = JSON.parse(data) rescue nil
+      if formatted_data
         new_from_json(formatted_data, options)
-      elsif formatted_data = Nokogiri::XML(data) rescue nil
-        new_from_xml(formatted_data, options)
       else
-        new_from_edi(formatted_data, options)
+        formatted_data = Nokogiri::XML(data) rescue nil
+        if formatted_data
+          new_from_xml(formatted_data, options)
+        else
+          new_from_edi(formatted_data, options)
+        end
       end
     end
 
@@ -63,13 +67,15 @@ module Setup
       record
     end
 
+    EDI_PARSED_RECORD = ->(r) { r.instance_variable_get(:@_edi_parsed) }
+
     private
 
     def save_record(record, options)
       create = true
       @creation_listeners.each { |listener| create &&= listener.try(:before_create, record) } if @creation_listeners
       if create
-        Cenit::Utility.save(record, options.merge(bind_references: { if: ->(r) { r.instance_variable_get(:@_edi_parsed) } }))
+        Cenit::Utility.save(record, options.merge(bind_references: { if: EDI_PARSED_RECORD }))
         @creation_listeners.each { |listener| listener.try(:after_create, record) } if @creation_listeners
       end
       record

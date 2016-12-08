@@ -48,6 +48,7 @@
       ''
     end
     %{
+      $.filters.options.save_button_label = "#{t("admin.misc.save_filter")}"
       $.filters.append(#{field.label.to_json}, #{field.name.to_json}, #{field.type.to_json}, #{filter_hash['v'].to_json}, #{filter_hash['o'].to_json}, #{field_options.to_json}, #{filter_index.to_json});
     }
   end.join.html_safe if @ordered_filters
@@ -63,10 +64,10 @@
       %ul.dropdown-menu#filters{style: 'left:auto; right:0;'}
         - @filterable_fields.each do |field|
           - field_options = case field.type
-          - when :enum
-            - options_for_select(field.with(object: @abstract_model.model.new).enum)
-          - else
-            - ''
+            - when :enum
+              - options_for_select(field.with(object: @abstract_model.model.new).enum)
+            - else
+              - ''
           %li
             %a{href: '#', :"data-field-label" => field.label, :"data-field-name" => field.name, :"data-field-options" => field_options.html_safe, :"data-field-type" => field.type, :"data-field-value" => ""}= capitalize_first_letter(field.label)
 
@@ -92,6 +93,7 @@
   = form_tag(index_path(params.except(*%w[page f query])), method: :get, class: "pjax-form form-inline") do
     .well
       %span#filters_box
+        = filter_by_token
       %hr.filters_box{style: "display:#{@ordered_filters.empty? ? 'none' : 'block'}"}
       .input-group
         %input.form-control.input-small{name: "query", type: "search", value: query, placeholder: t("admin.misc.filter")}
@@ -101,9 +103,18 @@
             = t("admin.misc.refresh")
           %button#remove_filter.btn.btn-info{title: "Reset filters"}
             %i.icon-white.icon-remove
-      - if export_action
-        %span{style: 'float:right'}= link_to wording_for(:link, export_action), export_path(params.except('set').except('page')), class: 'btn btn-info'
-
+      .filters-buttons
+        - if export_action
+          %span{style: 'float:right'}= link_to wording_for(:link, export_action), export_path(params.except('set').except('page')), class: 'btn btn-info'
+        - # Origins
+        - if (model = @abstract_model.model).is_a?(Class) && model.include?(CrossOrigin::Document) && (origins = model.origins).present?
+          %span{style: 'float:right'}
+            - origins.each do |origin|
+              %label= origin
+              - param_value = params[origin_param="#{origin}_origin"].to_i
+              %button.btn.toggle-origin
+                %i{class: param_value.even? ? 'fa fa-toggle-on' : 'fa fa-toggle-off'}
+              %input{name: origin_param, value: param_value, type: 'hidden'}
   - unless @model_config.list.scopes.empty?
     %ul.nav.nav-tabs#scope_selector
       - @model_config.list.scopes.each_with_index do |scope, index|
@@ -114,23 +125,33 @@
   #grid-wrapper
     - @objects.each do |object|
       .col-xs-6.col-sm-4.col-md-3
-        .panel.panel-default.text-center
+        %div{class: "panel panel-#{object.installed? ? 'default' : 'danger'} text-center"}
           .options-menu
             %span.btn.dropdown-toggle{type:'button', 'data-toggle': 'dropdown', 'aria-haspopup': 'true'}
               %i.fa.fa-ellipsis-v
               %ul.dropdown-menu= menu_for :member, @abstract_model, object
           .panel-heading
-            - url = url_for(action: :show, id: object.id)
-            %a{href: url} #{object.name}
+            =link_to show_path id: object.id do
+              =object.title.presence || object.name.titleize
           .panel-body
-            .panel-body-logo.text-center{style: "background-color: #{object.logo_background || 'inherit'}"}
-              %img.logo{src: object.image || image_path('missing.png')}
+            .panel-body-logo.text-center{style: "background-color:##{object.logo_background || 'inherit'}"}
+              =link_to show_path id: object.id do 
+                =image_tag object.image.present? ? object.image : 'missing.png', class: 'logo'
             .panel-body-description.line-clamp.line-clamp-3
               %p #{object.summary.html_safe if object.summary.present?}
           .panel-footer
-            .footer-description #{object.category}
+            .footer-description
+              #{object.categories.collect(&:title).to_sentence} - v #{object.shared_version}
             .versions
-              %span.truncate #{object.shared_version}
+              %span.truncate
+                - if (pull_action = RailsAdmin::Config::Actions.find(:pull, controller: controller, abstract_model: @abstract_model, object: object))
+                  =link_to pull_path id: object.id do
+                    %i{class: pull_action.link_icon}
+                - else
+                  %i.fa.fa-arrow-down
+                -if object.pull_count > 0
+                  %span
+                    =number_to_human object.pull_count, units: {thousand: 'K', million: 'M', billion: 'G', trillion: 'T'}
 
     - if @objects.respond_to?(:total_count)
       - total_count = @objects.total_count.to_i

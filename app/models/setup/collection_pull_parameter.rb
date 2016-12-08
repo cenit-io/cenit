@@ -1,120 +1,80 @@
 module Setup
-  class CollectionPullParameter < ReqRejValidator
+  class CollectionPullParameter
+    include ReqRejValidator
     include CenitUnscoped
+    include HashField
+    include RailsAdmin::Models::Setup::CollectionPullParameterAdmin
 
-    BuildInDataType.regist(self)
+    build_in_data_type.referenced_by(:type, :name, :property, :key)
+
+    field :label, type: String
+    hash_field :location
+    field :property_name, type: String
+
 
     field :type, type: Symbol
     field :name, type: String
-    field :label, type: String
-    field :property, type: Symbol
+    field :property, type: String
     field :key, type: Symbol
     field :parameter, type: String
 
     embedded_in :shared_collection, class_name: Setup::SharedCollection.to_s, inverse_of: :pull_parameters
 
-    validates_presence_of :label
+    def relocate
+      location.empty? &&
+        begin
+          h = {}
+          t = type.to_s.downcase.pluralize
+          if (objs = _parent.data[t]) || (objs = _parent.dependencies_data[t])
+            obj = objs.detect { |v| v['name'] == name.to_s }
+            Setup::Collection.reflect_on_association(t).klass.data_type.get_referenced_by.each do |primary_field|
+              h[primary_field.to_s] = obj[primary_field.to_s]
+            end
+            h.delete_if { |_, v| v.nil? }
+            h = { t => h }
+            if key.present?
+              h[property] = { 'key' => key.to_s }
+              self.property_name = 'value'
+            else
+              self.property_name = property.to_s
+            end
+            self.location = h
+            true
+          else
+            false
+          end
+        end
+    end
+
+    validates_presence_of :label, :location, :property_name
     validates_length_of :label, maximum: 255
     validates_uniqueness_of :parameter
 
-    before_save :validate_configuration
-
-    def validate_configuration
-      if parameter.present?
-        CollectionPullParameter.hash_parameter(parameter).each do |key, value|
-          try("#{key}=", value)
-        end
-      else
-        self.parameter = CollectionPullParameter.generate_parameter(type, name, property, key)
-      end
-      !requires(:type, :name, :property, :parameter)
-    end
-
-    def process_on(hash_data, parameter_value = nil)
+    def process_on(hash_data, options)
+      options ||= {}
       errors.clear
-      unless key.present?
-        if values = hash_data[type.to_s.downcase.pluralize]
-          if value = values.detect { |h| h['name'] == name.to_s }
-            if parameter_value.nil?
-              value.delete(property.to_s)
-            else
-              value[property.to_s] = parameter_value
-            end
-          else
-            errors.add(:base, "#{type} '#{name}' not found")
-          end
-        else
-          errors.add(:base, "no #{type.to_s.pluralize}")
+      if location.present?
+        obj = hash_data
+        location.each do |key, criteria|
+          obj = obj && (obj = obj[key]) && Cenit::Utility.find_record(criteria, obj)
         end
-        return errors.blank?
-      end
-      values_key = self.type.to_s.downcase.pluralize
-      if values = hash_data[values_key]
-        if value = values.detect { |h| h['name'] == name }
-          if params = value[property.to_s]
-            if param = params.detect { |h| h['key'] == key.to_s }
-              if parameter_value.nil?
-                param.delete('value')
-              else
-                param['value'] = parameter_value
-              end
+        if obj
+          if property_name.present?
+            if (value = options[:value]).nil?
+              obj.delete(property_name) unless options[:keep_value]
             else
-              errors.add(:base, "with #{property.chop} '#{key}' not defined on #{values_key.chop} #{name}") if pull_parameter
+              obj[property_name] = value
             end
           else
-            errors.add(:base, "with name '#{name}' not containing #{property}")
+            errors.add(:property_name, "can't be blank")
           end
         else
-          errors.add(:base, "with name '#{name}' not found on shared data")
+          errors.add(:base, "can not locate value with #{location.to_json}")
         end
       else
-        errors.add(:base, "with key '#{values_key}' not found on shared data")
+        errors.add(:location, "can't be blank")
       end
       errors.blank?
-    end
-
-    class << self
-
-      def parameter_for(obj, property, key = nil)
-        generate_parameter(obj.class.to_s, obj.try(:name), property, key)
-      end
-
-      def generate_parameter(type, name, property, key = nil)
-        if type.present? && name.present? && property.present?
-          p = "#{type.to_s.split('::').last.downcase} '#{name}'"
-          if key.present?
-            "On #{p} #{property.to_s.singularize.gsub('_', ' ')} '#{key}'"
-          else
-            "#{property.to_s.upcase} of #{p}"
-          end
-        else
-          nil
-        end
-      end
-
-      def hash_parameter(parameter)
-        hash = {}
-        parameter = parameter[0..parameter.length - 2]
-        if parameter.start_with?('On ')
-          hash['type'] =
-            if parameter.start_with?(prefix = "On connection '")
-              'connection'
-            else
-              prefix = "On webhook '"
-              'webhook'
-            end
-          hash['name'] = parameter[prefix.length..parameter.index("'", prefix.length) - 1]
-          hash['property'] = (parameter[parameter.index("'", prefix.length) + 1..parameter.rindex("'") - 1].strip + 's').gsub(' ', '_')
-          hash['key'] = parameter[parameter.rindex("'") + 1..parameter.length]
-        else
-          parameter = parameter.split(' of ')
-          hash['property'] = parameter[0].downcase
-          hash['type'], hash['name'] = parameter[1].split(" '")
-        end
-        hash
-      rescue
-        hash
-      end
     end
   end
 end

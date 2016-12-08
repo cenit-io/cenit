@@ -1,8 +1,9 @@
 module Setup
   class CustomValidator < Validator
-    include CenitScoped
+    include CrossOriginShared
+    include RailsAdmin::Models::Setup::CustomValidatorAdmin
 
-    BuildInDataType.regist(self).referenced_by(:namespace, :name)
-    
+    build_in_data_type.referenced_by(:namespace, :name)
+
   end
 end

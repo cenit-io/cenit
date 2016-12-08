@@ -3,11 +3,13 @@ module Setup
     include CenitScoped
     include NamespaceNamed
     include ClassHierarchyAware
+    include CrossOrigin::Document
+    include RailsAdmin::Models::Setup::EventAdmin
+
+    origins :default, -> { Account.current_super_admin? ? :admin : nil }
 
     abstract_class true
 
-    Setup::Models.exclude_actions_for self
-
-    BuildInDataType.regist(self).with(:name).referenced_by(:namespace, :name)
+    build_in_data_type.with(:name).referenced_by(:namespace, :name).excluding(:origin)
   end
 end

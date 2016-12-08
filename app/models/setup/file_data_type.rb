@@ -2,8 +2,20 @@ require 'stringio'
 
 module Setup
   class FileDataType < DataType
+    include RailsAdmin::Models::Setup::FileDataTypeAdmin
 
-    BuildInDataType.regist(self).referenced_by(:namespace, :name).with(:namespace, :name, :title, :slug, :_type, :validators, :schema_data_type, :events, :before_save_callbacks, :records_methods, :data_type_methods)
+    build_in_data_type.referenced_by(:namespace, :name).with(:namespace, :name, :title, :slug, :_type, :validators, :schema_data_type, :events, :before_save_callbacks, :records_methods, :data_type_methods)
+    build_in_data_type.and({
+                             properties: {
+                               slug: {
+                                 type: 'string'
+                               }
+                             }
+                           }.deep_stringify_keys)
+
+    allow :new, :import, :pull_import, :bulk_cross, :simple_cross, :bulk_expand, :simple_expand, :download_file, :copy, :switch_navigation
+
+    shared_deny :simple_delete_data_type, :bulk_delete_data_type
 
     has_and_belongs_to_many :validators, class_name: Setup::Validator.to_s, inverse_of: nil
     belongs_to :schema_data_type, class_name: Setup::JsonDataType.to_s, inverse_of: nil
@@ -16,8 +28,10 @@ module Setup
       if validators.present?
         validators.each { |validator| validators_classes[validator.class] << validator }
         validators_classes.delete(Setup::AlgorithmValidator)
-        if validators_classes.size == 1 && validators_classes.values.first.size == 1
-          self.schema_data_type = validators_classes.values.first.first.schema_data_type
+        if validators_classes.size == 1 &&
+          (validators = validators_classes.values.first).size == 1 &&
+          validators[0].is_a?(Setup::EdiValidator)
+          self.schema_data_type = validators[0].first.schema_data_type
         else
           if schema_data_type.present?
             errors.add(:schema_data_type, 'is not allowed if no format validator is defined')
@@ -35,10 +49,6 @@ module Setup
         self.schema_data_type = nil
       end
       errors.blank?
-    end
-
-    def ready_to_save?
-      @validators_selected
     end
 
     def format_validator
@@ -141,126 +151,6 @@ module Setup
         default_filename: "file_#{DateTime.now.strftime('%Y-%m-%d_%Hh%Mm%S')}" + ((extension = format_validator.try(:file_extension)) ? ".#{extension}" : ''),
         default_contentType: format_validator.try(:content_type) || 'application/octet-stream'
       }
-    end
-
-    protected
-
-    def do_load_model(report)
-      Object.const_set(data_type_name, model = Class.new)
-      model.instance_variable_set(:@grid_fs_file_model, grid_fs_file_model = Mongoff::GridFs::FileModel.new(self, observable: false))
-      model.include(FileModel)
-      model.store_in(collection: -> { grid_fs_file_model.collection_name })
-      model.class_eval("def self.data_type
-            Setup::FileDataType.where(id: '#{self.id}').first
-          end
-          def self.schema_path
-            ''
-          end
-          def self.title
-            '#{title}'
-          end
-          def orm_model
-            self.class
-          end")
-      model
-    end
-
-    private
-
-    module FileModel
-      extend ActiveSupport::Concern
-
-      Setup::DataType.to_include_in_models.each do |module_to_include|
-        include(module_to_include) unless include?(module_to_include) ||
-          [
-            Mongoid::Timestamps #, RailsAdminDynamicCharts::Datetime
-          ].include?(module_to_include)
-      end
-
-      include Mongoff::GridFs::FileFormatter
-
-      included do
-        field :created_at, type: Time
-        field :updated_at, type: Time
-        field :filename, type: String
-        field :contentType, type: String, default: -> { Mongoff::GridFs::FileModel::SCHEMA['properties']['contentType']['default'] }
-        field :length, type: Integer
-        field :uploadDate, type: Time
-        field :chunkSize, type: String
-        field :md5, type: String
-        field :aliases
-        field :metadata
-
-        before_destroy do
-          file.destroy
-        end
-      end
-
-      def write_attribute(name, value)
-        @custom_contentType = true if name.to_s == :contentType.to_s
-        super
-      end
-
-      def name
-        filename
-      end
-
-      def grid_fs_file_model
-        self.class.instance_variable_get(:@grid_fs_file_model)
-      end
-
-      def file
-        @file ||=
-          if new_record?
-            f = grid_fs_file_model.new
-            f.id = id
-            f
-          else
-            grid_fs_file_model.where(id: id).first
-          end
-      end
-
-      def data=(string_or_readable)
-        @new_data = string_or_readable
-      end
-
-      def data
-        file.data
-      end
-
-      def save(options = {})
-        [:filename, :aliases, :metadata].each { |field| file[field] = self[field] }
-        file[:contentType] = self[:contentType] if @custom_contentType
-        if @new_data
-          file.data = @new_data
-          unless file.save(options)
-            @errors = file.errors
-            return false
-          end
-        end
-        self.updated_at = Time.now
-        self.created_at = updated_at unless created_at.present?
-        updated = !update_document(options)
-        if new_record?
-          if updated
-            @new_record = false
-          else
-            file.destroy if @errors.present?
-          end
-        end
-        updated
-      end
-
-      def method_missing(symbol, *args)
-        file.method_missing(symbol, *args)
-      end
-
-      module ClassMethods
-
-        def all_storage_collections_names
-          instance_variable_get(:@grid_fs_file_model).all_storage_collections_names
-        end
-      end
     end
   end
 end

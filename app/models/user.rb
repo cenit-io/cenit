@@ -1,19 +1,31 @@
+require 'net/http'
+require 'identicon'
+
 class User
   include Mongoid::Document
+  include Cenit::Oauth::User
   include Mongoid::Timestamps
   extend DeviseOverrides
   include NumberGenerator
+  include TokenGenerator
+  include FieldsInspection
+  include RailsAdmin::Models::UserAdmin
+
+  inspect_fields :name, :picture, :account_id, :api_account_id, :code_theme
+
   rolify
 
-  belongs_to :account, inverse_of: :users, class_name: Account.to_s
-  scope :by_account, -> { where(account: Account.current) }
+  has_many :accounts, class_name: Account.to_s, inverse_of: :owner
+  has_and_belongs_to_many :member_accounts, class_name: Account.to_s, inverse_of: :users
+  belongs_to :account, class_name: Account.to_s, inverse_of: :nil
+  belongs_to :api_account, class_name: Account.to_s, inverse_of: :nil
 
   # Include default devise modules. Others available are:
   # :lockable, :timeoutable, :rememberable
 
   devise :trackable, :validatable, :omniauthable, :database_authenticatable, :recoverable
   devise :registerable unless ENV['UNABLE_REGISTERABLE'].to_b
-  devise :confirmable unless ENV['UNABLE_CONFIRMABLE'].to_b
+  devise :confirmable if ENV.has_key?('UNABLE_CONFIRMABLE') && !ENV['UNABLE_CONFIRMABLE'].to_b
 
   # Database authenticatable
   field :email, type: String, default: ''
@@ -35,9 +47,6 @@ class User
   field :confirmation_token, type: String
   field :current_sign_in_ip, type: String
   field :last_sign_in_ip, type: String
-  field :authentication_token, as: :token, type: String
-  field :number, as: :key, type: String
-  field :unique_key, type: String
   field :unconfirmed_email, type: String
 
   field :doorkeeper_uid, type: String
@@ -45,14 +54,62 @@ class User
   field :doorkeeper_refresh_token, type: String
   field :doorkeeper_expires_at, type: Integer
 
-  field :name, type: String
+  #Profile
   mount_uploader :picture, ImageUploader
+  field :name, type: String
+
+  #UI options
+  field :code_theme, type: String
+
+  validates_inclusion_of :code_theme, in: ->(user) { user.code_theme_enum }
+
+  before_create do
+    created_account = nil
+    self.account ||= Account.current || (created_account = Account.create_with_owner(owner: self))
+    accounts << created_account if created_account
+    unless owns?(account)
+      errors.add(:account, 'is sealed and can not be inspected') if account && account.sealed?
+    end
+    unless owns?(api_account)
+      self.api_account = owns?(account) ? account : accounts.first
+    end
+    errors.blank?
+  end
 
   before_save :ensure_token
-  before_create { self.account ||= Account.current || Account.create_with_owner(owner: self)}
-  
-  validates_uniqueness_of :token
-  before_save :ensure_token, :inspect_updated_fields
+
+  def all_accounts
+    (accounts + member_accounts).uniq
+  end
+
+  def picture_url(size=50)
+    custom_picture_url(size) || gravatar_or_identicon_url(size)
+  end
+
+  def custom_picture_url(size)
+    picture && picture.url
+  end
+
+  def code_theme_enum
+    [nil, ''] +
+      %w(3024-day 3024-night abcdef ambiance-mobile ambiance base16-dark base16-light bespin blackboard cobalt colorforth dracula eclipse elegant erlang-dark hopscotch icecoder isotope lesser-dark liquibyte material mbo mdn-like midnight monokai neat neo night panda-syntax paraiso-dark paraiso-light pastel-on-dark railscasts rubyblue seti solarized the-matrix tomorrow-night-bright tomorrow-night-eighties ttcn twilight vibrant-ink xq-dark xq-light yeti zenburn)
+  end
+
+  def user
+    self
+  end
+
+  def owns?(account)
+    !account.nil? && account.owner_id == id
+  end
+
+  def member?(account)
+    !account.nil? && account.users.map(&:id).include?(id)
+  end
+
+  def account_ids #TODO look for usages and try to optimize
+    accounts.collect(&:id)
+  end
 
   def label
     if name.present?
@@ -62,27 +119,11 @@ class User
     end
   end
 
-  def inspect_updated_fields
-    changed_attributes.keys.each do |attr|
-      reset_attribute!(attr) unless %w(name picture).include?(attr)
-    end unless core_handling? || new_record? || (Account.current && Account.current_super_admin?)
-    true
-  end
-
-  def core_handling=(arg)
-    @core_handling = arg.present?
-  end
-
-  def core_handling?
-    @core_handling
-  end
-
   def self.find_or_initialize_for_doorkeeper_oauth(oauth_data)
     user = User.where(email: oauth_data.info.email).first
     user ||= User.new(email: oauth_data.info.email, password: Devise.friendly_token[0, 20])
     user.confirmed_at ||= Time.now
     user.doorkeeper_uid = oauth_data.uid
-    user.core_handling = true
     user
   end
 
@@ -100,18 +141,11 @@ class User
     self.doorkeeper_expires_at = oauth_data.credentials.expires_at
   end
 
-  def ensure_token
-    self.token ||= generate_token
-    md5 = Digest::MD5.new
-    md5 << key
-    md5 << token
-    self.unique_key = md5.hexdigest
-  end
-
-  def generate_token
-    loop do
-      token = Devise.friendly_token
-      break token unless User.where(token: token).first
+  def method_missing(symbol, *args)
+    if (match = symbol.to_s.match(/(.+)\?/))
+      has_role?(match[1].to_sym)
+    else
+      super
     end
   end
 
@@ -119,18 +153,28 @@ class User
     has_role?(:admin) || has_role?(:super_admin)
   end
 
-  def super_admin?
-    has_role?(:super_admin)
-  end
-
   class << self
-    def current_admin?
-      current && current.admin?
+
+    def method_missing(symbol, *args)
+      if (match = symbol.to_s.match(/\Acurrent_(.+)\?/))
+        current && current.send("#{match[1]}?")
+      else
+        super
+      end
     end
 
-    def current_super_admin?
-      current && current.super_admin?
+    def super_admin
+      all.select { |u| u.has_role? :super_admin }
     end
+
+    def current_number
+      (current && current.number) || 'XXXXXXX'
+    end
+
+    def current_token
+      (current && current.token) || 'XXXXXXXXXXXXXXXX'
+    end
+
   end
 
 end

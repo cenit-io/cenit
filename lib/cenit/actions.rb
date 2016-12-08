@@ -8,7 +8,15 @@ module Cenit
 
         pull_parameters = options[:pull_parameters] || {}
         missing_parameters = []
-        shared_collection.pull_parameters.each { |pull_parameter| missing_parameters << pull_parameter.id.to_s unless pull_parameters[pull_parameter.id.to_s].present? }
+        shared_collection.pull_parameters.each do |pull_parameter|
+          unless pull_parameters[(param_id = pull_parameter.id.to_s)].present?
+            missing_parameters << param_id
+          end
+        end
+        if options[:auto_fill]
+          missing_parameters.each { |param_id| pull_parameters[param_id] = FFaker::Lorem.word }
+          missing_parameters.clear
+        end
 
         new_records = Hash.new { |h, k| h[k] = [] }
         updated_records = Hash.new { |h, k| h[k] = [] }
@@ -18,9 +26,26 @@ module Cenit
         invariant_data = {}
 
         collection_data = { '_reset' => resetting = [] }
-        unless (collection = Setup::Collection.where(name: shared_collection.name).first) && (collection.readme == shared_collection.readme)
-          collection_data['readme'] = shared_collection.readme
-          resetting << 'readme'
+        collection = Setup::Collection.where(name: shared_collection.name).first
+        fields = %w(readme title)
+        unless collection && fields.all? { |field| collection.send(field) == shared_collection.send(field) }
+          fields.each do |field|
+            shared_value = shared_collection[field]
+            unless collection && (collection[field] == shared_value)
+              collection_data[field] = shared_value
+              resetting << field
+            end
+          end
+        end
+        fields = %w(metadata)
+        unless collection && fields.all? { |field| collection.send(field) == pull_data[field] }
+          fields.each do |field|
+            shared_value = pull_data[field]
+            unless collection && (collection[field] == shared_value)
+              collection_data[field] = shared_value
+              resetting << field
+            end
+          end
         end
 
         Setup::Collection.reflect_on_all_associations(:has_and_belongs_to_many).each do |relation|
@@ -28,28 +53,56 @@ module Cenit
           if (items = pull_data[entry])
             invariant_data[entry] = invariant_names = Set.new
             invariant_on_collection = 0
+            items_data_type = relation.klass.data_type
             refs =
               items.collect do |item|
-                criteria = {}
-                relation.klass.data_type.get_referenced_by.each { |field| criteria[field.to_s] = item[field.to_s] }
+                criteria = ref_criteria = {}
+                items_data_type.get_referenced_by.each do |field|
+                  field = field.to_s
+                  if %w(id _id).include?(field)
+                    criteria['_id'] = item['_id'] || item['id']
+                  else
+                    criteria[field] = item[field]
+                  end
+                end
                 criteria.delete_if { |_, value| value.nil? }
-                unless (on_collection = (record = collection && collection.send(relation.name).where(criteria).first))
-                  record = relation.klass.where(criteria).first
+                criteria = Cenit::Utility.deep_remove(criteria, '_reference')
+                unless (on_collection = (record = collection && Cenit::Utility.find_record(criteria, collection.send(relation.name))))
+                  record = Cenit::Utility.find_record(criteria, relation.klass.all)
                 end
                 if record
-                  record_hash = Cenit::Utility.stringfy(record.share_hash)
+                  share_hash_options = {}
+                  if shared_collection.installed?
+                    share_hash_options[:include_id] = ->(r) { r.is_a?(Setup::CrossOriginShared) && r.shared? }
+                  end
+                  record_hash = record.share_hash(share_hash_options)
+                  record_hash = Cenit::Utility.stringfy(record_hash)
+                  %w(id _id).each do |id_key|
+                    record_hash[id_key] = item[id_key] if item.has_key?(id_key)
+                  end
                   if item['_type']
                     record_hash['_type'] = record.class.to_s unless record_hash['_type']
                   end
-                  if Cenit::Utility.eql_content?(record_hash, item)
-                    invariant_names << criteria
+                  record_hash['_reset'] ||= item['_reset'] if item['_reset']
+                  record_hash.reject! { |key, _| !item.has_key?(key) }
+                  invariant = Cenit::Utility.eql_content?(record_hash, item) do |record_value, item_value|
+                    (record_value.nil? && item_value.blank?) || (item_value.nil? && record_value.blank?)
+                  end
+                  if invariant
+                    invariant_names << ref_criteria
                     invariant_on_collection += 1 if on_collection
-                    item = criteria
+                    item = ref_criteria
                     item['_reference'] = true
                   else
-                    updated_records[entry] << record
+                    updated_records[entry] <<
+                      if options[:updated_records_ids]
+                        record.id.to_s
+                      else
+                        record
+                      end
                   end
                   item['id'] = record.id.to_s
+                  check_embedded_items(item, record)
                 else
                   new_records[entry] << item
                 end
@@ -64,9 +117,14 @@ module Cenit
           end
         end
 
-        if resetting.present?
+        if resetting.present? && !options[:discard_collection]
           if collection
-            updated_records['collections'] << collection
+            updated_records['collections'] <<
+              if options[:updated_records_ids]
+                collection.id.to_s
+              else
+                collection
+              end
           else
             new_records['collections'] << { 'name' => shared_collection.name }
           end
@@ -88,7 +146,9 @@ module Cenit
           updated_records: updated_records,
           missing_parameters: missing_parameters,
           pull_data: pull_data,
-          collection_data: collection_data
+          collection_data: collection_data,
+          collection_discarded: options[:discard_collection].present?,
+          updated_records_ids: options[:updated_records_ids].present?
         }
       end
 
@@ -101,6 +161,9 @@ module Cenit
           begin
             collection_data = pull_request.delete(:collection_data)
             (collection_data['namespaces'] || []).each do |ns_hash|
+              if (slug = ns_hash['slug']) && Setup::Namespace.where(slug: slug).present?
+                ns_hash.delete('slug')
+              end
               next if ns_hash.has_key?('id')
               if (ns = Setup::Namespace.create(ns_hash)).errors.blank?
                 ns_hash['id'] = ns.id.to_s
@@ -135,18 +198,19 @@ module Cenit
               end
             end
             if errors.blank?
-              Setup::Collection.where(name: shared_collection.name).delete
-              collection.name = shared_collection.name
-              collection.image = shared_collection.image if shared_collection.image.present?
-              collection.save
-              shared_collection.pull_count = 0 if shared_collection.pull_count.nil?
-              shared_collection.pull_count += 1
-              shared_collection.pulling = true
-              shared_collection.save
+              unless pull_request[:collection_discarded]
+                Setup::Collection.where(name: shared_collection.name).delete
+                collection.name = shared_collection.name
+                collection.image = shared_collection.image if shared_collection.image.present?
+                collection.save
+                shared_collection.pulled(collection: collection,
+                                         install: pull_request[:install])
+                pull_request[:collection] = { id: collection.id.to_s }
+              end
               pull_data = pull_request.delete(:pull_data)
               pull_request[:created_records] = collection.inspect_json(inspecting: :id, inspect_scope: create_collector).reject { |_, value| !value.is_a?(Enumerable) }
+              collection.destroy if pull_request[:collection_discarded]
               pull_request[:pull_data] = pull_data
-              pull_request[:collection] = { id: collection.id.to_s }
             end
           rescue Exception => ex
             errors << ex.message
@@ -183,7 +247,7 @@ module Cenit
             collection.send("#{source.class.to_s.split('::').last.downcase.pluralize}") << source
           end
         end
-        collection.check_dependencies
+        collection.add_dependencies
         collection
       end
 
@@ -214,6 +278,46 @@ module Cenit
 
         end
         true
+      end
+
+      private
+
+      def check_embedded_items(item, record)
+        (item_model = record.class).model_properties_schemas.each do |property, schema|
+          next if schema['referenced']
+          next unless (property_value = item[property]) && (property_model = item_model.property_model(property))
+          next unless (property_data_type = property_model.data_type).get_referenced_by.present?
+          if schema['type'] == 'object'
+            if (record_value = record.send(property))
+              criteria = {}
+              property_data_type.get_referenced_by.each { |field| criteria[field.to_s] = property_value[field.to_s] }
+              criteria.delete_if { |_, value| value.nil? }
+              if Cenit::Utility.match?(record_value, criteria)
+                property_value['id'] = record_value.id.to_s
+                check_embedded_items(property_value, record_value)
+              end
+            end
+          else
+            if (reset = item['_reset'])
+              reset = [reset] unless reset.is_a?(Array)
+            else
+              reset = []
+            end
+            reset << property
+            item['_reset'] = reset
+            if (association = record.send(property).to_a).present?
+              property_value.each do |sub_item|
+                criteria = {}
+                property_data_type.get_referenced_by.each { |field| criteria[field.to_s] = sub_item[field.to_s] }
+                criteria.delete_if { |_, value| value.nil? }
+                if (sub_record = Cenit::Utility.find_record(criteria, association))
+                  sub_item['id'] = sub_record.id.to_s
+                  check_embedded_items(sub_item, sub_record)
+                end
+              end
+            end
+          end
+        end
       end
     end
   end

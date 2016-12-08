@@ -15,7 +15,7 @@ module Mongoid
     include Document
 
     def save(options = {})
-      instance_variable_set(:@discard_event_lookup, true) if options[:discard_events]
+      instance_variable_set(:@discard_event_lookup, true) if options && options[:discard_events]
       super
     end
   end
@@ -55,8 +55,19 @@ module Mongoid
       end
 
       def storage_size(scale = 1)
+        subtype_count = data_type.subtype? && data_type.count
         data_type.all_data_type_storage_collections_names.inject(0) do |size, name|
-          s = mongo_client.command(collstats: name, scale: scale).first['size'] rescue 0
+          s =
+            begin
+              stats = mongo_client.command(collstats: name.to_s, scale: scale).first
+              if subtype_count
+                subtype_count + stats['avgObjSize']
+              else
+                stats['size']
+              end
+            rescue
+              0
+            end
           size + s
         end
       end
@@ -74,14 +85,21 @@ module Mongoid
 
       def stored_properties_on(record)
         properties = Set.new
-        fields.keys.each { |field| properties << field.to_s if property?(field) && !record[field].nil? }
-        reflect_on_all_associations(:embeds_one,
-                                    :embeds_many,
-                                    :has_one,
-                                    :has_many,
-                                    :has_and_belongs_to_many,
-                                    :belongs_to).each do |relation|
-          properties << relation.name.to_s if property?(relation.name.to_s) && record.send(relation.name).present?
+        begin
+          data_type.schema['properties'].keys.each do |key|
+            properties << key unless record[key].nil? && record.send(key).nil?
+          end
+        rescue
+          properties.clear
+          fields.keys.each { |field| properties << field.to_s if property?(field) && !record[field].nil? }
+          reflect_on_all_associations(:embeds_one,
+                                      :embeds_many,
+                                      :has_one,
+                                      :has_many,
+                                      :has_and_belongs_to_many,
+                                      :belongs_to).each do |relation|
+            properties << relation.name.to_s if property?(relation.name.to_s) && record.send(relation.name).present?
+          end
         end
         properties
       end
@@ -95,30 +113,6 @@ module Mongoid
                                     :belongs_to).each do |relation|
           block.yield(name: relation.name, embedded: relation.embedded?) unless relation.macro == :belongs_to && relation.inverse_of.present?
         end
-      end
-
-      def other_affected_models
-        models = []
-        reflect_on_all_associations(:embedded_in,
-                                    :embeds_one,
-                                    :embeds_many,
-                                    :has_one,
-                                    :has_many,
-                                    :has_and_belongs_to_many,
-                                    :belongs_to).each do |relation|
-          models << relation.klass unless [:has_and_belongs_to_many, :belongs_to].include?(relation.macro) && relation.inverse_of.nil?
-        end
-        models.uniq
-      end
-
-      def other_affected_by
-        reflect_on_all_associations(:embedded_in,
-                                    :embeds_one,
-                                    :embeds_many,
-                                    :has_one,
-                                    :has_many,
-                                    :has_and_belongs_to_many,
-                                    :belongs_to).collect { |relation| relation.klass }.uniq
       end
     end
   end

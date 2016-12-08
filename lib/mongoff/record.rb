@@ -16,7 +16,7 @@ module Mongoff
       @fields = {}
       @new_record = new_record || false
       model.simple_properties_schemas.each do |property, schema| #TODO Defaults for non simple properties
-        if @document[property].nil? && value = schema['default']
+        if @document[property].nil? && (value = schema['default'])
           self[property] = value
         end
       end
@@ -108,7 +108,7 @@ module Mongoff
       validate
       begin
         instance_variable_set(:@discard_event_lookup, true) if options[:discard_events]
-        if Model.before_save.call(self) && before_save_callbacks
+        run_callbacks_and do
           if new_record?
             orm_model.collection.insert_one(attributes)
             @new_record = false
@@ -125,10 +125,7 @@ module Mongoff
             end
             query.update_one(update)
           end
-          Model.after_save.call(self)
         end
-      rescue Exception => ex
-        errors.add(:base, ex.message)
       end if orm_model.persistable? && errors.blank?
       errors.blank?
     end
@@ -151,7 +148,7 @@ module Mongoff
             RecordArray.new(property_model, value, association.referenced?)
           else
             if association.referenced?
-              value && property_model.find(value)
+              value && property_model.find(value) rescue nil
             elsif value
               Record.new(property_model, value)
             else
@@ -262,7 +259,7 @@ module Mongoff
     end
 
     def method_missing(symbol, *args)
-      if method = orm_model.data_type.records_methods.detect { |alg| alg.name == symbol.to_s }
+      if (method = orm_model.data_type.records_methods.detect { |alg| alg.name == symbol.to_s })
         args.unshift(self)
         method.reload
         method.run(args)
@@ -312,23 +309,37 @@ module Mongoff
 
     def before_save_callbacks
       success = true
-      orm_model.data_type.before_save_callbacks.each do |callback|
-        next unless success
-        success &&=
-          begin
-            callback.run(self).present?
-          rescue Exception => ex
-            obj_msg =
-              if new_record?
-                'creating record'
-              else
-                "updating record with ID '#{id}'"
-              end
-            Setup::Notification.create(message: "Error #{obj_msg} with type ' #{orm_model.data_type.custom_title}', running before save callback '#{callback.custom_title}': #{ex.message}")
-            false
-          end
+      if (data_type = (model = orm_model).data_type).records_model == model
+        data_type.before_save_callbacks.each do |callback|
+          next unless success
+          success &&=
+            begin
+              callback.run(self).present?
+            rescue Exception => ex
+              obj_msg =
+                if new_record?
+                  'creating record'
+                else
+                  "updating record with ID '#{id}'"
+                end
+              Setup::Notification.create(message: "Error #{obj_msg} with type ' #{orm_model.data_type.custom_title}', running before save callback '#{callback.custom_title}': #{ex.message}")
+              false
+            end
+        end
       end
       success
+    end
+
+    def run_callbacks_and
+      begin
+        if Model.before_save.call(self) && before_save_callbacks
+          yield if block_given?
+          Model.after_save.call(self)
+        end
+      rescue Exception => ex
+        errors.add(:base, ex.message)
+      end
+      errors.blank?
     end
   end
 end

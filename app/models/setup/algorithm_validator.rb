@@ -1,8 +1,10 @@
 module Setup
   class AlgorithmValidator < CustomValidator
+    include SharedEditable
     include CenitScoped
+    include RailsAdmin::Models::Setup::AlgorithmValidatorAdmin
 
-    BuildInDataType.regist(self).referenced_by(:namespace, :name)
+    build_in_data_type.referenced_by(:namespace, :name)
 
     belongs_to :algorithm, class_name: Setup::Algorithm.to_s, inverse_of: nil
 
@@ -13,6 +15,10 @@ module Setup
     def validates_configuration
       errors.add(:algorithm, 'must receive one parameter') unless algorithm.parameters.size == 1
       super
+    end
+
+    def validate_data(data)
+      fail NotImplementedError
     end
 
     def validate_file_record(file)

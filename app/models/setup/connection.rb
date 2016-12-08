@@ -1,37 +1,33 @@
 module Setup
   class Connection
-    include CenitScoped
+    include ShareWithBindingsAndParameters
     include NamespaceNamed
-    include NumberGenerator
-    include ParametersCommon
+    include WithTemplateParameters
     include AuthorizationHandler
-    include Parameters
+    include ModelConfigurable
+    include RailsAdmin::Models::Setup::ConnectionAdmin
 
-    BuildInDataType.regist(self).referenced_by(:namespace, :name).excluding(:connection_roles)
+    build_in_data_type.referenced_by(:namespace, :name).excluding(:connection_roles)
+    build_in_data_type.and({
+                             properties: {
+                               number: {
+                                 type: 'string'
+                               },
+                               token: {
+                                 type: 'string'
+                               }
+                             }
+                           }.deep_stringify_keys).protecting(:number, :token)
+
+    field :url, type: String
 
     parameters :parameters, :headers, :template_parameters
 
+    config_with Setup::ConnectionConfig
+
     devise :database_authenticatable
 
-    field :url, type: String
-    field :number, as: :key, type: String
-    field :token, type: String
-
-    after_initialize :ensure_token
-
-    validates_presence_of :url, :key, :token
-    validates_uniqueness_of :token
-
-    def ensure_token
-      if new_record? || token.blank?
-        self.token = generate_token
-      end
-    end
-
-    def generate_number(options = {})
-      options[:prefix] ||= 'C'
-      super(options)
-    end
+    validates_presence_of :url
 
     def conformed_url(options = {})
       conform_field_value(:url, options)
@@ -48,7 +44,7 @@ module Setup
           if args.length == 1 && (url = args[0]).is_a?(String)
             uri = URI.parse(url)
             connection = Setup::Connection.new(url: url[0..(url.index(uri.path))])
-            webhook = Setup::Webhook.new(method: symbol, path: uri.path)
+            webhook = Setup::PlainWebhook.new(method: symbol, path: uri.path)
             if (query = uri.query)
               query.split('&').each do |pair|
                 Rack::Utils.parse_nested_query(pair).each do |name, value|
@@ -64,15 +60,6 @@ module Setup
         else
           super
         end
-      end
-    end
-
-    private
-
-    def generate_token
-      loop do
-        token = Devise.friendly_token
-        break token unless Setup::Connection.where(token: token).first
       end
     end
   end

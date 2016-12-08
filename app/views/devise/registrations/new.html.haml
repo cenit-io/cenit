@@ -1,12 +1,12 @@
-= javascript_include_tag "auth.js"
 .user-auth.panel.panel-default.text-center
   .panel-heading
-    %span.cenit-logo
-      %img{ src: image_path('logo_cenitsaas_web.png')}
-    %span.cenit-hub= 'cenit.io'
+    = link_to root_path do
+      %span.cenit-logo
+        =image_tag 'logo_cenitsaas_web.png'
+      %span.cenit-hub{style: 'color: black;'}= 'Cenit IO'
   .panel-body
     .form-top
-      Sign up with
+      =t('admin.registration.new_title')
     = form_for(resource, as: resource_name, url: session_path(resource_name), html: { role: 'form', class: 'form-inline' }) do |f|
       - if (return_to = params[:return_to])
         - f.hidden_field :return_to, value: return_to
@@ -24,9 +24,9 @@
     -#    %i{class:"fa fa-fw fa-twitter"}
     -#    %span Twitter
 
-    - unless ENV['UNABLE_SIGN_IN_AND_SIGN_UP_DEVISE'].to_b
+    - unless (ENV['UNABLE_SIGN_IN_AND_SIGN_UP_DEVISE'] || false).to_b
       .form-option
-        or
+        =t('admin.misc.or')
       = form_for(resource, as: resource_name, url: registration_path(resource_name)) do |f|
         .field.text-justify
           = f.label :email
@@ -39,7 +39,7 @@
           = f.password_field :password_confirmation, autocomplete: "off", class: "form-control"
         .actions
           %button.btn.btn-primary.pull-right{type:'submit'}
-            Sign up
+            =t('admin.registration.submit')
   .panel-footer.clearfix
     .pull-left
       = render "devise/shared/links"

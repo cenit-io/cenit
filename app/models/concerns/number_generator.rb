@@ -6,10 +6,17 @@ module NumberGenerator
   NUMBER_PREFIX = 'N'
 
   included do
-    field :number, type: String
+
+    field :number, as: :key, type: String
+
     validates :number, uniqueness: true
-    validates_presence_of :number
-    after_initialize :generate_number #, on: :create
+
+    before_validation :generate_number
+
+    before_save do
+      errors.add(:number, "can't be blank") unless self[:number].present?
+      errors.blank?
+    end
   end
 
   def self.by_number(number)
@@ -24,13 +31,10 @@ module NumberGenerator
     possible = (0..9).to_a
     possible += ('A'..'Z').to_a if options[:letters]
 
-    if new_record? || self.number.blank?
-      self.number ||= loop do
-        # Make a random number.
+    if self[:number].blank?
+      self[:number] = loop do
         random = "#{options[:prefix]}#{(0...options[:length]).map { possible.shuffle.first }.join}"
-        # Use the random  number if no other order exists with it.
-        if self.number.present? && self.number == random
-          # If over half of all possible options are taken add another digit.
+        if self.class.where(number: random).exists?
           options[:length] += 1 if self.class.count > (10 ** options[:length] / 2)
         else
           break random

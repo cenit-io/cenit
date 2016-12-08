@@ -26,7 +26,7 @@ module RailsAdmin
               data = params.delete(@model_config.abstract_model.param_key)
               data.permit! unless data.nil? || params.delete(:_restart)
               if params.delete(:_save) && (@form_object = mongoff_model.new(data)).valid?
-                @object.configuration!.assign_attributes(@form_object.attributes)
+                @object.configuration.assign_attributes(@form_object.attributes)
                 @object.save
                 render_form = false
               end
@@ -34,7 +34,7 @@ module RailsAdmin
               flash[:error] = 'Error loading model'
             end
             if render_form
-              @form_object ||= @object.configuration || mongoff_model.new
+              @form_object ||= @object.configuration
               @model_config.register_instance_option(:discard_submit_buttons) { true }
               if @form_object.errors.present?
                 do_flash(:error, 'There are errors in the configuration data specification', @form_object.errors.full_messages)
@@ -49,7 +49,7 @@ module RailsAdmin
         end
 
         register_instance_option :link_icon do
-          'icon-wrench'
+          'fa fa-sliders'
         end
 
         class << self

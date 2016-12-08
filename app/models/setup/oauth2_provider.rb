@@ -1,8 +1,9 @@
 module Setup
   class Oauth2Provider < Setup::BaseOauthProvider
     include CenitUnscoped
+    include RailsAdmin::Models::Setup::Oauth2ProviderAdmin
 
-    BuildInDataType.regist(self).referenced_by(:namespace, :name).excluding(:shared, :tenant, :clients)
+    build_in_data_type.referenced_by(:namespace, :name).excluding(:origin, :tenant)
 
     field :scope_separator, type: String
 

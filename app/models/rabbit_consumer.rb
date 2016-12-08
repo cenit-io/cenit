@@ -1,6 +1,7 @@
 class RabbitConsumer
   include Mongoid::Document
   include Mongoid::Timestamps
+  include RailsAdmin::Models::RabbitConsumerAdmin
 
   field :channel, type: String
   field :tag, type: String
@@ -22,7 +23,7 @@ class RabbitConsumer
 
   def executing_task
     if executor && task_id
-      Setup::Task.with(collection: Account.tenant_collection_name(Setup::Task, account: executor)).where(id: task_id).first
+      Setup::Task.with(collection: Account.tenant_collection_name(Setup::Task, tenant: executor)).where(id: task_id).first
     end
   end
 

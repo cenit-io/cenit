@@ -4,28 +4,15 @@ require 'setup/storage'
 class Ability
   include CanCan::Ability
 
+  attr_reader :user
+
   def initialize(user)
+
     can :access, :rails_admin
-    if user
-      cannot :inspect, Account unless user.super_admin?
 
-      can [:show, :edit], Account, id: user.account_id
+    if (@user = user)
+
       can [:show, :edit], User, id: user.id
-
-      @@oauth_models = [Setup::BaseOauthProvider,
-                        Setup::OauthProvider,
-                        Setup::Oauth2Provider,
-                        Setup::OauthClient,
-                        Setup::Oauth2Scope]
-
-      can [:index, :show, :edi_export, :simple_export], @@oauth_models
-      if user.super_admin?
-        can [:destroy, :edit, :create, :import, :cross_share], @@oauth_models
-        can :manage, Setup::Application
-      else
-        can [:destroy, :edit], @@oauth_models, tenant_id: Account.current.id
-        cannot :access, Setup::Application
-      end
 
       if user.super_admin?
         can :manage,
@@ -34,21 +21,48 @@ class Ability
               User,
               Account,
               Setup::SharedName,
-              CenitToken,
-              ApplicationId,
+              Setup::CrossSharedName,
+              Cenit::BasicToken,
               Script,
               Setup::DelayedMessage,
-              Setup::SystemNotification
+              Setup::SystemNotification,
+              Setup::Operation,
+              Setup::Category,
+              TourTrack
             ]
         can [:import, :edit], Setup::SharedCollection
-        can :destroy, [Setup::SharedCollection, Setup::DataType, Setup::Storage]
+        can :destroy, [Setup::SharedCollection, Setup::Storage, Setup::CrossSharedCollection]
         can [:index, :show, :cancel], RabbitConsumer
+        can [:index, :edit, :pull, :import], Setup::CrossSharedCollection
+        can [:index, :show], Cenit::ApplicationId
+        can(:destroy, Cenit::ApplicationId) do |app_id|
+          app_id.app.nil?
+        end
+        can :inspect, Account
+        can :push, Setup::Collection
+
+        can [:simple_cross, :reinstall], Setup::CrossSharedCollection, installed: true
+        can :simple_cross, UNCONDITIONAL_ADMIN_CROSSING_MODELS
       else
-        cannot :access, [Setup::SharedName, Setup::DelayedMessage, Setup::SystemNotification]
+        cannot :access, [Setup::SharedName, Setup::CrossSharedName, Setup::DelayedMessage, Setup::SystemNotification]
         cannot :destroy, [Setup::SharedCollection, Setup::Storage]
+
+        can :index, Setup::CrossSharedCollection
+        can :pull, Setup::CrossSharedCollection, installed: true
+        can [:edit, :destroy], Setup::CrossSharedCollection, owner_id: user.id
+        can :reinstall, Setup::CrossSharedCollection, owner_id: user.id, installed: true
+        can :edit, Account, :id.in => user.account_ids
+        can [:index, :show, :edit, :inspect], Account, :id.in => user.account_ids + user.member_accounts.map(&:id)
+        can :destroy, Account, :id.in => user.account_ids - [user.account_id]
+        can :new, Account
+
+        can :simple_cross, CROSSING_MODELS_NO_ORIGIN
+        can :simple_cross, CROSSING_MODELS_WITH_ORIGIN, :origin.in => [:default, :owner]
       end
 
-      can :destroy, Setup::Task, Setup::Task.destroy_conditions
+      can :destroy, Setup::Task,
+          :status.in => Setup::Task::NON_ACTIVE_STATUS,
+          :scheduler_id.in => Setup::Scheduler.where(activated: false).collect(&:id) + [nil]
 
       can RailsAdmin::Config::Actions.all(:root).collect(&:authorization_key)
 
@@ -57,55 +71,181 @@ class Ability
       end
       can :edi_export, Setup::SharedCollection
 
-      @@setup_map ||=
+      @@allowed ||=
         begin
-          hash = {}
+          allowed_hash = Hash.new { |h, k| h[k] = Set.new }
           non_root = []
           RailsAdmin::Config::Actions.all.each do |action|
             unless action.root?
+              non_root << action
               if (models = action.only)
                 models = [models] unless models.is_a?(Enumerable)
-                hash[action.authorization_key] = Set.new(models)
-              else
-                non_root << action
+                allowed_hash[action.authorization_key].merge(models)
               end
             end
           end
           Setup::Models.each_excluded_action do |model, excluded_actions|
             non_root.each do |action|
-              models = (hash[key = action.authorization_key] ||= Set.new)
-              models << model if relevant_rules_for_match(action.authorization_key, model).empty? && !(excluded_actions.include?(:all) || excluded_actions.include?(action.key))
+              models = allowed_hash[key = action.authorization_key]
+              denied = (excluded_actions.include?(:all) || excluded_actions.include?(action.key))
+              if relevant_rules_for_match(action.authorization_key, model).empty? && !denied
+                models << model
+              elsif denied
+                models.delete(model)
+              end
             end
           end
           Setup::Models.each_included_action do |model, included_actions|
             non_root.each do |action|
-              models = (hash[key = action.authorization_key] ||= Set.new)
+              models = allowed_hash[key = action.authorization_key]
               models << model if included_actions.include?(action.key)
             end
           end
-          new_hash = {}
-          hash.each do |key, models|
-            a = (new_hash[models] ||= [])
-            a << key
+          allowed_hash.each do |key, models|
+            allowed_hash[key] = models.reject { |model| models.any? { |m| model < m } }
           end
-          hash = {}
-          new_hash.each { |models, keys| hash[keys] = models.to_a }
-          hash
+          {
+            each_shared_excluded_action: shared_denied_hash = Hash.new { |h, k| h[k] = [] },
+            each_shared_allowed_action: shared_allowed_hash = Hash.new { |h, k| h[k] = [] }
+          }.each do |collector_method, hash|
+            Setup::Models.send(collector_method) do |model, actions|
+              RailsAdmin::Config::Actions.all.each do |action|
+                next if action.root? || Setup::Models.excluded_actions_for(model).include?(action.key)
+                if actions.include?(action.key)
+                  models = allowed_hash[(key = action.authorization_key)]
+                  root = model
+                  stack = []
+                  while root && models.exclude?(root)
+                    stack << root
+                    root = root.superclass
+                    root = nil unless root.include?(Mongoid::Document)
+                  end
+                  if root
+                    while root
+                      models.delete(root)
+                      if stack.empty?
+                        hash[key] << root
+                      else
+                        models += root.subclasses
+                      end
+                      root = stack.pop
+                    end
+                  else
+                    hash[key] << model
+                  end
+                end
+              end
+            end
+          end
+          [
+            allowed_hash,
+            shared_denied_hash,
+            shared_allowed_hash
+          ].each do |hash|
+            new_hash = {}
+            hash.each do |key, models|
+              a = (new_hash[models] ||= [])
+              a << key
+            end
+            hash.clear
+            new_hash.each do |models, keys|
+              if (models = models.to_a).present?
+                hash[keys] = models
+              end
+            end
+          end
+          [
+            allowed_hash,
+            shared_denied_hash,
+            shared_allowed_hash
+          ].each do |hash|
+            hash.each do |keys, models|
+              keys.delete(:simple_cross)
+              if [:pull, :edit, :destroy, :import, :reinstall].any? { |key| keys.include?(key) }
+                models.delete(Setup::CrossSharedCollection)
+              end
+            end
+          end
+          @@shared_denied = shared_denied_hash
+          @@shared_allowed = shared_allowed_hash
+          allowed_hash
         end
 
-      @@setup_map.each do |keys, models|
+      @@allowed.each do |keys, models|
         cannot Cenit.excluded_actions, models unless user.super_admin?
         can keys, models
+      end
+
+      @@shared_denied.each do |keys, models|
+        can keys, models, { 'origin' => 'default' }
+      end
+
+      @@shared_allowed.each do |keys, models|
+        can keys, models, { '$or' => [{ 'origin' => 'default' }, { 'tenant_id' => user.account.id }] }
       end
 
       can :manage, Mongoff::Model
       can :manage, Mongoff::Record
 
     else
-      can [:dashboard, :shared_collection_index]
-      can [:index, :show, :grid, :pull, :simple_export], [Setup::SharedCollection]
-      can :index, Setup::Models.all.to_a
+      can [:dashboard, :shared_collection_index, :store_index]
+      can [:index, :show, :pull, :simple_export], [Setup::SharedCollection, Setup::CrossSharedCollection]
+      can :index, Setup::Models.all.to_a -
+        [
+          Setup::Namespace,
+          Setup::DataTypeConfig,
+          Setup::FlowConfig,
+          Setup::ConnectionConfig,
+          Setup::Pin,
+          Setup::Binding,
+          Setup::ParameterConfig
+        ]
     end
+  end
 
+  CROSSING_MODELS_NO_ORIGIN = [Setup::Collection]
+
+  CROSSING_MODELS_WITH_ORIGIN =
+    [
+      Setup::OauthClient,
+      Setup::Oauth2Scope,
+      Setup::Algorithm,
+      Setup::Resource,
+      Setup::Operation,
+      Setup::PlainWebhook,
+      Setup::Connection,
+      Setup::Translator,
+      Setup::Flow,
+      Setup::Snippet
+    ] +
+      Setup::BaseOauthProvider.class_hierarchy +
+      Setup::DataType.class_hierarchy +
+      Setup::Validator.class_hierarchy
+
+  CROSSING_MODELS = CROSSING_MODELS_WITH_ORIGIN + CROSSING_MODELS_NO_ORIGIN
+
+  UNCONDITIONAL_ADMIN_CROSSING_MODELS = CROSSING_MODELS + [Setup::Scheduler]
+
+  ADMIN_CROSSING_MODELS = UNCONDITIONAL_ADMIN_CROSSING_MODELS + [Setup::CrossSharedCollection]
+
+  def can?(action, subject, *extra_args)
+    if (action == :simple_cross && crossing_models.exclude?(subject.is_a?(Class) ? subject : subject.class)) ||
+      (subject == ScriptExecution && (user.nil? || !user.super_admin?))
+      false
+    else
+      super
+    end
+  end
+
+  def crossing_models
+    if user
+      if user.super_admin?
+        ADMIN_CROSSING_MODELS
+      else
+        CROSSING_MODELS
+      end
+    else
+      []
+    end
   end
 end

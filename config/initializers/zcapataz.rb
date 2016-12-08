@@ -1,6 +1,3 @@
-require 'capataz/capataz'
-require 'capataz/proxy'
-require 'capataz/hash_proxy'
 
 Capataz.config do
 
@@ -10,18 +7,20 @@ Capataz.config do
 
   deny_invoke_of :require, :new, :create, :class, :eval, :class_eval, :instance_eval, :instance_variable_set, :instance_variable_get, :constants, :const_get, :const_set, :constantize
 
-  allowed_constants Psych, JSON, URI, File, Array, Hash, Nokogiri, Nokogiri::XML, Nokogiri::XML::Builder, Time, Base64, Digest, Digest::MD5,
+  allowed_constants Psych, JSON, URI, File, Array, Hash, Nokogiri, Nokogiri::XML, Nokogiri::XML::Builder, Time, Base64, Digest, Digest::MD5, Digest::SHA256,
                     SecureRandom, Setup, Setup::Namespace, Setup::DataType, Setup::Schema, OpenSSL, OpenSSL::PKey, OpenSSL::PKey::RSA,
-                    OpenSSL::Digest, OpenSSL::HMAC, Setup::Task, Setup::Task::RUNNING_STATUS, Setup::Task::NOT_RUNNING_STATUS, Setup::Webhook, Setup::Algorithm,
+                    OpenSSL::Digest, OpenSSL::Digest::SHA1, OpenSSL::HMAC, OpenSSL::X509::Certificate, Setup::Webhook, Setup::Algorithm,
+                    Setup::Task, Setup::Task::RUNNING_STATUS, Setup::Task::NOT_RUNNING_STATUS, Setup::Task::ACTIVE_STATUS, Setup::Task::NON_ACTIVE_STATUS,
                     Xmldsig, Xmldsig::SignedDocument, Zip, Zip::OutputStream, Zip::InputStream, StringIO, MIME::Mail, MIME::Text, MIME::Multipart::Mixed,
-                    Spreadsheet, Spreadsheet::Workbook, Setup::Authorization, Setup::Connection, Devise, Cenit, JWT, ContactUs::Contact
+                    Spreadsheet, Spreadsheet::Workbook, Setup::Authorization, Setup::Connection, Devise, Cenit, JWT, Setup::XsltValidator, Setup::Translator,
+                    Setup::Flow
 
-  allow_on Cenit, [:homepage]
+  allow_on Cenit, [:homepage, :namespace]
 
   allow_on JWT, [:encode, :decode]
 
   allow_on Devise, [:friendly_token]
-  
+
   allow_on Spreadsheet::Workbook, [:new_workbook]
 
   allow_on MIME::Multipart::Mixed, [:new_message]
@@ -38,13 +37,19 @@ Capataz.config do
 
   allow_on URI, [:decode, :encode]
 
-  allow_on  StringIO, [:new_io]
+  allow_on StringIO, [:new_io]
 
   allow_on File, [:dirname, :basename]
+
+  allow_on Time, [:month, :day, :year, :now]
 
   allow_on Xmldsig::SignedDocument, [:new_document, :sign]
 
   allow_on OpenSSL::PKey::RSA, [:new_rsa]
+
+  allow_on OpenSSL::X509::Certificate, [:new_certificate]
+
+  allow_on OpenSSL::Digest::SHA1, [:digest, :new_sha1]
 
   allow_for ActionView::Base, [:escape_javascript, :j]
 
@@ -52,34 +57,53 @@ Capataz.config do
 
   allow_on Setup::Task::NOT_RUNNING_STATUS, [:include?]
 
+  allow_on Setup::Task::ACTIVE_STATUS, [:include?]
+
+  allow_on Setup::Task::NON_ACTIVE_STATUS, [:include?]
+
   allow_on Nokogiri::XML::Builder, [:with, :new_builder, :[]]
+
+  allow_on Nokogiri::XML, [:search]
+
+  allow_on Setup::Connection, [:get, :post, :where]
+
+  allow_on Setup::Webhook, [:where]
+
+  allow_on Setup::Translator, [:run, :where]
 
   allow_for [Mongoff::Model], [:where, :all, :data_type]
 
   # allow_for [Setup::Raml],  [:id, :name, :slug, :to_json, :to_edi, :to_hash, :to_xml, :to_params, :records_model, :ref_hash, :raml_parse, :build_hash, :map_collection]
 
-  allow_for [Class], [:where, :all, :new_sign, :digest, :now, :data_type, :hexdigest, :id, :new_rsa, :new_document, :sign, :write_buffer, :put_next_entry, :write, :encode64, :decode64, :urlsafe_encode64, :new_io, :get_input_stream, :open] + Setup::Webhook.method_enum
+  allow_for [Class],
+            [
+              :where, :all, :now,
+              :new_sign, :digest, :new_sha1, :hexdigest, :new_rsa, :sign, :new_certificate,
+              :data_type, :id,
+              :write_buffer, :put_next_entry, :write,
+              :encode64, :decode64, :urlsafe_encode64, :new_io, :get_input_stream, :open, :new_document
+            ] + Setup::Webhook.method_enum
 
   allow_for [Mongoid::Criteria, Mongoff::Criteria], Enumerable.instance_methods(false) + Origin::Queryable.instance_methods(false) + [:each, :present?, :blank?]
 
   allow_for Setup::Task, [:status, :scheduler, :state, :resume_in, :run_again, :progress, :progress=, :update, :destroy, :notifications, :notify]
 
-  allow_for Setup::Scheduler, [:activated?,  :name, :to_json, :to_edi, :to_hash, :to_xml, :namespace]
+  allow_for Setup::Scheduler, [:activated?, :name, :to_json, :share_json, :to_edi, :to_hash, :to_xml, :namespace]
 
   allow_for Setup::Webhook::ResponseProxy, [:code, :body, :headers, :content_type]
 
   allow_for Setup::DataType, ((%w(_json _xml _edi) + ['']).collect do |format|
-                             %w(create new create!).collect do |action|
-                               if action.end_with?('!')
-                                 "#{action.chop}_from#{format}!"
-                               else
-                                 "#{action}_from#{format}"
-                               end
-                             end + [:create_from]
-                           end + [:name, :slug, :to_json, :to_edi, :to_hash, :to_xml, :to_params, :records_model, :namespace]).flatten
+    %w(create new create!).collect do |action|
+      if action.end_with?('!')
+        "#{action.chop}_from#{format}!"
+      else
+        "#{action}_from#{format}"
+      end
+    end + [:create_from]
+  end + [:name, :slug, :to_json, :share_json, :to_edi, :to_hash, :to_xml, :to_params, :records_model, :namespace]).flatten
 
   deny_for [Setup::DynamicRecord, Mongoff::Record], ->(instance, method) do
-    return false if [:id, :to_json, :to_edi, :to_hash, :to_xml, :to_xml_element, :to_params, :from_json, :from_xml, :from_edi, :[], :[]=, :save, :all, :where, :orm_model, :nil?, :==, :errors, :destroy].include?(method)
+    return false if [:id, :to_json, :share_json, :to_edi, :to_hash, :to_xml, :to_xml_element, :to_params, :from_json, :from_xml, :from_edi, :[], :[]=, :save, :all, :where, :orm_model, :nil?, :==, :errors, :destroy].include?(method)
     return false if instance.orm_model.data_type.records_methods.any? { |alg| alg.name == method.to_s }
     return false if [:data].include?(method) && instance.is_a?(Mongoff::GridFs::FileFormatter)
     if (method = method.to_s).end_with?('=')

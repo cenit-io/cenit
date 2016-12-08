@@ -3,20 +3,31 @@ module Setup
     include CenitScoped
     include AuthorizationHeader
     include Parameters
+    include WithTemplateParameters
 
     abstract_class true
 
-    BuildInDataType.regist(self).with(:namespace, :name, :client, :parameters).referenced_by(:namespace, :name)
+    build_in_data_type.with(:namespace, :name, :client, :parameters, :template_parameters)
+    build_in_data_type.referenced_by(:namespace, :name)
 
     belongs_to :client, class_name: Setup::OauthClient.to_s, inverse_of: nil
 
-    parameters :parameters
+    parameters :parameters, :template_parameters
 
     field :access_token, type: String
     field :token_span, type: BigDecimal
     field :authorized_at, type: Time
 
     validates_presence_of :client
+
+    def each_template_parameter(&block)
+      if block
+        template_parameters.each do |parameter|
+          block.call(parameter.name, parameter.value)
+        end
+        method_missing(:each_template_parameter, &block)
+      end
+    end
 
     def expires_at
       authorized_at && token_span && authorized_at + token_span
@@ -54,7 +65,7 @@ module Setup
 
     def authorize_params(params = {})
       params = base_params.merge(params)
-      parameters.each { |parameter| params[parameter.key.to_sym] = parameter.value }
+      conformed_parameters.each { |key, value| params[key.to_sym] = value }
       params
     end
 

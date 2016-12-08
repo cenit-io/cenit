@@ -44,12 +44,9 @@ module RailsAdmin
               @new_data_types_count -= conflicting_data_types.length
               if @object
                 @object.instance_variable_set(:@_to_override, conflicting_data_types)
-                report = Setup::DataType.shutdown(conflicting_data_types, report_only: true)
-                @object.instance_variable_set(:@_to_shutdown, report[:destroyed].collect(&:data_type).uniq) if report[:destroyed]
-                @object.instance_variable_set(:@_to_reload, report[:affected].collect(&:data_type).uniq) if report[:affected]
               end
               @model_config = options_config
-              render :form
+              render :form, locals: { bulk_alert: true }
             end
           end
         end

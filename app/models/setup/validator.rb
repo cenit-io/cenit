@@ -2,10 +2,10 @@ module Setup
   class Validator
     include CenitScoped
     include NamespaceNamed
+    include ClassHierarchyAware
+    include RailsAdmin::Models::Setup::ValidatorAdmin
 
-    BuildInDataType.regist(self).referenced_by(:namespace, :name)
-
-    Setup::Models.exclude_actions_for self
+    build_in_data_type.referenced_by(:namespace, :name)
 
     before_save :validates_configuration
 
@@ -13,8 +13,12 @@ module Setup
       errors.blank?
     end
 
-    def validate_file_record(data)
+    def validate_data(data)
       fail NotImplementedError
+    end
+
+    def validate_file_record(file)
+      validate_data(file.data)
     end
 
     def data_format

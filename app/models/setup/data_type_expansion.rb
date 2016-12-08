@@ -1,9 +1,10 @@
 module Setup
   class DataTypeExpansion < Setup::Task
+    include RailsAdmin::Models::Setup::DataTypeExpansionAdmin
 
-    BuildInDataType.regist(self)
+    build_in_data_type
 
-    Setup::Models.exclude_actions_for self, :copy, :new, :edit, :translator_update, :import, :convert, :delete_all
+    deny :copy, :new, :edit, :translator_update, :import, :convert, :delete_all
 
     def run(message)
       message = message.with_indifferent_access
@@ -21,12 +22,12 @@ module Setup
         segments = {}
         refs = Set.new
         schema = data_type.merged_schema(ref_collector: refs)
-        if schema['type'] == 'object' && properties = schema['properties']
+        if schema['type'] == 'object' && (properties = schema['properties'])
           properties = data_type.merge_schema(properties, ref_collector: refs, until_merge: true)
           properties.each do |property_name, property_schema|
             property_segment = nil
             property_schema = data_type.merge_schema(property_schema, ref_collector: refs, until_merge: true)
-            if property_schema['type'] == 'array' && items = property_schema['items']
+            if property_schema['type'] == 'array' && (items = property_schema['items'])
               property_schema['items'] = items = data_type.merge_schema(items, ref_collector: refs, until_merge: true)
               if items.is_a?(Hash) && (edi_opts = items['edi']) && edi_opts.has_key?('segment')
                 property_segment = edi_opts['segment']

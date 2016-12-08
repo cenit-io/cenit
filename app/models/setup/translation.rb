@@ -1,10 +1,11 @@
 module Setup
   class Translation < Setup::Task
     include Setup::TranslationCommon
+    include RailsAdmin::Models::Setup::TranslationAdmin
 
-    BuildInDataType.regist(self)
+    build_in_data_type
 
-    Setup::Models.exclude_actions_for self, :copy, :new, :edit, :translator_update, :import, :convert, :delete_all
+    deny :copy, :new, :edit, :translator_update, :import, :convert, :delete_all
 
     protected
 

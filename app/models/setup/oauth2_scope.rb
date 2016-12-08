@@ -1,9 +1,10 @@
 module Setup
   class Oauth2Scope
-    include CrossTenancy
+    include SharedEditable
     include CustomTitle
+    include RailsAdmin::Models::Setup::Oauth2ScopeAdmin
 
-    BuildInDataType[self].referenced_by(:name, :provider)
+    build_in_data_type.referenced_by(:name, :provider)
 
     field :name, type: String
     field :description, type: String
@@ -15,6 +16,14 @@ module Setup
 
     def scope_title
       provider && provider.custom_title
+    end
+
+    def key
+      name
+    end
+
+    def value
+      name
     end
   end
 end
