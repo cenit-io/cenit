@@ -631,3 +631,8 @@ en:
           end:
             label: 'Add the triggers and save'
             description: 'Please add the triggers and save when done'
+    contact_us:
+      tittle: 'Contact us'
+      notices:
+        success: 'Contact us success'
+        error: 'Contact us with error'

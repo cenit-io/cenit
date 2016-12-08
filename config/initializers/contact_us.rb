@@ -1,5 +1,6 @@
+require 'cenit/contact_us'
 # Use this hook to configure contact mailer.
-ContactUs.setup do |config|
+ContactUs.config do |config|
 
   # ==> Mailer Configuration
 

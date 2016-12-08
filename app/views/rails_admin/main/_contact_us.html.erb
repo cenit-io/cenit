@@ -1,11 +1,15 @@
 <div id="contact_us" class="modal fade">
   <div class="modal-dialog">
-    <div class="modal-content col-md-7">
-      <div id="info">
-        <div class="container">
-          <div class="row">
-            <div class="col-md-4 message">
-              <%= form_for ContactUs::Contact.new, :url => contacts_path, :html => {:class => 'formtastic contact-form', :role=>"form", :id=>"contact-form"}  do |f| %>
+    <div class="modal-content">
+      <%= form_for ContactUs::Contact.new, :url => 'contact_path', :html => { :class => 'formtastic contact-form', :role => "form", :id => "contact-form" } do |f| %>
+          <div class="modal-header">
+            <a href="#" class="close" data-dismiss="modal">&times;</a>
+
+            <h3 class="modal-header-title">Contact us</h3>
+          </div>
+          <div class="modal-body">
+            <div class="row">
+              <div class="col-md-12 message">
                 <div class="modal-body">
                   <div class="form-group">
                     <%= f.label :name, (t('.from_name') + content_tag(:abbr, '*', :class => 'required')).html_safe %>
@@ -13,25 +17,21 @@
                   </div>
                   <div class="form-group">
                     <%= f.label :email, (t('.from_email_address') + content_tag(:abbr, '*', :class => 'required')).html_safe %>
-                    <%= f.text_field :email, id: :email, class: 'form-control', placeholder: 'Enter text here'%>
+                    <%= f.text_field :email, id: :email, class: 'form-control', placeholder: 'Enter text here' %>
                   </div>
                   <div class="form-group">
                     <%= f.label :message, (t('.message') + content_tag(:abbr, '*', :class => 'required')).html_safe %>
                     <%= f.text_area :message, id: :message, class: 'form-control', rows: '6', placeholder: 'Enter text here' %>
                   </div>
-                  <div class="submit">
-                    <div class='col-sm-6'>
-                      <br/>
-                      <%= link_to 'Cancel', '#', data: {dismiss: "modal"} %>
-                    </div>
-                    <input type="submit" class="button button-small" value="Submit" />
-                  </div>
                 </div>
-              <% end %>
+              </div>
             </div>
           </div>
-        </div>
-      </div>
+          <div class="modal-footer">
+            <%= link_to 'Cancel', '#',class: 'btn cancel-action', data: { dismiss: "modal" } %>
+            <input type="submit" class="btn btn-primary save-action" value="Save"/>
+          </div>
+      <% end %>
     </div>
   </div>
 </div>
