@@ -80,15 +80,6 @@ module RailsAdmin
               field :name
               field :slug
               field :_type
-              field :used_memory do
-                visible { Cenit.dynamic_model_loading? }
-                pretty_value do
-                  unless max = bindings[:controller].instance_variable_get(:@max_used_memory)
-                    bindings[:controller].instance_variable_set(:@max_used_memory, max = ::Setup::DataType.fields[:used_memory.to_s].type.new(Setup::DataType.max(:used_memory)))
-                  end
-                  (bindings[:view].render partial: 'used_memory_bar', locals: { max: max, value: ::Setup::DataType.fields[:used_memory.to_s].type.new(value) }).html_safe
-                end
-              end
               field :storage_size
               field :updated_at
             end
