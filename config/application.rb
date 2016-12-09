@@ -62,13 +62,7 @@ module Cenit
         allow :index, :delete
       end
 
-      Setup::BuildInDataType.each do |build_in|
-        model = build_in.model
-        namespace = model.to_s.split('::')
-        name = namespace.pop
-        namespace = namespace.join('::')
-        Setup::CenitDataType.find_or_create_by(namespace: namespace, name: name)
-      end
+      Setup::BuildInDataType.each(&:db_data_type)
     end
 
     if Rails.env.production? &&

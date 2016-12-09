@@ -17,6 +17,7 @@ module Setup
                                }
                              }
                            }.deep_stringify_keys)
+
     def data_type_name
       "#{namespace}::#{name}"
     end
@@ -26,5 +27,13 @@ module Setup
     end
 
     delegate :title, :schema, :subtype?, to: :build_in
+
+    def method_missing(symbol, *args)
+      if build_in.respond_to?(symbol)
+        build_in.send(symbol, *args)
+      else
+        super
+      end
+    end
   end
 end

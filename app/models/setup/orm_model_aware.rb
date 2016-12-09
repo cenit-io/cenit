@@ -8,7 +8,9 @@ module Setup
 
     module ClassMethods
       def data_type
-        BuildInDataType.build_ins[self.to_s]
+        if (build_in = BuildInDataType.build_ins[self.to_s])
+          build_in.request_db_data_type
+        end
       end
     end
   end

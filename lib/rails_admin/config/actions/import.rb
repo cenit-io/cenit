@@ -10,7 +10,7 @@ module RailsAdmin
         register_instance_option :visible? do
           if authorized?
             model = bindings[:abstract_model].model rescue nil
-            model.try(:data_type)
+            model.try(:data_type).present?
           else
             false
           end
@@ -32,7 +32,6 @@ module RailsAdmin
             model = @abstract_model.model rescue nil
             if model
               data_type_selector = model.data_type
-              data_type_selector = nil if data_type_selector.is_a?(Setup::BuildInDataType)
               if (data = params[selector_config.abstract_model.param_key])
                 translator = Setup::Translator.where(id: data[:translator_id]).first
                 decompress = data[:decompress_content].to_b

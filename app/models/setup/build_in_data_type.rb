@@ -8,6 +8,17 @@ module Setup
 
     attr_reader :model
 
+    def request_db_data_type
+      RequestStore.store["[cenit]#{self}.db_data_type".to_sym] ||= db_data_type
+    end
+
+    def db_data_type
+      namespace = model.to_s.split('::')
+      name = namespace.pop
+      namespace = namespace.join('::')
+      Setup::CenitDataType.find_or_create_by(namespace: namespace, name: name)
+    end
+
     def namespace
       Setup.to_s
     end
