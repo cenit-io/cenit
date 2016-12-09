@@ -7,6 +7,12 @@ module ContactUs
         ContactUs::Config
       end
     end
+    def require_name
+
+    end
+    def require_subject
+
+    end
   end
   module Config
     class << self

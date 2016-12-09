@@ -92,7 +92,7 @@ Cenit::Application.routes.draw do
 
   namespace :contact_us do
     controller :contacts do
-      post 'contact_us' => :create ,as: 'contact'
+      post '/contacts' => :create
     end
   end
 

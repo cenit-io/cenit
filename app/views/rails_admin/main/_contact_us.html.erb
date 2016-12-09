@@ -1,7 +1,7 @@
 <div id="contact_us" class="modal fade">
   <div class="modal-dialog">
     <div class="modal-content">
-      <%= form_for ContactUs::Contact.new, :url => 'contact_path', :html => { :class => 'formtastic contact-form', :role => "form", :id => "contact-form" } do |f| %>
+      <%= form_for ContactUs::Contact.new, :url => '/contact_us/contacts', :html => { :class => 'formtastic contact-form', :role => "form", :id => "contact-form" } do |f| %>
           <div class="modal-header">
             <a href="#" class="close" data-dismiss="modal">&times;</a>
 
