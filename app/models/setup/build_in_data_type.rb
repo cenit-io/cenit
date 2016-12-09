@@ -161,6 +161,7 @@ module Setup
             model.include(Setup::SchemaModelAware)
             model.include(Edi::Formatter)
             model.include(Edi::Filler)
+            model.include(EventLookup)
             model.class.include(Mongoid::CenitExtension)
             build_in = BuildInDataType.new(model)
             block.call(build_in) if block
