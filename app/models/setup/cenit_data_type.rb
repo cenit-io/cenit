@@ -26,6 +26,10 @@ module Setup
       Setup::BuildInDataType[data_type_name]
     end
 
+    def find_data_type(ref, ns = namespace)
+      super || build_in.find_data_type(ref, ns)
+    end
+
     delegate :title, :schema, :subtype?, to: :build_in
 
     def method_missing(symbol, *args)
