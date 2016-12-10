@@ -7,10 +7,10 @@ ContactUs.config do |config|
   # Configure the e-mail address which email notifications should be sent from.  If emails must be sent from a verified email address you may set it here.
   # Example:
   # config.mailer_from = "contact@please-change-me.com"
-  config.mailer_from = nil
+  config.mailer_from = ENV['GMAIL_USERNAME']
 
   # Configure the e-mail address which should receive the contact form email notifications.
-  config.mailer_to = "contact@please-change-me.com"
+  config.mailer_to = ENV['GMAIL_USERNAME']
 
   # ==> Form Configuration
 

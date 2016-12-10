@@ -8,10 +8,10 @@ module ContactUs
       end
     end
     def require_name
-
+      true
     end
     def require_subject
-
+      true
     end
   end
   module Config
