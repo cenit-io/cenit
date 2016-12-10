@@ -1,6 +1,7 @@
 module Forms
   class ImportTranslator
     include DataImportCommon
+    include TransformationOptions
 
     belongs_to :data_type, class_name: Setup::DataType.to_s, inverse_of: nil
     belongs_to :translator, class_name: Setup::Translator.to_s, inverse_of: nil
@@ -22,6 +23,8 @@ module Forms
             }
           end
         end
+
+        field :options
 
         field :file do
           render do
