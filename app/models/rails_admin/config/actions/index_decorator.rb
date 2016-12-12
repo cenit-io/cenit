@@ -15,11 +15,12 @@ module RailsAdmin
                 prefix = "#{dt_name}_filter_"
                 reg_exp = /^#{prefix}(\d+)/
                 filter_name = (last_filter = Setup::Filter.where(:name => reg_exp).sort(:created_at => 1).last) ? "#{prefix}#{last_filter.name.match(reg_exp)[1].to_i + 1}" : "#{prefix}1"
-                new_filter = Setup::Filter.create(namespace: '',
-                                                  name: filter_name,
-                                                  triggers: params[:f].to_json,
-                                                  data_type: data_type)
-                redirect_to rails_admin.edit_path(model_name: Setup::Filter.to_s.underscore.gsub('/', '~'), id: new_filter.id)
+                new_filter = Setup::Filter.new(namespace: '',
+                                               name: filter_name,
+                                               triggers: params[:f].to_json,
+                                               data_type: data_type)
+                token = Cenit::Token.create(data: new_filter.share_json, token_span: 300).token
+                redirect_to rails_admin.new_path(model_name: Setup::Filter.to_s.underscore.gsub('/', '~'), params: { json_token: token })
               else
                 redirect_to back_or_index
               end

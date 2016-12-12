@@ -631,3 +631,16 @@ en:
           end:
             label: 'Add the triggers and save'
             description: 'Please add the triggers and save when done'
+    contact_us:
+      tittle: 'Contact us'
+      notices:
+        success: 'Your message have been send to us successfully'
+        error: 'There was an error sending your message'
+      from_name: 'From name'
+      from_email_address: 'From email address'
+      subject: 'Subject'
+      message: 'Message'
+      cancel: 'Cancel'
+      save: 'Send'
+      placeholder: 'Enter %{field} here'
+
