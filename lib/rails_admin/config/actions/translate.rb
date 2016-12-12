@@ -37,12 +37,14 @@ module RailsAdmin
                 if (@form_object = Forms::Translation.new(translator_type: translator_type,
                                                           bulk_source: bulk_source,
                                                           data_type: data_type,
-                                                          translator: translator)).valid?
+                                                          translator: translator,
+                                                          options: data[:options])).valid?
                   begin
                     do_flash_process_result Setup::Translation.process(translator_id: translator.id,
                                                                        bulk_ids: @bulk_ids,
                                                                        data_type_id: data_type.id,
-                                                                       skip_notification_level: true)
+                                                                       skip_notification_level: true,
+                                                                       options: @form_object.options)
                     done = true
                   rescue Exception => ex
                     flash[:error] = ex.message

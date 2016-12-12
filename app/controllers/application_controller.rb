@@ -55,7 +55,7 @@ class ApplicationController < ActionController::Base
   ensure
     optimize
     if (account = Account.current)
-      account.save
+      account.save(discard_events: true)
     end
     clean_thread_cache
   end
