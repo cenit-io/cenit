@@ -112,7 +112,7 @@ module Api::V1
           message = [message] unless message.is_a?(Array)
           message.each do |item|
             begin
-              options = @payload.create_optionsmerge(primary_field: @primary_field)
+              options = @payload.create_options.merge(primary_field: @primary_field)
               if data_type.records_model < FieldsInspection
                 options[:inspect_fields] = Account.current.nil? || !Account.current_super_admin?
               end
