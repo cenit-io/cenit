@@ -31,14 +31,12 @@ module RailsAdmin
             end
             bulk_source = (@bulk_ids.nil? && model.count != 1) || (@bulk_ids && @bulk_ids.size != 1)
 
-            if model
-              data_type = model.data_type
-              data_type_selector = data_type.is_a?(Setup::BuildInDataType) ? nil : data_type
+            if model && (data_type = model.try(:data_type))
               if (data = params[translation_config.abstract_model.param_key])
                 translator = Setup::Translator.where(id: data[:translator_id]).first
                 if (@form_object = Forms::Translation.new(translator_type: translator_type,
                                                           bulk_source: bulk_source,
-                                                          data_type: data_type_selector,
+                                                          data_type: data_type,
                                                           translator: translator)).valid?
                   begin
                     do_flash_process_result Setup::Translation.process(translator_id: translator.id,
@@ -58,7 +56,7 @@ module RailsAdmin
               @model_config = translation_config
               @form_object ||= Forms::Translation.new(translator_type: translator_type,
                                                       bulk_source: bulk_source,
-                                                      data_type: data_type_selector,
+                                                      data_type: data_type,
                                                       translator: translator)
               if @form_object.errors.present?
                 do_flash_now(:error, "There are errors in the #{@action.class.translator_type.to_s.downcase} data specification", @form_object.errors.full_messages)

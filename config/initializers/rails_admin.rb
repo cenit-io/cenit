@@ -129,7 +129,7 @@ RailsAdmin.config do |config|
     run
     run_script
     edit
-    swagger { only [Setup::Api] }
+    swagger { only [Setup::ApiSpec] }
     configure
     play
     copy
@@ -244,7 +244,7 @@ RailsAdmin.config do |config|
 
   Setup::Parameter
 
-  Setup::Api
+  Setup::ApiSpec
 
   Setup::Connection
 

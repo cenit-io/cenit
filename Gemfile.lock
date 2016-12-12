@@ -169,6 +169,8 @@ GEM
       execjs
     coffee-script-source (1.10.0)
     colorize (0.7.7)
+    contact_us (1.1.0)
+      rails (>= 4.2.0)
     coveralls (0.8.9)
       json (~> 1.8)
       rest-client (>= 1.6.8, < 2)
@@ -582,6 +584,7 @@ DEPENDENCIES
   chartkick
   codemirror-rails
   coffee-rails
+  contact_us
   coveralls
   cross_origin!
   database_cleaner

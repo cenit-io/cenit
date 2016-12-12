@@ -253,7 +253,7 @@ module RailsAdmin
         ]
       data_type_models =
         {
-          Setup::BuildInDataType => main_labels
+          Setup::CenitDataType => main_labels
         }
       non_setup_data_type_models.each { |m| data_type_models[m] = [] }
       nav_groups = nodes_stack.group_by(&:navigation_label)
@@ -274,7 +274,7 @@ module RailsAdmin
           if ecoindex == 0
             Setup::CrossSharedCollection
           else
-            ((data_type = node.abstract_model.model.try(:data_type)) && data_type.class) || Setup::BuildInDataType
+            ((data_type = node.abstract_model.model.try(:data_type)) && data_type.class) || Setup::CenitDataType
           end
         end.each do |data_type_model, nodes|
           name = data_type_model.to_s.split('::').last.underscore

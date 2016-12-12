@@ -50,6 +50,10 @@
       =link_to "#{ENV['PORTAL_URL'] || 'https://cenit.io'}/terms_of_service", target: '_blank' do
         %i.fa.fa-fw.fa-institution{title: t('admin.misc.terms')}
         %span=t('admin.misc.terms')
+    %li
+      =link_to "#" , id: "contact_us" do
+        %i.fa.fa-fw.fa-envelope-o{title: t('admin.contact_us.tittle')}
+        %span=t('admin.contact_us.tittle')
     = render partial: 'shared/socials'
 
 

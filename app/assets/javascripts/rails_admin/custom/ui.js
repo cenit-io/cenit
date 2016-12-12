@@ -17,16 +17,6 @@ $(document).on('rails_admin.dom_ready', function () {
 });
 
 $(function () {
-    $(".soc-btn").on("click", function (ev) {
-        $(this).addClass("selected");
-        $(this).siblings().addClass("unused");
-
-        var overlay = $('<div id="modal-overlay"></div>');
-        overlay.appendTo(document.body);
-    });
-});
-
-$(function () {
     if ($(window).width() > 767) {
         $("#wrapper").addClass('toggled');
         $("#sidebar-toggle").addClass('toggled');
@@ -114,7 +104,10 @@ $(function () {
             $(this).removeClass('toggled');
         }
     });
+
+    registerEvents();
 });
+
 function initializeTour() {
     var toggle_collapse = function (id) {
             $('.panel-collapse', id).first().collapse('toggle');
@@ -260,9 +253,29 @@ function initializeTour() {
     // Start the tour
     tour.restart(true);
 }
-$(function () {
+
+function registerEvents() {
+
     $('#take-tour').click(function (e) {
         e.preventDefault();
         initializeTour();
     });
-});
+
+    $('a#contact_us').click(function (e) {
+        e.preventDefault();
+        $('div#contact_us').modal({
+            keyboard: true,
+            backdrop: true,
+            show: true
+        })
+    });
+
+    $(".soc-btn").on("click", function (ev) {
+        $(this).addClass("selected");
+        $(this).siblings().addClass("unused");
+
+        var overlay = $('<div id="modal-overlay"></div>');
+        overlay.appendTo(document.body);
+    });
+}
+
