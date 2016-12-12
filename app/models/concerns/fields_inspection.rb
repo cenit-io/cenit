@@ -14,7 +14,10 @@ module FieldsInspection
     if @inspect_fields
       inspecting_fields = self.class.inspecting_fields
       changed_attributes.keys.each do |attr|
-        reset_attribute!(attr) unless inspecting_fields.include?(attr.to_sym)
+        attr = attr.to_sym
+        unless attr == :_id || inspecting_fields.include?(attr)
+          reset_attribute!(attr)
+        end
       end
     end
     errors.blank?
