@@ -115,3 +115,6 @@ gem 'cenit-service', git: 'https://github.com/macarci/cenit-service.git'
 gem 'cenit-oauth', git: 'https://github.com/macarci/cenit-oauth.git'
 
 gem 'capataz', git: 'https://github.com/macarci/capataz.git'
+
+gem 'rails_admin_dynamic_charts', path: '../rails_admin_dynamic_charts'
+gem 'chartkick'

@@ -277,5 +277,12 @@ function registerEvents() {
         var overlay = $('<div id="modal-overlay"></div>');
         overlay.appendTo(document.body);
     });
+
+    $("#view_graphic").click(function (e) {
+        e.preventDefault();
+        $('.graphics-area').toggleClass('hide');
+    });
+
+    $('select.input-sm', '.graphics-controls').on('change', function(){$('#filter-form').submit()})
 }
 

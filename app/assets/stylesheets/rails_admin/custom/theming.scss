@@ -1093,3 +1093,14 @@ body.rails_admin .form-horizontal.denser fieldset {
     height: auto;
   }
 }
+
+// for graphics
+.graphics-area {
+  margin: 25px 0;
+}
+.graphics-controls {
+  padding: 15px;
+}
+.graphics-chart {
+  overflow: scroll;
+}
