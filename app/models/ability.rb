@@ -190,7 +190,7 @@ class Ability
     else
       can [:dashboard, :shared_collection_index, :store_index]
       can [:index, :show, :pull, :simple_export], [Setup::SharedCollection, Setup::CrossSharedCollection]
-      can :index, Setup::Models.all.to_a -
+      can [:index, :show], Setup::Models.all.to_a -
         [
           Setup::Namespace,
           Setup::DataTypeConfig,
