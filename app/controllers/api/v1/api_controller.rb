@@ -81,7 +81,8 @@ module Api::V1
           message = [message] unless message.is_a?(Array)
           message.each do |item|
             options = @payload.create_options
-            if data_type.records_model < FieldsInspection
+            model = data_type.records_model
+            if model.is_a?(Class) && model < FieldsInspection
               options[:inspect_fields] = Account.current.nil? || !Account.current_super_admin?
             end
             if (record = data_type.send(@payload.create_method,
@@ -112,8 +113,9 @@ module Api::V1
           message = [message] unless message.is_a?(Array)
           message.each do |item|
             begin
-              options = @payload.create_optionsmerge(primary_field: @primary_field)
-              if data_type.records_model < FieldsInspection
+              options = @payload.create_options.merge(primary_field: @primary_field)
+              model = data_type.records_model
+              if model.is_a?(Class) && model < FieldsInspection
                 options[:inspect_fields] = Account.current.nil? || !Account.current_super_admin?
               end
               if (record = data_type.send(@payload.create_method,

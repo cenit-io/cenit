@@ -28,7 +28,12 @@ module Api::V2
 
         option = { including: :_type }
         #option[:only] = self.klass.properties_index TODO Review only option and index properties
-        option[:ignore] = @ignore if @ignore
+        if @ignore
+          option[:ignore] = @ignore
+        end
+        if @embedding
+          option[:embedding] = @embedding
+        end
         option[:include_id] = true
         items_data = @items.map do |item|
           hash = item.default_hash(option)
@@ -55,7 +60,12 @@ module Api::V2
       else
         option = {}
         option[:only] = @only if @only
-        option[:ignore] = @ignore if @ignore
+        if @ignore
+          option[:ignore] = @ignore
+        end
+        if @embedding
+          option[:embedding] = @embedding
+        end
         option[:include_id] = true
         render json: @view.nil? ? @item.to_hash(option) : @item.to_hash(option)[@view]
       end
@@ -77,7 +87,8 @@ module Api::V2
           message = [message] unless message.is_a?(Array)
           message.each do |item|
             options = @payload.create_options
-            if data_type.records_model < FieldsInspection
+            model = data_type.records_model
+            if model.is_a?(Class) && model < FieldsInspection
               options[:inspect_fields] = Account.current.nil? || !Account.current_super_admin?
             end
             if (record = data_type.send(@payload.create_method,
@@ -109,7 +120,8 @@ module Api::V2
           message.each do |item|
             begin
               options = @payload.create_options.merge(primary_field: @primary_field)
-              if data_type.records_model < FieldsInspection
+              model = data_type.records_model
+              if model.is_a?(Class) && model < FieldsInspection
                 options[:inspect_fields] = Account.current.nil? || !Account.current_super_admin?
               end
               if (record = data_type.send(@payload.create_method,
@@ -448,6 +460,7 @@ module Api::V2
       @model = params[:model]
       @only = params[:only].split(',') if params[:only]
       @ignore = params[:ignore].split(',') if params[:ignore]
+      @embedding = params[:embedding].split(',') if params[:embedding]
       @primary_field = params[:primary_field]
       @include_root = params[:include_root]
       @pretty = params[:pretty]
@@ -462,7 +475,7 @@ module Api::V2
       @payload = pload[request.content_type].new(controller: self,
                                                  message: @webhook_body,
                                                  content_type: request.content_type)
-      @criteria = params.to_hash.with_indifferent_access.reject { |key, _| %w(controller action ns model id field path format view api only ignore primary_field pretty include_root).include?(key) }
+      @criteria = params.to_hash.with_indifferent_access.reject { |key, _| %w(controller action ns model id field path format view api only ignore primary_field pretty include_root embedding).include?(key) }
     end
 
     private
