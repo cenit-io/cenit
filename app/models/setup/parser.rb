@@ -1,5 +1,6 @@
 module Setup
   class Parser < Translator
+    include RailsAdmin::Models::Setup::ParserAdmin
 
     transformation_type :Import
     allow :new

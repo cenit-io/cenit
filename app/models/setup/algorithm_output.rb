@@ -1,6 +1,7 @@
 module Setup
   class AlgorithmOutput
     include CenitScoped
+    include RailsAdmin::Models::Setup::AlgorithmOutputAdmin
 
     build_in_data_type
 

@@ -1,6 +1,7 @@
 module Setup
   class Action
     include CenitUnscoped
+    include RailsAdmin::Models::Setup::ActionAdmin    
 
     build_in_data_type.referenced_by(:method, :path)
 

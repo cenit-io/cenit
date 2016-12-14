@@ -1,6 +1,7 @@
 module Setup
   class Observer < Event
     include TriggersFormatter
+    include RailsAdmin::Models::Setup::ObserverAdmin
 
     build_in_data_type.referenced_by(:namespace, :name).excluding(:origin)
 

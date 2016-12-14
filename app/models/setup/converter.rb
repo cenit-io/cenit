@@ -1,5 +1,6 @@
 module Setup
   class Converter < Translator
+    include RailsAdmin::Models::Setup::ConverterAdmin
 
     transformation_type :Conversion
     allow :new

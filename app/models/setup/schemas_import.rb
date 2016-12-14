@@ -2,6 +2,7 @@ module Setup
   class SchemasImport < Setup::Task
     include Setup::DataUploader
     include Setup::DataIterator
+    include RailsAdmin::Models::Setup::SchemasImportAdmin
 
     build_in_data_type
 

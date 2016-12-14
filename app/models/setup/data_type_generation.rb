@@ -1,5 +1,6 @@
 module Setup
   class DataTypeGeneration < Setup::Task
+    include RailsAdmin::Models::Setup::DataTypeGenerationAdmin
 
     build_in_data_type
 

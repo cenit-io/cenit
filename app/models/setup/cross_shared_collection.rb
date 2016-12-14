@@ -4,6 +4,7 @@ module Setup
     include CrossOrigin::Document
     include CollectionBehavior
     include Taggable
+    include RailsAdmin::Models::Setup::CrossSharedCollectionAdmin
 
     origins -> { Cenit::MultiTenancy.tenant_model.current && :owner }, :shared
 
@@ -18,6 +19,7 @@ module Setup
                             :pull_parameters,
                             :dependencies,
                             :readme,
+                            :image,
                             :pull_data,
                             :data,
                             :swagger_spec,

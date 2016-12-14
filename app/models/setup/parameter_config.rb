@@ -1,6 +1,7 @@
 module Setup
   class ParameterConfig
     include CenitScoped
+    include RailsAdmin::Models::Setup::ParameterConfigAdmin
 
     deny :all
     allow :index, :show, :edit, :delete

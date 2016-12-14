@@ -4,6 +4,7 @@ module Setup
     include NamespaceNamed
     include ClassHierarchyAware
     include CrossOrigin::Document
+    include RailsAdmin::Models::Setup::EventAdmin
 
     origins :default, -> { Account.current_super_admin? ? :admin : nil }
 

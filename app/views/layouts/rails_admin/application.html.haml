@@ -37,3 +37,4 @@
 
     - if TourTrack.show_tour?(request.remote_ip, User.current)
       = '<script>initializeTour();</script>'.html_safe
+    = render partial: 'contact_us'

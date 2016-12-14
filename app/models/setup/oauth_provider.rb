@@ -1,6 +1,7 @@
 module Setup
   class OauthProvider < Setup::BaseOauthProvider
     include CenitUnscoped
+    include RailsAdmin::Models::Setup::OauthProviderAdmin    
 
     build_in_data_type.referenced_by(:namespace, :name).excluding(:origin, :tenant)
 

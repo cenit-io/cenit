@@ -4,6 +4,7 @@ module Setup
     include NamespaceNamed
     include Slug
     include Cenit::Oauth::AppConfig
+    include RailsAdmin::Models::Setup::ApplicationAdmin    
 
     build_in_data_type.with(:namespace, :name, :actions, :application_parameters)
     build_in_data_type.referenced_by(:namespace, :name).and('properties' => { 'configuration' => {} })

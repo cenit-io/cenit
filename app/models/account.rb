@@ -7,6 +7,7 @@ class Account
   include NumberGenerator
   include TokenGenerator
   include FieldsInspection
+  include RailsAdmin::Models::AccountAdmin
 
   inspect_fields :name, :notification_level, :time_zone
 
@@ -77,7 +78,7 @@ class Account
   def read_attribute(name)
     (!(value = super).nil? &&
 
-      (new_record? || !self.class.data_type.protecting?(name) ||
+      (new_record? || !self.class.build_in_data_type.protecting?(name) ||
         (current_user = User.try(:current)) && current_user.owns?(self)) &&
 
       value) || nil
