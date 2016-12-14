@@ -1,6 +1,7 @@
 require 'nokogiri'
 
 module Setup
+  # A flow defines how data is processed by the execution of one or more actions.
   class Flow
     include ReqRejValidator
     include ShareWithBindings
@@ -11,29 +12,30 @@ module Setup
     include RailsAdmin::Models::Setup::FlowAdmin
 
     build_in_data_type.referenced_by(:namespace, :name)
-    build_in_data_type.and({
-                             properties: {
-                               active: {
-                                 type: 'boolean',
-                                 default: true
-                               },
-                               notify_request: {
-                                 type: 'boolean',
-                                 default: false
-                               },
-                               notify_response: {
-                                 type: 'boolean',
-                                 default: false
-                               },
-                               discard_events: {
-                                 type: 'boolean'
-                               },
-                               auto_retry: {
-                                 type: 'string',
-                                 enum: Setup::Task.auto_retry_enum.collect(&:to_s)
-                               }
-                             }
-                           }.deep_stringify_keys)
+    build_in_data_type.and(
+      {
+        properties: {
+          active: {
+            type: 'boolean',
+            default: true
+          },
+          notify_request: {
+            type: 'boolean',
+            default: false
+          },
+          notify_response: {
+            type: 'boolean',
+            default: false
+          },
+          discard_events: {
+            type: 'boolean'
+          },
+          auto_retry: {
+            type: 'string',
+            enum: Setup::Task.auto_retry_enum.collect(&:to_s)
+          }
+        }
+      }.deep_stringify_keys)
 
     binding_belongs_to :event, class_name: Setup::Event.to_s, inverse_of: nil
 
@@ -66,91 +68,31 @@ module Setup
     def validates_configuration
       format_triggers_on(:scope_filter) if scope_filter.present?
       unless requires(:name, :translator)
-        if event.present?
-          unless translator.type == :Import || requires(:data_type_scope)
-            if scope_symbol == :event_source &&
-              !(event.is_a?(Setup::Observer) && event.data_type == data_type)
-              errors.add(:event, 'not compatible with data type scope')
-            end
-          end
-        elsif scope_symbol == :event_source
-          if persisted?
-            requires(:event)
-          else
-            rejects(:data_type_scope)
-          end
-        end
-        if translator.data_type.nil?
-          requires(:custom_data_type) if translator.type == :Conversion && event.present?
-        else
-          rejects(:custom_data_type)
-        end
-        if translator.type == :Import
-          rejects(:data_type_scope, :scope_filter, :scope_evaluator)
-        else
-          case scope_symbol
-          when :filtered
-            format_triggers_on(:scope_filter, true)
-            rejects(:scope_evaluator)
-          when :evaluation
-            unless requires(:scope_evaluator)
-              errors.add(:scope_evaluator, 'must receive one parameter') unless scope_evaluator.parameters.count == 1
-            end
-            rejects(:scope_filter)
-          else
-            rejects(:scope_filter, :scope_evaluator)
-          end
-        end
-        if [:Import, :Export].include?(translator.type)
-          requires(:webhook)
-          if translator.type == :Import
-            unless before_submit.nil? || before_submit.parameters.count == 1 || before_submit.parameters.count == 2
-              errors.add(:before_submit, 'must receive one or two parameter')
-            end
-          else
-            rejects(:before_submit)
-          end
-        else
-          rejects(:before_submit, :connection_role, :authorization, :webhook, :notify_request, :notify_response)
-        end
-
-        if translator.type == :Export
-          if response_translator.present?
-            if response_translator.type == :Import
-              if response_translator.data_type
-                rejects(:response_data_type)
-              else
-                requires(:response_data_type)
-              end
-            else
-              errors.add(:response_translator, 'is not an import translator')
-            end
-          else
-            rejects(:response_data_type, :discard_events)
-          end
-          rejects(:data_type_scope) if data_type.nil?
-        else
-          rejects(:lot_size, :response_translator, :response_data_type)
-        end
+        validate_event
+        validate_custom_data_type
+        validate_scope
+        validate_import_and_export
       end
-      if (bad_callbacks = after_process_callbacks.select { |c| c.parameters.count != 1 }).present?
-        errors.add(:after_process_callbacks, "contains algorithms with unexpected parameter size: #{bad_callbacks.collect(&:custom_title).to_sentence}")
-      end
+      validate_callbacks
       errors.blank?
     end
 
     def reject_message(field = nil)
       case field
       when :custom_data_type
-        'is not allowed since translator already defines a data type'
+        I18n.t('flows.translator_already_defines_a_data_type')
       when :data_type_scope
-        'is not allowed for import translators'
+        I18n.t('flows.not_allowed_import_translators')
       when :response_data_type
-        response_translator.present? ? 'is not allowed since response translator already defines a data type' : "can't be defined until response translator"
+        if response_translator.present?
+          I18n.t('flows.response_translator_already_defines_a_data_type')
+        else
+          I18n.t('flows.can_not_be_defined_until_response_translator')
+        end
       when :discard_events
-        "can't be defined until response translator"
+        I18n.t('flows.can_not_be_defined_until_response_translator')
       when :lot_size, :response_translator
-        'is not allowed for non export translators'
+        I18n.t('not_allowed_for_non_export_translators')
       else
         super
       end
@@ -169,7 +111,7 @@ module Setup
 
     def using_data_type(data_type)
       if (own_dt = own_data_type) && own_dt != data_type
-        fail "Illegal data type option #{data_type.custom_title}, a flow own data type #{flow_data_type} is already configured"
+        fail I18n.t('data_type_option', data_type: data_type.custom_title, flow_data_type: flow_data_type)
       else
         @_data_type = data_type if data_type
       end
@@ -197,84 +139,59 @@ module Setup
     end
 
     def ready_to_save?
-      shared? ||
-        ((t = translator).present? &&
-          (event.blank? || data_type_scope.present? || t.type == :Import) &&
-          ([:Export, :Import].exclude?(t.type) || webhook.present?))
+      return true if shared?
+      cond = (t = translator).present?
+      cond &&= event.blank? || data_type_scope.present? || t.type == :Import
+      cond && ([:Export, :Import].exclude?(t.type) || webhook.present?)
     end
 
     def can_be_restarted?
       event || translator
     end
 
-    def join_process(message={})
+    def join_process(message = {})
       if (task_token = Thread.current[:task_token]) &&
-        (thread_token = ThreadToken.where(token: task_token).first) &&
-        (current_task = Task.where(thread_token: thread_token).first)
-        process(message) do |task|
-          task.join(current_task)
-        end
+         (thread_token = ThreadToken.where(token: task_token).first) &&
+         (current_task = Task.where(thread_token: thread_token).first)
+        process(message) { |task| task.join(current_task) }
       else
         process(message)
       end
     end
 
-    def process(message={}, &block)
+    def process(message = {})
       executing_id, execution_graph = current_thread_cache.last || [nil, {}]
       if executing_id.present? && !(adjacency_list = execution_graph[executing_id] ||= []).include?(id.to_s)
         adjacency_list << id.to_s
       end
-      result =
-        if (cycle = cyclic_execution(execution_graph, executing_id))
-          cycle = cycle.collect { |id| ((flow = Setup::Flow.where(id: id).first) && flow.name) || id }
-          Setup::Notification.create(message: "Cyclic flow execution: #{cycle.join(' -> ')}")
-        else
-          message = message.merge(flow_id: id.to_s,
-                                  tirgger_flow_id: executing_id,
-                                  execution_graph: execution_graph,
-                                  auto_retry: auto_retry)
-          Setup::FlowExecution.process(message, &block)
-        end
-      save
+      result = process_execution(message, execution_graph, executing_id)
+      save!
       result
     end
 
     def translate(message, &block)
-      if translator.present?
-        begin
-          (flow_execution = current_thread_cache) << [id.to_s, message[:execution_graph] || {}]
-          data_type = Setup::BuildInDataType[message[:data_type_id]] ||
-            Setup::DataType.where(id: message[:data_type_id]).first
-          using_data_type(data_type) if data_type
-          send("translate_#{translator.type.to_s.downcase}", message, &block)
-          after_process_callbacks.each do |callback|
-            begin
-              callback.run(message[:task])
-            rescue Exception => ex
-              Setup::Notification.create(message: "Error executing after process callback #{callback.custom_title}: #{ex.message}")
-            end
-          end
-        ensure
-          flow_execution.pop
-        end
-      else
-        yield(message: "Flow translator can't be blank")
-      end
+      return yield(message: I18n.t('flows.not_blank')) unless translator.present?
+      flow_execution = current_thread_cache
+      flow_execution << [id.to_s, message[:execution_graph] || {}]
+      data_type = Setup::BuildInDataType[message[:data_type_id]] ||
+                  Setup::DataType.where(id: message[:data_type_id]).first
+      using_data_type(data_type) if data_type
+      send("translate_#{translator.type.to_s.downcase}", message, &block)
+      after_callbacks
+    ensure
+      flow_execution.pop
     end
 
     def scope_symbol
-      if data_type_scope.present?
-        if data_type_scope.start_with?('Event')
-          :event_source
-        elsif data_type_scope.start_with?('Filter')
-          :filtered
-        elsif data_type_scope.start_with?('Eval')
-          :evaluation
-        else
-          :all
-        end
+      return unless data_type_scope.nil?
+      if data_type_scope.start_with?('Event')
+        :event_source
+      elsif data_type_scope.start_with?('Filter')
+        :filtered
+      elsif data_type_scope.start_with?('Eval')
+        :evaluation
       else
-        nil
+        :all
       end
     end
 
@@ -286,12 +203,110 @@ module Setup
 
     private
 
-    def check_scheduler
-      if @scheduler_checked.nil?
-        @scheduler_checked = changed_attributes.has_key?(:event_id.to_s) && event.is_a?(Setup::Scheduler)
-      else
-        @scheduler_checked = false
+    def after_callbacks
+      after_process_callbacks.each do |callback|
+        begin
+          callback.run(message[:task])
+        rescue StandardError => ex
+          message = I18n.t('flows.error_after_callback', title: callback.custom_title, message: ex.message)
+          Setup::Notification.create(message: message)
+        end
       end
+    end
+
+    def process_execution(message, execution_graph, executing_id)
+      if (cycle = cyclic_execution(execution_graph, executing_id))
+        cycle = cycle.collect { |id| ((flow = Setup::Flow.where(id: id).first) && flow.name) || id }
+        message = I18n.t('flows.cyclic', cycle: cycle.join(' -> '))
+        Setup::Notification.create(message: message)
+      else
+        message.merge!(flow_id: id.to_s, tirgger_flow_id: executing_id,
+                       execution_graph: execution_graph, auto_retry: auto_retry)
+        Setup::FlowExecution.process(message, &block)
+      end
+    end
+
+    def validate_event
+      if event.present?
+        return if translator.type == :Import || requires(:data_type_scope)
+        if scope_symbol == :event_source && !(event.is_a?(Setup::Observer) && event.data_type == data_type)
+          errors.add(:event, I18n.t('flows.incompatible_data_type_scope'))
+        end
+      elsif scope_symbol == :event_source
+        persisted? ? requires(:event) : rejects(:data_type_scope)
+      end
+    end
+
+    def validate_custom_data_type
+      if translator.data_type.nil?
+        requires(:custom_data_type) if translator.type == :Conversion && event.present?
+      else
+        rejects(:custom_data_type)
+      end
+    end
+
+    def validate_scope
+      return rejects(:data_type_scope, :scope_filter, :scope_evaluator) if translator.type == :Import
+      case scope_symbol
+      when :filtered
+        format_triggers_on(:scope_filter, true)
+        rejects(:scope_evaluator)
+      when :evaluation
+        validate_scope_evaluator
+        rejects(:scope_filter)
+      else
+        rejects(:scope_filter, :scope_evaluator)
+      end
+    end
+
+    def validate_scope_evaluator
+      return if requires(:scope_evaluator) || scope_evaluator.parameters.count == 1
+      errors.add(:scope_evaluator, I18n.t('flows.must_receive_one_parameter'))
+    end
+
+    def validate_import_and_export
+      if [:Import, :Export].include?(translator.type)
+        requires(:webhook)
+        validate_import
+      else
+        rejects(:before_submit, :connection_role, :authorization, :webhook, :notify_request, :notify_response)
+      end
+      validate_export
+    end
+
+    def validate_import
+      if translator.type == :Import
+        unless before_submit.nil? || before_submit.parameters.count == 1 ||
+               before_submit.parameters.count == 2
+          errors.add(:before_submit, I18n.t('flows.must_receive_one_or_two_parameters'))
+        end
+      else
+        rejects(:before_submit)
+      end
+    end
+
+    def validate_export
+      return rejects(:lot_size, :response_translator, :response_data_type) unless translator.type == :Export
+      rejects(:data_type_scope) if data_type.nil?
+      return rejects(:response_data_type, :discard_events) unless response_translator.present?
+      if response_translator.type == :Import
+        response_translator.data_type ? rejects(:response_data_type) : requires(:response_data_type)
+      else
+        errors.add(:response, I18n.t('flows.not_an_import_translator'))
+      end
+    end
+
+    def validate_callbacks
+      bad_callbacks = after_process_callbacks.select { |c| c.parameters.count != 1 }
+      return unless bad_callbacks.present?
+      custom_titles = bad_callbacks.collect(&:custom_title).to_sentence
+      message = I18n.t('flows.unexpected_parameter_size', title: custom_titles)
+      errors.add(:after_process_callbacks, message)
+    end
+
+    def check_scheduler
+      @scheduler_checked =
+        @scheduler_checked ? false : changed_attributes.key?(:event_id.to_s) && event.is_a?(Setup::Scheduler)
       true
     end
 
@@ -299,11 +314,11 @@ module Setup
       process(scheduler: event) if @scheduler_checked && event.activated
     end
 
-    def cyclic_execution(execution_graph, start_id, cycle=[])
+    def cyclic_execution(execution_graph, start_id, cycle = [])
       if cycle.include?(start_id)
         cycle << start_id
         return cycle
-      elsif adjacency_list = execution_graph[start_id]
+      elsif (adjacency_list = execution_graph[start_id])
         cycle << start_id
         adjacency_list.each { |id| return cycle if cyclic_execution(execution_graph, id, cycle) }
         cycle.pop
@@ -312,28 +327,26 @@ module Setup
     end
 
     def simple_translate(message, &block)
-      object_ids = ((obj_id = message[:source_id]) && [obj_id]) || source_ids_from(message)
-      if translator.source_handler
-        begin
-          translator.run(object_ids: object_ids, discard_events: discard_events, task: message[:task])
-        rescue Exception => ex
-          fail "Error source handling translation of records of type '#{data_type.custom_title}' with '#{translator.custom_title}': #{ex.message}"
-        end
-      else
-        if object_ids
-          data_type.records_model.any_in(id: object_ids)
-        else
-          data_type.records_model.all
-        end.each do |obj|
-          begin
-            translator.run(object: obj, discard_events: discard_events, task: message[:task])
-          rescue Exception => ex
-            fail "Error translating record with ID '#{obj.id}' of type '#{data_type.custom_title}' when executing '#{translator.custom_title}': #{ex.message}"
-          end
-        end
-      end
-    rescue Exception => ex
+      obj_ids = ((obj_id = message[:source_id]) && [obj_id]) || source_ids_from(message)
+      translator.source_handler ? run_all_translates(message, obj_ids) : run_each_translates(message, obj_ids)
+    rescue StandardError => ex
       block.yield(ex) if block
+    end
+
+    def run_all_translates(message, object_ids)
+      translator.run(object_ids: object_ids, discard_events: discard_events, task: message[:task])
+    rescue StandardError => ex
+      raise I18n.t('flows.error_handling_translation',
+                   data_type: data_type.custom_title, translator: translator.custom_title, message: ex.message)
+    end
+
+    def run_each_translates(message, object_ids)
+      objs = object_ids ? data_type.records_model.any_in(id: object_ids) : data_type.records_model.all
+      objs.each { |obj| translator.run(object: obj, discard_events: discard_events, task: message[:task]) }
+    rescue StandardError => ex
+      raise I18n.t('flows.error_translating_record',
+                   obj_id: obj.id, data_type: data_type.custom_title,
+                   translator: translator.custom_title, message: ex.message)
     end
 
     def translate_conversion(message, &block)
@@ -344,96 +357,102 @@ module Setup
       simple_translate(message, &block)
     end
 
-    def translate_import(message, &block)
-      options =
-        {
-          headers: {},
-          parameters: {},
-          template_parameters: {},
-          notify_request: notify_request,
-          notify_response: notify_response,
-          verbose_response: true
-        }
-      if before_submit
-        if before_submit.parameters.count == 1
-          before_submit.run(options)
-        elsif before_submit.parameters.count == 2
-          before_submit.run([options, message[:task]])
-        end
-      end
-      verbose_response =
-        webhook.with(connection_role).and(authorization).submit(options) do |response, template_parameters|
-          translator.run(target_data_type: data_type,
-                         data: response.body,
-                         discard_events: discard_events,
-                         parameters: template_parameters,
-                         headers: response.headers.to_hash,
-                         statusCode: response.code,
-                         task: message[:task]) #if response.code == 200
-        end
-      if auto_retry == :automatic && (200...299).exclude?(verbose_response[:http_response].code)
-        fail unsuccessful_response(verbose_response[:http_response], message)
+    def translate_import(message)
+      options = { headers: {},
+                  parameters: {},
+                  template_parameters: {},
+                  notify_request: notify_request,
+                  notify_response: notify_response,
+                  verbose_response: true }
+      check_before_submit(options, message)
+      verbose_response = verbose_import_response(options, message)
+      check_auto_retry(verbose_response, message)
+    end
+
+    def check_before_submit(options, message)
+      return unless before_submit
+      if before_submit.parameters.count == 1
+        before_submit.run(options)
+      elsif before_submit.parameters.count == 2
+        before_submit.run([options, message[:task]])
       end
     end
 
-    def translate_export(message, &block)
+    def verbose_import_response(options, message)
+      webhook.with(connection_role).and(authorization).submit(options) do |response, template_parameters|
+        translator.run(target_data_type: data_type, data: response.body, discard_events: discard_events,
+                       parameters: template_parameters, headers: response.headers.to_hash, statusCode: response.code,
+                       task: message[:task]) # if response.code == 200
+      end
+    end
+
+    def check_auto_retry(verb_response, message)
+      return unless auto_retry == :automatic &&
+                    (200...299).exclude?(verb_response[:http_response].code)
+      fail unsuccessful_response(verb_response[:http_response], message)
+    end
+
+    def translate_export(message)
       limit = translator.bulk_source ? lot_size || 1000 : 1
-      max =
-        if (object_ids = source_ids_from(message))
-          object_ids.size
-        elsif data_type
-          data_type.count
-        else
-          0
-        end - (scope_symbol ? 1 : 0)
+      max = if (object_ids = source_ids_from(message))
+              object_ids.size
+            elsif data_type
+              data_type.count
+            else
+              0
+            end
+      max -= scope_symbol ? 1 : 0
+      verbose_export_response(message, template_parameters, max, limit)
+    end
+
+    def verbose_export_response(message, template_parameters, max, limit)
       translation_options = nil
       connections_present = true
       0.step(max, limit) do |offset|
         next unless connections_present
-        verbose_response =
-          webhook.target.with(connection_role).and(authorization).submit ->(template_parameters) {
-            translation_options =
-              {
-                object_ids: object_ids,
-                source_data_type: data_type,
-                offset: offset,
-                limit: limit,
-                discard_events: discard_events,
-                parameters: template_parameters,
-                task: message[:task]
-              }
-            translator.run(translation_options)
-          },
-                                                                         contentType: translator.mime_type,
-                                                                         notify_request: notify_request,
-                                                                         request_attachment: ->(attachment) do
-                                                                           attachment[:filename] = ((data_type && data_type.title) || translator.name).collectionize +
-                                                                             attachment[:filename] +
-                                                                             ((ext = translator.file_extension).present? ? ".#{ext}" : '')
-                                                                           attachment
-                                                                         end,
-                                                                         notify_response: notify_response,
-                                                                         verbose_response: true do |response|
-            if response_translator #&& response.code == 200
-              response_translator.run(translation_options.merge(target_data_type: response_translator.data_type || response_data_type,
-                                                                data: response.body,
-                                                                headers: response.headers.to_hash,
-                                                                statusCode: response.code, #TODO Remove after deprecation migration
-                                                                response_code: response.code,
-                                                                requester_response: response.requester_response?))
-            end
-            true
-          end
-        if auto_retry == :automatic && (200...299).exclude?(verbose_response[:http_response].code)
-          fail unsuccessful_response(verbose_response[:http_response], message)
-        end
+        verbose_response = verbose_each_export_response(message, template_parameters, offset, limit, translation_options)
+        check_auto_retry(verbose_response, message)
         connections_present = verbose_response[:connections_present]
       end
     end
 
+    def verbose_each_export_response(message, template_parameters, offset, limit, translation_options)
+      webhook.target.with(connection_role).and(authorization)
+        .submit lambda(template_parameters) { run_translator(message, template_parameters, offset, limit) },
+                contentType: translator.mime_type,
+                notify_request: notify_request,
+                request_attachment: lambda(attachment) { request_attachment(attachment) },
+                notify_response: notify_response,
+                verbose_response: true do |response|
+                  # && response.code == 200
+                  response_translator ? run_response(response, response_translator, translation_options) : true
+                end
+    end
+
+    def run_translator(message, template_parameters, offset, limit)
+      options = { object_ids: object_ids,
+                  source_data_type: data_type,
+                  offset: offset,
+                  limit: limit,
+                  discard_events: discard_events,
+                  parameters: template_parameters,
+                  task: message[:task] }
+      translator.run(options)
+    end
+
+    def run_response(response_translator, translation_options)
+      response_translator.run(
+        translation_options.merge(
+          target_data_type: response_translator.data_type || response_data_type,
+          data: response.body,
+          headers: response.headers.to_hash,
+          statusCode: response.code, # TODO: Remove after deprecation migration
+          response_code: response.code,
+          requester_response: response.requester_response?))
+    end
+
     def unsuccessful_response(http_response, task_msg)
-      {
-        error: 'Unsuccessful response code',
+      { error: I18n.t('unsuccessful_response_code'),
         code: http_response.code,
         user: ::User.current.label,
         user_id: ::User.current.id,
@@ -441,31 +460,40 @@ module Setup
         tenant_id: Account.current.id,
         task: task_msg,
         flow: to_hash,
-        flow_attributes: attributes
-      }.to_json
+        flow_attributes: attributes }.to_json
     end
 
     def attachment_from(http_response)
-      file_extension = ((types =MIME::Types[http_response.content_type]).present? &&
-        (ext = types.first.extensions.first).present? && '.' + ext) || ''
+      return unless notify_response && http_response
+      types = MIME::Types[http_response.content_type]
+      file_extension = types.present? && ext_text(types.first.extensions.first) || ''
       {
         filename: http_response.object_id.to_s + file_extension,
         contentType: http_response.content_type,
         body: http_response.body
-      } if notify_response && http_response
+      }
+    end
+
+    def request_attachment(attachment)
+      prefix = ((data_type && data_type.title) || translator.name).collectionize
+      attachment[:filename].insert(0, prefix)
+      attachment[:filename] += ext_text(translator.file_extension)
+      attachment
+    end
+
+    def ext_text(ext)
+      ext.present? ? ".#{ext}" : ''
     end
 
     def source_ids_from(message)
       if (object_ids = message[:object_ids])
         object_ids
-      elsif scope_symbol == :event_source && id = message[:source_id]
+      elsif scope_symbol == :event_source && (id = message[:source_id])
         [id]
       elsif scope_symbol == :filtered
         data_type.records_model.all.select { |record| field_triggers_apply_to?(:scope_filter, record) }.collect(&:id)
       elsif scope_symbol == :evaluation
         data_type.records_model.all.select { |record| scope_evaluator.run(record).present? }.collect(&:id)
-      else
-        nil
       end
     end
   end

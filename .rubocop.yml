@@ -1,2 +1,8 @@
 Metrics/LineLength:
   Max: 150
+
+Metrics/PerceivedComplexity:
+  Enabled: false
+
+Metrics/AbcSize:
+  Enabled: false
