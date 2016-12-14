@@ -8,10 +8,11 @@
                 datePicker: {
                     dateFormat: 'mm/dd/yy'
                 }
-            }
+            },
+            save_button_label: 'Save Filter'
         },
 
-        append: function (field_label, field_name, field_type, field_value, field_operator, field_options, index) {
+        append: function (field_label, field_name, field_type, field_value, field_operator, field_options, index, save_button_label) {
             var value_name = 'f[' + field_name + '][' + index + '][v]';
             var operator_name = 'f[' + field_name + '][' + index + '][o]';
             switch (field_type) {
@@ -98,8 +99,19 @@
                 (additional_control || '') +
                 '</p> ';
             $('#filters_box').append(content);
+            $.filters.add_save_filter();
             $('#filters_box .date').datepicker(this.options.regional.datePicker);
             $("hr.filters_box:hidden").show('slow');
+        },
+        add_save_filter: function () {
+            if ($('#save_filters_button').length == 0) {
+                $save_button = $('<button class="btn btn-primary" type="submit" id="save_filters_button"><i class="icon-white fa fa-filter"></i><span>' + $.filters.options.save_button_label + '</span></button>')
+                $save_button.on('click', function (e) {
+                    var $hidden_save_filters = $('<input type="hidden" value="true" name="save_filters">');
+                    $('.filters-buttons').append($hidden_save_filters);
+                });
+                $('.filters-buttons').append($save_button);
+            }
         }
     }
 
@@ -114,11 +126,6 @@
             $(this).data('field-options'),
             $.now().toString().slice(6, 11)
         );
-        if($('#save_filter_button').length == 0)
-        {
-            $save_button = $('<button class="btn btn-primary" type="submit" id="save_filter_button"><i class="icon-white fa fa-filter"></i> Save Filter </button>')
-            $('.filters-buttons').append($save_button);
-        }
     });
 
     $(document).on('click', "#filters_box .delete", function (e) {
@@ -127,8 +134,8 @@
         $(this).parents('.filter').remove();
         !$("#filters_box").children().length && $("hr.filters_box:visible").hide('slow');
 
-        if ($("#filters_box").children().length == 0){
-            $('#save_filter_button').remove();
+        if ($("#filters_box").children().length == 0) {
+            $('#save_filters_button').remove();
         }
     });
 

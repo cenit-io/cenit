@@ -19,6 +19,7 @@ module Setup
                             :pull_parameters,
                             :dependencies,
                             :readme,
+                            :image,
                             :pull_data,
                             :data,
                             :swagger_spec,

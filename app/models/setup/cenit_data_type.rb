@@ -17,6 +17,7 @@ module Setup
                                }
                              }
                            }.deep_stringify_keys)
+
     def data_type_name
       "#{namespace}::#{name}"
     end
@@ -25,6 +26,18 @@ module Setup
       Setup::BuildInDataType[data_type_name]
     end
 
-    delegate :schema, :subtype?, to: :build_in
+    def find_data_type(ref, ns = namespace)
+      super || build_in.find_data_type(ref, ns)
+    end
+
+    delegate :title, :schema, :subtype?, to: :build_in
+
+    def method_missing(symbol, *args)
+      if build_in.respond_to?(symbol)
+        build_in.send(symbol, *args)
+      else
+        super
+      end
+    end
   end
 end

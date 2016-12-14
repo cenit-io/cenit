@@ -253,7 +253,7 @@ module RailsAdmin
         ]
       data_type_models =
         {
-          Setup::BuildInDataType => main_labels
+          Setup::CenitDataType => main_labels
         }
       non_setup_data_type_models.each { |m| data_type_models[m] = [] }
       nav_groups = nodes_stack.group_by(&:navigation_label)
@@ -274,7 +274,7 @@ module RailsAdmin
           if ecoindex == 0
             Setup::CrossSharedCollection
           else
-            ((data_type = node.abstract_model.model.try(:data_type)) && data_type.class) || Setup::BuildInDataType
+            ((data_type = node.abstract_model.model.try(:data_type)) && data_type.class) || Setup::CenitDataType
           end
         end.each do |data_type_model, nodes|
           name = data_type_model.to_s.split('::').last.underscore
@@ -381,7 +381,7 @@ module RailsAdmin
             content_tag :li, data: { model: model_param } do
               link_to url, class: 'pjax' do
                 rc = ""
-                if _current_user.present? && model_count>0
+                if model_count>0
                   rc += "<span class='nav-amount'>#{model_count}</span>"
                 end
                 rc += "<span class='nav-caption'>#{capitalize_first_letter node.label_navigation}</span>"
@@ -402,7 +402,7 @@ module RailsAdmin
                 sub_link_url = index_path(model_name: node.abstract_model.to_param, filter_token: filter_token.token)
                 link_to sub_link_url do
                   rc = ''
-                  if _current_user.present? && count > 0
+                  if model_count>0
                     rc += "<span class='nav-amount'>#{count}</span>"
                   end
                   rc += "<span class='nav-caption'>#{cat.title}</span>"
@@ -449,7 +449,7 @@ module RailsAdmin
               sub_link_url = index_path(model_name: node.abstract_model.to_param, utf8: '✓', f: filter)
               link_to sub_link_url do
                 rc = ''
-                if _current_user.present? && model_count>0
+                if model_count>0
                   rc += "<span class='nav-amount'>#{count}</span>"
                 end
                 rc += "<span class='nav-caption'>#{ext.upcase}</span>"

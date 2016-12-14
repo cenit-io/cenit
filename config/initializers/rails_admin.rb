@@ -131,7 +131,7 @@ RailsAdmin.config do |config|
     run_script
     run_stored_procedure
     edit
-    swagger { only [Setup::Api] }
+    swagger { only [Setup::ApiSpec] }
     configure
     play
     copy
@@ -197,13 +197,245 @@ RailsAdmin.config do |config|
   end
 
   config.navigation 'Collections', icon: 'fa fa-cubes'
+
+  Setup::Tag
+
+  Setup::CrossCollectionAuthor
+
+  Setup::CrossCollectionPullParameter
+
+  Setup::CrossSharedCollection
+
+  Setup::SharedCollection
+
+  Setup::CollectionAuthor
+
+  Setup::CollectionPullParameter
+
+  Setup::CollectionData
+
+  Setup::Collection
+
+  #Definitions
+
   config.navigation 'Definitions', icon: 'fa fa-puzzle-piece'
+
+  Setup::Validator
+
+  Setup::CustomValidator
+
+  Setup::Schema
+
+  Setup::XsltValidator
+
+  Setup::EdiValidator
+
+  Setup::AlgorithmValidator
+
+  Setup::DataType
+
+  Setup::JsonDataType
+
+  Setup::FileDataType
+
+  Setup::CenitDataType
+
+  #Connectors
+
   config.navigation 'Connectors', icon: 'fa fa-plug'
+
+  Setup::Parameter
+
+  Setup::ApiSpec
+
+  Setup::Connection
+
+  Setup::ConnectionRole
+
+  Setup::Section
+
+  Setup::Resource
+
+  Setup::Webhook
+
+  Setup::Operation
+
+  Setup::Representation
+
+  Setup::PlainWebhook
+
+  #Security
+
   config.navigation 'Security', icon: 'fa fa-shield'
+
+  Setup::OauthClient
+
+  Setup::BaseOauthProvider
+
+  Setup::OauthProvider
+
+  Setup::Oauth2Provider
+
+  Setup::Oauth2Scope
+
+  Setup::Authorization
+
+  Setup::BasicAuthorization
+
+  Setup::OauthAuthorization
+
+  Setup::Oauth2Authorization
+
+  Setup::AwsAuthorization
+
+  Cenit::OauthAccessGrant
+
+  #Compute
+
   config.navigation 'Compute', icon: 'fa fa-cog'
+
+
+  Setup::AlgorithmParameter
+
+  Setup::CallLink
+
+  Setup::Algorithm
+
+  Setup::AlgorithmOutput
+
+  Setup::Action
+
+  Setup::Application
+
+  Cenit::ApplicationParameter
+
+  Setup::Filter
+
+  #Transformations
+
   config.navigation 'Transformations', icon: 'fa fa-random'
+
+  Setup::Translator
+
+  Setup::Renderer
+
+  Setup::Parser
+
+  Setup::Converter
+
+  Setup::Updater
+
+  Setup::AlgorithmOutput
+
+  Setup::Action
+
+  Setup::Application
+
+  Cenit::ApplicationParameter
+
+  Setup::Snippet
+
+  #Workflows
+
   config.navigation 'Workflows', icon: 'fa fa-cogs'
+
+  Setup::Flow
+
+  Setup::Event
+
+  Setup::Observer
+
+  Setup::Scheduler
+
+  #Monitors
+
   config.navigation 'Monitors', icon: 'fa fa-heartbeat'
+
+  Setup::Notification
+
+  Setup::Task
+
+  Setup::FlowExecution
+
+  Setup::DataTypeGeneration
+
+  Setup::DataTypeExpansion
+
+  Setup::Translation
+
+  Setup::DataImport
+
+  Setup::Push
+
+  Setup::BasePull
+
+  Setup::PullImport
+
+  Setup::SharedCollectionPull
+
+  Setup::ApiPull
+
+  Setup::SchemasImport
+
+  Setup::Deletion
+
+  Setup::AlgorithmExecution
+
+  Setup::Submission
+
+  Setup::Crossing
+
+  Setup::Storage
+
+  #Configuration
+
   config.navigation 'Configuration', icon: 'fa fa-sliders'
+
+  Setup::Namespace
+
+  Setup::DataTypeConfig
+
+  Setup::FlowConfig
+
+  Setup::ConnectionConfig
+
+  Setup::Pin
+
+  Setup::Binding
+
+  Setup::ParameterConfig
+
+  #Administration
+
   config.navigation 'Administration', icon: 'fa fa-user-secret'
+
+  User
+
+  Account
+
+  Role
+
+  Setup::SharedName
+
+  Setup::CrossSharedName
+
+  Script
+
+  Cenit::BasicToken
+
+  Cenit::BasicTenantToken
+
+  Setup::TaskToken
+
+  Setup::DelayedMessage
+
+  Setup::SystemNotification
+
+  RabbitConsumer
+
+  Cenit::ApplicationId
+
+  Setup::ScriptExecution
+
+  Setup::Category
 end

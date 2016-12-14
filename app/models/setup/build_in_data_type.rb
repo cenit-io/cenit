@@ -8,16 +8,27 @@ module Setup
 
     attr_reader :model
 
+    def request_db_data_type
+      RequestStore.store["[cenit]#{self}.db_data_type".to_sym] ||= db_data_type
+    end
+
+    def db_data_type
+      namespace = model.to_s.split('::')
+      name = namespace.pop
+      namespace = namespace.join('::')
+      Setup::CenitDataType.find_or_create_by(namespace: namespace, name: name)
+    end
+
     def namespace
       Setup.to_s
     end
 
     def title
-      @title ||= model.to_s.to_title
+      @title ||= model.to_s.split('::').last.to_title
     end
 
     def custom_title(separator = '|')
-      "#{Setup.to_s} #{separator} #{title}"
+      model.to_s.split('::').collect(&:to_title).join(" #{separator} ")
     end
 
     def name
@@ -150,6 +161,7 @@ module Setup
             model.include(Setup::SchemaModelAware)
             model.include(Edi::Formatter)
             model.include(Edi::Filler)
+            model.include(EventLookup)
             model.class.include(Mongoid::CenitExtension)
             build_in = BuildInDataType.new(model)
             block.call(build_in) if block
@@ -164,6 +176,10 @@ module Setup
 
     EXCLUDED_FIELDS = %w{_id created_at updated_at version}
     EXCLUDED_RELATIONS = %w{account creator updater}
+
+    def respond_to?(*args)
+      args[0].to_s.start_with?('get_') || super
+    end
 
     def method_missing(symbol, *args)
       if symbol.to_s.start_with?('get_')

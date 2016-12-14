@@ -23,7 +23,7 @@ class ApplicationController < ActionController::Base
     end
     @token ||= OAuth2::AccessToken.new(doorkeeper_oauth_client, current_user.doorkeeper_access_token, opts) if current_user
   end
-
+  
   around_filter :scope_current_account
 
   protected
@@ -55,7 +55,7 @@ class ApplicationController < ActionController::Base
   ensure
     optimize
     if (account = Account.current)
-      account.save
+      account.save(discard_events: true)
     end
     clean_thread_cache
   end

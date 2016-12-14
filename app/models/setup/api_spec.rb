@@ -1,11 +1,11 @@
 module Setup
-  class Api
+  class ApiSpec
     include SharedEditable
-    include RailsAdmin::Models::Setup::ApiAdmin
+    include RailsAdmin::Models::Setup::ApiSpecAdmin
 
     build_in_data_type.referenced_by(:name)
 
-    field :name, type: String
+    field :title, type: String
     field :specification, type: String
 
     def cenit_collection_hash(options = {})
