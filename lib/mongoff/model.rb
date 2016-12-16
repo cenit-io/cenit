@@ -428,7 +428,7 @@ module Mongoff
     end
 
     def proto_schema
-      sch = data_type.merged_schema #(recursive: caching?)
+      sch = data_type.merged_schema || {}
       if (properties = sch['properties'])
         sch['properties'] = data_type.merge_schema(properties)
       end

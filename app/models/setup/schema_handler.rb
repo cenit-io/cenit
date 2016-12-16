@@ -10,11 +10,12 @@ module Setup
     end
 
     def merged_schema(options = {})
-      sch = merge_schema(schema, options)
-      unless (base_sch = sch.delete('extends')).nil? || (base_sch = find_ref_schema(base_sch)).nil?
-        sch = base_sch.deep_merge(sch) { |_, val1, val2| Cenit::Utility.array_hash_merge(val1, val2) }
+      if (sch = merge_schema(schema, options))
+        unless (base_sch = sch.delete('extends')).nil? || (base_sch = find_ref_schema(base_sch)).nil?
+          sch = base_sch.deep_merge(sch) { |_, val1, val2| Cenit::Utility.array_hash_merge(val1, val2) }
+        end
+        check_properties(sch)
       end
-      check_properties(sch)
       sch
     end
 
