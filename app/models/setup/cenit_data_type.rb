@@ -30,7 +30,7 @@ module Setup
       super || build_in.find_data_type(ref, ns)
     end
 
-    delegate :title, :schema, :subtype?, to: :build_in
+    delegate :title, :schema, :subtype?, to: :build_in, allow_nil: true
 
     def method_missing(symbol, *args)
       if build_in.respond_to?(symbol)
