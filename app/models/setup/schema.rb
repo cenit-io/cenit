@@ -3,9 +3,7 @@ require 'xsd/include_missing_exception'
 module Setup
   class Schema < Validator
     include SnippetCode
-    include NamespaceNamed
     include Setup::FormatValidator
-    include CustomTitle
     include RailsAdmin::Models::Setup::SchemaAdmin
 
     legacy_code_attribute :schema
