@@ -26,8 +26,21 @@ module Setup
 
     attr_reader :last_output
 
+    field :language, type: String, default: :Ruby
+
+    validates_inclusion_of :language, in: ->(alg) { alg.class.language_enum }
+
     def code_extension
-      '.rb'
+      case language
+      when :Python
+        '.py'
+      when :NodeJS
+        '.js'
+      when :PHP
+        '.php'
+      else
+        '.rb'
+      end
     end
 
     def validate_parameters
@@ -44,7 +57,7 @@ module Setup
       if code.blank?
         errors.add(:code, "can't be blank")
       else
-        Capataz.rewrite(code, halt_on_error: false, logs: logs = {}, locals: parameters.collect { |p| p.name })
+        logs = parse_code
         if logs[:errors].present?
           logs[:errors].each { |msg| errors.add(:code, msg) }
           self.call_links = []
@@ -62,6 +75,12 @@ module Setup
         end
       end
       errors.blank?
+    end
+
+    def parse_code
+      parse_method = "parse_#{language.to_s.underscore}_code"
+      parse_method = :parse_ruby_code unless respond_to?(parse_method)
+      send(parse_method, logs_collector)
     end
 
     def validate_output_processing
@@ -224,9 +243,30 @@ module Setup
     end
 
     class << self
+
+      def language_enum
+        [:NodeJS, :Ruby, :Python, :PHP]
+      end
+
       def configuration_model_name
         "#{Setup::Algorithm}::Config"
       end
+    end
+
+    protected
+
+    def parse_ruby_code
+      logs = {}
+      Capataz.rewrite(code, halt_on_error: false, logs: logs, locals: parameters.collect { |p| p.name })
+      logs
+    end
+
+    def parse_node_js_code
+
+    end
+
+    def parse_php_code
+
     end
   end
 end
