@@ -14,7 +14,7 @@ module RailsAdmin
             elsif (obj = bindings[:object]).respond_to?(filter_enum_method)
               obj.send(filter_enum_method)
             else
-              obj.send(enum_method)
+              enum
             end
           end
         end
