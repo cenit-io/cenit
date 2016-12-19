@@ -1,19 +1,12 @@
 GIT
-  remote: https://github.com/macarci/capataz.git
-  revision: ac5c8b9ab34ae79901eabcbfb23d3aba318564be
-  specs:
-    capataz (0.0.1)
-      parser
-
-GIT
-  remote: https://github.com/macarci/cenit-config.git
-  revision: 16b19de12378719f3d967f61f088e7b021c4e6ba
+  remote: https://github.com/cenit-io/cenit-config.git
+  revision: 57c90cbde2cb550d7b8d73e45c3ce37929cf96b6
   specs:
     cenit-config (0.0.1)
 
 GIT
-  remote: https://github.com/macarci/cenit-multi_tenancy.git
-  revision: 85c03bf48cce0882c13bff92d6c1bce4feb1ccb8
+  remote: https://github.com/cenit-io/cenit-multi_tenancy.git
+  revision: bdb7e4cb64561b1e3dda294f8ee318aebdd8eb2a
   specs:
     cenit-multi_tenancy (0.0.1)
       cenit-config
@@ -21,7 +14,7 @@ GIT
       mongoid (>= 5.0.1)
 
 GIT
-  remote: https://github.com/macarci/cenit-oauth.git
+  remote: https://github.com/cenit-io/cenit-oauth.git
   revision: 4bfba92eb1cc62f131828b716d0a7360608557f8
   specs:
     cenit-oauth (0.0.1)
@@ -32,7 +25,7 @@ GIT
       rails (>= 4.2.5)
 
 GIT
-  remote: https://github.com/macarci/cenit-service.git
+  remote: https://github.com/cenit-io/cenit-service.git
   revision: bfd958d12331bf1f82505e62d6b7f2c99802366e
   specs:
     cenit-service (0.0.1)
@@ -40,12 +33,19 @@ GIT
       rails (>= 4.2.5)
 
 GIT
-  remote: https://github.com/macarci/cenit-token.git
+  remote: https://github.com/cenit-io/cenit-token.git
   revision: 9ee5309b52d897b41b9f8fcab488c462aa0eb649
   specs:
     cenit-token (0.0.1)
       mongoid (>= 5.0.1)
       rails (>= 4.2.5)
+
+GIT
+  remote: https://github.com/macarci/capataz.git
+  revision: ac5c8b9ab34ae79901eabcbfb23d3aba318564be
+  specs:
+    capataz (0.0.1)
+      parser
 
 GIT
   remote: https://github.com/macarci/cross_origin.git
