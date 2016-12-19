@@ -25,6 +25,7 @@ module RailsAdmin
               field :name, &RailsAdmin::Models::Setup::FieldsConfigAdmin.shared_non_editable
               field :description, &RailsAdmin::Models::Setup::FieldsConfigAdmin.shared_non_editable
               field :parameters, &RailsAdmin::Models::Setup::FieldsConfigAdmin.shared_non_editable
+              field :language
               field :code, :code do
                 code_config do
                   {
@@ -46,6 +47,7 @@ module RailsAdmin
               field :namespace
               field :name
               field :description
+              field :language
               field :parameters
               field :code, :code do
                 code_config do
@@ -66,13 +68,12 @@ module RailsAdmin
               field :namespace
               field :name
               field :description
-              field :parameters
-              field :call_links
+              field :language
               field :tags
               field :updated_at
             end
 
-            fields :namespace, :name, :description, :parameters, :call_links, :tags
+            fields :namespace, :name, :description, :language, :parameters, :call_links, :tags
           end
         end
 
