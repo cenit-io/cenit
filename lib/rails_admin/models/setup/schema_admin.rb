@@ -9,7 +9,19 @@ module RailsAdmin
             weight 101
             object_label_method { :custom_title }
 
-            configure :schema
+            configure :schema, :code do
+              code_config do
+                if bindings[:object].schema_type == :json_schema
+                  {
+                    mode: 'application/json'
+                  }
+                else
+                  {
+                    mode: 'application/xml'
+                  }
+                end
+              end
+            end
 
             edit do
               field :namespace, :enum_edit do
@@ -23,19 +35,7 @@ module RailsAdmin
                 end
               end
 
-              field :schema, :code do
-                code_config do
-                  if bindings[:object].schema_type == :json_schema
-                    {
-                      mode: 'application/json'
-                    }
-                  else
-                    {
-                      mode: 'application/xml'
-                    }
-                  end
-                end
-              end
+              field :schema
 
               field :schema_data_type do
                 RailsAdmin::Models::Setup::FieldsConfigAdmin.shared_read_only
@@ -47,19 +47,7 @@ module RailsAdmin
             show do
               field :namespace
               field :uri
-              field :schema do
-                pretty_value do
-                  v =
-                    if json = JSON.parse(value) rescue nil
-                      "<code class='json'>#{JSON.pretty_generate(json).gsub('<', '&lt;').gsub('>', '&gt;')}</code>"
-                    elsif (xml = Nokogiri::XML(value)).errors.blank?
-                      "<code class='xml'>#{xml.to_xml.gsub('<', '&lt;').gsub('>', '&gt;')}</code>"
-                    else
-                      "<code>#{value}</code>"
-                    end
-                  "<pre>#{v}</pre>".html_safe
-                end
-              end
+              field :schema
               field :schema_data_type
 
               field :_id

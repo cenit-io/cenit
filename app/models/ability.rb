@@ -214,10 +214,10 @@ class Ability
       Setup::Operation,
       Setup::PlainWebhook,
       Setup::Connection,
-      Setup::Translator,
       Setup::Flow,
       Setup::Snippet
     ] +
+      Setup::Translator.class_hierarchy +
       Setup::BaseOauthProvider.class_hierarchy +
       Setup::DataType.class_hierarchy +
       Setup::Validator.class_hierarchy
