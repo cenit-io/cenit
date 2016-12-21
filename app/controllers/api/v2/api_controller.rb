@@ -27,13 +27,9 @@ module Api::V2
           end
 
         option = { including: :_type }
-        #option[:only] = self.klass.properties_index TODO Review only option and index properties
-        if @ignore
-          option[:ignore] = @ignore
-        end
-        if @embedding
-          option[:embedding] = @embedding
-        end
+        option[:only] = @only if @only
+        option[:ignore] = @ignore if @ignore
+        option[:embedding] = @embedding if @embedding
         option[:include_id] = true
         items_data = @items.map do |item|
           hash = item.default_hash(option)
