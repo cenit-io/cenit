@@ -14,6 +14,7 @@
  *   jquery.ui.autocomplete.js
  */
 (function ($) {
+    $.widget &&
     $.widget("ra.filteringSelect", {
         options: {
             createQuery: function (query) {
