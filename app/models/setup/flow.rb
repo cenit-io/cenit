@@ -221,13 +221,20 @@ module Setup
 
     def process(message={}, &block)
       executing_id, execution_graph = current_thread_cache.last || [nil, {}]
-      if executing_id.present? && !(adjacency_list = execution_graph[executing_id] ||= []).include?(id.to_s)
-        adjacency_list << id.to_s
+      if executing_id
+        execution_graph[executing_id] ||= []
+        adjacency_list = execution_graph[executing_id]
+        adjacency_list << id.to_s if adjacency_list.exclude?(id.to_s)
       end
       result =
         if (cycle = cyclic_execution(execution_graph, executing_id))
-          cycle = cycle.collect { |id| ((flow = Setup::Flow.where(id: id).first) && flow.name) || id }
-          Setup::Notification.create(message: "Cyclic flow execution: #{cycle.join(' -> ')}")
+          cycle = cycle.collect { |id| ((flow = Setup::Flow.where(id: id).first) && flow.custom_title) || id }
+          Setup::Notification.create_with(message: "Cyclic flow execution: #{cycle.to_a.join(' -> ')}",
+                                          attachment: {
+                                            filename: 'execution_graph.json',
+                                            contentType: 'application/json',
+                                            body: JSON.pretty_generate(execution_graph)
+                                          })
         else
           message = message.merge(flow_id: id.to_s,
                                   tirgger_flow_id: executing_id,
@@ -242,7 +249,8 @@ module Setup
     def translate(message, &block)
       if translator.present?
         begin
-          (flow_execution = current_thread_cache) << [id.to_s, message[:execution_graph] || {}]
+          flow_execution = current_thread_cache
+          flow_execution << [id.to_s, message[:execution_graph] || {}]
           data_type = Setup::BuildInDataType[message[:data_type_id]] ||
             Setup::DataType.where(id: message[:data_type_id]).first
           using_data_type(data_type) if data_type
@@ -299,11 +307,11 @@ module Setup
       process(scheduler: event) if @scheduler_checked && event.activated
     end
 
-    def cyclic_execution(execution_graph, start_id, cycle=[])
+    def cyclic_execution(execution_graph, start_id, cycle = [])
       if cycle.include?(start_id)
         cycle << start_id
         return cycle
-      elsif adjacency_list = execution_graph[start_id]
+      elsif (adjacency_list = execution_graph[start_id])
         cycle << start_id
         adjacency_list.each { |id| return cycle if cyclic_execution(execution_graph, id, cycle) }
         cycle.pop
@@ -362,17 +370,23 @@ module Setup
         end
       end
       verbose_response =
-        webhook.with(connection_role).and(authorization).submit(options) do |response, template_parameters|
+        webhook.target.with(connection_role).and(authorization).submit(options) do |response, template_parameters|
           translator.run(target_data_type: data_type,
                          data: response.body,
                          discard_events: discard_events,
                          parameters: template_parameters,
                          headers: response.headers.to_hash,
                          statusCode: response.code,
-                         task: message[:task]) #if response.code == 200
+                         task: message[:task])
         end
-      if auto_retry == :automatic && (200...299).exclude?(verbose_response[:http_response].code)
-        fail unsuccessful_response(verbose_response[:http_response], message)
+      if auto_retry == :automatic
+        if (http_response = verbose_response[:http_response])
+          if (200...299).exclude?(http_response.code)
+            fail unsuccessful_response(http_response, message)
+          end
+        else
+          fail 'Connection error'
+        end
       end
     end
 
@@ -424,8 +438,14 @@ module Setup
             end
             true
           end
-        if auto_retry == :automatic && (200...299).exclude?(verbose_response[:http_response].code)
-          fail unsuccessful_response(verbose_response[:http_response], message)
+        if auto_retry == :automatic
+          if (http_response = verbose_response[:http_response])
+            if (200...299).exclude?(http_response.code)
+              fail unsuccessful_response(http_response, message)
+            end
+          else
+            fail 'Connection error'
+          end
         end
         connections_present = verbose_response[:connections_present]
       end
