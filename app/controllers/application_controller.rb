@@ -6,7 +6,11 @@ class ApplicationController < ActionController::Base
                        if: Proc.new { |c| c.request.format =~ %r{application/json} }
 
   rescue_from CanCan::AccessDenied, RailsAdmin::ActionNotAllowed do |exception|
-    redirect_to main_app.root_path, :alert => exception.message
+    if _current_user
+      redirect_to main_app.root_path, :alert => exception.message
+    else
+      redirect_to new_session_path(User)
+    end
   end
 
   def doorkeeper_oauth_client
@@ -23,7 +27,7 @@ class ApplicationController < ActionController::Base
     end
     @token ||= OAuth2::AccessToken.new(doorkeeper_oauth_client, current_user.doorkeeper_access_token, opts) if current_user
   end
-  
+
   around_filter :scope_current_account
 
   protected
