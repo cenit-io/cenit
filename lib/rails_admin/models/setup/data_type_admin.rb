@@ -91,18 +91,7 @@ module RailsAdmin
               field :slug
               field :_type
               field :storage_size
-              field :schema do
-                pretty_value do
-                  v =
-                    if json = JSON.pretty_generate(value) rescue nil
-                      "<code class='json'>#{json.gsub('<', '&lt;').gsub('>', '&gt;')}</code>"
-                    else
-                      value
-                    end
-
-                  "<pre>#{v}</pre>".html_safe
-                end
-              end
+              field :schema, :json_schema
 
               field :_id
               field :created_at

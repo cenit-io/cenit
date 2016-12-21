@@ -88,11 +88,7 @@ module RailsAdmin
               field :discard_events
               field :style
               field :source_handler
-              field :code do
-                pretty_value do
-                  "<pre><code class='ruby'>#{value}</code></pre>".html_safe
-                end
-              end
+              field :code
 
               field :_id
               field :created_at

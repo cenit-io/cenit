@@ -3,7 +3,7 @@ module RailsAdmin
     Model.class_eval do
 
       register_instance_option :public_access? do
-        false
+        Ability::CROSSING_MODELS_WITH_ORIGIN.include?(abstract_model.model) rescue false
       end
 
       Actions.all.each do |action|
