@@ -23,6 +23,7 @@ module RailsAdmin
             end
 
             configure :schema, :json_schema do
+              help { 'Required' }
             end
 
             configure :storage_size, :decimal do
@@ -64,9 +65,7 @@ module RailsAdmin
             edit do
               field :namespace, :enum_edit, &RailsAdmin::Models::Setup::FieldsConfigAdmin.shared_non_editable
               field :name, &RailsAdmin::Models::Setup::FieldsConfigAdmin.shared_non_editable
-              field :schema, :json_schema do
-                help { 'Required' }
-              end
+              field :schema
               field :title, &RailsAdmin::Models::Setup::FieldsConfigAdmin.shared_non_editable
               field :slug
               field :before_save_callbacks, &RailsAdmin::Models::Setup::FieldsConfigAdmin.shared_non_editable
@@ -88,11 +87,7 @@ module RailsAdmin
               field :name
               field :slug
               field :storage_size
-              field :schema do
-                pretty_value do
-                  "<pre><code class='ruby'>#{JSON.pretty_generate(value)}</code></pre>".html_safe
-                end
-              end
+              field :schema
               field :before_save_callbacks
               field :records_methods
               field :data_type_methods
