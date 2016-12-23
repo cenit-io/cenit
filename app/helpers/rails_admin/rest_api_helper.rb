@@ -2,6 +2,14 @@ module RailsAdmin
   ###
   # Generate sdk code for api service.
   module RestApiHelper
+
+    include RailsAdmin::RestApi::Curl
+    include RailsAdmin::RestApi::Php
+    include RailsAdmin::RestApi::Ruby
+    include RailsAdmin::RestApi::Python
+    include RailsAdmin::RestApi::Nodejs
+    include RailsAdmin::RestApi::JavaScript
+
     ###
     # Returns api specification paths for current namespace and model.
     def api_current_paths
@@ -50,101 +58,6 @@ module RailsAdmin
     # Returns lang command for service with given method and path.
     def api_code(lang, method, path)
       send("api_#{lang}_code", method, path)
-    end
-
-    ###
-    # Returns cURL command for service with given method and path.
-    def api_curl_code(method, path)
-      # Get vars definition.
-      data, login = vars(method, path)
-
-      # Generate uri and command.
-      command = "curl -X #{method.upcase} \\\n"
-      command << "     -H 'X-User-Access-Key: #{login ? login.key : '-'}' \\\n"
-      command << "     -H 'X-User-Access-Token: #{login ? login.token : '-'}' \\\n"
-      command << "     -H 'Content-Type: application/json' \\\n"
-      command << "     -d '#{data.to_json}' \\\n" unless data.empty?
-      command << "     '#{api_uri(method, path)}'"
-
-      command
-    end
-
-    ###
-    # Returns PHP command for service with given method and path.
-    def api_php_code(method, path)
-      # Get vars definition.
-      data, login = vars(method, path)
-
-      # Generate uri and command.
-      command = "  $uri = '#{api_uri(method, path)}';\n"
-      command << "  $headers = array(\n"
-      command << "    'Content-Type: application/json',\n"
-      command << "    'X-User-Access-Key: #{login ? login.key : '-'}',\n"
-      command << "    'X-User-Access-Token: #{login ? login.token : '-'}'\n"
-      command << "  );\n"
-      command << "\n"
-      command << "  $options = array(\n"
-      command << "    'http' => array(\n"
-      command << "      'header'  => implode($headers, \"\r\n\"),\n"
-      command << "      'method'  => '#{method.upcase}',\n"
-      command << "      'content' => '#{data.to_json}'\n" unless data.empty?
-      command << "    )\n"
-      command << "  );\n"
-      command << "\n"
-      command << "  $context  = stream_context_create($options);\n"
-      command << "  $response = file_get_contents($uri, false, $context);\n"
-      command << "\n"
-      command << "  print_r(json_decode($response, true));"
-
-      command
-    end
-
-    ###
-    # Returns Ruby command for service with given method and path.
-    def api_ruby_code(method, path)
-      # Get vars definition.
-      data, login = vars(method, path)
-
-      # Generate uri and command.
-      command = "TODO: REST-API-RUBY"
-
-      command
-    end
-
-    ###
-    # Returns Python command for service with given method and path.
-    def api_python_code(method, path)
-      # Get vars definition.
-      data, login = vars(method, path)
-
-      # Generate uri and command.
-      command = "TODO: REST-API-PYTHON"
-
-      command
-    end
-
-    ###
-    # Returns NodeJS command for service with given method and path.
-    def api_nodejs_code(method, path)
-      # Get vars definition.
-      data, login = vars(method, path)
-
-      # Generate uri and command.
-      command = "TODO: REST-API-NodeJS"
-
-      command
-    end
-
-    ###
-    # Returns JavaScript command for service with given method and path.
-    def api_javascript_code(method, path)
-      # Get vars definition.
-      data, login = vars(method, path)
-
-      # Generate uri and command.
-      command = "TODO: REST-API-JAVASCRIPT"
-
-      command
     end
 
     ###
