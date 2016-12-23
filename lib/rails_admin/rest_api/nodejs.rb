@@ -10,7 +10,23 @@ module RailsAdmin
         data, login = vars(method, path)
 
         # Generate uri and command.
-        command = "TODO: REST-API-NodeJS"
+        command =  "var request = require('request'),\n"
+        command << "    options = {\n"
+        command << "      method: '#{method.upcase}',\n"
+        command << "      url: '#{api_uri(method, path)}',\n"
+        command << "      headers: {\n"
+        command << "        'Content-Type': 'application/json',\n"
+        command << "        'X-User-Access-Key': '#{login ? login.key : '-'}',\n"
+        command << "        'X-User-Access-Token': '#{login ? login.token : '-'}'\n"
+        command << "      },\n"
+        command << "      form: #{data.to_json}\n" unless data.empty?
+        command << "    };\n"
+        command << "\n"
+        command << "request(options, function (error, response, body) {\n"
+        command << "  if (error) throw error;\n"
+        command << "\n"
+        command << "  console.log(JSON.parse(body));\n"
+        command << "});\n"
 
         command
       end
