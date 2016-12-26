@@ -1,18 +1,22 @@
 <ul class="nav nav-tabs tabs-left">
   <li class="active"><a data-toggle="tab" href="#curl">cURL</a></li>
-  <li><a data-toggle="tab" href="#php">PHP</a></li>
   <li><a data-toggle="tab" href="#nodejs">NodeJS</a></li>
+  <li><a data-toggle="tab" href="#php">PHP</a></li>
+  <li><a data-toggle="tab" href="#python">Python</a></li>
 </ul>
 
 <div class="tab-content">
   <div id="curl" class="tab-pane fade in active">
     <%= render :partial => 'rails_admin/rest_api_sdk/code', :locals => { lang: 'curl' } %>
   </div>
+  <div id="nodejs" class="tab-pane fade">
+    <%= render :partial => 'rails_admin/rest_api_sdk/code', :locals => { lang: 'nodejs' } %>
+  </div>
   <div id="php" class="tab-pane fade">
     <%= render :partial => 'rails_admin/rest_api_sdk/code', :locals => { lang: 'php' } %>
   </div>
-  <div id="nodejs" class="tab-pane fade">
-    <%= render :partial => 'rails_admin/rest_api_sdk/code', :locals => { lang: 'nodejs' } %>
+  <div id="python" class="tab-pane fade">
+    <%= render :partial => 'rails_admin/rest_api_sdk/code', :locals => { lang: 'python' } %>
   </div>
 </div>
 
