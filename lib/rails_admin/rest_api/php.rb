@@ -10,7 +10,8 @@ module RailsAdmin
         data, login = vars(method, path)
 
         # Generate uri and command.
-        command = "  $uri = '#{api_uri(method, path)}';\n"
+        command = ""
+        command << "  $uri = '#{api_uri(method, path)}';\n"
         command << "  $headers = array(\n"
         command << "    'Content-Type: application/json',\n"
         command << "    'X-User-Access-Key: #{login ? login.key : '-'}',\n"

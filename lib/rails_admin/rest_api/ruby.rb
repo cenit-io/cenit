@@ -14,13 +14,12 @@ module RailsAdmin
           }
         }
         # Generate uri and command.
-        command = "require 'rest-client'\n"
+        command = ""
+        command << "require 'rest-client'\n"
         command << "require 'json'\n"
         command << "\n"
-        command << "uri = '#{api_uri(method, path)}'\n"
-        command << "\n"
         command << "response = RestClient::Request.execute(\n"
-        command << "  :url => uri,\n"
+        command << "  :url => '#{api_uri(method, path)}',\n"
         command << "  :method => '#{method.upcase}',\n"
         command << "  :headers => {\n"
         command << "    'Content-Type' => 'application/json',\n"

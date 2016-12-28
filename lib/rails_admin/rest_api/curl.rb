@@ -10,7 +10,8 @@ module RailsAdmin
         data, login = vars(method, path)
 
         # Generate uri and command.
-        command = "curl -X #{method.upcase} \\\n"
+        command = ""
+        command << "curl -X #{method.upcase} \\\n"
         command << "     -H 'X-User-Access-Key: #{login ? login.key : '-'}' \\\n"
         command << "     -H 'X-User-Access-Token: #{login ? login.token : '-'}' \\\n"
         command << "     -H 'Content-Type: application/json' \\\n"

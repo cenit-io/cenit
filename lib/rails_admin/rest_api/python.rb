@@ -10,11 +10,11 @@ module RailsAdmin
         data, login = vars(method, path)
 
         # Generate uri and command.
-        command =  ""
-        command <<  "import json\n" unless data.empty?
-        command <<  "from requests import Request, Session\n"
-        command <<  "\n"
-        command <<  "uri = '#{api_uri(method, path)}'\n"
+        command = ""
+        command << "import json\n" unless data.empty?
+        command << "from requests import Request, Session\n"
+        command << "\n"
+        command << "uri = '#{api_uri(method, path)}'\n"
         command << "options = {\n"
         command << "  'headers': {\n"
         command << "    'Content-Type': 'application/json',\n"

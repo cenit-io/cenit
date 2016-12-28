@@ -10,7 +10,8 @@ module RailsAdmin
         data, login = vars(method, path)
 
         # Generate uri and command.
-        command =  "var request = require('request'),\n"
+        command = ""
+        command << "var request = require('request'),\n"
         command << "    options = {\n"
         command << "      method: '#{method.upcase}',\n"
         command << "      url: '#{api_uri(method, path)}',\n"
