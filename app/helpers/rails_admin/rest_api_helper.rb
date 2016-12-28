@@ -1,3 +1,5 @@
+require 'rails_admin/rest_api/jquery'
+
 module RailsAdmin
   ###
   # Generate sdk code for api service.
@@ -8,7 +10,7 @@ module RailsAdmin
     include RailsAdmin::RestApi::Ruby
     include RailsAdmin::RestApi::Python
     include RailsAdmin::RestApi::Nodejs
-    include RailsAdmin::RestApi::JavaScript
+    include RailsAdmin::RestApi::JQuery
 
     ###
     # Returns api specification paths for current namespace and model.
