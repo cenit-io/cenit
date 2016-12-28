@@ -19,7 +19,7 @@ module RailsAdmin
         command << "\n"
         command << "  $options = array(\n"
         command << "    'http' => array(\n"
-        command << "      'header'  => implode($headers, \"\r\n\"),\n"
+        command << "      'header'  => implode($headers, \"\\r\\n\"),\n"
         command << "      'method'  => '#{method.upcase}',\n"
         command << "      'content' => '#{data.to_json}'\n" unless data.empty?
         command << "    )\n"
