@@ -438,6 +438,7 @@ GEM
       http-cookie (>= 1.0.2, < 2.0)
       mime-types (>= 1.16, < 3.0)
       netrc (~> 0.7)
+    rkelly-remix (0.0.7)
     rmagick (2.15.4)
     rolify (4.1.1)
     rqrcode (0.10.1)
@@ -626,6 +627,7 @@ DEPENDENCIES
   rails_12factor
   rails_admin (~> 0.7.0)
   rails_layout
+  rkelly-remix
   rolify
   rspec-rails
   rubocop
