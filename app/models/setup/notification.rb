@@ -1,16 +1,15 @@
 module Setup
   class Notification
     include CenitScoped
+    include Setup::AttachmentUploader
     include RailsAdmin::Models::Setup::NotificationAdmin
 
     build_in_data_type
 
     deny :copy, :new, :edit, :translator_update, :import, :convert
 
-
     field :type, type: Symbol, default: :error
     field :message, type: String
-    mount_uploader :attachment, AccountUploader
     belongs_to :task, class_name: Setup::Task.to_s, inverse_of: :notifications
 
     default_scope -> { desc(:created_at) }
@@ -82,15 +81,8 @@ module Setup
         notification = Setup::Notification.new(attributes)
         notification.skip_notification_level(skip)
         temporary_file = nil
-        if attachment && (readable = attachment[:body]).present?
-          if readable.is_a?(String)
-            temporary_file = Tempfile.new('file_')
-            temporary_file.binmode
-            temporary_file.write(readable)
-            temporary_file.rewind
-            readable = Cenit::Utility::Proxy.new(temporary_file, original_filename: attachment[:filename], contentType: attachment[:contentType])
-          end
-          notification.attachment = readable
+        if attachment && attachment[:body].present?
+          notification.attach(attachment)
         end
         notification.save ? notification : nil
       ensure
