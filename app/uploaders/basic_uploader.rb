@@ -6,7 +6,7 @@ class BasicUploader < CarrierWave::Uploader::Base
   end
 
   def to_hash(options={})
-    hash = {}
+    hash = { url: "#{Cenit.homepage}#{url}" }
     versions.keys.each do |key|
       hash[key] = "#{Cenit.homepage}#{send(key).url}"
     end

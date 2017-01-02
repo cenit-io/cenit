@@ -21,15 +21,21 @@ module Setup
 
     def store(source, opts)
       uploader = opts.is_a?(CarrierWave::Uploader) ? opts : opts[:on]
-      fail "Ivalid options argument #{opts}, an uploader expected :on" unless uploader.is_a?(CarrierWave::Uploader::Base)
+      fail "Invalid options argument #{opts}, an uploader expected :on" unless uploader.is_a?(CarrierWave::Uploader::Base)
       field = uploader.mounted_as
       if source.is_a?(CarrierWave::Uploader::Base)
         send("#{field}=", uploader)
       else
+        store_options = { data: source }
+        %w(filename contentType).each do |option|
+          if (value = opts[option.to_sym] || opts[option])
+            store_options[option] = value
+          end
+        end
         if opts[:immediately]
-          store_on(field, source)
+          store_on(field, store_options)
         else
-          lazy_storage[field] = source
+          lazy_storage[field] = store_options
         end
       end
     end
@@ -37,7 +43,7 @@ module Setup
     module ClassMethods
 
       def before_store(&block)
-          before_store_callbacks << block
+        before_store_callbacks << block
       end
 
       def before_store_callbacks
@@ -51,13 +57,16 @@ module Setup
       @lazy_storage ||= {}
     end
 
-    def store_on(field, data)
+    def store_on(field, store_options)
+      data = store_options[:data] || store_options['data']
       if data.is_a?(String)
         temporary_file = Tempfile.new('data_')
         temporary_file.binmode
         temporary_file.write(data)
         temporary_file.rewind
-        data =  File.open(temporary_file)
+        data = Cenit::Utility::Proxy.new(temporary_file,
+                                         original_filename: store_options['filename'] || temporary_file.name,
+                                         contentType: store_options['contentType'] || 'application')
       end
       readables << data
       send("#{field}=", data)

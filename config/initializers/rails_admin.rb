@@ -69,7 +69,8 @@ RailsAdmin::Config::Actions.register(:export, RailsAdmin::Config::Actions::BulkE
   RailsAdmin::Config::Fields::Types::HtmlErb,
   RailsAdmin::Config::Fields::Types::OptionalBelongsTo,
   RailsAdmin::Config::Fields::Types::Code,
-  RailsAdmin::Config::Fields::Types::Tag
+  RailsAdmin::Config::Fields::Types::Tag,
+  RailsAdmin::Config::Fields::Types::TimeSpan
 ].each { |f| RailsAdmin::Config::Fields::Types.register(f) }
 
 require 'rails_admin/config/fields/factories/tag'
@@ -352,6 +353,8 @@ RailsAdmin.config do |config|
   Setup::Notification
 
   Setup::Task
+
+  Setup::TaskExecution
 
   Setup::FlowExecution
 

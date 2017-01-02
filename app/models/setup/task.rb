@@ -21,6 +21,9 @@ module Setup
     field :state, type: Hash, default: {}
     field :auto_retry, type: Symbol, default: -> { auto_retry_enum.first }
 
+    belongs_to :current_execution, class_name: Setup::TaskExecution.to_s, inverse_of: nil
+    has_many :executions, class_name: Setup::TaskExecution.to_s, inverse_of: :task, dependent: :destroy
+
     has_many :notifications, class_name: Setup::Notification.to_s, inverse_of: :task, dependent: :destroy
 
     belongs_to :thread_token, class_name: ThreadToken.to_s, inverse_of: nil
@@ -73,9 +76,10 @@ module Setup
 
     STATUS = [:pending, :running, :failed, :completed, :retrying, :broken, :unscheduled, :paused]
     ACTIVE_STATUS = [:running, :retrying]
-    NON_ACTIVE_STATUS = STATUS.reject { |status| ACTIVE_STATUS.include?(status) }
+    NON_ACTIVE_STATUS = STATUS - ACTIVE_STATUS
     RUNNING_STATUS = ACTIVE_STATUS + [:paused]
-    NOT_RUNNING_STATUS = STATUS.reject { |status| RUNNING_STATUS.include?(status) }
+    NOT_RUNNING_STATUS = STATUS - RUNNING_STATUS
+    FINISHED_STATUS = NOT_RUNNING_STATUS - [:pending]
 
     def running_status?
       RUNNING_STATUS.include?(status)
@@ -87,7 +91,13 @@ module Setup
         Thread.list.any? { |thread| thread[:task_token] == thread_token.token }
     end
 
-    def execute
+    def new_execution
+      self.current_execution = Setup::TaskExecution.create(task: self)
+      save
+      current_execution
+    end
+
+    def execute(options = {})
       if running? || !Cenit::Locker.lock(self)
         notify(message: "Executing task ##{id} at #{Time.now} but it is already running")
       else
@@ -97,26 +107,31 @@ module Setup
         if status == :retrying || status == :failed
           self.retries += 1
         end
+        self.current_execution = Setup::TaskExecution.find(options[:execution_id])
+        time = Time.now
         if running_status?
-          notify(message: "Restarting task ##{id} at #{Time.now}", type: :notice)
+          notify(message: "Restarting task ##{id} at #{time}", type: :notice)
         else
           self.attempts += 1
           self.progress = 0
           self.status = :running
-          notify(type: :info, message: "Task ##{id} started at #{Time.now}")
+          notify(type: :info, message: "Task ##{id} started at #{time}")
         end
+        current_execution.start(time: time)
         run(message)
+        time = Time.now
         if resuming_later?
-          finish(:paused, "Task ##{id} paused at #{Time.now}", :notice)
+          finish(:paused, "Task ##{id} paused at #{time}", :notice, time)
         else
           self.state = {}
           self.progress = 100
-          finish(:completed, "Task ##{id} completed at #{Time.now}", :info)
+          finish(:completed, "Task ##{id} completed at #{time}", :info, time)
         end
       end
     rescue ::Exception => ex
+      time = Time.now
       if ex.is_a?(Task::Exception)
-        finish(ex.status, ex.message, ex.message_type)
+        finish(ex.status, ex.message, ex.message_type, time)
       else
         @finish_attachment =
           {
@@ -124,7 +139,7 @@ module Setup
             contentType: 'plain/text',
             body: ex.backtrace.join("\n")
           }
-        finish(:failed, "Task ##{id} failed at #{Time.now}: #{ex.message}", :error)
+        finish(:failed, "Task ##{id} failed at #{time}: #{ex.message}", :error, time)
       end
     ensure
       reload
@@ -140,7 +155,7 @@ module Setup
     end
 
     def unschedule
-      finish(:unscheduled, "Task ##{id} unscheduled at #{Time.now}", :warning)
+      finish(:unscheduled, "Task ##{id} unscheduled at #{time = Time.now}", :warning, time)
     end
 
     def notify(attrs_or_exception)
@@ -263,7 +278,7 @@ module Setup
 
     private
 
-    def finish(status, message, message_type)
+    def finish(status, message, message_type, time)
       self.status = status
       thread_token.destroy if thread_token.present?
       self.thread_token = nil
@@ -292,6 +307,10 @@ module Setup
                       '1d'
                     end
         end
+      end
+      if current_execution
+        current_execution.finish(status: status, time: time)
+        self.current_execution = nil
       end
       notify(type: message_type, message: message, attachment: finish_attachment)
     end

@@ -11,7 +11,8 @@ module Setup
     end
 
     def run(message)
-      if (algorithm = Setup::Algorithm.where(id: algorithm_id = message[:algorithm_id]).first)
+      algorithm_id = message[:algorithm_id]
+      if (algorithm = Setup::Algorithm.where(id: algorithm_id).first)
         result =
           case result = algorithm.run(message[:input])
           when Hash, Array
@@ -29,6 +30,7 @@ module Setup
           else
             nil
           end
+        current_execution.attach(attachment)
         notify(message: "'#{algorithm.custom_title}' result" + (result.present? ? '' : ' was empty'),
                type: :notice,
                attachment: attachment,

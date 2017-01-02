@@ -15,9 +15,11 @@ module Setup
                               task: self,
                               options: message[:options].deep_dup)
       if result && Cenit::Utility.json_object?(result)
+        attachment = Setup::Translation.attachment_for(data_type, translator, result)
+        current_execution.attach(attachment)
         notify(type: :notice,
                message: "'#{translator.custom_title}' export result",
-               attachment: Setup::Translation.attachment_for(data_type, translator, result),
+               attachment: attachment,
                skip_notification_level: message[:skip_notification_level])
       end
     end

@@ -18,7 +18,23 @@ module RailsAdmin
               [RailsAdmin::Adapters::Mongoid::Association.new(association, abstract_model.model)]
             end
 
-            configure :code, :code
+            configure :code, :code do
+              help { 'Required' }
+              code_config do
+                {
+                  mode: case bindings[:object].language
+                        when :php
+                          'text/x-php'
+                        when :javascript
+                          'text/javascript'
+                        when :python
+                          'text/x-python'
+                        else
+                          'text/x-ruby'
+                        end
+                }
+              end
+            end
 
             edit do
               field :namespace, :enum_edit, &RailsAdmin::Models::Setup::FieldsConfigAdmin.shared_non_editable
@@ -26,14 +42,7 @@ module RailsAdmin
               field :description, &RailsAdmin::Models::Setup::FieldsConfigAdmin.shared_non_editable
               field :parameters, &RailsAdmin::Models::Setup::FieldsConfigAdmin.shared_non_editable
               field :language
-              field :code, :code do
-                code_config do
-                  {
-                    mode: 'text/x-ruby'
-                  }
-                end
-                help { 'Required' }
-              end
+              field :code
               field :call_links do
                 RailsAdmin::Models::Setup::FieldsConfigAdmin.shared_read_only
                 visible { bindings[:object].call_links.present? }
@@ -49,14 +58,7 @@ module RailsAdmin
               field :description
               field :language
               field :parameters
-              field :code, :code do
-                code_config do
-                  {
-                    mode: 'text/x-ruby',
-                    readOnly: 'nocursor'
-                  }
-                end
-              end
+              field :code
               field :call_links
               field :tags
               field :_id

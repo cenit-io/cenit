@@ -19,7 +19,19 @@ module RailsAdmin
               field :auto_retry
             end
 
-            fields :source_collection, :shared_collection, :description, :attempts_succeded, :retries, :progress, :status, :notifications, :updated_at
+            list do
+              field :source_collection
+              field :shared_collection
+              field :description
+              field :scheduler
+              field :attempts_succeded
+              field :retries
+              field :progress
+              field :status
+              field :updated_at
+            end
+
+            fields :source_collection, :shared_collection, :description, :attempts_succeded, :retries, :progress, :status, :executions, :notifications, :updated_at
           end
         end
 
