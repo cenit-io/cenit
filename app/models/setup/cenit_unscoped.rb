@@ -45,6 +45,15 @@ module Setup
       def deny(*actions)
         Setup::Models.excluded_actions_for self, *actions
       end
+
+      def mongoid_root_class
+        @mongoid_root_class ||=
+          begin
+            root = self
+            root = root.superclass while root.superclass.include?(Mongoid::Document)
+            root
+          end
+      end
     end
   end
 end
