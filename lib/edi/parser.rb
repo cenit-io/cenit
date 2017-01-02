@@ -19,7 +19,7 @@ module Edi
       def parse_json(data_type, content, options={}, record=nil, model=nil)
         content = JSON.parse(content) unless content.is_a?(Hash)
         p =
-          case (p = options.delete(:primary_fields))
+          case (p = options.delete(:primary_fields) || options.delete('primary_fields'))
           when Array
             p
           when Enumerable
@@ -28,7 +28,7 @@ module Edi
             [p]
           end
         s =
-          case (s = options[:primary_field] || [])
+          case (s = options[:primary_field] || options.delete('primary_field') || [])
           when Array
             s
           when Enumerable
@@ -126,7 +126,7 @@ module Edi
 
       def do_parse_json(data_type, model, json, options, json_schema, record=nil, new_record=nil, container = nil)
         updating = !(record.nil? && new_record.nil?) || options[:add_only]
-        (primary_fields = options.delete(:primary_field)).present? ||
+        (primary_fields = options.delete(:primary_field) || options.delete('primary_field')).present? ||
           (primary_fields = json.is_a?(Hash) && json['_primary']).present? ||
           (primary_fields = [:id])
         primary_fields = [primary_fields] unless primary_fields.is_a?(Array)
@@ -158,6 +158,7 @@ module Edi
         if json.is_a?(Hash)
           resetting = json['_reset'] || []
           resetting = (resetting.is_a?(Enumerable) ? resetting.to_a : [resetting]) + options[:reset].to_a
+          resetting = resetting.collect(&:to_s)
           taken_items = Set.new
           phase = 0
           while phase < 2
