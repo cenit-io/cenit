@@ -47,6 +47,7 @@ module RailsAdmin
                 RailsAdmin::Models::Setup::FieldsConfigAdmin.shared_read_only
                 visible { bindings[:object].call_links.present? }
               end
+              field :execution_mode
               field :store_output, &RailsAdmin::Models::Setup::FieldsConfigAdmin.shared_non_editable
               field :output_datatype, &RailsAdmin::Models::Setup::FieldsConfigAdmin.shared_non_editable
               field :validate_output, &RailsAdmin::Models::Setup::FieldsConfigAdmin.shared_non_editable
