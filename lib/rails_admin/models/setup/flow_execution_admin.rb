@@ -7,8 +7,9 @@ module RailsAdmin
         included do
           rails_admin do
             navigation_label 'Monitors'
-            visible false
+            visible true
             object_label_method { :to_s }
+            parent ::Setup::Task
 
             configure :attempts_succeded, :text do
               label 'Attempts/Succedded'
