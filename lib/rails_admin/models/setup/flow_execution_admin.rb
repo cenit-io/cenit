@@ -9,7 +9,7 @@ module RailsAdmin
             navigation_label 'Monitors'
             visible true
             object_label_method { :to_s }
-            parent ::Setup::Task
+            weight 611
 
             configure :attempts_succeded, :text do
               label 'Attempts/Succedded'
