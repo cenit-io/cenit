@@ -1,3 +1,5 @@
+require 'rkelly'
+
 module Setup
   class Algorithm
     include SnippetCode
@@ -26,17 +28,17 @@ module Setup
 
     attr_reader :last_output
 
-    field :language, type: String, default: :Ruby
+    field :language, type: Symbol, default: -> { new_record? ? :auto : ruby }
 
-    validates_inclusion_of :language, in: ->(alg) { alg.class.language_enum }
+    validates_inclusion_of :language, in: ->(alg) { alg.class.language_enum.values }
 
     def code_extension
       case language
-      when :Python
+      when :python
         '.py'
-      when :NodeJS
+      when :javascript
         '.js'
-      when :PHP
+      when :php
         '.php'
       else
         '.rb'
@@ -75,12 +77,6 @@ module Setup
         end
       end
       errors.blank?
-    end
-
-    def parse_code
-      parse_method = "parse_#{language.to_s.underscore}_code"
-      parse_method = :parse_ruby_code unless respond_to?(parse_method)
-      send(parse_method, logs_collector)
     end
 
     def validate_output_processing
@@ -169,10 +165,7 @@ module Setup
     def run(input)
       input = Cenit::Utility.json_value_of(input)
       input = [input] unless input.is_a?(Array)
-      args = {}
-      parameters.each { |parameter| args[parameter.name] = input.shift }
-      do_link
-      rc = Cenit::RubyInterpreter.run(code, args, self_linker: self_linker || self)
+      rc = Cenit::BundlerInterpreter.run(self, *input)
 
       if rc.present?
         if store_output
@@ -242,10 +235,20 @@ module Setup
                                             cache: false)
     end
 
+    def language_name
+      self.class.language_enum.keys.detect { |key| self.class.language_enum[key] == language }
+    end
+
     class << self
 
       def language_enum
-        [:NodeJS, :Ruby, :Python, :PHP]
+        {
+          'Auto detect': :auto,
+          # 'Python': :python,
+          # 'PHP': :php,
+          'JavaScript': :javascript,
+          'Ruby': :ruby
+        }
       end
 
       def configuration_model_name
@@ -253,20 +256,71 @@ module Setup
       end
     end
 
+    def parse_code
+      if language == :auto
+        logs = {}
+        lang = self.class.language_enum.values.detect do |lang|
+          next if lang == :auto
+          logs.clear
+          parse_method = "parse_#{lang}_code"
+          logs.merge!(send(parse_method))
+          logs[:errors].blank?
+        end
+        if lang
+          self.language = lang
+        else
+          logs.clear
+          logs[:errors] = ["can't be auto-detected with syntax errors or typed language is not supported"]
+        end
+        logs
+      else
+        parse_method = "parse_#{language}_code"
+        send(parse_method)
+      end
+    end
+
     protected
 
     def parse_ruby_code
-      logs = {}
-      Capataz.rewrite(code, halt_on_error: false, logs: logs, locals: parameters.collect { |p| p.name })
+      logs = { errors: errors = [] }
+      unless Capataz.rewrite(code, halt_on_error: false, logs: logs, locals: parameters.collect { |p| p.name })
+        errors << 'with no valid Ruby syntax'
+      end
       logs
     end
 
-    def parse_node_js_code
-
+    def parse_javascript_code
+      logs = { errors: errors = [] }
+      ast = RKelly.parse(code) rescue nil
+      if ast
+        logs[:self_sends] = call_names = Set.new
+        ast.each do |node|
+          if node.is_a?(RKelly::Nodes::FunctionCallNode) && (node = node.value).is_a?(RKelly::Nodes::ResolveNode)
+            call_names << node.value
+          end
+        end
+      else
+        errors << 'with no valid JavaScript syntax'
+      end
+      logs
     end
 
     def parse_php_code
-
+      {
+        errors: ['PHP parsing not yet supported']
+      }
     end
+
+    def parse_python_code
+      {
+        errors: ['Python parsing not yet supported']
+      }
+    end
+  end
+end
+
+class Array
+  def range=(arg)
+    @range = arg
   end
 end

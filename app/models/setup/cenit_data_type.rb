@@ -32,6 +32,10 @@ module Setup
 
     delegate :title, :schema, :subtype?, to: :build_in, allow_nil: true
 
+    def data_type_storage_collection_name
+      Account.tenant_collection_name(records_model.mongoid_root_class)
+    end
+
     def method_missing(symbol, *args)
       if build_in.respond_to?(symbol)
         build_in.send(symbol, *args)

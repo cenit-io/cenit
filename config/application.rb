@@ -46,7 +46,7 @@ module Cenit
 
         ThreadToken.destroy_all
         Setup::Task.where(:status.in => Setup::Task::ACTIVE_STATUS).update_all(status: :broken)
-
+        Setup::TaskExecution.where(:status.nin => Setup::Task::FINISHED_STATUS).update_all(status: :broken, completed_at: Time.now)
       end
 
       Account.current = nil

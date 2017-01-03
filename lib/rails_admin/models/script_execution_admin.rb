@@ -27,11 +27,10 @@ module RailsAdmin
             field :retries
             field :progress
             field :status
-            field :notifications
             field :updated_at
           end
 
-          fields :script, :description, :scheduler, :attempts_succeded, :retries, :progress, :status, :notifications
+          fields :script, :description, :scheduler, :attempts_succeded, :retries, :progress, :status, :executions, :notifications
         end
 
       end

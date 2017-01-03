@@ -231,7 +231,7 @@ module Edi
       if (include_id = options[:include_id]).respond_to?(:call)
         include_id = include_id.call(record)
       end
-      store(json, 'id', record.id, options) if include_id
+      do_store(json, 'id', record.id, options) if include_id
       content_property = nil
       model.stored_properties_on(record).each do |property_name|
         next if (protected = (model.schema['protected'] || []).include?(property_name)) && options[:protected]
@@ -250,7 +250,7 @@ module Edi
             ((property_schema['edi'] || {})['discard'] && !(included_anyway = options[:including_discards] || options[:including].include?(property_name))) ||
             (can_be_referenced && referenced && !key_properties.include?(property_name)) ||
             options[:ignore].include?(name.to_sym) ||
-            (options[:only] && !options[:only].include?(name.to_sym) && !included_anyway)
+            (options[:only].present? && options[:only].exclude?(name.to_sym) && !included_anyway)
         end
         case property_schema['type']
         when 'array'
@@ -264,12 +264,12 @@ module Edi
           else
             new_value = nil
           end
-          store(json, name, new_value, options, key_properties.include?(property_name))
+          do_store(json, name, new_value, options, key_properties.include?(property_name))
         when 'object'
           sub_record = record.send(property_name)
           next if inspecting && (scope = options[:inspect_scope]) && !scope.include?(sub_record)
           value = record_to_hash(sub_record, options, can_be_referenced && property_schema['referenced'] && !property_schema['export_embedded'], property_model)
-          store(json, name, value, options, key_properties.include?(property_name))
+          do_store(json, name, value, options, key_properties.include?(property_name))
         else
           value =
             begin
@@ -280,7 +280,7 @@ module Edi
           if value.nil?
             value = property_schema['default']
           end
-          store(json, name, value, options, key_properties.include?(property_name)) #TODO Default values should came from record attributes
+          do_store(json, name, value, options, key_properties.include?(property_name)) #TODO Default values should came from record attributes
         end
       end
       if (options[:inspecting].include?(:_type) ||
@@ -297,7 +297,7 @@ module Edi
       end
     end
 
-    def store(json, key, value, options, store_anyway = false)
+    def do_store(json, key, value, options, store_anyway = false)
       if options[:nqnames]
         key = key.to_s.split(':').last
       end
