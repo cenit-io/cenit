@@ -43,8 +43,14 @@ module Setup
         if Setup::Webhook.method_enum.include?(symbol)
           if args.length == 1 && (url = args[0]).is_a?(String)
             uri = URI.parse(url)
-            connection = Setup::Connection.new(url: url[0..(url.index(uri.path))])
-            webhook = Setup::PlainWebhook.new(method: symbol, path: uri.path)
+            url = if (path = uri.path).empty?
+                    path = '/'
+                    url
+                  else
+                    url[0..(url.index(uri.path))]
+                  end
+            connection = Setup::Connection.new(url: url)
+            webhook = Setup::PlainWebhook.new(method: symbol, path: path)
             if (query = uri.query)
               query.split('&').each do |pair|
                 Rack::Utils.parse_nested_query(pair).each do |name, value|
