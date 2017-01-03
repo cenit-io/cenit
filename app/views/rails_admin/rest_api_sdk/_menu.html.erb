@@ -28,7 +28,7 @@
             <div class="modal-content">
               <div class="modal-header">
                 <button type="button" class="close" data-dismiss="modal">&times;</button>
-                <h4 class="modal-title"><%= definition[:summary].strip %></h4>
+                <h4 class="modal-title"><%= definition[:summary].strip %>:</h4>
               </div>
               <div class="modal-body sdk-code">
                 <p><%= definition[:description].strip %></p>
@@ -38,6 +38,7 @@
                   <span class="uri"><%= api_uri(method, path) %></span>
                 </p>
                 <hr/>
+
                 <ul class="nav nav-tabs tabs-left">
                   <li class="active"><a data-toggle="tab" href="#<%= dlg_id %>-curl">cURL</a></li>
                   <li><a data-toggle="tab" href="#<%= dlg_id %>-jquery">jQuery</a></li>
@@ -69,7 +70,7 @@
 <script type="text/javascript">
   var clipboard = new Clipboard('#copy-to-clipboard', {
     target: function (trigger) {
-      return $('.tab-content:visible pre:visible')[0];
+      return $('.modal-body:visible pre:visible')[0];
     }
   });
 
