@@ -13,6 +13,8 @@
 
 = breadcrumb
 
+= render :partial => 'rails_admin/rest_api_sdk/menu' if respond_to?(:api_current_paths) && api_current_paths
+
 - if ['dashboard', 'list-of-shared-collections'].include? page_slug
   - @count ||= {}
   - query = params[:query]
