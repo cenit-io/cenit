@@ -1,8 +1,8 @@
 module Setup
-  class TaskExecution
+  class Execution
     include CenitScoped
     include Setup::AttachmentUploader
-    include RailsAdmin::Models::Setup::TaskExecutionAdmin
+    include RailsAdmin::Models::Setup::ExecutionAdmin
 
     build_in_data_type
 

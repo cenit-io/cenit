@@ -356,7 +356,7 @@ RailsAdmin.config do |config|
 
   Setup::Task
 
-  Setup::TaskExecution
+  Setup::Execution
 
   Setup::FlowExecution
 
