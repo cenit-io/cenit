@@ -53,7 +53,8 @@ require 'account'
   RailsAdmin::Config::Actions::Share,
   RailsAdmin::Config::Actions::Reinstall,
   RailsAdmin::Config::Actions::Swagger,
-  RailsAdmin::Config::Actions::RestApi,
+  RailsAdmin::Config::Actions::RestApi1,
+  RailsAdmin::Config::Actions::RestApi2,
   RailsAdmin::Config::Actions::LinkDataType
 ].each { |a| RailsAdmin::Config::Actions.register(a) }
 
@@ -191,7 +192,8 @@ RailsAdmin.config do |config|
       end
       visible { only.include?((obj = bindings[:object]).class) && obj.try(:shared?) }
     end
-    rest_api
+    rest_api1
+    rest_api2
     documentation
   end
 
