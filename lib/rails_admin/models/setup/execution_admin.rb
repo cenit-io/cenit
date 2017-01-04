@@ -1,7 +1,7 @@
 module RailsAdmin
   module Models
     module Setup
-      module TaskExecutionAdmin
+      module ExecutionAdmin
         extend ActiveSupport::Concern
 
         included do

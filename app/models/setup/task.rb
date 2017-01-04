@@ -21,8 +21,8 @@ module Setup
     field :state, type: Hash, default: {}
     field :auto_retry, type: Symbol, default: -> { auto_retry_enum.first }
 
-    belongs_to :current_execution, class_name: Setup::TaskExecution.to_s, inverse_of: nil
-    has_many :executions, class_name: Setup::TaskExecution.to_s, inverse_of: :task, dependent: :destroy
+    belongs_to :current_execution, class_name: Setup::Execution.to_s, inverse_of: nil
+    has_many :executions, class_name: Setup::Execution.to_s, inverse_of: :task, dependent: :destroy
 
     has_many :notifications, class_name: Setup::Notification.to_s, inverse_of: :task, dependent: :destroy
 
@@ -92,7 +92,7 @@ module Setup
     end
 
     def new_execution
-      self.current_execution = Setup::TaskExecution.create(task: self)
+      self.current_execution = Setup::Execution.create(task: self)
       save
       current_execution
     end
@@ -107,7 +107,7 @@ module Setup
         if status == :retrying || status == :failed
           self.retries += 1
         end
-        self.current_execution = Setup::TaskExecution.find(options[:execution_id])
+        self.current_execution = Setup::Execution.find(options[:execution_id])
         time = Time.now
         if running_status?
           notify(message: "Restarting task ##{id} at #{time}", type: :notice)

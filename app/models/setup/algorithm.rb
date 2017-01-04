@@ -28,7 +28,7 @@ module Setup
 
     attr_reader :last_output
 
-    field :language, type: Symbol, default: -> { new_record? ? :auto : ruby }
+    field :language, type: Symbol, default: -> { new_record? ? :auto : :ruby }
     field :execution_mode, type: Symbol, default: -> { self.class.execution_mode_enum.values.first }
 
     validates_inclusion_of :language, in: ->(alg) { alg.class.language_enum.values }

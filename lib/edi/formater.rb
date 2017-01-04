@@ -308,7 +308,8 @@ module Edi
           json[key] = value if store_anyway || value.present? || options[:include_blanks] || options[:include_empty]
         else
           value = value.to_s if [BSON::ObjectId, Symbol].any? { |klass| value.is_a?(klass) }
-          json[key] = json_value(value, options) if store_anyway || !(value.nil? || value.try(:empty?)) || options[:include_blanks] #TODO String blanks!
+          value = json_value(value, options)
+          json[key] = value if store_anyway || !(value.nil? || value.try(:empty?)) || options[:include_blanks] #TODO String blanks!
         end
       end
     end

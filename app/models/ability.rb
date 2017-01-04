@@ -60,7 +60,7 @@ class Ability
         can :simple_cross, CROSSING_MODELS_WITH_ORIGIN, :origin.in => [:default, :owner]
       end
 
-      can :destroy, Setup::TaskExecution, :status.in => Setup::Task::FINISHED_STATUS
+      can :destroy, Setup::Execution, :status.in => Setup::Task::FINISHED_STATUS
 
       can :destroy, Setup::Task,
           :status.in => Setup::Task::NON_ACTIVE_STATUS,

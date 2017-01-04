@@ -15,6 +15,14 @@ module Cenit
 
       self.grid.file_model.store_in collection: Proc.new { "#{Account.tenant_collection_prefix}.files" }
       self.grid.chunk_model.store_in collection: Proc.new { "#{Account.tenant_collection_prefix}.chunks" }
+
+      def write(file)
+        attrs = @uploader.try(:file_attributes) || {}
+        attrs[:filename] = @uploader.store_path
+        grid.put(file, attrs)
+      ensure
+        @grid_file = nil
+      end
     end
 
     def store!(file)

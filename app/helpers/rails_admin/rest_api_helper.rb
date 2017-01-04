@@ -1,7 +1,17 @@
+require 'rails_admin/rest_api/jquery'
+
 module RailsAdmin
   ###
   # Generate sdk code for api service.
   module RestApiHelper
+
+    include RailsAdmin::RestApi::Curl
+    include RailsAdmin::RestApi::Php
+    include RailsAdmin::RestApi::Ruby
+    include RailsAdmin::RestApi::Python
+    include RailsAdmin::RestApi::Nodejs
+    include RailsAdmin::RestApi::JQuery
+
     ###
     # Returns api specification paths for current namespace and model.
     def api_current_paths
@@ -32,8 +42,8 @@ module RailsAdmin
     end
 
     ###
-    # Returns cURL command for service with given method and path.
-    def api_curl_code(method, path)
+    # Returns data and login.
+    def vars(method, path)
       # Get parameters definition.
       query_parameters = api_parameters(method, path, 'query')
 
@@ -43,15 +53,13 @@ module RailsAdmin
       # Get login account or user.
       login = Account.current || User.current
 
-      # Generate uri and command.
-      command = "curl -X #{method.upcase} \\\n"
-      command << "     -H 'X-User-Access-Key: #{login ? login.key : '-'}' \\\n"
-      command << "     -H 'X-User-Access-Token: #{login ? login.token : '-'}' \\\n"
-      command << "     -H 'Content-Type: application/json' \\\n"
-      command << "     -d '#{data.to_json}' \\\n" unless data.empty?
-      command << "     '#{api_uri(method, path)}'"
+      [data, login]
+    end
 
-      command
+    ###
+    # Returns lang command for service with given method and path.
+    def api_code(lang, method, path)
+      send("api_#{lang}_code", method, path)
     end
 
     ###
@@ -93,7 +101,7 @@ module RailsAdmin
         end
       end if @object
 
-      uri
+      "#{uri}.json"
     end
 
     ###
