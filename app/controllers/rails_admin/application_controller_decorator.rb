@@ -19,18 +19,18 @@ module RailsAdmin
       if @model_name == Setup::SharedCollection.to_s && !User.current_super_admin?
         @model_name = Setup::CrossSharedCollection.to_s
       end
-      data_type = nil
+      @data_type = nil
       unless (@abstract_model = RailsAdmin::AbstractModel.new(@model_name))
         if (slugs = name.to_s.split('~')).size == 2
           if (ns = Setup::Namespace.where(slug: slugs[0]).first)
-            data_type = Setup::DataType.where(namespace: ns.name, slug: slugs[1]).first
+            @data_type = Setup::DataType.where(namespace: ns.name, slug: slugs[1]).first
           end
         else
-          data_type = Setup::DataType.where(id: name.from(2)).first if name.start_with?('dt')
+          @data_type = Setup::DataType.where(id: name.from(2)).first if name.start_with?('dt')
         end
-        if data_type
+        if @data_type
           abstract_model_class =
-            if (model = data_type.records_model).is_a?(Class)
+            if (model = @data_type.records_model).is_a?(Class)
               RailsAdmin::AbstractModel
             else
               RailsAdmin::MongoffAbstractModel
