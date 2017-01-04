@@ -1,6 +1,6 @@
 <div class="dropdown menu-api">
   <button class="btn btn-primary dropdown-toggle" type="button"
-          title="<%= t('admin.actions.generate_api.curl.title') %>"
+          title="<%= t('admin.actions.rest_api.hint') %>"
           data-toggle="dropdown">
     <span class="text">REST API</span>
     <span class="caret"></span>
@@ -40,18 +40,18 @@
                 <hr/>
 
                 <ul class="nav nav-tabs tabs-left">
-                  <li class="active"><a data-toggle="tab" href="#<%= dlg_id %>-curl">cURL</a></li>
-                  <li><a data-toggle="tab" href="#<%= dlg_id %>-jquery">jQuery</a></li>
-                  <li><a data-toggle="tab" href="#<%= dlg_id %>-nodejs">NodeJS</a></li>
-                  <li><a data-toggle="tab" href="#<%= dlg_id %>-php">PHP</a></li>
-                  <li><a data-toggle="tab" href="#<%= dlg_id %>-python">Python</a></li>
-                  <li><a data-toggle="tab" href="#<%= dlg_id %>-ruby">Ruby</a></li>
+                  <% api_langs.each do |lang| %>
+                      <li class="<%= "active" if lang[:id] == 'curl' %>">
+                        <a data-toggle="tab" href="#<%= "#{dlg_id}-#{lang[:id]}" %>"><%= lang[:label] %></a>
+                      </li>
+                  <% end %>
                 </ul>
 
                 <div class="tab-content">
-                  <% %w(curl jquery nodejs php python ruby).each do |lang| %>
-                      <div id="<%= "#{dlg_id}-#{lang}" %>" class="tab-pane fade in <%= "active" if lang == 'curl' %>">
-                        <pre class="code"><%= api_code(lang, method, path).html_safe %></pre>
+                  <% api_langs.each do |lang| %>
+                      <div id="<%= "#{dlg_id}-#{lang[:id]}" %>"
+                           class="tab-pane fade in <%= "active" if lang[:id] == 'curl' %>">
+                        <pre class="code <%= lang[:hljs] %>"><%= api_code(lang[:id], method, path).html_safe %></pre>
                       </div>
                   <% end %>
                 </div>
@@ -68,18 +68,32 @@
 <% end %>
 
 <script type="text/javascript">
-  var clipboard = new Clipboard('#copy-to-clipboard', {
-    target: function (trigger) {
-      return $('.modal-body:visible pre:visible')[0];
-    }
-  });
+  $(document).ready(function () {
+    // Connected copy to clipboard actions.
+    var clipboard = new Clipboard('#copy-to-clipboard', {
+      target: function (trigger) {
+        return $('.modal-body:visible pre:visible')[0];
+      }
+    });
 
-  $('.menu-api .dropdown-menu li a').on('click', function (e) {
-    var dlg = $('#' + $(this).data('dlg-id'));
+    // Async highlight code blocks.
+    $('.modal-dialog pre.code').each(function (index, block) {
+      var worker = new Worker('/highlight-worker.js');
 
-    // Move dlg to document body.
-    if (!dlg.parent().is('body')) $('body').append(dlg);
+      worker.onmessage = function (event) {
+        hljs.highlightBlock(block);
+      };
+      worker.postMessage('start');
+    });
 
-    dlg.modal();
+    // Show dlg with code block.
+    $('.menu-api .dropdown-menu li a').on('click', function (e) {
+      var dlg = $('#' + $(this).data('dlg-id'));
+
+      // Move dlg to document body.
+      if (!dlg.parent().is('body')) $('body').append(dlg);
+
+      dlg.modal();
+    });
   });
 </script>
