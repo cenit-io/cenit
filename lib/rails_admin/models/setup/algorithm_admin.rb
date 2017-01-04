@@ -18,21 +18,31 @@ module RailsAdmin
               [RailsAdmin::Adapters::Mongoid::Association.new(association, abstract_model.model)]
             end
 
-            configure :code, :code
+            configure :code, :code do
+              help { 'Required' }
+              code_config do
+                {
+                  mode: case bindings[:object].language
+                        when :php
+                          'text/x-php'
+                        when :javascript
+                          'text/javascript'
+                        when :python
+                          'text/x-python'
+                        else
+                          'text/x-ruby'
+                        end
+                }
+              end
+            end
 
             edit do
               field :namespace, :enum_edit, &RailsAdmin::Models::Setup::FieldsConfigAdmin.shared_non_editable
               field :name, &RailsAdmin::Models::Setup::FieldsConfigAdmin.shared_non_editable
               field :description, &RailsAdmin::Models::Setup::FieldsConfigAdmin.shared_non_editable
               field :parameters, &RailsAdmin::Models::Setup::FieldsConfigAdmin.shared_non_editable
-              field :code, :code do
-                code_config do
-                  {
-                    mode: 'text/x-ruby'
-                  }
-                end
-                help { 'Required' }
-              end
+              field :language
+              field :code
               field :call_links do
                 RailsAdmin::Models::Setup::FieldsConfigAdmin.shared_read_only
                 visible { bindings[:object].call_links.present? }
@@ -46,15 +56,9 @@ module RailsAdmin
               field :namespace
               field :name
               field :description
+              field :language
               field :parameters
-              field :code, :code do
-                code_config do
-                  {
-                    mode: 'text/x-ruby',
-                    readOnly: 'nocursor'
-                  }
-                end
-              end
+              field :code
               field :call_links
               field :tags
               field :_id
@@ -66,13 +70,12 @@ module RailsAdmin
               field :namespace
               field :name
               field :description
-              field :parameters
-              field :call_links
+              field :language
               field :tags
               field :updated_at
             end
 
-            fields :namespace, :name, :description, :parameters, :call_links, :tags
+            fields :namespace, :name, :description, :language, :parameters, :call_links, :tags
           end
         end
 

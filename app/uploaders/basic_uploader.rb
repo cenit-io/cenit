@@ -7,9 +7,14 @@ class BasicUploader < CarrierWave::Uploader::Base
 
   def to_hash(options={})
     hash = {}
-    versions.keys.each do |key|
-      hash[key] = "#{Cenit.homepage}#{send(key).url}"
+    if present?
+      hash[:url] = "#{Cenit.homepage}#{url}"
+      versions.each do |key, uploader|
+        hash[key] = uploader.to_hash(options)
+      end
     end
     hash.stringify_keys
   end
+
+  attr_accessor :file_attributes
 end

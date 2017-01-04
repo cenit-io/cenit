@@ -148,7 +148,11 @@ module Api::V2
     def run
       if @item.is_a?(Setup::Algorithm)
         begin
-          render plain: @item.run(@webhook_body)
+          execution = Setup::AlgorithmExecution.process(algorithm_id: @item.id,
+                                                        input: @webhook_body,
+                                                        skip_notification_level: true)
+          execution.reload
+          render json: execution.to_hash(include_blanks: false)
         rescue Exception => ex
           render json: { error: ex.message }, status: 406
         end
