@@ -28,6 +28,7 @@ class ScriptExecution < Setup::Task
         else
           nil
         end
+      current_execution.attach(attachment)
       notify(message: "'#{script.name}' result" + (result.present? ? '' : ' was empty'),
              type: :notice,
              attachment: attachment,

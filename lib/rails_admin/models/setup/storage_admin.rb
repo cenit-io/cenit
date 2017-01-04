@@ -42,6 +42,8 @@ module RailsAdmin
               label 'Property'
             end
 
+            configure :metadata, :json_value
+
             list do
               field :storer_model
               field :storer_object
@@ -52,7 +54,7 @@ module RailsAdmin
               field :updated_at
             end
 
-            fields :storer_model, :storer_object, :storer_property, :filename, :contentType, :length
+            fields :storer_model, :storer_object, :storer_property, :filename, :contentType, :length, :metadata
           end
         end
 

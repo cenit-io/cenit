@@ -12,11 +12,26 @@ module RailsAdmin
             configure :attempts_succeded, :text do
               label 'Attempts/Succedded'
             end
+
             edit do
               field :description
               field :auto_retry
             end
-            fields :webhook, :connection, :authorization, :description, :scheduler, :attempts_succeded, :retries, :progress, :status, :notifications, :updated_at
+
+            list do
+              field :webhook
+              field :connection
+              field :authorization
+              field :description
+              field :scheduler
+              field :attempts_succeded
+              field :retries
+              field :progress
+              field :status
+              field :updated_at
+            end
+
+            fields :webhook, :connection, :authorization, :description, :scheduler, :attempts_succeded, :retries, :progress, :status, :executions, :notifications, :updated_at
           end
         end
 
