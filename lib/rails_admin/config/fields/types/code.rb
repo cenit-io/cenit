@@ -85,6 +85,9 @@ module RailsAdmin
               'text/html': 'xml',
               'text/plain': 'javascript',
               'text/x-ruby': 'ruby',
+              'text/x-php': 'php',
+              'text/x-python': 'python',
+              'text/javascript': 'javascript',
               'text/x-yaml': 'yaml',
               '': 'javascript'
             }[config[:mode].to_s.to_sym] || config[:mode].to_sym

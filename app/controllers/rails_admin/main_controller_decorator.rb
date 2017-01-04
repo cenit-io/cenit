@@ -69,21 +69,34 @@ module RailsAdmin
     end
 
     def do_flash_process_result(objs)
-      objs = [objs] unless objs.is_a?(Enumerable)
       messages =
-        objs.collect do |obj|
-          amc = RailsAdmin.config(obj)
-          am = amc.abstract_model
-          wording = obj.send(amc.object_label_method)
-          if (show_action = view_context.action(:show, am, obj))
-            wording + ' ' + view_context.link_to(t('admin.flash.click_here'), view_context.url_for(action: show_action.action_name, model_name: am.to_param, id: obj.id), class: 'pjax')
-          else
-            wording
+        if objs.is_a?(Hash)
+          objs.collect do |key, value|
+            "#{obj2msg(key)}: #{obj2msg(value)}"
           end
+        else
+          objs = [objs] unless objs.is_a?(Enumerable)
+          objs.collect { |obj| obj2msg(obj) }
         end
       model_label = @model_config.label
       model_label = model_label.pluralize if @action.bulkable?
       do_flash(:notice, t('admin.flash.processed', name: model_label, action: t("admin.actions.#{@action.key}.doing")) + ':', messages)
+    end
+
+    def obj2msg(obj)
+      case obj
+      when String, Symbol
+        obj.to_s.to_title
+      else
+        amc = RailsAdmin.config(obj)
+        am = amc.abstract_model
+        wording = obj.send(amc.object_label_method)
+        if (show_action = view_context.action(:show, am, obj))
+          wording + ' ' + view_context.link_to(t('admin.flash.click_here'), view_context.url_for(action: show_action.action_name, model_name: am.to_param, id: obj.id), class: 'pjax')
+        else
+          wording
+        end
+      end
     end
 
     def do_flash(flash_key, header, messages = [], options = {})

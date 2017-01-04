@@ -202,20 +202,23 @@ module Setup
       self
     end
 
-    MONGOID_TYPE_MAP =
+    SCHEMA_TYPE_MAP =
       {
         BSON::ObjectId => { 'type' => 'string' },
-        Array => { 'type' => 'array' },
-        BigDecimal => { 'type' => 'integer' },
-        Mongoid::Boolean => { 'type' => 'boolean' },
-        Date => { 'type' => 'string', 'format' => 'date' },
-        DateTime => { 'type' => 'string', 'format' => 'date-time' },
-        Float => { 'type' => 'number' },
         Hash => { 'type' => 'object' },
+        Array => { 'type' => 'array' },
         Integer => { 'type' => 'integer' },
+        BigDecimal => { 'type' => 'integer' },
+        Float => { 'type' => 'number' },
+        Numeric => { 'type' => 'number' },
+        Mongoid::Boolean => { 'type' => 'boolean' },
+        TrueClass => { 'type' => 'boolean' },
+        FalseClass => { 'type' => 'boolean' },
+        Time => { 'type' => 'string', 'format' => 'time' },
+        DateTime => { 'type' => 'string', 'format' => 'date-time' },
+        Date => { 'type' => 'string', 'format' => 'date' },
         String => { 'type' => 'string' },
         Symbol => { 'type' => 'string' },
-        Time => { 'type' => 'string', 'format' => 'time' },
         nil => {},
         Object => {}
       }.freeze
@@ -288,7 +291,7 @@ module Setup
     end
 
     def json_schema_type(mongoid_type)
-      MONGOID_TYPE_MAP[mongoid_type].dup
+      SCHEMA_TYPE_MAP[mongoid_type].dup
     end
 
   end

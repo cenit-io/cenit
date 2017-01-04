@@ -7,8 +7,10 @@ module RailsAdmin
         included do
           rails_admin do
             navigation_label 'Monitors'
-            visible false
             object_label_method { :to_s }
+            parent 'Monitors'
+            weight 611
+            show_in_dashboard false
 
             configure :attempts_succeded, :text do
               label 'Attempts/Succedded'
@@ -19,7 +21,18 @@ module RailsAdmin
               field :auto_retry
             end
 
-            fields :flow, :description, :scheduler, :attempts_succeded, :retries, :progress, :status, :notifications, :updated_at
+            list do
+              field :flow
+              field :description
+              field :scheduler
+              field :attempts_succeded
+              field :retries
+              field :progress
+              field :status
+              field :updated_at
+            end
+
+            fields :flow, :description, :scheduler, :attempts_succeded, :retries, :progress, :status, :executions, :notifications, :updated_at
           end
         end
 
