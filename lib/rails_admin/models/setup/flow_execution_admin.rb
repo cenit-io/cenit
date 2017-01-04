@@ -7,7 +7,6 @@ module RailsAdmin
         included do
           rails_admin do
             navigation_label 'Monitors'
-            visible true
             object_label_method { :to_s }
             parent 'Monitors'
             weight 611
