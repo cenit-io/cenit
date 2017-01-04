@@ -8,8 +8,8 @@ module Setup
         self.class.before_store_callbacks.each do |callback|
           instance_eval(&callback)
         end
-        reset_lazy_storage.each do |field, data|
-          store_on(field, data)
+        reset_lazy_storage.each do |field, store_options|
+          store_on(field, store_options)
         end
       end
 
@@ -32,6 +32,7 @@ module Setup
             store_options[option] = value
           end
         end
+        store_options.symbolize_keys!
         if opts[:immediately]
           store_on(field, store_options)
         else
@@ -58,18 +59,19 @@ module Setup
     end
 
     def store_on(field, store_options)
-      data = store_options[:data] || store_options['data']
+      data = store_options.delete(:data)
       if data.is_a?(String)
         temporary_file = Tempfile.new('data_')
         temporary_file.binmode
         temporary_file.write(data)
         temporary_file.rewind
         data = Cenit::Utility::Proxy.new(temporary_file,
-                                         original_filename: store_options['filename'] || temporary_file.name,
-                                         contentType: store_options['contentType'] || 'application')
+                                         original_filename: store_options[:filename] || temporary_file.name,
+                                         contentType: store_options[:contentType] || 'application')
       end
       readables << data
       send("#{field}=", data)
+      send(field).try(:file_attributes=, store_options)
     end
 
     private
