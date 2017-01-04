@@ -35,8 +35,6 @@ module Setup
 
     attr_readonly :name
 
-    validates_presence_of :namespace
-
     before_save :validates_configuration
 
     after_destroy do
