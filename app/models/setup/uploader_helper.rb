@@ -27,7 +27,7 @@ module Setup
         send("#{field}=", uploader)
       else
         store_options = { data: source }
-        %w(filename contentType).each do |option|
+        %w(filename contentType metadata).each do |option|
           if (value = opts[option.to_sym] || opts[option])
             store_options[option] = value
           end
