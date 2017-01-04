@@ -1,35 +1,34 @@
 <ul class="nav nav-tabs tabs-left">
-  <li class="active"><a data-toggle="tab" href="#curl">cURL</a></li>
-  <li><a data-toggle="tab" href="#jquery">jQuery</a></li>
-  <li><a data-toggle="tab" href="#nodejs">NodeJS</a></li>
-  <li><a data-toggle="tab" href="#php">PHP</a></li>
-  <li><a data-toggle="tab" href="#python">Python</a></li>
-  <li><a data-toggle="tab" href="#ruby">Ruby</a></li>
+  <% api_langs.each do |lang| %>
+      <li class="<%= "active" if lang[:id] == 'curl' %>">
+        <a data-toggle="tab" href="#codes-<%= lang[:id] %>"><%= lang[:label] %></a>
+      </li>
+  <% end %>
 </ul>
 
-<div class="tab-content">
-  <div id="curl" class="tab-pane fade in active">
-    <%= render :partial => 'rails_admin/rest_api_sdk/codes', :locals => { lang: 'curl' } %>
-  </div>
-  <div id="jquery" class="tab-pane fade">
-    <%= render :partial => 'rails_admin/rest_api_sdk/codes', :locals => { lang: 'jquery' } %>
-  </div>
-  <div id="nodejs" class="tab-pane fade">
-    <%= render :partial => 'rails_admin/rest_api_sdk/codes', :locals => { lang: 'nodejs' } %>
-  </div>
-  <div id="php" class="tab-pane fade">
-    <%= render :partial => 'rails_admin/rest_api_sdk/codes', :locals => { lang: 'php' } %>
-  </div>
-  <div id="python" class="tab-pane fade">
-    <%= render :partial => 'rails_admin/rest_api_sdk/codes', :locals => { lang: 'python' } %>
-  </div>
-  <div id="ruby" class="tab-pane fade">
-    <%= render :partial => 'rails_admin/rest_api_sdk/codes', :locals => { lang: 'ruby' } %>
-  </div>
+<div class="tab-content rest-api-codes">
+  <% api_langs.each do |lang| %>
+      <div id="codes-<%= lang[:id] %>" class="tab-pane fade in <%= "active" if lang[:id] == 'curl' %>">
+        <%= render :partial => 'rails_admin/rest_api_sdk/codes', :locals => { lang: lang } %>
+      </div>
+  <% end %>
 </div>
 
 <script type="text/javascript">
-  $('.copy-to-clipboard').each(function (idx, el) {
-    new Clipboard(el);
+  $(document).ready(function () {
+    // Connected copy to clipboard actions.
+    $('.copy-to-clipboard').each(function (idx, el) {
+      new Clipboard(el);
+    });
+
+    // Async highlight code blocks.
+    $('.rest-api-codes pre.code').each(function (index, block) {
+      var worker = new Worker('/highlight-worker.js');
+
+      worker.onmessage = function (event) {
+        hljs.highlightBlock(block);
+      };
+      worker.postMessage('start');
+    });
   });
 </script>

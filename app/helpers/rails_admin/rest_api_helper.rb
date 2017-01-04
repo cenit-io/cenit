@@ -12,6 +12,17 @@ module RailsAdmin
     include RailsAdmin::RestApi::Nodejs
     include RailsAdmin::RestApi::JQuery
 
+    def api_langs
+      [
+        {id: 'curl', label: 'Curl', hljs: 'bash'},
+        {id: 'php', label: 'Php', hljs: 'php'},
+        {id: 'ruby', label: 'Ruby', hljs: 'ruby'},
+        {id: 'python', label: 'Python', hljs: 'python'},
+        {id: 'nodejs', label: 'Nodejs', hljs: 'javascript'},
+        {id: 'jquery', label: 'JQuery', hljs: 'javascript'},
+      ]
+    end
+
     ###
     # Returns api specification paths for current namespace and model.
     def api_current_paths
