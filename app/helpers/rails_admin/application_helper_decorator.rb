@@ -426,7 +426,7 @@ module RailsAdmin
             <div class='panel-heading'>
               <a data-toggle='collapse' data-parent='#none' href='#shared-collapse' class='panel-title collapse in collapsed'>
                 <span class='nav-caret'><i class='fa fa-caret-down'></i></span>
-                <span class='nav-caption'>#{node.label.pluralize}</span>
+                <span class='nav-caption'>#{node.label_plural}</span>
               </a>
             </div>
              <div id='shared-collapse' class='nav nav-pills nav-stacked panel-collapse collapse'>
@@ -472,7 +472,7 @@ module RailsAdmin
             <div class='panel-heading'>
               <a data-toggle='collapse' data-parent='#none' href='#renderer-collapse' class='panel-title collapse in collapsed'>
                 <span class='nav-caret'><i class='fa fa-caret-down'></i></span>
-                <span class='nav-caption'>#{node.label.pluralize}</span>
+                <span class='nav-caption'>#{node.label_plural}</span>
               </a>
             </div>
              <div id='renderer-collapse' class='nav nav-pills nav-stacked panel-collapse collapse'>

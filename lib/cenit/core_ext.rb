@@ -130,6 +130,22 @@ class String
     end
     str
   end
+
+  def to_plural(count = nil, locale = :en)
+    p = []
+    tokens = strip.squeeze(' ').split(' ')
+    while (last = tokens.pop) && last.match(/\W\Z/)
+      p << last
+    end
+    if last
+      tokens << last
+      last = tokens.join(' ').pluralize(count, locale)
+    else
+      last = ''
+    end
+    p.unshift(last)
+    p.join(' ')
+  end
 end
 
 module Enumerable

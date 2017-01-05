@@ -178,7 +178,7 @@ module RailsAdmin
     end
 
     def contextualized_label_plural(context = nil)
-      contextualized_label(context).pluralize
+      contextualized_label(context).to_plural
     end
 
     def root
