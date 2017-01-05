@@ -40,7 +40,7 @@ require 'account'
   RailsAdmin::Config::Actions::BulkCross,
   RailsAdmin::Config::Actions::Regist,
   RailsAdmin::Config::Actions::SharedCollectionIndex,
-  RailsAdmin::Config::Actions::StoreIndex,
+  RailsAdmin::Config::Actions::EcommerceIndex,
   RailsAdmin::Config::Actions::BulkPull,
   RailsAdmin::Config::Actions::CleanUp,
   RailsAdmin::Config::Actions::ShowRecords,
@@ -102,7 +102,7 @@ RailsAdmin.config do |config|
 
   ### More at https://github.com/sferik/rails_admin/wiki/Base-configuration
   config.authenticate_with do
-    warden.authenticate! scope: :user unless %w(dashboard shared_collection_index store_index index show).include?(action_name)
+    warden.authenticate! scope: :user unless %w(dashboard shared_collection_index ecommerce_index index show).include?(action_name)
   end
   config.current_user_method { current_user }
   config.audit_with :mongoid_audit
@@ -114,7 +114,7 @@ RailsAdmin.config do |config|
     dashboard # mandatory
     # disk_usage
     shared_collection_index
-    store_index
+    ecommerce_index
     link_data_type
     index # mandatory
     new { except [Setup::Event, Setup::DataType, Setup::Authorization, Setup::BaseOauthProvider] }

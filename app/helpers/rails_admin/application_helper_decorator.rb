@@ -266,7 +266,7 @@ module RailsAdmin
         end
       end
       ecommerce_models = ecommerce_models.collect { |model| RailsAdmin.config(model) }
-      nav_groups['Ecommerce'] = ecommerce_models
+      nav_groups['eCommerce'] = ecommerce_models
       ecoindex = nav_groups.size
       nav_groups.each do |navigation_label, nav_nodes|
         ecoindex -= 1
@@ -327,7 +327,7 @@ module RailsAdmin
       non_setup_data_type_models.each do |data_type_model|
         links = data_type_models[data_type_model]
         name = data_type_model.to_s.split('::').last.underscore
-        action = name == 'cross_shared_collection' ? :store_index : :link_data_type
+        action = name == 'cross_shared_collection' ? :ecommerce_index : :link_data_type
         link_link = link_to url_for(action: action,
                                     controller: 'rails_admin/main',
                                     data_type_model: data_type_model.to_s) do
@@ -393,7 +393,7 @@ module RailsAdmin
           sub_links = ''
           category_count = 0
           Setup::Category.all.each do |cat|
-            count = (values = Setup::CrossSharedCollection.where(:category_ids => cat.id)).count
+            count = (values = Setup::CrossSharedCollection.where(category_ids: cat.id)).count
             if count > 0
               category_count += count
               message = "<span><em>#{node.label_plural}</em> with category <em>#{cat.title}</em></span>"
