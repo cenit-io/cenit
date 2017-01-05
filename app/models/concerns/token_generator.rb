@@ -6,7 +6,7 @@ module TokenGenerator
 
     validates_uniqueness_of :token
 
-    before_save :ensure_token
+    before_validation :ensure_token
   end
 
   def ensure_token
