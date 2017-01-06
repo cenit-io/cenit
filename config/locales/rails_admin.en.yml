@@ -359,6 +359,13 @@ en:
         done: "run"
         doing: "execution"
         background_option: "Run in the background"
+      run_stored_procedure:
+        title: "Run"
+        menu: "Run"
+        submit: "Run"
+        breadcrumb: "Run"
+        done: "run"
+        doing: "execution"
       run_script:
         title: "Run"
         menu: "Run"

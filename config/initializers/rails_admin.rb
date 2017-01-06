@@ -18,6 +18,7 @@ require 'account'
   RailsAdmin::Config::Actions::ProcessFlow,
   RailsAdmin::Config::Actions::BuildGem,
   RailsAdmin::Config::Actions::Run,
+  RailsAdmin::Config::Actions::RunStoredProcedure,
   RailsAdmin::Config::Actions::Authorize,
   RailsAdmin::Config::Actions::SimpleDeleteDataType,
   RailsAdmin::Config::Actions::BulkDeleteDataType,
@@ -130,6 +131,7 @@ RailsAdmin.config do |config|
     show_records
     run
     run_script
+    run_stored_procedure
     edit
     swagger { only [Setup::ApiSpec] }
     configure

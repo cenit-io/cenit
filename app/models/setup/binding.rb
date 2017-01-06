@@ -29,6 +29,7 @@ module Setup
           Setup::Connection,
           Setup::Webhook,
           Setup::Algorithm,
+          Setup::StoredProcedure,
           Setup::Translator,
           Setup::DataType,
           Setup::Validator

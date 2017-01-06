@@ -29,8 +29,10 @@ module Setup
     attr_reader :last_output
 
     field :language, type: Symbol, default: -> { new_record? ? :auto : :ruby }
+    field :execution_mode, type: Symbol, default: -> { self.class.execution_mode_enum.values.first }
 
     validates_inclusion_of :language, in: ->(alg) { alg.class.language_enum.values }
+    validates_inclusion_of :execution_mode, in: ->(alg) { alg.class.execution_mode_enum.values }
 
     def code_extension
       case language
@@ -163,9 +165,12 @@ module Setup
     end
 
     def run(input)
+      exe_method = "run_#{execution_mode}"
+      fail "Illegal or unsupported execution mode: #{execution_mode}" unless respond_to?(exe_method, true)
+
       input = Cenit::Utility.json_value_of(input)
       input = [input] unless input.is_a?(Array)
-      rc = Cenit::BundlerInterpreter.run(self, *input)
+      rc = send(exe_method, *input)
 
       if rc.present?
         if store_output
@@ -251,6 +256,13 @@ module Setup
         }
       end
 
+      def execution_mode_enum
+        {
+          'Bundled': :bundled,
+          'Remote': :remote
+        }
+      end
+
       def configuration_model_name
         "#{Setup::Algorithm}::Config"
       end
@@ -280,6 +292,26 @@ module Setup
     end
 
     protected
+
+    def run_bundled(*args)
+      Cenit::BundlerInterpreter.run(self, *args)
+    end
+
+    def run_remote(*args)
+      login = Account.current || User.current
+
+      bridge_url = ENV["BRIDGES_#{language.upcase}"] || "https://cenit-rarg-#{language.downcase}.herokuapp.com"
+
+      params = {}
+      parameters.each_with_index { |p, index| params[p.name] = args[index] }
+
+      result = Setup::Connection.post(bridge_url).submit(
+        { parameters: params.to_json, code: code }.to_param,
+        headers: { 'X-User-Access-Key' => login.key, 'X-User-Access-Token' => login.token }
+      )
+      result = JSON.parse(result)
+      result['value']
+    end
 
     def parse_ruby_code
       logs = { errors: errors = [] }
