@@ -329,7 +329,7 @@ module Mongoff
           else
             convert(type, value)
           end
-        return v if v
+        return v unless v.nil?
       end
       nil
     end
