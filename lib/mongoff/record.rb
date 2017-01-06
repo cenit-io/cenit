@@ -16,7 +16,7 @@ module Mongoff
       @fields = {}
       @new_record = new_record || false
       model.simple_properties_schemas.each do |property, schema| #TODO Defaults for non simple properties
-        if @document[property].nil? && (value = schema['default'])
+        if @document[property].nil? && !(value = schema['default']).nil?
           self[property] = value
         end
       end
@@ -242,7 +242,7 @@ module Mongoff
         document[attribute_key] = attr_array
       else
         document[attribute_key ||= field] = value = orm_model.mongo_value(value, field, property_schema)
-        document.delete(attribute_key.to_s) unless value || orm_model.requires?(field)
+        document.delete(attribute_key.to_s) if value.nil? && !orm_model.requires?(field)
         value
       end
     end
