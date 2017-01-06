@@ -407,6 +407,10 @@ module Mongoff
       end
     end
 
+    def labeled?
+      schema.key?('label')
+    end
+
     def label_template
       if @label_template.nil? && (template = schema['label'])
         begin

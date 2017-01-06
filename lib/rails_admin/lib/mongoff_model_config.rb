@@ -139,7 +139,14 @@ module RailsAdmin
 
       navigation_label { target.data_type.namespace }
 
-      object_label_method { @object_label_method ||= Config.label_methods.detect { |method| target.property?(method) } || :to_s }
+      object_label_method do
+        @object_label_method ||=
+          if target.labeled?
+            :to_s
+          else
+            Config.label_methods.detect { |method| target.property?(method) } || :to_s
+          end
+      end
     end
 
     def parent
