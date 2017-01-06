@@ -66,8 +66,8 @@ module Setup
         temporary_file.write(data)
         temporary_file.rewind
         data = Cenit::Utility::Proxy.new(temporary_file,
-                                         original_filename: store_options[:filename] || temporary_file.name,
-                                         contentType: store_options[:contentType] || 'application')
+                                         original_filename: store_options[:filename] || temporary_file.path.split('/').last,
+                                         contentType: store_options[:contentType] || 'application/octet-stream')
       end
       readables << data
       send("#{field}=", data)

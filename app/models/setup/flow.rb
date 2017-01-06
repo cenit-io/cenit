@@ -183,7 +183,7 @@ module Setup
       enum = []
       if data_type
         enum << 'Event source' if event && event.try(:data_type) == data_type
-        enum << "All #{data_type.title.downcase.pluralize}"
+        enum << "All #{data_type.title.downcase.to_plural}"
         enum << 'Filter'
         enum << 'Evaluator'
       else

@@ -79,7 +79,7 @@ module RailsAdmin
           objs.collect { |obj| obj2msg(obj) }
         end
       model_label = @model_config.label
-      model_label = model_label.pluralize if @action.bulkable?
+      model_label = @model_config.label_plural if @action.bulkable?
       do_flash(:notice, t('admin.flash.processed', name: model_label, action: t("admin.actions.#{@action.key}.doing")) + ':', messages)
     end
 

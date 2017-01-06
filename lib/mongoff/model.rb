@@ -407,6 +407,21 @@ module Mongoff
       end
     end
 
+    def labeled?
+      schema.key?('label')
+    end
+
+    def label_template
+      if @label_template.nil? && (template = schema['label'])
+        begin
+          @label_template = Liquid::Template.parse(template)
+        rescue Exception => ex
+          return ex.message
+        end
+      end
+      @label_template
+    end
+
     protected
 
     def initialize(data_type, options = {})

@@ -4,7 +4,15 @@ module Setup
     include Setup::AttachmentUploader
     include RailsAdmin::Models::Setup::ExecutionAdmin
 
-    build_in_data_type
+    build_in_data_type.and({
+                             properties: {
+                               time_span: {
+                                 type: 'number'
+                               },
+                               attachment_content: {
+                               }
+                             }
+                           }.deep_stringify_keys)
 
     deny :copy, :new, :translator_update, :import, :convert, :send_to_flow
 
@@ -40,6 +48,27 @@ module Setup
       else
         0
       end
+    end
+
+    def attachment_content
+      content = nil
+      if attachment.present? && (grid_file = attachment.file.grid_file).length < 1.kilobyte
+        content = attachment.read
+        if (metadata = grid_file.metadata) && (schema = metadata['schema']).is_a?(Hash)
+          content =
+            case schema['type']
+            when 'integer'
+              content.to_i
+            when 'number'
+              content.to_f
+            when 'boolean'
+              content.to_b
+            else
+              content
+            end
+        end
+      end
+      content
     end
   end
 end
