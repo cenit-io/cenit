@@ -323,7 +323,7 @@ module Setup
       object_ids = ((obj_id = message[:source_id]) && [obj_id]) || source_ids_from(message)
       if translator.source_handler
         begin
-          translator.run(object_ids: object_ids, discard_events: discard_events, task: message[:task])
+          translator.run(object_ids: object_ids, discard_events: discard_events, task: message[:task], data_type: data_type)
         rescue Exception => ex
           fail "Error source handling translation of records of type '#{data_type.custom_title}' with '#{translator.custom_title}': #{ex.message}"
         end
@@ -334,7 +334,7 @@ module Setup
           data_type.records_model.all
         end.each do |obj|
           begin
-            translator.run(object: obj, discard_events: discard_events, task: message[:task])
+            translator.run(object: obj, discard_events: discard_events, task: message[:task], data_type: data_type)
           rescue Exception => ex
             fail "Error translating record with ID '#{obj.id}' of type '#{data_type.custom_title}' when executing '#{translator.custom_title}': #{ex.message}"
           end
