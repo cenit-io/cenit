@@ -283,7 +283,18 @@ module Mongoff
     end
 
     def to_s
-      orm_model.to_s + '#' + id.to_s
+      case (template = orm_model.label_template)
+      when String
+        template
+      when Liquid::Template
+        begin
+          template.render document
+        rescue Exception => ex
+          ex.message
+        end
+      else
+        "#{orm_model.data_type.title} ##{id}"
+      end
     end
 
     def eql?(other)

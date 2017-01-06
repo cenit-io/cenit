@@ -33,6 +33,10 @@ module RailsAdmin
       @associations ||= model.associations.values.collect { |association| RailsAdmin::MongoffAssociation.new(association, model) }
     end
 
+    def pretty_name
+      model.data_type.title
+    end
+
     def embedded_in?(abstract_model = nil)
       abstract_model.nil? ||
         begin
