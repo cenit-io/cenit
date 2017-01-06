@@ -12,15 +12,22 @@ module RailsAdmin
     include RailsAdmin::RestApi::Nodejs
     include RailsAdmin::RestApi::JQuery
 
+    def api_langs
+      [
+        { id: 'curl', label: 'Curl', hljs: 'bash' },
+        { id: 'php', label: 'Php', hljs: 'php' },
+        { id: 'ruby', label: 'Ruby', hljs: 'ruby' },
+        { id: 'python', label: 'Python', hljs: 'python' },
+        { id: 'nodejs', label: 'Nodejs', hljs: 'javascript' },
+        { id: 'jquery', label: 'JQuery', hljs: 'javascript' },
+      ]
+    end
+
     ###
     # Returns api specification paths for current namespace and model.
     def api_current_paths
       @api_current_paths ||= begin
-        if params[:model_name].start_with?('dt')
-          ns, model_name, display_name, data_type = api_model_from_data_type
-        else
-          ns, model_name, display_name = api_model
-        end
+        ns, model_name, display_name = api_model
 
         {
           "#{ns}/#{model_name}/{id}" => {
@@ -32,13 +39,16 @@ module RailsAdmin
           },
           "#{ns}/#{model_name}" => {
             get: api_spec_for_list(display_name),
-            post: api_spec_for_create(display_name, data_type)
+            post: api_spec_for_create(display_name)
           }
         }
 
       end if params[:model_name].present?
+
+      @api_current_paths ||= []
+
     rescue
-      nil
+      []
     end
 
     ###
@@ -166,8 +176,8 @@ module RailsAdmin
 
     ###
     # Returns service create or update specification.
-    def api_spec_for_create(display_name, data_type = nil)
-      parameters = data_type ? api_params_from_data_type(data_type) : api_params_from_current_model
+    def api_spec_for_create(display_name)
+      parameters = @data_type ? api_params_from_data_type : api_params_from_current_model
 
       {
         tags: [display_name],
@@ -182,8 +192,8 @@ module RailsAdmin
 
     ###
     # Returns prepared parameters from data type code properties.
-    def api_params_from_data_type(data_type)
-      code = JSON.parse(data_type.code)
+    def api_params_from_data_type()
+      code = JSON.parse(@data_type.code)
       code['properties'].map { |k, v| { in: 'query', name: k, type: v['type'] } }
     end
 
@@ -198,22 +208,18 @@ module RailsAdmin
     ###
     # Returns current namespace, model name and display name.
     def api_model
-      ns = 'setup'
-      model_name = params[:model_name]
-      display_name = model_name.humanize
+      if @data_type
+        ns = @data_type.namespace.parameterize.underscore.downcase
+        model_name = @data_type.slug
+        display_name = @data_type.name.chomp('.json').humanize
+      else
+        ns = 'setup'
+        model_name = params[:model_name]
+        display_name = model_name.humanize
+      end
 
       [ns, model_name, display_name]
     end
 
-    ###
-    # Returns current namespace, model name, display name and data type instance.
-    def api_model_from_data_type
-      data_type = Setup::DataType.find(params[:model_name].from(2))
-      ns = data_type.namespace.parameterize.underscore.downcase
-      model_name = data_type.slug
-      display_name = data_type.name.chomp('.json').humanize
-
-      [ns, model_name, display_name, data_type]
-    end
   end
 end
