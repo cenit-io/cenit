@@ -17,8 +17,8 @@ module Setup
         return false
       end
       modified = nil
-      hash.each do |_, conditions|
-        conditions.each do |_, condition|
+      hash.values.each do |conditions|
+        conditions.values.each do |condition|
           modified = condition['o'] = condition.delete('v') if condition['o'].nil? && %w(_null _not_null _change).include?(condition['v'])
         end
       end
@@ -34,7 +34,7 @@ module Setup
             if %w(_change _presence_change).include?(condition['o'])
               !(condition['o'] == '_presence_change' && obj_before.nil?) && field_changed(obj_now, obj_before, field_name)
             else
-              condition_apply(obj_now, field_name, condition) && !condition_apply(obj_before, field_name, condition)
+              condition_apply(obj_now, obj_before, field_name, condition) && !condition_apply(obj_before, obj_now, field_name, condition)
             end
         end
       end
@@ -47,7 +47,7 @@ module Setup
       obj_now.try(field_name) != obj_before.try(field_name)
     end
 
-    def condition_apply(obj, field_name, condition)
+    def condition_apply(obj, before, field_name, condition)
       obj_v = obj.try(field_name)
       cond_v = valuate(condition['v'], obj_v.class)
       obj_values =
@@ -56,11 +56,20 @@ module Setup
         else
           [obj_v]
         end
-      unless op = condition['o']
+      unless (op = condition['o'])
         op = cond_v.is_a?(Array) ? 'in' : 'is'
       end
-      if respond_to?(applier_method = "op_#{op}", true)
-        obj_values.each { |obj_v| return true if send(applier_method, obj_v, cond_v) }
+      applier_method = "op_#{op}"
+      if respond_to?(applier_method, true)
+        applier_method = method(applier_method)
+        args = []
+        if applier_method.arity > 1
+          args << cond_v
+        end
+        if applier_method.arity > 2
+          args << before
+        end
+        obj_values.each { |v| return true if applier_method.call(*([v] + args)) }
       end
       false
     end
@@ -83,15 +92,15 @@ module Setup
         DateTime => :to_datetime,
         Time => :to_time,
         ActiveSupport::TimeWithZone => :to_time,
-        FalseClass => :to_boolean,
-        TrueClass => :to_boolean,
+        FalseClass => :to_b,
+        TrueClass => :to_b,
         BigDecimal => :to_d
       }
 
     def valuate(cond_v, klass)
-      return unless cond_v
+      return if cond_v.nil?
       return cond_v if cond_v.is_a?(klass)
-      cond_v = [cond_v] unless is_array = cond_v.is_a?(Array)
+      cond_v = [cond_v] unless (is_array = cond_v.is_a?(Array))
       to_obj_class = CONVERSION_METHOD[klass]
       cond_v = cond_v.collect do |e|
         case
@@ -100,14 +109,18 @@ module Setup
         when to_obj_class.nil?
           e
         else
-          e.to_s.try(to_obj_class) || e
+          e.to_s.send(to_obj_class) rescue e
         end
       end
-      return is_array ? cond_v : cond_v[0]
+      is_array ? cond_v : cond_v[0]
     end
 
     def op_like(obj_v, cond_v)
-      obj_v.nil? ? cond_v.nil? : (cond_v.nil? ? false : !obj_v.to_s[cond_v.to_s].nil?)
+      if obj_v.nil?
+        cond_v.nil?
+      else
+        cond_v.nil? ? false : !obj_v.to_s[cond_v.to_s].nil?
+      end
     end
 
     def op_is(obj_v, cond_v)
@@ -115,19 +128,27 @@ module Setup
     end
 
     def op_starts_with(obj_v, cond_v)
-      obj_v.nil? ? cond_v.nil? : (cond_v.nil? ? false : obj_v.to_s.start_with?(cond_v.to_s))
+      if obj_v.nil?
+        cond_v.nil?
+      else
+        cond_v.nil? ? false : obj_v.to_s.start_with?(cond_v.to_s)
+      end
     end
 
     def op_ends_with(obj_v, cond_v)
-      obj_v.nil? ? cond_v.nil? : (cond_v.nil? ? false : obj_v.to_s.end_with?(cond_v.to_s))
+      if obj_v.nil?
+        cond_v.nil?
+      else
+        cond_v.nil? ? false : obj_v.to_s.end_with?(cond_v.to_s)
+      end
     end
 
-    def op__not_null(obj_v, cond_v)
-      !op__null(obj_v, cond_v)
+    def op__not_null(obj_v, cond_v, before)
+      !op__null(obj_v, cond_v, before)
     end
 
-    def op__null(obj_v, cond_v)
-      obj_v.blank? && cond_v.present?
+    def op__null(obj_v, cond_v, before)
+      obj_v.blank? && (before.nil? || cond_v.present?)
     end
 
     def op_in(obj_v, cond_v)
@@ -145,19 +166,19 @@ module Setup
       min && max
     end
 
-    def op_today(obj_v, cond_v)
+    def op_today(obj_v)
       op_between(obj_v, [nil, Date.today.at_beginning_of_day, Date.today.at_end_of_day])
     end
 
-    def op_yesterday(obj_v, cond_v)
+    def op_yesterday(obj_v)
       op_between(obj_v, [nil, Date.yesterday.at_beginning_of_day, Date.yesterday.at_end_of_day])
     end
 
-    def op_this_week(obj_v, cond_v)
+    def op_this_week(obj_v)
       op_between(obj_v, [nil, Date.today.at_beginning_of_week.at_beginning_of_day, Date.today.at_end_of_week.at_end_of_day])
     end
 
-    def op_last_week(obj_v, cond_v)
+    def op_last_week(obj_v)
       op_between(obj_v, [nil, (last_week_beginning = Date.today.weeks_ago(1).at_beginning_of_week).at_beginning_of_day, last_week_beginning.at_end_of_week.at_end_of_day])
     end
   end
