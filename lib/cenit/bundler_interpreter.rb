@@ -110,7 +110,7 @@ module Cenit
         end
         params_initializer + Capataz.rewrite(algorithm.code,
                                              locals: locals,
-                                             self_linker: algorithm,
+                                             self_linker: algorithm.self_linker || algorithm,
                                              self_send_prefixer: self)
       end
 
