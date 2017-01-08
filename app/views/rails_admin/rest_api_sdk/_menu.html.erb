@@ -76,15 +76,17 @@
       }
     });
 
-    // Async highlight code blocks.
-    $('.modal-dialog pre.code').each(function (index, block) {
-      var worker = new Worker('/highlight-worker.js');
-
-      worker.onmessage = function (event) {
-        hljs.highlightBlock(block);
-      };
-      worker.postMessage('start');
-    });
+// TODO: Issue with Chrome, error Aw, snap!
+// review: http://stackoverflow.com/questions/17955218/web-worker-crashes-chrome-tab-when-passing-large-array-of-objects-which-have-arr
+//    // Async highlight code blocks.
+//    $('.modal-dialog pre.code').each(function (index, block) {
+//      var worker = new Worker('/highlight-worker.js');
+//
+//      worker.onmessage = function (event) {
+//        hljs.highlightBlock(block);
+//      };
+//      worker.postMessage('start');
+//    });
 
     // Show dlg with code block.
     $('.menu-api .dropdown-menu li a').on('click', function (e) {
