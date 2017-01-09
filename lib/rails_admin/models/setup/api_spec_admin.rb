@@ -13,20 +13,12 @@ module RailsAdmin
             configure :specification, :code do
               code_config do
                 {
-                  mode: 'text/x-yaml',
-                  readOnly: 'nocursor'
+                  mode: 'text/x-yaml'
                 }
               end
             end
 
             edit do
-              configure :specification, :code do
-                code_config do
-                  {
-                    mode: 'text/x-yaml',
-                  }
-                end
-              end
               fields :title, :specification
             end
 
