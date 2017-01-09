@@ -23,7 +23,7 @@
 <% api_current_paths.each do |path, methods| %>
     <% methods.each do |method, definition| %>
         <% dlg_id = "dlg-#{method}-#{path}".parameterize %>
-        <div id="<%= dlg_id %>" class="modal fade" role="dialog">
+        <div id="<%= dlg_id %>" class="modal fade rest-api-code-dlg" role="dialog">
           <div class="modal-dialog">
             <div class="modal-content">
               <div class="modal-header">
@@ -76,23 +76,24 @@
       }
     });
 
-// TODO: Issue with Chrome, error Aw, snap!
-// review: http://stackoverflow.com/questions/17955218/web-worker-crashes-chrome-tab-when-passing-large-array-of-objects-which-have-arr
-//    // Async highlight code blocks.
-//    $('.modal-dialog pre.code').each(function (index, block) {
-//      var worker = new Worker('/highlight-worker.js');
-//
-//      worker.onmessage = function (event) {
-//        hljs.highlightBlock(block);
-//      };
-//      worker.postMessage('start');
-//    });
+    // Async highlight code blocks.
+    var worker = new Worker('/highlight-worker.js');
+
+    worker.onmessage = function (event) {
+      $('.modal-dialog pre.code').each(function (index, block) {
+        hljs.highlightBlock(block);
+      });
+    };
+    worker.postMessage('start');
+
+    // Remove all rest-api-code-dlg moved to body in previews request.
+    $('body > .rest-api-code-dlg').remove();
 
     // Show dlg with code block.
     $('.menu-api .dropdown-menu li a').on('click', function (e) {
       var dlg = $('#' + $(this).data('dlg-id'));
 
-      // Move dlg to document body.
+      // Move dialog to document body to resolve incompatibility with the styles in this section.
       if (!dlg.parent().is('body')) $('body').append(dlg);
 
       dlg.modal();
