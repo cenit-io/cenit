@@ -60,7 +60,7 @@ module Setup
       origin != :default
     end
 
-    def account_version
+    def tenant_version
       if version && (pin = Setup::Pin.for(self)) && pin.version < version
         undo nil, from: pin.version + 1, to: version
       end
