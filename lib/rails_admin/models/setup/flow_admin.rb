@@ -90,8 +90,8 @@ module RailsAdmin
             end
 
             edit do
-              field :namespace, :enum_edit, &RailsAdmin::Models::Setup::FieldsConfigAdmin.shared_non_editable
-              field :name, &RailsAdmin::Models::Setup::FieldsConfigAdmin.shared_non_editable
+              field :namespace, :enum_edit, &RailsAdmin::Config::Fields::Base::SHARED_READ_ONLY
+              field :name, &RailsAdmin::Config::Fields::Base::SHARED_READ_ONLY
               field :event, :optional_belongs_to do
                 inline_edit false
                 inline_add false
@@ -101,12 +101,12 @@ module RailsAdmin
               end
               field :translator do
                 help I18n.t('admin.form.required')
-                RailsAdmin::Models::Setup::FieldsConfigAdmin.shared_read_only
+                shared_read_only
               end
               field :custom_data_type, :optional_belongs_to do
                 inline_edit false
                 inline_add false
-                RailsAdmin::Models::Setup::FieldsConfigAdmin.shared_read_only
+                shared_read_only
                 visible do
                   f = bindings[:object]
                   if (t = f.translator) && t.data_type.nil?
@@ -140,7 +140,7 @@ module RailsAdmin
                 end
               end
               field :data_type_scope do
-                RailsAdmin::Models::Setup::FieldsConfigAdmin.shared_read_only
+                shared_read_only
                 visible do
                   f = bindings[:object]
                   #For filter scope
@@ -169,7 +169,7 @@ module RailsAdmin
                 help I18n.t('admin.form.required')
               end
               field :scope_filter do
-                RailsAdmin::Models::Setup::FieldsConfigAdmin.shared_read_only
+                shared_read_only
                 visible do
                   f = bindings[:object]
                   f.scope_symbol == :filtered
@@ -180,7 +180,7 @@ module RailsAdmin
               field :scope_evaluator do
                 inline_add false
                 inline_edit false
-                RailsAdmin::Models::Setup::FieldsConfigAdmin.shared_read_only
+                shared_read_only
                 visible do
                   f = bindings[:object]
                   f.scope_symbol == :evaluation
@@ -191,7 +191,7 @@ module RailsAdmin
                 help I18n.t('admin.form.required')
               end
               field :lot_size do
-                RailsAdmin::Models::Setup::FieldsConfigAdmin.shared_read_only
+                shared_read_only
                 visible do
                   f = bindings[:object]
                   (t = f.translator) && t.type == :Export &&
@@ -200,7 +200,7 @@ module RailsAdmin
                 end
               end
               field :webhook do
-                RailsAdmin::Models::Setup::FieldsConfigAdmin.shared_read_only
+                shared_read_only
                 visible do
                   f = bindings[:object]
                   (t = f.translator) && [:Import, :Export].include?(t.type) &&
@@ -223,7 +223,7 @@ module RailsAdmin
                 end
               end
               field :before_submit do
-                RailsAdmin::Models::Setup::FieldsConfigAdmin.shared_read_only
+                shared_read_only
                 visible do
                   f = bindings[:object]
                   (t = f.translator) && [:Import].include?(t.type) &&
@@ -234,7 +234,7 @@ module RailsAdmin
                 end
               end
               field :response_translator do
-                RailsAdmin::Models::Setup::FieldsConfigAdmin.shared_read_only
+                shared_read_only
                 visible do
                   f = bindings[:object]
                   (t = f.translator) && t.type == :Export &&
@@ -249,7 +249,7 @@ module RailsAdmin
               field :response_data_type do
                 inline_edit false
                 inline_add false
-                RailsAdmin::Models::Setup::FieldsConfigAdmin.shared_read_only
+                shared_read_only
                 visible do
                   f = bindings[:object]
                   (resp_t = f.response_translator) &&
@@ -297,7 +297,7 @@ module RailsAdmin
                 help help I18n.t('admin.form.flow.notify_response')
               end
               field :after_process_callbacks do
-                RailsAdmin::Models::Setup::FieldsConfigAdmin.shared_read_only
+                shared_read_only
                 visible do
                   bindings[:object].ready_to_save?
                 end

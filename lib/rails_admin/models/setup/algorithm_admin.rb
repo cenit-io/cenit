@@ -36,21 +36,25 @@ module RailsAdmin
               end
             end
 
+            configure :language do
+              help 'Required'
+            end
+
             edit do
-              field :namespace, :enum_edit, &RailsAdmin::Models::Setup::FieldsConfigAdmin.shared_non_editable
-              field :name, &RailsAdmin::Models::Setup::FieldsConfigAdmin.shared_non_editable
-              field :description, &RailsAdmin::Models::Setup::FieldsConfigAdmin.shared_non_editable
-              field :parameters, &RailsAdmin::Models::Setup::FieldsConfigAdmin.shared_non_editable
-              field :language
+              field :namespace, :enum_edit, &RailsAdmin::Config::Fields::Base::SHARED_READ_ONLY
+              field :name, &RailsAdmin::Config::Fields::Base::SHARED_READ_ONLY
+              field :description, &RailsAdmin::Config::Fields::Base::SHARED_READ_ONLY
+              field :parameters, &RailsAdmin::Config::Fields::Base::SHARED_READ_ONLY
+              field :language, &RailsAdmin::Config::Fields::Base::SHARED_READ_ONLY
               field :code
               field :call_links do
-                RailsAdmin::Models::Setup::FieldsConfigAdmin.shared_read_only
+                shared_read_only
                 visible { bindings[:object].call_links.present? }
               end
-              field :store_output, &RailsAdmin::Models::Setup::FieldsConfigAdmin.shared_non_editable
-              field :output_datatype, &RailsAdmin::Models::Setup::FieldsConfigAdmin.shared_non_editable
-              field :validate_output, &RailsAdmin::Models::Setup::FieldsConfigAdmin.shared_non_editable
-              field :tags
+              field :store_output, &RailsAdmin::Config::Fields::Base::SHARED_READ_ONLY
+              field :output_datatype, &RailsAdmin::Config::Fields::Base::SHARED_READ_ONLY
+              field :validate_output, &RailsAdmin::Config::Fields::Base::SHARED_READ_ONLY
+              field :tags, &RailsAdmin::Config::Fields::Base::SHARED_READ_ONLY
             end
             show do
               field :namespace

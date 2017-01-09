@@ -24,7 +24,7 @@ module RailsAdmin
             end
 
             edit do
-              field :namespace, :enum_edit, &RailsAdmin::Models::Setup::FieldsConfigAdmin.shared_non_editable
+              field :namespace, :enum_edit, &RailsAdmin::Config::Fields::Base::SHARED_READ_ONLY
               field :name
               field :response_type
               field :authorization_endpoint
