@@ -36,23 +36,23 @@ module RailsAdmin
             end
 
             edit do
-              field :namespace, :enum_edit, &RailsAdmin::Models::Setup::FieldsConfigAdmin.shared_non_editable
-              field :name, &RailsAdmin::Models::Setup::FieldsConfigAdmin.shared_non_editable
+              field :namespace, :enum_edit, &RailsAdmin::Config::Fields::Base::SHARED_READ_ONLY
+              field :name, &RailsAdmin::Config::Fields::Base::SHARED_READ_ONLY
 
               field :target_data_type do
-                RailsAdmin::Models::Setup::FieldsConfigAdmin.shared_read_only
+                shared_read_only
                 inline_edit false
                 inline_add false
                 help 'Optional'
               end
 
               field :discard_events do
-                RailsAdmin::Models::Setup::FieldsConfigAdmin.shared_read_only
+                shared_read_only
                 help "Events won't be fired for created or updated records if checked"
               end
 
               field :style do
-                RailsAdmin::Models::Setup::FieldsConfigAdmin.shared_read_only
+                shared_read_only
                 visible { bindings[:object].type.present? }
                 help 'Required'
               end

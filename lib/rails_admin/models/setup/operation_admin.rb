@@ -13,15 +13,15 @@ module RailsAdmin
 
             configure :resource do
               read_only true
-              RailsAdmin::Models::Setup::FieldsConfigAdmin.shared_non_editable
+              RailsAdmin::Config::Fields::Base::SHARED_READ_ONLY
             end
 
             configure :description do
-              RailsAdmin::Models::Setup::FieldsConfigAdmin.shared_non_editable
+              RailsAdmin::Config::Fields::Base::SHARED_READ_ONLY
             end
 
             configure :method do
-              RailsAdmin::Models::Setup::FieldsConfigAdmin.shared_non_editable
+              RailsAdmin::Config::Fields::Base::SHARED_READ_ONLY
             end
 
             configure :metadata, :json_value

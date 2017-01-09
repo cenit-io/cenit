@@ -22,7 +22,7 @@ module Setup
         self.name = name.to_s.strip
         # unless Account.current_super_admin?
         #   errors.add(:namespace, 'is reserved') if Cenit.reserved_namespaces.include?(namespace.downcase)
-        # end TODO Delete comment
+        # end TODO Implements reserved namespaces
         errors.blank?
       end
 

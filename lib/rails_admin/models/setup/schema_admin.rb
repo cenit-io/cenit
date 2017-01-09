@@ -38,7 +38,7 @@ module RailsAdmin
               field :schema
 
               field :schema_data_type do
-                RailsAdmin::Models::Setup::FieldsConfigAdmin.shared_read_only
+                shared_read_only
                 inline_edit false
                 inline_add false
               end

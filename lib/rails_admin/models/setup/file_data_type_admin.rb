@@ -69,15 +69,15 @@ module RailsAdmin
             configure :slug
 
             edit do
-              field :namespace, :enum_edit, &RailsAdmin::Models::Setup::FieldsConfigAdmin.shared_non_editable
-              field :name, &RailsAdmin::Models::Setup::FieldsConfigAdmin.shared_non_editable
-              field :title, &RailsAdmin::Models::Setup::FieldsConfigAdmin.shared_non_editable
+              field :namespace, :enum_edit, &RailsAdmin::Config::Fields::Base::SHARED_READ_ONLY
+              field :name, &RailsAdmin::Config::Fields::Base::SHARED_READ_ONLY
+              field :title, &RailsAdmin::Config::Fields::Base::SHARED_READ_ONLY
               field :slug
-              field :validators, &RailsAdmin::Models::Setup::FieldsConfigAdmin.shared_non_editable
-              field :schema_data_type, &RailsAdmin::Models::Setup::FieldsConfigAdmin.shared_non_editable
-              field :before_save_callbacks, &RailsAdmin::Models::Setup::FieldsConfigAdmin.shared_non_editable
-              field :records_methods, &RailsAdmin::Models::Setup::FieldsConfigAdmin.shared_non_editable
-              field :data_type_methods, &RailsAdmin::Models::Setup::FieldsConfigAdmin.shared_non_editable
+              field :validators, &RailsAdmin::Config::Fields::Base::SHARED_READ_ONLY
+              field :schema_data_type, &RailsAdmin::Config::Fields::Base::SHARED_READ_ONLY
+              field :before_save_callbacks, &RailsAdmin::Config::Fields::Base::SHARED_READ_ONLY
+              field :records_methods, &RailsAdmin::Config::Fields::Base::SHARED_READ_ONLY
+              field :data_type_methods, &RailsAdmin::Config::Fields::Base::SHARED_READ_ONLY
             end
 
             list do

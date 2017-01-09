@@ -222,10 +222,6 @@ en:
         doing: "execution"
         submit: "Convert"
         bulk_link: "Convert selected %{model_label_plural}"
-      delete_validator:
-        title: "Delete %{model_label} '%{object_label}'"
-        menu: "Delete"
-        breadcrumb: "Delete"
       delete_library:
         title: "Delete Library '%{object_label}'"
         menu: "Delete"

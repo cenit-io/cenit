@@ -68,11 +68,11 @@ module RailsAdmin
             end
 
             edit do
-              field :title, :enum_edit, &RailsAdmin::Models::Setup::FieldsConfigAdmin.shared_non_editable
+              field :title, :enum_edit, &RailsAdmin::Config::Fields::Base::SHARED_READ_ONLY
               field :slug
-              field :before_save_callbacks, &RailsAdmin::Models::Setup::FieldsConfigAdmin.shared_non_editable
-              field :records_methods, &RailsAdmin::Models::Setup::FieldsConfigAdmin.shared_non_editable
-              field :data_type_methods, &RailsAdmin::Models::Setup::FieldsConfigAdmin.shared_non_editable
+              field :before_save_callbacks, &RailsAdmin::Config::Fields::Base::SHARED_READ_ONLY
+              field :records_methods, &RailsAdmin::Config::Fields::Base::SHARED_READ_ONLY
+              field :data_type_methods, &RailsAdmin::Config::Fields::Base::SHARED_READ_ONLY
             end
 
             list do

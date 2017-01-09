@@ -175,7 +175,7 @@ module Setup
         if (model = r.klass).include?(Setup::CrossOriginShared)
           model.where(:id.in => send(r.foreign_key)).and(criteria).with_tracking.cross(origin) do |_, non_tracked_ids|
             if non_tracked_ids.present?
-              Account.each do |account| #TODO Run as a task in the background
+              Account.each do |account|
                 if account == Account.current
                   model.clear_pins_for(account, non_tracked_ids)
                 else

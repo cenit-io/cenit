@@ -12,7 +12,7 @@ module RailsAdmin
               'My Collections'
             end
 
-            instance_eval &RailsAdmin::Models::Setup::FieldsConfigAdmin.collection_fields_config
+            instance_eval &RailsAdmin::Models::Setup::CollectionFieldsConfigAdmin::FIELDS_CONFIG
           end
         end
 

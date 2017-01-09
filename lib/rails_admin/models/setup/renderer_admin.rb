@@ -44,31 +44,31 @@ module RailsAdmin
             end
 
             edit do
-              field :namespace, :enum_edit, &RailsAdmin::Models::Setup::FieldsConfigAdmin.shared_non_editable
-              field :name, &RailsAdmin::Models::Setup::FieldsConfigAdmin.shared_non_editable
+              field :namespace, :enum_edit, &RailsAdmin::Config::Fields::Base::SHARED_READ_ONLY
+              field :name, &RailsAdmin::Config::Fields::Base::SHARED_READ_ONLY
 
 
               field :source_data_type do
-                RailsAdmin::Models::Setup::FieldsConfigAdmin.shared_read_only
+                shared_read_only
                 inline_edit false
                 inline_add false
               end
               field :style do
-                RailsAdmin::Models::Setup::FieldsConfigAdmin.shared_read_only
+                shared_read_only
                 visible { bindings[:object].type.present? }
                 help 'Required'
               end
               field :bulk_source do
-                RailsAdmin::Models::Setup::FieldsConfigAdmin.shared_read_only
+                shared_read_only
                 visible { bindings[:object].style.present? && bindings[:object].source_bulkable? }
               end
               field :mime_type do
-                RailsAdmin::Models::Setup::FieldsConfigAdmin.shared_read_only
+                shared_read_only
                 label 'MIME type'
                 visible { bindings[:object].style.present? }
               end
               field :file_extension do
-                RailsAdmin::Models::Setup::FieldsConfigAdmin.shared_read_only
+                shared_read_only
                 visible { !bindings[:object].file_extension_enum.empty? }
                 help { "Extensions for #{bindings[:object].mime_type}" }
               end

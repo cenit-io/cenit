@@ -62,10 +62,14 @@ module RailsAdmin
           end
 
           register_instance_option :default_config do
-            {
+            config = {
               lineNumbers: true,
               theme: (theme = User.current.try(:code_theme)).present? ? theme : (Cenit.default_code_theme || 'monokai')
             }
+            unless bindings[:view].instance_variable_get(:@action).is_a?(RailsAdmin::Config::Actions::Edit)
+              config[:readOnly] = 'nocursor'
+            end
+            config
           end
 
           register_instance_option :code_config do

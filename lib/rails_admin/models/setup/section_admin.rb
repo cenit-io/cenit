@@ -39,7 +39,7 @@ module RailsAdmin
             edit do
               field :namespace, :enum_edit
               field :name
-              field(:description, &RailsAdmin::Models::Setup::FieldsConfigAdmin.shared_non_editable)
+              field(:description, &RailsAdmin::Config::Fields::Base::SHARED_READ_ONLY)
               field :connection
               field :resources
               field :representations

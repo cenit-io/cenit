@@ -50,15 +50,15 @@ module RailsAdmin
             end
 
             edit do
-              field(:namespace, :enum_edit, &RailsAdmin::Models::Setup::FieldsConfigAdmin.shared_non_editable)
-              field(:name, &RailsAdmin::Models::Setup::FieldsConfigAdmin.shared_non_editable)
-              field(:path, &RailsAdmin::Models::Setup::FieldsConfigAdmin.shared_non_editable)
-              field(:method, &RailsAdmin::Models::Setup::FieldsConfigAdmin.shared_non_editable)
-              field(:description, &RailsAdmin::Models::Setup::FieldsConfigAdmin.shared_non_editable)
-              field(:metadata, :json_value, &RailsAdmin::Models::Setup::FieldsConfigAdmin.shared_non_editable)
+              field(:namespace, :enum_edit, &RailsAdmin::Config::Fields::Base::SHARED_READ_ONLY)
+              field(:name, &RailsAdmin::Config::Fields::Base::SHARED_READ_ONLY)
+              field(:path, &RailsAdmin::Config::Fields::Base::SHARED_READ_ONLY)
+              field(:method, &RailsAdmin::Config::Fields::Base::SHARED_READ_ONLY)
+              field(:description, &RailsAdmin::Config::Fields::Base::SHARED_READ_ONLY)
+              field(:metadata, :json_value, &RailsAdmin::Config::Fields::Base::SHARED_READ_ONLY)
 
               field :authorization
-              field(:authorization_handler, &RailsAdmin::Models::Setup::FieldsConfigAdmin.shared_non_editable)
+              field(:authorization_handler, &RailsAdmin::Config::Fields::Base::SHARED_READ_ONLY)
 
               field :parameters
               field :headers
