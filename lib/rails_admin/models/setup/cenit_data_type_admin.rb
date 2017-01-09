@@ -32,8 +32,8 @@ module RailsAdmin
             configure :schema, :json_schema
 
             edit do
-              field :namespace, &RailsAdmin::Models::Setup::FieldsConfigAdmin.shared_non_editable
-              field :name, &RailsAdmin::Models::Setup::FieldsConfigAdmin.shared_non_editable
+              field :namespace, &RailsAdmin::Config::Fields::Base::SHARED_READ_ONLY
+              field :name, &RailsAdmin::Config::Fields::Base::SHARED_READ_ONLY
               field :slug
               field :storage_size
             end

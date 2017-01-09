@@ -58,14 +58,14 @@ module RailsAdmin
             end
 
             edit do
-              field(:namespace, :enum_edit, &RailsAdmin::Models::Setup::FieldsConfigAdmin.shared_non_editable)
-              field(:name, &RailsAdmin::Models::Setup::FieldsConfigAdmin.shared_non_editable)
-              field(:url, &RailsAdmin::Models::Setup::FieldsConfigAdmin.shared_non_editable)
+              field(:namespace, :enum_edit, &RailsAdmin::Config::Fields::Base::SHARED_READ_ONLY)
+              field(:name, &RailsAdmin::Config::Fields::Base::SHARED_READ_ONLY)
+              field(:url, &RailsAdmin::Config::Fields::Base::SHARED_READ_ONLY)
 
               field :number
               field :token
               field :authorization
-              field(:authorization_handler, &RailsAdmin::Models::Setup::FieldsConfigAdmin.shared_non_editable)
+              field(:authorization_handler, &RailsAdmin::Config::Fields::Base::SHARED_READ_ONLY)
 
               field :parameters
               field :headers

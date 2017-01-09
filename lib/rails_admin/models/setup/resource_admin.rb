@@ -57,11 +57,11 @@ module RailsAdmin
             end
 
             edit do
-              field :namespace, :enum_edit, &RailsAdmin::Models::Setup::FieldsConfigAdmin.shared_non_editable
-              field :name, &RailsAdmin::Models::Setup::FieldsConfigAdmin.shared_non_editable
-              field :path, &RailsAdmin::Models::Setup::FieldsConfigAdmin.shared_non_editable
-              field :description, &RailsAdmin::Models::Setup::FieldsConfigAdmin.shared_non_editable
-              field :operations, &RailsAdmin::Models::Setup::FieldsConfigAdmin.shared_non_editable
+              field :namespace, :enum_edit, &RailsAdmin::Config::Fields::Base::SHARED_READ_ONLY
+              field :name, &RailsAdmin::Config::Fields::Base::SHARED_READ_ONLY
+              field :path, &RailsAdmin::Config::Fields::Base::SHARED_READ_ONLY
+              field :description, &RailsAdmin::Config::Fields::Base::SHARED_READ_ONLY
+              field :operations, &RailsAdmin::Config::Fields::Base::SHARED_READ_ONLY
               field :parameters
               field :headers
               field :template_parameters

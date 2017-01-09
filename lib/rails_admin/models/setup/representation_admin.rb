@@ -12,10 +12,10 @@ module RailsAdmin
             visible false
 
             edit do
-              field(:namespace, :enum_edit, &RailsAdmin::Models::Setup::FieldsConfigAdmin.shared_non_editable)
-              field(:name, &RailsAdmin::Models::Setup::FieldsConfigAdmin.shared_non_editable)
-              field(:description, &RailsAdmin::Models::Setup::FieldsConfigAdmin.shared_non_editable)
-              field(:metadata, :json_value, &RailsAdmin::Models::Setup::FieldsConfigAdmin.shared_non_editable)
+              field(:namespace, :enum_edit, &RailsAdmin::Config::Fields::Base::SHARED_READ_ONLY)
+              field(:name, &RailsAdmin::Config::Fields::Base::SHARED_READ_ONLY)
+              field(:description, &RailsAdmin::Config::Fields::Base::SHARED_READ_ONLY)
+              field(:metadata, :json_value, &RailsAdmin::Config::Fields::Base::SHARED_READ_ONLY)
             end
 
             show do
