@@ -9,7 +9,18 @@ module Setup
     belongs_to :trigger_evaluator, class_name: Setup::Algorithm.to_s, inverse_of: nil
     field :triggers, type: String
 
+    before_validation :verify_triggers
+
     before_save :format_triggers, :check_name
+
+    def verify_triggers
+      if changed_attributes.key?('triggers')
+        self.trigger_evaluator = nil unless changed_attributes.key?('trigger_evaluator_id') && trigger_evaluator
+      elsif changed_attributes.key?('trigger_evaluator_id')
+        self.triggers = nil unless changed_attributes.key?('triggers') && triggers.present?
+      end
+      errors.blank?
+    end
 
     def ready_to_save?
       data_type.present?
