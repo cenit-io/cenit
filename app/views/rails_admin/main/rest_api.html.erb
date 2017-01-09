@@ -22,13 +22,13 @@
     });
 
     // Async highlight code blocks.
-    $('.rest-api-codes pre.code').each(function (index, block) {
-      var worker = new Worker('/highlight-worker.js');
+    var worker = new Worker('/highlight-worker.js');
 
-      worker.onmessage = function (event) {
+    worker.onmessage = function (event) {
+      $('.rest-api-codes pre.code').each(function (index, block) {
         hljs.highlightBlock(block);
-      };
-      worker.postMessage('start');
-    });
+      });
+    };
+    worker.postMessage('start');
   });
 </script>
