@@ -10,9 +10,17 @@ module Setup
       r = false
       fields.each do |field|
         if send(field).present?
-          errors.add(field, reject_message)
+          changed =
+            if (relation = reflect_on_association(field))
+              send(relation.foreign_key_check)
+            else
+              changed_attributes.key?(field.to_s)
+            end
           send("#{field}=", nil)
-          r = true
+          if changed
+            errors.add(field, reject_message(field))
+            r = true
+          end
         end
       end
       r
