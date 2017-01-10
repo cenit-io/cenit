@@ -187,7 +187,7 @@ module Cenit
               collection.errors.full_messages.each { |msg| errors << msg }
               collection.errors.clear
               if Cenit::Utility.save(collection, { create_collector: create_collector })
-                pull_request[:fixed_errors] = errors
+                pull_request[:fixed_errors] = errors.collect { |error| "Auto-fixed error: #{error}" }
                 errors = []
               else
                 saved.each do |obj|
