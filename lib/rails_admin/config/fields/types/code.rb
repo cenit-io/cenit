@@ -66,7 +66,8 @@ module RailsAdmin
               lineNumbers: true,
               theme: (theme = User.current.try(:code_theme)).present? ? theme : (Cenit.default_code_theme || 'monokai')
             }
-            unless bindings[:view].instance_variable_get(:@action).is_a?(RailsAdmin::Config::Actions::Edit)
+            action = bindings[:view].instance_variable_get(:@action)
+            unless action.is_a?(RailsAdmin::Config::Actions::Edit) || action.is_a?(RailsAdmin::Config::Actions::New)
               config[:readOnly] = 'nocursor'
             end
             config
