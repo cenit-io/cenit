@@ -40,15 +40,18 @@ module RailsAdmin
             pretty_value do
               v = bindings[:view]
               action = v.instance_variable_get(:@action)
-              if (showing = action.is_a?(RailsAdmin::Config::Actions::Show) && !v.instance_variable_get(:@showing))
+              if action.is_a?(RailsAdmin::Config::Actions::Show) && !v.instance_variable_get(:@showing)
                 amc = RailsAdmin.config(association.klass)
               else
                 amc = polymorphic? ? RailsAdmin.config(associated) : associated_model_config # perf optimization for non-polymorphic associations
               end
               am = amc.abstract_model
               if action.is_a?(RailsAdmin::Config::Actions::Show) && !v.instance_variable_get(:@showing)
-                v.instance_variable_set(:@showing, true)
+                values = [value].flatten.select(&:present?)
                 fields = amc.list.with(controller: self, view: v, object: amc.abstract_model.model.new).visible_fields
+                unless fields.length == 1 && values.length == 1
+                  v.instance_variable_set(:@showing, true)
+                end
                 table = <<-HTML
                     <table class="table table-condensed table-striped">
                       <thead>
@@ -58,7 +61,7 @@ module RailsAdmin
                         <tr>
                       </thead>
                       <tbody>
-                  #{[value].flatten.select(&:present?).collect do |associated|
+                  #{values.collect do |associated|
                   can_see = !am.embedded_in?(bindings[:controller].instance_variable_get(:@abstract_model)) && (show_action = v.action(:show, am, associated))
                   '<tr class="script_row">' +
                     fields.collect do |field|
@@ -170,18 +173,7 @@ module RailsAdmin
     end
 
     def contextualized_label(context = nil)
-      if target.parent
-        target.to_s.split('::').last
-      else
-        case context
-        when nil
-          target.data_type.title
-        when :breadcrumb
-          target.data_type.custom_title('/')
-        else
-          target.data_type.custom_title
-        end
-      end
+      target.label(context)
     end
 
     def contextualized_label_plural(context = nil)

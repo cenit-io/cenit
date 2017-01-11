@@ -13,13 +13,15 @@ module RailsAdmin
           action = v.instance_variable_get(:@action)
           values, total = show_values(limit = 40)
           if action.is_a?(RailsAdmin::Config::Actions::Show) && !v.instance_variable_get(:@showing)
-            v.instance_variable_set(:@showing, true)
             amc = RailsAdmin.config(association.klass)
             am = amc.abstract_model
             count = 0
             fields = amc.list.with(controller: self, view: v, object: am.new).visible_fields
             if (listing = list_fields)
               fields = fields.select { |f| listing.include?(f.name.to_s) }
+            end
+            unless fields.length == 1 && values.length == 1
+              v.instance_variable_set(:@showing, true)
             end
             table = <<-HTML
             <table class="table table-condensed table-striped">
@@ -59,6 +61,7 @@ module RailsAdmin
               </tbody>
             </table>
             HTML
+            v.instance_variable_set(:@showing, false)
             if multiple?
               table += "<div class=\"clearfix total-count\">" +
                 if total > count

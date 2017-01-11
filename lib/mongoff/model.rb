@@ -423,6 +423,21 @@ module Mongoff
       @label_template
     end
 
+    def label(context = nil)
+      if parent
+        schema['title'] || to_s.split('::').last
+      else
+        case context
+        when nil
+          data_type.title
+        when :breadcrumb
+          data_type.custom_title('/')
+        else
+          data_type.custom_title
+        end
+      end
+    end
+
     protected
 
     def initialize(data_type, options = {})

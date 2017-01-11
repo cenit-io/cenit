@@ -293,7 +293,7 @@ module Mongoff
           ex.message
         end
       else
-        "#{orm_model.data_type.title} ##{id}"
+        "#{orm_model.label} ##{id}"
       end
     end
 
