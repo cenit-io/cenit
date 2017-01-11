@@ -454,7 +454,7 @@ module Mongoff
     private
 
     def check_referenced_schema(schema, check_for_array = true)
-      if schema.is_a?(Hash) && (schema = schema.reject { |key, _| %w(title description edi group).include?(key) })
+      if schema.is_a?(Hash) && (schema = schema.reject { |key, _| %w(xml unique title description edi format example enum readOnly default).include?(key) })
         ns = data_type.namespace
         ref = schema['$ref']
         if ref.is_a?(Hash)
