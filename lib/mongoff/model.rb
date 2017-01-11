@@ -77,7 +77,7 @@ module Mongoff
     def property_model(property)
       property = property.to_s
       model = nil
-      if schema.is_a?(Hash) && schema['type'] == 'object' && schema['properties'] && property_schema = schema['properties'][property]
+      if schema.is_a?(Hash) && schema['type'] == 'object' && schema['properties'] && (property_schema = schema['properties'][property])
         @properties_models ||= {}
         if @properties_models.has_key?(property)
           model = @properties_models[property]
@@ -238,8 +238,9 @@ module Mongoff
     end
 
     def attribute_key(field, field_metadata = {})
-      if (field_metadata[:model] ||= property_model(field)) && field_metadata[:model].persistable?
-        (schema = (field_metadata[:schema] ||= property_schema(field)))['referenced']
+      field_metadata[:model] ||= property_model(field)
+      model = field_metadata[:model]
+      if model && model.persistable? && (schema = (field_metadata[:schema] ||= property_schema(field)))['referenced']
         ((schema['type'] == 'array') ? field.to_s.singularize + '_ids' : "#{field}_id").to_sym
       else
         field.to_s == 'id' ? :_id : field.to_sym
