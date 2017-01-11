@@ -157,7 +157,7 @@ module Setup
               unless (xml_opts = schema['xml']).nil? || xml_opts['content_property']
                 schema['xml'].delete('content_property') if (xml_opts = base_model['xml']) && xml_opts['content_property']
               end
-              schema = base_model.deep_merge(schema) { |_, val1, val2| Cenit::Utility.array_hash_merge(val1, val2) }
+              schema = base_model.deep_merge(schema) { |_, ref_value, sch_value| Cenit::Utility.array_hash_merge(ref_value, sch_value) }
             end
           end
         elsif options[:only_overriders]
@@ -169,8 +169,8 @@ module Setup
             if (base_properties = base_model['properties'])
               properties = schema['properties'] || {}
               base_properties.reject! { |property_name, _| properties[property_name].nil? }
-              schema = { 'properties' => base_properties }.deep_merge(schema) do |_, val1, val2|
-                Cenit::Utility.array_hash_merge(val1, val2)
+              schema = { 'properties' => base_properties }.deep_merge(schema) do |_, ref_value, sch_value|
+                Cenit::Utility.array_hash_merge(ref_value, sch_value)
               end unless base_properties.blank?
             end
           end
@@ -195,7 +195,7 @@ module Setup
               value = [value] unless value.is_a?(Array)
               value.each do |ref|
                 if (ref_sch = find_ref_schema(ref))
-                  sch = sch.reverse_merge(ref_sch) { |_, val1, val2| Cenit::Utility.array_hash_merge(val1, val2) }
+                  sch = ref_sch.merge(sch) { |_, ref_value, sch_value| Cenit::Utility.array_hash_merge(sch_value, ref_value) }
                 else
                   raise Exception.new("contains an unresolved reference #{value}") unless options[:silent]
                 end
@@ -204,7 +204,7 @@ module Setup
               case existing_value = sch[key]
               when Hash
                 if value.is_a?(Hash)
-                  value = existing_value.deep_merge(value) { |_, val1, val2| Cenit::Utility.array_hash_merge(val1, val2) }
+                  value = existing_value.deep_merge(value) { |_, sch_value, ref_value| Cenit::Utility.array_hash_merge(sch_value, ref_value) }
                 end
               when Array
                 value = value + existing_value if value.is_a?(Array)
