@@ -71,7 +71,8 @@ module Xsd
     def start_element(name, attributes = [])
       unless @xsd_tag
         @xsd_tag = 'http://www.w3.org/2001/XMLSchema'
-        if attr = attributes.detect { |attr| attr[0] =~ /\Axmlns:/ && attr[1] == 'http://www.w3.org/2001/XMLSchema' }
+        attr = attributes.detect { |attr| attr[0] =~ /\Axmlns:/ && attr[1] == 'http://www.w3.org/2001/XMLSchema' }
+        if attr
           @xsd_tag = attr[0].from(attr[0].index(':') + 1)
         end
       end

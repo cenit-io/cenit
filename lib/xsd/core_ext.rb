@@ -20,16 +20,6 @@ class String
       { '$ref' => self }
     end
   end
-
-  def to_title
-    self.
-      gsub(/([A-Z])(\d)/, '\1 \2').
-      gsub(/([a-z])(\d|[A-Z])/, '\1 \2').
-      gsub(/(\d)([a-z]|[A-Z])/, '\1 \2').
-      tr('_', ' ').
-      tr('-', ' ').
-      capitalize
-  end
 end
 
 class Hash

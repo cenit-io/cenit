@@ -31,7 +31,9 @@ module Xsd
 
     def to_json_schema
       json_schema = {'type' => 'object'}
-      json_schema['title'] = name.to_title if name
+      if name
+        json_schema['title'] = name.to_title
+      end
       if @base
         if (@base = qualify_type(@base).to_json_schema)['$ref']
           @base = @base['$ref']
@@ -41,7 +43,6 @@ module Xsd
       inject_attributes(json_schema)
       properties = json_schema['properties'] ||= {}
       required = json_schema['required'] ||= []
-      index = 0
       if container
         container_schema = container.to_json_schema
         if container.max_occurs == :unbounded || container.max_occurs > 1 || container.min_occurs > 1
@@ -56,11 +57,11 @@ module Xsd
         else
           container_required = container_schema['required'] || []
           if (container_properties = container_schema['properties']).size == 1
-            properties[p = 'value'] = container_properties.values.first
-            required << p if container_required.include?(container_properties.keys.first)
+            properties[p = container_properties.keys.first] = container_properties.values.first
+            required << p if container_required.include?(p)
           else
             container_properties.each do |property, schema|
-              properties[p = "property_#{index += 1}"] = schema
+              properties[p = property.to_method_name(properties)] = schema
               required << p if container_required.include?(property)
             end
           end
