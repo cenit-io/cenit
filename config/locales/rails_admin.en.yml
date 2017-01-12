@@ -442,6 +442,10 @@ en:
         submit: "Regist"
         done: "registered"
         doing: "registering"
+      algorithm_dependencies:
+        title: "Dependencies"
+        menu: "Dependencies"
+        breadcrumb: "Dependencies"
       rest_api:
         title: "Rest API"
         menu: "Rest API"
