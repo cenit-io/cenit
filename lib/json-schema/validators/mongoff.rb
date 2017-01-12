@@ -47,6 +47,9 @@ module JSON
         uri.define_singleton_method(:fragment) { @_fragment }
         uri.define_singleton_method(:fragment=) { |f| @_fragment = f }
       end
+      if (mongoff_model = RequestStore.store[:'[cenit]mongoff_model_validator'])
+        schema = mongoff_model.data_type.merge_schema(schema)
+      end
       json_schema_init(schema, uri, parent_validator)
     end
 

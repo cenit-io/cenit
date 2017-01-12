@@ -345,9 +345,12 @@ module Mongoff
     end
 
     def fully_validate_against_schema(value, options = {})
-      JSON::Validator.fully_validate(schema, value, options.merge(version: :mongoff,
-                                                                  schema_reader: JSON::Schema::CenitReader.new(data_type),
-                                                                  errors_as_objects: true))
+      RequestStore.store[:'[cenit]mongoff_model_validator'] = self
+      r = JSON::Validator.fully_validate(schema, value, options.merge(version: :mongoff,
+                                                                      schema_reader: JSON::Schema::CenitReader.new(data_type),
+                                                                      errors_as_objects: true))
+      RequestStore.store[:'[cenit]mongoff_model_validator'] = nil
+      r
     end
 
     class << self
