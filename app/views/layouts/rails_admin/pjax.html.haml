@@ -23,7 +23,7 @@
       %h3.label-heading{style: 'margin: 0;'}
         %small=  t("admin.misc.title_search_shared_collections")
         %h4{style: "margin-top: 0px;"}= t("admin.misc.sub_title_search_shared_collections", count: @count[Setup::CrossSharedCollection.name])
-        - shared_path = index_path(model_name: "setup~cross_shared_collection", query: query)
+        - shared_path = index_path(model_name: "cross_shared_collection", query: query)
         = form_tag(shared_path, method: :get, class: "pjax-form form-inline") do
           .input-group.col-xs-12
             %input.form-control.btb.btn-default{name: "query", type: "search", value: query}
@@ -31,9 +31,9 @@
                 %button.btn.btn-primary
                   %i.fa.fa-search
       = 'Try'
-      = link_to('gmail', index_path(model_name: "setup~cross_shared_collection", query: 'gmail'))+','
-      = link_to('twilio', index_path(model_name: "setup~cross_shared_collection", query: 'twilio'))+' or'
-      = link_to('shipstation', index_path(model_name: "setup~cross_shared_collection", query: 'shipstation'))
+      = link_to('gmail', index_path(model_name: "cross_shared_collection", query: 'gmail'))+','
+      = link_to('twilio', index_path(model_name: "cross_shared_collection", query: 'twilio'))+' or'
+      = link_to('shipstation', index_path(model_name: "cross_shared_collection", query: 'shipstation'))
     .col-md-3
       %h4.text-muted
         - if current_user
