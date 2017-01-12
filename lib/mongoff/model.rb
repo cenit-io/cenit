@@ -57,9 +57,11 @@ module Mongoff
     end
 
     def schema
-      if model_schema?(@schema = proto_schema)
-        @schema = (Model[:base_schema] || {}).deep_merge(@schema)
-      end unless @schema
+      unless @schema
+        if model_schema?(@schema = proto_schema)
+          @schema = (Model[:base_schema] || {}).deep_merge(@schema)
+        end
+      end
       @schema
     end
 
@@ -74,13 +76,16 @@ module Mongoff
       schema['type'] == 'object' && schema['properties'] && (property_schema = schema['properties'][property]) && model_schema?(property_schema)
     end
 
+    def properties_models
+      @properties_models ||= {}
+    end
+
     def property_model(property)
       property = property.to_s
       model = nil
       if schema.is_a?(Hash) && schema['type'] == 'object' && schema['properties'] && (property_schema = schema['properties'][property])
-        @properties_models ||= {}
-        if @properties_models.has_key?(property)
-          model = @properties_models[property]
+        if properties_models.key?(property)
+          model = properties_models[property]
         else
           ref, property_dt = check_referenced_schema(property_schema)
           model =
@@ -101,7 +106,7 @@ module Mongoff
               Model.for(data_type: data_type, name: property.camelize, parent: self, schema: records_schema)
             end
           schema['properties'][property] = property_schema
-          @properties_models[property] = model
+          properties_models[property] = model
         end
       end
       model
@@ -470,9 +475,11 @@ module Mongoff
 
     def check_referenced_schema(schema, check_for_array = true)
       if schema.is_a?(Hash) && (schema = schema.reject { |key, _| %w(xml unique title description edi format example enum readOnly default).include?(key) })
+        property_dt = nil
         ns = data_type.namespace
-        ref = schema['$ref']
-        if ref.is_a?(Hash)
+        if (ref = schema['$ref']).is_a?(Array)
+          ref = nil
+        elsif ref.is_a?(Hash)
           (ns = ref['namespace'].to_s)
           ref = ref['name']
         end
