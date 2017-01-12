@@ -26,6 +26,12 @@ module RailsAdmin
     ###
     # Returns api specification paths for current namespace and model.
     def api_current_paths
+      if params[:action] == 'dashboard'
+        params[:model_name] = 'cross_shared_collection'
+        abstract_model = RailsAdmin::AbstractModel.new(Setup::CrossSharedCollection.to_s)
+        @properties = abstract_model.properties
+      end
+
       @api_current_paths ||= begin
         ns, model_name, display_name = api_model
 
@@ -47,7 +53,7 @@ module RailsAdmin
 
       @api_current_paths ||= []
 
-    rescue
+    rescue Exception => ex
       []
     end
 
