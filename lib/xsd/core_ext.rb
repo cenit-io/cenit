@@ -14,7 +14,8 @@ end
 
 class String
   def to_json_schema
-    if key = Xsd::BUILD_IN_TYPES.keys.detect { |key| end_with?(key) }
+    key = Xsd::BUILD_IN_TYPES.keys.detect { |key| end_with?(key) }
+    if key
       Xsd::BUILD_IN_TYPES[key]
     else
       { '$ref' => self }

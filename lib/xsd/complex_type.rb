@@ -30,7 +30,7 @@ module Xsd
     end
 
     def to_json_schema
-      json_schema = {'type' => 'object'}
+      json_schema = documenting('type' => 'object')
       if name
         json_schema['title'] = name.to_title
       end

@@ -22,7 +22,10 @@ module RailsAdmin
     end
 
     def description
-      schema['description']
+      if (d = schema['description']).is_a?(Array)
+        d = d.join('<br>')
+      end
+      d
     end
 
     def group

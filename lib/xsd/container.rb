@@ -28,7 +28,7 @@ module Xsd
     end
 
     def to_json_schema
-      json = { 'type' => 'object', 'title' => tag_name.to_title }
+      json = documenting('type' => 'object', 'title' => tag_name.to_title)
       json['properties'] = properties = {}
       required = []
       if max_occurs == :unbounded || max_occurs > 0 || min_occurs > 1

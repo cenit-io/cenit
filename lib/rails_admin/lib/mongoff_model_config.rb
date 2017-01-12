@@ -29,7 +29,7 @@ module RailsAdmin
             label { title }
           end
           if (description = property.description)
-            description = (property.required? ? 'Required. ' : 'Optional. ') + description
+            description = "#{property.required? ? 'Required' : 'Optional'}. #{description}".html_safe
             help { description }
           end
           unless (g = property.group.to_s.gsub(/ +/, '_').underscore.to_sym).blank?
