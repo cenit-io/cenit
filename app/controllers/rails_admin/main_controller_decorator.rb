@@ -58,8 +58,7 @@ module RailsAdmin
     def handle_save_error(whereto = :new)
       #Patch
       if @object && @object.errors.present?
-        flash.now[:error] = t('admin.flash.error', name: @model_config.label, action: t("admin.actions.#{@action.key}.done").html_safe).html_safe
-        flash.now[:error] += %(<br>- #{@object.errors.full_messages.join('<br>- ')}).html_safe
+        do_flash(:error, t('admin.flash.error', name: @model_config.label, action: t("admin.actions.#{@action.key}.done")), @object.errors.full_messages)
       end
 
       respond_to do |format|
