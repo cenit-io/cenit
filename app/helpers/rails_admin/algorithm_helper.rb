@@ -8,10 +8,10 @@ module RailsAdmin
 
     def algorithm_langs
       [
-        { id: 'php', label: 'Php', dependencies_file: 'composer.json' },
         { id: 'ruby', label: 'Ruby', dependencies_file: 'Gemfile' },
-        { id: 'python', label: 'Python', dependencies_file: 'requirements.txt' },
         { id: 'nodejs', label: 'Nodejs', dependencies_file: 'package.json' },
+        { id: 'python', label: 'Python', dependencies_file: 'requirements.txt' },
+        { id: 'php', label: 'Php', dependencies_file: 'composer.json' },
       ]
     end
 
