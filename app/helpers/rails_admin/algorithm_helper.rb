@@ -29,9 +29,24 @@ module RailsAdmin
       contents.update(user, repo, path, {
         :path => path,
         :message => 'Dependencies updated from Cenit-IO.',
-        :content => content,
+        :content => content.strip,
         :sha => file.sha
       })
+    end
+
+    def codemirror_options
+      {
+        csspath: asset_path('codemirror.css'),
+        jspath: asset_path('codemirror.js'),
+        options: {
+          lineNumbers: true,
+          theme: (theme = User.current.try(:code_theme)).present? ? theme : (Cenit.default_code_theme || 'monokai')
+        },
+        locations: {
+          mode: asset_path("codemirror/modes/javascript.js"),
+          theme: asset_path("codemirror/themes/monokai.css")
+        }
+      }
     end
 
     private
