@@ -16,14 +16,14 @@ module RailsAdmin
     end
 
     def pull_dependencies(lang)
-      contents = Github::Client::Repos::Contents.new(oauth_token: 'c75639235011cb0a7748bed1a1e0ca3facd2f95e')
+      contents = Github::Client::Repos::Contents.new(oauth_token: ENV['GITHUB_OAUTH_TOKEN'])
       user, repo, path = git_params(lang)
       file = contents.find(user, repo, path)
       Base64.decode64(file.content)
     end
 
     def puch_dependencies(lang, content)
-      contents = Github::Client::Repos::Contents.new(oauth_token: 'c75639235011cb0a7748bed1a1e0ca3facd2f95e')
+      contents = Github::Client::Repos::Contents.new(oauth_token: ENV['GITHUB_OAUTH_TOKEN'])
       user, repo, path = git_params(lang)
       file = contents.find(user, repo, path)
       contents.update(user, repo, path, {
