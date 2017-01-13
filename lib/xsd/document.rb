@@ -30,7 +30,7 @@ module Xsd
       'type:http://www.w3.org/2001/XMLSchema:string' => { 'type' => 'string' },
       'type:http://www.w3.org/2001/XMLSchema:normalizedString' => { 'type' => 'string' },
       'type:http://www.w3.org/2001/XMLSchema:token' => { 'type' => 'string' },
-      'type:http://www.w3.org/2001/XMLSchema:language' => { 'type' => 'string' },
+      'type:http://www.w3.org/2001/XMLSchema:language' => { 'type' => 'string', "minLength" => 1 },
       'type:http://www.w3.org/2001/XMLSchema:NMTOKEN' => { 'type' => 'string' },
       'type:http://www.w3.org/2001/XMLSchema:NMTOKENS' => { 'type' => 'string' },
       'type:http://www.w3.org/2001/XMLSchema:Name' => { 'type' => 'string' },
