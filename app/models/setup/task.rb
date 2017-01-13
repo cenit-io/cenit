@@ -168,7 +168,12 @@ module Setup
         else
           nil
         end
-      notifications << notification if notification
+      if notification
+        notifications << notification
+        if current_execution
+          current_execution.notifications << notification
+        end
+      end
       save
     end
 
