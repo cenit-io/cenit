@@ -2,6 +2,8 @@ module Setup
   class FlowExecution < Setup::Task
     include RailsAdmin::Models::Setup::FlowExecutionAdmin
 
+    agent_field :flow
+
     build_in_data_type
 
     deny :copy, :new, :edit, :translator_update, :import, :convert, :delete_all

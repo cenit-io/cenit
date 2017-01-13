@@ -23,6 +23,10 @@ module Setup
     field :started_at, type: Time
     field :completed_at, type: Time
 
+    field :agent_id, type: BSON::ObjectId
+
+    before_save { self.agent_id ||= task.agent_id }
+
     default_scope -> { desc(:created_at) }
 
     def label

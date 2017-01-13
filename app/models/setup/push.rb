@@ -3,6 +3,8 @@ module Setup
     include HashField
     include RailsAdmin::Models::Setup::PushAdmin
 
+    agent_field :source_collection
+
     build_in_data_type
 
     belongs_to :source_collection, class_name: Setup::Collection.to_s, inverse_of: nil

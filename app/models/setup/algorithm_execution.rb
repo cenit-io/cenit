@@ -2,6 +2,8 @@ module Setup
   class AlgorithmExecution < Setup::Task
     include RailsAdmin::Models::Setup::AlgorithmExecutionAdmin
 
+    agent_field :algorithm
+
     build_in_data_type
 
     belongs_to :algorithm, class_name: Setup::Algorithm.to_s, inverse_of: nil

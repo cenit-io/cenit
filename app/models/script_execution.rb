@@ -1,6 +1,8 @@
 class ScriptExecution < Setup::Task
   include RailsAdmin::Models::ScriptExecutionAdmin
 
+  agent_field :script
+
   default_origin :admin
 
   belongs_to :script, class_name: Script.to_s, inverse_of: nil

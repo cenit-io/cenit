@@ -247,6 +247,14 @@ module Setup
       @joining.to_b
     end
 
+    def agent_id
+      (agent = send(self.class.agent_field || :itself)) && agent.id
+    end
+
+    def agent_model
+      self.class.agent_model
+    end
+
     class << self
 
       def auto_retry_enum
@@ -256,6 +264,22 @@ module Setup
       def process(message = {}, &block)
         message[:task] = self unless (task = message[:task]).is_a?(self) || (task.is_a?(Class) && task < self)
         Cenit::Rabbit.enqueue(message, &block)
+      end
+
+      def agent_field(*args)
+        if args.length > 0
+          @agent_field = args[0]
+        else
+          @agent_field || superclass.try(:agent_field)
+        end
+      end
+
+      def agent_model
+        if (field = agent_field)
+          reflect_on_association(field).klass
+        else
+          self
+        end
       end
     end
 

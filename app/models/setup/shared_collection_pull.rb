@@ -3,6 +3,8 @@ module Setup
     include PullingField
     include RailsAdmin::Models::Setup::SharedCollectionPullAdmin
 
+    agent_field :shared_collection
+
     build_in_data_type
 
     pulling :shared_collection, class: Setup::CrossSharedCollection
