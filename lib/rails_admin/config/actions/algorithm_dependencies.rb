@@ -19,7 +19,8 @@ module RailsAdmin
           proc do
             if request.post?
               lang = algorithm_langs.select { |l| l[:id] == params[:lang_id] }.first
-              puch_dependencies(lang, params[:dependencies])
+              result = puch_dependencies(lang, params[:dependencies])
+              render json: result
             else
               warning = "<h4>Warning:</h4>"
               warning << "<ul>"
