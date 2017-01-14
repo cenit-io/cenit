@@ -8,6 +8,10 @@ module RailsAdmin
       [1.0, percent].max.to_i * 20
     end
 
+    def integration_sample(index = 3)
+      ['odoo', 'desk', 'mailchimp', 'mandrill', 'shipstation', 'shipwire', 'gmail', 'twilio', 'slack', 'asana', 'houzz', 'fancy', 'trello'].sample(index)
+    end
+
     def animate_width_to(percent)
       "#{[2.0, percent].max.to_i}%"
     end
