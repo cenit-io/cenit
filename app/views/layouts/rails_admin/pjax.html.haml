@@ -31,9 +31,10 @@
                 %button.btn.btn-primary
                   %i.fa.fa-search
       = 'Try'
-      = link_to('gmail', index_path(model_name: "cross_shared_collection", query: 'gmail'))+','
-      = link_to('twilio', index_path(model_name: "cross_shared_collection", query: 'twilio'))+' or'
-      = link_to('shipstation', index_path(model_name: "cross_shared_collection", query: 'shipstation'))
+      - sample = integration_sample(3)
+      = link_to(sample[0], index_path(model_name: "cross_shared_collection", query: sample[0]))+','
+      = link_to(sample[1], index_path(model_name: "cross_shared_collection", query: sample[1]))+' or'
+      = link_to(sample[2], index_path(model_name: "cross_shared_collection", query: sample[2]))
     .col-md-3
       %h4.text-muted
         - if current_user
