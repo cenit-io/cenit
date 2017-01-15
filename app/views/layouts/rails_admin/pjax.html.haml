@@ -19,7 +19,7 @@
   - @count ||= {}
   - query = params[:query]
   .col-md-12{style: 'margin-bottom: 20px;'}
-    .col-md-9.col-lg-6
+    .col-md-8.col-lg-6
       %h3.label-heading{style: 'margin: 0;'}
         %small=  t("admin.misc.title_search_shared_collections")
         %h4{style: "margin-top: 0px;"}= t("admin.misc.sub_title_search_shared_collections", count: @count[Setup::CrossSharedCollection.name])
@@ -56,7 +56,7 @@
         %span.text-muted
           = t('admin.actions.dashboard.recent_users.more', count: (User.all.count/5 * 5))
 
-    .col-md-3.col-lg-2.visible-md{style:'padding-left: 30px;'}
+    .col-md-4.col-lg-2.tenants.hidden-xs{style:'padding-left: 30px;'}
       %h4.text-muted{style:'margin-top: 10px;'}
         - if current_user
           = link_to(pluralize(current_user.all_accounts.count, 'tenant'), index_path(model_name: 'account'))
