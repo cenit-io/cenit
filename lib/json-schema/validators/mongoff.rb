@@ -47,9 +47,6 @@ module JSON
         uri.define_singleton_method(:fragment) { @_fragment }
         uri.define_singleton_method(:fragment=) { |f| @_fragment = f }
       end
-      if (mongoff_model = RequestStore.store[:'[cenit]mongoff_model_validator'])
-        schema = mongoff_model.data_type.merge_schema(schema)
-      end
       json_schema_init(schema, uri, parent_validator)
     end
 
@@ -65,6 +62,15 @@ module JSON
                         'uint64' => JSON::Schema::Uint64Format)
 
         @names = ['mongoff']
+      end
+
+      alias_method :json_schema_validator_validate, :validate
+
+      def validate(current_schema, data, fragments, processor, options = {})
+        if (processor_options = processor.instance_variable_get(:@options)) && (data_type = processor_options[:data_type])
+          current_schema = JSON::Schema.new(data_type.merge_schema(current_schema.schema), current_schema.uri, current_schema.validator)
+        end
+        json_schema_validator_validate(current_schema, data, fragments, processor, options)
       end
 
       JSON::Validator.register_validator(self.new)

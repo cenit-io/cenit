@@ -11,7 +11,7 @@ module JSON
             if property_schema['referenced'] #TODO && mongoff_model_schema?(property_schema)
               if property_schema['type'] == 'array'
                 property = "#{property}_ids"
-                property_schema = {'type' => 'array'}
+                property_schema = { 'type' => 'array' }
               else
                 property = "#{property}_id"
                 property_schema = {}
