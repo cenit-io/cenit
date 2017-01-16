@@ -21,11 +21,17 @@ module Setup
     shared_deny :simple_delete_data_type, :bulk_delete_data_type, :simple_expand, :bulk_expand
 
     after_initialize do
-      self.schema = {} if new_record?
+      self.schema = {} if new_record? && @schema.nil?
+    end
+
+    def validates_configuration
+      super && validate_model && check_indices
     end
 
     def schema
       @schema ||= JSON.parse(code)
+    rescue
+      { ERROR: 'Invalid JSON syntax' }
     end
 
     def schema=(sch)
@@ -65,10 +71,6 @@ module Setup
       errors.blank?
     end
 
-    def check_before_save
-      validate_model && check_indices && super
-    end
-
     def schema_changed?
       changed_attributes.has_key?('schema')
     end
@@ -76,16 +78,21 @@ module Setup
     def validate_model
       if schema.nil?
         errors.add(:schema, "can't be blank")
-      elsif schema_changed?
-        begin
-          json_schema, _ = validate_schema
-          fail Exception, 'defines invalid property name: _type' if object_schema?(json_schema) &&json_schema['properties']['_type']
-          self.schema = check_properties(JSON.parse(json_schema.to_json))
-          self.title = json_schema['title'] || self.name if title.blank?
-        rescue Exception => ex
-          errors.add(:schema, ex.message)
+      else
+        if schema_changed?
+          begin
+            json_schema, _ = validate_schema
+            fail Exception, 'defines invalid property name: _type' if object_schema?(json_schema) &&json_schema['properties']['_type']
+            self.schema = check_properties(JSON.parse(json_schema.to_json))
+          rescue Exception => ex
+            errors.add(:schema, ex.message)
+          end
+          @collection_data_type = nil
         end
-        @collection_data_type = nil
+        json_schema ||= schema
+        if title.blank?
+          self.title = json_schema['title'] || self.name
+        end
       end
       errors.blank?
     end

@@ -67,11 +67,20 @@ module RailsAdmin
     # end
 
     def string_field_type
-      if ((length = length_validation_lookup) && length < 256) || STRING_TYPE_COLUMN_NAMES.include?(name)
-        :string
-      else
-        :text
+      type =
+        if ((length = length_validation_lookup) && length < 256) || STRING_TYPE_COLUMN_NAMES.include?(name)
+          :string
+        else
+          :text
+        end
+      #Empty Test
+      if !required? &&
+        ((((min = @schema['minLength']) && (min > 0 || (min == 0 && @schema['exclusiveMaximum']))) ||
+          ((pattern = @schema['pattern']) && !''.match(pattern))))
+
+        type = "non_empty_#{type}"
       end
+      type
     end
 
     def length_validation_lookup

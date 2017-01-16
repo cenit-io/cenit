@@ -13,7 +13,11 @@ module Setup
 
 
     def new_from_xml(data, options={})
-      post_process(Edi::Parser.parse_xml(self, data, options))
+      if (record = Edi::Parser.parse_xml(self, data, options))
+        post_process(record)
+      else
+        fail "XML data does not match #{custom_title} schema"
+      end
     end
 
     private
