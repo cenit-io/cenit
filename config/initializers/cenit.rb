@@ -116,6 +116,14 @@ Cenit.config do
 
   using_accounts_dbs ENV['USING_ACCOUNTS_DBS']
 
-  # Max count of tab actions to show before the More Actions tab if there are more actions to show
+  #Max count of tab actions to show before the More Actions tab, if there are more actions to show
   max_tab_actions_count 2
+
+  #Max nested forms count generation for new/update actions
+  max_nested_forms 100
+
+  #Max nested forms levels generation for new/update actions
+  max_nested_forms_levels 10
+
+  max_handing_schemas 500
 end
