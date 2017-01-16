@@ -45,8 +45,6 @@ module Setup
       end
     end
 
-    MAX_SCHEMA_HANDLING_SIZE = 500
-
     class << self
 
       def data_type_schemas(source, options = {})
@@ -61,7 +59,9 @@ module Setup
           else
             [source]
           end
-        fail if schemas.count > MAX_SCHEMA_HANDLING_SIZE
+        if (c = schemas.count) > ::Cenit.max_handing_schemas
+          fail "Too many schemas to handle: #{c} (> #{::Cenit.max_handing_schemas})"
+        end
         schemas = schemas.to_a
         ns_schemas = Hash.new { |h, k| h[k] = [] }
         nss = {}

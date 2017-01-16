@@ -124,4 +124,6 @@ Cenit.config do
 
   #Max nested forms levels generation for new/update actions
   max_nested_forms_levels 10
+
+  max_handing_schemas 500
 end
