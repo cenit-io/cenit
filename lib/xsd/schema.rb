@@ -36,7 +36,7 @@ module Xsd
     end
 
     def include_start(attributes = [])
-      if location = attributeValue(:schemaLocation, attributes)
+      if (location = attributeValue(:schemaLocation, attributes))
         @include_uris << location
       else
         raise Exception('include without location')
@@ -46,7 +46,7 @@ module Xsd
 
     def bind_includes(schema_resolver)
       @include_uris.each do |uri|
-        if schema = schema_resolver.schema_for(document.uri, uri)
+        if (schema = schema_resolver.schema_for(document.uri, uri))
           @includes << schema
         else
           raise IncludeMissingException.new("includes undefined schema #{uri}")

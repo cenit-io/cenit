@@ -1,7 +1,7 @@
 module Xsd
   class BasicTag
 
-    attr_reader :parent
+    attr_reader :parent, :annotation
 
     def initialize(args)
       @parent = args[:parent]
@@ -10,6 +10,10 @@ module Xsd
           send(method, args)
         end
       end
+    end
+
+    def when_annotation_end(annotation)
+      @annotation = annotation
     end
 
     def document
@@ -59,8 +63,11 @@ module Xsd
       parent ? parent.xmlns(ns) : nil
     end
 
-    def json_schema(name)
-      parent ? parent.json_schema(ns) : nil
+    def documenting(obj)
+      if obj.is_a?(Hash) && annotation && !(docs = annotation.documentations).empty?
+        obj['description'] = (docs.size == 1) ? docs[0].to_string : docs.collect(&:to_string)
+      end
+      obj
     end
 
     protected

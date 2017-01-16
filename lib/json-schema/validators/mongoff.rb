@@ -64,6 +64,15 @@ module JSON
         @names = ['mongoff']
       end
 
+      alias_method :json_schema_validator_validate, :validate
+
+      def validate(current_schema, data, fragments, processor, options = {})
+        if (processor_options = processor.instance_variable_get(:@options)) && (data_type = processor_options[:data_type])
+          current_schema = JSON::Schema.new(data_type.merge_schema(current_schema.schema), current_schema.uri, current_schema.validator)
+        end
+        json_schema_validator_validate(current_schema, data, fragments, processor, options)
+      end
+
       JSON::Validator.register_validator(self.new)
     end
   end

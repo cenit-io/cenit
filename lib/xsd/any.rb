@@ -7,7 +7,7 @@ module Xsd
     attr_reader :name
 
     def to_json_schema
-      {}
+      documenting({})
     end
   end
 end

@@ -32,7 +32,7 @@ module Xsd
     end
 
     def to_json_schema
-      (name ? {'title' => name.to_title} : {}).merge(type.to_json_schema)
+      documenting(name ? {'title' => name.to_title} : {}).merge(type.to_json_schema)
     end
   end
 end

@@ -17,10 +17,15 @@ module Setup
     deny :copy, :new, :translator_update, :import, :convert, :send_to_flow
 
     belongs_to :task, class_name: Setup::Task.to_s, inverse_of: :executions
+    has_and_belongs_to_many :notifications, class_name: Setup::Notification.to_s, inverse_of: nil
 
     field :status, type: Symbol, default: :pending
     field :started_at, type: Time
     field :completed_at, type: Time
+
+    field :agent_id, type: BSON::ObjectId
+
+    before_save { self.agent_id ||= task.agent_id }
 
     default_scope -> { desc(:created_at) }
 

@@ -5,7 +5,7 @@ module Xsd
       super
       @xmlns = {'' => nil}
       args[:attributes].each { |attr| @xmlns[attr[0].from(attr[0].index(':') + 1)] = attr[1] if attr[0] =~ /\Axmlns:/ }
-      if default = @xmlns.delete('')
+      if (default = @xmlns.delete(''))
         @xmls[:default] = default
       end
     end

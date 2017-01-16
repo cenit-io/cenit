@@ -72,7 +72,9 @@ RailsAdmin::Config::Actions.register(:export, RailsAdmin::Config::Actions::BulkE
   RailsAdmin::Config::Fields::Types::OptionalBelongsTo,
   RailsAdmin::Config::Fields::Types::Code,
   RailsAdmin::Config::Fields::Types::Tag,
-  RailsAdmin::Config::Fields::Types::TimeSpan
+  RailsAdmin::Config::Fields::Types::TimeSpan,
+  RailsAdmin::Config::Fields::Types::NonEmptyString,
+  RailsAdmin::Config::Fields::Types::NonEmptyText
 ].each { |f| RailsAdmin::Config::Fields::Types.register(f) }
 
 require 'rails_admin/config/fields/factories/tag'

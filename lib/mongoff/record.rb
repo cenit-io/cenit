@@ -217,7 +217,7 @@ module Mongoff
       property_schema = field_metadata[:schema] || orm_model.property_schema(field)
       if value.nil?
         @fields.delete(field)
-        document.delete(attribute_key)
+        document.delete(attribute_key.to_s)
         nil
       elsif value.is_a?(Record) || value.class.respond_to?(:data_type)
         @fields[field] = value
@@ -293,7 +293,7 @@ module Mongoff
           ex.message
         end
       else
-        "#{orm_model.data_type.title} ##{id}"
+        "#{orm_model.label} ##{id}"
       end
     end
 

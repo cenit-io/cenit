@@ -291,7 +291,12 @@ module Setup
 
     def parse_javascript_code
       logs = { errors: errors = [] }
-      ast = RKelly.parse(code) rescue nil
+      ast =
+        begin
+          RKelly.parse(code)
+        rescue Exception => ex
+          nil
+        end
       if ast
         logs[:self_sends] = call_names = Set.new
         ast.each do |node|

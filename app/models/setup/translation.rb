@@ -3,6 +3,8 @@ module Setup
     include Setup::TranslationCommon
     include RailsAdmin::Models::Setup::TranslationAdmin
 
+    agent_field :translator
+
     build_in_data_type
 
     deny :copy, :new, :edit, :translator_update, :import, :convert, :delete_all

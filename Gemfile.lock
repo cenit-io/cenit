@@ -26,7 +26,7 @@ GIT
 
 GIT
   remote: https://github.com/cenit-io/cenit-service.git
-  revision: bfd958d12331bf1f82505e62d6b7f2c99802366e
+  revision: 25e09e1fa0ba14320ef6a456e83771fd9feede66
   specs:
     cenit-service (0.0.1)
       cenit-token
