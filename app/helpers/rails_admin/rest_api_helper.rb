@@ -1,5 +1,3 @@
-require 'rails_admin/rest_api/jquery'
-
 module RailsAdmin
   ###
   # Generate sdk code for api service.

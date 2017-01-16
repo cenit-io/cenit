@@ -2,6 +2,7 @@ module RailsAdmin
   MainController.class_eval do
     include RestApiHelper
     include SwaggerHelper
+    include AlgorithmHelper
 
     alias_method :rails_admin_list_entries, :list_entries
 

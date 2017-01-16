@@ -627,6 +627,9 @@ ul#main-accordion .panel-heading .nav-icon {
 }
 
 @media (min-width: 768px) and (max-width: 999px) {
+  .tenants {
+    display: none;
+  }
   .block .icon {
     display: none;
   }

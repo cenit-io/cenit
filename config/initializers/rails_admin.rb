@@ -53,6 +53,7 @@ require 'account'
   RailsAdmin::Config::Actions::Share,
   RailsAdmin::Config::Actions::Reinstall,
   RailsAdmin::Config::Actions::Swagger,
+  RailsAdmin::Config::Actions::AlgorithmDependencies,
   RailsAdmin::Config::Actions::RestApi1,
   RailsAdmin::Config::Actions::RestApi2,
   RailsAdmin::Config::Actions::LinkDataType
@@ -193,6 +194,11 @@ RailsAdmin.config do |config|
           Setup::BaseOauthProvider.class_hierarchy
       end
       visible { only.include?((obj = bindings[:object]).class) && obj.try(:shared?) }
+    end
+    algorithm_dependencies do
+      only do
+        Setup::Algorithm
+      end
     end
     rest_api1
     rest_api2
