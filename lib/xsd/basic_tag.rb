@@ -65,7 +65,12 @@ module Xsd
 
     def documenting(obj)
       if obj.is_a?(Hash) && annotation && !(docs = annotation.documentations).empty?
-        obj['description'] = (docs.size == 1) ? docs[0].to_string : docs.collect(&:to_string)
+        obj['description'] =
+          if docs.size == 1
+            docs[0].to_description
+          else
+            "<ul>\n" + docs.collect { |doc| "<li>\n" + doc.to_description + "\n</li>" }.join("\n") + '</ul>'
+          end
       end
       obj
     end

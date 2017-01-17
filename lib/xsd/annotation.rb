@@ -11,7 +11,7 @@ module Xsd
     end
 
     def when_documentation_end(documentation)
-      documentations << documentation
+      documentations << documentation unless documentation.empty?
     end
   end
 end
