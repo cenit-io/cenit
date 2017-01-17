@@ -195,7 +195,7 @@ module Setup
               value = [value] unless value.is_a?(Array)
               value.each do |ref|
                 if (ref_sch = find_ref_schema(ref))
-                  sch = ref_sch.merge(sch) { |_, ref_value, sch_value| Cenit::Utility.array_hash_merge(sch_value, ref_value) }
+                  sch = ref_sch.merge(sch) { |_, ref_value, sch_value| Cenit::Utility.array_hash_merge(ref_value, sch_value) }
                 else
                   raise Exception.new("contains an unresolved reference #{value}") unless options[:silent]
                 end
