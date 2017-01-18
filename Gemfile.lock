@@ -6,7 +6,7 @@ GIT
 
 GIT
   remote: https://github.com/cenit-io/cenit-multi_tenancy.git
-  revision: bdb7e4cb64561b1e3dda294f8ee318aebdd8eb2a
+  revision: c27a9c0e1f185e74ebb8b01a3aaf915bb7d990c1
   specs:
     cenit-multi_tenancy (0.0.1)
       cenit-config
@@ -15,7 +15,7 @@ GIT
 
 GIT
   remote: https://github.com/cenit-io/cenit-oauth.git
-  revision: 4bfba92eb1cc62f131828b716d0a7360608557f8
+  revision: 133b315d508791d047bf5a6347b55ac3d3912b08
   specs:
     cenit-oauth (0.0.1)
       cenit-token
@@ -26,15 +26,19 @@ GIT
 
 GIT
   remote: https://github.com/cenit-io/cenit-service.git
-  revision: 25e09e1fa0ba14320ef6a456e83771fd9feede66
+  revision: 5653c22fa9828a53414128533e6b53018c77c8fb
   specs:
     cenit-service (0.0.1)
+      cenit-config
+      cenit-multi_tenancy
       cenit-token
+      cross_origin
+      mongoid
       rails (>= 4.2.5)
 
 GIT
   remote: https://github.com/cenit-io/cenit-token.git
-  revision: 9ee5309b52d897b41b9f8fcab488c462aa0eb649
+  revision: 049ae03f21a5dd475dd70b9873fdad6a3c0d7fdf
   specs:
     cenit-token (0.0.1)
       mongoid (>= 5.0.1)
