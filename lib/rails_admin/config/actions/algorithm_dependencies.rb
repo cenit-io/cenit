@@ -7,6 +7,10 @@ module RailsAdmin
           true
         end
 
+        register_instance_option :visible? do
+          authorized? && User.current_super_admin?
+        end
+
         register_instance_option :http_methods do
           [:get, :post]
         end
