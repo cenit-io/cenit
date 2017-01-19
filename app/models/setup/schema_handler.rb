@@ -144,20 +144,24 @@ module Setup
         if (options[:expand_extends].nil? && options[:only_overriders].nil?) || options[:expand_extends]
           while (base_model = schema.delete('extends'))
             merged = merging = true
-            base_model = find_ref_schema(base_model) if base_model.is_a?(String)
-            base_model = do_merge_schema(base_model)
-            if schema['type'] == 'object' && base_model['type'] != 'object'
-              schema['properties'] ||= {}
-              value_schema = schema['properties']['value'] || {}
-              value_schema = base_model.deep_merge(value_schema)
-              schema['properties']['value'] = value_schema.merge('title' => 'Value', 'xml' => { 'content' => true })
-              schema['xml'] ||= {}
-              schema['xml']['content_property'] = 'value'
-            else
-              unless (xml_opts = schema['xml']).nil? || xml_opts['content_property']
-                schema['xml'].delete('content_property') if (xml_opts = base_model['xml']) && xml_opts['content_property']
+            base_model = find_ref_schema(ref = base_model) if base_model.is_a?(String)
+            if base_model
+              base_model = do_merge_schema(base_model)
+              if schema['type'] == 'object' && base_model['type'] != 'object'
+                schema['properties'] ||= {}
+                value_schema = schema['properties']['value'] || {}
+                value_schema = base_model.deep_merge(value_schema)
+                schema['properties']['value'] = value_schema.merge('title' => 'Value', 'xml' => { 'content' => true })
+                schema['xml'] ||= {}
+                schema['xml']['content_property'] = 'value'
+              else
+                unless (xml_opts = schema['xml']).nil? || xml_opts['content_property']
+                  schema['xml'].delete('content_property') if (xml_opts = base_model['xml']) && xml_opts['content_property']
+                end
+                schema = base_model.deep_merge(schema) { |_, ref_value, sch_value| Cenit::Utility.array_hash_merge(ref_value, sch_value) }
               end
-              schema = base_model.deep_merge(schema) { |_, ref_value, sch_value| Cenit::Utility.array_hash_merge(ref_value, sch_value) }
+            else
+              fail "contains an unresolved reference #{value}" unless options[:silent]
             end
           end
         elsif options[:only_overriders]
@@ -183,7 +187,7 @@ module Setup
               if options[:silent]
                 schema.delete('$ref')
               else
-                raise Exception.new("contains a circular reference #{ref}")
+                fail "contains a circular reference #{ref}"
               end
             else
               references << ref
@@ -197,7 +201,7 @@ module Setup
                 if (ref_sch = find_ref_schema(ref))
                   sch = ref_sch.merge(sch) { |_, ref_value, sch_value| Cenit::Utility.array_hash_merge(ref_value, sch_value) }
                 else
-                  raise Exception.new("contains an unresolved reference #{value}") unless options[:silent]
+                  fail "contains an unresolved reference #{value}" unless options[:silent]
                 end
               end
             else

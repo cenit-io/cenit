@@ -35,8 +35,8 @@ module Xsd
         elements.each do |element|
           element_schema = element.to_json_schema
           if element.max_occurs == :unbounded || element.max_occurs > 1 || element.min_occurs > 1
-            plural_title = (element_schema['title'] || element.name || element.tag_name).to_title.pluralize
-            p = (element.name || element_schema['title'] || element.tag_name).pluralize.to_method_name(properties)
+            plural_title = (element_schema['title'] || element.name || element.try(:nice_name) || element.tag_name).to_title.pluralize
+            p = (element.name || element_schema['title'] || element.try(:nice_name) || element.tag_name).pluralize.to_method_name(properties)
             properties[p] = { 'title' => "List of #{plural_title}",
                               'type' => 'array',
                               'minItems' => element.min_occurs,
@@ -50,7 +50,7 @@ module Xsd
               required << p if container_required.include?(property)
             end
           else
-            p = (element.name || element_schema['title'] || element.tag_name).to_method_name(properties)
+            p = (element.name || element_schema['title'] || element.try(:nice_name) || element.tag_name).to_method_name(properties)
             properties[p] = element_schema
           end
         end

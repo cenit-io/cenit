@@ -60,11 +60,6 @@ module Setup
     validates_length_of :shared_version, maximum: 255
     validates_presence_of :authors, :summary
 
-    after_save do
-      reinstall(add_dependencies: false) unless !installed? || skip_reinstall_callback
-      self.skip_reinstall_callback = false
-    end
-
     accepts_nested_attributes_for :authors, allow_destroy: true
     accepts_nested_attributes_for :pull_parameters, allow_destroy: true
 
@@ -94,10 +89,10 @@ module Setup
         ensure_shared_name &&
         check_dependencies &&
         validates_pull_parameters &&
-          begin
-            self.data = {} if installed
-            true
-          end
+        begin
+          self.data = {} if installed
+          true
+        end
     end
 
     def ensure_shared_name
@@ -247,7 +242,11 @@ module Setup
         else
           @add_dependencies
         end
-      super
+      if (result = super)
+        reinstall(add_dependencies: false) unless !installed? || skip_reinstall_callback
+        self.skip_reinstall_callback = false
+      end
+      result
     end
 
     def method_missing(symbol, *args)
