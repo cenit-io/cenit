@@ -43,5 +43,13 @@ module Xsd
         end
       documenting(json_schema.deep_merge(merge_json))
     end
+
+    def nice_name
+      if ref
+        ref.split(':').last
+      else
+        tag_name
+      end
+    end
   end
 end
