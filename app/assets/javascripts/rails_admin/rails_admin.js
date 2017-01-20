@@ -22,3 +22,4 @@
 //=  require 'rails_admin/ui'
 //=  require 'rails_admin/custom/ui'
 //=  require 'rails_admin/clipboard.min'
+//=  require 'gist-embed'

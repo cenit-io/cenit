@@ -3,6 +3,7 @@ module RailsAdmin
     include RestApiHelper
     include SwaggerHelper
     include AlgorithmHelper
+    include NotebooksHelper
 
     alias_method :rails_admin_list_entries, :list_entries
 

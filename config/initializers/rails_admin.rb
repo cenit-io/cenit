@@ -56,6 +56,7 @@ require 'account'
   RailsAdmin::Config::Actions::AlgorithmDependencies,
   RailsAdmin::Config::Actions::RestApi1,
   RailsAdmin::Config::Actions::RestApi2,
+  RailsAdmin::Config::Actions::Notebooks,
   RailsAdmin::Config::Actions::LinkDataType
 ].each { |a| RailsAdmin::Config::Actions.register(a) }
 
@@ -203,6 +204,7 @@ RailsAdmin.config do |config|
     rest_api1
     rest_api2
     documentation
+    notebooks
   end
 
   config.navigation 'Collections', icon: 'fa fa-cubes'
