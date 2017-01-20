@@ -258,6 +258,25 @@ module Mongoff
         end
     end
 
+    def send(*args)
+      name = args[0].to_s
+      property_name = (assigning = name.end_with?('=')) ? name.chop : name
+      if (method = orm_model.data_type.records_methods.detect { |alg| alg.name == name })
+        args = args.dup
+        args[0] = self
+        method.reload
+        method.run(args)
+      elsif orm_model.property?(property_name) && (args.length == (assigning ? 2 : 1))
+        if assigning
+          self[property_name] = args[1]
+        else
+          self[property_name]
+        end
+      else
+        super
+      end
+    end
+
     def method_missing(symbol, *args)
       if (method = orm_model.data_type.records_methods.detect { |alg| alg.name == symbol.to_s })
         args.unshift(self)
