@@ -225,5 +225,35 @@ module RailsAdmin
       [ns, model_name, display_name]
     end
 
+    def api_markdowns
+      ns, model_name, display_name = api_model
+
+      api_langs.map do |lang|
+        markdown = ""
+        markdown << "##{lang[:label]}\n"
+        markdown << "\n"
+
+        api_current_paths.each do |path, methods|
+          methods.each do |method, definition|
+            markdown << "####{definition[:summary].strip.sub(/[.:]*$/, ':')}\n"
+            markdown << "\n"
+            markdown << "---\n"
+            markdown << "\n"
+            markdown << "#{definition[:description].strip}\n"
+            markdown << "**#{method.to_s}:** #{api_uri(method, path)}\n"
+            markdown << "---\n"
+            markdown << "\n"
+            markdown << "```#{lang[:hljs]}\n"
+            markdown << "#{api_code(lang[:id], method, path, false)}\n"
+            markdown << "```\n"
+            markdown << "\n"
+
+            markdown.gsub!(Regexp.new("'(#{display_name}|#{display_name.pluralize})'"), "_\\1_")
+          end
+        end
+        { lang: lang, content: markdown }
+      end
+    end
+
   end
 end
