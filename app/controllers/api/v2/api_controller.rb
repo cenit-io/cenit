@@ -162,7 +162,7 @@ module Api::V2
     end
 
     def pull
-      if @item.is_a?(Setup::SharedCollection)
+      if @item.is_a?(Setup::CrossSharedCollection)
         begin
           pull_request = Cenit::Actions.pull(@item, @webhook_body.present? ? JSON.parse(@webhook_body) : {})
           pull_request.each { |key, value| pull_request.delete(key) unless value.present? }
