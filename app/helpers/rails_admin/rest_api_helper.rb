@@ -72,8 +72,8 @@ module RailsAdmin
 
     ###
     # Returns lang command for service with given method and path.
-    def api_code(lang, method, path)
-      send("api_#{lang}_code", method, path)
+    def api_code(lang, method, path, with_tokens=true)
+      send("api_#{lang}_code", method, path, with_tokens)
     end
 
     ###

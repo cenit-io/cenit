@@ -5,14 +5,12 @@ module RailsAdmin
     module Ruby
       ###
       # Returns Ruby command for service with given method and path.
-      def api_ruby_code(method, path)
+      def api_ruby_code(method, path, with_tokens=true)
         # Get vars definition.
         data, login = vars(method, path)
-        a = {
-          :h => {
-            :a => 1
-          }
-        }
+        key = (with_tokens && login.present?) ? login.key : '{User-Access-Key}'
+        token = (with_tokens && login.present?) ? login.token : '{User-Access-Token}'
+
         # Generate uri and command.
         command = ""
         command << "require 'rest-client'\n"
@@ -23,8 +21,8 @@ module RailsAdmin
         command << "  :method => '#{method.upcase}',\n"
         command << "  :headers => {\n"
         command << "    'Content-Type' => 'application/json',\n"
-        command << "    'X-User-Access-Key' => 'A480067472',\n"
-        command << "    'X-User-Access-Token' => 'oj_kJJ5ochVyDP3Q82CM',\n"
+        command << "    'X-User-Access-Key' => '#{key}',\n"
+        command << "    'X-User-Access-Token' => '#{token}',\n"
         command << "    'params' => #{data.to_json}\n" unless data.empty?
         command << "  }\n"
         command << ")\n"
