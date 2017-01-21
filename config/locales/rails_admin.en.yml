@@ -475,6 +475,7 @@ en:
       link_data_type:
         menu: "Link"
         breadcrumb: "Link %{model_label}"
+      delete_data_type_errors: "Some data types could not be destroyed."
     form:
       flow:
         source_data_type: 'Source data type'

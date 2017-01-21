@@ -35,6 +35,8 @@ module Cenit
 
     config.after_initialize do
 
+      Thread.current[:cenit_initizing] = true
+
       puts 'Clearing LOCKS'
       Cenit::Locker.clear
 
@@ -82,6 +84,7 @@ module Cenit
                                                 sender_address: %{"notifier" <#{notifier_email}>},
                                                 exception_recipients: exception_recipients.split(',')
                                               }
+      Thread.current[:cenit_initizing] = nil
     end
 
   end
