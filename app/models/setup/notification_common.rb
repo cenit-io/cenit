@@ -10,12 +10,13 @@ module Setup
 
     module ClassMethods
 
-      def create_from(exception)
-        create_with(message: exception.message,
+      def create_from(exception, header = nil)
+        header ||= "#{exception.class.to_s.split('::').collect(&:to_title).join('. ')}: #{exception.message}"
+        create_with(message: "#{header}: #{exception.message}",
                     attachment: {
                       filename: 'backtrace.txt',
                       contentType: 'plain/text',
-                      body: exception.backtrace.join("\n")
+                      body: "class: #{exception.class}\nmessage: #{exception.message}\n#{exception.backtrace.join("\n")}"
                     })
       end
 

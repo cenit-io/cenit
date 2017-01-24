@@ -379,7 +379,7 @@ module Api::V2
         if @ability.can?(action_symbol, @item || klass)
           true
         else
-          responder = Cenit::Responder.new(@request_id, @webhook_body, 401)
+          responder = Cenit::Responder.new(@request_id, :unauthorized)
           render json: responder, root: false, status: responder.code
           false
         end
@@ -399,8 +399,7 @@ module Api::V2
     end
 
     def exception_handler(exception)
-      responder = Cenit::Responder.new(@request_id, @webhook_body, 500)
-      responder.backtrace = exception.backtrace.to_s
+      responder = Cenit::Responder.new(@request_id, exception)
       render json: responder, root: false, status: responder.code
       false
     end
