@@ -1,12 +1,22 @@
 module Cenit
   class Responder
-    attr_accessor :request_id, :summary, :code, :backtrace, :objects
+    attr_accessor :request_id, :summary, :code
 
-    def initialize(request_id, summary, code = 200, objects = nil)
+    def initialize(request_id, summary)
       self.request_id = request_id
-      self.summary = summary
-      self.code = code
-      self.objects = objects
+      self.summary =
+        case summary
+        when Exception
+          Setup::SystemNotification.create_from(summary)
+          self.code = 406
+          "#{summary.class.to_s.split('::').collect(&:to_title).join('. ')}: #{summary.message}"
+        when :unauthorized
+          self.code = 401
+          'Not authorized'
+        else
+          self.code = 200
+          summary.to_s
+        end
     end
 
   end

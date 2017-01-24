@@ -90,7 +90,7 @@ module Mongoff
         if (key = schema['type']).nil? && (one_of = schema['oneOf']).is_a?(Array)
           one_of.collect { |sch| mongo_type_for(nil, sch) }.flatten.uniq
         else
-          if (type = MONGO_TYPE_MAP[key]).is_a?(Hash)
+          if (type = MONGO_TYPE_MAP[key] || NilClass).is_a?(Hash)
             type = type['format'][schema['format']] || type['default']
           end
           [type]

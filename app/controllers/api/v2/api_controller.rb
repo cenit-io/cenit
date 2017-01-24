@@ -164,18 +164,23 @@ module Api::V2
     def pull
       if @item.is_a?(Setup::CrossSharedCollection)
         begin
-          pull_request = Cenit::Actions.pull(@item, @webhook_body.present? ? JSON.parse(@webhook_body) : {})
-          pull_request.each { |key, value| pull_request.delete(key) unless value.present? }
-          status = :ok
-          if pull_request[:missing_parameters] or (errors = pull_request[:errors].present?)
-            pull_request.delete(:updated_records)
-            status = errors ? 202 : :bad_request
-          elsif (updated_records = pull_request[:updated_records])
-            updated_records.each do |key, records|
-              updated_records[key] = records.collect { |record| { id: record.id.to_s } }
+          pull_request = @webhook_body.present? ? JSON.parse(@webhook_body) : {}
+          if pull_request.delete('asynchronous').to_b || @item.pull_asynchronous
+            render json: @item.pull(pull_request).to_json
+          else
+            pull_request = Cenit::Actions.pull(@item, pull_request)
+            pull_request.each { |key, value| pull_request.delete(key) unless value.present? }
+            status = :ok
+            if pull_request[:missing_parameters] or (errors = pull_request[:errors].present?)
+              pull_request.delete(:updated_records)
+              status = errors ? 202 : :bad_request
+            elsif (updated_records = pull_request[:updated_records])
+              updated_records.each do |key, records|
+                updated_records[key] = records.collect { |record| { id: record.id.to_s } }
+              end
             end
+            render json: pull_request, status: status
           end
-          render json: pull_request, status: status
         rescue Exception => ex
           render json: { error: ex.message, status: :bad_request }
         end
@@ -374,7 +379,7 @@ module Api::V2
         if @ability.can?(action_symbol, @item || klass)
           true
         else
-          responder = Cenit::Responder.new(@request_id, @webhook_body, 401)
+          responder = Cenit::Responder.new(@request_id, :unauthorized)
           render json: responder, root: false, status: responder.code
           false
         end
@@ -394,8 +399,7 @@ module Api::V2
     end
 
     def exception_handler(exception)
-      responder = Cenit::Responder.new(@request_id, @webhook_body, 500)
-      responder.backtrace = exception.backtrace.to_s
+      responder = Cenit::Responder.new(@request_id, exception)
       render json: responder, root: false, status: responder.code
       false
     end

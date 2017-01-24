@@ -22,7 +22,10 @@ module RailsAdmin
               read_only { !bindings[:object].new_record? }
             end
 
-            configure :schema, :json_schema do
+            configure :schema, :json_schema
+
+            configure :schema_code, :json_schema do
+              label 'Schema'
               help { 'Required' }
             end
 
@@ -65,7 +68,7 @@ module RailsAdmin
             edit do
               field :namespace, :enum_edit, &RailsAdmin::Config::Fields::Base::SHARED_READ_ONLY
               field :name, &RailsAdmin::Config::Fields::Base::SHARED_READ_ONLY
-              field :schema
+              field :schema_code
               field :title, &RailsAdmin::Config::Fields::Base::SHARED_READ_ONLY
               field :slug
               field :before_save_callbacks, &RailsAdmin::Config::Fields::Base::SHARED_READ_ONLY
