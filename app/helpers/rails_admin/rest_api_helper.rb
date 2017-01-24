@@ -105,13 +105,13 @@ module RailsAdmin
     # Returns api uri.
     def api_uri(method, path)
       path_parameters = api_parameters(method, path, 'path')
-      uri = (Rails.env.development? ? 'http://127.0.0.1:3000' : 'https://cenit.io') + "/api/v2/#{path}"
+      uri = "#{Cenit.homepage}/api/v2/#{path}"
 
       # Set value of uri path parameters
       path_parameters.each do |p|
         if @object.respond_to?(p[:name])
-          value = @object.send(p[:name])
-          uri.gsub!("{#{p[:name]}}", value) unless value.to_s.empty?
+          value = @object.send(p[:name]).to_s
+          uri.gsub!("{#{p[:name]}}", value) unless value.empty?
         end
       end if @object
 
