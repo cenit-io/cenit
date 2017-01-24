@@ -475,6 +475,7 @@ en:
       link_data_type:
         menu: "Link"
         breadcrumb: "Link %{model_label}"
+      delete_data_type_errors: "Some data types could not be destroyed."
     form:
       flow:
         source_data_type: 'Source data type'
@@ -487,10 +488,10 @@ en:
         notify_request: 'Track request with notifications if checked'
         notify_response: 'Track responses via notification if checked'
         after_process_callbacks: 'Algorithms executed after flow processing, execution state is supplied as argument'
-      nested:
-        recursive: 'This is a recursive nested model. Complete your operation and try it again to go deeper.'
-        too_deep: 'This nested model is too deep. Complete your operation and try it again to go deeper.'
-        overflow: 'This nested form is too big. Try to submit your data through the API.'
+      recursive: 'This is a recursive nested model. Complete your operation and try it again to go deeper.'
+      too_deep: 'This nested model is too deep. Complete your operation and try it again to go deeper.'
+      overflow: 'This nested form is too big. Try to submit your data through the API.'
+      broken: 'This form can not be properly rendered. Ask for support.'
     scheduler:
       cyclic: 'Cyclic'
       appointed: 'Appointed'

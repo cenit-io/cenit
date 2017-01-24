@@ -1,6 +1,15 @@
 module RailsAdmin
   FormBuilder.class_eval do
 
+    alias_method :rails_admin_generate, :generate
+
+    def generate(options = {})
+      rails_admin_generate(options)
+    rescue Exception => ex
+      Setup::SystemNotification.create_from(ex)
+      @template.render partial: 'form_notice', locals: { message: ex.message }
+    end
+
     def generate_nested(field)
       key = :"[cenit]#{NestedForm}.count"
       status =
@@ -11,11 +20,14 @@ module RailsAdmin
         end
       case status
       when :recursive, :too_deep, :overflow
-        @template.render partial: 'nested_notice', locals: { status: status }
+        @template.render partial: 'form_notice', locals: { status: status }
       else
         RequestStore.store[key] = (nested_forms || 0) + 1
         generate({ action: :nested, model_config: field.associated_model_config, nested_in: field })
       end
+    rescue Exception => ex
+      Setup::SystemNotification.create_from(ex)
+      @template.render partial: 'form_notice', locals: { message: ex }
     end
 
     def nested_stack_status(nested_models = [])

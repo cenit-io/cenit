@@ -1,7 +1,7 @@
 module Setup
   class Notification
     include CenitScoped
-    include Setup::AttachmentUploader
+    include NotificationCommon
     include RailsAdmin::Models::Setup::NotificationAdmin
 
     build_in_data_type
@@ -11,8 +11,6 @@ module Setup
     field :type, type: Symbol, default: :error
     field :message, type: String
     belongs_to :task, class_name: Setup::Task.to_s, inverse_of: :notifications
-
-    default_scope -> { desc(:created_at) }
 
     validates_presence_of :type, :message
     validates_inclusion_of :type, in: ->(n) { n.type_enum }
@@ -49,6 +47,13 @@ module Setup
 
     class << self
 
+      def new(attributes = {})
+        skip = attributes.delete(:skip_notification_level)
+        notification = super
+        notification.skip_notification_level(skip)
+        notification
+      end
+
       def type_enum
         [:error, :warning, :notice, :info]
       end
@@ -64,29 +69,6 @@ module Setup
         else
           'red'
         end
-      end
-
-      def create_from(exception)
-        create_with(message: exception.message,
-                    attachment: {
-                      filename: 'backtrace.txt',
-                      contentType: 'plain/text',
-                      body: exception.backtrace.join("\n")
-                    })
-      end
-
-      def create_with(attributes)
-        attachment = attributes.delete(:attachment)
-        skip = attributes.delete(:skip_notification_level)
-        notification = Setup::Notification.new(attributes)
-        notification.skip_notification_level(skip)
-        temporary_file = nil
-        if attachment && attachment[:body].present?
-          notification.attach(attachment)
-        end
-        notification.save ? notification : nil
-      ensure
-        temporary_file.close if temporary_file
       end
 
       def dashboard_related(account = Account.current)

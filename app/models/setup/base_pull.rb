@@ -19,6 +19,7 @@ module Setup
     end
 
     def run(message)
+      clear_hashes
       if pull_request_hash.present?
         pull_request_hash[:install] = message[:install].to_b if ask_for_install?
         pulled_request_hash = Cenit::Actions.pull(source_shared_collection, pull_request_hash)
@@ -34,20 +35,27 @@ module Setup
         store pulled_request_hash.to_json, on: pulled_request
       else
         self.remove_pulled_request = true
-        pull_request_hash = Cenit::Actions.pull_request(source_shared_collection,
-                                                        discard_collection: message[:discard_collection].to_b,
-                                                        updated_records_ids: true)
-        if source_shared_collection.pull_parameters.present? ||
-          pull_request_hash[:new_records].present? ||
-          pull_request_hash[:updated_records].present?
+        msg_pull_request = message.dup
+        msg_pull_request[:updated_records_ids] = true
+        pull_request_hash = Cenit::Actions.pull_request(source_shared_collection, msg_pull_request)
+        review_warning = message[:skip_pull_review].to_b &&
+          (pull_request_hash[:new_records].present? || pull_request_hash[:updated_records].present?)
+        store pull_request_hash.to_json, on: pull_request
+        if pull_request_hash[:missing_parameters].blank? && review_warning
+          notify(message: 'Skipping pull review', type: :warning)
+          run(message)
+        else
           notify(message: 'Waiting for pull review', type: :notice)
           resume_manually
         end
-        store pull_request_hash.to_json, on: pull_request
       end
     end
 
     protected
+
+    def clear_hashes
+      @pull_request_hash = @pulled_request_hash = nil
+    end
 
     def source_shared_collection
       fail NotImplementedError

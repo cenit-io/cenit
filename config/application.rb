@@ -35,6 +35,8 @@ module Cenit
 
     config.after_initialize do
 
+      Thread.current[:cenit_initizing] = true
+
       puts 'Clearing LOCKS'
       Cenit::Locker.clear
 
@@ -69,7 +71,7 @@ module Cenit
         wrong_data_types << "#{data_type.namespace}::#{data_type.name}" unless data_type.build_in
       end
       unless wrong_data_types.empty?
-        Setup::Notification.create(type: :warning, message: "Wrong cenit data types: #{wrong_data_types.to_sentence}")
+        Setup::SystemNotification.create(type: :warning, message: "Wrong cenit data types: #{wrong_data_types.to_sentence}")
       end
     end
 
@@ -82,6 +84,7 @@ module Cenit
                                                 sender_address: %{"notifier" <#{notifier_email}>},
                                                 exception_recipients: exception_recipients.split(',')
                                               }
+      Thread.current[:cenit_initizing] = nil
     end
 
   end

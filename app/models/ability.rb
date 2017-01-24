@@ -32,6 +32,8 @@ class Ability
             ]
         can [:import, :edit], Setup::SharedCollection
         can :destroy, [Setup::SharedCollection, Setup::Storage, Setup::CrossSharedCollection]
+        can :simple_delete_data_type, Setup::CenitDataType, origin: :cenit
+        can :destroy, Setup::CenitDataType, origin: :tmp
         can [:index, :show, :cancel], RabbitConsumer
         can [:index, :edit, :pull, :import], Setup::CrossSharedCollection
         can [:index, :show], Cenit::ApplicationId

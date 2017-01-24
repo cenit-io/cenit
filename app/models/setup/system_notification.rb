@@ -1,6 +1,7 @@
 module Setup
   class SystemNotification
     include CenitUnscoped
+    include Setup::NotificationCommon
     include RailsAdmin::Models::Setup::SystemNotificationAdmin
 
     store_in collection: :setup_notifications

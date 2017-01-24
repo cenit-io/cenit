@@ -38,7 +38,7 @@ GIT
 
 GIT
   remote: https://github.com/cenit-io/cenit-token.git
-  revision: 049ae03f21a5dd475dd70b9873fdad6a3c0d7fdf
+  revision: ecf26773bbb560cab822b1bf9102f367fea159ac
   specs:
     cenit-token (0.0.1)
       mongoid (>= 5.0.1)

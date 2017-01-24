@@ -28,16 +28,33 @@ module Setup
       super && validate_model && check_indices
     end
 
-    def schema
-      @schema ||= JSON.parse(code)
+    def schema_code
+      schema!
     rescue
-      { ERROR: 'Invalid JSON syntax' }
+      code
+    end
+
+    def schema_code=(sch)
+      self.schema = sch
+    end
+
+    def schema!
+      @schema ||= JSON.parse(code)
+    end
+
+    def schema
+      schema!
+    rescue
+      { ERROR: 'Invalid JSON syntax', schema: code }
     end
 
     def schema=(sch)
       sch = JSON.parse(sch.to_s) unless sch.is_a?(Hash)
       self.code = JSON.pretty_generate(sch)
       @schema = sch
+    rescue
+      @schema = nil
+      self.code = sch
     end
 
     def code_extension
@@ -76,9 +93,7 @@ module Setup
     end
 
     def validate_model
-      if schema.nil?
-        errors.add(:schema, "can't be blank")
-      else
+      if schema_code.is_a?(Hash)
         if schema_changed?
           begin
             json_schema, _ = validate_schema
@@ -93,6 +108,8 @@ module Setup
         if title.blank?
           self.title = json_schema['title'] || self.name
         end
+      else
+        errors.add(:schema_code, 'is not a valid JSON value')
       end
       errors.blank?
     end

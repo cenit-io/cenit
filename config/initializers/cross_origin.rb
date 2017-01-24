@@ -6,3 +6,4 @@ CrossOrigin.config :owner,
                      "user#{user.id}_#{model.mongoid_root_class.storage_options_defaults[:collection]}"
                    end
 CrossOrigin.config :cenit
+CrossOrigin.config :tmp
