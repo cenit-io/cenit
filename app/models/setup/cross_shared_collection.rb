@@ -169,7 +169,7 @@ module Setup
     end
 
     def reinstall(options = {})
-      options[:collection] = self
+      options[:collection] ||= self
       options[:add_dependencies] = true unless options.has_key?(:add_dependencies)
       install(options)
     end
