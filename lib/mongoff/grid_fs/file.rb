@@ -74,9 +74,25 @@ module Mongoff
 
       attr_accessor :encoding
 
+      def [](field)
+        field = field.to_s.to_sym
+        case field
+        when :data
+          data
+        when :encoding
+          encoding
+        else
+          super
+        end
+      end
+
       def []=(field, value)
-        if field.to_s.to_sym == :data
+        field = field.to_s.to_sym
+        case field
+        when :data
           self.data = value
+        when :encoding
+          self.encoding = value
         else
           value = super
           case field
@@ -98,7 +114,14 @@ module Mongoff
       end
 
       def save(options = {})
-        self[:metadata] = options[:metadata] || {}
+        if (value = options[:metadata])
+          self[:metadata] = value
+        else
+          self[:metadata] ||= {}
+        end
+        if (value = options[:encoding])
+          self.encoding = value
+        end
         self[:chunkSize] = FileModel::MINIMUM_CHUNK_SIZE if self[:chunkSize] < FileModel::MINIMUM_CHUNK_SIZE
         run_callbacks_and do
           temporary_file = nil
