@@ -16,6 +16,8 @@
 It allows the creation of custom data pipelines for process, storage and data movement between APIs –either cloud or 
 on premises-. The flows could be trigger by data events or be scheduled.
 
+Tabs: iPaaS, ESB, SOA, REST, APIs, Ruby, Cloud Integrations, Integration Platform. 
+
 
 ## Run your own Cenit
 [![Deploy to Heroku](https://www.herokucdn.com/deploy/button.svg)](https://heroku.com/deploy)
@@ -23,7 +25,7 @@ on premises-. The flows could be trigger by data events or be scheduled.
 
 ## General Features
 
-* 100% Open source platform and community friendly. 
+* 100% Open source integration platform and community friendly.
 * Router Logic for redirecting documents to different endpoints.
 * Powerful design with simple abstractions: Data Types, Webhooks, Flows, Events, Connections, Transforms and Validators.
 * Exchange support for multiple formats XML, JSON, CSV, EDI(X12, EDIFACT, ..), etc.
