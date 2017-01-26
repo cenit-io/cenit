@@ -100,7 +100,7 @@ module RailsAdmin
         end
       end
       if @model.is_a?(Mongoff::GridFs::FileModel)
-        configure :data, :file_upload do
+        configure :data, :mongoff_file_upload do
           required { bindings[:object].new_record? }
         end
         configure :length do
@@ -118,6 +118,7 @@ module RailsAdmin
         end
         edit do
           field :data
+          field :metadata
         end
         list do
           field :_id

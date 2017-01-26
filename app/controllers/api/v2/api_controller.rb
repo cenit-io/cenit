@@ -471,14 +471,17 @@ module Api::V2
       @view = params[:view]
       @format = params[:format]
       @path = "#{params[:path]}.#{params[:format]}" if params[:path] && params[:format]
-      pload = {
-        'application/json': JSONPayload,
-        'application/xml': XMLPayload
-      }.stringify_keys
-      pload.default = BasicPayload
-      @payload = pload[request.content_type].new(controller: self,
-                                                 message: @webhook_body,
-                                                 content_type: request.content_type)
+      @payload =
+        case request.content_type
+        when 'application/json'
+          JSONPayload
+        when 'application/xml'
+          XMLPayload
+        else
+          BasicPayload
+        end.new(controller: self,
+                message: @webhook_body,
+                content_type: request.content_type)
       @criteria = params.to_hash.with_indifferent_access.reject { |key, _| %w(controller action ns model id field path format view api only ignore primary_field pretty include_root embedding).include?(key) }
     end
 
@@ -507,7 +510,7 @@ module Api::V2
         controller = config[:controller]
         @data_type = controller.send(:get_data_type, (@root = controller.request.params[:model] || controller.request.headers['data-type'])) rescue nil
         @create_options = { create_collector: Set.new }
-        create_options_keys.each { |option| @create_options[option.to_sym] = controller.request[option] }
+        create_options_keys.each { |option| @create_options[option.to_sym] = controller.request.headers[option] }
       end
 
       def create_method
@@ -515,7 +518,7 @@ module Api::V2
       end
 
       def create_options_keys
-        %w(filename metadata)
+        %w(filename metadata encoding)
       end
 
       def each_root(&block)
