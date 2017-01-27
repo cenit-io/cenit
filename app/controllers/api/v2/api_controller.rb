@@ -510,7 +510,7 @@ module Api::V2
         controller = config[:controller]
         @data_type = controller.send(:get_data_type, (@root = controller.request.params[:model] || controller.request.headers['data-type'])) rescue nil
         @create_options = { create_collector: Set.new }
-        create_options_keys.each { |option| @create_options[option.to_sym] = controller.request.headers[option] }
+        create_options_keys.each { |option| @create_options[option.to_sym] = controller.request[option] }
       end
 
       def create_method
@@ -518,7 +518,7 @@ module Api::V2
       end
 
       def create_options_keys
-        %w(filename metadata encoding)
+        %w(filename metadata encoding add_only)
       end
 
       def each_root(&block)
