@@ -391,9 +391,7 @@ module Setup
       private
 
       def factorize_params(parent, childs)
-        if childs.size > 1
-          [:headers, :parameters].each { |params| factorize(params, parent, childs) }
-        end
+        [:headers, :parameters].each { |params| factorize(params, parent, childs) }
       end
 
       def factorize(params, parent, children)
