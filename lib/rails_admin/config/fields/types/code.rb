@@ -36,7 +36,7 @@ module RailsAdmin
             HTML
 
             if action.is_a?(RailsAdmin::Config::Actions::Show)
-                "<form #{bindings[:object].is_a?(bindings[:view].controller.abstract_model.model)?'id="code_show_view"':'id="list"'}>#{code_value}</form>"
+              "<form #{bindings[:object].is_a?(bindings[:view].controller.abstract_model.model) ? 'id="code_show_view"' : 'id="list"'}>#{code_value}</form>"
             else
               code_value
             end.html_safe
@@ -66,10 +66,11 @@ module RailsAdmin
               lineNumbers: true,
               theme: (theme = User.current.try(:code_theme)).present? ? theme : (Cenit.default_code_theme || 'monokai')
             }
-            action = bindings[:view].instance_variable_get(:@action)
-            unless action.is_a?(RailsAdmin::Config::Actions::Edit) || action.is_a?(RailsAdmin::Config::Actions::New)
-              config[:readOnly] = 'nocursor'
-            end
+            config[:readOnly] = [
+              RailsAdmin::Config::Actions::Edit,
+              RailsAdmin::Config::Actions::New,
+              RailsAdmin::Config::Actions::Share
+            ].exclude?(bindings[:view].instance_variable_get(:@action).class)
             config
           end
 
