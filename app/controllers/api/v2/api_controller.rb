@@ -79,7 +79,7 @@ module Api::V2
         }
       @payload.each do |root, message|
         @model = root
-        if authorize_action && (data_type = @payload.data_type_for(root))
+        if authorized_action? && (data_type = @payload.data_type_for(root))
           message = [message] unless message.is_a?(Array)
           message.each do |item|
             options = @payload.create_options
@@ -367,7 +367,12 @@ module Api::V2
       true
     end
 
-    def authorize_action
+    def authorized_action?
+      authorize_action(skip_response: true)
+    end
+
+    def authorize_action(options = {})
+      success = true
       if klass
         action_symbol =
           case @_action_name
@@ -376,22 +381,25 @@ module Api::V2
           else
             @_action_name.to_sym
           end
-        if @ability.can?(action_symbol, @item || klass)
-          true
-        else
-          responder = Cenit::Responder.new(@request_id, :unauthorized)
-          render json: responder, root: false, status: responder.code
-          false
+        unless @ability.can?(action_symbol, @item || klass)
+          success = false
+          unless options[:skip_response]
+            responder = Cenit::Responder.new(@request_id, :unauthorized)
+            render json: responder, root: false, status: responder.code
+          end
         end
       else
-        render json: { error: 'no model found' }, status: :not_found
+        success = false
+        unless options[:skip_response]
+          render json: { error: 'no model found' }, status: :not_found
+        end
       end
       cors_header
-      true
+      success
     end
 
     def cors_header
-      headers['Access-Control-Allow-Origin'] = request.headers['Origin'] || 'http://localhost:3000'
+      headers['Access-Control-Allow-Origin'] = request.headers['Origin'] || ::Cenit.homepage
       headers['Access-Control-Allow-Credentials'] = false
       headers['Access-Control-Allow-Headers'] = 'Origin, X-Requested-With, Accept, Content-Type, X-User-Access-Key, X-User-Access-Token'
       headers['Access-Control-Allow-Methods'] = 'POST, GET, PUT, DELETE, OPTIONS'
@@ -471,8 +479,23 @@ module Api::V2
       @view = params[:view]
       @format = params[:format]
       @path = "#{params[:path]}.#{params[:format]}" if params[:path] && params[:format]
+      content_type = request.content_type
+      if @_action_name == 'push' && %w(application/json application/xml).exclude?(content_type)
+        content_type =
+          begin
+            JSON.parse(@webhook_body)
+            'application/json'
+          rescue Exception
+            begin
+              Nokogiri::XML(@webhook_body)
+              'application/xml'
+            rescue Exception
+              nil
+            end
+          end
+      end
       @payload =
-        case request.content_type
+        case content_type
         when 'application/json'
           JSONPayload
         when 'application/xml'
@@ -481,7 +504,7 @@ module Api::V2
           BasicPayload
         end.new(controller: self,
                 message: @webhook_body,
-                content_type: request.content_type)
+                content_type: content_type)
       @criteria = params.to_hash.with_indifferent_access.reject { |key, _| %w(controller action ns model id field path format view api only ignore primary_field pretty include_root embedding).include?(key) }
     end
 
