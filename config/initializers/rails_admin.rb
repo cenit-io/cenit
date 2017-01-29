@@ -322,6 +322,8 @@ RailsAdmin.config do |config|
 
   Setup::Filter
 
+  Setup::Notebook
+
   #Transformations
 
   config.navigation 'Transformations', icon: 'fa fa-random'

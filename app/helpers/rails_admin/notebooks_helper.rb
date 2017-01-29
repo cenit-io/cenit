@@ -43,10 +43,9 @@ module RailsAdmin
 
     def notebook_find_or_create()
       ns, model_name, display_name = api_model
-      name = "#{ns}/#{model_name}".strip
+      name = @model_name
       desc = "How to manage #{display_name.pluralize} in Cenit-IO."
-      prefix = "cenit-io.#{name.parameterize}"
-      files = api_markdowns.map { |c| ["#{prefix}-[#{c[:lang][:id]}].md", { content: c[:content] }] }.to_h
+      files = api_markdowns.map { |c| ["rest-api-[#{c[:lang][:id]}].md", { content: c[:content] }] }.to_h
 
       notebook = Setup::Notebook.where(:name => name).first
       if notebook.nil?
