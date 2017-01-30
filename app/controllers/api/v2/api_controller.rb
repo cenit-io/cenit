@@ -1,9 +1,12 @@
 module Api::V2
   class ApiController < ApplicationController
+
     before_action :authorize_account, :save_request_data, except: [:new_user, :cors_check, :auth]
-    before_action :find_item, only: [:show, :destroy, :pull, :run]
     before_action :authorize_action, except: [:auth, :new_user, :cors_check, :push]
+    before_action :find_item, only: [:show, :destroy, :pull, :run]
+
     rescue_from Exception, :with => :exception_handler
+
     respond_to :json
 
     def cors_check
@@ -375,7 +378,11 @@ module Api::V2
       else
         success = false
         unless options[:skip_response]
-          render json: { error: 'no model found' }, status: :not_found
+          if Account.current
+            render json: { error: 'no model found' }, status: :not_found
+          else
+            render json: { error: 'not unauthorized' }, status: :unauthorized
+          end
         end
       end
       cors_header
