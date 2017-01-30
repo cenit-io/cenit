@@ -198,7 +198,7 @@ module RailsAdmin
     # Returns prepared parameters from data type code properties.
     def api_params_from_data_type()
       code = JSON.parse(@data_type.code)
-      code['properties'].map do |k, v|
+      code['properties'].select { |_, v| !v['type'].nil? }.map do |k, v|
         {
           in: 'query',
           name: k == '_id' ? 'id' : k,
