@@ -13,7 +13,7 @@ Capataz.config do
                     Setup::Task, Setup::Task::RUNNING_STATUS, Setup::Task::NOT_RUNNING_STATUS, Setup::Task::ACTIVE_STATUS, Setup::Task::NON_ACTIVE_STATUS,
                     Xmldsig, Xmldsig::SignedDocument, Zip, Zip::OutputStream, Zip::InputStream, StringIO, MIME::Mail, MIME::Text, MIME::Multipart::Mixed,
                     Spreadsheet, Spreadsheet::Workbook, Setup::Authorization, Setup::Connection, Devise, Cenit, JWT, Setup::XsltValidator, Setup::Translator,
-                    Setup::Flow
+                    Setup::Flow, WriteXLSX
 
   allow_on Cenit, [:homepage, :namespace]
 
@@ -70,6 +70,8 @@ Capataz.config do
   allow_on Setup::Webhook, [:where]
 
   allow_on Setup::Translator, [:run, :where]
+
+  allow_on WriteXLSX, [:new_xlsx]
 
   allow_for [Mongoff::Model], [:where, :all, :data_type]
 
