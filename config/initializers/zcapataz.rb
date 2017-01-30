@@ -90,7 +90,7 @@ Capataz.config do
 
   allow_for Setup::Scheduler, [:activated?, :name, :to_json, :share_json, :to_edi, :to_hash, :to_xml, :namespace]
 
-  allow_for Setup::Webhook::ResponseProxy, [:code, :body, :headers, :content_type]
+  allow_for Setup::Webhook::Response, [:code, :body, :headers, :content_type]
 
   allow_for Setup::DataType, ((%w(_json _xml _edi) + ['']).collect do |format|
     %w(create new create!).collect do |action|
