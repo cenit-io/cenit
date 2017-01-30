@@ -65,7 +65,7 @@ Capataz.config do
 
   allow_on Nokogiri::XML, [:search]
 
-  allow_on Setup::Connection, [:get, :post, :where]
+  allow_on Setup::Connection, Setup::Webhook.method_enum + [:webhook_for, :where]
 
   allow_on Setup::Webhook, [:where]
 
@@ -92,7 +92,7 @@ Capataz.config do
 
   allow_for Setup::Scheduler, [:activated?, :name, :to_json, :share_json, :to_edi, :to_hash, :to_xml, :namespace]
 
-  allow_for Setup::Webhook::ResponseProxy, [:code, :body, :headers, :content_type]
+  allow_for Setup::Webhook::Response, [:code, :body, :headers, :content_type]
 
   allow_for Setup::DataType, ((%w(_json _xml _edi) + ['']).collect do |format|
     %w(create new create!).collect do |action|
