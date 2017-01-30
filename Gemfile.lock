@@ -553,10 +553,15 @@ GEM
     websocket-driver (0.6.3)
       websocket-extensions (>= 0.1.0)
     websocket-extensions (0.1.2)
+    write_xlsx (0.83.0)
+      rubyzip (>= 1.0.0)
+      zip-zip
     xmldsig (0.4.0)
       nokogiri
     xpath (2.0.0)
       nokogiri (~> 1.3)
+    zip-zip (0.3)
+      rubyzip (>= 1.0.0)
 
 PLATFORMS
   ruby
@@ -648,4 +653,8 @@ DEPENDENCIES
   uglifier
   unicorn (= 4.9.0)
   wannabe_bool
+  write_xlsx
   xmldsig
+
+BUNDLED WITH
+   1.11.2
