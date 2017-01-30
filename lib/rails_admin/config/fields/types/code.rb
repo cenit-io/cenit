@@ -69,7 +69,8 @@ module RailsAdmin
             config[:readOnly] = [
               RailsAdmin::Config::Actions::Edit,
               RailsAdmin::Config::Actions::New,
-              RailsAdmin::Config::Actions::Share
+              RailsAdmin::Config::Actions::Share,
+              RailsAdmin::Config::Actions::Configure
             ].exclude?(bindings[:view].instance_variable_get(:@action).class)
             config
           end

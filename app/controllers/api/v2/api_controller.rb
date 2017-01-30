@@ -1,9 +1,12 @@
 module Api::V2
   class ApiController < ApplicationController
+
     before_action :authorize_account, :save_request_data, except: [:new_user, :cors_check, :auth]
-    before_action :find_item, only: [:show, :destroy, :pull, :run]
     before_action :authorize_action, except: [:auth, :new_user, :cors_check, :push]
+    before_action :find_item, only: [:show, :destroy, :pull, :run]
+
     rescue_from Exception, :with => :exception_handler
+
     respond_to :json
 
     def cors_check
@@ -14,30 +17,18 @@ module Api::V2
     def index
       page = get_page
       res =
-        {
-          json: { error: 'no model found' },
-          status: :not_found
-        }
-      if (klass = self.klass)
-        @items =
-          if @criteria.present?
-            select_items
-          else
-            accessible_records.page(page)
+        if klass
+          @items =
+            if @criteria.present?
+              select_items
+            else
+              accessible_records.page(page)
+            end
+          items_data = @items.map do |item|
+            hash = item.default_hash(@render_options)
+            @view.nil? ? hash : hash[@view]
           end
-
-        option = { including: :_type }
-        option[:only] = @only if @only
-        option[:ignore] = @ignore if @ignore
-        option[:embedding] = @embedding if @embedding
-        option[:include_id] = true
-        items_data = @items.map do |item|
-          hash = item.default_hash(option)
-          hash.delete('_type') if item.class.eql?(klass)
-          @view.nil? ? hash : hash[@view]
-        end
-        count = @items.count
-        res =
+          count = @items.count
           {
             json: {
               total_pages: (count*1.0/Kaminari.config.default_per_page).ceil,
@@ -46,7 +37,12 @@ module Api::V2
               @model.pluralize => items_data
             }
           }
-      end
+        else
+          {
+            json: { error: 'no model found' },
+            status: :not_found
+          }
+        end
       render res
     end
 
@@ -54,16 +50,7 @@ module Api::V2
       if @item.orm_model.data_type.is_a?(Setup::FileDataType)
         send_data @item.data, filename: @item[:filename], type: @item[:contentType]
       else
-        option = {}
-        option[:only] = @only if @only
-        if @ignore
-          option[:ignore] = @ignore
-        end
-        if @embedding
-          option[:embedding] = @embedding
-        end
-        option[:include_id] = true
-        render json: @view.nil? ? @item.to_hash(option) : @item.to_hash(option)[@view]
+        render json: @view.nil? ? @item.to_hash(@render_options) : @item.to_hash(@render_options)[@view]
       end
     end
 
@@ -79,18 +66,18 @@ module Api::V2
         }
       @payload.each do |root, message|
         @model = root
-        if authorize_action && (data_type = @payload.data_type_for(root))
+        if authorized_action? && (data_type = @payload.data_type_for(root))
           message = [message] unless message.is_a?(Array)
           message.each do |item|
-            options = @payload.create_options
+            options = @parser_options.merge(create_collector: Set.new).symbolize_keys
             model = data_type.records_model
             if model.is_a?(Class) && model < FieldsInspection
               options[:inspect_fields] = Account.current.nil? || !Account.current_super_admin?
             end
             if (record = data_type.send(@payload.create_method,
-                                        @payload.process_item(item, data_type),
+                                        @payload.process_item(item, data_type, options),
                                         options)).errors.blank?
-              success_report[root.pluralize] << record.inspect_json(include_id: :id, inspect_scope: options[:create_collector])
+              success_report[root.pluralize] << record.inspect_json(include_id: true, inspect_scope: options[:create_collector])
             else
               broken_report[root] << { errors: record.errors.full_messages, item: item }
             end
@@ -115,15 +102,15 @@ module Api::V2
           message = [message] unless message.is_a?(Array)
           message.each do |item|
             begin
-              options = @payload.create_options.merge(primary_field: @primary_field)
+              options = @parser_options.merge(create_collector: Set.new).symbolize_keys
               model = data_type.records_model
               if model.is_a?(Class) && model < FieldsInspection
                 options[:inspect_fields] = Account.current.nil? || !Account.current_super_admin?
               end
               if (record = data_type.send(@payload.create_method,
-                                          @payload.process_item(item, data_type),
+                                          @payload.process_item(item, data_type, options),
                                           options)).errors.blank?
-                success_report[root] = record.inspect_json(include_id: :id, inspect_scope: options[:create_collector])
+                success_report[root] = record.inspect_json(include_id: true, inspect_scope: options[:create_collector])
               else
                 broken_report[root] = { errors: record.errors.full_messages, item: item }
               end
@@ -367,7 +354,12 @@ module Api::V2
       true
     end
 
-    def authorize_action
+    def authorized_action?
+      authorize_action(skip_response: true)
+    end
+
+    def authorize_action(options = {})
+      success = true
       if klass
         action_symbol =
           case @_action_name
@@ -376,22 +368,29 @@ module Api::V2
           else
             @_action_name.to_sym
           end
-        if @ability.can?(action_symbol, @item || klass)
-          true
-        else
-          responder = Cenit::Responder.new(@request_id, :unauthorized)
-          render json: responder, root: false, status: responder.code
-          false
+        unless @ability.can?(action_symbol, @item || klass)
+          success = false
+          unless options[:skip_response]
+            responder = Cenit::Responder.new(@request_id, :unauthorized)
+            render json: responder, root: false, status: responder.code
+          end
         end
       else
-        render json: { error: 'no model found' }, status: :not_found
+        success = false
+        unless options[:skip_response]
+          if Account.current
+            render json: { error: 'no model found' }, status: :not_found
+          else
+            render json: { error: 'not unauthorized' }, status: :unauthorized
+          end
+        end
       end
       cors_header
-      true
+      success
     end
 
     def cors_header
-      headers['Access-Control-Allow-Origin'] = request.headers['Origin'] || 'http://localhost:3000'
+      headers['Access-Control-Allow-Origin'] = request.headers['Origin'] || ::Cenit.homepage
       headers['Access-Control-Allow-Credentials'] = false
       headers['Access-Control-Allow-Headers'] = 'Origin, X-Requested-With, Accept, Content-Type, X-User-Access-Key, X-User-Access-Token'
       headers['Access-Control-Allow-Methods'] = 'POST, GET, PUT, DELETE, OPTIONS'
@@ -462,27 +461,71 @@ module Api::V2
       @ns_slug = params[:ns]
       @ns_name = nil
       @model = params[:model]
-      @only = params[:only].split(',') if params[:only]
-      @ignore = params[:ignore].split(',') if params[:ignore]
-      @embedding = params[:embedding].split(',') if params[:embedding]
-      @primary_field = params[:primary_field]
-      @include_root = params[:include_root]
-      @pretty = params[:pretty]
       @view = params[:view]
       @format = params[:format]
       @path = "#{params[:path]}.#{params[:format]}" if params[:path] && params[:format]
-      @payload =
-        case request.content_type
-        when 'application/json'
-          JSONPayload
-        when 'application/xml'
-          XMLPayload
-        else
-          BasicPayload
-        end.new(controller: self,
-                message: @webhook_body,
-                content_type: request.content_type)
-      @criteria = params.to_hash.with_indifferent_access.reject { |key, _| %w(controller action ns model id field path format view api only ignore primary_field pretty include_root embedding).include?(key) }
+      case @_action_name
+      when 'new', 'push'
+        unless (@parser_options = Cenit::Utility.json_value_of(request.headers['X-PARSER-OPTIONS'])).is_a?(Hash)
+          @parser_options = {}
+        end
+        @parser_options.merge!(params.reject { |key, _| %w(controller action ns model format api).include?(key) })
+        %w(primary_field primary_fields ignore reset).each do |option|
+          unless (value = @parser_options.delete(option)).is_a?(Array)
+            value = value.to_s.split(',').collect(&:strip)
+          end
+          @parser_options[option] = value
+        end
+        content_type = request.content_type
+        if @_action_name == 'push' && %w(application/json application/xml).exclude?(content_type)
+          content_type =
+            begin
+              JSON.parse(@webhook_body)
+              'application/json'
+            rescue Exception
+              begin
+                Nokogiri::XML(@webhook_body)
+                'application/xml'
+              rescue Exception
+                nil
+              end
+            end
+        end
+        @payload =
+          case content_type
+          when 'application/json'
+            JSONPayload
+          when 'application/xml'
+            XMLPayload
+          else
+            BasicPayload
+          end.new(controller: self,
+                  message: @webhook_body,
+                  content_type: content_type)
+      when 'index', 'show'
+        unless (@criteria = Cenit::Utility.json_value_of(request.headers['X-QUERY'])).is_a?(Hash)
+          @criteria = {}
+        end
+        @criteria = @criteria.with_indifferent_access
+        @criteria.merge!(params.reject { |key, _| %w(controller action ns model format api).include?(key) })
+        unless (@render_options = Cenit::Utility.json_value_of(request.headers['X-RENDER-OPTIONS'])).is_a?(Hash)
+          @render_options = {}
+        end
+        @render_options = @render_options.with_indifferent_access
+        if @criteria && klass
+          %w(only ignore embedding).each do |option|
+            if @criteria.key?(option) && !klass.property?(option)
+              unless (value = @criteria.delete(option)).is_a?(Array)
+                value = value.to_s.split(',').collect(&:strip)
+              end
+              @render_options[option] = value
+            end
+          end
+        end
+        unless @render_options.key?(:include_id)
+          @render_options[:include_id] = true
+        end
+      end
     end
 
     private
@@ -492,7 +535,6 @@ module Api::V2
     class BasicPayload
 
       attr_reader :config
-      attr_reader :create_options
 
       def initialize(config)
         @config =
@@ -508,17 +550,16 @@ module Api::V2
             message: ''
           }.merge(config || {})
         controller = config[:controller]
-        @data_type = controller.send(:get_data_type, (@root = controller.request.params[:model] || controller.request.headers['data-type'])) rescue nil
-        @create_options = { create_collector: Set.new }
-        create_options_keys.each { |option| @create_options[option.to_sym] = controller.request[option] }
+        @data_type =
+          begin
+            controller.send(:get_data_type, (@root = controller.request.params[:model] || controller.request.headers['data-type']))
+          rescue Exception
+            nil
+          end
       end
 
       def create_method
         config[:create_method]
-      end
-
-      def create_options_keys
-        %w(filename metadata encoding add_only)
       end
 
       def each_root(&block)
@@ -533,7 +574,7 @@ module Api::V2
         end
       end
 
-      def process_item(item, data_type)
+      def process_item(item, data_type, options)
         item
       end
 
@@ -548,13 +589,13 @@ module Api::V2
         JSON.parse(config[:message]).each { |root, message| block.call(root, message) } if block
       end
 
-      def process_item(item, data_type)
-        data_type.is_a?(Setup::FileDataType) ? item.to_json : item
+      def process_item(item, data_type, options)
+        if data_type.is_a?(Setup::FileDataType) && !options[:data_type_parser] && !item.is_a?(String)
+          item.to_json
+        else
+          item
+        end
       end
-    end
-
-    def create_options_keys
-      super + %w(only)
     end
 
     class XMLPayload < BasicPayload
@@ -569,8 +610,12 @@ module Api::V2
         end if block
       end
 
-      def process_item(item, data_type)
-        data_type.is_a?(Setup::FileDataType) ? item.to_xml : item
+      def process_item(item, data_type, options)
+        if data_type.is_a?(Setup::FileDataType) && !options[:data_type_parser] && !item.is_a?(String)
+          item.to_xml
+        else
+          item
+        end
       end
     end
   end
