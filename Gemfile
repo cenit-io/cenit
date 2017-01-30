@@ -117,3 +117,5 @@ gem 'cenit-oauth', git: 'https://github.com/cenit-io/cenit-oauth.git'
 gem 'capataz', git: 'https://github.com/macarci/capataz.git'
 
 gem 'rkelly-remix'
+
+gem 'write_xlsx'

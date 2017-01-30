@@ -196,7 +196,8 @@ end
   MIME::Mail => :new_message,
   MIME::Message => :new_message,
   MIME::Text => :new_text,
-  MIME::Multipart::Mixed => :new_message
+  MIME::Multipart::Mixed => :new_message,
+  WriteXLSX => :new_xlsx
 }.each do |entity, method|
   entity.class_eval("def self.#{method}(*args)
     new(*args)
