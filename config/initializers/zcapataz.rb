@@ -65,7 +65,7 @@ Capataz.config do
 
   allow_on Nokogiri::XML, [:search]
 
-  allow_on Setup::Connection, [:get, :post, :where]
+  allow_on Setup::Connection, Setup::Webhook.method_enum + [:webhook_for, :where]
 
   allow_on Setup::Webhook, [:where]
 
