@@ -1,3 +1,5 @@
+require 'cenit/cross_tracking_criteria'
+
 module Setup
   module CollectionBehavior
     extend ActiveSupport::Concern

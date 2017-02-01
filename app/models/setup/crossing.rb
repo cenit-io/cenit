@@ -1,3 +1,5 @@
+require 'cenit/cross_tracking_criteria'
+
 module Setup
   class Crossing < Setup::Task
     include Setup::BulkableTask
