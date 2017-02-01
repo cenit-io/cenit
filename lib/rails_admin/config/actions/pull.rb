@@ -24,8 +24,19 @@ module RailsAdmin
           proc do
 
             if @object.pull_asynchronous
-              do_flash_process_result @object.pull
-              redirect_to back_or_index
+              parameterized = @object.respond_to?(:pull_parameters) && @object.pull_parameters.present?
+              if !parameterized || params[:_pull]
+                result =
+                  if parameterized
+                    @object.pull(pull_parameters: params[:pull_parameters])
+                  else
+                    object.pull
+                  end
+                do_flash_process_result result
+                redirect_to back_or_index
+              else
+                render :pull, locals: { shared_collection: @object }
+              end
             else
               @pull_request = Cenit::Actions.pull_request(@object, pull_parameters: params[:pull_parameters])
               if @pull_request[:missing_parameters].blank? && params[:_pull]

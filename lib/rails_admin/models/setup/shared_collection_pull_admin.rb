@@ -14,6 +14,12 @@ module RailsAdmin
               label 'Attempts/Succedded'
             end
 
+            configure :shared_collection do
+              list_fields do
+                %w(title image name tags)
+              end
+            end
+
             edit do
               field :description
               field :auto_retry
