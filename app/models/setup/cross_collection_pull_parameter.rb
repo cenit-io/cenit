@@ -22,7 +22,7 @@ module Setup
         if location.present?
           obj = hash_data
           location.each do |key, criteria|
-            obj = obj && (obj = obj[key]) && Cenit::Utility.find_record(criteria, obj)
+            obj = obj && (obj = obj[key]) && ((criteria && Cenit::Utility.find_record(criteria, obj)) || obj)
           end
           if obj
             if property_name.present?
