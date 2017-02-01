@@ -45,7 +45,11 @@ module Cenit
       fail 'Re-calling render' if done?
       @render_called = true
       if args.length == 1 && (res = args[0]).is_a?(Setup::Webhook::Response)
-        controller.send_data res.body, content_type: res.content_type, status: res.code
+        if res.headers['content-transfer-encoding']
+          controller.send_data res.body, content_type: res.content_type, status: res.code
+        else
+          controller.render text: res.body, content_type: res.content_type, status: res.code
+        end
       else
         controller.render(*args)
       end
