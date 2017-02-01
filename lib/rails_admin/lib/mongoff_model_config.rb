@@ -7,6 +7,8 @@ module RailsAdmin
       @model = @abstract_model.model
       @parent = self
 
+      titles = Set.new
+      titles.add(nil)
       (abstract_model.properties + abstract_model.associations).each do |property|
         type = property.type
         if property.is_a?(RailsAdmin::MongoffAssociation)
@@ -16,7 +18,11 @@ module RailsAdmin
         end
         configure property.name, type do
           visible { property.visible? }
-          label { property.name.to_s.to_title }
+          if titles.include?(title = property.title)
+            title = property.name.to_s.to_title
+          end
+          titles.add(title)
+          label { title }
           filterable { property.filterable? }
           required { property.required? }
           queryable { property.queryable? }
@@ -24,9 +30,6 @@ module RailsAdmin
           if enumeration
             enum { enumeration }
             filter_enum { enumeration }
-          end
-          if (title = property.title)
-            label { title }
           end
           if (description = property.description)
             description = "#{property.required? ? 'Required' : 'Optional'}. #{description}".html_safe
