@@ -22,6 +22,9 @@ module Setup
       clear_hashes
       if pull_request_hash.present?
         pull_request_hash[:install] = message[:install].to_b if ask_for_install?
+        if (pull_parameters = message[:pull_parameters])
+          pull_request_hash[:pull_parameters] = pull_parameters
+        end
         pulled_request_hash = Cenit::Actions.pull(source_shared_collection, pull_request_hash)
         self.remove_pull_request = true
         {
