@@ -152,22 +152,7 @@ module Api::V2
       if @item.is_a?(Setup::CrossSharedCollection)
         begin
           pull_request = @webhook_body.present? ? JSON.parse(@webhook_body) : {}
-          if pull_request.delete('asynchronous').to_b || @item.pull_asynchronous
-            render json: @item.pull(pull_request).to_json
-          else
-            pull_request = Cenit::Actions.pull(@item, pull_request)
-            pull_request.each { |key, value| pull_request.delete(key) unless value.present? }
-            status = :ok
-            if pull_request[:missing_parameters] or (errors = pull_request[:errors].present?)
-              pull_request.delete(:updated_records)
-              status = errors ? 202 : :bad_request
-            elsif (updated_records = pull_request[:updated_records])
-              updated_records.each do |key, records|
-                updated_records[key] = records.collect { |record| { id: record.id.to_s } }
-              end
-            end
-            render json: pull_request, status: status
-          end
+          render json: @item.pull(pull_request).to_json
         rescue Exception => ex
           render json: { error: ex.message, status: :bad_request }
         end
