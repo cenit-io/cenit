@@ -275,7 +275,7 @@ en:
         breadcrumb: "Pull"
         submit: "Pull"
         done: "pulled"
-        fill_parameters: "Please fill the following parameters to pull the collection"
+        fill_parameters: "The following parameters will be used to pull the collection"
         create_warning: "The following objects will be created"
         update_warning: "The following objects will be updated"
         ready: "Ready to pull!"
@@ -290,6 +290,8 @@ en:
         install_help: "The collection will be installed after pulled if checked"
         not_installer: "You can not install these collection since you have not the installer role"
         doing: 'pull'
+        skip_pull_review: "Skipp pull review"
+        skip_pull_review_help: "The pull will procede without warning about changes if checked"
       bulk_pull:
         title: "Pulling Collections"
         menu: "Pull"

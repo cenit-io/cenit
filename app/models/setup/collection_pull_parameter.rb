@@ -61,7 +61,7 @@ module Setup
         if obj
           if property_name.present?
             if (value = options[:value]).nil?
-              obj.delete(property_name) unless options[:keep_value]
+              obj.delete(property_name) unless options[:keep_values]
             else
               obj[property_name] = value
             end

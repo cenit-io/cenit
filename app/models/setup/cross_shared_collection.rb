@@ -150,11 +150,16 @@ module Setup
 
     def data_with(parameters = {})
       hash_data = dependencies_data.deep_merge(pull_data) { |_, val1, val2| Cenit::Utility.array_hash_merge(val1, val2) }
-      pull_parameters.each do |pull_parameter|
-        pull_parameter.process_on(hash_data, value: parameters[pull_parameter.id] || parameters[pull_parameter.id.to_s])
-      end
+      parametrize(hash_data, parameters)
       hash_data['metadata'] = metadata if metadata.present?
       hash_data
+    end
+
+    def parametrize(hash_data, parameters, options = {})
+      pull_parameters.each do |pull_parameter|
+        value = parameters[pull_parameter.id] || parameters[pull_parameter.id.to_s]
+        pull_parameter.process_on(hash_data, options.merge(value: value))
+      end
     end
 
     def dependencies_data(parameters = {})
