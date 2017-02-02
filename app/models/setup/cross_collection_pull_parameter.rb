@@ -9,6 +9,7 @@ module Setup
     field :label, type: String
     hash_field :location
     field :property_name, type: String
+    field :description, type: String
 
     embedded_in :shared_collection, class_name: Setup::CrossSharedCollection.to_s, inverse_of: :pull_parameters
 
@@ -27,7 +28,7 @@ module Setup
           if obj
             if property_name.present?
               if (value = options[:value]).nil?
-                obj.delete(property_name) unless options[:keep_value]
+                obj.delete(property_name) unless options[:keep_values]
               else
                 obj[property_name] = value
               end

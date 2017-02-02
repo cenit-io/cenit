@@ -152,22 +152,7 @@ module Api::V2
       if @item.is_a?(Setup::CrossSharedCollection)
         begin
           pull_request = @webhook_body.present? ? JSON.parse(@webhook_body) : {}
-          if pull_request.delete('asynchronous').to_b || @item.pull_asynchronous
-            render json: @item.pull(pull_request).to_json
-          else
-            pull_request = Cenit::Actions.pull(@item, pull_request)
-            pull_request.each { |key, value| pull_request.delete(key) unless value.present? }
-            status = :ok
-            if pull_request[:missing_parameters] or (errors = pull_request[:errors].present?)
-              pull_request.delete(:updated_records)
-              status = errors ? 202 : :bad_request
-            elsif (updated_records = pull_request[:updated_records])
-              updated_records.each do |key, records|
-                updated_records[key] = records.collect { |record| { id: record.id.to_s } }
-              end
-            end
-            render json: pull_request, status: status
-          end
+          render json: @item.pull(pull_request).to_json
         rescue Exception => ex
           render json: { error: ex.message, status: :bad_request }
         end
@@ -466,7 +451,7 @@ module Api::V2
       @path = "#{params[:path]}.#{params[:format]}" if params[:path] && params[:format]
       case @_action_name
       when 'new', 'push'
-        unless (@parser_options = Cenit::Utility.json_value_of(request.headers['X-PARSER-OPTIONS'])).is_a?(Hash)
+        unless (@parser_options = Cenit::Utility.json_value_of(request.headers['X-Parser-Options'])).is_a?(Hash)
           @parser_options = {}
         end
         @parser_options.merge!(params.reject { |key, _| %w(controller action ns model format api).include?(key) })
@@ -503,12 +488,12 @@ module Api::V2
                   message: @webhook_body,
                   content_type: content_type)
       when 'index', 'show'
-        unless (@criteria = Cenit::Utility.json_value_of(request.headers['X-QUERY'])).is_a?(Hash)
+        unless (@criteria = Cenit::Utility.json_value_of(request.headers['X-Query'])).is_a?(Hash)
           @criteria = {}
         end
         @criteria = @criteria.with_indifferent_access
         @criteria.merge!(params.reject { |key, _| %w(controller action ns model format api).include?(key) })
-        unless (@render_options = Cenit::Utility.json_value_of(request.headers['X-RENDER-OPTIONS'])).is_a?(Hash)
+        unless (@render_options = Cenit::Utility.json_value_of(request.headers['X-Render-Options'])).is_a?(Hash)
           @render_options = {}
         end
         @render_options = @render_options.with_indifferent_access
