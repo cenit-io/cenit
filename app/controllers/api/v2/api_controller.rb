@@ -451,7 +451,7 @@ module Api::V2
       @path = "#{params[:path]}.#{params[:format]}" if params[:path] && params[:format]
       case @_action_name
       when 'new', 'push'
-        unless (@parser_options = Cenit::Utility.json_value_of(request.headers['X-PARSER-OPTIONS'])).is_a?(Hash)
+        unless (@parser_options = Cenit::Utility.json_value_of(request.headers['X-Parser-Options'])).is_a?(Hash)
           @parser_options = {}
         end
         @parser_options.merge!(params.reject { |key, _| %w(controller action ns model format api).include?(key) })
@@ -488,12 +488,12 @@ module Api::V2
                   message: @webhook_body,
                   content_type: content_type)
       when 'index', 'show'
-        unless (@criteria = Cenit::Utility.json_value_of(request.headers['X-QUERY'])).is_a?(Hash)
+        unless (@criteria = Cenit::Utility.json_value_of(request.headers['X-Query'])).is_a?(Hash)
           @criteria = {}
         end
         @criteria = @criteria.with_indifferent_access
         @criteria.merge!(params.reject { |key, _| %w(controller action ns model format api).include?(key) })
-        unless (@render_options = Cenit::Utility.json_value_of(request.headers['X-RENDER-OPTIONS'])).is_a?(Hash)
+        unless (@render_options = Cenit::Utility.json_value_of(request.headers['X-Render-Options'])).is_a?(Hash)
           @render_options = {}
         end
         @render_options = @render_options.with_indifferent_access
