@@ -36,16 +36,17 @@ module Setup
             notify(message: msg, type: type)
           end
         end
+        if (missing_parameters = pulled_request_hash[:missing_parameters]).present?
+          notify(message: "Missing parameters (IDs: #{missing_parameters.to_sentence})")
+        end
         store pulled_request_hash.to_json, on: pulled_request
       else
         self.remove_pulled_request = true
         msg_pull_request = message.dup
         msg_pull_request[:updated_records_ids] = true
         pull_request_hash = Cenit::Actions.pull_request(source_shared_collection, msg_pull_request)
-        review_warning = message[:skip_pull_review].to_b &&
-          (pull_request_hash[:new_records].present? || pull_request_hash[:updated_records].present?)
         store pull_request_hash.to_json, on: pull_request
-        if pull_request_hash[:missing_parameters].blank? && review_warning
+        if message[:skip_pull_review].to_b
           notify(message: 'Skipping pull review', type: :warning)
           run(message)
         else
