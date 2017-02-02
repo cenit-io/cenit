@@ -24,6 +24,7 @@ module Setup
         pull_request_hash[:install] = message[:install].to_b if ask_for_install?
         if (pull_parameters = message[:pull_parameters]).is_a?(Hash)
           pull_request_hash[:pull_parameters].merge!(pull_parameters)
+          source_shared_collection.parametrize(pull_request_hash[:collection_data] || {}, pull_request_hash[:pull_parameters], keep_values: true)
         end
         pulled_request_hash = Cenit::Actions.pull(source_shared_collection, pull_request_hash)
         self.remove_pull_request = true
@@ -35,16 +36,17 @@ module Setup
             notify(message: msg, type: type)
           end
         end
+        if (missing_parameters = pulled_request_hash[:missing_parameters]).present?
+          notify(message: "Missing parameters (IDs: #{missing_parameters.to_sentence})")
+        end
         store pulled_request_hash.to_json, on: pulled_request
       else
         self.remove_pulled_request = true
         msg_pull_request = message.dup
         msg_pull_request[:updated_records_ids] = true
         pull_request_hash = Cenit::Actions.pull_request(source_shared_collection, msg_pull_request)
-        review_warning = message[:skip_pull_review].to_b &&
-          (pull_request_hash[:new_records].present? || pull_request_hash[:updated_records].present?)
         store pull_request_hash.to_json, on: pull_request
-        if pull_request_hash[:missing_parameters].blank? && review_warning
+        if message[:skip_pull_review].to_b
           notify(message: 'Skipping pull review', type: :warning)
           run(message)
         else

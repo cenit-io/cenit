@@ -6,6 +6,7 @@
   options ||= {}
   options_key ||= {}
   pull_anyway ||= false
+  pull_review_option ||= false
 
   missing_parameters = pull_request[:missing_parameters] || []
   pull_parameters = pull_request[:pull_parameters] || {}
@@ -45,10 +46,17 @@
               %span{class: 'help-inline'}
                 = "can't be blank"
             %p.help-block
-              = 'Required'
+              = "Required. #{pull_parameter.try(:description)}"
+    - if pull_review_option
+      .control-group
+        %label.col-sm-2.control-label.text-danger= t('admin.actions.pull.skip_pull_review')
+        .col-sm-10.controls
+          %input{type: 'checkbox', name: 'skip_pull_review'}
+          %p.help-block
+            = t('admin.actions.pull.skip_pull_review_help')
   - unless new_records.blank?
     - uptodate = false
-    %h4{style: 'color:#b94a48'}= t('admin.actions.pull.create_warning')
+    %h4.text-danger= t('admin.actions.pull.create_warning')
     .fieldset
       - new_records.each do |key, records|
         .control-group
@@ -63,7 +71,7 @@
               = "#{records.count} #{key.titleize.downcase.pluralize}"
   - unless updated_records.blank?
     - uptodate = false
-    %h4{style: 'color:#b94a48'}= t('admin.actions.pull.update_warning')
+    %h4.text-danger= t('admin.actions.pull.update_warning')
     .fieldset
       - updated_records.each do |key, records|
         - if pull_request[:updated_records_ids]

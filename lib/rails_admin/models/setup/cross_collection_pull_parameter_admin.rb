@@ -9,21 +9,7 @@ module RailsAdmin
             visible false
             object_label_method { :label }
             configure :location, :json_value
-            edit do
-              field :label
-              field :property_name
-              field :location
-            end
-            show do
-              field :label
-              field :property_name
-              field :location
-
-              field :created_at
-              #field :creator
-              field :updated_at
-            end
-            fields :label, :property_name, :location
+            fields :label, :description, :property_name, :location
           end
         end
 
