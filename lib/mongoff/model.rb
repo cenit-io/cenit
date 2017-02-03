@@ -256,7 +256,7 @@ module Mongoff
       if property?(name)
         name
       else
-        name = name.gsub(/_id(s)?\Z/, '')
+        name = name.to_s.gsub(/_id(s)?\Z/, '')
         if (name = [name.pluralize, name].detect { |n| property?(n) })
           name
         else

@@ -105,7 +105,7 @@ module Mongoff
           if field == 'id'
             :_id
           else
-            model.properties.detect { |key| model.attribute_key(key).to_s == field } || field.to_sym
+            (model.property_for_attribute(field) || field).to_sym
           end
       end
 
