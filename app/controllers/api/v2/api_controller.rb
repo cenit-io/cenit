@@ -11,7 +11,7 @@ module Api::V2
 
     def cors_check
       self.cors_header
-      render :text => '', :content_type => 'text/plain'
+      render text: '', content_type: 'text/plain'
     end
 
     def index
@@ -271,32 +271,7 @@ module Api::V2
       limit = get_limit
       page = get_page
 
-      @compound_query = { :exists => false }
-      if (where_data = @criteria.delete(:where))
-        wh = JSON.parse(where_data)
-
-        if wh.keys.include?('or')
-          @compound_query[:exists] = true
-          @compound_query[:operands] = wh['or']
-        end
-
-        wh1 = wh.select { |k, _| !['or'].include?(k) }
-        wh1.each { |field, value|
-          value.each { |k, v|
-            instance_eval("@criteria[:#{field}.#{k}]=#{v}")
-          }
-        }
-
-      end
-
       items = accessible_records.page(page).where(@criteria).limit(limit)
-
-      if @compound_query[:exists]
-        t = @compound_query[:operands].map {
-          |h| instance_eval("{:#{h.keys.first}.#{h.values.first.keys.first} => #{h.values.first.values.first}}")
-        }
-        items = items.or(*t)
-      end
 
       if order
         if asc
@@ -307,7 +282,6 @@ module Api::V2
       else
         items
       end
-
     end
 
     def authorize_account
@@ -493,6 +467,7 @@ module Api::V2
         end
         @criteria = @criteria.with_indifferent_access
         @criteria.merge!(params.reject { |key, _| %w(controller action ns model format api).include?(key) })
+        @criteria.each { |key, value| @criteria[key] = Cenit::Utility.json_value_of(value) }
         unless (@render_options = Cenit::Utility.json_value_of(request.headers['X-Render-Options'])).is_a?(Hash)
           @render_options = {}
         end
