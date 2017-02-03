@@ -3,18 +3,17 @@ module Setup
     include CenitScoped
     include Mongoid::Timestamps
 
-    build_in_data_type
+    build_in_data_type.with(:module, :name, :content, :created_at, :updated_at)
 
+    field :module, type: String
     field :name, type: String
-    field :parent, type: String
-    field :type, type: String
     field :content, type: String
-    field :format, type: String
-    field :mimetype, type: String
-    field :writable, type: Boolean
+    field :created_at, type: DateTime
+    field :updated_at, type: DateTime
 
     def type_enum
       %w(notebook file directory)
     end
+
   end
 end
