@@ -24,7 +24,7 @@ module RailsAdmin
           proc do
 
             if @object.pull_asynchronous
-              if params[:_pull]
+              if params[:_pull] || @object.is_a?(Setup::ApiSpec) #TODO API Spec pull options
                 message = {
                   skip_pull_review: params[:skip_pull_review].to_b
                 }

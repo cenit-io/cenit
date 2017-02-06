@@ -362,10 +362,6 @@ module Mongoff
       success_value
     end
 
-    def convert(type, value)
-      CONVERSION[type].call(value)
-    end
-
     def fully_validate_against_schema(value, options = {})
       JSON::Validator.fully_validate(schema, value, options.merge(version: :mongoff,
                                                                   schema_reader: JSON::Schema::CenitReader.new(data_type),
