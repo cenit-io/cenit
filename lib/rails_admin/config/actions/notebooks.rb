@@ -17,11 +17,6 @@ module RailsAdmin
 
         register_instance_option :controller do
           proc do
-            begin
-              @gist = notebook_find_or_create
-            rescue Exception => ex
-              do_flash :error, 'Notebooks:', ex.message
-            end
           end
         end
       end

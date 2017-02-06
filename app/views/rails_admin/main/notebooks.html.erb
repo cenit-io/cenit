@@ -1,9 +1,1 @@
-<div>
-  <% if @gist.present? %>
-      <%= content_tag :code, nil, { 'data-gist-id' => @gist.id } %>
-  <% else %>
-      <div class="alert alert-warning" style="margin-bottom: 20px">
-        Temporary not available.
-      </div>
-  <% end %>
-</div>
+<iframe class="jupyter-notebooks" src="<%= notebooks_jupyter_url %>"/>
