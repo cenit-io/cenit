@@ -149,7 +149,7 @@ class Account
 
   def clean_up
     super
-    each_cenit_collection(&:dropº)
+    each_cenit_collection(&:drop)
   end
 
   class << self
