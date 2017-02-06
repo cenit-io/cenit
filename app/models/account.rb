@@ -154,6 +154,14 @@ class Account
 
   class << self
 
+    def current_key
+      (current && current.number) || 'XXXXXXX'
+    end
+
+    def current_token
+      (current && current.token) || 'XXXXXXXXXXXXXXXX'
+    end
+
     def current_super_admin?
       current && current.super_admin?
     end
