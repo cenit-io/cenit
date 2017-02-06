@@ -430,8 +430,8 @@ module RailsAdmin
               </a>
             </div>
              <div id='shared-collapse' class='nav nav-pills nav-stacked panel-collapse collapse'>
+                #{show_all_link}
                 #{sub_links}
-          #{show_all_link}
             </div>
             </div>)
 
