@@ -149,10 +149,18 @@ class Account
 
   def clean_up
     super
-    each_cenit_collection(&:drop)
+    each_cenit_collection(&:dropº)
   end
 
   class << self
+
+    def current_key
+      (current && current.number) || 'XXXXXXX'
+    end
+
+    def current_token
+      (current && current.token) || 'XXXXXXXXXXXXXXXX'
+    end
 
     def current_super_admin?
       current && current.super_admin?
