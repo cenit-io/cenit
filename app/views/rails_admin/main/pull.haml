@@ -47,7 +47,9 @@
                 = "can't be blank"
             %p.help-block
               = "Required. #{pull_parameter.try(:description)}"
-    - if pull_review_option
+  - if pull_review_option
+    - uptodate = false
+    .fieldset
       .control-group
         %label.col-sm-2.control-label.text-danger= t('admin.actions.pull.skip_pull_review')
         .col-sm-10.controls

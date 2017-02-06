@@ -24,7 +24,7 @@ module RailsAdmin
           proc do
 
             if @object.pull_asynchronous
-              if params[:_pull] || @object.is_a?(Setup::ApiSpec) #TODO API Spec pull options
+              if params[:_pull]
                 message = {
                   skip_pull_review: params[:skip_pull_review].to_b
                 }
@@ -35,7 +35,7 @@ module RailsAdmin
                 redirect_to back_or_index
               else
                 render :pull, locals: {
-                  shared_collection: @object,
+                  shared_collection: @object.is_a?(Setup::CrossSharedCollection) ? @object : nil,
                   pull_review_option: true
                 }
               end
