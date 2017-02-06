@@ -213,7 +213,7 @@ module Mongoff
           attribute_key
         end.to_sym
       @fields.delete(field)
-      property_model = field_metadata[:model]
+      property_model = field_metadata[:model] || orm_model.property_model(field)
       property_schema = field_metadata[:schema] || orm_model.property_schema(field)
       if value.nil?
         @fields.delete(field)
@@ -232,7 +232,13 @@ module Mongoff
           field_array
         else
           if property_model && property_model.modelable?
-            value = value.collect { |v| property_model.mongo_value(v, :id) }.select(&:present?)
+            mongo_value = []
+            value.each do |v|
+              property_model.mongo_value(v, :id) do |mongo_v|
+                mongo_value << mongo_v
+              end
+            end
+            value = mongo_value
           end
           value.each do |v|
             fail "invalid value #{v}" unless Cenit::Utility.json_object?(v, recursive: true)

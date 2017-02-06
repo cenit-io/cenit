@@ -74,7 +74,7 @@ module Setup
     end
 
     def schema
-      @schema ||= Mongoff::GridFs::FileModel::SCHEMA.merge('edi' => { 'segment' => name })
+      @schema ||= Mongoff::GridFs::FileModel::SCHEMA
     end
 
     def validate_file(file)
