@@ -3,8 +3,8 @@ module Mongoff
 
 
     def property_for(name)
-      @properties_by_mane ||= {}
-      unless @properties_by_mane.has_key?(name)
+      @properties_by_name ||= {}
+      unless @properties_by_name.has_key?(name)
         segment_property = nil
         name_property = nil
         if (edi_opts = schema['edi']) && (segments = edi_opts['segments'])
@@ -23,9 +23,9 @@ module Mongoff
             name_property = property if property == name
           end
         end
-        @properties_by_mane[name] = segment_property || name_property
+        @properties_by_name[name] = segment_property || name_property
       end
-      @properties_by_mane[name]
+      @properties_by_name[name]
     end
 
     def properties_schemas

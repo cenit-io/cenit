@@ -106,7 +106,9 @@ module Edi
 
     def record_to_xml_element(data_type, schema, record, xml_doc, enclosed_property_name, options, namespaces)
       return unless record
-      return Nokogiri::XML({ enclosed_property_name => record }.to_xml(dasherize: false)).root.first_element_child if Cenit::Utility.json_object?(record)
+      if Cenit::Utility.json_object?(record)
+        return Nokogiri::XML({ enclosed_property_name => record }.to_xml(dasherize: false)).root.first_element_child
+      end
 
       if schema['xml'] && (xmlnss = schema['xml']['xmlns']).is_a?(Hash)
         xmlnss.each do |ns, xmlns|
@@ -163,7 +165,7 @@ module Edi
               if Cenit::Utility.json_object?(sub_record)
                 json_objects << sub_record
               else
-                elements << record_to_xml_element(data_type, property_schema, sub_record, xml_doc, property_name, options, namespaces)
+                elements << record_to_xml_element(data_type, property_schema, sub_record, xml_doc, nil, options, namespaces)
               end
             end if property_value
             unless json_objects.empty?
@@ -174,7 +176,7 @@ module Edi
           end
         when 'object'
           if property_model && property_model.modelable?
-            elements << record_to_xml_element(data_type, property_schema, record.send(property_name), xml_doc, property_name, options, namespaces)
+            elements << record_to_xml_element(data_type, property_schema, record.send(property_name), xml_doc, nil, options, namespaces)
           else
             elements << Nokogiri::XML({ name => record.send(property_name) }.to_xml(dasherize: false)).root.first_element_child
           end
