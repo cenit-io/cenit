@@ -4,8 +4,6 @@ module RailsAdmin
   module Adapters
     module Mongoid
 
-      alias_method :rails_admin_query_conditions, :query_conditions
-
       def query_conditions(query, fields = nil)
         if fields.nil? && (model = config.abstract_model.model).is_a?(Class) && model < Setup::ClassHierarchyAware
           statements = []
@@ -29,7 +27,19 @@ module RailsAdmin
             {}
           end
         else
-          rails_admin_query_conditions(query, fields)
+          fields ||= config.list.fields.select(&:queryable?)
+          statements = []
+
+          fields.each do |field|
+            conditions_per_collection = make_field_conditions(field, query, field.search_operator)
+            statements.concat make_condition_for_current_collection(field, conditions_per_collection)
+          end
+
+          if statements.any?
+            { '$or' => statements }
+          else
+            {}
+          end
         end
       end
 
