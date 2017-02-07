@@ -20,7 +20,6 @@ gem 'figaro'
 gem 'unicorn', '4.9.0'
 gem 'xmldsig'
 gem 'spreadsheet'
-gem 'newrelic_rpm'
 
 group :doc do
   gem 'sdoc', require: false
