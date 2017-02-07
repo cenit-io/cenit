@@ -93,7 +93,7 @@ module Setup
 
         base_connections = {}
         multiple_schemes = spec ['schemes'].size > 1
-        spec ['schemes'].each do |scheme|
+        spec['schemes'].each do |scheme|
           base_connections[scheme] =
             {
               namespace: namespace,
@@ -118,7 +118,7 @@ module Setup
         oauth_clients_refs = {}
         authorizations = []
         current_oauth2_scopes = []
-        if (security_definitions = spec['securityDefinitions'])
+        if (security_definitions = spec['securityDefinitions']).present?
           multiple_security = security_definitions.size > 1
           security_definitions.each do |name, security|
             name = name.to_title
