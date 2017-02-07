@@ -255,6 +255,7 @@ en:
         breadcrumb: "Cross"
         submit: "Cross"
         done: "crossed"
+        doing: "crossing"
       bulk_cross:
         title: "Cross %{model_label_plural}"
         bulk_link: "Cross selected %{model_label_plural}"
