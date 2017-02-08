@@ -361,7 +361,12 @@ module RailsAdmin
       nav = nodes.collect do |node|
         i += 1
         stack_id = "#{html_id}-sub#{i}"
-        model_count = node.abstract_model.count({ cache: true }, @authorization_adapter && @authorization_adapter.query(:index, node.abstract_model)) rescue -1
+        model_count =
+          begin
+            node.abstract_model.count({ cache: true }, @authorization_adapter && @authorization_adapter.query(:index, node.abstract_model))
+          rescue Exception
+            -1
+          end
 
         children = nodes_stack.select { |n| n.parent.to_s == node.abstract_model.model_name }
         html =
@@ -381,7 +386,7 @@ module RailsAdmin
             content_tag :li, data: { model: model_param } do
               link_to url, class: 'pjax' do
                 rc = ""
-                if model_count>0
+                if model_count > 0
                   rc += "<span class='nav-amount'>#{model_count}</span>"
                 end
                 rc += "<span class='nav-caption'>#{capitalize_first_letter node.label_navigation}</span>"
@@ -397,12 +402,12 @@ module RailsAdmin
             if count > 0
               category_count += count
               message = "<span><em>#{node.label_plural}</em> with category <em>#{cat.title}</em></span>"
-              filter_token =  Cenit::Token.where('data.category_id' => cat.id).first || Cenit::Token.create(data: { criteria: values.selector, message: message, category_id: cat.id })
+              filter_token = Cenit::Token.where('data.category_id' => cat.id).first || Cenit::Token.create(data: { criteria: values.selector, message: message, category_id: cat.id })
               sub_links += content_tag :li do
                 sub_link_url = index_path(model_name: node.abstract_model.to_param, filter_token: filter_token.token)
                 link_to sub_link_url do
                   rc = ''
-                  if model_count>0
+                  if model_count > 0
                     rc += "<span class='nav-amount'>#{count}</span>"
                   end
                   rc += "<span class='nav-caption'>#{cat.title}</span>"
@@ -431,7 +436,7 @@ module RailsAdmin
             </div>
              <div id='shared-collapse' class='nav nav-pills nav-stacked panel-collapse collapse'>
                 #{show_all_link}
-                #{sub_links}
+          #{sub_links}
             </div>
             </div>)
 

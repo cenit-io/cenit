@@ -649,4 +649,9 @@ en:
       cancel: 'Cancel'
       save: 'Send'
       placeholder: 'Enter %{field} here'
+    origin:
+      default: 'This Tenant'
+      owner: 'My Tenants'
+      shared: 'Shared'
+      cenit: 'Build-In'
 
