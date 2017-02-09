@@ -64,6 +64,7 @@ en:
       link_cross_shared_collection: 'Connect Store'
       and_more: "and %{count} more"
       save_filter: 'Save Filter'
+      and_that_is_all: "and that's all"
     actions:
       dashboard:
         title: "Dashboard"
@@ -649,4 +650,11 @@ en:
       cancel: 'Cancel'
       save: 'Send'
       placeholder: 'Enter %{field} here'
+    origin:
+      default: 'This Tenant'
+      owner: 'My Tenants'
+      shared: 'Shared'
+      cenit: 'Build-In'
+      admin: 'Administration'
+      tmp: 'Temporal'
 

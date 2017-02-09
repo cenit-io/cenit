@@ -11,7 +11,13 @@ module RailsAdmin
       if (model = model_config.abstract_model.model).is_a?(Class)
         if model.include?(CrossOrigin::Document)
           origins = []
-          model.origins.each { |origin| origins << origin if params[origin_param="#{origin}_origin"].to_i.even? }
+          acc = Account.current
+          model.origins.each do |origin|
+            if (even = (params[origin_param="#{origin}_origin"] || (acc && acc.meta[origin_param])).to_i.even?)
+              origins << origin
+            end
+            acc.meta[origin_param] = (even ? 0 : 1) if acc
+          end
           origins << nil if origins.include?(:default)
           scope = scope.any_in(origin: origins)
         end
