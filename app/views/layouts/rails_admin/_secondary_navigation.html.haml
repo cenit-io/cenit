@@ -97,38 +97,7 @@
           .actions.clearfix
             %li= link_to(t('admin.misc.add_tenant'), url_for(action: new_action.action_name, model_name: acc_am.to_param))
 
-  %ul#help-nav.nav.navbar-nav.navbar-right
-    %li.dropdown
-      %a.dropdown-toggle{href:'#', role:'button','data-toggle':'dropdown','aria-haspopup':'true','aria-expanded':'false'}
-        %i.fa.fa-fw.fa-question-circle
-        = t('help.label')
-        %span.caret
-      %ul#help-menu.dropdown-menu
-        %li
-          = link_to 'https://github.com/cenit-io/cenit', target: '_blank' do
-            %i.fa.fa-fw.fa-github-alt
-            = t('help.open_source')
-        %li
-          = link_to 'https://github.com/cenit-io/cenit/issues?state=open', target: '_blank' do
-            %i.fa.fa-fw.fa-lightbulb-o
-            = t('help.suggest')
-            %strong
-              = t('help.feature')
-        %li
-          = link_to 'https://github.com/cenit-io/cenit/issues?state=open', target: '_blank' do
-            %i.fa.fa-fw.fa-bug
-            = t('help.report')
-            %strong
-              = t('help.issue')
-        %li
-          =link_to "#{ENV['DOCS_URL'] || 'https://cenit.io'}/docs", target: '_blank' do
-            %i.fa.fa-fw.fa-file-text{title: t('admin.misc.docs')}
-            %span=t('help.docs')
-        %li
-          = link_to 'https://cenitio.slack.com/messages/support/', target: '_blank' do
-            %i.fa.fa-fw.fa-support
-            = t('help.support')
-
+  = render partial: 'shared/help'
   %ul.nav.navbar-nav.navbar-right.root_links
     - if (t_link = tasks_link)
       %li#action-tasks= t_link
@@ -147,6 +116,7 @@
   %ul.nav.navbar-nav.navbar-right.root_links
     .a.navbar-btn
       =link_to t('admin.registration.new'), new_registration_path(User), class: 'btn btn-primary', id: 'sign-in-link', style: 'padding-right:10px'
+  = render partial: 'shared/help'
   %ul#sign-drawer.drawer.user-auth
     #sign-links.holder
       .form-top
