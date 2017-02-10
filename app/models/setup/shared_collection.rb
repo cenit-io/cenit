@@ -372,6 +372,14 @@ module Setup
 
     end
 
+    def origin
+      :default
+    end
+
+    def categories
+      []
+    end
+
     protected
 
     def collect_dependencies_pull_parameters(hash = {})
