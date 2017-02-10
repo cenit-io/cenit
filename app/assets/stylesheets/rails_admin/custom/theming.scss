@@ -1098,20 +1098,27 @@ body.rails_admin .form-horizontal.denser fieldset {
   }
 }
 
+/*Origin colors*/
+
+$owner_odd_color: rgba(91, 192, 222, 0.25);
+$owner_even_color: rgba(91, 192, 222, 0.15);
+$shared_odd_color: rgba(26, 151, 52, 0.25);
+$shared_even_color: rgba(26, 151, 52, 0.15);
+
 .table-striped > tbody > tr.owner:nth-child(odd) > td, .table-striped > tbody > tr:nth-child(odd) > th {
-  background: rgba(91, 192, 222, 0.25);
+  background: $owner_odd_color;
 }
 
 .table-striped > tbody > tr.owner:nth-child(even) > td, .table-striped > tbody > tr:nth-child(odd) > th {
-  background: rgba(91, 192, 222, 0.15);
+  background: $owner_even_color;
 }
 
 .table-striped > tbody > tr.shared:nth-child(odd) > td, .table-striped > tbody > tr:nth-child(odd) > th {
-  background: rgba(26, 151, 52, 0.25);
+  background: $shared_odd_color;
 }
 
 .table-striped > tbody > tr.shared:nth-child(even) > td, .table-striped > tbody > tr:nth-child(odd) > th {
-  background: rgba(26, 151, 52, 0.15);
+  background: $shared_even_color;
 }
 
 .table-striped > tbody > tr.cenit:nth-child(odd) > td, .table-striped > tbody > tr:nth-child(odd) > th {
@@ -1179,5 +1186,19 @@ label {
   }
   &.tmp {
     color: $tmp_color;
+  }
+}
+
+.panel-shared {
+  border-color: $shared_odd_color;
+  > .panel-heading {
+    background-color: $shared_even_color;
+  }
+}
+
+.panel-owner {
+  border-color: $owner_odd_color;
+  > .panel-heading {
+    background-color: $owner_even_color;
   }
 }
