@@ -6,7 +6,7 @@
       %span.caret
     %ul#help-menu.dropdown-menu
       %li
-        =link_to 'http://cenit-slack.herokuapp.com', target: '_blank' do
+        =link_to (ENV['SLACK_INVITATION'] || 'http://cenit-slack.herokuapp.com'), target: '_blank' do
           %i.fa.fa-fw.fa-slack{title: 'join our slack'}
           %span='join our slack'
       %li
