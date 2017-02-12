@@ -30,14 +30,9 @@
         %i.fa.fa-fw.fa-newspaper-o{title: t('admin.misc.blog')}
         %span=t('admin.misc.blog')
     %li
-      - if _current_user.present?
-        =link_to 'http://cenitio.slack.com', target: '_blank' do
-          %i.fa.fa-fw.fa-slack{title: 'Slack'}
-          %span='Slack'
-      - else
-        =link_to 'http://cenit-slack.herokuapp.com', target: '_blank' do
-          %i.fa.fa-fw.fa-slack{title: 'join our slack'}
-          %span='Join our Slack'
+      =link_to (ENV['SLACK_INVITATION'] || 'http://cenit-slack.herokuapp.com'), target: '_blank' do
+        %i.fa.fa-fw.fa-slack{title: 'join our slack'}
+        %span='Join our Slack'
     %li
       =link_to "#{ENV['PORTAL_URL'] || 'https://cenit.io'}/prices", target: '_blank' do
         %i.fa.fa-fw.fa-credit-card{title: t('admin.misc.prices')}
