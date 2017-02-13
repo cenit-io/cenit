@@ -130,7 +130,7 @@ class Ability
                       if stack.empty?
                         hash[key] << root
                       else
-                        models += root.subclasses
+                        models.concat(root.subclasses)
                       end
                       root = stack.pop
                     end
