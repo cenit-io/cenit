@@ -10,7 +10,7 @@ module RailsAdmin
         register_instance_option :controller do
           proc do
             render_form = true
-            @bulk_ids = params[:bulk_ids] || []
+            @bulk_ids = params[:object_ids] || params[:bulk_ids] || []
             @bulk_ids << @object.id if @object
             origin_config = RailsAdmin::Config.model(Forms::CrossOriginSelector)
             if (origin_data = params[origin_config.abstract_model.param_key]) && origin_data.permit! &&

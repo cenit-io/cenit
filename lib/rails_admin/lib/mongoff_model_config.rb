@@ -2,8 +2,10 @@ module RailsAdmin
 
   class MongoffModelConfig < RailsAdmin::Config::Model
 
+    include ThreadAware
+
     def initialize(mongoff_entity)
-      super(RailsAdmin::MongoffAbstractModel.abstract_model_for(mongoff_entity))
+      super
       @model = @abstract_model.model
       @parent = self
 
@@ -190,6 +192,14 @@ module RailsAdmin
 
     def visible?
       true
+    end
+
+    class << self
+
+      def new(mongoff_entity)
+        mongoff_entity = RailsAdmin::MongoffAbstractModel.abstract_model_for(mongoff_entity)
+        current_thread_cache[mongoff_entity.to_s] ||= super(mongoff_entity)
+      end
     end
   end
 end
