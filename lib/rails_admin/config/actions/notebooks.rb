@@ -17,6 +17,7 @@ module RailsAdmin
 
         register_instance_option :controller do
           proc do
+            render :layout => 'rails_admin/application_notebooks' if @model_name == 'Setup::Notebook'
           end
         end
       end

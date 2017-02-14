@@ -467,15 +467,16 @@ module Api::V2
       @view = params[:view]
       @format = params[:format]
       @path = "#{params[:path]}.#{params[:format]}" if params[:path] && params[:format]
-      pload = {
-        'application/json': JSONPayload,
-        'application/xml': XMLPayload
-      }.stringify_keys
+      pload = { 'application/json': JSONPayload, 'application/xml': XMLPayload }.stringify_keys
       pload.default = BasicPayload
-      @payload = pload[request.content_type].new(controller: self,
-                                                 message: @webhook_body,
-                                                 content_type: request.content_type)
-      @criteria = params.to_hash.with_indifferent_access.reject { |key, _| %w(controller action ns model id field path format view api only ignore primary_field pretty include_root embedding).include?(key) }
+      @payload = pload[request.content_type].new(
+        controller: self, message: @webhook_body, content_type: request.content_type
+      )
+      @criteria = parse_criteria(
+        params.to_hash.with_indifferent_access.reject do |key, _|
+          %w(controller action ns model id field path format view api only ignore primary_field pretty include_root embedding).include?(key)
+        end
+      )
     end
 
     private
@@ -544,6 +545,17 @@ module Api::V2
       def process_item(item, data_type)
         data_type.is_a?(Setup::FileDataType) ? item.to_json : item
       end
+    end
+
+    def parse_criteria(items)
+      items.each do |key, value|
+        if value.is_a?(Hash)
+          items[key] = parse_criteria(value)
+        elsif key == '$regex'
+          items[key] = Regexp.new(value)
+        end
+      end
+      items
     end
 
     def create_options_keys
