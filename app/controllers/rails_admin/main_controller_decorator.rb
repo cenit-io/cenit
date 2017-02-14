@@ -1,5 +1,6 @@
 module RailsAdmin
   MainController.class_eval do
+    include OverrideActionsHelper
     include RestApiHelper
     include SwaggerHelper
     include AlgorithmHelper
