@@ -1,7 +1,7 @@
 module Setup
   class Notebook
     include CenitUnscoped
-    include Mongoid::Timestamps
+    include RailsAdmin::Models::Setup::NotebookAdmin
 
     build_in_data_type.with(:module, :name, :content, :shared, :writable, :created_at, :updated_at)
 
@@ -39,6 +39,10 @@ module Setup
 
     def writable
       self.owner == Cenit::MultiTenancy.tenant_model.current.owner
+    end
+
+    def path
+      "#{self.module}/#{self.name}"
     end
 
   end
