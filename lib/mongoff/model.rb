@@ -256,7 +256,7 @@ module Mongoff
       if property?(name)
         name
       else
-        name = name.gsub(/_id(s)?\Z/, '')
+        name = name.to_s.gsub(/_id(s)?\Z/, '')
         if (name = [name.pluralize, name].detect { |n| property?(n) })
           name
         else
@@ -280,7 +280,7 @@ module Mongoff
         if (id = value.try(:id)).is_a?(BSON::ObjectId)
           id
         else
-          BSON::ObjectId.from_string(value.to_s) rescue nil
+          BSON::ObjectId.from_string(value.to_s)
         end
       end,
 
@@ -298,50 +298,68 @@ module Mongoff
 
       Integer => ->(value) { value.to_s.to_i },
       Float => ->(value) { value.to_s.to_f },
-      Date => ->(value) { Date.parse(value.to_s) rescue nil },
-      DateTime => ->(value) { DateTime.parse(value.to_s) rescue nil },
-      Time => ->(value) { Time.parse(value.to_s) rescue nil },
+      Date => ->(value) { Date.parse(value.to_s) },
+      DateTime => ->(value) { DateTime.parse(value.to_s) },
+      Time => ->(value) { Time.parse(value.to_s) },
 
       Hash => ->(value) do
-        unless value.is_a?(Hash)
-          value = JSON.parse(value.to_s) rescue nil
-          value = nil unless value.is_a?(Hash)
+        unless value.is_a?(Hash) || (value = JSON.parse(value.to_s)).is_a?(Hash)
+          fail 'Array JSON not a Hash'
         end
         value
       end,
 
       Array => ->(value) do
-        unless value.is_a?(Array)
-          value = JSON.parse(value.to_s) rescue nil
-          value = nil unless value.is_a?(Array)
+        unless value.is_a?(Array) || (value = JSON.parse(value.to_s)).is_a?(Array)
+          fail 'Hash JSON not an Array'
         end
         value
       end,
 
-      NilClass => ->(value) { Cenit::Utility.json_object?(value) ? value : nil }
+      NilClass => ->(value) do
+        if Cenit::Utility.json_object?(value)
+          value
+        else
+          fail 'Not a JSON value'
+        end
+      end
     }
 
-    def mongo_value(value, field, schema = nil)
+    def mongo_value(value, field, schema = nil, &success_block)
       types =
         if !caching? || schema
           mongo_type_for(field, schema)
         else
           @mongo_types[field] ||= mongo_type_for(field, schema)
         end
+      success_value = nil
+      success_type = nil
       types.each do |type|
-        v =
-          if value.is_a?(type)
-            value
-          else
-            convert(type, value)
+        break unless success_value.nil?
+        if value.is_a?(type)
+          success_value = value
+          success_type = type
+        else
+          begin
+            success_value = CONVERSION[type].call(value)
+            success_type = type
+          rescue Exception
           end
-        return v unless v.nil?
+        end
       end
-      nil
-    end
-
-    def convert(type, value)
-      CONVERSION[type].call(value)
+      if success_type && success_block
+        args =
+          case success_block.arity
+          when 0
+            []
+          when 1
+            [success_value]
+          else
+            [success_value, success_type]
+          end
+        success_block.call(*args)
+      end
+      success_value
     end
 
     def fully_validate_against_schema(value, options = {})

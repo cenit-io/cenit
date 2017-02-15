@@ -2,11 +2,15 @@ module RailsAdmin
 
   class MongoffModelConfig < RailsAdmin::Config::Model
 
+    include ThreadAware
+
     def initialize(mongoff_entity)
-      super(RailsAdmin::MongoffAbstractModel.abstract_model_for(mongoff_entity))
+      super
       @model = @abstract_model.model
       @parent = self
 
+      titles = Set.new
+      titles.add(nil)
       (abstract_model.properties + abstract_model.associations).each do |property|
         type = property.type
         if property.is_a?(RailsAdmin::MongoffAssociation)
@@ -16,7 +20,11 @@ module RailsAdmin
         end
         configure property.name, type do
           visible { property.visible? }
-          label { property.name.to_s.to_title }
+          if titles.include?(title = property.title)
+            title = property.name.to_s.to_title
+          end
+          titles.add(title)
+          label { title }
           filterable { property.filterable? }
           required { property.required? }
           queryable { property.queryable? }
@@ -24,9 +32,6 @@ module RailsAdmin
           if enumeration
             enum { enumeration }
             filter_enum { enumeration }
-          end
-          if (title = property.title)
-            label { title }
           end
           if (description = property.description)
             description = "#{property.required? ? 'Required' : 'Optional'}. #{description}".html_safe
@@ -100,7 +105,7 @@ module RailsAdmin
         end
       end
       if @model.is_a?(Mongoff::GridFs::FileModel)
-        configure :data, :file_upload do
+        configure :data, :mongoff_file_upload do
           required { bindings[:object].new_record? }
         end
         configure :length do
@@ -118,6 +123,7 @@ module RailsAdmin
         end
         edit do
           field :data
+          field :metadata
         end
         list do
           field :_id
@@ -186,6 +192,14 @@ module RailsAdmin
 
     def visible?
       true
+    end
+
+    class << self
+
+      def new(mongoff_entity)
+        mongoff_entity = RailsAdmin::MongoffAbstractModel.abstract_model_for(mongoff_entity)
+        current_thread_cache[mongoff_entity.to_s] ||= super(mongoff_entity)
+      end
     end
   end
 end

@@ -13,7 +13,13 @@ module RailsAdmin
       if (model = model_config.abstract_model.model).is_a?(Class)
         if model.include?(CrossOrigin::Document)
           origins = []
-          model.origins.each { |origin| origins << origin if params[origin_param="#{origin}_origin"].to_i.even? }
+          acc = Account.current
+          model.origins.each do |origin|
+            if (even = (params[origin_param="#{origin}_origin"] || (acc && acc.meta[origin_param])).to_i.even?)
+              origins << origin
+            end
+            acc.meta[origin_param] = (even ? 0 : 1) if acc
+          end
           origins << nil if origins.include?(:default)
           scope = scope.any_in(origin: origins)
         end
@@ -135,11 +141,12 @@ module RailsAdmin
       return nil unless params[:associated_collection].present?
       #Patch
       if (source_abstract_model = RailsAdmin::AbstractModel.new(to_model_name(params[:source_abstract_model])))
-        source_model_config = source_abstract_model.config
+        source_model_config = source_abstract_model.config #TODO When configuring APPs or other forms rendering use the proper model config
         source_object = source_abstract_model.get(params[:source_object_id])
         action = params[:current_action].in?(%w(create update)) ? params[:current_action] : 'edit'
-        @association = source_model_config.send(action).fields.detect { |f| f.name == params[:associated_collection].to_sym }.with(controller: self, object: source_object)
-        @association.associated_collection_scope
+        if (@association = source_model_config.send(action).fields.detect { |f| f.name == params[:associated_collection].to_sym })
+          @association.with(controller: self, object: source_object).associated_collection_scope
+        end
       end
     end
   end

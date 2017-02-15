@@ -9,6 +9,8 @@ module RailsAdmin
             weight 880
             navigation_label 'Administration'
             visible { User.current_super_admin? }
+
+            fields :created_at, :type, :message, :attachment
           end
         end
 

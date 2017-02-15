@@ -9,7 +9,6 @@ module RailsAdmin
             navigation_label 'Connectors'
             weight 217
             object_label_method { :label }
-            visible { Account.current_super_admin? }
 
             configure :resource do
               read_only true

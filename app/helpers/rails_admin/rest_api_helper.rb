@@ -105,13 +105,13 @@ module RailsAdmin
     # Returns api uri.
     def api_uri(method, path)
       path_parameters = api_parameters(method, path, 'path')
-      uri = (Rails.env.development? ? 'http://127.0.0.1:3000' : 'https://cenit.io') + "/api/v2/#{path}"
+      uri = "#{Cenit.homepage}/api/v2/#{path}"
 
       # Set value of uri path parameters
       path_parameters.each do |p|
         if @object.respond_to?(p[:name])
-          value = @object.send(p[:name])
-          uri.gsub!("{#{p[:name]}}", value) unless value.to_s.empty?
+          value = @object.send(p[:name]).to_s
+          uri.gsub!("{#{p[:name]}}", value) unless value.empty?
         end
       end if @object
 
@@ -198,14 +198,26 @@ module RailsAdmin
     # Returns prepared parameters from data type code properties.
     def api_params_from_data_type()
       code = JSON.parse(@data_type.code)
-      code['properties'].map { |k, v| { in: 'query', name: k, type: v['type'] } }
+      code['properties'].select { |_, v| !v['type'].nil? }.map do |k, v|
+        {
+          in: 'query',
+          name: k == '_id' ? 'id' : k,
+          type: v['type']
+        }
+      end
     end
 
     ###
     # Returns prepared parameters from current model properties.
     def api_params_from_current_model
       exclude = /^(created_at|updated_at|version|origin)$|_ids?$/
-      params = @properties.map { |p| { in: 'query', name: p.property.name, type: p.property.type } }
+      params = @properties.map do |p|
+        {
+          in: 'query',
+          name: p.property.name == '_id' ? 'id' : p.property.name,
+          type: p.property.type
+        }
+      end
       params.select { |p| !p[:name].match(exclude) }
     end
 

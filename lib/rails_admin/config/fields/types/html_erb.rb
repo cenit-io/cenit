@@ -17,8 +17,8 @@ module RailsAdmin
                 Setup::Transformation::ActionViewTransform.run(code: template,
                                                                style: 'html.erb',
                                                                base_url: bindings[:controller].request.base_url,
-                                                               user_key: User.current_number,
-                                                               user_token: User.current_token,
+                                                               user_key: Account.current_key,
+                                                               user_token: Account.current_token,
                                                                object: bindings[:object])
               rescue Exception => ex
                 nil

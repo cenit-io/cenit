@@ -6,7 +6,7 @@ module RailsAdmin
 
         included do
           rails_admin do
-            navigation_label 'Workflows'
+            navigation_label 'Connectors'
             label 'Webhook'
             weight 515
             object_label_method { :custom_title }

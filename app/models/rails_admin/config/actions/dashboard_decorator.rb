@@ -23,15 +23,16 @@ module RailsAdmin
                   end
                 end
               @most_recent_changes = {}
-              @count = {}
+              @counts = {}
               @max = 0
               #Patch
               if current_user
                 @abstract_models.each do |t|
                   scope = @authorization_adapter && @authorization_adapter.query(:index, t)
-                  current_count = t.count({ cache: true }, scope)
-                  @max = current_count > @max ? current_count : @max
-                  @count[t.model.name] = current_count
+                  counts = t.counts({ cache: true }, scope)
+                  count = counts[:default] || counts.values.inject(0, &:+)
+                  @max = count > @max ? count : @max
+                  @counts[t.model.name] = counts
                   # Patch
                   # next unless t.properties.detect { |c| c.name == :updated_at }
                   # @most_recent_changes[t.model.name] = t.first(sort: "#{t.table_name}.updated_at").try(:updated_at)
@@ -40,7 +41,7 @@ module RailsAdmin
                 @abstract_models.each do |absm|
                   current_count = absm.model.super_count
                   @max = current_count > @max ? current_count : @max
-                  @count[absm.model.name] = current_count
+                  @counts[absm.model.name] = { default: current_count }
                 end
               end
             end

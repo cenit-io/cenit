@@ -16,7 +16,7 @@ module Setup
       algorithm_id = message[:algorithm_id]
       if (algorithm = Setup::Algorithm.where(id: algorithm_id).first)
         result = algorithm.run(message[:input])
-        klass = Setup::BuildInDataType::SCHEMA_TYPE_MAP.keys.detect { |type| result.class < type }
+        klass = Setup::BuildInDataType::SCHEMA_TYPE_MAP.keys.detect { |type| type && result.class < type }
         schema = Setup::BuildInDataType::SCHEMA_TYPE_MAP[klass]
         result =
           case result

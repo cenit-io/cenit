@@ -34,13 +34,25 @@ module Cenit
     def send_data(*args)
       fail 'Double-rendering' if done?
       @render_called = true
-      controller.send_data(*args)
+      if args.length == 1 && (res = args[0]).is_a?(Setup::Webhook::Response)
+        controller.send_data res.body, content_type: res.content_type, status: res.code
+      else
+        controller.send_data(*args)
+      end
     end
 
     def render(*args)
       fail 'Re-calling render' if done?
       @render_called = true
-      controller.render(*args)
+      if args.length == 1 && (res = args[0]).is_a?(Setup::Webhook::Response)
+        if res.headers['content-transfer-encoding']
+          controller.send_data res.body, content_type: res.content_type, status: res.code
+        else
+          controller.render text: res.body, content_type: res.content_type, status: res.code
+        end
+      else
+        controller.render(*args)
+      end
     end
 
     def render_called?

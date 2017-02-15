@@ -60,11 +60,6 @@ module Setup
     validates_length_of :shared_version, maximum: 255
     validates_presence_of :authors, :summary
 
-    after_save do
-      reinstall(add_dependencies: false) unless !installed? || skip_reinstall_callback
-      self.skip_reinstall_callback = false
-    end
-
     accepts_nested_attributes_for :authors, allow_destroy: true
     accepts_nested_attributes_for :pull_parameters, allow_destroy: true
 
@@ -94,10 +89,10 @@ module Setup
         ensure_shared_name &&
         check_dependencies &&
         validates_pull_parameters &&
-          begin
-            self.data = {} if installed
-            true
-          end
+        begin
+          self.data = {} if installed
+          true
+        end
     end
 
     def ensure_shared_name
@@ -155,11 +150,16 @@ module Setup
 
     def data_with(parameters = {})
       hash_data = dependencies_data.deep_merge(pull_data) { |_, val1, val2| Cenit::Utility.array_hash_merge(val1, val2) }
-      pull_parameters.each do |pull_parameter|
-        pull_parameter.process_on(hash_data, value: parameters[pull_parameter.id] || parameters[pull_parameter.id.to_s])
-      end
+      parametrize(hash_data, parameters)
       hash_data['metadata'] = metadata if metadata.present?
       hash_data
+    end
+
+    def parametrize(hash_data, parameters, options = {})
+      pull_parameters.each do |pull_parameter|
+        value = parameters[pull_parameter.id] || parameters[pull_parameter.id.to_s]
+        pull_parameter.process_on(hash_data, options.merge(value: value))
+      end
     end
 
     def dependencies_data(parameters = {})
@@ -174,7 +174,7 @@ module Setup
     end
 
     def reinstall(options = {})
-      options[:collection] = self
+      options[:collection] ||= self
       options[:add_dependencies] = true unless options.has_key?(:add_dependencies)
       install(options)
     end
@@ -247,7 +247,11 @@ module Setup
         else
           @add_dependencies
         end
-      super
+      if (result = super)
+        reinstall(add_dependencies: false) unless !installed? || skip_reinstall_callback
+        self.skip_reinstall_callback = false
+      end
+      result
     end
 
     def method_missing(symbol, *args)

@@ -64,6 +64,7 @@ en:
       link_cross_shared_collection: 'Connect Store'
       and_more: "and %{count} more"
       save_filter: 'Save Filter'
+      and_that_is_all: "and that's all"
     actions:
       dashboard:
         title: "Dashboard"
@@ -255,6 +256,7 @@ en:
         breadcrumb: "Cross"
         submit: "Cross"
         done: "crossed"
+        doing: "crossing"
       bulk_cross:
         title: "Cross %{model_label_plural}"
         bulk_link: "Cross selected %{model_label_plural}"
@@ -275,7 +277,7 @@ en:
         breadcrumb: "Pull"
         submit: "Pull"
         done: "pulled"
-        fill_parameters: "Please fill the following parameters to pull the collection"
+        fill_parameters: "The following parameters will be used to pull the collection"
         create_warning: "The following objects will be created"
         update_warning: "The following objects will be updated"
         ready: "Ready to pull!"
@@ -290,6 +292,8 @@ en:
         install_help: "The collection will be installed after pulled if checked"
         not_installer: "You can not install these collection since you have not the installer role"
         doing: 'pull'
+        skip_pull_review: "Skipp pull review"
+        skip_pull_review_help: "The pull will procede without warning about changes if checked"
       bulk_pull:
         title: "Pulling Collections"
         menu: "Pull"
@@ -479,6 +483,7 @@ en:
       link_data_type:
         menu: "Link"
         breadcrumb: "Link %{model_label}"
+      delete_data_type_errors: "Some data types could not be destroyed."
     form:
       flow:
         source_data_type: 'Source data type'
@@ -491,10 +496,10 @@ en:
         notify_request: 'Track request with notifications if checked'
         notify_response: 'Track responses via notification if checked'
         after_process_callbacks: 'Algorithms executed after flow processing, execution state is supplied as argument'
-      nested:
-        recursive: 'This is a recursive nested model. Complete your operation and try it again to go deeper.'
-        too_deep: 'This nested model is too deep. Complete your operation and try it again to go deeper.'
-        overflow: 'This nested form is too big. Try to submit your data through the API.'
+      recursive: 'This is a recursive nested model. Complete your operation and try it again to go deeper.'
+      too_deep: 'This nested model is too deep. Complete your operation and try it again to go deeper.'
+      overflow: 'This nested form is too big. Try to submit your data through the API.'
+      broken: 'This form can not be properly rendered. Ask for support.'
     scheduler:
       cyclic: 'Cyclic'
       appointed: 'Appointed'
@@ -649,4 +654,11 @@ en:
       cancel: 'Cancel'
       save: 'Send'
       placeholder: 'Enter %{field} here'
+    origin:
+      default: 'This Tenant'
+      owner: 'My Tenants'
+      shared: 'Shared'
+      cenit: 'Build-In'
+      admin: 'Administration'
+      tmp: 'Temporal'
 

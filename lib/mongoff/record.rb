@@ -213,7 +213,7 @@ module Mongoff
           attribute_key
         end.to_sym
       @fields.delete(field)
-      property_model = field_metadata[:model]
+      property_model = field_metadata[:model] || orm_model.property_model(field)
       property_schema = field_metadata[:schema] || orm_model.property_schema(field)
       if value.nil?
         @fields.delete(field)
@@ -232,7 +232,13 @@ module Mongoff
           field_array
         else
           if property_model && property_model.modelable?
-            value = value.collect { |v| property_model.mongo_value(v, :id) }.select(&:present?)
+            mongo_value = []
+            value.each do |v|
+              property_model.mongo_value(v, :id) do |mongo_v|
+                mongo_value << mongo_v
+              end
+            end
+            value = mongo_value
           end
           value.each do |v|
             fail "invalid value #{v}" unless Cenit::Utility.json_object?(v, recursive: true)
@@ -256,6 +262,25 @@ module Mongoff
             orm_model.data_type.records_methods.any? { |alg| alg.name == method } ||
             nested_attributes_association(property).present?
         end
+    end
+
+    def send(*args)
+      name = args[0].to_s
+      property_name = (assigning = name.end_with?('=')) ? name.chop : name
+      if (method = orm_model.data_type.records_methods.detect { |alg| alg.name == name })
+        args = args.dup
+        args[0] = self
+        method.reload
+        method.run(args)
+      elsif orm_model.property?(property_name) && (args.length == (assigning ? 2 : 1))
+        if assigning
+          self[property_name] = args[1]
+        else
+          self[property_name]
+        end
+      else
+        super
+      end
     end
 
     def method_missing(symbol, *args)

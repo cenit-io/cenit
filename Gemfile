@@ -20,7 +20,6 @@ gem 'figaro'
 gem 'unicorn', '4.9.0'
 gem 'xmldsig'
 gem 'spreadsheet'
-gem 'newrelic_rpm'
 
 group :doc do
   gem 'sdoc', require: false
@@ -117,4 +116,5 @@ gem 'cenit-oauth', git: 'https://github.com/cenit-io/cenit-oauth.git'
 gem 'capataz', git: 'https://github.com/macarci/capataz.git'
 
 gem 'rkelly-remix'
-gem 'gist-embed-rails'
+
+gem 'write_xlsx'

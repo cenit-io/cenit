@@ -361,7 +361,18 @@ module RailsAdmin
       nav = nodes.collect do |node|
         i += 1
         stack_id = "#{html_id}-sub#{i}"
-        model_count = node.abstract_model.count({ cache: true }, @authorization_adapter && @authorization_adapter.query(:index, node.abstract_model)) rescue -1
+        counts =
+          begin
+            node.abstract_model.counts({ cache: true }, @authorization_adapter && @authorization_adapter.query(:index, node.abstract_model))
+          rescue Exception
+            { default: -1 }
+          end
+        model_count =
+          if current_user
+            counts[:default] || counts.values.inject(0, &:+)
+          else
+            counts.values.inject(0, &:+)
+          end
 
         children = nodes_stack.select { |n| n.parent.to_s == node.abstract_model.model_name }
         html =
@@ -380,9 +391,25 @@ module RailsAdmin
             nav_icon = node.navigation_icon ? %(<i class="#{node.navigation_icon}"></i>).html_safe : ''
             content_tag :li, data: { model: model_param } do
               link_to url, class: 'pjax' do
-                rc = ""
-                if model_count>0
-                  rc += "<span class='nav-amount'>#{model_count}</span>"
+                rc = ''
+                title = t('admin.misc.and_that_is_all')
+                plus = nil
+                count_label = model_count
+                if counts.key?(:default)
+                  plus = []
+                  counts.each do |origin, count|
+                    next if origin == :default
+                    plus << "+ #{count} #{t("admin.origin.#{origin}")}" if count > 0
+                  end
+                  if plus.any?
+                    title = plus.to_sentence
+                    count_label = "#{model_count} +"
+                  else
+                    plus = nil
+                  end
+                end
+                if model_count > 0 || plus
+                  rc += "<span class='nav-amount' title=\"#{title}\">#{count_label}</span>"
                 end
                 rc += "<span class='nav-caption'>#{capitalize_first_letter node.label_navigation}</span>"
                 rc.html_safe
@@ -397,12 +424,12 @@ module RailsAdmin
             if count > 0
               category_count += count
               message = "<span><em>#{node.label_plural}</em> with category <em>#{cat.title}</em></span>"
-              filter_token =  Cenit::Token.where('data.category_id' => cat.id).first || Cenit::Token.create(data: { criteria: values.selector, message: message, category_id: cat.id })
+              filter_token = Cenit::Token.where('data.category_id' => cat.id).first || Cenit::Token.create(data: { criteria: values.selector, message: message, category_id: cat.id })
               sub_links += content_tag :li do
                 sub_link_url = index_path(model_name: node.abstract_model.to_param, filter_token: filter_token.token)
                 link_to sub_link_url do
                   rc = ''
-                  if model_count>0
+                  if model_count > 0
                     rc += "<span class='nav-amount'>#{count}</span>"
                   end
                   rc += "<span class='nav-caption'>#{cat.title}</span>"
@@ -430,8 +457,8 @@ module RailsAdmin
               </a>
             </div>
              <div id='shared-collapse' class='nav nav-pills nav-stacked panel-collapse collapse'>
-                #{sub_links}
-          #{show_all_link}
+                #{show_all_link}
+          #{sub_links}
             </div>
             </div>)
 
@@ -527,9 +554,7 @@ module RailsAdmin
     end
 
     def dashboard_navigation(nodes_stack, nodes)
-      if not nodes.present?
-        return
-      end
+      return unless nodes.present?
       i = -1
       ('' +
         nodes.collect do |node|
@@ -552,12 +577,13 @@ module RailsAdmin
               end
               rc += '</td>'
 
-              model_count =
+              counts =
                 if current_user
-                  node.abstract_model.count({ cache: true }, @authorization_adapter && @authorization_adapter.query(:index, node.abstract_model))
+                  node.abstract_model.counts({ cache: true }, @authorization_adapter && @authorization_adapter.query(:index, node.abstract_model))
                 else
-                  @count[node.abstract_model.model_name] || 0
+                  @counts[node.abstract_model.model_name] || { default: 0 }
                 end
+              model_count = counts[:default] || counts.values.inject(0, &:+)
               pc = percent(model_count, @max)
               indicator = get_indicator(pc)
               anim = animate_width_to(pc)
