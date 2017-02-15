@@ -57,7 +57,7 @@ module Setup
     end
 
     def label
-      "#{bind.class.to_s.split('::').last} of #{binder.custom_title}"
+      "#{bind.class.to_s.split('::').last} of #{((b = binder) && b.custom_title)}"
     end
 
     class << self
