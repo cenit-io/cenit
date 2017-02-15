@@ -58,6 +58,7 @@
 - if klass.is_a?(Class) && klass.ancestors.include?(RailsAdminDynamicCharts::Datetime)
   - available_chart = true
   = render 'chart'
+  =# '<script>render_graphic($("#graphics-form"), ".graphics");</script>'.html_safe
 
 
 = content_for :contextual_tabs do
@@ -126,8 +127,9 @@
               %button.btn.toggle-origin
                 %i{class: param_value.even? ? 'fa fa-toggle-on' : 'fa fa-toggle-off'}
               %input{name: origin_param, value: param_value, type: 'hidden'}
-      -if available_chart
-        = content_for :graphics_area
+  -if available_chart
+    .graphics
+      = content_for :graphics_area
   - unless @model_config.list.scopes.empty?
     %ul.nav.nav-tabs#scope_selector
       - @model_config.list.scopes.each_with_index do |scope, index|

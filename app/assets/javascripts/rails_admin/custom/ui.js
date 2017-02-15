@@ -254,6 +254,25 @@ function initializeTour() {
     tour.restart(true);
 }
 
+var render_graphic = function ($form, selector) {
+    $.ajax({
+        url: $form.attr('action'),
+        cache: false,
+        method: "POST",
+        data: {},
+        beforeSend: function () {
+            console.log('Loading graphics');
+            $(selector).html('Loading graphics');
+        },
+        success: function (data) {
+            $(selector).html(data);
+        },
+        error: function (data) {
+            console.log('Error: Loading graphics: ' + data);
+        }
+    });
+}
+
 function registerEvents() {
 
     $('#take-tour').click(function (e) {
@@ -283,6 +302,15 @@ function registerEvents() {
         $('.graphics-area').toggleClass('hide');
     });
 
-    $('select.input-sm', '.graphics-controls').on('change', function(){$('#filter-form').submit()})
+    $('#graphics-form').submit(function( event ) {
+        event.preventDefault();
+        $form = $('#graphics-form');
+        render_graphic($form, '.graphics');
+    });
+
+    $('select.input-sm', '.graphics-controls').on('change', function(){
+        $form = $('#graphics-form');
+        $form.submit();
+    })
 }
 
