@@ -1202,3 +1202,12 @@ label {
     background-color: $owner_even_color;
   }
 }
+
+.tenants {
+  height: 140px;
+  overflow-y: scroll;
+}
+
+#search_tenant{
+  margin-bottom: 10px;
+}
