@@ -221,7 +221,6 @@ GEM
       thor (~> 0.14)
     font-awesome-rails (4.6.2.0)
       railties (>= 3.2, < 5.1)
-    gist-embed-rails (2.0.0)
     git (1.2.9.1)
     github_api (0.12.4)
       addressable (~> 2.3)
@@ -602,7 +601,6 @@ DEPENDENCIES
   factory_girl_rails
   ffaker
   figaro
-  gist-embed-rails
   github_api
   haml-rails
   httmultiparty
@@ -656,5 +654,8 @@ DEPENDENCIES
   write_xlsx
   xmldsig
 
+RUBY VERSION
+   ruby 2.2.1p85
+
 BUNDLED WITH
-   1.11.2
+   1.13.6

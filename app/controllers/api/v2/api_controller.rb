@@ -423,18 +423,6 @@ module Api::V2
       @view = params[:view]
       @format = params[:format]
       @path = "#{params[:path]}.#{params[:format]}" if params[:path] && params[:format]
-<<<<<<< HEAD
-      pload = { 'application/json': JSONPayload, 'application/xml': XMLPayload }.stringify_keys
-      pload.default = BasicPayload
-      @payload = pload[request.content_type].new(
-        controller: self, message: @webhook_body, content_type: request.content_type
-      )
-      @criteria = parse_criteria(
-        params.to_hash.with_indifferent_access.reject do |key, _|
-          %w(controller action ns model id field path format view api only ignore primary_field pretty include_root embedding).include?(key)
-        end
-      )
-=======
       case @_action_name
       when 'new', 'push'
         unless (@parser_options = Cenit::Utility.json_value_of(request.headers['X-Parser-Options'])).is_a?(Hash)
@@ -498,7 +486,6 @@ module Api::V2
           @render_options[:include_id] = true
         end
       end
->>>>>>> develop
     end
 
     private
@@ -571,24 +558,6 @@ module Api::V2
       end
     end
 
-<<<<<<< HEAD
-    def parse_criteria(items)
-      items.each do |key, value|
-        if value.is_a?(Hash)
-          items[key] = parse_criteria(value)
-        elsif key == '$regex'
-          items[key] = Regexp.new(value)
-        end
-      end
-      items
-    end
-
-    def create_options_keys
-      super + %w(only)
-    end
-
-=======
->>>>>>> develop
     class XMLPayload < BasicPayload
 
       def each_root(&block)
