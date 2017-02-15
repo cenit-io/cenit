@@ -32,7 +32,7 @@
     %li
       =link_to (ENV['SLACK_INVITATION'] || 'http://cenit-slack.herokuapp.com'), target: '_blank' do
         %i.fa.fa-fw.fa-slack{title: 'join our slack'}
-        %span='Join our Slack'
+        %span='join our slack'
     %li
       =link_to "#{ENV['PORTAL_URL'] || 'https://cenit.io'}/prices", target: '_blank' do
         %i.fa.fa-fw.fa-credit-card{title: t('admin.misc.prices')}
