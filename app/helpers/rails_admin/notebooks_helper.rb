@@ -5,16 +5,17 @@ module RailsAdmin
 
     def notebooks_jupyter_url
       login = Account.current || User.current
+      key, token = login ? [login.key, login.token] : ['-', '-']
       base_url = ENV['JUPYTER_NOTEBOOKS_URL'] || "http://127.0.0.1:8888"
       ns, model_name = api_model
 
       if model_name == 'notebook'
-        url = "#{base_url}/tree/#{login.key}/#{login.token}"
+        url = "#{base_url}/tree/#{key}/#{token}"
       elsif params[:notebook].present?
         nb = Setup::Notebook.find(params[:notebook])
-        url = "#{base_url}/notebooks/#{login.key}/#{login.token}/#{nb.path}"
+        url = "#{base_url}/notebooks/#{key}/#{token}/#{nb.path}"
       else
-        url = "#{base_url}/tree/#{login.key}/#{login.token}/#{ns}/#{model_name}"
+        url = "#{base_url}/tree/#{key}/#{token}/#{ns}/#{model_name}"
       end
 
       url
