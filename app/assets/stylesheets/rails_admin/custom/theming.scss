@@ -1204,10 +1204,22 @@ label {
 }
 
 .tenants {
-  height: 140px;
-  overflow-y: scroll;
+  max-height: 380px;
+  overflow-y: auto;
+  li {
+    margin: 3px 0;
+    padding: 3px;
+    &:hover {
+      background: whitesmoke;
+    }
+    a {
+      color: black;
+      text-decoration: none;
+
+    }
+  }
 }
 
-#search_tenant{
+#search_tenant {
   margin-bottom: 10px;
 }

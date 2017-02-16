@@ -294,7 +294,7 @@ function registerEvents() {
         overlay.appendTo(document.body);
     });
 
-    $('[data-toggle="drop-menu"]').on('click', function (e) {
+    $('#show_tenant_menu').on('click', function (e) {
         var $menu = $('#tenant-menu');
         if ($menu.css('display') == 'none') {
             $menu.css('display', 'block');
@@ -304,8 +304,11 @@ function registerEvents() {
         }
     });
 
-    $(document).on('click', '.tenants a', function () {
-        $('#tenant-menu').css('display', 'none');
+    $('*').on('click', function (event) {
+        var $target = $(event.target);
+        if (($target.parents('#dropdown-tenants').length == 0) && ($target.attr('id') != "tenant_name")) {
+            $('#tenant-menu').css('display', 'none');
+        }
     });
 
     $('#search_tenant').on('keydown', function (e) {
