@@ -57,6 +57,7 @@ require 'account'
   RailsAdmin::Config::Actions::RestApi1,
   RailsAdmin::Config::Actions::RestApi2,
   RailsAdmin::Config::Actions::Notebooks,
+  RailsAdmin::Config::Actions::NotebooksRoot,
   RailsAdmin::Config::Actions::LinkDataType
 ].each { |a| RailsAdmin::Config::Actions.register(a) }
 
@@ -171,6 +172,7 @@ RailsAdmin.config do |config|
     bulk_delete_data_type
     delete
     trash
+    notebooks_root
     clean_up
     #show_in_app
     send_to_flow
