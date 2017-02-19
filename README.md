@@ -15,8 +15,6 @@
 
 It allows the creation of custom data pipelines for process, storage and data movement between APIs. The flows could be trigger by data events or be scheduled.
 
-Tabs: iPaaS, ESB, SOA, REST, APIs, Ruby, Cloud Integrations, Integration Platform.
-
 
 ## Run your own Cenit
 [![Deploy to Heroku](https://www.herokucdn.com/deploy/button.svg)](https://heroku.com/deploy)
