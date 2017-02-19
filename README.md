@@ -15,6 +15,24 @@
 
 It allows the creation of custom data pipelines for process, storage and data movement between APIs. The flows could be trigger by data events or be scheduled.
 
+There are now over 200 pre-built integration collections shared out the box to connect with online internet services,
+fulfilment solutions, accounting, communications, ERP, multi-channels, etc.
+
+An example of integration data flow (Fancy <=> Shipstation):
+
+* Every 20 minutes Cenit trigger a flow to get orders from Fancy Marketplace.
+
+* New or updated orders are received and persisted in Cenit.
+
+* After the new or updated orders are saved, is trigger a Flow to send a shipment to Shipstation. 
+
+* The flow requires transforming the Fancy Order into a valid shipment on Shipstation.
+
+* Each 20 minutes Cenit trigger a flow to fetch Shipped shipments from Shipstation.
+
+* After the shipments are updated in Cenit, is trigger a Flow to send the tracking update to Fancy. 
+
+
 
 ## Run your own Cenit
 [![Deploy to Heroku](https://www.herokucdn.com/deploy/button.svg)](https://heroku.com/deploy)
@@ -92,13 +110,6 @@ It allows the creation of custom data pipelines for process, storage and data mo
 * Digest Auth
 * OAuth 1.0a
 * OAuth 2.0
-
-
-## Shared Collections
-
-There are now over 200 pre-built integration collections shared out the box to connect with online internet services,
-fulfilment solutions, accounting, communications, ERP, multi-channels, etc.
-
 
 ## Frameworks and Tools
 
