@@ -244,6 +244,18 @@ function initializeTour() {
                     content: "Different kinds of notifications",
                     element: "#action-notify",
                     placement: "bottom"
+                },
+                {
+                    title: "REST API",
+                    content: "Get help to use resources throw REST API",
+                    element: "#rest-api",
+                    placement: "left",
+                    onShow: function () {
+                        $('#nav-drawer').removeClass('open');
+                    },
+                    onHide: function () {
+                        $('#nav-drawer').addClass('open');
+                    }
                 }
             ]
         });
