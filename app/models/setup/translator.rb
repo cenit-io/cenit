@@ -5,6 +5,9 @@ module Setup
     include NamespaceNamed
     include ClassHierarchyAware
     include RailsAdmin::Models::Setup::TranslatorAdmin
+    # = Translator
+    #
+    # A translator defines a logic for data manipulation
 
     abstract_class true
 
