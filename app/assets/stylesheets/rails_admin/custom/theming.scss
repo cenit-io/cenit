@@ -1081,10 +1081,14 @@ body.rails_admin .form-horizontal.denser fieldset {
 }
 
 .filters-buttons {
-  overflow: auto;
+  overflow: visible;
   float: right;
   span {
     margin-left: 19px;
+  }
+  .dropdown {
+    list-style-type: none;
+    margin-left: 15px;
   }
 }
 

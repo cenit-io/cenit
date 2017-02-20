@@ -606,5 +606,23 @@ module RailsAdmin
           end
         end.join).html_safe
     end
+
+    def found_menu(abstract_model = @abstract_model)
+
+      actions = actions(:bulkable, abstract_model)
+      return '' if actions.empty?
+      content_tag :li, class: 'dropdown', style: 'float:right' do
+        content_tag(:a, class: 'dropdown-toggle', data: { toggle: 'dropdown' }, href: '#') { '<div class="btn btn-info">'.html_safe + t('admin.misc.found_menu_title').html_safe + '<b class="caret"></b></div>'.html_safe } +
+          content_tag(:ul, class: 'dropdown-menu', style: 'left:auto; right:0;') do
+            actions.collect do |action|
+              unless action.nil?
+                content_tag :li do
+                  link_to(wording_for(:link, action), url_for(action: action.action_name, model_name: abstract_model.to_param, all: true, params: params.except('set').except('page')), class: 'pjax')
+                end
+              end
+            end.join.html_safe
+          end
+      end.html_safe
+    end
   end
 end
