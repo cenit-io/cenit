@@ -54,45 +54,43 @@ An example of integration data flow (Fancy <=> Shipstation):
 ## Key concepts
 
 * Definitions
-  + Schemas & Validators
-  + Data Types
+  + **Schemas & Validators** - XML Schema, EDI Grammars, Regular Expression, etc
+  + **Data Types** - Include Object Type defined and a Json Schema and File Type
 
 * Connectors
-  + API Specs
-  + Connections
-  + Resources
-  + Operations
-  + Webhooks
+  + **API Specs** - Allow upload an Open API Spec (Swagger 2.0).
+  + **Connections** - Are representation of endpoints.
+  + **Resources** - Element that manages a kind of data and a state and provides processing on this kind
+  + **Operations** - An operation is a unit of a REST API that you can call
+  + **Webhooks** - The webhook are the final step in a flow, implemented like a request HTTP to an endpoint, for sent or receive data
 
 * Compute
-  + Snippets
-  + Algorithms
-  + Translator
-  + Applications
+  + **Snippets** - Small region of re-usable code
+  + **Algorithms**
+  + **Applications** - Associate path with algorithms to process the request and render the response. 
 
 * Transformations
-  + Renderers
-  + Parsers
-  + Converters
-  + Updaters
+  + **Renderers** - Exporting data outside Cenit.
+  + **Parsers** - Importing outside data into Cenit.
+  + **Converters** - Converting data already stored in Cenit.
+  + **Updaters** - Updating data already stored in Cenit.
 
 * Workflows
-  + Flows
-  + Data Events
-  + Schedulers
+  + **Flows** - Defines how data is processed by the execution of one or more actions.
+  + **Data Events** - Creation of new objects or changes in objects will result in events.
+  + **Schedulers** - Are events triggered on a certain moment and can be optionally recurrent.
 
 * Security
-  + OAuth Clients
-  + Providers
-  + OAuth 2.0 Scopes
-  + Authorizations
-  + Access Grants
+  + **OAuth Clients**
+  + **Providers** - Authentication Providers.
+  + **OAuth 2.0 Scopes**
+  + **Authorizations** - Integrations authorizations.
+  + **Access Grants**
 
 * Monitors
-  + Notifications
-  + Tasks
-  + Storages
-
+  + **Notifications** - Provide detailed trail of tenant activity.
+  + **Tasks** -  Asynchronous executions of flows.
+  + **Storages** - Info about the used space.
 
 ## Load Schemas & Data Types on the fly
 
@@ -102,7 +100,6 @@ An example of integration data flow (Fancy <=> Shipstation):
 * Search and filter
 * Export data to CSV/JSON/XML
 * User action history
-
 
 ## Manage multiple Authentication Protocols
 
