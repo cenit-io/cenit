@@ -1,9 +1,9 @@
 module Setup
   class Notebook
-    include CenitUnscoped
+    include CrossOriginShared
     include RailsAdmin::Models::Setup::NotebookAdmin
 
-    build_in_data_type.with(:module, :name, :content, :shared, :writable, :created_at, :updated_at)
+    build_in_data_type.with(:module, :name, :content, :shared, :writable, :origin, :created_at, :updated_at)
 
     field :module, type: String
     field :name, type: String
@@ -13,32 +13,18 @@ module Setup
     field :created_at, type: DateTime
     field :updated_at, type: DateTime
 
-    belongs_to :owner, class_name: Cenit::MultiTenancy.user_model_name, inverse_of: nil
+    attr_readonly :writable, :shared
 
-    attr_readonly :owner, :writable
-
-    set_callback :save, :before, :before_save
-
-    default_scope -> {
-      where(nil
-      ).or(
-        owner: Cenit::MultiTenancy.tenant_model.current ? Cenit::MultiTenancy.tenant_model.current.owner : nil
-      ).or(
-        shared: true
-      )
-    }
-
-    def type_enum
-      %w(notebook file directory)
+    def shared
+      self.origin != :default
     end
 
-    def before_save
-      self.shared = false if self.shared.nil?
-      self.owner ||= Cenit::MultiTenancy.tenant_model.current.owner
+    def origin=(v)
+      cross(v) if v != self.origin && !self.new_record?
     end
 
     def writable
-      self.owner == Cenit::MultiTenancy.tenant_model.current.owner
+      self.tenant == Account.current
     end
 
     def path
