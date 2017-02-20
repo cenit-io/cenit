@@ -7,7 +7,7 @@ module RailsAdmin
         included do
           rails_admin do
             navigation_label 'Monitors'
-            # visible false
+            visible false
             object_label_method { :to_s }
 
             configure :attempts_succeded, :text do
