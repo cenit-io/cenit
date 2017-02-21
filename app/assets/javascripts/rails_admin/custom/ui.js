@@ -265,6 +265,24 @@ function initializeTour() {
     // Start the tour
     tour.restart(true);
 };
+var render_graphic = function ($form, selector) {
+    $.ajax({
+        url: $form.attr('action'),
+        cache: false,
+        method: "POST",
+        data: {},
+        beforeSend: function () {
+            console.log('Loading graphics');
+            $(selector).html('Loading graphics');
+        },
+        success: function (data) {
+            $(selector).html(data);
+        },
+        error: function (data) {
+            console.log('Error: Loading graphics: ' + data);
+        }
+    });
+}
 function filterTenants(text) {
     var i, t, results = [];
     for (i = 0; i < tenants.length; i++) {

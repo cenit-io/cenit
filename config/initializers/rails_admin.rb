@@ -450,4 +450,6 @@ RailsAdmin.config do |config|
   Setup::ScriptExecution
 
   Setup::Category
+
+  Setup::Payment
 end
