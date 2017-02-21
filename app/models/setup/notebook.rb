@@ -31,5 +31,5 @@ module Setup
       "#{self.module}/#{self.name}"
     end
 
-  end
+  end if (ENV['JUPYTER_NOTEBOOKS'] || 'false').to_b
 end
