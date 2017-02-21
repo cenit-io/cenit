@@ -22,10 +22,8 @@ module RailsAdmin
               end
             end
 
-            configure :expires_in do
-              pretty_value do
-                "#{value}s" if value
-              end
+            configure :expires_in, :time_span do
+              negative_pretty_value 'Expired'
             end
 
             edit do
