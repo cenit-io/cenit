@@ -118,3 +118,5 @@ gem 'capataz', git: 'https://github.com/macarci/capataz.git'
 gem 'rkelly-remix'
 
 gem 'write_xlsx'
+gem 'rails_admin_dynamic_charts', path: '../rails_admin_dynamic_charts'
+gem 'chartkick'

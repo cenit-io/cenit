@@ -64,6 +64,14 @@ GIT
     cenit_cmd (0.0.6)
       thor (~> 0.14)
 
+PATH
+  remote: ../rails_admin_dynamic_charts
+  specs:
+    rails_admin_dynamic_charts (0.0.1)
+      chartkick (> 0)
+      rails (>= 3.2)
+      rails_admin (> 0)
+
 GEM
   remote: https://rubygems.org/
   specs:
@@ -633,6 +641,7 @@ DEPENDENCIES
   rails
   rails_12factor
   rails_admin (~> 0.7.0)
+  rails_admin_dynamic_charts!
   rails_layout
   rkelly-remix
   rolify
@@ -654,5 +663,8 @@ DEPENDENCIES
   write_xlsx
   xmldsig
 
+RUBY VERSION
+   ruby 2.2.1p85
+
 BUNDLED WITH
-   1.11.2
+   1.13.5

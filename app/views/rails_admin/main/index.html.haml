@@ -53,6 +53,12 @@
     }
   end.join.html_safe if @ordered_filters
   origins = nil
+-#for Charts
+- klass = @abstract_model.model
+- if klass.is_a?(Class) && klass.ancestors.include?(RailsAdminDynamicCharts::Datetime)
+  - available_chart = true
+  = render 'chart'
+
 
 = content_for :contextual_tabs do
   = bulk_menu
@@ -107,6 +113,8 @@
           %button#remove_filter.btn.btn-info{title: "Reset filters"}
             %i.icon-white.icon-remove
       .filters-buttons
+        - if available_chart
+          %span{style: 'float:right'}= button_tag 'Graphic View', id: 'view_graphic',type: 'none', class: 'btn btn-info'
         - if export_action
           %span{style: 'float:right'}= link_to wording_for(:link, export_action), export_path(params.except('set').except('page')), class: 'btn btn-info'
         -# Patch
@@ -120,6 +128,8 @@
               %button.btn.toggle-origin{class: origin}
                 %i{class: param_value.even? ? 'fa fa-toggle-on' : 'fa fa-toggle-off'}
               %input{name: origin_param, value: param_value, type: 'hidden'}
+      -if available_chart
+        = content_for :graphics_area
   - unless @model_config.list.scopes.empty?
     %ul.nav.nav-tabs#scope_selector
       - @model_config.list.scopes.each_with_index do |scope, index|

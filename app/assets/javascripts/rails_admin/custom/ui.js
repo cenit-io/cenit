@@ -342,5 +342,14 @@ function registerEvents() {
         }
         $('.dropdown-menu .tenants').html(tenants_to_html(filtered_tenants));
     });
+
+
+    $("#view_graphic").click(function (e) {
+        e.preventDefault();
+        $('.graphics-area').toggleClass('hide');
+    });
+
+    $('select.input-sm', '.graphics-controls').on('change', function(){$('#filter-form').submit()})
+
 }
 
