@@ -1,6 +1,9 @@
 module Setup
   class Updater < Translator
     include RailsAdmin::Models::Setup::UpdaterAdmin
+    # = Updater
+    #
+    # Updating data already stored.
 
     transformation_type :Update
     allow :new

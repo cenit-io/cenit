@@ -418,6 +418,14 @@ en:
         title: "Copy"
         menu: "Copy"
         breadcrumb: "Copy"
+      data_events:
+        title: "Data Events"
+        menu: "Data Events"
+        breadcrumb: "Data Events"
+      flows:
+        title: "Flows"
+        menu: "Flows"
+        breadcrumb: "Flows"
       filters:
         title: "Filters"
         menu: "Filters"
@@ -475,7 +483,7 @@ en:
       swagger:
         title: "Swagger"
         menu: "Swagger"
-        breadcrumb: "Swagger"  
+        breadcrumb: "Swagger"
       link_data_type:
         menu: "Link"
         breadcrumb: "Link %{model_label}"

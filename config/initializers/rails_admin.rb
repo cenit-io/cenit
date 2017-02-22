@@ -6,6 +6,8 @@ require 'account'
   RailsAdmin::Config::Actions::SwitchNavigation,
   RailsAdmin::Config::Actions::DataType,
   RailsAdmin::Config::Actions::Filters,
+  RailsAdmin::Config::Actions::DataEvents,
+  RailsAdmin::Config::Actions::Flows,
   RailsAdmin::Config::Actions::Import,
   #RailsAdmin::Config::Actions::EdiExport,
   RailsAdmin::Config::Actions::ImportSchema,
@@ -123,6 +125,8 @@ RailsAdmin.config do |config|
     index # mandatory
     new { except [Setup::Event, Setup::DataType, Setup::Authorization, Setup::BaseOauthProvider] }
     filters
+    data_events
+    flows
     import
     import_schema
     pull_import

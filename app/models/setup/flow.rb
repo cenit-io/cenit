@@ -2,6 +2,10 @@ require 'nokogiri'
 
 module Setup
   class Flow
+    # = Flow
+    #
+    # Defines how data is processed by the execution of one or more actions.
+
     include ReqRejValidator
     include ShareWithBindings
     include NamespaceNamed
