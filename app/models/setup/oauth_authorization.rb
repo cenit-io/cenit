@@ -13,8 +13,8 @@ module Setup
                              oauth_token_secret: :access_token_secret
 
     def build_auth_header(template_parameters)
-      self.class.auth_header(template_parameters.reverse_merge(consumer_key: client.attributes[:identifier],
-                                                               consumer_secret: client.attributes[:secret],
+      self.class.auth_header(template_parameters.reverse_merge(consumer_key: client.get_identifier,
+                                                               consumer_secret: client.get_secret,
                                                                oauth_token: access_token,
                                                                oauth_token_secret: access_token_secret))
     end
@@ -30,7 +30,7 @@ module Setup
       options[:request_token_url] ||= provider.request_token_endpoint
       options[:authorize_url] ||= provider.authorization_endpoint
       options[:access_token_url] ||= provider.token_endpoint
-      OAuth::Consumer.new(client.attributes[:identifier], client.attributes[:secret], options)
+      OAuth::Consumer.new(client.get_identifier, client.get_secret, options)
     end
 
     def authorize_url(params)

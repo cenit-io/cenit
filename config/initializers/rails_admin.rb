@@ -280,6 +280,8 @@ RailsAdmin.config do |config|
 
   Setup::OauthClient
 
+  Setup::RemoteOauthClient
+
   Setup::BaseOauthProvider
 
   Setup::OauthProvider
