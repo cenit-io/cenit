@@ -65,6 +65,7 @@ en:
       and_more: "and %{count} more"
       save_filter: 'Save Filter'
       and_that_is_all: "and that's all"
+      found_menu_title: "Found items"
     actions:
       dashboard:
         title: "Dashboard"
@@ -211,6 +212,7 @@ en:
         title: "Update"
         menu: "Update"
         breadcrumb: "Update"
+        link: "Update found %{model_label_plural}"
         done: "updated"
         doing: "execution"
         submit: "Update"
@@ -218,6 +220,7 @@ en:
       convert:
         title: "Convert"
         menu: "Convert"
+        link: "Convert found %{model_label_plural}"
         breadcrumb: "Convert"
         done: "converted"
         doing: "execution"
@@ -257,9 +260,12 @@ en:
         submit: "Cross"
         done: "crossed"
         doing: "crossing"
+      bulk_delete:
+        link: 'Delete found %{model_label_plural}'
       bulk_cross:
         title: "Cross %{model_label_plural}"
         bulk_link: "Cross selected %{model_label_plural}"
+        link: "Cross found %{model_label_plural}"
         menu: "Cross"
         breadcrumb: "Cross"
         submit: "Cross"
@@ -342,6 +348,7 @@ en:
         menu: "Delete"
         breadcrumb: "Delete"
         bulk_link: "Delete selected %{model_label_plural}"
+        link: "Delete found %{model_label_plural}"
       process_flow:
         title: "Process"
         menu: "Process"

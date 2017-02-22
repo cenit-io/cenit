@@ -107,8 +107,7 @@
           %button#remove_filter.btn.btn-info{title: "Reset filters"}
             %i.icon-white.icon-remove
       .filters-buttons
-        - if export_action
-          %span{style: 'float:right'}= link_to wording_for(:link, export_action), export_path(params.except('set').except('page')), class: 'btn btn-info'
+        = found_menu
         -# Patch
         - if (model = @abstract_model.model).is_a?(Class) && model.include?(CrossOrigin::Document) && (origins = model.origins).present?
           %span{style: 'float:right'}
