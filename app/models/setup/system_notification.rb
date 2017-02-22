@@ -10,6 +10,8 @@ module Setup
 
     build_in_data_type
 
+    attachment_uploader GridFsUploader
+
     field :type, type: Symbol, default: :error
     field :message, type: String
 
