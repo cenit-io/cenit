@@ -4,6 +4,8 @@ module Setup
     include CustomTitle
     include RailsAdmin::Models::Setup::Oauth2ScopeAdmin
 
+    origins origins_config, :cenit
+
     build_in_data_type.referenced_by(:name, :provider)
 
     field :name, type: String
