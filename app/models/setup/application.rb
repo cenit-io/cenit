@@ -1,17 +1,24 @@
 module Setup
-  class Application
-    include CenitScoped
+  class Application < OauthClient
     include NamespaceNamed
     include Slug
     include Cenit::Oauth::AppConfig
-    include RailsAdmin::Models::Setup::ApplicationAdmin    
+    include RailsAdmin::Models::Setup::ApplicationAdmin
+
+    origins :app
+
+    default_origin :app
 
     build_in_data_type.with(:namespace, :name, :actions, :application_parameters)
-    build_in_data_type.referenced_by(:namespace, :name).and('properties' => { 'configuration' => {} })
+    build_in_data_type.referenced_by(:namespace, :name, :_type).and(properties: { configuration: {} })
 
     embeds_many :actions, class_name: Setup::Action.to_s, inverse_of: :application
 
     accepts_nested_attributes_for :actions, :application_parameters, allow_destroy: true
+
+    before_validation do
+      self.provider_id = Setup::Oauth2Provider.build_in_provider_id
+    end
 
     def validates_configuration
       configuration.validate
@@ -52,6 +59,22 @@ module Setup
 
     def oauth_name
       custom_title
+    end
+
+    def get_identifier
+      identifier
+    end
+
+    def secret
+      get_secret
+    end
+
+    def get_secret
+      secret_token
+    end
+
+    def tenant
+      Cenit::MultiTenancy.tenant_model.current
     end
 
     class << self

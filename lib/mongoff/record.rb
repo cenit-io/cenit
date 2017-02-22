@@ -15,7 +15,7 @@ module Mongoff
       @document[:_id] ||= BSON::ObjectId.new unless model.property_schema(:_id)
       @fields = {}
       @new_record = new_record || false
-      model.simple_properties_schemas.each do |property, schema| #TODO Defaults for non simple properties
+      model.properties_schemas.each do |property, schema|
         if @document[property].nil? && !(value = schema['default']).nil?
           self[property] = value
         end

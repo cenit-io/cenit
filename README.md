@@ -11,12 +11,27 @@
 * support@cenit.io
 
 
-[Cenit IO](https://cenit.io)  [(https://cenit.io)](https://cenit.io) is an Open Platform for Data and Business Integration (iPaaS) to process, storage and move data in connection with Cloud or On-Premise services. It has been designed to orchestrate data flows that may involve several kind of endpoints (APIs, Datasets, EDI). It makes possible the automation of all operational processes in a company, connecting between organization's on-premises infrastructure and cloud provider services.
+[Cenit IO](https://cenit.io)  [(https://cenit.io)](https://cenit.io) is an Open Platform for Data and Business Integration (iPaaS). It has been designed to orchestrate data flows that may involve several kind of endpoints (APIs, Datasets, EDI). It makes possible a complete business automation of all operational processes in a company, connecting between organization's on-premises infrastructure and cloud provider services.
 
-It allows the creation of custom data pipelines for process, storage and data movement between APIs –either cloud or
-on premises-. The flows could be trigger by data events or be scheduled.
+It allows the creation of custom data pipelines for process, storage and data movement between APIs. The flows could be trigger by data events or be scheduled.
 
-Tabs: iPaaS, ESB, SOA, REST, APIs, Ruby, Cloud Integrations, Integration Platform.
+There are now over 200 pre-built integration collections shared out the box to connect with online internet services,
+fulfilment solutions, accounting, communications, ERP, multi-channels, etc.
+
+An example of integration data flow (Fancy <=> Shipstation):
+
+* Every 20 minutes Cenit trigger a flow to get orders from Fancy Marketplace.
+
+* New or updated orders are received and persisted in Cenit.
+
+* After the new or updated orders are saved, is trigger a Flow to send a shipment to Shipstation. 
+
+* The flow requires transforming the Fancy Order into a valid shipment on Shipstation.
+
+* Each 20 minutes Cenit trigger a flow to fetch Shipped shipments from Shipstation.
+
+* After the shipments are updated in Cenit, is trigger a Flow to send the tracking update to Fancy. 
+
 
 
 ## Run your own Cenit
@@ -39,35 +54,43 @@ Tabs: iPaaS, ESB, SOA, REST, APIs, Ruby, Cloud Integrations, Integration Platfor
 ## Key concepts
 
 * Definitions
-  + Schemas & Validators
-  + Data Types
+  + **Schemas & Validators** - XML Schema, EDI Grammars, Regular Expression, etc
+  + **Data Types** - Include Object Type defined and a Json Schema and File Type
 
 * Connectors
-  + API Connections
-  + Webhooks
+  + **API Specs** - Allow upload an Open API Spec (Swagger 2.0).
+  + **Connections** - Are representation of endpoints.
+  + **Resources** - Element that manages a kind of data and a state and provides processing on this kind
+  + **Operations** - An operation is a unit of a REST API that you can call
+  + **Webhooks** - The webhook are the final step in a flow, implemented like a request HTTP to an endpoint, for sent or receive data
 
 * Compute
-  + Snippets
-  + Algorithms
-  + Translator
-  + Applications
+  + **Snippets** - Small region of re-usable code
+  + **Algorithms**
+  + **Applications** - Associate path with algorithms to process the request and render the response. 
+
+* Transformations
+  + **Renderers** - Exporting data outside Cenit.
+  + **Parsers** - Importing outside data into Cenit.
+  + **Converters** - Converting data already stored in Cenit.
+  + **Updaters** - Updating data already stored in Cenit.
 
 * Workflows
-  + Data Events
-  + Schedulers
-  + Flows
+  + **Flows** - Defines how data is processed by the execution of one or more actions.
+  + **Data Events** - Creation of new objects or changes in objects will result in events.
+  + **Schedulers** - Are events triggered on a certain moment and can be optionally recurrent.
 
 * Security
-  + OAuth Clients
-  + Providers
-  + OAuth 2.0 Scopes
-  + Authorizations
+  + **OAuth Clients**
+  + **Providers** - Authentication Providers.
+  + **OAuth 2.0 Scopes**
+  + **Authorizations** - Integrations authorizations.
+  + **Access Grants**
 
 * Monitors
-  + Notifications
-  + Tasks
-  + Storages
-
+  + **Notifications** - Provide detailed trail of tenant activity.
+  + **Tasks** -  Asynchronous executions of flows.
+  + **Storages** - Info about the used space.
 
 ## Load Schemas & Data Types on the fly
 
@@ -78,20 +101,12 @@ Tabs: iPaaS, ESB, SOA, REST, APIs, Ruby, Cloud Integrations, Integration Platfor
 * Export data to CSV/JSON/XML
 * User action history
 
-
 ## Manage multiple Authentication Protocols
 
 * Basic Auth
 * Digest Auth
 * OAuth 1.0a
 * OAuth 2.0
-
-
-## Shared Collections
-
-There are now over 200 pre-built integration collections shared out the box to connect with online internet services,
-fulfilment solutions, accounting, communications, ERP, multi-channels, etc.
-
 
 ## Frameworks and Tools
 
