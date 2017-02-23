@@ -2,6 +2,10 @@ require 'nokogiri'
 
 module Setup
   class Flow
+    # = Flow
+    #
+    # Defines how data is processed by the execution of one or more actions.
+
     include ReqRejValidator
     include ShareWithBindings
     include NamespaceNamed
@@ -11,29 +15,29 @@ module Setup
     include RailsAdmin::Models::Setup::FlowAdmin
 
     build_in_data_type.referenced_by(:namespace, :name)
-    build_in_data_type.and({
-                             properties: {
-                               active: {
-                                 type: 'boolean',
-                                 default: true
-                               },
-                               notify_request: {
-                                 type: 'boolean',
-                                 default: false
-                               },
-                               notify_response: {
-                                 type: 'boolean',
-                                 default: false
-                               },
-                               discard_events: {
-                                 type: 'boolean'
-                               },
-                               auto_retry: {
-                                 type: 'string',
-                                 enum: Setup::Task.auto_retry_enum.collect(&:to_s)
-                               }
-                             }
-                           }.deep_stringify_keys)
+    build_in_data_type.and(
+      properties: {
+        active: {
+          type: 'boolean',
+          default: true
+        },
+        notify_request: {
+          type: 'boolean',
+          default: false
+        },
+        notify_response: {
+          type: 'boolean',
+          default: false
+        },
+        discard_events: {
+          type: 'boolean'
+        },
+        auto_retry: {
+          type: 'string',
+          enum: Setup::Task.auto_retry_enum.collect(&:to_s)
+        }
+      }
+    )
 
     binding_belongs_to :event, class_name: Setup::Event.to_s, inverse_of: nil
 

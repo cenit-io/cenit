@@ -29,13 +29,21 @@ module Setup
         doc
       end
 
-      def binds
+      def local_binds
         @binds ||= []
+      end
+
+      def binds
+        if superclass < Bindings
+          superclass.binds
+        else
+          []
+        end + local_binds
       end
 
       def binding_belongs_to(name, *options)
         relation = belongs_to(name, *options)
-        binds << relation
+        local_binds << relation
         relation
       end
 

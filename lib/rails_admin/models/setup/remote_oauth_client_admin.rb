@@ -1,16 +1,21 @@
 module RailsAdmin
   module Models
     module Setup
-      module OauthClientAdmin
+      module RemoteOauthClientAdmin
         extend ActiveSupport::Concern
 
         included do
           rails_admin do
             navigation_label 'Security'
-            visible false
-            label 'OAuth Client'
+            label 'Remote OAuth Client'
             weight 300
             object_label_method { :custom_title }
+
+            configure :tenant do
+              visible { Account.current_super_admin? }
+              read_only { true }
+              help ''
+            end
 
             configure :identifier do
               pretty_value do
@@ -24,7 +29,7 @@ module RailsAdmin
               end
             end
 
-            fields :provider, :name, :identifier, :secret, :updated_at
+            fields :provider, :name, :identifier, :secret, :tenant, :updated_at
           end
         end
 
