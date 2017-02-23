@@ -10,6 +10,8 @@ module RailsAdmin
             weight 200
             label 'API Spec'
 
+            configure :url, :url
+
             configure :specification, :code do
               code_config do
                 {
@@ -22,7 +24,7 @@ module RailsAdmin
               fields :title, :specification
             end
 
-            fields :title, :specification
+            fields :title, :url, :specification
           end
         end
 

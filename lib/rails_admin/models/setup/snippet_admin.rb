@@ -41,15 +41,7 @@ module RailsAdmin
               field :code
             end
 
-            show do
-              field :namespace
-              field :name
-              field :type
-              field :description
-              field :code
-            end
-
-            fields :namespace, :name, :type, :description
+            fields :namespace, :name, :type, :description, :code
           end
         end
 
