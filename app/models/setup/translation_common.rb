@@ -37,7 +37,12 @@ module Setup
         options = options.to_s.strip
         options = "{#{options}" unless options.start_with?('{')
         options = "#{options}}" unless options.ends_with?('}')
-        ast = ::Parser::CurrentRuby.parse(options) rescue nil
+        ast =
+          begin
+            ::Parser::CurrentRuby.parse(options)
+          rescue ::Exception
+            nil
+          end
         if ast && ast.type == :hash
           check_hash(ast)
           eval(options)
