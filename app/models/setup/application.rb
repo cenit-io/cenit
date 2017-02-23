@@ -93,7 +93,14 @@ module Setup
 
       def parameter_type_schema(type)
         {
-          '$ref': Setup::Collection.reflect_on_association(type.to_s.downcase.gsub(' ', '_').pluralize).klass.to_s
+          '$ref': case (klass = Setup::Collection.reflect_on_association(type.to_s.downcase.gsub(' ', '_').pluralize).klass)
+                  when Setup::RemoteOauthClient
+                    Setup::OauthClient
+                  when Setup::PlainWebhook
+                    Setup::Webhook
+                  else
+                    klass
+                  end.to_s
         }
       end
 
