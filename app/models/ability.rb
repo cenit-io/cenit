@@ -219,7 +219,8 @@ class Ability
       Setup::PlainWebhook,
       Setup::Connection,
       Setup::Flow,
-      Setup::Snippet
+      Setup::Snippet,
+      Setup::ApiSpec
     ] +
       Setup::Translator.class_hierarchy +
       Setup::BaseOauthProvider.class_hierarchy +
