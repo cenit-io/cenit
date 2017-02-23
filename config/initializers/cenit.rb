@@ -77,7 +77,7 @@ Cenit.config do
   asynchronous_push true
 
   #oauth2 callback site
-  oauth2_callback_site ENV['OAUTH2_CALLBACK_SITE']
+  oauth2_callback_site ENV['OAUTH2_CALLBACK_SITE'] || homepage
 
   #HTTP Proxy
   http_proxy_address ENV['HTTP-PROXY']
