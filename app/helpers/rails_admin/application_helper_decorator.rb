@@ -553,6 +553,59 @@ module RailsAdmin
       html_.html_safe
     end
 
+    def collections_at_dashboard
+      html = ''
+      if current_user
+        # Show user collections
+        if Setup::Collection.count >= 12
+          limit = 11
+        else
+          limit = 10
+        end
+        Setup::Collection.limit(limit).order(created_at: :desc).each do |c|
+          html+= dashboard_collection_view c
+        end
+        new_url = rails_admin.new_path(model_name: Setup::Collection.to_s.underscore.gsub('/', '~'))
+        if limit == 10
+          html+= '<div class="col-md-2">
+                <a href="'+new_url+'">
+                  <div class="collection">
+                    <div class="pic text-center">
+                    <h5>'+ t('admin.actions.dashboard.collections.add') +'</h5>
+                    <i class="fa fa-plus"></i>
+                    </div>
+                  </div>
+                </a>
+              </div>'
+        end
+      else
+        # Show cross shared collections
+        Setup::CrossSharedCollection.limit(11).order(created_at: :desc).each do |c|
+          if c.image.present? && c.installed?
+            html+= dashboard_collection_view c
+          end
+        end
+      end
+
+      html+=''
+      html.html_safe
+    end
+
+    def dashboard_collection_view(c)
+      has_image = c.image.present?
+      css_class = 'img-responsive '+(has_image ? '' : 'no-image')
+      image = image_tag has_image ? c.image : 'missing.png', :class => css_class, :alt => c.name, width: "102", height: "71"
+      url_show = rails_admin.show_path(model_name: c.model_name.to_s.underscore.gsub('/', '~'), id: c.name)
+      '<div class="col-md-2">
+        <a href="'+url_show+'" title="'+ c.name+'">
+          <div class="collection">
+            <div class="pic text-center">'+image+'
+            </div>
+          </div>
+        </a>
+      </div>'
+    end
+
     def dashboard_navigation(nodes_stack, nodes)
       return unless nodes.present?
       i = -1

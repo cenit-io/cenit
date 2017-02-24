@@ -79,6 +79,8 @@ en:
           tasks: 'running tasks'
           auths: 'authorizations'
           notif: 'notifications'
+        collections:
+          add: 'Add a new collection'
       send_to_flow:
         title: "Send %{model_label_plural} to flow"
         menu: "Send to flow"
