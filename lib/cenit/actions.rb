@@ -176,7 +176,7 @@ module Cenit
             attrs = (collection && collection.attributes.deep_dup) || {}
             attrs.delete('_id')
             collection = Setup::Collection.new(attrs)
-            collection.from_json(collection_data, add_only: true)
+            collection.from_json(collection_data, add_only: true, skip_refs_binding: true)
             collection.events.each { |e| e[:activated] = false if e.is_a?(Setup::Scheduler) && e.new_record? }
             begin
               collection.name = BSON::ObjectId.new.to_s
