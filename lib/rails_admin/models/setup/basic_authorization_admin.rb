@@ -20,14 +20,6 @@ module RailsAdmin
 
             configure :metadata, :json_value
 
-            edit do
-              field :namespace
-              field :name
-              field :username
-              field :password
-              field :metadata
-            end
-
             group :credentials do
               label 'Credentials'
             end
