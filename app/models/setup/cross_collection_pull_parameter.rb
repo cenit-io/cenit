@@ -10,7 +10,7 @@ module Setup
     field :description, type: String
     embeds_many :properties_locations, class_name: Setup::PropertyLocation.to_s, inverse_of: :pull_parameter
 
-    accepts_nested_attributes_for :properties_locations
+    accepts_nested_attributes_for :properties_locations, allow_destroy: true
 
     embedded_in :shared_collection, class_name: Setup::CrossSharedCollection.to_s, inverse_of: :pull_parameters
 

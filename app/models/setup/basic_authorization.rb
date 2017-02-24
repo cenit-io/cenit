@@ -2,8 +2,15 @@ module Setup
   class BasicAuthorization < Setup::Authorization
     include CenitScoped
     include AuthorizationHeader
+    include RailsAdmin::Models::Setup::BasicAuthorizationAdmin
 
-    build_in_data_type.with(:namespace, :name).referenced_by(:namespace, :name)
+    build_in_data_type.with(
+      :namespace,
+      :name,
+      :username,
+      :password
+    ).referenced_by(:namespace, :name).protecting(:username, :password)
+
 
     field :username, type: String
     field :password, type: String
