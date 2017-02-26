@@ -237,7 +237,7 @@ module Setup
       schema = { 'type' => 'object', 'properties' => properties = { '_id' => { 'type' => 'string' } } }
       schema[:referenced_by.to_s] = Cenit::Utility.stringfy(@referenced_by) if @referenced_by
       model.fields.each do |field_name, field|
-        next unless field.is_a?(Mongoid::Fields::ForeignKey) && included?(field_name.to_s)
+        next unless !field.is_a?(Mongoid::Fields::ForeignKey) && included?(field_name.to_s)
         json_type = (properties[field_name] = json_schema_type(field.type))['type']
         if @discarding.include?(field_name)
           (properties[field_name]['edi'] ||= {})['discard'] = true
