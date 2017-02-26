@@ -21,12 +21,11 @@ module Setup
     validates_presence_of :client
 
     def each_template_parameter(&block)
-      if block
-        template_parameters.each do |parameter|
-          block.call(parameter.name, parameter.value)
-        end
-        method_missing(:each_template_parameter, &block)
+      return unless block
+      template_parameters.each do |parameter|
+        block.call(parameter.name, parameter.value)
       end
+      method_missing(:each_template_parameter, &block)
     end
 
     def expires_at
@@ -51,7 +50,7 @@ module Setup
       authorized_at.present?
     end
 
-    def create_http_client(options = {})
+    def create_http_client(_options = {})
       fail NotImplementedError
     end
 
@@ -74,7 +73,7 @@ module Setup
       base_params.merge(params)
     end
 
-    def authorize_url(params)
+    def authorize_url(_params)
       fail NotImplementedError
     end
 
@@ -83,7 +82,7 @@ module Setup
       save
     end
 
-    def request_token(params)
+    def request_token(_params)
       fail NotImplementedError
     end
 
@@ -96,7 +95,7 @@ module Setup
       self.access_token = self.token_span = self.authorized_at = nil
     end
 
-    def accept_callback?(params)
+    def accept_callback?(_params)
       fail NotImplementedError
     end
   end
