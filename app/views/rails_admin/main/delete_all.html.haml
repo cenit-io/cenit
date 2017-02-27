@@ -3,7 +3,7 @@
 .p
   = "#{@total} "+ t('admin.actions.delete_all.will_be_deleted')
 
-%form
+= form_tag delete_all_path(params), method: :delete do
   .form-actions
     %button.btn.btn-danger{type: 'submit', name: 'delete', :'data-disable-with' => t('admin.form.confirmation')}
       %i.icon-white.icon-ok
