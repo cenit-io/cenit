@@ -3,9 +3,7 @@ require 'xsd/include_missing_exception'
 module Setup
   class Schema < Validator
     include SnippetCode
-    include NamespaceNamed
     include Setup::FormatValidator
-    include CustomTitle
     include RailsAdmin::Models::Setup::SchemaAdmin
 
     legacy_code_attribute :schema
@@ -200,22 +198,29 @@ module Setup
     end
 
     def abs_uri(base_uri, uri)
-      uri = URI.parse(uri.to_s)
-      return uri.to_s unless uri.relative?
+      self.class.abs_uri(base_uri, uri)
+    end
 
-      base_uri = URI.parse(base_uri.to_s)
-      uri = uri.to_s.split('/')
-      path = base_uri.path.split('/')
-      begin
-        path.pop
-      end while uri[0] == '..' ? uri.shift && true : false
+    class << self
 
-      path = (path + uri).join('/')
+      def abs_uri(base_uri, uri)
+        uri = URI.parse(uri.to_s)
+        return uri.to_s unless uri.relative?
 
-      uri = URI.parse(path)
-      uri.scheme = base_uri.scheme
-      uri.host = base_uri.host
-      uri.to_s
+        base_uri = URI.parse(base_uri.to_s)
+        uri = uri.to_s.split('/')
+        path = base_uri.path.split('/')
+        begin
+          path.pop
+        end while uri[0] == '..' ? uri.shift && true : false
+
+        path = (path + uri).join('/')
+
+        uri = URI.parse(path)
+        uri.scheme = base_uri.scheme
+        uri.host = base_uri.host
+        uri.to_s
+      end
     end
   end
 end

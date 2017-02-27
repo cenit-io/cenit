@@ -9,13 +9,37 @@ module RailsAdmin
         end
       end
 
+      def counts(options = {}, scope = nil)
+        key = "[cenit]#{model_name}.counts"
+        if (cache = options.delete(:cache)) && (counts = RequestStore.store[key])
+          counts
+        else
+          counts =
+            case scope = all(options.merge(limit: false, page: false), scope)
+            when CrossOrigin::Criteria
+              hash = {}
+              scope.view.cross_view_map.each do |origin, view|
+                hash[origin] = view.count
+              end
+              hash
+            else
+              { default: scope.count }
+            end
+          if cache
+            RequestStore.store[key] = counts
+            RequestStore.store["[cenit]#{model_name}.count"] ||= counts.values.first
+          end
+          counts
+        end
+      end
+
       def count_with_wrapper(options = {}, scope = nil)
         if options.delete(:cache)
           key = "[cenit]#{model_name}.count"
-          if (count_cache = Thread.current[key])
-            count_cache
+          if (count = RequestStore.store[key])
+            count
           else
-            Thread.current[key] = count_without_wrapper(options, scope)
+            RequestStore.store[key] = count_without_wrapper(options, scope)
           end
         else
           count_without_wrapper(options, scope)

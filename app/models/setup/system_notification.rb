@@ -1,6 +1,7 @@
 module Setup
   class SystemNotification
     include CenitUnscoped
+    include Setup::NotificationCommon
     include RailsAdmin::Models::Setup::SystemNotificationAdmin
 
     store_in collection: :setup_notifications
@@ -8,6 +9,8 @@ module Setup
     deny :all
 
     build_in_data_type
+
+    attachment_uploader GridFsUploader
 
     field :type, type: Symbol, default: :error
     field :message, type: String

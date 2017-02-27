@@ -16,13 +16,6 @@ module RailsAdmin
                 value.split('::').last.to_title
               end
             end
-
-            configure :tenant do
-              visible { Account.current_super_admin? }
-              read_only { true }
-              help ''
-            end
-
             configure :namespace, :enum_edit
 
             list do
@@ -33,11 +26,10 @@ module RailsAdmin
               field :authorization_endpoint
               field :token_endpoint
               field :token_method
-              field :tenant
               field :updated_at
             end
 
-            fields :namespace, :name, :_type, :response_type, :authorization_endpoint, :token_endpoint, :token_method, :tenant
+            fields :namespace, :name, :_type, :response_type, :authorization_endpoint, :token_endpoint, :token_method
           end
         end
 

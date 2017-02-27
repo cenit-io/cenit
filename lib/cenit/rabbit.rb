@@ -15,9 +15,9 @@ module Cenit
           else
             Setup::Task.auto_retry_enum.first
           end
-        asynchronous_message = message.delete(:asynchronous).present? |
-          (scheduler = message.delete(:scheduler)).present? |
-          (publish_at = message.delete(:publish_at))
+        scheduler = message.delete(:scheduler)
+        publish_at = message.delete(:publish_at)
+        asynchronous_message = (message.delete(:asynchronous) || scheduler || publish_at).present?
         task_class, task, report = detask(message)
         if task_class || task
           if task
@@ -31,6 +31,8 @@ module Cenit
           task.update(auto_retry: auto_retry) unless task.auto_retry == auto_retry
           block.call(task) if block
           asynchronous_message ||= Cenit.send('asynchronous_' + task_class.to_s.split('::').last.underscore)
+          task_execution = task.new_execution
+          message[:execution_id] = task_execution.id.to_s
           if scheduler || publish_at || asynchronous_message
             tokens = TaskToken.where(task_id: task.id)
             if (token = message[:token])
@@ -41,7 +43,7 @@ module Cenit
             message = TaskToken.create(data: message.to_json,
                                        task: task,
                                        user: Cenit::MultiTenancy.user_model.current).token
-            if scheduler || publish_at
+            if (scheduler && scheduler.activated?) || publish_at
               Setup::DelayedMessage.create(message: message, publish_at: publish_at, scheduler: scheduler)
             else
               unless task.joining?
@@ -58,7 +60,7 @@ module Cenit
             message[:task] = task
             process_message(message)
           end
-          task
+          task_execution
         else
           Setup::Notification.create(message: report)
         end
@@ -85,14 +87,16 @@ module Cenit
           begin
             rabbit_consumer = nil
             task_class, task, report = detask(message)
+            execution_id = message.delete(:execution_id)
             if options[:unscheduled.to_s]
               task.unschedule if task
             else
-              if task ||= task_class && task_class.create(message: message)
+              task ||= task_class && task_class.create(message: message)
+              if task
                 if (rabbit_consumer = options[:rabbit_consumer] || RabbitConsumer.where(tag: options[:consumer_tag]).first)
                   rabbit_consumer.update(executor_id: tenant.id, task_id: task.id)
                 end
-                task.execute
+                task.execute(execution_id: execution_id)
               else
                 Setup::Notification.create(message: report)
               end

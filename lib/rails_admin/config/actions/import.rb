@@ -4,7 +4,7 @@ module RailsAdmin
       class Import < RailsAdmin::Config::Actions::Base
 
         register_instance_option :except do
-          Setup::Schema
+          [Setup::Schema, Setup::ApiSpec]
         end
 
         register_instance_option :visible? do
@@ -35,7 +35,11 @@ module RailsAdmin
               if (data = params[selector_config.abstract_model.param_key])
                 translator = Setup::Translator.where(id: data[:translator_id]).first
                 decompress = data[:decompress_content].to_b
-                if (@form_object = Forms::ImportTranslator.new(translator: translator, data_type: data_type_selector, file: (file = data[:file]), data: (data = data[:data]))).valid?
+                if (@form_object = Forms::ImportTranslator.new(translator: translator,
+                                                               data_type: data_type_selector,
+                                                               options: data[:options],
+                                                               file: (file = data[:file]),
+                                                               data: (data = data[:data]))).valid?
                   begin
                     msg =
                       {
@@ -48,7 +52,8 @@ module RailsAdmin
                                 data
                               else
                                 nil
-                              end
+                              end,
+                        options: @form_object.options
                       }
                     do_flash_process_result Setup::DataImport.process(msg) if msg[:data]
                     render_form = false

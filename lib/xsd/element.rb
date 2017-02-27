@@ -14,12 +14,12 @@ module Xsd
     end
 
     def to_json_schema
-      return qualify_element(ref).to_json_schema if ref
+      return documenting(qualify_element(ref).to_json_schema) if ref
       json_schema =
         {
           'title' => name.to_title,
-          'edi' => {'segment' => qualify(name)},
-          'xml' => {'namespace' => xmlns(:default), 'content_property' => false},
+          'edi' => { 'segment' => qualify(name) },
+          'xml' => { 'namespace' => xmlns(:default), 'content_property' => false },
           'type' => 'object'
         }
       merge_json =
@@ -30,18 +30,26 @@ module Xsd
             {
               'properties' => {
                 'value' => @type.to_json_schema.merge('title' => 'Value',
-                                                      'xml' => {'content' => true})
+                                                      'xml' => { 'content' => true })
               },
-              'xml' => {'content_property' => 'value'}
+              'xml' => { 'content_property' => 'value' }
             }
           end
         else
           if (type_schema = qualify_type(type_name).to_json_schema)['$ref']
             type_schema = type_schema['$ref']
           end
-          {'extends' => type_schema}
+          { 'extends' => type_schema }
         end
-      json_schema.deep_merge(merge_json)
+      documenting(json_schema.deep_merge(merge_json))
+    end
+
+    def nice_name
+      if ref
+        ref.split(':').last
+      else
+        tag_name
+      end
     end
   end
 end

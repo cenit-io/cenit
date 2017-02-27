@@ -20,12 +20,6 @@ module RailsAdmin
 
             model = @abstract_model.model rescue nil
             if model
-              @model_label_plural =
-                if (data_type = model.try(:data_type))
-                  data_type.title.downcase.pluralize
-                else
-                  @abstract_model.pretty_name.downcase.pluralize
-                end
               scope = list_entries(@abstract_model.config, :destroy)
               @total = scope.size
               if params[:delete]

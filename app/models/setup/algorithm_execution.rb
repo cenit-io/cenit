@@ -2,6 +2,8 @@ module Setup
   class AlgorithmExecution < Setup::Task
     include RailsAdmin::Models::Setup::AlgorithmExecutionAdmin
 
+    agent_field :algorithm
+
     build_in_data_type
 
     belongs_to :algorithm, class_name: Setup::Algorithm.to_s, inverse_of: nil
@@ -11,9 +13,13 @@ module Setup
     end
 
     def run(message)
-      if (algorithm = Setup::Algorithm.where(id: algorithm_id = message[:algorithm_id]).first)
+      algorithm_id = message[:algorithm_id]
+      if (algorithm = Setup::Algorithm.where(id: algorithm_id).first)
+        result = algorithm.run(message[:input])
+        klass = Setup::BuildInDataType::SCHEMA_TYPE_MAP.keys.detect { |type| type && result.class < type }
+        schema = Setup::BuildInDataType::SCHEMA_TYPE_MAP[klass]
         result =
-          case result = algorithm.run(message[:input])
+          case result
           when Hash, Array
             JSON.pretty_generate(result)
           else
@@ -24,11 +30,13 @@ module Setup
             {
               filename: "#{algorithm.name.collectionize}_#{DateTime.now.strftime('%Y-%m-%d_%Hh%Mm%S')}.txt",
               contentType: 'text/plain',
-              body: result
+              body: result,
+              metadata: { schema: schema }
             }
           else
             nil
           end
+        current_execution.attach(attachment)
         notify(message: "'#{algorithm.custom_title}' result" + (result.present? ? '' : ' was empty'),
                type: :notice,
                attachment: attachment,

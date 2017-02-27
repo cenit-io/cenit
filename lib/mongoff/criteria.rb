@@ -7,7 +7,9 @@ module Mongoff
 
     def initialize(model)
       super(Aliases.new(model), Hash.new { |h, k| h[k] = Serializer.new(model, k) })
+      @selector = Selector.new(aliases, serializers)
       @model = model
+      yield(self) if block_given?
     end
 
     def count
@@ -105,12 +107,42 @@ module Mongoff
           if field == 'id'
             :_id
           else
-            model.properties.detect { |key| model.attribute_key(key).to_s == field } || field.to_sym
+            (model.property_for_attribute(field) || field).to_sym
           end
       end
 
       def localized?
         false
+      end
+
+      def evolve_hash(hash)
+        if (association = model.associations[field]) && association.referenced?
+          operators = {}
+          sub_criteria = {}
+          hash.each do |key, value|
+            (key.start_with?('$') ? operators : sub_criteria)[key] = value
+          end
+          if sub_criteria.empty?
+            hash
+          else
+            ids = association.klass.where(sub_criteria).collect(&:id)
+            q =
+              if association.many?
+                unless operators['$elemMatch']
+                  operators['$elemMatch'] = {}
+                end
+              else
+                operators
+              end
+            if (q_ids = q['$in']) && q_ids.is_a?(Array)
+              ids += q_ids
+            end
+            q['$in'] = ids.uniq
+            operators
+          end
+        else
+          hash
+        end
       end
 
       def evolve(value)

@@ -36,7 +36,7 @@ module RailsAdmin
             HTML
 
             if action.is_a?(RailsAdmin::Config::Actions::Show)
-                "<form #{bindings[:object].is_a?(bindings[:view].controller.abstract_model.model)?'id="code_show_view"':'id="list"'}>#{code_value}</form>"
+              "<form #{bindings[:object].is_a?(bindings[:view].controller.abstract_model.model) ? 'id="code_show_view"' : 'id="list"'}>#{code_value}</form>"
             else
               code_value
             end.html_safe
@@ -62,10 +62,17 @@ module RailsAdmin
           end
 
           register_instance_option :default_config do
-            {
+            config = {
               lineNumbers: true,
               theme: (theme = User.current.try(:code_theme)).present? ? theme : (Cenit.default_code_theme || 'monokai')
             }
+            config[:readOnly] = [
+              RailsAdmin::Config::Actions::Edit,
+              RailsAdmin::Config::Actions::New,
+              RailsAdmin::Config::Actions::Share,
+              RailsAdmin::Config::Actions::Configure
+            ].exclude?(bindings[:view].instance_variable_get(:@action).class)
+            config
           end
 
           register_instance_option :code_config do
@@ -85,6 +92,9 @@ module RailsAdmin
               'text/html': 'xml',
               'text/plain': 'javascript',
               'text/x-ruby': 'ruby',
+              'text/x-php': 'php',
+              'text/x-python': 'python',
+              'text/javascript': 'javascript',
               'text/x-yaml': 'yaml',
               '': 'javascript'
             }[config[:mode].to_s.to_sym] || config[:mode].to_sym

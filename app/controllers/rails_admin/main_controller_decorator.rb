@@ -2,6 +2,7 @@ module RailsAdmin
   MainController.class_eval do
     include RestApiHelper
     include SwaggerHelper
+    include AlgorithmHelper
 
     alias_method :rails_admin_list_entries, :list_entries
 
@@ -10,7 +11,13 @@ module RailsAdmin
       if (model = model_config.abstract_model.model).is_a?(Class)
         if model.include?(CrossOrigin::Document)
           origins = []
-          model.origins.each { |origin| origins << origin if params[origin_param="#{origin}_origin"].to_i.even? }
+          acc = Account.current
+          model.origins.each do |origin|
+            if (even = (params[origin_param="#{origin}_origin"] || (acc && acc.meta[origin_param])).to_i.even?)
+              origins << origin
+            end
+            acc.meta[origin_param] = (even ? 0 : 1) if acc
+          end
           origins << nil if origins.include?(:default)
           scope = scope.any_in(origin: origins)
         end
@@ -58,8 +65,7 @@ module RailsAdmin
     def handle_save_error(whereto = :new)
       #Patch
       if @object && @object.errors.present?
-        flash.now[:error] = t('admin.flash.error', name: @model_config.label, action: t("admin.actions.#{@action.key}.done").html_safe).html_safe
-        flash.now[:error] += %(<br>- #{@object.errors.full_messages.join('<br>- ')}).html_safe
+        do_flash(:error, t('admin.flash.error', name: @model_config.label, action: t("admin.actions.#{@action.key}.done")), @object.errors.full_messages)
       end
 
       respond_to do |format|
@@ -69,21 +75,34 @@ module RailsAdmin
     end
 
     def do_flash_process_result(objs)
-      objs = [objs] unless objs.is_a?(Enumerable)
       messages =
-        objs.collect do |obj|
-          amc = RailsAdmin.config(obj)
-          am = amc.abstract_model
-          wording = obj.send(amc.object_label_method)
-          if (show_action = view_context.action(:show, am, obj))
-            wording + ' ' + view_context.link_to(t('admin.flash.click_here'), view_context.url_for(action: show_action.action_name, model_name: am.to_param, id: obj.id), class: 'pjax')
-          else
-            wording
+        if objs.is_a?(Hash)
+          objs.collect do |key, value|
+            "#{obj2msg(key)}: #{obj2msg(value)}"
           end
+        else
+          objs = [objs] unless objs.is_a?(Enumerable)
+          objs.collect { |obj| obj2msg(obj) }
         end
       model_label = @model_config.label
-      model_label = model_label.pluralize if @action.bulkable?
+      model_label = @model_config.label_plural if @action.bulkable?
       do_flash(:notice, t('admin.flash.processed', name: model_label, action: t("admin.actions.#{@action.key}.doing")) + ':', messages)
+    end
+
+    def obj2msg(obj)
+      case obj
+      when String, Symbol
+        obj.to_s.to_title
+      else
+        amc = RailsAdmin.config(obj)
+        am = amc.abstract_model
+        wording = obj.send(amc.object_label_method)
+        if (show_action = view_context.action(:show, am, obj))
+          wording + ' ' + view_context.link_to(t('admin.flash.click_here'), view_context.url_for(action: show_action.action_name, model_name: am.to_param, id: obj.id), class: 'pjax')
+        else
+          wording
+        end
+      end
     end
 
     def do_flash(flash_key, header, messages = [], options = {})
@@ -120,12 +139,29 @@ module RailsAdmin
       return nil unless params[:associated_collection].present?
       #Patch
       if (source_abstract_model = RailsAdmin::AbstractModel.new(to_model_name(params[:source_abstract_model])))
-        source_model_config = source_abstract_model.config
+        source_model_config = source_abstract_model.config #TODO When configuring APPs or other forms rendering use the proper model config
         source_object = source_abstract_model.get(params[:source_object_id])
         action = params[:current_action].in?(%w(create update)) ? params[:current_action] : 'edit'
-        @association = source_model_config.send(action).fields.detect { |f| f.name == params[:associated_collection].to_sym }.with(controller: self, object: source_object)
-        @association.associated_collection_scope
+        if (@association = source_model_config.send(action).fields.detect { |f| f.name == params[:associated_collection].to_sym })
+          @association.with(controller: self, object: source_object).associated_collection_scope
+        end
       end
+    end
+
+    def process_bulk_scope
+      model ||=
+        begin
+          @abstract_model.model
+        rescue Exception
+          nil
+        end
+      if model
+        @bulk_ids = (@object && [@object.id]) || params.delete(:bulk_ids) || params.delete(:object_ids)
+        if @bulk_ids.nil? && (params[:all] = true) && (scope = list_entries).count < model.count
+          @bulk_ids = scope.collect(&:id).collect(&:to_s) #TODO Store scope options and selector instead ids
+        end
+      end
+      model
     end
   end
 end

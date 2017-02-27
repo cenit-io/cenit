@@ -17,6 +17,8 @@ $(function(){
                 .prop("disabled", true);
         });
 
+        $(this).prop("disabled", false);
+
         var links = $(parent).find('a');
         $(links).each(function(){
             $(this).on('click', function(ev){

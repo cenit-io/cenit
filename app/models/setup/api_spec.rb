@@ -5,8 +5,46 @@ module Setup
 
     build_in_data_type.referenced_by(:name)
 
+    shared_allow :swagger
+
     field :title, type: String
+    field :url, type: String
     field :specification, type: String
+
+    before_save :validate_specification
+
+    def validate_specification
+      json =
+        begin
+          JSON.parse(specification)
+          self.specification = json.to_yaml
+        rescue Exception
+          begin
+            Psych.load(specification)
+          rescue Exception
+            nil
+          end
+        end
+      if json.is_a?(Hash)
+        if (swagger_version = json['swagger'])
+          if swagger_version == '2.0'
+            if title.blank? && (info = json['info']) && (title = info['title'].to_s.strip).present?
+              if (version = info['version'].to_s.strip).present?
+                title = "#{title} API #{version}"
+              end
+              self.title = title
+            end
+          else
+            errors.add(:specification, "swagger version #{swagger_version} is not supported")
+          end
+        else
+          errors.add(:specification, 'does not contains swagger version entry')
+        end
+      else
+        errors.add(:specification, 'is not YAML nor JSON format')
+      end
+      errors.blank?
+    end
 
     def cenit_collection_hash(options = {})
       self.class.swagger_to_cenit(specification, options)
@@ -93,7 +131,7 @@ module Setup
 
         base_connections = {}
         multiple_schemes = spec ['schemes'].size > 1
-        spec ['schemes'].each do |scheme|
+        spec['schemes'].each do |scheme|
           base_connections[scheme] =
             {
               namespace: namespace,
@@ -118,7 +156,7 @@ module Setup
         oauth_clients_refs = {}
         authorizations = []
         current_oauth2_scopes = []
-        if (security_definitions = spec['securityDefinitions'])
+        if (security_definitions = spec['securityDefinitions']).present?
           multiple_security = security_definitions.size > 1
           security_definitions.each do |name, security|
             name = name.to_title
@@ -391,9 +429,7 @@ module Setup
       private
 
       def factorize_params(parent, childs)
-        if childs.size > 1
-          [:headers, :parameters].each { |params| factorize(params, parent, childs) }
-        end
+        [:headers, :parameters].each { |params| factorize(params, parent, childs) }
       end
 
       def factorize(params, parent, children)

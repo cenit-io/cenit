@@ -20,11 +20,23 @@ module RailsAdmin
               elsif (@bulk_ids = params[:bulk_ids] || []).present?
                 Setup::DataType.any_in(id: @bulk_ids)
               else
-                Setup::DataType.all
+                list_entries
               end
             if params[:delete] # DELETE
-              data_types.each { |data_type| @auditing_adapter.delete_object(data_type, @abstract_model, _current_user) } if @auditing_adapter
-              data_types.each(&:destroy)
+              if @auditing_adapter
+                data_types.each do |data_type|
+                  @auditing_adapter.delete_object(data_type, @abstract_model, _current_user)
+                end
+              end
+              errors = []
+              data_types.each do |dt|
+                if !dt.destroy && errors.length < 10
+                  errors = (errors + dt.errors.full_messages).flatten
+                end
+              end
+              if errors.present?
+                do_flash(:error, t('admin.actions.delete_data_type_errors'), errors)
+              end
               redirect_to back_or_index
             else
               @object = Object.new

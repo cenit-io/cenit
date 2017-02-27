@@ -2,11 +2,15 @@ module RailsAdmin
 
   class MongoffModelConfig < RailsAdmin::Config::Model
 
+    include ThreadAware
+
     def initialize(mongoff_entity)
-      super(RailsAdmin::MongoffAbstractModel.abstract_model_for(mongoff_entity))
+      super
       @model = @abstract_model.model
       @parent = self
 
+      titles = Set.new
+      titles.add(nil)
       (abstract_model.properties + abstract_model.associations).each do |property|
         type = property.type
         if property.is_a?(RailsAdmin::MongoffAssociation)
@@ -16,7 +20,11 @@ module RailsAdmin
         end
         configure property.name, type do
           visible { property.visible? }
-          label { property.name.to_s.to_title }
+          if titles.include?(title = property.title)
+            title = property.name.to_s.to_title
+          end
+          titles.add(title)
+          label { title }
           filterable { property.filterable? }
           required { property.required? }
           queryable { property.queryable? }
@@ -25,11 +33,8 @@ module RailsAdmin
             enum { enumeration }
             filter_enum { enumeration }
           end
-          if (title = property.title)
-            label { title }
-          end
           if (description = property.description)
-            description = (property.required? ? 'Required. ' : 'Optional. ') + description
+            description = "#{property.required? ? 'Required' : 'Optional'}. #{description}".html_safe
             help { description }
           end
           unless (g = property.group.to_s.gsub(/ +/, '_').underscore.to_sym).blank?
@@ -40,15 +45,18 @@ module RailsAdmin
             pretty_value do
               v = bindings[:view]
               action = v.instance_variable_get(:@action)
-              if (showing = action.is_a?(RailsAdmin::Config::Actions::Show) && !v.instance_variable_get(:@showing))
+              if action.is_a?(RailsAdmin::Config::Actions::Show) && !v.instance_variable_get(:@showing)
                 amc = RailsAdmin.config(association.klass)
               else
                 amc = polymorphic? ? RailsAdmin.config(associated) : associated_model_config # perf optimization for non-polymorphic associations
               end
               am = amc.abstract_model
               if action.is_a?(RailsAdmin::Config::Actions::Show) && !v.instance_variable_get(:@showing)
-                v.instance_variable_set(:@showing, true)
+                values = [value].flatten.select(&:present?)
                 fields = amc.list.with(controller: self, view: v, object: amc.abstract_model.model.new).visible_fields
+                unless fields.length == 1 && values.length == 1
+                  v.instance_variable_set(:@showing, true)
+                end
                 table = <<-HTML
                     <table class="table table-condensed table-striped">
                       <thead>
@@ -58,7 +66,7 @@ module RailsAdmin
                         <tr>
                       </thead>
                       <tbody>
-                  #{[value].flatten.select(&:present?).collect do |associated|
+                  #{values.collect do |associated|
                   can_see = !am.embedded_in?(bindings[:controller].instance_variable_get(:@abstract_model)) && (show_action = v.action(:show, am, associated))
                   '<tr class="script_row">' +
                     fields.collect do |field|
@@ -97,7 +105,7 @@ module RailsAdmin
         end
       end
       if @model.is_a?(Mongoff::GridFs::FileModel)
-        configure :data, :file_upload do
+        configure :data, :mongoff_file_upload do
           required { bindings[:object].new_record? }
         end
         configure :length do
@@ -115,6 +123,7 @@ module RailsAdmin
         end
         edit do
           field :data
+          field :metadata
         end
         list do
           field :_id
@@ -139,7 +148,14 @@ module RailsAdmin
 
       navigation_label { target.data_type.namespace }
 
-      object_label_method { @object_label_method ||= Config.label_methods.detect { |method| target.property?(method) } || :to_s }
+      object_label_method do
+        @object_label_method ||=
+          if target.labeled?
+            :to_s
+          else
+            Config.label_methods.detect { |method| target.property?(method) } || :to_s
+          end
+      end
     end
 
     def parent
@@ -163,22 +179,11 @@ module RailsAdmin
     end
 
     def contextualized_label(context = nil)
-      if target.parent
-        target.to_s.split('::').last
-      else
-        case context
-        when nil
-          target.data_type.title
-        when :breadcrumb
-          target.data_type.custom_title('/')
-        else
-          target.data_type.custom_title
-        end
-      end
+      target.label(context)
     end
 
     def contextualized_label_plural(context = nil)
-      contextualized_label(context).pluralize
+      contextualized_label(context).to_plural
     end
 
     def root
@@ -187,6 +192,14 @@ module RailsAdmin
 
     def visible?
       true
+    end
+
+    class << self
+
+      def new(mongoff_entity)
+        mongoff_entity = RailsAdmin::MongoffAbstractModel.abstract_model_for(mongoff_entity)
+        current_thread_cache[mongoff_entity.to_s] ||= super(mongoff_entity)
+      end
     end
   end
 end

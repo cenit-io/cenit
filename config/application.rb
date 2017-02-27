@@ -35,6 +35,8 @@ module Cenit
 
     config.after_initialize do
 
+      Thread.current[:cenit_initializing] = true
+
       puts 'Clearing LOCKS'
       Cenit::Locker.clear
 
@@ -46,7 +48,9 @@ module Cenit
 
         ThreadToken.destroy_all
         Setup::Task.where(:status.in => Setup::Task::ACTIVE_STATUS).update_all(status: :broken)
+        Setup::Execution.where(:status.nin => Setup::Task::FINISHED_STATUS).update_all(status: :broken, completed_at: Time.now)
 
+        Setup::Application.all.update_all(provider_id: Setup::Oauth2Provider.build_in_provider_id)
       end
 
       Account.current = nil
@@ -63,6 +67,14 @@ module Cenit
       end
 
       Setup::BuildInDataType.each(&:db_data_type)
+
+      wrong_data_types = []
+      Setup::CenitDataType.all.each do |data_type|
+        wrong_data_types << "#{data_type.namespace}::#{data_type.name}" unless data_type.build_in
+      end
+      unless wrong_data_types.empty?
+        Setup::SystemNotification.create(type: :warning, message: "Wrong cenit data types: #{wrong_data_types.to_sentence}")
+      end
     end
 
     if Rails.env.production? &&
@@ -74,6 +86,7 @@ module Cenit
                                                 sender_address: %{"notifier" <#{notifier_email}>},
                                                 exception_recipients: exception_recipients.split(',')
                                               }
+      Thread.current[:cenit_initializing] = nil
     end
 
   end

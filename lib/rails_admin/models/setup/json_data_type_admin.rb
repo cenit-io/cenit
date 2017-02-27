@@ -22,7 +22,11 @@ module RailsAdmin
               read_only { !bindings[:object].new_record? }
             end
 
-            configure :schema, :json_schema do
+            configure :schema, :json_schema
+
+            configure :schema_code, :json_schema do
+              label 'Schema'
+              help { 'Required' }
             end
 
             configure :storage_size, :decimal do
@@ -62,16 +66,14 @@ module RailsAdmin
             configure :slug
 
             edit do
-              field :namespace, :enum_edit, &RailsAdmin::Models::Setup::FieldsConfigAdmin.shared_non_editable
-              field :name, &RailsAdmin::Models::Setup::FieldsConfigAdmin.shared_non_editable
-              field :schema, :json_schema do
-                help { 'Required' }
-              end
-              field :title, &RailsAdmin::Models::Setup::FieldsConfigAdmin.shared_non_editable
+              field :namespace, :enum_edit, &RailsAdmin::Config::Fields::Base::SHARED_READ_ONLY
+              field :name, &RailsAdmin::Config::Fields::Base::SHARED_READ_ONLY
+              field :schema_code
+              field :title, &RailsAdmin::Config::Fields::Base::SHARED_READ_ONLY
               field :slug
-              field :before_save_callbacks, &RailsAdmin::Models::Setup::FieldsConfigAdmin.shared_non_editable
-              field :records_methods, &RailsAdmin::Models::Setup::FieldsConfigAdmin.shared_non_editable
-              field :data_type_methods, &RailsAdmin::Models::Setup::FieldsConfigAdmin.shared_non_editable
+              field :before_save_callbacks, &RailsAdmin::Config::Fields::Base::SHARED_READ_ONLY
+              field :records_methods, &RailsAdmin::Config::Fields::Base::SHARED_READ_ONLY
+              field :data_type_methods, &RailsAdmin::Config::Fields::Base::SHARED_READ_ONLY
             end
 
             list do
@@ -88,11 +90,7 @@ module RailsAdmin
               field :name
               field :slug
               field :storage_size
-              field :schema do
-                pretty_value do
-                  "<pre><code class='ruby'>#{JSON.pretty_generate(value)}</code></pre>".html_safe
-                end
-              end
+              field :schema
               field :before_save_callbacks
               field :records_methods
               field :data_type_methods

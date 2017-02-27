@@ -161,8 +161,8 @@ module Setup
       dependencies_hash_data = dependencies_data
       if pull_parameters.present?
         pull_parameters.each do |pull_parameter|
-          pull_parameter.process_on(hash_data, keep_value: true) ||
-            pull_parameter.process_on(dependencies_hash_data, keep_value: true)
+          pull_parameter.process_on(hash_data, keep_values: true) ||
+            pull_parameter.process_on(dependencies_hash_data, keep_values: true)
         end
         errors.add(:pull_parameters, 'is not valid') if pull_parameters.any? { |pull_parameter| pull_parameter.errors.present? }
       end
@@ -366,6 +366,18 @@ module Setup
 
     def pull_asynchronous
       false
+    end
+
+    def parametrize(hash_data, parameters, options = {})
+
+    end
+
+    def origin
+      :default
+    end
+
+    def categories
+      []
     end
 
     protected

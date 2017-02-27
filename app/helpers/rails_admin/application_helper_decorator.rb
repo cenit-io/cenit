@@ -266,7 +266,7 @@ module RailsAdmin
         end
       end
       ecommerce_models = ecommerce_models.collect { |model| RailsAdmin.config(model) }
-      nav_groups['Ecommerce'] = ecommerce_models
+      nav_groups['eCommerce'] = ecommerce_models
       ecoindex = nav_groups.size
       nav_groups.each do |navigation_label, nav_nodes|
         ecoindex -= 1
@@ -327,7 +327,7 @@ module RailsAdmin
       non_setup_data_type_models.each do |data_type_model|
         links = data_type_models[data_type_model]
         name = data_type_model.to_s.split('::').last.underscore
-        action = name == 'cross_shared_collection' ? :store_index : :link_data_type
+        action = name == 'cross_shared_collection' ? :ecommerce_index : :link_data_type
         link_link = link_to url_for(action: action,
                                     controller: 'rails_admin/main',
                                     data_type_model: data_type_model.to_s) do
@@ -361,7 +361,18 @@ module RailsAdmin
       nav = nodes.collect do |node|
         i += 1
         stack_id = "#{html_id}-sub#{i}"
-        model_count = node.abstract_model.count({ cache: true }, @authorization_adapter && @authorization_adapter.query(:index, node.abstract_model)) rescue -1
+        counts =
+          begin
+            node.abstract_model.counts({ cache: true }, @authorization_adapter && @authorization_adapter.query(:index, node.abstract_model))
+          rescue Exception
+            { default: -1 }
+          end
+        model_count =
+          if current_user
+            counts[:default] || counts.values.inject(0, &:+)
+          else
+            counts.values.inject(0, &:+)
+          end
 
         children = nodes_stack.select { |n| n.parent.to_s == node.abstract_model.model_name }
         html =
@@ -380,9 +391,25 @@ module RailsAdmin
             nav_icon = node.navigation_icon ? %(<i class="#{node.navigation_icon}"></i>).html_safe : ''
             content_tag :li, data: { model: model_param } do
               link_to url, class: 'pjax' do
-                rc = ""
-                if model_count>0
-                  rc += "<span class='nav-amount'>#{model_count}</span>"
+                rc = ''
+                title = t('admin.misc.and_that_is_all')
+                plus = nil
+                count_label = model_count
+                if counts.key?(:default)
+                  plus = []
+                  counts.each do |origin, count|
+                    next if origin == :default
+                    plus << "+ #{count} #{t("admin.origin.#{origin}")}" if count > 0
+                  end
+                  if plus.any?
+                    title = plus.to_sentence
+                    count_label = "#{model_count} +"
+                  else
+                    plus = nil
+                  end
+                end
+                if model_count > 0 || plus
+                  rc += "<span class='nav-amount' title=\"#{title}\">#{count_label}</span>"
                 end
                 rc += "<span class='nav-caption'>#{capitalize_first_letter node.label_navigation}</span>"
                 rc.html_safe
@@ -393,16 +420,16 @@ module RailsAdmin
           sub_links = ''
           category_count = 0
           Setup::Category.all.each do |cat|
-            count = (values = Setup::CrossSharedCollection.where(:category_ids => cat.id)).count
+            count = (values = Setup::CrossSharedCollection.where(category_ids: cat.id)).count
             if count > 0
               category_count += count
               message = "<span><em>#{node.label_plural}</em> with category <em>#{cat.title}</em></span>"
-              filter_token =  Cenit::Token.where('data.category_id' => cat.id).first || Cenit::Token.create(data: { criteria: values.selector, message: message, category_id: cat.id })
+              filter_token = Cenit::Token.where('data.category_id' => cat.id).first || Cenit::Token.create(data: { criteria: values.selector, message: message, category_id: cat.id })
               sub_links += content_tag :li do
                 sub_link_url = index_path(model_name: node.abstract_model.to_param, filter_token: filter_token.token)
                 link_to sub_link_url do
                   rc = ''
-                  if model_count>0
+                  if model_count > 0
                     rc += "<span class='nav-amount'>#{count}</span>"
                   end
                   rc += "<span class='nav-caption'>#{cat.title}</span>"
@@ -426,12 +453,12 @@ module RailsAdmin
             <div class='panel-heading'>
               <a data-toggle='collapse' data-parent='#none' href='#shared-collapse' class='panel-title collapse in collapsed'>
                 <span class='nav-caret'><i class='fa fa-caret-down'></i></span>
-                <span class='nav-caption'>#{node.label.pluralize}</span>
+                <span class='nav-caption'>#{node.label_plural}</span>
               </a>
             </div>
              <div id='shared-collapse' class='nav nav-pills nav-stacked panel-collapse collapse'>
-                #{sub_links}
-          #{show_all_link}
+                #{show_all_link}
+          #{sub_links}
             </div>
             </div>)
 
@@ -472,7 +499,7 @@ module RailsAdmin
             <div class='panel-heading'>
               <a data-toggle='collapse' data-parent='#none' href='#renderer-collapse' class='panel-title collapse in collapsed'>
                 <span class='nav-caret'><i class='fa fa-caret-down'></i></span>
-                <span class='nav-caption'>#{node.label.pluralize}</span>
+                <span class='nav-caption'>#{node.label_plural}</span>
               </a>
             </div>
              <div id='renderer-collapse' class='nav nav-pills nav-stacked panel-collapse collapse'>
@@ -526,10 +553,61 @@ module RailsAdmin
       html_.html_safe
     end
 
-    def dashboard_navigation(nodes_stack, nodes)
-      if not nodes.present?
-        return
+    def collections_at_dashboard
+      html = ''
+      if current_user
+        # Show user collections
+        if Setup::Collection.count >= 12
+          limit = 11
+        else
+          limit = 10
+        end
+        Setup::Collection.limit(limit).order(created_at: :desc).each do |c|
+          html+= dashboard_collection_view c
+        end
+        new_url = rails_admin.new_path(model_name: Setup::Collection.to_s.underscore.gsub('/', '~'))
+        if limit == 10
+          html+= '<div class="col-md-2">
+                <a href="'+new_url+'">
+                  <div class="collection">
+                    <div class="pic text-center">
+                    <h5>'+ t('admin.actions.dashboard.collections.add') +'</h5>
+                    <i class="fa fa-plus"></i>
+                    </div>
+                  </div>
+                </a>
+              </div>'
+        end
+      else
+        # Show cross shared collections
+        Setup::CrossSharedCollection.limit(11).order(created_at: :desc).each do |c|
+          if c.image.present? && c.installed?
+            html+= dashboard_collection_view c
+          end
+        end
       end
+
+      html+=''
+      html.html_safe
+    end
+
+    def dashboard_collection_view(c)
+      has_image = c.image.present?
+      css_class = 'img-responsive '+(has_image ? '' : 'no-image')
+      image = image_tag has_image ? c.image : 'missing.png', :class => css_class, :alt => c.name, width: "102", height: "71"
+      url_show = rails_admin.show_path(model_name: c.model_name.to_s.underscore.gsub('/', '~'), id: c.name)
+      '<div class="col-md-2">
+        <a href="'+url_show+'" title="'+ c.name+'">
+          <div class="collection">
+            <div class="pic text-center">'+image+'
+            </div>
+          </div>
+        </a>
+      </div>'
+    end
+
+    def dashboard_navigation(nodes_stack, nodes)
+      return unless nodes.present?
       i = -1
       ('' +
         nodes.collect do |node|
@@ -552,12 +630,13 @@ module RailsAdmin
               end
               rc += '</td>'
 
-              model_count =
+              counts =
                 if current_user
-                  node.abstract_model.count({ cache: true }, @authorization_adapter && @authorization_adapter.query(:index, node.abstract_model))
+                  node.abstract_model.counts({ cache: true }, @authorization_adapter && @authorization_adapter.query(:index, node.abstract_model))
                 else
-                  @count[node.abstract_model.model_name] || 0
+                  @counts[node.abstract_model.model_name] || { default: 0 }
                 end
+              model_count = counts[:default] || counts.values.inject(0, &:+)
               pc = percent(model_count, @max)
               indicator = get_indicator(pc)
               anim = animate_width_to(pc)
@@ -579,6 +658,25 @@ module RailsAdmin
             end
           end
         end.join).html_safe
+    end
+
+    def found_menu(abstract_model = @abstract_model)
+
+      actions = actions(:bulkable, abstract_model)
+      return '' if actions.empty?
+      label = (abstract_model.try(:config) || action.bindings[:custom_model_config]).contextualized_label_plural
+      content_tag :li, class: 'dropdown', style: 'float:right' do
+        content_tag(:a, class: 'dropdown-toggle', data: { toggle: 'dropdown' }, href: '#') { '<div class="btn btn-info">'.html_safe + t('admin.misc.found_menu_title').html_safe + label.html_safe + '<b class="caret"></b></div>'.html_safe } +
+          content_tag(:ul, class: 'dropdown-menu', style: 'left:auto; right:0;') do
+            actions.collect do |action|
+              unless action.nil?
+                content_tag :li do
+                  link_to(wording_for(:menu, action), url_for(action: action.action_name, model_name: abstract_model.to_param, all: true, params: params.except('set').except('page')), class: 'pjax')
+                end
+              end
+            end.join.html_safe
+          end
+      end.html_safe
     end
   end
 end

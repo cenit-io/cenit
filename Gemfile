@@ -20,7 +20,6 @@ gem 'figaro'
 gem 'unicorn', '4.9.0'
 gem 'xmldsig'
 gem 'spreadsheet'
-gem 'newrelic_rpm'
 
 group :doc do
   gem 'sdoc', require: false
@@ -118,3 +117,7 @@ gem 'capataz', git: 'https://github.com/macarci/capataz.git'
 
 gem 'rails_admin_dynamic_charts', path: '../rails_admin_dynamic_charts'
 gem 'chartkick'
+
+gem 'rkelly-remix'
+
+gem 'write_xlsx'

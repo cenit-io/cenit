@@ -15,8 +15,8 @@ module Mongoff
       @document[:_id] ||= BSON::ObjectId.new unless model.property_schema(:_id)
       @fields = {}
       @new_record = new_record || false
-      model.simple_properties_schemas.each do |property, schema| #TODO Defaults for non simple properties
-        if @document[property].nil? && (value = schema['default'])
+      model.properties_schemas.each do |property, schema|
+        if @document[property].nil? && !(value = schema['default']).nil?
           self[property] = value
         end
       end
@@ -213,11 +213,11 @@ module Mongoff
           attribute_key
         end.to_sym
       @fields.delete(field)
-      property_model = field_metadata[:model]
+      property_model = field_metadata[:model] || orm_model.property_model(field)
       property_schema = field_metadata[:schema] || orm_model.property_schema(field)
       if value.nil?
         @fields.delete(field)
-        document.delete(attribute_key)
+        document.delete(attribute_key.to_s)
         nil
       elsif value.is_a?(Record) || value.class.respond_to?(:data_type)
         @fields[field] = value
@@ -232,7 +232,13 @@ module Mongoff
           field_array
         else
           if property_model && property_model.modelable?
-            value = value.collect { |v| property_model.mongo_value(v, :id) }.select(&:present?)
+            mongo_value = []
+            value.each do |v|
+              property_model.mongo_value(v, :id) do |mongo_v|
+                mongo_value << mongo_v
+              end
+            end
+            value = mongo_value
           end
           value.each do |v|
             fail "invalid value #{v}" unless Cenit::Utility.json_object?(v, recursive: true)
@@ -242,7 +248,7 @@ module Mongoff
         document[attribute_key] = attr_array
       else
         document[attribute_key ||= field] = value = orm_model.mongo_value(value, field, property_schema)
-        document.delete(attribute_key.to_s) unless value || orm_model.requires?(field)
+        document.delete(attribute_key.to_s) if value.nil? && !orm_model.requires?(field)
         value
       end
     end
@@ -256,6 +262,25 @@ module Mongoff
             orm_model.data_type.records_methods.any? { |alg| alg.name == method } ||
             nested_attributes_association(property).present?
         end
+    end
+
+    def send(*args)
+      name = args[0].to_s
+      property_name = (assigning = name.end_with?('=')) ? name.chop : name
+      if (method = orm_model.data_type.records_methods.detect { |alg| alg.name == name })
+        args = args.dup
+        args[0] = self
+        method.reload
+        method.run(args)
+      elsif orm_model.property?(property_name) && (args.length == (assigning ? 2 : 1))
+        if assigning
+          self[property_name] = args[1]
+        else
+          self[property_name]
+        end
+      else
+        super
+      end
     end
 
     def method_missing(symbol, *args)
@@ -283,7 +308,18 @@ module Mongoff
     end
 
     def to_s
-      orm_model.to_s + '#' + id.to_s
+      case (template = orm_model.label_template)
+      when String
+        template
+      when Liquid::Template
+        begin
+          template.render document
+        rescue Exception => ex
+          ex.message
+        end
+      else
+        "#{orm_model.label} ##{id}"
+      end
     end
 
     def eql?(other)

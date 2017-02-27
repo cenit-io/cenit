@@ -5,6 +5,9 @@ module Setup
     include NamespaceNamed
     include ClassHierarchyAware
     include RailsAdmin::Models::Setup::TranslatorAdmin
+    # = Translator
+    #
+    # A translator defines a logic for data manipulation
 
     abstract_class true
 
@@ -194,6 +197,7 @@ module Setup
       self.class.relations.keys.each { |key| context_options[key.to_sym] = send(key) }
       context_options[:data_type] = data_type
       context_options.merge!(options) { |_, context_val, options_val| !context_val ? options_val : context_val }
+      context_options[:options] ||= {}
       #TODO Remove transformation local after migration
       context_options[:transformation] = context_options[:code] = code
 

@@ -4,6 +4,8 @@ module Setup
     include HashField
     include RailsAdmin::Models::Setup::ApiPullAdmin
 
+    agent_field :api
+
     build_in_data_type
 
     pulling :api, class: Setup::ApiSpec

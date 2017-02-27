@@ -2,6 +2,8 @@ module Setup
   class Submission < Setup::Task
     include RailsAdmin::Models::Setup::SubmissionAdmin
 
+    agent_field :webhook
+
     build_in_data_type
 
     deny :copy, :new, :edit, :translator_update, :import, :convert, :delete_all

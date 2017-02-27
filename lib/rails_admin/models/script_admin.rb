@@ -9,27 +9,24 @@ module RailsAdmin
           navigation_label 'Administration'
           visible { User.current_super_admin? }
 
+          configure :code, :code do
+            code_config do
+              {
+                mode: 'text/x-ruby'
+              }
+            end
+          end
+
           edit do
             field :name
             field :description
-            field :code, :code do
-              code_config do
-                {
-                  mode: 'text/x-ruby'
-                }
-              end
-            end
+            field :code
           end
 
           show do
             field :name
             field :description
-            field :code do
-              pretty_value do
-                v = value.gsub('<', '&lt;').gsub('>', '&gt;')
-                "<pre><code class='ruby'>#{v}</code></pre>".html_safe
-              end
-            end
+            field :code
           end
 
           list do

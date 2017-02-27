@@ -9,11 +9,7 @@ module RailsAdmin
 
         register_instance_option :controller do
           proc do
-            @bulk_ids = params.delete(:bulk_ids)
-            if (object_ids = params.delete(:object_ids))
-              @bulk_ids = object_ids
-            end
-            source = (@object && [@object.id.to_s]) || @bulk_ids
+            process_bulk_scope
             options_config = RailsAdmin::Config.model(Forms::ExpandOptions)
             if (options_params = params[options_config.abstract_model.param_key])
               options_params = options_params.select { |k, _| %w(segment_shortcuts).include?(k.to_s) }.permit!
@@ -23,7 +19,7 @@ module RailsAdmin
             @form_object = Forms::ExpandOptions.new(options_params)
             result = nil
             begin
-              result = Setup::DataTypeExpansion.process(@form_object.attributes.merge(source: source))
+              result = Setup::DataTypeExpansion.process(@form_object.attributes.merge(source: @bulk_ids))
             rescue Exception => ex
               do_flash(:error, 'Error expanding data type:', ex.message)
             end if params[:_save]

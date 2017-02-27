@@ -1,6 +1,8 @@
 class ScriptExecution < Setup::Task
   include RailsAdmin::Models::ScriptExecutionAdmin
 
+  agent_field :script
+
   default_origin :admin
 
   belongs_to :script, class_name: Script.to_s, inverse_of: nil
@@ -28,6 +30,7 @@ class ScriptExecution < Setup::Task
         else
           nil
         end
+      current_execution.attach(attachment)
       notify(message: "'#{script.name}' result" + (result.present? ? '' : ' was empty'),
              type: :notice,
              attachment: attachment,

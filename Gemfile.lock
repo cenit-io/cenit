@@ -1,19 +1,12 @@
 GIT
-  remote: https://github.com/macarci/capataz.git
-  revision: ac5c8b9ab34ae79901eabcbfb23d3aba318564be
-  specs:
-    capataz (0.0.1)
-      parser
-
-GIT
-  remote: https://github.com/macarci/cenit-config.git
-  revision: 16b19de12378719f3d967f61f088e7b021c4e6ba
+  remote: https://github.com/cenit-io/cenit-config.git
+  revision: 57c90cbde2cb550d7b8d73e45c3ce37929cf96b6
   specs:
     cenit-config (0.0.1)
 
 GIT
-  remote: https://github.com/macarci/cenit-multi_tenancy.git
-  revision: 85c03bf48cce0882c13bff92d6c1bce4feb1ccb8
+  remote: https://github.com/cenit-io/cenit-multi_tenancy.git
+  revision: 6144dbb0cf9597227a319804110c304a715d5cf6
   specs:
     cenit-multi_tenancy (0.0.1)
       cenit-config
@@ -21,8 +14,8 @@ GIT
       mongoid (>= 5.0.1)
 
 GIT
-  remote: https://github.com/macarci/cenit-oauth.git
-  revision: 4bfba92eb1cc62f131828b716d0a7360608557f8
+  remote: https://github.com/cenit-io/cenit-oauth.git
+  revision: 77a8fa79fa5136edbc43269b93e750105b0500b9
   specs:
     cenit-oauth (0.0.1)
       cenit-token
@@ -32,20 +25,31 @@ GIT
       rails (>= 4.2.5)
 
 GIT
-  remote: https://github.com/macarci/cenit-service.git
-  revision: bfd958d12331bf1f82505e62d6b7f2c99802366e
+  remote: https://github.com/cenit-io/cenit-service.git
+  revision: 5653c22fa9828a53414128533e6b53018c77c8fb
   specs:
     cenit-service (0.0.1)
+      cenit-config
+      cenit-multi_tenancy
       cenit-token
+      cross_origin
+      mongoid
       rails (>= 4.2.5)
 
 GIT
-  remote: https://github.com/macarci/cenit-token.git
-  revision: 9ee5309b52d897b41b9f8fcab488c462aa0eb649
+  remote: https://github.com/cenit-io/cenit-token.git
+  revision: ecf26773bbb560cab822b1bf9102f367fea159ac
   specs:
     cenit-token (0.0.1)
       mongoid (>= 5.0.1)
       rails (>= 4.2.5)
+
+GIT
+  remote: https://github.com/macarci/capataz.git
+  revision: 42ed4fe635f55bec5892af8ecb92eef9d0e2a525
+  specs:
+    capataz (0.0.1)
+      parser
 
 GIT
   remote: https://github.com/macarci/cross_origin.git
@@ -169,8 +173,6 @@ GEM
       execjs
     coffee-script-source (1.10.0)
     colorize (0.7.7)
-    contact_us (1.1.0)
-      rails (>= 4.2.0)
     coveralls (0.8.9)
       json (~> 1.8)
       rest-client (>= 1.6.8, < 2)
@@ -333,7 +335,6 @@ GEM
       net-ssh (>= 2.6.5)
     net-ssh (3.0.1)
     netrc (0.11.0)
-    newrelic_rpm (3.16.2.321)
     nokogiri (1.6.7.2)
       mini_portile2 (~> 2.0.0.rc2)
     oauth (0.4.7)
@@ -440,6 +441,7 @@ GEM
       http-cookie (>= 1.0.2, < 2.0)
       mime-types (>= 1.16, < 3.0)
       netrc (~> 0.7)
+    rkelly-remix (0.0.7)
     rmagick (2.15.4)
     rolify (4.1.1)
     rqrcode (0.10.1)
@@ -550,10 +552,15 @@ GEM
     websocket-driver (0.6.3)
       websocket-extensions (>= 0.1.0)
     websocket-extensions (0.1.2)
+    write_xlsx (0.83.0)
+      rubyzip (>= 1.0.0)
+      zip-zip
     xmldsig (0.4.0)
       nokogiri
     xpath (2.0.0)
       nokogiri (~> 1.3)
+    zip-zip (0.3)
+      rubyzip (>= 1.0.0)
 
 PLATFORMS
   ruby
@@ -584,7 +591,6 @@ DEPENDENCIES
   chartkick
   codemirror-rails
   coffee-rails
-  contact_us
   coveralls
   cross_origin!
   database_cleaner
@@ -613,7 +619,6 @@ DEPENDENCIES
   mongoid-audit
   mongoid-history
   mongoid-rspec
-  newrelic_rpm
   nokogiri
   oauth
   oauth2
@@ -629,6 +634,7 @@ DEPENDENCIES
   rails_12factor
   rails_admin (~> 0.7.0)
   rails_layout
+  rkelly-remix
   rolify
   rspec-rails
   rubocop
@@ -645,4 +651,5 @@ DEPENDENCIES
   uglifier
   unicorn (= 4.9.0)
   wannabe_bool
+  write_xlsx
   xmldsig

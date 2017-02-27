@@ -14,12 +14,31 @@ module RailsAdmin
               label 'Attempts/Succedded'
             end
 
+            configure :shared_collection do
+              list_fields do
+                %w(title image name tags)
+              end
+            end
+
             edit do
               field :description
               field :auto_retry
             end
 
-            fields :shared_collection, :pull_request, :pulled_request, :description, :scheduler, :attempts_succeded, :retries, :progress, :status, :notifications, :updated_at
+            list do
+              field :shared_collection
+              field :pulled_request
+              field :pulled_request
+              field :description
+              field :scheduler
+              field :attempts_succeded
+              field :retries
+              field :progress
+              field :status
+              field :updated_at
+            end
+
+            fields :shared_collection, :pull_request, :pulled_request, :description, :scheduler, :attempts_succeded, :retries, :progress, :status, :executions, :notifications, :updated_at
           end
         end
 

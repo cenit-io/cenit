@@ -12,8 +12,9 @@ module Setup
           fail 'Option class_name not supplied' unless (klass = options[:class])
           belongs_to field, class_name: klass.to_s, inverse_of: nil
           klass = klass.constantize if klass.is_a?(String)
-          klass.class_eval "def pull
-            #{to_s}.process(self)
+          klass.class_eval "def pull(message = {})
+            message[:#{field}] = self
+            #{to_s}.process(message)
           end"
           @pulling_field = field
         end
@@ -31,7 +32,7 @@ module Setup
           else
             fail 'Invalid message'
           end
-          message[:task] = create!(@pulling_field => pulling)
+          message[:task] = create!(@pulling_field => pulling, message: message)
         end
         super
       end

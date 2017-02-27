@@ -13,7 +13,13 @@ module Setup
     field :location, type: Symbol
 
     before_save do
-      self.value = Cenit::Utility.json_value_of(value)
+      self.value =
+        case (v = Cenit::Utility.json_value_of(value))
+        when Hash, Array
+          v.to_json
+        else
+          v
+        end
     end
 
     def parent

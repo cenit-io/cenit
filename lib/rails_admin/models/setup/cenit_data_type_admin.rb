@@ -32,8 +32,12 @@ module RailsAdmin
             configure :schema, :json_schema
 
             edit do
-              field :namespace, &RailsAdmin::Models::Setup::FieldsConfigAdmin.shared_non_editable
-              field :name, &RailsAdmin::Models::Setup::FieldsConfigAdmin.shared_non_editable
+              field :namespace do
+                read_only true
+              end
+              field :name do
+                read_only { !bindings[:object].build_in.nil? }
+              end
               field :slug
               field :storage_size
             end

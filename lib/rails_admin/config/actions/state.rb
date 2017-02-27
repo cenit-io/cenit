@@ -70,6 +70,10 @@ module RailsAdmin
           def post_base_pull(controller, params, task)
             if params[:_pull]
               task.message[:install] = params[:install].to_b if task.ask_for_install?
+              unless (pull_parameters = params[:pull_parameters]).is_a?(Hash)
+                pull_parameters = {}
+              end
+              task.message[:pull_parameters] = pull_parameters
               task.retry
             end
             controller.redirect_to controller.rails_admin.show_path(model_name: task.class.to_s.underscore.gsub('/', '~'), id: task.id.to_s)

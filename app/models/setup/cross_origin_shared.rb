@@ -18,12 +18,14 @@ module Setup
 
       before_validation :validates_before
 
-      before_destroy do
-        unless origin == :default
-          errors.add(:base, "#{try(:custom_title) || try(:name) || "#{self.class}##{id}"} is shared")
-        end
-        errors.blank?
+      before_destroy :validates_for_destroy
+    end
+
+    def validates_for_destroy
+      unless origin == :default
+        errors.add(:base, "#{try(:custom_title) || try(:name) || "#{self.class}##{id}"} is shared")
       end
+      errors.blank?
     end
 
     def validates_before
@@ -60,7 +62,7 @@ module Setup
       origin != :default
     end
 
-    def account_version
+    def tenant_version
       if version && (pin = Setup::Pin.for(self)) && pin.version < version
         undo nil, from: pin.version + 1, to: version
       end

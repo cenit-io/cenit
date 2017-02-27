@@ -69,13 +69,17 @@ end
 class String
 
   def to_title
-    self.
+    title =
       gsub(/([A-Z])(\d)/, '\1 \2').
-      gsub(/([a-z])(\d|[A-Z])/, '\1 \2').
-      gsub(/(\d)([a-z]|[A-Z])/, '\1 \2').
-      tr('_', ' ').
-      tr('-', ' ').
-      capitalize
+        gsub(/([a-z])(\d|[A-Z])/, '\1 \2').
+        gsub(/(\d)([a-z]|[A-Z])/, '\1 \2').
+        tr('_', ' ').
+        tr('-', ' ').
+        strip
+    unless title.empty?
+      title[0] = title[0].mb_chars.capitalize.to_s
+    end
+    title
   end
 
   def sym2word
@@ -99,7 +103,7 @@ class String
     gsub(/ |\/|\\/, '_').squeeze('_')
   end
 
-  def to_method_name
+  def to_method_name(taken = nil)
     str = sym2word
     {
       '-' => 'minus',
@@ -128,7 +132,38 @@ class String
     else
       str = "_#{str}" unless str =~ /\A(_|[A-Za-z])/
     end
-    str
+    taken_method =
+      case taken
+      when Hash
+        :key?
+      when Enumerable
+        :include?
+      else
+        nil
+      end
+    if taken_method && taken.send(taken_method, str)
+      i = 1
+      i +=1 while taken.send(taken_method, "#{str}_#{i}")
+      "#{str}_#{i}"
+    else
+      str
+    end
+  end
+
+  def to_plural(count = nil, locale = :en)
+    p = []
+    tokens = strip.squeeze(' ').split(' ')
+    while (last = tokens.pop) && last.match(/\W\Z/)
+      p << last
+    end
+    if last
+      tokens << last
+      last = tokens.join(' ').pluralize(count, locale)
+    else
+      last = ''
+    end
+    p.unshift(last)
+    p.join(' ')
   end
 end
 
@@ -161,7 +196,8 @@ end
   MIME::Mail => :new_message,
   MIME::Message => :new_message,
   MIME::Text => :new_text,
-  MIME::Multipart::Mixed => :new_message
+  MIME::Multipart::Mixed => :new_message,
+  WriteXLSX => :new_xlsx
 }.each do |entity, method|
   entity.class_eval("def self.#{method}(*args)
     new(*args)

@@ -1,6 +1,7 @@
 module Forms
   class Translation
     include Mongoid::Document
+    include TransformationOptions
     include AccountScoped
 
     field :translator_type, type: Symbol
@@ -49,6 +50,7 @@ module Forms
             end
           end
         end
+        field :options
       end
     end
   end

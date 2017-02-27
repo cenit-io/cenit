@@ -2,15 +2,36 @@ module RailsAdmin
   ###
   # Generate sdk code for api service.
   module RestApiHelper
+
+    include RailsAdmin::RestApi::Curl
+    include RailsAdmin::RestApi::Php
+    include RailsAdmin::RestApi::Ruby
+    include RailsAdmin::RestApi::Python
+    include RailsAdmin::RestApi::Nodejs
+    include RailsAdmin::RestApi::JQuery
+
+    def api_langs
+      [
+        { id: 'curl', label: 'Curl', hljs: 'bash' },
+        { id: 'php', label: 'Php', hljs: 'php' },
+        { id: 'ruby', label: 'Ruby', hljs: 'ruby' },
+        { id: 'python', label: 'Python', hljs: 'python' },
+        { id: 'nodejs', label: 'Nodejs', hljs: 'javascript' },
+        { id: 'jquery', label: 'JQuery', hljs: 'javascript' },
+      ]
+    end
+
     ###
     # Returns api specification paths for current namespace and model.
     def api_current_paths
+      if params[:action] == 'dashboard'
+        params[:model_name] = 'cross_shared_collection'
+        abstract_model = RailsAdmin::AbstractModel.new(Setup::CrossSharedCollection.to_s)
+        @properties = abstract_model.properties
+      end
+
       @api_current_paths ||= begin
-        if params[:model_name].start_with?('dt')
-          ns, model_name, display_name, data_type = api_model_from_data_type
-        else
-          ns, model_name, display_name = api_model
-        end
+        ns, model_name, display_name = api_model
 
         {
           "#{ns}/#{model_name}/{id}" => {
@@ -22,18 +43,21 @@ module RailsAdmin
           },
           "#{ns}/#{model_name}" => {
             get: api_spec_for_list(display_name),
-            post: api_spec_for_create(display_name, data_type)
+            post: api_spec_for_create(display_name)
           }
         }
 
       end if params[:model_name].present?
-    rescue
-      nil
+
+      @api_current_paths ||= []
+
+    rescue Exception => ex
+      []
     end
 
     ###
-    # Returns cURL command for service with given method and path.
-    def api_curl_code(method, path)
+    # Returns data and login.
+    def vars(method, path)
       # Get parameters definition.
       query_parameters = api_parameters(method, path, 'query')
 
@@ -43,15 +67,13 @@ module RailsAdmin
       # Get login account or user.
       login = Account.current || User.current
 
-      # Generate uri and command.
-      command = "curl -X #{method.upcase} \\\n"
-      command << "     -H 'X-User-Access-Key: #{login ? login.key : '-'}' \\\n"
-      command << "     -H 'X-User-Access-Token: #{login ? login.token : '-'}' \\\n"
-      command << "     -H 'Content-Type: application/json' \\\n"
-      command << "     -d '#{data.to_json}' \\\n" unless data.empty?
-      command << "     '#{api_uri(method, path)}'"
+      [data, login]
+    end
 
-      command
+    ###
+    # Returns lang command for service with given method and path.
+    def api_code(lang, method, path)
+      send("api_#{lang}_code", method, path)
     end
 
     ###
@@ -83,17 +105,17 @@ module RailsAdmin
     # Returns api uri.
     def api_uri(method, path)
       path_parameters = api_parameters(method, path, 'path')
-      uri = (Rails.env.development? ? 'http://127.0.0.1:3000' : 'https://cenit.io') + "/api/v2/#{path}"
+      uri = "#{Cenit.homepage}/api/v2/#{path}"
 
       # Set value of uri path parameters
       path_parameters.each do |p|
         if @object.respond_to?(p[:name])
-          value = @object.send(p[:name])
-          uri.gsub!("{#{p[:name]}}", value) unless value.to_s.empty?
+          value = @object.send(p[:name]).to_s
+          uri.gsub!("{#{p[:name]}}", value) unless value.empty?
         end
       end if @object
 
-      uri
+      "#{uri}.json"
     end
 
     ###
@@ -158,8 +180,8 @@ module RailsAdmin
 
     ###
     # Returns service create or update specification.
-    def api_spec_for_create(display_name, data_type = nil)
-      parameters = data_type ? api_params_from_data_type(data_type) : api_params_from_current_model
+    def api_spec_for_create(display_name)
+      parameters = @data_type ? api_params_from_data_type : api_params_from_current_model
 
       {
         tags: [display_name],
@@ -174,38 +196,46 @@ module RailsAdmin
 
     ###
     # Returns prepared parameters from data type code properties.
-    def api_params_from_data_type(data_type)
-      code = JSON.parse(data_type.code)
-      code['properties'].map { |k, v| { in: 'query', name: k, type: v['type'] } }
+    def api_params_from_data_type()
+      code = JSON.parse(@data_type.code)
+      code['properties'].select { |_, v| !v['type'].nil? }.map do |k, v|
+        {
+          in: 'query',
+          name: k == '_id' ? 'id' : k,
+          type: v['type']
+        }
+      end
     end
 
     ###
     # Returns prepared parameters from current model properties.
     def api_params_from_current_model
       exclude = /^(created_at|updated_at|version|origin)$|_ids?$/
-      params = @properties.map { |p| { in: 'query', name: p.property.name, type: p.property.type } }
+      params = @properties.map do |p|
+        {
+          in: 'query',
+          name: p.property.name == '_id' ? 'id' : p.property.name,
+          type: p.property.type
+        }
+      end
       params.select { |p| !p[:name].match(exclude) }
     end
 
     ###
     # Returns current namespace, model name and display name.
     def api_model
-      ns = 'setup'
-      model_name = params[:model_name]
-      display_name = model_name.humanize
+      if @data_type
+        ns = @data_type.namespace.parameterize.underscore.downcase
+        model_name = @data_type.slug
+        display_name = @data_type.name.chomp('.json').humanize
+      else
+        ns = 'setup'
+        model_name = params[:model_name]
+        display_name = model_name.humanize
+      end
 
       [ns, model_name, display_name]
     end
 
-    ###
-    # Returns current namespace, model name, display name and data type instance.
-    def api_model_from_data_type
-      data_type = Setup::DataType.find(params[:model_name].from(2))
-      ns = data_type.namespace.parameterize.underscore.downcase
-      model_name = data_type.slug
-      display_name = data_type.name.chomp('.json').humanize
-
-      [ns, model_name, display_name, data_type]
-    end
   end
 end

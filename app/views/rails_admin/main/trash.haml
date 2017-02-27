@@ -1,10 +1,10 @@
 - if @warning_message
-  %h4{style: 'color:#b94a48'}= @warning_message.to_s
+  %h4.text-danger= @warning_message.to_s
 - limit = 10
 %form{method: 'delete', class: 'form-horizontal denser', action: url_for(action: @action.action_name)}
   - if @object.present?
     - unless @warning_message
-      %h4{style: 'color:#b94a48'}= t('admin.actions.trash.trash_warning')
+      %h4.text-danger= t('admin.actions.trash.trash_warning')
     - Setup::Collection.reflect_on_all_associations(:has_and_belongs_to_many).each do |relation|
       - if (records = @object.send(relation.name)).present?
         .control-group

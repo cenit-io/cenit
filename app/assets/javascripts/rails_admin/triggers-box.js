@@ -11,7 +11,7 @@
             }
         },
 
-        update_triggers_menu: function() {
+        update_triggers_menu: function () {
             if (typeof fields != 'undefined') {
                 $("#triggers_box").html('');
                 var triggers_options = '';
@@ -66,7 +66,7 @@
                 '<option ' + (field_operator == "_null" ? 'selected="selected"' : '') + ' value="_null" >' + RailsAdmin.I18n.t("is_blank") + '</option>' +
                 '<option ' + (field_operator == "_change" ? 'selected="selected"' : '') + ' value="_change"  >' + RailsAdmin.I18n.t("change") + '</option>' +
                 '<option ' + (field_operator == "_presence_change" ? 'selected="selected"' : '') + ' value="_presence_change"  >' + RailsAdmin.I18n.t("present_and_change") + '</option>';
-            switch(field_type) {
+            switch (field_type) {
                 case 'boolean':
                     var control = '<select class="input-sm form-control" name="' + value_name + '">' +
                         '<option value="true"' + (field_value == "true" ? 'selected="selected"' : '') + '>' + RailsAdmin.I18n.t("true") + '</option>' +
@@ -80,12 +80,12 @@
                 case 'datetime':
                 case 'timestamp':
                     var control = '<select class="switch-additionnal-fieldsets input-sm form-control" name="' + operator_name + '">' +
-                        '<option ' + (field_operator == "default"   ? 'selected="selected"' : '') + ' data-additional-fieldset="default" value="default">' + RailsAdmin.I18n.t("date") + '</option>' +
-                        '<option ' + (field_operator == "between"   ? 'selected="selected"' : '') + ' data-additional-fieldset="between" value="between">' + RailsAdmin.I18n.t("between_and_") + '</option>' +
-                        '<option ' + (field_operator == "today"   ? 'selected="selected"' : '') + ' value="today">' + RailsAdmin.I18n.t("today") + '</option>' +
-                        '<option ' + (field_operator == "yesterday"   ? 'selected="selected"' : '') + ' value="yesterday">' + RailsAdmin.I18n.t("yesterday") + '</option>' +
-                        '<option ' + (field_operator == "this_week"   ? 'selected="selected"' : '') + ' value="this_week">' + RailsAdmin.I18n.t("this_week") + '</option>' +
-                        '<option ' + (field_operator == "last_week"   ? 'selected="selected"' : '') + ' value="last_week">' + RailsAdmin.I18n.t("last_week") + '</option>' +
+                        '<option ' + (field_operator == "default" ? 'selected="selected"' : '') + ' data-additional-fieldset="default" value="default">' + RailsAdmin.I18n.t("date") + '</option>' +
+                        '<option ' + (field_operator == "between" ? 'selected="selected"' : '') + ' data-additional-fieldset="between" value="between">' + RailsAdmin.I18n.t("between_and_") + '</option>' +
+                        '<option ' + (field_operator == "today" ? 'selected="selected"' : '') + ' value="today">' + RailsAdmin.I18n.t("today") + '</option>' +
+                        '<option ' + (field_operator == "yesterday" ? 'selected="selected"' : '') + ' value="yesterday">' + RailsAdmin.I18n.t("yesterday") + '</option>' +
+                        '<option ' + (field_operator == "this_week" ? 'selected="selected"' : '') + ' value="this_week">' + RailsAdmin.I18n.t("this_week") + '</option>' +
+                        '<option ' + (field_operator == "last_week" ? 'selected="selected"' : '') + ' value="last_week">' + RailsAdmin.I18n.t("last_week") + '</option>' +
                         '<option disabled="disabled">---------</option>' +
                         common_options +
                         '</select>'
@@ -109,12 +109,7 @@
                 case 'string':
                 case 'text':
                 case 'belongs_to_association':
-                    var control = '<select class="switch-additionnal-fieldsets input-sm form-control" value="' + field_operator + '" name="' + operator_name + '">' +
-                        '<option data-additional-fieldset="additional-fieldset"'  + (field_operator == "like"        ? 'selected="selected"' : '') + ' value="like">' + RailsAdmin.I18n.t("contains") + '</option>' +
-                        '<option data-additional-fieldset="additional-fieldset"'  + (field_operator == "is"          ? 'selected="selected"' : '') + ' value="is">' + RailsAdmin.I18n.t("is_exactly") + '</option>' +
-                        '<option data-additional-fieldset="additional-fieldset"'  + (field_operator == "starts_with" ? 'selected="selected"' : '') + ' value="starts_with">' + RailsAdmin.I18n.t("starts_with") + '</option>' +
-                        '<option data-additional-fieldset="additional-fieldset"'  + (field_operator == "ends_with"   ? 'selected="selected"' : '') + ' value="ends_with">' + RailsAdmin.I18n.t("ends_with") + '</option>' +
-                        '<option disabled="disabled">---------</option>' +
+                    var control = $.filters.belongs_to_association_basic_options(field_operator, operator_name) +
                         common_options +
                         '</select>'
                     var additional_control = '<input class="additional-fieldset input-sm form-control" style="display:' + (field_operator == "_blank" || field_operator == "_present" ? 'none' : 'inline-block') + ';" type="text" name="' + value_name + '" value="' + field_value + '" /> ';
@@ -123,8 +118,8 @@
                 case 'decimal':
                 case 'float':
                     var control = '<select class="switch-additionnal-fieldsets input-sm form-control" name="' + operator_name + '">' +
-                        '<option ' + (field_operator == "default"   ? 'selected="selected"' : '') + ' data-additional-fieldset="default" value="default">' + RailsAdmin.I18n.t("number") + '</option>' +
-                        '<option ' + (field_operator == "between"   ? 'selected="selected"' : '') + ' data-additional-fieldset="between" value="between">' + RailsAdmin.I18n.t("between_and_") + '</option>' +
+                        '<option ' + (field_operator == "default" ? 'selected="selected"' : '') + ' data-additional-fieldset="default" value="default">' + RailsAdmin.I18n.t("number") + '</option>' +
+                        '<option ' + (field_operator == "between" ? 'selected="selected"' : '') + ' data-additional-fieldset="between" value="between">' + RailsAdmin.I18n.t("between_and_") + '</option>' +
                         '<option disabled="disabled">---------</option>' +
                         common_options +
                         '</select>'

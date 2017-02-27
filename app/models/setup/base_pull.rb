@@ -19,8 +19,13 @@ module Setup
     end
 
     def run(message)
+      clear_hashes
       if pull_request_hash.present?
         pull_request_hash[:install] = message[:install].to_b if ask_for_install?
+        if (pull_parameters = message[:pull_parameters]).is_a?(Hash)
+          pull_request_hash[:pull_parameters].merge!(pull_parameters)
+          source_shared_collection.parametrize(pull_request_hash[:collection_data] || {}, pull_request_hash[:pull_parameters], keep_values: true)
+        end
         pulled_request_hash = Cenit::Actions.pull(source_shared_collection, pull_request_hash)
         self.remove_pull_request = true
         {
@@ -31,23 +36,31 @@ module Setup
             notify(message: msg, type: type)
           end
         end
+        if (missing_parameters = pulled_request_hash[:missing_parameters]).present?
+          notify(message: "Missing parameters (IDs: #{missing_parameters.to_sentence})")
+        end
         store pulled_request_hash.to_json, on: pulled_request
       else
         self.remove_pulled_request = true
-        pull_request_hash = Cenit::Actions.pull_request(source_shared_collection,
-                                                        discard_collection: message[:discard_collection].to_b,
-                                                        updated_records_ids: true)
-        if source_shared_collection.pull_parameters.present? ||
-          pull_request_hash[:new_records].present? ||
-          pull_request_hash[:updated_records].present?
+        msg_pull_request = message.dup
+        msg_pull_request[:updated_records_ids] = true
+        pull_request_hash = Cenit::Actions.pull_request(source_shared_collection, msg_pull_request)
+        store pull_request_hash.to_json, on: pull_request
+        if message[:skip_pull_review].to_b
+          notify(message: 'Skipping pull review', type: :warning)
+          run(message)
+        else
           notify(message: 'Waiting for pull review', type: :notice)
           resume_manually
         end
-        store pull_request_hash.to_json, on: pull_request
       end
     end
 
     protected
+
+    def clear_hashes
+      @pull_request_hash = @pulled_request_hash = nil
+    end
 
     def source_shared_collection
       fail NotImplementedError

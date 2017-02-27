@@ -6,6 +6,8 @@ require 'account'
   RailsAdmin::Config::Actions::SwitchNavigation,
   RailsAdmin::Config::Actions::DataType,
   RailsAdmin::Config::Actions::Filters,
+  RailsAdmin::Config::Actions::DataEvents,
+  RailsAdmin::Config::Actions::Flows,
   RailsAdmin::Config::Actions::Import,
   #RailsAdmin::Config::Actions::EdiExport,
   RailsAdmin::Config::Actions::ImportSchema,
@@ -40,7 +42,7 @@ require 'account'
   RailsAdmin::Config::Actions::BulkCross,
   RailsAdmin::Config::Actions::Regist,
   RailsAdmin::Config::Actions::SharedCollectionIndex,
-  RailsAdmin::Config::Actions::StoreIndex,
+  RailsAdmin::Config::Actions::EcommerceIndex,
   RailsAdmin::Config::Actions::BulkPull,
   RailsAdmin::Config::Actions::CleanUp,
   RailsAdmin::Config::Actions::ShowRecords,
@@ -53,8 +55,11 @@ require 'account'
   RailsAdmin::Config::Actions::Share,
   RailsAdmin::Config::Actions::Reinstall,
   RailsAdmin::Config::Actions::Swagger,
-  RailsAdmin::Config::Actions::RestApi,
-  RailsAdmin::Config::Actions::LinkDataType
+  RailsAdmin::Config::Actions::AlgorithmDependencies,
+  RailsAdmin::Config::Actions::RestApi1,
+  RailsAdmin::Config::Actions::RestApi2,
+  RailsAdmin::Config::Actions::LinkDataType,
+  RailsAdmin::Config::Actions::ImportApiSpec
 ].each { |a| RailsAdmin::Config::Actions.register(a) }
 
 RailsAdmin::Config::Actions.register(:export, RailsAdmin::Config::Actions::BulkExport)
@@ -69,7 +74,12 @@ RailsAdmin::Config::Actions.register(:export, RailsAdmin::Config::Actions::BulkE
   RailsAdmin::Config::Fields::Types::HtmlErb,
   RailsAdmin::Config::Fields::Types::OptionalBelongsTo,
   RailsAdmin::Config::Fields::Types::Code,
-  RailsAdmin::Config::Fields::Types::Tag
+  RailsAdmin::Config::Fields::Types::Tag,
+  RailsAdmin::Config::Fields::Types::TimeSpan,
+  RailsAdmin::Config::Fields::Types::NonEmptyString,
+  RailsAdmin::Config::Fields::Types::NonEmptyText,
+  RailsAdmin::Config::Fields::Types::MongoffFileUpload,
+  RailsAdmin::Config::Fields::Types::Url
 ].each { |f| RailsAdmin::Config::Fields::Types.register(f) }
 
 require 'rails_admin/config/fields/factories/tag'
@@ -100,7 +110,7 @@ RailsAdmin.config do |config|
 
   ### More at https://github.com/sferik/rails_admin/wiki/Base-configuration
   config.authenticate_with do
-    warden.authenticate! scope: :user unless %w(dashboard shared_collection_index store_index index show).include?(action_name)
+    warden.authenticate! scope: :user unless %w(dashboard shared_collection_index ecommerce_index index show).include?(action_name)
   end
   config.current_user_method { current_user }
   config.audit_with :mongoid_audit
@@ -112,13 +122,16 @@ RailsAdmin.config do |config|
     dashboard # mandatory
     # disk_usage
     shared_collection_index
-    store_index
+    ecommerce_index
     link_data_type
     index # mandatory
     new { except [Setup::Event, Setup::DataType, Setup::Authorization, Setup::BaseOauthProvider] }
     filters
+    data_events
+    flows
     import
     import_schema
+    import_api_spec
     pull_import
     translator_update
     convert
@@ -190,7 +203,13 @@ RailsAdmin.config do |config|
       end
       visible { only.include?((obj = bindings[:object]).class) && obj.try(:shared?) }
     end
-    rest_api
+    algorithm_dependencies do
+      only do
+        Setup::Algorithm
+      end
+    end
+    rest_api1
+    rest_api2
     documentation
   end
 
@@ -267,6 +286,8 @@ RailsAdmin.config do |config|
   config.navigation 'Security', icon: 'fa fa-shield'
 
   Setup::OauthClient
+
+  Setup::RemoteOauthClient
 
   Setup::BaseOauthProvider
 
@@ -353,6 +374,8 @@ RailsAdmin.config do |config|
 
   Setup::Task
 
+  Setup::Execution
+
   Setup::FlowExecution
 
   Setup::DataTypeGeneration
@@ -374,6 +397,8 @@ RailsAdmin.config do |config|
   Setup::ApiPull
 
   Setup::SchemasImport
+
+  Setup::ApiSpecImport
 
   Setup::Deletion
 

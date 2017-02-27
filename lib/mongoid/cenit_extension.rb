@@ -29,13 +29,23 @@ module Mongoid
 
       include Mongoff::MetadataAccess
 
-      def mongo_value(value, field, schema = nil)
-        return value unless field
-        if (property_model = property_model(field)).is_a?(Mongoff::Model)
-          property_model.mongo_value(value, property_model.schema)
-        else
-          value
+      def mongo_value(value, field, schema = nil, &success_block)
+        if field && (property_model = property_model(field)).is_a?(Mongoff::Model)
+          value = property_model.mongo_value(value, property_model.schema)
         end
+        if success_block
+          args =
+            case success_block.arity
+            when 0
+              []
+            when 1
+              [value]
+            else
+              [value, success_type]
+            end
+          success_block.call(*args)
+        end
+        value
       end
 
       def observable?

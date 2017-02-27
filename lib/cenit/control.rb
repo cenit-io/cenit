@@ -9,7 +9,7 @@ module Cenit
       {
         controller: ['app'],
         action: ['index'],
-        id_or_ns: [app.slug_id, app.identifier, app.ns_slug],
+        id_or_ns: [app.slug_id, app.get_identifier, app.ns_slug],
         app_slug: [app.slug]
       }.each do |key, value|
         params.delete(key) if value.include?(params[key])
@@ -34,13 +34,25 @@ module Cenit
     def send_data(*args)
       fail 'Double-rendering' if done?
       @render_called = true
-      controller.send_data(*args)
+      if args.length == 1 && (res = args[0]).is_a?(Setup::Webhook::Response)
+        controller.send_data res.body, content_type: res.content_type, status: res.code
+      else
+        controller.send_data(*args)
+      end
     end
 
     def render(*args)
       fail 'Re-calling render' if done?
       @render_called = true
-      controller.render(*args)
+      if args.length == 1 && (res = args[0]).is_a?(Setup::Webhook::Response)
+        if res.headers['content-transfer-encoding']
+          controller.send_data res.body, content_type: res.content_type, status: res.code
+        else
+          controller.render text: res.body, content_type: res.content_type, status: res.code
+        end
+      else
+        controller.render(*args)
+      end
     end
 
     def render_called?
@@ -94,8 +106,8 @@ module Cenit
 
     def access_token_for(auth)
       fail "Invalid authorization class: #{auth.class}" unless auth.is_a?(Setup::Oauth2Authorization)
-      unless (app_id = Cenit::ApplicationId.where(identifier: auth.client && auth.client.identifier).first)
-        fail "Invalid authorization client: #{auth.client.identifier}"
+      unless (app_id = Cenit::ApplicationId.where(identifier: auth.client && auth.client.get_identifier).first)
+        fail "Invalid authorization client: #{auth.client.custom_title}"
       end
       scope = auth.scopes.collect { |scope| Cenit::OauthScope.new(scope.name) }.inject(&:merge)
       if scope.valid? && scope.auth?

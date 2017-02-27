@@ -25,11 +25,24 @@ module RailsAdmin
                 end
               end
             end
+
             edit do
               field :description
               field :auto_retry
             end
-            fields :deletion_model, :description, :scheduler, :attempts_succeded, :retries, :progress, :status, :notifications, :updated_at
+
+            list do
+              field :deletion_model
+              field :description
+              field :scheduler
+              field :attempts_succeded
+              field :retries
+              field :progress
+              field :status
+              field :updated_at
+            end
+
+            fields :deletion_model, :description, :scheduler, :attempts_succeded, :retries, :progress, :status, :executions, :notifications, :updated_at
           end
         end
 

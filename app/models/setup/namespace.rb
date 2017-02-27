@@ -31,7 +31,7 @@ module Setup
     end
 
     def schema_for(base_uri, relative_uri)
-      uri = Cenit::Utility.abs_uri(base_uri, relative_uri)
+      uri = Setup::Schema.abs_uri(base_uri, relative_uri)
       if (schema = @schemas_scope[uri])
         schema
       else

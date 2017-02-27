@@ -14,7 +14,7 @@ Cenit.config do
   oauth_path '/oauth'
 
   #Set this option to :embedded to mount the cenit-oauth Token End Point
-  oauth_token_end_point ENV['OAUTH_TOKEN_END_POINT']
+  oauth_token_end_point ENV['OAUTH_TOKEN_END_POINT'] || :embedded
 
   #Use this option to setup an external service
   service_url ENV['SERVICE_URL']
@@ -77,7 +77,7 @@ Cenit.config do
   asynchronous_push true
 
   #oauth2 callback site
-  oauth2_callback_site ENV['OAUTH2_CALLBACK_SITE']
+  oauth2_callback_site ENV['OAUTH2_CALLBACK_SITE'] || homepage
 
   #HTTP Proxy
   http_proxy_address ENV['HTTP-PROXY']
@@ -116,6 +116,14 @@ Cenit.config do
 
   using_accounts_dbs ENV['USING_ACCOUNTS_DBS']
 
-  # Max count of tab actions to show before the More Actions tab if there are more actions to show
+  #Max count of tab actions to show before the More Actions tab, if there are more actions to show
   max_tab_actions_count 2
+
+  #Max nested forms count generation for new/update actions
+  max_nested_forms 100
+
+  #Max nested forms levels generation for new/update actions
+  max_nested_forms_levels 10
+
+  max_handing_schemas 500
 end

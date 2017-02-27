@@ -1,6 +1,5 @@
 module Setup
   class EdiValidator < CustomValidator
-    include SharedEditable
     include Setup::FormatValidator
     include RailsAdmin::Models::Setup::EdiValidatorAdmin
 

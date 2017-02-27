@@ -1,8 +1,9 @@
 module Setup
   class JsonDataType < DataType
-
     include Setup::SnippetCode
-    include RailsAdmin::Models::Setup::JsonDataTypeAdmin    
+    include RailsAdmin::Models::Setup::JsonDataTypeAdmin
+
+    validates_presence_of :namespace
 
     legacy_code_attribute :schema
 
@@ -20,17 +21,40 @@ module Setup
     shared_deny :simple_delete_data_type, :bulk_delete_data_type, :simple_expand, :bulk_expand
 
     after_initialize do
-      self.schema = {} if new_record?
+      self.schema = {} if new_record? && @schema.nil?
+    end
+
+    def validates_configuration
+      super && validate_model && check_indices
+    end
+
+    def schema_code
+      schema!
+    rescue
+      code
+    end
+
+    def schema_code=(sch)
+      self.schema = sch
+    end
+
+    def schema!
+      @schema ||= JSON.parse(code)
     end
 
     def schema
-      @schema ||= JSON.parse(code)
+      schema!
+    rescue
+      { ERROR: 'Invalid JSON syntax', schema: code }
     end
 
     def schema=(sch)
       sch = JSON.parse(sch.to_s) unless sch.is_a?(Hash)
       self.code = JSON.pretty_generate(sch)
       @schema = sch
+    rescue
+      @schema = nil
+      self.code = sch
     end
 
     def code_extension
@@ -64,27 +88,28 @@ module Setup
       errors.blank?
     end
 
-    def check_before_save
-      validate_model && check_indices && super
-    end
-
     def schema_changed?
       changed_attributes.has_key?('schema')
     end
 
     def validate_model
-      if schema.nil?
-        errors.add(:schema, "can't be blank")
-      elsif schema_changed?
-        begin
-          json_schema, _ = validate_schema
-          fail Exception, 'defines invalid property name: _type' if object_schema?(json_schema) &&json_schema['properties']['_type']
-          self.schema = check_properties(JSON.parse(json_schema.to_json))
-          self.title = json_schema['title'] || self.name if title.blank?
-        rescue Exception => ex
-          errors.add(:schema, ex.message)
+      if schema_code.is_a?(Hash)
+        if schema_changed?
+          begin
+            json_schema, _ = validate_schema
+            fail Exception, 'defines invalid property name: _type' if object_schema?(json_schema) &&json_schema['properties']['_type']
+            self.schema = check_properties(JSON.parse(json_schema.to_json))
+          rescue Exception => ex
+            errors.add(:schema, ex.message)
+          end
+          @collection_data_type = nil
         end
-        @collection_data_type = nil
+        json_schema ||= schema
+        if title.blank?
+          self.title = json_schema['title'] || self.name
+        end
+      else
+        errors.add(:schema_code, 'is not a valid JSON value')
       end
       errors.blank?
     end
