@@ -80,6 +80,9 @@ en:
           tasks: 'running tasks'
           auths: 'authorizations'
           notif: 'notifications'
+        collections:
+          add: 'Add a new collection'
+          no_categories: 'No categories'
       send_to_flow:
         title: "Send %{model_label_plural} to flow"
         menu: "Send to flow"
@@ -173,6 +176,14 @@ en:
         done: "exported"
         doing: "execution"
       import_schema:
+        title: "Import"
+        menu: "Import"
+        breadcrumb: "Import"
+        file_content_label: "File content"
+        submit: "Import"
+        done: "created"
+        doing: "import"
+      import_api_spec:
         title: "Import"
         menu: "Import"
         breadcrumb: "Import"
@@ -425,6 +436,14 @@ en:
         title: "Copy"
         menu: "Copy"
         breadcrumb: "Copy"
+      data_events:
+        title: "Data Events"
+        menu: "Data Events"
+        breadcrumb: "Data Events"
+      flows:
+        title: "Flows"
+        menu: "Flows"
+        breadcrumb: "Flows"
       filters:
         title: "Filters"
         menu: "Filters"
@@ -482,7 +501,7 @@ en:
       swagger:
         title: "Swagger"
         menu: "Swagger"
-        breadcrumb: "Swagger"  
+        breadcrumb: "Swagger"
       link_data_type:
         menu: "Link"
         breadcrumb: "Link %{model_label}"
@@ -664,4 +683,5 @@ en:
       cenit: 'Build-In'
       admin: 'Administration'
       tmp: 'Temporal'
+      app: 'App'
 

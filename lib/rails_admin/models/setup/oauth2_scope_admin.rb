@@ -11,13 +11,7 @@ module RailsAdmin
             label 'OAuth 2.0 Scope'
             object_label_method { :custom_title }
 
-            configure :tenant do
-              visible { Account.current_super_admin? }
-              read_only { true }
-              help ''
-            end
-
-            fields :provider, :name, :description, :tenant, :updated_at
+            fields :provider, :name, :description, :updated_at
           end
         end
 

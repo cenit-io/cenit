@@ -20,7 +20,9 @@ module Setup
         if (shared_collection = Setup::CrossSharedCollection.where(id: (shared_collection_id = message[:shared_collection_id])).first)
           begin
             if shared_collection.installed?
-              shared_collection.reinstall(collection: source_collection)
+              unless shared_collection.reinstall(collection: source_collection)
+                fail shared_collection.errors.full_messages.to_sentence
+              end
             else
               [:title, :readme, :metadata].each do |attr|
                 shared_collection.send("#{attr}=", source_collection.send(attr))

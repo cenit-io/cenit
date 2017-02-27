@@ -8,6 +8,8 @@ module Setup
 
     deny :copy, :new, :edit, :translator_update, :import, :convert
 
+    attachment_uploader AccountUploader
+
     field :type, type: Symbol, default: :error
     field :message, type: String
     belongs_to :task, class_name: Setup::Task.to_s, inverse_of: :notifications

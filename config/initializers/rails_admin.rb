@@ -6,6 +6,8 @@ require 'account'
   RailsAdmin::Config::Actions::SwitchNavigation,
   RailsAdmin::Config::Actions::DataType,
   RailsAdmin::Config::Actions::Filters,
+  RailsAdmin::Config::Actions::DataEvents,
+  RailsAdmin::Config::Actions::Flows,
   RailsAdmin::Config::Actions::Import,
   #RailsAdmin::Config::Actions::EdiExport,
   RailsAdmin::Config::Actions::ImportSchema,
@@ -56,7 +58,8 @@ require 'account'
   RailsAdmin::Config::Actions::AlgorithmDependencies,
   RailsAdmin::Config::Actions::RestApi1,
   RailsAdmin::Config::Actions::RestApi2,
-  RailsAdmin::Config::Actions::LinkDataType
+  RailsAdmin::Config::Actions::LinkDataType,
+  RailsAdmin::Config::Actions::ImportApiSpec
 ].each { |a| RailsAdmin::Config::Actions.register(a) }
 
 RailsAdmin::Config::Actions.register(:export, RailsAdmin::Config::Actions::BulkExport)
@@ -75,7 +78,8 @@ RailsAdmin::Config::Actions.register(:export, RailsAdmin::Config::Actions::BulkE
   RailsAdmin::Config::Fields::Types::TimeSpan,
   RailsAdmin::Config::Fields::Types::NonEmptyString,
   RailsAdmin::Config::Fields::Types::NonEmptyText,
-  RailsAdmin::Config::Fields::Types::MongoffFileUpload
+  RailsAdmin::Config::Fields::Types::MongoffFileUpload,
+  RailsAdmin::Config::Fields::Types::Url
 ].each { |f| RailsAdmin::Config::Fields::Types.register(f) }
 
 require 'rails_admin/config/fields/factories/tag'
@@ -123,8 +127,11 @@ RailsAdmin.config do |config|
     index # mandatory
     new { except [Setup::Event, Setup::DataType, Setup::Authorization, Setup::BaseOauthProvider] }
     filters
+    data_events
+    flows
     import
     import_schema
+    import_api_spec
     pull_import
     translator_update
     convert
@@ -280,6 +287,8 @@ RailsAdmin.config do |config|
 
   Setup::OauthClient
 
+  Setup::RemoteOauthClient
+
   Setup::BaseOauthProvider
 
   Setup::OauthProvider
@@ -388,6 +397,8 @@ RailsAdmin.config do |config|
   Setup::ApiPull
 
   Setup::SchemasImport
+
+  Setup::ApiSpecImport
 
   Setup::Deletion
 

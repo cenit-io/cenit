@@ -1,24 +1,42 @@
 module Setup
   class OauthClient
-    include SharedEditable
+    include CenitScoped
+    include CrossOrigin::Document
     include CustomTitle
     include RailsAdmin::Models::Setup::OauthClientAdmin
 
-    build_in_data_type.including(:provider).referenced_by(:provider, :name).protecting(:identifier, :secret)
+    origins :app, :default, -> { Cenit::MultiTenancy.tenant_model.current && :owner }, :shared
 
-    shared_deny :copy
+    build_in_data_type.including(:provider).and(
+      properties: {
+        identifier: {
+          type: 'string'
+        },
+        secret: {
+          type: 'string'
+        }
+      }
+    ).protecting(:identifier, :secret).referenced_by(:_type, :provider, :namespace, :name)
 
     field :name, type: String
     belongs_to :provider, class_name: Setup::BaseOauthProvider.to_s, inverse_of: nil
 
-    field :identifier, type: String
-    field :secret, type: String
-
     validates_presence_of :provider, :name
-    validates_uniqueness_of :name, scope: :provider
 
-    def scope_title
-      provider && provider.custom_title
+    def identifier
+      fail NotImplementedError
+    end
+
+    def secret
+      fail NotImplementedError
+    end
+
+    def get_identifier
+      fail NotImplementedError
+    end
+
+    def get_secret
+      fail NotImplementedError
     end
 
     def create_authorization!(auth_data={})
