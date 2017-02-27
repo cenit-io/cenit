@@ -161,6 +161,7 @@ module RailsAdmin
           @bulk_ids = scope.collect(&:id).collect(&:to_s) #TODO Store scope options and selector instead ids
         end
       end
+      params.delete(:query)
       model
     end
   end
