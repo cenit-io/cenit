@@ -8,8 +8,10 @@ module RailsAdmin
           rails_admin do
             visible false
             object_label_method { :label }
-            configure :location, :json_value
-            fields :label, :description, :property_name, :location
+            configure :properties_locations do
+              label 'Properties'
+            end
+            fields :label, :description, :properties_locations
           end
         end
 

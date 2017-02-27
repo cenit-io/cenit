@@ -3,7 +3,9 @@ module Setup
     include SharedEditable
     include MandatoryNamespace
     include ClassHierarchyAware
-    include RailsAdmin::Models::Setup::BaseOauthProviderAdmin    
+    include RailsAdmin::Models::Setup::BaseOauthProviderAdmin
+
+    origins origins_config, :cenit
 
     abstract_class true
 
@@ -82,8 +84,8 @@ module Setup
                                            body: {
                                              grant_type: :refresh_token,
                                              refresh_token: authorization.refresh_token,
-                                             client_id: authorization.client.attributes[:identifier],
-                                             client_secret: authorization.client.attributes[:secret]
+                                             client_id: authorization.client.get_identifier,
+                                             client_secret: authorization.client.get_secret
                                            }.to_param)
         body = JSON.parse(http_response.body)
         if http_response.code == 200
@@ -108,8 +110,8 @@ module Setup
                                            body: {
                                              grant_type: :refresh_token,
                                              refresh_token: authorization.refresh_token,
-                                             client_id: authorization.client.attributes[:identifier],
-                                             client_secret: authorization.client.attributes[:secret]
+                                             client_id: authorization.client.get_identifier,
+                                             client_secret: authorization.client.get_secret
                                            }.to_param)
         body = JSON.parse(http_response.body)
         if http_response.code == 200

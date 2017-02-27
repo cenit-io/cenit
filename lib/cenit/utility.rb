@@ -301,22 +301,30 @@ module Cenit
 
       def json_value_of(value)
         return value unless value.is_a?(String)
+        value = value.strip
         if value.blank?
           nil
         elsif value.start_with?('"') && value.end_with?('"')
           value[1..value.length - 2]
-        elsif v = JSON.parse(value) rescue nil
-          v
-        elsif value == 'true'
-          true
-        elsif value == 'false'
-          false
-        elsif (v = value.to_i).to_s == value
-          v
-        elsif (v = value.to_f).to_s == value
-          v
         else
-          value
+          begin
+            JSON.parse(value)
+          rescue
+            if (v = value.to_i).to_s == value
+              v
+            elsif (v = value.to_f).to_s == value
+              v
+            else
+              case value
+              when 'true'
+                true
+              when 'false'
+                false
+              else
+                value
+              end
+            end
+          end
         end
       end
 

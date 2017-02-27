@@ -4,7 +4,7 @@ module RailsAdmin
       class Import < RailsAdmin::Config::Actions::Base
 
         register_instance_option :except do
-          Setup::Schema
+          [Setup::Schema, Setup::ApiSpec]
         end
 
         register_instance_option :visible? do

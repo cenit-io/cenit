@@ -58,7 +58,7 @@ module Setup
 
       has_and_belongs_to_many :authorizations, class_name: Setup::Authorization.to_s, inverse_of: nil
       has_and_belongs_to_many :oauth_providers, class_name: Setup::BaseOauthProvider.to_s, inverse_of: nil
-      has_and_belongs_to_many :oauth_clients, class_name: Setup::OauthClient.to_s, inverse_of: nil
+      has_and_belongs_to_many :oauth_clients, class_name: Setup::RemoteOauthClient.to_s, inverse_of: nil
       has_and_belongs_to_many :oauth2_scopes, class_name: Setup::Oauth2Scope.to_s, inverse_of: nil
 
       before_save :add_dependencies
@@ -147,10 +147,12 @@ module Setup
       nss.each { |ns| self.namespaces << Setup::Namespace.create(name: ns) }
 
       collecting_models.each do |model, relation|
-        reference_keys = model.data_type.get_referenced_by - %w(_id)
-        send(relation.name).group_by { |record| reference_keys.collect { |key| record.send(key) } }.each do |keys, records|
+        reference_keys = (model.data_type.get_referenced_by || []) - %w(_id)
+        send(relation.name).group_by do |record|
+          reference_keys.collect { |key| record.try(key) }.select { |key| key }
+        end.each do |keys, records|
           if records.length > 1
-            keys_hash= {}
+            keys_hash = {}
             reference_keys.each_with_index { |key, index| keys_hash[key] = keys[index] }
             self.warnings << "Multiple #{relation.name} with the same reference keys #{keys_hash.to_json}"
           end

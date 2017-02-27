@@ -145,7 +145,7 @@ module Setup
       hash = collecting_data
       hash = pull_data.merge(hash)
       hash.delete('readme')
-      hash
+      clean_ids(hash)
     end
 
     def data_with(parameters = {})
@@ -186,6 +186,9 @@ module Setup
 
       if collection.warnings.present?
         collection.save(add_dependencies: false) if collection.changed?
+        collection.warnings.each do |warning|
+          errors.add(:base, warning)
+        end
         return false
       end
 
@@ -282,5 +285,24 @@ module Setup
     protected
 
     attr_accessor :skip_reinstall_callback
+
+    def clean_ids(value)
+      case value
+      when Hash
+        if value['_reference']
+          Cenit::Utility.deep_remove(value, 'id')
+        else
+          h = {}
+          value.each do |key, sub_value|
+            h[key] = clean_ids(sub_value)
+          end
+          h
+        end
+      when Array
+        value.collect { |sub_value| clean_ids(sub_value) }
+      else
+        value
+      end
+    end
   end
 end

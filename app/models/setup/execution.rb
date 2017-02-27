@@ -16,6 +16,8 @@ module Setup
 
     deny :copy, :new, :translator_update, :import, :convert, :send_to_flow
 
+    attachment_uploader AccountUploader
+
     belongs_to :task, class_name: Setup::Task.to_s, inverse_of: :executions
     has_and_belongs_to_many :notifications, class_name: Setup::Notification.to_s, inverse_of: nil
 

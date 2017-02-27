@@ -58,7 +58,8 @@ require 'account'
   RailsAdmin::Config::Actions::AlgorithmDependencies,
   RailsAdmin::Config::Actions::RestApi1,
   RailsAdmin::Config::Actions::RestApi2,
-  RailsAdmin::Config::Actions::LinkDataType
+  RailsAdmin::Config::Actions::LinkDataType,
+  RailsAdmin::Config::Actions::ImportApiSpec
 ].each { |a| RailsAdmin::Config::Actions.register(a) }
 
 [
@@ -82,7 +83,8 @@ RailsAdmin::Config::Actions.register(:export, RailsAdmin::Config::Actions::BulkE
   RailsAdmin::Config::Fields::Types::TimeSpan,
   RailsAdmin::Config::Fields::Types::NonEmptyString,
   RailsAdmin::Config::Fields::Types::NonEmptyText,
-  RailsAdmin::Config::Fields::Types::MongoffFileUpload
+  RailsAdmin::Config::Fields::Types::MongoffFileUpload,
+  RailsAdmin::Config::Fields::Types::Url
 ].each { |f| RailsAdmin::Config::Fields::Types.register(f) }
 
 require 'rails_admin/config/fields/factories/tag'
@@ -134,6 +136,7 @@ RailsAdmin.config do |config|
     flows
     import
     import_schema
+    import_api_spec
     pull_import
     translator_update
     convert
@@ -291,6 +294,8 @@ RailsAdmin.config do |config|
 
   Setup::OauthClient
 
+  Setup::RemoteOauthClient
+
   Setup::BaseOauthProvider
 
   Setup::OauthProvider
@@ -401,6 +406,8 @@ RailsAdmin.config do |config|
   Setup::ApiPull
 
   Setup::SchemasImport
+
+  Setup::ApiSpecImport
 
   Setup::Deletion
 

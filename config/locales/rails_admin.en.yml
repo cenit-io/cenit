@@ -179,6 +179,14 @@ en:
         submit: "Import"
         done: "created"
         doing: "import"
+      import_api_spec:
+        title: "Import"
+        menu: "Import"
+        breadcrumb: "Import"
+        file_content_label: "File content"
+        submit: "Import"
+        done: "created"
+        doing: "import"
       delete_all:
         title: "Delete all"
         menu: "Delete all"
@@ -671,3 +679,5 @@ en:
       cenit: 'Build-In'
       admin: 'Administration'
       tmp: 'Temporal'
+      app: 'App'
+
