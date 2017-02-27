@@ -662,7 +662,7 @@ module RailsAdmin
 
     def found_menu(abstract_model = @abstract_model)
 
-      actions = actions(:bulkable, abstract_model)
+      actions = actions(:bulk_processable, abstract_model)
       return '' if actions.empty?
       label = (abstract_model.try(:config) || action.bindings[:custom_model_config]).contextualized_label_plural
       content_tag :li, class: 'dropdown', style: 'float:right' do

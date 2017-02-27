@@ -62,6 +62,10 @@ module RailsAdmin
           true
         end
 
+        register_instance_option :bulk_processable? do
+          true
+        end
+
         register_instance_option :link_icon do
           'icon-share-alt'
         end

@@ -1302,3 +1302,10 @@ label {
 .graphics-chart {
   overflow: scroll;
 }
+.btn .caret {
+  margin-left: 2px;
+}
+.open > .dropdown-menu {
+  display: block;
+  z-index: 1002;
+}
