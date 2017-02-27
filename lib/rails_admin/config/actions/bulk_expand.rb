@@ -14,6 +14,10 @@ module RailsAdmin
         register_instance_option :bulkable? do
           true
         end
+
+        register_instance_option :bulk_processable? do
+          true
+        end
       end
     end
   end

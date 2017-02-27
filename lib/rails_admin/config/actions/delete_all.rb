@@ -33,6 +33,10 @@ module RailsAdmin
           end
         end
 
+        register_instance_option :bulk_processable? do
+          true
+        end
+
         register_instance_option :link_icon do
           'icon-trash'
         end
