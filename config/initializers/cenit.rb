@@ -14,7 +14,7 @@ Cenit.config do
   oauth_path '/oauth'
 
   #Set this option to :embedded to mount the cenit-oauth Token End Point
-  oauth_token_end_point ENV['OAUTH_TOKEN_END_POINT']
+  oauth_token_end_point ENV['OAUTH_TOKEN_END_POINT'] || :embedded
 
   #Use this option to setup an external service
   service_url ENV['SERVICE_URL']
@@ -77,7 +77,7 @@ Cenit.config do
   asynchronous_push true
 
   #oauth2 callback site
-  oauth2_callback_site ENV['OAUTH2_CALLBACK_SITE']
+  oauth2_callback_site ENV['OAUTH2_CALLBACK_SITE'] || homepage
 
   #HTTP Proxy
   http_proxy_address ENV['HTTP-PROXY']
