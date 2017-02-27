@@ -8,15 +8,15 @@ module Setup
 
     build_in_data_type.referenced_by(:namespace, :name).with(:namespace, :name, :title, :_type, :snippet, :events, :before_save_callbacks, :records_methods, :data_type_methods)
     build_in_data_type.and({
-                             properties: {
-                               schema: {
-                                 type: 'object'
-                               },
-                               slug: {
-                                 type: 'string'
-                               }
-                             }
-                           }.deep_stringify_keys)
+                              properties: {
+                                schema: {
+                                  type: 'object'
+                                },
+                                slug: {
+                                  type: 'string'
+                                }
+                              }
+                            }.deep_stringify_keys)
 
     def validates_for_destroy
       if Cenit::MultiTenancy.tenant_model.current_super_admin?

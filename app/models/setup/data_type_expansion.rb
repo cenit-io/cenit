@@ -29,19 +29,19 @@ module Setup
             property_schema = data_type.merge_schema(property_schema, ref_collector: refs, until_merge: true)
             if property_schema['type'] == 'array' && (items = property_schema['items'])
               property_schema['items'] = items = data_type.merge_schema(items, ref_collector: refs, until_merge: true)
-              if items.is_a?(Hash) && (edi_opts = items['edi']) && edi_opts.has_key?('segment')
+              if items.is_a?(Hash) && (edi_opts = items['edi']) && edi_opts.key?('segment')
                 property_segment = edi_opts['segment']
               end
             end
             properties[property_name] = property_schema
-            if (edi_opts = property_schema['edi']) && edi_opts.has_key?('segment')
+            if (edi_opts = property_schema['edi']) && edi_opts.key?('segment')
               property_segment = edi_opts['segment']
             end
             segments[property_segment] = property_name if property_segment
           end
           schema['properties'] = properties
         end
-        #TODO inject refs dependencies
+        # TODO: inject refs dependencies
         (schema['edi'] ||= {})['segments'] = segments if message[:segment_shortcuts]
         if data_type.schema != schema
           data_type.schema = schema
@@ -49,6 +49,5 @@ module Setup
         end
       end
     end
-
   end
 end

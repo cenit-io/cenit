@@ -192,7 +192,7 @@ module Setup
 
     def store_fields(instance_variable, *fields)
       if fields
-        fail Exception.new('Illegal argument') unless fields.present?
+        fail 'Illegal argument' unless fields.present?
         fields = [fields] unless fields.is_a?(Enumerable)
         instance_variable_set(instance_variable, fields.flatten.collect(&:to_s).uniq.select(&:present?))
       else
@@ -266,13 +266,29 @@ module Setup
           when :embeds_one
             { '$ref' => relation.klass.to_s }
           when :embeds_many
-            { 'type' => 'array', 'items' => { '$ref' => relation.klass.to_s } }
+            {
+              'type' => 'array',
+              'items' => { '$ref' => relation.klass.to_s }
+            }
           when :has_one
-            { '$ref' => relation.klass.to_s, 'referenced' => true, 'export_embedded' => (@embedding && @embedding.include?(relation_name)).to_b }
+            {
+              '$ref' => relation.klass.to_s,
+              'referenced' => true,
+              'export_embedded' => (@embedding && @embedding.include?(relation_name)).to_b
+            }
           when :belongs_to
-            { '$ref' => relation.klass.to_s, 'referenced' => true, 'export_embedded' => (@embedding && @embedding.include?(relation_name)).to_b } if (@including && @including.include?(relation_name.to_s)) || relation.inverse_of.nil?
+            {
+              '$ref' => relation.klass.to_s,
+              'referenced' => true,
+              'export_embedded' => (@embedding && @embedding.include?(relation_name)).to_b
+            } if (@including && @including.include?(relation_name.to_s)) || relation.inverse_of.nil?
           when :has_many, :has_and_belongs_to_many
-            { 'type' => 'array', 'items' => { '$ref' => relation.klass.to_s }, 'referenced' => true, 'export_embedded' => (@embedding && @embedding.include?(relation_name)).to_b }
+            {
+              'type' => 'array',
+              'items' => { '$ref' => relation.klass.to_s },
+              'referenced' => true,
+              'export_embedded' => (@embedding && @embedding.include?(relation_name)).to_b
+            }
           end
         next unless property_schema
         if @discarding.include?(relation_name.to_s)

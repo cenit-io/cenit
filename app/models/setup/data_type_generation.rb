@@ -18,7 +18,7 @@ module Setup
                 if data_type.update(schema: data_type_schemas.delete(data_type.name))
                   data_type.id
                 else
-                  #TODO Handling data type generation errors
+                  # TODO: Handling data type generation errors
                   nil
                 end
             end
@@ -31,7 +31,7 @@ module Setup
           data_type = Setup::JsonDataType.create(namespace: ns, name: name, schema: schema)
           data_type_schemas[name] =
             if data_type.errors.present?
-              #TODO Handling data type generation errors
+              # TODO:  Handling data type generation errors
               nil
             else
               data_type.id
@@ -46,7 +46,6 @@ module Setup
     end
 
     class << self
-
       def data_type_schemas(source, options = {})
         options[:schemas] = schemas =
           case source
@@ -81,7 +80,7 @@ module Setup
         json_schemas = Hash.new { |h, k| h[k] = {} }
         data_type_names = options[:data_type_names]
         schemas.each do |schema|
-          json_schemas[schema[:namespace]].merge!(json_schms = schema.json_schemas)
+          json_schemas[schema[:namespace]].merge!(schema.json_schemas)
           if data_type_names && (name = schema.instance_variable_get(:@data_type_name))
             data_type_names[schema.id] = name
           end
