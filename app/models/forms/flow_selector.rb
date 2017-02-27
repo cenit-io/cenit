@@ -19,7 +19,7 @@ module Forms
             data_type = bindings[:object].try(:data_type)
             flows_ids = Setup::Flow.all.select do |flow|
               flow.data_type.nil? ||
-                (flow.translator && flow.translator.type != :Import && flow.data_type == data_type)
+                (flow.translator && flow.data_type == data_type)
             end.collect(&:id)
             Proc.new { |scope|
               scope.any_in(id: flows_ids)
