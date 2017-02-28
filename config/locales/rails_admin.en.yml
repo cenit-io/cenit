@@ -477,6 +477,7 @@ en:
         breadcrumb: "Notebooks"
       notebooks_root:
         menu: "Notebooks"
+        breadcrumb: "Notebooks"
       state:
         title: "State"
         menu: "State"
