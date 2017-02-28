@@ -57,32 +57,61 @@ module RailsAdmin
 
     ###
     # Returns data and login.
-    def vars(method, path)
+    def api_data(lang, method, path)
       # Get parameters definition.
       query_parameters = api_parameters(method, path, 'query')
 
       # Get data object from query parameters.
       data = query_parameters.map { |p| [p[:name], api_default_param_value(p)] }.to_h
 
-      # Get login account or user.
-      login = Account.current || User.current
+      uri = api_uri(method, path)
 
-      [data, login]
+      path_parameters = api_parameters(method, path, 'path')
+      vars = {}
+
+      # Set value of uri path parameters
+      path_parameters.each do |p|
+        var = "{#{p[:name]}}"
+        if uri.match(var)
+          vars[p[:name]] = @object && @object.respond_to?(p[:name]) ? @object.send(p[:name]).to_s : '...'
+          uri.gsub!(var, api_inline_var(lang, p[:name]))
+        end
+      end
+
+      [data, uri, vars]
     end
 
     ###
     # Returns lang command for service with given method and path.
-    def api_code(lang, method, path, with_tokens=true)
-      send("api_#{lang}_code", method, path, with_tokens)
+    def api_code(lang, method, path)
+      send("api_#{lang}_code", method, path)
     end
 
     ###
-    # Returns URL command for service with given method and path.
-    def api_url(method, path)
-      # Get parameters definition.
-      path_parameters = api_parameters(method, path)
+    # Returns vars definition in given lang.
+    def api_auth_vars(lang, with_tokens=true)
+      # Get login account or user.
+      login = Account.current || User.current
 
-      api_uri(path, path_parameters)
+      api_vars(lang, {
+        user_access_key: (with_tokens && login.present?) ? login.key : '...',
+        user_access_token: (with_tokens && login.present?) ? login.token : '...'
+      })
+    end
+
+    ###
+    # Returns vars definition in given lang.
+    def api_vars(lang, vars)
+      method = "api_#{lang}_vars"
+      vars = respond_to?(method) ? send(method, vars) : vars.map { |k, v| "#{k} = '#{vars.is_a?(Hash) ? v : "..."}'" }
+      vars.join("\n")
+    end
+
+    ###
+    # Returns inline var access.
+    def api_inline_var(lang, name)
+      method = "api_#{lang}_inline_var"
+      respond_to?(method) ? send(method, name) : "${#{name}}"
     end
 
     protected
