@@ -9,16 +9,15 @@ module Setup
 
     build_in_data_type.referenced_by(:namespace, :name).excluding(:connection_roles)
     build_in_data_type.and({
-                             properties: {
-                               number: {
-                                 type: 'string'
-                               },
-                               token: {
-                                 type: 'string'
-                               }
-                             }
-                           }.deep_stringify_keys).protecting(:number, :token)
-
+                              properties: {
+                                number: {
+                                  type: 'string'
+                                },
+                                token: {
+                                  type: 'string'
+                                }
+                              }
+                            }.deep_stringify_keys).protecting(:number, :token)
     field :url, type: String
 
     parameters :parameters, :headers, :template_parameters

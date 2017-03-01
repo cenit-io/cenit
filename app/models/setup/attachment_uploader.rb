@@ -20,7 +20,6 @@ module Setup
     end
 
     module ClassMethods
-
       def attachment_uploader(*args)
         if (uploader = args.first)
           @attachment_uploader = uploader

@@ -61,7 +61,6 @@ module Setup
     end
 
     class << self
-
       def id_for(binder, bind_model)
         bind_id = bind_id(bind_model)
         if (bind = where(binder_id(binder) => binder.id,

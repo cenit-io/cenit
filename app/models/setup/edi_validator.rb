@@ -28,16 +28,14 @@ module Setup
     end
 
     def format_options
-      {} #TODO edi options
+      {} # TODO: edi options
     end
 
     def validate_data(data)
-      begin
-        Edi::Parser.parse_edi(data_type, data, format_options)
-        []
-      rescue Exception => ex
-        [ex.message]
-      end
+      Edi::Parser.parse_edi(data_type, data, format_options)
+      []
+    rescue Exception => ex
+      [ex.message]
     end
   end
 end

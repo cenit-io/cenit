@@ -5,13 +5,10 @@ module Setup
     include UploaderHelper
 
     included do
-
       mount_uploader :data, AccountUploader
 
       before_store do
-        unless data.present?
-          store message.delete(:data), on: data
-        end
+        store(message.delete(:data), on: data) unless data.present?
       end
     end
   end

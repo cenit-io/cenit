@@ -1,2 +1,4 @@
-module Setup::DynamicRecord
+module Setup
+  module DynamicRecord
+  end
 end

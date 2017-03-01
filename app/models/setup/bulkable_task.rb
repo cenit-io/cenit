@@ -22,8 +22,8 @@ module Setup
     def data_type_from(message)
       @data_type =
         if (data_type_id = message['data_type_id'])
-          Setup::BuildInDataType.build_ins[data_type_id] || Setup::DataType.where(id: data_type_id).first ||
-            fail("Data type with id #{data_type_id} not found")
+          data_type = Setup::BuildInDataType.build_ins[data_type_id] || Setup::DataType.where(id: data_type_id).first
+          data_type || fail("Data type with id #{data_type_id} not found")
         else
           fail 'Invalid message: data type ID is missing'
         end
