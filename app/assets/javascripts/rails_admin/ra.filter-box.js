@@ -11,7 +11,17 @@
             },
             save_button_label: 'Save Filter'
         },
+        belongs_to_association_basic_options: function (field_operator, operator_name) {
 
+            var basic_options = '<select class="switch-additionnal-fieldsets input-sm form-control" value="' + field_operator + '" name="' + operator_name + '">' +
+                '<option data-additional-fieldset="additional-fieldset"' + (field_operator == "like" ? 'selected="selected"' : '') + ' value="like">' + RailsAdmin.I18n.t("contains") + '</option>' +
+                '<option data-additional-fieldset="additional-fieldset"' + (field_operator == "is" ? 'selected="selected"' : '') + ' value="is">' + RailsAdmin.I18n.t("is_exactly") + '</option>' +
+                '<option data-additional-fieldset="additional-fieldset"' + (field_operator == "starts_with" ? 'selected="selected"' : '') + ' value="starts_with">' + RailsAdmin.I18n.t("starts_with") + '</option>' +
+                '<option data-additional-fieldset="additional-fieldset"' + (field_operator == "ends_with" ? 'selected="selected"' : '') + ' value="ends_with">' + RailsAdmin.I18n.t("ends_with") + '</option>' +
+                '<option disabled="disabled">---------</option>';
+            return basic_options;
+
+        },
         append: function (field_label, field_name, field_type, field_value, field_operator, field_options, index, save_button_label) {
             var value_name = 'f[' + field_name + '][' + index + '][v]';
             var operator_name = 'f[' + field_name + '][' + index + '][o]';
@@ -62,12 +72,7 @@
                 case 'string':
                 case 'text':
                 case 'belongs_to_association':
-                    var control = '<select class="switch-additionnal-fieldsets input-sm form-control" value="' + field_operator + '" name="' + operator_name + '">' +
-                        '<option data-additional-fieldset="additional-fieldset"' + (field_operator == "like" ? 'selected="selected"' : '') + ' value="like">' + RailsAdmin.I18n.t("contains") + '</option>' +
-                        '<option data-additional-fieldset="additional-fieldset"' + (field_operator == "is" ? 'selected="selected"' : '') + ' value="is">' + RailsAdmin.I18n.t("is_exactly") + '</option>' +
-                        '<option data-additional-fieldset="additional-fieldset"' + (field_operator == "starts_with" ? 'selected="selected"' : '') + ' value="starts_with">' + RailsAdmin.I18n.t("starts_with") + '</option>' +
-                        '<option data-additional-fieldset="additional-fieldset"' + (field_operator == "ends_with" ? 'selected="selected"' : '') + ' value="ends_with">' + RailsAdmin.I18n.t("ends_with") + '</option>' +
-                        '<option disabled="disabled">---------</option>' +
+                    var control = $.filters.belongs_to_association_basic_options(field_operator, operator_name) +
                         '<option ' + (field_operator == "_not_null" ? 'selected="selected"' : '') + ' value="_not_null">' + RailsAdmin.I18n.t("is_present") + '</option>' +
                         '<option ' + (field_operator == "_null" ? 'selected="selected"' : '') + ' value="_null">' + RailsAdmin.I18n.t("is_blank") + '</option>' +
                         '</select>'

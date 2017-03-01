@@ -13,12 +13,7 @@ module RailsAdmin
 
         register_instance_option :controller do
           proc do
-            @bulk_ids =
-              if @object
-                [@object.id.to_s]
-              else
-                params[:object_ids] || params[:bulk_ids]
-              end
+            process_bulk_scope
             options_config = RailsAdmin::Config.model(Forms::GenerateOptions)
             if (options_params = params[options_config.abstract_model.param_key])
               options_params = options_params.select { |k, _| %w(override_data_types).include?(k.to_s) }.permit!

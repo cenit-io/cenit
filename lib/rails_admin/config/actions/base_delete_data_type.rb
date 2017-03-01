@@ -20,7 +20,7 @@ module RailsAdmin
               elsif (@bulk_ids = params[:bulk_ids] || []).present?
                 Setup::DataType.any_in(id: @bulk_ids)
               else
-                Setup::DataType.all
+                list_entries
               end
             if params[:delete] # DELETE
               if @auditing_adapter

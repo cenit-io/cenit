@@ -25,27 +25,44 @@ module RailsAdmin
     end
 
     def monitor_totals
-      totals = Hash.new { |r, h| r[h] = Hash.new { |k, v| k[v] = 0}}
+      totals = Hash.new { |r, h| r[h] = Hash.new { |k, v| k[v] = 0 } }
       if current_user
         totals[:tasks] = {
-            total: Setup::Task.any_in(status: Setup::Task::RUNNING_STATUS).count,
-            failed: Setup::Task.where(status: :failed).count,
-            broken: Setup::Task.where(status: :broken).count,
-            unscheduled: Setup::Task.where(status: :unscheduled).count,
-            pending: Setup::Task.where(status: :pending).count
+          total: Setup::Task.any_in(status: Setup::Task::RUNNING_STATUS).count,
+          failed: Setup::Task.where(status: :failed).count,
+          broken: Setup::Task.where(status: :broken).count,
+          unscheduled: Setup::Task.where(status: :unscheduled).count,
+          pending: Setup::Task.where(status: :pending).count
         }
         totals[:auths] = {
-            total: Setup::Authorization.all.count,
-            unauthorized: Setup::Authorization.where(authorized: false).count
+          total: Setup::Authorization.all.count,
+          unauthorized: Setup::Authorization.where(authorized: false).count
         }
         totals[:notif] = {
-            total: Setup::Notification.dashboard_related[:total],
-            error: Setup::Notification.dashboard_related[Setup::Notification.type_color(:error)],
-            warning: Setup::Notification.dashboard_related[Setup::Notification.type_color(:warning)]
+          total: Setup::Notification.dashboard_related[:total],
+          error: Setup::Notification.dashboard_related[Setup::Notification.type_color(:error)],
+          warning: Setup::Notification.dashboard_related[Setup::Notification.type_color(:warning)]
         }
       end
       totals
     end
 
+    def categories_list categories
+      list = ''
+      categories.each do |cat|
+        message = "<span><em>Setup::CrossSharedCollection</em> with category <em>#{cat.title}</em></span>"
+        filter_token = Cenit::Token.where('data.category_id' => cat.id).first || Cenit::Token.create(data: { criteria: values.selector, message: message, category_id: cat.id })
+        sub_link_url = index_path(model_name: Setup::CrossSharedCollection.to_s.underscore.gsub('/', '~'), filter_token: filter_token.token)
+        list +=
+          content_tag :li do
+            link_to sub_link_url, title: cat.description do
+              "#{cat.title}"
+            end
+          end
+      end
+      list.html_safe
+    end
   end
 end
+
+
