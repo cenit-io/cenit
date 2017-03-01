@@ -143,18 +143,21 @@
               %p #{object.summary.html_safe if object.summary.present?}
           .panel-footer
             .footer-description
-              #{object.categories.collect(&:title).to_sentence} - v #{object.shared_version}
-            .versions
-              %span.truncate
-                - if (pull_action = RailsAdmin::Config::Actions.find(:pull, controller: controller, abstract_model: @abstract_model, object: object))
-                  =link_to pull_path id: object.id do
-                    %i{class: pull_action.link_icon}
-                - else
-                  %i.fa.fa-arrow-down
-                -if object.pull_count > 0
+              %ul
+                #{(categories = object.categories).collect(&:title).count> 0 ? categories_list(categories) : t('admin.actions.dashboard.collections.no_categories')}
+              .versions
+                .col-xs-4.col-xs-offset-4
+                  - if (pull_action = RailsAdmin::Config::Actions.find(:pull, controller: controller, abstract_model: @abstract_model, object: object))
+                    =link_to pull_path id: object.id do
+                      %i{class: pull_action.link_icon}
+                  - else
+                    %i.fa.fa-arrow-down
+                  -if object.pull_count > 0
+                    %span.pull-count
+                      =number_to_human object.pull_count, units: {thousand: 'K', million: 'M', billion: 'G', trillion: 'T'}
+                .col-xs-4.version
                   %span
-                    =number_to_human object.pull_count, units: {thousand: 'K', million: 'M', billion: 'G', trillion: 'T'}
-
+                    = "v #{object.shared_version}"
     - if @objects.respond_to?(:total_count)
       - total_count = @objects.total_count.to_i
       .row

@@ -147,5 +147,22 @@ module RailsAdmin
         end
       end
     end
+
+    def process_bulk_scope
+      model ||=
+        begin
+          @abstract_model.model
+        rescue Exception
+          nil
+        end
+      if model
+        @bulk_ids = (@object && [@object.id]) || params.delete(:bulk_ids) || params.delete(:object_ids)
+        if @bulk_ids.nil? && (params[:all] = true) && (scope = list_entries).count < model.count
+          @bulk_ids = scope.collect(&:id).collect(&:to_s) #TODO Store scope options and selector instead ids
+        end
+      end
+      params.delete(:query)
+      model
+    end
   end
 end

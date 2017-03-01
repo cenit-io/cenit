@@ -25,13 +25,9 @@ module RailsAdmin
         register_instance_option :controller do
           proc do
 
-            @bulk_ids = params.delete(:bulk_ids)
-            if (object_ids = params.delete(:object_ids))
-              @bulk_ids = object_ids
-            end
+            model = process_bulk_scope
             selector_config = RailsAdmin::Config.model(Forms::FlowSelector)
             render_form = true
-            model = @abstract_model.model rescue nil
             if model
               data_type = model.data_type
               if (select_data = params[selector_config.abstract_model.param_key])
@@ -63,6 +59,10 @@ module RailsAdmin
         end
 
         register_instance_option :bulkable? do
+          true
+        end
+
+        register_instance_option :bulk_processable? do
           true
         end
 
