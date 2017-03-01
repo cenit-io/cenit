@@ -34,16 +34,16 @@ module RailsAdmin
         ns, model_name, display_name = api_model
 
         {
+          "#{ns}/#{model_name}" => {
+            get: api_spec_for_list(display_name),
+            post: api_spec_for_create(display_name)
+          },
           "#{ns}/#{model_name}/{id}" => {
             get: api_spec_for_get(display_name),
             delete: api_spec_for_delete(display_name)
           },
           "#{ns}/#{model_name}/{id}/{view}" => {
             get: api_spec_for_get_with_view(display_name)
-          },
-          "#{ns}/#{model_name}" => {
-            get: api_spec_for_list(display_name),
-            post: api_spec_for_create(display_name)
           }
         }
 
