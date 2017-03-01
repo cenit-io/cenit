@@ -78,19 +78,30 @@
 
   - acc_am = RailsAdmin::Config.model(Cenit::MultiTenancy.tenant_model).abstract_model
   %ul#tenant-nav.nav.navbar-nav.navbar-right
-    %li.dropdown{style: 'min-width: 140px;'}
-      %a.dropdown-toggle{href:'#', role:'button','data-toggle':'dropdown','aria-haspopup':'true','aria-expanded':'false'}
+    %li.dropdown{style: 'min-width: 140px;' ,id: 'dropdown-tenants'}
+      %a.dropdown-toggle{href:'#', role:'button','data-toggle':'drop-menu','aria-haspopup':'true','aria-expanded':'false', id: 'show_tenant_menu'}
         %i.fa.fa-fw.fa-home
-        = _current_user.account.name.split('@')[0]
+        %span#tenant_name
+          = format_name(_current_user.account.name)
         %span.caret
       %ul#tenant-menu.dropdown-menu
-        - _current_user.all_accounts.each do |a|
-          - if a != _current_user.account
-            %li= link_to a.name.split('@')[0], inspect_path(model_name: acc_am.to_param, id: a.id)
+        .tenants
+          - tenant_list = []
+          - count_tenants = _current_user.all_accounts.count
+          - _current_user.all_accounts.each do |a|
+            - name =  format_name(a.name)
+            - if a != _current_user.account
+              - tenant_list.push({'name'=> name,'url'=> inspect_path(model_name: acc_am.to_param, id: a.id)}.to_json)
+              %li= link_to name, inspect_path(model_name: acc_am.to_param, id: a.id)
+        %script
+          load_tenant_list(#{raw tenant_list});
         - if (new_action = action(:new, acc_am))
           %li.divider{role:'separator'}
+          - if count_tenants > 30
+            %input.form-control.input-small{id: "search_tenant", type: "search", value: '', placeholder: 'search'}
           .actions.clearfix
-            %li= link_to(t('admin.misc.add_tenant'), url_for(action: new_action.action_name, model_name: acc_am.to_param))
+            %li= link_to(t('admin.misc.add_tenant'), url_for(action: new_action.action_name,model_name: acc_am.to_param))
+
 
   = render partial: 'shared/help'
   %ul.nav.navbar-nav.navbar-right.root_links

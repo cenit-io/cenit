@@ -10,12 +10,10 @@ module RailsAdmin
         register_instance_option :controller do
           proc do
             render_form = true
-            @bulk_ids = params[:object_ids] || params[:bulk_ids] || []
-            @bulk_ids << @object.id if @object
+            model = process_bulk_scope
             origin_config = RailsAdmin::Config.model(Forms::CrossOriginSelector)
             if (origin_data = params[origin_config.abstract_model.param_key]) && origin_data.permit! &&
               (@form_object = Forms::CrossOriginSelector.new(origin_data)).valid?
-              model = @abstract_model.model
               do_flash_process_result Setup::Crossing.process(origin: @form_object.origin,
                                                               object_ids: @bulk_ids.collect(&:to_s),
                                                               data_type_id: model.data_type.id)
