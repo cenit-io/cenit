@@ -47,7 +47,6 @@ module RailsAdmin
         attrs ={
           :name => nb_name,
           :module => nb_module,
-          :origin => :shared,
           :content => {
             cells: cells,
             metadata: api_notebook_metadata(lang[:id]),
@@ -56,7 +55,8 @@ module RailsAdmin
           }.to_json
         }
 
-        Setup::Notebook.create(attrs)
+        botebook = Setup::Notebook.create(attrs)
+        botebook.origin = :shared
       end
 
       def api_notebook_cell_markdown(contents)
