@@ -78,7 +78,6 @@ module Setup
     end
 
     class << self
-
       def share_options
         options = super
         ignore = options[:ignore] || []
@@ -93,7 +92,7 @@ module Setup
 
       def parameter_type_schema(type)
         {
-          '$ref': case (klass = Setup::Collection.reflect_on_association(type.to_s.downcase.gsub(' ', '_').pluralize).klass)
+          '$ref': case (klass = Setup::Collection.reflect_on_association(type.to_s.downcase.tr(' ', '_').pluralize).klass)
                   when Setup::RemoteOauthClient
                     Setup::OauthClient
                   when Setup::PlainWebhook

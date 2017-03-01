@@ -11,14 +11,13 @@ module Setup
       :password
     ).referenced_by(:namespace, :name).protecting(:username, :password)
 
-
     field :username, type: String
     field :password, type: String
 
     auth_template_parameters basic_auth: :basic_auth
 
-    def build_auth_header(template_parameters)
-      'basic ' + ::Base64.encode64("#{username}:#{password}").gsub("\n", '')
+    def build_auth_header(_template_parameters)
+      'basic ' + ::Base64.encode64("#{username}:#{password}").delete("\n")
     end
 
     def authorized?
