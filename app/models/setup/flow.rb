@@ -364,7 +364,8 @@ module Setup
           template_parameters: {},
           notify_request: notify_request,
           notify_response: notify_response,
-          verbose_response: true
+          verbose_response: true,
+	  data_type: data_type
         }
       if before_submit
         if before_submit.parameters.count == 1
