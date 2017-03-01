@@ -244,6 +244,18 @@ function initializeTour() {
                     content: "Different kinds of notifications",
                     element: "#action-notify",
                     placement: "bottom"
+                },
+                {
+                    title: "REST API",
+                    content: "Get help to use resources throw REST API",
+                    element: "#rest-api",
+                    placement: "left",
+                    onShow: function () {
+                        $('#nav-drawer').removeClass('open');
+                    },
+                    onHide: function () {
+                        $('#nav-drawer').addClass('open');
+                    }
                 }
             ]
         });
@@ -252,8 +264,24 @@ function initializeTour() {
 
     // Start the tour
     tour.restart(true);
+};
+function filterTenants(text) {
+    var i, t, results = [];
+    for (i = 0; i < tenants.length; i++) {
+        t = tenants[i];
+        if (t['name'].match(text) != null) {
+            results.push(t);
+        }
+    }
+    return results;
 }
-
+function load_tenant_list(tenants_list) {
+    tenants = tenants_list
+    var i;
+    for (i = 0; i < tenants.length; i++) {
+        tenants[i] = JSON.parse(tenants[i]);
+    }
+}
 function registerEvents() {
 
     $('#take-tour').click(function (e) {
@@ -276,6 +304,43 @@ function registerEvents() {
 
         var overlay = $('<div id="modal-overlay"></div>');
         overlay.appendTo(document.body);
+    });
+
+    $('#show_tenant_menu').on('click', function (e) {
+        var $menu = $('#tenant-menu');
+        if ($menu.css('display') == 'none') {
+            $menu.css('display', 'block');
+        }
+        else {
+            $menu.css('display', 'none');
+        }
+    });
+
+    $('*').on('click', function (event) {
+        var $target = $(event.target);
+        if (($target.parents('#dropdown-tenants').length == 0) && ($target.attr('id') != "tenant_name")) {
+            $('#tenant-menu').css('display', 'none');
+        }
+    });
+
+    $('#search_tenant').on('keydown', function (e) {
+        var filtered_tenants,
+            tenants_to_html = function (tenants_list) {
+                var i, t, html = '';
+                for (i = 0; i < tenants_list.length; i++) {
+                    t = tenants_list[i];
+                    html += '<li><a href="' + t['url'] + '">' + t['name'] + '</a></li>'
+                }
+                return html;
+            };
+        var count_letter = $(this).val().length;
+        if (count_letter > 1) {
+            filtered_tenants = filterTenants($(this).val());
+        }
+        else {
+            filtered_tenants = tenants
+        }
+        $('.dropdown-menu .tenants').html(tenants_to_html(filtered_tenants));
     });
 }
 

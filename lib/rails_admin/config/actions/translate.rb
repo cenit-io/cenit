@@ -24,11 +24,7 @@ module RailsAdmin
             translation_config = RailsAdmin::Config.model(Forms::Translation)
             translator_type = @action.class.translator_type
             done = false
-            model = @abstract_model.model rescue nil
-            if (@bulk_ids = (@object && [@object.id]) || params.delete(:bulk_ids) || params.delete(:object_ids)).nil? &&
-              (scope = list_entries).count < model.count
-              @bulk_ids = scope.collect(&:id).collect(&:to_s) #TODO Store scope options and selector instead ids
-            end
+            model = process_bulk_scope
             bulk_source = (@bulk_ids.nil? && model.count != 1) || (@bulk_ids && @bulk_ids.size != 1)
 
             if model && (data_type = model.try(:data_type))

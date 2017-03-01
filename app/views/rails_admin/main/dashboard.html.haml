@@ -60,7 +60,8 @@
           - value = 'All'
           - label = 'good'
         %h6 #{value} #{label}
-
+#collections.blocks.clearfix
+  = collections_at_dashboard
 - if @abstract_models
   .dashboard
     = dashboard_main
