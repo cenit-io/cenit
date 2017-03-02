@@ -1275,8 +1275,9 @@ label {
         color: rgb(49, 112, 143);
       }
       img {
-        width: 100%;
-        max-height: 100%;
+        width: 80%;
+        max-height: 80%;
+        margin: 10px;
         &.no-image {
           margin-top: 33px;
         }
