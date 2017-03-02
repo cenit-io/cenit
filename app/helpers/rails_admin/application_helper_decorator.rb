@@ -555,37 +555,31 @@ module RailsAdmin
 
     def collections_at_dashboard
       html = ''
+      limit = 11
+      new_url = rails_admin.new_path(model_name: Setup::Collection.to_s.underscore.gsub('/', '~'))
+      new_collection = '<div class="col-md-2">
+                          <a href="'+new_url+'">
+                            <div class="collection">
+                              <div class="pic text-center">
+                              <h5>'+ t('admin.actions.dashboard.collections.add') +'</h5>
+                              <i class="fa fa-plus"></i>
+                              </div>
+                            </div>
+                          </a>
+                        </div>'
       if current_user
         # Show user collections
-        if Setup::Collection.count >= 12
-          limit = 11
-        else
-          limit = 10
-        end
         Setup::Collection.limit(limit).order(created_at: :desc).each do |c|
-          html+= dashboard_collection_view c
-        end
-        new_url = rails_admin.new_path(model_name: Setup::Collection.to_s.underscore.gsub('/', '~'))
-        if limit == 10
-          html+= '<div class="col-md-2">
-                <a href="'+new_url+'">
-                  <div class="collection">
-                    <div class="pic text-center">
-                    <h5>'+ t('admin.actions.dashboard.collections.add') +'</h5>
-                    <i class="fa fa-plus"></i>
-                    </div>
-                  </div>
-                </a>
-              </div>'
+          html+= dashboard_collection_view(c)
         end
       else
         # Show cross shared collections
-        Setup::CrossSharedCollection.limit(11).order(created_at: :desc).each do |c|
-          if c.image.present? && c.installed?
-            html+= dashboard_collection_view c
-          end
+        Setup::CrossSharedCollection.limit(limit).order(created_at: :desc).each do |c|
+          html+= dashboard_collection_view(c) if c.image.present? && c.installed?
         end
       end
+
+      html+= new_collection
 
       html+=''
       html.html_safe
