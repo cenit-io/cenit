@@ -7,19 +7,21 @@ module RailsAdmin
       # Returns Python command for service with given method and path.
       def api_python_code(method, path)
         # Get vars definition.
-        data, login = vars(method, path)
+        data, uri, vars = api_data('python', method, path)
+        replace = vars.empty? ? '' : " % (#{vars.keys.join(', ')})"
 
         # Generate uri and command.
         command = ""
         command << "import json\n" unless data.empty?
         command << "from requests import Request, Session\n"
         command << "\n"
-        command << "uri = '#{api_uri(method, path)}'\n"
+        command << "#{api_vars('python', vars)}\n" unless vars.empty?
+        command << "uri = '#{uri}'#{replace}\n"
         command << "options = {\n"
         command << "  'headers': {\n"
         command << "    'Content-Type': 'application/json',\n"
-        command << "    'X-User-Access-Key': '#{login ? login.key : '-'}',\n"
-        command << "    'X-User-Access-Token': '#{login ? login.token : '-'}'\n"
+        command << "    'X-User-Access-Key': user_access_key,\n"
+        command << "    'X-User-Access-Token': user_access_token\n"
         command << "  },\n"
         command << "  'data': json.dumps(#{data.to_json})\n" unless data.empty?
         command << "};\n"
@@ -32,6 +34,12 @@ module RailsAdmin
         command << "print(response.json())\n"
 
         command
+      end
+
+      ###
+      # Returns python inline var access.
+      def api_python_inline_var(var)
+        "%s"
       end
     end
   end

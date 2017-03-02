@@ -1,3 +1,14 @@
+<% id = "#{lang[:id]}-global-vars" %>
+<div class="sdk-code">
+  <h3>Authentication parameters:</h3>
+  <hr/>
+  <button type="button" class="btn btn-default copy-to-clipboard"
+          data-clipboard-action="copy"
+          data-clipboard-target="#<%= id %>">Copy to clipboard
+  </button>
+  <pre id="<%= id %>" class="code <%= lang[:hljs] %>"><%= api_auth_vars(lang[:id]).html_safe %></pre>
+</div>
+
 <% api_current_paths.each do |path, methods| %>
     <% methods.each do |method, definition| %>
         <% id = "#{lang[:id]}-#{method}-#{path}".parameterize %>

@@ -34,16 +34,16 @@ module RailsAdmin
         ns, model_name, display_name = api_model
 
         {
+          "#{ns}/#{model_name}" => {
+            get: api_spec_for_list(display_name),
+            post: api_spec_for_create(display_name)
+          },
           "#{ns}/#{model_name}/{id}" => {
             get: api_spec_for_get(display_name),
             delete: api_spec_for_delete(display_name)
           },
           "#{ns}/#{model_name}/{id}/{view}" => {
             get: api_spec_for_get_with_view(display_name)
-          },
-          "#{ns}/#{model_name}" => {
-            get: api_spec_for_list(display_name),
-            post: api_spec_for_create(display_name)
           }
         }
 
@@ -57,17 +57,28 @@ module RailsAdmin
 
     ###
     # Returns data and login.
-    def vars(method, path)
+    def api_data(lang, method, path)
       # Get parameters definition.
       query_parameters = api_parameters(method, path, 'query')
 
       # Get data object from query parameters.
       data = query_parameters.map { |p| [p[:name], api_default_param_value(p)] }.to_h
 
-      # Get login account or user.
-      login = Account.current || User.current
+      uri = api_uri(method, path)
 
-      [data, login]
+      path_parameters = api_parameters(method, path, 'path')
+      vars = {}
+
+      # Set value of uri path parameters
+      path_parameters.each do |p|
+        var = "{#{p[:name]}}"
+        if uri.match(var)
+          vars[p[:name]] = @object && @object.respond_to?(p[:name]) ? @object.send(p[:name]).to_s : '...'
+          uri.gsub!(var, api_inline_var(lang, p[:name]))
+        end
+      end
+
+      [data, uri, vars]
     end
 
     ###
@@ -77,12 +88,30 @@ module RailsAdmin
     end
 
     ###
-    # Returns URL command for service with given method and path.
-    def api_url(method, path)
-      # Get parameters definition.
-      path_parameters = api_parameters(method, path)
+    # Returns vars definition in given lang.
+    def api_auth_vars(lang, with_tokens=true)
+      # Get login account or user.
+      login = Account.current || User.current
 
-      api_uri(path, path_parameters)
+      api_vars(lang, {
+        user_access_key: (with_tokens && login.present?) ? login.key : '...',
+        user_access_token: (with_tokens && login.present?) ? login.token : '...'
+      })
+    end
+
+    ###
+    # Returns vars definition in given lang.
+    def api_vars(lang, vars)
+      method = "api_#{lang}_vars"
+      vars = respond_to?(method) ? send(method, vars) : vars.map { |k, v| "#{k} = '#{vars.is_a?(Hash) ? v : "..."}'" }
+      vars.join("\n")
+    end
+
+    ###
+    # Returns inline var access.
+    def api_inline_var(lang, name)
+      method = "api_#{lang}_inline_var"
+      respond_to?(method) ? send(method, name) : "${#{name}}"
     end
 
     protected
@@ -173,7 +202,6 @@ module RailsAdmin
           { description: 'Page number', in: 'query', name: 'page', type: 'integer', default: 1 },
           { description: 'Page size', in: 'query', name: 'limit', type: 'integer', default: limit },
           { description: 'Items order', in: 'query', name: 'order', type: 'string', default: 'id' },
-          { description: 'JSON Criteria', in: 'query', name: 'where', type: 'string', default: '{}' }
         ]
       }
     end
@@ -228,7 +256,7 @@ module RailsAdmin
         ns = @data_type.namespace.parameterize.underscore.downcase
         model_name = @data_type.slug
         display_name = @data_type.name.chomp('.json').humanize
-      else
+      elsif params[:model_name]
         ns = 'setup'
         model_name = params[:model_name]
         display_name = model_name.humanize
@@ -236,6 +264,5 @@ module RailsAdmin
 
       [ns, model_name, display_name]
     end
-
   end
 end
