@@ -7,18 +7,19 @@ module RailsAdmin
       # Returns NodeJS command for service with given method and path.
       def api_nodejs_code(method, path)
         # Get vars definition.
-        data, login = vars(method, path)
+        data, uri, vars = api_data('nodejs', method, path)
 
         # Generate uri and command.
         command = ""
         command << "var request = require('request'),\n"
+        command << "    #{api_vars('nodejs', vars).gsub("\n", "    \n")}\n" unless vars.empty?
         command << "    options = {\n"
         command << "      method: '#{method.upcase}',\n"
-        command << "      url: '#{api_uri(method, path)}',\n"
+        command << "      url: `#{uri}`,\n"
         command << "      headers: {\n"
         command << "        'Content-Type': 'application/json',\n"
-        command << "        'X-User-Access-Key': '#{login ? login.key : '-'}',\n"
-        command << "        'X-User-Access-Token': '#{login ? login.token : '-'}'\n"
+        command << "        'X-User-Access-Key': user_access_key,\n"
+        command << "        'X-User-Access-Token': user_access_token\n"
         command << "      },\n"
         command << "      form: #{data.to_json}\n" unless data.empty?
         command << "    };\n"

@@ -7,17 +7,17 @@ module RailsAdmin
       # Returns PHP command for service with given method and path.
       def api_php_code(method, path)
         # Get vars definition.
-        data, login = vars(method, path)
+        data, uri, vars = api_data('php', method, path)
 
         # Generate uri and command.
         command = ""
-        command << "$uri = '#{api_uri(method, path)}';\n"
+        command << "#{api_vars('php', vars)}\n" unless vars.empty?
+        command << "$uri = \"#{uri}\";\n"
         command << "$headers = array(\n"
-        command << "  'Content-Type: application/json',\n"
-        command << "  'X-User-Access-Key: #{login ? login.key : '-'}',\n"
-        command << "  'X-User-Access-Token: #{login ? login.token : '-'}'\n"
+        command << "  \"Content-Type: application/json\",\n"
+        command << "  \"X-User-Access-Key: ${user_access_key}\",\n"
+        command << "  \"X-User-Access-Token: ${user_access_token}\"\n"
         command << ");\n"
-        command << "\n"
         command << "$options = array(\n"
         command << "  'http' => array(\n"
         command << "    'header'  => implode($headers, \"\\r\\n\"),\n"
@@ -33,6 +33,13 @@ module RailsAdmin
 
         command
       end
+
+      ###
+      # Returns php vars definition.
+      def api_php_vars(vars)
+        vars.map { |k, v| "$#{k} = '#{vars.is_a?(Hash) ? v : "..."}';" }
+      end
+
     end
   end
 end
