@@ -1259,6 +1259,7 @@ label {
 }
 
 #collections {
+  padding-left: 35px;
   .collection {
     .pic {
       display: inline-block;
@@ -1267,7 +1268,7 @@ label {
       box-shadow: 0px 1px 4px 0px rgba(0, 0, 0, 0.45), inset 0px 0px 1px 1px white;
       width: 80%;
       height: 135px;
-      margin-top: 15px;
+      margin-top: 12px;
       border: 1px solid transparent;
       i {
         margin: auto;
