@@ -19,8 +19,8 @@ module Setup
             name = snippet_name("(#{i += 1})")
           end
           snippet_ref.name = name
-        elsif snippet_ref.changed_attributes.has_key?('code') &&
-          snippet_ref.tenant != Cenit::MultiTenancy.tenant_model.current
+        elsif snippet_ref.changed_attributes.key?('code') &&
+              snippet_ref.tenant != Cenit::MultiTenancy.tenant_model.current
           self.snippet = Setup::Snippet.new(snippet_ref.attributes.reject { |key, _| %w(_id origin).include?(key) })
           name = snippet_ref.name
           i = 0
@@ -46,9 +46,7 @@ module Setup
     def snippet_name(suffix = '')
       name = code_name
       if (ext = ".#{code_extension.to_s.strip}".squeeze('.')).length > 1
-        if name.ends_with?(ext)
-          name = name.to(name.rindex('.') - 1)
-        end
+        name = name.to(name.rindex('.') - 1) if name.ends_with?(ext)
       else
         ext = ''
       end
@@ -71,7 +69,7 @@ module Setup
       snippet_ref.code = code
     end
 
-    #TODO Only for legacy codes, remove after migration
+    # TODO: Only for legacy codes, remove after migration
 
     def read_attribute(name)
       if name.to_s == self.class.legacy_code_attribute.to_s
@@ -108,7 +106,7 @@ module Setup
           @legacy_code_attribute = args[0].to_s
         end
       end
-      
+
     end
   end
 end

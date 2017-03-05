@@ -18,15 +18,13 @@ module Setup
           if (candidate = slug_candidate).blank?
             'default'
           else
-            candidate.squeeze(' ').gsub(' ', '_')
+            candidate.squeeze(' ').tr(' ', '_')
           end
         i = candidate.length - 1
         while candidate.length > 0 && i == candidate.length - 1
-          while i >= 0 && candidate[i] =~ /\A\.|[a-z]|[A-Z]|\d|_\Z/
-            i -= 1
-          end
+          i -= 1 while i >= 0 && candidate[i] =~ /\A\.|[a-z]|[A-Z]|\d|_\Z/
           if i == candidate.length - 1
-            candidate = candidate.to(i-1)
+            candidate = candidate.to(i - 1)
             i = candidate.length - 1
           end
         end
@@ -64,6 +62,6 @@ module Setup
     def slug_taken?(slug)
       self.class.where(slug: slug, :id.nin => [id]).present?
     end
-    
+
   end
 end

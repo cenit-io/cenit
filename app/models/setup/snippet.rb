@@ -10,7 +10,7 @@ module Setup
     field :type, type: Symbol, default: :auto
     field :code, type: String, default: ''
 
-    #TODO has_and_belongs_to_many :tags, class_name: Setup::Tag.to_s, inverse_of: nil
+    # TODO: has_and_belongs_to_many :tags, class_name: Setup::Tag.to_s, inverse_of: nil
 
     validates_presence_of :name, :code
     validates_inclusion_of :type, in: ->(snippet) { snippet.type_enum.values }
@@ -149,6 +149,6 @@ module Setup
         'Z80': :z80
       }
     end
-    
+
   end
 end
