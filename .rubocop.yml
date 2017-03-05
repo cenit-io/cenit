@@ -1,2 +1,5 @@
 Metrics/LineLength:
   Max: 150
+
+Style/EmptyLinesAroundClassBody:
+  EnforcedStyle: false

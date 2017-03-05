@@ -25,5 +25,6 @@ module Setup
         fail schema.errors.full_messages.to_sentence unless schema.errors.blank?
       end
     end
+    
   end
 end

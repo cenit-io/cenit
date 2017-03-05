@@ -529,6 +529,7 @@ module Setup
       def identificable?(_name, schema)
         schema['type'] == 'object' && (properties = schema['properties']) && properties.key?('id')
       end
+      
     end
   end
 end

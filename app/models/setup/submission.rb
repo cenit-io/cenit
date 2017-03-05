@@ -39,5 +39,6 @@ module Setup
         fail "Webhook with id #{webhook_id} not found"
       end
     end
+    
   end
 end

@@ -11,6 +11,7 @@ module Setup
     end
 
     module ClassMethods
+      
       def changed_if(&block)
         if block
           self.changed_if_block = block
@@ -18,6 +19,8 @@ module Setup
           changed_if_block
         end
       end
+
     end
+
   end
 end

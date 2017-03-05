@@ -228,5 +228,6 @@ module Setup
       end if options[:recursive] || (options[:until_merge] && !merged)
       schema
     end
+    
   end
 end

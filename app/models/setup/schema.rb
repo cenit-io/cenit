@@ -221,6 +221,8 @@ module Setup
         uri.host = base_uri.host
         uri.to_s
       end
+      
     end
+
   end
 end

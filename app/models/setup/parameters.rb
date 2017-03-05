@@ -44,6 +44,8 @@ module Setup
           shared_configurable *relation_names
         end
       end
+
     end
+    
   end
 end

@@ -159,5 +159,6 @@ module Setup
     def create_mongoff_model
       mongoff_model_class.for(data_type: self)
     end
+    
   end
 end

@@ -77,6 +77,7 @@ module Setup
         super
         config_model.with(tenant).where(foreign_key.in => ids).delete_all
       end
+      
     end
   end
 end

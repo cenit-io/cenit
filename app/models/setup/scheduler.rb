@@ -340,11 +340,13 @@ module Setup
         res ? now + res : nil
       end
     end
+    
   end
 end
 
 
 class String
+
   def to_seconds_interval
     case last
     when 's'
@@ -359,4 +361,5 @@ class String
       0
     end * chop.to_i
   end
+
 end

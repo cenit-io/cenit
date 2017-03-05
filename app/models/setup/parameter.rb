@@ -3,7 +3,7 @@ module Setup
     include CenitScoped
     include JsonMetadata
     include ChangedIf
-    include RailsAdmin::Models::Setup::ParameterAdmin   
+    include RailsAdmin::Models::Setup::ParameterAdmin
 
     build_in_data_type.with(:key, :description, :metadata).referenced_by(:key)
     build_in_data_type.and({
@@ -72,5 +72,6 @@ module Setup
           config
         end
     end
+    
   end
 end

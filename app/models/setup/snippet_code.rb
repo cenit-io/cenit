@@ -108,6 +108,7 @@ module Setup
           @legacy_code_attribute = args[0].to_s
         end
       end
+      
     end
   end
 end
