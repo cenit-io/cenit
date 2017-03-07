@@ -32,7 +32,8 @@ module Setup
       if object_schema && object_schema.is_a?(Hash) && object_schema['type'] == 'object' && (properties = object_schema['properties'])
 
         # Check #id property
-        _id, id = properties.delete('_id'), properties.delete('id')
+        _id = properties.delete('_id')
+        id = properties.delete('id')
         fail Exception, 'Defining both id and _id' if _id && id
         if _id ||= id
           naked_id = _id.reject { |k, _| %w(unique title description edi format example enum readOnly default).include?(k) }
@@ -59,7 +60,7 @@ module Setup
           if property == 'object' || !(property =~ /\A[A-Za-z_]\w*\Z/)
             c = 1
             new_property = prefix = (property == 'object') ? 'obj' : property.to_s.to_method_name
-            while new_properties.has_key?(new_property) || properties.has_key?(new_property)
+            while new_properties.key?(new_property) || properties.key?(new_property)
               new_property = "#{prefix}_#{c += 1}"
             end
             property_schema['edi'] = { 'segment' => property }
@@ -69,10 +70,9 @@ module Setup
         end
         new_properties.each { |property, schema| properties[property] = schema }
         %w(required protected).each do |modifier_key|
-          if (modifier = object_schema[modifier_key])
-            new_names.each do |old_name, new_name|
-              modifier << new_name if modifier.delete(old_name)
-            end
+          next unless (modifier = object_schema[modifier_key])
+          new_names.each do |old_name, new_name|
+            modifier << new_name if modifier.delete(old_name)
           end
         end
 
@@ -90,7 +90,7 @@ module Setup
       do_merge_schema(schema, options)
     end
 
-    def find_data_type(ref, ns = self.namespace)
+    def find_data_type(ref, ns = namespace)
       Setup::Optimizer.find_data_type(ref, ns)
     end
 
@@ -103,24 +103,24 @@ module Setup
       end
     end
 
-    def get_embedded_schema(ref, root_schema, root_name='')
-      raise Exception.new("invalid format for embedded reference #{ref}") unless ref =~ /\A#(\/[a-z]+(_|([0-9]|[a-z])+)*)*\Z/
-      raise Exception.new("embedding itself (referencing '#')") if ref.eql?('#')
+    def get_embedded_schema(ref, root_schema, root_name = '')
+      fail "invalid format for embedded reference #{ref}" unless ref =~ %r{\A#(\/[a-z]+(_|([0-9]|[a-z])+)*)*\Z}
+      fail "embedding itself (referencing '#')" if ref.eql?('#')
       tokens = ref.split('/')
       tokens.shift
       type = root_name
       while tokens.present?
         token = tokens.shift
-        raise Exception.new("use invalid embedded reference path '#{ref}'") unless (root_schema.nil? || root_schema = root_schema[token]) && (%w{properties definitions}.include?(token) && !tokens.empty?)
+        fail "use invalid embedded reference path '#{ref}'" unless (root_schema.nil? || (root_schema = root_schema[token])) && (%w(properties definitions).include?(token) && !tokens.empty?)
         token = tokens.shift
-        raise Exception.new("use invalid embedded reference path '#{ref}'") unless (root_schema.nil? || root_schema = root_schema[token])
+        fail "use invalid embedded reference path '#{ref}'" unless root_schema.nil? || (root_schema = root_schema[token])
         type = root_name.empty? ? token.camelize : "#{type}::#{token.camelize}"
       end
-      raise Exception.new("use invalid embedded reference path '#{ref}'") unless root_schema.is_a?(Hash)
+      fail "use invalid embedded reference path '#{ref}'" unless root_schema.is_a?(Hash)
       [type, root_schema]
     end
 
-    def check_embedded_ref(ref, root_schema, root_name='')
+    def check_embedded_ref(ref, root_schema, root_name = '')
       type, _ = get_embedded_schema(ref, root_schema, root_name)
       type
     end
@@ -170,13 +170,12 @@ module Setup
             base_model = find_ref_schema(base_model) if base_model.is_a?(String)
             base_model = do_merge_schema(base_model)
             schema['extends'] = base_model['extends'] if base_model['extends']
-            if (base_properties = base_model['properties'])
-              properties = schema['properties'] || {}
-              base_properties.reject! { |property_name, _| properties[property_name].nil? }
-              schema = { 'properties' => base_properties }.deep_merge(schema) do |_, ref_value, sch_value|
-                Cenit::Utility.array_hash_merge(ref_value, sch_value)
-              end unless base_properties.blank?
-            end
+            next unless (base_properties = base_model['properties'])
+            properties = schema['properties'] || {}
+            base_properties.reject! { |property_name, _| properties[property_name].nil? }
+            schema = { 'properties' => base_properties }.deep_merge(schema) do |_, ref_value, sch_value|
+              Cenit::Utility.array_hash_merge(ref_value, sch_value)
+            end unless base_properties.blank?
           end
         end
         while (refs = schema['$ref'])
@@ -207,11 +206,9 @@ module Setup
             else
               case existing_value = sch[key]
               when Hash
-                if value.is_a?(Hash)
-                  value = existing_value.deep_merge(value) { |_, sch_value, ref_value| Cenit::Utility.array_hash_merge(sch_value, ref_value) }
-                end
+                value = existing_value.deep_merge(value) { |_, sch_value, ref_value| Cenit::Utility.array_hash_merge(sch_value, ref_value) } if value.is_a?(Hash)
               when Array
-                value = value + existing_value if value.is_a?(Array)
+                value += existing_value if value.is_a?(Array)
               end
               sch[key] = value
             end
@@ -228,6 +225,6 @@ module Setup
       end if options[:recursive] || (options[:until_merge] && !merged)
       schema
     end
-    
+
   end
 end

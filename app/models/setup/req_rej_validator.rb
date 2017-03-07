@@ -2,26 +2,24 @@ module Setup
   module ReqRejValidator
     extend ActiveSupport::Concern
 
-    def reject_message(field=nil)
+    def reject_message(_field = nil)
       'is not allowed'
     end
 
     def rejects(*fields)
       r = false
       fields.each do |field|
-        if send(field).present?
-          changed =
-            if (relation = reflect_on_association(field))
-              send(relation.foreign_key_check)
-            else
-              changed_attributes.key?(field.to_s)
-            end
-          send("#{field}=", nil)
-          if changed
-            errors.add(field, reject_message(field))
-            r = true
+        next unless send(field).present?
+        changed =
+          if (relation = reflect_on_association(field))
+            send(relation.foreign_key_check)
+          else
+            changed_attributes.key?(field.to_s)
           end
-        end
+        send("#{field}=", nil)
+        next unless changed
+        errors.add(field, reject_message(field))
+        r = true
       end
       r
     end
@@ -36,6 +34,6 @@ module Setup
       end
       r
     end
-    
+
   end
 end

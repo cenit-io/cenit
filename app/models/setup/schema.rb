@@ -50,7 +50,7 @@ module Setup
       self.name = uri unless name.present?
       self.schema = schema.strip
       self.schema_type =
-        if schema.start_with?('{') || self.schema.start_with?('[')
+        if schema.start_with?('{') || schema.start_with?('[')
           :json_schema
         else
           :xml_schema
@@ -64,44 +64,31 @@ module Setup
     def validate_data(data)
       case schema_type
       when :json_schema
-        begin
-          unless data.is_a?(Hash)
-            data =
-              if data.respond_to?(:to_hash)
-                data.to_hash
-              elsif data.respond_to?(:to_json)
-                JSON.parse(data.to_json)
-              else
-                JSON.parse(data.to_s)
-              end
-          end
-          JSON::Validator.fully_validate(JSON.parse(schema),
-                                         data,
-                                         version: :mongoff,
-                                         schema_reader: JSON::Schema::CenitReader.new(self),
-                                         strict: true)
-          []
-        rescue Exception => ex
-          [ex.message]
-        end
-      when :xml_schema
-        begin
-          unless data.is_a?(Nokogiri::XML::Document)
-            unless data.is_a?(String)
-              data =
-                if data.respond_to?(:to_xml)
-                  data.to_xml
-                else
-                  data
-                end.to_s
+        unless data.is_a?(Hash)
+          data =
+            if data.respond_to?(:to_hash)
+              data.to_hash
+            elsif data.respond_to?(:to_json)
+              JSON.parse(data.to_json)
+            else
+              JSON.parse(data.to_s)
             end
-            data = Nokogiri::XML(data)
-          end
-          Nokogiri::XML::Schema(cenit_ref_schema).validate(data)
-        rescue Exception => ex
-          [ex.message]
         end
+        JSON::Validator.fully_validate(JSON.parse(schema),
+                                       data,
+                                       version: :mongoff,
+                                       schema_reader: JSON::Schema::CenitReader.new(self),
+                                       strict: true)
+        []
+      when :xml_schema
+        unless data.is_a?(Nokogiri::XML::Document)
+          data = (data.respond_to?(:to_xml) ? data.to_xml : data).to_s unless data.is_a?(String)
+          data = Nokogiri::XML(data)
+        end
+        Nokogiri::XML::Schema(cenit_ref_schema).validate(data)
       end
+    rescue Exception => ex
+      [ex.message]
     end
 
     def find_ref_schema(ref)
@@ -126,7 +113,7 @@ module Setup
         when :xml_schema
           parse_xml_schema
         else
-          #TODO !!!
+          # TODO: !!!
         end
     end
 
@@ -145,17 +132,16 @@ module Setup
     end
 
     def bind_includes
-      unless @includes_binded
-        parse_schema.bind_includes(namespace_ns) unless parse_schema.is_a?(Hash)
-        @includes_binded = true
-      end
+      return if @includes_binded
+      parse_schema.bind_includes(namespace_ns) unless parse_schema.is_a?(Hash)
+      @includes_binded = true
     end
 
     def included?(qualified_name, visited = Set.new)
       return false if visited.include?(self) || visited.include?(@parsed_schema)
       visited << self
       if parse_schema.is_a?(Hash)
-        @parsed_schema.has_key?(qualified_name)
+        @parsed_schema.key?(qualified_name)
       else
         @parsed_schema.included?(qualified_name, visited)
       end
@@ -171,7 +157,7 @@ module Setup
 
     private
 
-    def cenit_ref_json_schema(options = {})
+    def cenit_ref_json_schema(_options = {})
       schema
     end
 
@@ -190,11 +176,11 @@ module Setup
     end
 
     def parse_json_schema
-      { uri => JSON.parse(self.schema) }
+      { uri => JSON.parse(schema) }
     end
 
     def parse_xml_schema
-      Xsd::Document.new(uri, self.schema).schema
+      Xsd::Document.new(uri, schema).schema
     end
 
     def abs_uri(base_uri, uri)
@@ -221,7 +207,7 @@ module Setup
         uri.host = base_uri.host
         uri.to_s
       end
-      
+
     end
 
   end
