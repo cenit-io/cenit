@@ -14,15 +14,13 @@ module RailsAdmin
 
         def auto_create
           Setup::CenitDataType.all.each do |dt|
-            Rails.logger.debug("Creating #{dt.namespace}/#{dt.name} rest-api notebooks.")
-
             @params = {}
             @data_type = dt
             @abstract_model = abstract_model_class
             @properties = @abstract_model.properties
 
             # Generate rest-api doc as notebook.
-            api_langs.each { |lang| api_notebook(lang) }
+            api_langs.each { |lang| api_notebook(lang) if lang[:runnable] }
           end
         end
 

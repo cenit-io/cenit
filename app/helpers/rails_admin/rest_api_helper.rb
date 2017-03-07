@@ -12,12 +12,12 @@ module RailsAdmin
 
     def api_langs
       [
-        { id: 'curl', label: 'Curl', hljs: 'bash' },
-        { id: 'php', label: 'Php', hljs: 'php' },
-        { id: 'ruby', label: 'Ruby', hljs: 'ruby' },
-        { id: 'python', label: 'Python', hljs: 'python' },
-        { id: 'nodejs', label: 'Nodejs', hljs: 'javascript' },
-        { id: 'jquery', label: 'JQuery', hljs: 'javascript' },
+        { id: 'curl', label: 'Curl', hljs: 'bash', :runnable => true },
+        { id: 'php', label: 'Php', hljs: 'php', :runnable => false },
+        { id: 'ruby', label: 'Ruby', hljs: 'ruby', :runnable => true },
+        { id: 'python', label: 'Python', hljs: 'python', :runnable => true },
+        { id: 'nodejs', label: 'Nodejs', hljs: 'javascript', :runnable => true },
+        { id: 'jquery', label: 'JQuery', hljs: 'javascript', :runnable => false },
       ]
     end
 
@@ -207,7 +207,7 @@ module RailsAdmin
     ###
     # Returns service create or update specification.
     def api_spec_for_create(display_name)
-      parameters = @data_type ? api_params_from_data_type : api_params_from_current_model
+      parameters = api_params_from_current_model_properties
 
       {
         tags: [display_name],
@@ -220,22 +220,22 @@ module RailsAdmin
       }
     end
 
-    ###
-    # Returns prepared parameters from data type code properties.
-    def api_params_from_data_type()
-      code = JSON.parse(@data_type.code)
-      code['properties'].select { |_, v| !v['type'].nil? }.map do |k, v|
-        {
-          in: 'query',
-          name: k == '_id' ? 'id' : k,
-          type: v['type']
-        }
-      end
-    end
+    # ###
+    # # Returns prepared parameters from data type code properties.
+    # def api_params_from_data_type()
+    #   code = JSON.parse(@data_type.code)
+    #   code['properties'].select { |_, v| !v['type'].nil? }.map do |k, v|
+    #     {
+    #       in: 'query',
+    #       name: k == '_id' ? 'id' : k,
+    #       type: v['type']
+    #     }
+    #   end
+    # end
 
     ###
     # Returns prepared parameters from current model properties.
-    def api_params_from_current_model
+    def api_params_from_current_model_properties
       exclude = /^(created_at|updated_at|version|origin)$|_ids?$/
       parameters = @properties.map do |p|
         {
