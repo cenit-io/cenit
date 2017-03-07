@@ -17,7 +17,7 @@ module RailsAdmin
       end
 
       def api_create_notebook(lang, nb_module, nb_name, display_name)
-        runnable = ['ruby', 'python', 'nodejs'].include?(lang[:id])
+        runnable = ['ruby', 'python', 'nodejs', 'bash'].include?(lang[:id])
         auth_vars = api_auth_vars(lang[:id], false)
         auth_vars_markdown = "```#{lang[:hljs]}\n#{auth_vars}\n```"
         cells = [
@@ -81,6 +81,7 @@ module RailsAdmin
 
       def api_notebook_metadata(lang)
         case lang.to_sym
+
         when :python
           {
             kernelspec: { display_name: "Python 3", language: "python", name: "python3" },
@@ -93,6 +94,7 @@ module RailsAdmin
               pygments_lexer: "ipython3",
             }
           }
+
         when :ruby
           {
             kernelspec: { display_name: "Ruby 2.2.1", language: "ruby", name: "ruby" },
@@ -111,6 +113,17 @@ module RailsAdmin
               file_extension: ".js",
               mimetype: "application/javascript",
               name: "javascript"
+            }
+          }
+
+        when :bash
+          {
+            "kernelspec": { "display_name": "Bash", "language": "bash", "name": "bash" },
+            "language_info": {
+              "codemirror_mode": "shell",
+              "file_extension": ".sh",
+              "mimetype": "text/x-sh",
+              "name": "bash"
             }
           }
         else
