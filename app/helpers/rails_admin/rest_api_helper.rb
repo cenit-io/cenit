@@ -24,13 +24,14 @@ module RailsAdmin
     ###
     # Returns api specification paths for current namespace and model.
     def api_current_paths
-      if params[:action] == 'dashboard'
-        params[:model_name] = 'cross_shared_collection'
+      @params ||= params
+      if @params[:action] == 'dashboard'
+        @params[:model_name] = 'cross_shared_collection'
         abstract_model = RailsAdmin::AbstractModel.new(Setup::CrossSharedCollection.to_s)
         @properties = abstract_model.properties
       end
 
-      @api_current_paths ||= begin
+      @api_current_paths = (@params[:model_name].present? || @data_type) ? begin
         ns, model_name, display_name = api_model
 
         {
@@ -46,13 +47,10 @@ module RailsAdmin
             get: api_spec_for_get_with_view(display_name)
           }
         }
-
-      end if params[:model_name].present?
-
-      @api_current_paths ||= []
+      end : {}
 
     rescue Exception => ex
-      []
+      {}
     end
 
     ###
@@ -119,7 +117,7 @@ module RailsAdmin
     ###
     # Returns parameters for service with given method and path.
     def api_parameters(method, path, _in = 'path')
-      parameters = api_current_paths[path][method][:parameters] || []
+      parameters = @api_current_paths[path][method][:parameters] || []
       parameters.select { |p| p[:in] == _in }
     end
 
@@ -239,26 +237,27 @@ module RailsAdmin
     # Returns prepared parameters from current model properties.
     def api_params_from_current_model
       exclude = /^(created_at|updated_at|version|origin)$|_ids?$/
-      params = @properties.map do |p|
+      parameters = @properties.map do |p|
         {
           in: 'query',
           name: p.property.name == '_id' ? 'id' : p.property.name,
           type: p.property.type
         }
       end
-      params.select { |p| !p[:name].match(exclude) }
+      parameters.select { |p| !p[:name].match(exclude) }
     end
 
     ###
     # Returns current namespace, model name and display name.
     def api_model
+      @params ||= params
       if @data_type
         ns = @data_type.namespace.parameterize.underscore.downcase
         model_name = @data_type.slug
         display_name = @data_type.name.chomp('.json').humanize
-      elsif params[:model_name]
+      elsif @params[:model_name]
         ns = 'setup'
-        model_name = params[:model_name]
+        model_name = @params[:model_name]
         display_name = model_name.humanize
       end
 

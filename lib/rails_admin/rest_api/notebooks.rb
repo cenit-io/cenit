@@ -7,7 +7,7 @@ module RailsAdmin
     module Notebooks
       def api_notebook(lang)
         ns, model_name, display_name = api_model
-        nb_module = "#{ns}/#{model_name}"
+        nb_module = "#{ns}/#{model_name}".gsub(/^\//, '')
         nb_name = "api-#{lang[:id]}.ipynb"
 
         Setup::Notebook.where(
