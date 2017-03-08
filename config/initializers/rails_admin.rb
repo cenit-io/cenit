@@ -261,8 +261,6 @@ RailsAdmin.config do |config|
 
   config.navigation 'Connectors', icon: 'fa fa-plug'
 
-  Setup::Parameter
-
   Setup::ApiSpec
 
   Setup::Connection
@@ -426,7 +424,7 @@ RailsAdmin.config do |config|
 
   Setup::Binding
 
-  Setup::ParameterConfig
+  Setup::Parameter
 
   #Administration
 
