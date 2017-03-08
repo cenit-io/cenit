@@ -367,16 +367,5 @@ function registerEvents() {
         e.preventDefault();
         $('.graphics-area').toggleClass('hide');
     });
-
-    $('#graphics-form').submit(function( event ) {
-        event.preventDefault();
-        $form = $('#graphics-form');
-        render_graphic($form, '.graphics');
-    });
-
-    $('select.input-sm', '.graphics-controls').on('change', function(){
-        $form = $('#graphics-form');
-        $form.submit();
-    })
 }
 

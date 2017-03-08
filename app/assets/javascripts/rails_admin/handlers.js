@@ -216,6 +216,12 @@ function algorithmInit() {
 function selectTagsInit() {
     $('.select-tag').select2({theme: "bootstrap", tags: true})
 }
+function graphicsInit(){
+    $('select.input-sm', '.graphics-controls').on('change', function(){
+        var $form = $('#graphics-form');
+        $form.submit();
+    })
+}
 
 function handlerInit() {
     console.log("Initializing handlers");
@@ -228,4 +234,8 @@ function handlerInit() {
 
     if ($('.select-tag').length > 0)
         selectTagsInit();
+
+    if ($('select.input-sm', '.graphics-controls').length > 0)
+        graphicsInit();
+
 }

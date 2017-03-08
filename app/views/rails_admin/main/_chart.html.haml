@@ -1,6 +1,6 @@
 - @acumulate = params[:acumulate] || 'beginning_of_month'
 - @data_field = (params[:data_field] || :created_at).to_sym
-- @chart = params[:chart] || 'line_chart'
+- @chart = params[:chart] || 'column_chart'
 - @calculation = params[:calculation] || 'sum'
 
 - acumulate_types = {'daily' => 'beginning_of_day', 'weekly' => 'beginning_of_week', 'monthly' => 'beginning_of_month', 'quarterly' => 'beginning_of_quarter','yearly' => 'beginning_of_year', 'week days' => 'wday', 'hours' => 'hour' }
@@ -45,7 +45,8 @@
           = select_tag :calculation, options_for_select( calculation_types, @calculation ), class: 'input-sm form-control'
           = select_tag :chart, options_for_select( chart_types, @chart ), class: 'input-sm form-control'
         .graphics-chart
-          - all_objects = @objects.limit(klass.count).offset(0)
+          - params[:all] = true
+          - all_objects = @_controller.list_entries
           - data = klass.data_by(all_objects,@met,@data_field,@calculation, @acumulate )[0][:data]
           = send(@chart, data, library: {chart:{zoomType:'x',style: {overflow: 'visible'}}} )
 
