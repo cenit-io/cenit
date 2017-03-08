@@ -73,6 +73,7 @@ module Setup
                 fail "Reference #{value} is not valid"
               end
             end
+            true
           end if schema_container
         end
 
