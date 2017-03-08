@@ -15,6 +15,8 @@ module Setup
 
     attr_readonly :writable, :shared
 
+    before_validation :set_default_tenant
+
     def shared
       self.origin != :default
     end
@@ -29,6 +31,16 @@ module Setup
 
     def path
       "#{self.module}/#{self.name}"
+    end
+
+    private
+
+    def set_default_tenant
+      self.tenant = Account.current || begin
+        Role.where(name: 'super_admin').first.users.first.accounts.first
+      rescue
+        nil
+      end if new_record?
     end
 
   end if (ENV['JUPYTER_NOTEBOOKS'] || 'false').to_b

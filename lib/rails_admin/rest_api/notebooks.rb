@@ -7,7 +7,7 @@ module RailsAdmin
     module Notebooks
       def api_notebook(lang)
         ns, model_name, display_name = api_model
-        nb_module = "#{ns}/#{model_name}"
+        nb_module = "#{ns}/#{model_name}".gsub(/^\//, '')
         nb_name = "api-#{lang[:id]}.ipynb"
 
         Setup::Notebook.where(
@@ -17,13 +17,10 @@ module RailsAdmin
       end
 
       def api_create_notebook(lang, nb_module, nb_name, display_name)
-        runnable = ['ruby', 'python', 'nodejs'].include?(lang[:id])
-        auth_vars = api_auth_vars(lang[:id], false)
-        auth_vars_markdown = "```#{lang[:hljs]}\n#{auth_vars}\n```"
         cells = [
           api_notebook_cell_markdown("## Access to *#{display_name}* using *#{lang[:label]}* language."),
           api_notebook_cell_markdown("### Authentication parameters:"),
-          (runnable ? api_notebook_cell_code(auth_vars) : api_notebook_cell_markdown(auth_vars_markdown))
+          api_notebook_cell_code(api_auth_vars(lang[:id], false))
         ]
 
         api_current_paths.each do |path, methods|
@@ -36,11 +33,9 @@ module RailsAdmin
             lines << "#{definition[:description].strip}\n"
             lines << "**#{method.to_s}:** #{api_uri(method, path)}\n"
             lines << "---"
-            code = api_code(lang[:id], method, path)
-            code_markdown = "```#{lang[:hljs]}\n#{code}\n```"
 
             cells << api_notebook_cell_markdown(lines)
-            cells << (runnable ? api_notebook_cell_code(code) : api_notebook_cell_markdown(code_markdown))
+            cells << api_notebook_cell_code(api_code(lang[:id], method, path))
           end
         end
 
@@ -81,6 +76,7 @@ module RailsAdmin
 
       def api_notebook_metadata(lang)
         case lang.to_sym
+
         when :python
           {
             kernelspec: { display_name: "Python 3", language: "python", name: "python3" },
@@ -93,6 +89,7 @@ module RailsAdmin
               pygments_lexer: "ipython3",
             }
           }
+
         when :ruby
           {
             kernelspec: { display_name: "Ruby 2.2.1", language: "ruby", name: "ruby" },
@@ -111,6 +108,17 @@ module RailsAdmin
               file_extension: ".js",
               mimetype: "application/javascript",
               name: "javascript"
+            }
+          }
+
+        when :bash
+          {
+            "kernelspec": { "display_name": "Bash", "language": "bash", "name": "bash" },
+            "language_info": {
+              "codemirror_mode": "shell",
+              "file_extension": ".sh",
+              "mimetype": "text/x-sh",
+              "name": "bash"
             }
           }
         else

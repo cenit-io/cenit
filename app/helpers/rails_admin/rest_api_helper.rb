@@ -12,25 +12,26 @@ module RailsAdmin
 
     def api_langs
       [
-        { id: 'curl', label: 'Curl', hljs: 'bash' },
-        { id: 'php', label: 'Php', hljs: 'php' },
-        { id: 'ruby', label: 'Ruby', hljs: 'ruby' },
-        { id: 'python', label: 'Python', hljs: 'python' },
-        { id: 'nodejs', label: 'Nodejs', hljs: 'javascript' },
-        { id: 'jquery', label: 'JQuery', hljs: 'javascript' },
+        { id: 'curl', label: 'Curl', hljs: 'bash', :runnable => true },
+        { id: 'php', label: 'Php', hljs: 'php', :runnable => false },
+        { id: 'ruby', label: 'Ruby', hljs: 'ruby', :runnable => true },
+        { id: 'python', label: 'Python', hljs: 'python', :runnable => true },
+        { id: 'nodejs', label: 'Nodejs', hljs: 'javascript', :runnable => true },
+        { id: 'jquery', label: 'JQuery', hljs: 'javascript', :runnable => false },
       ]
     end
 
     ###
     # Returns api specification paths for current namespace and model.
     def api_current_paths
-      if params[:action] == 'dashboard'
-        params[:model_name] = 'cross_shared_collection'
+      @params ||= params
+      if @params[:action] == 'dashboard'
+        @params[:model_name] = 'cross_shared_collection'
         abstract_model = RailsAdmin::AbstractModel.new(Setup::CrossSharedCollection.to_s)
         @properties = abstract_model.properties
       end
 
-      @api_current_paths ||= begin
+      @api_current_paths = (@params[:model_name].present? || @data_type) ? begin
         ns, model_name, display_name = api_model
 
         {
@@ -46,13 +47,10 @@ module RailsAdmin
             get: api_spec_for_get_with_view(display_name)
           }
         }
+      end : {}
 
-      end if params[:model_name].present?
-
-      @api_current_paths ||= []
-
-    rescue Exception => ex
-      []
+    # rescue Exception => ex
+    #   {}
     end
 
     ###
@@ -119,7 +117,7 @@ module RailsAdmin
     ###
     # Returns parameters for service with given method and path.
     def api_parameters(method, path, _in = 'path')
-      parameters = api_current_paths[path][method][:parameters] || []
+      parameters = @api_current_paths[path][method][:parameters] || []
       parameters.select { |p| p[:in] == _in }
     end
 
@@ -209,7 +207,7 @@ module RailsAdmin
     ###
     # Returns service create or update specification.
     def api_spec_for_create(display_name)
-      parameters = @data_type ? api_params_from_data_type : api_params_from_current_model
+      @parameters ||= api_params_from_model_properties
 
       {
         tags: [display_name],
@@ -218,47 +216,39 @@ module RailsAdmin
           "Creates or updates the specified '#{display_name}'.",
           'Any parameters not provided will be left unchanged'
         ].join(' '),
-        parameters: [{ description: 'Identifier', in: 'path', name: 'id', type: 'string' }] + parameters
+        parameters: [{ description: 'Identifier', in: 'path', name: 'id', type: 'string' }] + @parameters
       }
     end
 
     ###
-    # Returns prepared parameters from data type code properties.
-    def api_params_from_data_type()
-      code = JSON.parse(@data_type.code)
-      code['properties'].select { |_, v| !v['type'].nil? }.map do |k, v|
-        {
-          in: 'query',
-          name: k == '_id' ? 'id' : k,
-          type: v['type']
-        }
-      end
-    end
-
-    ###
-    # Returns prepared parameters from current model properties.
-    def api_params_from_current_model
+    # Returns prepared parameters from model properties.
+    def api_params_from_model_properties
       exclude = /^(created_at|updated_at|version|origin)$|_ids?$/
-      params = @properties.map do |p|
+      parameters = @properties.map do |p|
+        name, type = p.is_a?(RailsAdmin::MongoffProperty) ?
+          [p.property, p.type.to_s] :
+          [p.property.name, p.property.type.name.downcase]
+
         {
           in: 'query',
-          name: p.property.name == '_id' ? 'id' : p.property.name,
-          type: p.property.type
+          name: name == '_id' ? 'id' : name,
+          type: type
         }
       end
-      params.select { |p| !p[:name].match(exclude) }
+      parameters.select { |p| !p[:name].match(exclude) }
     end
 
     ###
     # Returns current namespace, model name and display name.
     def api_model
+      @params ||= params
       if @data_type
         ns = @data_type.namespace.parameterize.underscore.downcase
         model_name = @data_type.slug
         display_name = @data_type.name.chomp('.json').humanize
-      elsif params[:model_name]
+      elsif @params[:model_name]
         ns = 'setup'
-        model_name = params[:model_name]
+        model_name = @params[:model_name]
         display_name = model_name.humanize
       end
 
