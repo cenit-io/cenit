@@ -8,13 +8,13 @@ module Setup
     legacy_code_attribute :schema
 
     build_in_data_type.referenced_by(:namespace, :name).with(:namespace, :name, :title, :_type, :snippet, :events, :before_save_callbacks, :records_methods, :data_type_methods)
-    build_in_data_type.and({
-                             properties: {
-                               slug: {
-                                 type: 'string'
-                               }
-                             }
-                           }.deep_stringify_keys)
+    build_in_data_type.and(
+      properties: {
+        slug: {
+          type: 'string'
+        }
+      }
+    )
 
     allow :new, :import, :pull_import, :bulk_cross, :simple_cross, :bulk_expand, :simple_expand, :copy, :switch_navigation
 

@@ -15,13 +15,13 @@ module Setup
     abstract_class true
 
     build_in_data_type.with(:title, :name, :before_save_callbacks, :records_methods, :data_type_methods).referenced_by(:namespace, :name)
-    build_in_data_type.and({
-                             properties: {
-                               slug: {
-                                 type: 'string'
-                               }
-                             }
-                           }.deep_stringify_keys)
+    build_in_data_type.and(
+      properties: {
+        slug: {
+          type: 'string'
+        }
+      }
+    )
 
     deny :delete, :new, :switch_navigation, :copy
 
