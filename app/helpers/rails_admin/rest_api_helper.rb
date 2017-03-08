@@ -49,8 +49,8 @@ module RailsAdmin
         }
       end : {}
 
-    rescue Exception => ex
-      {}
+    # rescue Exception => ex
+    #   {}
     end
 
     ###
@@ -207,7 +207,7 @@ module RailsAdmin
     ###
     # Returns service create or update specification.
     def api_spec_for_create(display_name)
-      parameters = api_params_from_current_model_properties
+      @parameters ||= api_params_from_model_properties
 
       {
         tags: [display_name],
@@ -216,32 +216,23 @@ module RailsAdmin
           "Creates or updates the specified '#{display_name}'.",
           'Any parameters not provided will be left unchanged'
         ].join(' '),
-        parameters: [{ description: 'Identifier', in: 'path', name: 'id', type: 'string' }] + parameters
+        parameters: [{ description: 'Identifier', in: 'path', name: 'id', type: 'string' }] + @parameters
       }
     end
 
-    # ###
-    # # Returns prepared parameters from data type code properties.
-    # def api_params_from_data_type()
-    #   code = JSON.parse(@data_type.code)
-    #   code['properties'].select { |_, v| !v['type'].nil? }.map do |k, v|
-    #     {
-    #       in: 'query',
-    #       name: k == '_id' ? 'id' : k,
-    #       type: v['type']
-    #     }
-    #   end
-    # end
-
     ###
-    # Returns prepared parameters from current model properties.
-    def api_params_from_current_model_properties
+    # Returns prepared parameters from model properties.
+    def api_params_from_model_properties
       exclude = /^(created_at|updated_at|version|origin)$|_ids?$/
       parameters = @properties.map do |p|
+        name, type = p.is_a?(RailsAdmin::MongoffProperty) ?
+          [p.property, p.type.to_s] :
+          [p.property.name, p.property.type.name.downcase]
+
         {
           in: 'query',
-          name: p.property.name == '_id' ? 'id' : p.property.name,
-          type: p.property.type
+          name: name == '_id' ? 'id' : name,
+          type: type
         }
       end
       parameters.select { |p| !p[:name].match(exclude) }
