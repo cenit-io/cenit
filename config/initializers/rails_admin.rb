@@ -62,6 +62,11 @@ require 'account'
   RailsAdmin::Config::Actions::ImportApiSpec
 ].each { |a| RailsAdmin::Config::Actions.register(a) }
 
+[
+  RailsAdmin::Config::Actions::Notebooks,
+  RailsAdmin::Config::Actions::NotebooksRoot
+].each { |a| RailsAdmin::Config::Actions.register(a) } if (ENV['JUPYTER_NOTEBOOKS'] || 'false').to_b
+
 RailsAdmin::Config::Actions.register(:export, RailsAdmin::Config::Actions::BulkExport)
 
 [
@@ -177,6 +182,7 @@ RailsAdmin.config do |config|
     bulk_delete_data_type
     delete
     trash
+    notebooks_root if (ENV['JUPYTER_NOTEBOOKS'] || 'false').to_b
     clean_up
     #show_in_app
     send_to_flow
@@ -211,6 +217,7 @@ RailsAdmin.config do |config|
     rest_api1
     rest_api2
     documentation
+    notebooks if (ENV['JUPYTER_NOTEBOOKS'] || 'false').to_b
   end
 
   config.navigation 'Collections', icon: 'fa fa-cubes'
@@ -327,6 +334,8 @@ RailsAdmin.config do |config|
   Cenit::ApplicationParameter
 
   Setup::Filter
+
+  Setup::Notebook if (ENV['JUPYTER_NOTEBOOKS'] || 'false').to_b
 
   #Transformations
 

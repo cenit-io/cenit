@@ -7,7 +7,6 @@ module Setup
     include Trackable
 
     included do
-
       origins :default, -> { Cenit::MultiTenancy.tenant_model.current && :owner }, :shared
 
       build_in_data_type.excluding(:origin, :tenant)
@@ -71,10 +70,10 @@ module Setup
 
     def read_attribute(name)
       if !(value = super).nil? &&
-        (new_record? || !self.class.build_in_data_type.protecting?(name) ||
-          (current_user = User.current) &&
-            (current_user.account_ids.include?(tenant_id) ||
-              (current_user.super_admin? && tenant.super_admin?)))
+         (new_record? || !self.class.build_in_data_type.protecting?(name) ||
+         (current_user = User.current) &&
+         (current_user.account_ids.include?(tenant_id) ||
+         (current_user.super_admin? && tenant.super_admin?)))
         value
       else
         nil
@@ -86,7 +85,6 @@ module Setup
     end
 
     module ClassMethods
-
       def shared_deny(*actions)
         Setup::Models.shared_excluded_actions_for self, *actions
       end

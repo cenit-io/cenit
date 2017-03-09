@@ -1,6 +1,5 @@
 module Setup
   module CustomTitle
-
     def scope_title
       nil
     end
@@ -15,6 +14,5 @@ module Setup
       end
       title
     end
-
   end
 end

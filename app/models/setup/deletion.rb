@@ -37,11 +37,10 @@ module Setup
           scope.each do |record|
             record.destroy unless record == self
             step_count += 1
-            if step_count >= step_size
-              step_count = 0
-              self.progress += progress_step
-              save
-            end
+            next unless step_count >= step_size
+            step_count = 0
+            self.progress += progress_step
+            save
           end
         else
           if scope.is_a?(Mongoid::Criteria)

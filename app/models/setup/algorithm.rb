@@ -6,6 +6,9 @@ module Setup
     include NamespaceNamed
     include Taggable
     include RailsAdmin::Models::Setup::AlgorithmAdmin
+    # = Algorithm
+    #
+    # Is a core concept in Cenit, define function that is possible execute.
 
     legacy_code_attribute :code
 
@@ -80,7 +83,7 @@ module Setup
     end
 
     def validate_output_processing
-      if store_output and not output_datatype
+      if store_output && !output_datatype
         rc = Setup::FileDataType.find_or_create_by(namespace: namespace, name: "#{name} output")
         if rc.errors.present?
           errors.add(:output_datatype, rc.errors.full_messages)
@@ -92,7 +95,7 @@ module Setup
     end
 
     def do_link
-      call_links.each { |call_link| call_link.do_link }
+      call_links.each(&:do_link)
     end
 
     attr_accessor :self_linker
@@ -146,7 +149,7 @@ module Setup
               rc += do_store_output(item)
             end
           else
-            raise
+            fail
           end
         rescue Exception
           fail 'Output failed to validate against Output DataType.'
@@ -178,9 +181,7 @@ module Setup
             @last_output = AlgorithmOutput.create(algorithm: self, data_type: output_datatype, input_params: args,
                                                   output_ids: ids)
           rescue Exception => e
-            if validate_output
-              fail 'Execution failed!' + e.message
-            end
+            raise 'Execution failed!' + e.message if validate_output
           end
         end
       end
@@ -212,7 +213,7 @@ module Setup
       end
     end
 
-    def stored_outputs(options = {})
+    def stored_outputs(_options = {})
       AlgorithmOutput.where(algorithm: self).desc(:created_at)
     end
 
@@ -227,7 +228,6 @@ module Setup
       schema.stringify_keys
     end
 
-
     def configuration_model
       @mongoff_model ||= Mongoff::Model.for(data_type: self.class.data_type,
                                             schema: configuration_schema,
@@ -240,7 +240,6 @@ module Setup
     end
 
     class << self
-
       def language_enum
         {
           'Auto detect': :auto,
@@ -259,10 +258,10 @@ module Setup
     def parse_code
       if language == :auto
         logs = {}
-        lang = self.class.language_enum.values.detect do |lang|
+        lang = self.class.language_enum.values.detect do |language|
           next if lang == :auto
           logs.clear
-          parse_method = "parse_#{lang}_code"
+          parse_method = "parse_#{language}_code"
           logs.merge!(send(parse_method))
           logs[:errors].blank?
         end
@@ -283,7 +282,7 @@ module Setup
 
     def parse_ruby_code
       logs = { errors: errors = [] }
-      unless Capataz.rewrite(code, halt_on_error: false, logs: logs, locals: parameters.collect { |p| p.name })
+      unless Capataz.rewrite(code, halt_on_error: false, logs: logs, locals: parameters.collect(&:name))
         errors << 'with no valid Ruby syntax'
       end
       logs
@@ -294,7 +293,7 @@ module Setup
       ast =
         begin
           RKelly.parse(code)
-        rescue Exception => ex
+        rescue Exception
           nil
         end
       if ast

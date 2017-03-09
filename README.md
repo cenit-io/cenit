@@ -24,13 +24,13 @@ An example of integration data flow (Fancy <=> Shipstation):
 
 * New or updated orders are received and persisted in Cenit.
 
-* After the new or updated orders are saved, is trigger a Flow to send a shipment to Shipstation. 
+* After the new or updated orders are saved, is trigger a Flow to send a shipment to Shipstation.
 
 * The flow requires transforming the Fancy Order into a valid shipment on Shipstation.
 
 * Each 20 minutes Cenit trigger a flow to fetch Shipped shipments from Shipstation.
 
-* After the shipments are updated in Cenit, is trigger a Flow to send the tracking update to Fancy. 
+* After the shipments are updated in Cenit, is trigger a Flow to send the tracking update to Fancy.
 
 
 
@@ -67,7 +67,7 @@ An example of integration data flow (Fancy <=> Shipstation):
 * Compute
   + **Snippets** - Small region of re-usable code
   + **Algorithms**
-  + **Applications** - Associate path with algorithms to process the request and render the response. 
+  + **Applications** - Associate path with algorithms to process the request and render the response.
 
 * Transformations
   + **Renderers** - Exporting data outside Cenit.

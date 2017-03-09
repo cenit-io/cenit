@@ -13,7 +13,6 @@ module Setup
     end
 
     module ClassMethods
-
       def inherited(subclass)
         super
         Setup::Models.regist(subclass)

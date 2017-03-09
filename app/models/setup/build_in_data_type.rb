@@ -141,6 +141,7 @@ module Setup
     end
 
     class << self
+
       def [](ref)
         build_ins[ref.to_s]
       end
