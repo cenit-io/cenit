@@ -76,6 +76,9 @@ Cenit.config do
   #Performs pushes asynchronous
   asynchronous_push true
 
+  #Performs chart rendering asynchronous
+  asynchronous_chart_rendering true
+
   #oauth2 callback site
   oauth2_callback_site ENV['OAUTH2_CALLBACK_SITE'] || homepage
 

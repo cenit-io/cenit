@@ -56,7 +56,8 @@
 
 -#for Charts
 - klass = @abstract_model.model
-- if klass.is_a?(Class) && klass.ancestors.include?(RailsAdminDynamicCharts::Datetime)
+- data_type = klass.try(:data_type)
+- if data_type.chart_rendering
   - available_chart = true
   = render 'chart'
   =# '<script>render_graphic($("#graphics-form"), ".graphics");</script>'.html_safe
