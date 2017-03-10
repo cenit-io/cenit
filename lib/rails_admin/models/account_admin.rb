@@ -56,7 +56,7 @@ module RailsAdmin
             field :time_zone
           end
 
-          fields :_id, :name, :owner, :users, :notification_level, :time_zone
+          fields :_id, :name, :owner, :notification_level, :time_zone # TODO:  add users
 
         end
       end

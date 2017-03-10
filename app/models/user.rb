@@ -17,6 +17,7 @@ class User
   rolify
 
   has_many :accounts, class_name: Account.to_s, inverse_of: :owner
+  has_many :memberships
   has_and_belongs_to_many :member_accounts, class_name: Account.to_s, inverse_of: :users
   belongs_to :account, class_name: Account.to_s, inverse_of: :nil
   belongs_to :api_account, class_name: Account.to_s, inverse_of: :nil

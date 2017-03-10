@@ -85,7 +85,8 @@ class Account
   end
 
   def inspect_updated_fields
-    users << owner unless user_ids.include?(owner.id)
+    # TODO: reviw this line
+    # users << owner unless user_ids.include?(owner.id)
     super
   end
 
