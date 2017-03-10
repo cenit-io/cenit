@@ -245,7 +245,7 @@ module Api::V2
         if limit == '0'
           limit = Kaminari.config.default_per_page.to_s
         end
-        limit = [Kaminari.config.default_per_page, limit.to_i].min
+        limit = [Kaminari.config.default_per_page, limit.to_i].min unless params[:only].present?
       else
         limit = Kaminari.config.default_per_page
       end

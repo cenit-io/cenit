@@ -9,7 +9,7 @@
   <pre id="<%= id %>" class="code <%= lang[:hljs] %>"><%= api_auth_vars(lang[:id]).html_safe %></pre>
 </div>
 
-<% api_current_paths.each do |path, methods| %>
+<% (@api_current_paths || api_current_paths).each do |path, methods| %>
     <% methods.each do |method, definition| %>
         <% id = "#{lang[:id]}-#{method}-#{path}".parameterize %>
         <div class="sdk-code">

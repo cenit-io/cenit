@@ -6,7 +6,7 @@
     <span class="caret"></span>
   </button>
   <ul class="dropdown-menu dropdown-menu-right">
-    <% api_current_paths.each do |path, methods| %>
+    <% @api_current_paths.each do |path, methods| %>
         <% methods.each do |method, definition| %>
             <li>
               <a href="#" role="menuitem" title="<%= definition[:description].strip %>"
@@ -20,7 +20,7 @@
   </ul>
 </div>
 
-<% api_current_paths.each do |path, methods| %>
+<% @api_current_paths.each do |path, methods| %>
     <% methods.each do |method, definition| %>
         <% dlg_id = "dlg-#{method}-#{path}".parameterize %>
         <div id="<%= dlg_id %>" class="modal fade rest-api-code-dlg" role="dialog">
