@@ -7,16 +7,19 @@ module RailsAdmin
     module Notebooks
       def api_notebook(lang)
         ns, model_name, display_name = api_model
-        nb_module = "#{ns}/#{model_name}".gsub(/^\//, '')
+        nb_parent = "REST-API/#{ns}/#{model_name}".gsub(/\/\//, '/')
         nb_name = "api-#{lang[:id]}.ipynb"
 
         Setup::Notebook.where(
           :name => nb_name,
-          :module => nb_module
-        ).first || api_create_notebook(lang, nb_module, nb_name, display_name)
+          :parent => nb_parent,
+          :type => :notebook
+        ).first || api_create_notebook(lang, nb_parent, nb_name, display_name)
       end
 
-      def api_create_notebook(lang, nb_module, nb_name, display_name)
+      def api_create_notebook(lang, nb_parent, nb_name, display_name)
+        api_create_notebook_path(nb_parent)
+
         cells = [
           api_notebook_cell_markdown("## Access to *#{display_name}* using *#{lang[:label]}* language."),
           api_notebook_cell_markdown("### Authentication parameters:"),
@@ -41,7 +44,8 @@ module RailsAdmin
 
         attrs ={
           :name => nb_name,
-          :module => nb_module,
+          :parent => nb_parent,
+          :type => :notebook,
           :content => {
             cells: cells,
             metadata: api_notebook_metadata(lang[:id]),
@@ -52,6 +56,15 @@ module RailsAdmin
 
         botebook = Setup::Notebook.create(attrs)
         botebook.origin = :shared
+      end
+
+      def api_create_notebook_path(nb_parent)
+        parent = ""
+        nb_parent.split('/').each do |name|
+          directory = Setup::Notebook.where(:name => name, :parent => parent, :type => :directory).first_or_create
+          directory.origin = :shared
+          parent = "#{parent}/#{name}".gsub(/^\//, '')
+        end
       end
 
       def api_notebook_cell_markdown(contents)

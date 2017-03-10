@@ -76,7 +76,7 @@ module Cenit
         Setup::SystemNotification.create(type: :warning, message: "Wrong cenit data types: #{wrong_data_types.to_sentence}")
       end
 
-      RailsAdmin::RestApi::Notebooks::Startup.init
+      Cenit::Notebooks.startup if Cenit.jupyter_notebooks
     end
 
     if Rails.env.production? &&
