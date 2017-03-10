@@ -59,6 +59,7 @@ module Setup
     end
 
     class << self
+
       def auth_header(template_parameters)
         template_parameters = template_parameters.with_indifferent_access
 
@@ -90,6 +91,8 @@ module Setup
         end
         request['authorization']
       end
+
     end
+    
   end
 end

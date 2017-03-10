@@ -47,5 +47,6 @@ module Setup
     def title
       label
     end
+    
   end
 end

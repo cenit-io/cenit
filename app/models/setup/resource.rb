@@ -4,7 +4,7 @@ module Setup
     include NamespaceNamed
     include WithTemplateParameters
     include JsonMetadata
-    include RailsAdmin::Models::Setup::ResourceAdmin    
+    include RailsAdmin::Models::Setup::ResourceAdmin
 
     build_in_data_type.referenced_by(:name, :namespace)
 
@@ -22,5 +22,6 @@ module Setup
     def conformed_path(options = {})
       conform_field_value(:path, options)
     end
+    
   end
 end

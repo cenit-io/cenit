@@ -174,5 +174,6 @@ module Setup
         default_contentType: format_validator.try(:content_type) || 'application/octet-stream'
       }
     end
+    
   end
 end

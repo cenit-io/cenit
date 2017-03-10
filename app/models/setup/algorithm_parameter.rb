@@ -75,5 +75,6 @@ module Setup
       sch[:referenced] = true unless type.blank? || %w(integer number boolean string object).include?(type)
       sch.stringify_keys
     end
+    
   end
 end

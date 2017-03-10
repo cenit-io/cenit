@@ -29,6 +29,8 @@ module Setup
       def abstract?
         abstract_class.present?
       end
+
     end
+    
   end
 end

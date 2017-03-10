@@ -14,6 +14,8 @@ module Setup
           Setup::Parameter.with(tenant).where(r.foreign_key.to_sym.in => ids).delete_all
         end
       end
+
     end
+
   end
 end

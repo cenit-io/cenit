@@ -12,11 +12,14 @@ module Setup
     end
 
     module ClassMethods
+      
       def changed_if(&block)
         if block
           self.changed_if_blocks << block
         end
       end
+
     end
+
   end
 end

@@ -31,6 +31,8 @@ module Setup
       ensure
         temporary_file.close if temporary_file
       end
+
     end
+    
   end
 end

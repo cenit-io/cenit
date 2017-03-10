@@ -40,5 +40,6 @@ module Setup
       templates.each { |key, template| hash[key] = template && template.render(template_parameters.reverse_merge(template_parameters_hash)) }
       hash
     end
+
   end
 end

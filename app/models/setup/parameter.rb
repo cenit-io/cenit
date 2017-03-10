@@ -2,7 +2,8 @@ module Setup
   class Parameter
     include CenitScoped
     include JsonMetadata
-    include RailsAdmin::Models::Setup::ParameterAdmin
+    include ChangedIf
+    include RailsAdmin::Models::Setup::ParameterAdmin   
 
     build_in_data_type.with(:key, :value, :description, :metadata).referenced_by(:key)
 
@@ -33,5 +34,6 @@ module Setup
     def parent
       (r = parent_relation) && send(r.name)
     end
+
   end
 end

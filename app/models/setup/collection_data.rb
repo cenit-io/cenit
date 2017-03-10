@@ -46,5 +46,6 @@ module Setup
         %w(namespace name records)
       end
     end
+    
   end
 end

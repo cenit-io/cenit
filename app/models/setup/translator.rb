@@ -165,7 +165,7 @@ module Setup
 
     def file_extension_enum
       extensions = []
-      if types = MIME::Types[mime_type]
+      if (types = MIME::Types[mime_type])
         types.each { |type| extensions.concat(type.extensions) }
       end
       extensions.uniq
@@ -191,14 +191,14 @@ module Setup
       target_data_type.blank? || target_data_type == data_type
     end
 
-    def run(options={})
+    def run(options = {})
       context_options = try("context_options_for_#{type.to_s.downcase}", options) || {}
       self.class.fields.keys.each { |key| context_options[key.to_sym] = send(key) }
       self.class.relations.keys.each { |key| context_options[key.to_sym] = send(key) }
       context_options[:data_type] = data_type
       context_options.merge!(options) { |_, context_val, options_val| !context_val ? options_val : context_val }
       context_options[:options] ||= {}
-      #TODO Remove transformation local after migration
+      # TODO: Remove transformation local after migration
       context_options[:transformation] = context_options[:code] = code
 
       context_options[:target_data_type].regist_creation_listener(self) if context_options[:target_data_type]
@@ -251,7 +251,9 @@ module Setup
             {
               source_key_options[:source_key] || :source =>
                 begin
-                  obj = options[:object] || ((id = (options[:object_id] || (options[:object_ids] && options[:object_ids][offset]))) && model.where(id: id).first) || model.all.skip(offset).first
+                  obj = options[:object] ||
+                        ((id = (options[:object_id] || (options[:object_ids] && options[:object_ids][offset]))) && model.where(id: id).first) ||
+                        model.all.skip(offset).first
                   options[:object_ids] = [obj.id.is_a?(BSON::ObjectId) ? obj.id.to_s : obj.id] unless options[:object_ids] || obj.nil?
                   obj
                 end
@@ -282,7 +284,7 @@ module Setup
     def after_run_update(options)
       if (target = options[:object])
         target.instance_variable_set(:@discard_event_lookup, options[:discard_events])
-        raise TransformingObjectException.new(target) unless Cenit::Utility.save(target)
+        fail TransformingObjectException.new(target) unless Cenit::Utility.save(target)
       end
       options[:result] = target
     end
@@ -291,7 +293,7 @@ module Setup
       return unless (target = options[:target])
       if options[:save_result].blank? || options[:save_result]
         target.instance_variable_set(:@discard_event_lookup, options[:discard_events])
-        raise TransformingObjectException.new(target) unless Cenit::Utility.save(target)
+        fail TransformingObjectException.new(target) unless Cenit::Utility.save(target)
       end
       options[:result] = target
     end
@@ -341,5 +343,6 @@ module Setup
       @object = object
       super(msg)
     end
+
   end
 end

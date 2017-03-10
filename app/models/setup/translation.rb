@@ -16,14 +16,13 @@ module Setup
                               source_data_type: data_type_from(message),
                               task: self,
                               options: message[:options].deep_dup)
-      if result && Cenit::Utility.json_object?(result)
-        attachment = Setup::Translation.attachment_for(data_type, translator, result)
-        current_execution.attach(attachment)
-        notify(type: :notice,
-               message: "'#{translator.custom_title}' export result",
-               attachment: attachment,
-               skip_notification_level: message[:skip_notification_level])
-      end
+      return unless result && Cenit::Utility.json_object?(result)
+      attachment = Setup::Translation.attachment_for(data_type, translator, result)
+      current_execution.attach(attachment)
+      notify(type: :notice,
+             message: "'#{translator.custom_title}' export result",
+             attachment: attachment,
+             skip_notification_level: message[:skip_notification_level])
     end
 
     def translate_update(message)
@@ -56,6 +55,7 @@ module Setup
     end
 
     class << self
+
       def attachment_for(data_type, translator, result)
         title = (data_type && data_type.title) || translator.name
         file_name = "#{title.collectionize}_#{DateTime.now.strftime('%Y-%m-%d_%Hh%Mm%S')}"
@@ -71,6 +71,8 @@ module Setup
                 end
         }
       end
+
     end
+
   end
 end
