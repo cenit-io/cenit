@@ -43,5 +43,5 @@ module Setup
       end if new_record?
     end
 
-  end if (ENV['JUPYTER_NOTEBOOKS'] || 'false').to_b
+  end if Cenit.jupyter_notebooks
 end
