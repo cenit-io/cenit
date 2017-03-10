@@ -126,4 +126,7 @@ Cenit.config do
   max_nested_forms_levels 10
 
   max_handing_schemas 500
+
+  jupyter_notebooks (ENV['JUPYTER_NOTEBOOKS'] || 'false').to_b
+  jupyter_notebooks_url ENV['JUPYTER_NOTEBOOKS_URL'] || "http://127.0.0.1:8888"
 end
