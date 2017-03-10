@@ -18,11 +18,10 @@ module Setup
             entry_name = nil
             while entry && i < next_entry_index
               i += 1
-              if (entry = zis.get_next_entry)
-                entry_name = entry.name
-                if i == next_entry_index && (data = entry.get_input_stream.read).blank?
-                  next_entry_index += 1
-                end
+              next unless (entry = zis.get_next_entry)
+              entry_name = entry.name
+              if i == next_entry_index && (data = entry.get_input_stream.read).blank?
+                next_entry_index += 1
               end
             end
             if data.present?
@@ -44,7 +43,7 @@ module Setup
           end
         rescue Exception => ex
           state[:done] = true
-          fail "Zip file format error: #{ex.message}"
+          raise "Zip file format error: #{ex.message}"
         end
       else
         block.call(data.path.split('/').last, data.read)

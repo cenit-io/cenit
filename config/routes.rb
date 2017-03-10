@@ -89,4 +89,12 @@ Cenit::Application.routes.draw do
   match '/:model_name/:id/swagger/*path' => 'rails_admin/main#swagger', via: [:all]
 
   get '/:model_name/*id', to: 'rails_admin/main#show'
+
+  namespace :contact_us do
+    controller :contacts do
+      post '/contacts' => :create
+    end
+  end
+
+
 end

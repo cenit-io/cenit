@@ -1,11 +1,17 @@
 module Setup
   class Deletion < Setup::Task
+    include RailsAdmin::Models::Setup::DeletionAdmin
 
     build_in_data_type
 
     def deletion_model
       model_name = message[:model_name.to_s]
-      model = model_name.constantize rescue nil
+      model =
+        begin
+          model_name.constantize
+        rescue Exception
+          nil
+        end
       unless model
         if model_name.start_with?('Dt') && (data_type = Setup::DataType.where(id: model_name.from(2)).first)
           model = data_type.records_model
@@ -17,7 +23,13 @@ module Setup
     def run(message)
       if (model = deletion_model)
         scope = model.where(message[:selector])
-        destroy_callback = [:before_destroy, :after_destroy].any? { |m| model.singleton_method(m) rescue false }
+        destroy_callback = [:before_destroy, :after_destroy].any? do |m|
+          begin
+            model.singleton_method(m)
+          rescue Exception
+            false
+          end
+        end
         if destroy_callback
           progress_step = 10
           step_size = scope.count / progress_step
@@ -25,11 +37,10 @@ module Setup
           scope.each do |record|
             record.destroy unless record == self
             step_count += 1
-            if step_count >= step_size
-              step_count = 0
-              self.progress += progress_step
-              save
-            end
+            next unless step_count >= step_size
+            step_count = 0
+            self.progress += progress_step
+            save
           end
         else
           if scope.is_a?(Mongoid::Criteria)

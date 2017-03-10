@@ -9,21 +9,22 @@ class User
   include NumberGenerator
   include TokenGenerator
   include DeviseInvitable::Inviter
+  include FieldsInspection
+  include RailsAdmin::Models::UserAdmin
+
+  inspect_fields :name, :picture, :account_id, :api_account_id, :code_theme
 
   rolify
 
   has_many :accounts, class_name: Account.to_s, inverse_of: :owner
+  has_and_belongs_to_many :member_accounts, class_name: Account.to_s, inverse_of: :users
   belongs_to :account, class_name: Account.to_s, inverse_of: :nil
   belongs_to :api_account, class_name: Account.to_s, inverse_of: :nil
-
-  has_many :memberships
-  has_many :invitations, class_name: Membership.to_s, as: :invited_by
-
 
   # Include default devise modules. Others available are:
   # :lockable, :timeoutable, :rememberable
 
-  devise :invitable, :trackable, :validatable, :omniauthable, :database_authenticatable, :recoverable
+  devise :trackable, :validatable, :omniauthable, :database_authenticatable, :recoverable, :invitable
   devise :registerable unless ENV['UNABLE_REGISTERABLE'].to_b
   devise :confirmable if ENV.has_key?('UNABLE_CONFIRMABLE') && !ENV['UNABLE_CONFIRMABLE'].to_b
 
@@ -153,32 +154,11 @@ class User
     end
   end
 
-  def inspect_updated_fields
-    changed_attributes.keys.each do |attr|
-      reset_attribute!(attr) unless %w(name picture account_id api_account_id code_theme).include?(attr)
-    end unless core_handling? || new_record? || (Account.current && Account.current_super_admin?)
-    errors.blank?
-  end
-
-  def core_handling(*arg)
-    @core_handling = arg[0].to_s.to_b
-  end
-
-  def core_handling?
-    @core_handling
-  end
-
-  def confirm(args={})
-    core_handling true
-    super
-  end
-
   def self.find_or_initialize_for_doorkeeper_oauth(oauth_data)
     user = User.where(email: oauth_data.info.email).first
     user ||= User.new(email: oauth_data.info.email, password: Devise.friendly_token[0, 20])
     user.confirmed_at ||= Time.now
     user.doorkeeper_uid = oauth_data.uid
-    user.core_handling true
     user
   end
 

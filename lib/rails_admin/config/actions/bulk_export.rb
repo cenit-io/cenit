@@ -12,6 +12,10 @@ module RailsAdmin
           true
         end
 
+        register_instance_option :bulk_processable? do
+          true
+        end
+
         def key
           :export
         end

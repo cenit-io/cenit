@@ -23,7 +23,7 @@
   }
 }
 
-.generate-api {
+.menu-api {
   position: relative;
   right: 12px;
   top: -51px;
@@ -58,10 +58,14 @@
 
   .copy-to-clipboard {
     float: right;
+    margin-left: 1em;
+    margin-top: 0;
   }
 
-  pre {
-    padding-left: 2em;
+  pre.code {
+    padding: 1em;
+    border-radius: 10px;
+    margin-top: 0;
   }
 
   hr {

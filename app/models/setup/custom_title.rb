@@ -1,6 +1,5 @@
 module Setup
   module CustomTitle
-
     def scope_title
       nil
     end
@@ -11,10 +10,9 @@ module Setup
         title = "#{scoped_title} #{separator} #{title}"
       end
       if (origin = try(:origin)) && origin != :default
-        title = "#{title} [#{origin}]"
+        title = "#{title} [#{I18n.t("admin.origin.#{origin}")}]"
       end
       title
     end
-
   end
 end

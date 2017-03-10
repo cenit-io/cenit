@@ -2,15 +2,18 @@ module Setup
   class ApiPull < Setup::BasePull
     include PullingField
     include HashField
+    include RailsAdmin::Models::Setup::ApiPullAdmin
+
+    agent_field :api
 
     build_in_data_type
 
-    pulling :api, class: Setup::Api
+    pulling :api, class: Setup::ApiSpec
     hash_field :collection_data
 
     def source_shared_collection
       unless @shared_collection
-        unless self.collection_data.present?
+        unless collection_data.present?
           self.collection_data = api.cenit_collection_hash(task: self)
         end
         @shared_collection = Setup::CrossSharedCollection.new(pull_data: collection_data)

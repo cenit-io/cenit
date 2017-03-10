@@ -7,12 +7,12 @@ module Setup
 
     included do
       field :namespace, type: String
-      field :name, type: String, default: ''
+      field :name, type: String
 
       validates_presence_of :name
       validates_uniqueness_of :name, scope: :namespace
 
-      before_save do
+      before_validation do
         self.namespace =
           if namespace.nil?
             ''
@@ -22,7 +22,7 @@ module Setup
         self.name = name.to_s.strip
         # unless Account.current_super_admin?
         #   errors.add(:namespace, 'is reserved') if Cenit.reserved_namespaces.include?(namespace.downcase)
-        # end TODO Delete comment
+        # end TODO Implements reserved namespaces
         errors.blank?
       end
 

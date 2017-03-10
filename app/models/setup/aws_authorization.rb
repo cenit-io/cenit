@@ -1,6 +1,7 @@
 module Setup
   class AwsAuthorization < Setup::Authorization
     include CenitScoped
+    include RailsAdmin::Models::Setup::AwsAuthorizationAdmin
 
     deny :all
 
@@ -12,7 +13,7 @@ module Setup
     field :merchant, type: String
     field :markets, type: String
     field :mws_auth_token, type: String
-    field :version, type: String , default: '2011-01-01'
+    field :version, type: String, default: '2011-01-01'
     field :signature_method, type: String, default: 'HmacSHA256'
     field :signature_version, type: String, default: '2'
 
@@ -43,7 +44,7 @@ module Setup
     end
 
     def signature_method_enum
-      ['HmacSHA256','HmacSHA1']
+      %w(HmacSHA256 HmacSHA1)
     end
 
     def signature_version_enum
@@ -62,7 +63,7 @@ module Setup
                                                                        SellerId: seller_id,
                                                                        Marketplace: markets,
                                                                        Version: version,
-                                                                       MWSAuthToken: mws_auth_token,)
+                                                                       MWSAuthToken: mws_auth_token)
 
       template_parameters = template_parameters.merge(query_parameters: qp)
       self.class.sign(template_parameters)
@@ -73,20 +74,19 @@ module Setup
     end
 
     class << self
-
       def sign(template_parameters)
         template_parameters = template_parameters.with_indifferent_access
         digest = OpenSSL::Digest::SHA256.new
         message = [
-            template_parameters[:method].to_s.upcase,
-            template_parameters[:url].to_s.downcase,
-            template_parameters[:path].to_s.downcase,
-            params(template_parameters)].join "\n"
-        uri_escape Base64::encode64(OpenSSL::HMAC.digest(digest, template_parameters[:aws_secret_key], message)).chomp
+          template_parameters[:method].to_s.upcase,
+          template_parameters[:url].to_s.downcase,
+          template_parameters[:path].to_s.downcase,
+          params(template_parameters)].join "\n"
+        uri_escape Base64.encode64(OpenSSL::HMAC.digest(digest, template_parameters[:aws_secret_key], message)).chomp
       end
 
       def params(template_parameters)
-        template_parameters[:query_parameters].each { |_ , value| value = normalize_val value }.sort
+        template_parameters[:query_parameters].each { |_, value| value = normalize_val(value) }.sort
         template_parameters[:query_parameters].to_param
       end
 

@@ -6,7 +6,11 @@ class ApplicationController < ActionController::Base
                        if: Proc.new { |c| c.request.format =~ %r{application/json} }
 
   rescue_from CanCan::AccessDenied, RailsAdmin::ActionNotAllowed do |exception|
-    redirect_to main_app.root_path, :alert => exception.message
+    if _current_user
+      redirect_to main_app.root_path, :alert => exception.message
+    else
+      redirect_to new_session_path(User)
+    end
   end
 
   def doorkeeper_oauth_client
@@ -64,9 +68,7 @@ class ApplicationController < ActionController::Base
   ensure
     optimize
     if (account = Account.current)
-      account.code_handle do
-        save
-      end
+      account.save(discard_events: true)
     end
     clean_thread_cache
   end

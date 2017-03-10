@@ -4,6 +4,7 @@ module Setup
     include NamespaceNamed
     include ClassHierarchyAware
     include JsonMetadata
+    include RailsAdmin::Models::Setup::AuthorizationAdmin
 
     abstract_class true
 
@@ -30,7 +31,7 @@ module Setup
       if symbol.to_s.start_with?('all_')
         suffix = symbol.to_s.from('all_'.length).singularize
         fields.each { |field| hashes << self.class.send('auth_' + field.pluralize) if field.end_with?(suffix) }
-      elsif (field = CONFIG_FIELDS.detect { |field| "each_#{field}" == symbol.to_s.singularize })
+      elsif (field = CONFIG_FIELDS.detect { |item| "each_#{item}" == symbol.to_s.singularize })
         hashes << self.class.send('auth_' + field.pluralize)
       end if block_given?
       if hashes.present?
@@ -52,13 +53,10 @@ module Setup
     end
 
     class << self
-
       def method_missing(symbol, *args)
         if CONFIG_FIELDS.any? { |field| "auth_#{field.pluralize}" == symbol.to_s }
           ivar = "@#{symbol}".to_sym
-          if args.length > 0
-            instance_variable_set(ivar, args[0].stringify_keys)
-          end
+          instance_variable_set(ivar, args[0].stringify_keys) if args.length > 0
           value = instance_variable_get(ivar) || {}
           if superclass == Object
             value

@@ -12,7 +12,7 @@ module RailsAdmin
         end
 
         register_instance_option :http_methods do
-          [:get, :post]
+          [:get, :delete]
         end
 
         register_instance_option :controller do
@@ -20,15 +20,9 @@ module RailsAdmin
 
             model = @abstract_model.model rescue nil
             if model
-              @model_label_plural =
-                if (data_type = model.try(:data_type))
-                  data_type.title.downcase.pluralize
-                else
-                  @abstract_model.pretty_name.downcase.pluralize
-                end
               scope = list_entries(@abstract_model.config, :destroy)
               @total = scope.size
-              if params[:delete]
+              if request.delete?
                 do_flash_process_result Setup::Deletion.process(model_name: model.to_s, selector: scope.selector)
                 redirect_to back_or_index
               end
@@ -37,6 +31,10 @@ module RailsAdmin
               redirect_to back_or_index
             end
           end
+        end
+
+        register_instance_option :bulk_processable? do
+          true
         end
 
         register_instance_option :link_icon do

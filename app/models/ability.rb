@@ -27,10 +27,14 @@ class Ability
               Script,
               Setup::DelayedMessage,
               Setup::SystemNotification,
-              Setup::Operation
+              Setup::Operation,
+              Setup::Category,
+              TourTrack
             ]
         can [:import, :edit], Setup::SharedCollection
         can :destroy, [Setup::SharedCollection, Setup::Storage, Setup::CrossSharedCollection]
+        can :simple_delete_data_type, Setup::CenitDataType, origin: :cenit
+        can :destroy, Setup::CenitDataType, origin: :tmp
         can [:index, :show, :cancel], RabbitConsumer
         can [:index, :edit, :pull, :import], Setup::CrossSharedCollection
         can [:index, :show], Cenit::ApplicationId
@@ -63,6 +67,8 @@ class Ability
         can :simple_cross, CROSSING_MODELS_NO_ORIGIN
         can :simple_cross, CROSSING_MODELS_WITH_ORIGIN, :origin.in => [:default, :owner]
       end
+
+      can :destroy, Setup::Execution, :status.in => Setup::Task::FINISHED_STATUS
 
       can :destroy, Setup::Task,
           :status.in => Setup::Task::NON_ACTIVE_STATUS,
@@ -130,7 +136,7 @@ class Ability
                       if stack.empty?
                         hash[key] << root
                       else
-                        models += root.subclasses
+                        models.concat(root.subclasses)
                       end
                       root = stack.pop
                     end
@@ -192,9 +198,9 @@ class Ability
       can :manage, Mongoff::Record
 
     else
-      can [:dashboard, :shared_collection_index, :store_index]
+      can [:dashboard, :shared_collection_index, :ecommerce_index, :notebooks_root]
       can [:index, :show, :pull, :simple_export], [Setup::SharedCollection, Setup::CrossSharedCollection]
-      can :index, Setup::Models.all.to_a -
+      can [:index, :show], Setup::Models.all.to_a -
         [
           Setup::Namespace,
           Setup::DataTypeConfig,
@@ -218,10 +224,11 @@ class Ability
       Setup::Operation,
       Setup::PlainWebhook,
       Setup::Connection,
-      Setup::Translator,
       Setup::Flow,
-      Setup::Snippet
+      Setup::Snippet,
+      Setup::ApiSpec
     ] +
+      Setup::Translator.class_hierarchy +
       Setup::BaseOauthProvider.class_hierarchy +
       Setup::DataType.class_hierarchy +
       Setup::Validator.class_hierarchy

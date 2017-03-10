@@ -7,8 +7,6 @@ class AccountUploader < BasicUploader
   end
 
   class << self
-
     attr_accessor :grid
-
   end
 end

@@ -8,6 +8,7 @@ module Setup
     include Mongoff::DataTypeMethods
     include ClassHierarchyAware
     include ModelConfigurable
+    include RailsAdmin::Models::Setup::DataTypeAdmin
 
     origins origins_config, :cenit
 
@@ -15,12 +16,12 @@ module Setup
 
     build_in_data_type.with(:title, :name, :before_save_callbacks, :records_methods, :data_type_methods).referenced_by(:namespace, :name)
     build_in_data_type.and({
-                             properties: {
-                               slug: {
-                                 type: 'string'
-                               }
-                             }
-                           }.deep_stringify_keys)
+      properties: {
+        slug: {
+          type: 'string'
+        }
+      }
+    }.deep_stringify_keys)
 
     deny :delete, :new, :switch_navigation, :copy
 
@@ -33,8 +34,6 @@ module Setup
     has_and_belongs_to_many :data_type_methods, class_name: Setup::Algorithm.to_s, inverse_of: nil
 
     attr_readonly :name
-
-    validates_presence_of :namespace
 
     before_save :validates_configuration
 
@@ -90,7 +89,7 @@ module Setup
       [data_type_storage_collection_name]
     end
 
-    def storage_size(scale=1)
+    def storage_size(scale = 1)
       records_model.storage_size(scale)
     end
 
@@ -107,14 +106,13 @@ module Setup
     end
 
     def data_type_name
-      "Dt#{self.id.to_s}"
+      "Dt#{id}"
     end
 
     def create_default_events
-      if records_model.persistable? && Setup::Observer.where(data_type: self).empty?
-        Setup::Observer.create(data_type: self, triggers: '{"created_at":{"0":{"o":"_not_null","v":["","",""]}}}')
-        Setup::Observer.create(data_type: self, triggers: '{"updated_at":{"0":{"o":"_presence_change","v":["","",""]}}}')
-      end
+      return unless records_model.persistable? && Setup::Observer.where(data_type: self).empty?
+      Setup::Observer.create(data_type: self, triggers: '{"created_at":{"0":{"o":"_not_null","v":["","",""]}}}')
+      Setup::Observer.create(data_type: self, triggers: '{"updated_at":{"0":{"o":"_presence_change","v":["","",""]}}}')
     end
 
     def find_data_type(ref, ns = namespace)
@@ -135,7 +133,6 @@ module Setup
     end
 
     class << self
-
       def inherited(subclass)
         super
         origins = origins_config.dup
@@ -148,9 +145,7 @@ module Setup
       end
 
       def find_data_type(ref, ns = '')
-        if ref.is_a?(Hash)
-          ns = ref['namespace'].to_s
-        end
+        ns = ref['namespace'].to_s if ref.is_a?(Hash)
         Setup::DataType.where(namespace: ns, name: ref).first
       end
     end

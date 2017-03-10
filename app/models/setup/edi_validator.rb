@@ -1,7 +1,7 @@
 module Setup
   class EdiValidator < CustomValidator
-    include SharedEditable
     include Setup::FormatValidator
+    include RailsAdmin::Models::Setup::EdiValidatorAdmin
 
     build_in_data_type.referenced_by(:namespace, :name)
 
@@ -28,16 +28,14 @@ module Setup
     end
 
     def format_options
-      {} #TODO edi options
+      {} # TODO: edi options
     end
 
     def validate_data(data)
-      begin
-        Edi::Parser.parse_edi(data_type, data, format_options)
-        []
-      rescue Exception => ex
-        [ex.message]
-      end
+      Edi::Parser.parse_edi(data_type, data, format_options)
+      []
+    rescue Exception => ex
+      [ex.message]
     end
   end
 end

@@ -106,7 +106,9 @@ module Edi
 
     def record_to_xml_element(data_type, schema, record, xml_doc, enclosed_property_name, options, namespaces)
       return unless record
-      return Nokogiri::XML({ enclosed_property_name => record }.to_xml(dasherize: false)).root.first_element_child if Cenit::Utility.json_object?(record)
+      if Cenit::Utility.json_object?(record)
+        return Nokogiri::XML({ enclosed_property_name => record }.to_xml(dasherize: false)).root.first_element_child
+      end
 
       if schema['xml'] && (xmlnss = schema['xml']['xmlns']).is_a?(Hash)
         xmlnss.each do |ns, xmlns|
@@ -163,7 +165,7 @@ module Edi
               if Cenit::Utility.json_object?(sub_record)
                 json_objects << sub_record
               else
-                elements << record_to_xml_element(data_type, property_schema, sub_record, xml_doc, property_name, options, namespaces)
+                elements << record_to_xml_element(data_type, property_schema, sub_record, xml_doc, nil, options, namespaces)
               end
             end if property_value
             unless json_objects.empty?
@@ -174,7 +176,7 @@ module Edi
           end
         when 'object'
           if property_model && property_model.modelable?
-            elements << record_to_xml_element(data_type, property_schema, record.send(property_name), xml_doc, property_name, options, namespaces)
+            elements << record_to_xml_element(data_type, property_schema, record.send(property_name), xml_doc, nil, options, namespaces)
           else
             elements << Nokogiri::XML({ name => record.send(property_name) }.to_xml(dasherize: false)).root.first_element_child
           end
@@ -231,7 +233,7 @@ module Edi
       if (include_id = options[:include_id]).respond_to?(:call)
         include_id = include_id.call(record)
       end
-      store(json, 'id', record.id, options) if include_id
+      do_store(json, 'id', record.id, options) if include_id
       content_property = nil
       model.stored_properties_on(record).each do |property_name|
         next if (protected = (model.schema['protected'] || []).include?(property_name)) && options[:protected]
@@ -250,7 +252,7 @@ module Edi
             ((property_schema['edi'] || {})['discard'] && !(included_anyway = options[:including_discards] || options[:including].include?(property_name))) ||
             (can_be_referenced && referenced && !key_properties.include?(property_name)) ||
             options[:ignore].include?(name.to_sym) ||
-            (options[:only] && !options[:only].include?(name.to_sym) && !included_anyway)
+            (options[:only].present? && options[:only].exclude?(name.to_sym) && !included_anyway)
         end
         case property_schema['type']
         when 'array'
@@ -264,12 +266,12 @@ module Edi
           else
             new_value = nil
           end
-          store(json, name, new_value, options, key_properties.include?(property_name))
+          do_store(json, name, new_value, options, key_properties.include?(property_name))
         when 'object'
           sub_record = record.send(property_name)
           next if inspecting && (scope = options[:inspect_scope]) && !scope.include?(sub_record)
           value = record_to_hash(sub_record, options, can_be_referenced && property_schema['referenced'] && !property_schema['export_embedded'], property_model)
-          store(json, name, value, options, key_properties.include?(property_name))
+          do_store(json, name, value, options, key_properties.include?(property_name))
         else
           value =
             begin
@@ -280,7 +282,7 @@ module Edi
           if value.nil?
             value = property_schema['default']
           end
-          store(json, name, value, options, key_properties.include?(property_name)) #TODO Default values should came from record attributes
+          do_store(json, name, value, options, key_properties.include?(property_name)) #TODO Default values should came from record attributes
         end
       end
       if (options[:inspecting].include?(:_type) ||
@@ -297,7 +299,7 @@ module Edi
       end
     end
 
-    def store(json, key, value, options, store_anyway = false)
+    def do_store(json, key, value, options, store_anyway = false)
       if options[:nqnames]
         key = key.to_s.split(':').last
       end
@@ -308,7 +310,8 @@ module Edi
           json[key] = value if store_anyway || value.present? || options[:include_blanks] || options[:include_empty]
         else
           value = value.to_s if [BSON::ObjectId, Symbol].any? { |klass| value.is_a?(klass) }
-          json[key] = json_value(value, options) if store_anyway || !(value.nil? || value.try(:empty?)) || options[:include_blanks] #TODO String blanks!
+          value = json_value(value, options)
+          json[key] = value if store_anyway || !(value.nil? || value.try(:empty?)) || options[:include_blanks] #TODO String blanks!
         end
       end
     end
@@ -317,6 +320,8 @@ module Edi
       case value
       when Time
         value.strftime('%H:%M:%S')
+      when Date, DateTime
+        value.to_s
       else
         if Cenit::Utility.json_object?(value)
           value

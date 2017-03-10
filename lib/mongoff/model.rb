@@ -57,9 +57,11 @@ module Mongoff
     end
 
     def schema
-      if model_schema?(@schema = proto_schema)
-        @schema = (Model[:base_schema] || {}).deep_merge(@schema)
-      end unless @schema
+      unless @schema
+        if model_schema?(@schema = proto_schema)
+          @schema = (Model[:base_schema] || {}).deep_merge(@schema)
+        end
+      end
       @schema
     end
 
@@ -74,13 +76,16 @@ module Mongoff
       schema['type'] == 'object' && schema['properties'] && (property_schema = schema['properties'][property]) && model_schema?(property_schema)
     end
 
+    def properties_models
+      @properties_models ||= {}
+    end
+
     def property_model(property)
       property = property.to_s
       model = nil
-      if schema.is_a?(Hash) && schema['type'] == 'object' && schema['properties'] && property_schema = schema['properties'][property]
-        @properties_models ||= {}
-        if @properties_models.has_key?(property)
-          model = @properties_models[property]
+      if schema.is_a?(Hash) && schema['type'] == 'object' && schema['properties'] && (property_schema = schema['properties'][property])
+        if properties_models.key?(property)
+          model = properties_models[property]
         else
           ref, property_dt = check_referenced_schema(property_schema)
           model =
@@ -101,7 +106,7 @@ module Mongoff
               Model.for(data_type: data_type, name: property.camelize, parent: self, schema: records_schema)
             end
           schema['properties'][property] = property_schema
-          @properties_models[property] = model
+          properties_models[property] = model
         end
       end
       model
@@ -238,8 +243,9 @@ module Mongoff
     end
 
     def attribute_key(field, field_metadata = {})
-      if (field_metadata[:model] ||= property_model(field)) && field_metadata[:model].persistable?
-        (schema = (field_metadata[:schema] ||= property_schema(field)))['referenced']
+      field_metadata[:model] ||= property_model(field)
+      model = field_metadata[:model]
+      if model && model.persistable? && (schema = (field_metadata[:schema] ||= property_schema(field)))['referenced']
         ((schema['type'] == 'array') ? field.to_s.singularize + '_ids' : "#{field}_id").to_sym
       else
         field.to_s == 'id' ? :_id : field.to_sym
@@ -250,7 +256,7 @@ module Mongoff
       if property?(name)
         name
       else
-        name = name.gsub(/_id(s)?\Z/, '')
+        name = name.to_s.gsub(/_id(s)?\Z/, '')
         if (name = [name.pluralize, name].detect { |n| property?(n) })
           name
         else
@@ -274,7 +280,7 @@ module Mongoff
         if (id = value.try(:id)).is_a?(BSON::ObjectId)
           id
         else
-          BSON::ObjectId.from_string(value.to_s) rescue nil
+          BSON::ObjectId.from_string(value.to_s)
         end
       end,
 
@@ -292,56 +298,75 @@ module Mongoff
 
       Integer => ->(value) { value.to_s.to_i },
       Float => ->(value) { value.to_s.to_f },
-      Date => ->(value) { Date.parse(value.to_s) rescue nil },
-      DateTime => ->(value) { DateTime.parse(value.to_s) rescue nil },
-      Time => ->(value) { Time.parse(value.to_s) rescue nil },
+      Date => ->(value) { Date.parse(value.to_s) },
+      DateTime => ->(value) { DateTime.parse(value.to_s) },
+      Time => ->(value) { Time.parse(value.to_s) },
 
       Hash => ->(value) do
-        unless value.is_a?(Hash)
-          value = JSON.parse(value.to_s) rescue nil
-          value = nil unless value.is_a?(Hash)
+        unless value.is_a?(Hash) || (value = JSON.parse(value.to_s)).is_a?(Hash)
+          fail 'Array JSON not a Hash'
         end
         value
       end,
 
       Array => ->(value) do
-        unless value.is_a?(Array)
-          value = JSON.parse(value.to_s) rescue nil
-          value = nil unless value.is_a?(Array)
+        unless value.is_a?(Array) || (value = JSON.parse(value.to_s)).is_a?(Array)
+          fail 'Hash JSON not an Array'
         end
         value
       end,
 
-      NilClass => ->(value) { Cenit::Utility.json_object?(value) ? value : nil }
+      NilClass => ->(value) do
+        if Cenit::Utility.json_object?(value)
+          value
+        else
+          fail 'Not a JSON value'
+        end
+      end
     }
 
-    def mongo_value(value, field, schema = nil)
+    def mongo_value(value, field, schema = nil, &success_block)
       types =
         if !caching? || schema
           mongo_type_for(field, schema)
         else
           @mongo_types[field] ||= mongo_type_for(field, schema)
         end
+      success_value = nil
+      success_type = nil
       types.each do |type|
-        v =
-          if value.is_a?(type)
-            value
-          else
-            convert(type, value)
+        break unless success_value.nil?
+        if value.is_a?(type)
+          success_value = value
+          success_type = type
+        else
+          begin
+            success_value = CONVERSION[type].call(value)
+            success_type = type
+          rescue Exception
           end
-        return v if v
+        end
       end
-      nil
-    end
-
-    def convert(type, value)
-      CONVERSION[type].call(value)
+      if success_type && success_block
+        args =
+          case success_block.arity
+          when 0
+            []
+          when 1
+            [success_value]
+          else
+            [success_value, success_type]
+          end
+        success_block.call(*args)
+      end
+      success_value
     end
 
     def fully_validate_against_schema(value, options = {})
       JSON::Validator.fully_validate(schema, value, options.merge(version: :mongoff,
                                                                   schema_reader: JSON::Schema::CenitReader.new(data_type),
-                                                                  errors_as_objects: true))
+                                                                  errors_as_objects: true,
+                                                                  data_type: data_type))
     end
 
     class << self
@@ -407,6 +432,36 @@ module Mongoff
       end
     end
 
+    def labeled?
+      schema.key?('label')
+    end
+
+    def label_template
+      if @label_template.nil? && (template = schema['label'])
+        begin
+          @label_template = Liquid::Template.parse(template)
+        rescue Exception => ex
+          return ex.message
+        end
+      end
+      @label_template
+    end
+
+    def label(context = nil)
+      if parent
+        schema['title'] || to_s.split('::').last
+      else
+        case context
+        when nil
+          data_type.title
+        when :breadcrumb
+          data_type.custom_title('/')
+        else
+          data_type.custom_title
+        end
+      end
+    end
+
     protected
 
     def initialize(data_type, options = {})
@@ -428,7 +483,7 @@ module Mongoff
     end
 
     def proto_schema
-      sch = data_type.merged_schema #(recursive: caching?)
+      sch = data_type.merged_schema || {}
       if (properties = sch['properties'])
         sch['properties'] = data_type.merge_schema(properties)
       end
@@ -438,10 +493,12 @@ module Mongoff
     private
 
     def check_referenced_schema(schema, check_for_array = true)
-      if schema.is_a?(Hash) && (schema = schema.reject { |key, _| %w(title description edi group).include?(key) })
+      if schema.is_a?(Hash) && (schema = schema.reject { |key, _| %w(group xml unique title description edi format example enum readOnly default).include?(key) })
+        property_dt = nil
         ns = data_type.namespace
-        ref = schema['$ref']
-        if ref.is_a?(Hash)
+        if (ref = schema['$ref']).is_a?(Array)
+          ref = nil
+        elsif ref.is_a?(Hash)
           (ns = ref['namespace'].to_s)
           ref = ref['name']
         end

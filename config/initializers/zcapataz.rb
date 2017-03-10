@@ -13,7 +13,7 @@ Capataz.config do
                     Setup::Task, Setup::Task::RUNNING_STATUS, Setup::Task::NOT_RUNNING_STATUS, Setup::Task::ACTIVE_STATUS, Setup::Task::NON_ACTIVE_STATUS,
                     Xmldsig, Xmldsig::SignedDocument, Zip, Zip::OutputStream, Zip::InputStream, StringIO, MIME::Mail, MIME::Text, MIME::Multipart::Mixed,
                     Spreadsheet, Spreadsheet::Workbook, Setup::Authorization, Setup::Connection, Devise, Cenit, JWT, Setup::XsltValidator, Setup::Translator,
-                    Setup::Flow
+                    Setup::Flow, WriteXLSX
 
   allow_on Cenit, [:homepage, :namespace]
 
@@ -65,11 +65,13 @@ Capataz.config do
 
   allow_on Nokogiri::XML, [:search]
 
-  allow_on Setup::Connection, [:get, :post, :where]
+  allow_on Setup::Connection, Setup::Webhook.method_enum + [:webhook_for, :where]
 
   allow_on Setup::Webhook, [:where]
 
   allow_on Setup::Translator, [:run, :where]
+
+  allow_on WriteXLSX, [:new_xlsx]
 
   allow_for [Mongoff::Model], [:where, :all, :data_type]
 
@@ -86,11 +88,11 @@ Capataz.config do
 
   allow_for [Mongoid::Criteria, Mongoff::Criteria], Enumerable.instance_methods(false) + Origin::Queryable.instance_methods(false) + [:each, :present?, :blank?]
 
-  allow_for Setup::Task, [:status, :scheduler, :state, :resume_in, :run_again, :progress, :progress=, :update, :destroy, :notifications, :notify]
+  allow_for Setup::Task, [:status, :scheduler, :state, :resume_in, :run_again, :progress, :progress=, :update, :destroy, :notifications, :notify, :to_json, :share_json, :to_edi, :to_hash, :to_xml]
 
   allow_for Setup::Scheduler, [:activated?, :name, :to_json, :share_json, :to_edi, :to_hash, :to_xml, :namespace]
 
-  allow_for Setup::Webhook::ResponseProxy, [:code, :body, :headers, :content_type]
+  allow_for Setup::Webhook::Response, [:code, :body, :headers, :content_type]
 
   allow_for Setup::DataType, ((%w(_json _xml _edi) + ['']).collect do |format|
     %w(create new create!).collect do |action|

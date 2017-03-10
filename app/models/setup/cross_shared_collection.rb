@@ -3,7 +3,8 @@ module Setup
     include CenitUnscoped
     include CrossOrigin::Document
     include CollectionBehavior
-    include HashField
+    include Taggable
+    include RailsAdmin::Models::Setup::CrossSharedCollectionAdmin
 
     origins -> { Cenit::MultiTenancy.tenant_model.current && :owner }, :shared
 
@@ -18,6 +19,7 @@ module Setup
                             :pull_parameters,
                             :dependencies,
                             :readme,
+                            :image,
                             :pull_data,
                             :data,
                             :swagger_spec,
@@ -32,6 +34,7 @@ module Setup
 
     field :category, type: String
     field :summary, type: String
+    has_and_belongs_to_many :categories, class_name: Setup::Category.to_s, inverse_of: nil
 
     embeds_many :pull_parameters, class_name: Setup::CrossCollectionPullParameter.to_s, inverse_of: :shared_collection
     has_and_belongs_to_many :dependencies, class_name: Setup::CrossSharedCollection.to_s, inverse_of: nil
@@ -56,11 +59,6 @@ module Setup
     validates_format_of :shared_version, with: /\A(0|[1-9]\d*)(\.(0|[1-9]\d*))*\Z/
     validates_length_of :shared_version, maximum: 255
     validates_presence_of :authors, :summary
-
-    after_save do
-      reinstall(add_dependencies: false) unless !installed? || skip_reinstall_callback
-      self.skip_reinstall_callback = false
-    end
 
     accepts_nested_attributes_for :authors, allow_destroy: true
     accepts_nested_attributes_for :pull_parameters, allow_destroy: true
@@ -91,10 +89,10 @@ module Setup
         ensure_shared_name &&
         check_dependencies &&
         validates_pull_parameters &&
-          begin
-            self.data = {} if installed
-            true
-          end
+        begin
+          self.data = {} if installed
+          true
+        end
     end
 
     def ensure_shared_name
@@ -111,10 +109,9 @@ module Setup
 
     def check_dependencies
       for_each_dependence([self]) do |dependence, stack|
-        if stack.count { |d| d.name == dependence.name } > 1
-          errors.add(:dependencies, "with circular reference #{stack.collect { |d| d.versioned_name }.join(' -> ')}")
-          return false
-        end
+        next unless stack.count { |d| d.name == dependence.name } > 1
+        errors.add(:dependencies, "with circular reference #{stack.collect(&:versioned_name).join(' -> ')}")
+        return false
       end
       true
     end
@@ -130,9 +127,10 @@ module Setup
 
     def validates_pull_parameters
       with_errors = false
+      data = installed? ? pull_data : self.data
       pull_parameters.each do |pull_parameter|
-        pull_parameter.process_on(pull_data)
-        with_errors = with_errors || pull_parameter.errors.present?
+        pull_parameter.process_on(data)
+        with_errors ||= pull_parameter.errors.present?
       end
       if with_errors
         errors.add(:pull_parameters, 'is not valid')
@@ -146,15 +144,21 @@ module Setup
       hash = collecting_data
       hash = pull_data.merge(hash)
       hash.delete('readme')
-      hash
+      clean_ids(hash)
     end
 
     def data_with(parameters = {})
       hash_data = dependencies_data.deep_merge(pull_data) { |_, val1, val2| Cenit::Utility.array_hash_merge(val1, val2) }
-      pull_parameters.each do |pull_parameter|
-        pull_parameter.process_on(hash_data, value: parameters[pull_parameter.id] || parameters[pull_parameter.id.to_s])
-      end
+      parametrize(hash_data, parameters)
+      hash_data['metadata'] = metadata if metadata.present?
       hash_data
+    end
+
+    def parametrize(hash_data, parameters, options = {})
+      pull_parameters.each do |pull_parameter|
+        value = parameters[pull_parameter.id] || parameters[pull_parameter.id.to_s]
+        pull_parameter.process_on(hash_data, options.merge(value: value))
+      end
     end
 
     def dependencies_data(parameters = {})
@@ -163,14 +167,12 @@ module Setup
 
     def pulled(options = {})
       self.class.collection.find(_id: id).update_one('$inc' => { pull_count: 1 })
-      if !installed && options[:install] && User.current_installer?
-        install(options)
-      end
+      install(options) if !installed && options[:install] && User.current_installer?
     end
 
     def reinstall(options = {})
-      options[:collection] = self
-      options[:add_dependencies] = true unless options.has_key?(:add_dependencies)
+      options[:collection] ||= self
+      options[:add_dependencies] = true unless options.key?(:add_dependencies)
       install(options)
     end
 
@@ -181,6 +183,9 @@ module Setup
 
       if collection.warnings.present?
         collection.save(add_dependencies: false) if collection.changed?
+        collection.warnings.each do |warning|
+          errors.add(:base, warning)
+        end
         return false
       end
 
@@ -195,13 +200,13 @@ module Setup
       COLLECTING_PROPERTIES.each do |property|
         r = reflect_on_association(property)
         opts = { polymorphic: true }
-        opts[:include_id] = ->(record) do
+        opts[:include_id] = lambda do |record|
           record.is_a?(Setup::CrossOriginShared) && record.shared?
         end
         pull_data[r.name] =
           if r.klass < Setup::CrossOriginShared
             if (ids = collection.send(r.foreign_key).dup).present?
-              attributes[r.foreign_key]= ids
+              attributes[r.foreign_key] = ids
             end
             if r.klass.include?(Setup::SharedConfigurable)
               configuring_fields = r.klass.data_type.get_referenced_by + r.klass.configuring_fields.to_a
@@ -220,6 +225,7 @@ module Setup
       end
 
       assign_attributes(attributes)
+      self.metadata = collection.metadata
       pull_data.deep_stringify_keys!
 
       self.installed = true
@@ -236,18 +242,22 @@ module Setup
 
     def save(options = {})
       @add_dependencies =
-        if options.has_key?(:add_dependencies)
+        if options.key?(:add_dependencies)
           options.delete(:add_dependencies)
         else
           @add_dependencies
         end
-      super
+      if (result = super)
+        reinstall(add_dependencies: false) unless !installed? || skip_reinstall_callback
+        self.skip_reinstall_callback = false
+      end
+      result
     end
 
     def method_missing(symbol, *args)
       if (match = /\Adata_(.+)\Z/.match(symbol.to_s)) &&
-        COLLECTING_PROPERTIES.include?(relation_name = match[1].to_sym) &&
-        ((args.length == 0 && (options = {})) || args.length == 1 && (options = args[0]).is_a?(Hash))
+         COLLECTING_PROPERTIES.include?(relation_name = match[1].to_sym) &&
+         ((args.length == 0 && (options = {})) || args.length == 1 && (options = args[0]).is_a?(Hash))
         if (items = send(relation_name)).present?
           items
         else
@@ -272,5 +282,24 @@ module Setup
     protected
 
     attr_accessor :skip_reinstall_callback
+
+    def clean_ids(value)
+      case value
+      when Hash
+        if value['_reference']
+          Cenit::Utility.deep_remove(value, 'id')
+        else
+          h = {}
+          value.each do |key, sub_value|
+            h[key] = clean_ids(sub_value)
+          end
+          h
+        end
+      when Array
+        value.collect { |sub_value| clean_ids(sub_value) }
+      else
+        value
+      end
+    end
   end
 end

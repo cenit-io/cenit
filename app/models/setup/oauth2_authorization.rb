@@ -1,6 +1,7 @@
 module Setup
   class Oauth2Authorization < Setup::BaseOauthAuthorization
     include CenitScoped
+    include RailsAdmin::Models::Setup::Oauth2AuthorizationAdmin    
 
     build_in_data_type.with(:namespace, :name, :provider, :client, :parameters, :template_parameters, :scopes)
     build_in_data_type.referenced_by(:namespace, :name)
@@ -31,7 +32,7 @@ module Setup
     end
 
     def create_http_client(options = {})
-      http_client = OAuth2::Client.new(client.attributes[:identifier], client.attributes[:secret], options)
+      http_client = OAuth2::Client.new(client.get_identifier, client.get_secret, options)
       if (http_proxy = Cenit.http_proxy)
         http_client.connection.proxy(http_proxy)
       end
@@ -62,7 +63,7 @@ module Setup
           Time.now
         end
       self.access_token = token.token
-      self.token_span = token.expires_in
+      self.token_span = token.expires_in ||  token.params['token_span']
       self.refresh_token = token.refresh_token if token.refresh_token
       self.id_token = token.params['id_token']
     end

@@ -8,16 +8,27 @@ module Setup
 
     attr_reader :model
 
+    def request_db_data_type
+      RequestStore.store["[cenit]#{self}.db_data_type".to_sym] ||= db_data_type
+    end
+
+    def db_data_type
+      namespace = model.to_s.split('::')
+      name = namespace.pop
+      namespace = namespace.join('::')
+      Setup::CenitDataType.find_or_create_by(namespace: namespace, name: name)
+    end
+
     def namespace
       Setup.to_s
     end
 
     def title
-      @title ||= model.to_s.to_title
+      @title ||= model.to_s.split('::').last.to_title
     end
 
     def custom_title(separator = '|')
-      "#{Setup.to_s} #{separator} #{title}"
+      model.to_s.split('::').collect(&:to_title).join(" #{separator} ")
     end
 
     def name
@@ -130,7 +141,6 @@ module Setup
     end
 
     class << self
-
       def [](ref)
         build_ins[ref.to_s]
       end
@@ -150,6 +160,7 @@ module Setup
             model.include(Setup::SchemaModelAware)
             model.include(Edi::Formatter)
             model.include(Edi::Filler)
+            model.include(EventLookup)
             model.class.include(Mongoid::CenitExtension)
             build_in = BuildInDataType.new(model)
             block.call(build_in) if block
@@ -158,8 +169,16 @@ module Setup
       end
     end
 
-    EXCLUDED_FIELDS = %w{_id created_at updated_at version}
-    EXCLUDED_RELATIONS = %w{account creator updater}
+    def ns_slug
+      Setup.to_s.underscore
+    end
+
+    EXCLUDED_FIELDS = %w(_id created_at updated_at version)
+    EXCLUDED_RELATIONS = %w(account creator updater)
+
+    def respond_to?(*args)
+      args[0].to_s.start_with?('get_') || super
+    end
 
     def method_missing(symbol, *args)
       if symbol.to_s.start_with?('get_')
@@ -173,7 +192,7 @@ module Setup
 
     def store_fields(instance_variable, *fields)
       if fields
-        raise Exception.new('Illegal argument') unless fields.present?
+        fail 'Illegal argument' unless fields.present?
         fields = [fields] unless fields.is_a?(Enumerable)
         instance_variable_set(instance_variable, fields.flatten.collect(&:to_s).uniq.select(&:present?))
       else
@@ -182,20 +201,23 @@ module Setup
       self
     end
 
-    MONGOID_TYPE_MAP =
+    SCHEMA_TYPE_MAP =
       {
         BSON::ObjectId => { 'type' => 'string' },
-        Array => { 'type' => 'array' },
-        BigDecimal => { 'type' => 'integer' },
-        Mongoid::Boolean => { 'type' => 'boolean' },
-        Date => { 'type' => 'string', 'format' => 'date' },
-        DateTime => { 'type' => 'string', 'format' => 'date-time' },
-        Float => { 'type' => 'number' },
         Hash => { 'type' => 'object' },
+        Array => { 'type' => 'array' },
         Integer => { 'type' => 'integer' },
+        BigDecimal => { 'type' => 'integer' },
+        Float => { 'type' => 'number' },
+        Numeric => { 'type' => 'number' },
+        Mongoid::Boolean => { 'type' => 'boolean' },
+        TrueClass => { 'type' => 'boolean' },
+        FalseClass => { 'type' => 'boolean' },
+        Time => { 'type' => 'string', 'format' => 'time' },
+        DateTime => { 'type' => 'string', 'format' => 'date-time' },
+        Date => { 'type' => 'string', 'format' => 'date' },
         String => { 'type' => 'string' },
         Symbol => { 'type' => 'string' },
-        Time => { 'type' => 'string', 'format' => 'time' },
         nil => {},
         Object => {}
       }.freeze
@@ -212,27 +234,25 @@ module Setup
 
     def build_schema
       @discarding ||= []
-      schema = { 'type' => 'object', 'properties' => properties = { "_id" => { 'type' => 'string' } } }
+      schema = { 'type' => 'object', 'properties' => properties = { '_id' => { 'type' => 'string' } } }
       schema[:referenced_by.to_s] = Cenit::Utility.stringfy(@referenced_by) if @referenced_by
       model.fields.each do |field_name, field|
-        if !field.is_a?(Mongoid::Fields::ForeignKey) && included?(field_name.to_s)
-          json_type = (properties[field_name] = json_schema_type(field.type))['type']
-          if @discarding.include?(field_name)
-            (properties[field_name]['edi'] ||= {})['discard'] = true
-          end
-          if json_type.nil? || json_type == 'object' || json_type == 'array'
-            unless (mongoff_models = model.instance_variable_get(:@mongoff_models))
-              model.instance_variable_set(:@mongoff_models, mongoff_models = {})
-            end
-            mongoff_models[field_name] = Mongoff::Model.for(data_type: self,
-                                                            name: field_name.camelize,
-                                                            parent: model,
-                                                            schema: properties[field_name],
-                                                            cache: false,
-                                                            modelable: false,
-                                                            root_schema: schema)
-          end
+        next unless !field.is_a?(Mongoid::Fields::ForeignKey) && included?(field_name.to_s)
+        json_type = (properties[field_name] = json_schema_type(field.type))['type']
+        if @discarding.include?(field_name)
+          (properties[field_name]['edi'] ||= {})['discard'] = true
         end
+        next unless json_type.nil? || json_type == 'object' || json_type == 'array'
+        unless (mongoff_models = model.instance_variable_get(:@mongoff_models))
+          model.instance_variable_set(:@mongoff_models, mongoff_models = {})
+        end
+        mongoff_models[field_name] = Mongoff::Model.for(data_type: self,
+                                                        name: field_name.camelize,
+                                                        parent: model,
+                                                        schema: properties[field_name],
+                                                        cache: false,
+                                                        modelable: false,
+                                                        root_schema: schema)
       end
       model.reflect_on_all_associations(:embeds_one,
                                         :embeds_many,
@@ -240,27 +260,41 @@ module Setup
                                         :belongs_to,
                                         :has_many,
                                         :has_and_belongs_to_many).each do |relation|
-        if included?((relation_name = relation.name.to_s))
-          property_schema =
-            case relation.macro
-            when :embeds_one
-              { '$ref' => relation.klass.to_s }
-            when :embeds_many
-              { 'type' => 'array', 'items' => { '$ref' => relation.klass.to_s } }
-            when :has_one
-              { '$ref' => relation.klass.to_s, 'referenced' => true, 'export_embedded' => (@embedding && @embedding.include?(relation_name)).to_b }
-            when :belongs_to
-              { '$ref' => relation.klass.to_s, 'referenced' => true, 'export_embedded' => (@embedding && @embedding.include?(relation_name)).to_b } if (@including && @including.include?(relation_name.to_s)) || relation.inverse_of.nil?
-            when :has_many, :has_and_belongs_to_many
-              { 'type' => 'array', 'items' => { '$ref' => relation.klass.to_s }, 'referenced' => true, 'export_embedded' => (@embedding && @embedding.include?(relation_name)).to_b }
-            end
-          if property_schema
-            if @discarding.include?(relation_name.to_s)
-              (property_schema['edi'] ||= {})['discard'] = true
-            end
-            properties[relation_name] = property_schema
+        next unless included?((relation_name = relation.name.to_s))
+        property_schema =
+          case relation.macro
+          when :embeds_one
+            { '$ref' => relation.klass.to_s }
+          when :embeds_many
+            {
+              'type' => 'array',
+              'items' => { '$ref' => relation.klass.to_s }
+            }
+          when :has_one
+            {
+              '$ref' => relation.klass.to_s,
+              'referenced' => true,
+              'export_embedded' => (@embedding && @embedding.include?(relation_name)).to_b
+            }
+          when :belongs_to
+            {
+              '$ref' => relation.klass.to_s,
+              'referenced' => true,
+              'export_embedded' => (@embedding && @embedding.include?(relation_name)).to_b
+            } if (@including && @including.include?(relation_name.to_s)) || relation.inverse_of.nil?
+          when :has_many, :has_and_belongs_to_many
+            {
+              'type' => 'array',
+              'items' => { '$ref' => relation.klass.to_s },
+              'referenced' => true,
+              'export_embedded' => (@embedding && @embedding.include?(relation_name)).to_b
+            }
           end
+        next unless property_schema
+        if @discarding.include?(relation_name.to_s)
+          (property_schema['edi'] ||= {})['discard'] = true
         end
+        properties[relation_name] = property_schema
       end
       schema['protected'] = @protecting if @protecting.present?
       schema = schema.deep_reverse_merge(@to_merge) if @to_merge
@@ -268,7 +302,7 @@ module Setup
     end
 
     def json_schema_type(mongoid_type)
-      MONGOID_TYPE_MAP[mongoid_type].dup
+      SCHEMA_TYPE_MAP[mongoid_type].dup
     end
 
   end

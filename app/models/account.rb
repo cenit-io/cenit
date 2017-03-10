@@ -6,6 +6,10 @@ class Account
   include Cenit::Oauth::Tenant
   include NumberGenerator
   include TokenGenerator
+  include FieldsInspection
+  include RailsAdmin::Models::AccountAdmin
+
+  inspect_fields :name, :notification_level, :time_zone
 
   build_in_data_type.with(:name, :notification_level, :time_zone, :number, :authentication_token)
   build_in_data_type.protecting(:number, :authentication_token)
@@ -59,7 +63,7 @@ class Account
     errors.blank?
   end
 
-  before_save :inspect_updated_fields, :init_heroku_db, :validates_configuration
+  before_save :init_heroku_db, :validates_configuration
 
   after_destroy { clean_up }
 
@@ -67,44 +71,22 @@ class Account
     self
   end
 
-  def user
-    owner
-  end
-
   def users
     ([owner] + memberships.map(&:user)).compact.uniq
-  end
-
-  def core_handling(*arg)
-    @core_handling = arg[0].to_s.to_b
-  end
-
-  def core_handling?
-    @core_handling
-  end
-
-  def code_handle(&block)
-    core_handling true
-    instance_eval &block
-  ensure
-    core_handling false
   end
 
   def read_attribute(name)
     (!(value = super).nil? &&
 
-      (new_record? || !self.class.data_type.protecting?(name) ||
+      (new_record? || !self.class.build_in_data_type.protecting?(name) ||
         (current_user = User.try(:current)) && current_user.owns?(self)) &&
 
       value) || nil
   end
 
   def inspect_updated_fields
-    Membership.create(user: owner, account: self) unless users.map(&:id).include?(owner.id)
-    changed_attributes.keys.each do |attr|
-      reset_attribute!(attr) unless %w(name notification_level time_zone).include?(attr)
-    end unless core_handling? || new_record? || Account.current_super_admin?
-    errors.blank?
+    users << owner unless user_ids.include?(owner.id)
+    super
   end
 
   def init_heroku_db
@@ -171,6 +153,14 @@ class Account
   end
 
   class << self
+
+    def current_key
+      (current && current.number) || 'XXXXXXX'
+    end
+
+    def current_token
+      (current && current.token) || 'XXXXXXXXXXXXXXXX'
+    end
 
     def current_super_admin?
       current && current.super_admin?

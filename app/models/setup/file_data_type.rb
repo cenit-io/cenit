@@ -2,6 +2,9 @@ require 'stringio'
 
 module Setup
   class FileDataType < DataType
+    include RailsAdmin::Models::Setup::FileDataTypeAdmin
+
+    validates_presence_of :namespace
 
     build_in_data_type.referenced_by(:namespace, :name).with(:namespace, :name, :title, :slug, :_type, :validators, :schema_data_type, :events, :before_save_callbacks, :records_methods, :data_type_methods)
     build_in_data_type.and({
@@ -71,7 +74,7 @@ module Setup
     end
 
     def schema
-      @schema ||= Mongoff::GridFs::FileModel::SCHEMA.merge('edi' => { 'segment' => name })
+      @schema ||= Mongoff::GridFs::FileModel::SCHEMA
     end
 
     def validate_file(file)
@@ -90,59 +93,79 @@ module Setup
     end
 
     def new_from(string_or_readable, options = {})
-      options.reverse_merge!(default_attributes)
-      file = records_model.new
-      file.data = string_or_readable
-      file
+      if options[:data_type_parser]
+        super
+      else
+        options.reverse_merge!(default_attributes)
+        file = records_model.new
+        file.data = string_or_readable
+        file
+      end
     end
 
     def create_from(string_or_readable, options = {})
       if data_type_methods.any? { |alg| alg.name == 'create_from' }
         return method_missing(:create_from, string_or_readable, options)
       end
-      options = default_attributes.merge(options)
-      file = new_from(string_or_readable, options)
-      file.save(options)
-      file
+      if options[:data_type_parser]
+        super
+      else
+        options = default_attributes.merge(options)
+        file = new_from(string_or_readable, options)
+        file.save(options)
+        file
+      end
     end
 
     def new_from_json(json_or_readable, options = {})
       if data_type_methods.any? { |alg| alg.name == 'new_from_json' }
         return method_missing(:new_from_json, json_or_readable, options)
       end
-      data = json_or_readable
-      unless format_validator.nil? || format_validator.data_format == :json
-        data = ((data.is_a?(String) || data.is_a?(Hash)) && data) || data.read
-        data = format_validator.format_from_json(data, schema_data_type: schema_data_type)
-        options[:valid_data] = true
+      if options[:data_type_parser]
+        super
+      else
+        data = json_or_readable
+        unless format_validator.nil? || format_validator.data_format == :json
+          data = ((data.is_a?(String) || data.is_a?(Hash)) && data) || data.read
+          data = format_validator.format_from_json(data, schema_data_type: schema_data_type)
+          options[:valid_data] = true
+        end
+        new_from(data, options)
       end
-      new_from(data, options)
     end
 
     def new_from_xml(string_or_readable, options = {})
       if data_type_methods.any? { |alg| alg.name == 'new_from_xml' }
         return method_missing(:new_from_xml, string_or_readable, options)
       end
-      data = string_or_readable
-      unless format_validator.nil? || format_validator.data_format == :xml
-        data = (data.is_a?(String) && data) || data.read
-        data = format_validator.format_from_xml(data, schema_data_type: schema_data_type)
-        options[:valid_data] = true
+      if options[:data_type_parser]
+        super
+      else
+        data = string_or_readable
+        unless format_validator.nil? || format_validator.data_format == :xml
+          data = (data.is_a?(String) && data) || data.read
+          data = format_validator.format_from_xml(data, schema_data_type: schema_data_type)
+          options[:valid_data] = true
+        end
+        new_from(data, options)
       end
-      new_from(data, options)
     end
 
     def new_from_edi(string_or_readable, options = {})
       if data_type_methods.any? { |alg| alg.name == 'new_from_edi' }
         return method_missing(:new_from_edi, string_or_readable, options)
       end
-      data = string_or_readable
-      unless format_validator.nil? || format_validator.data_format == :edi
-        data = (data.is_a?(String) && data) || data.read
-        data = format_validator.format_from_edi(data, schema_data_type: schema_data_type)
-        options[:valid_data] = true
+      if options[:data_type_parser]
+        super
+      else
+        data = string_or_readable
+        unless format_validator.nil? || format_validator.data_format == :edi
+          data = (data.is_a?(String) && data) || data.read
+          data = format_validator.format_from_edi(data, schema_data_type: schema_data_type)
+          options[:valid_data] = true
+        end
+        new_from(data, options)
       end
-      new_from(data, options)
     end
 
     def default_attributes

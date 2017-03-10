@@ -13,17 +13,17 @@
 
 = breadcrumb
 
-= render :partial => 'rails_admin/rest_api_sdk/menu' if respond_to?(:api_current_paths) && api_current_paths
+=render :partial => 'rails_admin/rest_api_sdk/menu' if respond_to?(:api_current_paths) && !api_current_paths.empty?
 
 - if ['dashboard', 'list-of-shared-collections'].include? page_slug
   - @count ||= {}
   - query = params[:query]
   .col-md-12{style: 'margin-bottom: 20px;'}
-    .col-md-7
+    .col-md-8.col-lg-6
       %h3.label-heading{style: 'margin: 0;'}
         %small=  t("admin.misc.title_search_shared_collections")
         %h4{style: "margin-top: 0px;"}= t("admin.misc.sub_title_search_shared_collections", count: @count[Setup::CrossSharedCollection.name])
-        - shared_path = index_path(model_name: "setup~cross_shared_collection", query: query)
+        - shared_path = index_path(model_name: "cross_shared_collection", query: query)
         = form_tag(shared_path, method: :get, class: "pjax-form form-inline") do
           .input-group.col-xs-12
             %input.form-control.btb.btn-default{name: "query", type: "search", value: query}
@@ -31,10 +31,11 @@
                 %button.btn.btn-primary
                   %i.fa.fa-search
       = 'Try'
-      = link_to('gmail', index_path(model_name: "setup~cross_shared_collection", query: 'gmail'))+','
-      = link_to('twilio', index_path(model_name: "setup~cross_shared_collection", query: 'twilio'))+' or'
-      = link_to('shipstation', index_path(model_name: "setup~cross_shared_collection", query: 'shipstation'))
-    .col-md-3
+      - sample = integration_sample(3)
+      = link_to(sample[0], index_path(model_name: "cross_shared_collection", query: sample[0]))+','
+      = link_to(sample[1], index_path(model_name: "cross_shared_collection", query: sample[1]))+' or'
+      = link_to(sample[2], index_path(model_name: "cross_shared_collection", query: sample[2]))
+    .col-lg-4.visible-lg
       %h4.text-muted
         - if current_user
           = link_to(pluralize(current_user.account.users.count, 'member'), index_path(model_name: 'membership'))
@@ -55,7 +56,7 @@
         %span.text-muted
           = t('admin.actions.dashboard.recent_users.more', count: (User.all.count/5 * 5))
 
-    .col-md-2{style:'padding-left: 30px;'}
+    .col-md-4.col-lg-2.tenants.hidden-xs{style:'padding-left: 30px;'}
       %h4.text-muted{style:'margin-top: 10px;'}
         - if current_user
           = link_to(pluralize(current_user.all_accounts.count, 'tenant'), index_path(model_name: 'account'))

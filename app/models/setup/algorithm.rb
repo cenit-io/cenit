@@ -1,8 +1,14 @@
+require 'rkelly'
+
 module Setup
   class Algorithm
     include SnippetCode
     include NamespaceNamed
     include Taggable
+    include RailsAdmin::Models::Setup::AlgorithmAdmin
+    # = Algorithm
+    #
+    # Is a core concept in Cenit, define function that is possible execute.
 
     legacy_code_attribute :code
 
@@ -25,8 +31,21 @@ module Setup
 
     attr_reader :last_output
 
+    field :language, type: Symbol, default: -> { new_record? ? :auto : :ruby }
+
+    validates_inclusion_of :language, in: ->(alg) { alg.class.language_enum.values }
+
     def code_extension
-      '.rb'
+      case language
+      when :python
+        '.py'
+      when :javascript
+        '.js'
+      when :php
+        '.php'
+      else
+        '.rb'
+      end
     end
 
     def validate_parameters
@@ -43,7 +62,7 @@ module Setup
       if code.blank?
         errors.add(:code, "can't be blank")
       else
-        Capataz.rewrite(code, halt_on_error: false, logs: logs = {}, locals: parameters.collect { |p| p.name })
+        logs = parse_code
         if logs[:errors].present?
           logs[:errors].each { |msg| errors.add(:code, msg) }
           self.call_links = []
@@ -64,7 +83,7 @@ module Setup
     end
 
     def validate_output_processing
-      if store_output and not output_datatype
+      if store_output && !output_datatype
         rc = Setup::FileDataType.find_or_create_by(namespace: namespace, name: "#{name} output")
         if rc.errors.present?
           errors.add(:output_datatype, rc.errors.full_messages)
@@ -76,7 +95,7 @@ module Setup
     end
 
     def do_link
-      call_links.each { |call_link| call_link.do_link }
+      call_links.each(&:do_link)
     end
 
     attr_accessor :self_linker
@@ -130,7 +149,7 @@ module Setup
               rc += do_store_output(item)
             end
           else
-            raise
+            fail
           end
         rescue Exception
           fail 'Output failed to validate against Output DataType.'
@@ -149,10 +168,7 @@ module Setup
     def run(input)
       input = Cenit::Utility.json_value_of(input)
       input = [input] unless input.is_a?(Array)
-      args = {}
-      parameters.each { |parameter| args[parameter.name] = input.shift }
-      do_link
-      rc = Cenit::RubyInterpreter.run(code, args, self_linker: self_linker || self)
+      rc = Cenit::BundlerInterpreter.run(self, *input)
 
       if rc.present?
         if store_output
@@ -165,9 +181,7 @@ module Setup
             @last_output = AlgorithmOutput.create(algorithm: self, data_type: output_datatype, input_params: args,
                                                   output_ids: ids)
           rescue Exception => e
-            if validate_output
-              fail 'Execution failed!' + e.message
-            end
+            raise 'Execution failed!' + e.message if validate_output
           end
         end
       end
@@ -199,7 +213,7 @@ module Setup
       end
     end
 
-    def stored_outputs(options = {})
+    def stored_outputs(_options = {})
       AlgorithmOutput.where(algorithm: self).desc(:created_at)
     end
 
@@ -214,7 +228,6 @@ module Setup
       schema.stringify_keys
     end
 
-
     def configuration_model
       @mongoff_model ||= Mongoff::Model.for(data_type: self.class.data_type,
                                             schema: configuration_schema,
@@ -222,10 +235,96 @@ module Setup
                                             cache: false)
     end
 
+    def language_name
+      self.class.language_enum.keys.detect { |key| self.class.language_enum[key] == language }
+    end
+
     class << self
+      def language_enum
+        {
+          'Auto detect': :auto,
+          # 'Python': :python,
+          # 'PHP': :php,
+          'JavaScript': :javascript,
+          'Ruby': :ruby
+        }
+      end
+
       def configuration_model_name
         "#{Setup::Algorithm}::Config"
       end
     end
+
+    def parse_code
+      if language == :auto
+        logs = {}
+        lang = self.class.language_enum.values.detect do |language|
+          next if lang == :auto
+          logs.clear
+          parse_method = "parse_#{language}_code"
+          logs.merge!(send(parse_method))
+          logs[:errors].blank?
+        end
+        if lang
+          self.language = lang
+        else
+          logs.clear
+          logs[:errors] = ["can't be auto-detected with syntax errors or typed language is not supported"]
+        end
+        logs
+      else
+        parse_method = "parse_#{language}_code"
+        send(parse_method)
+      end
+    end
+
+    protected
+
+    def parse_ruby_code
+      logs = { errors: errors = [] }
+      unless Capataz.rewrite(code, halt_on_error: false, logs: logs, locals: parameters.collect(&:name))
+        errors << 'with no valid Ruby syntax'
+      end
+      logs
+    end
+
+    def parse_javascript_code
+      logs = { errors: errors = [] }
+      ast =
+        begin
+          RKelly.parse(code)
+        rescue Exception
+          nil
+        end
+      if ast
+        logs[:self_sends] = call_names = Set.new
+        ast.each do |node|
+          if node.is_a?(RKelly::Nodes::FunctionCallNode) && (node = node.value).is_a?(RKelly::Nodes::ResolveNode)
+            call_names << node.value
+          end
+        end
+      else
+        errors << 'with no valid JavaScript syntax'
+      end
+      logs
+    end
+
+    def parse_php_code
+      {
+        errors: ['PHP parsing not yet supported']
+      }
+    end
+
+    def parse_python_code
+      {
+        errors: ['Python parsing not yet supported']
+      }
+    end
+  end
+end
+
+class Array
+  def range=(arg)
+    @range = arg
   end
 end

@@ -1,18 +1,18 @@
 module Setup
   class Notification
     include CenitScoped
+    include NotificationCommon
+    include RailsAdmin::Models::Setup::NotificationAdmin
 
     build_in_data_type
 
     deny :copy, :new, :edit, :translator_update, :import, :convert
 
+    attachment_uploader AccountUploader
 
     field :type, type: Symbol, default: :error
     field :message, type: String
-    mount_uploader :attachment, AccountUploader
     belongs_to :task, class_name: Setup::Task.to_s, inverse_of: :notifications
-
-    default_scope -> { desc(:created_at) }
 
     validates_presence_of :type, :message
     validates_inclusion_of :type, in: ->(n) { n.type_enum }
@@ -49,6 +49,13 @@ module Setup
 
     class << self
 
+      def new(attributes = {})
+        skip = attributes.delete(:skip_notification_level)
+        notification = super
+        notification.skip_notification_level(skip)
+        notification
+      end
+
       def type_enum
         [:error, :warning, :notice, :info]
       end
@@ -64,36 +71,6 @@ module Setup
         else
           'red'
         end
-      end
-
-      def create_from(exception)
-        create_with(message: exception.message,
-                    attachment: {
-                      filename: 'backtrace.txt',
-                      contentType: 'plain/text',
-                      body: exception.backtrace.join("\n")
-                    })
-      end
-
-      def create_with(attributes)
-        attachment = attributes.delete(:attachment)
-        skip = attributes.delete(:skip_notification_level)
-        notification = Setup::Notification.new(attributes)
-        notification.skip_notification_level(skip)
-        temporary_file = nil
-        if attachment && (readable = attachment[:body]).present?
-          if readable.is_a?(String)
-            temporary_file = Tempfile.new('file_')
-            temporary_file.binmode
-            temporary_file.write(readable)
-            temporary_file.rewind
-            readable = Cenit::Utility::Proxy.new(temporary_file, original_filename: attachment[:filename], contentType: attachment[:contentType])
-          end
-          notification.attachment = readable
-        end
-        notification.save ? notification : nil
-      ensure
-        temporary_file.close if temporary_file
       end
 
       def dashboard_related(account = Account.current)

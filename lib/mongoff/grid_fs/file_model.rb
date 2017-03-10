@@ -15,8 +15,7 @@ module Mongoff
                                              },
                                              contentType: {
                                                title: 'Content type',
-                                               type: :string,
-                                               default: 'application/octet-stream'
+                                               type: :string
                                              },
                                              length: {
                                                title: 'Size',
@@ -25,7 +24,7 @@ module Mongoff
                                              uploadDate: {
                                                title: 'Uploaded at',
                                                type: :string,
-                                               format: :time
+                                               format: :'date-time'
                                              },
 
                                              chunkSize: {

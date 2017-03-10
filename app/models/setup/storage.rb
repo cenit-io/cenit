@@ -1,6 +1,7 @@
 module Setup
   class Storage
     include CenitUnscoped
+    include RailsAdmin::Models::Setup::StorageAdmin
 
     store_in collection: Proc.new { Account.tenant_collection_prefix + '.files' }
 
@@ -12,6 +13,7 @@ module Setup
     field :filename, type: String
     field :contentType, type: String
     field :length, type: Integer
+    field :metadata
 
     after_destroy { self.class.chunks_collection.find(files_id: id).delete_many }
 
@@ -20,11 +22,11 @@ module Setup
     end
 
     def storer_name
-      name_components.second.gsub('~', '/').camelize
+      (name = name_components.second) && name.gsub('~', '/').camelize
     end
 
     def storer_model
-      storer_name.constantize
+      (name = storer_name) && name.constantize
     end
 
     def storer_property
@@ -32,7 +34,7 @@ module Setup
     end
 
     def storer_object
-      storer_model.where(id: storer_object_id).first
+      (model = storer_model) && model.where(id: storer_object_id).first
     end
 
     def storer_object_id
@@ -40,7 +42,9 @@ module Setup
     end
 
     def label
-      "#{storer_property.capitalize} on #{storer_name}"
+      property = storer_property || '<unknown property>'
+      storer = storer_name || '<unknown storer>'
+      "#{property.capitalize} on #{storer}"
     end
 
     class << self

@@ -12,12 +12,16 @@ module Setup
     end
 
     def save(options = {})
-      if shared? && User.current != creator
+      if do_configure_when_save?
         run_callbacks(:save) && configure
         errors.blank?
       else
         super
       end
+    end
+
+    def do_configure_when_save?
+      shared? && User.current != creator
     end
 
     module ClassMethods

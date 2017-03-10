@@ -1,6 +1,32 @@
 module Setup
   class Scheduler < Event
     include HashField
+    include RailsAdmin::Models::Setup::SchedulerAdmin
+    # = Scheduler
+    #
+    # Are events triggered on a certain moment and can be optionally recurrent.
+    #
+    # Options can be specified for the moment the scheduler would be triggered for the first time,
+    # if and how it should be rescheduled and finally when should it stop.
+    #
+    # All this options default to a ‘Start on activation, run every day’ setting.
+    # If the scheduler shouldn’t start immediately after activation, a date can be specified for it.
+    #
+    # Schedulers can be a one-time execution, or a specific periodicity, but can also be triggered on appointed dates.
+    # For periodical executions choose the ‘Every…’ option, enter a number in the input box and select the time span.
+    #
+    # Otherwise, for appointed dates choose the ‘Select manually’.
+    # The first thing for manual scheduling would be to specify the time of day the scheduler should be triggered at
+    # and then decide on a week-based approach or a month-based approach:
+    #
+    # Week-based: Note selected weekdays and months on the year, this setting would have the scheduler trigger on the Last Sunday of June and December.
+    #
+    # Month-based: this setting would have the scheduler trigger on the 14th and Last day of June and December.
+    #
+    # It would be good to notice that for any specific setting on the manual approach, selecting no item is the same as selecting all of them.
+    # That is, if a scheduler is to be triggered everyday of the month in June, check only the month June and leave all days unchecked.
+    # You could off course check each individual day by yourself, but it is an unnecessary trouble. This rule applies to Week-based approach as well.
+    # Finally, task can be scheduled to end, so that it doesn’t get queued for execution passed some date, it is very much like the starting date setting.
 
     build_in_data_type.with(:namespace, :name, :expression, :activated).referenced_by(:namespace, :name)
 

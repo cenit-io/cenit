@@ -21,7 +21,6 @@ gem 'figaro'
 gem 'unicorn', '4.9.0'
 gem 'xmldsig'
 gem 'spreadsheet'
-gem 'newrelic_rpm'
 
 group :doc do
   gem 'sdoc', require: false
@@ -109,10 +108,14 @@ gem 'identicon'
 
 gem 'language_sniffer'
 
-gem 'cenit-config', git: 'https://github.com/macarci/cenit-config.git'
-gem 'cenit-multi_tenancy', git: 'https://github.com/macarci/cenit-multi_tenancy.git'
-gem 'cenit-token', git: 'https://github.com/macarci/cenit-token.git'
-gem 'cenit-service', git: 'https://github.com/macarci/cenit-service.git'
-gem 'cenit-oauth', git: 'https://github.com/macarci/cenit-oauth.git'
+gem 'cenit-config', git: 'https://github.com/cenit-io/cenit-config.git'
+gem 'cenit-multi_tenancy', git: 'https://github.com/cenit-io/cenit-multi_tenancy.git'
+gem 'cenit-token', git: 'https://github.com/cenit-io/cenit-token.git'
+gem 'cenit-service', git: 'https://github.com/cenit-io/cenit-service.git'
+gem 'cenit-oauth', git: 'https://github.com/cenit-io/cenit-oauth.git'
 
 gem 'capataz', git: 'https://github.com/macarci/capataz.git'
+
+gem 'rkelly-remix'
+
+gem 'write_xlsx'

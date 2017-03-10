@@ -4,7 +4,7 @@ module RailsAdmin
       class Push < RailsAdmin::Config::Actions::Base
 
         register_instance_option :visible do
-          authorized? && Setup::CrossSharedCollection.where(name: bindings[:object].name, installed: false).exists?
+          authorized? && Setup::CrossSharedCollection.where(name: bindings[:object].name).exists?
         end
         register_instance_option :only do
           Setup::Collection
@@ -39,12 +39,11 @@ module RailsAdmin
               @form_object ||= Forms::SharedCollectionSelector.new
               @form_object.criteria =
                 {
-                  name: @object.name,
-                  installed: false
+                  name: @object.name
                 }
               @model_config = form_config
               if @form_object.errors.present?
-                do_flash(:error, 'There are errors in the pull up target specification', @form_object.errors.full_messages)
+                do_flash(:error, 'There are errors in the push target specification', @form_object.errors.full_messages)
               end
               render :form
             end

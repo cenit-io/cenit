@@ -1,0 +1,62 @@
+module RailsAdmin
+  module Config
+    module Actions
+      Edit.class_eval do
+        register_instance_option :controller do
+          proc do
+
+            if request.get? # EDIT
+
+              respond_to do |format|
+                format.html { render @action.template_name }
+                format.js { render @action.template_name, layout: false }
+              end
+
+            elsif request.put? # UPDATE
+              sanitize_params_for!(action = (request.xhr? ? :modal : :update))
+
+              @object.set_attributes(form_attributes = params[@abstract_model.param_key])
+
+              #Patch
+              if (synchronized_fields = @model_config.with(object: @object).try(:form_synchronized))
+                params_to_check = {}
+                model_config.send(action).with(controller: self, view: view_context, object: @object).fields.each do |field|
+                  if synchronized_fields.include?(field.name.to_sym)
+                    params_to_check[field.name.to_sym] = (field.is_a?(RailsAdmin::Config::Fields::Association) ? field.method_name : field.name).to_s
+                  end
+                end
+                params_to_check.each do |field, param|
+                  @object.send("#{field}=", nil) unless form_attributes[param].present?
+                end
+              end
+
+              @authorization_adapter && @authorization_adapter.attributes_for(:update, @abstract_model).each do |name, value|
+                @object.send("#{name}=", value)
+              end
+              changes = @object.changes
+              #Patch
+              save_options = {}
+              if (model = @abstract_model.model).is_a?(Class) && model < FieldsInspection
+                save_options[:inspect_fields] = Account.current.nil? || !Account.current_super_admin?
+              end
+              if @object.save(save_options)
+                if (warnings = @object.try(:warnings)).present?
+                  do_flash(:warning, 'Warning', warnings)
+                end
+                @auditing_adapter && @auditing_adapter.update_object(@object, @abstract_model, _current_user, changes)
+                respond_to do |format|
+                  format.html { redirect_to_on_success }
+                  format.js { render json: { id: @object.id.to_s, label: @model_config.with(object: @object).object_label } }
+                end
+              else
+                handle_save_error :edit
+              end
+
+            end
+
+          end
+        end
+      end
+    end
+  end
+end

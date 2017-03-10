@@ -2,37 +2,42 @@ require 'nokogiri'
 
 module Setup
   class Flow
+    # = Flow
+    #
+    # Defines how data is processed by the execution of one or more actions.
+
     include ReqRejValidator
     include ShareWithBindings
     include NamespaceNamed
     include TriggersFormatter
     include ThreadAware
     include ModelConfigurable
+    include RailsAdmin::Models::Setup::FlowAdmin
 
     build_in_data_type.referenced_by(:namespace, :name)
-    build_in_data_type.and({
-                             properties: {
-                               active: {
-                                 type: 'boolean',
-                                 default: true
-                               },
-                               notify_request: {
-                                 type: 'boolean',
-                                 default: false
-                               },
-                               notify_response: {
-                                 type: 'boolean',
-                                 default: false
-                               },
-                               discard_events: {
-                                 type: 'boolean'
-                               },
-                               auto_retry: {
-                                 type: 'string',
-                                 enum: Setup::Task.auto_retry_enum.collect(&:to_s)
-                               }
-                             }
-                           }.deep_stringify_keys)
+    build_in_data_type.and(
+      properties: {
+        active: {
+          type: 'boolean',
+          default: true
+        },
+        notify_request: {
+          type: 'boolean',
+          default: false
+        },
+        notify_response: {
+          type: 'boolean',
+          default: false
+        },
+        discard_events: {
+          type: 'boolean'
+        },
+        auto_retry: {
+          type: 'string',
+          enum: Setup::Task.auto_retry_enum.collect(&:to_s)
+        }
+      }
+    )
 
     binding_belongs_to :event, class_name: Setup::Event.to_s, inverse_of: nil
 
@@ -182,7 +187,7 @@ module Setup
       enum = []
       if data_type
         enum << 'Event source' if event && event.try(:data_type) == data_type
-        enum << "All #{data_type.title.downcase.pluralize}"
+        enum << "All #{data_type.title.downcase.to_plural}"
         enum << 'Filter'
         enum << 'Evaluator'
       else
@@ -220,13 +225,20 @@ module Setup
 
     def process(message={}, &block)
       executing_id, execution_graph = current_thread_cache.last || [nil, {}]
-      if executing_id.present? && !(adjacency_list = execution_graph[executing_id] ||= []).include?(id.to_s)
-        adjacency_list << id.to_s
+      if executing_id
+        execution_graph[executing_id] ||= []
+        adjacency_list = execution_graph[executing_id]
+        adjacency_list << id.to_s if adjacency_list.exclude?(id.to_s)
       end
       result =
         if (cycle = cyclic_execution(execution_graph, executing_id))
-          cycle = cycle.collect { |id| ((flow = Setup::Flow.where(id: id).first) && flow.name) || id }
-          Setup::Notification.create(message: "Cyclic flow execution: #{cycle.join(' -> ')}")
+          cycle = cycle.collect { |id| ((flow = Setup::Flow.where(id: id).first) && flow.custom_title) || id }
+          Setup::Notification.create_with(message: "Cyclic flow execution: #{cycle.to_a.join(' -> ')}",
+                                          attachment: {
+                                            filename: 'execution_graph.json',
+                                            contentType: 'application/json',
+                                            body: JSON.pretty_generate(execution_graph)
+                                          })
         else
           message = message.merge(flow_id: id.to_s,
                                   tirgger_flow_id: executing_id,
@@ -241,7 +253,8 @@ module Setup
     def translate(message, &block)
       if translator.present?
         begin
-          (flow_execution = current_thread_cache) << [id.to_s, message[:execution_graph] || {}]
+          flow_execution = current_thread_cache
+          flow_execution << [id.to_s, message[:execution_graph] || {}]
           data_type = Setup::BuildInDataType[message[:data_type_id]] ||
             Setup::DataType.where(id: message[:data_type_id]).first
           using_data_type(data_type) if data_type
@@ -298,11 +311,11 @@ module Setup
       process(scheduler: event) if @scheduler_checked && event.activated
     end
 
-    def cyclic_execution(execution_graph, start_id, cycle=[])
+    def cyclic_execution(execution_graph, start_id, cycle = [])
       if cycle.include?(start_id)
         cycle << start_id
         return cycle
-      elsif adjacency_list = execution_graph[start_id]
+      elsif (adjacency_list = execution_graph[start_id])
         cycle << start_id
         adjacency_list.each { |id| return cycle if cyclic_execution(execution_graph, id, cycle) }
         cycle.pop
@@ -314,7 +327,7 @@ module Setup
       object_ids = ((obj_id = message[:source_id]) && [obj_id]) || source_ids_from(message)
       if translator.source_handler
         begin
-          translator.run(object_ids: object_ids, discard_events: discard_events, task: message[:task])
+          translator.run(object_ids: object_ids, discard_events: discard_events, task: message[:task], data_type: data_type)
         rescue Exception => ex
           fail "Error source handling translation of records of type '#{data_type.custom_title}' with '#{translator.custom_title}': #{ex.message}"
         end
@@ -325,7 +338,7 @@ module Setup
           data_type.records_model.all
         end.each do |obj|
           begin
-            translator.run(object: obj, discard_events: discard_events, task: message[:task])
+            translator.run(object: obj, discard_events: discard_events, task: message[:task], data_type: data_type)
           rescue Exception => ex
             fail "Error translating record with ID '#{obj.id}' of type '#{data_type.custom_title}' when executing '#{translator.custom_title}': #{ex.message}"
           end
@@ -351,7 +364,8 @@ module Setup
           template_parameters: {},
           notify_request: notify_request,
           notify_response: notify_response,
-          verbose_response: true
+          verbose_response: true,
+	  data_type: data_type
         }
       if before_submit
         if before_submit.parameters.count == 1
@@ -361,17 +375,23 @@ module Setup
         end
       end
       verbose_response =
-        webhook.with(connection_role).and(authorization).submit(options) do |response, template_parameters|
+        webhook.target.with(connection_role).and(authorization).submit(options) do |response, template_parameters|
           translator.run(target_data_type: data_type,
                          data: response.body,
                          discard_events: discard_events,
                          parameters: template_parameters,
                          headers: response.headers.to_hash,
                          statusCode: response.code,
-                         task: message[:task]) #if response.code == 200
+                         task: message[:task])
         end
-      if auto_retry == :automatic && (200...299).exclude?(verbose_response[:http_response].code)
-        fail unsuccessful_response(verbose_response[:http_response], message)
+      if auto_retry == :automatic
+        if (http_response = verbose_response[:http_response])
+          if (200...299).exclude?(http_response.code)
+            fail unsuccessful_response(http_response, message)
+          end
+        else
+          fail 'Connection error'
+        end
       end
     end
 
@@ -423,8 +443,14 @@ module Setup
             end
             true
           end
-        if auto_retry == :automatic && (200...299).exclude?(verbose_response[:http_response].code)
-          fail unsuccessful_response(verbose_response[:http_response], message)
+        if auto_retry == :automatic
+          if (http_response = verbose_response[:http_response])
+            if (200...299).exclude?(http_response.code)
+              fail unsuccessful_response(http_response, message)
+            end
+          else
+            fail 'Connection error'
+          end
         end
         connections_present = verbose_response[:connections_present]
       end

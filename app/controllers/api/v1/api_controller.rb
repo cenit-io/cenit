@@ -80,9 +80,14 @@ module Api::V1
         if authorize_action && (data_type = @payload.data_type_for(root))
           message = [message] unless message.is_a?(Array)
           message.each do |item|
+            options = @payload.create_options
+            model = data_type.records_model
+            if model.is_a?(Class) && model < FieldsInspection
+              options[:inspect_fields] = Account.current.nil? || !Account.current_super_admin?
+            end
             if (record = data_type.send(@payload.create_method,
                                         @payload.process_item(item, data_type),
-                                        (options = @payload.create_options))).errors.blank?
+                                        options)).errors.blank?
               success_report[root.pluralize] << record.inspect_json(include_id: :id, inspect_scope: options[:create_collector])
             else
               broken_report[root] << { errors: record.errors.full_messages, item: item }
@@ -108,9 +113,14 @@ module Api::V1
           message = [message] unless message.is_a?(Array)
           message.each do |item|
             begin
+              options = @payload.create_options.merge(primary_field: @primary_field)
+              model = data_type.records_model
+              if model.is_a?(Class) && model < FieldsInspection
+                options[:inspect_fields] = Account.current.nil? || !Account.current_super_admin?
+              end
               if (record = data_type.send(@payload.create_method,
                                           @payload.process_item(item, data_type),
-                                          (options = @payload.create_options.merge(primary_field: @primary_field)))).errors.blank?
+                                          options)).errors.blank?
                 success_report[root] = record.inspect_json(include_id: :id, inspect_scope: options[:create_collector])
               else
                 broken_report[root] = { errors: record.errors.full_messages, item: item }
@@ -146,7 +156,7 @@ module Api::V1
     end
 
     def pull
-      if @item.is_a?(Setup::SharedCollection)
+      if @item.is_a?(Setup::SharedCollection) #TODO Copy from V2 when removing old Setup::SharedCollection model
         begin
           pull_request = Cenit::Actions.pull(@item, @webhook_body.present? ? JSON.parse(@webhook_body) : {})
           pull_request.each { |key, value| pull_request.delete(key) unless value.present? }
@@ -288,7 +298,7 @@ module Api::V1
         if @ability.can?(action_symbol, @item || klass)
           true
         else
-          responder = Cenit::Responder.new(@request_id, @webhook_body, 401)
+          responder = Cenit::Responder.new(@request_id, :unauthorized)
           render json: responder, root: false, status: responder.code
           false
         end
@@ -308,8 +318,7 @@ module Api::V1
     end
 
     def exception_handler(exception)
-      responder = Cenit::Responder.new(@request_id, @webhook_body, 500)
-      responder.backtrace = exception.backtrace.to_s
+      responder = Cenit::Responder.new(@request_id, exception)
       render json: responder, root: false, status: responder.code
       false
     end

@@ -28,29 +28,30 @@ module Xsd
     end
 
     def to_json_schema
-      json = {'type' => 'object', 'title' => tag_name.capitalize}
+      json = documenting('type' => 'object', 'title' => tag_name.to_title)
       json['properties'] = properties = {}
       required = []
       if max_occurs == :unbounded || max_occurs > 0 || min_occurs > 1
-        enum = 0
         elements.each do |element|
           element_schema = element.to_json_schema
           if element.max_occurs == :unbounded || element.max_occurs > 1 || element.min_occurs > 1
-            plural_title = (element_schema['title'] || element.name || element.tag_name).to_title.pluralize
-            properties[p = "property_#{enum += 1}"] = {'title' => "List of #{plural_title}",
-                                                       'type' => 'array',
-                                                       'minItems' => element.min_occurs,
-                                                       'items' => element_schema}
+            plural_title = (element_schema['title'] || element.name || element.try(:nice_name) || element.tag_name).to_title.pluralize
+            p = (element.name || element_schema['title'] || element.try(:nice_name) || element.tag_name).pluralize.to_method_name(properties)
+            properties[p] = { 'title' => "List of #{plural_title}",
+                              'type' => 'array',
+                              'minItems' => element.min_occurs,
+                              'items' => element_schema }
             properties[p]['maxItems'] = element.max_occurs unless element.max_occurs == :unbounded
             required << p if element.min_occurs > 0
           elsif element.is_a?(Container)
             container_required = element_schema['required'] || []
             element_schema['properties'].each do |property, schema|
-              properties[p = "property_#{enum += 1}"] = schema
+              properties[p = property.to_method_name(properties)] = schema
               required << p if container_required.include?(property)
             end
           else
-            properties[p = "property_#{enum += 1}"] = element_schema
+            p = (element.name || element_schema['title'] || element.try(:nice_name) || element.tag_name).to_method_name(properties)
+            properties[p] = element_schema
           end
         end
       end

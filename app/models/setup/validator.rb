@@ -3,6 +3,10 @@ module Setup
     include CenitScoped
     include NamespaceNamed
     include ClassHierarchyAware
+    include SharedEditable
+    include RailsAdmin::Models::Setup::ValidatorAdmin
+
+    abstract_class true
 
     build_in_data_type.referenced_by(:namespace, :name)
 

@@ -1,6 +1,7 @@
 module Setup
   class Binding
     include CenitScoped
+    include RailsAdmin::Models::Setup::BindingAdmin
 
     build_in_data_type
 
@@ -56,11 +57,10 @@ module Setup
     end
 
     def label
-      "#{bind.class.to_s.split('::').last} of #{binder.custom_title}"
+      "#{bind.class.to_s.split('::').last} of #{((b = binder) && b.custom_title)}"
     end
 
     class << self
-
       def id_for(binder, bind_model)
         bind_id = bind_id(bind_model)
         if (bind = where(binder_id(binder) => binder.id,

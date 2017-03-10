@@ -178,21 +178,21 @@ module Setup
               begin
                 http_response = HTTMultiParty.send(method, url, msg)
               rescue Timeout::Error => ex
-                http_response = ResponseProxy.new true,
-                                                  code: 408,
-                                                  content_type: 'application/json',
-                                                  body: {
-                                                    error: {
-                                                      errors: [
-                                                        {
-                                                          reason: 'timeout',
-                                                          message: "Request timeout (#{msg[:timeout]}s)"
-                                                        }
-                                                      ],
-                                                      code: 408,
-                                                      message: "Request timeout (#{msg[:timeout]}s)"
-                                                    }
-                                                  }.to_json
+                http_response = Setup::Webhook::Response.new true,
+                                                             code: 408,
+                                                             content_type: 'application/json',
+                                                             body: {
+                                                               error: {
+                                                                 errors: [
+                                                                   {
+                                                                     reason: 'timeout',
+                                                                     message: "Request timeout (#{msg[:timeout]}s)"
+                                                                   }
+                                                                 ],
+                                                                 code: 408,
+                                                                 message: "Request timeout (#{msg[:timeout]}s)"
+                                                               }
+                                                             }.to_json
               rescue Exception => ex
                 raise ex
               end
@@ -204,7 +204,7 @@ module Setup
                                               skip_notification_level: options[:skip_notification_level] || options[:notify_response])
 
               if block
-                http_response = ResponseProxy.new(false, http_response)
+                http_response = Setup::Webhook::Response.new(false, http_response)
                 last_response =
                   case block.arity
                   when 1
@@ -266,7 +266,7 @@ module Setup
       end
     end
 
-    class ResponseProxy
+    class Response
 
       attr_reader :requester_response
 

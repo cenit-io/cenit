@@ -1,6 +1,10 @@
 module Setup
   class AlgorithmParameter
     include CenitScoped
+    include RailsAdmin::Models::Setup::AlgorithmParameterAdmin
+    # = Algorithm Parameter
+    #
+    # Define parameters that is possible pass to an algorithm
 
     build_in_data_type.referenced_by(:name)
 
@@ -24,7 +28,7 @@ module Setup
       end
       if required
         if default.blank?
-          self.default =nil
+          self.default = nil
         else
           errors.add(:default, 'is not allowed')
         end
@@ -63,12 +67,10 @@ module Setup
           }
         else
           {
-            '$ref': Setup::Collection.reflect_on_association(type.to_s.downcase.gsub(' ', '_').pluralize).klass.to_s
+            '$ref': Setup::Collection.reflect_on_association(type.to_s.downcase.tr(' ', '_').pluralize).klass.to_s
           }
         end.stringify_keys
-      unless required
-        sch[:default] = default || DEFAULTS[type]
-      end
+      sch[:default] = default || DEFAULTS[type] unless required
       sch = (many ? { type: 'array', items: sch } : sch)
       sch[:referenced] = true unless type.blank? || %w(integer number boolean string object).include?(type)
       sch.stringify_keys

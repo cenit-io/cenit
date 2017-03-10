@@ -1,8 +1,8 @@
 module Setup
   class Operation < Webhook
     include CustomTitle
-
-    build_in_data_type.referenced_by(:resource, :method)
+    include RailsAdmin::Models::Setup::OperationAdmin
+    build_in_data_type.including(:resource).referenced_by(:resource, :method)
 
     deny :all
     allow :show, :edit, :delete

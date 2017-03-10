@@ -59,10 +59,14 @@ en:
       main_navigation:
         json_data_type: 'Objects'
         file_data_type: 'Files'
-        cross_shared_collection: 'Ecommerce'
+        cross_shared_collection: 'eCommerce'
       link_json_data_type: 'Link Object Type'
       link_file_data_type: 'Link File Type'
       link_cross_shared_collection: 'Connect Store'
+      and_more: "and %{count} more"
+      save_filter: 'Save Filter'
+      and_that_is_all: "and that's all"
+      found_menu_title: "Found "
     actions:
       dashboard:
         title: "Dashboard"
@@ -77,11 +81,13 @@ en:
           tasks: 'running tasks'
           auths: 'authorizations'
           notif: 'notifications'
+        collections:
+          add: 'Add a new collection'
+          no_categories: 'No categories'
       send_to_flow:
         title: "Send %{model_label_plural} to flow"
         menu: "Send to flow"
         breadcrumb: "Send %{model_label_plural} to flow"
-        link: "Send found %{model_label_plural} to flow"
         bulk_link: "Send selected %{model_label_plural} to a flow"
         done: "%{model_label_plural} were send to flow"
         send_to_flow_help: "Choose the flow to send models data"
@@ -94,9 +100,6 @@ en:
         action_name: "Test"
         sample_data: "Sample data"
         result: "Result"
-      generate_api:
-        curl:
-          title: "Generate cURL command for access to API of this action."
       switch_navigation:
         show:
           title: "Show navigation link"
@@ -180,6 +183,14 @@ en:
         submit: "Import"
         done: "created"
         doing: "import"
+      import_api_spec:
+        title: "Import"
+        menu: "Import"
+        breadcrumb: "Import"
+        file_content_label: "File content"
+        submit: "Import"
+        done: "created"
+        doing: "import"
       delete_all:
         title: "Delete all"
         menu: "Delete all"
@@ -224,10 +235,6 @@ en:
         doing: "execution"
         submit: "Convert"
         bulk_link: "Convert selected %{model_label_plural}"
-      delete_validator:
-        title: "Delete %{model_label} '%{object_label}'"
-        menu: "Delete"
-        breadcrumb: "Delete"
       delete_library:
         title: "Delete Library '%{object_label}'"
         menu: "Delete"
@@ -242,6 +249,7 @@ en:
         records: "records"
       action_will:
         also: 'These action will also'
+        just: 'These action will'
       disk_usage:
         title: "Disk Usage"
         menu: "Disk"
@@ -260,6 +268,7 @@ en:
         breadcrumb: "Cross"
         submit: "Cross"
         done: "crossed"
+        doing: "crossing"
       bulk_cross:
         title: "Cross %{model_label_plural}"
         bulk_link: "Cross selected %{model_label_plural}"
@@ -280,7 +289,7 @@ en:
         breadcrumb: "Pull"
         submit: "Pull"
         done: "pulled"
-        fill_parameters: "Please fill the following parameters to pull the collection"
+        fill_parameters: "The following parameters will be used to pull the collection"
         create_warning: "The following objects will be created"
         update_warning: "The following objects will be updated"
         ready: "Ready to pull!"
@@ -295,6 +304,8 @@ en:
         install_help: "The collection will be installed after pulled if checked"
         not_installer: "You can not install these collection since you have not the installer role"
         doing: 'pull'
+        skip_pull_review: "Skipp pull review"
+        skip_pull_review_help: "The pull will procede without warning about changes if checked"
       bulk_pull:
         title: "Pulling Collections"
         menu: "Pull"
@@ -419,6 +430,14 @@ en:
         title: "Copy"
         menu: "Copy"
         breadcrumb: "Copy"
+      data_events:
+        title: "Data Events"
+        menu: "Data Events"
+        breadcrumb: "Data Events"
+      flows:
+        title: "Flows"
+        menu: "Flows"
+        breadcrumb: "Flows"
       filters:
         title: "Filters"
         menu: "Filters"
@@ -447,18 +466,30 @@ en:
         submit: "Regist"
         done: "registered"
         doing: "registering"
+      algorithm_dependencies:
+        title: "Dependencies"
+        menu: "Dependencies"
+        breadcrumb: "Dependencies"
       rest_api:
         title: "Rest API"
         menu: "Rest API"
         breadcrumb: "Rest API"
+        hint: "Generate command for access to API of this action."
+      notebooks:
+        title: "Notebooks"
+        menu: "Notebooks"
+        breadcrumb: "Notebooks"
+      notebooks_root:
+        menu: "Notebooks"
+        breadcrumb: "Notebooks"
       state:
         title: "State"
         menu: "State"
         breadcrumb: "State"
       shared_collection_index:
         menu: "Shared Collections"
-      store_index:
-        menu: "Stores"
+      ecommerce_index:
+        menu: " eCommerce Collections"
       clean_up:
         title: "Clean Up"
         menu: "Clean Up"
@@ -475,6 +506,7 @@ en:
       link_data_type:
         menu: "Link"
         breadcrumb: "Link %{model_label}"
+      delete_data_type_errors: "Some data types could not be destroyed."
     form:
       flow:
         source_data_type: 'Source data type'
@@ -487,6 +519,10 @@ en:
         notify_request: 'Track request with notifications if checked'
         notify_response: 'Track responses via notification if checked'
         after_process_callbacks: 'Algorithms executed after flow processing, execution state is supplied as argument'
+      recursive: 'This is a recursive nested model. Complete your operation and try it again to go deeper.'
+      too_deep: 'This nested model is too deep. Complete your operation and try it again to go deeper.'
+      overflow: 'This nested form is too big. Try to submit your data through the API.'
+      broken: 'This form can not be properly rendered. Ask for support.'
     scheduler:
       cyclic: 'Cyclic'
       appointed: 'Appointed'
@@ -629,3 +665,24 @@ en:
           end:
             label: 'Add the triggers and save'
             description: 'Please add the triggers and save when done'
+    contact_us:
+      tittle: 'Contact us'
+      notices:
+        success: 'Your message have been send to us successfully'
+        error: 'There was an error sending your message'
+      from_name: 'From name'
+      from_email_address: 'From email address'
+      subject: 'Subject'
+      message: 'Message'
+      cancel: 'Cancel'
+      save: 'Send'
+      placeholder: 'Enter %{field} here'
+    origin:
+      default: 'This Tenant'
+      owner: 'My Tenants'
+      shared: 'Shared'
+      cenit: 'Build-In'
+      admin: 'Administration'
+      tmp: 'Temporal'
+      app: 'App'
+

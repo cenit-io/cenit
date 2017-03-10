@@ -19,7 +19,7 @@ module Edi
       def parse_json(data_type, content, options={}, record=nil, model=nil)
         content = JSON.parse(content) unless content.is_a?(Hash)
         p =
-          case (p = options.delete(:primary_fields))
+          case (p = options.delete(:primary_fields) || options.delete('primary_fields'))
           when Array
             p
           when Enumerable
@@ -28,7 +28,7 @@ module Edi
             [p]
           end
         s =
-          case (s = options[:primary_field] || [])
+          case (s = options[:primary_field] || options.delete('primary_field') || [])
           when Array
             s
           when Enumerable
@@ -126,7 +126,7 @@ module Edi
 
       def do_parse_json(data_type, model, json, options, json_schema, record=nil, new_record=nil, container = nil)
         updating = !(record.nil? && new_record.nil?) || options[:add_only]
-        (primary_fields = options.delete(:primary_field)).present? ||
+        (primary_fields = options.delete(:primary_field) || options.delete('primary_field')).present? ||
           (primary_fields = json.is_a?(Hash) && json['_primary']).present? ||
           (primary_fields = [:id])
         primary_fields = [primary_fields] unless primary_fields.is_a?(Array)
@@ -158,6 +158,7 @@ module Edi
         if json.is_a?(Hash)
           resetting = json['_reset'] || []
           resetting = (resetting.is_a?(Enumerable) ? resetting.to_a : [resetting]) + options[:reset].to_a
+          resetting = resetting.collect(&:to_s)
           taken_items = Set.new
           phase = 0
           while phase < 2
@@ -183,7 +184,7 @@ module Edi
                   property_value = [property_value] unless property_value.is_a?(Array)
                   persist = property_model && property_model.persistable?
                   property_value.each do |sub_value|
-                    if persist && sub_value['_reference'] && sub_value[:id].nil?
+                    if persist && sub_value['_reference'] && (sub_value[:id].nil? || options[:skip_refs_binding])
                       sub_value = Cenit::Utility.deep_remove(sub_value, '_reference')
                       unless Cenit::Utility.find_record(sub_value, association)
                         unless (references = record.instance_variable_get(:@_references))
@@ -200,7 +201,7 @@ module Edi
                   end
                 end
               when 'object'
-                next unless updating || record.send(property_name).nil?
+                next unless updating || !property_model.modelable? || record.send(property_name).nil?
                 if (property_value = json[name])
                   if property_value.is_a?(Hash) && property_value['_reference']
                     record.send("#{property_name}=", nil)
@@ -211,7 +212,7 @@ module Edi
                     record.send("#{property_name}=", do_parse_json(data_type, property_model, property_value, options, property_schema))
                   end
                 else
-                  record.send("#{property_name}=", nil) unless options[:add_only]
+                  record.send("#{property_name}=", nil) if property_model.modelable? && !options[:add_only]
                 end
               else
                 next if updating && ((property_name == '_id' || primary_fields.include?(name.to_sym)) && !record.send(property_name).nil?)

@@ -4,8 +4,9 @@ module Setup
     include NamespaceNamed
     include WithTemplateParameters
     include JsonMetadata
+    include RailsAdmin::Models::Setup::ResourceAdmin    
 
-    build_in_data_type.embedding(:operations).referenced_by(:name, :namespace)
+    build_in_data_type.referenced_by(:name, :namespace)
 
     field :path, type: String
     field :description, type: String

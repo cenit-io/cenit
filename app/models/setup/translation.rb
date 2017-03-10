@@ -1,6 +1,9 @@
 module Setup
   class Translation < Setup::Task
     include Setup::TranslationCommon
+    include RailsAdmin::Models::Setup::TranslationAdmin
+
+    agent_field :translator
 
     build_in_data_type
 
@@ -9,11 +12,16 @@ module Setup
     protected
 
     def translate_export(message)
-      if (result = translator.run(object_ids: object_ids_from(message), source_data_type: data_type_from(message), task: self)) &&
-        Cenit::Utility.json_object?(result)
+      result = translator.run(object_ids: object_ids_from(message),
+                              source_data_type: data_type_from(message),
+                              task: self,
+                              options: message[:options].deep_dup)
+      if result && Cenit::Utility.json_object?(result)
+        attachment = Setup::Translation.attachment_for(data_type, translator, result)
+        current_execution.attach(attachment)
         notify(type: :notice,
                message: "'#{translator.custom_title}' export result",
-               attachment: Setup::Translation.attachment_for(data_type, translator, result),
+               attachment: attachment,
                skip_notification_level: message[:skip_notification_level])
       end
     end
@@ -28,13 +36,18 @@ module Setup
 
     def simple_translate(message)
       if translator.source_handler
-        translator.run(object_ids: object_ids_from(message), task: self)
+        translator.run(object_ids: object_ids_from(message),
+                       task: self,
+                       options: message[:options].deep_dup)
       else
         objects = objects_from(message)
         objects_count = objects.count
         processed = 0.0
         objects.each do |object|
-          translator.run(object: object, task: self, data_type: data_type_from(message))
+          translator.run(object: object,
+                         task: self,
+                         data_type: data_type_from(message),
+                         options: message[:options].deep_dup)
           processed += 1
           self.progress = processed / objects_count * 100
           save
