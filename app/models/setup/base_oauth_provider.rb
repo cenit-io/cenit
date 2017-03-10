@@ -57,7 +57,7 @@ module Setup
 
     def refresh_token(authorization)
       if authorization.authorized?
-        send(refresh_token_strategy.gsub(' ', '_').underscore + '_refresh_token', authorization)
+        send(refresh_token_strategy.tr(' ', '_').underscore + '_refresh_token', authorization)
         authorization.access_token
       else
         fail "#{authorization.custom_title} not yet authorized"
@@ -99,7 +99,7 @@ module Setup
         end
       end
     rescue Exception => ex
-      fail "Error refreshing token for #{authorization.custom_title}: #{ex.message}"
+      raise "Error refreshing token for #{authorization.custom_title}: #{ex.message}"
     end
 
     def google_v4_refresh_token(authorization)
@@ -125,7 +125,7 @@ module Setup
         end
       end
     rescue Exception => ex
-      fail "Error refreshing token for #{authorization.custom_title}: #{ex.message}"
+      raise "Error refreshing token for #{authorization.custom_title}: #{ex.message}"
     end
 
     def intuit_reconnect_api_v1_refresh_token(authorization)
@@ -134,8 +134,8 @@ module Setup
       response = Setup::Connection.get(url).with(authorization).submit(http_proxy_address: Cenit.http_proxy_address,
                                                                        http_proxy_port: Cenit.http_proxy_port)
       xml_doc = Nokogiri::XML(response)
-      if (oauth_token =xml_doc.root.element_children.detect { |e| e.name == 'OAuthToken' }) &&
-        (oauth_token_secret = xml_doc.root.element_children.detect { |e| e.name == 'OAuthTokenSecret' })
+      if (oauth_token = xml_doc.root.element_children.detect { |e| e.name == 'OAuthToken' }) &&
+         (oauth_token_secret = xml_doc.root.element_children.detect { |e| e.name == 'OAuthTokenSecret' })
         authorization.access_token = oauth_token.content
         authorization.access_token_secret = oauth_token_secret.content
         authorization.save
@@ -150,7 +150,8 @@ module Setup
         fail msg
       end
     rescue Exception => ex
-      fail "Error refreshing token for #{authorization.custom_title}: #{ex.message}"
+      raise "Error refreshing token for #{authorization.custom_title}: #{ex.message}"
     end
+    
   end
 end

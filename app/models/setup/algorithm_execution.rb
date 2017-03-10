@@ -1,6 +1,9 @@
 module Setup
   class AlgorithmExecution < Setup::Task
     include RailsAdmin::Models::Setup::AlgorithmExecutionAdmin
+    # = Algorithm Execution
+    #
+    # Task execution for an algorithm.
 
     agent_field :algorithm
 
@@ -45,5 +48,6 @@ module Setup
         fail "Algorithm with id #{algorithm_id} not found"
       end
     end
+    
   end
 end

@@ -55,7 +55,6 @@ module Setup
     end
 
     class << self
-
       def swagger_to_cenit(spec, options = {})
         spec = Psych.load(spec)
         [
@@ -64,19 +63,19 @@ module Setup
           paths = spec['paths'] || {}
         ].each do |schema_container|
           schema_container.each_deep_pair do |hash, key, value|
-            if key == '$ref' && !(value.is_a? Hash)
-              if value.start_with?(prefix = '#/definitions/') || value.start_with?(prefix = '#/parameters/')
-                hash[key] = value.from(prefix.length)
-              elsif value.start_with?('#/')
-                hash[key] = value.from(2)
-              else
-                fail "Reference #{value} is not valid"
-              end
+            next unless key == '$ref' && !(value.is_a? Hash)
+            if value.start_with?(prefix = '#/definitions/') || value.start_with?(prefix = '#/parameters/')
+              hash[key] = value.from(prefix.length)
+            elsif value.start_with?('#/')
+              hash[key] = value.from(2)
+            else
+              fail "Reference #{value} is not valid"
             end
+            true
           end if schema_container
         end
 
-        parameters.each { |param| fail "Parameter name conflict with definition: #{param}" if definitions.has_key?(param) }
+        parameters.each { |param| fail "Parameter name conflict with definition: #{param}" if definitions.key?(param) }
 
         if definitions.size > 0
           definitions.each_pair do |name, schema|
@@ -167,7 +166,7 @@ module Setup
               oauth2_provider = Setup::Oauth2Provider.where(authorization_endpoint: security['authorizationUrl']).first
               oauth_client = Setup::OauthClient.where(provider: oauth2_provider).first
               if oauth2_provider && oauth_client
-                unless namespaces.has_key?(oauth2_provider.namespace)
+                unless namespaces.key?(oauth2_provider.namespace)
                   namespaces[oauth2_provider.namespace] = oauth2_provider.ns_slug
                 end
                 oauth_clients_refs[oauth_client.id] ||= oauth_client.share_hash
@@ -309,7 +308,7 @@ module Setup
               fail "Path #{path} parameter description type is not valid: #{param_desc.class}"
             end
           end
-          resource_name = path.split('/').collect { |token| token.capitalize }.join(' ').strip
+          resource_name = path.split('/').collect(&:capitalize).join(' ').strip
           resource =
             {
               namespace: namespace,
@@ -508,7 +507,7 @@ module Setup
       end
 
       def slugify(name)
-        name = name.gsub(/ |\/|\.|:|-/, '_').gsub('+', 'plus').gsub('&', '_and_')
+        name = name.gsub(%r{ |\/|\.|:|-}, '_').gsub('+', 'plus').gsub('&', '_and_')
         name = name.split('_').collect do |word|
           if word.downcase.length > 10
             word.underscore
@@ -528,9 +527,10 @@ module Setup
         }
       end
 
-      def identificable?(name, schema)
-        schema['type'] == 'object' && (properties = schema['properties']) && properties.has_key?('id')
+      def identificable?(_name, schema)
+        schema['type'] == 'object' && (properties = schema['properties']) && properties.key?('id')
       end
+      
     end
   end
 end

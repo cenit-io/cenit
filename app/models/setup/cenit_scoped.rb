@@ -6,7 +6,6 @@ module Setup
     include AccountScoped
 
     module ClassMethods
-
       # def super_count
       #   current_account = Account.current
       #   c = 0
@@ -21,6 +20,7 @@ module Setup
       def clean_up
         collection.drop
       end
+      
     end
   end
 end

@@ -2,6 +2,9 @@ module Setup
   class AlgorithmOutput
     include CenitScoped
     include RailsAdmin::Models::Setup::AlgorithmOutputAdmin
+    # = Algorithm Output
+    #
+    # Allow the associate a Data Type with the output of an algorithm.
 
     build_in_data_type
 
@@ -24,7 +27,7 @@ module Setup
       "#{algorithm.custom_title} @ #{created_at}"
     end
 
-    def records(options = {})
+    def records(_options = {})
       data_type.records_model.where(:id.in => output_ids)
     end
 

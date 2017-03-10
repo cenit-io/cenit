@@ -18,12 +18,13 @@ module Setup
       (i = (name = data.path).rindex('.')) && name.from(i) == '.zip'
     end
 
-    def run(message)
+    def run(_message)
       each_entry do |entry_name, schema|
         uri = base_uri.blank? ? entry_name : "#{base_uri}/#{entry_name}"
         schema = Setup::Schema.create(namespace: namespace, uri: uri, schema: schema)
         fail schema.errors.full_messages.to_sentence unless schema.errors.blank?
       end
     end
+
   end
 end

@@ -31,7 +31,6 @@ module Setup
       ]
 
     included do
-
       build_in_data_type.embedding(*COLLECTING_PROPERTIES).excluding(:image)
 
       field :title, type: String, default: ''
@@ -101,16 +100,15 @@ module Setup
       end
       applications.each do |app|
         app.application_parameters.each do |app_parameter|
-          if (param_model = app.configuration_model.property_model(app_parameter.name)) &&
-            (relation = collecting_models[param_model]) &&
-            (items = app.configuration[app_parameter.name])
-            items = [items] unless items.is_a?(Enumerable)
-            items.each do |item|
-              dependencies[relation.name] << item if scan_dependencies_on(item,
-                                                                          collecting_models: collecting_models,
-                                                                          dependencies: dependencies,
-                                                                          visited: visited)
-            end
+          next unless (param_model = app.configuration_model.property_model(app_parameter.name)) &&
+                      (relation = collecting_models[param_model]) &&
+                      (items = app.configuration[app_parameter.name])
+          items = [items] unless items.is_a?(Enumerable)
+          items.each do |item|
+            dependencies[relation.name] << item if scan_dependencies_on(item,
+                                                                        collecting_models: collecting_models,
+                                                                        dependencies: dependencies,
+                                                                        visited: visited)
           end
         end
       end
@@ -119,13 +117,12 @@ module Setup
         data_types = data_types.to_a
         while (data_type = data_types.pop)
           data_type.each_ref(params) do |dt|
-            if scan_dependencies_on(dt,
-                                    collecting_models: collecting_models,
-                                    dependencies: dependencies,
-                                    visited: visited)
-              dependencies[:data_types] << dt
-              data_types << dt
-            end
+            next unless scan_dependencies_on(dt,
+                                             collecting_models: collecting_models,
+                                             dependencies: dependencies,
+                                             visited: visited)
+            dependencies[:data_types] << dt
+            data_types << dt
           end if data_type.is_a?(Setup::JsonDataType)
         end
       end
@@ -151,11 +148,10 @@ module Setup
         send(relation.name).group_by do |record|
           reference_keys.collect { |key| record.try(key) }.select { |key| key }
         end.each do |keys, records|
-          if records.length > 1
-            keys_hash = {}
-            reference_keys.each_with_index { |key, index| keys_hash[key] = keys[index] }
-            self.warnings << "Multiple #{relation.name} with the same reference keys #{keys_hash.to_json}"
-          end
+          next unless records.length > 1
+          keys_hash = {}
+          reference_keys.each_with_index { |key, index| keys_hash[key] = keys[index] }
+          self.warnings << "Multiple #{relation.name} with the same reference keys #{keys_hash.to_json}"
         end
       end
 
@@ -173,19 +169,17 @@ module Setup
       end
     end
 
-    def cross_to(origin = :default, criteria= {})
+    def cross_to(origin = :default, criteria = {})
       COLLECTING_PROPERTIES.each do |property|
         r = reflect_on_association(property)
-        if (model = r.klass).include?(Setup::CrossOriginShared)
-          model.where(:id.in => send(r.foreign_key)).and(criteria).with_tracking.cross(origin) do |_, non_tracked_ids|
-            if non_tracked_ids.present?
-              Account.each do |account|
-                if account == Account.current
-                  model.clear_pins_for(account, non_tracked_ids)
-                else
-                  model.clear_config_for(account, non_tracked_ids)
-                end
-              end
+        next unless (model = r.klass).include?(Setup::CrossOriginShared)
+        model.where(:id.in => send(r.foreign_key)).and(criteria).with_tracking.cross(origin) do |_, non_tracked_ids|
+          next unless non_tracked_ids.present?
+          Account.each do |account|
+            if account == Account.current
+              model.clear_pins_for(account, non_tracked_ids)
+            else
+              model.clear_config_for(account, non_tracked_ids)
             end
           end
         end
@@ -197,7 +191,6 @@ module Setup
     end
 
     module ClassMethods
-
       def image_with(uploader)
         mount_uploader :image, uploader
       end
@@ -241,5 +234,6 @@ module Setup
       end
       true
     end
+    
   end
 end

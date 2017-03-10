@@ -18,5 +18,6 @@ module Setup
     def label
       "#{name} (#{email})"
     end
+    
   end
 end

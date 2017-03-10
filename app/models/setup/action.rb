@@ -1,7 +1,10 @@
 module Setup
   class Action
     include CenitUnscoped
-    include RailsAdmin::Models::Setup::ActionAdmin    
+    include RailsAdmin::Models::Setup::ActionAdmin
+    # = Action
+    #
+    # Actions HTTP Method.
 
     build_in_data_type.referenced_by(:method, :path)
 
@@ -19,7 +22,7 @@ module Setup
 
     validates_presence_of :method, :algorithm, :path
     validates_length_of :path, maximum: 255
-    validates_format_of :path, with: /\A(\/:?(\w|-)+)*(\/(\*)?)?\Z/
+    validates_format_of :path, with: %r{\A(\/:?(\w|-)+)*(\/(\*)?)?\Z}
 
     def method_enum
       [:get, :post, :put, :delete, :patch, :copy, :head, :options, :link, :unlink, :purge, :lock, :unlock, :propfind]
@@ -78,5 +81,6 @@ module Setup
     def to_s
       "#{method} '#{path}'"
     end
+    
   end
 end

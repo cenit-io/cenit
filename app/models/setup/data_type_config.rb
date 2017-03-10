@@ -37,5 +37,6 @@ module Setup
     def slug_taken?(slug)
       data_type && self.class.where(slug: slug).any? { |data_type_config| (dt = data_type_config.data_type) && !dt.eql?(data_type) && dt.namespace == data_type.namespace }
     end
+    
   end
 end

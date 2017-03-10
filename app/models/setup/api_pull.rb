@@ -13,7 +13,7 @@ module Setup
 
     def source_shared_collection
       unless @shared_collection
-        unless self.collection_data.present?
+        unless collection_data.present?
           self.collection_data = api.cenit_collection_hash(task: self)
         end
         @shared_collection = Setup::CrossSharedCollection.new(pull_data: collection_data)
@@ -26,5 +26,6 @@ module Setup
       fail 'No API to pull' unless api
       super
     end
+    
   end
 end

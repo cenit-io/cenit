@@ -62,6 +62,11 @@ require 'account'
   RailsAdmin::Config::Actions::ImportApiSpec
 ].each { |a| RailsAdmin::Config::Actions.register(a) }
 
+[
+  RailsAdmin::Config::Actions::Notebooks,
+  RailsAdmin::Config::Actions::NotebooksRoot
+].each { |a| RailsAdmin::Config::Actions.register(a) } if Cenit.jupyter_notebooks
+
 RailsAdmin::Config::Actions.register(:export, RailsAdmin::Config::Actions::BulkExport)
 
 [
@@ -177,6 +182,7 @@ RailsAdmin.config do |config|
     bulk_delete_data_type
     delete
     trash
+    notebooks_root if Cenit.jupyter_notebooks
     clean_up
     #show_in_app
     send_to_flow
@@ -211,6 +217,7 @@ RailsAdmin.config do |config|
     rest_api1
     rest_api2
     documentation
+    notebooks if Cenit.jupyter_notebooks
   end
 
   config.navigation 'Collections', icon: 'fa fa-cubes'
@@ -260,8 +267,6 @@ RailsAdmin.config do |config|
   #Connectors
 
   config.navigation 'Connectors', icon: 'fa fa-plug'
-
-  Setup::Parameter
 
   Setup::ApiSpec
 
@@ -329,6 +334,8 @@ RailsAdmin.config do |config|
   Cenit::ApplicationParameter
 
   Setup::Filter
+
+  Setup::Notebook if Cenit.jupyter_notebooks
 
   #Transformations
 
@@ -426,7 +433,7 @@ RailsAdmin.config do |config|
 
   Setup::Binding
 
-  Setup::ParameterConfig
+  Setup::Parameter
 
   #Administration
 

@@ -16,6 +16,6 @@ module Setup
                        options: message[:options].deep_dup)
       end
     end
-
+    
   end
 end

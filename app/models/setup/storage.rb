@@ -3,7 +3,7 @@ module Setup
     include CenitUnscoped
     include RailsAdmin::Models::Setup::StorageAdmin
 
-    store_in collection: Proc.new { Account.tenant_collection_prefix + '.files' }
+    store_in collection: proc { Account.tenant_collection_prefix + '.files' }
 
     build_in_data_type
 
@@ -22,7 +22,7 @@ module Setup
     end
 
     def storer_name
-      (name = name_components.second) && name.gsub('~', '/').camelize
+      (name = name_components.second) && name.tr('~', '/').camelize
     end
 
     def storer_model

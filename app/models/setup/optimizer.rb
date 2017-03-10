@@ -120,5 +120,6 @@ module Setup
 
       delegate(*Setup::Optimizer.instance_methods(false), to: :instance)
     end
+    
   end
 end

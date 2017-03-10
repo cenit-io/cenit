@@ -41,28 +41,28 @@ module Setup
 
     def create_from!(data, options = {})
       unless (record = create_from(data, options)).errors.blank?
-        raise Exception.new(record.errors.full_messages.to_sentence)
+        fail record.errors.full_messages.to_sentence
       end
       record
     end
 
     def create_from_edi!(data, options = {})
       unless (record = create_from_edi(data, options)).errors.blank?
-        raise Exception.new(record.errors.full_messages.to_sentence)
+        fail record.errors.full_messages.to_sentence
       end
       record
     end
 
     def create_from_json!(data, options = {})
       unless (record = create_from_json(data, options)).errors.blank?
-        raise Exception.new(record.errors.full_messages.to_sentence)
+        fail record.errors.full_messages.to_sentence
       end
       record
     end
 
     def create_from_xml!(data, options = {})
       unless (record = create_from_xml(data, options)).errors.blank?
-        raise Exception.new(record.errors.full_messages.to_sentence)
+        fail record.errors.full_messages.to_sentence
       end
       record
     end
@@ -80,5 +80,6 @@ module Setup
       end
       record
     end
+    
   end
 end

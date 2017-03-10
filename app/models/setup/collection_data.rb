@@ -1,12 +1,13 @@
 module Setup
   class CollectionData
     include CenitScoped
-    include RailsAdmin::Models::Setup::CollectionDataAdmin    
+    include RailsAdmin::Models::Setup::CollectionDataAdmin
 
-    build_in_data_type.excluding(:data_type).and('properties' => {'namespace' => {'type' => 'string'},
-                                                                            'name' => {'type' => 'string'},
-                                                                            'records' => {'type' => 'array'}})
-
+    build_in_data_type.excluding(:data_type).and('properties' => {
+                                                   'namespace' => { 'type' => 'string' },
+                                                   'name' => { 'type' => 'string' },
+                                                   'records' => { 'type' => 'array' }
+                                                 })
     embedded_in :setup_collection, class_name: Setup::Collection.to_s, inverse_of: :data
 
     belongs_to :data_type, class_name: Setup::DataType.to_s, inverse_of: nil
@@ -41,9 +42,10 @@ module Setup
     end
 
     class << self
-      def stored_properties_on(record)
+      def stored_properties_on(_record)
         %w(namespace name records)
       end
     end
+    
   end
 end

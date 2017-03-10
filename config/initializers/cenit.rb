@@ -129,4 +129,6 @@ Cenit.config do
   max_nested_forms_levels 10
 
   max_handing_schemas 500
+
+  jupyter_notebooks ENV['JUPYTER_NOTEBOOKS'].to_b
 end

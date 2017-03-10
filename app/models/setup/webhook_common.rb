@@ -22,9 +22,7 @@ module Setup
 
     def params_stack
       stack = [self]
-      if @connections.is_a?(Setup::Connection)
-        stack.unshift(@connections)
-      end
+      stack.unshift(@connections) if @connections.is_a?(Setup::Connection)
       stack
     end
 
@@ -60,8 +58,8 @@ module Setup
             connections
           end
         @connections_cache = connections unless @connection_role_options &&
-          @connection_role_options.has_key?(:cache) &&
-          !@connection_role_options[:cache]
+                                                @connection_role_options.key?(:cache) &&
+                                                !@connection_role_options[:cache]
         connections
       end
     end
@@ -79,7 +77,6 @@ module Setup
       if (connections = self.connections).present?
         verbose_response[:connections_present] = true if verbose_response
         common_submitter_body = (body_caller = body_argument.respond_to?(:call)) ? nil : body_argument
-        common_template_parameters = nil
         connections.each do |connection|
           template_parameters = template_parameters_hash.dup
           template_parameters.reverse_merge!(connection.template_parameters_hash)
@@ -120,10 +117,10 @@ module Setup
             )
             template_parameters[:body] = body if body
 
-            parameters = connection.conformed_parameters(template_parameters).
-              merge(conformed_parameters(template_parameters)).
-              merge!(options[:parameters] || {}).
-              reject { |_, value| value.blank? }
+            parameters = connection.conformed_parameters(template_parameters)
+                         .merge(conformed_parameters(template_parameters))
+                         .merge!(options[:parameters] || {})
+                         .reject { |_, value| value.blank? }
 
             template_parameters[:query_parameters] = parameters
             connection.inject_other_parameters(parameters, template_parameters)
@@ -133,16 +130,14 @@ module Setup
             template_parameters[:query] = query
 
             headers = {}
-            template_parameters[:contentType] = headers['Content-Type'] = options[:contentType] if options.has_key?(:contentType)
-            headers.merge!(connection.conformed_headers(template_parameters)).
-              merge!(conformed_headers(template_parameters)).
-              merge!(options[:headers] || {}).
-              reject! { |_, value| value.nil? }
+            template_parameters[:contentType] = headers['Content-Type'] = options[:contentType] if options.key?(:contentType)
+            headers.merge!(connection.conformed_headers(template_parameters))
+              .merge!(conformed_headers(template_parameters))
+              .merge!(options[:headers] || {})
+              .reject! { |_, value| value.nil? }
             begin
-              if query.present?
-                conformed_path += '?' + query
-              end
-              url = conformed_url.gsub(/\/+\Z/, '') + ('/' + conformed_path).gsub(/\/+/, '/')
+              conformed_path += '?' + query if query.present?
+              url = conformed_url.gsub(%r{\/+\Z}, '') + ('/' + conformed_path).gsub(%r{\/+}, '/')
               url = url.gsub('/?', '?')
 
               if body
@@ -168,7 +163,7 @@ module Setup
               msg = { headers: headers }
               msg[:body] = body if body
               msg[:timeout] = Cenit.request_timeout || 300
-              msg[:verify] = false #TODO Https verify option by Connection
+              msg[:verify] = false # TODO: Https verify option by Connection
               if (http_proxy = options[:http_proxy_address])
                 msg[:http_proxyaddr] = http_proxy
               end
@@ -177,7 +172,7 @@ module Setup
               end
               begin
                 http_response = HTTMultiParty.send(method, url, msg)
-              rescue Timeout::Error => ex
+              rescue Timeout::Error
                 http_response = Setup::Webhook::Response.new true,
                                                              code: 408,
                                                              content_type: 'application/json',
@@ -232,8 +227,8 @@ module Setup
 
     def attachment_from(http_response)
       if http_response
-        file_extension = ((types =MIME::Types[http_response.content_type]).present? &&
-          (ext = types.first.extensions.first).present? && '.' + ext) || ''
+        file_extension = ((types = MIME::Types[http_response.content_type]).present? &&
+                         (ext = types.first.extensions.first).present? && '.' + ext) || ''
         {
           filename: http_response.object_id.to_s + file_extension,
           contentType: http_response.content_type,
@@ -304,6 +299,7 @@ module Setup
           @response.instance_eval(property.to_s)
         end
       end
+
     end
   end
 end

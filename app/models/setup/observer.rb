@@ -90,11 +90,14 @@ module Setup
         end
       end
     end
+    
   end
 end
 
 class String
+
   def to_boolean
     self == 'true'
   end
+
 end

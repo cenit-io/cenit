@@ -22,15 +22,15 @@ module Setup
       end
 
       def abstract_class(*args)
-        if args.length > 0
-          @abstract_class = args[0].present?
-        end
+        @abstract_class = args[0].present? if args.length > 0
         @abstract_class
       end
 
       def abstract?
         abstract_class.present?
       end
+
     end
+    
   end
 end

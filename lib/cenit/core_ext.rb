@@ -24,14 +24,15 @@ class Hash
 
   def each_deep_pair(&block)
     each_pair do |key, value|
-      yield(self, key, value)
-      case value
-      when Hash
-        value.each_deep_pair(&block)
-      when Array
-        value.each { |sub_value| sub_value.each_deep_pair(&block) if sub_value.is_a?(Hash) }
+      if yield(self, key, value)
+        case value
+        when Hash
+          value.each_deep_pair(&block)
+        when Array
+          value.each { |sub_value| sub_value.each_deep_pair(&block) if sub_value.is_a?(Hash) }
+        end
       end
-    end if block_given?
+    end if block
   end
 
   def intersection(other)
@@ -63,6 +64,14 @@ class Hash
       end
     end
     hash
+  end
+
+  def array_hash_merge(other)
+    deep_merge(other) { |_, value, other_value| Cenit::Utility.array_hash_merge(value, other_value) }
+  end
+
+  def reverse_array_hash_merge(other)
+    other.array_hash_merge(self)
   end
 end
 

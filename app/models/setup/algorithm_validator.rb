@@ -1,6 +1,9 @@
 module Setup
   class AlgorithmValidator < CustomValidator
     include RailsAdmin::Models::Setup::AlgorithmValidatorAdmin
+    # = Algorithm Validator
+    #
+    # Allow the associate a validator with an algorithm.
 
     build_in_data_type.referenced_by(:namespace, :name)
 
@@ -15,16 +18,15 @@ module Setup
       super
     end
 
-    def validate_data(data)
+    def validate_data(_data)
       fail NotImplementedError
     end
 
     def validate_file_record(file)
-      begin
-        algorithm.run(file)
-      rescue Exception => ex
-        [ex.message]
-      end
+      algorithm.run(file)
+    rescue Exception => ex
+      [ex.message]
     end
+    
   end
 end

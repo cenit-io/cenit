@@ -71,11 +71,10 @@ module Setup
     end
 
     def hashify(uploader)
-      begin
-        JSON.parse(uploader.read || '{}').with_indifferent_access
-      rescue Exception => ex
-        fail "Invalid JSON #{uploader.mounted_as}: #{ex.message}"
-      end
+      JSON.parse(uploader.read || '{}').with_indifferent_access
+    rescue Exception => ex
+      raise "Invalid JSON #{uploader.mounted_as}: #{ex.message}"
     end
+    
   end
 end

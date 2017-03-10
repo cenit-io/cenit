@@ -181,5 +181,6 @@ module Setup
     def op_last_week(obj_v)
       op_between(obj_v, [nil, (last_week_beginning = Date.today.weeks_ago(1).at_beginning_of_week).at_beginning_of_day, last_week_beginning.at_end_of_week.at_end_of_day])
     end
+    
   end
 end

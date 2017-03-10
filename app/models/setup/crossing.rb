@@ -21,24 +21,19 @@ module Setup
       model = data_type.records_model
       if model < CrossOrigin::Document
         criteria = criteria.and(:origin.in => authorized_crossing_origins)
-        if model < Trackable
-          criteria = criteria.with_tracking
-        end
+        criteria = criteria.with_tracking if model < Trackable
         criteria.cross(origin) do |_, non_tracked_ids|
-          if non_tracked_ids.present?
-            Account.each do |account|
-              if account == Account.current
-                model.clear_pins_for(account, non_tracked_ids)
-              else
-                model.clear_config_for(account, non_tracked_ids)
-              end
+          next unless non_tracked_ids.present?
+          Account.each do |account|
+            if account == Account.current
+              model.clear_pins_for(account, non_tracked_ids)
+            else
+              model.clear_config_for(account, non_tracked_ids)
             end
           end
         end
       end
-      if model.instance_methods.include?(:cross_to)
-        criteria.each { |record| record.cross_to(origin, :origin.in => authorized_crossing_origins) }
-      end
+      criteria.each { |record| record.cross_to(origin, :origin.in => authorized_crossing_origins) } if model.instance_methods.include?(:cross_to)
     end
 
     def authorized_crossing_origins
@@ -54,6 +49,8 @@ module Setup
           [:default, :owner]
         end
       end
+      
     end
+
   end
 end

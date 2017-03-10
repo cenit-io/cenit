@@ -109,10 +109,9 @@ module Setup
 
     def check_dependencies
       for_each_dependence([self]) do |dependence, stack|
-        if stack.count { |d| d.name == dependence.name } > 1
-          errors.add(:dependencies, "with circular reference #{stack.collect { |d| d.versioned_name }.join(' -> ')}")
-          return false
-        end
+        next unless stack.count { |d| d.name == dependence.name } > 1
+        errors.add(:dependencies, "with circular reference #{stack.collect(&:versioned_name).join(' -> ')}")
+        return false
       end
       true
     end
@@ -131,7 +130,7 @@ module Setup
       data = installed? ? pull_data : self.data
       pull_parameters.each do |pull_parameter|
         pull_parameter.process_on(data)
-        with_errors = with_errors || pull_parameter.errors.present?
+        with_errors ||= pull_parameter.errors.present?
       end
       if with_errors
         errors.add(:pull_parameters, 'is not valid')
@@ -168,14 +167,12 @@ module Setup
 
     def pulled(options = {})
       self.class.collection.find(_id: id).update_one('$inc' => { pull_count: 1 })
-      if !installed && options[:install] && User.current_installer?
-        install(options)
-      end
+      install(options) if !installed && options[:install] && User.current_installer?
     end
 
     def reinstall(options = {})
       options[:collection] ||= self
-      options[:add_dependencies] = true unless options.has_key?(:add_dependencies)
+      options[:add_dependencies] = true unless options.key?(:add_dependencies)
       install(options)
     end
 
@@ -203,13 +200,13 @@ module Setup
       COLLECTING_PROPERTIES.each do |property|
         r = reflect_on_association(property)
         opts = { polymorphic: true }
-        opts[:include_id] = ->(record) do
+        opts[:include_id] = lambda do |record|
           record.is_a?(Setup::CrossOriginShared) && record.shared?
         end
         pull_data[r.name] =
           if r.klass < Setup::CrossOriginShared
             if (ids = collection.send(r.foreign_key).dup).present?
-              attributes[r.foreign_key]= ids
+              attributes[r.foreign_key] = ids
             end
             if r.klass.include?(Setup::SharedConfigurable)
               configuring_fields = r.klass.data_type.get_referenced_by + r.klass.configuring_fields.to_a
@@ -245,7 +242,7 @@ module Setup
 
     def save(options = {})
       @add_dependencies =
-        if options.has_key?(:add_dependencies)
+        if options.key?(:add_dependencies)
           options.delete(:add_dependencies)
         else
           @add_dependencies
@@ -259,8 +256,8 @@ module Setup
 
     def method_missing(symbol, *args)
       if (match = /\Adata_(.+)\Z/.match(symbol.to_s)) &&
-        COLLECTING_PROPERTIES.include?(relation_name = match[1].to_sym) &&
-        ((args.length == 0 && (options = {})) || args.length == 1 && (options = args[0]).is_a?(Hash))
+         COLLECTING_PROPERTIES.include?(relation_name = match[1].to_sym) &&
+         ((args.length == 0 && (options = {})) || args.length == 1 && (options = args[0]).is_a?(Hash))
         if (items = send(relation_name)).present?
           items
         else
@@ -304,5 +301,6 @@ module Setup
         value
       end
     end
+    
   end
 end
