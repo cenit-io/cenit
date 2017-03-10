@@ -245,11 +245,11 @@ module RailsAdmin
       if @data_type
         ns = @data_type.namespace.parameterize.underscore.downcase
         model_name = @data_type.slug
-        display_name = @data_type.name.chomp('.json').humanize
+        display_name = @data_type.name.chomp('.json').underscore.humanize
       elsif @params[:model_name]
         ns = 'setup'
         model_name = @params[:model_name]
-        display_name = model_name.humanize
+        display_name = model_name.underscore.humanize
       end
 
       [ns, model_name, display_name]

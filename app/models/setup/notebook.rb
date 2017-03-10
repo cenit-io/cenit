@@ -3,12 +3,12 @@ module Setup
     include CrossOriginShared
     include RailsAdmin::Models::Setup::NotebookAdmin
 
-    build_in_data_type.with(:module, :name, :content, :shared, :writable, :origin, :created_at, :updated_at)
+    build_in_data_type.with(:name, :parent, :type, :content, :writable, :origin, :created_at, :updated_at)
 
-    field :module, type: String
     field :name, type: String
+    field :parent, type: String
+    field :type, type: String
     field :content, type: String
-    field :shared, type: Boolean
     field :writable, type: Boolean
     field :created_at, type: DateTime
     field :updated_at, type: DateTime
@@ -30,10 +30,25 @@ module Setup
     end
 
     def path
-      "#{self.module}/#{self.name}"
+      "#{self.parent}/#{self.name}".gsub(/^\//, '')
+    end
+
+    def items
+      self.type == 'directory' ? self.class.where(parent: path) : []
     end
 
     private
+
+    def type_enum
+      {
+        'Notebook' => :notebook,
+        'Directory' => :directory
+      }
+    end
+
+    def destroy_children
+      items.each { |item| item.destroy! }
+    end
 
     def set_default_tenant
       self.tenant = Account.current || begin
