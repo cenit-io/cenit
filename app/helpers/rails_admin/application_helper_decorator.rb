@@ -573,15 +573,12 @@ module RailsAdmin
           html+= dashboard_collection_view(c)
         end
       else
-        # Show random cross shared collections
-        k = 0
         # double amount of elements to ensure there are enough that satisfies the conditions
-        rand_ids = Setup::CrossSharedCollection.limit(3 * limit).pluck(:_id).shuffle[0..(2 * limit)]
+        cross_collections = Setup::CrossSharedCollection.where(:image.exists => true)
+        cross_collections = cross_collections.where(installed: true)
+        rand_ids = cross_collections.pluck(:_id).shuffle[0..limit]
         Setup::CrossSharedCollection.where(:_id.in => rand_ids).each do |c|
-          next unless c.image.present? && c.installed?
-          k += 1
           html += dashboard_collection_view(c)
-          break if k == limit
         end
       end
 
