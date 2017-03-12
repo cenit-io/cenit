@@ -573,9 +573,7 @@ module RailsAdmin
           html+= dashboard_collection_view(c)
         end
       else
-        # double amount of elements to ensure there are enough that satisfies the conditions
-        rand_ids = Setup::CrossSharedCollection.where(:image.exists => true)
-                   .where(installed: true).pluck(:_id).shuffle[0...limit]
+        rand_ids = Setup::CrossSharedCollection.where(:image.exists => true, installed: true).pluck(:_id).shuffle[0...limit]
         Setup::CrossSharedCollection.where(:_id.in => rand_ids).each do |c|
           html += dashboard_collection_view(c)
         end
