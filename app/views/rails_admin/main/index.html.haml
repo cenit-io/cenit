@@ -60,7 +60,6 @@
 - if data_type.chart_rendering
   - available_chart = true
   = render 'chart'
-  =# '<script>render_graphic($("#graphics-form"), ".graphics");</script>'.html_safe
 
 
 = content_for :contextual_tabs do
@@ -117,8 +116,8 @@
             %i.icon-white.icon-remove
       .filters-buttons
         = found_menu
-        - if available_chart
-          %span{style: 'float:right'}= button_tag 'Graphic View', id: 'view_graphic',type: 'none', class: 'btn btn-info'
+        %span{style: 'float:right'}= button_tag 'Graphic View', id: 'view_graphic',type: 'none', class: 'btn btn-info'
+        %input{name: 'enable_chart', value: false, type: 'hidden'}
         -# Patch
         - if (model = @abstract_model.model).is_a?(Class) && model.include?(CrossOrigin::Document) && (origins = model.origins).present?
           %span{style: 'float:right'}

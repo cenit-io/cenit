@@ -365,7 +365,7 @@ function registerEvents() {
 
     $("#view_graphic").click(function (e) {
         e.preventDefault();
-        $('.graphics-area').toggleClass('hide');
+        $('[name="enable_chart"]').val('true');
     });
 }
 
