@@ -557,7 +557,7 @@ module RailsAdmin
       html = ''
       limit = 11
       new_url = rails_admin.new_path(model_name: Setup::Collection.to_s.underscore.gsub('/', '~'))
-      new_collection = '<div class="col-md-2">
+      new_collection = '<div class="col-xs-6 col-sm-4 col-md-2">
                           <a href="'+new_url+'">
                             <div class="collection">
                               <div class="pic text-center">
@@ -590,7 +590,7 @@ module RailsAdmin
       css_class = 'img-responsive '+(has_image ? '' : 'no-image')
       image = image_tag has_image ? c.image.versions[:thumb] : 'missing.png', :class => css_class, :alt => c.name, width: '80%', max_height: '80%', margin: '12px'
       url_show = rails_admin.show_path(model_name: c.model_name.to_s.underscore.gsub('/', '~'), id: c.name)
-      '<div class="col-md-2">
+      '<div class="col-xs-6 col-sm-4 col-md-2">
         <a href="'+url_show+'" title="'+ c.name+'">
           <div class="collection">
             <div class="pic text-center">'+image+'
