@@ -9,6 +9,7 @@ module RailsAdmin
             navigation_label 'Compute'
             weight 400
             object_label_method { :path }
+            public_access true
           end
         end
 
