@@ -569,13 +569,13 @@ module RailsAdmin
                         </div>'
       if current_user
         # Show user collections
-        Setup::Collection.limit(limit).order(created_at: :desc).each do |c|
+        Setup::Collection.limit(limit).asc(:created_at).each do |c|
           html+= dashboard_collection_view(c)
         end
       else
-        # Show cross shared collections
-        Setup::CrossSharedCollection.limit(limit).order(created_at: :desc).each do |c|
-          html+= dashboard_collection_view(c) if c.image.present? && c.installed?
+        rand_ids = Setup::CrossSharedCollection.where(:image.exists => true, installed: true).pluck(:_id).shuffle[0...limit]
+        Setup::CrossSharedCollection.where(:_id.in => rand_ids).each do |c|
+          html += dashboard_collection_view(c)
         end
       end
 
