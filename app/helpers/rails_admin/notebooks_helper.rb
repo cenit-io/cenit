@@ -12,14 +12,14 @@ module RailsAdmin
       nb ||= Setup::Notebook.find(params[:notebook]) if params[:notebook].present?
 
       if model_name == 'notebook'
-        url = "#{Cenit.jupyter_notebooks_url}/tree/#{key}/#{token}"
+        url = "tree/#{key}/#{token}"
       elsif nb
-        url = "#{Cenit.jupyter_notebooks_url}/notebooks/#{key}/#{token}/#{nb.path}"
+        url = "notebooks/#{key}/#{token}/#{nb.path}"
       else
-        url = "#{Cenit.jupyter_notebooks_url}/tree/#{key}/#{token}/#{ns}/#{model_name}"
+        url = "tree/#{key}/#{token}/REST-API/#{ns}/#{model_name}"
       end
 
-      url
+      "#{Cenit.jupyter_notebooks_url}/#{url.gsub(/\/{2,}/,'/')}".chomp('/')
     end
 
     def index_setup_notebook
