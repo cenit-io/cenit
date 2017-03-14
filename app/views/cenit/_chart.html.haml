@@ -1,0 +1,4 @@
+- chart ||= 'column_chart'
+- data =  [[25, "1789-04-29"], [26, "1797-03-03"], [85, "1809-03-03"]]
+
+= send(chart, data, library: {chart:{zoomType:'x',style: {overflow: 'visible'}}} )

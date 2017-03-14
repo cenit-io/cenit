@@ -51,8 +51,22 @@ module Cenit
           controller.render text: res.body, content_type: res.content_type, status: res.code
         end
       else
+        unless args[0].is_a?(Hash)
+          args[0] = "cenit/#{args[0]}"
+          unless (second_arg = args[1])
+            second_arg = {}
+            args << second_arg
+          end
+          if second_arg.is_a?(Hash) && !second_arg.key?(:layout)
+            second_arg[:layout] = 'cenit'
+          end
+        end
         controller.render(*args)
       end
+    end
+
+    def partial(partial)
+      controller.render partial: "cenit/#{partial}"
     end
 
     def render_called?
