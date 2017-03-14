@@ -37,6 +37,8 @@ module Setup
       def tracked_field?(field, action = :update)
         configuring_fields.exclude?(field.to_s) && super
       end
+
     end
+    
   end
 end

@@ -53,5 +53,6 @@ module Setup
         fail "Can not determine records model from name '#{model_name}'"
       end
     end
+    
   end
 end

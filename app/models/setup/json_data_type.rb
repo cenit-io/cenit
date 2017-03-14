@@ -8,13 +8,13 @@ module Setup
     legacy_code_attribute :schema
 
     build_in_data_type.referenced_by(:namespace, :name).with(:namespace, :name, :title, :_type, :snippet, :events, :before_save_callbacks, :records_methods, :data_type_methods)
-    build_in_data_type.and({
-                             properties: {
-                               slug: {
-                                 type: 'string'
-                               }
-                             }
-                           }.deep_stringify_keys)
+    build_in_data_type.and(
+      properties: {
+        slug: {
+          type: 'string'
+        }
+      }
+    )
 
     allow :new, :import, :pull_import, :bulk_cross, :simple_cross, :bulk_expand, :simple_expand, :copy, :switch_navigation
 
@@ -238,5 +238,6 @@ module Setup
       #TODO Check for a valid ruby method name
       #raise Exception.new("property name '#{property_name}' is invalid") unless property_name =~ /\A[a-z]+(_|([0-9]|[a-z])+)*\Z/
     end
+    
   end
 end

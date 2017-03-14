@@ -51,7 +51,7 @@ module Setup
 
     before_save :hook, :check_ready, :check_dependencies, :validate_configuration, :ensure_shared_name, :save_source_collection, :categorize, :sanitize_data, :on_saving
 
-    def pulled(options = {})
+    def pulled(_options = {})
       self.class.collection.find(_id: id).update_one('$inc' => { pull_count: 1 })
     end
 
@@ -95,17 +95,17 @@ module Setup
           @source_readme = true
           self.readme = readme
         end
-      end if changed_attributes.has_key?(name)
+      end if changed_attributes.key?(name)
     end
 
     def sanitize_data
       data = self.data
       data = JSON.parse(data) unless data.is_a?(Hash)
-      #Stringify parameter values
+      # Stringify parameter values
       %w(connections webhooks).each do |entry|
         (data[entry] || []).each do |e|
           %w(headers parameters template_parameters).each do |params_key|
-            if params = e[params_key]
+            if (params = e[params_key])
               params.each { |param| param['value'] = param['value'].to_s }
             end
           end
@@ -120,8 +120,8 @@ module Setup
     def on_saving
       attributes['data'] = attributes['data'].to_json unless attributes['data'].is_a?(String)
       if (changed_value = changed_attributes['data']) &&
-        (changed_value.is_a?(String) || (changed_value = changed_value.to_json)) &&
-        attributes['data'] == changed_value
+         (changed_value.is_a?(String) || (changed_value = changed_value.to_json)) &&
+         attributes['data'] == changed_value
         changed_attributes.delete('data')
       else
         changed_attributes['data'] = changed_value
@@ -135,7 +135,7 @@ module Setup
     def check_dependencies
       for_each_dependence([self]) do |dependence, stack|
         if stack.count { |d| d.name == dependence.name } > 1
-          errors.add(:dependencies, "with circular reference #{stack.collect { |d| d.versioned_name }.join(' -> ')}")
+          errors.add(:dependencies, "with circular reference #{stack.collect(&:versioned_name).join(' -> ')}")
           return false
         end
       end
@@ -168,20 +168,19 @@ module Setup
       end
       hash_data.each do |entry, values|
         next if Setup::Collection::NO_DATA_FIELDS.include?(entry) || values.blank?
-        if (dependency_values = dependencies_hash_data[entry]).present?
-          model = "Setup::#{entry.singularize.camelize}".constantize rescue nil
-          if model
-            values.each do |value|
-              criteria = {}
-              model.data_type.get_referenced_by.each do |field|
-                if (v = value[field.to_s])
-                  criteria[field.to_s] = v
-                end
-              end
-              values.delete(value) if (dependency_value = dependency_values.detect { |v| Cenit::Utility.match?(v, criteria) }) && value == dependency_value
+        next unless (dependency_values = dependencies_hash_data[entry]).present?
+        model = "Setup::#{entry.singularize.camelize}".constantize rescue nil
+        next unless model
+        values.each do |value|
+          criteria = {}
+          model.data_type.get_referenced_by.each do |field|
+            if (v = value[field.to_s])
+              criteria[field.to_s] = v
             end
           end
+          values.delete(value) if (dependency_value = dependency_values.detect { |v| Cenit::Utility.match?(v, criteria) }) && value == dependency_value
         end
+
       end
       hash_data.delete_if { |_, values| values.empty? }
       self.data = hash_data
@@ -241,7 +240,7 @@ module Setup
     def categorize
       shared = data.keys.select { |key| Setup::Collection::NO_DATA_FIELDS.exclude?(key) }
       self.category =
-        shared.length == 1 && %w(translators algorithms).include?(shared[0]) ? shared[0].singularize.capitalize : 'Collection'
+        (shared.length == 1 && %w(translators algorithms).include?(shared[0])) ? shared[0].singularize.capitalize : 'Collection'
       true
     end
 
@@ -257,14 +256,14 @@ module Setup
       hash_data = dependencies_data.deep_merge(data) { |_, val1, val2| Cenit::Utility.array_hash_merge(val1, val2) }
       hash_data.each do |key, values|
         next if Setup::Collection::NO_DATA_FIELDS.include?(key)
-        hash = values.inject({}) do |hash, item|
+        hash = values.inject({}) do |inner_hash, item|
           name =
             if (name = item['namespace'])
               { namespace: name, name: item['name'] }
             else
               item['name']
             end
-          hash[name] = item; hash
+          inner_hash[name] = item; inner_hash
         end
         hash_data[key] = hash.values.to_a unless hash.size == values.length
       end
@@ -282,11 +281,10 @@ module Setup
 
     def collect_pull_parameters
       @dependencies_cache ||= Set.new
-      if dependencies.any? { |d| !@dependencies_cache.include?(d) } || @dependencies_cache.any? { |d| !dependencies.include?(d) }
-        self.pull_parameters = []
-        collect_dependencies_pull_parameters.values.each do |pull_parameter|
-          self.pull_parameters << Setup::CollectionPullParameter.new(pull_parameter.attributes)
-        end
+      return unless dependencies.any? { |d| !@dependencies_cache.include?(d) } || @dependencies_cache.any? { |d| !dependencies.include?(d) }
+      self.pull_parameters = []
+      collect_dependencies_pull_parameters.values.each do |pull_parameter|
+        self.pull_parameters << Setup::CollectionPullParameter.new(pull_parameter.attributes)
       end
     end
 

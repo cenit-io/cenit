@@ -30,5 +30,6 @@ module Setup
       end
       publish_at.present?
     end
+    
   end
 end

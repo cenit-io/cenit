@@ -98,5 +98,6 @@ module Setup
     def accept_callback?(_params)
       fail NotImplementedError
     end
+    
   end
 end

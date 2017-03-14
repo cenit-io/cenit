@@ -9,24 +9,27 @@ module Setup
     # Options can be specified for the moment the scheduler would be triggered for the first time,
     # if and how it should be rescheduled and finally when should it stop.
     #
-    # All this options default to a ‘Start on activation, run every day’ setting.
-    # If the scheduler shouldn’t start immediately after activation, a date can be specified for it.
+    # All this options default to a 'Start on activation, run every day' setting.
+    # If the scheduler should not start immediately after activation, a date can be specified for it.
     #
     # Schedulers can be a one-time execution, or a specific periodicity, but can also be triggered on appointed dates.
-    # For periodical executions choose the ‘Every…’ option, enter a number in the input box and select the time span.
+    # For periodical executions choose the 'Every ...' option, enter a number in the input box and select the time span.
     #
-    # Otherwise, for appointed dates choose the ‘Select manually’.
+    # Otherwise, for appointed dates choose the 'Select manually'.
     # The first thing for manual scheduling would be to specify the time of day the scheduler should be triggered at
     # and then decide on a week-based approach or a month-based approach:
     #
-    # Week-based: Note selected weekdays and months on the year, this setting would have the scheduler trigger on the Last Sunday of June and December.
+    # Week-based: Note selected weekdays and months on the year, this setting would have the scheduler trigger on
+    # the Last Sunday of June and December.
     #
     # Month-based: this setting would have the scheduler trigger on the 14th and Last day of June and December.
     #
     # It would be good to notice that for any specific setting on the manual approach, selecting no item is the same as selecting all of them.
     # That is, if a scheduler is to be triggered everyday of the month in June, check only the month June and leave all days unchecked.
-    # You could off course check each individual day by yourself, but it is an unnecessary trouble. This rule applies to Week-based approach as well.
-    # Finally, task can be scheduled to end, so that it doesn’t get queued for execution passed some date, it is very much like the starting date setting.
+    # You could off course check each individual day by yourself, but it is an unnecessary trouble. This rule applies to Week-based
+    # approach as well.
+    # Finally, task can be scheduled to end, so that it does not get queued for execution passed some date, it is very much
+    # like the starting date setting.
 
     build_in_data_type.with(:namespace, :name, :expression, :activated).referenced_by(:namespace, :name)
 
@@ -49,7 +52,7 @@ module Setup
     end
 
     def check_before_save
-      @activation_status_changed = changed_attributes.has_key?(:activated.to_s)
+      @activation_status_changed = changed_attributes.key?(:activated.to_s)
       # if expression['type'] == 'cyclic'
       #   self.expression = { type: 'cyclic', cyclic_expression: expression['cyclic_expression'] }
       # else
@@ -227,9 +230,7 @@ module Setup
 
     def last_day(year, dd, m)
       d1 = Time.gm(year, m, amount_of_days_in_the_month(year, m))
-      while d1.wday != dd
-        d1 -= 1.day
-      end
+      d1 -= 1.day while d1.wday != dd
       d1
     end
 
@@ -250,7 +251,7 @@ module Setup
       weeks_days = (0..6).to_a if weeks_days.blank?
       weeks_month = @conf[:weeks_month]
       weeks_month = (0..3).to_a if weeks_month.blank?
-      _a = amount_of_days_in_the_month(@year, month)
+      a = amount_of_days_in_the_month(@year, month)
 
       if @conf[:type] == 'appointed_position'
         months_days = []
@@ -259,7 +260,7 @@ module Setup
           weeks_month.each do |wm|
             if wm > 0
               # firsts one
-              months_days += weeks_days.collect { |wd| weeks_first_days(@year, wd, month)[wm-1] }
+              months_days += weeks_days.collect { |wd| weeks_first_days(@year, wd, month)[wm - 1] }
             else
               # lasts one
               months_days += weeks_days.collect { |wd| weeks_last_days(@year, wd, month)[wm.abs - 1] }
@@ -269,14 +270,14 @@ module Setup
           months_days = weeks_days.collect { |wd| all_days(@year, wd, month) }
           months_days.flatten!
         end
-        months_days << _a if @conf[:last_day_in_month] and not months_days.include?(_a)
+        months_days << a if @conf[:last_day_in_month] && !months_days.include?(a)
       else
         months_days = @conf[:months_days]
       end
 
-      months_days = (1.._a).to_a if months_days.blank?
+      months_days = (1..a).to_a if months_days.blank?
 
-      months_days.select { |e| e > 0 && e <= _a }
+      months_days.select { |e| e > 0 && e <= a }
     end
 
     def hours
@@ -320,10 +321,10 @@ module Setup
       if k > 3
         report_solution
       else
-        @actions[k].call.each { |e|
+        @actions[k].call.each do |e|
           @solution[k] = e
-          backtracking(k+1)
-        }
+          backtracking(k + 1)
+        end
       end
     end
 
@@ -334,17 +335,17 @@ module Setup
         now + [a, b].max
       else
         run(now)
-        res = @v.select { |e| e > now }
-                .collect { |e| e - now }
-                .min
+        res = @v.select { |e| e > now }.collect { |e| e - now }.min
         res ? now + res : nil
       end
     end
+
   end
 end
 
 
 class String
+
   def to_seconds_interval
     case last
     when 's'
@@ -359,4 +360,5 @@ class String
       0
     end * chop.to_i
   end
+
 end

@@ -152,5 +152,6 @@ module Setup
     rescue Exception => ex
       raise "Error refreshing token for #{authorization.custom_title}: #{ex.message}"
     end
+    
   end
 end

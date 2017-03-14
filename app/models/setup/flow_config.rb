@@ -34,6 +34,8 @@ module Setup
       def config_fields
         %w(active notify_request notify_response discard_events auto_retry)
       end
+      
     end
+
   end
 end
