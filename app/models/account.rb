@@ -72,7 +72,8 @@ class Account
   end
 
   def users
-    ([owner] + memberships.map(&:user)).compact.uniq
+    all_user_ids = [owner.id] + memberships.map { |m| m.user._id }
+    User.where(:_id.in =>  all_user_ids)
   end
 
   def read_attribute(name)

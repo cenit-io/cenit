@@ -34,6 +34,7 @@ module RailsAdmin
             field :token
             field :owner
             field :users
+            field :memberships
             field :notification_level
             field :time_zone
           end
@@ -46,6 +47,9 @@ module RailsAdmin
             field :users do
               visible { Account.current_super_admin? }
             end
+            field :memberships do
+              visible { Account.current_super_admin? }
+            end
             field :key do
               visible { Account.current_super_admin? }
             end
@@ -56,7 +60,7 @@ module RailsAdmin
             field :time_zone
           end
 
-          fields :_id, :name, :owner, :notification_level, :time_zone # TODO:  add users
+          fields :_id, :name, :owner, :notification_level, :time_zone, :memberships
 
         end
       end

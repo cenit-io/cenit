@@ -445,6 +445,8 @@ RailsAdmin.config do |config|
 
   Account
 
+  Membership
+
   Role
 
   Setup::SharedName

@@ -18,7 +18,7 @@ class User
 
   has_many :accounts, class_name: Account.to_s, inverse_of: :owner
   has_many :memberships
-  has_and_belongs_to_many :member_accounts, class_name: Account.to_s, inverse_of: :users
+  # has_and_belongs_to_many :member_accounts, class_name: Account.to_s, inverse_of: :users
   belongs_to :account, class_name: Account.to_s, inverse_of: :nil
   belongs_to :api_account, class_name: Account.to_s, inverse_of: :nil
 
@@ -89,9 +89,8 @@ class User
 
   after_invitation_created :set_invitation_token
   def set_invitation_token
-    if (membership = Membership.where(email: self.email, account: Account.current).first).present?
-      membership.update_attributes!(invitation_token: self.invitation_token)
-    end
+    membership = Membership.find_or_create_by(email: self.email, account: Account.current)
+    membership.update_attributes!(invitation_token: self.invitation_token, invited_by: User.current)
   end
 
   before_invitation_accepted :set_invitation_accepted_at
@@ -107,7 +106,8 @@ class User
   end
 
   def all_accounts
-    (accounts + member_accounts).compact.uniq
+    all_accounts_ids = accounts.map(&:_id) + memberships.map { |m| m.account._id }
+    Account.where(:_id.in =>  all_accounts_ids)
   end
 
   def block_from_invitation?
@@ -115,10 +115,10 @@ class User
   end
 
   def member_accounts
-    memberships.map(&:account).compact
+    Account.where(:_id.in => memberships.map {|m| m.account._id } )
   end
 
-  def picture_url(size=50)
+  def picture_url(size = 50)
     custom_picture_url(size) || gravatar_or_identicon_url(size)
   end
 

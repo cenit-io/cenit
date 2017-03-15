@@ -91,7 +91,7 @@ module RailsAdmin
             field :accounts do
               visible { Account.current_super_admin? }
             end
-            field :member_accounts do
+            field :memberships do
               visible { Account.current_super_admin? }
             end
             field :password do
@@ -136,7 +136,6 @@ module RailsAdmin
             field :account
             field :api_account
             field :accounts
-            field :member_accounts
             field :roles
             field :key
             field :authentication_token
@@ -145,6 +144,7 @@ module RailsAdmin
             field :last_sign_in_at
             field :current_sign_in_ip
             field :last_sign_in_ip
+            field :memberships
           end
 
           list do
@@ -156,10 +156,10 @@ module RailsAdmin
             field :account
             field :api_account
             field :accounts
-            field :member_accounts
             field :roles
             field :sign_in_count
             field :created_at
+            field :memberships
           end
 
         end

@@ -1,6 +1,7 @@
 class Membership
   include Mongoid::Document
   include Mongoid::Timestamps
+  include RailsAdmin::Models::MembershipAdmin
 
   rolify
 
@@ -10,7 +11,6 @@ class Membership
 
   ## Invitation
   field :email, type: String
-  field :invited_by_id, type: String
   field :invitation_token, type: String
   field :invitation_accepted_at, type: Time
 
