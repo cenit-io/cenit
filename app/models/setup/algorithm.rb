@@ -259,7 +259,7 @@ module Setup
       if language == :auto
         logs = {}
         lang = self.class.language_enum.values.detect do |language|
-          next if lang == :auto
+          next if language == :auto
           logs.clear
           parse_method = "parse_#{language}_code"
           logs.merge!(send(parse_method))

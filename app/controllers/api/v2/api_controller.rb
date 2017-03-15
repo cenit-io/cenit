@@ -64,6 +64,7 @@ module Api::V2
           success: success_report = Hash.new { |h, k| h[k] = [] },
           errors: broken_report = Hash.new { |h, k| h[k] = [] }
         }
+      @parser_options[:add_only] = true unless @parser_options.key?('add_only')
       @payload.each do |root, message|
         @model = root
         if authorized_action? && (data_type = @payload.data_type_for(root))
@@ -428,7 +429,10 @@ module Api::V2
         unless (@parser_options = Cenit::Utility.json_value_of(request.headers['X-Parser-Options'])).is_a?(Hash)
           @parser_options = {}
         end
-        @parser_options.merge!(params.reject { |key, _| %w(controller action ns model format api).include?(key) })
+        params.each do |key, value|
+          next if %w(controller action ns model format api).include?(key)
+          @parser_options[key] = Cenit::Utility.json_value_of(value)
+        end
         %w(primary_field primary_fields ignore reset).each do |option|
           unless (value = @parser_options.delete(option)).is_a?(Array)
             value = value.to_s.split(',').collect(&:strip)
