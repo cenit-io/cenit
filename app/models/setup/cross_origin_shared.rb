@@ -85,6 +85,7 @@ module Setup
     end
 
     module ClassMethods
+      
       def shared_deny(*actions)
         Setup::Models.shared_excluded_actions_for self, *actions
       end
@@ -117,6 +118,8 @@ module Setup
         # c + where(origin: :shared).count
         where(:origin.ne => :default).count
       end
+
     end
+
   end
 end

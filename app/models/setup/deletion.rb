@@ -9,7 +9,7 @@ module Setup
       model =
         begin
           model_name.constantize
-        rescue Exception
+        rescue
           nil
         end
       unless model
@@ -26,7 +26,7 @@ module Setup
         destroy_callback = [:before_destroy, :after_destroy].any? do |m|
           begin
             model.singleton_method(m)
-          rescue Exception
+          rescue
             false
           end
         end
@@ -53,5 +53,6 @@ module Setup
         fail "Can not determine records model from name '#{model_name}'"
       end
     end
+
   end
 end

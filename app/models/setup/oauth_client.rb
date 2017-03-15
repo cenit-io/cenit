@@ -61,5 +61,6 @@ module Setup
       auth.save!
       auth
     end
+    
   end
 end

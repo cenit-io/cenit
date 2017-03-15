@@ -5,7 +5,7 @@ module RailsAdmin
         extend ActiveSupport::Concern
 
         included do
-          rails_admin do |config|
+          rails_admin do
             navigation_label 'Compute'
             weight 400
             object_label_method { :path }

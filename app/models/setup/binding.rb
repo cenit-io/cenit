@@ -100,6 +100,7 @@ module Setup
         binder = binder.class unless binder.is_a?(Class)
         "#{binder.mongoid_root_class.to_s.split('::').last.underscore}_binder_id"
       end
+      
     end
   end
 end

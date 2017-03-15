@@ -140,7 +140,7 @@ Configuration:
     - weight 740
   Setup::Binding:
     - weight 750
-  Setup::ParameterConfig:
+  Setup::Parameter:
     - label 'Parameter'
     - weight 760
 Administration:

@@ -7,13 +7,13 @@ module Setup
     validates_presence_of :namespace
 
     build_in_data_type.referenced_by(:namespace, :name).with(:namespace, :name, :title, :slug, :_type, :validators, :schema_data_type, :events, :before_save_callbacks, :records_methods, :data_type_methods)
-    build_in_data_type.and({
-                             properties: {
-                               slug: {
-                                 type: 'string'
-                               }
-                             }
-                           }.deep_stringify_keys)
+    build_in_data_type.and(
+      properties: {
+        slug: {
+          type: 'string'
+        }
+      }
+    )
 
     allow :new, :import, :pull_import, :bulk_cross, :simple_cross, :bulk_expand, :simple_expand, :download_file, :copy, :switch_navigation
 
@@ -174,5 +174,6 @@ module Setup
         default_contentType: format_validator.try(:content_type) || 'application/octet-stream'
       }
     end
+    
   end
 end

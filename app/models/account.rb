@@ -13,22 +13,22 @@ class Account
 
   build_in_data_type.with(:name, :notification_level, :time_zone, :number, :authentication_token)
   build_in_data_type.protecting(:number, :authentication_token)
-  build_in_data_type.and({
-                           properties: {
-                             number: {
-                               type: 'string',
-                               edi: {
-                                 segment: 'key'
-                               }
-                             },
-                             authentication_token: {
-                               type: 'string',
-                               edi: {
-                                 segment: 'token'
-                               }
-                             }
-                           }
-                         }.stringify_keys)
+  build_in_data_type.and(
+    properties: {
+      number: {
+        type: 'string',
+        edi: {
+          segment: 'key'
+        }
+      },
+      authentication_token: {
+        type: 'string',
+        edi: {
+          segment: 'token'
+        }
+      }
+    }
+  )
 
   deny :all
 

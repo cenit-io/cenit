@@ -16,7 +16,7 @@ module Setup
       errors.blank?
     end
 
-    def validate_data(data)
+    def validate_data(_data)
       fail NotImplementedError
     end
 
@@ -31,5 +31,6 @@ module Setup
     def content_type
       nil
     end
+
   end
 end
