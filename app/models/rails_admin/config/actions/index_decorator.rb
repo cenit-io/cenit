@@ -6,14 +6,14 @@ module RailsAdmin
         register_instance_option :controller do
           proc do
             #Patch
-            if params['save_filters']== 'true'
+            if params['save_filters'].to_b
               model = abstract_model.model rescue nil
               if model
                 data_type = model.data_type
                 dt_name = data_type.custom_title('/')
                 # to suggest a unique default filter name, Example: 'Util/Logs_filter_1'
                 prefix = "#{dt_name}_filter_"
-                reg_exp = /^#{prefix}(\d+)/
+                reg_exp = Regexp.new("^#{Regexp.quote(prefix)}(\d+)")
                 filter_name = (last_filter = Setup::Filter.where(:name => reg_exp).sort(:created_at => 1).last) ? "#{prefix}#{last_filter.name.match(reg_exp)[1].to_i + 1}" : "#{prefix}1"
                 new_filter = Setup::Filter.new(namespace: '',
                                                name: filter_name,
