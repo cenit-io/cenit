@@ -165,8 +165,8 @@ module Cenit
                 ns_hash.delete('slug')
               end
               next if ns_hash.has_key?('id')
-              ns_hash = ns_hash.reject { |key, _| !Setup::Namespace.property?(key) }
-              if (ns = Setup::Namespace.create(ns_hash)).errors.blank?
+              ns_attrs = ns_hash.reject { |key, _| !Setup::Namespace.property?(key) }
+              if (ns = Setup::Namespace.create(ns_attrs)).errors.blank?
                 ns_hash['id'] = ns.id.to_s
                 created_nss_ids << ns.id
               else
