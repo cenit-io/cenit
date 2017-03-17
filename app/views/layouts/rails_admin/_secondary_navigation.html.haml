@@ -68,7 +68,7 @@
           %li.edit_user_root_link{style: 'padding-right:5px'}= user_link.shift
           - user_link.each do |link|
             %li= link
-
+        %li= link_to(t('devise.invitations.new.user'), main_app.new_user_invitation_path) 
         %li.divider{role:'separator'}
         .actions.clearfix
           %li.terms.pull-left
