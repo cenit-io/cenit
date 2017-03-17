@@ -56,5 +56,6 @@ module Setup
       @namespace_ns = namespace_ns
       self.namespace = namespace_ns.name if namespace != namespace_ns.name
     end
+    
   end
 end

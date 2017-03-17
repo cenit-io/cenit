@@ -7,10 +7,10 @@ module Cenit
       @cenit_action = action
       params = controller.request.params.merge(action.path_params).with_indifferent_access
       {
-        controller: ['app'],
-        action: ['index'],
-        id_or_ns: [app.slug_id, app.get_identifier, app.ns_slug],
-        app_slug: [app.slug]
+         controller: ['app'],
+         action: ['index'],
+         id_or_ns: [app.slug_id, app.get_identifier, app.ns_slug],
+         app_slug: [app.slug]
       }.each do |key, value|
         params.delete(key) if value.include?(params[key])
       end
@@ -53,6 +53,18 @@ module Cenit
       else
         controller.render(*args)
       end
+    end
+
+    def method_missing(symbol, *args)
+      if (match = symbol.to_s.match(/\Arender_(.+)\Z/))
+        render "cenit/#{match[1]}", locals: args[0] || {}, layout: 'cenit'
+      else
+        super
+      end
+    end
+
+    def respond_to?(*args)
+      args[0].to_s =~ /\Arender_.+\Z/ || super
     end
 
     def render_called?

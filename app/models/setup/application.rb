@@ -118,6 +118,7 @@ module Setup
         super
         block.yield(name: :configuration, embedded: false)
       end
+      
     end
   end
 end

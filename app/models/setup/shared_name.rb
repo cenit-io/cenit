@@ -16,5 +16,6 @@ module Setup
     before_save do
       self.owners << creator unless owners.present?
     end
+    
   end
 end

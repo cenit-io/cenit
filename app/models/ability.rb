@@ -207,8 +207,7 @@ class Ability
           Setup::FlowConfig,
           Setup::ConnectionConfig,
           Setup::Pin,
-          Setup::Binding,
-          Setup::ParameterConfig
+          Setup::Binding
         ]
     end
   end

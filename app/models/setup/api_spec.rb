@@ -71,6 +71,7 @@ module Setup
             else
               fail "Reference #{value} is not valid"
             end
+            true
           end if schema_container
         end
 
@@ -529,6 +530,7 @@ module Setup
       def identificable?(_name, schema)
         schema['type'] == 'object' && (properties = schema['properties']) && properties.key?('id')
       end
+      
     end
   end
 end

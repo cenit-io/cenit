@@ -21,5 +21,6 @@ module Setup
     def scope_title
       provider && provider.custom_title
     end
+    
   end
 end

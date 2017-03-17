@@ -57,5 +57,6 @@ module Setup
         break token unless Setup::Connection.where(token: token).first
       end
     end
+    
   end
 end

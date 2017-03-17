@@ -141,6 +141,7 @@ module Setup
     end
 
     class << self
+
       def [](ref)
         build_ins[ref.to_s]
       end
@@ -228,8 +229,9 @@ module Setup
     end
 
     def included?(name)
-      [:@with, :@including, :@embedding, :@discarding].each { |v| return true if (v = instance_variable_get(v)) && v.include?(name) }
-      !(@with || excluded?(name))
+      [:@with, :@including, :@embedding, :@discarding].any? do |v|
+        (v = instance_variable_get(v)) && v.include?(name)
+      end || !(@with || excluded?(name))
     end
 
     def build_schema
@@ -264,33 +266,42 @@ module Setup
         property_schema =
           case relation.macro
           when :embeds_one
-            { '$ref' => relation.klass.to_s }
+            {
+              '$ref': relation.klass.to_s
+            }
           when :embeds_many
             {
-              'type' => 'array',
-              'items' => { '$ref' => relation.klass.to_s }
+              type: 'array',
+              items: {
+                '$ref': relation.klass.to_s
+              }
             }
           when :has_one
             {
-              '$ref' => relation.klass.to_s,
-              'referenced' => true,
-              'export_embedded' => (@embedding && @embedding.include?(relation_name)).to_b
+              '$ref': relation.klass.to_s,
+              referenced: true,
+              export_embedded: (@embedding && @embedding.include?(relation_name)).to_b
             }
           when :belongs_to
-            {
-              '$ref' => relation.klass.to_s,
-              'referenced' => true,
-              'export_embedded' => (@embedding && @embedding.include?(relation_name)).to_b
-            } if (@including && @including.include?(relation_name.to_s)) || relation.inverse_of.nil?
+            if (@including && @including.include?(relation_name.to_s)) || relation.inverse_of.nil?
+              {
+                '$ref': relation.klass.to_s,
+                referenced: true,
+                export_embedded: (@embedding && @embedding.include?(relation_name)).to_b
+              }
+            end
           when :has_many, :has_and_belongs_to_many
             {
-              'type' => 'array',
-              'items' => { '$ref' => relation.klass.to_s },
-              'referenced' => true,
-              'export_embedded' => (@embedding && @embedding.include?(relation_name)).to_b
+              type: 'array',
+              items: {
+                '$ref': relation.klass.to_s
+              },
+              referenced: true,
+              export_embedded: (@embedding && @embedding.include?(relation_name)).to_b
             }
           end
         next unless property_schema
+        property_schema.deep_stringify_keys!
         if @discarding.include?(relation_name.to_s)
           (property_schema['edi'] ||= {})['discard'] = true
         end
@@ -304,6 +315,5 @@ module Setup
     def json_schema_type(mongoid_type)
       SCHEMA_TYPE_MAP[mongoid_type].dup
     end
-
   end
 end

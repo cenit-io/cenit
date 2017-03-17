@@ -15,13 +15,13 @@ module Setup
     abstract_class true
 
     build_in_data_type.with(:title, :name, :before_save_callbacks, :records_methods, :data_type_methods).referenced_by(:namespace, :name)
-    build_in_data_type.and({
+    build_in_data_type.and(
       properties: {
         slug: {
           type: 'string'
         }
       }
-    }.deep_stringify_keys)
+    )
 
     deny :delete, :new, :switch_navigation, :copy
 
@@ -159,5 +159,6 @@ module Setup
     def create_mongoff_model
       mongoff_model_class.for(data_type: self)
     end
+    
   end
 end

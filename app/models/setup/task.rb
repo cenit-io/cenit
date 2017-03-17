@@ -104,9 +104,7 @@ module Setup
         thread_token.destroy if thread_token.present?
         self.thread_token = ThreadToken.create
         Thread.current[:task_token] = thread_token.token
-        if status == :retrying || status == :failed
-          self.retries += 1
-        end
+        self.retries += 1 if status == :retrying || status == :failed
         self.current_execution = Setup::Execution.find(options[:execution_id])
         time = Time.now
         if running_status?
@@ -144,13 +142,13 @@ module Setup
     ensure
       reload
       if joining_tasks.present?
-        joining_tasks.each { |task| task.retry }
+        joining_tasks.each(&:retry)
         joining_tasks.nullify
       end
       Cenit::Locker.unlock(self)
     end
 
-    def run(message)
+    def run(_message)
       fail NotImplementedError
     end
 
@@ -343,5 +341,6 @@ module Setup
       end
       notify(type: message_type, message: message, attachment: finish_attachment)
     end
+
   end
 end

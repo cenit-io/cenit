@@ -1278,10 +1278,9 @@ label {
       }
       img {
         width: 80%;
-        max-height: 80%;
-        margin: 10px;
+        max-height: 100%;
+        margin: auto;
         &.no-image {
-          margin-top: 33px;
         }
       }
     }
@@ -1294,9 +1293,11 @@ label {
     }
   }
 }
+
 .btn .caret {
   margin-left: 2px;
 }
+
 .open > .dropdown-menu {
   display: block;
   z-index: 1002;

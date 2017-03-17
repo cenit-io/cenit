@@ -34,7 +34,11 @@ module Edi
 
     def share_hash(options = {})
       if self.class.respond_to?(:share_options)
-        options = options.reverse_merge(self.class.share_options) rescue options
+        begin
+          options = options.reverse_merge(self.class.share_options)
+        rescue Exception
+          options
+        end
       end
       to_hash(options)
     end
@@ -223,8 +227,23 @@ module Edi
       model = record.orm_model rescue nil
       return nil unless model
       schema = model.schema
-      key_properties = schema['referenced_by'] || []
-      json = (referenced = referenced && key_properties.present?) ? { '_reference' => true } : {}
+      key_properties =
+        if (key_properties = schema['referenced_by'])
+          key_properties.dup
+        else
+          []
+        end
+      json =
+        if key_properties.present?
+          if referenced
+            { '_reference' => true }
+          else
+            { '_primary' => key_properties }
+          end
+        else
+          referenced = false
+          {}
+        end
       unless referenced
         return nil if options[:inspected_records].include?(record) || options[:stack].include?(record)
         options[:inspected_records] << record
@@ -236,7 +255,10 @@ module Edi
       do_store(json, 'id', record.id, options) if include_id
       content_property = nil
       model.stored_properties_on(record).each do |property_name|
-        next if (protected = (model.schema['protected'] || []).include?(property_name)) && options[:protected]
+        if (protected = (model.schema['protected'] || []).include?(property_name)) && options[:protected]
+          key_properties.delete(property_name)
+          next
+        end
         property_schema = model.property_schema(property_name)
         property_model = model.property_model(property_name)
         name = property_schema['edi']['segment'] if property_schema['edi']
@@ -246,13 +268,27 @@ module Edi
         end
         can_be_referenced = !(options[:embedding_all] || options[:embedding].include?(name.to_sym))
         if (inspecting = options[:inspecting].present?)
-          next unless (property_model || options[:inspecting].include?(name.to_sym)) && (!referenced || key_properties.include?(property_name))
+          unless (property_model || options[:inspecting].include?(name.to_sym)) && (!referenced || key_properties.include?(property_name))
+            key_properties.delete(property_name)
+            next
+          end
         else
-          next if property_schema['virtual'] ||
+          if property_schema['virtual'] ||
             ((property_schema['edi'] || {})['discard'] && !(included_anyway = options[:including_discards] || options[:including].include?(property_name))) ||
             (can_be_referenced && referenced && !key_properties.include?(property_name)) ||
             options[:ignore].include?(name.to_sym) ||
             (options[:only].present? && options[:only].exclude?(name.to_sym) && !included_anyway)
+            key_properties.delete(property_name)
+            next
+          end
+        end
+        if name != property_name
+          key_properties.each_with_index do |p, i|
+            if p == property_name
+              key_properties[i] = name
+              break
+            end
+          end
         end
         case property_schema['type']
         when 'array'
@@ -295,6 +331,16 @@ module Edi
       if content_property && json.size == 1 && options[:inline_content] && json.has_key?(content_property) && !json[content_property].is_a?(Hash)
         json[content_property]
       else
+        if json.key?('_primary')
+          if key_properties.size == 1
+            if key_properties[0] == 'id'
+              key_properties.pop
+            else
+              json['_primary'] = key_properties[0]
+            end
+          end
+          json.delete('_primary') if key_properties.empty?
+        end
         json
       end
     end

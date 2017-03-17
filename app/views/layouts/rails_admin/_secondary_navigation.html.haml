@@ -100,8 +100,8 @@
           - if count_tenants > 30
             %input.form-control.input-small{id: "search_tenant", type: "search", value: '', placeholder: 'search'}
           .actions.clearfix
-            %li= link_to(t('admin.misc.add_tenant'), url_for(action: new_action.action_name,model_name: acc_am.to_param))
-
+            %li= link_to(t('admin.misc.current_tenant'), show_path(model_name: acc_am.to_param, id: Account.current_tenant.id))
+            %li= link_to(t('admin.misc.add_tenant'), url_for(action: new_action.action_name, model_name: acc_am.to_param))
 
   = render partial: 'shared/help'
   %ul.nav.navbar-nav.navbar-right.root_links

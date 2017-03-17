@@ -18,6 +18,7 @@ module Setup
         Setup::Models.regist(subclass)
         subclass.deny Setup::Models.excluded_actions_for(self)
         subclass.build_in_data_type.excluding(build_in_data_type.get_excluding)
+        subclass.build_in_data_type.embedding(build_in_data_type.get_embedding)
       end
 
       def share_options
@@ -53,6 +54,7 @@ module Setup
             root
           end
       end
+      
     end
   end
 end

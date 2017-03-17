@@ -4,14 +4,15 @@ module Setup
     include Setup::AttachmentUploader
     include RailsAdmin::Models::Setup::ExecutionAdmin
 
-    build_in_data_type.and({
+    build_in_data_type.and(
       properties: {
         time_span: {
           type: 'number'
         },
-        attachment_content: {}
+        attachment_content: {
+        }
       }
-    }.deep_stringify_keys)
+    )
 
     deny :copy, :new, :translator_update, :import, :convert, :send_to_flow
 
@@ -76,5 +77,6 @@ module Setup
       end
       content
     end
+    
   end
 end
