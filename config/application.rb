@@ -66,15 +66,7 @@ module Cenit
         allow :index, :delete
       end
 
-      Setup::BuildInDataType.each(&:db_data_type)
-
-      wrong_data_types = []
-      Setup::CenitDataType.all.each do |data_type|
-        wrong_data_types << "#{data_type.namespace}::#{data_type.name}" unless data_type.build_in
-      end
-      unless wrong_data_types.empty?
-        Setup::SystemNotification.create(type: :warning, message: "Wrong cenit data types: #{wrong_data_types.to_sentence}")
-      end
+      Setup::CenitDataType.init!
 
       Cenit::Notebooks.startup if Cenit.jupyter_notebooks
     end
