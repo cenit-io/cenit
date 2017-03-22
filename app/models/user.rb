@@ -64,6 +64,10 @@ class User
   validates_inclusion_of :code_theme, in: ->(user) { user.code_theme_enum }
 
   before_create do
+    if self.class.empty?
+      # The first User
+      roles << ::Role.find_or_create_by(name: :super_admin) unless roles.any? { |role| role.name.to_s == :super_admin.to_s }
+    end
     created_account = nil
     self.account ||= Account.current || (created_account = Account.create_with_owner(owner: self))
     accounts << created_account if created_account
