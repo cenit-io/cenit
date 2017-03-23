@@ -367,6 +367,8 @@ RailsAdmin.config do |config|
 
   Setup::Flow
 
+  Setup::Workflow
+
   Setup::Event
 
   Setup::Observer
