@@ -9,7 +9,7 @@ module Setup
     field :valid_to, type: DateTime
     field :active, type: Boolean
 
-    embeds_many :activities, :class_name => Setup::WorkflowActivity.name, :inverse_of => :workflow
+    has_many :activities, :class_name => Setup::WorkflowActivity.name, :inverse_of => :workflow
 
     accepts_nested_attributes_for :activities, :allow_destroy => true
 
@@ -20,7 +20,7 @@ module Setup
     end
 
     def passable_activities
-      activities.select { |a| !a.is_start_event? }
+      activities.not_in(:type => WorkflowActivity.start_event_types)
     end
 
     def activities_with_available_inbound

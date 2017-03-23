@@ -14,11 +14,15 @@ module RailsAdmin
               field :description do
                 required true
               end
-              field :to_activity_id, :enum do
+              field :to_activity do
                 required true
-                enum do
+                inline_add false
+                inline_edit false
+                associated_collection_scope do
                   workflow = bindings[:controller].instance_variable_get(:@object)
-                  workflow.passable_activities.map { |a| [a.name, a.id] }
+                  proc do
+                    workflow.passable_activities
+                  end
                 end
               end
               field :is_default_transition

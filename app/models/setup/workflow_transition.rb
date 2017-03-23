@@ -5,20 +5,21 @@ module Setup
 
     field :description, type: String
     field :is_default_transition, type: Boolean
-    field :to_activity_id, type: String
 
-    embedded_in :from_activity, :class_name => Setup::WorkflowActivity.name, :inverse_of => :transitions
+    belongs_to :from_activity, :class_name => Setup::WorkflowActivity.name, :inverse_of => :transitions
+    belongs_to :to_activity, :class_name => Setup::WorkflowActivity.name, :inverse_of => :in_transitions
 
-    def to_activity
-      self.from_activity ? self.from_activity.workflow.activities.where(id: self.to_activity_id).first : nil
-    end
-
-    def to_activity=(activity)
-      self.to_activity_id = activity.id
-    end
+    validates_uniqueness_of :to_activity, :scope => :from_activity
+    validate :validate_activities
 
     def name
-      "#{self.from_activity.try(:name) || '...'} => #{self.to_activity.name || '...'}"
+      "#{self.from_activity.try(:name) || '...'} => #{self.to_activity.try(:name) || '...'}"
+    end
+
+    private
+
+    def validate_activities
+      errors.add(:team_code, I18n.t("workflow.transition.erros.cicle")) if self.from_activity == self.to_activity
     end
 
   end

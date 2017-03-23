@@ -8,9 +8,9 @@ module Setup
     field :description, type: String
     field :attrs, type: Object
 
-    embedded_in :workflow, :class_name => Setup::Workflow.name, :inverse_of => :activities
-
-    embeds_many :transitions, :class_name => Setup::WorkflowTransition.name, :inverse_of => :from_activity
+    belongs_to :workflow, :class_name => Setup::Workflow.name, :inverse_of => :activities
+    has_many :transitions, :class_name => Setup::WorkflowTransition.name, :inverse_of => :from_activity
+    has_many :in_transitions, :class_name => Setup::WorkflowTransition.name, :inverse_of => :to_activity
 
     accepts_nested_attributes_for :transitions, :allow_destroy => true
 
@@ -27,11 +27,11 @@ module Setup
     end
 
     def is_end_event?
-      %w(end_event terminate_event).include?(self.type)
+      self.class.end_event_types.include?(self.type)
     end
 
     def is_start_event?
-      %w(start_event).include?(self.type)
+      self.class.start_event_types.include?(self.type)
     end
 
     def has_multiple_outbound?
@@ -111,6 +111,14 @@ module Setup
             :outbound_transitions => 0
           }
         }
+      end
+
+      def start_event_types
+        %w(start_event)
+      end
+
+      def end_event_types
+        %w(end_event terminate_event)
       end
     end
   end
