@@ -15,7 +15,7 @@ module Setup
       result = translator.run(object_ids: object_ids_from(message),
                               source_data_type: data_type_from(message),
                               task: self,
-                              options: message[:options].deep_dup)
+                              options: message[:options].deep_dup.with_indifferent_access)
       return unless result && Cenit::Utility.json_object?(result)
       attachment = Setup::Translation.attachment_for(data_type, translator, result)
       current_execution.attach(attachment)
@@ -37,7 +37,7 @@ module Setup
       if translator.source_handler
         translator.run(object_ids: object_ids_from(message),
                        task: self,
-                       options: message[:options].deep_dup)
+                       options: message[:options].deep_dup.with_indifferent_access)
       else
         objects = objects_from(message)
         objects_count = objects.count
@@ -46,7 +46,7 @@ module Setup
           translator.run(object: object,
                          task: self,
                          data_type: data_type_from(message),
-                         options: message[:options].deep_dup)
+                         options: message[:options].deep_dup.with_indifferent_access)
           processed += 1
           self.progress = processed / objects_count * 100
           save
