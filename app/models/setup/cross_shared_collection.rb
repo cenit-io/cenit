@@ -141,8 +141,18 @@ module Setup
     end
 
     def generate_data
-      hash = collecting_data
-      hash = pull_data.merge(hash)
+      hash = {}
+      if installed?
+        COLLECTING_PROPERTIES.each do |property|
+          r = reflect_on_association(property)
+          next unless (items = pull_data[r.name.to_s])
+          hash[r.name] = items.collect do |item|
+            r.klass.data_type.new_from_json(item).share_hash
+          end
+        end
+      else
+        hash = collecting_data
+      end
       hash.delete('readme')
       clean_ids(hash)
     end
@@ -301,6 +311,6 @@ module Setup
         value
       end
     end
-    
+
   end
 end
