@@ -22,6 +22,9 @@ module RailsAdmin
               end
               field :description do
                 required true
+                visible do
+                  !(bindings[:object].is_start_event? || bindings[:object].is_end_event?)
+                end
               end
               field :attrs
               field :transitions do

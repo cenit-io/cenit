@@ -13,13 +13,21 @@ module Setup
     validate :validate_activities
 
     def name
-      "#{self.from_activity.try(:name) || '...'} => #{self.to_activity.try(:name) || '...'}"
+      "#{from_activity.try(:name) || '...'} => #{to_activity.try(:name) || '...'}"
     end
 
     private
 
     def validate_activities
-      errors.add(:team_code, I18n.t("workflow.transition.erros.cicle")) if self.from_activity == self.to_activity
+      unless to_activity.nil?
+        if from_activity == to_activity
+          errors.add(:to_activity, I18n.t('admin.form.workflow_transition.errors.transition_to_self'))
+        end
+
+        if (new_record? || attribute_changed?(:to_activity)) && !to_activity.has_available_inbounds?
+          errors.add(:to_activity, I18n.t('admin.form.workflow_transition.errors.inbound_overflow'))
+        end
+      end
     end
 
   end

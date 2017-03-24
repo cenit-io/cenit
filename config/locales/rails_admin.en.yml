@@ -518,6 +518,18 @@ en:
         notify_request: 'Track request with notifications if checked'
         notify_response: 'Track responses via notification if checked'
         after_process_callbacks: 'Algorithms executed after flow processing, execution state is supplied as argument'
+      workflow:
+        errors:
+          under_construction_status: 'more be under construction for new workflow'
+          do_not_have_start_event: "don't have start event"
+          do_not_have_end_event: "don't have end event"
+          invalid_design: "can't be active if workflow design is invalid"
+          unreachable_activity: "'%{name}' is unreachable"
+      workflow_transition:
+        errors:
+          transition_to_self: 'Invalid transition to self activity'
+          inbound_overflow: 'This activity not allow more inbound transitions'
+          outbound_overflow: 'This activity not allow more outbound transitions'
       recursive: 'This is a recursive nested model. Complete your operation and try it again to go deeper.'
       too_deep: 'This nested model is too deep. Complete your operation and try it again to go deeper.'
       overflow: 'This nested form is too big. Try to submit your data through the API.'

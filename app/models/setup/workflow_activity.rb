@@ -14,13 +14,7 @@ module Setup
 
     accepts_nested_attributes_for :transitions, :allow_destroy => true
 
-    after_create :create_default_transitions
-
-    # def next_activity
-    #   unless self.has_multiple_outbound?
-    #     transitions.first.to_activity
-    #   end
-    # end
+    validates_uniqueness_of :type, :scope => :workflow, :if => proc { self.is_start_event? || self.is_end_event? }
 
     def type_enum
       self.class.types.map { |k, _| [k.to_s.humanize, k.to_s] }.to_h
@@ -34,23 +28,28 @@ module Setup
       self.class.start_event_types.include?(self.type)
     end
 
-    def has_multiple_outbound?
-      self.class.types[self.type.to_sym][:outbound_transitions] > 1
+    def has_multiple_outbounds?
+      max_outbounds > 1
     end
 
-    def has_available_inbound?
-      max_inbound = self.class.types[self.type.to_sym][:inbound_transitions]
-      return max_inbound > 0 && max_inbound > workflow.transitions.select { |t| t.to_activity_id = self.id }.count
+    def has_available_inbounds?
+      max = max_inbounds
+      return max > 0 && max > in_transitions.count
+    end
+
+    def max_inbounds
+      self.class.types[self.type.to_sym][:inbound_transitions]
+    end
+
+    def max_outbounds
+      self.class.types[self.type.to_sym][:outbound_transitions]
+    end
+
+    def next_activities
+      transitions.map { |t| t.to_activity }.compact
     end
 
     private
-
-    def create_default_transitions
-      unless self.is_start_event?
-        self.transitions << WorkflowTransition.new
-        self.save
-      end
-    end
 
     class << self
       def types

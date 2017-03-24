@@ -21,7 +21,9 @@ module RailsAdmin
               field :valid_to do
                 required true
               end
-              field :active
+              field :status, :enum do
+                required true
+              end
               field :activities do
                 required true
                 visible do
@@ -30,31 +32,12 @@ module RailsAdmin
               end
             end
 
-            show do
-              field :name do
-                required true
-              end
-              field :description do
-                required true
-              end
-              field :valid_from do
-                required true
-              end
-              field :valid_to do
-                required true
-              end
-              field :active
-
-              field :created_at
-              field :updated_at
-            end
-
             list do
               field :name
               field :valid_from
               field :valid_to
               field :updated_at
-              field :active
+              field :status
             end
 
           end
