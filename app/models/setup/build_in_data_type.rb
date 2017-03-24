@@ -111,6 +111,10 @@ module Setup
       store_fields(:@embedding, *fields)
     end
 
+    def exclusive_referencing(*fields)
+      store_fields(:@exclusive_referencing, *fields)
+    end
+
     def referenced_by(*fields)
       unless fields.nil?
         fields = [fields] unless fields.is_a?(Enumerable)
@@ -280,6 +284,7 @@ module Setup
             {
               '$ref': relation.klass.to_s,
               referenced: true,
+              exclusive: (@exclusive_referencing && @exclusive_referencing.include?(relation_name)).to_b,
               export_embedded: (@embedding && @embedding.include?(relation_name)).to_b
             }
           when :belongs_to
@@ -287,6 +292,7 @@ module Setup
               {
                 '$ref': relation.klass.to_s,
                 referenced: true,
+                exclusive: (@exclusive_referencing && @exclusive_referencing.include?(relation_name)).to_b,
                 export_embedded: (@embedding && @embedding.include?(relation_name)).to_b
               }
             end
@@ -297,6 +303,7 @@ module Setup
                 '$ref': relation.klass.to_s
               },
               referenced: true,
+              exclusive: (@exclusive_referencing && @exclusive_referencing.include?(relation_name)).to_b,
               export_embedded: (@embedding && @embedding.include?(relation_name)).to_b
             }
           end

@@ -13,7 +13,7 @@ module Setup
       each_entry do |_, data|
         translator.run(target_data_type: data_type_from(message),
                        data: data,
-                       options: message[:options].deep_dup)
+                       options: message[:options].deep_dup.with_indifferent_access)
       end
     end
     

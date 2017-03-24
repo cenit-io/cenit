@@ -287,27 +287,42 @@ module Api::V2
 
     def authorize_account
       user = nil
-      key = params.delete('X-User-Access-Key')
-      key = request.headers['X-User-Access-Key'] || key
-      token = params.delete('X-User-Access-Token')
-      token = request.headers['X-User-Access-Token'] || token
-      if key || token
-        [
-          User,
-          Account
-        ].each do |model|
-          next if user
-          record = model.where(key: key).first
-          if record && Devise.secure_compare(record[:authentication_token], token)
-            Account.current = record.api_account
-            user = record.user
+      if (auth_header = request.headers['Authorization'])
+        auth_header = auth_header.to_s.squeeze(' ').strip.split(' ')
+        if auth_header.length == 2
+          access_token = Cenit::OauthAccessToken.where(token_type: auth_header[0], token: auth_header[1]).first
+          if access_token && access_token.alive?
+            if access_token.set_current_tenant!
+              access_grant = Cenit::OauthAccessGrant.where(application_id: access_token.application_id).first
+              if access_grant
+                @oauth_scope = access_grant.oauth_scope
+              end
+            end
           end
         end
-      end
-      unless key || token
-        key = request.headers['X-Hub-Store']
-        token = request.headers['X-Hub-Access-Token']
-        Account.set_current_with_connection(key, token) if key || token
+      else
+        key = params.delete('X-User-Access-Key')
+        key = request.headers['X-User-Access-Key'] || key
+        token = params.delete('X-User-Access-Token')
+        token = request.headers['X-User-Access-Token'] || token
+        if key || token
+          [
+            User,
+            Account
+          ].each do |model|
+            next if user
+            record = model.where(key: key).first
+            if record && Devise.secure_compare(record[:authentication_token], token)
+              Account.current = record.api_account
+              user = record.user
+            end
+          end
+        end
+        unless key || token
+          key = request.headers['X-Hub-Store']
+          token = request.headers['X-Hub-Access-Token']
+          Account.set_current_with_connection(key, token) if key || token
+        end
       end
       User.current = user || (Account.current ? Account.current.owner : nil)
       @ability = Ability.new(User.current)
@@ -328,7 +343,8 @@ module Api::V2
           else
             @_action_name.to_sym
           end
-        unless @ability.can?(action_symbol, @item || klass)
+        unless @ability.can?(action_symbol, @item || klass) &&
+          (@oauth_scope.nil? || @oauth_scope.can?(action_symbol, klass))
           success = false
           unless options[:skip_response]
             responder = Cenit::Responder.new(@request_id, :unauthorized)

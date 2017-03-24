@@ -1,21 +1,30 @@
 class OauthController < ApplicationController
 
-  before_filter do
-    if check_params
-      warden.authenticate! scope: :user
-    else
-      render :bad_request if @errors.present?
-    end
-  end
+  before_filter { warden.authenticate! scope: :user if check_params }
 
   def index
+    skip_consent = false
     if request.get?
-      if @app_id && (@app_id.tenant == Account.current || @app_id.registered?)
-        @token = Cenit::Token.create(data: { scope: @scope.to_s, redirect_uri: @redirect_uri, state: params[:state] }).token
-      else
-        @errors << 'Unregistered app'
+      if @errors.blank?
+        if @app_id && (@app_id.tenant == Account.current || @app_id.registered?)
+          @token = Cenit::Token.create(data: { scope: @scope.to_s, redirect_uri: @redirect_uri, state: params[:state] }).token
+          access_grant = Cenit::OauthAccessGrant.where(application_id: @app_id).first
+          skip_consent =
+            if access_grant
+              grant_scope = access_grant.oauth_scope
+              @scope = @scope.diff(grant_scope)
+              grant_scope > @scope
+            else
+              false
+            end
+          skip_consent &&= !params[:show_consent].to_b
+          @consent_action = :allow if skip_consent
+        else
+          @errors << 'Unregistered app'
+        end
       end
-    else
+    end
+    if request.post? || skip_consent
       if (token = Cenit::Token.where(token: @token).first) &&
         token.data.is_a?(Hash) &&
         (redirect_uri = URI.parse(token.data['redirect_uri'])) &&
@@ -29,7 +38,7 @@ class OauthController < ApplicationController
           code_token = Cenit::OauthCodeToken.create(scope: scope, user_id: User.current.id)
           params[:code] = code_token.token
         else
-          params[:error] ='Access denied'
+          params[:error] = 'Access denied'
         end
         redirect_uri.query = redirect_uri.query.to_s + params.to_param
         redirect_to redirect_uri.to_s
@@ -41,7 +50,7 @@ class OauthController < ApplicationController
   end
 
   def callback
-    redirect_path = rails_admin.index_path(Setup::Authorization.to_s.underscore.gsub('/', '~'))
+    redirect_path = rails_admin.index_path(Setup::Authorization.to_s.underscore.tr('/', '~'))
     error = params[:error]
     if (cenit_token = OauthAuthorizationToken.where(token: params[:state] || session[:oauth_state]).first) &&
       cenit_token.set_current_tenant! && (authorization = cenit_token.authorization)
@@ -58,7 +67,7 @@ class OauthController < ApplicationController
                 ''
               end
           else
-            rails_admin.show_path(model_name: authorization.class.to_s.underscore.gsub('/', '~'), id: authorization.id.to_s) + "?redirect_token=#{redirect_token}"
+            rails_admin.show_path(model_name: authorization.class.to_s.underscore.tr('/', '~'), id: authorization.id.to_s) + "?redirect_token=#{redirect_token}"
           end
         if authorization.accept_callback?(params)
           params[:cenit_token] = cenit_token
