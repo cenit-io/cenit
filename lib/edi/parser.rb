@@ -124,7 +124,7 @@ module Edi
         record
       end
 
-      def do_parse_json(data_type, model, json, options, json_schema, record = nil, new_record = nil, container = nil)
+      def do_parse_json(data_type, model, json, options, json_schema, record = nil, new_record = nil, container = nil, container_schema = nil)
         updating = !(record.nil? && new_record.nil?) || options[:add_only]
         (primary_fields = options.delete(:primary_field) || options.delete('primary_field')).present? ||
           (primary_fields = json.is_a?(Hash) && json['_primary']).present? ||
@@ -139,7 +139,8 @@ module Edi
             if json.is_a?(Hash) &&
               options[:ignore].none? { |ignored_field| primary_fields.include?(ignored_field) } &&
               (criteria = json.select { |key, _| primary_fields.include?(key.to_sym) }).size == primary_fields.count
-              record = (container && (Cenit::Utility.find_record(criteria, container) || container.detect { |item| Cenit::Utility.match?(item, criteria) })) || model.where(criteria).first
+              record = (container && (Cenit::Utility.find_record(criteria, container) || container.detect { |item| Cenit::Utility.match?(item, criteria) })) ||
+                ((container_schema && container_schema['exclusive']) ? nil : model.where(criteria).first)
             end
             if record
               updating = true
@@ -195,7 +196,7 @@ module Edi
                         (references[property_name] ||= []) << { model: property_model, criteria: sub_value }
                       end
                     else
-                      sub_value = do_parse_json(data_type, property_model, sub_value, options, items_schema, nil, nil, association)
+                      sub_value = do_parse_json(data_type, property_model, sub_value, options, items_schema, nil, nil, association, property_schema)
                       unless association.include?(sub_value)
                         association << sub_value
                       end
@@ -272,7 +273,7 @@ module Edi
                       (references[property_name] ||= []) << { model: property_model, criteria: sub_value }
                     end
                   else
-                    sub_value = do_parse_json(data_type, property_model, sub_value, options, items_schema, nil, nil, association)
+                    sub_value = do_parse_json(data_type, property_model, sub_value, options, items_schema, nil, nil, association, property_schema)
                     unless association.include?(sub_value)
                       association << sub_value
                     end
