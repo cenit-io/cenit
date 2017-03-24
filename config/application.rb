@@ -63,7 +63,7 @@ module Cenit
       Cenit::OauthAccessGrant.instance_eval do
         include Setup::CenitScoped
         deny :all
-        allow :index, :delete
+        allow :index, :show, :delete
       end
 
       Setup::CenitDataType.init!

@@ -331,14 +331,10 @@ module Edi
       if content_property && json.size == 1 && options[:inline_content] && json.has_key?(content_property) && !json[content_property].is_a?(Hash)
         json[content_property]
       else
-        if json.key?('_primary')
-          if key_properties.size == 1
-            if key_properties[0] == 'id'
-              key_properties.pop
-            else
-              json['_primary'] = key_properties[0]
-            end
-          end
+        if json.key?('id')
+          json.delete('_primary')
+        elsif key_properties.include?('id')
+          key_properties.delete('id')
           json.delete('_primary') if key_properties.empty?
         end
         json
