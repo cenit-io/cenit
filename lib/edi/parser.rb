@@ -124,14 +124,16 @@ module Edi
         record
       end
 
-      def do_parse_json(data_type, model, json, options, json_schema, record=nil, new_record=nil, container = nil)
+      def do_parse_json(data_type, model, json, options, json_schema, record = nil, new_record = nil, container = nil)
         updating = !(record.nil? && new_record.nil?) || options[:add_only]
         (primary_fields = options.delete(:primary_field) || options.delete('primary_field')).present? ||
           (primary_fields = json.is_a?(Hash) && json['_primary']).present? ||
-          (primary_fields = [:id])
+          (primary_fields = [])
         primary_fields = [primary_fields] unless primary_fields.is_a?(Array)
         primary_fields = primary_fields.collect(&:to_sym)
-        primary_fields << :id if primary_fields.empty?
+        if primary_fields.empty?
+          primary_fields << ((json.key?('_id') || json.key(:_id)) ? :_id : :id)
+        end
         unless record ||= new_record
           if model && model.modelable?
             if json.is_a?(Hash) &&
@@ -184,7 +186,7 @@ module Edi
                   property_value = [property_value] unless property_value.is_a?(Array)
                   persist = property_model && property_model.persistable?
                   property_value.each do |sub_value|
-                    if persist && sub_value['_reference'] && (sub_value[:id].nil? || options[:skip_refs_binding])
+                    if persist && sub_value['_reference'] && ((sub_value[:id].nil? && sub_value[:_id].nil?) || options[:skip_refs_binding])
                       sub_value = Cenit::Utility.deep_remove(sub_value, '_reference')
                       unless Cenit::Utility.find_record(sub_value, association)
                         unless (references = record.instance_variable_get(:@_references))
