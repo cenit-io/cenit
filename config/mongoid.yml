@@ -75,10 +75,10 @@ test:
         max_retries: 1
         retry_interval: 0
 production:
-  # uri: <%= ENV['MONGOHQ_URL'] %>
-  clients:
-    default:
-      database: <%= ENV['DB_PROD'] || 'cenit_prod' %>
-      hosts:
-        - localhost:27017
+#  # uri: <%= ENV['MONGOHQ_URL'] %>
+#  clients:
+#    default:
+#      database: <%= ENV['DB_PROD'] || 'cenit_prod' %>
+#      hosts:
+#        - localhost:27017
 
