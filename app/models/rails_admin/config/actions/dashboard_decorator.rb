@@ -39,7 +39,8 @@ module RailsAdmin
                 end
               else
                 @abstract_models.each do |absm|
-                  current_count = absm.model.super_count
+                  # TODO: added rescue to avoid exception with button heroku deploy
+                  current_count = absm.model.super_count rescue 0
                   @max = current_count > @max ? current_count : @max
                   @counts[absm.model.name] = { default: current_count }
                 end
