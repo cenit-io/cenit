@@ -11,13 +11,5 @@
   "addons": [
     "rabbitmq-bigwig:pipkin",
     "mongolab"
-  ],
-  "env": {
-    "ADMIN_EMAIL": {
-      "value": "cenit@example.com"
-    },
-    "ADMIN_PASSWORD": {
-      "value": "cenit123"
-    }
-  }
+  ]
 }
