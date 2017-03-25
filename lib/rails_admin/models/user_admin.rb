@@ -20,7 +20,7 @@ module RailsAdmin
             active true
           end
 
-          group :activity do
+          group :activities do
             label 'Activity'
             active true
           end
@@ -58,22 +58,22 @@ module RailsAdmin
             group :credentials
           end
           configure :confirmed_at do
-            group :activity
+            group :activities
           end
           configure :sign_in_count do
-            group :activity
+            group :activities
           end
           configure :current_sign_in_at do
-            group :activity
+            group :activities
           end
           configure :last_sign_in_at do
-            group :activity
+            group :activities
           end
           configure :current_sign_in_ip do
-            group :activity
+            group :activities
           end
           configure :last_sign_in_ip do
-            group :activity
+            group :activities
           end
 
           edit do

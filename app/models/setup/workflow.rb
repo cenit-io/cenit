@@ -9,7 +9,7 @@ module Setup
     field :valid_to, type: DateTime
     field :status, type: Symbol, :default => :under_construction
 
-    has_many :activities, :class_name => Setup::WorkflowActivity.name, :inverse_of => :workflow
+    has_many :activities, :class_name => Setup::Workflow::Activity.name, :inverse_of => :workflow
 
     accepts_nested_attributes_for :activities, :allow_destroy => true
 
@@ -22,7 +22,7 @@ module Setup
     end
 
     def passable_activities
-      activities.not_in(:type => WorkflowActivity.start_event_types)
+      activities.not_in(:type => Workflow::Activity.start_event_types)
     end
 
     def activities_with_available_inbounds
@@ -40,9 +40,9 @@ module Setup
     private
 
     def create_default_activities
-      e_start = WorkflowActivity.new(:name => 'init', :type => :start_event)
-      e_end = WorkflowActivity.new(:name => 'finish', :type => :end_event)
-      e_start.transitions << WorkflowTransition.new(:to_activity => e_end, :is_default_transition => true)
+      e_start = Workflow::Activity.new(:name => 'init', :type => :start_event)
+      e_end = Workflow::Activity.new(:name => 'finish', :type => :end_event)
+      e_start.transitions << Workflow::Transition.new(:to_activity => e_end, :is_default_transition => true)
 
       activities << e_start
       activities << e_end
@@ -63,14 +63,14 @@ module Setup
       design_errors = false
 
       # Check presence of starting events.
-      start_events = activities.in(:type => WorkflowActivity.start_event_types)
+      start_events = activities.in(:type => Workflow::Activity.start_event_types)
       unless start_events.exists?
         errors.add(:this_workflow, I18n.t('admin.form.workflow.errors.do_not_have_start_event'))
         design_errors = true
       end
 
       # Check presence of ending events.
-      end_events = activities.in(:type => WorkflowActivity.end_event_types)
+      end_events = activities.in(:type => Workflow::Activity.end_event_types)
       unless end_events.exists?
         errors.add(:this_workflow, I18n.t('admin.form.workflow.errors.do_not_have_end_event'))
         design_errors = true
@@ -81,7 +81,7 @@ module Setup
       accessible.each { |aa| aa.next_activities.each { |na| accessible << na unless accessible.include?(na) } }
       inaccessible = activities.to_a - accessible
       inaccessible.each do |a|
-        errors.add(:activity, I18n.t('admin.form.workflow.errors.unreachable_activity', :name => a.name))
+        errors.add(:activities, I18n.t('admin.form.workflow.errors.unreachable_activity', :name => a.name))
       end
       design_errors ||= inaccessible.any?
 
