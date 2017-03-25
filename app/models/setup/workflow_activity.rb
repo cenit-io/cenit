@@ -6,11 +6,10 @@ module Setup
     field :name, type: String
     field :type, type: String
     field :description, type: String
-    field :attrs, type: Object
 
     belongs_to :workflow, :class_name => Setup::Workflow.name, :inverse_of => :activities
-    has_many :transitions, :class_name => Setup::WorkflowTransition.name, :inverse_of => :from_activity
-    has_many :in_transitions, :class_name => Setup::WorkflowTransition.name, :inverse_of => :to_activity
+    has_many :transitions, :class_name => Setup::WorkflowTransition.name, :inverse_of => :from_activity, :dependent => :destroy
+    has_many :in_transitions, :class_name => Setup::WorkflowTransition.name, :inverse_of => :to_activity, :dependent => :destroy
 
     accepts_nested_attributes_for :transitions, :allow_destroy => true
 
@@ -32,6 +31,10 @@ module Setup
       max_outbounds > 1
     end
 
+    def has_simple_outbound?
+      max_outbounds == 1
+    end
+
     def has_available_inbounds?
       max = max_inbounds
       return max > 0 && max > in_transitions.count
@@ -47,6 +50,16 @@ module Setup
 
     def next_activities
       transitions.map { |t| t.to_activity }.compact
+    end
+
+    def next_activity_id
+      transitions.first.try(:to_activity).try(:id)
+    end
+
+    def next_activity_id=(id)
+      if has_simple_outbound? && id != next_activity_id
+        self.transitions = [WorkflowTransition.new(:to_activity_id => id)]
+      end
     end
 
     private

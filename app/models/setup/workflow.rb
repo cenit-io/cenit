@@ -7,7 +7,7 @@ module Setup
     field :description, type: String
     field :valid_from, type: DateTime
     field :valid_to, type: DateTime
-    field :status, type: Symbol
+    field :status, type: Symbol, :default => :under_construction
 
     has_many :activities, :class_name => Setup::WorkflowActivity.name, :inverse_of => :workflow
 

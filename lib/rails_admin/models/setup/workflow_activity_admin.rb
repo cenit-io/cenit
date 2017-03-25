@@ -23,18 +23,26 @@ module RailsAdmin
               field :description do
                 required true
                 visible do
-                  !(bindings[:object].is_start_event? || bindings[:object].is_end_event?)
+                  !bindings[:object].new_record? && bindings[:object].has_multiple_outbounds?
                 end
               end
-              field :attrs
               field :transitions do
                 required true
                 visible do
-                  !(bindings[:object].new_record? || bindings[:object].is_end_event?)
+                  !bindings[:object].new_record? && bindings[:object].has_multiple_outbounds?
+                end
+              end
+              field :next_activity_id, :enum do
+                required true
+                visible do
+                  !bindings[:object].new_record? && bindings[:object].has_simple_outbound?
+                end
+                enum do
+                  workflow = bindings[:controller].instance_variable_get(:@object)
+                  workflow.passable_activities.map { |a| [a.name, a.id] }
                 end
               end
             end
-
           end
         end
 

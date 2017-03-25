@@ -23,6 +23,9 @@ module RailsAdmin
               end
               field :status, :enum do
                 required true
+                visible do
+                  !bindings[:object].new_record?
+                end
               end
               field :activities do
                 required true
