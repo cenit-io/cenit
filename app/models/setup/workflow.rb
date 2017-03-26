@@ -13,9 +13,10 @@ module Setup
 
     accepts_nested_attributes_for :activities, :allow_destroy => true
 
-    after_create :create_default_activities
-
     validate :validate_status
+
+    after_create :create_default_activities
+    after_save :organize_activities
 
     def transitions
       activities.collect { |a| a.transitions }.flatten
@@ -35,6 +36,28 @@ module Setup
         ['Unavailable', :unavailable],
         ['Active', :active]
       ]
+    end
+
+    def organize_activities()
+      # Organize accessible activities.
+      start_events = activities.in(:type => Workflow::Activity.start_event_types)
+      start_events.to_a.each do |activity|
+        activity.x_oordinate = 0
+        activity.y_oordinate = 0
+        activity.save
+        activity.organize_activities
+      end
+
+      # Organize inaccessible activities.
+      accessible = start_events.to_a
+      accessible.each { |aa| aa.next_activities.each { |na| accessible << na unless accessible.include?(na) } }
+      inaccessible = activities.to_a - accessible
+      inaccessible.each do |activity|
+        activity.x_oordinate = 0
+        activity.y_oordinate = 0
+        activity.save
+        activity.organize_activities
+      end
     end
 
     private
