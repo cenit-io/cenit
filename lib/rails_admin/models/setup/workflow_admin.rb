@@ -43,6 +43,19 @@ module RailsAdmin
               field :status
             end
 
+            show do
+              field :name
+              field :valid_from
+              field :valid_to
+              field :updated_at
+              field :status
+              field :diagram do
+                formatted_value do
+                  bindings[:view].render partial: 'rails_admin/workflow/diagram', :locals => {workflow: bindings[:object]}
+                end
+              end
+            end
+
           end
         end
 

@@ -1,0 +1,10 @@
+<svg viewBox='0 0 800 400' width='100%' height='100%' xmlns:xlink='http://www.w3.org/1999/xlink' xmlns='http://www.w3.org/2000/svg' xmlns:se='http://svg-edit.googlecode.com'>
+  <g transform='scale(0.5)' style='stroke: black; fill: #FFFFFF;'>
+    <title><%= workflow.name %></title>
+    <% workflow.activities.each do |activity| %>
+        <g id='<%= "#{activity.type}-#{activity.id}" %>' style='stroke: <%= activity.setting[:stroke_color] %>; stroke-width: <%= activity.setting[:stroke_width] %>; fill: <%= activity.setting[:background_color] %>;'>
+          <%= activity.icon.to_s.html_safe %>
+        </g>
+    <% end %>
+  </g>
+</svg>

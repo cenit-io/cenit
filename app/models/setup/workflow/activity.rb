@@ -4,9 +4,13 @@ module Setup
       include CenitScoped
       include RailsAdmin::Models::Setup::WorkflowActivityAdmin
 
+      ICON_COORD = { dx: 100, dy: 50, mx: 100, my: 100, w: 100, h: 50, m: 5 }
+
       field :name, type: String
       field :type, type: String
       field :description, type: String
+      field :x_coordinate, type: Integer, default: 0
+      field :y_coordinate, type: Integer, default: 0
 
       belongs_to :workflow, :class_name => Setup::Workflow.name, :inverse_of => :activities
       has_many :transitions, :class_name => Setup::Workflow::Transition.name, :inverse_of => :from_activity, :dependent => :destroy
@@ -42,11 +46,11 @@ module Setup
       end
 
       def max_inbounds
-        self.class.types[self.type.to_sym][:inbound_transitions]
+        self.setting[:inbound_transitions]
       end
 
       def max_outbounds
-        self.class.types[self.type.to_sym][:outbound_transitions]
+        self.setting[:outbound_transitions]
       end
 
       def next_activities
@@ -63,6 +67,14 @@ module Setup
         end
       end
 
+      def setting
+        self.class.types[self.type.to_sym]
+      end
+
+      def svgIcon
+
+      end
+
       private
 
       class << self
@@ -70,9 +82,9 @@ module Setup
           @type
         end
 
-        def register(config)
+        def register(type, setting)
           @type ||= {}
-          @type.merge!(config)
+          [type].flatten.each { |t| @type[t] = setting }
         end
       end
     end
