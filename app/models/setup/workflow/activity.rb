@@ -76,8 +76,8 @@ module Setup
           @organized = true
           width = setting[:width] || self.class::ICON_COORD[:w]
           next_activities.each do |activity|
-            activity.x_oordinate = self.x_coordinate + width
-            activity.y_oordinate = self.y_coordinate
+            activity.x_coordinate = self.x_coordinate + width
+            activity.y_coordinate = self.y_coordinate
             activity.save
             activity.organize_activities
           end

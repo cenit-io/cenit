@@ -42,8 +42,8 @@ module Setup
       # Organize accessible activities.
       start_events = activities.in(:type => Workflow::Activity.start_event_types)
       start_events.to_a.each do |activity|
-        activity.x_oordinate = 0
-        activity.y_oordinate = 0
+        activity.x_coordinate = 0
+        activity.y_coordinate = 0
         activity.save
         activity.organize_activities
       end
@@ -53,8 +53,8 @@ module Setup
       accessible.each { |aa| aa.next_activities.each { |na| accessible << na unless accessible.include?(na) } }
       inaccessible = activities.to_a - accessible
       inaccessible.each do |activity|
-        activity.x_oordinate = 0
-        activity.y_oordinate = 0
+        activity.x_coordinate = 0
+        activity.y_coordinate = 0
         activity.save
         activity.organize_activities
       end

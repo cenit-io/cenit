@@ -13,17 +13,17 @@ module Setup
         :radio => 25
       }
 
-      def end_event_icon
-        event_icon
+      def end_event_svg_icon
+        event_svg_icon
       end
 
-      def terminate_event_icon
+      def terminate_event_svg_icon
         f = setting[:stroke_color]
         r = setting[:radio] * 2 / 3
         x = self.class::ICON_COORD[:dx] + x_coordinate + r
         y = self.class::ICON_COORD[:dy] + y_coordinate + r
 
-        event_icon + "<circle cx='#{x}' cy='#{y}' r='#{r}' style='fill: #{f}'/>"
+        event_svg_icon + "<circle cx='#{x}' cy='#{y}' r='#{r}' style='fill: #{f}'/>"
       end
 
       def self.end_event_types

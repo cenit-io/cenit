@@ -13,8 +13,8 @@ module Setup
         :radio => 25
       }
 
-      def start_event_icon
-        event_icon
+      def start_event_svg_icon
+        event_svg_icon
       end
 
       def self.start_event_types

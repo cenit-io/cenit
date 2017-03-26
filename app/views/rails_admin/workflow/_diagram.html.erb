@@ -3,8 +3,11 @@
     <title><%= workflow.name %></title>
     <% workflow.activities.each do |activity| %>
         <g id='<%= "#{activity.type}-#{activity.id}" %>' style='stroke: <%= activity.setting[:stroke_color] %>; stroke-width: <%= activity.setting[:stroke_width] %>; fill: <%= activity.setting[:background_color] %>;'>
-          <%= activity.icon.to_s.html_safe %>
+          <%= activity.to_svg.to_s.html_safe %>
         </g>
+        <% activity.transitions.each do |transition| %>
+            <%= transition.to_svg.to_s.html_safe %>
+        <% end %>
     <% end %>
   </g>
 </svg>

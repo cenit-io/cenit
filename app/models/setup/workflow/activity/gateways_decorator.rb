@@ -2,7 +2,7 @@ module Setup
   class Workflow
     Activity.class_eval do
 
-      def gateway_icon
+      def gateway_svg_icon
         x = self.class::ICON_COORD[:dx] + x_coordinate
         y = self.class::ICON_COORD[:dy] + y_coordinate
         w = h = [self.class::ICON_COORD[:w], self.class::ICON_COORD[:h]].min
@@ -19,7 +19,7 @@ module Setup
         "<polygon points='#{x1},#{y1} #{x2},#{y2} #{x3},#{y3} #{x4},#{y4}'/>"
       end
 
-      def gateway_inclusive_icon
+      def gateway_inclusive_svg_icon
         x = self.class::ICON_COORD[:dx] + x_coordinate
         y = self.class::ICON_COORD[:dy] + y_coordinate
         w = h = [self.class::ICON_COORD[:w], self.class::ICON_COORD[:h]].min
@@ -30,11 +30,11 @@ module Setup
         cy = y + h / 2
         r = [w, h].min / 2 - [w, h].min / 4
 
-        icon = gateway_icon
-        icon << "<circle cx='#{cx}' cy='#{cy}' r='#{r}' stroke-width='#{sw}'/>"
+        svg = gateway_svg_icon
+        svg << "<circle cx='#{cx}' cy='#{cy}' r='#{r}' stroke-width='#{sw}'/>"
       end
 
-      def gateway_exclusive_icon
+      def gateway_exclusive_svg_icon
         x = self.class::ICON_COORD[:dx] + x_coordinate
         y = self.class::ICON_COORD[:dy] + y_coordinate
         w = h = [self.class::ICON_COORD[:w], self.class::ICON_COORD[:h]].min
@@ -53,12 +53,12 @@ module Setup
         x2 = cx + rcosa
         y2 = cy + rsina
 
-        icon = gateway_icon
-        icon << "<line x1='#{x1}' y1='#{y1}' x2='#{x2}' y2='#{y2}' stroke-width='#{sw}'/>"
-        icon << "<line x1='#{x2}' y1='#{y1}' x2='#{x1}' y2='#{y2}' stroke-width='#{sw}'/>"
+        svg = gateway_svg_icon
+        svg << "<line x1='#{x1}' y1='#{y1}' x2='#{x2}' y2='#{y2}' stroke-width='#{sw}'/>"
+        svg << "<line x1='#{x2}' y1='#{y1}' x2='#{x1}' y2='#{y2}' stroke-width='#{sw}'/>"
       end
 
-      def gateway_parallel_icon
+      def gateway_parallel_svg_icon
         x = self.class::ICON_COORD[:dx] + x_coordinate
         y = self.class::ICON_COORD[:dy] + y_coordinate
         w = h = [self.class::ICON_COORD[:w], self.class::ICON_COORD[:h]].min
@@ -75,9 +75,9 @@ module Setup
         x4 = x + w / 2
         y4 = y + h - h / 7
 
-        icon = gateway_icon
-        icon << "<line x1='#{x1}' y1='#{y1}' x2='#{x2}' y2='#{y2}' stroke-width='#{sw}'/>"
-        icon << "<line x1='#{x3}' y1='#{y3}' x2='#{x4}' y2='#{y4}' stroke-width='#{sw}'/>"
+        svg = gateway_svg_icon
+        svg << "<line x1='#{x1}' y1='#{y1}' x2='#{x2}' y2='#{y2}' stroke-width='#{sw}'/>"
+        svg << "<line x1='#{x3}' y1='#{y3}' x2='#{x4}' y2='#{y4}' stroke-width='#{sw}'/>"
       end
 
     end
