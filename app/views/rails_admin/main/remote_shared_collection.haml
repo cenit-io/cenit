@@ -1,14 +1,12 @@
-:ruby
-  query = @query || ''
 #grid
-  = form_tag(remote_shared_collection_path(params.except(*%w[page f query])), method: :get, class: "pjax-form form-inline") do
+  = form_tag(remote_shared_collection_path(params.except(*%w[page f query])), method: :get, class: 'pjax-form form-inline') do
     .well
       .input-group
-        %input.form-control.input-small{name: "query", type: "search", value: query, placeholder: t("admin.misc.filter")}
+        %input.form-control.input-small{name: 'query', type: 'search', value: @query, placeholder: t('admin.misc.filter')}
         %span.input-group-btn
-          %button.btn.btn-primary{type: "submit", :'data-disable-with' => "<i class='icon-white icon-refresh'></i> ".html_safe + t("admin.misc.refresh")}
+          %button.btn.btn-primary{type: 'submit', :'data-disable-with' => "<i class='icon-white icon-refresh'></i> ".html_safe + t('admin.misc.refresh')}
             %i.icon-white.icon-refresh
-            = t("admin.misc.refresh")
+            = t('admin.misc.refresh')
   #grid-wrapper
     - @objects.each do |object|
       .col-xs-6.col-sm-4.col-md-3
@@ -19,19 +17,20 @@
           .panel-body
             .panel-body-logo.text-center{style: "background-color:##{object['logo_background'] || 'inherit'}"}
               =link_to "#{remote_shared_collection_path}/#{object['id']}" do
-                =image_tag object['image'].present? ? object['image'] : 'missing.png', class: 'logo'
+                - (image = object['image']).is_a?(Hash) && (image = image['url'])
+                =image_tag image || 'missing.png', class: 'logo'
             .panel-body-description.line-clamp.line-clamp-3
               %p #{object['summary'].html_safe if object['summary'].present?}
           .panel-footer
             .footer-description
               %ul
-                - if (categories = object['categories']).count > 0
+                - if (categories = object['categories']) && categories.count > 0
                   - categories.each do |cat|
                     - next unless (title = cat['title'])
-                    %span{title: cat['description'] || t('admin.misc.no_description')}
-                    = title
+                    %span{ title: cat['description'] || t('admin.misc.no_description')}
+                      = title
                 - else
-                  = t('admin.actions.dashboard.collections.no_categories')
+                  %span= t('admin.actions.dashboard.collections.no_categories')
               .versions
                 .col-xs-4.col-xs-offset-4
                   =link_to "#{remote_shared_collection_path}/#{object['id']}/pull"  do
@@ -45,5 +44,6 @@
     - if @response
       .clearfix
       .row
-        - object_array = Kaminari.paginate_array(@objects, total_count: count = @response['count']).page(@response['current_page']).per(count / @response['total_pages'])
+        - object_array = Kaminari.paginate_array(@objects, total_count: count = @response['count']).page(@response['current_page']).per(@limit)
         .col-md-6= paginate(object_array, theme: 'twitter-bootstrap', remote: true)
+      .clearfix.total-count= "#{@response['count']} #{@model_config.pluralize(@objects.size).downcase}"
