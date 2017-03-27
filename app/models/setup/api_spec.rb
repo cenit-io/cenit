@@ -63,13 +63,14 @@ module Setup
           paths = spec['paths'] || {}
         ].each do |schema_container|
           schema_container.each_deep_pair do |hash, key, value|
-            next unless key == '$ref' && !(value.is_a? Hash)
-            if value.start_with?(prefix = '#/definitions/') || value.start_with?(prefix = '#/parameters/')
-              hash[key] = value.from(prefix.length)
-            elsif value.start_with?('#/')
-              hash[key] = value.from(2)
-            else
-              fail "Reference #{value} is not valid"
+            if key == '$ref' && !(value.is_a? Hash)
+              if value.start_with?(prefix = '#/definitions/') || value.start_with?(prefix = '#/parameters/')
+                hash[key] = value.from(prefix.length)
+              elsif value.start_with?('#/')
+                hash[key] = value.from(2)
+              else
+                fail "Reference #{value} is not valid"
+              end
             end
             true
           end if schema_container
@@ -530,7 +531,7 @@ module Setup
       def identificable?(_name, schema)
         schema['type'] == 'object' && (properties = schema['properties']) && properties.key?('id')
       end
-      
+
     end
   end
 end
