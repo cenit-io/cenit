@@ -45,12 +45,16 @@ module Setup
 
       def validate_activities
         unless to_activity.nil?
+          a_errors = from_activity.errors
+
           if from_activity == to_activity
             errors.add(:to_activity, I18n.t('admin.form.workflow_transition.errors.transition_to_self'))
+            a_errors.add(:next_activity_id, I18n.t('admin.form.workflow_transition.errors.transition_to_self'))
           end
 
           if (new_record? || attribute_changed?(:to_activity)) && !to_activity.has_available_inbounds?
             errors.add(:to_activity, I18n.t('admin.form.workflow_transition.errors.inbound_overflow'))
+            a_errors.add(:next_activity_id, I18n.t('admin.form.workflow_transition.errors.inbound_overflow'))
           end
         end
       end

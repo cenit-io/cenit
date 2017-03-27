@@ -33,6 +33,15 @@ module RailsAdmin
                   !bindings[:object].new_record?
                 end
               end
+              field :diagram do
+                read_only true
+                visible do
+                  !bindings[:object].new_record?
+                end
+                formatted_value do
+                  bindings[:object].to_svg.html_safe
+                end
+              end
             end
 
             list do
@@ -51,7 +60,7 @@ module RailsAdmin
               field :status
               field :diagram do
                 formatted_value do
-                  bindings[:view].render partial: 'rails_admin/workflow/diagram', :locals => {workflow: bindings[:object]}
+                  bindings[:object].to_svg.html_safe
                 end
               end
             end

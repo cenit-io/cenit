@@ -13,8 +13,21 @@ module Setup
         c = items.select { |a| a.id != id }.count
 
         if (c > 0)
-          self.y_coordinate += 50 * c
+          self.y_coordinate += (self.class::ICON_COORD[:h] + self.class::ICON_COORD[:m]) * c
           save()
+        end
+      end
+
+      def organize_activities
+        unless @organized
+          @organized = true
+          width = setting[:width] || self.class::ICON_COORD[:w]
+          next_activities.each do |activity|
+            activity.x_coordinate = self.x_coordinate + width
+            activity.y_coordinate = self.y_coordinate
+            activity.save
+            activity.organize_activities
+          end
         end
       end
 

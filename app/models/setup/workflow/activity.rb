@@ -4,7 +4,7 @@ module Setup
       include CenitScoped
       include RailsAdmin::Models::Setup::WorkflowActivityAdmin
 
-      ICON_COORD = { dx: 100, dy: 50, mx: 100, my: 100, w: 100, h: 50, m: 5 }
+      ICON_COORD = { dx: 100, dy: 50, mx: 100, my: 100, w: 100, h: 50, m: 10 }
 
       field :name, type: String
       field :type, type: String
@@ -69,19 +69,6 @@ module Setup
 
       def setting
         self.class.types[self.type.to_sym]
-      end
-
-      def organize_activities
-        unless @organized
-          @organized = true
-          width = setting[:width] || self.class::ICON_COORD[:w]
-          next_activities.each do |activity|
-            activity.x_coordinate = self.x_coordinate + width
-            activity.y_coordinate = self.y_coordinate
-            activity.save
-            activity.organize_activities
-          end
-        end
       end
 
       private
