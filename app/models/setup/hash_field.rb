@@ -13,11 +13,20 @@ module Setup
     def read_attribute(name)
       value = super
       name = name.to_s
-      if self.class.hash_fields.include?(name) && value.is_a?(String)
-        value = JSON.parse(value) rescue value
-        value = hash_attribute_read(name, value)
-        attributes[name] = value
-        value = attributes[name]
+      if self.class.hash_fields.include?(name)
+        value =
+          if value.is_a?(String)
+            value =
+              begin
+                hash_attribute_read(name, JSON.parse(value))
+              rescue Exception
+                value
+              end
+            attributes[name] = value
+            attributes[name]
+          else
+            hash_attribute_read(name, value)
+          end
       end
       value
     end
@@ -61,7 +70,7 @@ module Setup
             end && errors.blank?
         end
       end
-      
+
     end
 
   end
