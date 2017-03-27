@@ -84,6 +84,7 @@ Cenit::Application.routes.draw do
   match 'app/:id_or_ns/:app_slug' => 'app#index', via: [:all]
   match 'app/:id_or_ns/:app_slug/*path' => 'app#index', via: [:all]
 
+  get 'remote_shared_collection/:id', to: 'rails_admin/main#remote_shared_collection'
   mount RailsAdmin::Engine => '/', as: 'rails_admin'
 
   match '/:model_name/:id/swagger/*path' => 'rails_admin/main#swagger', via: [:all]

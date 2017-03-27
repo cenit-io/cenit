@@ -242,24 +242,25 @@ module Api::V2
     end
 
     def get_limit
-      if (limit = @criteria.delete(:limit))
-        if limit == '0'
-          limit = Kaminari.config.default_per_page.to_s
+      @limit ||=
+        if (limit = @criteria.delete(:limit))
+          limit = limit.to_i
+          if limit == '0'
+            Kaminari.config.default_per_page
+          end
+          [Kaminari.config.default_per_page, limit].min
+        else
+          Kaminari.config.default_per_page
         end
-        limit = [Kaminari.config.default_per_page, limit.to_i].min unless params[:only].present?
-      else
-        limit = Kaminari.config.default_per_page
-      end
-      limit
     end
 
     def get_page
-      if (page = @criteria.delete(:page))
-        page = page.to_i
-      else
-        page = 1
-      end
-      page
+      @page ||=
+        if (page = @criteria.delete(:page))
+          page.to_i
+        else
+          1
+        end
     end
 
     def select_items
@@ -271,8 +272,10 @@ module Api::V2
 
       limit = get_limit
       page = get_page
+      skip = page < 1 ? 0 : (page - 1) * limit
 
-      items = accessible_records.page(page).where(@criteria).limit(limit)
+      # TODO: Include Kaminari methods on CrossOrigin::Criteria
+      items = accessible_records.limit(limit).skip(skip).where(@criteria)
 
       if order
         if asc

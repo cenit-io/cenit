@@ -2,13 +2,12 @@ require 'cenit/core_ext'
 
 module Cenit
 
-  class << self
-
-    def default_options
-      super.merge service_url: '/service',
+  default_options service_url: '/service',
                   reserved_namespaces: %w(cenit default),
-                  ecommerce_data_types: {}
-    end
+                  ecommerce_data_types: {},
+                  rabbit_mq_queue: lambda { Mongoid.default_client.database.name }
+
+  class << self
 
     def http_proxy
       if (address = http_proxy_address) && (port = http_proxy_port)
