@@ -7,7 +7,7 @@ module RailsAdmin
           visible { !bindings[:object].instance_variable_get(:@sharing) }
         end
 
-        FIELDS_CONFIG = Proc.new do
+        FIELDS_CONFIG = proc do
 
           if abstract_model.model == ::Setup::CrossSharedCollection
             configure :readme, :html_erb
@@ -168,7 +168,7 @@ module RailsAdmin
             field :oauth_clients, &SHARING_INVISIBLE
             field :oauth2_scopes, &SHARING_INVISIBLE
             field :data, &SHARING_INVISIBLE
-            field :metadata, &SHARING_INVISIBLE
+            field :metadata, :json_value, &SHARING_INVISIBLE
           end
 
           show do
@@ -179,7 +179,11 @@ module RailsAdmin
 
             prefix =
               if abstract_model.model == ::Setup::CrossSharedCollection
-                field :summary
+                field :summary do
+                  pretty_value do
+                    value.html_safe
+                  end
+                end
                 field :categories
                 field :authors
                 field :pull_count
@@ -284,7 +288,7 @@ module RailsAdmin
                 group :config
               end
 
-              field :metadata
+              field :metadata, :json_value
             end
 
             field :_id
