@@ -145,7 +145,7 @@ module Cenit
           @channel.open if @channel.closed?
           @channel.prefetch(1)
 
-          @queue ||= @channel.queue('cenit')
+          @queue ||= @channel.queue(Cenit.rabbit_mq_queue)
         end
         true
       rescue Exception => ex
@@ -170,7 +170,7 @@ module Cenit
       def start_consumer
         if init
           new_rabbit_consumer = RabbitConsumer.create(channel: "#{connection.host}:#{connection.local_port} (#{channel.id})",
-                                                      tag: channel.generate_consumer_tag('cenit'))
+                                                      tag: channel.generate_consumer_tag(Cenit.rabbit_mq_queue))
           new_consumer = queue.subscribe(consumer_tag: new_rabbit_consumer.tag, manual_ack: true) do |delivery_info, properties, body|
             consumer = delivery_info.consumer
             if (rabbit_consumer = RabbitConsumer.where(tag: consumer.consumer_tag).first)
