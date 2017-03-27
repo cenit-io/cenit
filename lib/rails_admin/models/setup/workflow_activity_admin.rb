@@ -18,7 +18,6 @@ module RailsAdmin
                 end
               end
               field :description do
-                required true
                 visible do
                   !bindings[:object].new_record? && bindings[:object].has_multiple_outbounds?
                 end

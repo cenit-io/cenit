@@ -11,9 +11,7 @@ module RailsAdmin
             object_label_method { :name }
 
             edit do
-              field :description do
-                required true
-              end
+              field :description
               field :to_activity do
                 required true
                 inline_add false
