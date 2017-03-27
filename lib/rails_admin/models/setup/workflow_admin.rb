@@ -14,7 +14,9 @@ module RailsAdmin
               field :name do
                 required true
               end
-              field :description
+              field :description do
+                required true
+              end
               field :valid_from do
                 required true
               end

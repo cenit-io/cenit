@@ -11,9 +11,6 @@ module RailsAdmin
             object_label_method { :name }
 
             edit do
-              field :name do
-                required true
-              end
               field :type, :enum do
                 required true
                 read_only do

@@ -2,33 +2,12 @@ module Setup
   class Workflow
     Activity.class_eval do
 
-      after_save :check_position
-
       def to_svg
         send("#{type.to_s}_svg_icon")
       end
 
-      def check_position()
-        items = workflow.activities.where(:x_coordinate => x_coordinate, :y_coordinate => y_coordinate).to_a
-        c = items.select { |a| a.id != id }.count
-
-        if (c > 0)
-          self.y_coordinate += (self.class::ICON_COORD[:h] + self.class::ICON_COORD[:m]) * c
-          save()
-        end
-      end
-
-      def organize_activities
-        unless @organized
-          @organized = true
-          width = setting[:width] || self.class::ICON_COORD[:w]
-          next_activities.each do |activity|
-            activity.x_coordinate = self.x_coordinate + width
-            activity.y_coordinate = self.y_coordinate
-            activity.save
-            activity.organize_activities
-          end
-        end
+      def is_overlap?(act)
+        act.id != self.id && act.x_coordinate == self.x_coordinate && act.y_coordinate == self.y_coordinate
       end
 
       def connection_points

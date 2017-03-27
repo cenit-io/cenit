@@ -20,6 +20,8 @@ module Setup
 
       validates_uniqueness_of :type, :scope => :workflow, :if => proc { self.is_start_event? || self.is_end_event? }
 
+      before_save :set_name
+
       def type_enum
         self.class.types.map { |k, _| [k.to_s.humanize, k.to_s] }.to_h
       end
@@ -72,6 +74,15 @@ module Setup
       end
 
       private
+
+      def set_name
+        if new_record?
+          prefix = self.type.split('_').map(&:first).join.upcase
+          last_name = workflow.activities.select { |a| !a.new_record? }.map(&:name).sort.last
+          last_index = (last_name || "#{prefix}0").gsub(/[^\d]+/, '').to_i
+          self.name = "#{prefix}#{last_index + 1}"
+        end
+      end
 
       class << self
         def types
