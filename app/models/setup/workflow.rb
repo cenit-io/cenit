@@ -80,14 +80,14 @@ module Setup
       items = activities.to_a
       vbw = items.map(&:x_coordinate).max + Activity::ICON_COORD[:w] + Activity::ICON_COORD[:m]
       vbh = items.map(&:y_coordinate).max + Activity::ICON_COORD[:h] + Activity::ICON_COORD[:m]
+      dx = Activity::ICON_COORD[:dx]
+      dy = Activity::ICON_COORD[:dy]
 
       svg = "<svg viewBox='0 0 #{vbw} #{vbh}' width='100%' height='100%' xmlns:xlink='http://www.w3.org/1999/xlink' xmlns='http://www.w3.org/2000/svg' xmlns:se='http://svg-edit.googlecode.com'>"
-      svg << "<g transform='scale(0.5)' style='stroke: black; fill: #FFFFFF;'>"
+      svg << "<g transform='scale(0.5),translate(#{dx},#{dy})' style='stroke: black; fill: #FFFFFF;'>"
       svg << "<title>#{name}</title>"
       items.each do |activity|
-        svg << "<g id='#{activity.type}-#{activity.id}' style='stroke: #{activity.setting[:stroke_color]}; stroke-width: #{activity.setting[:stroke_width]}; fill: #{activity.setting[:background_color]};'>"
         svg << activity.to_svg.to_s
-        svg << "</g>"
         activity.transitions.each do |transition|
           svg << transition.to_svg.to_s
         end

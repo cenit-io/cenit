@@ -9,8 +9,7 @@ module Setup
         :connection_points => 4,
         :background_color => '#ffffe8',
         :stroke_color => '#620000',
-        :stroke_width => 2,
-        :radio => 25
+        :stroke_width => 2
       }
 
       def join_inclusive_svg_icon

@@ -3,8 +3,8 @@ module Setup
     Activity.class_eval do
 
       def gateway_svg_icon
-        x = self.class::ICON_COORD[:dx] + x_coordinate
-        y = self.class::ICON_COORD[:dy] + y_coordinate
+        x = x_coordinate
+        y = y_coordinate
         w = h = [self.class::ICON_COORD[:w], self.class::ICON_COORD[:h]].min
 
         x1 = x + w / 2
@@ -20,8 +20,8 @@ module Setup
       end
 
       def gateway_inclusive_svg_icon
-        x = self.class::ICON_COORD[:dx] + x_coordinate
-        y = self.class::ICON_COORD[:dy] + y_coordinate
+        x = x_coordinate
+        y = y_coordinate
         w = h = [self.class::ICON_COORD[:w], self.class::ICON_COORD[:h]].min
         sw = setting[:stroke_width] * 2
 
@@ -35,8 +35,8 @@ module Setup
       end
 
       def gateway_exclusive_svg_icon
-        x = self.class::ICON_COORD[:dx] + x_coordinate
-        y = self.class::ICON_COORD[:dy] + y_coordinate
+        x = x_coordinate
+        y = y_coordinate
         w = h = [self.class::ICON_COORD[:w], self.class::ICON_COORD[:h]].min
         sw = setting[:stroke_width] * 2
 
@@ -59,8 +59,8 @@ module Setup
       end
 
       def gateway_parallel_svg_icon
-        x = self.class::ICON_COORD[:dx] + x_coordinate
-        y = self.class::ICON_COORD[:dy] + y_coordinate
+        x = x_coordinate
+        y = y_coordinate
         w = h = [self.class::ICON_COORD[:w], self.class::ICON_COORD[:h]].min
         sw = setting[:stroke_width] * 2
 

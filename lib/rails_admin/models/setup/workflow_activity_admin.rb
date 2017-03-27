@@ -13,8 +13,22 @@ module RailsAdmin
             edit do
               field :type, :enum do
                 required true
-                read_only do
+                visible do
+                  bindings[:object].new_record?
+                end
+                formatted_value do |value|
+                  bindings[:object].new_record? ? value : bindings[:object].icon.html_safe
+                end
+              end
+              field :icon do
+                required true
+                read_only true
+                label 'Type'
+                visible do
                   !bindings[:object].new_record?
+                end
+                formatted_value do |value|
+                  "<div>#{bindings[:object].type.humanize}</div><div>#{bindings[:object].icon}</div>".html_safe
                 end
               end
               field :description do

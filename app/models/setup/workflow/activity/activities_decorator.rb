@@ -3,7 +3,24 @@ module Setup
     Activity.class_eval do
 
       def to_svg
-        send("#{type.to_s}_svg_icon")
+        svg = "<g id='#{type}-#{id}' style='stroke: #{setting[:stroke_color]}; stroke-width: #{setting[:stroke_width]}; fill: #{setting[:background_color]};'>"
+        svg << send("#{type.to_s}_svg_icon")
+        svg << "</g>"
+      end
+
+      def icon
+        m = Activity::ICON_COORD[:m] / 2
+        vbw = Activity::ICON_COORD[:w] + m * 2
+        vbh = Activity::ICON_COORD[:h] + m * 2
+        dx = -1 * (x_coordinate - m)
+        dy = -1 * (y_coordinate - m)
+
+        svg = "<svg viewBox='0 0 #{vbw} #{vbh}' width='72' height='36' xmlns:xlink='http://www.w3.org/1999/xlink' xmlns='http://www.w3.org/2000/svg' xmlns:se='http://svg-edit.googlecode.com'>"
+        svg << "<g transform='scale(1),translate(#{dx},#{dy})' style='stroke: black; fill: #FFFFFF;' transform='translate(2,2)'>"
+        svg << "<title>#{type.humanize} (#{name})</title>"
+        svg << to_svg
+        svg << "</g>"
+        svg << "</svg>"
       end
 
       def is_overlap?(act)
@@ -14,9 +31,9 @@ module Setup
         method = "#{type.to_s}_connection_points"
         return send(method) if respond_to?(method)
 
-        r = setting[:radio]
-        x = self.class::ICON_COORD[:dx] + x_coordinate + r
-        y = self.class::ICON_COORD[:dy] + y_coordinate + r
+        r = Activity::ICON_COORD[:h] / 2
+        x = x_coordinate + r
+        y = y_coordinate + r
 
         cpi = 2 * Math::PI / setting[:connection_points]
 

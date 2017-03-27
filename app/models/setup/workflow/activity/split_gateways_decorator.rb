@@ -9,8 +9,7 @@ module Setup
         :connection_points => 4,
         :background_color => '#ffffe8',
         :stroke_color => '#80ad40',
-        :stroke_width => 2,
-        :radio => 25
+        :stroke_width => 2
       }
 
       def split_inclusive_svg_icon

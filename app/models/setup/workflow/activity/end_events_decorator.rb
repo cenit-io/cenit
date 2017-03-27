@@ -9,8 +9,7 @@ module Setup
         :connection_points => 16,
         :background_color => '#ffe6ff',
         :stroke_color => '#620000',
-        :stroke_width => 4,
-        :radio => 25
+        :stroke_width => 4
       }
 
       def end_event_svg_icon
@@ -19,9 +18,9 @@ module Setup
 
       def terminate_event_svg_icon
         f = setting[:stroke_color]
-        r = setting[:radio] * 2 / 3
-        x = self.class::ICON_COORD[:dx] + x_coordinate + r
-        y = self.class::ICON_COORD[:dy] + y_coordinate + r
+        r = Activity::ICON_COORD[:h] / 3
+        x = x_coordinate + r
+        y = y_coordinate + r
 
         event_svg_icon + "<circle cx='#{x}' cy='#{y}' r='#{r}' style='fill: #{f}'/>"
       end

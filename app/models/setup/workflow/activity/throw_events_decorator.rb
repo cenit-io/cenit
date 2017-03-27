@@ -9,25 +9,24 @@ module Setup
         :connection_points => 16,
         :background_color => '#ffe6ff',
         :stroke_color => '#620000',
-        :stroke_width => 1,
-        :radio => 25
+        :stroke_width => 1
       }
 
       def intermediate_events_svg_icon
-        r = setting[:radio]
-        x = self.class::ICON_COORD[:dx] + x_coordinate + r
-        y = self.class::ICON_COORD[:dy] + y_coordinate + r
+        r = Activity::ICON_COORD[:h] / 2
+        x = x_coordinate + r
+        y = y_coordinate + r
 
         event_svg_icon + "<circle cx='#{x}' cy='#{y}' r='#{r - 3}'/>"
       end
 
       def throw_intermediate_events_svg_icon(text)
         svg = intermediate_events_svg_icon
-        r = setting[:radio]
+        r = Activity::ICON_COORD[:h] / 2
         w = 2 * (r - 8) * Math.cos(Math::PI / 6);
         h = 2 * (r - 8) * Math.sin(Math::PI / 6);
-        x = self.class::ICON_COORD[:dx] + x_coordinate + r - w / 2;
-        y = self.class::ICON_COORD[:dy] + y_coordinate + r - h / 4 * 3;
+        x = x_coordinate + r - w / 2;
+        y = y_coordinate + r - h / 4 * 3;
         sw = setting[:stroke_width]
         sc = setting[:stroke_color]
         bc = setting[:background_color]

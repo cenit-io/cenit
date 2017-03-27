@@ -9,8 +9,7 @@ module Setup
         :connection_points => 16,
         :background_color => '#f0ffc8',
         :stroke_color => '#80ad40',
-        :stroke_width => 2,
-        :radio => 25
+        :stroke_width => 2
       }
 
       def start_event_svg_icon
