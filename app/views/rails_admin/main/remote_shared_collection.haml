@@ -12,11 +12,11 @@
       .col-xs-6.col-sm-4.col-md-3
         %div{class: 'panel panel-shared text-center'}
           .panel-heading
-            =link_to "#{remote_shared_collection_path}/#{object['id']}" do
+            =link_to "#{remote_shared_collection_path}/#{object['id']}", class: 'pjax' do
               =object['title'].presence || object['name'].titleize
           .panel-body
             .panel-body-logo.text-center{style: "background-color:##{object['logo_background'] || 'inherit'}"}
-              =link_to "#{remote_shared_collection_path}/#{object['id']}" do
+              =link_to "#{remote_shared_collection_path}/#{object['id']}", class: 'pjax' do
                 - (image = object['image']).is_a?(Hash) && (image = image['url'])
                 =image_tag image || 'missing.png', class: 'logo'
             .panel-body-description.line-clamp.line-clamp-3
@@ -33,7 +33,7 @@
                   %span= t('admin.actions.dashboard.collections.no_categories')
               .versions
                 .col-xs-4.col-xs-offset-4
-                  =link_to "#{remote_shared_collection_path}/#{object['id']}/pull"  do
+                  =link_to "#{remote_shared_collection_path}/#{object['id']}/pull", class: 'pjax'  do
                     %i.fa.fa-arrow-down
                   - if object['pull_count'].to_i > 0
                     %span.pull-count
