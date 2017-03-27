@@ -33,9 +33,20 @@ An example of integration data flow (Fancy <=> Shipstation):
 * After the shipments are updated in Cenit, is trigger a Flow to send the tracking update to Fancy.
 
 
+## Your own server with Heroku 
 
-## Run your own Cenit
+### With the Heroku Button
+
 [![Deploy to Heroku](https://www.herokucdn.com/deploy/button.svg)](https://heroku.com/deploy)
+
+### Without It
+
+* Clone the repo and change directory to it
+* Log in with the Heroku Toolbelt and create an app: `heroku create`
+* Use the mLab addon: `heroku addons:create mongolab:sandbox`
+* Use the rabbitmq addon: `heroku addons:create rabbitmq-bigwig:pipkin`
+* Deploy it with: `git push heroku master`
+* Open in the browser: `heroku open`
 
 
 ## General Features
