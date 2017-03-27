@@ -3,10 +3,6 @@
 [![license](https://img.shields.io/packagist/l/doctrine/orm.svg)]()
 [![Slack Status](http://cenit-slack.herokuapp.com/badge.svg)](http://cenitio.slack.com)
 
-
-## Run your own Cenit server
-[![Deploy to Heroku](https://www.herokucdn.com/deploy/button.svg)](https://heroku.com/deploy)
-
 * [Cenit IO](https://cenit.io)  [(https://cenit.io)](https://cenit.io)
 * [Join our Slack](https://cenitio.slack.com/shared_invite/MTU3MDI0OTY3MTU4LTE0ODk4NDMxNjUtYzBkMGE5OTUyOA) [(cenitio.slack.com)](https://cenitio.slack.com/shared_invite/MTU3MDI0OTY3MTU4LTE0ODk4NDMxNjUtYzBkMGE5OTUyOA)
 * [Shared Collections](https://cenit.io/setup~shared_collection)
@@ -35,6 +31,23 @@ An example of integration data flow (Fancy <=> Shipstation):
 * Each 20 minutes Cenit trigger a flow to fetch Shipped shipments from Shipstation.
 
 * After the shipments are updated in Cenit, is trigger a Flow to send the tracking update to Fancy.
+
+
+## Your own server with Heroku 
+
+### With the Heroku Button
+
+[![Deploy to Heroku](https://www.herokucdn.com/deploy/button.svg)](https://heroku.com/deploy)
+
+### Without It
+
+* Clone the repo and change directory to it
+* Log in with the Heroku Toolbelt and create an app: `heroku create`
+* Use the mLab addon: `heroku addons:create mongolab:sandbox`
+* Use the rabbitmq addon: `heroku addons:create rabbitmq-bigwig:pipkin`
+* Deploy it with: `git push heroku master`
+* Open in the browser: `heroku open`
+
 
 ## General Features
 
