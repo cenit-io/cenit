@@ -23,7 +23,11 @@ module RailsAdmin
                   end
                 end
               end
-              field :is_default_transition
+              field :is_default_transition do
+                visible do
+                  bindings[:object].from_activity.is_split_conditional?
+                end
+              end
             end
 
           end

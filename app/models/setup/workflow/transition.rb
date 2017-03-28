@@ -7,8 +7,8 @@ module Setup
       field :description, type: String
       field :is_default_transition, type: Boolean
 
-      belongs_to :from_activity, :class_name => Setup::Workflow::Activity.name, :inverse_of => :transitions
-      belongs_to :to_activity, :class_name => Setup::Workflow::Activity.name, :inverse_of => :in_transitions
+      belongs_to :from_activity, :class_name => Activity.name, :inverse_of => :transitions
+      belongs_to :to_activity, :class_name => Activity.name, :inverse_of => :in_transitions
 
       validates_uniqueness_of :to_activity, :scope => :from_activity
       validate :validate_activities
@@ -35,10 +35,10 @@ module Setup
 
           svg << "<line id='tra-line-#{id_from}-#{id_to}' name='connector' x1='#{x1}' y1='#{y1}' x2='#{x2}' y2='#{y2}' stroke-width='3' stroke='#000' from='#{id_from}' to='#{id_to}'/>";
           svg << "<path id='tra-arrow-#{id_from}-#{id_to}' fill='#000' d='m0,0l-10,-5l5,5l-5,5l10,-5z' transform='translate(#{x2} #{y2}) rotate(#{a})'/>";
-          # if (is_default_transition && fromActivity instanceof WFActivitySplit && !(fromActivity instanceof WFActivitySplitParallel))
-          #   a+=90;
-          #   svg << "<path id='tra-default-{id_from}-{id_to}' d='m-5,-5l10,0z' transform='translate(x1 y1) rotate(a)' stroke-width='2' stroke='#000'/>\n";
-          # end
+
+          if (is_default_transition && fa.is_split_conditional?)
+            svg << "<path id='tra-default-#{id_from}-#{id_to}' d='m-5,-5l10,0z' transform='translate(#{x1+5} #{y1}) rotate(#{a + 90})' stroke-width='2' stroke='#000'/>";
+          end
         end
 
         svg

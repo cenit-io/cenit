@@ -24,6 +24,14 @@ module Setup
         gateway_parallel_svg_icon
       end
 
+      def is_split_conditional?
+        self.class.split_conditional_types.include?(self.type)
+      end
+
+      def self.split_conditional_types
+        %w(split_inclusive split_exclusive)
+      end
+
     end
   end
 end
