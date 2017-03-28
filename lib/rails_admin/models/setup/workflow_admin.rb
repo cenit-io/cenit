@@ -7,8 +7,9 @@ module RailsAdmin
         included do
           rails_admin do
             navigation_label 'Workflows'
-            weight 500
             object_label_method { :name }
+            label 'Complex Flows'
+            weight 500
 
             edit do
               field :name do
