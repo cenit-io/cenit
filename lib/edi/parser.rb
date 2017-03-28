@@ -131,7 +131,7 @@ module Edi
           (primary_fields = [])
         primary_fields = [primary_fields] unless primary_fields.is_a?(Array)
         primary_fields = primary_fields.collect(&:to_sym)
-        if primary_fields.empty?
+        if primary_fields.empty? && json.is_a?(Hash)
           primary_fields << ((json.key?('_id') || json.key?(:_id)) ? :_id : :id)
         end
         unless record ||= new_record
