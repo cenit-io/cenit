@@ -151,7 +151,7 @@ module Setup
           r = reflect_on_association(property)
           next unless (items = pull_data[r.name.to_s])
           hash[r.name] = items.collect do |item|
-            r.klass.data_type.new_from_json(item).share_hash
+            r.klass.data_type.new_from_json(item, add_only: true).share_hash
           end
         end
       else
