@@ -2,6 +2,24 @@ module Setup
   module HashField
     extend ActiveSupport::Concern
 
+    included do
+      before_save do
+        check_before_save &&
+          self.class.hash_fields.each do |field|
+            if (value = attributes[field]).is_a?(Hash)
+              attributes[field] = value = value.to_json
+            end
+            if (changed_value = changed_attributes[field]) &&
+              (changed_value.is_a?(String) || (changed_value = changed_value.to_json)) &&
+              value == changed_value
+              changed_attributes.delete(field)
+            else
+              changed_attributes[field] = changed_value
+            end
+          end && errors.blank?
+      end
+    end
+
     def check_before_save
       errors.blank?
     end
@@ -52,22 +70,6 @@ module Setup
         field_names.each do |field_name|
           field field_name, default: {}
           local_hash_fields << field_name
-        end
-
-        before_save do
-          check_before_save &&
-            self.class.hash_fields.each do |field|
-              if (value = attributes[field]).is_a?(Hash)
-                attributes[field] = value = value.to_json
-              end
-              if (changed_value = changed_attributes[field]) &&
-                (changed_value.is_a?(String) || (changed_value = changed_value.to_json)) &&
-                value == changed_value
-                changed_attributes.delete(field)
-              else
-                changed_attributes[field] = changed_value
-              end
-            end && errors.blank?
         end
       end
 
