@@ -142,6 +142,7 @@ module RailsAdmin
 
             if abstract_model.model == ::Setup::CrossSharedCollection
               field :pull_parameters
+              field :pull_asynchronous
               field :pull_count do
                 visible do
                   User.current.super_admin? &&
