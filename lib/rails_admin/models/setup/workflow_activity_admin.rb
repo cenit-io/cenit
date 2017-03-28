@@ -27,8 +27,11 @@ module RailsAdmin
                 visible do
                   !bindings[:object].new_record?
                 end
-                formatted_value do |value|
-                  "<div>#{bindings[:object].type.humanize}</div><div>#{bindings[:object].icon}</div>".html_safe
+                formatted_value do
+                  bindings[:view].render partial: '/rails_admin/workflow/activity_icon', locals: {
+                    type: bindings[:object].type.humanize,
+                    icon: bindings[:object].icon
+                  }
                 end
               end
               field :description do

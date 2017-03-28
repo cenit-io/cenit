@@ -1,0 +1,27 @@
+#edit_setup_workflow {
+
+  .icon_field {
+    .activity-icon {
+      div {
+        display: table-cell;
+        vertical-align: top;
+
+        &.type {
+          padding-top: 8px;
+        }
+      }
+    }
+
+    label {
+      padding-top: 14px;
+    }
+
+  }
+
+  .icon_field, .diagram_field {
+    .help-block {
+      display: none;
+    }
+  }
+
+}
