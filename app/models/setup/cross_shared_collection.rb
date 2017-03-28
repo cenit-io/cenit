@@ -67,7 +67,7 @@ module Setup
     default_scope -> { desc(:pull_count) }
 
     def installed?
-      installed.present?
+      installed && persisted?
     end
 
     def shared?
@@ -77,9 +77,9 @@ module Setup
     def hash_attribute_read(name, value)
       case name
       when 'data'
-        installed ? generate_data : value
+        installed? ? generate_data : value
       when 'pull_data'
-        installed ? value : data
+        installed? ? value : data
       else
         value
       end
@@ -91,7 +91,10 @@ module Setup
         check_dependencies &&
         validates_pull_parameters &&
         begin
-          self.data = {} if installed
+          if installed
+            self.pull_data = data
+            self.data = {}
+          end
           true
         end
     end
