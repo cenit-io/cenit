@@ -27,7 +27,7 @@ module Setup
         end
       if json.is_a?(Hash)
         if (swagger_version = json['swagger'])
-          if swagger_version == '2.0'
+          if swagger_version.to_s.to_f == '2.0'
             if title.blank? && (info = json['info']) && (title = info['title'].to_s.strip).present?
               if (version = info['version'].to_s.strip).present?
                 title = "#{title} API #{version}"
