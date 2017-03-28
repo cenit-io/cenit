@@ -13,37 +13,33 @@ module RailsAdmin
 
             edit do
               field :name do
+                read_only { bindings[:object].is_read_only? }
                 required true
               end
               field :description do
+                read_only { bindings[:object].is_read_only? }
                 required true
               end
               field :valid_from do
+                read_only { bindings[:object].is_read_only? }
                 required true
               end
               field :valid_to do
+                read_only { bindings[:object].is_read_only? }
                 required true
               end
               field :status, :enum do
                 required true
-                visible do
-                  !bindings[:object].new_record?
-                end
+                visible { !bindings[:object].new_record? }
               end
               field :activities do
                 required true
-                visible do
-                  !bindings[:object].new_record?
-                end
+                visible { !bindings[:object].new_record? && !bindings[:object].is_read_only? }
               end
               field :diagram do
                 read_only true
-                visible do
-                  !bindings[:object].new_record?
-                end
-                formatted_value do
-                  bindings[:object].to_svg.html_safe
-                end
+                visible { !bindings[:object].new_record? }
+                formatted_value { bindings[:object].to_svg.html_safe }
               end
             end
 
@@ -62,9 +58,7 @@ module RailsAdmin
               field :updated_at
               field :status
               field :diagram do
-                formatted_value do
-                  bindings[:object].to_svg.html_safe
-                end
+                formatted_value { bindings[:object].to_svg.html_safe }
               end
             end
 

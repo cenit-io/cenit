@@ -96,6 +96,10 @@ module Setup
       svg << "</svg>"
     end
 
+    def is_read_only?
+      status != :under_construction
+    end
+
     private
 
     def create_default_activities

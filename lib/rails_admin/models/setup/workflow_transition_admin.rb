@@ -11,7 +11,6 @@ module RailsAdmin
             object_label_method { :name }
 
             edit do
-              field :description
               field :to_activity do
                 required true
                 inline_add false
@@ -25,9 +24,10 @@ module RailsAdmin
               end
               field :is_default_transition do
                 visible do
-                  bindings[:object].from_activity.is_split_conditional?
+                  !bindings[:object].new_record? && bindings[:object].from_activity.is_split_conditional?
                 end
               end
+              field :description
             end
 
           end

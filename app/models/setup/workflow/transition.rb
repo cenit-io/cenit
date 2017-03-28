@@ -14,7 +14,7 @@ module Setup
       validate :validate_activities
 
       def name
-        "#{from_activity.try(:name) || '...'} => #{to_activity.try(:name) || '...'}"
+        "#{from_activity.try(:name) || '...'} &rArr; #{to_activity.try(:name) || '...'}"
       end
 
       def to_svg
