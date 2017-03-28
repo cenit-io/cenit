@@ -65,7 +65,7 @@ module Setup
 
       def next_activity_id=(id)
         if has_simple_outbound? && id != next_activity_id
-          self.transitions = [Workflow::Transition.new(:to_activity_id => id)]
+          self.transitions = id.to_s.empty? ? [] : [Workflow::Transition.new(:to_activity_id => id)]
         end
       end
 
@@ -78,15 +78,23 @@ module Setup
       def set_name
         if new_record?
           prefix = self.type.split('_').map(&:first).join.upcase
-          last_name = workflow.activities.select { |a| !a.new_record? }.map(&:name).sort.last
-          last_index = (last_name || "#{prefix}0").gsub(/[^\d]+/, '').to_i
-          self.name = "#{prefix}#{last_index + 1}"
+          self.name = "#{prefix}#{self.class.last_index(workflow, true)}"
         end
       end
 
       class << self
         def types
           @type
+        end
+
+        def last_index(workflow, increase=false)
+          @last_index ||= {}
+          @last_index[workflow.id]
+          @last_index[workflow.id] ||= begin
+            workflow.activities.select { |a| !a.new_record? }.map { |a| a.name.gsub(/[^\d]+/, '').to_i }.sort.last || 0
+          end
+          @last_index[workflow.id] += 1 if increase
+          @last_index[workflow.id]
         end
 
         def register(type, setting)

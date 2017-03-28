@@ -23,20 +23,23 @@ module Setup
         fa = from_activity
         ta = to_activity
 
-        id_from = "act-#{fa.id}-#{fa.type}"
-        id_to = "act-#{ta.id}-#{ta.type}"
+        if (fa && ta)
 
-        x1, y1, x2, y2 = fa.closest_points(fa.connection_points, ta.connection_points)
+          id_from = "act-#{fa.id}-#{fa.type}"
+          id_to = "act-#{ta.id}-#{ta.type}"
 
-        a = (x1 == x2) ? ((y1 > y2) ? -90 : 90) : Math.atan((y2 - y1) / (x2 - x1)) * 180 / Math::PI
-        a = 180 + a if (x1 > x2)
+          x1, y1, x2, y2 = fa.closest_points(fa.connection_points, ta.connection_points)
 
-        svg << "<line id='tra-line-#{id_from}-#{id_to}' name='connector' x1='#{x1}' y1='#{y1}' x2='#{x2}' y2='#{y2}' stroke-width='3' stroke='#000' from='#{id_from}' to='#{id_to}'/>";
-        svg << "<path id='tra-arrow-#{id_from}-#{id_to}' fill='#000' d='m0,0l-10,-5l5,5l-5,5l10,-5z' transform='translate(#{x2} #{y2}) rotate(#{a})'/>";
-        # if (is_default_transition && fromActivity instanceof WFActivitySplit && !(fromActivity instanceof WFActivitySplitParallel))
-        #   a+=90;
-        #   svg << "<path id='tra-default-{id_from}-{id_to}' d='m-5,-5l10,0z' transform='translate(x1 y1) rotate(a)' stroke-width='2' stroke='#000'/>\n";
-        # end
+          a = (x1 == x2) ? ((y1 > y2) ? -90 : 90) : Math.atan((y2 - y1) / (x2 - x1)) * 180 / Math::PI
+          a = 180 + a if (x1 > x2)
+
+          svg << "<line id='tra-line-#{id_from}-#{id_to}' name='connector' x1='#{x1}' y1='#{y1}' x2='#{x2}' y2='#{y2}' stroke-width='3' stroke='#000' from='#{id_from}' to='#{id_to}'/>";
+          svg << "<path id='tra-arrow-#{id_from}-#{id_to}' fill='#000' d='m0,0l-10,-5l5,5l-5,5l10,-5z' transform='translate(#{x2} #{y2}) rotate(#{a})'/>";
+          # if (is_default_transition && fromActivity instanceof WFActivitySplit && !(fromActivity instanceof WFActivitySplitParallel))
+          #   a+=90;
+          #   svg << "<path id='tra-default-{id_from}-{id_to}' d='m-5,-5l10,0z' transform='translate(x1 y1) rotate(a)' stroke-width='2' stroke='#000'/>\n";
+          # end
+        end
 
         svg
       end
