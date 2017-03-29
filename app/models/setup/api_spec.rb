@@ -27,7 +27,7 @@ module Setup
         end
       if json.is_a?(Hash)
         if (swagger_version = json['swagger'])
-          if swagger_version == '2.0'
+          if swagger_version.to_s.to_f == 2.0
             if title.blank? && (info = json['info']) && (title = info['title'].to_s.strip).present?
               if (version = info['version'].to_s.strip).present?
                 title = "#{title} API #{version}"
@@ -63,13 +63,14 @@ module Setup
           paths = spec['paths'] || {}
         ].each do |schema_container|
           schema_container.each_deep_pair do |hash, key, value|
-            next unless key == '$ref' && !(value.is_a? Hash)
-            if value.start_with?(prefix = '#/definitions/') || value.start_with?(prefix = '#/parameters/')
-              hash[key] = value.from(prefix.length)
-            elsif value.start_with?('#/')
-              hash[key] = value.from(2)
-            else
-              fail "Reference #{value} is not valid"
+            if key == '$ref' && !(value.is_a? Hash)
+              if value.start_with?(prefix = '#/definitions/') || value.start_with?(prefix = '#/parameters/')
+                hash[key] = value.from(prefix.length)
+              elsif value.start_with?('#/')
+                hash[key] = value.from(2)
+              else
+                fail "Reference #{value} is not valid"
+              end
             end
             true
           end if schema_container
@@ -530,7 +531,7 @@ module Setup
       def identificable?(_name, schema)
         schema['type'] == 'object' && (properties = schema['properties']) && properties.key?('id')
       end
-      
+
     end
   end
 end

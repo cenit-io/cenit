@@ -15,7 +15,7 @@ module Setup
                             :shared_version,
                             :authors,
                             :summary,
-                            :category,
+                            :categories,
                             :pull_parameters,
                             :dependencies,
                             :readme,
@@ -23,7 +23,8 @@ module Setup
                             :pull_data,
                             :data,
                             :swagger_spec,
-                            *COLLECTING_PROPERTIES).referenced_by(:name, :shared_version)
+                            *COLLECTING_PROPERTIES).embedding(:categories)
+    build_in_data_type.referenced_by(:name, :shared_version)
 
     deny :new, :translator_update, :convert, :send_to_flow, :copy, :delete_all
 
@@ -66,7 +67,7 @@ module Setup
     default_scope -> { desc(:pull_count) }
 
     def installed?
-      installed.present?
+      installed && persisted?
     end
 
     def shared?
@@ -76,9 +77,9 @@ module Setup
     def hash_attribute_read(name, value)
       case name
       when 'data'
-        installed ? generate_data : value
+        installed? ? generate_data : value
       when 'pull_data'
-        installed ? value : data
+        installed? ? value : data
       else
         value
       end
@@ -90,7 +91,10 @@ module Setup
         check_dependencies &&
         validates_pull_parameters &&
         begin
-          self.data = {} if installed
+          if installed
+            self.pull_data = data
+            self.data = {}
+          end
           true
         end
     end
@@ -141,8 +145,18 @@ module Setup
     end
 
     def generate_data
-      hash = collecting_data
-      hash = pull_data.merge(hash)
+      hash = {}
+      if installed?
+        COLLECTING_PROPERTIES.each do |property|
+          r = reflect_on_association(property)
+          next unless (items = pull_data[r.name.to_s])
+          hash[r.name] = items.collect do |item|
+            r.klass.data_type.new_from_json(item, add_only: true).share_hash
+          end
+        end
+      else
+        hash = collecting_data
+      end
       hash.delete('readme')
       clean_ids(hash)
     end
@@ -256,8 +270,8 @@ module Setup
 
     def method_missing(symbol, *args)
       if (match = /\Adata_(.+)\Z/.match(symbol.to_s)) &&
-         COLLECTING_PROPERTIES.include?(relation_name = match[1].to_sym) &&
-         ((args.length == 0 && (options = {})) || args.length == 1 && (options = args[0]).is_a?(Hash))
+        COLLECTING_PROPERTIES.include?(relation_name = match[1].to_sym) &&
+        ((args.length == 0 && (options = {})) || args.length == 1 && (options = args[0]).is_a?(Hash))
         if (items = send(relation_name)).present?
           items
         else
@@ -301,6 +315,6 @@ module Setup
         value
       end
     end
-    
+
   end
 end

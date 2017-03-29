@@ -75,10 +75,17 @@ test:
         max_retries: 1
         retry_interval: 0
 production:
-  # uri: <%= ENV['MONGOHQ_URL'] %>
   clients:
     default:
-      database: <%= ENV['DB_PROD'] || 'cenit_prod' %>
-      hosts:
-        - localhost:27017
+     # The standard MongoDB connection URI allows for easy
+     # replica set connection setup.
+     # Use environment variables or a config file to keep your
+     # credentials safe e.g. <%= ENV['MONGODB_URI'] %>.
+     uri: <%= ENV['MONGODB_URI'] %>
 
+     options:
+       # The default timeout is 5, which is the time in seconds
+       # for a connection to time out.
+       # We recommend 15 because it allows for plenty of time
+       # in most operating environments.
+       connect_timeout: 15

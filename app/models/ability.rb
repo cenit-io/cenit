@@ -14,6 +14,8 @@ class Ability
 
       can [:show, :edit], User, id: user.id
 
+      root_actions = RailsAdmin::Config::Actions.all(:root).collect(&:authorization_key)
+
       if user.super_admin?
         can :manage,
             [
@@ -46,6 +48,8 @@ class Ability
         can [:simple_cross, :reinstall], Setup::CrossSharedCollection, installed: true
         can :simple_cross, UNCONDITIONAL_ADMIN_CROSSING_MODELS
       else
+        root_actions.delete(:remote_shared_collection)
+
         cannot :access, [Setup::SharedName, Setup::CrossSharedName, Setup::DelayedMessage, Setup::SystemNotification]
         cannot :destroy, [Setup::SharedCollection, Setup::Storage]
 
@@ -62,13 +66,13 @@ class Ability
         can :simple_cross, CROSSING_MODELS_WITH_ORIGIN, :origin.in => [:default, :owner]
       end
 
+      can root_actions
+
       can :destroy, Setup::Execution, :status.in => Setup::Task::FINISHED_STATUS
 
       can :destroy, Setup::Task,
           :status.in => Setup::Task::NON_ACTIVE_STATUS,
           :scheduler_id.in => Setup::Scheduler.where(activated: false).collect(&:id) + [nil]
-
-      can RailsAdmin::Config::Actions.all(:root).collect(&:authorization_key)
 
       can :update, Setup::SharedCollection do |shared_collection|
         shared_collection.owners.include?(user)

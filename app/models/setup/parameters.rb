@@ -33,6 +33,7 @@ module Setup
           Setup::Parameter.attr_readonly inverse_name
         end
         build_in_data_type.embedding(*relation_names)
+        build_in_data_type.exclusive_referencing(*relation_names)
         accepts_nested_attributes_for *relation_names, allow_destroy: true
         shared_configurable *relation_names if include?(Setup::SharedConfigurable)
         before_save do

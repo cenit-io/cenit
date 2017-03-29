@@ -16,7 +16,7 @@ module Setup
         unless collection_data.present?
           self.collection_data = api.cenit_collection_hash(task: self)
         end
-        @shared_collection = Setup::CrossSharedCollection.new(pull_data: collection_data)
+        @shared_collection = Setup::CrossSharedCollection.new(data: collection_data)
         %w(name title readme).each { |key| @shared_collection[key] = collection_data[key] }
       end
       @shared_collection

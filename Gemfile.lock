@@ -1,6 +1,6 @@
 GIT
   remote: https://github.com/cenit-io/cenit-config.git
-  revision: 57c90cbde2cb550d7b8d73e45c3ce37929cf96b6
+  revision: 431cb31e44e9d027d771df7a93884929bdc458b6
   specs:
     cenit-config (0.0.1)
 
@@ -15,7 +15,7 @@ GIT
 
 GIT
   remote: https://github.com/cenit-io/cenit-oauth.git
-  revision: 77a8fa79fa5136edbc43269b93e750105b0500b9
+  revision: e6af373252504b51becacf4ff4bfbfab5e21ece9
   specs:
     cenit-oauth (0.0.1)
       cenit-token
@@ -38,7 +38,7 @@ GIT
 
 GIT
   remote: https://github.com/cenit-io/cenit-token.git
-  revision: ecf26773bbb560cab822b1bf9102f367fea159ac
+  revision: a5a50d152b76f55c0abc7022262cee65ac8cf8c9
   specs:
     cenit-token (0.0.1)
       mongoid (>= 5.0.1)
@@ -53,9 +53,10 @@ GIT
 
 GIT
   remote: https://github.com/macarci/cross_origin.git
-  revision: a82d001eb0f98a206739727397242e6d5a9c097f
+  revision: 93882f984898f09e3b23a0cd1dea48e16dc21cfa
   specs:
     cross_origin (0.0.3)
+      mongoid (>= 5.0.1)
 
 GIT
   remote: https://github.com/openjaf/cenit_cmd.git
@@ -653,3 +654,9 @@ DEPENDENCIES
   wannabe_bool
   write_xlsx
   xmldsig
+
+RUBY VERSION
+   ruby 2.2.1p85
+
+BUNDLED WITH
+   1.14.6

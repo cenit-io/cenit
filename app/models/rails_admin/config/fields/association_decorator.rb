@@ -12,7 +12,8 @@ module RailsAdmin
           #Patch
           action = v.instance_variable_get(:@action)
           values, total = show_values(limit = 40)
-          if action.is_a?(RailsAdmin::Config::Actions::Show) && !v.instance_variable_get(:@showing)
+          if (action.is_a?(RailsAdmin::Config::Actions::Show) || action.is_a?(RailsAdmin::Config::Actions::RemoteSharedCollection)) &&
+             !v.instance_variable_get(:@showing)
             amc = RailsAdmin.config(association.klass)
             am = amc.abstract_model
             count = 0
@@ -85,10 +86,10 @@ module RailsAdmin
               amc = polymorphic? ? RailsAdmin.config(associated) : associated_model_config # perf optimization for non-polymorphic associations
               am = amc.abstract_model
               wording = associated.send(amc.object_label_method)
-              can_see = !am.embedded? && (show_action = v.action(:show, am, associated))
+              can_see = !am.embedded? && !associated.new_record? && (show_action = v.action(:show, am, associated))
               can_see ? v.link_to(wording, v.url_for(action: show_action.action_name, model_name: am.to_param, id: associated.id), class: 'pjax') : ERB::Util.html_escape(wording)
             end.to(max_associated_to_show-1).to_sentence.html_safe
-            if (count_associated > max_associated_to_show)
+            if count_associated > max_associated_to_show
               more_link = all_associated_link(values, am, "#{count_associated - max_associated_to_show} more")
               associated_links = associated_links + ' and '+more_link.html_safe
             end

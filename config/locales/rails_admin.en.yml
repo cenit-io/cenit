@@ -66,6 +66,7 @@ en:
       save_filter: 'Save Filter'
       and_that_is_all: "and that's all"
       found_menu_title: "Found "
+      no_description: "No description"
     actions:
       dashboard:
         title: "Dashboard"
@@ -487,6 +488,10 @@ en:
         breadcrumb: "State"
       shared_collection_index:
         menu: "Shared Collections"
+      remote_shared_collection:
+        title: "Remote Shared Collections"
+        menu: "Remote Shared Collections"
+        breadcrumb: "Remote Shared Collections"
       ecommerce_index:
         menu: " eCommerce Collections"
       clean_up:

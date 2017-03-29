@@ -73,6 +73,6 @@
         = link_to(t('admin.misc.add_tenant'), new_path(model_name: 'account'))
 
 %ul.nav.nav-tabs
-  = menu_for((@abstract_model ? (@object.try(:persisted?) ? :member : :collection) : :root), @abstract_model, @object, false, Cenit.max_tab_actions_count.to_i.abs)
+  = menu_for((@abstract_model ? (@object.try(:persisted?) ? :member : :collection) : :root), @abstract_model, @abstract_model && @object, false, Cenit.max_tab_actions_count.to_i.abs)
   = content_for :contextual_tabs
 = yield

@@ -33,9 +33,20 @@ An example of integration data flow (Fancy <=> Shipstation):
 * After the shipments are updated in Cenit, is trigger a Flow to send the tracking update to Fancy.
 
 
+## Your own server with Heroku 
 
-## Run your own Cenit
+### With the Heroku Button
+
 [![Deploy to Heroku](https://www.herokucdn.com/deploy/button.svg)](https://heroku.com/deploy)
+
+### Without It
+
+* Clone the repo and change directory to it
+* Log in with the Heroku Toolbelt and create an app: `heroku create`
+* Use the mLab addon: `heroku addons:create mongolab:sandbox`
+* Use the rabbitmq addon: `heroku addons:create rabbitmq-bigwig:pipkin`
+* Deploy it with: `git push heroku master`
+* Open in the browser: `heroku open`
 
 
 ## General Features
@@ -244,6 +255,109 @@ For RPM-based distributions like RedHat or CentOS, the RabbitMQ team provides an
 Note: The RabbitMQ packages that ship with Ubuntu versions earlier than 11.10 are outdated and will not work with
 Bunny 0.9.0 and later versions (you will need at least RabbitMQ v2.0 to use with this guide).
 ```
+
+## How to install on Ubuntu server 16.04
+
+### Update OS
+
+```
+sudo apt update
+sudo apt dist-upgrade
+sudo apt autoremove
+reboot
+```
+
+### Install additional required packages
+
+```
+sudo apt install mongodb rabbitmq-server zlib1g-dev build-essential libssl-dev libreadline-dev libyaml-dev libsqlite3-dev sqlite3 libxml2-dev libxslt1-dev libcurl4-openssl-dev python-software-properties libffi-dev nodejs git imagemagick libmagickwand-dev
+```
+
+### Install Ruby 2.2.1 with rbenv
+
+```
+git clone https://github.com/rbenv/rbenv.git ~/.rbenv
+echo 'export PATH="$HOME/.rbenv/bin:$PATH"' >> ~/.bashrc
+echo 'eval "$(rbenv init -)"' >> ~/.bashrc
+exec $SHELL
+git clone https://github.com/rbenv/ruby-build.git ~/.rbenv/plugins/ruby-build
+echo 'export PATH="$HOME/.rbenv/plugins/ruby-build/bin:$PATH"' >> ~/.bashrc
+exec $SHELL
+rbenv install 2.2.1
+rbenv global 2.2.1
+exec $SHELL
+```
+
+### Confirm Ruby version
+
+```
+ruby -v
+gem install bundler
+exec $SHELL
+```
+
+### Install Cenit
+
+```
+git clone https://github.com/cenit-io/cenit.git
+cd cenit
+git checkout -b develop origin/develop
+```
+
+Confirm repository branch `> *develop`
+
+```
+git branch
+```
+
+Update development branch
+
+```
+git pull origin develop
+```
+
+### Install Cenit requirements
+
+```
+bundle install
+```
+
+### Create Cenit admin user and run Cenit
+
+```
+exec $SHELL
+rake admin:create
+rails s -p 3000 -b # The IP address of Ubuntu machine
+```
+
+### Importing first cross collection on Cenit local:
+
+Once you have Cenit running in local you can start importing collections.
+
+First you need to create one translator that let you import all collections and data. So, go to Transformations/Parser and select New.
+
+Write a namespace and a name for it. In style select Ruby.
+
+In code write this:
+
+```Ruby
+if (parsed_data = JSON.parse(data)).is_a?(Array)
+  parsed_data.each { |item| target_data_type.create_from_json!(item) }
+else   
+  target_data_type.create_from_json!(parsed_data)
+end
+```
+
+Then save it.
+
+Now you can import collections using the translator you have already created.
+
+Example: Importing Basic collections
+
+1. Export Basic collection. In Cenit.io search Basic cross collection and select Export option. In translator select JSON Portable Exporter [Shared].
+
+2. Import Basic collection. In your cenit in local, go to Collections/Shared Collections/All and selectImport option. There select the translator you have just created and import the collection. You can see it on Collections/Shared Collections/All.
+
 
 Contributing
 ----------------------

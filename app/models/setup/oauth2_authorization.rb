@@ -12,7 +12,7 @@ module Setup
     field :refresh_token, type: String
     field :id_token, type: String
 
-    auth_template_parameters access_token: :access_token
+    auth_template_parameters access_token: ->(oauth2_auth) { oauth2_auth.fresh_access_token }
 
     def cancel
       self.id_token = nil
