@@ -35,7 +35,7 @@ en:
       present_and_change: Present & Change
     flash:
       processed: "%{name} %{action} have been processed"
-      click_here: "(click here for details)"
+      click_here: "click here for details"
     misc:
       log_out: "Sign out"
       terms: "Terms of service"
@@ -302,7 +302,7 @@ en:
         not_installed: "This collection is not installed"
         install: "Install"
         install_help: "The collection will be installed after pulled if checked"
-        not_installer: "You can not install these collection since you have not the installer role"
+        not_installer: "You can not install these collection because you do not have role 'installer'"
         doing: 'pull'
         skip_pull_review: "Skipp pull review"
         skip_pull_review_help: "The pull will procede without warning about changes if checked"
@@ -492,6 +492,17 @@ en:
         title: "Remote Shared Collections"
         menu: "Remote Shared Collections"
         breadcrumb: "Remote Shared Collections"
+        unable_id_retrieve: "Unable to retrieve %{model} with ID %{id}"
+        unable_host_retrieve: "Unable to retrieve %{model_plural} from %{host}"
+        error_creating_local: "Error creating local %{model}"
+        click_to_install: "click here to install"
+        successful_pull: "Successful pull of %{object_label}"
+        try_install: "You can now try to install %{object_label}"
+        pull_rename: "Pulled %{model} renamed to '%{new_name}' because '%{name}' exists"
+        already_at_host: "By the value of your 'homepage' configuration option it seems that you are already at %{host}."
+        configure_host_option: "Configure a different URL for your Cenit 'host' configuration option to access remote shared collections."
+        details: "Details"
+        go_back: "Go back"
       ecommerce_index:
         menu: " eCommerce Collections"
       clean_up:
