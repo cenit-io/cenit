@@ -532,10 +532,8 @@ en:
           unreachable_activity: "'%{name}' is unreachable"
       activity:
         errors:
-          start_event_already_exists: 'Only one start event is allowed'
-          start_event_already_exists_alternative: 'Use other start event type'
-          end_event_already_exists: 'Only one end event is allowed'
-          end_event_already_exists_alternative: 'Use a join gateway to transition to end event'
+          start_event_already_exists: 'Only one start event is allowed. You can use other start event type.'
+          end_event_already_exists: 'Only one end event is allowed. You mose use a join gateway to transition to end event.'
       workflow_transition:
         errors:
           transition_to_self: 'Invalid transition to self activity'

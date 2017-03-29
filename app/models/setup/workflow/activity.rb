@@ -87,12 +87,10 @@ module Setup
       def validate_type
         if type == :start_event && workflow.activities.where(:type => :start_event, :id => {'$ne' => id}).exists?
           errors.add(:type, I18n.t('admin.form.activity.errors.start_event_already_exists'))
-          errors.add(:type, I18n.t('admin.form.activity.errors.start_event_already_exists_alternative'))
         end
 
         if type == :end_event && workflow.activities.where(:type => :end_event, :id => {'$ne' => id}).exists?
           errors.add(:type, I18n.t('admin.form.activity.errors.end_event_already_exists'))
-          errors.add(:type, I18n.t('admin.form.activity.errors.end_event_already_exists_alternative'))
         end
       end
 
