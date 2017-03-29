@@ -525,6 +525,12 @@ en:
           do_not_have_end_event: "don't have end event"
           invalid_design: "can't be active if workflow design is invalid"
           unreachable_activity: "'%{name}' is unreachable"
+      activity:
+        errors:
+          start_event_already_exists: 'Only one start event is allowed'
+          start_event_already_exists_alternative: 'Use other start event type'
+          end_event_already_exists: 'Only one end event is allowed'
+          end_event_already_exists_alternative: 'Use a join gateway to transition to end event'
       workflow_transition:
         errors:
           transition_to_self: 'Invalid transition to self activity'

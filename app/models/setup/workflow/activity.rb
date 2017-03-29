@@ -7,7 +7,7 @@ module Setup
       ICON_COORD = { dx: 100, dy: 50, mx: 100, my: 100, w: 100, h: 50, m: 10 }
 
       field :name, type: String
-      field :type, type: String
+      field :type, type: Symbol
       field :description, type: String
       field :x_coordinate, type: Integer, default: 0
       field :y_coordinate, type: Integer, default: 0
@@ -18,7 +18,7 @@ module Setup
 
       accepts_nested_attributes_for :transitions, :allow_destroy => true
 
-      validates_uniqueness_of :type, :scope => :workflow, :if => proc { self.is_start_event? || self.is_end_event? }
+      validate :validate_type
 
       before_save :set_name
 
@@ -72,15 +72,27 @@ module Setup
       end
 
       def setting
-        self.class.types[self.type.to_sym]
+        self.class.types[self.type]
       end
 
       private
 
       def set_name
         if new_record?
-          prefix = self.type.split('_').map(&:first).join.upcase
+          prefix = self.type.to_s.split('_').map(&:first).join.upcase
           self.name = "#{prefix}#{self.class.last_index(workflow, true)}"
+        end
+      end
+
+      def validate_type
+        if type == :start_event && workflow.activities.where(:type => :start_event, :id => {'$ne' => id}).exists?
+          errors.add(:type, I18n.t('admin.form.activity.errors.start_event_already_exists'))
+          errors.add(:type, I18n.t('admin.form.activity.errors.start_event_already_exists_alternative'))
+        end
+
+        if type == :end_event && workflow.activities.where(:type => :end_event, :id => {'$ne' => id}).exists?
+          errors.add(:type, I18n.t('admin.form.activity.errors.end_event_already_exists'))
+          errors.add(:type, I18n.t('admin.form.activity.errors.end_event_already_exists_alternative'))
         end
       end
 

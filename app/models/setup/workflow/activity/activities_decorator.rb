@@ -17,7 +17,7 @@ module Setup
 
         svg = "<svg viewBox='0 0 #{vbw} #{vbh}' width='72' height='36' xmlns:xlink='http://www.w3.org/1999/xlink' xmlns='http://www.w3.org/2000/svg' xmlns:se='http://svg-edit.googlecode.com'>"
         svg << "<g transform='scale(1),translate(#{dx},#{dy})' style='stroke: black; fill: #FFFFFF;' transform='translate(2,2)'>"
-        svg << "<title>#{type.humanize} (#{name})</title>"
+        svg << "<title>#{type.to_s.humanize} (#{name})</title>"
         svg << to_svg
         svg << "</g>"
         svg << "</svg>"

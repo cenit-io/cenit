@@ -29,7 +29,7 @@ module Setup
       end
 
       def self.split_conditional_types
-        %w(split_inclusive split_exclusive)
+        [:split_inclusive, :split_exclusive]
       end
 
     end

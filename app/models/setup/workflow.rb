@@ -7,8 +7,10 @@ module Setup
     field :description, type: String
     field :valid_from, type: DateTime
     field :valid_to, type: DateTime
+    field :execution_mode, type: Symbol, :default => :asynchronous
     field :status, type: Symbol, :default => :under_construction
 
+    belongs_to :data_type, :class_name => DataType.name, :inverse_of => :workflows
     has_many :activities, :class_name => Activity.name, :inverse_of => :workflow
 
     accepts_nested_attributes_for :activities, :allow_destroy => true
@@ -22,12 +24,27 @@ module Setup
       activities.collect { |a| a.transitions }.flatten
     end
 
+    def start_events
+      activities.in(:type => Activity.start_event_types)
+    end
+
+    def end_events
+      activities.in(:type => Activity.end_event_types)
+    end
+
     def passable_activities
       activities.not_in(:type => Activity.start_event_types)
     end
 
     def activities_with_available_inbounds
       activities.select { |a| a.has_available_inbounds? }
+    end
+
+    def execution_mode_enum
+      [
+        ['Synchronous', :synchronous],
+        ['Asynchronous', :asynchronous]
+      ]
     end
 
     def status_enum
@@ -126,14 +143,12 @@ module Setup
       design_errors = false
 
       # Check presence of starting events.
-      start_events = activities.in(:type => Activity.start_event_types)
       unless start_events.exists?
         errors.add(:this_workflow, I18n.t('admin.form.workflow.errors.do_not_have_start_event'))
         design_errors = true
       end
 
       # Check presence of ending events.
-      end_events = activities.in(:type => Activity.end_event_types)
       unless end_events.exists?
         errors.add(:this_workflow, I18n.t('admin.form.workflow.errors.do_not_have_end_event'))
         design_errors = true

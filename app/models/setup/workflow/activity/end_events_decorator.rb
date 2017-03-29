@@ -26,7 +26,7 @@ module Setup
       end
 
       def self.end_event_types
-        %w(end_event terminate_event)
+        [:end_event, :terminate_event]
       end
 
     end

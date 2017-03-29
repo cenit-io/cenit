@@ -17,7 +17,7 @@ module Setup
       end
 
       def self.start_event_types
-        %w(start_event)
+        [:start_event]
       end
     end
   end

@@ -33,6 +33,8 @@ module Setup
     has_and_belongs_to_many :records_methods, class_name: Setup::Algorithm.to_s, inverse_of: nil
     has_and_belongs_to_many :data_type_methods, class_name: Setup::Algorithm.to_s, inverse_of: nil
 
+    has_many :workflows, :class_name => Setup::Workflow.name, :inverse_of => :data_type
+
     attr_readonly :name
 
     before_save :validates_configuration
@@ -159,6 +161,6 @@ module Setup
     def create_mongoff_model
       mongoff_model_class.for(data_type: self)
     end
-    
+
   end
 end

@@ -29,7 +29,7 @@ module RailsAdmin
                 end
                 formatted_value do
                   bindings[:view].render partial: '/rails_admin/workflow/activity_icon', locals: {
-                    type: bindings[:object].type.humanize,
+                    type: bindings[:object].type.to_s.humanize,
                     icon: bindings[:object].icon
                   }
                 end

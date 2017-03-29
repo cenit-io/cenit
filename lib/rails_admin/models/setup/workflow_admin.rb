@@ -16,6 +16,14 @@ module RailsAdmin
                 read_only { bindings[:object].is_read_only? }
                 required true
               end
+              field :data_type do
+                inline_edit false
+                read_only { bindings[:object].is_read_only? }
+                visible do
+                  w = bindings[:object]
+                  w.new_record? || !w.is_read_only? || !w.data_type.nil?
+                end
+              end
               field :description do
                 read_only { bindings[:object].is_read_only? }
                 required true
@@ -25,6 +33,10 @@ module RailsAdmin
                 required true
               end
               field :valid_to do
+                read_only { bindings[:object].is_read_only? }
+                required true
+              end
+              field :execution_mode, :enum do
                 read_only { bindings[:object].is_read_only? }
                 required true
               end
