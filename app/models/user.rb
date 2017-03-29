@@ -66,7 +66,11 @@ class User
   before_create do
     if self.class.empty?
       # The first User
-      roles << ::Role.find_or_create_by(name: :super_admin) unless roles.any? { |role| role.name.to_s == :super_admin.to_s }
+      %w(super_admin installer).each do |role_name|
+        unless roles.any? { |role| role.name.to_s == role_name }
+          roles << ::Role.find_or_create_by(name: role_name)
+        end
+      end
     end
     created_account = nil
     self.account ||= Account.current || (created_account = Account.create_with_owner(owner: self))
