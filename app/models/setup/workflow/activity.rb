@@ -22,6 +22,8 @@ module Setup
 
       before_save :set_name
 
+      default_scope -> { asc(:x_coordinate, :y_coordinate) }
+
       def type_enum
         self.class.types.map { |k, _| [k.to_s.humanize, k.to_s] }.to_h
       end
