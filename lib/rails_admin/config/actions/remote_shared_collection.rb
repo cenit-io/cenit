@@ -29,7 +29,7 @@ module RailsAdmin
             else
               @model_config = RailsAdmin.config(Setup::CrossSharedCollection)
               cenit_api_path = "#{Cenit.host}/api/v2/setup/cross_shared_collection"
-              fields = 'id,name,title,readme,shared_version,summary,categories,description,image,pull_count'
+              fields = 'id,name,title,shared_version,summary,categories,description,image,pull_count'
               parameters = {
                 installed: true,
                 page: params[:page] || 1,
@@ -92,7 +92,7 @@ module RailsAdmin
                   if response.code == 200
                     @objects = @response['cross_shared_collections']
                   else
-                    flash[:error] = t('admin.actions.remote_shared_collection.unable_host_retrieve', model_plutal: @model_config.label_plural, host: Cenit.host)
+                    flash[:error] = t('admin.actions.remote_shared_collection.unable_host_retrieve', model_plural: @model_config.label_plural, host: Cenit.host)
                     redirect_to dashboard_path
                   end
                 end
