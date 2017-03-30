@@ -40,6 +40,21 @@ module Mongoff
       properties_schemas.select { |_, schema| %w(integer number boolean string).include?(schema['type']) }
     end
 
+    def index_property?(property, schema = nil)
+      schema ||= properties_schemas[property]
+      %w(id _id).include?(property.to_s) ||
+        (schema && %w(integer number boolean string).include?(schema['type']))
+    end
+
+    def index_properties
+      properties = []
+      properties_schemas.each do |property, schema|
+        properties << property if index_property?(property, schema)
+        return properties if properties.length > 9
+      end
+      properties
+    end
+
     def unique_properties
       (@unique_properties ||= properties.select { |property| property_schema(property)['unique'] }).dup
     end

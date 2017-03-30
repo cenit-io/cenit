@@ -18,6 +18,15 @@ module Api::V2
       page = get_page
       res =
         if klass
+          @render_options[:only] =
+            if (only_option = @render_options[:only])
+              unless only_option.is_a?(Array)
+                only_option = only_option.to_s.split(',').collect(&:strip)
+              end
+              only_option.select { |property| klass.index_property?(property) }
+            else
+              klass.index_properties
+            end
           @items =
             if @criteria.present?
               select_items
