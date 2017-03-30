@@ -91,7 +91,7 @@ module RailsAdmin
       do_flash(:notice, t('admin.flash.processed', name: model_label, action: t("admin.actions.#{@action.key}.doing")) + ':', messages)
     end
 
-    def obj2msg(obj)
+    def obj2msg(obj, options = {})
       case obj
       when String, Symbol
         obj.to_s.to_title
@@ -99,8 +99,8 @@ module RailsAdmin
         amc = RailsAdmin.config(obj)
         am = amc.abstract_model
         wording = obj.send(amc.object_label_method)
-        if (show_action = view_context.action(:show, am, obj))
-          wording + ' ' + view_context.link_to(t('admin.flash.click_here'), view_context.url_for(action: show_action.action_name, model_name: am.to_param, id: obj.id), class: 'pjax')
+        if (show_action = view_context.action(options[:action] || :show, am, obj))
+          wording + ' ' + view_context.link_to("(#{options[:action_label] || t('admin.flash.click_here')})", view_context.url_for(action: show_action.action_name, model_name: am.to_param, id: obj.id), class: 'pjax')
         else
           wording
         end

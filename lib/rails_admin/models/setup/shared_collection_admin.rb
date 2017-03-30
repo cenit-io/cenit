@@ -14,7 +14,7 @@ module RailsAdmin
             navigation_label 'Collections'
             object_label_method { :versioned_name }
 
-            visible { Account.current_super_admin? }
+            visible false
 
             public_access true
             extra_associations do

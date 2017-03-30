@@ -17,6 +17,7 @@ module Setup
                             :summary,
                             :categories,
                             :pull_parameters,
+                            :pull_count,
                             :dependencies,
                             :readme,
                             :image,
@@ -290,6 +291,12 @@ module Setup
         end
       else
         super
+      end
+    end
+
+    class << self
+      def index_property?(property, schema = nil)
+        property.to_s.eql?('image') || super(property, schema)
       end
     end
 
