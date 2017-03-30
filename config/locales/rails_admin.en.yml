@@ -503,6 +503,7 @@ en:
         configure_host_option: "Configure a different URL for your Cenit 'host' configuration option to access remote shared collections."
         details: "Details"
         go_back: "Go back"
+        remote: "Remote"
       ecommerce_index:
         menu: " eCommerce Collections"
       clean_up:
