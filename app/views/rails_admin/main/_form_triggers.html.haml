@@ -12,7 +12,7 @@
   end
   puts "MODEL FIELD MAP #{model_fields}"
   puts "TRIGGERS #{triggers}"
-  update_field = "#{model_name = @abstract_model.to_s.parameterize.underscore}_#{@_controller.instance_variable_get(:@_update_field)}"
+  update_field = "#{model_name = @abstract_model.to_s.underscore.parameterize('_')}_#{@_controller.instance_variable_get(:@_update_field)}"
 
 .a{style: 'float:left'}
   %input{style: 'display: none', name: "#{model_name}[#{field.name}][_]"}
