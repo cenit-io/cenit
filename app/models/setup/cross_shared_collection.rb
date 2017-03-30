@@ -294,6 +294,12 @@ module Setup
       end
     end
 
+    class << self
+      def index_property?(property, schema = nil)
+        property.to_s.eql?('image') || super(property, schema)
+      end
+    end
+
     protected
 
     attr_accessor :skip_reinstall_callback
