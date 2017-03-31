@@ -101,8 +101,8 @@ module Setup
       applications.each do |app|
         app.application_parameters.each do |app_parameter|
           next unless (param_model = app.configuration_model.property_model(app_parameter.name)) &&
-                      (relation = collecting_models[param_model]) &&
-                      (items = app.configuration[app_parameter.name])
+            (relation = collecting_models[param_model]) &&
+            (items = app.configuration[app_parameter.name])
           items = [items] unless items.is_a?(Enumerable)
           items.each do |item|
             dependencies[relation.name] << item if scan_dependencies_on(item,
@@ -216,16 +216,13 @@ module Setup
                                                :has_many,
                                                :has_and_belongs_to_many).each do |relation|
         next if [User, Account].include?(relation.klass)
-        collecting_relation = opts[:collecting_models][relation.klass]
-        association = collecting_relation && opts[:dependencies][collecting_relation.name]
-        if relation.many?
-          record.send(relation.name).each do |dependency|
-            if association && association.exclude?(dependency)
-              association << dependency
-            end
-            scan_dependencies_on(dependency, opts)
-          end
-        elsif (dependency = record.send(relation.name))
+        dependencies = record.send(relation.name)
+        dependencies = [dependencies] unless relation.many?
+        dependencies.each do |dependency|
+          next unless dependency
+          collecting_relation = opts[:collecting_models]
+          collecting_relation = collecting_relation[collecting_relation.keys.detect { |model| model >= dependency.class }]
+          association = collecting_relation && opts[:dependencies][collecting_relation.name]
           if association && association.exclude?(dependency)
             association << dependency
           end
@@ -234,6 +231,6 @@ module Setup
       end
       true
     end
-    
+
   end
 end
