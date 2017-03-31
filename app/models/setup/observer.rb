@@ -8,8 +8,10 @@ module Setup
 
     build_in_data_type.referenced_by(:namespace, :name).excluding(:origin)
 
-    belongs_to :data_type, class_name: Setup::DataType.to_s, inverse_of: nil
-    belongs_to :trigger_evaluator, class_name: Setup::Algorithm.to_s, inverse_of: nil
+    belongs_to :data_type, :class_name => Setup::DataType.name, :inverse_of => :observers
+    belongs_to :trigger_evaluator, :class_name => Setup::Algorithm.name, :inverse_of => nil
+    has_and_belongs_to_many :foreign_notifications, :class_name => Setup::ForeignNotification.name, :inverse_of => :observers
+
     field :triggers, type: String
 
     before_validation :verify_triggers
@@ -90,7 +92,7 @@ module Setup
         end
       end
     end
-    
+
   end
 end
 

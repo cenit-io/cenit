@@ -1,6 +1,7 @@
 
 :ruby
   model_fields = []
+  model_name = @abstract_model.to_s.underscore.parameterize('_')
   if data_type = @_controller.instance_variable_get(:@_data_type)
     (model = data_type.create_mongoff_model).simple_properties_schemas.each do |property, schema|
       model_fields << [schema['title'] || property.titleize, property, (enum = schema['enum']) || [], enum ? 'enum' : model.type_symbol_for(schema).first]
@@ -10,9 +11,6 @@
   if (triggers = field.form_value).blank?
     triggers = '{}'
   end
-  puts "MODEL FIELD MAP #{model_fields}"
-  puts "TRIGGERS #{triggers}"
-  update_field = "#{model_name = @abstract_model.to_s.underscore.parameterize('_')}_#{@_controller.instance_variable_get(:@_update_field)}"
 
 .a{style: 'float:left'}
   %input{style: 'display: none', name: "#{model_name}[#{field.name}][_]"}
@@ -30,8 +28,7 @@
 %script
   var model_name = '#{model_name}'
   var model_field_name = '#{field.name}'
-  var update_field = '#{update_field}'
   var fields = #{model_fields.html_safe}
   var default_triggers = #{triggers.html_safe}
-  $("##{update_field}").trigger('change');
+  $.triggers.update_triggers_menu();
 
