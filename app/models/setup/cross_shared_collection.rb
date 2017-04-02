@@ -17,6 +17,7 @@ module Setup
                             :summary,
                             :categories,
                             :pull_parameters,
+                            :pull_asynchronous,
                             :pull_count,
                             :dependencies,
                             :readme,
