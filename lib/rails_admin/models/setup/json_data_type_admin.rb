@@ -72,6 +72,7 @@ module RailsAdmin
               field :title, &RailsAdmin::Config::Fields::Base::SHARED_READ_ONLY
               field :slug
               field :observers do
+                label 'Events'
                 visible { !bindings[:object].new_record? }
               end
               field :foreign_notifications do

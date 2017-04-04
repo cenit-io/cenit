@@ -55,8 +55,14 @@ module Setup
     class << self
       def lookup(obj_now, obj_before = nil)
         where(data_type: obj_now.orm_model.data_type).each do |e|
+          # Check triggers
           next unless e.triggers_apply_to?(obj_now, obj_before)
+          # Start flows
           Setup::Flow.where(active: true, event: e).each { |f| f.join_process(source_id: obj_now.id.to_s) }
+          # Start foreign notifications
+          e.foreign_notifications.where(active: true).each do |n|
+            Setup::ForeignNotificationExecution.process(foreign_notification_id: n.id)
+          end
         end
       end
     end

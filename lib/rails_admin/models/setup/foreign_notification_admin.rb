@@ -13,8 +13,10 @@ module RailsAdmin
             edit do
               field :data_type
               field :type
+              field :active
               field :setting
               field :observers do
+                label 'Events'
                 inline_add false
                 associated_collection_scope do
                   data_type = bindings[:object].data_type || bindings[:controller].object
