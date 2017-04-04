@@ -17,5 +17,9 @@ module Setup
       }
     end
 
+    def label
+      "#{type_enum.invert[type]}"
+    end
+
   end
 end

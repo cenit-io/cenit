@@ -18,7 +18,7 @@ module Setup
       end
       modified = nil
       hash.values.each do |conditions|
-        conditions.values.each do |condition|
+        conditions.each do |condition|
           modified = condition['o'] = condition.delete('v') if condition['o'].nil? && %w(_null _not_null _change).include?(condition['v'])
         end
       end
