@@ -1,4 +1,26 @@
+%a.reload_chart
+  ='Refresh'
+- data ||= []
+- controller ||= nil
+- acumulate ||= 'beginning_of_day'
+- data_field = (data_field || :date).to_sym
 - chart ||= 'column_chart'
-- data =  [[25, "1789-04-29"], [26, "1797-03-03"], [85, "1809-03-03"]]
+- calculation ||= 'count'
+- unless data.nil?
+  - params[:all] = true
+  - all_objects = controller.list_entries
+  - data = klass.data_by(all_objects,'credit',data_field,calculation, acumulate )[0][:data]
+  - chart = send(chart, data, library: {chart:{zoomType:'x',style: {overflow: 'visible'}}} )
+  - data = [['2017-10-4', 56], ['2017-09-2', 1],['2017-12-23', 99]]
+  -
+  .new_g
+    = chart
+  %script
+    jQuery(function($) {
+    $(".reload_chart").click(function (e) {
+    e.preventDefault();
+    var chart1 = Chartkick.charts["chart-1"]
+    chart1.updateData([#{raw data}])
+    });
+    });
 
-= send(chart, data, library: {chart:{zoomType:'x',style: {overflow: 'visible'}}} )

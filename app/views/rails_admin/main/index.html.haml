@@ -59,7 +59,8 @@
 - data_type = klass.try(:data_type)
 - if data_type.chart_rendering
   - available_chart = true
-  = render partial: 'cenit/chart', locals: {text: 'HI', klass: klass}
+  = render partial: 'cenit/chart', locals: {klass: klass, controller: @_controller}
+  = render 'chart'
 
 
 = content_for :contextual_tabs do

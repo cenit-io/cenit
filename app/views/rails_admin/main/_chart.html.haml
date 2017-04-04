@@ -23,6 +23,7 @@
     - elsif field.type == :date || field.type == :datetime
       - data_fields << field
 - if @met
+  - klass = @abstract_model.model_name.constantize
   - field = data_fields.first
   = content_for :graphics_area do
     = form_tag(index_path(params.except(*%w[page f query])), method: :get, id: 'graphics-form', class: "pjax-form form-inline") do
