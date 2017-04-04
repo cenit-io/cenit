@@ -6,8 +6,8 @@ module RailsAdmin
 
         included do
           rails_admin do
-            navigation_label 'Notifications'
             object_label_method { :label }
+            label 'Notification'
             weight 500
 
             edit do
@@ -15,6 +15,11 @@ module RailsAdmin
               field :type
               field :setting
               field :observers do
+                inline_add false
+                associated_collection_scope do
+                  data_type = bindings[:object].data_type || bindings[:controller].object
+                  Proc.new { |scope| scope.where(data_type_id: data_type.id) }
+                end
                 help 'To use a newly created observer in this session, you must first use the save and edit action.'
               end
             end

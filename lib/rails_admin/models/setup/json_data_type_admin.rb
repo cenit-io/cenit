@@ -75,6 +75,7 @@ module RailsAdmin
                 visible { !bindings[:object].new_record? }
               end
               field :foreign_notifications do
+                label 'Notifications'
                 visible { !bindings[:object].new_record? }
               end
               field :before_save_callbacks, &RailsAdmin::Config::Fields::Base::SHARED_READ_ONLY
