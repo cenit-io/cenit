@@ -45,12 +45,11 @@
           - users = recent_users
       %ul.list-inline.list-unstyled
         - users.each do |u|
-          - 1.upto(4) do
-            - url = u.picture_url(50)
-            - alt = (u.email.split('@'))[0]
-            - title = u.name.present? ? u.name : alt
-            %li
-              = image_tag url, alt: alt, title: title, class: 'img-circle', height: 50, width: 50
+          - url = u.picture_url(50)
+          - alt = (u.email.split('@'))[0]
+          - title = u.name.present? ? u.name : alt
+          %li
+            = image_tag url, alt: alt, title: title, class: 'img-circle', height: 50, width: 50
       - if current_user
         = pluralize(current_user.account.users.count, 'member')
       - else
