@@ -12,9 +12,9 @@ module RailsAdmin
 
             edit do
               field :data_type
-              field :type
-              field :active
-              field :setting
+              field :active, :boolean do
+                visible { !bindings[:object].new_record? }
+              end
               field :observers do
                 label 'Events'
                 inline_add false
@@ -22,7 +22,10 @@ module RailsAdmin
                   data_type = bindings[:object].data_type || bindings[:controller].object
                   Proc.new { |scope| scope.where(data_type_id: data_type.id) }
                 end
-                help 'To use a newly created observer in this session, you must first use the save and edit action.'
+                help 'To use a newly created observer in this session or set setting values, you must first use the save and edit action.'
+              end
+              field :setting do
+                required true
               end
             end
 

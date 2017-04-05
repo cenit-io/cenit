@@ -18,3 +18,10 @@
     z-index: 2 !important;
   }
 }
+
+.setting_field {
+  .tab-content .tab-pane fieldset {
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+}
