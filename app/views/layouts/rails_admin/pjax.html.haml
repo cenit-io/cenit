@@ -45,16 +45,20 @@
           - users = recent_users
       %ul.list-inline.list-unstyled
         - users.each do |u|
-          - url = u.picture_url(50)
-          - alt = (u.email.split('@'))[0]
-          - title = u.name.present? ? u.name : alt
-          %li
-            = image_tag url, alt: alt, title: title, class: 'img-circle', height: 50, width: 50
+          - 1.upto(4) do
+            - url = u.picture_url(50)
+            - alt = (u.email.split('@'))[0]
+            - title = u.name.present? ? u.name : alt
+            %li
+              = image_tag url, alt: alt, title: title, class: 'img-circle', height: 50, width: 50
       - if current_user
         = pluralize(current_user.account.users.count, 'member')
       - else
         %span.text-muted
           = t('admin.actions.dashboard.recent_users.more', count: (User.all.count/5 * 5))
+          = link_to 'Be in community', (ENV['SLACK_INVITATION'] || 'http://cenit-slack.herokuapp.com')
+          %iframe{ frameborder: "0", height: "20", src: "http://cenit-slack.herokuapp.com/badge.svg", width: "100", :style => 'margin-left: 5px' }
+
 
     .col-md-4.col-lg-2.tenants.hidden-xs{style:'padding-left: 30px;'}
       %h4.text-muted{style:'margin-top: 10px;'}
