@@ -1,10 +1,6 @@
 :ruby
   shared_collection ||= nil
   pull_request ||= {}
-  bulk_ids ||= nil
-  object_id ||= nil
-  options ||= {}
-  options_key ||= {}
   pull_anyway ||= false
   pull_review_option ||= false
 
@@ -19,34 +15,23 @@
   before_form_partials = [before_form_partials] unless before_form_partials.is_a?(Enumerable)
   before_form_partials = before_form_partials.collect(&:to_s)
 
-%form{method: 'post', class: 'form-horizontal denser'}
+  if shared_collection && shared_collection.pull_parameters?
+    @model_config = RailsAdmin::Config.model(shared_collection.pull_model)
+    @model_config.register_instance_option(:discard_submit_buttons) { true }
+    @form_object = shared_collection.pull_model.new_from_json(pull_parameters)
+    missing_parameters.each do |missing_parameter|
+      @form_object.errors.add(:"#{missing_parameter}", 'is missing')
+    end if params[:_pull]
+  end
+
+= rails_admin_form_for @form_object || @object, url: url_for(action: @action.action_name), html: { class: 'form-horizontal denser', data: { title: @page_name }} do |form|
   - before_form_partials.each do |partial|
     = render partial: partial
-  - if bulk_ids
-    %select{name: 'new_bulk_ids[]', multiple: 'multiple', style: 'display:none'}
-      - bulk_ids.each do |id|
-        %option{value: id, selected: 'selected'}
-  - if object_id
-    %input{name: 'object_id', value: object_id, type: 'hidden'}
-  - if options_key
-    - options.each do |key, value|
-      %input{name: "#{options_key}[#{key}]", value: value.to_s, type: 'hidden'}
   - uptodate = true
-  - if shared_collection && shared_collection.pull_parameters.present?
+  - if @form_object
     - uptodate = false
     %h4= t('admin.actions.pull.fill_parameters')
-    .fieldset
-      - shared_collection.pull_parameters.each do |pull_parameter|
-        .control-group{class: (error = missing_parameters.include?(pull_parameter.id.to_s)) ? 'error' : ''}
-          %label.col-sm-2.control-label
-            = pull_parameter.label
-          .col-sm-10.controls
-            %input{type: 'text', size: 50, name: "pull_parameters[#{pull_parameter.id}]", value:  pull_parameters[pull_parameter.id.to_s], required: 'required'}
-            - if error
-              %span{class: 'help-inline'}
-                = "can't be blank"
-            %p.help-block
-              = "Required. #{pull_parameter.try(:description)}"
+    = form.generate action: :create
   - if pull_review_option
     - uptodate = false
     .fieldset

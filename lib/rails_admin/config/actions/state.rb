@@ -70,8 +70,13 @@ module RailsAdmin
           def post_base_pull(controller, params, task)
             if params[:_pull]
               task.message[:install] = params[:install].to_b if task.ask_for_install?
-              unless (pull_parameters = params[:pull_parameters]).is_a?(Hash)
+              if (pull_parameters = params[:pull_parameters]).is_a?(Hash)
+                pull_parameters.permit!
+              else
                 pull_parameters = {}
+              end
+              if (shared_collection = task.source_shared_collection)
+                pull_parameters = shared_collection.pull_model.new(pull_parameters).share_hash
               end
               task.message[:pull_parameters] = pull_parameters
               task.retry

@@ -306,15 +306,6 @@ en:
         doing: 'pull'
         skip_pull_review: "Skipp pull review"
         skip_pull_review_help: "The pull will procede without warning about changes if checked"
-      bulk_pull:
-        title: "Pulling Collections"
-        menu: "Pull"
-        breadcrumb: "Pull"
-        submit: "Pull"
-        done: "pulled"
-        bulk_link: "Pull selected %{model_label_plural}"
-        warn: "You are about to pull %{pull_size} collections"
-        warn_all: "You are about to pull all collections"
       retry_task:
         title: "Retry"
         menu: "Retry"

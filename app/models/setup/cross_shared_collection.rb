@@ -146,6 +146,37 @@ module Setup
       end
     end
 
+    def pull_model(name = 'pull_parameters')
+      @pull_model ||= Mongoff::Model.for(
+        data_type: self.class.data_type,
+        schema: pull_schema,
+        name: name,
+        cache: false
+      )
+    end
+
+    def pull_schema
+      schema =
+        {
+          type: 'object',
+          properties: properties = {},
+          required: required = []
+        }
+      each_pull_parameter do |p|
+        properties[p.id] = p.schema
+        required << p.id if p.required
+      end
+      schema.stringify_keys
+    end
+
+    def each_pull_parameter(&block)
+      pull_parameters.each { |p| block.call(p) }
+    end
+
+    def pull_parameters?
+      pull_parameters.present?
+    end
+
     def generate_data
       hash = {}
       if installed?

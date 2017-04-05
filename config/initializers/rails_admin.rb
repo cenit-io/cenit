@@ -43,7 +43,6 @@ require 'account'
   RailsAdmin::Config::Actions::Regist,
   RailsAdmin::Config::Actions::SharedCollectionIndex,
   RailsAdmin::Config::Actions::EcommerceIndex,
-  RailsAdmin::Config::Actions::BulkPull,
   RailsAdmin::Config::Actions::CleanUp,
   RailsAdmin::Config::Actions::ShowRecords,
   RailsAdmin::Config::Actions::RunScript,
@@ -158,7 +157,6 @@ RailsAdmin.config do |config|
     bulk_cross
     build_gem
     pull
-    bulk_pull
     push
     download_file
     process_flow

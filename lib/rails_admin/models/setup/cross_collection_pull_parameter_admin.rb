@@ -11,7 +11,7 @@ module RailsAdmin
             configure :properties_locations do
               label 'Properties'
             end
-            fields :label, :description, :properties_locations
+            fields :label, :type, :many, :required, :description, :properties_locations
           end
         end
 

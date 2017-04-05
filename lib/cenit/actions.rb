@@ -8,14 +8,10 @@ module Cenit
 
         pull_parameters = options[:pull_parameters] || {}
         missing_parameters = []
-        shared_collection.pull_parameters.each do |pull_parameter|
-          unless pull_parameters[(param_id = pull_parameter.id.to_s)].present?
+        shared_collection.each_pull_parameter do |pull_parameter|
+          if pull_parameter.required? &&  !pull_parameters.key?(param_id = pull_parameter.id.to_s)
             missing_parameters << param_id
           end
-        end
-        if options[:auto_fill]
-          missing_parameters.each { |param_id| pull_parameters[param_id] = FFaker::Lorem.word }
-          missing_parameters.clear
         end
 
         new_records = Hash.new { |h, k| h[k] = [] }
