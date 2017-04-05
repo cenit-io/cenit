@@ -55,6 +55,9 @@
       - else
         %span.text-muted
           = t('admin.actions.dashboard.recent_users.more', count: (User.all.count/5 * 5))
+          = link_to 'Be in community', (ENV['SLACK_INVITATION'] || 'http://cenit-slack.herokuapp.com')
+          %iframe{ frameborder: "0", height: "20", src: "http://cenit-slack.herokuapp.com/badge.svg", width: "100", :style => 'margin-left: 5px' }
+
 
     .col-md-4.col-lg-2.tenants.hidden-xs{style:'padding-left: 30px;'}
       %h4.text-muted{style:'margin-top: 10px;'}
