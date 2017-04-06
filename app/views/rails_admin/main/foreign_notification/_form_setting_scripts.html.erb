@@ -1,0 +1,25 @@
+<script type="text/javascript">
+  $(document).ready(function () {
+    var prefixId = '<%= form.object_name.parameterize('_') %>',
+        items = {
+          send_email: ['email_to', 'email_subject', 'email_body'],
+          send_http_request: ['http_uri', 'http_method', 'http_params'],
+          send_sms: ['sms_to', 'sms_body']
+        };
+
+    Object.keys(items).forEach(function (ckBoxName) {
+      var ckBox = $('#{0}_{1}'.format(prefixId, ckBoxName))
+
+      ckBox.on('change', function (e) {
+        items[ckBoxName].forEach(function (fieldName) {
+          var $el = $('#{0}_{1}'.format(prefixId, fieldName));
+
+          $el.prop('disabled', $(this).prop('checked') == false);
+
+        }, this);
+      });
+
+      ckBox.change();
+    });
+  });
+</script>
