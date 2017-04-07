@@ -58,6 +58,7 @@ require 'account'
   RailsAdmin::Config::Actions::AlgorithmDependencies,
   RailsAdmin::Config::Actions::RestApi1,
   RailsAdmin::Config::Actions::RestApi2,
+  RailsAdmin::Config::Actions::ForeignNotifications,
   RailsAdmin::Config::Actions::LinkDataType,
   RailsAdmin::Config::Actions::ImportApiSpec,
   RailsAdmin::Config::Actions::RemoteSharedCollection
@@ -135,6 +136,7 @@ RailsAdmin.config do |config|
     new { except [Setup::Event, Setup::DataType, Setup::Authorization, Setup::BaseOauthProvider] }
     filters
     data_events
+    foreign_notifications
     flows
     import
     import_schema

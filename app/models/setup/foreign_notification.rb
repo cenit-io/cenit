@@ -14,7 +14,7 @@ module Setup
     after_create :set_default_setting
 
     def label
-      "n#{data_type.foreign_notifications.index(self)+1}"
+      "n#{data_type.foreign_notifications.index(self)+1}" if data_type
     end
 
     def send_message
