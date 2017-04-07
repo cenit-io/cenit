@@ -442,8 +442,18 @@ module RailsAdmin
           show_all_link =
             if category_count < model_count
               content_tag :li do
-                link_to index_path(model_name: node.abstract_model.to_param) do
+                link_to index_path(model_name: node.abstract_model.to_param), class: 'pjax' do
                   "<span class='nav-amount'>#{model_count}</span><span class='nav-caption'>Show All</span>".html_safe
+                end
+              end
+            else
+              ''
+            end
+          remote_shared_collection_link =
+            if (action = action(:remote_shared_collection)) && action.visible?
+              content_tag :li do
+                link_to remote_shared_collection_path, class: 'pjax' do
+                  "<span class='nav-caption'>#{t('admin.actions.remote_shared_collection.remote')}</span>".html_safe
                 end
               end
             else
@@ -457,8 +467,9 @@ module RailsAdmin
               </a>
             </div>
              <div id='shared-collapse' class='nav nav-pills nav-stacked panel-collapse collapse'>
+                #{remote_shared_collection_link}
                 #{show_all_link}
-          #{sub_links}
+                #{sub_links}
             </div>
             </div>)
 

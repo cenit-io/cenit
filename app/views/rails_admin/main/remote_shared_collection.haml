@@ -33,7 +33,7 @@
                   %span= t('admin.actions.dashboard.collections.no_categories')
               .versions
                 .col-xs-4.col-xs-offset-4
-                  =link_to "#{remote_shared_collection_path}/#{object['id']}/pull", class: 'pjax'  do
+                  =link_to "#{remote_shared_collection_path}/#{object['id']}?no_details=true", class: 'pjax' do
                     %i.fa.fa-arrow-down
                   - if object['pull_count'].to_i > 0
                     %span.pull-count
