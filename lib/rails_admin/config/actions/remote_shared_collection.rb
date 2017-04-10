@@ -35,7 +35,7 @@ module RailsAdmin
                 page: params[:page] || 1,
                 limit: @limit = 20
               }
-              pull = request.path.end_with?('/pull')
+              pull = request.path.end_with?('/pull') || params[:pull].to_b
               if (id = params[:id].presence)
                 cenit_api_path = "#{cenit_api_path}/#{id}"
                 fields = "#{fields},data" unless params[:no_details].to_b
