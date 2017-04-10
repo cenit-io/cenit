@@ -55,8 +55,8 @@ class Account
         while Account.where(owner_id: owner_id, name: n).exists?
           n = "#{owner.email} (#{c += 1})"
         end
-        self.name = n
       end
+      self.name = n
     else
       errors.add(:base, 'can not be created outside current user context')
     end
