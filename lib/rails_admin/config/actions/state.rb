@@ -18,7 +18,7 @@ module RailsAdmin
         end
 
         register_instance_option :http_methods do
-          [:get, :post]
+          [:get, :post, :patch]
         end
 
         register_instance_option :member do
@@ -61,17 +61,20 @@ module RailsAdmin
               locals[:before_form_partials] = :install_option
               locals[:pull_anyway] = User.current_installer?
             end
-            if task.source_shared_collection.persisted?
-              locals[:shared_collection] = task.source_shared_collection
-            end
+            locals[:shared_collection] = task.source_shared_collection
             controller.render :pull, locals: locals
           end
 
           def post_base_pull(controller, params, task)
             if params[:_pull]
               task.message[:install] = params[:install].to_b if task.ask_for_install?
-              unless (pull_parameters = params[:pull_parameters]).is_a?(Hash)
+              if (pull_parameters = params[:pull_parameters]).is_a?(Hash)
+                pull_parameters.permit!
+              else
                 pull_parameters = {}
+              end
+              if (shared_collection = task.source_shared_collection)
+                pull_parameters = shared_collection.pull_model.new(pull_parameters).share_hash
               end
               task.message[:pull_parameters] = pull_parameters
               task.retry
@@ -79,11 +82,19 @@ module RailsAdmin
             controller.redirect_to controller.rails_admin.show_path(model_name: task.class.to_s.underscore.gsub('/', '~'), id: task.id.to_s)
           end
 
+          def patch_base_pull(controller, params, task)
+            post_base_pull(controller, params, task)
+          end
+
           def get_pull_import(controller, params, task)
             get_base_pull(controller, params, task)
           end
 
           def post_pull_import(controller, params, task)
+            post_base_pull(controller, params, task)
+          end
+
+          def patch_pull_import(controller, params, task)
             post_base_pull(controller, params, task)
           end
 
@@ -95,11 +106,19 @@ module RailsAdmin
             post_base_pull(controller, params, task)
           end
 
+          def patch_shared_collection_pull(controller, params, task)
+            post_base_pull(controller, params, task)
+          end
+
           def get_api_pull(controller, params, task)
             get_base_pull(controller, params, task)
           end
 
           def post_api_pull(controller, params, task)
+            post_base_pull(controller, params, task)
+          end
+
+          def patch_api_pull(controller, params, task)
             post_base_pull(controller, params, task)
           end
         end

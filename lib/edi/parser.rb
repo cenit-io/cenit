@@ -137,10 +137,10 @@ module Edi
         unless record ||= new_record
           if model && model.modelable?
             if json.is_a?(Hash) &&
-              options[:ignore].none? { |ignored_field| primary_fields.include?(ignored_field) } &&
-              (criteria = json.select { |key, _| primary_fields.include?(key.to_sym) }).size == primary_fields.count
+               options[:ignore].none? { |ignored_field| primary_fields.include?(ignored_field) } &&
+               (criteria = Cenit::Utility.deep_remove(json.select { |key, _| primary_fields.include?(key.to_sym) }, '_reference')).size == primary_fields.count
               record = (container && (Cenit::Utility.find_record(criteria, container) || container.detect { |item| Cenit::Utility.match?(item, criteria) })) ||
-                ((container_schema && container_schema['exclusive']) ? nil : model.where(criteria).first)
+                ((container_schema && container_schema['exclusive']) ? nil : Cenit::Utility.find_record(criteria, model.all))
             end
             if record
               updating = true
@@ -206,10 +206,12 @@ module Edi
               when 'object'
                 next unless updating || !property_model.modelable? || record.send(property_name).nil?
                 if (property_value = json[name])
-                  if property_value.is_a?(Hash) && property_value['_reference']
+                  if property_value.is_a?(Hash) && property_value['_reference'] && ((property_value[:id].nil? && property_value[:_id].nil?) || options[:skip_refs_binding])
                     record.send("#{property_name}=", nil)
                     property_value = Cenit::Utility.deep_remove(property_value, '_reference')
-                    record.instance_variable_set(:@_references, references = {}) unless (references = record.instance_variable_get(:@_references))
+                    unless (references = record.instance_variable_get(:@_references))
+                      record.instance_variable_set(:@_references, references = {})
+                    end
                     references[property_name] = { model: property_model, criteria: property_value }
                   else
                     record.send("#{property_name}=", do_parse_json(data_type, property_model, property_value, options, property_schema))
@@ -264,7 +266,7 @@ module Edi
                 property_model = model.property_model(content_property)
                 persist = property_model && property_model.persistable?
                 json.each do |sub_value|
-                  if persist && sub_value['_reference']
+                  if persist && sub_value['_reference'] && ((sub_value[:id].nil? && sub_value[:_id].nil?) || options[:skip_refs_binding])
                     sub_value = Cenit::Utility.deep_remove(sub_value, '_reference')
                     unless Cenit::Utility.find_record(sub_value, association)
                       unless (references = record.instance_variable_get(:@_references))
