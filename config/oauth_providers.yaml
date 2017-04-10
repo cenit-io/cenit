@@ -19,7 +19,7 @@ https://api.login.yahoo.com/oauth2/request_auth:
   token_endpoint: https://api.login.yahoo.com/oauth2/get_token
   token_method: POST
   refresh_token_strategy: none
-  _type: Setup::Oauth2Provider
+  type: oauth1
 https://oauth.live.com/authorize:
   name: Microsoft
   response_type: code
