@@ -18,7 +18,7 @@ module RailsAdmin
         end
 
         register_instance_option :http_methods do
-          [:get, :post]
+          [:get, :post, :patch]
         end
 
         register_instance_option :member do
@@ -61,9 +61,7 @@ module RailsAdmin
               locals[:before_form_partials] = :install_option
               locals[:pull_anyway] = User.current_installer?
             end
-            if task.source_shared_collection.persisted?
-              locals[:shared_collection] = task.source_shared_collection
-            end
+            locals[:shared_collection] = task.source_shared_collection
             controller.render :pull, locals: locals
           end
 
@@ -84,11 +82,19 @@ module RailsAdmin
             controller.redirect_to controller.rails_admin.show_path(model_name: task.class.to_s.underscore.gsub('/', '~'), id: task.id.to_s)
           end
 
+          def patch_base_pull(controller, params, task)
+            post_base_pull(controller, params, task)
+          end
+
           def get_pull_import(controller, params, task)
             get_base_pull(controller, params, task)
           end
 
           def post_pull_import(controller, params, task)
+            post_base_pull(controller, params, task)
+          end
+
+          def patch_pull_import(controller, params, task)
             post_base_pull(controller, params, task)
           end
 
@@ -100,11 +106,19 @@ module RailsAdmin
             post_base_pull(controller, params, task)
           end
 
+          def patch_shared_collection_pull(controller, params, task)
+            post_base_pull(controller, params, task)
+          end
+
           def get_api_pull(controller, params, task)
             get_base_pull(controller, params, task)
           end
 
           def post_api_pull(controller, params, task)
+            post_base_pull(controller, params, task)
+          end
+
+          def patch_api_pull(controller, params, task)
             post_base_pull(controller, params, task)
           end
         end

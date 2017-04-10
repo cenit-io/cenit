@@ -6,10 +6,25 @@
 
   missing_parameters = pull_request[:missing_parameters] || []
   pull_parameters = pull_request[:pull_parameters] || {}
-  new_records = pull_request[:new_records] || []
+  new_records = pull_request[:new_records] || {}
   updated_records = pull_request[:updated_records] || []
   pull_data = pull_request[:pull_data] #TODO When records data included in collections
   limit ||= 10
+  new_records.values.each do |records|
+    records.each_with_index do |record, index|
+      break if index > limit
+      records[index] =
+        if (ns = record['namespace'])
+          "'#{ns} | #{record['name']}'"
+        elsif (resource = record['resource']) #Operations
+          "#{resource['name']} | #{record['method']}"
+        elsif (provider = record['provider']) #Remote Oauth Clients & Scopes
+          "#{provider['name']} | #{record['name']}"
+        else
+          record['name']
+        end
+    end
+  end
 
   before_form_partials ||= []
   before_form_partials = [before_form_partials] unless before_form_partials.is_a?(Enumerable)
@@ -51,7 +66,7 @@
             = key.titleize
           .col-sm-10.controls
             - a = []
-            - records.each { |record| next if a.length > limit; a << ((ns = record['namespace']) ? "'#{ns} | #{record['name']}'" : "'#{record['name']}'") }
+            - records.each { |record| break if a.length > limit; a << record }
             - a << "#{t('admin.actions.pull.another')} #{records.count - a.length}" if a.length < records.count
             = a.to_sentence.html_safe
             %p.help-block
@@ -80,7 +95,7 @@
   - if uptodate
     - if pull_request[:collection_discarded]
       %h4=  t('admin.actions.pull.nothing_to_pull')
-    - elsif shared_collection
+    - elsif shared_collection && shared_collection.persisted?
       - collection_link = link_to(shared_collection.name, rails_admin.show_path(model_name: Setup::Collection.to_s.underscore.gsub('/', '~'), id: shared_collection.name), class: 'pjax')
       - shared_collection_link = link_to(shared_collection.versioned_name, rails_admin.show_path(model_name: shared_collection.class.to_s.underscore.gsub('/', '~'), id: shared_collection.id), class: 'pjax')
       %h4=  t('admin.actions.pull.uptodate', collection: collection_link, shared_collection: shared_collection_link).html_safe
