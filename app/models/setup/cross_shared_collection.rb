@@ -94,7 +94,6 @@ module Setup
         validates_pull_parameters &&
         begin
           if installed
-            self.pull_data = data
             self.data = {}
           end
           true
@@ -171,20 +170,60 @@ module Setup
 
     def each_pull_parameter(&block)
       pull_parameters.each { |p| block.call(p) }
+      config_pull_parameters.each { |p| block.call(p) }
+    end
+
+    def config_pull_parameters
+      unless @config_pull_parameters
+        @config_pull_parameters = []
+        clients = COLLECTING_PROPERTIES.detect { |p| reflect_on_association(p).klass == Setup::RemoteOauthClient }.to_s
+        (pull_data[clients] || []).each do |client_data|
+          client = Setup::RemoteOauthClient.new_from_json(client_data, add_only: true)
+          Cenit::Utility.bind_references(client)
+          if client.new_record? || User.current.owns?(client.tenant)
+            %w(identifier secret).each do |property|
+              if client.send("get_#{property}").blank?
+                p = Setup::CrossCollectionPullParameter.new(
+                  _id: "config_#{@config_pull_parameters.size}",
+                  label: "OAuth Client '#{client.name}' #{property.capitalize}",
+                  type: 'string',
+                  required: false,
+                  description: I18n.t('admin.actions.pull.client_property_description', client_name: client.name, property: property)
+                )
+                p.properties_locations << Setup::PropertyLocation.new(
+                  property_name: property,
+                  location: { clients => client_data }
+                )
+                @config_pull_parameters << p
+              end
+            end
+          end
+        end
+      end
+      @config_pull_parameters
     end
 
     def pull_parameters?
-      pull_parameters.present?
+      pull_parameters.present? || config_pull_parameters.present?
     end
 
     def generate_data
       hash = {}
       if installed?
+        visited = Set.new
         COLLECTING_PROPERTIES.each do |property|
           r = reflect_on_association(property)
           next unless (items = pull_data[r.name.to_s])
           hash[r.name] = items.collect do |item|
-            r.klass.data_type.new_from_json(item, add_only: true).share_hash
+            record = r.klass.data_type.new_from_json(item, add_only: true)
+            visited << record
+            record
+          end
+        end
+        hash.each do |r, records|
+          hash[r] = records.collect do |record|
+            Cenit::Utility.bind_references(record, visited: visited)
+            record.share_hash
           end
         end
       else
@@ -197,12 +236,12 @@ module Setup
     def data_with(parameters = {})
       hash_data = dependencies_data.deep_merge(pull_data) { |_, val1, val2| Cenit::Utility.array_hash_merge(val1, val2) }
       parametrize(hash_data, parameters)
-      hash_data['metadata'] = metadata if metadata.present?
+      hash_data['metadata'] = metadata unless hash_data.key?('metadata') && metadata_name.blank?
       hash_data
     end
 
     def parametrize(hash_data, parameters, options = {})
-      pull_parameters.each do |pull_parameter|
+      each_pull_parameter do |pull_parameter|
         value = parameters[pull_parameter.id] || parameters[pull_parameter.id.to_s]
         pull_parameter.process_on(hash_data, options.merge(value: value))
       end
@@ -236,7 +275,7 @@ module Setup
         return false
       end
 
-      self.pull_data = {}
+      pull_data = {}
       [:title, :readme].each do |field|
         if (value = send(field))
           pull_data[field] = value
@@ -274,6 +313,7 @@ module Setup
       assign_attributes(attributes)
       self.metadata = collection.metadata
       pull_data.deep_stringify_keys!
+      self.pull_data = pull_data
 
       self.installed = true
       self.skip_reinstall_callback = true
