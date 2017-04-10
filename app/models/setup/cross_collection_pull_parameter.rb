@@ -6,7 +6,11 @@ module Setup
 
     build_in_data_type.referenced_by(:label)
 
+    field :_id, type: String, default: lambda { "oid_#{BSON::ObjectId.new.to_s}" }
     field :label, type: String
+    field :type, type: String, default: 'string'
+    field :many, type: Boolean, default: false
+    field :required, type: Boolean, default: true
     field :description, type: String
     embeds_many :properties_locations, class_name: Setup::PropertyLocation.to_s, inverse_of: :pull_parameter
 
@@ -56,6 +60,47 @@ module Setup
       end
       errors.blank?
     end
-    
+
+    BASIC_TYPES =
+      {
+        integer: 'integer',
+        number: 'number',
+        boolean: 'boolean',
+        string: 'string',
+        object: 'object',
+        json: { oneOf: [{ type: 'object' }, { type: 'array' }] }
+      }.deep_stringify_keys
+
+
+    def type_enum
+      BASIC_TYPES.keys.to_a +
+        Setup::Collection.reflect_on_all_associations(:has_and_belongs_to_many).collect { |r| r.name.to_s.singularize.to_title }
+    end
+
+    def schema
+      # TODO: Factorize code with algorithms and applications parameters
+      sch =
+        if type.blank?
+          {}
+        elsif (json_type = BASIC_TYPES[type])
+          json_type.is_a?(Hash) ? json_type : { type: json_type }
+        else
+          {
+            '$ref': case (klass = Setup::Collection.reflect_on_association(type.to_s.downcase.tr(' ', '_').pluralize).klass)
+                    when Setup::RemoteOauthClient
+                      Setup::OauthClient
+                    when Setup::PlainWebhook
+                      Setup::Webhook
+                    else
+                      klass
+                    end.to_s
+          }
+        end
+      sch = (many ? { type: 'array', items: sch } : sch)
+      sch[:referenced] = true unless BASIC_TYPES.has_key?(type) || type.blank?
+      sch[:description] = description if description.present?
+      sch[:title] = label
+      sch.deep_stringify_keys
+    end
   end
 end

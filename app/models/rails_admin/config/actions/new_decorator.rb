@@ -2,6 +2,11 @@ module RailsAdmin
   module Config
     module Actions
       New.class_eval do
+
+        register_instance_option :http_methods do
+          [:get, :post, :patch] # NEW / CREATE / COPY
+        end
+
         register_instance_option :controller do
           proc do
 
@@ -26,7 +31,7 @@ module RailsAdmin
                 format.js { render @action.template_name, layout: false }
               end
 
-            elsif request.post? # CREATE
+            elsif request.post? || request.patch? # CREATE / COPY
 
               @modified_assoc = []
               @object = @abstract_model.new

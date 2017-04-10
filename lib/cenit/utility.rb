@@ -328,18 +328,18 @@ module Cenit
         end
       end
 
-      def eql_content?(a, b, &block)
+      def eql_content?(a, b, key = nil, &block)
         case a
         when Hash
           if b.is_a?(Hash)
             if a.size < b.size
               a, b = b, a
             end
-            a.each do |key, value|
-              return false unless eql_content?(value, b[key], &block)
+            a.each do |k, value|
+              return false unless eql_content?(value, b[k], k, &block)
             end
           else
-            return block && block.call(a, b)
+            return block && block.call(*(block.arity == 3 ? [a, b, key] : [a, b]))
           end
         when Array
           if b.is_a?(Array) && a.length == b.length
@@ -355,10 +355,10 @@ module Cenit
               return false unless a.length == b.length
             end
           else
-            return block && block.call(a, b)
+            return block && block.call(*(block.arity == 3 ? [a, b, key] : [a, b]))
           end
         else
-          return a.eql?(b) || (block && block.call(a, b))
+          return a.eql?(b) || (block && block.call(*(block.arity == 3 ? [a, b, key] : [a, b])))
         end
         true
       end
