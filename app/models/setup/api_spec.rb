@@ -273,7 +273,7 @@ module Setup
             if record.new_record?
               record.share_hash
             else
-              { id: record.id }
+              { id: record.id.to_s }
             end
           end
         end
