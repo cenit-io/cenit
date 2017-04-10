@@ -236,7 +236,7 @@ module Setup
     def data_with(parameters = {})
       hash_data = dependencies_data.deep_merge(pull_data) { |_, val1, val2| Cenit::Utility.array_hash_merge(val1, val2) }
       parametrize(hash_data, parameters)
-      hash_data['metadata'] = metadata unless hash_data.key?('metadata') && metadata_name.blank?
+      hash_data['metadata'] = metadata unless hash_data.key?('metadata') && metadata.blank?
       hash_data
     end
 
