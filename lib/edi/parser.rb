@@ -137,10 +137,10 @@ module Edi
         unless record ||= new_record
           if model && model.modelable?
             if json.is_a?(Hash) &&
-              options[:ignore].none? { |ignored_field| primary_fields.include?(ignored_field) } &&
-              (criteria = json.select { |key, _| primary_fields.include?(key.to_sym) }).size == primary_fields.count
+               options[:ignore].none? { |ignored_field| primary_fields.include?(ignored_field) } &&
+               (criteria = Cenit::Utility.deep_remove(json.select { |key, _| primary_fields.include?(key.to_sym) }, '_reference')).size == primary_fields.count
               record = (container && (Cenit::Utility.find_record(criteria, container) || container.detect { |item| Cenit::Utility.match?(item, criteria) })) ||
-                ((container_schema && container_schema['exclusive']) ? nil : model.where(criteria).first)
+                ((container_schema && container_schema['exclusive']) ? nil : Cenit::Utility.find_record(criteria, model.all))
             end
             if record
               updating = true
