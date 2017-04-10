@@ -4,6 +4,7 @@ module Setup
     include RailsAdmin::Models::Setup::ForeignNotificationSettingAdmin
 
     embedded_in :foreign_notification, :class_name => Setup::ForeignNotification.name, :inverse_of => :setting
+    belongs_to :email_template, :class_name => Setup::Renderer.name, :inverse_of => :foreign_notification_setting
 
     # Email setting vars
     field :send_email, type: Boolean

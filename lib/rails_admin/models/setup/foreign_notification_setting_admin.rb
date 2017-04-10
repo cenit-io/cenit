@@ -24,6 +24,9 @@ module RailsAdmin
                   label 'Subject'
                   required true
                 end
+                field :email_template do
+                  label 'Template'
+                end
                 field :email_body, :text do
                   label 'Body'
                   required true
@@ -41,9 +44,12 @@ module RailsAdmin
                   label 'URI'
                   required true
                 end
-                field :http_method do
+                field :http_method, :enum do
                   label 'Method'
                   required true
+                  html_attributes do
+                    { 'data-enum_edit': false }
+                  end
                 end
                 field :http_params do
                   label 'Params'
