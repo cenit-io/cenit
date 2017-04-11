@@ -1,3 +1,5 @@
+require 'handlebars'
+
 module Setup
   class ForeignNotification
     include CenitScoped
@@ -17,25 +19,44 @@ module Setup
       "n#{data_type.foreign_notifications.index(self)+1}" if data_type
     end
 
-    def send_message
-      send("send_#{type.to_s}_message")
+    # Send notification via email, http or sms message.
+    def send_message(data)
+      send_email_message(data) if setting.send_email
+      send_http_message(data) if setting.send_http_request
+      send_sms_message(data) if setting.send_sms
     end
 
     protected
 
-    def send_email_message
-      # TODO: Send notification via email message
+    # Send notification via email message
+    def send_email_message(data)
+      to = render(data, setting.email_to)
+      subject = render(data, setting.email_subject)
+      body = setting.email_template ? setting.email_template.run({ object: data }) : render(data, setting.email_body)
+      ForeignNotificationMailer.send_email(to, subject, body).deliver_now
     end
 
-    def send_http_message
+    # Send notification via http message
+    def send_http_message(data)
+      uri = render(data, setting.http_uri)
+      params = setting.http_params == :record_id ? { id: data[:id] } : data
       # TODO: Send notification via http message
     end
 
-    def send_sms_message
+    # Send notification via sms message
+    def send_sms_message(data)
+      to = render(data, setting.sms_to)
+      body = render(data, setting.sms_body)
       # TODO: Send notification via sms message
     end
 
     protected
+
+    # Render data in handlebars template.
+    def render(data, template)
+      handlebars = Handlebars::Context.new
+      handlebars.compile(template).call(data)
+    end
 
     def set_default_setting
       if self.setting.nil?

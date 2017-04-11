@@ -61,7 +61,10 @@ module Setup
           Setup::Flow.where(active: true, event: e).each { |f| f.join_process(source_id: obj_now.id.to_s) }
           # Start foreign notifications
           e.foreign_notifications.where(active: true).each do |n|
-            Setup::ForeignNotificationExecution.process(foreign_notification_id: n.id)
+            Setup::ForeignNotificationExecution.process(
+              foreign_notification_id: n.id,
+              data: obj_now.to_hash
+            )
           end
         end
       end

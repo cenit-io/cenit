@@ -15,11 +15,11 @@ module Setup
       foreign_notification = Setup::ForeignNotification.where(id: foreign_notification_id).first
 
       if foreign_notification
-        foreign_notification.send_message()
+        foreign_notification.send_message(message[:data])
       else
         fail "Foreign notification with id #{foreign_notification_id} not found"
       end
     end
-    
+
   end
 end
