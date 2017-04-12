@@ -27,7 +27,9 @@ module RailsAdmin
               read_only true
               help ''
             end
-            configure :name
+            configure :key do
+              label 'Name'
+            end
             configure :description
             configure :metadata
             configure :updated_at
@@ -47,12 +49,12 @@ module RailsAdmin
                 read_only true
                 help ''
               end
-              field :name
+              field :key
               field :value
               field :description
               field :metadata
             end
-            fields :parent_model, :parent, :name, :value, :description, :metadata, :updated_at
+            fields :parent_model, :parent, :key, :value, :description, :metadata, :updated_at
           end
         end
 
