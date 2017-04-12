@@ -64,6 +64,7 @@ en:
       link_cross_shared_collection: 'Connect Store'
       and_more: "and %{count} more"
       save_filter: 'Save Filter'
+      add: 'Add'
       and_that_is_all: "and that's all"
       found_menu_title: "Found "
       no_description: "No description"

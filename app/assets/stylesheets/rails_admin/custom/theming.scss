@@ -1306,3 +1306,57 @@ label {
 .no-padding-left {
   padding-left: 0 !important;
 }
+
+.cenit-oauth-scope, .model-tr {
+  .select2-container--bootstrap {
+    width: 100% !important;
+    margin-bottom: 15px;
+  }
+  .input-group {
+    margin-right: 15px;
+    margin-bottom: 15px;
+  }
+  .btn-danger {
+    margin-left: 15px;
+  }
+  th {
+    padding-bottom: 10px;
+  }
+  td {
+    vertical-align: top;
+  }
+  .data-type-link {
+    width: 178px;
+    padding-top: 6px;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    margin-right: 15px;
+  }
+  hr {
+    margin-top: 7px;
+  }
+  .select2-container--bootstrap .select2-selection--multiple .select2-selection__choice{
+    color: white;
+    text-transform: uppercase;
+  }
+  .select2-container--bootstrap .select2-selection--multiple .select2-selection__choice[title="get"] {
+    background: $label-success-bg;
+    border-color: $label-success-bg;
+  }
+  .select2-container--bootstrap .select2-selection--multiple .select2-selection__choice[title="post"] {
+    background: $label-info-bg;
+    border-color: $label-info-bg;
+  }
+  .select2-container--bootstrap .select2-selection--multiple .select2-selection__choice[title="delete"] {
+    background: $label-danger-bg;
+    border-color: $label-danger-bg;
+  }
+  .select2-container--bootstrap .select2-selection--multiple .select2-selection__choice[title="put"] {
+    background: $label-warning-bg;
+    border-color: $label-warning-bg;
+  }
+  .select2-container--bootstrap .select2-selection--multiple .select2-selection__choice__remove {
+    color: #fff;
+  }
+}
