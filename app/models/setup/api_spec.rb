@@ -373,7 +373,7 @@ module Setup
                   end
                 end
                 location = LOCATION_MAP[param_desc['in']]
-                if location == 'template_parameters'
+                if location == :template_parameters
                   metadata[:template_parameters]
                 else
                   operation[location] ||= []
@@ -441,7 +441,25 @@ module Setup
           shared = data
         end
 
-        Cenit::Utility.stringfy(shared)
+        shared = Cenit::Utility.stringfy(shared)
+
+        %w(connections resources operations).each do |entry|
+          next unless (items = shared[entry])
+          items.each do |item|
+            %w(parameters headers template_parameters).each do |params_key|
+              if item.key?(params_key)
+                unless (reset = item['_reset'])
+                  reset = []
+                end
+                reset = [reset] unless reset.is_a?(Array)
+                reset << params_key
+                item['_reset'] = reset
+              end
+            end
+          end
+        end
+
+        shared
       end
 
       def oauth_providers_config
@@ -543,6 +561,7 @@ module Setup
 
       def to_cenit_parameter(param)
         {
+          _primary: 'key',
           key: param['name'],
           value: param['default'] || '',
           description: param['description'],

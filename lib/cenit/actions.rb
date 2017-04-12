@@ -88,9 +88,9 @@ module Cenit
                   if invariant
                     invariant_names << ref_criteria
                     invariant_on_collection += 1 if on_collection
-                    item = ref_criteria
-                    item['_reference'] = true
+                    item = {}
                   else
+                    item.delete_if { |key, _| ref_criteria.key?(key) }
                     updated_records[entry] <<
                       if options[:updated_records_ids]
                         record.id.to_s
@@ -211,7 +211,8 @@ module Cenit
               pull_request[:pull_data] = pull_data
             end
           rescue Exception => ex
-            errors << ex.message
+            n = Setup::SystemNotification.create_from(ex, 'Pulling ERROR')
+            errors << "An unexpected error occurs (#{ex.message}). Ask for support by supplying this code: #{n.id}"
           end
           unless errors.blank?
             Setup::Namespace.all.any_in(id: created_nss_ids.to_a).delete_all
