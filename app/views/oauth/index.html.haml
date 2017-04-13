@@ -1,0 +1,41 @@
+-if user_signed_in?
+  - if @errors.present?
+    %h3
+      = 'Bad request'
+      - @errors.each do |error|
+        %li
+          = error
+  - else
+    %div{style: "width: 50%;margin: auto" }
+      %div{style: "margin-top:25px; text-align: center;font-size: x-large" }
+        - if current_user.picture
+          = image_tag(current_user.picture.icon.url, alt: '')
+          %label{style: "margin: auto"}
+            = current_user.name || current_user.email
+          %div{style:"margin-top: 25px;font-size: large" }
+            = 'Application'
+            %label{style: "color: #990000"}
+              = @app_id.name
+            = 'is requesting access to'
+            - if @scope.auth?
+              %label{style: "color: #990000"}
+                = 'authorize other applications'
+            - if @scope.offline_access?
+              %label{style: "color: #990000"}
+                = 'in your behalf'
+          %div{style:"margin-top: 25px;font-size: large" }
+            %ul
+              - @scope.descriptions.each do |description|
+                %li
+                  %label{style: 'color: #990000'}
+                    = description
+          %div{style:"text-align: center" }
+            = form_tag(url: oauth_authorize_path) do
+              = hidden_field_tag :token, @token
+              = button_tag 'Deny', name: :deny
+              = button_tag 'Allow', name: :allow
+        - else
+          %p
+            = link_to 'Sign in', new_user_session_path
+          %p
+            = link_to 'Sign up', new_user_registration_path

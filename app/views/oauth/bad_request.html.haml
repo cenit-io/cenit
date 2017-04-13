@@ -1,0 +1,8 @@
+%div{style: "width: 50%;margin: auto" }
+%div{style: "margin-top:25px; text-align: center;font-size: x-large" }
+  %h3
+    = 'Bad request'
+  %ul
+    - @errors.each do |error|
+      %li
+        = error
