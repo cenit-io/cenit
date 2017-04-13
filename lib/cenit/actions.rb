@@ -64,7 +64,7 @@ module Cenit
                 criteria.delete_if { |_, value| value.nil? }
                 criteria = Cenit::Utility.deep_remove(criteria, '_reference')
                 unless (on_collection = (record = collection && Cenit::Utility.find_record(criteria, collection.send(relation.name))))
-                  record = Cenit::Utility.find_record(criteria, relation.klass.all)
+                  record = Cenit::Utility.find_record(criteria, relation.klass)
                 end
                 if record
                   share_hash_options = {}

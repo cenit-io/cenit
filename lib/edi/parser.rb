@@ -140,7 +140,7 @@ module Edi
                options[:ignore].none? { |ignored_field| primary_fields.include?(ignored_field) } &&
                (criteria = Cenit::Utility.deep_remove(json.select { |key, _| primary_fields.include?(key.to_sym) }, '_reference')).size == primary_fields.count
               record = (container && (Cenit::Utility.find_record(criteria, container) || container.detect { |item| Cenit::Utility.match?(item, criteria) })) ||
-                ((container_schema && container_schema['exclusive']) ? nil : Cenit::Utility.find_record(criteria, model.all))
+                ((container_schema && container_schema['exclusive']) ? nil : Cenit::Utility.find_record(criteria, model))
             end
             if record
               updating = true
