@@ -114,6 +114,7 @@ module Cenit
                   else
                     obj.send("#{property_name}=", value)
                   end
+                  property_binds.delete(property_bind)
                 elsif !options[:skip_error_report]
                   message = "#{property_bind[:model]} reference not found with criteria #{property_bind[:criteria].to_json}"
                   obj.errors.add(property_name, message)
@@ -125,7 +126,9 @@ module Cenit
                   # end
                 end
               end
+              to_bind.delete(property_name) if property_binds.empty?
             end
+            references.delete(obj) if to_bind.empty?
           end
         end
         record.errors.blank?
@@ -226,9 +229,25 @@ module Cenit
         scopes.each do |original_scope|
           scope = original_scope
           match_conditions = {}
+          begin
+            scope_klass =
+              begin
+                scope.klass
+              rescue
+                scope.model
+              end
+            scope_associations = scope_klass.get_associations
+          rescue
+            scope_klass = nil
+            scope_associations = nil
+          end
           conditions.each do |key, value|
             if value.is_a?(Hash)
-              match_conditions[key] = value
+              if scope_associations && (association = scope_associations[key])
+                scope = scope.where(association.foreign_key => { '$in' => associated_ids(association, value) })
+              else
+                match_conditions[key] = value
+              end
             elsif scope.respond_to?(:where)
               scope = scope.where(key => value)
             else
@@ -244,6 +263,22 @@ module Cenit
           end
         end
         nil
+      end
+
+      def associated_ids(association, criteria)
+        associations =
+          begin
+            association.klass.get_associations
+          rescue
+            nil
+          end
+        criteria.each do |key, value|
+          if (a = associations[key])
+            criteria.delete(key)
+            criteria[a.foreign_key] = { '$in' => associated_ids(a, key => value) }
+          end
+        end if associations
+        association.klass.where(criteria).collect(&:id)
       end
 
       def deep_remove(hash, key)

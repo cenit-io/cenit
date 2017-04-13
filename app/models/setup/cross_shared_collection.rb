@@ -26,6 +26,7 @@ module Setup
                             :data,
                             :swagger_spec,
                             *COLLECTING_PROPERTIES).embedding(:categories)
+    build_in_data_type.discarding(:pull_data, *COLLECTING_PROPERTIES)
     build_in_data_type.referenced_by(:name, :shared_version)
 
     deny :new, :translator_update, :convert, :send_to_flow, :copy, :delete_all
