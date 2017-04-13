@@ -11,16 +11,26 @@ module Mongoff
       @array = array
       @referenced = referenced
       @records = []
-      array.each do |item|
-        item =
+      array.each_with_index do |item, index|
+        record =
           if item.is_a?(BSON::Document)
-          Record.new(model, item)
-        elsif item.is_a?(Mongoff::Record)
-          item
-        else
-          model.find(item) rescue nil
+            Record.new(model, item)
+          elsif item.is_a?(Mongoff::Record)
+            item
+          else
+            begin
+              model.find(item)
+            rescue
+              nil
+            end
           end
-        @records << item if item
+        @records << record
+        array[index] =
+          if referenced
+            record && record.id
+          else
+            item
+          end
       end
     end
 
@@ -60,5 +70,32 @@ module Mongoff
     def to_ary
       to_a
     end
+
+    def method_missing(symbol, *args, &block)
+      if criteria.respond_to?(symbol)
+        criteria.send(symbol, *args, &block)
+      else
+        super
+      end
+    ensure
+      @criteria = nil
+    end
+
+    def respond_to?(*args)
+      super || criteria.respond_to?(args[0])
+    end
+
+    def criteria
+      unless @criteria
+        if @referenced
+          @criteria = Mongoff::Criteria.new(model).any_in(id: array)
+        else
+          #TODO Not referenced
+        end
+      end
+      @criteria
+    end
+
+    private :criteria
   end
 end

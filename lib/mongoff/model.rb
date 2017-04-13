@@ -143,6 +143,10 @@ module Mongoff
       @associations
     end
 
+    def get_associations
+      associations
+    end
+
     def for_each_association(&block)
       properties_schemas.each do |property, schema|
         block.yield(name: property, embedded: !schema['referenced']) if property_model?(property)
@@ -199,10 +203,10 @@ module Mongoff
       all
     end
 
-    def method_missing(symbol, *args)
+    def method_missing(symbol, *args, &block)
       @criteria ||= Mongoff::Criteria.new(self)
       if @criteria.respond_to?(symbol)
-        @criteria.send(symbol, *args)
+        @criteria.send(symbol, *args, &block)
       else
         super
       end

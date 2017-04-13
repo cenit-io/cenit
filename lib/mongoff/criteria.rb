@@ -62,9 +62,9 @@ module Mongoff
       end
     end
 
-    def method_missing(symbol, *args)
+    def method_missing(symbol, *args, &block)
       if (q = query).respond_to?(symbol)
-        q.send(symbol, *args)
+        q.send(symbol, *args, &block)
       else
         super
       end
