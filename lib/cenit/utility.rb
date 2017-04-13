@@ -114,6 +114,7 @@ module Cenit
                   else
                     obj.send("#{property_name}=", value)
                   end
+                  property_binds.delete(property_bind)
                 elsif !options[:skip_error_report]
                   message = "#{property_bind[:model]} reference not found with criteria #{property_bind[:criteria].to_json}"
                   obj.errors.add(property_name, message)
@@ -125,7 +126,9 @@ module Cenit
                   # end
                 end
               end
+              to_bind.delete(property_name) if property_binds.empty?
             end
+            references.delete(obj) if to_bind.empty?
           end
         end
         record.errors.blank?
