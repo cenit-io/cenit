@@ -199,10 +199,10 @@ module Mongoff
       all
     end
 
-    def method_missing(symbol, *args)
+    def method_missing(symbol, *args, &block)
       @criteria ||= Mongoff::Criteria.new(self)
       if @criteria.respond_to?(symbol)
-        @criteria.send(symbol, *args)
+        @criteria.send(symbol, *args, &block)
       else
         super
       end
