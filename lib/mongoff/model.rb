@@ -143,6 +143,10 @@ module Mongoff
       @associations
     end
 
+    def get_associations
+      associations
+    end
+
     def for_each_association(&block)
       properties_schemas.each do |property, schema|
         block.yield(name: property, embedded: !schema['referenced']) if property_model?(property)
