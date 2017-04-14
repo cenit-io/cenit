@@ -18,14 +18,34 @@ module Api::V2
       page = get_page
       res =
         if klass
-          @render_options[:only] =
-            if (only_option = @render_options[:only])
-              unless only_option.is_a?(Array)
-                only_option = only_option.to_s.split(',').collect(&:strip)
+          @render_options.delete(:inspecting)
+          if (model_ignore = klass.index_ignore_properties).present?
+            @render_options[:ignore] =
+              if (ignore_option = @render_options[:ignore])
+                unless ignore_option.is_a?(Array)
+                  ignore_option = ignore_option.to_s.split(',').collect(&:strip)
+                end
+                ignore_option + model_ignore
+              else
+                model_ignore
               end
-              only_option.select { |property| klass.index_property?(property) }
+          end
+          maximum_entries =
+            if (account = Account.current)
+              account.index_max_entries
             else
-              klass.index_properties
+              Account::DEFAULT_INDEX_MAX_ENTRIES
+            end
+          @render_options[:max_entries] =
+            if (max_entries = @render_options[:max_entries])
+              max_entries = max_entries.to_i
+              if max_entries == 0 || max_entries > maximum_entries
+                maximum_entries
+              else
+                max_entries
+              end
+            else
+              maximum_entries
             end
           @items =
             if @criteria.present?

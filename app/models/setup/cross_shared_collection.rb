@@ -368,8 +368,8 @@ module Setup
     end
 
     class << self
-      def index_property?(property, schema = nil)
-        property.to_s.eql?('image') || super(property, schema)
+      def index_ignore_properties
+        super + [:data]
       end
     end
 
