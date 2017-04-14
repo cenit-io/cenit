@@ -54,6 +54,9 @@ module RailsAdmin
             end
             field :notification_level
             field :time_zone
+            field :index_max_entries do
+              visible { Account.current_super_admin? }
+            end
           end
 
           fields :_id, :name, :owner, :users, :notification_level, :time_zone
