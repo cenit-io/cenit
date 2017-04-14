@@ -256,7 +256,7 @@ module Cenit
           end
           record = scope.detect { |record| match?(record, match_conditions) }
           if record
-            if original_scope.respond_to?(:detect) && (o_r = original_scope.detect { |item| item == record })
+            if original_scope.is_a?(Enumerable) && (o_r = original_scope.detect { |item| item == record })
               return o_r
             end
             return record
