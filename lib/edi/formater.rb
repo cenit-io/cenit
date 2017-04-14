@@ -17,7 +17,9 @@ module Edi
 
     def default_hash(options={})
       prepare_options(options)
-      hash = record_to_hash(self, options)
+      max_entries = options[:max_entries].to_i
+      max_entries = nil if max_entries == 0
+      hash = record_to_hash(self, options, false, nil, max_entries)
       options.delete(:stack)
       hash = { self.orm_model.data_type.slug => hash } if options[:include_root]
       hash
@@ -222,9 +224,14 @@ module Edi
       element
     end
 
-    def record_to_hash(record, options = {}, referenced = false, enclosed_model = nil)
+    def record_to_hash(record, options = {}, referenced = false, enclosed_model = nil, max_entries = nil)
       return record if Cenit::Utility.json_object?(record)
-      model = record.orm_model rescue nil
+      model =
+        begin
+          record.orm_model
+        rescue
+          nil
+        end
       return nil unless model
       schema = model.schema
       key_properties =
@@ -252,9 +259,13 @@ module Edi
       if (include_id = options[:include_id]).respond_to?(:call)
         include_id = include_id.call(record)
       end
-      do_store(json, 'id', record.id, options) if include_id
+      if include_id
+        entries = do_store(json, 'id', record.id, options)
+        max_entries -= entries if max_entries
+      end
       content_property = nil
       model.stored_properties_on(record).each do |property_name|
+        break if max_entries && max_entries < 1
         if (protected = (model.schema['protected'] || []).include?(property_name)) && options[:protected]
           key_properties.delete(property_name)
           next
@@ -294,20 +305,26 @@ module Edi
         when 'array'
           referenced_items = can_be_referenced && property_schema['referenced'] && !property_schema['export_embedded']
           if (value = record.send(property_name))
+            next if max_entries && value.size > max_entries
+            sub_max_entries = max_entries && (max_entries - value.size)
+            sub_max_entries = 1 unless sub_max_entries.nil? || sub_max_entries > 0
             new_value = []
             value.each do |sub_record|
               next if inspecting && (scope = options[:inspect_scope]) && !scope.include?(sub_record)
-              new_value << record_to_hash(sub_record, options, referenced_items, property_model)
+              new_value << record_to_hash(sub_record, options, referenced_items, property_model, sub_max_entries)
             end
           else
             new_value = nil
+            sub_max_entries = max_entries
           end
           do_store(json, name, new_value, options, key_properties.include?(property_name))
+          max_entries = sub_max_entries
         when 'object'
           sub_record = record.send(property_name)
           next if inspecting && (scope = options[:inspect_scope]) && !scope.include?(sub_record)
-          value = record_to_hash(sub_record, options, can_be_referenced && property_schema['referenced'] && !property_schema['export_embedded'], property_model)
-          do_store(json, name, value, options, key_properties.include?(property_name))
+          value = record_to_hash(sub_record, options, can_be_referenced && property_schema['referenced'] && !property_schema['export_embedded'], property_model, max_entries - 1)
+          entries = do_store(json, name, value, options, key_properties.include?(property_name))
+          max_entries -= entries if max_entries
         else
           value =
             begin
@@ -318,7 +335,8 @@ module Edi
           if value.nil?
             value = property_schema['default']
           end
-          do_store(json, name, value, options, key_properties.include?(property_name)) #TODO Default values should came from record attributes
+          entries = do_store(json, name, value, options, key_properties.include?(property_name)) #TODO Default values should came from record attributes
+          max_entries -= entries if max_entries
         end
       end
       if (options[:inspecting].include?(:_type) ||
@@ -346,14 +364,30 @@ module Edi
         key = key.to_s.split(':').last
       end
       if value.nil?
-        json[key] = nil if store_anyway || options[:include_null]
-      else
-        if value.is_a?(Array) || value.is_a?(Hash)
-          json[key] = value if store_anyway || value.present? || options[:include_blanks] || options[:include_empty]
+        if store_anyway || options[:include_null]
+          k = json.key?(key) ? 0 : 1
+          json[key] = nil
+          k
         else
-          value = value.to_s if [BSON::ObjectId, Symbol].any? { |klass| value.is_a?(klass) }
-          value = json_value(value, options)
-          json[key] = value if store_anyway || !(value.nil? || value.try(:empty?)) || options[:include_blanks] #TODO String blanks!
+          0
+        end
+      elsif value.is_a?(Array) || value.is_a?(Hash)
+        if store_anyway || value.present? || options[:include_blanks] || options[:include_empty]
+          k = json.key?(key) ? 0 : value.size
+          json[key] = value
+          k
+        else
+          0
+        end
+      else
+        value = value.to_s if [BSON::ObjectId, Symbol].any? { |klass| value.is_a?(klass) }
+        value = json_value(value, options)
+        if store_anyway || !(value.nil? || value.try(:empty?)) || options[:include_blanks] #TODO String blanks!
+          k = json.key?(key) ? 0 : 1
+          json[key] = value
+          k
+        else
+          0
         end
       end
     end
