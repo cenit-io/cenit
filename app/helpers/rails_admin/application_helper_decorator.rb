@@ -695,5 +695,9 @@ module RailsAdmin
       Rails.application.assets.find_asset(path) != nil
     end
 
+    def get_asset_path(path)
+      Rails.application.assets.find_asset(path)
+    end
+
   end
 end
