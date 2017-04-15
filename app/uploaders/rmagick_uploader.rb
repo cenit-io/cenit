@@ -18,6 +18,6 @@ module RmagickUploader
   end
 
   def extension_white_list
-    %w(jpg jpeg gif png svg)
+    %w(jpg jpeg gif png)
   end
 end
