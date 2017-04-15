@@ -600,8 +600,8 @@ module RailsAdmin
       has_image = c.image.present?
       css_class = 'img-responsive '+(has_image ? '' : 'no-image')
       i_path =
-        if has_asset?(icon_path = "icons/#{c.name}")
-          image_path(icon_path)
+        if has_asset?(icon_path = "icons/#{c.name}.svg")
+          icon_path
         elsif has_image
           c.image.versions[:thumb]
         else
