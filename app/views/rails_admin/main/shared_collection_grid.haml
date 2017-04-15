@@ -138,7 +138,7 @@
           .panel-body
             .panel-body-logo.text-center{style: "background-color:##{object.logo_background || 'inherit'}"}
               =link_to show_path id: object.id do
-                - i_path = has_asset?("icons/#{object.name}") ? image_path("icons/#{object.name}") : nil
+                - i_path = has_asset?("icons/#{object.name}") ? "icons/#{object.name}.svg" : nil
                 - i_path ||= object.image.present? ? object.image : 'missing.png'
                 =image_tag i_path, class: 'logo'
             .panel-body-description.line-clamp.line-clamp-3
