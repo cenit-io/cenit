@@ -599,15 +599,15 @@ module RailsAdmin
     def dashboard_collection_view(c)
       has_image = c.image.present?
       css_class = 'img-responsive '+(has_image ? '' : 'no-image')
-      i_path =
-        if has_asset?(icon_path = "icons/#{c.name}")
-          image_path(icon_path)
+      image_path =
+        if has_asset?(path = "icons/#{c.name}")
+          path
         elsif has_image
           c.image.versions[:thumb]
         else
           'missing.png'
         end
-      image = image_tag i_path, :class => css_class, :alt => c.name, width: '80%', max_height: '80%', margin: '12px'
+      image = image_tag image_path, :class => css_class, :alt => c.name, width: '80%', max_height: '80%', margin: '12px'
       url_show = rails_admin.show_path(model_name: c.model_name.to_s.underscore.gsub('/', '~'), id: c.name)
       '<div class="col-xs-6 col-sm-4 col-md-2">
         <a href="'+url_show+'" title="'+ c.name+'">
