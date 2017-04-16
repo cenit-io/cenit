@@ -322,7 +322,7 @@ module Edi
         when 'object'
           sub_record = record.send(property_name)
           next if inspecting && (scope = options[:inspect_scope]) && !scope.include?(sub_record)
-          value = record_to_hash(sub_record, options, can_be_referenced && property_schema['referenced'] && !property_schema['export_embedded'], property_model, max_entries - 1)
+          value = record_to_hash(sub_record, options, can_be_referenced && property_schema['referenced'] && !property_schema['export_embedded'], property_model, max_entries && max_entries - 1)
           entries = do_store(json, name, value, options, key_properties.include?(property_name))
           max_entries -= entries if max_entries
         else
