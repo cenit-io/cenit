@@ -1,8 +1,14 @@
-%div{style: "width: 50%;margin: auto" }
-%div{style: "margin-top:25px; text-align: center;font-size: x-large" }
-  %h3
-    = 'Bad request'
-  %ul
-    - @errors.each do |error|
-      %li
-        = error
+.container
+  .col-xs-12.col-sm-8.col-sm-offset-2.col-md-6.col-md-offset-3
+    .panel.panel-default.oauth-authorize.user-auth
+      .panel-heading.text-center
+        %span.cenit-logo
+          =image_tag 'logo_cenitsaas_web.png'
+        %span.cenit-hub{style: 'color: black;'}= 'Cenit IO'
+      .panel-body
+        %h3
+          = 'Bad request'
+        %ul
+          - @errors.each do |error|
+            %li
+              = error

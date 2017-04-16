@@ -1,41 +1,44 @@
--if user_signed_in?
-  - if @errors.present?
-    %h3
-      = 'Bad request'
-      - @errors.each do |error|
-        %li
-          = error
-  - else
-    %div{style: "width: 50%;margin: auto" }
-      %div{style: "margin-top:25px; text-align: center;font-size: x-large" }
-        - if current_user.picture
-          = image_tag(current_user.picture.icon.url, alt: '')
-          %label{style: "margin: auto"}
-            = current_user.name || current_user.email
-          %div{style:"margin-top: 25px;font-size: large" }
-            = 'Application'
-            %label{style: "color: #990000"}
-              = @app_id.name
-            = 'is requesting access to'
-            - if @scope.auth?
-              %label{style: "color: #990000"}
-                = 'authorize other applications'
-            - if @scope.offline_access?
-              %label{style: "color: #990000"}
-                = 'in your behalf'
-          %div{style:"margin-top: 25px;font-size: large" }
-            %ul
-              - @scope.descriptions.each do |description|
-                %li
-                  %label{style: 'color: #990000'}
-                    = description
-          %div{style:"text-align: center" }
-            = form_tag(url: oauth_authorize_path) do
-              = hidden_field_tag :token, @token
-              = button_tag 'Deny', name: :deny
-              = button_tag 'Allow', name: :allow
+.container
+  .col-xs-12.col-sm-8.col-sm-offset-2.col-md-6.col-md-offset-3
+    .panel.panel-default.oauth-authorize.user-auth
+      .panel-heading.text-center
+        %span.cenit-logo
+          =image_tag 'logo_cenitsaas_web.png'
+        %span.cenit-hub{style: 'color: black;'}= 'Cenit IO'
+      .panel-body
+        - if @errors.present?
+          %h3
+            = 'Bad request'
+            - @errors.each do |error|
+              %li
+                = error
         - else
-          %p
-            = link_to 'Sign in', new_user_session_path
-          %p
-            = link_to 'Sign up', new_user_registration_path
+          - if current_user.picture
+            .col-xs-12.images-container
+              %span
+                = image_tag(@app_id.app.configuration.logo, alt: '', class: 'img-circle')
+              %span.user-img
+                = image_tag(current_user.picture.url, alt: '', class: 'img-circle')
+            .col-xs-12
+              = 'Application'
+              %label
+                = @app_id.name
+              = 'is requesting access to'
+              - if @scope.auth?
+                %label
+                  = 'authorize other applications'
+              - if @scope.offline_access?
+                %label
+                  = 'in your behalf'
+            .col-xs-12
+              %ul
+                - @scope.descriptions.each do |description|
+                  %li
+                    %label
+                      = description
+      .panel-footer.clearfix
+        .text-center
+          = form_tag(url: oauth_authorize_path) do
+            = hidden_field_tag :token, @token
+            = button_tag 'Deny', name: :deny, class: 'btn btn-danger'
+            = button_tag 'Allow', name: :allow, class: 'btn btn-success'
