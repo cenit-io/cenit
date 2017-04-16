@@ -38,6 +38,10 @@ module Mongoff
       array.count
     end
 
+    def size
+      count
+    end
+
     def empty?
       @records.empty?
     end
