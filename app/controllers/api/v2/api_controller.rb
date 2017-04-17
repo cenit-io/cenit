@@ -60,7 +60,7 @@ module Api::V2
           count = @items.count
           {
             json: {
-              total_pages: (count*1.0/Kaminari.config.default_per_page).ceil,
+              total_pages: (count*1.0 / get_limit).ceil,
               current_page: page,
               count: count,
               @model.pluralize => items_data
