@@ -242,13 +242,21 @@ function cenitOauthScopeInit() {
             $copied.find('td div.hide').removeClass('hide');
             $copied.find('td div.add_actions').remove();
             $copied.find('.select2-container').remove();
-            $copied.find('.select-tag').removeClass('.select2-hidden-accessible hide').select2({
+            $copied.find('.select-tag-no-add').removeClass('.select2-hidden-accessible hide').select2({
                 theme: "bootstrap",
-                tags: true
-            });
-            $copied.find('.select-tag').removeClass('.select2-hidden-accessible hide').select2({
-                theme: "bootstrap",
-                tags: true
+                tags: true,
+                createTag: function (params) {
+                    // Don't offset to create a tag if there is no @ symbol
+                    if (params.term.indexOf('@') === -1) {
+                        // Return null to disable tag creation
+                        return null;
+                    }
+
+                    return {
+                        id: params.term,
+                        text: params.term
+                    }
+                }
             });
             var data_type_id = $('[data-filteringselect="true"] option:selected', $copied).val();
             var data_type_name = $('[data-filteringselect="true"]', $copied).text();
@@ -288,6 +296,25 @@ function handlerInit() {
 
     if ($('.select-tag').length > 0)
         selectTagsInit();
+
+    if ($('.select-tag-no-add').length > 0)
+        $('.select-tag-no-add').select2({
+            theme: "bootstrap",
+            tags: true,
+            createTag: function (params) {
+                // Don't offset to create a tag if there is no @ symbol
+                if (params.term.indexOf('@') === -1) {
+                    // Return null to disable tag creation
+                    return null;
+                }
+
+                return {
+                    id: params.term,
+                    text: params.term
+                }
+            }
+        })
+
     if ($('.remove_data_type_actions').length > 0) {
         cenitOauthScopeInit();
     }

@@ -1307,7 +1307,7 @@ label {
   padding-left: 0 !important;
 }
 
-.cenit-oauth-scope, .model-tr {
+.cenit-oauth-scope,.cenit-oauth-basic-scope, .model-tr {
   .select2-container--bootstrap {
     width: 100% !important;
     margin-bottom: 15px;
@@ -1321,6 +1321,7 @@ label {
   }
   th {
     padding-bottom: 10px;
+    color: #737373;
   }
   td {
     vertical-align: top;
@@ -1336,27 +1337,45 @@ label {
   hr {
     margin-top: 7px;
   }
-  .select2-container--bootstrap .select2-selection--multiple .select2-selection__choice{
-    color: white;
+  .select2-container--bootstrap .select2-selection--multiple .select2-selection__choice {
+    color: black;
     text-transform: uppercase;
   }
   .select2-container--bootstrap .select2-selection--multiple .select2-selection__choice[title="get"] {
+    color: white;
     background: $label-success-bg;
     border-color: $label-success-bg;
+    .select2-selection__choice__remove {
+      color: white;
+      color: #fff;
+    }
   }
   .select2-container--bootstrap .select2-selection--multiple .select2-selection__choice[title="post"] {
+    color: white;
     background: $label-info-bg;
     border-color: $label-info-bg;
+    .select2-selection__choice__remove {
+      color: white;
+      color: #fff;
+    }
   }
   .select2-container--bootstrap .select2-selection--multiple .select2-selection__choice[title="delete"] {
+    color: white;
     background: $label-danger-bg;
     border-color: $label-danger-bg;
+    .select2-selection__choice__remove {
+      color: white;
+      color: #fff;
+    }
   }
   .select2-container--bootstrap .select2-selection--multiple .select2-selection__choice[title="put"] {
+    color: white;
     background: $label-warning-bg;
     border-color: $label-warning-bg;
+    .select2-selection__choice__remove {
+      color: white;
+      color: #fff;
+    }
   }
-  .select2-container--bootstrap .select2-selection--multiple .select2-selection__choice__remove {
-    color: #fff;
-  }
+
 }

@@ -1,7 +1,16 @@
 - config = RailsAdmin.config(Setup::DataType)
 - source_abstract_model = RailsAdmin.config(form.object.class).abstract_model
 - current_action = params[:action].in?(['create', 'new']) ? 'create' : 'update'
-
+- cenit_oauth_scope = field.cenit_oauth_scope
+- basic_scopes = cenit_oauth_scope.super_methods_set + cenit_oauth_scope.openid_set
+- if cenit_oauth_scope.offline_access?
+  - basic_scopes.add('offline_access')
+- if cenit_oauth_scope.auth?
+  - basic_scopes.add('auth')
+%table.cenit-oauth-basic-scope
+  %tr
+    %td
+      = select_tag "#{form.object_name}[#{field.method_name}][basic]", options_for_select(field.cenit_basic_scopes, selected: basic_scopes), class: 'select-tag-no-add', multiple: true
 %table.cenit-oauth-scope
   %thead{ class: (create = current_action == 'create') ? 'hide': '' }
     %th
@@ -9,19 +18,18 @@
     %th
       = t('actions')
   %tbody
-    - field.each_data_type do |related_id, methods|
+    - field.each_data_type(cenit_oauth_scope) do |related_id, methods|
       - selected = config.abstract_model.get(related_id)
       - selected_id = related_id
       - selected_name = selected.send(config.object_label_method)
-      - js_data = { xhr: true, remote_source: index_path(config.abstract_model.to_param, source_object_id: form.object.id, source_abstract_model: source_abstract_model.to_param, associated_collection: field.name, current_action: current_action, compact: true) }
+      - js_data = { xhr: true, remote_source: index_path(config.abstract_model.to_param, source_object_id: form.object.id, source_abstract_model: source_abstract_model.to_param, current_action: current_action, compact: true) }
       - selected_id = (hdv = field.form_default_value).nil? ? selected_id : hdv
       %tr.scope
         %td
           .data-type-link
-            = link_to(selected_name,show_path(model_name: Setup::DataType.to_s.underscore.gsub('/', '~'), id: selected_id), class: 'hidden_link')
+            = link_to(selected_name, show_path(model_name: Setup::DataType.to_s.underscore.gsub('/', '~'), id: selected_id), class: 'hidden_link')
         %td
-          -#= form.select "#{field.method_name}[#{selected_id}]", options_for_select(field.http_methods, methods),{},{class: 'select-tag', multiple: true}
-          = select_tag "#{form.object_name}[#{field.method_name}][#{selected_id}]", options_for_select(field.http_methods, methods), class: 'select-tag', multiple: true
+          = select_tag "#{form.object_name}[#{field.method_name}][#{selected_id}]", options_for_select(field.http_methods, methods), class: 'select-tag-no-add', multiple: true
         %td
           %button.btn.btn-small.btn-danger.remove_data_type_actions{type: "button", 'data-field-class': "#{field.name}_field"}
             .i{class: 'icon-trash icon-white'}
@@ -31,7 +39,7 @@
         %hr
 
 .model-tr
-  - js_data = { xhr: true, remote_source: index_path(config.abstract_model.to_param, source_object_id: form.object.id, source_abstract_model: source_abstract_model.to_param, associated_collection: field.name, current_action: current_action, compact: true) }
+  - js_data = { xhr: true, remote_source: index_path(config.abstract_model.to_param, source_object_id: form.object.id, source_abstract_model: source_abstract_model.to_param, current_action: current_action, compact: true) }
   %table
     %tr.scope
       %td
@@ -44,7 +52,7 @@
             .i{class: 'icon-white icon-plus'}
             = t('admin.misc.add')
         .hide
-          = select_tag "#{form.object_name}[#{field.method_name}][__ID__]", options_for_select(field.http_methods, []), {class: 'select-tag', multiple: true}
+          = select_tag "#{form.object_name}[#{field.method_name}][__ID__]", options_for_select(field.http_methods, []), {class: 'select-tag-no-add', multiple: true}
       %td
         %button.btn.btn-small.btn-danger.remove_data_type_actions.hide{type: "button", 'data-field-class': "#{field.name}_field"}
           .i{class: 'icon-trash icon-white'}
