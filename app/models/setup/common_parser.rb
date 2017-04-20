@@ -10,17 +10,14 @@ module Setup
     end
 
     def new_from(data, options = {})
-      formatted_data = JSON.parse(data) rescue nil
-      if formatted_data
-        new_from_json(formatted_data, options)
-      else
-        formatted_data = Nokogiri::XML(data) rescue nil
-        if formatted_data
-          new_from_xml(formatted_data, options)
-        else
-          new_from_edi(formatted_data, options)
-        end
+      begin
+        data = JSON.parse(data) unless data.is_a?(Hash)
+        new_from_json(data, options)
+      rescue
+        new_from_xml(Nokogiri::XML(data))
       end
+    rescue
+      new_from_edi(data, options)
     end
 
     def create_from(data, options = {})
@@ -80,6 +77,6 @@ module Setup
       end
       record
     end
-    
+
   end
 end

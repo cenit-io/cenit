@@ -16,6 +16,17 @@ module Edi
       self
     end
 
+    def from(data, options={})
+      begin
+        data = JSON.parse(data) unless data.is_a?(Hash)
+        from_json(data, options)
+      rescue
+        from_xml(Nokogiri::XML(data))
+      end
+    rescue
+      from_edi(data, options)
+    end
+
     def instance_pending_references(*fields)
       return unless (refs = instance_variable_get(:@_references))
       fields.each do |f|

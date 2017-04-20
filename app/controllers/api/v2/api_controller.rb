@@ -3,7 +3,7 @@ module Api::V2
 
     before_action :authorize_account, :save_request_data, except: [:new_user, :cors_check, :auth]
     before_action :authorize_action, except: [:auth, :new_user, :cors_check, :push]
-    before_action :find_item, only: [:show, :destroy, :pull, :run]
+    before_action :find_item, only: [:update, :show, :destroy, :pull, :run]
 
     rescue_from Exception, :with => :exception_handler
 
@@ -155,6 +155,24 @@ module Api::V2
       response.delete(:success) if success_report.blank?
       response.delete(:errors) if broken_report.blank?
       render json: response
+    end
+
+    def update
+      @payload.each do |_, message|
+        message = message.first if message.is_a?(Array)
+        @parser_options[:add_only] = true
+        @item.send(@payload.update_method, message, @parser_options)
+        save_options = {}
+        if @item.class.is_a?(Class) && @item.class < FieldsInspection
+          save_options[:inspect_fields] = Account.current.nil? || !Account.current_super_admin?
+        end
+        if @item.save(save_options)
+          render json: @item.to_hash, status: :ok
+        else
+          render json: { errors: @item.errors.full_messages }, status: :not_acceptable
+        end
+        break
+      end
     end
 
     def destroy
@@ -473,7 +491,7 @@ module Api::V2
       @format = params[:format]
       @path = "#{params[:path]}.#{params[:format]}" if params[:path] && params[:format]
       case @_action_name
-      when 'new', 'push'
+      when 'new', 'push', 'update'
         unless (@parser_options = Cenit::Utility.json_value_of(request.headers['X-Parser-Options'])).is_a?(Hash)
           @parser_options = {}
         end
@@ -551,13 +569,13 @@ module Api::V2
       def initialize(config)
         @config =
           {
-            create_method: case config[:content_type]
+            method_suffix: case config[:content_type]
                            when 'application/json'
-                             :create_from_json
+                             :from_json
                            when 'application/xml'
-                             :create_from_xml
+                             :from_xml
                            else
-                             :create_from
+                             :from
                            end,
             message: ''
           }.merge(config || {})
@@ -571,7 +589,11 @@ module Api::V2
       end
 
       def create_method
-        config[:create_method]
+        "create_#{config[:method_suffix]}"
+      end
+
+      def update_method
+        config[:method_suffix]
       end
 
       def each_root(&block)
