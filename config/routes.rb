@@ -71,6 +71,7 @@ Cenit::Application.routes.draw do
       post '/:ns/:model', to: 'api#new'
       get '/:ns/:model', to: 'api#index', defaults: { format: 'json' }
       get '/:ns/:model/:id', to: 'api#show', defaults: { format: 'json' }
+      post '/:ns/:model/:id', to: 'api#update'
       get '/:ns/:model/:id/:view', to: 'api#content', defaults: { format: 'json' }
       delete '/:ns/:model/:id', to: 'api#destroy'
       post '/:ns/:model/:id/pull', to: 'api#pull'

@@ -4,7 +4,7 @@ module Setup
     include NamespaceNamed
     include RailsAdmin::Models::Setup::SnippetAdmin
 
-    build_in_data_type.referenced_by(:namespace,  :name)
+    build_in_data_type.referenced_by(:namespace, :name)
 
     field :description, type: String
     field :type, type: Symbol, default: :auto
@@ -16,6 +16,7 @@ module Setup
     validates_inclusion_of :type, in: ->(snippet) { snippet.type_enum.values }
 
     before_validation do
+      @snippet_code_owner.configure_snippet if @snippet_code_owner
       self.name = name.strip
     end
 

@@ -9,28 +9,8 @@ module Setup
       binding_belongs_to :snippet, class_name: Setup::Snippet.to_s, inverse_of: nil
 
       before_save do
-        if snippet_ref.new_record?
-          snippet_ref.namespace = namespace
-          name = snippet_name
-          i = 0
-          while Setup::Snippet.where(tenant: Cenit::MultiTenancy.tenant_model.current,
-                                     namespace: namespace,
-                                     name: name).exists?
-            name = snippet_name("(#{i += 1})")
-          end
-          snippet_ref.name = name
-        elsif snippet_ref.changed_attributes.key?('code') &&
-              snippet_ref.tenant != Cenit::MultiTenancy.tenant_model.current
-          self.snippet = Setup::Snippet.new(snippet_ref.attributes.reject { |key, _| %w(_id origin).include?(key) })
-          name = snippet_ref.name
-          i = 0
-          while Setup::Snippet.where(namespace: namespace,
-                                     name: name).exists?
-            name = snippet_name("(#{i += 1})")
-          end
-          snippet_ref.name = name
-        end
-        unless snippet_ref.save
+        configure_snippet
+        if snippet_ref.changed? && !snippet_ref.save
           snippet_ref.errors.full_messages.each do |msg|
             errors.add(:code, msg)
           end
@@ -39,8 +19,34 @@ module Setup
       end
     end
 
+    def configure_snippet
+      if snippet_ref.new_record?
+        snippet_ref.namespace = namespace
+        name = snippet_name
+        i = 0
+        while Setup::Snippet.where(tenant: Cenit::MultiTenancy.tenant_model.current,
+                                   namespace: namespace,
+                                   name: name).exists?
+          name = snippet_name("(#{i += 1})")
+        end
+        snippet_ref.name = name
+      elsif snippet_ref.changed_attributes.key?('code') &&
+            snippet_ref.tenant != Cenit::MultiTenancy.tenant_model.current
+        self.snippet = Setup::Snippet.new(snippet_ref.attributes.reject { |key, _| %w(_id origin).include?(key) })
+        name = snippet_ref.name
+        i = 0
+        while Setup::Snippet.where(namespace: namespace,
+                                   name: name).exists?
+          name = snippet_name("(#{i += 1})")
+        end
+        snippet_ref.name = name
+      end
+    end
+
     def snippet_ref
       self.snippet ||= Setup::Snippet.new
+      snippet.instance_variable_set(:@snippet_code_owner, self)
+      snippet
     end
 
     def snippet_name(suffix = '')
