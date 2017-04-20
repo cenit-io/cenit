@@ -16,6 +16,10 @@ module RailsAdmin
                 field :send_email, :boolean do
                   label 'Send E-Mail?'
                 end
+                field :smtp_provider do
+                  label 'SMTP Setting'
+                  associated_collection_cache_all false
+                end
                 field :email_to, :string do
                   label 'To'
                   required true
@@ -26,6 +30,7 @@ module RailsAdmin
                 end
                 field :email_template do
                   label 'Template'
+                  associated_collection_cache_all false
                 end
                 field :email_body, :text do
                   label 'Body'

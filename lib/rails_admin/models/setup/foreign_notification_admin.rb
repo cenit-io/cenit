@@ -39,7 +39,7 @@ module RailsAdmin
                 visible { !bindings[:object].data_type.nil? }
                 associated_collection_scope do
                   data_type = bindings[:object].data_type || bindings[:controller].object
-                  Proc.new { |scope| scope.where(data_type_id: data_type.id) }
+                  proc { |scope| scope.where(data_type_id: data_type.id) }
                 end
                 help do
                   text = 'Required.'

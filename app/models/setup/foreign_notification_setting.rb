@@ -5,6 +5,7 @@ module Setup
 
     embedded_in :foreign_notification, :class_name => Setup::ForeignNotification.name, :inverse_of => :setting
     belongs_to :email_template, :class_name => Setup::Renderer.name, :inverse_of => :foreign_notification_setting
+    belongs_to :smtp_provider, :class_name => Setup::SmtpProvider.name, :inverse_of => :foreign_notification_setting
 
     # Email setting vars
     field :send_email, type: Boolean
