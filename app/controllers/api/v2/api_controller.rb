@@ -575,7 +575,7 @@ module Api::V2
                            when 'application/xml'
                              :from_xml
                            else
-                             :from
+                             :fill_from
                            end,
             message: ''
           }.merge(config || {})
