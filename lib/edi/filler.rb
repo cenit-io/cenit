@@ -16,7 +16,7 @@ module Edi
       self
     end
 
-    def from(data, options={})
+    def fill_from(data, options={})
       begin
         data = JSON.parse(data) unless data.is_a?(Hash)
         from_json(data, options)
