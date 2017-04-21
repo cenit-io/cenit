@@ -14,9 +14,11 @@ module Setup
     field :password, type: String
     field :authentication, type: Symbol, :default => :plain
     field :enable_starttls_auto, type: Boolean, :default => true
+    field :from, type: String
 
     def authentication_enum
       {
+        'None' => :none,
         'Plain' => :plain,
         'Login' => :login,
         'Cram md5' => :cram_md5,

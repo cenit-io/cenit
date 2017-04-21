@@ -20,6 +20,11 @@ module RailsAdmin
               label 'Auto Start TLS'
             end
 
+            c.configure :from, :string do
+              label 'Send email as'
+              required true
+            end
+
             edit do
               field :address
               field :port do
@@ -30,9 +35,10 @@ module RailsAdmin
               field :user_name, :string
               field :password, :password
               field :enable_starttls_auto
+              field :from
             end
 
-            fields :address, :port, :domain, :user_name, :authentication, :enable_starttls_auto
+            fields :address, :port, :domain, :user_name, :authentication, :enable_starttls_auto, :from
           end
         end
 

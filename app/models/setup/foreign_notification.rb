@@ -30,14 +30,26 @@ module Setup
 
     # Send notification via email message
     def send_email_message(data)
-      to = render(data, setting.email_to)
-      subject = render(data, setting.email_subject)
+      mail = Mail.new
+      mail.from = setting.smtp_provider.from
+      mail.to = render(data, setting.email_to)
+      mail.subject = render(data, setting.email_subject)
+      mail.content_type = "text/html"
       if (translator = setting.email_template)
-        body = translator.run({ object_id: data[:record][:id], data: data })
+        mail.body = translator.run({ object_id: data[:record][:id], data: data })
       else
-        body ||= render(data, setting.email_body)
+        mail.body = render(data, setting.email_body)
       end
-      ForeignNotificationMailer.send_email(to, subject, body, setting.smtp_provider.to_hash).deliver_now
+      mail.delivery_method(:smtp, smtp_settings)
+      mail.deliver
+    end
+
+    def smtp_settings
+      setting.smtp_provider.to_hash.select do |k, _|
+        %w(address port domain user_name password authentication enable_starttls_auto).include?(k)
+      end.select do |k, _|
+        (setting.smtp_provider.authentication != :none) || !%w(authentication user_name password).include?(k)
+      end.map { |k, v| [k.to_sym, v] }.to_h
     end
 
     # Send notification via http message
