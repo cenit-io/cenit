@@ -1307,7 +1307,7 @@ label {
   padding-left: 0 !important;
 }
 
-.cenit-oauth-scope,.cenit-oauth-basic-scope, .model-tr {
+.cenit-oauth-scope, .cenit-oauth-basic-scope, .model-tr {
   .select2-container--bootstrap {
     width: 100% !important;
     margin-bottom: 15px;
@@ -1378,4 +1378,24 @@ label {
     }
   }
 
+}
+
+.scope_at_index {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  ul {
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+    li {
+      display: inline-block;
+      &:not(:last-child) {
+        &:after {
+          content: ', ';
+          margin-right: 5px;
+        }
+      }
+    }
+  }
 }
