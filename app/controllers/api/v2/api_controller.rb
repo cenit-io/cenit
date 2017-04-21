@@ -47,17 +47,12 @@ module Api::V2
             else
               maximum_entries
             end
-          @items =
-            if @criteria.present?
-              select_items
-            else
-              accessible_records.page(page)
-            end
-          items_data = @items.map do |item|
+          items = select_items
+          items_data = items.map do |item|
             hash = item.default_hash(@render_options)
             @view.nil? ? hash : hash[@view]
           end
-          count = @items.count
+          count = items.count
           {
             json: {
               total_pages: (count*1.0 / get_limit).ceil,
@@ -289,16 +284,17 @@ module Api::V2
     end
 
     def get_limit
-      @limit ||=
-        if (limit = @criteria.delete(:limit))
-          limit = limit.to_i
-          if limit == '0'
+      unless @limit
+        limit_option = @criteria_options.delete(:limit)
+        limit = (@criteria.delete(:limit) || limit_option).to_i
+        @limit =
+          if limit < 1
             Kaminari.config.default_per_page
+          else
+            [Kaminari.config.default_per_page, limit].min
           end
-          [Kaminari.config.default_per_page, limit].min
-        else
-          Kaminari.config.default_per_page
-        end
+      end
+      @limit
     end
 
     def get_page
@@ -324,6 +320,19 @@ module Api::V2
       # TODO: Include Kaminari methods on CrossOrigin::Criteria
       items = accessible_records.limit(limit).skip(skip).where(@criteria)
 
+      if (sort = @criteria_options[:sort])
+        sort.each do |field, sort_option|
+          items =
+            case sort_option
+            when 1
+              items.asc(field)
+            when -1
+              items.desc(field)
+            else
+              items
+            end
+        end
+      end
       if order
         if asc
           items.ascending(*order.split(','))
@@ -532,10 +541,14 @@ module Api::V2
                   message: @webhook_body,
                   content_type: content_type)
       when 'index', 'show'
-        unless (@criteria = Cenit::Utility.json_value_of(request.headers['X-Query'])).is_a?(Hash)
+        unless (@criteria = Cenit::Utility.json_value_of(request.headers['X-Query-Selector'])).is_a?(Hash)
           @criteria = {}
         end
+        unless (@criteria_options = Cenit::Utility.json_value_of(request.headers['X-Query-Options'])).is_a?(Hash)
+          @criteria_options = {}
+        end
         @criteria = @criteria.with_indifferent_access
+        @criteria_options = @criteria_options.with_indifferent_access
         @criteria.merge!(params.reject { |key, _| %w(controller action ns model format api).include?(key) })
         @criteria.each { |key, value| @criteria[key] = Cenit::Utility.json_value_of(value) }
         unless (@render_options = Cenit::Utility.json_value_of(request.headers['X-Render-Options'])).is_a?(Hash)
@@ -551,6 +564,18 @@ module Api::V2
               @render_options[option] = value
             end
           end
+        end
+        if (fields_option = @criteria_options.delete(:fields)) || !@render_options.key?(:only)
+          fields_option =
+            case fields_option
+            when Array
+              fields_option
+            when Hash
+              fields_option.collect { |field, presence| presence.to_b ? field : nil }.select(&:presence)
+            else
+              fields_option.to_s.split(',').collect(&:strip)
+            end
+          @render_options[:only] = fields_option
         end
         unless @render_options.key?(:include_id)
           @render_options[:include_id] = true
@@ -596,13 +621,17 @@ module Api::V2
         config[:method_suffix]
       end
 
+      def message
+        config[:message]
+      end
+
       def each_root(&block)
-        block.call(@root, config[:message]) if block
+        block.call(@root, message) if block
       end
 
       def each(&block)
         if @data_type
-          block.call(@data_type.slug, config[:message])
+          block.call(@data_type.slug, message)
         else
           each_root(&block)
         end
@@ -619,8 +648,16 @@ module Api::V2
 
     class JSONPayload < BasicPayload
 
+      def message
+        @message ||= JSON.parse(msg = super)
+      end
+
       def each_root(&block)
-        JSON.parse(config[:message]).each { |root, message| block.call(root, message) } if block
+        if message.is_a?(Hash)
+          message.each { |root, message| block.call(root, message) }
+        else
+          fail "JSON object payload expected but #{message.class} found"
+        end
       end
 
       def process_item(item, data_type, options)
@@ -635,7 +672,7 @@ module Api::V2
     class XMLPayload < BasicPayload
 
       def each_root(&block)
-        if (roots = Nokogiri::XML::DocumentFragment.parse(config[:message]).element_children)
+        if (roots = Nokogiri::XML::DocumentFragment.parse(message).element_children)
           roots.each do |root|
             if (elements = root.element_children)
               elements.each { |e| block.call(root.name, e) }
