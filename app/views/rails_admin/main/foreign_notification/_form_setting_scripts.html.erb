@@ -2,7 +2,7 @@
   $(document).ready(function () {
     var prefixId = '<%= form.object_name.parameterize('_') %>',
         items = {
-          send_email: ['smtp_provider_id', 'email_to', 'email_subject', 'email_template_id', 'email_body'],
+          send_email: ['smtp_provider_id', 'email_to', 'email_subject', 'email_body_template_id', 'email_body'],
           send_http_request: ['http_uri', 'http_method', 'http_params'],
           send_sms: ['sms_to', 'sms_body']
         };
@@ -30,7 +30,7 @@
     });
 
     // Connect events to select the email body type.
-    var $eMailTemplate = $('#{0}_email_template_id'.format(prefixId));
+    var $eMailTemplate = $('#{0}_email_body_template_id'.format(prefixId));
 
     $eMailTemplate.on('change', function (e) {
       var $ckBox = $('#{0}_send_email'.format(prefixId)),
