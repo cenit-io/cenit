@@ -38,7 +38,7 @@ module Setup
     def label
       l = []
       l << 'E-Mail' if send_email
-      l << 'HTTP' if send_http_request
+      l << 'Web-Hook' if send_http_request
       l << 'SMS' if send_sms
       l.empty? ? 'NONE' : l.join(', ')
     end

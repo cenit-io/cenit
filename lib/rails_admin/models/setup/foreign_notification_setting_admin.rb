@@ -40,7 +40,7 @@ module RailsAdmin
 
               # Http setting vars
               group :http_request do
-                label 'HTTP Request'
+                label 'Web-Hook'
                 active { bindings[:object].send_http_request }
                 field :send_http_request, :boolean do
                   label 'Send HTTP Request?'
