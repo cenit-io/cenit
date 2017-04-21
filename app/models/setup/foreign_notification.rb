@@ -35,7 +35,7 @@ module Setup
       mail.to = render(data, setting.email_to)
       mail.subject = render(data, setting.email_subject)
       mail.content_type = "text/html"
-      if (translator = setting.email_template)
+      if (translator = setting.email_body_template)
         mail.body = translator.run({ object_id: data[:record][:id], data: data })
       else
         mail.body = render(data, setting.email_body)
@@ -65,8 +65,6 @@ module Setup
       body = render(data, setting.sms_body)
       # TODO: Send notification via sms message
     end
-
-    protected
 
     # Render data in handlebars template.
     def render(data, template)

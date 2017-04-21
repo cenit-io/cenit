@@ -28,9 +28,13 @@ module RailsAdmin
                   label 'Subject'
                   required true
                 end
-                field :email_template do
-                  label 'Template'
+                field :email_body_template do
+                  label 'Body Template'
                   associated_collection_cache_all false
+                  associated_collection_scope do
+                    proc { |scope| scope.where(mime_type: { '$in' => ['text/html', 'text/plain'] }) }
+                  end
+                  help 'Set the empty value if you want to use a custom mail body.'
                 end
                 field :email_body, :text do
                   label 'Body'

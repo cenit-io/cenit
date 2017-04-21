@@ -14,7 +14,8 @@ module RailsAdmin
               field :active, :boolean do
                 visible do
                   bindings[:object].data_type ||= bindings[:controller].instance_variable_get(:@data_type_filter)
-                  bindings[:object].new_record? == false
+                  bindings[:object].data_type ||= bindings[:controller].object
+                  bindings[:object].data_type != nil
                 end
               end
               field :data_type do
@@ -56,6 +57,7 @@ module RailsAdmin
               end
             end
 
+            fields :active, :data_type, :observers, :setting, :updated_at
           end
         end
 
