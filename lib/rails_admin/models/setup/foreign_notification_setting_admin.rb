@@ -9,6 +9,10 @@ module RailsAdmin
             object_label_method { :label }
 
             edit do
+              required_help = '<i class="fa fa-warning"></i> Required.'
+              handlebars_help = '<i class="fa fa-question-circle"></i> You can use <a href="http://handlebarsjs.com/" target="_blank">handlebar</a> to form the value from the record data.'
+              body_template_help = '<i class="fa fa-question-circle"></i> Set the empty value if you want to use a custom mail body.'
+
               # Email setting vars
               group :email do
                 label 'E-Mail'
@@ -23,10 +27,12 @@ module RailsAdmin
                 field :email_to, :string do
                   label 'To'
                   required true
+                  help "#{required_help}<br/>#{handlebars_help}".html_safe
                 end
                 field :email_subject, :string do
                   label 'Subject'
                   required true
+                  help "#{required_help}<br/>#{handlebars_help}".html_safe
                 end
                 field :email_body_template do
                   label 'Body Template'
@@ -34,11 +40,12 @@ module RailsAdmin
                   associated_collection_scope do
                     proc { |scope| scope.where(mime_type: { '$in' => ['text/html', 'text/plain'] }) }
                   end
-                  help 'Set the empty value if you want to use a custom mail body.'
+                  help body_template_help.html_safe
                 end
                 field :email_body, :text do
                   label 'Body'
                   required true
+                  help "#{required_help}<br/>#{handlebars_help}".html_safe
                 end
               end
 

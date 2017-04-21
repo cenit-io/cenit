@@ -7,6 +7,7 @@ module RailsAdmin
         included do
           rails_admin do
             object_label_method { :label }
+            navigation_label 'Monitors'
             label 'Notification'
             weight 500
 
@@ -27,9 +28,8 @@ module RailsAdmin
                 help do
                   text = ''
                   if bindings[:object].data_type.nil?
-                    text << 'Required.'
-                    text << '<br/>'
-                    text << 'To set observers and setting values, you must first use the save and edit action.'
+                    text << "<i class='fa fa-warning'></i> Required.<br/>"
+                    text << "<i class='fa fa-warning'></i> To set observers and setting values, you must first use the save and edit action."
                   end
                   text.html_safe
                 end
@@ -45,8 +45,8 @@ module RailsAdmin
                 help do
                   text = 'Required.'
                   if bindings[:controller].instance_variable_get(:@model_name) != 'Setup::ForeignNotification'
-                    text << '<br/>'
-                    text << 'To use a newly created observer in this session or set setting values, you must first use the save and edit action.'
+                    text = "<i class='fa fa-warning'></i> Required.<br/>"
+                    text << "<i class='fa fa-warning'></i> To use a newly created observer in this session or set setting values, you must first use the save and edit action."
                   end
                   text.html_safe
                 end
