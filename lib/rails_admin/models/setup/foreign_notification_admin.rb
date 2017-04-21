@@ -8,7 +8,7 @@ module RailsAdmin
           rails_admin do
             object_label_method { :label }
             navigation_label 'Monitors'
-            label 'Notification'
+            label 'Foreign Notification'
             weight 500
 
             edit do
