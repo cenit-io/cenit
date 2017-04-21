@@ -24,9 +24,7 @@ module Setup
         snippet_ref.namespace = namespace
         name = snippet_name
         i = 0
-        while Setup::Snippet.where(tenant: Cenit::MultiTenancy.tenant_model.current,
-                                   namespace: namespace,
-                                   name: name).exists?
+        while Setup::Snippet.where(namespace: namespace, name: name).exists?
           name = snippet_name("(#{i += 1})")
         end
         snippet_ref.name = name
@@ -35,8 +33,7 @@ module Setup
         self.snippet = Setup::Snippet.new(snippet_ref.attributes.reject { |key, _| %w(_id origin).include?(key) })
         name = snippet_ref.name
         i = 0
-        while Setup::Snippet.where(namespace: namespace,
-                                   name: name).exists?
+        while Setup::Snippet.where(namespace: namespace, name: name).exists?
           name = snippet_name("(#{i += 1})")
         end
         snippet_ref.name = name
