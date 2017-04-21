@@ -621,13 +621,17 @@ module Api::V2
         config[:method_suffix]
       end
 
+      def message
+        config[:message]
+      end
+
       def each_root(&block)
-        block.call(@root, config[:message]) if block
+        block.call(@root, message) if block
       end
 
       def each(&block)
         if @data_type
-          block.call(@data_type.slug, config[:message])
+          block.call(@data_type.slug, message)
         else
           each_root(&block)
         end
@@ -644,8 +648,16 @@ module Api::V2
 
     class JSONPayload < BasicPayload
 
+      def message
+        @message ||= JSON.parse(msg = super)
+      end
+
       def each_root(&block)
-        JSON.parse(config[:message]).each { |root, message| block.call(root, message) } if block
+        if message.is_a?(Hash)
+          message.each { |root, message| block.call(root, message) }
+        else
+          fail "JSON object payload expected but #{message.class} found"
+        end
       end
 
       def process_item(item, data_type, options)
@@ -660,7 +672,7 @@ module Api::V2
     class XMLPayload < BasicPayload
 
       def each_root(&block)
-        if (roots = Nokogiri::XML::DocumentFragment.parse(config[:message]).element_children)
+        if (roots = Nokogiri::XML::DocumentFragment.parse(message).element_children)
           roots.each do |root|
             if (elements = root.element_children)
               elements.each { |e| block.call(root.name, e) }
