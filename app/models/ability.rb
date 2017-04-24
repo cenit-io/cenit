@@ -200,6 +200,7 @@ class Ability
       can [:index, :show, :pull, :simple_export], [Setup::SharedCollection, Setup::CrossSharedCollection]
       can [:index, :show], Setup::Models.all.to_a -
         [
+          Account,
           Setup::Namespace,
           Setup::DataTypeConfig,
           Setup::FlowConfig,

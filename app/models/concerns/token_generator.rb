@@ -9,8 +9,12 @@ module TokenGenerator
     before_validation :ensure_token
   end
 
+  def regenerate_token
+    self[:authentication_token] = generate_token
+  end
+
   def ensure_token
-    self[:token] = generate_token unless self[:token].present?
+    self[:authentication_token] = generate_token unless self[:authentication_token].present?
   end
 
   def generate_token
