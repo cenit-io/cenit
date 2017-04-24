@@ -112,7 +112,8 @@ module Setup
     NON_BULK_SOURCE_STYLES = %w(double_curly_braces xslt liquid)
 
     STYLES_MAP = {
-      'liquid' => { Setup::Transformation::LiquidExportTransform => [:Export] },
+      'liquid' => { Setup::Transformation::LiquidExportTransform => [:Export],
+                    Setup::Transformation::LiquidConversionTransform => [:Conversion]},
       'xslt' => { Setup::Transformation::XsltConversionTransform => [:Conversion],
                   Setup::Transformation::XsltExportTransform => [:Export] },
       # 'json.rabl' => {Setup::Transformation::ActionViewTransform => [:Export]},

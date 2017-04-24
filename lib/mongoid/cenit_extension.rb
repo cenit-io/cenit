@@ -1,3 +1,6 @@
+
+require 'cenit/liquidfier'
+
 module Mongoid
   module Config
 
@@ -24,6 +27,7 @@ module Mongoid
     extend ActiveSupport::Concern
 
     include Setup::ClassModelParser
+    include Cenit::Liquidfier
 
     module ClassMethods
 

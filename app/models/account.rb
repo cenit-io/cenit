@@ -4,8 +4,7 @@ class Account
   include Setup::CenitUnscoped
   include Cenit::MultiTenancy
   include Cenit::Oauth::Tenant
-  include NumberGenerator
-  include TokenGenerator
+  include CredentialsGenerator
   include FieldsInspection
   include RailsAdmin::Models::AccountAdmin
 
