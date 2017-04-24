@@ -4,6 +4,7 @@ module Mongoff
     include Edi::Formatter
     include RecordsMethods
     include ActiveModel::ForbiddenAttributesProtection
+    include Cenit::Liquidfier
 
     attr_reader :orm_model
     attr_reader :document

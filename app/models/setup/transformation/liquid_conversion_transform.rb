@@ -6,8 +6,8 @@ module Setup
 
         def run(options = {})
           template = Liquid::Template.parse(options[:code])
-          source_hash = JSON.parse(options[:source].to_json)
-          options[:target].from_json(template.render(source_hash))
+          result = template.render(options.with_indifferent_access)
+          options[:target].fill_from(result)
         end
 
       end
