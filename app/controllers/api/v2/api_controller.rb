@@ -600,7 +600,7 @@ module Api::V2
                            when 'application/xml'
                              :from_xml
                            else
-                             :fill_from
+                             :from
                            end,
             message: ''
           }.merge(config || {})
@@ -618,7 +618,12 @@ module Api::V2
       end
 
       def update_method
-        config[:method_suffix]
+        suffix = config[:method_suffix]
+        if suffix == :from
+          'fill_from'
+        else
+          suffix
+        end
       end
 
       def message
