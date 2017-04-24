@@ -1,6 +1,7 @@
 module Mongoff
   class RecordArray
     include Enumerable
+    include Cenit::Liquidfier
 
     attr_reader :model
     attr_reader :array

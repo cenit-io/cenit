@@ -6,8 +6,7 @@ class User
   include Cenit::Oauth::User
   include Mongoid::Timestamps
   extend DeviseOverrides
-  include NumberGenerator
-  include TokenGenerator
+  include CredentialsGenerator
   include FieldsInspection
   include RailsAdmin::Models::UserAdmin
 

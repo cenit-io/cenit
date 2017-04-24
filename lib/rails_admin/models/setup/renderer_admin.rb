@@ -82,6 +82,8 @@ module RailsAdmin
                             'text/html'
                           when 'xslt'
                             'application/xml'
+                          when 'liquid'
+                            'text/plain'
                           else
                             'text/x-ruby'
                           end

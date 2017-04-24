@@ -9,18 +9,13 @@ module NumberGenerator
 
     field :number, as: :key, type: String
 
-    validates :number, uniqueness: true
-
     before_validation :generate_number
 
-    before_save do
-      errors.add(:number, "can't be blank") unless self[:number].present?
-      errors.blank?
-    end
+    validates_uniqueness_of :number
   end
 
-  def self.by_number(number)
-    where(number: number)
+  def regenerate_number
+    generate_number(force: true)
   end
 
   def generate_number(options = {})
@@ -31,7 +26,7 @@ module NumberGenerator
     possible = (0..9).to_a
     possible += ('A'..'Z').to_a if options[:letters]
 
-    if self[:number].blank?
+    if self[:number].blank? || options[:force]
       self[:number] = loop do
         random = "#{options[:prefix]}#{(0...options[:length]).map { possible.shuffle.first }.join}"
         if self.class.where(number: random).exists?
@@ -40,6 +35,13 @@ module NumberGenerator
           break random
         end
       end
+    end
+  end
+
+  module ClassMethods
+
+    def by_number(number)
+      where(number: number)
     end
   end
 end
