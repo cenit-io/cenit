@@ -22,6 +22,7 @@ module RailsAdmin
                 end
                 field :smtp_provider do
                   label 'SMTP Setting'
+                  required true
                   associated_collection_cache_all false
                 end
                 field :email_to, :string do
