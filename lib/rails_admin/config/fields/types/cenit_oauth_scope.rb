@@ -21,9 +21,38 @@ module RailsAdmin
                 basic = Hash.new
                 if !cenit_oauth_scope.openid_set.empty?
                   basic['openid']= cenit_oauth_scope.openid_set.to_a
+                  basic['openid'].map! do |d|
+                    case d
+                    when :email
+                      I18n.t('admin.oauth.openid.email')
+                    when :profile
+                      I18n.t('admin.oauth.openid.profile')
+                    when :address
+                      I18n.t('admin.oauth.openid.address')
+                    when :phone
+                      I18n.t('admin.oauth.openid.phone')
+                    else
+                      d
+                    end
+                  end
+                  basic['openid'].delete_if { |a| a == :openid }
                 end
                 if !cenit_oauth_scope.super_methods_set.empty?
                   basic['super_methods_set']= cenit_oauth_scope.super_methods_set.to_a
+                  basic['super_methods_set'].map! do |d|
+                    case d
+                    when :post
+                      I18n.t('admin.oauth.super_methods.post')
+                    when :get
+                      I18n.t('admin.oauth.super_methods.get')
+                    when :put
+                      I18n.t('admin.oauth.super_methods.put')
+                    when :delete
+                      I18n.t('admin.oauth.super_methods.delete')
+                    else
+                      d
+                    end
+                  end
                 end
                 if !cenit_oauth_scope.auth?
                   basic['auth']= true
@@ -43,6 +72,14 @@ module RailsAdmin
                     html+= "<li>#{value}</li>"
                   else
                     if value == true
+                      case key
+                      when 'auth'
+                        key = I18n.t('admin.oauth.auth')
+                      when 'offline_access'
+                        key = I18n.t('admin.oauth.offline_access')
+                      else
+                        key
+                      end
                       html+= "<li>#{key}</li>"
                     else
                       next unless (count = value.count) > 0
@@ -65,7 +102,7 @@ module RailsAdmin
                         message = "<span>Showing data types for #{key} method at #{name}</em></span>"
                         filter_token = Cenit::Token.create(data: { criteria: value.selector, message: message }, token_span: 1.hours)
                         index_action = v.action(:index, am)
-                        link_more = v.link_to("more", v.url_for(action: index_action.action_name, model_name: ::Setup::DataType.to_s.underscore.gsub('/', '~'),filter_token: filter_token.token), class: 'pjax')
+                        link_more = v.link_to("more", v.url_for(action: index_action.action_name, model_name: ::Setup::DataType.to_s.underscore.gsub('/', '~'), filter_token: filter_token.token), class: 'pjax')
                         links = "#{first_links} and #{count - max_data_type_to_show} #{link_more}"
                       else
                         links = value.collect do |dt|
@@ -73,11 +110,23 @@ module RailsAdmin
                           v.link_to(label, v.show_path(model_name: ::Setup::DataType.to_s.underscore.gsub('/', '~'), id: dt.id))
                         end.to_sentence
                       end
+                      case key
+                      when :get
+                        key =  I18n.t('admin.oauth.access.get')
+                      when :post
+                        key = I18n.t('admin.oauth.access.post')
+                      when :put
+                        key = I18n.t('admin.oauth.access.put')
+                      when :delete
+                        key = I18n.t('admin.oauth.access.delete')
+                      else
+                        key
+                      end
                       html+= "<li>#{key}: <span>#{links}</span></li>"
                     end
                   end
                 end
-                html += '</ul>'
+                html += "</ul>"
                 html.html_safe
               rescue Exception => ex
                 "ERROR: #{ex.message}"

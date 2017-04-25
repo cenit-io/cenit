@@ -702,4 +702,22 @@ en:
       admin: 'Administration'
       tmp: 'Temporal'
       app: 'App'
+    oauth:
+      openid:
+        email: 'View your email'
+        profile: 'View your profile'
+        address: 'View your address'
+        phone: 'View your phone'
+      super_methods:
+        post: 'Create records of any data type'
+        get: 'Read records from any data type'
+        put: 'Update records of any data type'
+        delete: 'Delete records from any data type'
+      access:
+        post: 'Create records of the following data types'
+        get: 'Read records from the following data types'
+        put: 'Update records of the following data types'
+        delete: 'Delete records of the following data types'
+      auth: 'Authorize other applications'
+      offline_access: 'Authorize other applications in your behaf'
 
