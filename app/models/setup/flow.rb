@@ -325,11 +325,17 @@ module Setup
 
     def simple_translate(message, &block)
       object_ids = ((obj_id = message[:source_id]) && [obj_id]) || source_ids_from(message)
+      task = message[:task]
       if translator.source_handler
         begin
-          translator.run(object_ids: object_ids, discard_events: discard_events, task: message[:task], data_type: data_type)
+          translator.run(object_ids: object_ids, discard_events: discard_events, task: task, data_type: data_type)
         rescue Exception => ex
-          fail "Error source handling translation of records of type '#{data_type.custom_title}' with '#{translator.custom_title}': #{ex.message}"
+          msg = "Error source handling translation of records of type '#{data_type.custom_title}' with '#{translator.custom_title}': #{ex.message}"
+          if task
+            task.notify message: msg
+          else
+            fail msg
+          end
         end
       else
         if object_ids
@@ -340,7 +346,12 @@ module Setup
           begin
             translator.run(object: obj, discard_events: discard_events, task: message[:task], data_type: data_type)
           rescue Exception => ex
-            fail "Error translating record with ID '#{obj.id}' of type '#{data_type.custom_title}' when executing '#{translator.custom_title}': #{ex.message}"
+            msg = "Error translating record with ID '#{obj.id}' of type '#{data_type.custom_title}' when executing '#{translator.custom_title}': #{ex.message}"
+            if task
+              task.notify message: msg
+            else
+              fail msg
+            end
           end
         end
       end
@@ -493,6 +504,6 @@ module Setup
         nil
       end
     end
-    
+
   end
 end
