@@ -60,11 +60,16 @@ module Setup
       has_and_belongs_to_many :oauth_clients, class_name: Setup::RemoteOauthClient.to_s, inverse_of: nil
       has_and_belongs_to_many :oauth2_scopes, class_name: Setup::Oauth2Scope.to_s, inverse_of: nil
 
-      before_save :add_dependencies
+      before_save :make_title, :add_dependencies
 
       after_initialize { @add_dependencies = true }
 
       field :warnings, type: Array
+    end
+
+    def make_title
+      self.title = name.to_title if title.blank?
+      errors.blank?
     end
 
     NO_DATA_FIELDS = %w(title name readme warnings)

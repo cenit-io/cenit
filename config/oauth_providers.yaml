@@ -1,0 +1,141 @@
+https://app.asana.com/-/oauth_authorize:
+  name: Asana
+  response_type: code
+  token_endpoint: https://app.asana.com/-/oauth_token
+  token_method: POST
+  refresh_token_strategy: none
+  type: oauth2
+https://www.facebook.com/dialog/oauth:
+  name: Facebook
+  response_type: code
+  token_endpoint: https://graph.facebook.com/oauth/access_token
+  token_method: POST
+  refresh_token_strategy: none
+  type: oauth2
+  scope_separator: ","
+https://api.login.yahoo.com/oauth2/request_auth:
+  name: Yahoo
+  response_type: code
+  token_endpoint: https://api.login.yahoo.com/oauth2/get_token
+  token_method: POST
+  refresh_token_strategy: none
+  type: oauth2
+https://oauth.live.com/authorize:
+  name: Microsoft
+  response_type: code
+  token_endpoint: https://oauth.live.com/token
+  token_method: GET
+  refresh_token_strategy: none
+  type: oauth2
+https://login.mailchimp.com/oauth2/authorize:
+  name: Mailchimp
+  response_type: code
+  token_endpoint: https://login.mailchimp.com/oauth2/token
+  token_method: GET
+  refresh_token_strategy: none
+  type: oauth2
+https://stackexchange.com/oauth:
+  name: StackExchange
+  response_type: code
+  token_endpoint: https://stackexchange.com/oauth/access_token
+  token_method: POST
+  refresh_token_strategy: none
+  type: oauth2
+https://api.instagram.com/oauth/authorize/:
+  name: Instagram
+  response_type: code
+  token_endpoint: https://api.instagram.com/oauth/access_token
+  token_method: POST
+  refresh_token_strategy: none
+  type: oauth2
+https://account.jirafe.com/oauth2/authorize:
+  name: Jirafe
+  response_type: code
+  token_endpoint: https://account.jirafe.com/oauth2/auth_token
+  token_method: POST
+  refresh_token_strategy: none
+  type: oauth2
+https://reverb.com/oauth/authorize:
+  name: Reverb
+  response_type: code
+  token_endpoint: https://reverb.com/oauth/access_token
+  token_method: POST
+  refresh_token_strategy: none
+  type: oauth2
+https://accounts.spotify.com/authorize:
+  name: Spotify
+  response_type: code
+  token_endpoint: https://accounts.spotify.com/api/token
+  token_method: POST
+  refresh_token_strategy: none
+  type: oauth2
+https://cenit.io/oauth/authorize:
+  name: OAuth
+  response_type: code
+  token_endpoint: https://cenit.io/oauth/token
+  token_method: POST
+  refresh_token_strategy: none
+  type: oauth2
+https://github.com/login/oauth/authorize:
+  name: GitHub
+  response_type: code
+  token_endpoint: https://github.com/login/oauth/access_token
+  token_method: POST
+  refresh_token_strategy: none
+  type: oauth2
+  scope_separator: ","
+https://accounts.google.com/o/oauth2/auth:
+  name: Google
+  response_type: code
+  token_endpoint: https://accounts.google.com/o/oauth2/token
+  token_method: POST
+  refresh_token_strategy: Google v4
+  type: oauth2
+https://slack.com/oauth/authorize:
+  name: Slack
+  response_type: code
+  token_endpoint: https://slack.com/api/oauth.access
+  token_method: POST
+  refresh_token_strategy: none
+  type: oauth2
+  scope_separator: ","
+https://api.twitter.com/oauth/authorize:
+  name: Twitter
+  response_type: code
+  token_endpoint: https://api.twitter.com/oauth/access_token
+  token_method: GET
+  refresh_token_strategy: none
+  type: oauth1
+  request_token_endpoint: https://api.twitter.com/oauth/request_token
+https://{{mysite}}.desk.com/oauth/authorize:
+  name: Desk
+  response_type: code
+  token_endpoint: https://{{mysite}}.desk.com/oauth/access_token
+  token_method: POST
+  refresh_token_strategy: none
+  type: oauth1
+  request_token_endpoint: https://{{mysite}}.desk.com/oauth/request_token
+https://appcenter.intuit.com/Connect/Begin:
+  name: Intuit
+  response_type: code
+  token_endpoint: https://oauth.intuit.com/oauth/v1/get_access_token
+  token_method: POST
+  refresh_token_strategy: none
+  type: oauth1
+  request_token_endpoint: https://oauth.intuit.com/oauth/v1/get_request_token
+https://trello.com/1/OAuthAuthorizeToken:
+  name: Trello
+  response_type: code
+  token_endpoint: https://trello.com/1/OAuthGetAccessToken
+  token_method: POST
+  refresh_token_strategy: none
+  type: oauth1
+  request_token_endpoint: https://trello.com/1/OAuthGetRequestToken
+https://{{magentohost}}/oauth/authorize:
+  name: Magento
+  response_type: code
+  token_endpoint: https://{{magentohost}}/admin/oauth_authorize
+  token_method: POST
+  refresh_token_strategy: none
+  type: oauth1
+  request_token_endpoint: https://{{magentohost}}/oauth/initiate

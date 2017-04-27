@@ -12,6 +12,11 @@ module Setup
       properties: {
         slug: {
           type: 'string'
+        },
+        schema: {
+          edi: {
+            discard: true
+          }
         }
       }
     )
@@ -238,6 +243,6 @@ module Setup
       #TODO Check for a valid ruby method name
       #raise Exception.new("property name '#{property_name}' is invalid") unless property_name =~ /\A[a-z]+(_|([0-9]|[a-z])+)*\Z/
     end
-    
+
   end
 end

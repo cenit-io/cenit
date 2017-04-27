@@ -114,6 +114,7 @@ module Cenit
                   else
                     obj.send("#{property_name}=", value)
                   end
+                  property_binds.delete(property_bind)
                 elsif !options[:skip_error_report]
                   message = "#{property_bind[:model]} reference not found with criteria #{property_bind[:criteria].to_json}"
                   obj.errors.add(property_name, message)
@@ -125,7 +126,9 @@ module Cenit
                   # end
                 end
               end
+              to_bind.delete(property_name) if property_binds.empty?
             end
+            references.delete(obj) if to_bind.empty?
           end
         end
         record.errors.blank?
@@ -226,9 +229,25 @@ module Cenit
         scopes.each do |original_scope|
           scope = original_scope
           match_conditions = {}
+          begin
+            scope_klass =
+              begin
+                scope.klass
+              rescue
+                scope.model
+              end
+            scope_associations = scope_klass.get_associations
+          rescue
+            scope_klass = nil
+            scope_associations = nil
+          end
           conditions.each do |key, value|
             if value.is_a?(Hash)
-              match_conditions[key] = value
+              if scope_associations && (association = scope_associations[key])
+                scope = scope.where(association.foreign_key => { '$in' => associated_ids(association, value) })
+              else
+                match_conditions[key] = value
+              end
             elsif scope.respond_to?(:where)
               scope = scope.where(key => value)
             else
@@ -237,13 +256,29 @@ module Cenit
           end
           record = scope.detect { |record| match?(record, match_conditions) }
           if record
-            if original_scope.respond_to?(:detect) && (o_r = original_scope.detect { |item| item == record })
+            if original_scope.is_a?(Enumerable) && (o_r = original_scope.detect { |item| item == record })
               return o_r
             end
             return record
           end
         end
         nil
+      end
+
+      def associated_ids(association, criteria)
+        associations =
+          begin
+            association.klass.get_associations
+          rescue
+            nil
+          end
+        criteria.each do |key, value|
+          if (a = associations[key])
+            criteria.delete(key)
+            criteria[a.foreign_key] = { '$in' => associated_ids(a, key => value) }
+          end
+        end if associations
+        association.klass.where(criteria).collect(&:id)
       end
 
       def deep_remove(hash, key)
@@ -328,18 +363,18 @@ module Cenit
         end
       end
 
-      def eql_content?(a, b, &block)
+      def eql_content?(a, b, key = nil, &block)
         case a
         when Hash
           if b.is_a?(Hash)
             if a.size < b.size
               a, b = b, a
             end
-            a.each do |key, value|
-              return false unless eql_content?(value, b[key], &block)
+            a.each do |k, value|
+              return false unless eql_content?(value, b[k], k, &block)
             end
           else
-            return block && block.call(a, b)
+            return block && block.call(*(block.arity == 3 ? [a, b, key] : [a, b]))
           end
         when Array
           if b.is_a?(Array) && a.length == b.length
@@ -355,10 +390,10 @@ module Cenit
               return false unless a.length == b.length
             end
           else
-            return block && block.call(a, b)
+            return block && block.call(*(block.arity == 3 ? [a, b, key] : [a, b]))
           end
         else
-          return a.eql?(b) || (block && block.call(a, b))
+          return a.eql?(b) || (block && block.call(*(block.arity == 3 ? [a, b, key] : [a, b])))
         end
         true
       end

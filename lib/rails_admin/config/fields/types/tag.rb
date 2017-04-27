@@ -43,7 +43,9 @@ module RailsAdmin
           end
 
           def parse_input(params)
-            params[name] = params[name].collect(&:to_s).collect(&:downcase).uniq.select(&:present?).to_json
+            if (tags = params[name]).is_a?(Enumerable)
+              params[name] = tags.collect(&:to_s).collect(&:downcase).uniq.select(&:present?).to_json
+            end
           end
         end
       end

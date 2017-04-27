@@ -15,6 +15,13 @@ module Mongoid
     def tenant_version
       self
     end
+
+    module ClassMethods
+
+      def get_associations
+        relations
+      end
+    end
   end
 
   module Scopable

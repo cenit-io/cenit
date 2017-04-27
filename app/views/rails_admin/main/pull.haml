@@ -1,52 +1,52 @@
 :ruby
   shared_collection ||= nil
   pull_request ||= {}
-  bulk_ids ||= nil
-  object_id ||= nil
-  options ||= {}
-  options_key ||= {}
   pull_anyway ||= false
   pull_review_option ||= false
 
   missing_parameters = pull_request[:missing_parameters] || []
   pull_parameters = pull_request[:pull_parameters] || {}
-  new_records = pull_request[:new_records] || []
+  new_records = pull_request[:new_records] || {}
   updated_records = pull_request[:updated_records] || []
   pull_data = pull_request[:pull_data] #TODO When records data included in collections
   limit ||= 10
+  new_records.values.each do |records|
+    records.each_with_index do |record, index|
+      break if index > limit
+      records[index] =
+        if (ns = record['namespace'])
+          "'#{ns} | #{record['name']}'"
+        elsif (resource = record['resource']) #Operations
+          "#{resource['name']} | #{record['method']}"
+        elsif (provider = record['provider']) #Remote Oauth Clients & Scopes
+          "#{provider['name']} | #{record['name']}"
+        else
+          record['name']
+        end
+    end
+  end
 
   before_form_partials ||= []
   before_form_partials = [before_form_partials] unless before_form_partials.is_a?(Enumerable)
   before_form_partials = before_form_partials.collect(&:to_s)
 
-%form{method: 'post', class: 'form-horizontal denser'}
+  if shared_collection && shared_collection.pull_parameters?
+    @model_config = RailsAdmin::Config.model(shared_collection.pull_model)
+    @model_config.register_instance_option(:discard_submit_buttons) { true }
+    @form_object = shared_collection.pull_model.new_from_json(pull_parameters)
+    missing_parameters.each do |missing_parameter|
+      @form_object.errors.add(:"#{missing_parameter}", 'is missing')
+    end if params[:_pull]
+  end
+
+= rails_admin_form_for @form_object || @object, url: url_for(action: @action.action_name), html: { class: 'form-horizontal denser', data: { title: @page_name }} do |form|
   - before_form_partials.each do |partial|
     = render partial: partial
-  - if bulk_ids
-    %select{name: 'new_bulk_ids[]', multiple: 'multiple', style: 'display:none'}
-      - bulk_ids.each do |id|
-        %option{value: id, selected: 'selected'}
-  - if object_id
-    %input{name: 'object_id', value: object_id, type: 'hidden'}
-  - if options_key
-    - options.each do |key, value|
-      %input{name: "#{options_key}[#{key}]", value: value.to_s, type: 'hidden'}
   - uptodate = true
-  - if shared_collection && shared_collection.pull_parameters.present?
+  - if @form_object
     - uptodate = false
     %h4= t('admin.actions.pull.fill_parameters')
-    .fieldset
-      - shared_collection.pull_parameters.each do |pull_parameter|
-        .control-group{class: (error = missing_parameters.include?(pull_parameter.id.to_s)) ? 'error' : ''}
-          %label.col-sm-2.control-label
-            = pull_parameter.label
-          .col-sm-10.controls
-            %input{type: 'text', size: 50, name: "pull_parameters[#{pull_parameter.id}]", value:  pull_parameters[pull_parameter.id.to_s], required: 'required'}
-            - if error
-              %span{class: 'help-inline'}
-                = "can't be blank"
-            %p.help-block
-              = "Required. #{pull_parameter.try(:description)}"
+    = form.generate action: :create
   - if pull_review_option
     - uptodate = false
     .fieldset
@@ -66,7 +66,7 @@
             = key.titleize
           .col-sm-10.controls
             - a = []
-            - records.each { |record| next if a.length > limit; a << ((ns = record['namespace']) ? "'#{ns} | #{record['name']}'" : "'#{record['name']}'") }
+            - records.each { |record| break if a.length > limit; a << record }
             - a << "#{t('admin.actions.pull.another')} #{records.count - a.length}" if a.length < records.count
             = a.to_sentence.html_safe
             %p.help-block
@@ -95,7 +95,7 @@
   - if uptodate
     - if pull_request[:collection_discarded]
       %h4=  t('admin.actions.pull.nothing_to_pull')
-    - elsif shared_collection
+    - elsif shared_collection && shared_collection.persisted?
       - collection_link = link_to(shared_collection.name, rails_admin.show_path(model_name: Setup::Collection.to_s.underscore.gsub('/', '~'), id: shared_collection.name), class: 'pjax')
       - shared_collection_link = link_to(shared_collection.versioned_name, rails_admin.show_path(model_name: shared_collection.class.to_s.underscore.gsub('/', '~'), id: shared_collection.id), class: 'pjax')
       %h4=  t('admin.actions.pull.uptodate', collection: collection_link, shared_collection: shared_collection_link).html_safe

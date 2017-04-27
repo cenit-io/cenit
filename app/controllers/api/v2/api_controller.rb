@@ -3,7 +3,7 @@ module Api::V2
 
     before_action :authorize_account, :save_request_data, except: [:new_user, :cors_check, :auth]
     before_action :authorize_action, except: [:auth, :new_user, :cors_check, :push]
-    before_action :find_item, only: [:show, :destroy, :pull, :run]
+    before_action :find_item, only: [:update, :show, :destroy, :pull, :run]
 
     rescue_from Exception, :with => :exception_handler
 
@@ -18,29 +18,44 @@ module Api::V2
       page = get_page
       res =
         if klass
-          @render_options[:only] =
-            if (only_option = @render_options[:only])
-              unless only_option.is_a?(Array)
-                only_option = only_option.to_s.split(',').collect(&:strip)
+          @render_options.delete(:inspecting)
+          if (model_ignore = klass.index_ignore_properties).present?
+            @render_options[:ignore] =
+              if (ignore_option = @render_options[:ignore])
+                unless ignore_option.is_a?(Array)
+                  ignore_option = ignore_option.to_s.split(',').collect(&:strip)
+                end
+                ignore_option + model_ignore
+              else
+                model_ignore
               end
-              only_option.select { |property| klass.index_property?(property) }
+          end
+          maximum_entries =
+            if (account = Account.current)
+              account.index_max_entries
             else
-              klass.index_properties
+              Account::DEFAULT_INDEX_MAX_ENTRIES
             end
-          @items =
-            if @criteria.present?
-              select_items
+          @render_options[:max_entries] =
+            if (max_entries = @render_options[:max_entries])
+              max_entries = max_entries.to_i
+              if max_entries == 0 || max_entries > maximum_entries
+                maximum_entries
+              else
+                max_entries
+              end
             else
-              accessible_records.page(page)
+              maximum_entries
             end
-          items_data = @items.map do |item|
+          items = select_items
+          items_data = items.map do |item|
             hash = item.default_hash(@render_options)
             @view.nil? ? hash : hash[@view]
           end
-          count = @items.count
+          count = items.count
           {
             json: {
-              total_pages: (count*1.0/Kaminari.config.default_per_page).ceil,
+              total_pages: (count*1.0 / get_limit).ceil,
               current_page: page,
               count: count,
               @model.pluralize => items_data
@@ -135,6 +150,24 @@ module Api::V2
       response.delete(:success) if success_report.blank?
       response.delete(:errors) if broken_report.blank?
       render json: response
+    end
+
+    def update
+      @payload.each do |_, message|
+        message = message.first if message.is_a?(Array)
+        @parser_options[:add_only] = true
+        @item.send(@payload.update_method, message, @parser_options)
+        save_options = {}
+        if @item.class.is_a?(Class) && @item.class < FieldsInspection
+          save_options[:inspect_fields] = Account.current.nil? || !Account.current_super_admin?
+        end
+        if @item.save(save_options)
+          render json: @item.to_hash, status: :ok
+        else
+          render json: { errors: @item.errors.full_messages }, status: :not_acceptable
+        end
+        break
+      end
     end
 
     def destroy
@@ -251,16 +284,17 @@ module Api::V2
     end
 
     def get_limit
-      @limit ||=
-        if (limit = @criteria.delete(:limit))
-          limit = limit.to_i
-          if limit == '0'
+      unless @limit
+        limit_option = @criteria_options.delete(:limit)
+        limit = (@criteria.delete(:limit) || limit_option).to_i
+        @limit =
+          if limit < 1
             Kaminari.config.default_per_page
+          else
+            [Kaminari.config.default_per_page, limit].min
           end
-          [Kaminari.config.default_per_page, limit].min
-        else
-          Kaminari.config.default_per_page
-        end
+      end
+      @limit
     end
 
     def get_page
@@ -286,6 +320,19 @@ module Api::V2
       # TODO: Include Kaminari methods on CrossOrigin::Criteria
       items = accessible_records.limit(limit).skip(skip).where(@criteria)
 
+      if (sort = @criteria_options[:sort])
+        sort.each do |field, sort_option|
+          items =
+            case sort_option
+            when 1
+              items.asc(field)
+            when -1
+              items.desc(field)
+            else
+              items
+            end
+        end
+      end
       if order
         if asc
           items.ascending(*order.split(','))
@@ -453,7 +500,7 @@ module Api::V2
       @format = params[:format]
       @path = "#{params[:path]}.#{params[:format]}" if params[:path] && params[:format]
       case @_action_name
-      when 'new', 'push'
+      when 'new', 'push', 'update'
         unless (@parser_options = Cenit::Utility.json_value_of(request.headers['X-Parser-Options'])).is_a?(Hash)
           @parser_options = {}
         end
@@ -494,10 +541,14 @@ module Api::V2
                   message: @webhook_body,
                   content_type: content_type)
       when 'index', 'show'
-        unless (@criteria = Cenit::Utility.json_value_of(request.headers['X-Query'])).is_a?(Hash)
+        unless (@criteria = Cenit::Utility.json_value_of(request.headers['X-Query-Selector'])).is_a?(Hash)
           @criteria = {}
         end
+        unless (@criteria_options = Cenit::Utility.json_value_of(request.headers['X-Query-Options'])).is_a?(Hash)
+          @criteria_options = {}
+        end
         @criteria = @criteria.with_indifferent_access
+        @criteria_options = @criteria_options.with_indifferent_access
         @criteria.merge!(params.reject { |key, _| %w(controller action ns model format api).include?(key) })
         @criteria.each { |key, value| @criteria[key] = Cenit::Utility.json_value_of(value) }
         unless (@render_options = Cenit::Utility.json_value_of(request.headers['X-Render-Options'])).is_a?(Hash)
@@ -513,6 +564,18 @@ module Api::V2
               @render_options[option] = value
             end
           end
+        end
+        if (fields_option = @criteria_options.delete(:fields)) || !@render_options.key?(:only)
+          fields_option =
+            case fields_option
+            when Array
+              fields_option
+            when Hash
+              fields_option.collect { |field, presence| presence.to_b ? field : nil }.select(&:presence)
+            else
+              fields_option.to_s.split(',').collect(&:strip)
+            end
+          @render_options[:only] = fields_option
         end
         unless @render_options.key?(:include_id)
           @render_options[:include_id] = true
@@ -531,13 +594,13 @@ module Api::V2
       def initialize(config)
         @config =
           {
-            create_method: case config[:content_type]
+            method_suffix: case config[:content_type]
                            when 'application/json'
-                             :create_from_json
+                             :from_json
                            when 'application/xml'
-                             :create_from_xml
+                             :from_xml
                            else
-                             :create_from
+                             :from
                            end,
             message: ''
           }.merge(config || {})
@@ -551,16 +614,29 @@ module Api::V2
       end
 
       def create_method
-        config[:create_method]
+        "create_#{config[:method_suffix]}"
+      end
+
+      def update_method
+        suffix = config[:method_suffix]
+        if suffix == :from
+          'fill_from'
+        else
+          suffix
+        end
+      end
+
+      def message
+        config[:message]
       end
 
       def each_root(&block)
-        block.call(@root, config[:message]) if block
+        block.call(@root, message) if block
       end
 
       def each(&block)
         if @data_type
-          block.call(@data_type.slug, config[:message])
+          block.call(@data_type.slug, message)
         else
           each_root(&block)
         end
@@ -577,8 +653,16 @@ module Api::V2
 
     class JSONPayload < BasicPayload
 
+      def message
+        @message ||= JSON.parse(msg = super)
+      end
+
       def each_root(&block)
-        JSON.parse(config[:message]).each { |root, message| block.call(root, message) } if block
+        if message.is_a?(Hash)
+          message.each { |root, message| block.call(root, message) }
+        else
+          fail "JSON object payload expected but #{message.class} found"
+        end
       end
 
       def process_item(item, data_type, options)
@@ -593,7 +677,7 @@ module Api::V2
     class XMLPayload < BasicPayload
 
       def each_root(&block)
-        if (roots = Nokogiri::XML::DocumentFragment.parse(config[:message]).element_children)
+        if (roots = Nokogiri::XML::DocumentFragment.parse(message).element_children)
           roots.each do |root|
             if (elements = root.element_children)
               elements.each { |e| block.call(root.name, e) }

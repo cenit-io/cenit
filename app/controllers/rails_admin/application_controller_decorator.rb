@@ -13,7 +13,7 @@ module RailsAdmin
       #Patch
       @model_name = to_model_name(params[:model_name])
       #TODO Transferring shared collections to cross shared collections. REMOVE after migration
-      if @model_name == Setup::SharedCollection.to_s && !User.current_super_admin?
+      if @model_name == Setup::SharedCollection.to_s
         @model_name = Setup::CrossSharedCollection.to_s
       end
       @data_type = nil

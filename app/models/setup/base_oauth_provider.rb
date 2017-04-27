@@ -105,14 +105,17 @@ module Setup
     def google_v4_refresh_token(authorization)
       unless authorization.authorized_at + authorization.token_span > Time.now - 60
         fail 'Missing client configuration' unless authorization.client
-        http_response = HTTMultiParty.post('https://www.googleapis.com/oauth2/v4/token',
-                                           headers: { 'Content-Type' => 'application/x-www-form-urlencoded' },
-                                           body: {
-                                             grant_type: :refresh_token,
-                                             refresh_token: authorization.refresh_token,
-                                             client_id: authorization.client.get_identifier,
-                                             client_secret: authorization.client.get_secret
-                                           }.to_param)
+        post = Setup::Connection.post('https://www.googleapis.com/oauth2/v4/token')
+        http_response = post.submit(
+          headers: { 'Content-Type' => 'application/x-www-form-urlencoded' },
+          body: {
+            grant_type: :refresh_token,
+            refresh_token: authorization.refresh_token,
+            client_id: authorization.client.get_identifier,
+            client_secret: authorization.client.get_secret
+          }.to_param,
+          verbose_response: true
+        )[:http_response]
         body = JSON.parse(http_response.body)
         if http_response.code == 200
           authorization.authorized_at = Time.now
@@ -152,6 +155,6 @@ module Setup
     rescue Exception => ex
       raise "Error refreshing token for #{authorization.custom_title}: #{ex.message}"
     end
-    
+
   end
 end

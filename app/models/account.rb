@@ -4,12 +4,13 @@ class Account
   include Setup::CenitUnscoped
   include Cenit::MultiTenancy
   include Cenit::Oauth::Tenant
-  include NumberGenerator
-  include TokenGenerator
+  include CredentialsGenerator
   include FieldsInspection
   include RailsAdmin::Models::AccountAdmin
 
-  inspect_fields :name, :notification_level, :time_zone
+  DEFAULT_INDEX_MAX_ENTRIES = 100
+
+  inspect_fields :name, :notification_level, :time_zone, :index_max_entries
 
   build_in_data_type.with(:name, :notification_level, :time_zone, :number, :authentication_token)
   build_in_data_type.protecting(:number, :authentication_token)
@@ -43,6 +44,8 @@ class Account
 
   field :time_zone, type: String, default: "#{Time.zone.name} | #{Time.zone.formatted_offset}"
 
+  field :index_max_entries, type: Integer, default: DEFAULT_INDEX_MAX_ENTRIES
+
   validates_presence_of :name, :notification_level, :time_zone
   validates_uniqueness_of :name, scope: :owner
   validates_inclusion_of :notification_level, in: ->(a) { a.notification_level_enum }
@@ -55,8 +58,8 @@ class Account
         while Account.where(owner_id: owner_id, name: n).exists?
           n = "#{owner.email} (#{c += 1})"
         end
-        self.name = n
       end
+      self.name = n
     else
       errors.add(:base, 'can not be created outside current user context')
     end
@@ -106,6 +109,7 @@ class Account
   TIME_ZONE_REGEX = /((\+|-)((1[0-3])|(0\d)):\d\d)/
 
   def validates_configuration
+    remove_attribute(:index_max_entries) if index_max_entries < DEFAULT_INDEX_MAX_ENTRIES
     errors.add(:time_zone, 'is not valid') unless TIME_ZONE_REGEX.match(time_zone)
     errors.blank?
   end

@@ -35,7 +35,7 @@ Capataz.config do
 
   allow_on YAML, [:load, :add_domain_type]
 
-  allow_on URI, [:decode, :encode]
+  allow_on URI, [:decode, :encode, :encode_www_form]
 
   allow_on StringIO, [:new_io]
 

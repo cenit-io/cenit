@@ -8,14 +8,10 @@ module Cenit
 
         pull_parameters = options[:pull_parameters] || {}
         missing_parameters = []
-        shared_collection.pull_parameters.each do |pull_parameter|
-          unless pull_parameters[(param_id = pull_parameter.id.to_s)].present?
+        shared_collection.each_pull_parameter do |pull_parameter|
+          if pull_parameter.required? && !pull_parameters.key?(param_id = pull_parameter.id.to_s)
             missing_parameters << param_id
           end
-        end
-        if options[:auto_fill]
-          missing_parameters.each { |param_id| pull_parameters[param_id] = FFaker::Lorem.word }
-          missing_parameters.clear
         end
 
         new_records = Hash.new { |h, k| h[k] = [] }
@@ -28,20 +24,20 @@ module Cenit
         collection_data = { '_reset' => resetting = [] }
         collection = Setup::Collection.where(name: shared_collection.name).first
         fields = %w(readme title)
-        unless collection && fields.all? { |field| collection.send(field) == shared_collection.send(field) }
+        unless collection && fields.all? { |field| Cenit::Utility.eql_content?(collection.send(field), shared_collection.send(field)) }
           fields.each do |field|
             shared_value = shared_collection[field]
-            unless collection && (collection[field] == shared_value)
+            unless collection && Cenit::Utility.eql_content?(collection[field], shared_value)
               collection_data[field] = shared_value
               resetting << field
             end
           end
         end
         fields = %w(metadata)
-        unless collection && fields.all? { |field| collection.send(field) == pull_data[field] }
+        unless collection && fields.all? { |field| Cenit::Utility.eql_content?(collection.send(field), pull_data[field]) }
           fields.each do |field|
             shared_value = pull_data[field]
-            unless collection && (collection[field] == shared_value)
+            unless collection && Cenit::Utility.eql_content?(collection[field], shared_value)
               collection_data[field] = shared_value
               resetting << field
             end
@@ -68,7 +64,7 @@ module Cenit
                 criteria.delete_if { |_, value| value.nil? }
                 criteria = Cenit::Utility.deep_remove(criteria, '_reference')
                 unless (on_collection = (record = collection && Cenit::Utility.find_record(criteria, collection.send(relation.name))))
-                  record = Cenit::Utility.find_record(criteria, relation.klass.all)
+                  record = Cenit::Utility.find_record(criteria, relation.klass)
                 end
                 if record
                   share_hash_options = {}
@@ -77,23 +73,24 @@ module Cenit
                   end
                   record_hash = record.share_hash(share_hash_options)
                   record_hash = Cenit::Utility.stringfy(record_hash)
-                  %w(id _id).each do |id_key|
-                    record_hash[id_key] = item[id_key] if item.has_key?(id_key)
-                  end
                   if item['_type']
                     record_hash['_type'] = record.class.to_s unless record_hash['_type']
                   end
                   record_hash['_reset'] ||= item['_reset'] if item['_reset']
                   record_hash.reject! { |key, _| !item.has_key?(key) }
-                  invariant = Cenit::Utility.eql_content?(record_hash, item) do |record_value, item_value|
-                    (record_value.nil? && item_value.blank?) || (item_value.nil? && record_value.blank?)
+                  invariant = Cenit::Utility.eql_content?(record_hash, item) do |record_value, item_value, hash_key|
+                    if %w(id _id _primary).include?(hash_key)
+                      record_value.nil? || item_value.nil?
+                    else
+                      (record_value.nil? && item_value.blank?) || (item_value.nil? && record_value.blank?)
+                    end
                   end
                   if invariant
                     invariant_names << ref_criteria
                     invariant_on_collection += 1 if on_collection
-                    item = ref_criteria
-                    item['_reference'] = true
+                    item = {}
                   else
+                    item.delete_if { |key, _| ref_criteria.key?(key) }
                     updated_records[entry] <<
                       if options[:updated_records_ids]
                         record.id.to_s
@@ -214,7 +211,8 @@ module Cenit
               pull_request[:pull_data] = pull_data
             end
           rescue Exception => ex
-            errors << ex.message
+            n = Setup::SystemNotification.create_from(ex, 'Pulling ERROR')
+            errors << "An unexpected error occurs (#{ex.message}). Ask for support by supplying this code: #{n.id}"
           end
           unless errors.blank?
             Setup::Namespace.all.any_in(id: created_nss_ids.to_a).delete_all

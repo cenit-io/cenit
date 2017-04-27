@@ -35,12 +35,12 @@ module RailsAdmin
                 page: params[:page] || 1,
                 limit: @limit = 20
               }
-              pull = request.path.end_with?('/pull')
+              pull = request.path.end_with?('/pull') || params[:pull].to_b
               if (id = params[:id].presence)
                 cenit_api_path = "#{cenit_api_path}/#{id}"
                 fields = "#{fields},data" unless params[:no_details].to_b
                 if pull
-                  fields = "#{fields},authors,email"
+                  fields = "#{fields},authors,email,pull_asynchronous"
                 end
               elsif (@query = params[:query].to_s.presence)
                 parameters['$or'] = %w{name title readme summary description}.collect do |field|

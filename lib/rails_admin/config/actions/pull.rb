@@ -9,7 +9,7 @@ module RailsAdmin
         end
 
         register_instance_option :only do
-          [Setup::SharedCollection, Setup::CrossSharedCollection, Setup::ApiSpec]
+          [Setup::CrossSharedCollection, Setup::ApiSpec]
         end
 
         register_instance_option :member do
@@ -17,19 +17,23 @@ module RailsAdmin
         end
 
         register_instance_option :http_methods do
-          [:get, :post]
+          [:get, :post, :patch]
         end
 
         register_instance_option :controller do
           proc do
+
+            if (pull_parameters = params[:pull_parameters])
+              pull_parameters.permit!
+            end
 
             if @object.pull_asynchronous
               if params[:_pull]
                 message = {
                   skip_pull_review: params[:skip_pull_review].to_b
                 }
-                if @object.respond_to?(:pull_parameters) && @object.pull_parameters.present?
-                  message[:pull_parameters] = params[:pull_parameters] || {}
+                if @object.try(:pull_parameters?)
+                  message[:pull_parameters] = @object.pull_model.new(pull_parameters || {}).share_hash
                 end
                 do_flash_process_result object.pull(message)
                 redirect_to back_or_index
@@ -40,7 +44,8 @@ module RailsAdmin
                 }
               end
             else
-              @pull_request = Cenit::Actions.pull_request(@object, pull_parameters: params[:pull_parameters])
+              pull_parameters = @object.pull_model.new(pull_parameters || {}).share_hash
+              @pull_request = Cenit::Actions.pull_request(@object, pull_parameters: pull_parameters)
               if @pull_request[:missing_parameters].blank? && params[:_pull]
                 @pull_request[:install] = params[:install].to_b if User.current_super_admin? && User.current_installer?
                 @pull_request = Cenit::Actions.pull(@object, @pull_request) if (!@object.installed? && @pull_request[:install]) || @pull_request[:collection_data].present?
@@ -60,11 +65,6 @@ module RailsAdmin
                   redirect_to back_or_index
                 end
               else
-                if params[:_pull]
-                  flash[:error] = t('admin.actions.pull.missing_parameters') if @pull_request[:missing_parameters].present?
-                else
-                  @pull_request[:missing_parameters] = []
-                end
                 locals =
                   {
                     shared_collection: @object,

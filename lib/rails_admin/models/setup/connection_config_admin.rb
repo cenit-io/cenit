@@ -9,13 +9,20 @@ module RailsAdmin
             navigation_label 'Configuration'
             label 'Connection Config'
             weight 730
+
             configure :connection do
               read_only true
             end
+
             configure :number do
               label 'Key'
             end
-            fields :connection, :number, :token
+
+            configure :authentication_token do
+              label 'Token'
+            end
+
+            fields :connection, :number, :authentication_token
 
             show_in_dashboard false
           end
