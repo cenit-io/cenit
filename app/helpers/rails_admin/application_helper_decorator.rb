@@ -479,6 +479,7 @@ module RailsAdmin
           ext_count = 0
           sub_links = ''
           extensions_list.each do |ext|
+            next if ext.blank?
             count = Setup::Renderer.where(:file_extension => ext).count
             ext_count += count
             sub_links += content_tag :li do
