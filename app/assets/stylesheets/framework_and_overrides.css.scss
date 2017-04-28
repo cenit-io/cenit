@@ -214,4 +214,38 @@ section {
   form {
     margin-bottom: 0;
   }
+  h4 {
+    margin-bottom: 25px;
+  }
+  .actions {
+    padding: 0;
+    border-radius: 4px;
+    margin-bottom: 25px;
+    &.granted {
+      .action-title {
+        background: $brand-success;
+      }
+    }
+    &.request {
+      .action-title {
+        background: $brand-warning;
+      }
+    }
+    .action-title {
+      padding: 8px 15px;
+      color: white;
+      font-weight: bold;
+    }
+    .action-description {
+      padding: 15px;
+      ul {
+        padding-left: 15px;
+        list-style-type: square;
+        margin-bottom: 0;
+        li i {
+          margin-left: 5px;
+        }
+      }
+    }
+  }
 }

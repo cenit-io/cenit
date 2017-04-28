@@ -19,26 +19,33 @@
                 = image_tag(@app_id.app.configuration.logo, alt: '', class: 'img-circle')
               %span.user-img
                 = image_tag(current_user.picture.url, alt: '', class: 'img-circle')
-            .col-xs-12
+            %h4.text-center
               = 'Application'
               %label
                 = @app_id.name
-              = 'is requesting access to'
-              - if @scope.auth?
-                %label
-                  = 'authorize other applications'
-              - if @scope.offline_access?
-                %label
-                  = 'in your behalf'
-            .col-xs-12
-              %ul
-                - @scope.descriptions.each do |description|
-                  %li
-                    %label
-                      = description
+            - unless @grant_scope.blank?
+              .col-xs-12.actions.granted
+                .action-title
+                  %i.fa.fa-check
+                  %span
+                    = 'Already have access to:'
+                .action-description
+                  = render partial: 'oauth/description', locals: {scope: @grant_scope}
+            - unless @scope.blank?
+              .col-xs-12.actions.request
+                .action-title
+                  %i.fa.fa-question
+                  %span
+                    = 'Is requesting access to:'
+                .action-description
+                  = render partial: 'oauth/description', locals: {scope: @scope}
       .panel-footer.clearfix
         .text-center
           = form_tag(url: oauth_authorize_path) do
             = hidden_field_tag :token, @token
             = button_tag 'Deny', name: :deny, class: 'btn btn-danger'
             = button_tag 'Allow', name: :allow, class: 'btn btn-success'
+%script
+  $(function () {
+  $('[data-toggle="tooltip"]').tooltip()
+  })
