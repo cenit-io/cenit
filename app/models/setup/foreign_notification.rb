@@ -1,4 +1,4 @@
-require 'handlebars'
+# require 'handlebars'
 
 module Setup
   class ForeignNotification
@@ -80,7 +80,3 @@ module Setup
     end
   end
 end
-
-Setup::ForeignNotificationEmail
-Setup::ForeignNotifications::Sms
-Setup::ForeignNotifications::WebHook
