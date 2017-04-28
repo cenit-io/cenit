@@ -1,0 +1,31 @@
+.triggers_field {
+  .triggers-box {
+    .form-control {
+      width: 100% !important;
+    }
+
+    [data-divider="true"] {
+      background-color: lightgray;
+      font-size: 2px;
+    }
+
+    .trigger {
+      margin-bottom: 1em;
+    }
+  }
+
+  .controls {
+    z-index: 2 !important;
+  }
+}
+
+.setting_field {
+  .tab-content .tab-pane fieldset {
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  .scripts_field {
+    display: none;
+  }
+}

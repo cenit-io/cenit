@@ -474,6 +474,10 @@ en:
       notebooks_root:
         menu: "Notebooks"
         breadcrumb: "Notebooks"
+      foreign_notifications:
+        title: "Notifications"
+        menu: "Notifications"
+        breadcrumb: "Notifications"
       state:
         title: "State"
         menu: "State"

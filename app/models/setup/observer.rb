@@ -8,8 +8,10 @@ module Setup
 
     build_in_data_type.referenced_by(:namespace, :name).excluding(:origin)
 
-    belongs_to :data_type, class_name: Setup::DataType.to_s, inverse_of: nil
-    belongs_to :trigger_evaluator, class_name: Setup::Algorithm.to_s, inverse_of: nil
+    belongs_to :data_type, :class_name => Setup::DataType.name, :inverse_of => :observers
+    belongs_to :trigger_evaluator, :class_name => Setup::Algorithm.name, :inverse_of => nil
+    has_and_belongs_to_many :foreign_notifications, :class_name => Setup::ForeignNotification.name, :inverse_of => :observers
+
     field :triggers, type: String
 
     before_validation :verify_triggers
@@ -53,8 +55,17 @@ module Setup
     class << self
       def lookup(obj_now, obj_before = nil)
         where(data_type: obj_now.orm_model.data_type).each do |e|
+          # Check triggers
           next unless e.triggers_apply_to?(obj_now, obj_before)
+          # Start flows
           Setup::Flow.where(active: true, event: e).each { |f| f.join_process(source_id: obj_now.id.to_s) }
+          # Start foreign notifications
+          e.foreign_notifications.where(active: true).each do |n|
+            Setup::ForeignNotificationExecution.process(
+              foreign_notification_id: n.id,
+              data: obj_now.to_hash
+            )
+          end
         end
       end
     end
@@ -90,7 +101,7 @@ module Setup
         end
       end
     end
-    
+
   end
 end
 

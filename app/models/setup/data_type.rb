@@ -33,6 +33,11 @@ module Setup
     has_and_belongs_to_many :records_methods, class_name: Setup::Algorithm.to_s, inverse_of: nil
     has_and_belongs_to_many :data_type_methods, class_name: Setup::Algorithm.to_s, inverse_of: nil
 
+    has_many :observers, :class_name => Setup::Observer.name, :inverse_of => :data_type
+    has_many :foreign_notifications, :class_name => Setup::ForeignNotification.name, :inverse_of => :data_type
+    accepts_nested_attributes_for :observers, :allow_destroy => true
+    accepts_nested_attributes_for :foreign_notifications, :allow_destroy => true
+
     attr_readonly :name
 
     before_save :validates_configuration
