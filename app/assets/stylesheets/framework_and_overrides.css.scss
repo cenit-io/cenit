@@ -231,6 +231,11 @@ section {
         background: $brand-warning;
       }
     }
+    &.bad{
+      .action-title {
+        background: $brand-danger;
+      }
+    }
     .action-title {
       padding: 8px 15px;
       color: white;

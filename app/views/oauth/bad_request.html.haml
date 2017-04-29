@@ -6,9 +6,13 @@
           =image_tag 'logo_cenitsaas_web.png'
         %span.cenit-hub{style: 'color: black;'}= 'Cenit IO'
       .panel-body
-        %h3
-          = 'Bad request'
-        %ul
-          - @errors.each do |error|
-            %li
-              = error
+        .col-xs-12.actions.bad
+          .action-title
+            %i.fa.fa-times
+            %span
+              = 'Bad request'
+          .action-description
+            %ul
+              - @errors.each do |error|
+                %li
+                  = error
