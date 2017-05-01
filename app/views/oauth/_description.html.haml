@@ -10,31 +10,27 @@
       basic['openid']= cenit_oauth_scope.openid_set.to_a
       basic['openid'].map! do |d|
         case d
-        when :email
+        when Cenit::OauthScope::OPENID_EMAIL_TOKEN
           I18n.t('admin.oauth.openid.email')
-        when :profile
+        when Cenit::OauthScope::OPENID_PROFILE_TOKEN
           I18n.t('admin.oauth.openid.profile')
-        when :address
-          I18n.t('admin.oauth.openid.address')
-        when :phone
-          I18n.t('admin.oauth.openid.phone')
         else
           d
         end
       end
-      basic['openid'].delete_if { |a| a == :openid }
+      basic['openid'].delete_if { |a| a == Cenit::OauthScope::OPENID_TOKEN }
     end
     if !cenit_oauth_scope.super_methods_set.empty?
       basic['super_methods_set']= cenit_oauth_scope.super_methods_set.to_a
       basic['super_methods_set'].map! do |d|
         case d
-        when :post
-          I18n.t('admin.oauth.super_methods.post')
-        when :get
-          I18n.t('admin.oauth.super_methods.get')
-        when :put
-          I18n.t('admin.oauth.super_methods.put')
-        when :delete
+        when Cenit::OauthScope::CREATE_TOKEN
+          I18n.t('admin.oauth.super_methods.create')
+        when Cenit::OauthScope::READ_TOKEN
+          I18n.t('admin.oauth.super_methods.read')
+        when Cenit::OauthScope::UPDATE_TOKEN
+          I18n.t('admin.oauth.super_methods.update')
+        when Cenit::OauthScope::DELETE_TOKEN
           I18n.t('admin.oauth.super_methods.delete')
         else
           d
@@ -42,16 +38,16 @@
       end
     end
     if cenit_oauth_scope.auth?
-      basic['auth']= true
+      basic[Cenit::OauthScope::AUTH_TOKEN]= true
     end
     if cenit_oauth_scope.offline_access?
-      basic['offline_access']= true
+      basic[Cenit::OauthScope::OFFLINE_ACCESS_TOKEN]= true
     end
     basic = basic.merge(methods)
     html = '<ul class="scope-description">'
     basic.each do |key, value|
       case key
-      when 'openid'
+      when Cenit::OauthScope::OPENID_TOKEN
         value = value.join(',')
         html+= "<li>#{value}</li>"
       when 'super_methods_set'
@@ -60,10 +56,10 @@
       else
         if value == true
           case key
-          when 'auth'
+          when Cenit::OauthScope::AUTH_TOKEN
             auth_description = t('admin.oauth.auth_desc')
             key = I18n.t('admin.oauth.auth')+'<a href="#" data-toggle="tooltip" title="'+ auth_description+'"><i class="fa fa-info-circle" aria-hidden="true"></i></a>'
-          when 'offline_access'
+          when Cenit::OauthScope::OFFLINE_ACCESS_TOKEN
            offline_access_description = t('admin.oauth.offline_access_desc')
             key = I18n.t('admin.oauth.offline_access')+'<a href="#" data-toggle="tooltip" title="'+ offline_access_description+'"><i class="fa fa-info-circle" aria-hidden="true"></i></a>'
           else
@@ -102,13 +98,13 @@
             end.to_sentence
           end
           case key
-          when :get
-            key =  I18n.t('admin.oauth.access.get')
-          when :post
-            key = I18n.t('admin.oauth.access.post')
-          when :put
-            key = I18n.t('admin.oauth.access.put')
-          when :delete
+          when Cenit::OauthScope::READ_TOKEN
+            key =  I18n.t('admin.oauth.access.read')
+          when Cenit::OauthScope::CREATE_TOKEN
+            key = I18n.t('admin.oauth.access.create')
+          when Cenit::OauthScope::UPDATE_TOKEN
+            key = I18n.t('admin.oauth.access.update')
+          when Cenit::OauthScope::DELETE_TOKEN
             key = I18n.t('admin.oauth.access.delete')
           else
             key

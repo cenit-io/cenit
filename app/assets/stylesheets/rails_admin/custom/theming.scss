@@ -1341,7 +1341,7 @@ label {
     color: black;
     text-transform: uppercase;
   }
-  .select2-container--bootstrap .select2-selection--multiple .select2-selection__choice[title="get"] {
+  .select2-container--bootstrap .select2-selection--multiple .select2-selection__choice[title="read"] {
     color: white;
     background: $label-success-bg;
     border-color: $label-success-bg;
@@ -1350,7 +1350,7 @@ label {
       color: #fff;
     }
   }
-  .select2-container--bootstrap .select2-selection--multiple .select2-selection__choice[title="post"] {
+  .select2-container--bootstrap .select2-selection--multiple .select2-selection__choice[title="create"] {
     color: white;
     background: $label-info-bg;
     border-color: $label-info-bg;
@@ -1368,7 +1368,7 @@ label {
       color: #fff;
     }
   }
-  .select2-container--bootstrap .select2-selection--multiple .select2-selection__choice[title="put"] {
+  .select2-container--bootstrap .select2-selection--multiple .select2-selection__choice[title="update"] {
     color: white;
     background: $label-warning-bg;
     border-color: $label-warning-bg;

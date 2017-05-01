@@ -705,18 +705,18 @@ en:
     oauth:
       openid:
         email: '<strong>View your email</strong>'
-        profile: '<strong>View your profile</strong>'
+        profile: '<strong>View your basic profile</strong>'
         address: '<strong>View your address</strong>'
         phone: '<strong>View your phone</strong>'
       super_methods:
-        post: '<strong>Create</strong> records of any data type'
-        get: '<strong>Read</strong> records from any data type'
-        put: '<strong>Update</strong> records of any data type'
+        create: '<strong>Create</strong> records of any data type'
+        read: '<strong>Read</strong> records from any data type'
+        update: '<strong>Update</strong> records of any data type'
         delete: '<strong>Delete</strong> records from any data type'
       access:
-        post: '<strong>Create</strong> records of the following data types'
-        get: '<strong>Read</strong> records from the following data types'
-        put: '<strong>Update</strong> records of the following data types'
+        create: '<strong>Create</strong> records of the following data types'
+        read: '<strong>Read</strong> records from the following data types'
+        update: '<strong>Update</strong> records of the following data types'
         delete: '<strong>Delete</strong> records of the following data types'
       auth: '<strong>Authorize</strong> other applications'
       auth_desc: 'Authorize other applications with the same grants that already have or will have'

@@ -16,12 +16,12 @@ module RailsAdmin
             end
           end
 
-          register_instance_option :http_methods do
-            %w(get post put delete)
+          register_instance_option :access_tokens do
+            Cenit::OauthScope::ACCESS_TOKENS
           end
 
           register_instance_option :cenit_basic_scopes do
-            %w(get post put delete) + %w(openid email profile address phone offline_access auth)
+            Cenit::OauthScope::TOKENS
           end
 
 
@@ -40,8 +40,8 @@ module RailsAdmin
           def parse_input(params)
             if params[name].is_a?(Hash) && !params[name].empty?
               basics = params[name].delete('basic') || []
-              if basics.exclude?('openid') && %w(openid email profile address phone).any?{ |n| basics.include?(n)}
-                basics << 'openid'
+              if basics.exclude?(Cenit::OauthScope::OPENID_TOKEN) && Cenit::OauthScope::OPENID_TOKENS.any?{ |n| basics.include?(n)}
+                basics << Cenit::OauthScope::OPENID_TOKEN
               end
               scope = basics.join(' ')
               methods_hash = Hash.new { |h, k| h[k] = Set.new }
