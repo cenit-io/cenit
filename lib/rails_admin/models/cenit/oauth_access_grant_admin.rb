@@ -10,6 +10,8 @@ module RailsAdmin
             label 'Access Grants'
             weight 340
 
+            configure :scope, :cenit_oauth_scope
+
             fields :created_at, :application_id, :scope
           end
         end
