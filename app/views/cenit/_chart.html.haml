@@ -20,14 +20,11 @@
 - if @filterable_fields.present?
   - @filterable_fields.each do |field|
     - if ( field.type == :float || field.type == :integer || field.type == :decimal) && field.name != :id
-      - @met = field.name
+      - @met = params[:met] || field.name
       - numeric_fields << field.name
     - elsif field.type == :date || field.type == :datetime
       - data_fields << field
 - if @met
-  - klass = data_type.records_model
-  - field = data_fields.first
-
   - params[:all] = true
   - execution = Setup::ChartRendering.process(met: @met, data_type_id: data_type.id, selector: controller.list_entries.selector, data_field: @data_field, calculation: @calculation, acumulate: @acumulate )
   - cenit_host = Cenit.homepage
