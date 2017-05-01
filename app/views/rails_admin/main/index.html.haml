@@ -57,11 +57,8 @@
 -#for Charts
 - klass = @abstract_model.model
 - data_type = klass.try(:data_type)
-- if data_type.chart_rendering
+- if data_type && data_type.chart_rendering
   - available_chart = true
-  = render partial: 'cenit/chart', locals: {klass: klass, controller: @_controller}
-  = render 'chart'
-
 
 = content_for :contextual_tabs do
   = bulk_menu
@@ -117,7 +114,6 @@
             %i.icon-white.icon-remove
       .filters-buttons
         = found_menu
-        %span{style: 'float:right'}= button_tag 'Graphic View', id: 'view_graphic',type: 'none', class: 'btn btn-info'
         %input{name: 'enable_chart', value: false, type: 'hidden'}
         -# Patch
         - if (model = @abstract_model.model).is_a?(Class) && model.include?(CrossOrigin::Document) && (origins = model.origins).present?
@@ -132,7 +128,7 @@
               %input{name: origin_param, value: param_value, type: 'hidden'}
   -if available_chart
     .graphics
-      = content_for :graphics_area
+      = render partial: 'cenit/chart', locals: {data_type: data_type, klass: klass, controller: @_controller}
   - unless @model_config.list.scopes.empty?
     %ul.nav.nav-tabs#scope_selector
       - @model_config.list.scopes.each_with_index do |scope, index|

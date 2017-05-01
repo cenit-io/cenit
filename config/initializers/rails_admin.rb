@@ -469,5 +469,4 @@ RailsAdmin.config do |config|
 
   Setup::Category
 
-  Setup::Payment
 end
