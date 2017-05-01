@@ -76,6 +76,9 @@ Cenit.config do
   #Performs pushes asynchronous
   asynchronous_push true
 
+  #Performs chart rendering asynchronous
+  asynchronous_chart_rendering true
+
   #oauth2 callback site
   oauth2_callback_site ENV['OAUTH2_CALLBACK_SITE'] || homepage
 
@@ -128,5 +131,8 @@ Cenit.config do
   max_handing_schemas 500
 
   jupyter_notebooks (ENV['JUPYTER_NOTEBOOKS'] || 'false').to_b
-  jupyter_notebooks_url ENV['JUPYTER_NOTEBOOKS_URL'] || "http://127.0.0.1:8888"
+
+  jupyter_notebooks_url ENV['JUPYTER_NOTEBOOKS_URL'] || 'http://127.0.0.1:8888'
+
+  chart_data_request_interval 3000
 end

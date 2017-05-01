@@ -12,7 +12,7 @@ module RailsAdmin
             configure :data_type do
               read_only true
             end
-            fields :data_type, :slug, :navigation_link, :updated_at
+            fields :data_type, :slug, :navigation_link, :chart_rendering, :updated_at
 
             show_in_dashboard false
           end

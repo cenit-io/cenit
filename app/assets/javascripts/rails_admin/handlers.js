@@ -285,6 +285,105 @@ function cenitOauthScopeInit() {
     })
 }
 
+
+function graphicsInit() {
+    $('select.input-sm', '.graphics-controls').on('change', function (e) {
+        graphic_control_change(e);
+    })
+}
+var graphics_handle;
+function graphic_control_change(e) {
+    if (graphics_handle) {
+        clearTimeout(graphics_handle);
+    }
+    graphics_handle = setTimeout(function () {
+        var $form = $('#graphics-form');
+        $form.submit();
+    }, 2000);
+}
+
+function drawGraphics(options) {
+    $('.new_g').html('<i class="fa fa-spinner fa-spin fa-3x fa-fw"></i><span class="sr-only">Loading...</span>')
+    var execution_route = '/api/v2/setup/execution/',
+        host = options.host,
+        exec_id = options.exec_id,
+        graphic_type = options.graphic_type,
+        graphic_options = {chart: {zoomType: 'x', style: {overflow: 'visible'}}},
+        element_id = options.element_id,
+        request_interval = options.request_interval,
+        graphic_data,
+        render_graphic = function (graphic_type, graphic_data, graphic_options, element_id) {
+            switch (graphic_type) {
+                case 'line_chart':
+                    new Chartkick.LineChart(element_id, graphic_data, graphic_options);
+                    break;
+                case 'pie_chart':
+                    new Chartkick.PieChart(element_id, graphic_data, graphic_options);
+                    break;
+                case 'column_chart':
+                    new Chartkick.ColumnChart(element_id, graphic_data, graphic_options);
+                    break;
+                case 'bar_chart':
+                    new Chartkick.BarChart(element_id, graphic_data, graphic_options);
+                    break;
+                case 'area_chart':
+                    new Chartkick.AreaChart(element_id, graphic_data, graphic_options);
+                    break;
+                case 'scatter_chart':
+                    new Chartkick.ScatterChart(element_id, graphic_data, graphic_options);
+                    break;
+                case 'geo_chart':
+                    new Chartkick.GeoChart(element_id, graphic_data, graphic_options);
+                    break;
+                case 'timeline':
+                    new Chartkick.Timeline(element_id, graphic_data, graphic_options);
+                    break;
+                case 'variable_chart':
+                    new Chartkick.Timeline(element_id, graphic_data, graphic_options);
+                    break;
+                default:
+                    new Chartkick.LineChart(element_id, graphic_data, graphic_options);
+                    break;
+            }
+        },
+        retrieve_data = function (attachment_url) {
+            $.ajax({
+                    type: "GET",
+                    url: attachment_url
+                })
+                .done(function (data) {
+                    graphic_data = data;
+                    console.log(graphic_data);
+                    $('.new_g').html('<div id="' + element_id + '"></div>');
+                    render_graphic(graphic_type, graphic_data, graphic_options, element_id);
+                    $('.g-controls').removeClass('hide');
+                });
+        },
+        encuest_api = function () {
+            $.ajax({
+                    type: "GET",
+                    url: host + execution_route + exec_id,
+                    cache: false
+                })
+                .done(function (data) {
+                    if (data.status == "failed") {
+                        $('.new_g').html('');
+                        console.log('An error happened while executing de chart data generating task')
+                    } else {
+                        if (data.status == "completed") {
+                            var data_url = data.attachment.url;
+                            retrieve_data(data_url);
+                        }
+                        else {
+                            setTimeout(encuest_api, request_interval);
+                        }
+                    }
+
+                });
+        }
+    encuest_api();
+}
+
 function handlerInit() {
     console.log("Initializing handlers");
 
@@ -318,4 +417,8 @@ function handlerInit() {
     if ($('.remove_data_type_actions').length > 0) {
         cenitOauthScopeInit();
     }
+
+    if ($('select.input-sm', '.graphics-controls').length > 0)
+        graphicsInit();
+
 }
