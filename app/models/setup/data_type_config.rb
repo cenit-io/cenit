@@ -12,6 +12,7 @@ module Setup
     belongs_to :data_type, class_name: Setup::DataType.to_s, inverse_of: nil
 
     field :navigation_link, type: Boolean, default: false
+    field :chart_rendering, type: Boolean, default: false
 
     attr_readonly :data_type
 
@@ -23,7 +24,7 @@ module Setup
 
     class << self
       def config_fields
-        %w(slug navigation_link)
+        %w(slug navigation_link chart_rendering)
       end
     end
 

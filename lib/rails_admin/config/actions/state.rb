@@ -74,6 +74,7 @@ module RailsAdmin
                 pull_parameters = {}
               end
               if (shared_collection = task.source_shared_collection)
+                RailsAdmin::Config.model(shared_collection.pull_model).edit.fields.each { |field| field.parse_input(pull_parameters) }
                 pull_parameters = shared_collection.pull_model.new(pull_parameters).share_hash
               end
               task.message[:pull_parameters] = pull_parameters

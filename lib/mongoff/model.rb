@@ -6,6 +6,7 @@ module Mongoff
     include Setup::InstanceModelParser
     include MetadataAccess
     include ThreadAware
+    include DateTimeCharts::ClassMethods
 
     EMPTY_SCHEMA = {}.freeze
 

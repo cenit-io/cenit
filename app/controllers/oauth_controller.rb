@@ -11,9 +11,9 @@ class OauthController < ApplicationController
           access_grant = Cenit::OauthAccessGrant.where(application_id: @app_id).first
           skip_consent =
             if access_grant
-              grant_scope = access_grant.oauth_scope
-              @scope = @scope.diff(grant_scope)
-              grant_scope > @scope
+              @grant_scope = access_grant.oauth_scope
+              @scope = @scope.diff(@grant_scope)
+              @already_authorized = @grant_scope > @scope
             else
               false
             end

@@ -25,6 +25,7 @@ module RailsAdmin
 
             if (pull_parameters = params[:pull_parameters])
               pull_parameters.permit!
+              RailsAdmin::Config.model(@object.pull_model).edit.fields.each { |field| field.parse_input(pull_parameters) }
             end
 
             if @object.pull_asynchronous
