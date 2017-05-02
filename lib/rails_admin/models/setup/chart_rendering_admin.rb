@@ -1,7 +1,7 @@
 module RailsAdmin
   module Models
     module Setup
-      module PushAdmin
+      module ChartRenderingAdmin
         extend ActiveSupport::Concern
 
         included do
@@ -14,26 +14,12 @@ module RailsAdmin
               label 'Attempts/Succedded'
             end
 
-            configure :source_collection do
-              list_fields do
-                %w(title image name tags)
-              end
-            end
-
-            configure :shared_collection do
-              list_fields do
-                %w(title image name tags)
-              end
-            end
-
             edit do
               field :description
               field :auto_retry
             end
 
             list do
-              field :source_collection
-              field :shared_collection
               field :description
               field :scheduler
               field :attempts_succeded
@@ -43,7 +29,7 @@ module RailsAdmin
               field :updated_at
             end
 
-            fields :source_collection, :shared_collection, :description, :attempts_succeded, :retries, :progress, :status, :executions, :notifications, :updated_at
+            fields :description, :attempts_succeded, :retries, :progress, :status, :executions, :notifications, :updated_at
           end
         end
 

@@ -5,11 +5,12 @@
 img {
   @extend .img-responsive;
   margin: 0 auto;
-  }
+}
+
 // override for the 'Home' navigation link
 .navbar-brand {
   font-size: inherit;
-  }
+}
 
 // THESE ARE EXAMPLES YOU CAN MODIFY
 // create your own classes
@@ -17,19 +18,23 @@ img {
 .column {
   @extend .col-md-6;
   @extend .text-center;
-  }
+}
+
 .form {
   @extend .col-md-6;
-  }
+}
+
 .form-centered {
   @extend .col-md-6;
   @extend .text-center;
-  }
+}
+
 .submit {
   @extend .btn;
   @extend .btn-primary;
   @extend .btn-lg;
-  }
+}
+
 // apply styles to HTML elements
 // to make views framework-neutral
 main {
@@ -38,11 +43,12 @@ main {
   padding-bottom: 80px;
   width: 100%;
   margin-top: 51px; // accommodate the navbar
-  }
+}
+
 section {
   @extend .row;
   margin-top: 20px;
-  }
+}
 
 .user-auth .panel-heading a,
 .user-auth .panel-heading a:focus,
@@ -50,7 +56,6 @@ section {
 .user-auth .panel-heading a:hover {
   text-decoration: none;
 }
-
 
 .user-auth .panel-heading .cenit-logo,
 .user-auth .panel-heading .cenit-hub {
@@ -181,4 +186,71 @@ section {
 
 .user-auth .soc-cenit {
   background-color: #3D4046;
+}
+
+.oauth-authorize {
+  .images-container {
+    margin: 30px 0;
+    text-align: center;
+    span {
+      display: inline-block;
+      &.user-img {
+        margin-top: -15px;
+        @media(min-width: 768px) {
+          margin-left: -15px;
+          margin-top: 0;
+        }
+      }
+    }
+    img {
+      width: 100px;
+      height: 100px;
+      padding: 15px;
+      border: solid 1px #dddddd;
+      background: rgba(245, 245, 245, 0.6);
+    }
+
+  }
+  form {
+    margin-bottom: 0;
+  }
+  h4 {
+    margin-bottom: 25px;
+  }
+  .actions {
+    padding: 0;
+    border-radius: 4px;
+    margin-bottom: 25px;
+    &.granted {
+      .action-title {
+        background: $brand-success;
+      }
+    }
+    &.request {
+      .action-title {
+        background: $brand-warning;
+      }
+    }
+    &.bad{
+      .action-title {
+        background: $brand-danger;
+      }
+    }
+    .action-title {
+      padding: 8px 15px;
+      color: white;
+      font-weight: bold;
+    }
+    .action-description {
+      padding: 15px;
+      ul {
+        padding-left: 15px;
+        list-style-type: square;
+        margin-bottom: 0;
+        li i {
+          margin-left: 5px;
+        }
+      }
+    }
+  }
 }

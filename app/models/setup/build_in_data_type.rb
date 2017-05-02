@@ -193,6 +193,10 @@ module Setup
       end
     end
 
+    def json_schema_type(mongoid_type)
+      SCHEMA_TYPE_MAP[mongoid_type].dup
+    end
+
     private
 
     def store_fields(instance_variable, *fields)
@@ -319,8 +323,5 @@ module Setup
       schema
     end
 
-    def json_schema_type(mongoid_type)
-      SCHEMA_TYPE_MAP[mongoid_type].dup
-    end
   end
 end

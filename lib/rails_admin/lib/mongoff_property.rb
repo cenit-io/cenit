@@ -39,6 +39,10 @@ module RailsAdmin
           :date
         when 'date-time', 'time'
           :datetime
+        when 'cenit-oauth-scope'
+          :cenit_oauth_scope
+        when 'cenit-access-scope'
+          :cenit_access_scope
         else
           string_field_type
         end

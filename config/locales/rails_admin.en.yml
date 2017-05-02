@@ -64,6 +64,7 @@ en:
       link_cross_shared_collection: 'Connect Store'
       and_more: "and %{count} more"
       save_filter: 'Save Filter'
+      add: 'Add'
       and_that_is_all: "and that's all"
       found_menu_title: "Found "
       no_description: "No description"
@@ -693,3 +694,23 @@ en:
       admin: 'Administration'
       tmp: 'Temporal'
       app: 'App'
+    oauth:
+      openid:
+        email: '<strong>View your email</strong>'
+        profile: '<strong>View your basic profile</strong>'
+        address: '<strong>View your address</strong>'
+        phone: '<strong>View your phone</strong>'
+      super_methods:
+        create: '<strong>Create</strong> records of any data type'
+        read: '<strong>Read</strong> records from any data type'
+        update: '<strong>Update</strong> records of any data type'
+        delete: '<strong>Delete</strong> records from any data type'
+      access:
+        create: '<strong>Create</strong> records of the following data types'
+        read: '<strong>Read</strong> records from the following data types'
+        update: '<strong>Update</strong> records of the following data types'
+        delete: '<strong>Delete</strong> records of the following data types'
+      auth: '<strong>Authorize</strong> other applications'
+      auth_desc: 'The application will be able to authorize other applications with its same grants'
+      offline_access: 'Acts <strong>in your behalf</strong>'
+      offline_access_desc: 'The application will no longer requires your presence to enjoy its grants'

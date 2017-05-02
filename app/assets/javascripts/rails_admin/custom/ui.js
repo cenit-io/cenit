@@ -282,6 +282,26 @@ function load_tenant_list(tenants_list) {
         tenants[i] = JSON.parse(tenants[i]);
     }
 }
+
+var render_graphic = function ($form, selector) {
+    $.ajax({
+        url: $form.attr('action'),
+        cache: false,
+        method: "POST",
+        data: {},
+        beforeSend: function () {
+            console.log('Loading graphics');
+            $(selector).html('Loading graphics');
+        },
+        success: function (data) {
+            $(selector).html(data);
+        },
+        error: function (data) {
+            console.log('Error: Loading graphics: ' + data);
+        }
+    });
+}
+
 function registerEvents() {
 
     $('#take-tour').click(function (e) {
@@ -341,6 +361,11 @@ function registerEvents() {
             filtered_tenants = tenants
         }
         $('.dropdown-menu .tenants').html(tenants_to_html(filtered_tenants));
+    });
+
+    $("#view_graphic").click(function (e) {
+        e.preventDefault();
+        $('[name="enable_chart"]').val('true');
     });
 }
 

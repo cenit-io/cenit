@@ -43,9 +43,11 @@ module Setup
               )
               oauth_provider.cross(:cenit)
             end
-            scopes = %w(auth openid profile email offline_access) + %w(get post delete).collect { |method| "#{method} {{#{method}}}" }
+            scopes = Cenit::OauthScope::NON_ACCESS_TOKENS +
+              Cenit::OauthScope::ACCESS_TOKENS.collect { |method| "#{method} {{#{method}}}" } +
+              ['{{scope}}']
             scopes.each do |scope_name|
-              Setup::Oauth2Scope.find_or_create_by(origin: :cenit, provider_id: oauth_provider.id, name: scope_name).id
+              Setup::Oauth2Scope.find_or_create_by(origin: :cenit, provider_id: oauth_provider.id, name: scope_name)
             end
             oauth_provider.id
           end
