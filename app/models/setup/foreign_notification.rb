@@ -10,8 +10,8 @@ module Setup
     has_and_belongs_to_many :observers, :class_name => Setup::Observer.name, :inverse_of => :foreign_notifications
     belongs_to :data_type, :class_name => Setup::DataType.name, :inverse_of => :foreign_notifications
 
-    embeds_one :setting, :class_name => Setup::ForeignNotificationSetting.name, :inverse_of => :foreign_notification
-    accepts_nested_attributes_for :setting
+    # embeds_one :setting, :class_name => Setup::ForeignNotificationSetting.name, :inverse_of => :foreign_notification
+    # accepts_nested_attributes_for :setting
 
     after_create :set_default_setting
 

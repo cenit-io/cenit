@@ -39,7 +39,9 @@ module Setup
     has_many :web_hook_notifications, :class_name => Setup::ForeignNotificationWebHook.name, :inverse_of => :data_type
     has_many :sms_notifications, :class_name => Setup::ForeignNotificationSms.name, :inverse_of => :data_type
     accepts_nested_attributes_for :observers, :allow_destroy => true
-    accepts_nested_attributes_for :foreign_notifications, :allow_destroy => true
+    accepts_nested_attributes_for :email_notifications, :allow_destroy => true
+    accepts_nested_attributes_for :web_hook_notifications, :allow_destroy => true
+    accepts_nested_attributes_for :sms_notifications, :allow_destroy => true
 
     attr_readonly :name
 
