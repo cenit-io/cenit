@@ -185,15 +185,15 @@ module RailsAdmin
                     value.html_safe
                   end
                 end
+                field :readme, :html_erb
                 field :categories
                 field :authors
                 field :pull_count
                 'data_'
               else
+                field :readme, :html_erb
                 ''
               end
-
-            field :readme, :html_erb
 
             instance_eval do
               field "#{prefix}schemas".to_sym do
