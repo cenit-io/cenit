@@ -4,12 +4,19 @@ module RailsAdmin
       module Types
         class CenitOauthScope < RailsAdmin::Config::Fields::Types::Text
 
+          register_instance_option :html_attributes do
+            {
+            }
+          end
+
           register_instance_option :partial do
             :form_cenit_oauth_scope
           end
+
           register_instance_option :index_pretty_value do
             "<div class='scope_at_index'> #{pretty_value} </div>".html_safe
           end
+
           register_instance_option :pretty_value do
             if value
               (bindings[:view].render partial: 'oauth/description', locals: { scope: value }).html_safe
