@@ -1295,6 +1295,18 @@ label {
   }
 }
 
+
+
+// for graphics
+.graphics-area {
+  margin: 25px 0;
+}
+.graphics-controls {
+  padding: 15px;
+}
+.graphics-chart {
+  overflow: scroll;
+}
 .btn .caret {
   margin-left: 2px;
 }
@@ -1306,4 +1318,100 @@ label {
 
 .no-padding-left {
   padding-left: 0 !important;
+}
+
+.cenit-oauth-scope, .cenit-oauth-basic-scope, .model-tr {
+  .select2-container--bootstrap {
+    width: 100% !important;
+    margin-bottom: 15px;
+  }
+  .input-group {
+    margin-right: 15px;
+    margin-bottom: 15px;
+  }
+  .btn-danger {
+    margin-left: 15px;
+  }
+  th {
+    padding-bottom: 10px;
+    color: #737373;
+  }
+  td {
+    vertical-align: top;
+  }
+  .data-type-link {
+    width: 178px;
+    padding-top: 6px;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    margin-right: 15px;
+  }
+  hr {
+    margin-top: 7px;
+  }
+  .select2-container--bootstrap .select2-selection--multiple .select2-selection__choice {
+    color: black;
+    text-transform: uppercase;
+  }
+  .select2-container--bootstrap .select2-selection--multiple .select2-selection__choice[title="read"] {
+    color: white;
+    background: $label-success-bg;
+    border-color: $label-success-bg;
+    .select2-selection__choice__remove {
+      color: white;
+      color: #fff;
+    }
+  }
+  .select2-container--bootstrap .select2-selection--multiple .select2-selection__choice[title="create"] {
+    color: white;
+    background: $label-info-bg;
+    border-color: $label-info-bg;
+    .select2-selection__choice__remove {
+      color: white;
+      color: #fff;
+    }
+  }
+  .select2-container--bootstrap .select2-selection--multiple .select2-selection__choice[title="delete"] {
+    color: white;
+    background: $label-danger-bg;
+    border-color: $label-danger-bg;
+    .select2-selection__choice__remove {
+      color: white;
+      color: #fff;
+    }
+  }
+  .select2-container--bootstrap .select2-selection--multiple .select2-selection__choice[title="update"] {
+    color: white;
+    background: $label-warning-bg;
+    border-color: $label-warning-bg;
+    .select2-selection__choice__remove {
+      color: white;
+      color: #fff;
+    }
+  }
+
+}
+
+.scope_at_index {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  ul {
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+    li {
+      display: inline-block;
+      &:not(:last-child) {
+        &:after {
+          content: ', ';
+          margin-right: 5px;
+        }
+      }
+    }
+  }
+}
+.scope-description li i {
+  margin-left: 5px;
 }

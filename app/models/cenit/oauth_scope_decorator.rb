@@ -6,13 +6,13 @@ module Cenit
       method =
         case action
         when :new, :upload_file
-          :post
+          Cenit::OauthScope::CREATE_TOKEN
         when :update
-          :update
+          Cenit::OauthScope::UPDATE_TOKEN
         when :index, :show
-          :get
+          Cenit::OauthScope::READ_TOKEN
         when :destroy
-          :delete
+          Cenit::OauthScope::DELETE_TOKEN
         else
           nil
         end

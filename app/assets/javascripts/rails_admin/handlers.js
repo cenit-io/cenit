@@ -217,6 +217,173 @@ function selectTagsInit() {
     $('.select-tag').select2({theme: "bootstrap", tags: true})
 }
 
+function cenitOauthScopeInit() {
+    $(document).on('click', '.remove_data_type_actions', function () {
+        var field_class = $(this).data('field-class');
+        var $context = $('.' + field_class + ' .cenit-oauth-scope');
+        $(this).parents('.scope').remove();
+        if ($context.find('tr.scope').length == 0) {
+            $context.find('thead').addClass('hide');
+            $context.find('tfoot').addClass('hide');
+        }
+    });
+    $('.add_data_type_actions').on('click', function () {
+        var field_class = $(this).data('field-class');
+        var $context = $('.' + field_class);
+
+        if ($('.model-tr [data-filteringselect="true"] option:selected', $context).val().length == 0) {
+            //alert('Need to select a Data Type');
+        } else {
+
+            $('thead.hide', $context).removeClass('hide');
+            var $copied = $('.model-tr tr.scope', $context).clone();
+            $copied.appendTo(".cenit-oauth-scope");
+            $copied.find('.remove_data_type_actions').removeClass('hide');
+            $copied.find('td div.hide').removeClass('hide');
+            $copied.find('td div.add_actions').remove();
+            $copied.find('.select2-container').remove();
+            $copied.find('.select-tag-no-add').removeClass('.select2-hidden-accessible hide').select2({
+                theme: "bootstrap",
+                tags: true,
+                createTag: function (params) {
+                    // Don't offset to create a tag if there is no @ symbol
+                    if (params.term.indexOf('@') === -1) {
+                        // Return null to disable tag creation
+                        return null;
+                    }
+
+                    return {
+                        id: params.term,
+                        text: params.term
+                    }
+                }
+            });
+            var data_type_id = $('[data-filteringselect="true"] option:selected', $copied).val();
+            var data_type_name = $('[data-filteringselect="true"]', $copied).text();
+
+            var href = $copied.find('.hidden_link').attr('href');
+            $copied.find('.hidden_link').text(data_type_name);
+            href = href.replace(/__ID__/, data_type_id);
+            $copied.find('.hidden_link').attr('href', href);
+
+            $copied.find('.filtering-select').remove();
+            $copied.find('[data-filteringselect="true"]').remove();
+
+            var name = $copied.find('select').attr('name');
+            name = name.replace(/__ID__/, data_type_id);
+            $copied.find('select').attr('name', name);
+
+            $copied.find('data-type-link').removeClass('hide');
+
+            $('.cenit-oauth-scope .new-select-tag', $context).addClass('select-tag').removeClass('new-select-tag');
+            $('.cenit-oauth-scope .select-tag', $context).select2({theme: "bootstrap", tags: true})
+            $('.model-tr [data-filteringselect="true"] option:selected', $context).val('');
+            $('.model-tr .ra-filtering-select-input', $context).val('');
+            $context.find('thead.hide').removeClass('hide');
+            $context.find('tfoot.hide').removeClass('hide');
+        }
+    })
+}
+
+
+function graphicsInit() {
+    $('select.input-sm', '.graphics-controls').on('change', function (e) {
+        graphic_control_change(e);
+    })
+}
+var graphics_handle;
+function graphic_control_change(e) {
+    if (graphics_handle) {
+        clearTimeout(graphics_handle);
+    }
+    graphics_handle = setTimeout(function () {
+        var $form = $('#graphics-form');
+        $form.submit();
+    }, 2000);
+}
+
+function drawGraphics(options) {
+    $('.new_g').html('<i class="fa fa-spinner fa-spin fa-3x fa-fw"></i><span class="sr-only">Loading...</span>')
+    var execution_route = '/api/v2/setup/execution/',
+        host = options.host,
+        exec_id = options.exec_id,
+        graphic_type = options.graphic_type,
+        graphic_options = {chart: {zoomType: 'x', style: {overflow: 'visible'}}},
+        element_id = options.element_id,
+        request_interval = options.request_interval,
+        graphic_data,
+        render_graphic = function (graphic_type, graphic_data, graphic_options, element_id) {
+            switch (graphic_type) {
+                case 'line_chart':
+                    new Chartkick.LineChart(element_id, graphic_data, graphic_options);
+                    break;
+                case 'pie_chart':
+                    new Chartkick.PieChart(element_id, graphic_data, graphic_options);
+                    break;
+                case 'column_chart':
+                    new Chartkick.ColumnChart(element_id, graphic_data, graphic_options);
+                    break;
+                case 'bar_chart':
+                    new Chartkick.BarChart(element_id, graphic_data, graphic_options);
+                    break;
+                case 'area_chart':
+                    new Chartkick.AreaChart(element_id, graphic_data, graphic_options);
+                    break;
+                case 'scatter_chart':
+                    new Chartkick.ScatterChart(element_id, graphic_data, graphic_options);
+                    break;
+                case 'geo_chart':
+                    new Chartkick.GeoChart(element_id, graphic_data, graphic_options);
+                    break;
+                case 'timeline':
+                    new Chartkick.Timeline(element_id, graphic_data, graphic_options);
+                    break;
+                case 'variable_chart':
+                    new Chartkick.Timeline(element_id, graphic_data, graphic_options);
+                    break;
+                default:
+                    new Chartkick.LineChart(element_id, graphic_data, graphic_options);
+                    break;
+            }
+        },
+        retrieve_data = function (attachment_url) {
+            $.ajax({
+                    type: "GET",
+                    url: attachment_url
+                })
+                .done(function (data) {
+                    graphic_data = data;
+                    console.log(graphic_data);
+                    $('.new_g').html('<div id="' + element_id + '"></div>');
+                    render_graphic(graphic_type, graphic_data, graphic_options, element_id);
+                    $('.g-controls').removeClass('hide');
+                });
+        },
+        encuest_api = function () {
+            $.ajax({
+                    type: "GET",
+                    url: host + execution_route + exec_id,
+                    cache: false
+                })
+                .done(function (data) {
+                    if (data.status == "failed") {
+                        $('.new_g').html('');
+                        console.log('An error happened while executing de chart data generating task')
+                    } else {
+                        if (data.status == "completed") {
+                            var data_url = data.attachment.url;
+                            retrieve_data(data_url);
+                        }
+                        else {
+                            setTimeout(encuest_api, request_interval);
+                        }
+                    }
+
+                });
+        }
+    encuest_api();
+}
+
 function handlerInit() {
     console.log("Initializing handlers");
 
@@ -228,4 +395,30 @@ function handlerInit() {
 
     if ($('.select-tag').length > 0)
         selectTagsInit();
+
+    if ($('.select-tag-no-add').length > 0)
+        $('.select-tag-no-add').select2({
+            theme: "bootstrap",
+            tags: true,
+            createTag: function (params) {
+                // Don't offset to create a tag if there is no @ symbol
+                if (params.term.indexOf('@') === -1) {
+                    // Return null to disable tag creation
+                    return null;
+                }
+
+                return {
+                    id: params.term,
+                    text: params.term
+                }
+            }
+        })
+
+    if ($('.remove_data_type_actions').length > 0) {
+        cenitOauthScopeInit();
+    }
+
+    if ($('select.input-sm', '.graphics-controls').length > 0)
+        graphicsInit();
+
 }

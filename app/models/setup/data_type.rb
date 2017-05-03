@@ -15,17 +15,18 @@ module Setup
     abstract_class true
 
     build_in_data_type.with(:title, :name, :before_save_callbacks, :records_methods, :data_type_methods).referenced_by(:namespace, :name)
-    build_in_data_type.and(
-      properties: {
-        slug: {
-          type: 'string'
-        }
-      }
-    )
 
     deny :delete, :new, :switch_navigation, :copy
 
     config_with Setup::DataTypeConfig, only: :slug
+
+    config_fields_schema = {}
+
+    config_model.config_fields.each do |field|
+      config_fields_schema[field] = build_in_data_type.json_schema_type(config_model.fields[field].type)
+    end
+
+    build_in_data_type.and(properties: config_fields_schema)
 
     field :title, type: String
 
@@ -169,6 +170,6 @@ module Setup
     def create_mongoff_model
       mongoff_model_class.for(data_type: self)
     end
-    
+
   end
 end

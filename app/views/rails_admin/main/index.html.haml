@@ -54,6 +54,11 @@
   end.join.html_safe if @ordered_filters
   origins = nil
 
+-#for Charts
+- klass = @abstract_model.model
+- data_type = klass.try(:data_type)
+- available_chart = data_type && data_type.chart_rendering
+
 = content_for :contextual_tabs do
   = bulk_menu
   - if @filterable_fields.present?
@@ -93,7 +98,7 @@
     - properties.select{ |p| p.column_width.present? }.each do |property|
       = "#list th.#{property.css_class} { width: #{property.column_width}px; min-width: #{property.column_width}px; }"
       = "#list td.#{property.css_class} { max-width: #{property.column_width}px; }"
-  = form_tag(index_path(params.except(*%w[page f query])), method: :get, class: "pjax-form form-inline") do
+  = form_tag(index_path(params.except(*%w[page f query])), method: :get, id: 'filter-form', class: "pjax-form form-inline") do
     .well
       %span#filters_box
         = filter_by_token
@@ -108,6 +113,7 @@
             %i.icon-white.icon-remove
       .filters-buttons
         = found_menu
+        %input{name: 'enable_chart', value: false, type: 'hidden'}
         -# Patch
         - if (model = @abstract_model.model).is_a?(Class) && model.include?(CrossOrigin::Document) && (origins = model.origins).present?
           %span{style: 'float:right'}
@@ -119,6 +125,9 @@
               %button.btn.toggle-origin{class: origin}
                 %i{class: param_value.even? ? 'fa fa-toggle-on' : 'fa fa-toggle-off'}
               %input{name: origin_param, value: param_value, type: 'hidden'}
+  -if available_chart
+    .graphics
+      = render partial: 'cenit/chart', locals: {data_type: data_type, klass: klass, controller: @_controller}
   - unless @model_config.list.scopes.empty?
     %ul.nav.nav-tabs#scope_selector
       - @model_config.list.scopes.each_with_index do |scope, index|
@@ -154,7 +163,7 @@
             - if @other_left_link ||= other_left && index_path(params.except('set').merge(params[:set].to_i != 1 ? {set: (params[:set].to_i - 1)} : {}))
               %td.other.left= link_to "...", @other_left_link, class: 'pjax'
             - properties.map{ |property| property.bind(:object, object) }.each do |property|
-              - value = property.pretty_value
+              - value = property.index_pretty_value
               %td{class: "#{property.css_class} #{property.type_css_class}", title: strip_tags(value.to_s)}= value
             - if @other_right_link ||= other_right && index_path(params.merge(set: (params[:set].to_i + 1)))
               %td.other.right= link_to "...", @other_right_link, class: 'pjax'

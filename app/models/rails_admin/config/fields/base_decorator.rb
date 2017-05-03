@@ -10,6 +10,10 @@ module RailsAdmin
         def shared_read_only
           instance_eval &SHARED_READ_ONLY
         end
+
+        register_instance_option :index_pretty_value do
+          pretty_value
+        end
       end
     end
   end

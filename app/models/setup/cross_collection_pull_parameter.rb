@@ -67,6 +67,8 @@ module Setup
         number: 'number',
         boolean: 'boolean',
         string: 'string',
+        'cenit-oauth-scope': { type: 'string', format: 'cenit-oauth-scope' },
+        'cenit-access-scope': { type: 'string', format: 'cenit-access-scope' },
         object: 'object',
         json: { oneOf: [{ type: 'object' }, { type: 'array' }] }
       }.deep_stringify_keys
