@@ -9,6 +9,8 @@ module Setup
     has_and_belongs_to_many :observers, :class_name => Setup::Observer.name, :inverse_of => :foreign_notifications
     belongs_to :data_type, :class_name => Setup::DataType.name, :inverse_of => :foreign_notifications
 
+    deny :copy, :new, :edit, :export, :import, :translator_update
+
     # Virtual abstract method to send notification.
     def send_message(data)
       fail NotImplementedError

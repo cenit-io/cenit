@@ -8,6 +8,8 @@ module Setup
 
     belongs_to :data_type, :class_name => Setup::DataType.name, :inverse_of => :web_hook_notifications
 
+    allow :copy, :new, :edit, :export, :import
+
     def http_method_enum
       [:GET, :POST, :PUSH, :DELETE]
     end

@@ -10,6 +10,8 @@ module Setup
     belongs_to :body_template, :class_name => Setup::Renderer.name, :inverse_of => :email_notifications
     belongs_to :smtp_provider, :class_name => Setup::SmtpProvider.name, :inverse_of => :email_notifications
 
+    allow :copy, :new, :edit, :export, :import
+
     # Send notification via email message
     def send_message(data)
       mail = Mail.new
