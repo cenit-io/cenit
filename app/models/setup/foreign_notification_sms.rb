@@ -7,8 +7,6 @@ module Setup
 
     belongs_to :data_type, :class_name => Setup::DataType.name, :inverse_of => :sms_notifications
 
-    protected
-
     # Send notification via sms message
     def send_message(data)
       v_to = render(data, to)

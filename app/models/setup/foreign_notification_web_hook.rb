@@ -19,8 +19,6 @@ module Setup
       }
     end
 
-    protected
-
     # Send notification via http request
     def send_message(data)
       v_uri = render(data, uri)
