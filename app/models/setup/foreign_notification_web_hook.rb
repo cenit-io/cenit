@@ -1,6 +1,6 @@
 module Setup
   class ForeignNotificationWebHook < Setup::ForeignNotification
-    include RailsAdmin::Models::Setup::ForeignNotification::WebHookNotificationAdmin
+    include RailsAdmin::Models::Setup::ForeignNotificationWebHookAdmin
 
     field :uri, type: String
     field :method, type: Symbol, :default => :GET

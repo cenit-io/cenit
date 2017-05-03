@@ -14,7 +14,7 @@ module RailsAdmin
             group :notifications do
               active false
             end
-            
+
             group :behavior do
               label 'Behavior'
               active false

@@ -1,17 +1,18 @@
 module RailsAdmin
   module Models
     module Setup
-      module ForeignNotificationAdmin
+      module ForeignNotificationWebHookAdmin
         extend ActiveSupport::Concern
 
         included do
-          rails_admin do |c|
-            object_label_method { :label }
-            navigation_label 'Workflows'
-            label 'Foreign Notification'
+          rails_admin do
+            object_label_method { :name }
+            label 'Web-Hook'
             weight 500
 
             edit do
+              required_help = '<i class="fa fa-warning"></i> Required.'
+              handlebars_help = '<i class="fa fa-question-circle"></i> You can use <a href="http://handlebarsjs.com/" target="_blank">handlebar</a> to form the value from the record data.'
               field :name, :string do
                 required true
               end
@@ -52,13 +53,30 @@ module RailsAdmin
                 end
                 help do
                   text = 'Required.'
-                  if bindings[:controller].instance_variable_get(:@model_name) == 'Setup::JsonDataType'
+                  if bindings[:controller].instance_variable_get(:@model_name) != 'Setup::ForeignNotificationWebHook'
                     text = "<i class='fa fa-warning'></i> Required.<br/>"
                     text << "<i class='fa fa-warning'></i> To use a newly created observer in this session or set setting values, you must first use the save and edit action."
                   end
                   text.html_safe
                 end
               end
+
+              field :uri, :string do
+                required true
+                help "#{required_help}<br/>#{handlebars_help}".html_safe
+              end
+
+              field :method, :enum do
+                required true
+                html_attributes do
+                  { 'data-enum_edit': false }
+                end
+              end
+
+              field :params do
+                required true
+              end
+
             end
 
             fields :name, :active, :data_type, :observers, :updated_at
@@ -69,3 +87,4 @@ module RailsAdmin
     end
   end
 end
+

@@ -1,17 +1,20 @@
 module RailsAdmin
   module Models
     module Setup
-      module ForeignNotificationAdmin
+      module ForeignNotificationEmailAdmin
         extend ActiveSupport::Concern
 
         included do
-          rails_admin do |c|
-            object_label_method { :label }
-            navigation_label 'Workflows'
-            label 'Foreign Notification'
+          rails_admin do
+            object_label_method { :name }
+            label 'Email'
             weight 500
 
             edit do
+              required_help = '<i class="fa fa-warning"></i> Required.'
+              handlebars_help = '<i class="fa fa-question-circle"></i> You can use <a href="http://handlebarsjs.com/" target="_blank">handlebar</a> to form the value from the record data.'
+              body_template_help = '<i class="fa fa-question-circle"></i> Set the empty value if you want to use a custom mail body.'
+
               field :name, :string do
                 required true
               end
@@ -59,6 +62,40 @@ module RailsAdmin
                   text.html_safe
                 end
               end
+
+              field :smtp_provider do
+                label 'SMTP Setting'
+                required true
+                associated_collection_cache_all false
+              end
+
+              field :to, :string do
+                required true
+                help "#{required_help}<br/>#{handlebars_help}".html_safe
+              end
+
+              field :subject, :string do
+                required true
+                help "#{required_help}<br/>#{handlebars_help}".html_safe
+              end
+
+              field :body_template do
+                associated_collection_cache_all false
+                associated_collection_scope do
+                  proc { |scope| scope.where(mime_type: { '$in' => ['text/html', 'text/plain'] }) }
+                end
+                help body_template_help.html_safe
+              end
+
+              field :body, :text do
+                required true
+                help "#{required_help}<br/>#{handlebars_help}".html_safe
+              end
+
+              field :scripts do
+                formatted_value { bindings[:object] }
+                partial 'foreign_notification/form_email_setting_scripts'
+              end
             end
 
             fields :name, :active, :data_type, :observers, :updated_at
@@ -69,3 +106,4 @@ module RailsAdmin
     end
   end
 end
+

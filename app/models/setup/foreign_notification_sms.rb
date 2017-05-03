@@ -1,6 +1,6 @@
 module Setup
   class ForeignNotificationSms < Setup::ForeignNotification
-    include RailsAdmin::Models::Setup::ForeignNotification::SmsNotificationAdmin
+    include RailsAdmin::Models::Setup::ForeignNotificationSmsAdmin
 
     field :to, type: String
     field :body, type: String
