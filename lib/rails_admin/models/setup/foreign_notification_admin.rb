@@ -8,7 +8,7 @@ module RailsAdmin
           rails_admin do |c|
             object_label_method { :label }
             navigation_label 'Workflows'
-            label 'Foreign Notification'
+            label 'Notification'
             weight 500
 
             edit do
