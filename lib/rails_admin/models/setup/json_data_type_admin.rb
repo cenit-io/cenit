@@ -71,6 +71,14 @@ module RailsAdmin
               field :schema_code
               field :title, &RailsAdmin::Config::Fields::Base::SHARED_READ_ONLY
               field :slug
+              field :observers do
+                label 'Events'
+                visible { !bindings[:object].new_record? }
+              end
+              field :foreign_notifications do
+                label 'Notifications'
+                visible { !bindings[:object].new_record? }
+              end
               field :before_save_callbacks, &RailsAdmin::Config::Fields::Base::SHARED_READ_ONLY
               field :records_methods, &RailsAdmin::Config::Fields::Base::SHARED_READ_ONLY
               field :data_type_methods, &RailsAdmin::Config::Fields::Base::SHARED_READ_ONLY
