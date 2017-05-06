@@ -19,17 +19,19 @@ module Setup
     protected
 
     # Render data in handlebars template.
-    def render(data, template, translator = nil)
-      @object ||= data_type.records_model.find(data[:record][:id])
+    def render(data, template)
+      Transformation::HandlebarsTransform.run(render_options(data, template))
+    end
 
-      translator ||= Transformation::HandlebarsTransform
-
+    def render_options(data, template = nil)
       # Clone event data {record: {...}, account: {email: '...', name: '...', token: '...'}, event_time: '...'}
       options = data.clone
-      options[:code] = template
-      options[:source] = data[:record] # Legacy record data option.
+      options[:code] = template unless template.nil?
+      # Legacy record data option.
+      options[:source] = data[:record]
+      options[:object_id] = data[:record][:id]
 
-      translator.run(options)
+      options
     end
 
   end

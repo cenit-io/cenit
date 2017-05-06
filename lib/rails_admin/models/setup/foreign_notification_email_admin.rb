@@ -92,6 +92,13 @@ module RailsAdmin
                 help "#{required_help}<br/>#{handlebars_help}".html_safe
               end
 
+              field :attachment_template do
+                associated_collection_cache_all false
+                associated_collection_scope do
+                  proc { |scope| scope.where(mime_type: { '$in' => ['application/pdf'] }) }
+                end
+              end
+
               field :scripts do
                 formatted_value { bindings[:object] }
                 partial 'foreign_notification/form_email_setting_scripts'
