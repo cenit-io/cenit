@@ -14,7 +14,7 @@ module RailsAdmin
             visible false
 
             configure :name, :string do
-              help 'Requiered.'
+              help 'Required.'
               html_attributes do
                 { maxlength: 50, size: 50 }
               end

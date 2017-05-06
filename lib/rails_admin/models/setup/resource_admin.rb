@@ -12,14 +12,14 @@ module RailsAdmin
             object_label_method { :custom_title }
 
             configure :name, :string do
-              help 'Requiered.'
+              help 'Required.'
               html_attributes do
                 { maxlength: 50, size: 50 }
               end
             end
 
             configure :path, :string do
-              help 'Requiered. Path of the resource relative to connection URL.'
+              help 'Required. Path of the resource relative to connection URL.'
               html_attributes do
                 { maxlength: 255, size: 100 }
               end

@@ -31,7 +31,7 @@ module RailsAdmin
             end
 
             configure :path, :string do
-              help 'Requiered. Path of the webhook relative to connection URL.'
+              help 'Required. Path of the webhook relative to connection URL.'
               html_attributes do
                 { maxlength: 255, size: 100 }
               end
