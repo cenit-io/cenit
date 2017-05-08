@@ -94,9 +94,6 @@ module RailsAdmin
 
               field :attachment_template do
                 associated_collection_cache_all false
-                associated_collection_scope do
-                  proc { |scope| scope.where(mime_type: { '$in' => ['application/pdf'] }) }
-                end
               end
 
               field :scripts do
