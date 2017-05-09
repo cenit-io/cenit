@@ -25,12 +25,11 @@ module Setup
 
     def render_options(data, template = nil)
       # Clone event data {record: {...}, account: {email: '...', name: '...', token: '...'}, event_time: '...'}
-      options = data.clone
+      options = data.deep_symbolize_keys
       options[:code] = template unless template.nil?
       # Legacy record data option.
-      options[:source] = data[:record]
-      options[:object_id] = data[:record][:id]
-
+      options[:source] = options[:record]
+      options[:object_id] = options[:record][:id]
       options
     end
 

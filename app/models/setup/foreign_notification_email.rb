@@ -24,10 +24,11 @@ module Setup
      
       if attachment_template
         mail.add_file(
-          :filename => "#{attachment_template.name.parameterize}.pdf",
+          :filename => "#{attachment_template.name.parameterize}.#{attachment_template.file_extension}",
           :content => attachment_template.run(translator_options)
         )
         mail.parts.first.content_type = 'text/html'
+        mail.parts.last.content_type = attachment_template.mime_type
       else
         mail.content_type = "text/html"
       end
