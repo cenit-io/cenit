@@ -55,7 +55,10 @@ module RailsAdmin
                 help 'Required'
               end
               field :trigger_evaluator do
-                visible { (obj = bindings[:object]).data_type.blank? || obj.trigger_evaluator.present? || obj.triggers.nil? }
+                visible do
+                  obj = bindings[:object]
+                  obj.data_type.blank? || obj.trigger_evaluator.present? || obj.triggers.nil?
+                end
                 associated_collection_scope do
                   Proc.new { |scope|
                     scope.all.or(:parameters.with_size => 1).or(:parameters.with_size => 2)
@@ -64,8 +67,14 @@ module RailsAdmin
               end
               field :triggers do
                 visible do
-                  bindings[:controller].instance_variable_set(:@_data_type, data_type = bindings[:object].data_type)
-                  bindings[:controller].instance_variable_set(:@_update_field, 'data_type_id')
+                  ctrl = bindings[:controller]
+                  if ctrl.object.respond_to?(:data_type)
+                    data_type = ctrl.object.data_type
+                    ctrl.instance_variable_set(:@_update_field, 'data_type_id')
+                  else
+                    data_type = ctrl.object
+                  end
+                  ctrl.instance_variable_set(:@_data_type, data_type)
                   data_type.present? && !bindings[:object].trigger_evaluator.present?
                 end
                 partial 'form_triggers'

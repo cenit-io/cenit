@@ -118,3 +118,4 @@ gem 'capataz', git: 'https://github.com/macarci/capataz.git'
 gem 'rkelly-remix'
 
 gem 'write_xlsx'
+gem 'handlebars'

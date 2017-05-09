@@ -34,7 +34,7 @@ An example of integration data flow (Fancy <=> Shipstation):
 * After the shipments are updated in Cenit, is trigger a Flow to send the tracking update to Fancy.
 
 
-## Your own server with Heroku 
+## Your own server with Heroku
 
 ### With the Heroku Button
 
@@ -183,7 +183,7 @@ Then copy this value and paste it in config/initializers/secret_token.rb:
 Cenit::Application.config.secret_key_base = 'bla' # replace this
 ```
 
-Browse *http://localhost:3000*. If you have any troublea please check that *mongodb* server is running.
+Browse *http://localhost:3000*. If you have any trouble please check that *mongodb* server is running.
 You should also have a working installation of [RabbitMQ](http://www.rabbitmq.com), see below the guide to install
 RabbitMQ.
 
@@ -191,6 +191,37 @@ If RabbitMQ is correctly installed when you run the rails server you should see:
 
 ```
  [*] Waiting for messages. To exit press CTRL+C
+```
+
+It uses Figaro gem to manage app configuration using ENV. Any of this variable is required to run a local server but maybe you consider some of then to run in production environment
+
+Then add to `config/application.yml` app configuration:  
+
+```
+# config/application.yml
+
+SHOW_SLACK_BADGE: "true"
+JUPYTER_NOTEBOOKS: "true"
+JUPYTER_NOTEBOOKS_URL: "//{your-cenit-jupyter-notebooks}.herokuapp.com"
+GITHUB_OAUTH_TOKEN: "{GITHUB_OAUTH_TOKEN}"
+DB_PROD: "{DB_PROD}"
+OAUTH_TOKEN_END_POINT: "embedded"
+RELIC_LICENSE_KEY: "{RELIC_LICENSE_KEY}"
+GOOGLE_ANALYTIC_ID: "{GOOGLE_ANALYTIC_ID}"
+PORTAL_URL: 'https://cenit-portal.herokuapp.com'
+DOCS_URL: 'https://cenit-io.github.io'
+API_DOC_URL: 'https://cenit-io.github.io'
+OPEN_ID_CLIENT_ID: "{OPEN_ID_CLIENT_ID}"
+OPEN_ID_CLIENT_SECRET: "{OPEN_ID_CLIENT_SECRET}"
+OPEN_ID_AUTH_URL: "https://cenit.io/app/open_id/sign_in"
+OPEN_ID_REDIRECT_URI: "https://cenit.io/users/sign_in"
+OPEN_ID_TOKEN_URL: "https://cenit.io/app/open_id/sign_in/token"
+EXCLUDED_ACTIONS: simple_share bulk_share simple_cross_share bulk_cross_share build_gem bulk_pull
+RABBITMQ_BIGWIG_TX_URL: "{RABBITMQ_BIGWIG_TX_URL}"
+NOTIFIER_EMAIL: "{NOTIFIER_EMAIL}"
+EXCEPTION_RECIPIENTS: "{List of emails}"
+RABBIT_MQ_USER: "{RABBIT_MQ_USER}"
+RABBIT_MQ_PASSWORD: "{RABBIT_MQ_PASSWORD}"
 ```
 
 ## Dependencies
@@ -383,10 +414,10 @@ Thank you for your contributions:
 
 * [Maikel Arcia](https://github.com/macarci)
 * [Miguel Sancho](https://github.com/sanchojaf)
+* [Yoandry Pacheco](https://github.com/yoandrypa)
 * [Maria E. Guirola](https://github.com/maryguirola)
 * [Asnioby Hernandez](https://github.com/Asnioby)
 * [Daniel H. Bahr](https://github.com/dhbahr)
 * [Cesar Lage](https://github.com/kaerdsar)
-* [Yoandry Pacheco](https://github.com/yoandrypa)
 * [Aneli Valdés](https://github.com/avaldesa)
 * [José A. Cruz](https://github.com/jalbertcruz)
