@@ -5,31 +5,35 @@ module RailsAdmin
         extend ActiveSupport::Concern
 
         included do
-          rails_admin do
+          rails_admin do |c|
             navigation_label 'Definitions'
             weight 111
             label 'Object Type'
             object_label_method { :custom_title }
+
+            group :notifications do
+              active false
+            end
 
             group :behavior do
               label 'Behavior'
               active false
             end
 
-            configure :title
+            c.configure :title
 
-            configure :name do
+            c.configure :name do
               read_only { !bindings[:object].new_record? }
             end
 
-            configure :schema, :json_schema
+            c.configure :schema, :json_schema
 
-            configure :schema_code, :json_schema do
+            c.configure :schema_code, :json_schema do
               label 'Schema'
               help { 'Required' }
             end
 
-            configure :storage_size, :decimal do
+            c.configure :storage_size, :decimal do
               pretty_value do
                 if (objects = bindings[:controller].instance_variable_get(:@objects))
                   unless (max = bindings[:controller].instance_variable_get(:@max_storage_size))
@@ -43,7 +47,7 @@ module RailsAdmin
               read_only true
             end
 
-            configure :before_save_callbacks do
+            c.configure :before_save_callbacks do
               group :behavior
               inline_add false
               associated_collection_scope do
@@ -53,17 +57,17 @@ module RailsAdmin
               end
             end
 
-            configure :records_methods do
+            c.configure :records_methods do
               group :behavior
               inline_add false
             end
 
-            configure :data_type_methods do
+            c.configure :data_type_methods do
               group :behavior
               inline_add false
             end
 
-            configure :slug
+            c.configure :slug
 
             edit do
               field :namespace, :enum_edit, &RailsAdmin::Config::Fields::Base::SHARED_READ_ONLY
@@ -71,6 +75,24 @@ module RailsAdmin
               field :schema_code
               field :title, &RailsAdmin::Config::Fields::Base::SHARED_READ_ONLY
               field :slug
+              field :observers do
+                label 'Events'
+                visible { !bindings[:object].new_record? }
+              end
+              group :notifications do
+                field :email_notifications do
+                  label 'E-Mails'
+                  visible { !bindings[:object].new_record? }
+                end
+                field :web_hook_notifications do
+                  label 'Web-Hooks'
+                  visible { !bindings[:object].new_record? }
+                end
+                field :sms_notifications do
+                  label 'SMS'
+                  visible { !bindings[:object].new_record? }
+                end
+              end
               field :before_save_callbacks, &RailsAdmin::Config::Fields::Base::SHARED_READ_ONLY
               field :records_methods, &RailsAdmin::Config::Fields::Base::SHARED_READ_ONLY
               field :data_type_methods, &RailsAdmin::Config::Fields::Base::SHARED_READ_ONLY

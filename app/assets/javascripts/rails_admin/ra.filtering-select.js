@@ -105,8 +105,9 @@
                     .appendTo(ul);
             };
 
-            var button = this.button = $('<span class="input-group-btn"><label class="btn btn-info dropdown-toggle" data-toggle="dropdown" aria-expanded="false" title="Show All Items" role="button"><span class="caret"></span><span class="ui-button-text">&nbsp;</span></label></span>')
+            var button = this.button = $('<span class="input-group-btn"><button class="btn btn-info dropdown-toggle" data-toggle="dropdown" aria-expanded="false" title="Show All Items" role="button"><span class="caret"></span><span class="ui-button-text">&nbsp;</span></button></span>')
                 .click(function () {
+                    if (select.prop('disabled')) return;
                     // close if already visible
                     if (input.autocomplete("widget").is(":visible")) {
                         input.autocomplete("close");
@@ -120,7 +121,14 @@
 
             filtering_select.append(input).append(button).insertAfter(select);
 
-
+            select.on('disabled', function(e){
+                input.prop('disabled', true);
+                button.find('button').prop('disabled', true);
+            });
+            select.on('enabled', function(e){
+                input.prop('disabled', false);
+                button.find('button').prop('disabled', false);
+            });
         },
 
         _getResultSet: function (request, data, xhr) {

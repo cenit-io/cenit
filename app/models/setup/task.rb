@@ -135,7 +135,7 @@ module Setup
           {
             filename: 'backtrace.txt',
             contentType: 'plain/text',
-            body: ex.backtrace.join("\n")
+            body: "#{ex.message}\n\n#{ex.backtrace.join("\n")}"
           }
         finish(:failed, "Task ##{id} failed at #{time}: #{ex.message}", :error, time)
       end
