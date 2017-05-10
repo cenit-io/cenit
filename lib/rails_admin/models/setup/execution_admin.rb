@@ -4,8 +4,8 @@ module RailsAdmin
       module ExecutionAdmin
         extend ActiveSupport::Concern
 
-        included do |c|
-          rails_admin do
+        included do
+          rails_admin do |c|
             navigation_label 'Monitors'
             weight 615
             object_label_method { :label }
