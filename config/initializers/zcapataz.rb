@@ -73,7 +73,7 @@ Capataz.config do
 
   allow_on WriteXLSX, [:new_xlsx]
 
-  allow_on MIME::Image [:new_image]
+  #allow_on MIME::Image [:new_image]
 
   allow_on MIME::DiscreteMediaFactory [:create_factory]
 
