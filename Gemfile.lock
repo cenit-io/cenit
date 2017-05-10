@@ -183,6 +183,7 @@ GEM
       execjs
     coffee-script-source (1.10.0)
     colorize (0.7.7)
+    commonjs (0.2.7)
     coveralls (0.8.9)
       json (~> 1.8)
       rest-client (>= 1.6.8, < 2)
@@ -253,6 +254,11 @@ GEM
       haml (>= 4.0.6, < 5.0)
       html2haml (>= 1.0.1)
       railties (>= 4.0.1)
+    handlebars (0.5.0)
+      commonjs (~> 0.2.3)
+      handlebars-source (~> 1.0.12)
+      therubyracer (~> 0.12.0)
+    handlebars-source (1.0.12)
     hashie (3.4.3)
     highline (1.7.8)
     html2haml (2.0.0)
@@ -613,6 +619,7 @@ DEPENDENCIES
   figaro
   github_api
   haml-rails
+  handlebars
   httmultiparty
   httparty
   identicon

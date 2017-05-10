@@ -9,6 +9,7 @@ module RailsAdmin
             navigation_label 'Monitors'
             weight 600
             object_label_method { :label }
+            label 'System Notification'
 
             show_in_dashboard false
             configure :created_at

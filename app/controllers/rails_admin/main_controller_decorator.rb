@@ -5,8 +5,11 @@ module RailsAdmin
     include SwaggerHelper
     include AlgorithmHelper
     include NotebooksHelper
+    include FiltersHelper
 
     alias_method :rails_admin_list_entries, :list_entries
+    before_action :update_filters_session
+    before_action :get_data_type_filter
 
     def list_entries(model_config = @model_config, auth_scope_key = :index, additional_scope = get_association_scope_from_params, pagination = !(params[:associated_collection] || params[:all] || params[:bulk_ids]))
       scope = rails_admin_list_entries(model_config, auth_scope_key, additional_scope, pagination)
@@ -23,11 +26,11 @@ module RailsAdmin
           origins << nil if origins.include?(:default)
           scope = scope.any_in(origin: origins)
         end
-        if (filter_token = params[:filter_token]) && (filter_token = Cenit::Token.where(token: filter_token).first)
-          if (criteria = filter_token.data && filter_token.data['criteria']).is_a?(Hash)
-            scope = scope.and(criteria)
-          end
-        end
+
+        filter_token = Cenit::Token.where(token: session[:filters][@model_name]).first if session[:filters][@model_name]
+        criteria = filter_token.data['criteria'] if filter_token.try(:data)
+        scope = scope.and(criteria) if criteria.is_a?(Hash)
+
       elsif (output = Setup::AlgorithmOutput.where(id: params[:algorithm_output]).first) &&
         output.data_type == model.data_type
         scope = scope.any_in(id: output.output_ids)
