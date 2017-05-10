@@ -16,6 +16,10 @@ module Setup
       fail NotImplementedError
     end
 
+    def label
+      name
+    end
+
     protected
 
     # Render data in handlebars template.
