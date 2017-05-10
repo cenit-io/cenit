@@ -4,26 +4,26 @@ module RailsAdmin
       module ExecutionAdmin
         extend ActiveSupport::Concern
 
-        included do
+        included do |c|
           rails_admin do
             navigation_label 'Monitors'
             weight 615
             object_label_method { :label }
 
             show_in_dashboard false
-            configure :created_at
+            c.configure :created_at
 
-            configure :attachment, :storage_file
+            c.configure :attachment, :storage_file
 
-            configure :time_span, :time_span
+            c.configure :time_span, :time_span
 
-            configure :status, :enum do
+            c.configure :status, :enum do
               register_instance_option :enum do
                 ::Setup::Task::STATUS
               end
             end
 
-            configure :agent_id do
+            c.configure :agent_id do
               pretty_value do
                 if (agent_id = value) &&
                   (task = bindings[:object].task) &&
