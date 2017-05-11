@@ -56,7 +56,7 @@ module RailsAdmin
                 end
                 help do
                   text = 'Required.'
-                  if bindings[:controller].instance_variable_get(:@model_name) == 'Setup::JsonDataType'
+                  if bindings[:controller].instance_variable_get(:@model_name) != 'Setup::ForeignNotificationEmail'
                     text = "<i class='fa fa-warning'></i> Required.<br/>"
                     text << "<i class='fa fa-warning'></i> To use a newly created observer in this session or set setting values, you must first use the save and edit action."
                   end
