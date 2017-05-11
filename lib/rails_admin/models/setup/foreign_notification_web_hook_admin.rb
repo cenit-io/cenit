@@ -8,6 +8,7 @@ module RailsAdmin
           rails_admin do
             object_label_method { :name }
             label 'Web-Hook'
+            visible false
             weight 500
 
             edit do
@@ -87,4 +88,3 @@ module RailsAdmin
     end
   end
 end
-
