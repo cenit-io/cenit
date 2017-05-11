@@ -7,6 +7,7 @@ module RailsAdmin
         included do
           rails_admin do |c|
             object_label_method { :label }
+            visible false
             navigation_label 'Workflows'
             label 'Notification'
             weight 500
