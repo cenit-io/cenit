@@ -11,7 +11,7 @@
         });
 
         // TODO: Must be optimized.
-        append = function (field, operator, value) {
+        append = function ($container, field, operator, value) {
             var item_value_name = '{0}[{1}][][v]'.format(item_name, field.name),
                 item_operator_name = '{0}[{1}][][o]'.format(item_name, field.name),
                 additional_control = '', control,
@@ -118,8 +118,8 @@
                 '</div> '
             );
 
-            $el.find('.triggers-box').append($content);
-            $el.find('.triggers-box .date').datepicker({regional: {datePicker: {dateFormat: 'dd/mm/yy'}}});
+            $container.find('.triggers-box').append($content);
+            $container.find('.triggers-box .date').datepicker({regional: {datePicker: {dateFormat: 'dd/mm/yy'}}});
 
             // Connect events
             $content.find('.delete').on('click', function (e) {
@@ -153,7 +153,7 @@
         // Connect add new trigger action.
         $el.find('.triggers-menu .dropdown-item').on('click', function (e) {
             e.preventDefault();
-            append($(this).data('field'), null, null);
+            append($el, $(this).data('field'), null, null);
         });
 
         // Render saved triggers.
@@ -161,7 +161,7 @@
             if (item_values[field.name]) {
                 // Each legacy hash values or new array items format.
                 $.each(item_values[field.name], function (item_index, item_value) {
-                    append(field, item_value.o, item_value.v);
+                    append($el, field, item_value.o, item_value.v);
                 });
             }
         });
