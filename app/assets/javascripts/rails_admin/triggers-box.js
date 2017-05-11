@@ -59,7 +59,7 @@
                 case 'enum':
                     var multiple_values = ((value instanceof Array) ? true : false),
                         options = field.options.map(function (opt) {
-                            '<option ' + (operator == opt ? 'selected="selected"' : '') + ' value="' + o + '">' + o + '</option>';
+                            '<option ' + (operator == opt ? 'selected="selected"' : '') + ' value="' + opt + '">' + opt + '</option>';
                         }).join('')
 
                     control =
@@ -146,6 +146,8 @@
                     $(this).siblings('.additional-fieldset').hide('slow');
                 }
             });
+            // Show or hiden additionnal fields after render trigger.
+            $content.find('.switch-additionnal-fieldsets').change();
         };
 
         // Connect add new trigger action.
@@ -157,7 +159,8 @@
         // Render saved triggers.
         fields_definition.forEach(function (field) {
             if (item_values[field.name]) {
-                item_values[field.name].forEach(function (item_value) {
+                // Each legacy hash values or new array items format.
+                $.each(item_values[field.name], function (item_index, item_value) {
                     append(field, item_value.o, item_value.v);
                 });
             }
