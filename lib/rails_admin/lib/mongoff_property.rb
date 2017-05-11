@@ -22,33 +22,29 @@ module RailsAdmin
     end
 
     def type
-      if schema.is_a?(Hash)
-        case schema['type']
-        when 'array', 'object', nil
-          :json_value
-        when 'number'
-          :decimal
-        when 'boolean'
-          :boolean
-          # when 'BSON::ObjectId', 'Moped::BSON::ObjectId'
-          #   :bson_object_id
-        when 'integer'
-          :integer
-        when 'string'
-          case schema['format']
-          when 'date'
-            :date
-          when 'date-time', 'time'
-            :datetime
-          when 'cenit-oauth-scope'
-            :cenit_oauth_scope
-          when 'cenit-access-scope'
-            :cenit_access_scope
-          else
-            string_field_type
-          end
+      case hash_schema['type']
+      when 'array', 'object', nil
+        :json_value
+      when 'number'
+        :decimal
+      when 'boolean'
+        :boolean
+        # when 'BSON::ObjectId', 'Moped::BSON::ObjectId'
+        #   :bson_object_id
+      when 'integer'
+        :integer
+      when 'string'
+        case hash_schema['format']
+        when 'date'
+          :date
+        when 'date-time', 'time'
+          :datetime
+        when 'cenit-oauth-scope'
+          :cenit_oauth_scope
+        when 'cenit-access-scope'
+          :cenit_access_scope
         else
-          :string
+          string_field_type
         end
       else
         :string
@@ -56,11 +52,7 @@ module RailsAdmin
     end
 
     def enum
-      if schema.is_a?(Hash)
-        schema['enum']
-      else
-        nil
-      end
+      hash_schema['enum']
     end
 
     def length
@@ -86,9 +78,9 @@ module RailsAdmin
           :text
         end
       #Empty Test
-      if schema.is_a?(Hash) && !required? &&
-        ((((min = schema['minLength']) && (min > 0 || (min == 0 && schema['exclusiveMaximum']))) ||
-          ((pattern = schema['pattern']) && !''.match(pattern))))
+      if !required? &&
+        ((((min = hash_schema['minLength']) && (min > 0 || (min == 0 && hash_schema['exclusiveMaximum']))) ||
+          ((pattern = hash_schema['pattern']) && !''.match(pattern))))
 
         type = "non_empty_#{type}"
       end
@@ -96,11 +88,7 @@ module RailsAdmin
     end
 
     def length_validation_lookup
-      if schema.is_a?(Hash)
-        schema['maxLength']
-      else
-        nil
-      end
+      hash_schema['maxLength']
     end
   end
 end
