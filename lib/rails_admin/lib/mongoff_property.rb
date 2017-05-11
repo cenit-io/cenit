@@ -22,29 +22,33 @@ module RailsAdmin
     end
 
     def type
-      case @schema['type']
-      when 'array', 'object', nil
-        :json_value
-      when 'number'
-        :decimal
-      when 'boolean'
-        :boolean
-        # when 'BSON::ObjectId', 'Moped::BSON::ObjectId'
-        #   :bson_object_id
-      when 'integer'
-        :integer
-      when 'string'
-        case @schema['format']
-        when 'date'
-          :date
-        when 'date-time', 'time'
-          :datetime
-        when 'cenit-oauth-scope'
-          :cenit_oauth_scope
-        when 'cenit-access-scope'
-          :cenit_access_scope
+      if @schema.is_a?(Hash)
+        case @schema['type']
+        when 'array', 'object', nil
+          :json_value
+        when 'number'
+          :decimal
+        when 'boolean'
+          :boolean
+          # when 'BSON::ObjectId', 'Moped::BSON::ObjectId'
+          #   :bson_object_id
+        when 'integer'
+          :integer
+        when 'string'
+          case @schema['format']
+          when 'date'
+            :date
+          when 'date-time', 'time'
+            :datetime
+          when 'cenit-oauth-scope'
+            :cenit_oauth_scope
+          when 'cenit-access-scope'
+            :cenit_access_scope
+          else
+            string_field_type
+          end
         else
-          string_field_type
+          :string
         end
       else
         :string
