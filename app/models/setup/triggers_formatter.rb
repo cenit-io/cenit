@@ -26,7 +26,7 @@ module Setup
         end
 
         conditions.each do |condition|
-          if condition['o'].nil? && %w(_null _not_null _change).include?(condition['v'])
+          if condition['o'].nil? && %w(_null _not_null _change _presence_change).include?(condition['v'])
             condition['o'] = condition.delete('v')
             modified = true
           end

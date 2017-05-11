@@ -58,18 +58,19 @@
 
                 case 'enum':
                     var multiple_values = ((value instanceof Array) ? true : false),
-                        options = field.options.map(function (opt) {
-                            '<option ' + (operator == opt ? 'selected="selected"' : '') + ' value="' + opt + '">' + opt + '</option>';
-                        }).join('')
+                        values = multiple_values ? value : [value],
+                        enum_options = field.options.map(function (opt) {
+                        return '<option ' + (values.indexOf(opt) >= 0 ? 'selected="selected"' : '') + ' value="' + opt + '">' + opt + '</option>';
+                    }).join('');
 
                     control =
                         '<select style="display:' + (multiple_values ? 'none' : 'inline-block') + '" ' + (multiple_values ? '' : 'name="' + item_value_name + '"') + ' data-name="' + item_value_name + '" class="select-single form-control">' +
                         common_options +
                         '<option data-divider="true" disabled="true"></option>' +
-                        options +
+                        enum_options +
                         '</select>' +
                         '<select multiple="multiple" style="display:' + (multiple_values ? 'inline-block' : 'none') + '" ' + (multiple_values ? 'name="' + item_value_name + '[]"' : '') + ' data-name="' + item_value_name + '[]" class="select-multiple form-control">' +
-                        options +
+                        enum_options +
                         '</select> ' +
                         '<a href="#" class="switch-select"><i class="icon-' + (multiple_values ? 'minus' : 'plus') + '"></i></a>';
                     break;
