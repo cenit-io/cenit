@@ -10,11 +10,11 @@ module Setup
 
     allow :copy, :new, :edit, :export, :import
 
-    def http_method_enum
+    def method_enum
       [:GET, :POST, :PUSH, :DELETE]
     end
 
-    def http_params_enum
+    def params_enum
       {
         'Send only record ID' => :record_id,
         'Send full record data' => :record_data,
