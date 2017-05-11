@@ -1,12 +1,20 @@
 module RailsAdmin
   module MongoffAttributeCommon
 
+    def hash_schema
+      if schema.is_a?(Hash)
+        schema
+      else
+        {}
+      end
+    end
+
     def schema
       model.property_schema(name)
     end
 
     def visible?
-      !schema.has_key?('visible') || schema['visible'].present?
+      !hash_schema.has_key?('visible') || hash_schema['visible'].present?
     end
 
     def queryable?
@@ -22,18 +30,18 @@ module RailsAdmin
     end
 
     def description
-      if (d = schema['description']).is_a?(Array)
+      if (d = hash_schema['description']).is_a?(Array)
         d = d.join('<br>')
       end
       d
     end
 
     def group
-      schema['group']
+      hash_schema['group']
     end
 
     def title
-      schema['title']
+      hash_schema['title']
     end
   end
 end
