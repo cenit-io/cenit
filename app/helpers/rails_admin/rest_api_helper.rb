@@ -129,8 +129,14 @@ module RailsAdmin
     ###
     # Returns default value from parameter.
     def api_default_param_value(param)
-      values = { 'integer' => 0, 'number' => 0, 'real' => 0, 'boolean' => false, 'object' => {}, 'array' => [] }
-      param[:default] || values[param[:type]] || ''
+      values = {
+        'integer' => 0, 'number' => 0, 'real' => 0, 'boolean' => false, 'object' => {}, 'array' => [],
+        'bson::objectid' => '', 'mongoid::boolean' => false
+      }
+
+      return param[:default] unless param[:default].nil?
+      return values[param[:type]] unless values[param[:type]].nil?
+      return ''
     end
 
     ###
@@ -244,7 +250,7 @@ module RailsAdmin
     ###
     # Returns prepared parameters from model properties.
     def api_params_from_model_properties
-      exclude = /^(created_at|updated_at|version|origin)$|_ids?$/
+      exclude = /^(created_at|updated_at|version|origin)$|_ids|_type?$/
       parameters = @properties.map do |p|
         name, type = p.is_a?(RailsAdmin::MongoffProperty) ?
           [p.property, p.type.to_s] :
