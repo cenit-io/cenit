@@ -493,6 +493,11 @@ module Mongoff
         sch['properties'] = data_type.merge_schema(properties)
       end
       sch
+    rescue Exception => ex
+      {
+        title: 'Error',
+        description: "The schema data type of this model has errors: #{ex.message}"
+      }.stringify_keys
     end
 
     private
