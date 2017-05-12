@@ -41,6 +41,7 @@ module RailsAdmin
           },
           "#{ns}/#{model_name}/{id}" => {
             get: api_spec_for_get(display_name),
+            post: api_spec_for_update(display_name),
             delete: api_spec_for_delete(display_name)
           },
           "#{ns}/#{model_name}/{id}/{view}" => {
@@ -49,8 +50,8 @@ module RailsAdmin
         }
       end : {}
 
-    # rescue Exception => ex
-    #   {}
+    rescue Exception => ex
+      {}
     end
 
     ###
@@ -110,6 +111,10 @@ module RailsAdmin
     def api_inline_var(lang, name)
       method = "api_#{lang}_inline_var"
       respond_to?(method) ? send(method, name) : "${#{name}}"
+    end
+
+    def highlight_quotation_marks(text)
+      text.gsub(/'([^']+)'/, '<i><b>\1</b></i>').html_safe
     end
 
     protected
@@ -205,16 +210,32 @@ module RailsAdmin
     end
 
     ###
-    # Returns service create or update specification.
+    # Returns service create specification.
     def api_spec_for_create(display_name)
       @parameters ||= api_params_from_model_properties
 
       {
         tags: [display_name],
-        summary: "Create or update an '#{display_name}'",
+        summary: "Create an '#{display_name}'",
         description: [
-          "Creates or updates the specified '#{display_name}'.",
-          'Any parameters not provided will be left unchanged'
+          "Creates the specified '#{display_name}'.",
+          'Any parameters not provided will be left unchanged.'
+        ].join(' '),
+        parameters: @parameters.select { |p| !p[:name].match(/^id$/) }
+      }
+    end
+
+    ###
+    # Returns service update specification.
+    def api_spec_for_update(display_name)
+      @parameters ||= api_params_from_model_properties
+
+      {
+        tags: [display_name],
+        summary: "Update an '#{display_name}'",
+        description: [
+          "Updates the specified '#{display_name}'.",
+          'Any parameters not provided will be left unchanged.'
         ].join(' '),
         parameters: [{ description: 'Identifier', in: 'path', name: 'id', type: 'string' }] + @parameters
       }
