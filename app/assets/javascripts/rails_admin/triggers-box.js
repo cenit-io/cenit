@@ -11,7 +11,7 @@
         });
 
         // TODO: Must be optimized.
-        append = function (field, operator, value) {
+        append = function ($container, field, operator, value) {
             var item_value_name = '{0}[{1}][][v]'.format(item_name, field.name),
                 item_operator_name = '{0}[{1}][][o]'.format(item_name, field.name),
                 additional_control = '', control,
@@ -58,18 +58,19 @@
 
                 case 'enum':
                     var multiple_values = ((value instanceof Array) ? true : false),
-                        options = field.options.map(function (opt) {
-                            '<option ' + (operator == opt ? 'selected="selected"' : '') + ' value="' + o + '">' + o + '</option>';
-                        }).join('')
+                        values = multiple_values ? value : [value],
+                        enum_options = field.options.map(function (opt) {
+                        return '<option ' + (values.indexOf(opt) >= 0 ? 'selected="selected"' : '') + ' value="' + opt + '">' + opt + '</option>';
+                    }).join('');
 
                     control =
                         '<select style="display:' + (multiple_values ? 'none' : 'inline-block') + '" ' + (multiple_values ? '' : 'name="' + item_value_name + '"') + ' data-name="' + item_value_name + '" class="select-single form-control">' +
                         common_options +
                         '<option data-divider="true" disabled="true"></option>' +
-                        options +
+                        enum_options +
                         '</select>' +
                         '<select multiple="multiple" style="display:' + (multiple_values ? 'inline-block' : 'none') + '" ' + (multiple_values ? 'name="' + item_value_name + '[]"' : '') + ' data-name="' + item_value_name + '[]" class="select-multiple form-control">' +
-                        options +
+                        enum_options +
                         '</select> ' +
                         '<a href="#" class="switch-select"><i class="icon-' + (multiple_values ? 'minus' : 'plus') + '"></i></a>';
                     break;
@@ -118,8 +119,8 @@
                 '</div> '
             );
 
-            $el.find('.triggers-box').append($content);
-            $el.find('.triggers-box .date').datepicker({regional: {datePicker: {dateFormat: 'dd/mm/yy'}}});
+            $container.find('.triggers-box').append($content);
+            $container.find('.triggers-box .date').datepicker({regional: {datePicker: {dateFormat: 'dd/mm/yy'}}});
 
             // Connect events
             $content.find('.delete').on('click', function (e) {
@@ -146,19 +147,22 @@
                     $(this).siblings('.additional-fieldset').hide('slow');
                 }
             });
+            // Show or hiden additionnal fields after render trigger.
+            $content.find('.switch-additionnal-fieldsets').change();
         };
 
         // Connect add new trigger action.
         $el.find('.triggers-menu .dropdown-item').on('click', function (e) {
             e.preventDefault();
-            append($(this).data('field'), null, null);
+            append($el, $(this).data('field'), null, null);
         });
 
         // Render saved triggers.
         fields_definition.forEach(function (field) {
             if (item_values[field.name]) {
-                item_values[field.name].forEach(function (item_value) {
-                    append(field, item_value.o, item_value.v);
+                // Each legacy hash values or new array items format.
+                $.each(item_values[field.name], function (item_index, item_value) {
+                    append($el, field, item_value.o, item_value.v);
                 });
             }
         });
