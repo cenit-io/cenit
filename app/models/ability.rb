@@ -22,7 +22,6 @@ class Ability
               Role,
               User,
               Account,
-              Setup::SharedName,
               Setup::CrossSharedName,
               Cenit::BasicToken,
               Script,
@@ -32,8 +31,7 @@ class Ability
               Setup::Category,
               TourTrack
             ]
-        can [:import, :edit], Setup::SharedCollection
-        can :destroy, [Setup::SharedCollection, Setup::Storage, Setup::CrossSharedCollection]
+        can :destroy, [Setup::Storage, Setup::CrossSharedCollection]
         can :simple_delete_data_type, Setup::CenitDataType, origin: :cenit
         can :destroy, Setup::CenitDataType, origin: :tmp
         can [:index, :show, :cancel], RabbitConsumer
@@ -50,8 +48,8 @@ class Ability
       else
         root_actions.delete(:remote_shared_collection)
 
-        cannot :access, [Setup::SharedName, Setup::CrossSharedName, Setup::DelayedMessage, Setup::SystemNotification]
-        cannot :destroy, [Setup::SharedCollection, Setup::Storage]
+        cannot :access, [Setup::CrossSharedName, Setup::DelayedMessage, Setup::SystemNotification]
+        cannot :destroy, Setup::Storage
 
         can :index, Setup::CrossSharedCollection
         can :pull, Setup::CrossSharedCollection, installed: true
@@ -73,11 +71,6 @@ class Ability
       can :destroy, Setup::Task,
           :status.in => Setup::Task::NON_ACTIVE_STATUS,
           :scheduler_id.in => Setup::Scheduler.where(activated: false).collect(&:id) + [nil]
-
-      can :update, Setup::SharedCollection do |shared_collection|
-        shared_collection.owners.include?(user)
-      end
-      can :edi_export, Setup::SharedCollection
 
       @@allowed ||=
         begin
@@ -197,7 +190,7 @@ class Ability
 
     else
       can [:dashboard, :shared_collection_index, :ecommerce_index, :notebooks_root]
-      can [:index, :show, :pull, :simple_export], [Setup::SharedCollection, Setup::CrossSharedCollection]
+      can [:index, :show, :pull, :simple_export], Setup::CrossSharedCollection
       can [:index, :show], Setup::Models.all.to_a -
         [
           Account,
