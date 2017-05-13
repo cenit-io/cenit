@@ -18,11 +18,11 @@ module RailsAdmin
         command << "response = RestClient::Request.execute(\n"
         command << "  :url => \"#{uri}\",\n"
         command << "  :method => '#{method.upcase}',\n"
+        command << "  :payload => '#{data.to_json}',\n" unless data.empty?
         command << "  :headers => {\n"
         command << "    'Content-Type' => 'application/json',\n"
         command << "    'X-User-Access-Key' => user_access_key,\n"
-        command << "    'X-User-Access-Token' => user_access_token,\n"
-        command << "    'params' => #{data.to_json}\n" unless data.empty?
+        command << "    'X-User-Access-Token' => user_access_token\n"
         command << "  }\n"
         command << ")\n"
         command << "\n"
