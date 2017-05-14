@@ -178,6 +178,8 @@ module Setup
           begin
             ids = do_store_output rc
 
+            args = {}
+            parameters.each { |parameter| args[parameter.name] = input.shift }
             @last_output = AlgorithmOutput.create(algorithm: self, data_type: output_datatype, input_params: args,
                                                   output_ids: ids)
           rescue Exception => e
