@@ -13,11 +13,11 @@ module RailsAdmin
         command = ""
         command << api_vars('curl', vars) + "\n\n" unless vars.empty?
         command << "curl -X #{method.upcase} \\\n"
-        command << "     -H 'X-User-Access-Key: ${user_access_key}' \\\n"
-        command << "     -H 'X-User-Access-Token: ${user_access_token}' \\\n"
-        command << "     -H 'Content-Type: application/json' \\\n"
+        command << "     -H \"X-User-Access-Key: ${user_access_key}\" \\\n"
+        command << "     -H \"X-User-Access-Token: ${user_access_token}\" \\\n"
+        command << "     -H \"Content-Type: application/json\" \\\n"
         command << "     -d '#{data.to_json}' \\\n" unless data.empty?
-        command << "     '#{uri}'"
+        command << "     \"#{uri}\""
 
         command
       end
