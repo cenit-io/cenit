@@ -5,7 +5,7 @@ module RailsAdmin
       if schema.is_a?(Hash)
         schema
       else
-        {}
+        @_empty_hash ||= {}
       end
     end
 

@@ -90,6 +90,11 @@ class Account
   def inspect_updated_fields
     users << owner unless user_ids.include?(owner.id)
     super
+    if new_record?
+      self.owner_id = (owner && owner.id) || User.current.id
+    end
+    generate_number
+    ensure_token
   end
 
   def init_heroku_db
