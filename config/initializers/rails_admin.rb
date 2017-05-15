@@ -6,6 +6,7 @@ require 'account'
   RailsAdmin::Config::Actions::SwitchNavigation,
   RailsAdmin::Config::Actions::RenderChart,
   RailsAdmin::Config::Actions::DataType,
+  RailsAdmin::Config::Actions::Chart,
   RailsAdmin::Config::Actions::Filters,
   RailsAdmin::Config::Actions::DataEvents,
   RailsAdmin::Config::Actions::Flows,
@@ -173,6 +174,7 @@ RailsAdmin.config do |config|
     switch_navigation
     render_chart
     switch_scheduler
+    chart
     simple_export
     schedule
     state
