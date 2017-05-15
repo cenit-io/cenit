@@ -4,9 +4,6 @@ Collections:
   Setup::CrossSharedCollection:
     - weight 010
     - label 'Shared Collection'
-  Setup::SharedCollection:
-    - weight 020
-    - label 'Legacy Shared Collection'
 Definitions:
   Setup::Validator:
     - weight 100
