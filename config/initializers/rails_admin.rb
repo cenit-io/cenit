@@ -4,6 +4,7 @@ require 'account'
   RailsAdmin::Config::Actions::DiskUsage,
   RailsAdmin::Config::Actions::SendToFlow,
   RailsAdmin::Config::Actions::SwitchNavigation,
+  RailsAdmin::Config::Actions::RenderChart,
   RailsAdmin::Config::Actions::DataType,
   RailsAdmin::Config::Actions::Filters,
   RailsAdmin::Config::Actions::DataEvents,
@@ -170,6 +171,7 @@ RailsAdmin.config do |config|
     records
     filter_data_type
     switch_navigation
+    render_chart
     switch_scheduler
     simple_export
     schedule
