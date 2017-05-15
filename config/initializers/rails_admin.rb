@@ -232,12 +232,6 @@ RailsAdmin.config do |config|
 
   Setup::CrossSharedCollection
 
-  Setup::SharedCollection
-
-  Setup::CollectionAuthor
-
-  Setup::CollectionPullParameter
-
   Setup::CollectionData
 
   Setup::Collection
@@ -446,8 +440,6 @@ RailsAdmin.config do |config|
   Account
 
   Role
-
-  Setup::SharedName
 
   Setup::CrossSharedName
 
