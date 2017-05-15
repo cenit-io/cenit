@@ -1294,18 +1294,30 @@ label {
   }
 }
 
-
-
 // for graphics
+.g-container {
+  max-height: 485px;
+  transition: all 0.5s ease;
+  &.closed {
+    overflow: hidden;
+    max-height: 0;
+    transition: all 0.5s ease;
+  }
+}
+
 .graphics-area {
   margin: 25px 0;
 }
+
 .graphics-controls {
   padding: 15px;
+
 }
+
 .graphics-chart {
   overflow: scroll;
 }
+
 .btn .caret {
   margin-left: 2px;
 }
@@ -1317,6 +1329,10 @@ label {
 
 .no-padding-left {
   padding-left: 0 !important;
+}
+
+.cenit-oauth-basic-scope .basics-scopes {
+  min-width: 234px;
 }
 
 .cenit-oauth-scope, .cenit-oauth-basic-scope, .model-tr {
@@ -1411,6 +1427,7 @@ label {
     }
   }
 }
+
 .scope-description li i {
   margin-left: 5px;
 }
