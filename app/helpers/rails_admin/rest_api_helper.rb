@@ -243,7 +243,9 @@ module RailsAdmin
           "Updates the specified '#{display_name}'.",
           'Any parameters not provided will be left unchanged.'
         ].join(' '),
-        parameters: [{ description: 'Identifier', in: 'path', name: 'id', type: 'string' }] + @parameters
+        parameters: [
+          { description: 'Identifier', in: 'path', name: 'id', type: 'string' }
+        ] + @parameters.select { |p| !p[:name].match(/^id$/) }
       }
     end
 
