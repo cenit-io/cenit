@@ -1,216 +1,171 @@
 (function ($) {
 
-    var triggers;
+    $.fn.triggers = function (values) {
+        var $el = $(this),
+            fields_definition = [],
+            item_name = $el.find('.triggers-box').data('fieldName'),
+            item_values = values || {};
 
-    $.triggers = triggers = {
-        options: {
-            regional: {
-                datePicker: {
-                    dateFormat: 'dd/mm/yy'
-                }
-            }
-        },
+        $el.find('.triggers-menu .dropdown-item').map(function (i, v) {
+            fields_definition.push($(v).data('field'));
+        });
 
-        update_triggers_menu: function () {
-            if (typeof fields != 'undefined') {
-                $("#triggers_box").html('');
-                var triggers_options = '';
-                if (fields != null) {
-                    for (var i = 0; i < fields.length; i++) {
-                        var field = fields[i];
-                        var options = '';
-                        for (var j = 0; j < field[2].length; j++) {
-                            options += "<option value=&quot;" + field[2][j] + "&quot;>" + field[2][j] + "</option> ";
-                        }
-                        triggers_options += '<li> <a data-field-label="' + field[0] + '" data-field-name="' + field[1] + '" data-field-options="' + options + '" data-field-type="' + field[3] + '" data-field-value="" href="#">' + field[0] + '</a></li>';
-                    }
-                    $("#triggers").html(triggers_options);
-                    $.triggers.load_defaults();
-                    $("#add_trigger").removeClass('disabled');
-                } else {
-                    $("#add_trigger").addClass('disabled');
-                }
-            }
-            $("#triggers").hide();
-        },
+        // TODO: Must be optimized.
+        append = function ($container, field, operator, value) {
+            var item_value_name = '{0}[{1}][][v]'.format(item_name, field.name),
+                item_operator_name = '{0}[{1}][][o]'.format(item_name, field.name),
+                additional_control = '', control,
+                common_options =
+                    '<option ' + (operator == "_not_null" ? 'selected="selected"' : '') + ' value="_not_null">' + RailsAdmin.I18n.t("is_present") + '</option>' +
+                    '<option ' + (operator == "_null" ? 'selected="selected"' : '') + ' value="_null" >' + RailsAdmin.I18n.t("is_blank") + '</option>' +
+                    '<option ' + (operator == "_change" ? 'selected="selected"' : '') + ' value="_change"  >' + RailsAdmin.I18n.t("change") + '</option>' +
+                    '<option ' + (operator == "_presence_change" ? 'selected="selected"' : '') + ' value="_presence_change"  >' + RailsAdmin.I18n.t("present_and_change") + '</option>';
 
-        load_defaults: function () {
-            for (var p in default_triggers) {
-                for (var i = 0; i < fields.length; i++) {
-                    if (fields[i][1] == p) {
-                        var field = fields[i];
-                        var field_triggers = default_triggers[p];
-                        for (var index in field_triggers) {
-                            var field_value = field_triggers[index]['v'];
-                            var options = '';
-                            for (var j = 0; j < field[2].length; j++) {
-                                var option = field[2][j];
-                                var selected = (field_value == option || (Array.isArray(field_value) && field_value.indexOf(option) != -1) ? 'selected' : '');
-                                options += "<option value=" + field[2][j] + " " + selected + ">" + field[2][j] + "</option> ";
-                            }
-                            if (index != null)
-                                $.triggers.append(field[0], field[1], field[3], field_value, field_triggers[index]['o'], options, index);
-                        }
-                        i = fields.length;
-                    }
-                }
-            }
-        },
+            value = value || '';
+            operator = operator || '';
 
-        append: function (field_label, field_name, field_type, field_value, field_operator, field_options, index) {
-//            var value_name = 'a[triggers][' + field_name + '][v]';
-//            var operator_name = 'a[triggers][' + field_name + '][o]';
-            var value_name = model_name + '[' + model_field_name + '][' + field_name + '][' + index + '][v]';
-            var operator_name = model_name + '[' + model_field_name + '][' + field_name + '][' + index + '][o]';
-            var common_options = '<option ' + (field_operator == "_not_null" ? 'selected="selected"' : '') + ' value="_not_null">' + RailsAdmin.I18n.t("is_present") + '</option>' +
-                '<option ' + (field_operator == "_null" ? 'selected="selected"' : '') + ' value="_null" >' + RailsAdmin.I18n.t("is_blank") + '</option>' +
-                '<option ' + (field_operator == "_change" ? 'selected="selected"' : '') + ' value="_change"  >' + RailsAdmin.I18n.t("change") + '</option>' +
-                '<option ' + (field_operator == "_presence_change" ? 'selected="selected"' : '') + ' value="_presence_change"  >' + RailsAdmin.I18n.t("present_and_change") + '</option>';
-            switch (field_type) {
+            switch (field.type) {
                 case 'boolean':
-                    var control = '<select class="input-sm form-control" name="' + value_name + '">' +
-                        '<option value="true"' + (field_value == "true" ? 'selected="selected"' : '') + '>' + RailsAdmin.I18n.t("true") + '</option>' +
-                        '<option value="false"' + (field_value == "false" ? 'selected="selected"' : '') + '>' + RailsAdmin.I18n.t("false") + '</option>' +
-                        '<option disabled="disabled">---------</option>' +
+                    control =
+                        '<select class="form-control" name="' + item_value_name + '">' +
+                        '<option value="true"' + (value == "true" ? 'selected="selected"' : '') + '>' + RailsAdmin.I18n.t("true") + '</option>' +
+                        '<option value="false"' + (value == "false" ? 'selected="selected"' : '') + '>' + RailsAdmin.I18n.t("false") + '</option>' +
+                        '<option data-divider="true" disabled="true"></option>' +
                         common_options +
                         '</select>';
                     break;
+
                 case 'date':
                 case 'time':
                 case 'datetime':
                 case 'timestamp':
-                    var control = '<select class="switch-additionnal-fieldsets input-sm form-control" name="' + operator_name + '">' +
-                        '<option ' + (field_operator == "default" ? 'selected="selected"' : '') + ' data-additional-fieldset="default" value="default">' + RailsAdmin.I18n.t("date") + '</option>' +
-                        '<option ' + (field_operator == "between" ? 'selected="selected"' : '') + ' data-additional-fieldset="between" value="between">' + RailsAdmin.I18n.t("between_and_") + '</option>' +
-                        '<option ' + (field_operator == "today" ? 'selected="selected"' : '') + ' value="today">' + RailsAdmin.I18n.t("today") + '</option>' +
-                        '<option ' + (field_operator == "yesterday" ? 'selected="selected"' : '') + ' value="yesterday">' + RailsAdmin.I18n.t("yesterday") + '</option>' +
-                        '<option ' + (field_operator == "this_week" ? 'selected="selected"' : '') + ' value="this_week">' + RailsAdmin.I18n.t("this_week") + '</option>' +
-                        '<option ' + (field_operator == "last_week" ? 'selected="selected"' : '') + ' value="last_week">' + RailsAdmin.I18n.t("last_week") + '</option>' +
-                        '<option disabled="disabled">---------</option>' +
+                    control =
+                        '<select class="switch-additionnal-fieldsets form-control" name="' + item_operator_name + '">' +
+                        '<option ' + (operator == "default" ? 'selected="selected"' : '') + ' data-additional-fieldset="default" value="default">' + RailsAdmin.I18n.t("date") + '</option>' +
+                        '<option ' + (operator == "between" ? 'selected="selected"' : '') + ' data-additional-fieldset="between" value="between">' + RailsAdmin.I18n.t("between_and_") + '</option>' +
+                        '<option ' + (operator == "today" ? 'selected="selected"' : '') + ' value="today">' + RailsAdmin.I18n.t("today") + '</option>' +
+                        '<option ' + (operator == "yesterday" ? 'selected="selected"' : '') + ' value="yesterday">' + RailsAdmin.I18n.t("yesterday") + '</option>' +
+                        '<option ' + (operator == "this_week" ? 'selected="selected"' : '') + ' value="this_week">' + RailsAdmin.I18n.t("this_week") + '</option>' +
+                        '<option ' + (operator == "last_week" ? 'selected="selected"' : '') + ' value="last_week">' + RailsAdmin.I18n.t("last_week") + '</option>' +
+                        '<option data-divider="true" disabled="true"></option>' +
                         common_options +
-                        '</select>'
-                    var additional_control =
-                        '<input class="date additional-fieldset default input-sm form-control" style="display:' + ((!field_operator || field_operator == "default") ? 'inline-block' : 'none') + ';" type="text" name="' + value_name + '[]" value="' + (field_value[0] || '') + '" /> ' +
-                        '<input placeholder="-∞" class="date additional-fieldset between input-sm form-control" style="display:' + ((field_operator == "between") ? 'inline-block' : 'none') + ';" type="text" name="' + value_name + '[]" value="' + (field_value[1] || '') + '" /> ' +
-                        '<input placeholder="∞" class="date additional-fieldset between input-sm form-control" style="display:' + ((field_operator == "between") ? 'inline-block' : 'none') + ';" type="text" name="' + value_name + '[]" value="' + (field_value[2] || '') + '" />';
+                        '</select>';
+                    additional_control =
+                        '<input class="date additional-fieldset default form-control" style="display:' + ((!operator || operator == "default") ? 'inline-block' : 'none') + ';" type="text" name="' + item_value_name + '[]" value="' + (value[0] || '') + '" /> ' +
+                        '<input placeholder="-∞" class="date additional-fieldset between form-control" style="display:' + ((operator == "between") ? 'inline-block' : 'none') + ';" type="text" name="' + item_value_name + '[]" value="' + (value[1] || '') + '" /> ' +
+                        '<input placeholder="∞" class="date additional-fieldset between form-control" style="display:' + ((operator == "between") ? 'inline-block' : 'none') + ';" type="text" name="' + item_value_name + '[]" value="' + (value[2] || '') + '" />';
                     break;
+
                 case 'enum':
-                    var multiple_values = ((field_value instanceof Array) ? true : false)
-                    var control = '<select style="display:' + (multiple_values ? 'none' : 'inline-block') + '" ' + (multiple_values ? '' : 'name="' + value_name + '"') + ' data-name="' + value_name + '" class="select-single input-sm form-control">' +
+                    var multiple_values = ((value instanceof Array) ? true : false),
+                        values = multiple_values ? value : [value],
+                        enum_options = field.options.map(function (opt) {
+                        return '<option ' + (values.indexOf(opt) >= 0 ? 'selected="selected"' : '') + ' value="' + opt + '">' + opt + '</option>';
+                    }).join('');
+
+                    control =
+                        '<select style="display:' + (multiple_values ? 'none' : 'inline-block') + '" ' + (multiple_values ? '' : 'name="' + item_value_name + '"') + ' data-name="' + item_value_name + '" class="select-single form-control">' +
                         common_options +
-                        '<option disabled="disabled">---------</option>' +
-                        field_options +
+                        '<option data-divider="true" disabled="true"></option>' +
+                        enum_options +
                         '</select>' +
-                        '<select multiple="multiple" style="display:' + (multiple_values ? 'inline-block' : 'none') + '" ' + (multiple_values ? 'name="' + value_name + '[]"' : '') + ' data-name="' + value_name + '[]" class="select-multiple input-sm form-control">' +
-                        field_options +
+                        '<select multiple="multiple" style="display:' + (multiple_values ? 'inline-block' : 'none') + '" ' + (multiple_values ? 'name="' + item_value_name + '[]"' : '') + ' data-name="' + item_value_name + '[]" class="select-multiple form-control">' +
+                        enum_options +
                         '</select> ' +
                         '<a href="#" class="switch-select"><i class="icon-' + (multiple_values ? 'minus' : 'plus') + '"></i></a>';
                     break;
+
                 case 'string':
                 case 'text':
                 case 'belongs_to_association':
-                    var control = $.filters.belongs_to_association_basic_options(field_operator, operator_name) +
+                    control =
+                        '<select class="switch-additionnal-fieldsets input-sm form-control" value="' + operator + '" name="' + item_operator_name + '">' +
+                        '<option data-additional-fieldset="additional-fieldset"' + (operator == "like" ? 'selected="selected"' : '') + ' value="like">' + RailsAdmin.I18n.t("contains") + '</option>' +
+                        '<option data-additional-fieldset="additional-fieldset"' + (operator == "is" ? 'selected="selected"' : '') + ' value="is">' + RailsAdmin.I18n.t("is_exactly") + '</option>' +
+                        '<option data-additional-fieldset="additional-fieldset"' + (operator == "starts_with" ? 'selected="selected"' : '') + ' value="starts_with">' + RailsAdmin.I18n.t("starts_with") + '</option>' +
+                        '<option data-additional-fieldset="additional-fieldset"' + (operator == "ends_with" ? 'selected="selected"' : '') + ' value="ends_with">' + RailsAdmin.I18n.t("ends_with") + '</option>' +
+                        '<option data-divider="true" disabled="true"></option>' +
                         common_options +
-                        '</select>'
-                    var additional_control = '<input class="additional-fieldset input-sm form-control" style="display:' + (field_operator == "_blank" || field_operator == "_present" ? 'none' : 'inline-block') + ';" type="text" name="' + value_name + '" value="' + field_value + '" /> ';
+                        '</select>';
+                    additional_control = '<input class="additional-fieldset form-control" style="display:' + (operator == "_blank" || operator == "_present" ? 'none' : 'inline-block') + ';" type="text" name="' + item_value_name + '" value="' + value + '" /> ';
                     break;
+
                 case 'integer':
                 case 'decimal':
                 case 'float':
-                    var control = '<select class="switch-additionnal-fieldsets input-sm form-control" name="' + operator_name + '">' +
-                        '<option ' + (field_operator == "default" ? 'selected="selected"' : '') + ' data-additional-fieldset="default" value="default">' + RailsAdmin.I18n.t("number") + '</option>' +
-                        '<option ' + (field_operator == "between" ? 'selected="selected"' : '') + ' data-additional-fieldset="between" value="between">' + RailsAdmin.I18n.t("between_and_") + '</option>' +
-                        '<option disabled="disabled">---------</option>' +
+                    control =
+                        '<select class="switch-additionnal-fieldsets form-control" name="' + item_operator_name + '">' +
+                        '<option ' + (operator == "default" ? 'selected="selected"' : '') + ' data-additional-fieldset="default" value="default">' + RailsAdmin.I18n.t("number") + '</option>' +
+                        '<option ' + (operator == "between" ? 'selected="selected"' : '') + ' data-additional-fieldset="between" value="between">' + RailsAdmin.I18n.t("between_and_") + '</option>' +
+                        '<option data-divider="true" disabled="true"></option>' +
                         common_options +
                         '</select>'
-                    var additional_control =
-                        '<input class="additional-fieldset default input-sm form-control" style="display:' + ((!field_operator || field_operator == "default") ? 'inline-block' : 'none') + ';" type="' + field_type + '" name="' + value_name + '[]" value="' + (field_value[0] || '') + '" /> ' +
-                        '<input placeholder="-∞" class="additional-fieldset between input-sm form-control" style="display:' + ((field_operator == "between") ? 'inline-block' : 'none') + ';" type="' + field_type + '" name="' + value_name + '[]" value="' + (field_value[1] || '') + '" /> ' +
-                        '<input placeholder="∞" class="additional-fieldset between input-sm form-control" style="display:' + ((field_operator == "between") ? 'inline-block' : 'none') + ';" type="' + field_type + '" name="' + value_name + '[]" value="' + (field_value[2] || '') + '" />';
+                    additional_control =
+                        '<input class="additional-fieldset default form-control" style="display:' + ((!operator || operator == "default") ? 'inline-block' : 'none') + ';" type="' + field.type + '" name="' + item_value_name + '[]" value="' + (value[0] || '') + '" /> ' +
+                        '<input placeholder="-∞" class="additional-fieldset between form-control" style="display:' + ((operator == "between") ? 'inline-block' : 'none') + ';" type="' + field.type + '" name="' + item_value_name + '[]" value="' + (value[1] || '') + '" /> ' +
+                        '<input placeholder="∞" class="additional-fieldset between form-control" style="display:' + ((operator == "between") ? 'inline-block' : 'none') + ';" type="' + field.type + '" name="' + item_value_name + '[]" value="' + (value[2] || '') + '" />';
                     break;
+
                 default:
-                    var control = '<input type="text" class="input-sm form-control" name="' + value_name + '" value="' + field_value + '"/> ';
+                    control = '<input type="text" class="form-control" name="' + item_value_name + '" value="' + value + '"/> ';
                     break;
             }
 
-            var content = '<p class="trigger form-search">' +
-                '<span class="label label-info form-label"><a href="#" class="delete"><i class="icon-trash icon-white"></i></a> ' + field_label + '</span> ' +
-                control + " " +
-                (additional_control || '') +
-                '</p> ';
-            $('#triggers_box').append(content);
-            $('#triggers_box .date').datepicker(this.options.regional.datePicker);
-            $("hr.triggers_box:hidden").show('slow');
-        }
-    }
+            var $content = $(
+                '<div class="trigger">' +
+                '  <span class="label label-info form-label">' +
+                '    <a href="#" class="delete"><i class="icon-trash icon-white"></i></a> ' + field.label +
+                '  </span> ' + control + " " + (additional_control || '') +
+                '</div> '
+            );
 
-    $(document).on('click', "#triggers a", function (e) {
-        e.preventDefault();
-        $.triggers.append(
-            $(this).data('field-label'),
-            $(this).data('field-name'),
-            $(this).data('field-type'),
-            $(this).data('field-value'),
-            $(this).data('field-operator'),
-            $(this).data('field-options'),
-            $.now().toString().slice(6, 11)
-        );
-        $("#triggers").hide();
-    });
+            $container.find('.triggers-box').append($content);
+            $container.find('.triggers-box .date').datepicker({regional: {datePicker: {dateFormat: 'dd/mm/yy'}}});
 
-    $(document).on('click', "#triggers_box .delete", function (e) {
-        e.preventDefault();
-        form = $(this).parents('form');
-        $(this).parents('.trigger').remove();
-        !$("#triggers_box").children().length && $("hr.triggers_box:visible").hide('slow');
-    });
+            // Connect events
+            $content.find('.delete').on('click', function (e) {
+                e.preventDefault();
+                $(this).parents('.trigger').remove();
+            });
 
-    $(document).on('click', "#triggers_box .switch-select", function (e) {
-        e.preventDefault();
-        var selected_select = $(this).siblings('select:visible');
-        var not_selected_select = $(this).siblings('select:hidden');
-        not_selected_select.attr('name', not_selected_select.data('name')).show('slow');
-        selected_select.attr('name', null).hide('slow');
-        $(this).find('i').toggleClass("icon-plus icon-minus")
-    });
+            $content.find('.switch-select').on('click', function (e) {
+                e.preventDefault();
+                var selected_select = $(this).siblings('select:visible'),
+                    not_selected_select = $(this).siblings('select:hidden');
 
-    $(document).on('change', "#triggers_box .switch-additionnal-fieldsets", function (e) {
-        var selected_option = $(this).find('option:selected');
-        if (klass = $(selected_option).data('additional-fieldset')) {
-            $(this).siblings('.additional-fieldset:not(.' + klass + ')').hide('slow');
-            $(this).siblings('.' + klass).show('slow');
-        } else {
-            $(this).siblings('.additional-fieldset').hide('slow');
-        }
-    });
+                not_selected_select.attr('name', not_selected_select.data('name')).show('slow');
+                selected_select.attr('name', null).hide('slow');
+                $(this).find('i').toggleClass("icon-plus icon-minus")
+            });
 
-    $(document).on('change', "#setup_observer_data_type_id", function (e) {
-        $.triggers.update_triggers_menu();
-    });
+            $content.find('.switch-additionnal-fieldsets').on('change', function (e) {
+                var selected_option = $(this).find('option:selected');
+                if ((klass = selected_option.data('additional-fieldset'))) {
+                    $(this).siblings('.additional-fieldset:not(.' + klass + ')').hide('slow');
+                    $(this).siblings('.' + klass).show('slow');
+                } else {
+                    $(this).siblings('.additional-fieldset').hide('slow');
+                }
+            });
+            // Show or hiden additionnal fields after render trigger.
+            $content.find('.switch-additionnal-fieldsets').change();
+        };
 
-    $(document).on('change', "#setup_filter_data_type_id", function (e) {
-        $.triggers.update_triggers_menu();
-    });
+        // Connect add new trigger action.
+        $el.find('.triggers-menu .dropdown-item').on('click', function (e) {
+            e.preventDefault();
+            append($el, $(this).data('field'), null, null);
+        });
 
-    $(document).on('change', "#setup_flow_translator_id", function (e) {
-        $.triggers.update_triggers_menu();
-    });
+        // Render saved triggers.
+        fields_definition.forEach(function (field) {
+            if (item_values[field.name]) {
+                // Each legacy hash values or new array items format.
+                $.each(item_values[field.name], function (item_index, item_value) {
+                    append($el, field, item_value.o, item_value.v);
+                });
+            }
+        });
+    };
 
-    $(document).on('click', "#add_trigger", function (e) {
-        if (!$("#add_trigger").hasClass('disabled')) {
-            $("#triggers").show();
-        }
-    });
-
-    $(document).on('click', ".pjax", function (e) {
-        $("#triggers").hide();
-    });
-
-    $(document).on('click', ".control", function (e) {
-        $("#triggers").hide();
-    });
-
-    $(document).on('click', ".controls", function (e) {
-        $("#triggers").hide();
-    });
 })(jQuery);

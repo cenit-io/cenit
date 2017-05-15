@@ -17,10 +17,21 @@ module Setup
         return false
       end
       modified = nil
-      hash.values.each do |conditions|
-        conditions.values.each do |condition|
-          modified = condition['o'] = condition.delete('v') if condition['o'].nil? && %w(_null _not_null _change).include?(condition['v'])
+      hash.each do |field, conditions|
+
+        # LEGACY: Transform form old Hash conditions format to new Array conditions format.
+        if conditions.is_a?(Hash)
+          hash[field] = conditions = conditions.values
+          modified = true
         end
+
+        conditions.each do |condition|
+          if condition['o'].nil? && %w(_null _not_null _change _presence_change).include?(condition['v'])
+            condition['o'] = condition.delete('v')
+            modified = true
+          end
+        end
+
       end
       send("#{field}=", hash.to_json) if modified
     end
@@ -29,14 +40,20 @@ module Setup
       r = true
       triggers_hash = JSON.parse(send(field))
       triggers_hash.each do |field_name, conditions|
-        conditions.each do |_, condition|
-          r &&=
-            if %w(_change _presence_change).include?(condition['o'])
-              !(condition['o'] == '_presence_change' && obj_before.nil?) && field_changed(obj_now, obj_before, field_name)
-            else
-              condition_apply(obj_now, obj_before, field_name, condition) && !condition_apply(obj_before, obj_now, field_name, condition)
-            end
+
+        # LEGACY: Transform form old Hash conditions format to new Array conditions format.
+        conditions = conditions.values if conditions.is_a?(Hash)
+
+        conditions.each do |condition|
+          if %w(_change _presence_change).include?(condition['o'])
+            r &&= !(condition['o'] == '_presence_change' && obj_before.nil?) &&
+              field_changed(obj_now, obj_before, field_name)
+          else
+            r &&= condition_apply(obj_now, obj_before, field_name, condition) &&
+              !condition_apply(obj_before, obj_now, field_name, condition)
+          end
         end
+
       end
       r
     end
@@ -181,6 +198,6 @@ module Setup
     def op_last_week(obj_v)
       op_between(obj_v, [nil, (last_week_beginning = Date.today.weeks_ago(1).at_beginning_of_week).at_beginning_of_day, last_week_beginning.at_end_of_week.at_end_of_day])
     end
-    
+
   end
 end

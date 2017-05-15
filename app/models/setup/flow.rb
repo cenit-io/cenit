@@ -244,6 +244,9 @@ module Setup
                                   tirgger_flow_id: executing_id,
                                   execution_graph: execution_graph,
                                   auto_retry: auto_retry)
+          if (data_type = message.delete(:data_type))
+            message[:data_type_id] = data_type.capataz_slave.id.to_s # TODO Remove capataz_slave when fixing capataz rewriter for Hash call arguments
+          end
           Setup::FlowExecution.process(message, &block)
         end
       save
@@ -370,9 +373,9 @@ module Setup
     def translate_import(message, &block)
       options =
         {
-          headers: {},
-          parameters: {},
-          template_parameters: {},
+          headers: message['headers'] || {},
+          parameters: message['parameters'] || {},
+          template_parameters: message['template_parameters'] || {},
           notify_request: notify_request,
           notify_response: notify_response,
           verbose_response: true,

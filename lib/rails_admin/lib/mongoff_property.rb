@@ -22,7 +22,7 @@ module RailsAdmin
     end
 
     def type
-      case @schema['type']
+      case hash_schema['type']
       when 'array', 'object', nil
         :json_value
       when 'number'
@@ -34,7 +34,7 @@ module RailsAdmin
       when 'integer'
         :integer
       when 'string'
-        case @schema['format']
+        case hash_schema['format']
         when 'date'
           :date
         when 'date-time', 'time'
@@ -52,7 +52,7 @@ module RailsAdmin
     end
 
     def enum
-      @schema['enum']
+      hash_schema['enum']
     end
 
     def length
@@ -79,8 +79,8 @@ module RailsAdmin
         end
       #Empty Test
       if !required? &&
-        ((((min = @schema['minLength']) && (min > 0 || (min == 0 && @schema['exclusiveMaximum']))) ||
-          ((pattern = @schema['pattern']) && !''.match(pattern))))
+        ((((min = hash_schema['minLength']) && (min > 0 || (min == 0 && hash_schema['exclusiveMaximum']))) ||
+          ((pattern = hash_schema['pattern']) && !''.match(pattern))))
 
         type = "non_empty_#{type}"
       end
@@ -88,7 +88,7 @@ module RailsAdmin
     end
 
     def length_validation_lookup
-      @schema['maxLength']
+      hash_schema['maxLength']
     end
   end
 end
