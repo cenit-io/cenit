@@ -6,6 +6,8 @@
 //= require rails_admin/test-flow-transformation
 //= require rails_admin/highlight_js/highlight.pack.js
 //= require rails_admin/handlers
+//= require rails_admin/highcharts
+//= require rails_admin/chartkick
 //= require lodash.min
 //= require rails_admin/select2.full.min
 
