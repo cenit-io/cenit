@@ -68,6 +68,9 @@ en:
       and_that_is_all: "and that's all"
       found_menu_title: "Found "
       no_description: "No description"
+      chart:
+        show: 'Show Chart'
+        hide: 'Hide Chart'
     actions:
       dashboard:
         title: "Dashboard"
@@ -101,6 +104,15 @@ en:
         action_name: "Test"
         sample_data: "Sample data"
         result: "Result"
+      chart:
+        show:
+          title: "Enable Chart"
+          menu: "Enable Chart"
+          breadcrumb: "Enable Chart"
+        hide:
+          title: "Disable Chart"
+          menu: "Disable Chart"
+          breadcrumb: "Enable Chart"
       switch_navigation:
         show:
           title: "Show navigation link"
@@ -110,6 +122,15 @@ en:
           title: "Hide navigation link"
           menu: "Hide navigation link"
           breadcrumb: "Hide navigation link"
+      render_chart:
+        show:
+          title: "Enable Chart rendering"
+          menu: "Enable Chart rendering"
+          breadcrumb: "Enable Chart rendering"
+        hide:
+          title: "Disable Chart rendering"
+          menu: "Disable Chart rendering"
+          breadcrumb: "Enable Chart rendering"
       switch_scheduler:
         activate:
           title: "Activate"

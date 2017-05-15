@@ -363,7 +363,7 @@ module RailsAdmin
         stack_id = "#{html_id}-sub#{i}"
         counts =
           begin
-            node.abstract_model.counts({ cache: true }, @authorization_adapter && @authorization_adapter.query(:index, node.abstract_model))
+            node.abstract_model.counts({ cache: true }, @index_scope = @authorization_adapter && @authorization_adapter.query(:index, node.abstract_model))
           rescue Exception
             { default: -1 }
           end
@@ -468,8 +468,8 @@ module RailsAdmin
             </div>
              <div id='shared-collapse' class='nav nav-pills nav-stacked panel-collapse collapse'>
                 #{remote_shared_collection_link}
-                #{show_all_link}
-                #{sub_links}
+          #{show_all_link}
+          #{sub_links}
             </div>
             </div>)
 
@@ -480,16 +480,44 @@ module RailsAdmin
           sub_links = ''
           extensions_list.each do |ext|
             next if ext.blank?
+            counts =
+              begin
+                node.abstract_model.counts({ cache: false }, (@index_scope || Setup::Renderer).where(:file_extension => ext))
+              rescue Exception
+                { default: -1 }
+              end
+            model_count =
+              if current_user
+                counts[:default] || counts.values.inject(0, &:+)
+              else
+                counts.values.inject(0, &:+)
+              end
             count = Setup::Renderer.where(:file_extension => ext).count
             ext_count += count
             sub_links += content_tag :li do
               #TODO review and improve the params for the sub_link_url generation and try to show the filter in the view
               filter = { file_extension: { 80082 => { v: ext } } }
               sub_link_url = index_path(model_name: node.abstract_model.to_param, utf8: '✓', f: filter)
-              link_to sub_link_url do
+              link_to sub_link_url, class: 'pjax' do
                 rc = ''
+                title = t('admin.misc.and_that_is_all')
+                plus = nil
+                count_label = model_count
+
+                plus = []
+                counts.each do |origin, count|
+                  next if origin == :default
+                  plus << "+ #{count} #{t("admin.origin.#{origin}")}" if count > 0
+                end
+                if plus.any?
+                  title = plus.to_sentence
+                  count_label = "#{model_count} +"
+                else
+                  plus = nil
+                end
+
                 if model_count>0
-                  rc += "<span class='nav-amount'>#{count}</span>"
+                  rc += "<span class='nav-amount' title=\"#{title}\">#{count_label}</span>"
                 end
                 rc += "<span class='nav-caption'>#{ext.upcase}</span>"
                 rc.html_safe
