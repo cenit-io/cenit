@@ -7,8 +7,7 @@ module RailsAdmin
         included do
           rails_admin do
             navigation_label 'Compute'
-            weight -405
-            visible false
+            weight 405
 
             configure :records_count
             configure :input_parameters
@@ -24,13 +23,7 @@ module RailsAdmin
               [RailsAdmin::Adapters::Mongoid::Association.new(association, abstract_model.model)]
             end
 
-            show do
-              field :created_at
-              field :input_parameters
-              field :records_count
-            end
-
-            fields :created_at, :input_parameters, :records_count
+            fields :created_at, :algorithm, :input_parameters, :records_count
           end
         end
 

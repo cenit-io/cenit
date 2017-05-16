@@ -72,7 +72,8 @@ module RailsAdmin
               RailsAdmin::Config::Actions::Edit,
               RailsAdmin::Config::Actions::New,
               RailsAdmin::Config::Actions::Share,
-              RailsAdmin::Config::Actions::Configure
+              RailsAdmin::Config::Actions::Configure,
+              RailsAdmin::Config::Actions::Run
             ].exclude?(bindings[:view].instance_variable_get(:@action).class)
             config
           end
