@@ -88,10 +88,6 @@ module RailsAdmin
                   label 'Web-Hooks'
                   visible { !bindings[:object].new_record? }
                 end
-                field :sms_notifications do
-                  label 'SMS'
-                  visible { !bindings[:object].new_record? }
-                end
               end
               field :before_save_callbacks, &RailsAdmin::Config::Fields::Base::SHARED_READ_ONLY
               field :records_methods, &RailsAdmin::Config::Fields::Base::SHARED_READ_ONLY
