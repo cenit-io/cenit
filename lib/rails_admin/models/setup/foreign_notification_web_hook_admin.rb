@@ -78,6 +78,10 @@ module RailsAdmin
                 required true
               end
 
+              field :params_as_json do
+                help 'Send the parameters as data encoded in json.'
+              end
+
             end
 
             fields :name, :active, :data_type, :observers, :updated_at

@@ -93,8 +93,8 @@ module RailsAdmin
                 help "#{required_help}<br/>#{handlebars_help}".html_safe
               end
 
-              field :attachment_template do
-                associated_collection_cache_all false
+              field :attachments_templates do
+                inline_add false
               end
 
               field :scripts do
