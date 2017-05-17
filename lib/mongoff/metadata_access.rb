@@ -94,7 +94,9 @@ module Mongoff
         if (key = schema['type']).nil? && (one_of = schema['oneOf']).is_a?(Array)
           one_of.collect { |sch| mongo_type_for(nil, sch) }.flatten.uniq
         else
-          if (type = MONGO_TYPE_MAP[key] || NilClass).is_a?(Hash)
+          if key.nil? && (%w(id _id).include?((str = field.to_s)) || str.end_with?('_id'))
+            type = BSON::ObjectId
+          elsif (type = MONGO_TYPE_MAP[key] || NilClass).is_a?(Hash)
             type = type['format'][schema['format']] || type['default']
           end
           [type]
