@@ -8,8 +8,8 @@ module Setup
 
     belongs_to :data_type, :class_name => Setup::DataType.name, :inverse_of => :email_notifications
     belongs_to :body_template, :class_name => Setup::Renderer.name, :inverse_of => nil
-    belongs_to :attachment_template, :class_name => Setup::Renderer.name, :inverse_of => nil
     belongs_to :smtp_provider, :class_name => Setup::SmtpProvider.name, :inverse_of => :email_notifications
+    has_many :attachments_templates, :class_name => Setup::Renderer.name, :inverse_of => :email_notifications
 
     allow :copy, :new, :edit, :export, :import
 
@@ -21,14 +21,16 @@ module Setup
       mail.to = render(data, to)
       mail.subject = render(data, subject)
       mail.body = body_template ? body_template.run(translator_options) : render(data, body)
-     
-      if attachment_template
-        mail.add_file(
-          :filename => "#{attachment_template.name.parameterize}.#{attachment_template.file_extension}",
-          :content => attachment_template.run(translator_options)
-        )
+
+      if attachments_templates.any?
+        attachments_templates.each do |attachment_template|
+          mail.add_file(
+            :filename => "#{attachment_template.name.parameterize}.#{attachment_template.file_extension}",
+            :content => attachment_template.run(translator_options)
+          )
+          mail.parts.last.content_type = attachment_template.mime_type
+        end
         mail.parts.first.content_type = 'text/html'
-        mail.parts.last.content_type = attachment_template.mime_type
       else
         mail.content_type = "text/html"
       end
