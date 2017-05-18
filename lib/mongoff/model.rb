@@ -60,7 +60,7 @@ module Mongoff
     def schema
       unless @schema
         if model_schema?(@schema = proto_schema)
-          @schema = (Model[:base_schema] || {}).deep_merge(@schema)
+          @schema = @schema.deep_reverse_merge(Model[:base_schema] || {})
         end
       end
       @schema
@@ -503,7 +503,7 @@ module Mongoff
     private
 
     def check_referenced_schema(schema, check_for_array = true)
-      if schema.is_a?(Hash) && (schema = schema.reject { |key, _| %w(group xml unique title description edi format example enum readOnly default).include?(key) })
+      if schema.is_a?(Hash) && (schema = schema.reject { |key, _| %w(group xml unique title description edi format example enum readOnly default visible).include?(key) })
         property_dt = nil
         ns = data_type.namespace
         if (ref = schema['$ref']).is_a?(Array)

@@ -399,6 +399,8 @@ module Api::V2
           case @_action_name
           when 'push'
             get_data_type(@model).is_a?(Setup::FileDataType) ? :upload_file : :new
+          when 'update'
+            :edit
           else
             @_action_name.to_sym
           end
