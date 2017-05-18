@@ -4,8 +4,8 @@
 [![Slack Status](http://cenit-slack.herokuapp.com/badge.svg)](http://cenitio.slack.com)
 
 * [Cenit IO](https://cenit.io)  [(https://cenit.io)](https://cenit.io)
-* [Join our Slack](https://cenitio.slack.com/shared_invite/MTg1NTcwMjc2NzExLTE0OTUwNDEyMjgtZjg2ZDkxMmQxOA)
-[(cenitio.slack.com)](https://cenitio.slack.com/shared_invite/MTg1NTcwMjc2NzExLTE0OTUwNDEyMjgtZjg2ZDkxMmQxOA)
+* [Join our Slack](https://cenitio.slack.com/shared_invite/MTg0NTgzNDk0NDQ4LTE0OTUxMjc4NzgtNzFkZjA1ZDdkYw)
+[(cenitio.slack.com)](https://cenitio.slack.com/shared_invite/MTg0NTgzNDk0NDQ4LTE0OTUxMjc4NzgtNzFkZjA1ZDdkYw)
 * [Shared Collections](https://cenit.io/setup~shared_collection)
 * [Cenit IO - 101 Intro](https://cenit-io.github.io/cenit-slides/#cover)
 * [Documentation](https://cenit-io.github.io/docs/)
