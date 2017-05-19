@@ -59,7 +59,8 @@ require 'account'
   RailsAdmin::Config::Actions::RestApi2,
   RailsAdmin::Config::Actions::LinkDataType,
   RailsAdmin::Config::Actions::ImportApiSpec,
-  RailsAdmin::Config::Actions::RemoteSharedCollection
+  RailsAdmin::Config::Actions::RemoteSharedCollection,
+  RailsAdmin::Config::Actions::OpenApiDirectory
 ].each { |a| RailsAdmin::Config::Actions.register(a) }
 
 [
@@ -130,6 +131,7 @@ RailsAdmin.config do |config|
     # disk_usage
     shared_collection_index
     remote_shared_collection
+    open_api_directory
     ecommerce_index
     link_data_type
     index # mandatory

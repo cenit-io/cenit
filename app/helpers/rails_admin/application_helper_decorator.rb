@@ -683,5 +683,42 @@ module RailsAdmin
           end
       end.html_safe
     end
+
+    def list_apis
+      cat_ids = Set.new
+      apis =
+        begin
+          file_name = 'public/apis.guru.list.json'
+          if File.exists?(file_name)
+            list = File.read(file_name)
+          else
+            list = Setup::Connection.get('http://api.apis.guru/v2/list.json').submit
+            File.open(file_name, 'w') { |file| file.write(list) }
+          end
+          JSON.parse(list)
+        rescue Exception => ex
+          flash[:error] = "Unable to retrive OpenAPI Directory: #{ex.message}"
+          {}
+        end
+      apis = apis.collect do |key, api|
+        api['id'] = key
+        info = api['versions'][api['preferred']]['info'] || {}
+        cat_ids.merge(api['categories'] = info['x-apisguru-categories'] || [])
+        api
+      end
+      categories = {}
+      Setup::Category.where(:id.in => cat_ids.to_a).each { |category| categories[category.id] = category.to_hash }
+      query = params[:query].to_s.downcase.split(' ')
+      apis.select! do |api|
+        info = api['versions'][api['preferred']]['info']
+        api['categories'] = api['categories'].collect { |id| categories[id] || { 'id' => id } }
+        query.all? do |token|
+          api['id'].to_s.downcase[token] ||
+            (%w(title description).any? { |entry| info[entry].to_s.downcase[token] }) ||
+            (api['categories'].any? { |cat| cat.values.any? { |value| value.to_s[token] } })
+        end
+      end
+      Kaminari.paginate_array(apis).page(params[:page]).per(20)
+    end
   end
 end
