@@ -13,7 +13,7 @@ Capataz.config do
                     Setup::Task, Setup::Task::RUNNING_STATUS, Setup::Task::NOT_RUNNING_STATUS, Setup::Task::ACTIVE_STATUS, Setup::Task::NON_ACTIVE_STATUS,
                     Xmldsig, Xmldsig::SignedDocument, Zip, Zip::OutputStream, Zip::InputStream, StringIO, MIME::Mail, MIME::Text, MIME::Multipart::Mixed,
                     Spreadsheet, Spreadsheet::Workbook, Setup::Authorization, Setup::Connection, Devise, Cenit, JWT, Setup::XsltValidator, Setup::Translator,
-                    Setup::Flow, WriteXLSX, MIME::DiscreteMediaFactory, MIME::DiscreteMedia
+                    Setup::Flow, WriteXLSX, MIME::DiscreteMediaFactory, MIME::DiscreteMedia, MIME::DiscreteMedia, MIME::Image, MIME::Application
 
   allow_on Cenit, [:homepage, :namespace]
 
@@ -68,12 +68,18 @@ Capataz.config do
   allow_on Setup::Connection, Setup::Webhook.method_enum + [:webhook_for, :where]
 
   allow_on Setup::Webhook, [:where]
-
+	
   allow_on Setup::Translator, [:run, :where]
 
   allow_on WriteXLSX, [:new_xlsx]
 
   allow_on MIME::DiscreteMedia, [:create_media]
+
+  allow_on MIME::Application, [:new_app]
+
+  allow_on MIME::Image, [:new_img]
+
+  allow_on MIME::DiscreteMedia, [:new_media]
 
   allow_on MIME::DiscreteMediaFactory, [:create_factory]
 
