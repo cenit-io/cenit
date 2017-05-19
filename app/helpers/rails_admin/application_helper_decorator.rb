@@ -711,5 +711,34 @@ module RailsAdmin
           end
       end.html_safe
     end
+
+    def list_apis
+      cat_ids = Set.new
+      apis =
+        begin
+          JSON.parse(File.read('public/apis.guru.list.json'))
+        rescue
+          {}
+        end
+      apis = apis.collect do |key, api|
+        api['id'] = key
+        info = api['versions'][api['preferred']]['info'] || {}
+        cat_ids.merge(api['categories'] = info['x-apisguru-categories'] || [])
+        api
+      end
+      categories = {}
+      Setup::Category.where(:id.in => cat_ids.to_a).each { |category| categories[category.id] = category.to_hash }
+      query = params[:query].to_s.downcase.split(' ')
+      apis.select! do |api|
+        info = api['versions'][api['preferred']]['info']
+        api['categories'] = api['categories'].collect { |id| categories[id] || { 'id' => id } }
+        query.all? do |token|
+          api['id'].to_s.downcase[token] ||
+            (%w(title description).any? { |entry| info[entry].to_s.downcase[token] }) ||
+            (api['categories'].any? { |cat| cat.values.any? { |value| value.to_s[token] } })
+        end
+      end
+      Kaminari.paginate_array(apis).page(params[:page]).per(20)
+    end
   end
 end

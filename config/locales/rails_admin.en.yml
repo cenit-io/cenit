@@ -522,6 +522,10 @@ en:
         details: "Details"
         go_back: "Go back"
         remote: "Remote"
+      open_api_directory:
+        title: "OpenAPI Directory"
+        menu: "OpenAPI Directory"
+        breadcrumb: "OpenAPI Directory"
       ecommerce_index:
         menu: " eCommerce Collections"
       clean_up:
