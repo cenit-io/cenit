@@ -4,7 +4,9 @@ require 'account'
   RailsAdmin::Config::Actions::DiskUsage,
   RailsAdmin::Config::Actions::SendToFlow,
   RailsAdmin::Config::Actions::SwitchNavigation,
+  RailsAdmin::Config::Actions::RenderChart,
   RailsAdmin::Config::Actions::DataType,
+  RailsAdmin::Config::Actions::Chart,
   RailsAdmin::Config::Actions::Filters,
   RailsAdmin::Config::Actions::DataEvents,
   RailsAdmin::Config::Actions::Flows,
@@ -60,7 +62,8 @@ require 'account'
   RailsAdmin::Config::Actions::ForeignNotifications,
   RailsAdmin::Config::Actions::LinkDataType,
   RailsAdmin::Config::Actions::ImportApiSpec,
-  RailsAdmin::Config::Actions::RemoteSharedCollection
+  RailsAdmin::Config::Actions::RemoteSharedCollection,
+  RailsAdmin::Config::Actions::OpenApiDirectory
 ].each { |a| RailsAdmin::Config::Actions.register(a) }
 
 [
@@ -131,6 +134,7 @@ RailsAdmin.config do |config|
     # disk_usage
     shared_collection_index
     remote_shared_collection
+    open_api_directory
     ecommerce_index
     link_data_type
     index # mandatory
@@ -172,7 +176,9 @@ RailsAdmin.config do |config|
     records
     filter_data_type
     switch_navigation
+    render_chart
     switch_scheduler
+    chart
     simple_export
     schedule
     state

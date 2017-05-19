@@ -31,6 +31,10 @@
   - request_interval = Cenit.chart_data_request_interval
   - execution_id = execution.id
   - element_id = 'chart-1'
+  .button{class: 'btn btn-primary pull-right hide', id: 'show_graphics'}
+    %i{class: 'fa fa-bar-chart'}
+    %span{}
+      = t('admin.misc.chart.hide')
   .g-container
     .g-controls.hide
       = form_tag(index_path(params.except(*%w[page f query])), method: :get, id: 'graphics-form', class: "pjax-form form-inline") do

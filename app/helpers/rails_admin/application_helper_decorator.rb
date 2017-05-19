@@ -363,7 +363,7 @@ module RailsAdmin
         stack_id = "#{html_id}-sub#{i}"
         counts =
           begin
-            node.abstract_model.counts({ cache: true }, @authorization_adapter && @authorization_adapter.query(:index, node.abstract_model))
+            node.abstract_model.counts({ cache: true }, @index_scope = @authorization_adapter && @authorization_adapter.query(:index, node.abstract_model))
           rescue Exception
             { default: -1 }
           end
@@ -468,8 +468,8 @@ module RailsAdmin
             </div>
              <div id='shared-collapse' class='nav nav-pills nav-stacked panel-collapse collapse'>
                 #{remote_shared_collection_link}
-                #{show_all_link}
-                #{sub_links}
+          #{show_all_link}
+          #{sub_links}
             </div>
             </div>)
 
@@ -480,16 +480,44 @@ module RailsAdmin
           sub_links = ''
           extensions_list.each do |ext|
             next if ext.blank?
+            counts =
+              begin
+                node.abstract_model.counts({ cache: false }, (@index_scope || Setup::Renderer).where(:file_extension => ext))
+              rescue Exception
+                { default: -1 }
+              end
+            model_count =
+              if current_user
+                counts[:default] || counts.values.inject(0, &:+)
+              else
+                counts.values.inject(0, &:+)
+              end
             count = Setup::Renderer.where(:file_extension => ext).count
             ext_count += count
             sub_links += content_tag :li do
               #TODO review and improve the params for the sub_link_url generation and try to show the filter in the view
               filter = { file_extension: { 80082 => { v: ext } } }
               sub_link_url = index_path(model_name: node.abstract_model.to_param, utf8: '✓', f: filter)
-              link_to sub_link_url do
+              link_to sub_link_url, class: 'pjax' do
                 rc = ''
+                title = t('admin.misc.and_that_is_all')
+                plus = nil
+                count_label = model_count
+
+                plus = []
+                counts.each do |origin, count|
+                  next if origin == :default
+                  plus << "+ #{count} #{t("admin.origin.#{origin}")}" if count > 0
+                end
+                if plus.any?
+                  title = plus.to_sentence
+                  count_label = "#{model_count} +"
+                else
+                  plus = nil
+                end
+
                 if model_count>0
-                  rc += "<span class='nav-amount'>#{count}</span>"
+                  rc += "<span class='nav-amount' title=\"#{title}\">#{count_label}</span>"
                 end
                 rc += "<span class='nav-caption'>#{ext.upcase}</span>"
                 rc.html_safe
@@ -682,6 +710,35 @@ module RailsAdmin
             end.join.html_safe
           end
       end.html_safe
+    end
+
+    def list_apis
+      cat_ids = Set.new
+      apis =
+        begin
+          JSON.parse(File.read('public/apis.guru.list.json'))
+        rescue
+          {}
+        end
+      apis = apis.collect do |key, api|
+        api['id'] = key
+        info = api['versions'][api['preferred']]['info'] || {}
+        cat_ids.merge(api['categories'] = info['x-apisguru-categories'] || [])
+        api
+      end
+      categories = {}
+      Setup::Category.where(:id.in => cat_ids.to_a).each { |category| categories[category.id] = category.to_hash }
+      query = params[:query].to_s.downcase.split(' ')
+      apis.select! do |api|
+        info = api['versions'][api['preferred']]['info']
+        api['categories'] = api['categories'].collect { |id| categories[id] || { 'id' => id } }
+        query.all? do |token|
+          api['id'].to_s.downcase[token] ||
+            (%w(title description).any? { |entry| info[entry].to_s.downcase[token] }) ||
+            (api['categories'].any? { |cat| cat.values.any? { |value| value.to_s[token] } })
+        end
+      end
+      Kaminari.paginate_array(apis).page(params[:page]).per(20)
     end
   end
 end

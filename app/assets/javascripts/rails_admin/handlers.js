@@ -289,7 +289,19 @@ function cenitOauthScopeInit() {
 function graphicsInit() {
     $('select.input-sm', '.graphics-controls').on('change', function (e) {
         graphic_control_change(e);
-    })
+    });
+    $(document).off('click', '#show_graphics').on('click', '#show_graphics', function () {
+        $('.g-container').toggleClass('closed');
+        var isclosed = $('.g-container').hasClass('closed'), $show = $('#show_graphics span');
+
+        if (isclosed) {
+            $show.html('Show Chart');
+        }
+        else {
+            $show.html('Hide Chart');
+        }
+
+    });
 }
 var graphics_handle;
 function graphic_control_change(e) {
@@ -357,6 +369,7 @@ function drawGraphics(options) {
                     $('.new_g').html('<div id="' + element_id + '"></div>');
                     render_graphic(graphic_type, graphic_data, graphic_options, element_id);
                     $('.g-controls').removeClass('hide');
+                    $('#show_graphics').removeClass('hide');
                 });
         },
         encuest_api = function () {
