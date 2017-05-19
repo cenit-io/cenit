@@ -697,7 +697,7 @@ module RailsAdmin
           end
           JSON.parse(list)
         rescue Exception => ex
-          flash[:error] = "Unable to retrive OpenAPI Directory: #{ex.message}"
+          flash[:error] = "Unable to retrieve OpenAPI Directory: #{ex.message}"
           {}
         end
       apis = apis.collect do |key, api|
