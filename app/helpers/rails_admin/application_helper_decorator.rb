@@ -688,8 +688,16 @@ module RailsAdmin
       cat_ids = Set.new
       apis =
         begin
-          JSON.parse(File.read('public/apis.guru.list.json'))
-        rescue
+          file_name = 'public/apis.guru.list.json'
+          if File.exists?(file_name)
+            list = File.read(file_name)
+          else
+            list = Setup::Connection.get('http://api.apis.guru/v2/list.json').submit
+            File.open(file_name, 'w') { |file| file.write(list) }
+          end
+          JSON.parse(list)
+        rescue Exception => ex
+          flash[:error] = "Unable to retrive OpenAPI Directory: #{ex.message}"
           {}
         end
       apis = apis.collect do |key, api|
