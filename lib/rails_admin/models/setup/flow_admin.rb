@@ -195,7 +195,7 @@ module RailsAdmin
                 visible do
                   f = bindings[:object]
                   (t = f.translator) && t.type == :Export &&
-                    f.custom_data_type_selected? &&
+                    (f.custom_data_type_selected? || f.data_type) &&
                     (f.event.blank? || f.data_type.blank? || (f.data_type_scope.present? && f.scope_symbol != :event_source))
                 end
               end
