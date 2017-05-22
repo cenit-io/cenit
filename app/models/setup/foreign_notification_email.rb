@@ -6,10 +6,9 @@ module Setup
     field :subject, type: String
     field :body, type: String
 
-    belongs_to :data_type, :class_name => Setup::DataType.name, :inverse_of => :email_notifications
-    belongs_to :body_template, :class_name => Setup::Renderer.name, :inverse_of => nil
+    belongs_to :body_template, :class_name => Setup::Renderer.name, inverse_of: nil
     belongs_to :smtp_provider, :class_name => Setup::SmtpProvider.name, :inverse_of => :email_notifications
-    has_many :attachments_templates, :class_name => Setup::Renderer.name, :inverse_of => :email_notifications
+    has_many :attachments_templates, :class_name => Setup::Renderer.name, inverse_of: nil
 
     allow :copy, :new, :edit, :export, :import
 

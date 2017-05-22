@@ -9,7 +9,7 @@ module Setup
     field :params, type: Symbol, :default => :record_id
     field :params_as_json, type: Boolean, :default => false
 
-    belongs_to :data_type, :class_name => Setup::DataType.name, :inverse_of => :web_hook_notifications
+    belongs_to :data_type, :class_name => Setup::DataType.name, inverse_of: nil
 
     allow :copy, :new, :edit, :export, :import
 

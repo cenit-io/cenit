@@ -1,5 +1,7 @@
 module Setup
   class ForeignNotificationExecution < Setup::Task
+    include RailsAdmin::Models::Setup::ForeignNotificationExecutionAdmin
+
     agent_field :foreign_notification
 
     build_in_data_type

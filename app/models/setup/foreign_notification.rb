@@ -6,8 +6,8 @@ module Setup
     field :name, type: String
     field :active, type: Boolean
 
-    has_and_belongs_to_many :observers, :class_name => Setup::Observer.name, :inverse_of => :foreign_notifications
-    belongs_to :data_type, :class_name => Setup::DataType.name, :inverse_of => :foreign_notifications
+    has_and_belongs_to_many :observers, :class_name => Setup::Observer.name, inverse_of: nil
+    belongs_to :data_type, :class_name => Setup::DataType.name, inverse_of: nil
 
     deny :copy, :new, :edit, :export, :import, :translator_update
 
