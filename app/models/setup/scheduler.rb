@@ -114,7 +114,7 @@ module Setup
         },
         type: {
           type: 'string',
-          enum: %w(once cyclic appointed)
+          enum: %w(cyclic appointed)
         },
         months_days: {
           type: 'array',
@@ -329,14 +329,17 @@ module Setup
     end
 
     def next_time(now)
-      if @conf[:type] == 'cyclic'
+      case @conf[:type]
+      when 'cyclic'
         a = @conf[:cyclic_expression].to_seconds_interval
         b = Cenit.min_scheduler_interval || 60
         now + [a, b].max
-      else
+      when 'appointed'
         run(now)
         res = @v.select { |e| e > now }.collect { |e| e - now }.min
         res ? now + res : nil
+      else
+        nil # Unknown scheduling type
       end
     end
 
