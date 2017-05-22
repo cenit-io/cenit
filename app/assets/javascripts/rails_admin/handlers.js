@@ -32,10 +32,9 @@ function schedulerInit() {
         e.preventDefault();
         $(this).toggleClass('btn-primary');
         $(this).toggleClass('btn-default');
-
-        updateExpression();
     });
-    top_level.find('input, select').on('input change', function () {
+
+    top_level.parents('form').on('submit', function () {
         updateExpression();
     });
 

@@ -17,6 +17,10 @@ module RailsAdmin
       @model_name = mongoff_model.to_s
     end
 
+    def property_or_association(name)
+      properties_hash[name] || associations_hash[name]
+    end
+
     def model
       @model
     end
@@ -30,7 +34,17 @@ module RailsAdmin
     end
 
     def associations
-      @associations ||= model.associations.values.collect { |association| RailsAdmin::MongoffAssociation.new(association, model) }
+      associations_hash.values
+    end
+
+    def associations_hash
+      unless @associations
+        @associations = {}
+        model.associations.values.each do |association|
+          @associations[association.name.to_s] = RailsAdmin::MongoffAssociation.new(association, model)
+        end
+      end
+      @associations
     end
 
     def pretty_name
@@ -60,14 +74,20 @@ module RailsAdmin
     end
 
     def properties
+      properties_hash.values
+    end
+
+    def properties_hash
       unless @properties
-        @properties = []
+        @properties = {}
         model.properties.each do |property|
-          if (a = associations.detect { |a| a.name == property.to_sym })
-            @properties << RailsAdmin::MongoffProperty.new(a.association.foreign_key, model, 'type' => 'string', 'visible' => false) unless a.association.nested?
-          else
-            @properties << RailsAdmin::MongoffProperty.new(property, model)
-          end
+          p =
+            if (a = associations.detect { |a| a.name == property.to_sym })
+              RailsAdmin::MongoffProperty.new(a.association.foreign_key, model, 'type' => 'string', 'visible' => false) unless a.association.nested?
+            else
+              RailsAdmin::MongoffProperty.new(property, model)
+            end
+          @properties[p.name.to_s] = p if p
         end
       end
       @properties

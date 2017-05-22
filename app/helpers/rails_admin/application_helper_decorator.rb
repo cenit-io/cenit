@@ -468,8 +468,8 @@ module RailsAdmin
             </div>
              <div id='shared-collapse' class='nav nav-pills nav-stacked panel-collapse collapse'>
                 #{remote_shared_collection_link}
-          #{show_all_link}
-          #{sub_links}
+                #{show_all_link}
+                #{sub_links}
             </div>
             </div>)
 
@@ -716,8 +716,16 @@ module RailsAdmin
       cat_ids = Set.new
       apis =
         begin
-          JSON.parse(File.read('public/apis.guru.list.json'))
-        rescue
+          file_name = 'public/apis.guru.list.json'
+          if File.exists?(file_name)
+            list = File.read(file_name)
+          else
+            list = Setup::Connection.get('http://api.apis.guru/v2/list.json').submit
+            File.open(file_name, 'w') { |file| file.write(list) }
+          end
+          JSON.parse(list)
+        rescue Exception => ex
+          flash[:error] = "Unable to retrieve OpenAPI Directory: #{ex.message}"
           {}
         end
       apis = apis.collect do |key, api|
