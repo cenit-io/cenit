@@ -1,0 +1,17 @@
+.well.col-xs-12
+  - object = @object['versions'][@object['preferred']]
+  - object_info = object['info'] || {}
+  - x_logo = object_info['x-logo'] || {}
+  .col-sm-3.no-padding-left
+    = image_tag x_logo['url'] || 'missing.png', class: 'logo img-responsive'
+  .col-sm-9
+    .col-sm-6
+      %h3= object_info['title'].presence || @object['id'].to_title
+      .btn-toolbar.text-center
+        =link_to open_api_directory_path(id: @object['id'], download: true), class: 'btn btn-primary pjax' do
+          %i.fa.fa-download
+        =link_to open_api_directory_path, class: 'btn btn-default pjax' do
+          %i.fa.fa-arrow-left
+          = t('admin.actions.remote_shared_collection.go_back')
+    .col-sm-6
+      %h5= object_info['description'].to_s.html_safe

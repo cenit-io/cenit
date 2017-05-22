@@ -468,8 +468,8 @@ module RailsAdmin
             </div>
              <div id='shared-collapse' class='nav nav-pills nav-stacked panel-collapse collapse'>
                 #{remote_shared_collection_link}
-                #{show_all_link}
-                #{sub_links}
+          #{show_all_link}
+          #{sub_links}
             </div>
             </div>)
 
@@ -728,6 +728,9 @@ module RailsAdmin
           flash[:error] = "Unable to retrieve OpenAPI Directory: #{ex.message}"
           {}
         end
+      if (id = params[:id]) && (api = apis[id])
+        apis = { id => api }
+      end
       apis = apis.collect do |key, api|
         api['id'] = key
         info = api['versions'][api['preferred']]['info'] || {}

@@ -526,6 +526,7 @@ en:
         title: "OpenAPI Directory"
         menu: "OpenAPI Directory"
         breadcrumb: "OpenAPI Directory"
+        done: "downloaded"
       ecommerce_index:
         menu: " eCommerce Collections"
       clean_up:
