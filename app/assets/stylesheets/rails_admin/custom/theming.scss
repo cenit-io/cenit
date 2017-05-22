@@ -1432,3 +1432,29 @@ label {
 .scope-description li i {
   margin-left: 5px;
 }
+
+.api-info {
+  background: white;
+  padding: 10px;
+  margin: 15px 0;
+  border-radius: 6px;
+  border: solid 1px #e3e3e3;
+  div {
+    word-wrap: break-word;
+  }
+  a {
+    white-space: pre-line;
+  }
+  .contact, .term-of-service, .license {
+    a {
+      white-space: normal;
+    }
+  }
+
+}
+
+.swagger-toolbar {
+  position: absolute;
+  right: 0;
+  top: 15px;
+}

@@ -2,16 +2,65 @@
   - object = @object['versions'][@object['preferred']]
   - object_info = object['info'] || {}
   - x_logo = object_info['x-logo'] || {}
+  - external_doc = object['externalDocs']
+  - contact = object_info['contact']
+  - license = object_info['license']
+  - terms =object_info['termsOfService']
+  .btn-toolbar.text-right
+    =link_to open_api_directory_path, class: 'btn btn-default pjax' do
+      %i.fa.fa-arrow-left
+        = t('admin.actions.remote_shared_collection.go_back')
   .col-sm-3.no-padding-left
     = image_tag x_logo['url'] || 'missing.png', class: 'logo img-responsive'
+    .btn-toolbar.text-center
+      =link_to open_api_directory_path(id: @object['id'], download: true), class: 'btn btn-primary pjax' do
+        %i.fa.fa-download
+    -if !external_doc.nil? || !contact.nil? || !license.nil? ||!terms.nil?
+      .api-info.text-center
+        -unless external_doc.nil?
+          .external-doc
+            =link_to "#{external_doc['url']}" , class: 'btn btn-link', target: '_blank' do
+              %i.fa.fa-book
+              %span= external_doc['description'] || "#{'Documentation'}"
+        -unless contact.nil?
+          .contact
+            .name
+              %i.fa.fa-user
+              %span
+                = contact['name']
+            .email
+              =mail_to "#{contact['email']}" do
+                %i.fa.fa-envelope-o
+                %span=  "#{contact['email']}"
+            .ulr
+              =link_to "#{contact['url']}" do
+                %i.fa.fa-info-circle
+                %span=  "#{"Website"}"
+        -unless license.nil?
+          .license
+            =link_to "#{license['url']}" , class: 'btn btn-link', target: '_blank' do
+              %span= "#{"License"}: "
+              %span= "#{license['name']}"
+        -unless terms.nil?
+          .term-of-service
+            =link_to "#{terms}" , class: 'btn btn-link', target: '_blank' do
+              %i.fa.fa-gavel
+              %span= "#{t('admin.misc.terms')}"
   .col-sm-9
-    .col-sm-6
-      %h3= object_info['title'].presence || @object['id'].to_title
-      .btn-toolbar.text-center
-        =link_to open_api_directory_path(id: @object['id'], download: true), class: 'btn btn-primary pjax' do
-          %i.fa.fa-download
-        =link_to open_api_directory_path, class: 'btn btn-default pjax' do
-          %i.fa.fa-arrow-left
-          = t('admin.actions.remote_shared_collection.go_back')
-    .col-sm-6
-      %h5= object_info['description'].to_s.html_safe
+    .btn-toolbar.text-right.swagger-toolbar
+      =link_to "#{object['swaggerUrl']}" , class: 'btn btn-success', target: '_blank' do
+        ="#{'swagger.json'}"
+      =link_to "#{object['swaggerYamlUrl']}" , class: 'btn btn-success', target: '_blank' do
+        ="#{'swagger.yaml'}"
+    %h3
+      = object_info['title'].presence || @object['id'].to_title
+      %span= object_info['x-release'].presence || @object['preferred']
+    %h5
+      %span
+        ="#{'Added'}: "
+      =object['added']
+    %h5
+      %span
+        ="#{'Updated at'}: "
+      =object['updated']
+    %p= object_info['description'].to_s.html_safe
