@@ -138,7 +138,7 @@ RailsAdmin.config do |config|
     ecommerce_index
     link_data_type
     index # mandatory
-    new { except [Setup::Event, Setup::DataType, Setup::Authorization, Setup::BaseOauthProvider] }
+    new
     filters
     data_events
     foreign_notifications
