@@ -740,13 +740,23 @@ module RailsAdmin
       categories = {}
       Setup::Category.where(:id.in => cat_ids.to_a).each { |category| categories[category.id] = category.to_hash }
       query = params[:query].to_s.downcase.split(' ')
-      apis.select! do |api|
-        info = api['versions'][api['preferred']]['info']
-        api['categories'] = api['categories'].collect { |id| categories[id] || { 'id' => id } }
-        query.all? do |token|
-          api['id'].to_s.downcase[token] ||
-            (%w(title description).any? { |entry| info[entry].to_s.downcase[token] }) ||
-            (api['categories'].any? { |cat| cat.values.any? { |value| value.to_s[token] } })
+      filter_by_category = params[:by_category].to_b
+      if filter_by_category
+        apis.select! do |api|
+          api['categories'] = api['categories'].collect { |id| categories[id] || { 'id' => id } }
+          query.all? do |token|
+            api['categories'].any? { |cat| cat.values.any? { |value| value.to_s[token] } }
+          end
+        end
+      else
+        apis.select! do |api|
+          info = api['versions'][api['preferred']]['info']
+          api['categories'] = api['categories'].collect { |id| categories[id] || { 'id' => id } }
+          query.all? do |token|
+            api['id'].to_s.downcase[token] ||
+              (%w(title description).any? { |entry| info[entry].to_s.downcase[token] }) ||
+              (api['categories'].any? { |cat| cat.values.any? { |value| value.to_s[token] } })
+          end
         end
       end
       Kaminari.paginate_array(apis).page(params[:page]).per(20)

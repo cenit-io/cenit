@@ -1332,6 +1332,10 @@ label {
   padding-left: 0 !important;
 }
 
+.no-padding-right {
+  padding-right: 0 !important;
+}
+
 .cenit-oauth-basic-scope .basics-scopes {
   min-width: 234px;
 }
@@ -1435,7 +1439,7 @@ label {
 
 .api-info {
   background: white;
-  padding: 10px;
+  padding: 15px;
   margin: 15px 0;
   border-radius: 6px;
   border: solid 1px #e3e3e3;
@@ -1443,7 +1447,7 @@ label {
     word-wrap: break-word;
   }
   a {
-    white-space: pre-line;
+    cursor: pointer;
   }
   .contact, .term-of-service, .license {
     a {
@@ -1454,7 +1458,28 @@ label {
 }
 
 .swagger-toolbar {
-  position: absolute;
-  right: 0;
-  top: 15px;
+  margin: 15px -5px;
+}
+
+.api-details {
+  h3 {
+    max-width: 85%;
+    margin-top: 0;
+    span{
+      color: gray;
+    }
+  }
+  h5 {
+    font-size: 12px;
+    margin: 0;
+    line-height: 1.5;
+    color: gray;
+    span {
+      font-weight: bold;;
+    }
+  }
+  .categories-toolbar {
+    margin-bottom: 10px;
+    margin-left: 0;
+  }
 }

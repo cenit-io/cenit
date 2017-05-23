@@ -128,8 +128,11 @@
     - @objects.each_with_index do |object, index|
       - if index%4 == 0
         .clearfix.visible-md-block
+        .clearfix.visible-lg-block
       - if index%3 == 0
         .clearfix.visible-sm-block
+      - if index%2 == 0
+        .clearfix.visible-xs-block
       .col-xs-6.col-sm-4.col-md-3
         %div{class: "panel panel-#{object.installed? ? object.origin : 'danger'} text-center"}
           .options-menu
