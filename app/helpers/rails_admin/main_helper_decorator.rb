@@ -6,7 +6,7 @@ module RailsAdmin
     def rails_admin_form_for(*args, &block)
       ra_rails_admin_form_for(*args, &block)
     rescue Exception => ex
-      Setup::SystemNotification.create_from(ex)
+      Setup::SystemReport.create_from(ex)
       render partial: 'form_notice', locals: { message: ex }
     end
   end

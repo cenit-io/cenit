@@ -19,7 +19,7 @@ module Setup
     attachment_uploader AccountUploader
 
     belongs_to :task, class_name: Setup::Task.to_s, inverse_of: :executions
-    has_and_belongs_to_many :notifications, class_name: Setup::Notification.to_s, inverse_of: nil
+    has_and_belongs_to_many :notifications, class_name: Setup::SystemNotification.to_s, inverse_of: nil
 
     field :status, type: Symbol, default: :pending
     field :started_at, type: Time

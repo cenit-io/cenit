@@ -381,7 +381,7 @@ RailsAdmin.config do |config|
 
   config.navigation 'Monitors', icon: 'fa fa-heartbeat'
 
-  Setup::Notification
+  Setup::SystemNotification
 
   Setup::Task
 
@@ -461,7 +461,7 @@ RailsAdmin.config do |config|
 
   Setup::DelayedMessage
 
-  Setup::SystemNotification
+  Setup::SystemReport
 
   RabbitConsumer
 

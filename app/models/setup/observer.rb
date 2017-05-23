@@ -47,7 +47,7 @@ module Setup
         trigger_evaluator.run([obj_now, obj_before]).present?
       end
     rescue Exception => ex
-      Setup::Notification.create(message: "Evaluating triggers for event '#{custom_title}' with id #{id}: #{ex.message}")
+      Setup::SystemNotification.create(message: "Evaluating triggers for event '#{custom_title}' with id #{id}: #{ex.message}")
       false
     end
 

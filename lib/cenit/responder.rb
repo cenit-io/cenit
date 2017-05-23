@@ -7,7 +7,7 @@ module Cenit
       self.summary =
         case summary
         when Exception
-          Setup::SystemNotification.create_from(summary)
+          Setup::SystemReport.create_from(summary)
           self.code = 406
           "#{summary.class.to_s.split('::').collect(&:to_title).join('. ')}: #{summary.message}"
         when :unauthorized

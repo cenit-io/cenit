@@ -121,7 +121,7 @@ module RailsAdmin
               min-height: 4px;
               display: inline-block;
               font-size: 9px;
-              background-color: #{Setup::Notification.type_color(:error)}'>#{unauthorized_count}
+              background-color: #{Setup::SystemNotification.type_color(:error)}'>#{unauthorized_count}
             </b>
           HTML
           html += label_html
@@ -131,7 +131,7 @@ module RailsAdmin
     end
 
     def notifications_links
-      account, abstract_model, index_action = linking(Setup::Notification)
+      account, abstract_model, index_action = linking(Setup::SystemNotification)
       return nil unless index_action
       all_links =[]
       bell_link = link_to url_for(action: index_action.action_name, model_name: abstract_model.to_param, controller: 'rails_admin/main'), class: 'pjax' do
@@ -139,8 +139,8 @@ module RailsAdmin
       end
       all_links << bell_link
       counters = Hash.new { |h, k| h[k] = 0 }
-      Setup::Notification.type_enum.each do |type|
-        scope = Setup::Notification.where(type: type)
+      Setup::SystemNotification.type_enum.each do |type|
+        scope = Setup::SystemNotification.where(type: type)
         if (scope.count > 0)
           meta = account.meta
           if (from_date = meta["#{type.to_s}_notifications_listed_at"])
@@ -153,7 +153,7 @@ module RailsAdmin
         end
       end
       counters.each do |type, count|
-        color = Setup::Notification.type_color(type)
+        color = Setup::SystemNotification.type_color(type)
         a=index_path(model_name: abstract_model.to_param, "type" => type, "model_name" => abstract_model.to_param, "utf8" => "✓", "f" => { "type" => { "60852" => { "v" => type } } })
         counter_links = link_to a, class: 'pjax' do
           link = '<b class="label rounded label-xs up notify-counter-link '+ color + '">' + count.to_s + '</b>'
