@@ -1,8 +1,8 @@
 require 'rest-client'
 
 module Setup
-  class ForeignNotificationWebHook < Setup::ForeignNotification
-    include RailsAdmin::Models::Setup::ForeignNotificationWebHookAdmin
+  class WebHookNotification < Setup::Notification
+    include RailsAdmin::Models::Setup::WebHookNotificationAdmin
 
     field :uri, type: String
     field :method, type: Symbol, :default => :GET

@@ -1,7 +1,7 @@
 module Setup
-  class ForeignNotification
+  class Notification
     include CenitScoped
-    include RailsAdmin::Models::Setup::ForeignNotificationAdmin
+    include RailsAdmin::Models::Setup::NotificationAdmin
 
     field :name, type: String
     field :active, type: Boolean

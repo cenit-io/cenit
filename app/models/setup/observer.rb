@@ -58,12 +58,12 @@ module Setup
           next unless e.triggers_apply_to?(obj_now, obj_before)
           # Start flows
           Setup::Flow.where(active: true, event: e).each { |f| f.join_process(source_id: obj_now.id.to_s) }
-          # Start foreign notifications
-          Setup::ForeignNotification.where(active: true, event: e).each do |n|
+          # Start notifications
+          Setup::Notification.where(active: true, event: e).each do |n|
             record = obj_now.to_hash
             record[:id] ||= obj_now.id.to_s
-            Setup::ForeignNotificationExecution.process(
-              foreign_notification_id: n.id,
+            Setup::NotificationExecution.process(
+              notification_id: n.id,
               data: {
                 record: record,
                 account: {

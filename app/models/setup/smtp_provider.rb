@@ -3,7 +3,7 @@ module Setup
     include CenitScoped
     include RailsAdmin::Models::Setup::SmtpProviderAdmin
 
-    has_one :email_notifications, :class_name => Setup::ForeignNotificationEmail.name, :inverse_of => :smtp_provider
+    has_one :email_notifications, :class_name => Setup::EmailNotification.name, :inverse_of => :smtp_provider
 
     build_in_data_type.protecting(:user_name, :password)
 

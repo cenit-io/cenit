@@ -1,7 +1,7 @@
 module RailsAdmin
   module Models
     module Setup
-      module ForeignNotificationExecutionAdmin
+      module NotificationExecutionAdmin
         extend ActiveSupport::Concern
 
         included do
@@ -20,7 +20,7 @@ module RailsAdmin
             end
 
             list do
-              field :foreign_notification
+              field :notification
               field :description
               field :scheduler
               field :attempts_succeded
@@ -30,7 +30,7 @@ module RailsAdmin
               field :updated_at
             end
 
-            fields :foreign_notification, :scheduler, :attempts_succeded, :retries, :progress, :status, :executions, :notifications, :updated_at
+            fields :notification, :scheduler, :attempts_succeded, :retries, :progress, :status, :executions, :notifications, :updated_at
           end
         end
 

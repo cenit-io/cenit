@@ -1,6 +1,6 @@
 module Setup
-  class ForeignNotificationEmail < Setup::ForeignNotification
-    include RailsAdmin::Models::Setup::ForeignNotificationEmailAdmin
+  class EmailNotification < Setup::Notification
+    include RailsAdmin::Models::Setup::EmailNotificationAdmin
 
     field :to, type: String
     field :subject, type: String
