@@ -15,7 +15,7 @@ module Forms
       @parent_model ||= parent_model_name.constantize
     end
 
-    def child_model_name_enum(ability)
+    def children_models_names(ability)
       enum = {}
       parent_model.descendants.collect do |child_model|
         next if child_model < Setup::ClassHierarchyAware && child_model.abstract_class
@@ -35,7 +35,7 @@ module Forms
             "#{RailsAdmin::Config.model(bindings[:object].parent_model).label} type"
           end
           enum do
-            bindings[:object].child_model_name_enum(bindings[:controller].current_ability)
+            bindings[:object].children_models_names(bindings[:controller].current_ability)
           end
         end
       end
