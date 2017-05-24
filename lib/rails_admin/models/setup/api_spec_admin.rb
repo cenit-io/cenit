@@ -21,7 +21,7 @@ module RailsAdmin
             end
 
             edit do
-              fields :title, :specification
+              fields :title, :url, :specification
             end
 
             fields :title, :url, :specification

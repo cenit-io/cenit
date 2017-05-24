@@ -8,7 +8,14 @@
             %i.icon-white.icon-refresh
             = t('admin.misc.refresh')
   #grid-wrapper
-    - @objects.each do |object_root|
+    - @objects.each_with_index do |object_root, index|
+      - if index%4 == 0
+        .clearfix.visible-md-block
+        .clearfix.visible-lg-block
+      - if index%3 == 0
+        .clearfix.visible-sm-block
+      - if index%2 == 0
+        .clearfix.visible-xs-block
       - object = object_root['versions'][object_root['preferred']]
       - object_info = object['info'] || {}
       - x_logo = object_info['x-logo'] || {}

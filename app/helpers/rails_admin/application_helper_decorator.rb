@@ -728,6 +728,9 @@ module RailsAdmin
           flash[:error] = "Unable to retrieve OpenAPI Directory: #{ex.message}"
           {}
         end
+      if (id = params[:id]) && (api = apis[id])
+        apis = { id => api }
+      end
       apis = apis.collect do |key, api|
         api['id'] = key
         info = api['versions'][api['preferred']]['info'] || {}
@@ -737,13 +740,23 @@ module RailsAdmin
       categories = {}
       Setup::Category.where(:id.in => cat_ids.to_a).each { |category| categories[category.id] = category.to_hash }
       query = params[:query].to_s.downcase.split(' ')
-      apis.select! do |api|
-        info = api['versions'][api['preferred']]['info']
-        api['categories'] = api['categories'].collect { |id| categories[id] || { 'id' => id } }
-        query.all? do |token|
-          api['id'].to_s.downcase[token] ||
-            (%w(title description).any? { |entry| info[entry].to_s.downcase[token] }) ||
-            (api['categories'].any? { |cat| cat.values.any? { |value| value.to_s[token] } })
+      filter_by_category = params[:by_category].to_b
+      if filter_by_category
+        apis.select! do |api|
+          api['categories'] = api['categories'].collect { |id| categories[id] || { 'id' => id } }
+          query.all? do |token|
+            api['categories'].any? { |cat| cat.values.any? { |value| value.to_s[token] } }
+          end
+        end
+      else
+        apis.select! do |api|
+          info = api['versions'][api['preferred']]['info']
+          api['categories'] = api['categories'].collect { |id| categories[id] || { 'id' => id } }
+          query.all? do |token|
+            api['id'].to_s.downcase[token] ||
+              (%w(title description).any? { |entry| info[entry].to_s.downcase[token] }) ||
+              (api['categories'].any? { |cat| cat.values.any? { |value| value.to_s[token] } })
+          end
         end
       end
       Kaminari.paginate_array(apis).page(params[:page]).per(20)
@@ -789,7 +802,7 @@ module RailsAdmin
       if get_context_record
         context_config = RailsAdmin::Config.model(@context_model)
         value = value.to(value.index('<li') - 1) +
-          "<li class=\"false\"><a class=\"btn btn-success pjax\" href=\"#{index_path(model_name: @abstract_model.to_param, leave_context: true)}\">#{wording_for(:breadcrumb, :show, context_config.abstract_model, get_context_record)}</a></li>" +
+          "<li class=\"false\"><a class=\"contextual-record pjax\" href=\"#{index_path(model_name: @abstract_model.to_param, leave_context: true)}\" title='#{t('admin.misc.leave_context', label: (label = wording_for(:breadcrumb, :show, context_config.abstract_model, get_context_record)))}'>#{label}</a></li>" +
           value.from(value.index('</li>') + 5)
       end
       value.html_safe

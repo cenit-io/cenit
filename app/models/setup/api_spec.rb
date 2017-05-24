@@ -14,6 +14,13 @@ module Setup
     before_save :validate_specification
 
     def validate_specification
+      if specification.blank? && url.present?
+        begin
+          self.specification = Setup::Connection.get(url).submit!
+        rescue Exception => ex
+          errors.add(:base, "Unable to retrieve specification from #{url}: #{ex.message}")
+        end
+      end
       begin
         json = JSON.parse(specification)
         self.specification = json.to_yaml

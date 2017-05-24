@@ -64,6 +64,17 @@ module Setup
       end
     end
 
+    def submit!(*args, &block)
+      if (options = args[0]).is_a?(Hash)
+        body_argument = options[:body]
+      else
+        body_argument = options
+        options = args[1] || {}
+      end
+      options[:halt_on_error] = true
+      submit(body_argument, options, &block)
+    end
+
     def submit(*args, &block)
       if (options = args[0]).is_a?(Hash)
         body_argument = options[:body]
@@ -214,6 +225,7 @@ module Setup
               end
             rescue Exception => ex
               Setup::SystemNotification.create_from(ex)
+              raise ex if options[:halt_on_error]
             end
           else
             Setup::SystemNotification.create(message: "Invalid submit data type: #{submitter_body.class}")
