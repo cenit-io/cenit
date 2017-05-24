@@ -1465,7 +1465,7 @@ label {
   h3 {
     max-width: 85%;
     margin-top: 0;
-    span{
+    span {
       color: gray;
     }
   }
@@ -1481,5 +1481,39 @@ label {
   .categories-toolbar {
     margin-bottom: 10px;
     margin-left: 0;
+  }
+}
+
+.contextual-record {
+  display: inline-block;
+  margin-bottom: 0;
+  font-weight: normal;
+  text-align: center;
+  vertical-align: middle;
+  cursor: pointer;
+  background-image: none;
+  border: 1px solid transparent;
+  white-space: nowrap;
+  padding: 6px 12px;
+  font-size: 14px;
+  line-height: 1.42857143;
+  border-radius: 4px;
+  -webkit-user-select: none;
+  text-decoration: none !important;
+
+  color: #fff;
+  background-color: #5cb85c;
+  border-color: #4cae4c;
+
+  &:hover{
+    color: #fff;
+    background-color: #c9302c;
+    border-color: #ac2925;
+
+    &:after{
+      font-family: FontAwesome;
+      content: "\f00d";
+      margin-left: 10px;
+    }
   }
 }

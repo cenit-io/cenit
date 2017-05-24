@@ -802,7 +802,7 @@ module RailsAdmin
       if get_context_record
         context_config = RailsAdmin::Config.model(@context_model)
         value = value.to(value.index('<li') - 1) +
-          "<li class=\"false\"><a class=\"btn btn-success pjax\" href=\"#{index_path(model_name: @abstract_model.to_param, leave_context: true)}\">#{wording_for(:breadcrumb, :show, context_config.abstract_model, get_context_record)}</a></li>" +
+          "<li class=\"false\"><a class=\"contextual-record pjax\" href=\"#{index_path(model_name: @abstract_model.to_param, leave_context: true)}\" title='#{t('admin.misc.leave_context', label: (label = wording_for(:breadcrumb, :show, context_config.abstract_model, get_context_record)))}'>#{label}</a></li>" +
           value.from(value.index('</li>') + 5)
       end
       value.html_safe

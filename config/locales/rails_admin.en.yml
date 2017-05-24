@@ -71,6 +71,7 @@ en:
       chart:
         show: 'Show Chart'
         hide: 'Hide Chart'
+      leave_context: 'Leave %{label} context'
     actions:
       dashboard:
         title: "Dashboard"
