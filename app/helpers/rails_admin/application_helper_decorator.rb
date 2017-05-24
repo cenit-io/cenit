@@ -748,5 +748,51 @@ module RailsAdmin
       end
       Kaminari.paginate_array(apis).page(params[:page]).per(20)
     end
+
+    def process_context(opts = {})
+      if %w(index new edit).exclude?(@_action_name) || params[:leave_context]
+        session[:context_model] = session[:context_id] = nil
+      else
+        record = opts[:record]
+        context_model =
+          ((model = opts[:model]) && model.to_s) ||
+            (record && record.class.name) ||
+            params[:context_model]
+        context_id = (record && record.id) || params[:context_id]
+        if context_model || context_id
+          session[:context_model] = context_model
+          session[:context_id] = context_id
+        end
+      end
+    end
+
+    def get_context_id(context_model = get_context_model)
+      ((session[:context_model] == context_model.to_s) && session[:context_id]) || nil
+    end
+
+    def get_context_model
+      @context_model ||= session[:context_model].constantize
+    rescue
+      nil
+    end
+
+    def get_context_record
+      @context_record ||= get_context_model.where(id: session[:context_id]).first
+    rescue
+      nil
+    end
+
+    alias_method :rails_admin_breadcrumb, :breadcrumb
+
+    def breadcrumb(action = @action, _acc = [])
+      value = rails_admin_breadcrumb(action, _acc)
+      if get_context_record
+        context_config = RailsAdmin::Config.model(@context_model)
+        value = value.to(value.index('<li') - 1) +
+          "<li class=\"false\"><a class=\"btn btn-success pjax\" href=\"#{index_path(model_name: @abstract_model.to_param, leave_context: true)}\">#{wording_for(:breadcrumb, :show, context_config.abstract_model, get_context_record)}</a></li>" +
+          value.from(value.index('</li>') + 5)
+      end
+      value.html_safe
+    end
   end
 end
