@@ -36,21 +36,13 @@ module RailsAdmin
               end
             end
 
+            configure :data_type, :contextual_belongs_to
+
             edit do
               field :namespace, :enum_edit
               field :name
               field :data_type do
                 inline_edit false
-                associated_collection_scope do
-                  data_type = bindings[:object].data_type
-                  Proc.new { |scope|
-                    if data_type
-                      scope.where(id: data_type.id)
-                    else
-                      scope
-                    end
-                  }
-                end
                 help 'Required'
               end
               field :trigger_evaluator do

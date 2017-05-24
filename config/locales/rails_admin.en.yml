@@ -497,7 +497,7 @@ en:
       notebooks_root:
         menu: "Notebooks"
         breadcrumb: "Notebooks"
-      foreign_notifications:
+      notifications:
         title: "Notifications"
         menu: "Notifications"
         breadcrumb: "Notifications"
