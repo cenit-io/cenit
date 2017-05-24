@@ -94,18 +94,17 @@ module RailsAdmin
               field :name, &RailsAdmin::Config::Fields::Base::SHARED_READ_ONLY
               field :event, :optional_belongs_to do
                 inline_edit false
-                inline_add false
                 visible do
                   (f = bindings[:object]).not_shared? || f.data_type_scope.present?
                 end
               end
               field :translator do
+                inline_edit false
                 help I18n.t('admin.form.required')
                 shared_read_only
               end
               field :custom_data_type, :optional_belongs_to do
                 inline_edit false
-                inline_add false
                 shared_read_only
                 visible do
                   f = bindings[:object]
@@ -195,7 +194,7 @@ module RailsAdmin
                 visible do
                   f = bindings[:object]
                   (t = f.translator) && t.type == :Export &&
-                    f.custom_data_type_selected? &&
+                    (f.custom_data_type_selected? || f.data_type) &&
                     (f.event.blank? || f.data_type.blank? || (f.data_type_scope.present? && f.scope_symbol != :event_source))
                 end
               end

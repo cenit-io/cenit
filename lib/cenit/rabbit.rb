@@ -62,7 +62,7 @@ module Cenit
           end
           task_execution
         else
-          Setup::Notification.create(message: report)
+          Setup::SystemNotification.create(message: report)
         end
       end
 
@@ -82,7 +82,7 @@ module Cenit
         end
         if Cenit::MultiTenancy.tenant_model.current.nil? ||
           (message_token.present? && Cenit::MultiTenancy.tenant_model.current != tenant)
-          Setup::Notification.create(message: "Can not determine tenant for message: #{message}")
+          Setup::SystemNotification.create(message: "Can not determine tenant for message: #{message}")
         else
           begin
             rabbit_consumer = nil
@@ -98,14 +98,14 @@ module Cenit
                 end
                 task.execute(execution_id: execution_id)
               else
-                Setup::Notification.create(message: report)
+                Setup::SystemNotification.create(message: report)
               end
             end
           rescue Exception => ex
             if task
               task.notify(ex)
             else
-              Setup::Notification.create(message: "Can not execute task for message: #{message}")
+              Setup::SystemNotification.create(message: "Can not execute task for message: #{message}")
             end
           ensure
             rabbit_consumer.update(executor_id: nil, task_id: nil) if rabbit_consumer
@@ -121,7 +121,7 @@ module Cenit
           end
         end
       rescue Exception => ex
-        Setup::Notification.create(message: "Error (#{ex.message}) processing message: #{message}")
+        Setup::SystemNotification.create(message: "Error (#{ex.message}) processing message: #{message}")
       end
 
       attr_reader :connection, :channel, :queue
@@ -149,7 +149,7 @@ module Cenit
         end
         true
       rescue Exception => ex
-        Setup::Notification.create(message: msg = "Error connecting with RabbitMQ: #{ex.message}")
+        Setup::SystemNotification.create(message: msg = "Error connecting with RabbitMQ: #{ex.message}")
         puts msg
         false
       ensure
@@ -181,14 +181,14 @@ module Cenit
                 options = (properties[:headers] || {}).merge(rabbit_consumer: rabbit_consumer)
                 Cenit::Rabbit.process_message(body, options)
               rescue Exception => ex
-                Setup::Notification.create(message: "Error (#{ex.message}) consuming message: #{body}")
+                Setup::SystemNotification.create(message: "Error (#{ex.message}) consuming message: #{body}")
               ensure
                 Cenit::MultiTenancy.tenant_model.current =
                   Cenit::MultiTenancy.user_model.current = nil
                 Thread.clean_keys_prefixed_with('[cenit]')
               end unless rabbit_consumer.cancelled?
             else
-              Setup::Notification.create(message: "Rabbit consumer with tag '#{consumer.consumer_tag}' not found")
+              Setup::SystemNotification.create(message: "Rabbit consumer with tag '#{consumer.consumer_tag}' not found")
             end
             channel.reject(delivery_info.delivery_tag, true) unless rabbit_consumer && !rabbit_consumer.cancelled?
             channel.ack(delivery_info.delivery_tag)
@@ -199,7 +199,7 @@ module Cenit
           puts "RABBIT CONSUMER '#{new_consumer.consumer_tag}' STARTED"
         end
       rescue Exception => ex
-        Setup::Notification.create(message: "Error subscribing rabbit consumer: #{ex.message}")
+        Setup::SystemNotification.create(message: "Error subscribing rabbit consumer: #{ex.message}")
       end
 
       def start_scheduler
@@ -217,7 +217,7 @@ module Cenit
               begin
                 delayed_messages.destroy_all
               rescue Exception => ex
-                Setup::Notification.create_with(message: "Error deleting delayed messages: #{ex.message}")
+                Setup::SystemNotification.create_with(message: "Error deleting delayed messages: #{ex.message}")
               end if messages_present
             end
             channel_mutex.unlock

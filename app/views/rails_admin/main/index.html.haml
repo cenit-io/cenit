@@ -43,7 +43,7 @@
     end
     field_options = case field.type
     when :enum
-      options_for_select(field.with(object: @abstract_model.model.new).enum, filter_hash['v'])
+      options_for_select(field.with(object: @abstract_model.model.new).filter_enum, filter_hash['v'])
     else
       ''
     end

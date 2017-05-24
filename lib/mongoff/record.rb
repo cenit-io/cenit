@@ -13,7 +13,9 @@ module Mongoff
     def initialize(model, attributes = nil, new_record = true)
       @orm_model = model
       @document = BSON::Document.new
-      @document[:_id] ||= BSON::ObjectId.new unless model.property_schema(:_id)
+      unless (id_schema = model.property_schema(:_id)) && id_schema.key?('type')
+        @document[:_id] ||= BSON::ObjectId.new
+      end
       @fields = {}
       @new_record = new_record || false
       model.properties_schemas.each do |property, schema|
@@ -359,7 +361,7 @@ module Mongoff
                 else
                   "updating record with ID '#{id}'"
                 end
-              Setup::Notification.create(message: "Error #{obj_msg} with type ' #{orm_model.data_type.custom_title}', running before save callback '#{callback.custom_title}': #{ex.message}")
+              Setup::SystemNotification.create(message: "Error #{obj_msg} with type ' #{orm_model.data_type.custom_title}', running before save callback '#{callback.custom_title}': #{ex.message}")
               false
             end
         end

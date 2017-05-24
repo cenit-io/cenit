@@ -26,7 +26,7 @@ class Ability
               Cenit::BasicToken,
               Script,
               Setup::DelayedMessage,
-              Setup::SystemNotification,
+              Setup::SystemReport,
               Setup::Operation,
               Setup::Category,
               TourTrack
@@ -48,7 +48,7 @@ class Ability
       else
         root_actions.delete(:remote_shared_collection)
 
-        cannot :access, [Setup::CrossSharedName, Setup::DelayedMessage, Setup::SystemNotification]
+        cannot :access, [Setup::CrossSharedName, Setup::DelayedMessage, Setup::SystemReport]
         cannot :destroy, Setup::Storage
 
         can :index, Setup::CrossSharedCollection

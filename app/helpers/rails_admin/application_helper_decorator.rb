@@ -121,7 +121,7 @@ module RailsAdmin
               min-height: 4px;
               display: inline-block;
               font-size: 9px;
-              background-color: #{Setup::Notification.type_color(:error)}'>#{unauthorized_count}
+              background-color: #{Setup::SystemNotification.type_color(:error)}'>#{unauthorized_count}
             </b>
           HTML
           html += label_html
@@ -131,7 +131,7 @@ module RailsAdmin
     end
 
     def notifications_links
-      account, abstract_model, index_action = linking(Setup::Notification)
+      account, abstract_model, index_action = linking(Setup::SystemNotification)
       return nil unless index_action
       all_links =[]
       bell_link = link_to url_for(action: index_action.action_name, model_name: abstract_model.to_param, controller: 'rails_admin/main'), class: 'pjax' do
@@ -139,8 +139,8 @@ module RailsAdmin
       end
       all_links << bell_link
       counters = Hash.new { |h, k| h[k] = 0 }
-      Setup::Notification.type_enum.each do |type|
-        scope = Setup::Notification.where(type: type)
+      Setup::SystemNotification.type_enum.each do |type|
+        scope = Setup::SystemNotification.where(type: type)
         if (scope.count > 0)
           meta = account.meta
           if (from_date = meta["#{type.to_s}_notifications_listed_at"])
@@ -153,7 +153,7 @@ module RailsAdmin
         end
       end
       counters.each do |type, count|
-        color = Setup::Notification.type_color(type)
+        color = Setup::SystemNotification.type_color(type)
         a=index_path(model_name: abstract_model.to_param, "type" => type, "model_name" => abstract_model.to_param, "utf8" => "✓", "f" => { "type" => { "60852" => { "v" => type } } })
         counter_links = link_to a, class: 'pjax' do
           link = '<b class="label rounded label-xs up notify-counter-link '+ color + '">' + count.to_s + '</b>'
@@ -363,7 +363,7 @@ module RailsAdmin
         stack_id = "#{html_id}-sub#{i}"
         counts =
           begin
-            node.abstract_model.counts({ cache: true }, @authorization_adapter && @authorization_adapter.query(:index, node.abstract_model))
+            node.abstract_model.counts({ cache: true }, @index_scope = @authorization_adapter && @authorization_adapter.query(:index, node.abstract_model))
           rescue Exception
             { default: -1 }
           end
@@ -468,8 +468,8 @@ module RailsAdmin
             </div>
              <div id='shared-collapse' class='nav nav-pills nav-stacked panel-collapse collapse'>
                 #{remote_shared_collection_link}
-                #{show_all_link}
-                #{sub_links}
+          #{show_all_link}
+          #{sub_links}
             </div>
             </div>)
 
@@ -480,16 +480,44 @@ module RailsAdmin
           sub_links = ''
           extensions_list.each do |ext|
             next if ext.blank?
+            counts =
+              begin
+                node.abstract_model.counts({ cache: false }, (@index_scope || Setup::Renderer).where(:file_extension => ext))
+              rescue Exception
+                { default: -1 }
+              end
+            model_count =
+              if current_user
+                counts[:default] || counts.values.inject(0, &:+)
+              else
+                counts.values.inject(0, &:+)
+              end
             count = Setup::Renderer.where(:file_extension => ext).count
             ext_count += count
             sub_links += content_tag :li do
               #TODO review and improve the params for the sub_link_url generation and try to show the filter in the view
               filter = { file_extension: { 80082 => { v: ext } } }
               sub_link_url = index_path(model_name: node.abstract_model.to_param, utf8: '✓', f: filter)
-              link_to sub_link_url do
+              link_to sub_link_url, class: 'pjax' do
                 rc = ''
+                title = t('admin.misc.and_that_is_all')
+                plus = nil
+                count_label = model_count
+
+                plus = []
+                counts.each do |origin, count|
+                  next if origin == :default
+                  plus << "+ #{count} #{t("admin.origin.#{origin}")}" if count > 0
+                end
+                if plus.any?
+                  title = plus.to_sentence
+                  count_label = "#{model_count} +"
+                else
+                  plus = nil
+                end
+
                 if model_count>0
-                  rc += "<span class='nav-amount'>#{count}</span>"
+                  rc += "<span class='nav-amount' title=\"#{title}\">#{count_label}</span>"
                 end
                 rc += "<span class='nav-caption'>#{ext.upcase}</span>"
                 rc.html_safe
@@ -682,6 +710,102 @@ module RailsAdmin
             end.join.html_safe
           end
       end.html_safe
+    end
+
+    def list_apis
+      cat_ids = Set.new
+      apis =
+        begin
+          file_name = 'public/apis.guru.list.json'
+          if File.exists?(file_name)
+            list = File.read(file_name)
+          else
+            list = Setup::Connection.get('http://api.apis.guru/v2/list.json').submit
+            File.open(file_name, 'w') { |file| file.write(list) }
+          end
+          JSON.parse(list)
+        rescue Exception => ex
+          flash[:error] = "Unable to retrieve OpenAPI Directory: #{ex.message}"
+          {}
+        end
+      if (id = params[:id]) && (api = apis[id])
+        apis = { id => api }
+      end
+      apis = apis.collect do |key, api|
+        api['id'] = key
+        info = api['versions'][api['preferred']]['info'] || {}
+        cat_ids.merge(api['categories'] = info['x-apisguru-categories'] || [])
+        api
+      end
+      categories = {}
+      Setup::Category.where(:id.in => cat_ids.to_a).each { |category| categories[category.id] = category.to_hash }
+      query = params[:query].to_s.downcase.split(' ')
+      filter_by_category = params[:by_category].to_b
+      if filter_by_category
+        apis.select! do |api|
+          api['categories'] = api['categories'].collect { |id| categories[id] || { 'id' => id } }
+          query.all? do |token|
+            api['categories'].any? { |cat| cat.values.any? { |value| value.to_s[token] } }
+          end
+        end
+      else
+        apis.select! do |api|
+          info = api['versions'][api['preferred']]['info']
+          api['categories'] = api['categories'].collect { |id| categories[id] || { 'id' => id } }
+          query.all? do |token|
+            api['id'].to_s.downcase[token] ||
+              (%w(title description).any? { |entry| info[entry].to_s.downcase[token] }) ||
+              (api['categories'].any? { |cat| cat.values.any? { |value| value.to_s[token] } })
+          end
+        end
+      end
+      Kaminari.paginate_array(apis).page(params[:page]).per(20)
+    end
+
+    def process_context(opts = {})
+      if %w(index new edit).exclude?(@_action_name) || params[:leave_context]
+        session[:context_model] = session[:context_id] = nil
+      else
+        record = opts[:record]
+        context_model =
+          ((model = opts[:model]) && model.to_s) ||
+            (record && record.class.name) ||
+            params[:context_model]
+        context_id = (record && record.id) || params[:context_id]
+        if context_model || context_id
+          session[:context_model] = context_model
+          session[:context_id] = context_id
+        end
+      end
+    end
+
+    def get_context_id(context_model = get_context_model)
+      ((session[:context_model] == context_model.to_s) && session[:context_id]) || nil
+    end
+
+    def get_context_model
+      @context_model ||= session[:context_model].constantize
+    rescue
+      nil
+    end
+
+    def get_context_record
+      @context_record ||= get_context_model.where(id: session[:context_id]).first
+    rescue
+      nil
+    end
+
+    alias_method :rails_admin_breadcrumb, :breadcrumb
+
+    def breadcrumb(action = @action, _acc = [])
+      value = rails_admin_breadcrumb(action, _acc)
+      if get_context_record
+        context_config = RailsAdmin::Config.model(@context_model)
+        value = value.to(value.index('<li') - 1) +
+          "<li class=\"false\"><a class=\"contextual-record pjax\" href=\"#{index_path(model_name: @abstract_model.to_param, leave_context: true)}\" title='#{t('admin.misc.leave_context', label: (label = wording_for(:breadcrumb, :show, context_config.abstract_model, get_context_record)))}'>#{label}</a></li>" +
+          value.from(value.index('</li>') + 5)
+      end
+      value.html_safe
     end
   end
 end

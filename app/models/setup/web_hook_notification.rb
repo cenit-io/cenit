@@ -1,15 +1,15 @@
 require 'rest-client'
 
 module Setup
-  class ForeignNotificationWebHook < Setup::ForeignNotification
-    include RailsAdmin::Models::Setup::ForeignNotificationWebHookAdmin
+  class WebHookNotification < Setup::Notification
+    include RailsAdmin::Models::Setup::WebHookNotificationAdmin
 
     field :uri, type: String
     field :method, type: Symbol, :default => :GET
     field :params, type: Symbol, :default => :record_id
     field :params_as_json, type: Boolean, :default => false
 
-    belongs_to :data_type, :class_name => Setup::DataType.name, :inverse_of => :web_hook_notifications
+    belongs_to :data_type, :class_name => Setup::DataType.name, inverse_of: nil
 
     allow :copy, :new, :edit, :export, :import
 
