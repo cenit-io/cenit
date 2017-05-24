@@ -90,7 +90,8 @@ RailsAdmin::Config::Actions.register(:export, RailsAdmin::Config::Actions::BulkE
   RailsAdmin::Config::Fields::Types::MongoffFileUpload,
   RailsAdmin::Config::Fields::Types::Url,
   RailsAdmin::Config::Fields::Types::CenitOauthScope,
-  RailsAdmin::Config::Fields::Types::CenitAccessScope
+  RailsAdmin::Config::Fields::Types::CenitAccessScope,
+  RailsAdmin::Config::Fields::Types::ContextualBelongsTo
 ].each { |f| RailsAdmin::Config::Fields::Types.register(f) }
 
 require 'rails_admin/config/fields/factories/tag'
