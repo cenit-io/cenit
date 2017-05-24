@@ -14,6 +14,10 @@ module RailsAdmin
             super
           end
 
+          register_instance_option :include_blanks_on_collection_scope do
+            false
+          end
+
           register_instance_option :associated_collection_scope do
             associated = (obj = bindings[:object]) && obj.send(association.name)
             Proc.new { |scope|

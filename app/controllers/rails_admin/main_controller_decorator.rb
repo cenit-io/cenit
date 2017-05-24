@@ -36,10 +36,20 @@ module RailsAdmin
       end
       # Contextual record
       if get_context_record
+        or_criteria = []
         model_config._fields.each do |f|
           next unless f.is_a?(RailsAdmin::Config::Fields::Types::ContextualBelongsTo) && f.association.klass == get_context_model
-          scope = scope.where(f.association.foreign_key => get_context_id)
+          or_criteria <<
+            if f.include_blanks_on_collection_scope
+              [
+                { f.association.foreign_key => { '$exists': false } },
+                { f.association.foreign_key => { '$in': [nil, get_context_id] } }
+              ]
+            else
+              { f.association.foreign_key => get_context_id }
+            end
         end
+        scope = scope.or(or_criteria.flatten) unless or_criteria.empty?
       end
       scope
     end
