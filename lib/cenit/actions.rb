@@ -211,7 +211,7 @@ module Cenit
               pull_request[:pull_data] = pull_data
             end
           rescue Exception => ex
-            n = Setup::SystemNotification.create_from(ex, 'Pulling ERROR')
+            n = Setup::SystemReport.create_from(ex, 'Pulling ERROR')
             errors << "An unexpected error occurs (#{ex.message}). Ask for support by supplying this code: #{n.id}"
           end
           unless errors.blank?
@@ -268,7 +268,7 @@ module Cenit
           begin
             obj.github_update! file
           rescue Exception => ex
-            Setup::Notification.create_from(ex)
+            Setup::SystemNotification.create_from(ex)
           end
 
           file.close

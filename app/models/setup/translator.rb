@@ -15,8 +15,6 @@ module Setup
 
     build_in_data_type.referenced_by(:namespace, :name)
 
-    deny :new
-
     field :type, type: Symbol, default: -> { self.class.transformation_type }
 
     belongs_to :source_data_type, class_name: Setup::DataType.to_s, inverse_of: nil

@@ -92,7 +92,7 @@ module Setup
         end
 
         unless wrong_data_types.empty?
-          Setup::SystemNotification.create(type: :warning, message: "Wrong cenit data types: #{wrong_data_types.to_sentence}")
+          Setup::SystemReport.create(type: :warning, message: "Wrong cenit data types: #{wrong_data_types.to_sentence}")
         end
       end
     end

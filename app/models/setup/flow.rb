@@ -233,8 +233,8 @@ module Setup
       result =
         if (cycle = cyclic_execution(execution_graph, executing_id))
           cycle = cycle.collect { |id| ((flow = Setup::Flow.where(id: id).first) && flow.custom_title) || id }
-          Setup::Notification.create_with(message: "Cyclic flow execution: #{cycle.to_a.join(' -> ')}",
-                                          attachment: {
+          Setup::SystemNotification.create_with(message: "Cyclic flow execution: #{cycle.to_a.join(' -> ')}",
+                                                attachment: {
                                             filename: 'execution_graph.json',
                                             contentType: 'application/json',
                                             body: JSON.pretty_generate(execution_graph)
@@ -266,7 +266,7 @@ module Setup
             begin
               callback.run(message[:task])
             rescue Exception => ex
-              Setup::Notification.create(message: "Error executing after process callback #{callback.custom_title}: #{ex.message}")
+              Setup::SystemNotification.create(message: "Error executing after process callback #{callback.custom_title}: #{ex.message}")
             end
           end
         ensure

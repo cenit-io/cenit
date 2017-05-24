@@ -39,9 +39,9 @@ module RailsAdmin
           unauthorized: Setup::Authorization.where(authorized: false).count
         }
         totals[:notif] = {
-          total: Setup::Notification.dashboard_related[:total],
-          error: Setup::Notification.dashboard_related[Setup::Notification.type_color(:error)],
-          warning: Setup::Notification.dashboard_related[Setup::Notification.type_color(:warning)]
+          total: Setup::SystemNotification.dashboard_related[:total],
+          error: Setup::SystemNotification.dashboard_related[Setup::SystemNotification.type_color(:error)],
+          warning: Setup::SystemNotification.dashboard_related[Setup::SystemNotification.type_color(:warning)]
         }
       end
       totals
