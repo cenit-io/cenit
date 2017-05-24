@@ -6,50 +6,61 @@ module RailsAdmin
 
         included do
           rails_admin do
-            navigation_label 'Monitors'
-            weight 600
             object_label_method { :label }
-            label 'System Notification'
+            visible { User.current_super_admin? }
+            navigation_label 'Workflows'
+            label 'Notification'
+            weight 500
 
-            show_in_dashboard false
-            configure :created_at
+            configure :data_type, :contextual_belongs_to
 
-            configure :type do
-              pretty_value do
-                "<label style='color:#{bindings[:object].color}'>#{value.to_s.capitalize}</label>".html_safe
-              end
-            end
+            edit do
+              field :namespace
+              field :name
 
-            configure :message do
-              pretty_value do
-                "<label style='color:#{bindings[:object].color}'>#{value}</label>".html_safe
-              end
-            end
-
-            configure :attachment, :storage_file
-
-            list do
-              field :created_at do
+              field :active do
                 visible do
-                  if (account = Account.current)
-                    request_params = bindings[:controller].params rescue {}
-                    if (notification_type = request_params[:type])
-                      account.meta["#{notification_type}_notifications_listed_at"] = Time.now
-                    else
-                      ::Setup::Notification.type_enum.each do |type|
-                        account.meta["#{type.to_s}_notifications_listed_at"] = Time.now
-                      end
-                    end
-                  end
-                  true
+                  ctrl = bindings[:controller]
+                  model_name = ctrl.instance_variable_get(:@model_name)
+                  bindings[:object].data_type ||= ctrl.instance_variable_get(:@data_type_filter)
+                  bindings[:object].data_type ||= ctrl.object if model_name == 'Setup::JsonDataType'
+                  bindings[:object].data_type != nil
                 end
               end
-              field :type
-              field :message
-              field :attachment
-              field :task
-              field :updated_at
+
+              field :data_type do
+                required true
+                inline_edit false
+                help do
+                  text = ''
+                  if bindings[:object].data_type.nil?
+                    text << "<i class='fa fa-warning'></i> Required.<br/>"
+                    text << "<i class='fa fa-warning'></i> To set observers, you must first use the save and edit action."
+                  end
+                  text.html_safe
+                end
+              end
+
+              field :observers do
+                label 'Events'
+                inline_add false
+                visible { !bindings[:object].data_type.nil? }
+                associated_collection_scope do
+                  data_type = bindings[:object].data_type || bindings[:controller].object
+                  proc { |scope| scope.where(data_type_id: data_type.id) }
+                end
+                help do
+                  text = 'Required.'
+                  if bindings[:controller].instance_variable_get(:@model_name) == 'Setup::JsonDataType'
+                    text = "<i class='fa fa-warning'></i> Required.<br/>"
+                    text << "<i class='fa fa-warning'></i> To use a newly created observer in this session or set setting values, you must first use the save and edit action."
+                  end
+                  text.html_safe
+                end
+              end
             end
+
+            fields :namespace, :name, :active, :data_type, :observers, :updated_at
           end
         end
 

@@ -1,100 +1,49 @@
 module Setup
   class Notification
     include CenitScoped
-    include NotificationCommon
+    include NamespaceNamed
+    include CustomTitle
+    include ClassHierarchyAware
+    include ReqRejValidator
     include RailsAdmin::Models::Setup::NotificationAdmin
 
-    build_in_data_type
+    abstract_class true
 
-    deny :copy, :new, :edit, :translator_update, :import, :convert
+    belongs_to :data_type, class_name: Setup::DataType.name, inverse_of: nil
+    belongs_to :transformation, class_name: Setup::Translator.name, inverse_of: nil
+    has_and_belongs_to_many :observers, class_name: Setup::Observer.name, inverse_of: nil
 
-    attachment_uploader AccountUploader
+    field :active, type: Boolean
 
-    field :type, type: Symbol, default: :error
-    field :message, type: String
-    belongs_to :task, class_name: Setup::Task.to_s, inverse_of: :notifications
+    before_save :ready_to_save?, :validates_configuration
 
-    validates_presence_of :type, :message
-    validates_inclusion_of :type, in: ->(n) { n.type_enum }
-
-    before_save :check_notification_level, :assign_execution_thread
-
-    def check_notification_level
-      @skip_notification_level || (a = Account.current).nil? || type_enum.index(type) <= type_enum.index(a.notification_level)
+    # Virtual abstract method to send notification.
+    def send_message(data)
+      fail NotImplementedError
     end
 
-    def assign_execution_thread
-      if (thread_token = ThreadToken.where(token: Thread.current[:task_token]).first) &&
-        (task = Setup::Task.where(thread_token: thread_token).first)
-        self.task = task
-      end unless self.task.present?
-      true
+    def ready_to_save?
+      !data_type.nil?
     end
 
-    def skip_notification_level(skip)
-      @skip_notification_level = skip
-    end
-
-    def type_enum
-      Setup::Notification.type_enum
-    end
-
-    def label
-      "[#{type.to_s.capitalize}] #{message.length > 100 ? message.to(100) + '...' : message}"
-    end
-
-    def color
-      Setup::Notification.type_color(type)
+    def validates_configuration
+      unless requires :data_type, :observers, :transformation
+        unless self.class.transformation_types.include?(transformation.class)
+          errors.add(:transformation, "type is not valid, #{self.class.transformation_types.collect(&:to_s).to_sentence(last_word_connector: ' or ')} expected")
+        end
+        errors.add(:transformation, 'data type mismatch') unless data_type == transformation.data_type
+      end
+      errors.blank?
     end
 
     class << self
-
-      def new(attributes = {})
-        skip = attributes.delete(:skip_notification_level)
-        notification = super
-        notification.skip_notification_level(skip)
-        notification
-      end
-
-      def type_enum
-        [:error, :warning, :notice, :info]
-      end
-
-      def type_color(type)
-        case type
-        when :info
-          'green'
-        when :notice
-          'blue'
-        when :warning
-          'orange'
+      def transformation_types(*args)
+        if args.length > 1
+          @transformation_types = args
         else
-          'red'
+          @transformation_types || (superclass.is_a?(Setup::Notification) ? superclass.transformation_types : [])
         end
       end
-
-      def dashboard_related(account = Account.current)
-        counters = Hash.new { |h, k| h[k] = 0 }
-        if account
-          scope =
-            if (from_date = account.notifications_listed_at)
-              Setup::Notification.where(:created_at.gte => from_date)
-            else
-              Setup::Notification.all
-            end
-          total_count = 0
-          Setup::Notification.type_enum.each do |type|
-            if (count = scope.where(type: type).count) > 0
-              total_count += count
-              counters[Setup::Notification.type_color(type)] = count
-            end
-          end
-          counters[:total] = total_count
-        end
-        counters
-      end
-      
     end
-
   end
 end

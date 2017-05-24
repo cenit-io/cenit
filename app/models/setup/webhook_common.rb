@@ -64,6 +64,17 @@ module Setup
       end
     end
 
+    def submit!(*args, &block)
+      if (options = args[0]).is_a?(Hash)
+        body_argument = options[:body]
+      else
+        body_argument = options
+        options = args[1] || {}
+      end
+      options[:halt_on_error] = true
+      submit(body_argument, options, &block)
+    end
+
     def submit(*args, &block)
       if (options = args[0]).is_a?(Hash)
         body_argument = options[:body]
@@ -152,12 +163,12 @@ module Setup
               else
                 attachment = nil
               end
-              Setup::Notification.create_with(message: JSON.pretty_generate(method: method,
-                                                                            url: url,
-                                                                            headers: headers),
-                                              type: :notice,
-                                              attachment: attachment,
-                                              skip_notification_level: options[:skip_notification_level] || options[:notify_request])
+              Setup::SystemNotification.create_with(message: JSON.pretty_generate(method: method,
+                                                                                  url: url,
+                                                                                  headers: headers),
+                                                    type: :notice,
+                                                    attachment: attachment,
+                                                    skip_notification_level: options[:skip_notification_level] || options[:notify_request])
 
               headers.each { |key, value| headers[key] = value.to_s }
               msg = { headers: headers }
@@ -193,10 +204,10 @@ module Setup
               end
               last_response = http_response.body
 
-              Setup::Notification.create_with(message: { response_code: http_response.code }.to_json,
-                                              type: (200...299).include?(http_response.code) ? :notice : :error,
-                                              attachment: attachment_from(http_response),
-                                              skip_notification_level: options[:skip_notification_level] || options[:notify_response])
+              Setup::SystemNotification.create_with(message: { response_code: http_response.code }.to_json,
+                                                    type: (200...299).include?(http_response.code) ? :notice : :error,
+                                                    attachment: attachment_from(http_response),
+                                                    skip_notification_level: options[:skip_notification_level] || options[:notify_response])
 
               if block
                 http_response = Setup::Webhook::Response.new(false, http_response)
@@ -213,14 +224,15 @@ module Setup
                 verbose_response[:http_response] = http_response
               end
             rescue Exception => ex
-              Setup::Notification.create_from(ex)
+              Setup::SystemNotification.create_from(ex)
+              raise ex if options[:halt_on_error]
             end
           else
-            Setup::Notification.create(message: "Invalid submit data type: #{submitter_body.class}")
+            Setup::SystemNotification.create(message: "Invalid submit data type: #{submitter_body.class}")
           end
         end
       else
-        Setup::Notification.create(message: 'No connections available', type: :warning)
+        Setup::SystemNotification.create(message: 'No connections available', type: :warning)
       end
       verbose_response || last_response
     end

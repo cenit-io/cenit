@@ -11,7 +11,7 @@ module ContactUs
           redirect_to root_path
         end
       rescue Exception => ex
-        Setup::Notification.create_from(ex)
+        Setup::SystemNotification.create_from(ex)
         flash[:error] = "#{t('admin.contact_us.notices.error')}.An Exception happened: #{ex.message}.See your Notifications for more details"
         redirect_to root_path
       end

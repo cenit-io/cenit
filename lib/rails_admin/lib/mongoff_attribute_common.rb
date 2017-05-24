@@ -14,7 +14,12 @@ module RailsAdmin
     end
 
     def visible?
-      !hash_schema.has_key?('visible') || hash_schema['visible'].present?
+      if name == :_id
+        (hash_schema.key?('visible') && hash_schema['visible'].to_s.to_b) ||
+          hash_schema.key?('type')
+      else
+        !hash_schema.key?('visible') || hash_schema['visible'].to_s.to_b
+      end
     end
 
     def queryable?
@@ -42,6 +47,10 @@ module RailsAdmin
 
     def title
       hash_schema['title']
+    end
+
+    def read_only?
+      name == :_id || hash_schema['readOnly'].to_s.to_b
     end
   end
 end

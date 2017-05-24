@@ -23,7 +23,13 @@ module RailsAdmin
 
     def type
       case hash_schema['type']
-      when 'array', 'object', nil
+      when nil
+        if name == :_id
+          :string
+        else
+          :json_value
+        end
+      when 'array', 'object'
         :json_value
       when 'number'
         :decimal
