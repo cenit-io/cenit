@@ -8,9 +8,8 @@ module Setup
 
     build_in_data_type.referenced_by(:namespace, :name).excluding(:origin)
 
-    belongs_to :data_type, :class_name => Setup::DataType.name, :inverse_of => :observers
-    belongs_to :trigger_evaluator, :class_name => Setup::Algorithm.name, :inverse_of => nil
-    has_and_belongs_to_many :foreign_notifications, :class_name => Setup::ForeignNotification.name, :inverse_of => :observers
+    belongs_to :data_type, :class_name => Setup::DataType.name, inverse_of: nil
+    belongs_to :trigger_evaluator, :class_name => Setup::Algorithm.name, inverse_of: nil
 
     field :triggers, type: String
 
@@ -48,7 +47,7 @@ module Setup
         trigger_evaluator.run([obj_now, obj_before]).present?
       end
     rescue Exception => ex
-      Setup::Notification.create(message: "Evaluating triggers for event '#{custom_title}' with id #{id}: #{ex.message}")
+      Setup::SystemNotification.create(message: "Evaluating triggers for event '#{custom_title}' with id #{id}: #{ex.message}")
       false
     end
 
@@ -59,12 +58,12 @@ module Setup
           next unless e.triggers_apply_to?(obj_now, obj_before)
           # Start flows
           Setup::Flow.where(active: true, event: e).each { |f| f.join_process(source_id: obj_now.id.to_s) }
-          # Start foreign notifications
-          e.foreign_notifications.where(active: true).each do |n|
+          # Start notifications
+          Setup::Notification.where(active: true, event: e).each do |n|
             record = obj_now.to_hash
             record[:id] ||= obj_now.id.to_s
-            Setup::ForeignNotificationExecution.process(
-              foreign_notification_id: n.id,
+            Setup::NotificationExecution.process(
+              notification_id: n.id,
               data: {
                 record: record,
                 account: {

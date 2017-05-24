@@ -1,5 +1,5 @@
 module Setup
-  module NotificationCommon
+  module SystemNotificationCommon
     extend ActiveSupport::Concern
 
     include Setup::AttachmentUploader

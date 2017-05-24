@@ -1,99 +1,40 @@
 module Setup
   class Notification
     include CenitScoped
-    include NotificationCommon
     include RailsAdmin::Models::Setup::NotificationAdmin
 
-    build_in_data_type
+    field :name, type: String
+    field :active, type: Boolean
 
-    deny :copy, :new, :edit, :translator_update, :import, :convert
+    has_and_belongs_to_many :observers, :class_name => Setup::Observer.name, inverse_of: nil
+    belongs_to :data_type, :class_name => Setup::DataType.name, inverse_of: nil
 
-    attachment_uploader AccountUploader
+    deny :copy, :new, :edit, :export, :import, :translator_update
 
-    field :type, type: Symbol, default: :error
-    field :message, type: String
-    belongs_to :task, class_name: Setup::Task.to_s, inverse_of: :notifications
-
-    validates_presence_of :type, :message
-    validates_inclusion_of :type, in: ->(n) { n.type_enum }
-
-    before_save :check_notification_level, :assign_execution_thread
-
-    def check_notification_level
-      @skip_notification_level || (a = Account.current).nil? || type_enum.index(type) <= type_enum.index(a.notification_level)
-    end
-
-    def assign_execution_thread
-      if (thread_token = ThreadToken.where(token: Thread.current[:task_token]).first) &&
-        (task = Setup::Task.where(thread_token: thread_token).first)
-        self.task = task
-      end unless self.task.present?
-      true
-    end
-
-    def skip_notification_level(skip)
-      @skip_notification_level = skip
-    end
-
-    def type_enum
-      Setup::Notification.type_enum
+    # Virtual abstract method to send notification.
+    def send_message(data)
+      fail NotImplementedError
     end
 
     def label
-      "[#{type.to_s.capitalize}] #{message.length > 100 ? message.to(100) + '...' : message}"
+      name
     end
 
-    def color
-      Setup::Notification.type_color(type)
+    protected
+
+    # Render data in handlebars template.
+    def render(data, template)
+      Transformation::HandlebarsTransform.run(render_options(data, template))
     end
 
-    class << self
-
-      def new(attributes = {})
-        skip = attributes.delete(:skip_notification_level)
-        notification = super
-        notification.skip_notification_level(skip)
-        notification
-      end
-
-      def type_enum
-        [:error, :warning, :notice, :info]
-      end
-
-      def type_color(type)
-        case type
-        when :info
-          'green'
-        when :notice
-          'blue'
-        when :warning
-          'orange'
-        else
-          'red'
-        end
-      end
-
-      def dashboard_related(account = Account.current)
-        counters = Hash.new { |h, k| h[k] = 0 }
-        if account
-          scope =
-            if (from_date = account.notifications_listed_at)
-              Setup::Notification.where(:created_at.gte => from_date)
-            else
-              Setup::Notification.all
-            end
-          total_count = 0
-          Setup::Notification.type_enum.each do |type|
-            if (count = scope.where(type: type).count) > 0
-              total_count += count
-              counters[Setup::Notification.type_color(type)] = count
-            end
-          end
-          counters[:total] = total_count
-        end
-        counters
-      end
-      
+    def render_options(data, template = nil)
+      # Clone event data {record: {...}, account: {email: '...', name: '...', token: '...'}, event_time: '...'}
+      options = data.deep_symbolize_keys
+      options[:code] = template unless template.nil?
+      # Legacy record data option.
+      options[:source] = options[:record]
+      options[:object_id] = options[:record][:id]
+      options
     end
 
   end

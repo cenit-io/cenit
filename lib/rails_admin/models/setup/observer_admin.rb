@@ -40,7 +40,6 @@ module RailsAdmin
               field :namespace, :enum_edit
               field :name
               field :data_type do
-                inline_add false
                 inline_edit false
                 associated_collection_scope do
                   data_type = bindings[:object].data_type

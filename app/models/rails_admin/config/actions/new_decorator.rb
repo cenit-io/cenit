@@ -18,6 +18,10 @@ module RailsAdmin
                   hash = JSON.parse(token.data) rescue {}
                   @abstract_model.model.data_type.new_from_json(hash)
                 else
+                  if (model = @abstract_model.model) < Setup::ClassHierarchyAware && model.abstract_class
+                    @model_config = RailsAdmin::Config.model(Forms::ChildModelSelector)
+                    @form_object = Forms::ChildModelSelector.new(parent_model_name: model.name)
+                  end
                   @abstract_model.new
                 end
               @authorization_adapter && @authorization_adapter.attributes_for(:new, @abstract_model).each do |name, value|
@@ -27,11 +31,27 @@ module RailsAdmin
                 @object.set_attributes(@object.attributes.merge(object_params))
               end
               respond_to do |format|
-                format.html { render @action.template_name }
-                format.js { render @action.template_name, layout: false }
+                format.html { render @form_object ? :form : @action.template_name }
+                format.js { render @form_object ? :form : @action.template_name, layout: false }
               end
 
             elsif request.post? || request.patch? # CREATE / COPY
+
+              if (model = @abstract_model.model) < Setup::ClassHierarchyAware && model.abstract_class
+                selector_config = RailsAdmin::Config.model(Forms::ChildModelSelector)
+                if (selector_attrs = params[selector_config.abstract_model.param_key]) && (child_model_name = selector_attrs[:child_model_name])
+                  child_model =
+                    begin
+                      child_model_name.constantize
+                    rescue
+                      nil
+                    end
+                  if child_model_name
+                    @model_config = RailsAdmin::Config.model(child_model)
+                    @abstract_model = @model_config.abstract_model
+                  end
+                end
+              end
 
               @modified_assoc = []
               @object = @abstract_model.new

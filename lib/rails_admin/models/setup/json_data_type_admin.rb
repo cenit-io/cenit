@@ -11,10 +11,6 @@ module RailsAdmin
             label 'Object Type'
             object_label_method { :custom_title }
 
-            group :notifications do
-              active false
-            end
-
             group :behavior do
               label 'Behavior'
               active false
@@ -75,24 +71,6 @@ module RailsAdmin
               field :schema_code
               field :title, &RailsAdmin::Config::Fields::Base::SHARED_READ_ONLY
               field :slug
-              field :observers do
-                label 'Events'
-                visible { !bindings[:object].new_record? }
-              end
-              group :notifications do
-                field :email_notifications do
-                  label 'E-Mails'
-                  visible { !bindings[:object].new_record? }
-                end
-                field :web_hook_notifications do
-                  label 'Web-Hooks'
-                  visible { !bindings[:object].new_record? }
-                end
-                field :sms_notifications do
-                  label 'SMS'
-                  visible { !bindings[:object].new_record? }
-                end
-              end
               field :before_save_callbacks, &RailsAdmin::Config::Fields::Base::SHARED_READ_ONLY
               field :records_methods, &RailsAdmin::Config::Fields::Base::SHARED_READ_ONLY
               field :data_type_methods, &RailsAdmin::Config::Fields::Base::SHARED_READ_ONLY

@@ -59,7 +59,7 @@ require 'account'
   RailsAdmin::Config::Actions::AlgorithmDependencies,
   RailsAdmin::Config::Actions::RestApi1,
   RailsAdmin::Config::Actions::RestApi2,
-  RailsAdmin::Config::Actions::ForeignNotifications,
+  RailsAdmin::Config::Actions::Notifications,
   RailsAdmin::Config::Actions::LinkDataType,
   RailsAdmin::Config::Actions::ImportApiSpec,
   RailsAdmin::Config::Actions::RemoteSharedCollection,
@@ -138,10 +138,10 @@ RailsAdmin.config do |config|
     ecommerce_index
     link_data_type
     index # mandatory
-    new { except [Setup::Event, Setup::DataType, Setup::Authorization, Setup::BaseOauthProvider] }
+    new
     filters
     data_events
-    foreign_notifications
+    notifications
     flows
     import
     import_schema
@@ -381,7 +381,7 @@ RailsAdmin.config do |config|
 
   config.navigation 'Monitors', icon: 'fa fa-heartbeat'
 
-  Setup::Notification
+  Setup::SystemNotification
 
   Setup::Task
 
@@ -461,7 +461,7 @@ RailsAdmin.config do |config|
 
   Setup::DelayedMessage
 
-  Setup::SystemNotification
+  Setup::SystemReport
 
   RabbitConsumer
 
