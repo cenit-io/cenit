@@ -4,7 +4,9 @@ require 'account'
   RailsAdmin::Config::Actions::DiskUsage,
   RailsAdmin::Config::Actions::SendToFlow,
   RailsAdmin::Config::Actions::SwitchNavigation,
+  RailsAdmin::Config::Actions::RenderChart,
   RailsAdmin::Config::Actions::DataType,
+  RailsAdmin::Config::Actions::Chart,
   RailsAdmin::Config::Actions::Filters,
   RailsAdmin::Config::Actions::DataEvents,
   RailsAdmin::Config::Actions::Flows,
@@ -57,10 +59,11 @@ require 'account'
   RailsAdmin::Config::Actions::AlgorithmDependencies,
   RailsAdmin::Config::Actions::RestApi1,
   RailsAdmin::Config::Actions::RestApi2,
-  RailsAdmin::Config::Actions::ForeignNotifications,
+  RailsAdmin::Config::Actions::Notifications,
   RailsAdmin::Config::Actions::LinkDataType,
   RailsAdmin::Config::Actions::ImportApiSpec,
-  RailsAdmin::Config::Actions::RemoteSharedCollection
+  RailsAdmin::Config::Actions::RemoteSharedCollection,
+  RailsAdmin::Config::Actions::OpenApiDirectory
 ].each { |a| RailsAdmin::Config::Actions.register(a) }
 
 [
@@ -87,7 +90,8 @@ RailsAdmin::Config::Actions.register(:export, RailsAdmin::Config::Actions::BulkE
   RailsAdmin::Config::Fields::Types::MongoffFileUpload,
   RailsAdmin::Config::Fields::Types::Url,
   RailsAdmin::Config::Fields::Types::CenitOauthScope,
-  RailsAdmin::Config::Fields::Types::CenitAccessScope
+  RailsAdmin::Config::Fields::Types::CenitAccessScope,
+  RailsAdmin::Config::Fields::Types::ContextualBelongsTo
 ].each { |f| RailsAdmin::Config::Fields::Types.register(f) }
 
 require 'rails_admin/config/fields/factories/tag'
@@ -131,13 +135,14 @@ RailsAdmin.config do |config|
     # disk_usage
     shared_collection_index
     remote_shared_collection
+    open_api_directory
     ecommerce_index
     link_data_type
     index # mandatory
-    new { except [Setup::Event, Setup::DataType, Setup::Authorization, Setup::BaseOauthProvider] }
+    new
     filters
     data_events
-    foreign_notifications
+    notifications
     flows
     import
     import_schema
@@ -172,7 +177,9 @@ RailsAdmin.config do |config|
     records
     filter_data_type
     switch_navigation
+    render_chart
     switch_scheduler
+    chart
     simple_export
     schedule
     state
@@ -375,7 +382,7 @@ RailsAdmin.config do |config|
 
   config.navigation 'Monitors', icon: 'fa fa-heartbeat'
 
-  Setup::Notification
+  Setup::SystemNotification
 
   Setup::Task
 
@@ -455,7 +462,7 @@ RailsAdmin.config do |config|
 
   Setup::DelayedMessage
 
-  Setup::SystemNotification
+  Setup::SystemReport
 
   RabbitConsumer
 

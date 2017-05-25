@@ -9,7 +9,7 @@
   - basic_scopes.add(Cenit::OauthScope::AUTH_TOKEN)
 %table.cenit-oauth-basic-scope
   %tr
-    %td
+    %td.basics-scopes
       = select_tag "#{form.object_name}[#{field.method_name}][basic]", options_for_select(field.cenit_basic_scopes, selected: basic_scopes), class: 'select-tag-no-add', multiple: true
 %table.cenit-oauth-scope
   %thead{ class: (create = current_action == 'create') ? 'hide': '' }

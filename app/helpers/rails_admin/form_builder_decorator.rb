@@ -6,7 +6,7 @@ module RailsAdmin
     def generate(options = {})
       rails_admin_generate(options)
     rescue Exception => ex
-      Setup::SystemNotification.create_from(ex)
+      Setup::SystemReport.create_from(ex)
       @template.render partial: 'form_notice', locals: { message: ex.message }
     end
 
@@ -26,7 +26,7 @@ module RailsAdmin
         generate({ action: :nested, model_config: field.associated_model_config, nested_in: field })
       end
     rescue Exception => ex
-      Setup::SystemNotification.create_from(ex)
+      Setup::SystemReport.create_from(ex)
       @template.render partial: 'form_notice', locals: { message: ex }
     end
 

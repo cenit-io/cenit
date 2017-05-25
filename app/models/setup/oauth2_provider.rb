@@ -25,7 +25,7 @@ module Setup
             oauth_provider.response_type = :code
             oauth_provider.token_method = :POST
             if oauth_provider.changed?
-              Setup::SystemNotification.create_with(
+              Setup::SystemReport.create_with(
                 message: 'Cenit OAuth 2.0 provider configuration changed',
                 type: :warning,
                 attachment: {
@@ -37,7 +37,7 @@ module Setup
               oauth_provider.save
             end
             unless oauth_provider.origin == :cenit
-              Setup::SystemNotification.create(
+              Setup::SystemReport.create(
                 message: "Cenit OAuth 2.0 provider configuration crossed from #{oauth_provider.origin} to cenit",
                 type: :warning
               )

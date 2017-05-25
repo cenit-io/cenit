@@ -8,8 +8,7 @@ module RailsAdmin
     include FiltersHelper
 
     alias_method :rails_admin_list_entries, :list_entries
-    before_action :update_filters_session
-    before_action :get_data_type_filter
+    before_action :update_filters_session, :get_data_type_filter, :process_context
 
     def list_entries(model_config = @model_config, auth_scope_key = :index, additional_scope = get_association_scope_from_params, pagination = !(params[:associated_collection] || params[:all] || params[:bulk_ids]))
       scope = rails_admin_list_entries(model_config, auth_scope_key, additional_scope, pagination)
@@ -37,6 +36,23 @@ module RailsAdmin
       elsif (output = Setup::AlgorithmOutput.where(id: params[:algorithm_output]).first) &&
         output.data_type == model.data_type
         scope = scope.any_in(id: output.output_ids)
+      end
+      # Contextual record
+      if get_context_record
+        or_criteria = []
+        model_config._fields.each do |f|
+          next unless f.is_a?(RailsAdmin::Config::Fields::Types::ContextualBelongsTo) && f.association.klass == get_context_model
+          or_criteria <<
+            if f.include_blanks_on_collection_scope
+              [
+                { f.association.foreign_key => { '$exists': false } },
+                { f.association.foreign_key => { '$in': [nil, get_context_id] } }
+              ]
+            else
+              { f.association.foreign_key => get_context_id }
+            end
+        end
+        scope = scope.or(or_criteria.flatten) unless or_criteria.empty?
       end
       scope
     end

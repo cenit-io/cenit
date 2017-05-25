@@ -124,7 +124,7 @@ class Account
   end
 
   def notification_level_enum
-    Setup::Notification.type_enum
+    Setup::SystemNotification.type_enum
   end
 
   def label

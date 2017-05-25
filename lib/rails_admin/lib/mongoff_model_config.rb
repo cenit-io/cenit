@@ -11,7 +11,8 @@ module RailsAdmin
 
       titles = Set.new
       titles.add(nil)
-      (abstract_model.properties + abstract_model.associations).each do |property|
+      @model.properties.each do |property|
+        property = @abstract_model.property_or_association(property)
         type = property.type
         if property.is_a?(RailsAdmin::MongoffAssociation)
           type = (type.to_s + '_association').to_sym
@@ -20,6 +21,9 @@ module RailsAdmin
         end
         configure property.name, type do
           visible { property.visible? }
+          read_only do
+            bindings[:object].new_record? ? false : property.read_only?
+          end
           if titles.include?(title = property.title)
             title = property.name.to_s.to_title
           end
@@ -155,6 +159,14 @@ module RailsAdmin
           else
             Config.label_methods.detect { |method| target.property?(method) } || :to_s
           end
+      end
+
+      edit do
+        parent.target.properties.each do |property|
+          next if (property == '_id' && !parent.target.property_schema('_id').key?('type')) ||
+            Mongoff::Model[:base_schema]['properties'].key?(property)
+          field property.to_sym
+        end
       end
     end
 

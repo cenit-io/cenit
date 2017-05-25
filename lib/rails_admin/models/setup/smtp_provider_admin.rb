@@ -10,6 +10,7 @@ module RailsAdmin
             object_label_method { :label }
             weight 331
             label 'SMTP'
+            visible false
 
             c.configure :address, :string do
               label 'SMTP Host'

@@ -41,6 +41,13 @@ module Edi
         rescue Exception
           options
         end
+      else
+        options = options.reverse_merge(
+          ignore: [:id],
+          include_blanks: true,
+          protected: true,
+          polymorphic: true
+        )
       end
       to_hash(options)
     end

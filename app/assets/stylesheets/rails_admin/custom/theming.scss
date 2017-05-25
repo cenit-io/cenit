@@ -1295,18 +1295,30 @@ label {
   }
 }
 
-
-
 // for graphics
+.g-container {
+  max-height: 485px;
+  transition: all 0.5s ease;
+  &.closed {
+    overflow: hidden;
+    max-height: 0;
+    transition: all 0.5s ease;
+  }
+}
+
 .graphics-area {
   margin: 25px 0;
 }
+
 .graphics-controls {
   padding: 15px;
+
 }
+
 .graphics-chart {
   overflow: scroll;
 }
+
 .btn .caret {
   margin-left: 2px;
 }
@@ -1318,6 +1330,14 @@ label {
 
 .no-padding-left {
   padding-left: 0 !important;
+}
+
+.no-padding-right {
+  padding-right: 0 !important;
+}
+
+.cenit-oauth-basic-scope .basics-scopes {
+  min-width: 234px;
 }
 
 .cenit-oauth-scope, .cenit-oauth-basic-scope, .model-tr {
@@ -1412,6 +1432,88 @@ label {
     }
   }
 }
+
 .scope-description li i {
   margin-left: 5px;
+}
+
+.api-info {
+  background: white;
+  padding: 15px;
+  margin: 15px 0;
+  border-radius: 6px;
+  border: solid 1px #e3e3e3;
+  div {
+    word-wrap: break-word;
+  }
+  a {
+    cursor: pointer;
+  }
+  .contact, .term-of-service, .license {
+    a {
+      white-space: normal;
+    }
+  }
+
+}
+
+.swagger-toolbar {
+  margin: 15px -5px;
+}
+
+.api-details {
+  h3 {
+    max-width: 85%;
+    margin-top: 0;
+    span {
+      color: gray;
+    }
+  }
+  h5 {
+    font-size: 12px;
+    margin: 0;
+    line-height: 1.5;
+    color: gray;
+    span {
+      font-weight: bold;;
+    }
+  }
+  .categories-toolbar {
+    margin-bottom: 10px;
+    margin-left: 0;
+  }
+}
+
+.contextual-record {
+  display: inline-block;
+  margin-bottom: 0;
+  font-weight: normal;
+  text-align: center;
+  vertical-align: middle;
+  cursor: pointer;
+  background-image: none;
+  border: 1px solid transparent;
+  white-space: nowrap;
+  padding: 6px 12px;
+  font-size: 14px;
+  line-height: 1.42857143;
+  border-radius: 4px;
+  -webkit-user-select: none;
+  text-decoration: none !important;
+
+  color: #fff;
+  background-color: #5cb85c;
+  border-color: #4cae4c;
+
+  &:hover{
+    color: #fff;
+    background-color: #c9302c;
+    border-color: #ac2925;
+
+    &:after{
+      font-family: FontAwesome;
+      content: "\f00d";
+      margin-left: 10px;
+    }
+  }
 }
