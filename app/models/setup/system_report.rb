@@ -4,7 +4,7 @@ module Setup
     include Setup::SystemNotificationCommon
     include RailsAdmin::Models::Setup::SystemReportAdmin
 
-    store_in collection: :setup_notifications
+    store_in collection: :setup_system_notifications
 
     deny :all
 
