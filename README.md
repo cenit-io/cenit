@@ -58,13 +58,6 @@ An example of integration data flow (Fancy <=> Shipstation):
 
 After [install docker compose](https://docs.docker.com/compose/install)
 
-Clone the docker repo for Cenit and move to the folder.
-
-```batch
-git clone https://github.com/cenit-io/cenit_docker.git
-cd cenit_docker
-```
-
 Then run docker compose:
 
 ```batch
