@@ -39,7 +39,7 @@ An example of integration data flow (Fancy <=> Shipstation):
 * After the shipments are updated in Cenit, is trigger a Flow to send the tracking update to Fancy.
 
 
-## Your own server with Heroku
+## Deploy your own server
 
 ### With the Heroku Button
 
@@ -54,6 +54,25 @@ An example of integration data flow (Fancy <=> Shipstation):
 * Deploy it with: `git push heroku master`
 * Open in the browser: `heroku open`
 
+###  With Docker compose.
+
+After [install docker compose](https://docs.docker.com/compose/install)
+
+Clone the docker repo for Cenit and move to the folder.
+
+```batch
+git clone https://github.com/cenit-io/cenit_docker.git
+cd cenit_docker
+```
+
+Then run docker compose:
+
+```batch
+docker-compose build
+docker-compose up
+```
+
+and visit the browser: `localhost:3000`
 
 ## General Features
 
