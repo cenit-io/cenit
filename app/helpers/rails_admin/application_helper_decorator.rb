@@ -1,6 +1,14 @@
 module RailsAdmin
   ApplicationHelper.module_eval do
 
+    def format_name(name)
+      max_name_length = 30
+      if name.length > max_name_length
+        name = name.to(27) + '...'
+      end
+      name
+    end
+
     # parent => :root, :collection, :member
     def menu_for(parent, abstract_model = nil, object = nil, only_icon = false, limit = 0) # perf matters here (no action view trickery)
       actions = actions(parent, abstract_model, object).select { |a| a.http_methods.include?(:get) }
