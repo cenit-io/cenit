@@ -28,7 +28,7 @@ module Setup
       template.render(template_parameters.reverse_merge(template_parameters_hash))
     end
 
-    def conforms(field, template_parameters = {})
+    def conforms(field, template_parameters = {}, base_hash = nil)
       templates = instance_variable_get(var = "@_#{field}_templates".to_sym)
       unless templates
         templates = {}
@@ -36,7 +36,7 @@ module Setup
         try("other_#{field}_each".to_sym, template_parameters) { |key, value| templates[key] = value && Liquid::Template.parse(value) }
         instance_variable_set(var, templates)
       end
-      hash = {}
+      hash = base_hash || {}
       templates.each { |key, template| hash[key] = template && template.render(template_parameters.reverse_merge(template_parameters_hash)) }
       hash
     end
