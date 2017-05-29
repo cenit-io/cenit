@@ -18,7 +18,7 @@ module RailsAdmin
                   hash = JSON.parse(token.data) rescue {}
                   @abstract_model.model.data_type.new_from_json(hash)
                 else
-                  if (model = @abstract_model.model) < Setup::ClassHierarchyAware && model.abstract_class
+                  if (model = @abstract_model.model).is_a?(Class) && model < Setup::ClassHierarchyAware && model.abstract_class
                     @model_config = RailsAdmin::Config.model(Forms::ChildModelSelector)
                     @form_object = Forms::ChildModelSelector.new(parent_model_name: model.name)
                   end
@@ -37,7 +37,7 @@ module RailsAdmin
 
             elsif request.post? || request.patch? # CREATE / COPY
 
-              if (model = @abstract_model.model) < Setup::ClassHierarchyAware && model.abstract_class
+              if (model = @abstract_model.model).is_a?(Class) && model < Setup::ClassHierarchyAware && model.abstract_class
                 selector_config = RailsAdmin::Config.model(Forms::ChildModelSelector)
                 if (selector_attrs = params[selector_config.abstract_model.param_key]) && (child_model_name = selector_attrs[:child_model_name])
                   child_model =

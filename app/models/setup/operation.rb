@@ -47,6 +47,15 @@ module Setup
     def title
       label
     end
-    
+
+    protected
+
+    def conforms(field, template_parameters = {}, base_hash = nil)
+      if resource
+        base_hash = resource.conforms(field, template_parameters, base_hash)
+      end
+      super
+    end
+
   end
 end
