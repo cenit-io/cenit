@@ -13,7 +13,7 @@ module RailsAdmin
         command = ""
         command << api_vars('jquery', vars) + "\n\n" unless vars.empty?
         command << "jQuery.ajax({\n"
-        command << "  url: `#{uri}`,\n"
+        command << "  url: '#{uri}',\n"
         command << "  method: '#{method.upcase}',\n"
         command << "  dataType: 'json',\n"
         command << "  headers: {\n"
