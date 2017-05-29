@@ -45,5 +45,5 @@
       .clearfix
       .row
         - object_array = Kaminari.paginate_array(@objects, total_count: count = @response['count']).page(@response['current_page']).per(@limit)
-        .col-md-6= paginate(object_array, theme: 'twitter-bootstrap', remote: true)
+        .col-md-6= paginate(object_array, theme: 'ra-twitter-bootstrap', remote: true)
       .clearfix.total-count= "#{@response['count']} #{@model_config.pluralize(@objects.size).downcase}"
