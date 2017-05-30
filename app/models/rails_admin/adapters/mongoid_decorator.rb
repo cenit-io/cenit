@@ -87,7 +87,13 @@ module RailsAdmin
       def associations
         model.relations.values.collect do |association|
           RailsAdmin::Adapters::Mongoid::Association.new(association, model)
-        end + config.extra_associations
+        end +
+          case (model_config = config)
+          when RailsAdmin::Config::Model
+            model_config.extra_associations
+          else
+            []
+          end
       end
     end
   end

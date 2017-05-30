@@ -1,7 +1,8 @@
 .triggers_field {
   .triggers-box {
     .form-control {
-      width: 100% !important;
+      width: auto;
+      display: inline-block;
     }
 
     [data-divider="true"] {

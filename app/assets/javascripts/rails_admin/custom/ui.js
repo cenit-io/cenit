@@ -4,7 +4,6 @@
 //= require rails_admin/toggle-origin.js
 //= require rails_admin/bootstrap-tour.min
 //= require rails_admin/triggers-box
-//= require rails_admin/test-flow-transformation
 //= require rails_admin/highlight_js/highlight.pack.js
 //= require rails_admin/handlers
 //= require rails_admin/highcharts
