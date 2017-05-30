@@ -15,7 +15,7 @@ module RailsAdmin
         command << "    #{api_vars('nodejs', vars).gsub("\n", "    \n")}\n" unless vars.empty?
         command << "    options = {\n"
         command << "      method: '#{method.upcase}',\n"
-        command << "      url: `#{uri}`,\n"
+        command << "      url: '#{uri}',\n"
         command << "      headers: {\n"
         command << "        'Content-Type': 'application/json',\n"
         command << "        'X-User-Access-Key': user_access_key,\n"
