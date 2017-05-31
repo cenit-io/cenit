@@ -51,10 +51,30 @@ module RailsAdmin
                   end
                   text.html_safe
                 end
+                contextual_params do
+                  if (dt = bindings[:object].data_type)
+                    { data_type_id: dt.id.to_s }
+                  end
+                end
               end
 
               field :transformation do
+                label 'Template'
                 required true
+                visible { !bindings[:object].data_type.nil? }
+                contextual_association_scope do
+                  types = bindings[:object].class.transformation_types.collect(&:to_s)
+                  proc do |scope|
+                    scope.where(:_type.in => types)
+                  end
+                end
+                contextual_params do
+                  h = { target_data_type_id: (dt = ::Cenit.namespace('MIME').data_type('Message')) && dt.id.to_s }
+                  if (dt = bindings[:object].data_type)
+                    h[:source_data_type_id] = [nil, dt.id.to_s]
+                  end
+                  h
+                end
               end
 
             end

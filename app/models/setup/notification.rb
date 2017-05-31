@@ -10,8 +10,8 @@ module Setup
     abstract_class true
 
     belongs_to :data_type, class_name: Setup::DataType.name, inverse_of: nil
-    belongs_to :transformation, class_name: Setup::Translator.name, inverse_of: nil
     has_and_belongs_to_many :observers, class_name: Setup::Observer.name, inverse_of: nil
+    belongs_to :transformation, class_name: Setup::Translator.name, inverse_of: nil
 
     field :active, type: Boolean
 
@@ -31,7 +31,7 @@ module Setup
         unless self.class.transformation_types.include?(transformation.class)
           errors.add(:transformation, "type is not valid, #{self.class.transformation_types.collect(&:to_s).to_sentence(last_word_connector: ' or ')} expected")
         end
-        errors.add(:transformation, 'data type mismatch') unless data_type == transformation.data_type
+        errors.add(:transformation, 'data type mismatch') unless transformation.data_type.nil? || data_type == transformation.data_type
       end
       errors.blank?
     end
