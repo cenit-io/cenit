@@ -17,7 +17,7 @@ module RailsAdmin
             amc = RailsAdmin.config(association.klass)
             am = amc.abstract_model
             count = 0
-            fields = amc.list.with(controller: self, view: v, object: am.new).visible_fields
+            fields = amc.list.with(controller: bindings[:controller], view: v, object: am.new).visible_fields
             if (listing = list_fields)
               fields = fields.select { |f| listing.include?(f.name.to_s) }
             end
