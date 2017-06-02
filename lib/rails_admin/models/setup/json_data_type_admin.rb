@@ -8,7 +8,6 @@ module RailsAdmin
           rails_admin do |c|
             navigation_label 'Definitions'
             weight 111
-            label 'Object Type'
             object_label_method { :custom_title }
 
             group :behavior do
