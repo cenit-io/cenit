@@ -11,6 +11,7 @@ module RailsAdmin
 
       titles = Set.new
       titles.add(nil)
+      groups = {}
       @model.properties.each do |property|
         property = @abstract_model.property_or_association(property)
         type = property.type
@@ -43,6 +44,7 @@ module RailsAdmin
           end
           unless (g = property.group.to_s.gsub(/ +/, '_').underscore.to_sym).blank?
             group g
+            groups[g] = property.group.to_s
           end
           if property.is_a?(RailsAdmin::MongoffAssociation)
             # associated_collection_cache_all true
@@ -166,6 +168,12 @@ module RailsAdmin
           next if (property == '_id' && !parent.target.property_schema('_id').key?('type')) ||
             Mongoff::Model[:base_schema]['properties'].key?(property)
           field property.to_sym
+        end
+      end
+
+      groups.each do |key, name|
+        group key do
+          label name
         end
       end
     end
