@@ -276,7 +276,7 @@ module Setup
       if source_handler
         source_options(options, bulk: true)
       else
-        { source: options[:object], target: style == 'chain' ? nil : target_data_type.records_model.new }
+        { source: options[:object], target: style == 'ruby' ? target_data_type.records_model.new : nil }
       end
     end
 
