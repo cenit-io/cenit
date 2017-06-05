@@ -6,7 +6,7 @@
           data-clipboard-action="copy"
           data-clipboard-target="#<%= id %>">Copy to clipboard
   </button>
-  <pre id="<%= id %>" class="code <%= lang[:hljs] %>"><%= api_auth_vars(lang[:id]).html_safe %></pre>
+  <pre id="<%= id %>" class="code <%= lang[:hljs] %>"><%= api_auth_vars(lang[:id]) %></pre>
 </div>
 
 <% (@api_current_paths || api_current_paths).each do |path, methods| %>
@@ -26,7 +26,7 @@
                   data-clipboard-action="copy"
                   data-clipboard-target="#<%= id %>">Copy to clipboard
           </button>
-          <pre id="<%= id %>" class="code <%= lang[:hljs] %>"><%= api_code(lang[:id], method, path).html_safe %></pre>
+          <pre id="<%= id %>" class="code <%= lang[:hljs] %>"><%= api_code(lang[:id], method, path) %></pre>
         </div>
     <% end %>
 <% end %>
