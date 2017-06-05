@@ -51,7 +51,7 @@
                   <% api_langs.each do |lang| %>
                       <div id="<%= "#{dlg_id}-#{lang[:id]}" %>"
                            class="tab-pane fade in <%= "active" if lang[:id] == 'curl' %>">
-                        <pre class="code <%= lang[:hljs] %>"><%= api_code(lang[:id], method, path) %></pre>
+                        <pre class="code <%= lang[:hljs] %>"><%= api_code(lang[:id], method, path, true) %></pre>
                       </div>
                   <% end %>
                 </div>
