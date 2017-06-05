@@ -47,10 +47,15 @@ class AppController < ApplicationController
 
   def authorize_account
     user = nil
-    key = params.delete('X-User-Access-Key')
-    key = request.headers['X-User-Access-Key'] || key
-    token = params.delete('X-User-Access-Token')
-    token = request.headers['X-User-Access-Token'] || token
+
+    # New key and token params.
+    key = request.headers['X-Tenant-Access-Key'] || params.delete('X-Tenant-Access-Key')
+    token = request.headers['X-Tenant-Access-Token'] || params.delete('X-Tenant-Access-Token')
+
+    # Legacy key and token params.
+    key ||= request.headers['X-User-Access-Key'] || params.delete('X-User-Access-Key')
+    token ||= request.headers['X-User-Access-Token'] || params.delete('X-User-Access-Token')
+
     if key || token
       [
         User,
