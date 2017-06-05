@@ -139,6 +139,7 @@ RailsAdmin.config do |config|
     ecommerce_index
     link_data_type
     index # mandatory
+    swagger { only [Setup::ApiSpec] }
     new
     filters
     data_events
@@ -157,7 +158,6 @@ RailsAdmin.config do |config|
     run
     run_script
     edit
-    swagger { only [Setup::ApiSpec] }
     configure
     play
     copy

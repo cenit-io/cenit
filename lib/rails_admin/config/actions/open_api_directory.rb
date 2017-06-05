@@ -33,7 +33,7 @@ module RailsAdmin
                   if @object.errors.present?
                     handle_save_error
                   else
-                    redirect_to rails_admin.show_path(model_name: @abstract_model.to_param, id: @object.id.to_s)
+                    redirect_to rails_admin.swagger_path(model_name: @abstract_model.to_param, id: @object.id.to_s)
                   end
                 else
                   render :open_api_directory_show
