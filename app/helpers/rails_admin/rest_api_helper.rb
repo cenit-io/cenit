@@ -71,8 +71,8 @@ module RailsAdmin
       if with_auth_vars
         # Get login account or user.
         login = Account.current || User.current
-        vars[:tenent_access_key] = login.present? ? login.key : '...'
-        vars[:tenent_access_token] = login.present? ? login.token : '...'
+        vars[:tenant_access_key] = login.present? ? login.key : '...'
+        vars[:tenant_access_token] = login.present? ? login.token : '...'
       end
 
       # Set value of uri path parameters
@@ -100,8 +100,8 @@ module RailsAdmin
       login = Account.current || User.current
 
       api_vars(lang, {
-        tenent_access_key: (with_tokens && login.present?) ? login.key : '...',
-        tenent_access_token: (with_tokens && login.present?) ? login.token : '...'
+        tenant_access_key: (with_tokens && login.present?) ? login.key : '...',
+        tenant_access_token: (with_tokens && login.present?) ? login.token : '...'
       })
     end
 
