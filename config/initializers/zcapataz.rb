@@ -43,6 +43,8 @@ Capataz.config do
 
   allow_on Time, [:month, :day, :year, :now]
 
+  allow_on DateTime, [:parse, :strftime]
+
   allow_on Xmldsig::SignedDocument, [:new_document, :sign]
 
   allow_on OpenSSL::PKey::RSA, [:new_rsa]
