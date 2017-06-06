@@ -34,8 +34,6 @@ module Setup
     has_and_belongs_to_many :records_methods, class_name: Setup::Algorithm.to_s, inverse_of: nil
     has_and_belongs_to_many :data_type_methods, class_name: Setup::Algorithm.to_s, inverse_of: nil
 
-    attr_readonly :name
-
     before_save :validates_configuration
 
     after_destroy do
