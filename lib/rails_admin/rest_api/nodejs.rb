@@ -19,8 +19,8 @@ module RailsAdmin
         command << "      url: '#{uri}',\n"
         command << "      headers: {\n"
         command << "        'Content-Type': 'application/json',\n"
-        command << "        'X-Tenant-Access-Key': tenent_access_key,\n"
-        command << "        'X-Tenant-Access-Token': tenent_access_token\n"
+        command << "        'X-Tenant-Access-Key': tenant_access_key,\n"
+        command << "        'X-Tenant-Access-Token': tenant_access_token\n"
         command << "      },\n"
         command << "      json: true,\n"
         command << "      #{(method == 'GET') ? 'qs' : 'body'}: #{data.to_json}\n" unless data.empty?

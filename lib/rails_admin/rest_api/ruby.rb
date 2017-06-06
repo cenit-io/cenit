@@ -21,8 +21,8 @@ module RailsAdmin
         command << "  :payload => '#{data.to_json}',\n" unless data.empty?
         command << "  :headers => {\n"
         command << "    'Content-Type' => 'application/json',\n"
-        command << "    'X-Tenant-Access-Key' => tenent_access_key,\n"
-        command << "    'X-Tenant-Access-Token' => tenent_access_token\n"
+        command << "    'X-Tenant-Access-Key' => tenant_access_key,\n"
+        command << "    'X-Tenant-Access-Token' => tenant_access_token\n"
         command << "  }\n"
         command << ")\n"
         command << "\n"
