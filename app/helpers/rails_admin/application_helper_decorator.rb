@@ -474,6 +474,10 @@ module RailsAdmin
             </div>)
 
         end
+        if node.abstract_model.model == Setup::ApiSpec
+          open_api_directory_link = open_api_directory_nav.html_safe
+          html = html + open_api_directory_link
+        end
         if node.abstract_model.model == Setup::Renderer &&
           (extensions_list = Setup::Renderer.file_extension_filter_enum).present?
           ext_count = 0
@@ -552,6 +556,58 @@ module RailsAdmin
       end.join
       nav = "<div id='#{html_id}' class='nav nav-pills nav-stacked panel-collapse collapse'>#{nav}</div>" unless options[:just_li]
       nav.html_safe
+    end
+
+    def open_api_directory_nav
+
+      sub_links = ''
+      category_count = 0
+      categories = count_apis[:categories].keys
+      model_count = count_apis[:apis].count
+      categories_list = []
+      categories.each do |cat|
+        categories_list << count_apis[:categories][cat]
+      end
+      category_count = categories_list.count
+      categories_list.each do |cat|
+        count = (values = count_apis[:apis].select { |c| c['categories'].include?(cat) }).count
+        if count > 0
+          category_count += count
+          category_filter_url = open_api_directory_path(query: cat['id'], by_category: true)
+          sub_links += content_tag :li do
+            sub_link_url = category_filter_url
+            link_to sub_link_url do
+              rc = ''
+              if count > 0
+                rc += "<span class='nav-amount'>#{count}</span>"
+              end
+              rc += "<span class='nav-caption'>#{cat['title']}</span>"
+              rc.html_safe
+            end
+          end
+        end
+      end
+
+      show_all_link =
+        content_tag :li do
+          link_to open_api_directory_path, class: 'pjax' do
+            "<span class='nav-amount'>#{model_count}</span><span class='nav-caption'>Show All</span>".html_safe
+          end
+        end
+
+      html = %(<div class='panel panel-default'>
+            <div class='panel-heading'>
+              <a data-toggle='collapse' data-parent='#none' href='#open-api-collapse' class='panel-title collapse in collapsed'>
+                <span class='nav-caret'><i class='fa fa-caret-down'></i></span>
+                <span class='nav-caption'>#{t('admin.actions.open_api_directory.menu')}</span>
+              </a>
+            </div>
+             <div id='open-api-collapse' class='nav nav-pills nav-stacked panel-collapse collapse'>
+
+      #{show_all_link}
+      #{sub_links}
+            </div>
+            </div>)
     end
 
     def dashboard_main()
@@ -760,6 +816,39 @@ module RailsAdmin
         end
       end
       Kaminari.paginate_array(apis).page(params[:page]).per(20)
+    end
+
+    def count_apis
+      cat_ids = Set.new
+      apis =
+        begin
+          file_name = 'public/apis.guru.list.json'
+          if File.exists?(file_name)
+            list = File.read(file_name)
+          else
+            list = Setup::Connection.get('http://api.apis.guru/v2/list.json').submit
+            File.open(file_name, 'w') { |file| file.write(list) }
+          end
+          JSON.parse(list)
+        rescue Exception => ex
+          flash[:error] = "Unable to retrieve OpenAPI Directory: #{ex.message}"
+          {}
+        end
+      apis = apis.collect do |key, api|
+        api['id'] = key
+        info = api['versions'][api['preferred']]['info'] || {}
+        cat_ids.merge(api['categories'] = info['x-apisguru-categories'] || [])
+        api
+      end
+      categories = {}
+      Setup::Category.where(:id.in => cat_ids.to_a).each { |category| categories[category.id] = category.to_hash }
+      query = nil
+      apis.select! do |api|
+        info = api['versions'][api['preferred']]['info']
+        api['categories'] = api['categories'].collect { |id| categories[id] || { 'id' => id } }
+      end
+
+      { apis: apis, categories: categories }
     end
 
     def process_context(opts = {})
