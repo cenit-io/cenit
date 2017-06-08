@@ -46,7 +46,7 @@ class OauthController < ApplicationController
         @errors << 'Consent time out'
       end
     end
-    render :bad_request if @errors.present?
+    render :bad_request, status: :bad_request if @errors.present?
   end
 
   def callback
