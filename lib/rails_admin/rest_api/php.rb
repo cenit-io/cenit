@@ -5,9 +5,9 @@ module RailsAdmin
     module Php
       ###
       # Returns PHP command for service with given method and path.
-      def api_php_code(method, path)
+      def api_php_code(method, path, with_auth_vars=false)
         # Get vars definition.
-        data, uri, vars = api_data('php', method, path)
+        data, uri, vars = api_data('php', method, path, with_auth_vars)
 
         # Generate uri and command.
         command = ""
@@ -15,8 +15,8 @@ module RailsAdmin
         command << "$uri = \"#{uri}\";\n"
         command << "$headers = array(\n"
         command << "  \"Content-Type: application/json\",\n"
-        command << "  \"X-User-Access-Key: ${user_access_key}\",\n"
-        command << "  \"X-User-Access-Token: ${user_access_token}\"\n"
+        command << "  \"X-Tenant-Access-Key: ${tenant_access_key}\",\n"
+        command << "  \"X-Tenant-Access-Token: ${tenant_access_token}\"\n"
         command << ");\n"
         command << "$options = array(\n"
         command << "  'http' => array(\n"

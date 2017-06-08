@@ -56,7 +56,7 @@ module RailsAdmin
 
     ###
     # Returns data and login.
-    def api_data(lang, method, path)
+    def api_data(lang, method, path, with_auth_vars=false)
       # Get parameters definition.
       query_parameters = api_parameters(method, path, 'query')
 
@@ -67,6 +67,13 @@ module RailsAdmin
 
       path_parameters = api_parameters(method, path, 'path')
       vars = {}
+
+      if with_auth_vars
+        # Get login account or user.
+        login = Account.current || User.current
+        vars[:tenant_access_key] = login.present? ? login.key : '...'
+        vars[:tenant_access_token] = login.present? ? login.token : '...'
+      end
 
       # Set value of uri path parameters
       path_parameters.each do |p|
@@ -82,8 +89,8 @@ module RailsAdmin
 
     ###
     # Returns lang command for service with given method and path.
-    def api_code(lang, method, path)
-      send("api_#{lang}_code", method, path)
+    def api_code(lang, method, path, with_auth_vars=false)
+      send("api_#{lang}_code", method, path, with_auth_vars)
     end
 
     ###
@@ -93,8 +100,8 @@ module RailsAdmin
       login = Account.current || User.current
 
       api_vars(lang, {
-        user_access_key: (with_tokens && login.present?) ? login.key : '...',
-        user_access_token: (with_tokens && login.present?) ? login.token : '...'
+        tenant_access_key: (with_tokens && login.present?) ? login.key : '...',
+        tenant_access_token: (with_tokens && login.present?) ? login.token : '...'
       })
     end
 
@@ -206,7 +213,7 @@ module RailsAdmin
       {
         tags: [display_name],
         summary: "Retrieve all existing '#{display_name.pluralize}'",
-        description: "Retrieve all existing '#{display_name.pluralize}' you've previously created.",
+        description: "Retrieve all existing '#{display_name.pluralize}' you have previously created.",
         parameters: [
           { description: 'Page number', in: 'query', name: 'page', type: 'integer', default: 1 },
           { description: 'Page size', in: 'query', name: 'limit', type: 'integer', default: limit },

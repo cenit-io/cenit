@@ -5,9 +5,9 @@ module RailsAdmin
     module Python
       ###
       # Returns Python command for service with given method and path.
-      def api_python_code(method, path)
+      def api_python_code(method, path, with_auth_vars=false)
         # Get vars definition.
-        data, uri, vars = api_data('python', method, path)
+        data, uri, vars = api_data('python', method, path, with_auth_vars)
         replace = vars.empty? ? '' : " % (#{vars.keys.join(', ')})"
 
         # Generate uri and command.
@@ -20,8 +20,8 @@ module RailsAdmin
         command << "options = {\n"
         command << "  'headers': {\n"
         command << "    'Content-Type': 'application/json',\n"
-        command << "    'X-User-Access-Key': user_access_key,\n"
-        command << "    'X-User-Access-Token': user_access_token\n"
+        command << "    'X-Tenant-Access-Key': tenant_access_key,\n"
+        command << "    'X-Tenant-Access-Token': tenant_access_token\n"
         command << "  },\n"
         command << "  'data': json.dumps(#{data.to_json})\n" unless data.empty?
         command << "};\n"

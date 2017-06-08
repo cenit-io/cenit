@@ -13,7 +13,7 @@ Capataz.config do
                     Setup::Task, Setup::Task::RUNNING_STATUS, Setup::Task::NOT_RUNNING_STATUS, Setup::Task::ACTIVE_STATUS, Setup::Task::NON_ACTIVE_STATUS,
                     Xmldsig, Xmldsig::SignedDocument, Zip, Zip::OutputStream, Zip::InputStream, StringIO, MIME::Mail, MIME::Text, MIME::Multipart::Mixed,
                     Spreadsheet, Spreadsheet::Workbook, Setup::Authorization, Setup::Connection, Devise, Cenit, JWT, Setup::XsltValidator, Setup::Translator,
-                    Setup::Flow, WriteXLSX, MIME::DiscreteMediaFactory, MIME::DiscreteMedia, MIME::DiscreteMedia, MIME::Image, MIME::Application
+                    Setup::Flow, WriteXLSX, MIME::DiscreteMediaFactory, MIME::DiscreteMedia, MIME::DiscreteMedia, MIME::Image, MIME::Application, DateTime
 
   allow_on Cenit, [:homepage, :namespace]
 
@@ -42,6 +42,8 @@ Capataz.config do
   allow_on File, [:dirname, :basename]
 
   allow_on Time, [:month, :day, :year, :now]
+
+  allow_on DateTime, [:parse, :strftime]
 
   allow_on Xmldsig::SignedDocument, [:new_document, :sign]
 

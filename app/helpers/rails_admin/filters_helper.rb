@@ -8,9 +8,9 @@ module RailsAdmin
     end
 
     def get_data_type_filter
-      if session[:filters][@model_name]
+      if session[:filters] && session[:filters][@model_name]
         filter_token = Cenit::Token.where(token: session[:filters][@model_name]).first
-        @data_type_filter = Setup::DataType.where(id: filter_token.data[:data_type_id]).first
+        @data_type_filter = Setup::DataType.where(id: filter_token.data[:data_type_id]).first if filter_token
       end
     end
 
