@@ -6,7 +6,7 @@ module Setup
 
         def run(options = {})
           xml_document = Nokogiri::XSLT(options[:code]).transform(Nokogiri::XML(options[:source].to_xml))
-          options[:target].from_xml(xml_document.to_xml)
+          options[:target] = options[:target_data_type].new_from_xml(xml_document.to_xml)
         end
 
       end

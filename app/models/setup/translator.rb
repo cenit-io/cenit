@@ -139,18 +139,18 @@ module Setup
     end
 
     EXPORT_MIME_FILTER = {
-      'double_curly_braces' => ['application/json'],
-      'xslt' => %w(application/xml text/html),
-      'json.rabl' => ['application/json'],
-      'xml.rabl' => ['application/xml'],
-      'xml.builder' => ['application/xml'],
-      'html.haml' => ['text/html'],
-      'html.erb' => ['text/html'],
-      'csv.erb' => ['text/csv'],
-      'js.erb' => %w(application/x-javascript application/javascript text/javascript),
-      'text.erb' => ['text/plain'],
-      'pdf.prawn' => ['application/pdf']
-    }
+      'double_curly_braces': ['application/json'],
+      'xslt': %w(application/xml text/html),
+      'json.rabl': ['application/json'],
+      'xml.rabl': ['application/xml'],
+      'xml.builder': ['application/xml'],
+      'html.haml': ['text/html'],
+      'html.erb': ['text/html'],
+      'csv.erb': ['text/csv'],
+      'js.erb': %w(application/x-javascript application/javascript text/javascript),
+      'text.erb': ['text/plain'],
+      'pdf.prawn': ['application/pdf']
+    }.stringify_keys
 
     def style_enum
       styles = []
@@ -276,7 +276,7 @@ module Setup
       if source_handler
         source_options(options, bulk: true)
       else
-        { source: options[:object], target: style == 'chain' ? nil : target_data_type.records_model.new }
+        { source: options[:object], target: style == 'ruby' ? target_data_type.records_model.new : nil }
       end
     end
 

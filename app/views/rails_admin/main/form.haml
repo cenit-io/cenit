@@ -1,7 +1,7 @@
 - bulk_alert ||= false
 - if @warning_message
   %h4.text-danger= @warning_message.to_s
-= rails_admin_form_for @form_object, url: url_for(action: @action.action_name, params: {object_ids: @bulk_ids}), html: { multipart: true, class: 'form-horizontal denser', data: { title: @page_name }} do |form|
+= rails_admin_form_for @form_object, url: url_for(action: @action.action_name, params: {object_ids: @bulk_ids, contextual_params: params[:contextual_params]}), html: { multipart: true, class: 'form-horizontal denser', data: { title: @page_name }} do |form|
   - if bulk_alert
     - @bulk_ids ||= @object && [@object.id]
     - to_action =  @bulk_ids ? @abstract_model.model.where(:id.in => @bulk_ids) : @abstract_model.all

@@ -8,7 +8,7 @@ module RailsAdmin
           rails_admin do
             navigation_label 'Connectors'
             weight 217
-            object_label_method { :label }
+            object_label_method { :custom_title }
 
             configure :resource do
               read_only true
