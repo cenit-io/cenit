@@ -117,8 +117,8 @@ module RailsAdmin
         configure :length do
           label 'Size'
           pretty_value do #TODO Factorize these code in custom rails admin field type
-            if objects = bindings[:controller].instance_variable_get(:@objects)
-              unless max = bindings[:controller].instance_variable_get(:@max_length)
+            if (objects = bindings[:controller].instance_variable_get(:@objects))
+              unless (max = bindings[:controller].instance_variable_get(:@max_length))
                 bindings[:controller].instance_variable_set(:@max_length, max = objects.collect { |storage| storage.length }.reject(&:nil?).max)
               end
               (bindings[:view].render partial: 'size_bar', locals: { max: max, value: bindings[:object].length }).html_safe
@@ -128,6 +128,16 @@ module RailsAdmin
           end
         end
         edit do
+          field :_id do
+            visible do
+              (o = bindings[:object]) &&
+                (o = o.class.data_type) &&
+                (o = o.schema) &&
+                (o = o['properties']['_id']) &&
+                o.key?('type')
+            end
+            help 'Required'
+          end
           field :data
           field :metadata
         end
@@ -150,6 +160,14 @@ module RailsAdmin
           field :length
           field :md5
         end
+      else
+        edit do
+          parent.target.properties.each do |property|
+            next if (property == '_id' && !parent.target.property_schema('_id').key?('type')) ||
+              Mongoff::Model[:base_schema]['properties'].key?(property)
+            field property.to_sym
+          end
+        end
       end
 
       navigation_label { target.data_type.namespace }
@@ -161,14 +179,6 @@ module RailsAdmin
           else
             Config.label_methods.detect { |method| target.property?(method) } || :to_s
           end
-      end
-
-      edit do
-        parent.target.properties.each do |property|
-          next if (property == '_id' && !parent.target.property_schema('_id').key?('type')) ||
-            Mongoff::Model[:base_schema]['properties'].key?(property)
-          field property.to_sym
-        end
       end
 
       groups.each do |key, name|
