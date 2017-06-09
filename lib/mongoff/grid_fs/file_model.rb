@@ -9,6 +9,7 @@ module Mongoff
                                          type: :object,
                                          properties:
                                            {
+                                             _id: {},
                                              filename: {
                                                title: 'File name',
                                                type: :string
