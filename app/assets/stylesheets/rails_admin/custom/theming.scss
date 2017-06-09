@@ -1505,15 +1505,29 @@ label {
   background-color: #5cb85c;
   border-color: #4cae4c;
 
-  &:hover{
+  &:hover {
     color: #fff;
     background-color: #c9302c;
     border-color: #ac2925;
 
-    &:after{
+    &:after {
       font-family: FontAwesome;
       content: "\f00d";
       margin-left: 10px;
     }
+  }
+}
+
+.api_guru_logo {
+  span {
+    color: black;
+  }
+  img {
+    height: 39px;
+    margin-left: 5px;
+    cursor: pointer;
+  }
+  a:hover {
+    text-decoration: none;
   }
 }

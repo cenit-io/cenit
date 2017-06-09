@@ -165,7 +165,13 @@ module Setup
       rc
     end
 
-    def run(input)
+    def run_asynchronous(input = [])
+      input = Cenit::Utility.json_value_of(input)
+      input = [input] unless input.is_a?(Array)
+      Setup::AlgorithmExecution.process(algorithm_id: id.to_s, input: input)
+    end
+
+    def run(input = [])
       input = Cenit::Utility.json_value_of(input)
       input = [input] unless input.is_a?(Array)
       rc = Cenit::BundlerInterpreter.run(self, *input)
@@ -322,7 +328,7 @@ module Setup
         errors: ['Python parsing not yet supported']
       }
     end
-    
+
   end
 end
 
