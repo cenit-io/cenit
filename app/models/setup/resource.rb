@@ -22,6 +22,27 @@ module Setup
     def conformed_path(options = {})
       conform_field_value(:path, options)
     end
-    
+
+    def respond_to?(*args)
+      super || Setup::Operation.method_enum.any? do |method|
+        method == args[0] || args[0].to_s == "#{method}!"
+      end
+    end
+
+    def method_missing(symbol, *args, &block)
+      method = Setup::Operation.method_enum.detect do |method|
+        method == symbol || symbol.to_s == "#{method}!"
+      end
+      if method && (operation = operations.where(method: method).first)
+        submit_method = 'submit'
+        if symbol.to_s.ends_with?('!')
+          submit_method = "#{submit_method}!"
+        end
+        operation.send(submit_method, *args, &block)
+      else
+        super
+      end
+    end
+
   end
 end

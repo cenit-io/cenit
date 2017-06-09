@@ -72,6 +72,8 @@ en:
         show: 'Show Chart'
         hide: 'Hide Chart'
       leave_context: 'Leave %{label} context'
+      powered_api_guru: 'API specs supplied by'
+      refresh: 'Refresh'
     actions:
       dashboard:
         title: "Dashboard"

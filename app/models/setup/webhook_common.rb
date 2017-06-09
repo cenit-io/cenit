@@ -57,6 +57,9 @@ module Setup
             end
             connections
           end
+        if connections.empty? && (connection = Setup::Connection.where(namespace: namespace).first)
+          connections << connection
+        end
         @connections_cache = connections unless @connection_role_options &&
                                                 @connection_role_options.key?(:cache) &&
                                                 !@connection_role_options[:cache]
