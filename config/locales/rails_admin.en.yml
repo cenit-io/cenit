@@ -548,6 +548,11 @@ en:
       link_data_type:
         menu: "Link"
         breadcrumb: "Link %{model_label}"
+      collect:
+        title: "Collect"
+        menu: "Collect"
+        breadcrumb: "Collect"
+        doing: "collecting"
       delete_data_type_errors: "Some data types could not be destroyed."
     form:
       flow:
