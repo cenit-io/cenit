@@ -434,7 +434,7 @@ module Api::V2
     def cors_header
       headers['Access-Control-Allow-Origin'] = request.headers['Origin'] || ::Cenit.homepage
       headers['Access-Control-Allow-Credentials'] = false
-      headers['Access-Control-Allow-Headers'] = 'Origin, X-Requested-With, Accept, Content-Type, X-Tenant-Access-Key, X-Tenant-Access-Token, X-User-Access-Key, X-User-Access-Token'
+      headers['Access-Control-Allow-Headers'] = 'Origin, X-Requested-With, Accept, Content-Type, X-Tenant-Access-Key, X-Tenant-Access-Token, X-User-Access-Key, X-User-Access-Token, Authorization'
       headers['Access-Control-Allow-Methods'] = 'POST, GET, PUT, DELETE, OPTIONS'
       headers['Access-Control-Max-Age'] = '1728000'
     end
