@@ -88,6 +88,7 @@ module Setup
       last_response = nil
       template_parameters_hash = self.template_parameters_hash.merge!(options[:template_parameters] || {})
       verbose_response = options[:verbose_response] ? {} : nil
+      notification_model = Account.current ? Setup::SystemNotification : Setup::SystemReport
       if (connections = self.connections).present?
         verbose_response[:connections_present] = true if verbose_response
         common_submitter_body = (body_caller = body_argument.respond_to?(:call)) ? nil : body_argument
@@ -166,7 +167,7 @@ module Setup
               else
                 attachment = nil
               end
-              Setup::SystemNotification.create_with(message: JSON.pretty_generate(method: method,
+              notification_model.create_with(message: JSON.pretty_generate(method: method,
                                                                                   url: url,
                                                                                   headers: headers),
                                                     type: :notice,
@@ -207,7 +208,7 @@ module Setup
               end
               last_response = http_response.body
 
-              Setup::SystemNotification.create_with(message: { response_code: http_response.code }.to_json,
+              notification_model.create_with(message: { response_code: http_response.code }.to_json,
                                                     type: (200...299).include?(http_response.code) ? :notice : :error,
                                                     attachment: attachment_from(http_response),
                                                     skip_notification_level: options[:skip_notification_level] || options[:notify_response])
@@ -227,15 +228,15 @@ module Setup
                 verbose_response[:http_response] = http_response
               end
             rescue Exception => ex
-              Setup::SystemNotification.create_from(ex)
+              notification_model.create_from(ex)
               raise ex if options[:halt_on_error]
             end
           else
-            Setup::SystemNotification.create(message: "Invalid submit data type: #{submitter_body.class}")
+            notification_model.create(message: "Invalid submit data type: #{submitter_body.class}")
           end
         end
       else
-        Setup::SystemNotification.create(message: 'No connections available', type: :warning)
+        notification_model.create(message: 'No connections available', type: :warning)
       end
       verbose_response || last_response
     end
