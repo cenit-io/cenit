@@ -122,7 +122,7 @@ RailsAdmin.config do |config|
 
   ### More at https://github.com/sferik/rails_admin/wiki/Base-configuration
   config.authenticate_with do
-    warden.authenticate! scope: :user unless %w(dashboard shared_collection_index ecommerce_index index show notebooks_root).include?(action_name)
+    warden.authenticate! scope: :user unless %w(dashboard shared_collection_index ecommerce_index index show notebooks_root open_api_directory).include?(action_name)
   end
   config.current_user_method { current_user }
   config.audit_with :mongoid_audit

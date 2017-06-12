@@ -121,11 +121,20 @@ module Setup
         nil
     end
 
-    def method_missing(symbol, *args)
+    def respond_to?(*args)
+      symbol = args[0]
+      data_type_methods.any? { |alg| alg.name == symbol.to_s } ||
+        records_model.respond_to?(symbol) ||
+        super
+    end
+
+    def method_missing(symbol, *args, &block)
       if (method = data_type_methods.detect { |alg| alg.name == symbol.to_s })
         args.unshift(self)
         method.reload
         method.run(args)
+      elsif records_model.respond_to?(symbol)
+        records_model.send(symbol, *args, &block)
       else
         super
       end

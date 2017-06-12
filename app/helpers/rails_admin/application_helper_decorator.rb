@@ -576,7 +576,7 @@ module RailsAdmin
           category_filter_url = open_api_directory_path(query: cat['id'], by_category: true)
           sub_links += content_tag :li do
             sub_link_url = category_filter_url
-            link_to sub_link_url do
+            link_to sub_link_url, class: 'pjax' do
               rc = ''
               if count > 0
                 rc += "<span class='nav-amount'>#{count}</span>"
@@ -768,22 +768,27 @@ module RailsAdmin
       end.html_safe
     end
 
+    def load_apis_specs
+      file_name = 'public/apis.guru.list.json'
+      if File.exists?(file_name)
+        list = File.read(file_name)
+      else
+        list = Setup::Connection.get('http://api.apis.guru/v2/list.json').submit!
+        File.open(file_name, 'w') { |file| file.write(list) }
+      end
+      begin
+        JSON.parse(list)
+      rescue Exception => ex
+        fail "invalid JSON content on #{file_name} (#{ex.message})"
+      end
+    rescue Exception => ex
+      flash[:error] = "Unable to retrieve OpenAPI Directory: #{ex.message}"
+      {}
+    end
+
     def list_apis
       cat_ids = Set.new
-      apis =
-        begin
-          file_name = 'public/apis.guru.list.json'
-          if File.exists?(file_name)
-            list = File.read(file_name)
-          else
-            list = Setup::Connection.get('http://api.apis.guru/v2/list.json').submit
-            File.open(file_name, 'w') { |file| file.write(list) }
-          end
-          JSON.parse(list)
-        rescue Exception => ex
-          flash[:error] = "Unable to retrieve OpenAPI Directory: #{ex.message}"
-          {}
-        end
+      apis = load_apis_specs
       if (id = params[:id]) && (api = apis[id])
         apis = { id => api }
       end
@@ -820,20 +825,7 @@ module RailsAdmin
 
     def count_apis
       cat_ids = Set.new
-      apis =
-        begin
-          file_name = 'public/apis.guru.list.json'
-          if File.exists?(file_name)
-            list = File.read(file_name)
-          else
-            list = Setup::Connection.get('http://api.apis.guru/v2/list.json').submit
-            File.open(file_name, 'w') { |file| file.write(list) }
-          end
-          JSON.parse(list)
-        rescue Exception => ex
-          flash[:error] = "Unable to retrieve OpenAPI Directory: #{ex.message}"
-          {}
-        end
+      apis = load_apis_specs
       apis = apis.collect do |key, api|
         api['id'] = key
         info = api['versions'][api['preferred']]['info'] || {}
