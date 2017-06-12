@@ -576,7 +576,7 @@ module RailsAdmin
           category_filter_url = open_api_directory_path(query: cat['id'], by_category: true)
           sub_links += content_tag :li do
             sub_link_url = category_filter_url
-            link_to sub_link_url do
+            link_to sub_link_url, class: 'pjax' do
               rc = ''
               if count > 0
                 rc += "<span class='nav-amount'>#{count}</span>"
