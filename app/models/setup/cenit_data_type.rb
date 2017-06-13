@@ -62,6 +62,10 @@ module Setup
       Account.tenant_collection_name(model)
     end
 
+    def respond_to?(*args)
+      %w(empty?).exclude?(args[0].to_s) && super
+    end
+
     def method_missing(symbol, *args)
       if build_in.respond_to?(symbol)
         build_in.send(symbol, *args)
