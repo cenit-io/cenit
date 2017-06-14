@@ -124,7 +124,9 @@ module Setup
     end
 
     def and(to_merge)
-      @to_merge = (@to_merge || {}).merge(to_merge.deep_stringify_keys)
+      if to_merge
+        @to_merge = (@to_merge || {}).array_hash_merge(to_merge.deep_stringify_keys)
+      end
       self
     end
 

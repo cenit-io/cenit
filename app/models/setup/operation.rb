@@ -48,6 +48,10 @@ module Setup
       label
     end
 
+    def connections
+      (resource && resource.connections).presence || super
+    end
+
     protected
 
     def conforms(field, template_parameters = {}, base_hash = nil)

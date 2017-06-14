@@ -7,7 +7,21 @@ module Setup
 
     origins :default, -> { Account.current_super_admin? ? :admin : nil }
 
-    build_in_data_type
+    STATUS = [:pending, :running, :failed, :completed, :retrying, :broken, :unscheduled, :paused]
+    ACTIVE_STATUS = [:running, :retrying]
+    NON_ACTIVE_STATUS = STATUS - ACTIVE_STATUS
+    RUNNING_STATUS = ACTIVE_STATUS + [:paused]
+    NOT_RUNNING_STATUS = STATUS - RUNNING_STATUS
+    FINISHED_STATUS = NOT_RUNNING_STATUS - [:pending]
+
+    # TODO Include instead the current execution ID
+    build_in_data_type.excluding(:current_execution).and(
+      properties: {
+        status: {
+          enum: STATUS.collect(&:to_s)
+        }
+      }
+    )
 
     deny :copy, :new, :translator_update, :import, :convert, :send_to_flow
 
@@ -73,13 +87,6 @@ module Setup
     def attempts_succeded
       "#{attempts}/#{succeded}"
     end
-
-    STATUS = [:pending, :running, :failed, :completed, :retrying, :broken, :unscheduled, :paused]
-    ACTIVE_STATUS = [:running, :retrying]
-    NON_ACTIVE_STATUS = STATUS - ACTIVE_STATUS
-    RUNNING_STATUS = ACTIVE_STATUS + [:paused]
-    NOT_RUNNING_STATUS = STATUS - RUNNING_STATUS
-    FINISHED_STATUS = NOT_RUNNING_STATUS - [:pending]
 
     def running_status?
       RUNNING_STATUS.include?(status)
