@@ -121,10 +121,12 @@ module Setup
         nil
     end
 
+    RECORDS_MODEL_METHODS = %w(where all).collect(&:to_sym)
+
     def respond_to?(*args)
       symbol = args[0]
-      data_type_methods.any? { |alg| alg.name == symbol.to_s } ||
-        records_model.respond_to?(symbol) ||
+      RECORDS_MODEL_METHODS.include?(symbol) ||
+        data_type_methods.any? { |alg| alg.name == symbol.to_s } ||
         super
     end
 
@@ -133,7 +135,7 @@ module Setup
         args.unshift(self)
         method.reload
         method.run(args)
-      elsif records_model.respond_to?(symbol)
+      elsif RECORDS_MODEL_METHODS.include?(symbol)
         records_model.send(symbol, *args, &block)
       else
         super
