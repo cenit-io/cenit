@@ -20,6 +20,7 @@ module Setup
         subclass.deny Setup::Models.excluded_actions_for(self)
         subclass.build_in_data_type.excluding(build_in_data_type.get_excluding)
         subclass.build_in_data_type.embedding(build_in_data_type.get_embedding)
+        subclass.build_in_data_type.and(build_in_data_type.get_to_merge)
       end
 
       def share_options

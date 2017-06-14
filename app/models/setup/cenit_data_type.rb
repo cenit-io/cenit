@@ -11,9 +11,6 @@ module Setup
       properties: {
         schema: {
           type: 'object'
-        },
-        slug: {
-          type: 'string'
         }
       }
     )
