@@ -3,7 +3,7 @@ module Api::V2
 
     before_action :authorize_account, :save_request_data, except: [:new_user, :cors_check, :auth]
     before_action :authorize_action, except: [:auth, :new_user, :cors_check, :push]
-    before_action :find_item, only: [:update, :show, :destroy, :pull, :run]
+    before_action :find_item, only: [:update, :show, :destroy, :pull, :run, :retry]
 
     rescue_from Exception, :with => :exception_handler
 
@@ -201,6 +201,19 @@ module Api::V2
         end
       else
         render json: { status: :not_allowed }
+      end
+    end
+
+    def retry
+      if @item.is_a?(Setup::Task)
+        if @item.can_retry?
+          @item.retry
+          render json: { status: :ok }
+        else
+          render json: { status: "Task #{@item.id} is #{task.sattus}" }, status: :not_acceptable
+        end
+      else
+        render json: { status: :not_allowed }, status: :bad_request
       end
     end
 
@@ -406,6 +419,8 @@ module Api::V2
             get_data_type(@model).is_a?(Setup::FileDataType) ? :upload_file : :new
           when 'update'
             :edit
+          when 'retry'
+            :retry_task
           else
             @_action_name.to_sym
           end

@@ -63,7 +63,8 @@ require 'account'
   RailsAdmin::Config::Actions::LinkDataType,
   RailsAdmin::Config::Actions::ImportApiSpec,
   RailsAdmin::Config::Actions::RemoteSharedCollection,
-  RailsAdmin::Config::Actions::OpenApiDirectory
+  RailsAdmin::Config::Actions::OpenApiDirectory,
+  RailsAdmin::Config::Actions::Collect
 ].each { |a| RailsAdmin::Config::Actions.register(a) }
 
 [
@@ -191,6 +192,7 @@ RailsAdmin.config do |config|
     reinstall
     simple_delete_data_type
     bulk_delete_data_type
+    collect
     delete
     trash
     notebooks_root if Cenit.jupyter_notebooks

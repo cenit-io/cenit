@@ -199,3 +199,5 @@ class Account
     end
   end
 end
+
+Tenant = Account

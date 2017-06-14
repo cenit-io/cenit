@@ -22,8 +22,8 @@ module Setup
     has_and_belongs_to_many :notifications, class_name: Setup::SystemNotification.to_s, inverse_of: nil
 
     field :status, type: Symbol, default: :pending
-    field :started_at, type: Time
-    field :completed_at, type: Time
+    field :started_at, type: DateTime
+    field :completed_at, type: DateTime
 
     field :agent_id, type: BSON::ObjectId
 

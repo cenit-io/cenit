@@ -47,6 +47,9 @@ module RailsAdmin
               field :path
               field :description
               field :operations
+              field :headers
+              field :parameters
+              field :template_parameters
 
               field :_id
               field :created_at
