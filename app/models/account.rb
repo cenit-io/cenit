@@ -161,6 +161,10 @@ class Account
     each_cenit_collection(&:drop)
   end
 
+  def notify(attrs)
+    Setup::SystemNotification.create_with(attrs)
+  end
+
   class << self
 
     def current_key
