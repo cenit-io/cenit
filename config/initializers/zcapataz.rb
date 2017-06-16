@@ -44,7 +44,7 @@ Capataz.config do
 
   allow_on File, [:dirname, :basename]
 
-  allow_on Time, [:month, :day, :year, :now]
+  allow_on Time, [:strftime, :at, :year, :month, :day, :mday, :wday, :hour, :min, :sec, :now, :to_i, :utc, :getlocal, :gm, :gmtime, :local]
 
   allow_on DateTime, [:parse, :strftime]
 
