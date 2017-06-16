@@ -14,11 +14,13 @@ Capataz.config do
                     Xmldsig, Xmldsig::SignedDocument, Zip, Zip::OutputStream, Zip::InputStream, StringIO, MIME::Mail, MIME::Text, MIME::Multipart::Mixed,
                     Spreadsheet, Spreadsheet::Workbook, Setup::Authorization, Setup::Connection, Devise, Cenit, JWT, Setup::XsltValidator, Setup::Translator,
                     Setup::Flow, WriteXLSX, MIME::DiscreteMediaFactory, MIME::DiscreteMedia, MIME::DiscreteMedia, MIME::Image, MIME::Application, DateTime,
-                    Tenant
+                    Tenant, Setup::SystemNotification
+
+  allow_on Setup::SystemNotification, :create_with
 
   allow_for Setup::CrossSharedCollection, :pull
 
-  allow_on [Account, Tenant], [:name, :where, :all, :switch]
+  allow_on [Account, Tenant], [:name, :where, :all, :switch, :notify]
 
   allow_on Cenit, [:homepage, :namespace]
 
@@ -119,7 +121,7 @@ Capataz.config do
         "#{action}_from#{format}"
       end
     end + [:create_from]
-  end + [:name, :slug, :to_json, :share_json, :to_edi, :to_hash, :to_xml, :to_params, :records_model, :namespace] + Setup::DataType::RECORDS_MODEL_METHODS).flatten
+  end + [:name, :slug, :to_json, :share_json, :to_edi, :to_hash, :to_xml, :to_params, :records_model, :namespace, :id] + Setup::DataType::RECORDS_MODEL_METHODS).flatten
 
   deny_for [Setup::DynamicRecord, Mongoff::Record], ->(instance, method) do
     return false if [:id, :to_json, :share_json, :to_edi, :to_hash, :to_xml, :to_xml_element, :to_params, :from_json, :from_xml, :from_edi, :[], :[]=, :save, :all, :where, :orm_model, :nil?, :==, :errors, :destroy, :new_record?].include?(method)
