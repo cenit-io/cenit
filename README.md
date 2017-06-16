@@ -8,6 +8,8 @@
 [![OpenAPI specs][numSpecs-image]][apisDir-link]
 [![Endpoints][endpoints-image]][apisDir-link]
 
+[![Follow on Twitter][twitterFollow-image]][twitterFollow-link]
+
 * [Cenit IO](https://cenit.io)  [(https://cenit.io)](https://cenit.io)
 * [Join our Slack](https://cenitio.slack.com/shared_invite/MTg0NTgzNDk0NDQ4LTE0OTUxMjc4NzgtNzFkZjA1ZDdkYw)
 [(cenitio.slack.com)](https://cenitio.slack.com/shared_invite/MTg0NTgzNDk0NDQ4LTE0OTUxMjc4NzgtNzFkZjA1ZDdkYw)
@@ -17,7 +19,7 @@
 * support@cenit.io
 
 
-[Cenit IO](https://cenit.io)  [(https://cenit.io)](https://cenit.io) is an Open Platform for Data and Business Integration (iPaaS). It has been designed to orchestrate data flows that may involve several kind of endpoints (APIs, Datasets, EDI). It makes possible a complete business automation of all operational processes in a company, connecting between organization's on-premises infrastructure and cloud provider services.
+[Cenit IO](https://cenit.io)  [(https://cenit.io)](https://cenit.io) is an Open Platform for Data and Business Integration (iPaaS). It is designed to orchestrate data flows that may involve several kinds of endpoints (APIs, Datasets, EDI). It makes possible a complete business automation of all operational processes in a company, connecting between organization's on-premises infrastructure and cloud provider services.
 
 It allows the creation of custom data pipelines for process, storage and data movement between APIs. The flows could be trigger by data events or be scheduled.
 
@@ -443,3 +445,5 @@ Thank you for your contributions:
 [numSpecs-image]: https://api.apis.guru/badges/openapi_specs.svg
 [endpoints-image]: https://api.apis.guru/badges/endpoints.svg
 [apisDir-link]: https://github.com/APIs-guru/openapi-directory/tree/master/APIs
+[twitterFollow-image]: https://img.shields.io/twitter/follow/cenit_io.svg?style=social
+[twitterFollow-link]: https://twitter.com/intent/follow?screen_name=cenit_io
