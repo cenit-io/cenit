@@ -8,6 +8,8 @@
 [![OpenAPI specs][numSpecs-image]][apisDir-link]
 [![Endpoints][endpoints-image]][apisDir-link]
 
+[![Follow on Twitter][twitterFollow-image]][twitterFollow-link]
+
 * [Cenit IO](https://cenit.io)  [(https://cenit.io)](https://cenit.io)
 * [Join our Slack](https://cenitio.slack.com/shared_invite/MTg0NTgzNDk0NDQ4LTE0OTUxMjc4NzgtNzFkZjA1ZDdkYw)
 [(cenitio.slack.com)](https://cenitio.slack.com/shared_invite/MTg0NTgzNDk0NDQ4LTE0OTUxMjc4NzgtNzFkZjA1ZDdkYw)
@@ -443,3 +445,5 @@ Thank you for your contributions:
 [numSpecs-image]: https://api.apis.guru/badges/openapi_specs.svg
 [endpoints-image]: https://api.apis.guru/badges/endpoints.svg
 [apisDir-link]: https://github.com/APIs-guru/openapi-directory/tree/master/APIs
+[twitterFollow-image]: https://img.shields.io/twitter/follow/cenit_io.svg?style=social
+[twitterFollow-link]: https://twitter.com/intent/follow?screen_name=cenit_io
