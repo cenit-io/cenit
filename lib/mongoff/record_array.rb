@@ -33,6 +33,11 @@ module Mongoff
             item
           end
       end
+      @changed = false
+    end
+
+    def changed?
+      @changed
     end
 
     def count
@@ -66,6 +71,7 @@ module Mongoff
             array << item.attributes unless array.any? { |doc| doc['_id'] == item.id }
           end
         end
+        @changed = true
       else
         raise Exception.new("Invalid value #{item}")
       end
