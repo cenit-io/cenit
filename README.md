@@ -12,7 +12,7 @@
 
 * [Cenit IO](https://cenit.io)  [(https://cenit.io)](https://cenit.io)
 * [Join our Slack][join-slack-link]
-[(cenitio.slack.com)](https://cenitio.slack.com/shared_invite/MTg0NTgzNDk0NDQ4LTE0OTUxMjc4NzgtNzFkZjA1ZDdkYw)
+[(cenitio.slack.com)][join-slack-link]
 * [Shared Collections](https://cenit.io/setup~shared_collection)
 * [Cenit IO - 101 Intro](https://cenit-io.github.io/cenit-slides/#cover)
 * [Documentation](https://cenit-io.github.io/docs/)
