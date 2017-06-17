@@ -163,8 +163,9 @@ module Mongoff
       end
     end
 
+    #TODO Implements ActiveModel changes pattern
     def changed?
-      @changed
+      @changed || @fields.values.any? { |value| value && value.respond_to?(:changed?) && value.changed? }
     end
 
     def []=(field, value)
@@ -311,17 +312,21 @@ module Mongoff
     end
 
     def to_s
-      case (template = orm_model.label_template)
-      when String
-        template
-      when Liquid::Template
-        begin
-          template.render document
-        rescue Exception => ex
-          ex.message
+      if orm_model
+        case (template = orm_model.label_template)
+        when String
+          template
+        when Liquid::Template
+          begin
+            template.render document
+          rescue Exception => ex
+            ex.message
+          end
+        else
+          "#{orm_model.label} ##{id}"
         end
       else
-        "#{orm_model.label} ##{id}"
+        super
       end
     end
 
