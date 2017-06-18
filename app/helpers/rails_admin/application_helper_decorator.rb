@@ -143,7 +143,7 @@ module RailsAdmin
         scope = Setup::SystemNotification.where(type: type)
         if (scope.count > 0)
           meta = account.meta
-          if (from_date = meta["#{type.to_s}_notifications_listed_at"])
+          if meta.present? && (from_date = meta["#{type.to_s}_notifications_listed_at"])
             scope = scope.where(:created_at.gte => from_date)
           end
           count = scope.count
