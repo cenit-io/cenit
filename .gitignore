@@ -12,6 +12,7 @@ capybara-*.html
 **.orig
 rerun.txt
 pickle-email-*.html
+public/apis.guru.list.json
 config/initializers/secret_token.rb
 config/application.yml
 config/deploy
