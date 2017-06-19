@@ -11,8 +11,10 @@ module RailsAdmin
             object_label_method { :custom_title }
             label 'EDI Validator'
 
+            configure :namespace, :enum_edit
+
             edit do
-              field :namespace, :enum_edit
+              field :namespace
               field :name
               field :schema_data_type
               field :content_type

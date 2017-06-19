@@ -43,6 +43,10 @@ module RailsAdmin
       register_instance_option :current_step do
         0
       end
+
+      register_instance_option :search_associations do
+        []
+      end
     end
   end
 end

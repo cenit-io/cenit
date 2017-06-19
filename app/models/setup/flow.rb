@@ -293,6 +293,15 @@ module Setup
       end
     end
 
+    def sources(message)
+      object_ids = ((obj_id = message[:source_id]) && [obj_id]) || source_ids_from(message)
+      if object_ids
+        data_type.records_model.any_in(id: object_ids)
+      else
+        data_type.records_model.all
+      end
+    end
+
     class << self
       def default_thread_value
         []
