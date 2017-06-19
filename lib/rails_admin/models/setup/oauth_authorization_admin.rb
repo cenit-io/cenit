@@ -14,6 +14,8 @@ module RailsAdmin
             object_label_method { :custom_title }
             parent ::Setup::Authorization
 
+            configure :namespace, :enum_edit
+
             configure :metadata, :json_value
 
             configure :status do
@@ -23,7 +25,7 @@ module RailsAdmin
             end
 
             edit do
-              field :namespace, :enum_edit
+              field :namespace
               field :name
               field :client
               field :parameters

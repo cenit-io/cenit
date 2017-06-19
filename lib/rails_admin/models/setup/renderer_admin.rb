@@ -43,6 +43,8 @@ module RailsAdmin
               end
             end
 
+            configure :namespace, :enum_edit
+
             configure :source_data_type, :contextual_belongs_to
 
             edit do
