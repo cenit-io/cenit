@@ -10,6 +10,10 @@ module RailsAdmin
             weight 217
             object_label_method { :custom_title }
 
+            search_associations do
+              :resource
+            end
+
             configure :resource do
               read_only true
               RailsAdmin::Config::Fields::Base::SHARED_READ_ONLY

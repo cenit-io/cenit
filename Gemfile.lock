@@ -46,7 +46,7 @@ GIT
 
 GIT
   remote: https://github.com/macarci/capataz.git
-  revision: 42ed4fe635f55bec5892af8ecb92eef9d0e2a525
+  revision: effde41f2582b421dd6a0bb8bca0569d39095a44
   specs:
     capataz (0.0.1)
       parser

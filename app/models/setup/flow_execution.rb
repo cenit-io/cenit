@@ -14,6 +14,10 @@ module Setup
       self.flow = Setup::Flow.where(id: message['flow_id']).first
     end
 
+    def sources
+      (flow && flow.sources(message)) || []
+    end
+
     def run(message)
       if (flow = Setup::Flow.where(id: (flow_id = message[:flow_id])).first)
         if flow.active
@@ -25,6 +29,6 @@ module Setup
         fail "Flow with id #{flow_id} not found"
       end
     end
-    
+
   end
 end

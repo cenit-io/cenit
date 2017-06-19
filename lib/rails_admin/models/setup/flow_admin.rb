@@ -79,6 +79,8 @@ module RailsAdmin
               end
             end
 
+            configure :namespace, :enum_edit
+
             ::Setup::FlowConfig.config_fields.each do |f|
               schema = ::Setup::Flow.data_type.schema['properties'][f]
               if schema['enum']

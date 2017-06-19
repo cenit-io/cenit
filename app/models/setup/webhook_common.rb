@@ -213,8 +213,8 @@ module Setup
                                                     attachment: attachment_from(http_response),
                                                     skip_notification_level: options[:skip_notification_level] || options[:notify_response])
 
+              http_response = Setup::Webhook::Response.new(false, http_response) unless http_response.is_a?(Setup::Webhook::Response)
               if block
-                http_response = Setup::Webhook::Response.new(false, http_response)
                 last_response =
                   case block.arity
                   when 1

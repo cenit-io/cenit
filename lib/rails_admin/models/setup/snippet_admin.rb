@@ -10,6 +10,7 @@ module RailsAdmin
             weight 430
             object_label_method { :custom_title }
 
+            configure :namespace, :enum_edit
             configure :name
             configure :code, :code do
               code_config do
@@ -34,7 +35,7 @@ module RailsAdmin
             end
 
             edit do
-              field :namespace, :enum_edit
+              field :namespace
               field :name
               field :type
               field :description

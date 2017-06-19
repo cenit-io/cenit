@@ -11,6 +11,8 @@ module RailsAdmin
             label 'Connection Role'
             object_label_method { :custom_title }
 
+            configure :namespace, :enum_edit
+
             configure :name, :string do
               help 'Required.'
               html_attributes do
@@ -24,7 +26,7 @@ module RailsAdmin
               nested_form false
             end
             modal do
-              field :namespace, :enum_edit
+              field :namespace
               field :name
               field :webhooks
               field :connections
@@ -43,7 +45,7 @@ module RailsAdmin
             end
 
             edit do
-              field :namespace, :enum_edit
+              field :namespace
               field :name
               field :webhooks
               field :connections

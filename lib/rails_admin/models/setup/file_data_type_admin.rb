@@ -12,6 +12,8 @@ module RailsAdmin
             label 'File Type'
             object_label_method { :custom_title }
 
+            configure :namespace, :enum_edit
+
             group :content do
               label 'Content'
             end

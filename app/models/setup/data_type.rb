@@ -121,7 +121,7 @@ module Setup
         nil
     end
 
-    RECORDS_MODEL_METHODS = %w(where all).collect(&:to_sym)
+    RECORDS_MODEL_METHODS = %w(where all count).collect(&:to_sym)
 
     def respond_to?(*args)
       symbol = args[0]

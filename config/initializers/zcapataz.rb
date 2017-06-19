@@ -14,9 +14,13 @@ Capataz.config do
                     Xmldsig, Xmldsig::SignedDocument, Zip, Zip::OutputStream, Zip::InputStream, StringIO, MIME::Mail, MIME::Text, MIME::Multipart::Mixed,
                     Spreadsheet, Spreadsheet::Workbook, Setup::Authorization, Setup::Connection, Devise, Cenit, JWT, Setup::XsltValidator, Setup::Translator,
                     Setup::Flow, WriteXLSX, MIME::DiscreteMediaFactory, MIME::DiscreteMedia, MIME::DiscreteMedia, MIME::Image, MIME::Application, DateTime,
-                    Tenant
+                    Tenant, Setup::SystemNotification
 
-  allow_on [Account, Tenant], [:name, :where, :all, :switch]
+  allow_on Setup::SystemNotification, :create_with
+
+  allow_for Setup::CrossSharedCollection, :pull
+
+  #allow_on [Account, Tenant], [:name, :where, :all, :switch, :notify]
 
   allow_on Cenit, [:homepage, :namespace]
 
@@ -38,7 +42,7 @@ Capataz.config do
 
   allow_on YAML, [:load, :add_domain_type]
 
-  allow_on URI, [:decode, :encode, :encode_www_form]
+  allow_on URI, [:decode, :encode, :encode_www_form, :parse]
 
   allow_on StringIO, [:new_io]
 
@@ -101,9 +105,9 @@ Capataz.config do
               :encode64, :decode64, :urlsafe_encode64, :new_io, :get_input_stream, :open, :new_document
             ] + Setup::Webhook.method_enum
 
-  allow_for [Mongoid::Criteria, Mongoff::Criteria], Enumerable.instance_methods(false) + Origin::Queryable.instance_methods(false) + [:each, :present?, :blank?]
+  allow_for [Mongoid::Criteria, Mongoff::Criteria], Enumerable.instance_methods(false) + Origin::Queryable.instance_methods(false) + [:each, :present?, :blank?, :limit, :skip]
 
-  allow_for Setup::Task, [:status, :scheduler, :state, :resume_in, :run_again, :progress, :progress=, :update, :destroy, :notifications, :notify, :to_json, :share_json, :to_edi, :to_hash, :to_xml, :id, :current_execution]
+  allow_for Setup::Task, [:status, :scheduler, :state, :resume_in, :run_again, :progress, :progress=, :update, :destroy, :notifications, :notify, :to_json, :share_json, :to_edi, :to_hash, :to_xml, :id, :current_execution, :sources]
 
   allow_for Setup::Scheduler, [:activated?, :name, :to_json, :share_json, :to_edi, :to_hash, :to_xml, :namespace]
 
@@ -117,7 +121,7 @@ Capataz.config do
         "#{action}_from#{format}"
       end
     end + [:create_from]
-  end + [:name, :slug, :to_json, :share_json, :to_edi, :to_hash, :to_xml, :to_params, :records_model, :namespace, :where, :all]).flatten
+  end + [:name, :slug, :to_json, :share_json, :to_edi, :to_hash, :to_xml, :to_params, :records_model, :namespace, :id] + Setup::DataType::RECORDS_MODEL_METHODS).flatten
 
   deny_for [Setup::DynamicRecord, Mongoff::Record], ->(instance, method) do
     return false if [:id, :to_json, :share_json, :to_edi, :to_hash, :to_xml, :to_xml_element, :to_params, :from_json, :from_xml, :from_edi, :[], :[]=, :save, :all, :where, :orm_model, :nil?, :==, :errors, :destroy, :new_record?].include?(method)

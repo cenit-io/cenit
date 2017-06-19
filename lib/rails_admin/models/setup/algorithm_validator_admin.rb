@@ -10,8 +10,9 @@ module RailsAdmin
             weight 104
             label 'Algorithm Validator'
             object_label_method { :custom_title }
+            configure :namespace, :enum_edit
             edit do
-              field :namespace, :enum_edit
+              field :namespace
               field :name
               field :algorithm
             end

@@ -13,6 +13,8 @@ module RailsAdmin
             end
             object_label_method { :custom_title }
 
+            configure :namespace, :enum_edit
+
             configure :refresh_token_algorithm do
               visible { bindings[:object].refresh_token_strategy == :custom.to_s }
             end

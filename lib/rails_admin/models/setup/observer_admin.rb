@@ -36,10 +36,12 @@ module RailsAdmin
               end
             end
 
+            configure :namespace, :enum_edit
+
             configure :data_type, :contextual_belongs_to
 
             edit do
-              field :namespace, :enum_edit
+              field :namespace
               field :name
               field :data_type do
                 inline_edit false
