@@ -37,6 +37,8 @@ It allows the creation of custom data pipelines for process, storage and data mo
 There are now over 200 pre-built integration collections shared out the box to connect with online internet services,
 fulfilment solutions, accounting, communications, ERP, multi-channels, etc.
 
+[see this video for more details](https://youtu.be/IOEbTtEv8MQ)
+
 An example of integration data flow (Fancy <=> Shipstation):
 
 * Every 20 minutes Cenit trigger a flow to get orders from Fancy Marketplace.
