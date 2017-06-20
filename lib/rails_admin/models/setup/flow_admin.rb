@@ -94,6 +94,7 @@ module RailsAdmin
             edit do
               field :namespace, :enum_edit, &RailsAdmin::Config::Fields::Base::SHARED_READ_ONLY
               field :name, &RailsAdmin::Config::Fields::Base::SHARED_READ_ONLY
+              field :description, &RailsAdmin::Config::Fields::Base::SHARED_READ_ONLY
               field :event, :optional_belongs_to do
                 inline_edit false
                 visible do
@@ -314,6 +315,7 @@ module RailsAdmin
             show do
               field :namespace
               field :name
+              field :description
               field :active
               field :event
               field :translator
@@ -351,7 +353,7 @@ module RailsAdmin
               field :updated_at
             end
 
-            fields :namespace, :name, :active, :event, :translator, :updated_at
+            fields :namespace, :name, :description, :active, :event, :translator, :updated_at
           end
         end
 

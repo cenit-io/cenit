@@ -39,6 +39,8 @@ module Setup
       }
     )
 
+    field :description, type: String
+
     binding_belongs_to :event, class_name: Setup::Event.to_s, inverse_of: nil
 
     belongs_to :translator, class_name: Setup::Translator.to_s, inverse_of: nil
