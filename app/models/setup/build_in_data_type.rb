@@ -277,18 +277,18 @@ module Setup
           case relation.macro
           when :embeds_one
             {
-              '$ref': relation.klass.to_s
+              '$ref': build_ref(relation.klass)
             }
           when :embeds_many
             {
               type: 'array',
               items: {
-                '$ref': relation.klass.to_s
+                '$ref': build_ref(relation.klass)
               }
             }
           when :has_one
             {
-              '$ref': relation.klass.to_s,
+              '$ref': build_ref(relation.klass),
               referenced: true,
               exclusive: (@exclusive_referencing && @exclusive_referencing.include?(relation_name)).to_b,
               export_embedded: (@embedding && @embedding.include?(relation_name)).to_b
@@ -296,7 +296,7 @@ module Setup
           when :belongs_to
             if (@including && @including.include?(relation_name.to_s)) || relation.inverse_of.nil?
               {
-                '$ref': relation.klass.to_s,
+                '$ref': build_ref(relation.klass),
                 referenced: true,
                 exclusive: (@exclusive_referencing && @exclusive_referencing.include?(relation_name)).to_b,
                 export_embedded: (@embedding && @embedding.include?(relation_name)).to_b
@@ -306,7 +306,7 @@ module Setup
             {
               type: 'array',
               items: {
-                '$ref': relation.klass.to_s
+                '$ref': build_ref(relation.klass)
               },
               referenced: true,
               exclusive: (@exclusive_referencing && @exclusive_referencing.include?(relation_name)).to_b,
@@ -323,6 +323,11 @@ module Setup
       schema['protected'] = @protecting if @protecting.present?
       schema = schema.deep_reverse_merge(@to_merge) if @to_merge
       schema
+    end
+
+    def build_ref(klass)
+      tokens = klass.to_s.split('::')
+      { 'name' => tokens.pop, 'namespace' => tokens.join('::') }
     end
 
   end
