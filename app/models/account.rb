@@ -46,6 +46,14 @@ class Account
 
   field :index_max_entries, type: Integer, default: DEFAULT_INDEX_MAX_ENTRIES
 
+  default_scope -> {
+    if User.current && !User.current_super_admin?
+      where(owner: User.current)
+    else
+      all
+    end
+  }
+
   validates_presence_of :name, :notification_level, :time_zone
   validates_uniqueness_of :name, scope: :owner
   validates_inclusion_of :notification_level, in: ->(a) { a.notification_level_enum }
