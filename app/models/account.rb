@@ -3,7 +3,6 @@ require 'cenit/heroku_client'
 class Account
   include Setup::CenitUnscoped
   include Cenit::MultiTenancy
-  include Cenit::Oauth::Tenant
   include CredentialsGenerator
   include FieldsInspection
   include RailsAdmin::Models::AccountAdmin
@@ -165,7 +164,9 @@ class Account
   end
 
   def clean_up
-    super
+    switch do
+      Cenit::ApplicationId.where(:id.in => Cenit::Oauth.app_model.all.collect(&:application_id_id)).delete_all
+    end
     each_cenit_collection(&:drop)
   end
 
