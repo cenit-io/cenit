@@ -120,3 +120,6 @@ gem 'rkelly-remix'
 
 gem 'write_xlsx'
 gem 'handlebars'
+gem 'wicked_pdf'
+gem 'wkhtmltopdf-binary'
+#gem 'RMagick'
