@@ -40,7 +40,7 @@ module Setup
 
     class << self
       def transformation_types(*args)
-        if args.length > 1
+        if args.length > 0
           @transformation_types = args
         else
           @transformation_types || (superclass.is_a?(Setup::Notification) ? superclass.transformation_types : [])
