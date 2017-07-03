@@ -12,6 +12,8 @@ module RailsAdmin
             label 'Notification'
             weight 500
 
+            visible { User.current_super_admin? }
+
             configure :data_type, :contextual_belongs_to
 
             edit do

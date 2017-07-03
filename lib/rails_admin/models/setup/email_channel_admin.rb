@@ -10,6 +10,8 @@ module RailsAdmin
             weight 450
             object_label_method { :custom_title }
 
+            visible { User.current_super_admin? }
+
             fields :namespace, :name, :updated_at
           end
         end
