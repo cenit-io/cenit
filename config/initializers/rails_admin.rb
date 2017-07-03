@@ -307,6 +307,8 @@ RailsAdmin.config do |config|
 
   Setup::Oauth2Provider
 
+  Setup::SmtpProvider
+
   Setup::Oauth2Scope
 
   Setup::Authorization
@@ -320,6 +322,8 @@ RailsAdmin.config do |config|
   Setup::AwsAuthorization
 
   Cenit::OauthAccessGrant
+
+  Setup::SmtpAccount
 
   #Compute
 
@@ -367,6 +371,16 @@ RailsAdmin.config do |config|
   Cenit::ApplicationParameter
 
   Setup::Snippet
+
+  #Channels
+
+  config.navigation 'Channels', icon: 'fa fa-exchange'
+
+  Setup::EmailChannel
+
+  Setup::SmtpAccount
+
+  Setup::EmailFlow
 
   #Workflows
 
