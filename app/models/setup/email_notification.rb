@@ -6,17 +6,16 @@ module Setup
 
     belongs_to :email_channel, class_name: Setup::EmailChannel.to_s, inverse_of: nil
 
-    validates_presence_of :email_channel
-
     def validates_configuration
-      super
-      if transformation.is_a?(Setup::Converter)
-        if email_data_type
-          unless transformation.target_data_type.eql?(email_data_type)
-            errors.add(:transformation, "wrong target data type, expected to be #{email_data_type.custom_title}")
+      if super && !requires(:email_channel)
+        if transformation.is_a?(Setup::Converter)
+          if email_data_type
+            unless transformation.target_data_type.eql?(email_data_type)
+              errors.add(:transformation, "wrong target data type, expected to be #{email_data_type.custom_title}")
+            end
+          else
+            errors.add(:transformation, 'of type converter can not be used since the email data type is not yet configured')
           end
-        else
-          errors.add(:transformation, 'of type converter can not be used since the email data type is not yet configured')
         end
       end
       errors.blank?

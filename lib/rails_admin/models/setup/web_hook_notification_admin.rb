@@ -18,6 +18,7 @@ module RailsAdmin
               field :name
 
               field :data_type do
+                required true
                 inline_edit false
               end
 
@@ -26,6 +27,7 @@ module RailsAdmin
               end
 
               field :observers do
+                required true
                 label 'Events'
                 visible { !bindings[:object].data_type.nil? }
                 contextual_params do
@@ -36,14 +38,17 @@ module RailsAdmin
               end
 
               field :url, :string do
+                required true
                 visible { !bindings[:object].data_type.nil? }
               end
 
               field :http_method do
+                required true
                 visible { !bindings[:object].data_type.nil? }
               end
 
               field :transformation do
+                required true
                 visible { !bindings[:object].data_type.nil? }
                 contextual_association_scope do
                   types = bindings[:object].class.transformation_types.collect(&:to_s)

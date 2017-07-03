@@ -388,6 +388,12 @@ RailsAdmin.config do |config|
 
   Setup::Flow
 
+  Setup::Notification
+
+  Setup::EmailNotification
+
+  Setup::WebHookNotification
+
   Setup::Event
 
   Setup::Observer

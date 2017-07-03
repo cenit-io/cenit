@@ -15,8 +15,6 @@ module Setup
 
     field :active, type: Boolean
 
-    validates_presence_of :data_type, :transformation
-
     before_save :ready_to_save?, :validates_configuration
 
     # Virtual abstract method to process a data type record.
