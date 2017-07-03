@@ -6,85 +6,66 @@ module RailsAdmin
 
         included do
           rails_admin do
-            object_label_method { :name }
+            object_label_method { :custom_title }
             label 'Web-Hook'
-            visible false
-            weight 500
+
+            visible { User.current_super_admin? }
+
+            configure :data_type, :contextual_belongs_to
 
             edit do
-              required_help = '<i class="fa fa-warning"></i> Required.'
-              handlebars_help = '<i class="fa fa-question-circle"></i> You can use <a href="http://handlebarsjs.com/" target="_blank">handlebar</a> to form the value from the record data.'
-              field :name, :string do
-                required true
-              end
-
-              field :active, :boolean do
-                visible do
-                  ctrl = bindings[:controller]
-                  model_name = ctrl.instance_variable_get(:@model_name)
-                  bindings[:object].data_type ||= ctrl.instance_variable_get(:@data_type_filter)
-                  bindings[:object].data_type ||= ctrl.object if model_name == 'Setup::JsonDataType'
-                  bindings[:object].data_type != nil
-                end
-              end
+              field :namespace
+              field :name
 
               field :data_type do
-                required true
                 inline_edit false
-                read_only do
-                  bindings[:object].data_type != nil
-                end
-                help do
-                  text = ''
-                  if bindings[:object].data_type.nil?
-                    text << "<i class='fa fa-warning'></i> Required.<br/>"
-                    text << "<i class='fa fa-warning'></i> To set observers, you must first use the save and edit action."
-                  end
-                  text.html_safe
-                end
+              end
+
+              field :active do
+                visible { !bindings[:object].data_type.nil? }
               end
 
               field :observers do
                 label 'Events'
-                inline_add false
                 visible { !bindings[:object].data_type.nil? }
-                associated_collection_scope do
-                  data_type = bindings[:object].data_type || bindings[:controller].object
-                  proc { |scope| scope.where(data_type_id: data_type.id) }
-                end
-                help do
-                  text = 'Required.'
-                  if bindings[:controller].instance_variable_get(:@model_name) != 'Setup::ForeignNotificationWebHook'
-                    text = "<i class='fa fa-warning'></i> Required.<br/>"
-                    text << "<i class='fa fa-warning'></i> To use a newly created observer in this session or set setting values, you must first use the save and edit action."
+                contextual_params do
+                  if (dt = bindings[:object].data_type)
+                    { data_type_id: dt.id.to_s }
                   end
-                  text.html_safe
                 end
               end
 
-              field :uri, :string do
-                required true
-                help "#{required_help}<br/>#{handlebars_help}".html_safe
+              field :url, :string do
+                visible { !bindings[:object].data_type.nil? }
               end
 
-              field :method, :enum do
-                required true
-                html_attributes do
-                  { 'data-enum_edit': false }
+              field :http_method do
+                visible { !bindings[:object].data_type.nil? }
+              end
+
+              field :transformation do
+                visible { !bindings[:object].data_type.nil? }
+                contextual_association_scope do
+                  types = bindings[:object].class.transformation_types.collect(&:to_s)
+                  proc do |scope|
+                    scope.where(:_type.in => types)
+                  end
+                end
+                contextual_params do
+                  h = {}
+                  if (dt = bindings[:object].data_type)
+                    h[:source_data_type_id] = [nil, dt.id.to_s]
+                  end
+                  h
                 end
               end
 
-              field :params do
-                required true
+              field :template_options do
+                visible { !bindings[:object].data_type.nil? }
               end
-
-              field :params_as_json do
-                help 'Send the parameters as data encoded in json.'
-              end
-
             end
 
-            fields :name, :active, :data_type, :observers, :updated_at
+            fields :name, :active, :data_type, :observers, :http_method, :url, :updated_at
           end
         end
 

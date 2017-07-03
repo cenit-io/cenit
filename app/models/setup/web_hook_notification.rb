@@ -3,54 +3,45 @@ require 'rest-client'
 module Setup
   class WebHookNotification < Setup::Notification
     include RailsAdmin::Models::Setup::WebHookNotificationAdmin
+    include Setup::TranslationCommon::ClassMethods
 
-    field :uri, type: String
-    field :method, type: Symbol, :default => :GET
-    field :params, type: Symbol, :default => :record_id
-    field :params_as_json, type: Boolean, :default => false
+    transformation_types Setup::Renderer
 
-    belongs_to :data_type, :class_name => Setup::DataType.name, inverse_of: nil
+    field :url, type: String
+    field :http_method, type: Symbol, default: :GET
+    field :template_options, type: String
 
-    allow :copy, :new, :edit, :export, :import
-
-    def method_enum
-      [:GET, :POST, :PUSH, :DELETE]
+    def validates_configuration
+      self.template_options = template_options.to_s.strip
+      if super && !requires(:url, :http_method)
+        if template_options.present?
+          begin
+            parse_options(template_options)
+          rescue Exception => ex
+            errors.add(:template_options, "syntax error: #{ex.message}")
+          end
+        else
+          remove_attribute(:template_options)
+        end
+      end
+      errors.blank?
     end
 
-    def params_enum
-      {
-        'No parameters' => :without_parameters,
-        'Send only record ID' => :record_id,
-        'Send all record data' => :record_data,
-        'Send full event data' => :event_data
-      }
+    def process(record)
+      options = { options: parse_options(template_options) }
+      if transformation.bulk_source
+        options[:sources] = [record]
+      else
+        options[:source] = record
+      end
+      data = transformation.run(options)
+      Setup::Connection.send(http_method.to_s.downcase, url).submit(body: data, template_parameters: record.to_hash)
     end
 
-    # Send notification via http request
-    def send_message(data)
-      v_uri = render(data, uri)
-      v_data = case params
-               when :record_id
-                 { id: data[:record][:id] }
-               when :record_data
-                 data[:record]
-               when :event_data
-                 data
-               else
-                 {}
-               end
-
-      v_data = params_as_json ? { data: v_data.to_json } : v_data
-
-      response = RestClient::Request.execute(
-        :url => v_uri,
-        :method => method,
-        :headers => {
-          'Content-Type' => 'application/json',
-          'params' => v_data
-        }
-      )
-      # TODO: Check response status and create system notification.
+    class << self
+      def http_method_enum
+        [:GET, :POST, :PUSH, :DELETE]
+      end
     end
   end
 end
