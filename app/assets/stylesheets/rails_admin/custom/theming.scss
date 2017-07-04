@@ -414,13 +414,16 @@ ul#main-accordion .nav-amount {
   float: right;
   margin-left: 1rem;
   line-height: 1;
-  padding: 1px 4px;
+
   border-radius: 4px;
   background-color: #d9edf7 !important;
   border: solid 1px #bce8f1;
   color: #31708f !important;
   font-weight: bold;
   font-size: 10.5px;
+  &:active {
+    padding: 1px 4px;
+  }
 }
 
 ul#main-accordion .nav-caret i {

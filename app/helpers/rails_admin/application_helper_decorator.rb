@@ -361,19 +361,12 @@ module RailsAdmin
       nav = nodes.collect do |node|
         i += 1
         stack_id = "#{html_id}-sub#{i}"
-        counts =
-          begin
-            node.abstract_model.counts({ cache: true }, @index_scope = @authorization_adapter && @authorization_adapter.query(:index, node.abstract_model))
-          rescue Exception
-            { default: -1 }
-          end
-        model_count =
-          if current_user
-            counts[:default] || counts.values.inject(0, &:+)
+        origins =
+          if (model=node.abstract_model.model).is_a?(Class) && model < CrossOrigin::Document
+            model.origins.join(',')
           else
-            counts.values.inject(0, &:+)
+            ''
           end
-
         children = nodes_stack.select { |n| n.parent.to_s == node.abstract_model.model_name }
         html =
           if children.present?
@@ -389,28 +382,15 @@ module RailsAdmin
             model_param = node.abstract_model.to_param
             url = url_for(action: :index, controller: 'rails_admin/main', model_name: model_param)
             nav_icon = node.navigation_icon ? %(<i class="#{node.navigation_icon}"></i>).html_safe : ''
-            content_tag :li, data: { model: model_param } do
+            data = {}
+            if model_path = node.abstract_model.api_path
+              data[:model] = model_path
+              data[:origins] = origins
+            end
+            content_tag :li, data: data do
               link_to url, class: 'pjax' do
                 rc = ''
-                title = t('admin.misc.and_that_is_all')
-                plus = nil
-                count_label = model_count
-                if counts.key?(:default)
-                  plus = []
-                  counts.each do |origin, count|
-                    next if origin == :default
-                    plus << "+ #{count} #{t("admin.origin.#{origin}")}" if count > 0
-                  end
-                  if plus.any?
-                    title = plus.to_sentence
-                    count_label = "#{model_count} +"
-                  else
-                    plus = nil
-                  end
-                end
-                if model_count > 0 || plus
-                  rc += "<span class='nav-amount' title=\"#{title}\">#{count_label}</span>"
-                end
+                rc += "<span class='nav-amount'></span>"
                 rc += "<span class='nav-caption'>#{capitalize_first_letter node.label_navigation}</span>"
                 rc.html_safe
               end
@@ -425,13 +405,11 @@ module RailsAdmin
               category_count += count
               message = "<span><em>#{node.label_plural}</em> with category <em>#{cat.title}</em></span>"
               filter_token = Cenit::Token.where('data.category_id' => cat.id).first || Cenit::Token.create(data: { criteria: values.selector, message: message, category_id: cat.id })
-              sub_links += content_tag :li do
+              sub_links += content_tag :li, data: { model: node.abstract_model.to_param, cat: cat.id, origins: origins } do
                 sub_link_url = index_path(model_name: node.abstract_model.to_param, filter_token: filter_token.token)
                 link_to sub_link_url do
                   rc = ''
-                  if model_count > 0
-                    rc += "<span class='nav-amount'>#{count}</span>"
-                  end
+                  rc += "<span class='nav-amount'></span>"
                   rc += "<span class='nav-caption'>#{cat.title}</span>"
                   rc.html_safe
                 end
@@ -440,10 +418,10 @@ module RailsAdmin
           end
 
           show_all_link =
-            if category_count < model_count
+            if category_count
               content_tag :li do
                 link_to index_path(model_name: node.abstract_model.to_param), class: 'pjax' do
-                  "<span class='nav-amount'>#{model_count}</span><span class='nav-caption'>Show All</span>".html_safe
+                  "<span class='nav-amount'></span><span class='nav-caption'>Show All</span>".html_safe
                 end
               end
             else
@@ -498,7 +476,7 @@ module RailsAdmin
               end
             count = Setup::Renderer.where(:file_extension => ext).count
             ext_count += count
-            sub_links += content_tag :li do
+            sub_links += content_tag :li, data: { model: node.abstract_model.to_param, ext: ext, origins: origins } do
               #TODO review and improve the params for the sub_link_url generation and try to show the filter in the view
               filter = { file_extension: { 80082 => { v: ext } } }
               sub_link_url = index_path(model_name: node.abstract_model.to_param, utf8: '✓', f: filter)
@@ -530,10 +508,10 @@ module RailsAdmin
           end
 
           show_all_link =
-            if ext_count < model_count
+            if ext_count
               content_tag :li do
                 link_to index_path(model_name: node.abstract_model.to_param) do
-                  "<span class='nav-amount'>#{model_count}</span><span class='nav-caption'>Show All</span>".html_safe
+                  "<span class='nav-amount'></span><span class='nav-caption'>Show All</span>".html_safe
                 end
               end
             else
