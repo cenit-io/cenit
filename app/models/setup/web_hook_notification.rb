@@ -35,7 +35,11 @@ module Setup
         options[:source] = record
       end
       data = transformation.run(options)
-      Setup::Connection.send(http_method.to_s.downcase, url).submit(body: data, template_parameters: record.to_hash)
+      msg = { body: data, template_parameters: record.to_hash }
+      if (mime_type = transformation.mime_type)
+        msg[:contentType] = mime_type
+      end
+      Setup::Connection.send(http_method.to_s.downcase, url).submit(msg)
     end
 
     class << self
