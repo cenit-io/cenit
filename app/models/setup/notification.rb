@@ -17,8 +17,8 @@ module Setup
 
     before_save :ready_to_save?, :validates_configuration
 
-    # Virtual abstract method to send notification.
-    def send_message(data)
+    # Virtual abstract method to process a data type record.
+    def process(record)
       fail NotImplementedError
     end
 
@@ -38,7 +38,7 @@ module Setup
 
     class << self
       def transformation_types(*args)
-        if args.length > 1
+        if args.length > 0
           @transformation_types = args
         else
           @transformation_types || (superclass.is_a?(Setup::Notification) ? superclass.transformation_types : [])

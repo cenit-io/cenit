@@ -844,8 +844,8 @@ module RailsAdmin
     end
 
     def process_context(opts = {})
-      if %w(index new edit).exclude?(@_action_name) || params[:leave_context]
-        session[:context_model] = session[:context_id] = nil
+      if params[:leave_context] || !context_model_scoped?
+        session[:context_model_scope] = session[:context_model] = session[:context_id] = nil
       else
         record = opts[:record]
         context_model =
@@ -856,8 +856,17 @@ module RailsAdmin
         if context_model || context_id
           session[:context_model] = context_model
           session[:context_id] = context_id
+          session[:context_model_scope] = @abstract_model.model_name
         end
       end
+    end
+
+    def context_model_scoped?
+      (cntx_scope = session[:context_model_scope]).nil? ||
+        params[:modal] ||
+        params[:associated_collection] ||
+        params[:contextual_params] ||
+        (@abstract_model && @abstract_model.model_name == cntx_scope)
     end
 
     def get_context_id(context_model = get_context_model)
@@ -865,7 +874,7 @@ module RailsAdmin
     end
 
     def get_context_model
-      @context_model ||= session[:context_model].constantize
+      @context_model ||= (cnxt_model = session[:context_model]) && cnxt_model.constantize
     rescue
       nil
     end
