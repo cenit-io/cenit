@@ -14,8 +14,6 @@
 
   current_action = params[:action].in?(['create', 'new']) ? 'create' : 'update'
 
-  edit_url = authorized?(:edit, config.abstract_model) ? edit_path(model_name: config.abstract_model.to_param, modal: true, id: '__ID__') : ''
-
   xhr = !field.associated_collection_cache_all
 
   collection = xhr ? [[selected_name, selected_id]] : controller.list_entries(config, :index, field.associated_collection_scope, false).map { |o| [o.send(field.associated_object_label_method), o.send(field.associated_primary_key)] }
@@ -37,5 +35,8 @@
     - path_hash[:types] = types.join(',')
   = link_to "<i class=\"icon-plus icon-white\"></i> ".html_safe + wording_for(:link, :new, config.abstract_model), '#', data: { link: new_path(path_hash) }, class: "btn btn-info create", style: 'margin-left:10px'
 
-- if edit_url.present? && field.inline_edit
-  = link_to "<i class=\"icon-pencil icon-white\"></i> ".html_safe + wording_for(:link, :edit, config.abstract_model), '#', data: { link: edit_url }, class: "btn btn-info update #{field.value.nil? && 'disabled'}", style: 'margin-left:10px'
+- if authorized?(:edit, config.abstract_model) && field.inline_edit
+  - path_hash = {model_name: config.abstract_model.to_param, modal: true, id: '__ID__'}
+  - field.contextual_params.each do |param, value|
+    - path_hash["contextual_params[#{param}]"] = value
+  = link_to "<i class=\"icon-pencil icon-white\"></i> ".html_safe + wording_for(:link, :edit, config.abstract_model), '#', data: { link: edit_path(path_hash) }, class: "btn btn-info update #{field.value.nil? && 'disabled'}", style: 'margin-left:10px'
