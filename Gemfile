@@ -91,6 +91,7 @@ gem 'cenit_cmd', git: 'https://github.com/openjaf/cenit_cmd.git'
 gem 'jeweler'
 gem 'github_api'
 gem 'captcha'
+gem "recaptcha", require: "recaptcha/rails"
 gem 'httmultiparty'
 
 gem 'oauth2'
@@ -119,3 +120,6 @@ gem 'rkelly-remix'
 
 gem 'write_xlsx'
 gem 'handlebars'
+gem 'wicked_pdf'
+gem 'wkhtmltopdf-binary'
+#gem 'RMagick'

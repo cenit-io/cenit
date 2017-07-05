@@ -448,6 +448,8 @@ GEM
     raindrops (0.15.0)
     rake (11.1.2)
     rdoc (4.2.0)
+    recaptcha (4.3.1)
+      json
     ref (2.0.0)
     remotipart (1.2.1)
     request_store (1.2.0)
@@ -652,6 +654,7 @@ DEPENDENCIES
   rails_admin (~> 0.7.0)
   rails_admin_dynamic_charts!
   rails_layout
+  recaptcha
   rkelly-remix
   rolify
   rspec-rails

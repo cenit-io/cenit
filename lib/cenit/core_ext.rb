@@ -209,7 +209,8 @@ end
   WriteXLSX => :new_xlsx,
   MIME::Application => :new_app,
   MIME::Image => :new_img,
-  MIME::DiscreteMedia => :new_media
+  MIME::DiscreteMedia => :new_media,
+  WickedPdf => :new_wickedpdf
 }.each do |entity, method|
   entity.class_eval("def self.#{method}(*args)
     new(*args)
