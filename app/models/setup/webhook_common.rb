@@ -150,6 +150,7 @@ module Setup
               .merge!(conformed_headers(template_parameters))
               .merge!(options[:headers] || {})
               .reject! { |_, value| value.nil? }
+            halt_anyway = false
             begin
               conformed_path += '?' + query if query.present?
               url = conformed_url.gsub(%r{\/+\Z}, '') + ('/' + conformed_path).gsub(%r{\/+}, '/')
@@ -215,6 +216,7 @@ module Setup
 
               http_response = Setup::Webhook::Response.new(false, http_response) unless http_response.is_a?(Setup::Webhook::Response)
               if block
+                halt_anyway = true
                 last_response =
                   case block.arity
                   when 1
@@ -229,7 +231,7 @@ module Setup
               end
             rescue Exception => ex
               notification_model.create_from(ex)
-              raise ex if options[:halt_on_error]
+              raise ex if options[:halt_on_error] || halt_anyway
             end
           else
             notification_model.create(message: "Invalid submit data type: #{submitter_body.class}")
