@@ -399,17 +399,31 @@ module RailsAdmin
         if node.abstract_model.model == Setup::CrossSharedCollection
           sub_links = ''
           category_count = 0
+          counts =
+            begin
+              node.abstract_model.counts({ cache: true }, @index_scope = @authorization_adapter && @authorization_adapter.query(:index, node.abstract_model))
+            rescue Exception
+              { default: -1 }
+            end
+          model_count =
+            if current_user
+              counts[:default] || counts.values.inject(0, &:+)
+            else
+              counts.values.inject(0, &:+)
+            end
           Setup::Category.all.each do |cat|
             count = (values = Setup::CrossSharedCollection.where(category_ids: cat.id)).count
             if count > 0
               category_count += count
               message = "<span><em>#{node.label_plural}</em> with category <em>#{cat.title}</em></span>"
               filter_token = Cenit::Token.where('data.category_id' => cat.id).first || Cenit::Token.create(data: { criteria: values.selector, message: message, category_id: cat.id })
-              sub_links += content_tag :li, data: { model: node.abstract_model.to_param, cat: cat.id, origins: origins } do
+              sub_links += content_tag :li do
                 sub_link_url = index_path(model_name: node.abstract_model.to_param, filter_token: filter_token.token)
                 link_to sub_link_url do
                   rc = ''
-                  rc += "<span class='nav-amount'></span>"
+                  if model_count > 0
+                    rc += "<span class='nav-amount active'>#{count}</span>"
+                  end
                   rc += "<span class='nav-caption'>#{cat.title}</span>"
                   rc.html_safe
                 end
@@ -418,10 +432,10 @@ module RailsAdmin
           end
 
           show_all_link =
-            if category_count
+            if category_count < model_count
               content_tag :li do
                 link_to index_path(model_name: node.abstract_model.to_param), class: 'pjax' do
-                  "<span class='nav-amount'></span><span class='nav-caption'>Show All</span>".html_safe
+                  "<span class='nav-amount active'>#{model_count}</span><span class='nav-caption'>Show All</span>".html_safe
                 end
               end
             else
@@ -462,46 +476,15 @@ module RailsAdmin
           sub_links = ''
           extensions_list.each do |ext|
             next if ext.blank?
-            counts =
-              begin
-                node.abstract_model.counts({ cache: false }, (@index_scope || Setup::Renderer).where(:file_extension => ext))
-              rescue Exception
-                { default: -1 }
-              end
-            model_count =
-              if current_user
-                counts[:default] || counts.values.inject(0, &:+)
-              else
-                counts.values.inject(0, &:+)
-              end
-            count = Setup::Renderer.where(:file_extension => ext).count
-            ext_count += count
             sub_links += content_tag :li, data: { model: node.abstract_model.to_param, ext: ext, origins: origins } do
               #TODO review and improve the params for the sub_link_url generation and try to show the filter in the view
               filter = { file_extension: { 80082 => { v: ext } } }
               sub_link_url = index_path(model_name: node.abstract_model.to_param, utf8: '✓', f: filter)
               link_to sub_link_url, class: 'pjax' do
                 rc = ''
-                title = t('admin.misc.and_that_is_all')
-                plus = nil
-                count_label = model_count
-
-                plus = []
-                counts.each do |origin, count|
-                  next if origin == :default
-                  plus << "+ #{count} #{t("admin.origin.#{origin}")}" if count > 0
-                end
-                if plus.any?
-                  title = plus.to_sentence
-                  count_label = "#{model_count} +"
-                else
-                  plus = nil
-                end
-
-                if model_count>0
-                  rc += "<span class='nav-amount' title=\"#{title}\">#{count_label}</span>"
-                end
+                rc += "<span class='nav-amount'></span>"
                 rc += "<span class='nav-caption'>#{ext.upcase}</span>"
+                rc.html_safe
                 rc.html_safe
               end
             end
@@ -557,7 +540,7 @@ module RailsAdmin
             link_to sub_link_url, class: 'pjax' do
               rc = ''
               if count > 0
-                rc += "<span class='nav-amount'>#{count}</span>"
+                rc += "<span class='nav-amount active'>#{count}</span>"
               end
               rc += "<span class='nav-caption'>#{cat['title']}</span>"
               rc.html_safe
@@ -569,7 +552,7 @@ module RailsAdmin
       show_all_link =
         content_tag :li do
           link_to open_api_directory_path, class: 'pjax' do
-            "<span class='nav-amount'>#{model_count}</span><span class='nav-caption'>Show All</span>".html_safe
+            "<span class='nav-amount active'>#{model_count}</span><span class='nav-caption'>Show All</span>".html_safe
           end
         end
 

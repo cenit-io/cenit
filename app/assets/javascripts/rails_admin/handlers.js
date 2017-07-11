@@ -434,7 +434,7 @@ function handlerInit() {
         graphicsInit();
     $('#main-accordion .nav-stacked').on('shown.bs.collapse', updateModelCount);
 }
-function getModelCount($element, model_name, origins) {
+function getModelCount($element, model_name, origins, ext) {
     var model_route = '/api/v2/',
         origin_list = [],
         counts = {},
@@ -495,9 +495,14 @@ function getModelCount($element, model_name, origins) {
                 }
             };
             if (origin) {
+                var ajx_url = host + model_route + '/' + model_name + '?limit=1&only=id&origin=' + origin
+                if (model_name === 'renderer') {
+                    model_route = model_route +'setup'
+                    ajx_url = host + model_route + '/' + model_name + '?file_extension=' + ext;
+                }
                 $.ajax({
                         type: "GET",
-                        url: host + model_route + '/' + model_name + '?limit=1&only=id&origin=' + origin,
+                        url: ajx_url,
                         beforeSend: function () {
                             update_counts($element, {});
                         }
@@ -538,7 +543,7 @@ function updateModelCount(e) {
     var $children = $(e.currentTarget).children('li[data-model]');
     $children.each(function (index) {
         var $this = $(this);
-        getModelCount($this, $this.data('model'), $this.data('origins'));
+        getModelCount($this, $this.data('model'), $this.data('origins'), $this.data('ext'));
     });
 
 }
