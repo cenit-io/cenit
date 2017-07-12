@@ -5,10 +5,10 @@ module RailsAdmin
     include SwaggerHelper
     include AlgorithmHelper
     include NotebooksHelper
-    include FiltersHelper
+
+    before_action :process_context
 
     alias_method :rails_admin_list_entries, :list_entries
-    before_action :update_filters_session, :get_data_type_filter, :process_context
 
     def list_entries(model_config = @model_config, auth_scope_key = :index, additional_scope = get_association_scope_from_params, pagination = !(params[:associated_collection] || params[:all] || params[:bulk_ids]))
       scope = rails_admin_list_entries(model_config, auth_scope_key, additional_scope, pagination)
@@ -25,14 +25,6 @@ module RailsAdmin
           origins << nil if origins.include?(:default)
           scope = scope.any_in(origin: origins)
         end
-
-        # Skip filters in ajax request of associated collection (Ex: Requests to get items of select components)
-        unless request.xhr? && params[:associated_collection].present?
-          filter_token = Cenit::Token.where(token: session[:filters][@model_name]).first if session[:filters][@model_name]
-          criteria = filter_token.data['criteria'] if filter_token.try(:data)
-          scope = scope.and(criteria) if criteria.is_a?(Hash)
-        end
-
       elsif (output = Setup::AlgorithmOutput.where(id: params[:algorithm_output]).first) &&
         output.data_type == model.data_type
         scope = scope.any_in(id: output.output_ids)
@@ -61,7 +53,7 @@ module RailsAdmin
       return unless target_params.present?
       #Patch
       fields = model_config.send(action).with(controller: self, view: view_context, object: @object).fields.select do |field|
-        !(field.properties.is_a?(RailsAdmin::Adapters::Mongoid::Property) && field.properties.property.is_a?(Mongoid::Fields::ForeignKey))
+        !(field.properties.is_a?(RailsAdmin::Adapters::Mongoid::Property)  && field.properties.property.is_a?(Mongoid::Fields::ForeignKey))
       end
       allowed_methods = fields.collect(&:allowed_methods).flatten.uniq.collect(&:to_s) << 'id' << '_destroy'
       fields.each { |f| f.parse_input(target_params) }
@@ -76,8 +68,8 @@ module RailsAdmin
     end
 
     def check_for_cancel
-      #Patch
       return unless params[:_continue] || (params[:bulk_action] && !params[:bulk_ids] && !params[:object_ids])
+      #Patch
       if params[:model_name]
         redirect_to(back_or_index, notice: t('admin.flash.noaction'))
       else
