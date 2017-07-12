@@ -121,7 +121,7 @@ module Setup
         nil
     end
 
-    RECORDS_MODEL_METHODS = %w(where all).collect(&:to_sym)
+    RECORDS_MODEL_METHODS = %w(where all count).collect(&:to_sym)
 
     def respond_to?(*args)
       symbol = args[0]
@@ -155,7 +155,10 @@ module Setup
       end
 
       def find_data_type(ref, ns = '')
-        ns = ref['namespace'].to_s if ref.is_a?(Hash)
+        if ref.is_a?(Hash)
+          ns = ref['namespace'].to_s
+          ref = ref['name'].to_s
+        end
         Setup::DataType.where(namespace: ns, name: ref).first
       end
     end

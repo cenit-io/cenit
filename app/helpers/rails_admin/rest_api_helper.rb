@@ -279,7 +279,8 @@ module RailsAdmin
     def api_model
       @params ||= params
       if @data_type
-        ns = @data_type.namespace.parameterize.underscore.downcase
+        ns = Setup::Namespace.where(name: @data_type.namespace).first
+        ns = ns ? ns.slug : @data_type.namespace.parameterize.underscore.downcase
         model_name = @data_type.slug
         display_name = @data_type.name.chomp('.json').underscore.humanize
       elsif @params[:model_name]

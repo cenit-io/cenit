@@ -59,12 +59,12 @@ module Setup
           # Start flows
           Setup::Flow.where(active: true, event: e).each { |f| f.join_process(source_id: obj_now.id.to_s) }
           # Start notifications
-          # Setup::Notification.where(active: true, observers_ids: e.id).each do |n|
-          #   Setup::NotificationExecution.process(
-          #     notification_id: n.id,
-          #     record_id: obj_now.id.to_s
-          #   )
-          # end
+          Setup::Notification.where(active: true, observer_ids: { '$all' => [e.id] }).each do |n|
+            Setup::NotificationExecution.process(
+              notification_id: n.id,
+              record_id: obj_now.id.to_s
+            )
+          end
         end
       end
     end

@@ -262,6 +262,11 @@ module Setup
 
     class << self
 
+      def current
+        (thread_token = ThreadToken.where(token: Thread.current[:task_token]).first) &&
+          Setup::Task.where(thread_token: thread_token).first
+      end
+
       def auto_retry_enum
         %w(manually automatic).collect(&:to_sym)
       end

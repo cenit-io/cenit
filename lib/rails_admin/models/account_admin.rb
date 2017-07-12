@@ -34,6 +34,7 @@ module RailsAdmin
             field :token
             field :owner
             field :users
+            field :meta
             field :notification_level
             field :time_zone
           end

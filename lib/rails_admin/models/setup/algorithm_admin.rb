@@ -18,6 +18,8 @@ module RailsAdmin
               [RailsAdmin::Adapters::Mongoid::Association.new(association, abstract_model.model)]
             end
 
+            configure :namespace, :enum_edit
+
             configure :code, :code do
               help { 'Required' }
               code_config do

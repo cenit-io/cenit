@@ -1,4 +1,3 @@
-
 require 'cenit/liquidfier'
 
 module Mongoid
@@ -127,6 +126,31 @@ module Mongoid
                                     :belongs_to).each do |relation|
           block.yield(name: relation.name, embedded: relation.embedded?) unless relation.macro == :belongs_to && relation.inverse_of.present?
         end
+      end
+
+      def attribute_key(field, field_metadata = {})
+        if (association = reflect_on_association(field))
+          association.foreign_key
+        else
+          field.to_s == 'id' ? :_id : field.to_sym
+        end
+      end
+
+      def property_for_attribute(name)
+        if property?(name)
+          name
+        else
+          name = name.to_s.gsub(/_id(s)?\Z/, '')
+          if (name = [name.pluralize, name].detect { |n| property?(n) })
+            name
+          else
+            nil
+          end
+        end
+      end
+
+      def associations
+        relations
       end
     end
   end

@@ -51,7 +51,7 @@ module RailsAdmin
             pretty_value do
               v = bindings[:view]
               action = v.instance_variable_get(:@action)
-              if action.is_a?(RailsAdmin::Config::Actions::Show) && !v.instance_variable_get(:@showing)
+              if (action.is_a?(RailsAdmin::Config::Actions::Show) || action.is_a?(RailsAdmin::Config::Actions::RemoteSharedCollection)) && !v.instance_variable_get(:@showing)
                 amc = RailsAdmin.config(association.klass)
               else
                 amc = polymorphic? ? RailsAdmin.config(associated) : associated_model_config # perf optimization for non-polymorphic associations
@@ -59,7 +59,7 @@ module RailsAdmin
               am = amc.abstract_model
               if action.is_a?(RailsAdmin::Config::Actions::Show) && !v.instance_variable_get(:@showing)
                 values = [value].flatten.select(&:present?)
-                fields = amc.list.with(controller: self, view: v, object: amc.abstract_model.model.new).visible_fields
+                fields = amc.list.with(controller: bindings[:controller], view: v, object: amc.abstract_model.model.new).visible_fields
                 unless fields.length == 1 && values.length == 1
                   v.instance_variable_set(:@showing, true)
                 end

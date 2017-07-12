@@ -11,6 +11,8 @@ module RailsAdmin
             object_label_method { :custom_title }
             visible false
 
+            configure :namespace, :enum_edit
+
             configure :_type do
               pretty_value do
                 value.split('::').last.to_title
@@ -18,7 +20,7 @@ module RailsAdmin
             end
 
             edit do
-              field :namespace, :enum_edit
+              field :namespace
               field :name
             end
 
