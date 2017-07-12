@@ -520,33 +520,24 @@ module RailsAdmin
     end
 
     def open_api_directory_nav
-
       sub_links = ''
       category_count = 0
-      categories = count_apis[:categories].keys
-      model_count = count_apis[:apis].count
-      categories_list = []
-      categories.each do |cat|
-        categories_list << count_apis[:categories][cat]
-      end
-      category_count = categories_list.count
+      apis = load_apis_specs_cat_count
+      categories_list = apis['categories']
+      model_count = apis['total']
+
       categories_list.each do |cat|
-        count = (values = count_apis[:apis].select { |c| c['categories'].include?(cat) }).count
-        if count > 0
-          category_count += count
-          category_filter_url = open_api_directory_path(query: cat['id'], by_category: true)
-          sub_links += content_tag :li do
-            sub_link_url = category_filter_url
-            link_to sub_link_url, class: 'pjax' do
-              rc = ''
-              if count > 0
-                rc += "<span class='nav-amount active'>#{count}</span>"
-              end
-              rc += "<span class='nav-caption'>#{cat['title']}</span>"
-              rc.html_safe
-            end
+        category_filter_url = open_api_directory_path(query: cat['id'], by_category: true)
+        sub_links += content_tag :li do
+          sub_link_url = category_filter_url
+          link_to sub_link_url, class: 'pjax', title: "#{cat['description']}" do
+            rc = ''
+            rc += "<span class='nav-amount active'>#{cat['count']}</span>"
+            rc += "<span class='nav-caption'>#{cat['title']}</span>"
+            rc.html_safe
           end
         end
+
       end
 
       show_all_link =
@@ -729,13 +720,17 @@ module RailsAdmin
       end.html_safe
     end
 
+    APIS_GURU_FILE_NAME = 'public/apis.guru.list.json'
+    APIS_CATEGORIES_COUNT_FILE_NAME = 'public/apis.guru.cat.count.json'
+
     def load_apis_specs
-      file_name = 'public/apis.guru.list.json'
+      file_name = APIS_GURU_FILE_NAME
       if File.exists?(file_name)
         list = File.read(file_name)
       else
         list = Setup::Connection.get('http://api.apis.guru/v2/list.json').submit!
         File.open(file_name, 'w') { |file| file.write(list) }
+        File.delete(APIS_CATEGORIES_COUNT_FILE_NAME) if File.exists?(APIS_CATEGORIES_COUNT_FILE_NAME)
       end
       begin
         JSON.parse(list)
@@ -784,6 +779,24 @@ module RailsAdmin
       Kaminari.paginate_array(apis).page(params[:page]).per(20)
     end
 
+    def load_apis_specs_cat_count
+      file_name = APIS_CATEGORIES_COUNT_FILE_NAME
+      if File.exists?(file_name)
+        list = File.read(file_name)
+      else
+        list = count_apis.to_json
+        File.open(file_name, 'w') { |file| file.write(list) }
+      end
+      begin
+        JSON.parse(list)
+      rescue Exception => ex
+        fail "invalid JSON content on #{file_name} (#{ex.message})"
+      end
+    rescue Exception => ex
+      flash[:error] = "Unable to retrieve OpenAPI Category Count: #{ex.message}"
+      {}
+    end
+
     def count_apis
       cat_ids = Set.new
       apis = load_apis_specs
@@ -800,8 +813,20 @@ module RailsAdmin
         info = api['versions'][api['preferred']]['info']
         api['categories'] = api['categories'].collect { |id| categories[id] || { 'id' => id } }
       end
-
-      { apis: apis, categories: categories }
+      cat_list = categories.keys
+      categories_list = []
+      cat_list.each do |cat|
+        categories_list << categories[cat]
+      end
+      categories_count = []
+      categories_list.each do |cat|
+        count = (values = apis.select { |c| c['categories'].include?(cat) }).count
+        if count > 0
+          cat['count'] = count
+          categories_count << cat
+        end
+      end
+      { total: apis.count, categories: categories_count }
     end
 
     def process_context(opts = {})
