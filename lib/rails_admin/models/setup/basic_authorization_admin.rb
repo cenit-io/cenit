@@ -12,6 +12,8 @@ module RailsAdmin
             end
             object_label_method { :custom_title }
 
+            configure :namespace, :enum_edit
+
             configure :status do
               pretty_value do
                 "<span class=\"label label-#{bindings[:object].status_class}\">#{value.to_s.capitalize}</span>".html_safe
@@ -43,7 +45,7 @@ module RailsAdmin
             end
 
             edit do
-              field :namespace, :enum_edit
+              field :namespace
               field :name
               field :username
               field :password

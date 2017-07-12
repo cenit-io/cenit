@@ -144,6 +144,7 @@ module Edi
                 ((container_schema && container_schema['exclusive']) ? nil : Cenit::Utility.find_record(criteria, model))
             end
             if record
+              return record if json['_reference'].to_b
               updating = true
               unless model == record.orm_model
                 model = record.orm_model

@@ -2,50 +2,65 @@ module Setup
   class EmailNotification < Setup::Notification
     include RailsAdmin::Models::Setup::EmailNotificationAdmin
 
-    field :to, type: String
-    field :subject, type: String
-    field :body, type: String
+    transformation_types Setup::Renderer, Setup::Converter
 
-    belongs_to :body_template, :class_name => Setup::Renderer.name, inverse_of: nil
-    belongs_to :smtp_provider, :class_name => Setup::SmtpProvider.name, :inverse_of => :email_notifications
-    has_many :attachments_templates, :class_name => Setup::Renderer.name, inverse_of: nil
+    belongs_to :email_channel, class_name: Setup::EmailChannel.to_s, inverse_of: nil
 
-    allow :copy, :new, :edit, :export, :import
-
-    # Send notification via email message
-    def send_message(data)
-      translator_options = render_options(data)
-      mail = Mail.new
-      mail.from = smtp_provider.from
-      mail.to = render(data, to)
-      mail.subject = render(data, subject)
-      mail.body = body_template ? body_template.run(translator_options) : render(data, body)
-
-      if attachments_templates.any?
-        attachments_templates.each do |attachment_template|
-          mail.add_file(
-            :filename => "#{attachment_template.name.parameterize}.#{attachment_template.file_extension}",
-            :content => attachment_template.run(translator_options)
-          )
-          mail.parts.last.content_type = attachment_template.mime_type
+    def validates_configuration
+      if super && !requires(:email_channel)
+        if transformation.is_a?(Setup::Converter)
+          if email_data_type
+            unless transformation.target_data_type.eql?(email_data_type)
+              errors.add(:transformation, "wrong target data type, expected to be #{email_data_type.custom_title}")
+            end
+          else
+            errors.add(:transformation, 'of type converter can not be used since the email data type is not yet configured')
+          end
         end
-        mail.parts.first.content_type = 'text/html'
-      else
-        mail.content_type = "text/html"
       end
-
-      mail.delivery_method(:smtp, smtp_settings)
-      mail.deliver
+      errors.blank?
     end
 
-    protected
+    def process(record)
+      fail 'Email data type not yet configured' unless email_data_type
 
-    def smtp_settings
-      smtp_provider.to_hash.select do |k, _|
-        %w(address port domain user_name password authentication enable_starttls_auto).include?(k)
-      end.select do |k, _|
-        (smtp_provider.authentication != :none) || !%w(authentication user_name password).include?(k)
-      end.map { |k, v| [k.to_sym, v] }.to_h
+      message = transformation.run(source: record, discard_events: true)
+      unless message.is_a?(email_data_type.records_model)
+        message =
+          case message
+          when Hash
+            email_data_type.create_from_json!(message, discard_events: true)
+          else
+            email_data_type.create_from!(message.to_s, discard_events: true)
+          end
+      end
+
+      email_channel.send_message(message)
+    end
+
+    def email_data_type
+      self.class.email_data_type
+    end
+
+    class << self
+
+      def email_data_type
+        @email_data_type ||=
+          begin
+            if (ref = Cenit.email_data_type).is_a?(Hash)
+              if ref.size == 1
+                ref = { 'namespace' => ref.keys.first.to_s, 'name' => ref.values.first.to_s }
+              end
+            else
+              ref = nil
+            end
+            ref && Setup::DataType.find_data_type(ref)
+          end
+      end
+
+      def email_data_type_id
+        (dt = email_data_type) && dt.id
+      end
     end
   end
 end

@@ -5,9 +5,9 @@ module RailsAdmin
     module Ruby
       ###
       # Returns Ruby command for service with given method and path.
-      def api_ruby_code(method, path)
+      def api_ruby_code(method, path, with_auth_vars=false)
         # Get vars definition.
-        data, uri, vars = api_data('ruby', method, path)
+        data, uri, vars = api_data('ruby', method, path, with_auth_vars)
 
         # Generate uri and command.
         command = ""
@@ -21,8 +21,8 @@ module RailsAdmin
         command << "  :payload => '#{data.to_json}',\n" unless data.empty?
         command << "  :headers => {\n"
         command << "    'Content-Type' => 'application/json',\n"
-        command << "    'X-User-Access-Key' => user_access_key,\n"
-        command << "    'X-User-Access-Token' => user_access_token\n"
+        command << "    'X-Tenant-Access-Key' => tenant_access_key,\n"
+        command << "    'X-Tenant-Access-Token' => tenant_access_token\n"
         command << "  }\n"
         command << ")\n"
         command << "\n"

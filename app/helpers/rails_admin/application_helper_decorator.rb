@@ -151,7 +151,7 @@ module RailsAdmin
         scope = Setup::SystemNotification.where(type: type)
         if (scope.count > 0)
           meta = account.meta
-          if (from_date = meta["#{type.to_s}_notifications_listed_at"])
+          if meta.present? && (from_date = meta["#{type.to_s}_notifications_listed_at"])
             scope = scope.where(:created_at.gte => from_date)
           end
           count = scope.count
@@ -369,19 +369,12 @@ module RailsAdmin
       nav = nodes.collect do |node|
         i += 1
         stack_id = "#{html_id}-sub#{i}"
-        counts =
-          begin
-            node.abstract_model.counts({ cache: true }, @index_scope = @authorization_adapter && @authorization_adapter.query(:index, node.abstract_model))
-          rescue Exception
-            { default: -1 }
-          end
-        model_count =
-          if current_user
-            counts[:default] || counts.values.inject(0, &:+)
+        origins =
+          if (model=node.abstract_model.model).is_a?(Class) && model < CrossOrigin::Document
+            model.origins.join(',')
           else
-            counts.values.inject(0, &:+)
+            ''
           end
-
         children = nodes_stack.select { |n| n.parent.to_s == node.abstract_model.model_name }
         html =
           if children.present?
@@ -397,28 +390,15 @@ module RailsAdmin
             model_param = node.abstract_model.to_param
             url = url_for(action: :index, controller: 'rails_admin/main', model_name: model_param)
             nav_icon = node.navigation_icon ? %(<i class="#{node.navigation_icon}"></i>).html_safe : ''
-            content_tag :li, data: { model: model_param } do
+            data = {}
+            if model_path = node.abstract_model.api_path
+              data[:model] = model_path
+              data[:origins] = origins
+            end
+            content_tag :li, data: data do
               link_to url, class: 'pjax' do
                 rc = ''
-                title = t('admin.misc.and_that_is_all')
-                plus = nil
-                count_label = model_count
-                if counts.key?(:default)
-                  plus = []
-                  counts.each do |origin, count|
-                    next if origin == :default
-                    plus << "+ #{count} #{t("admin.origin.#{origin}")}" if count > 0
-                  end
-                  if plus.any?
-                    title = plus.to_sentence
-                    count_label = "#{model_count} +"
-                  else
-                    plus = nil
-                  end
-                end
-                if model_count > 0 || plus
-                  rc += "<span class='nav-amount' title=\"#{title}\">#{count_label}</span>"
-                end
+                rc += "<span class='nav-amount'></span>"
                 rc += "<span class='nav-caption'>#{capitalize_first_letter node.label_navigation}</span>"
                 rc.html_safe
               end
@@ -427,6 +407,18 @@ module RailsAdmin
         if node.abstract_model.model == Setup::CrossSharedCollection
           sub_links = ''
           category_count = 0
+          counts =
+            begin
+              node.abstract_model.counts({ cache: true }, @index_scope = @authorization_adapter && @authorization_adapter.query(:index, node.abstract_model))
+            rescue Exception
+              { default: -1 }
+            end
+          model_count =
+            if current_user
+              counts[:default] || counts.values.inject(0, &:+)
+            else
+              counts.values.inject(0, &:+)
+            end
           Setup::Category.all.each do |cat|
             count = (values = Setup::CrossSharedCollection.where(category_ids: cat.id)).count
             if count > 0
@@ -438,7 +430,7 @@ module RailsAdmin
                 link_to sub_link_url do
                   rc = ''
                   if model_count > 0
-                    rc += "<span class='nav-amount'>#{count}</span>"
+                    rc += "<span class='nav-amount active'>#{count}</span>"
                   end
                   rc += "<span class='nav-caption'>#{cat.title}</span>"
                   rc.html_safe
@@ -451,7 +443,7 @@ module RailsAdmin
             if category_count < model_count
               content_tag :li do
                 link_to index_path(model_name: node.abstract_model.to_param), class: 'pjax' do
-                  "<span class='nav-amount'>#{model_count}</span><span class='nav-caption'>Show All</span>".html_safe
+                  "<span class='nav-amount active'>#{model_count}</span><span class='nav-caption'>Show All</span>".html_safe
                 end
               end
             else
@@ -482,62 +474,35 @@ module RailsAdmin
             </div>)
 
         end
+        if node.abstract_model.model == Setup::ApiSpec
+          open_api_directory_link = open_api_directory_nav.html_safe
+          html = html + open_api_directory_link
+        end
         if node.abstract_model.model == Setup::Renderer &&
           (extensions_list = Setup::Renderer.file_extension_filter_enum).present?
           ext_count = 0
           sub_links = ''
           extensions_list.each do |ext|
             next if ext.blank?
-            counts =
-              begin
-                node.abstract_model.counts({ cache: false }, (@index_scope || Setup::Renderer).where(:file_extension => ext))
-              rescue Exception
-                { default: -1 }
-              end
-            model_count =
-              if current_user
-                counts[:default] || counts.values.inject(0, &:+)
-              else
-                counts.values.inject(0, &:+)
-              end
-            count = Setup::Renderer.where(:file_extension => ext).count
-            ext_count += count
-            sub_links += content_tag :li do
+            sub_links += content_tag :li, data: { model: node.abstract_model.to_param, ext: ext, origins: origins } do
               #TODO review and improve the params for the sub_link_url generation and try to show the filter in the view
               filter = { file_extension: { 80082 => { v: ext } } }
               sub_link_url = index_path(model_name: node.abstract_model.to_param, utf8: '✓', f: filter)
               link_to sub_link_url, class: 'pjax' do
                 rc = ''
-                title = t('admin.misc.and_that_is_all')
-                plus = nil
-                count_label = model_count
-
-                plus = []
-                counts.each do |origin, count|
-                  next if origin == :default
-                  plus << "+ #{count} #{t("admin.origin.#{origin}")}" if count > 0
-                end
-                if plus.any?
-                  title = plus.to_sentence
-                  count_label = "#{model_count} +"
-                else
-                  plus = nil
-                end
-
-                if model_count>0
-                  rc += "<span class='nav-amount' title=\"#{title}\">#{count_label}</span>"
-                end
+                rc += "<span class='nav-amount'></span>"
                 rc += "<span class='nav-caption'>#{ext.upcase}</span>"
+                rc.html_safe
                 rc.html_safe
               end
             end
           end
 
           show_all_link =
-            if ext_count < model_count
+            if ext_count
               content_tag :li do
                 link_to index_path(model_name: node.abstract_model.to_param) do
-                  "<span class='nav-amount'>#{model_count}</span><span class='nav-caption'>Show All</span>".html_safe
+                  "<span class='nav-amount'></span><span class='nav-caption'>Show All</span>".html_safe
                 end
               end
             else
@@ -560,6 +525,58 @@ module RailsAdmin
       end.join
       nav = "<div id='#{html_id}' class='nav nav-pills nav-stacked panel-collapse collapse'>#{nav}</div>" unless options[:just_li]
       nav.html_safe
+    end
+
+    def open_api_directory_nav
+
+      sub_links = ''
+      category_count = 0
+      categories = count_apis[:categories].keys
+      model_count = count_apis[:apis].count
+      categories_list = []
+      categories.each do |cat|
+        categories_list << count_apis[:categories][cat]
+      end
+      category_count = categories_list.count
+      categories_list.each do |cat|
+        count = (values = count_apis[:apis].select { |c| c['categories'].include?(cat) }).count
+        if count > 0
+          category_count += count
+          category_filter_url = open_api_directory_path(query: cat['id'], by_category: true)
+          sub_links += content_tag :li do
+            sub_link_url = category_filter_url
+            link_to sub_link_url, class: 'pjax' do
+              rc = ''
+              if count > 0
+                rc += "<span class='nav-amount active'>#{count}</span>"
+              end
+              rc += "<span class='nav-caption'>#{cat['title']}</span>"
+              rc.html_safe
+            end
+          end
+        end
+      end
+
+      show_all_link =
+        content_tag :li do
+          link_to open_api_directory_path, class: 'pjax' do
+            "<span class='nav-amount active'>#{model_count}</span><span class='nav-caption'>Show All</span>".html_safe
+          end
+        end
+
+      html = %(<div class='panel panel-default'>
+            <div class='panel-heading'>
+              <a data-toggle='collapse' data-parent='#none' href='#open-api-collapse' class='panel-title collapse in collapsed'>
+                <span class='nav-caret'><i class='fa fa-caret-down'></i></span>
+                <span class='nav-caption'>#{t('admin.actions.open_api_directory.menu')}</span>
+              </a>
+            </div>
+             <div id='open-api-collapse' class='nav nav-pills nav-stacked panel-collapse collapse'>
+
+      #{show_all_link}
+      #{sub_links}
+            </div>
+            </div>)
     end
 
     def dashboard_main()
@@ -720,22 +737,27 @@ module RailsAdmin
       end.html_safe
     end
 
+    def load_apis_specs
+      file_name = 'public/apis.guru.list.json'
+      if File.exists?(file_name)
+        list = File.read(file_name)
+      else
+        list = Setup::Connection.get('http://api.apis.guru/v2/list.json').submit!
+        File.open(file_name, 'w') { |file| file.write(list) }
+      end
+      begin
+        JSON.parse(list)
+      rescue Exception => ex
+        fail "invalid JSON content on #{file_name} (#{ex.message})"
+      end
+    rescue Exception => ex
+      flash[:error] = "Unable to retrieve OpenAPI Directory: #{ex.message}"
+      {}
+    end
+
     def list_apis
       cat_ids = Set.new
-      apis =
-        begin
-          file_name = 'public/apis.guru.list.json'
-          if File.exists?(file_name)
-            list = File.read(file_name)
-          else
-            list = Setup::Connection.get('http://api.apis.guru/v2/list.json').submit
-            File.open(file_name, 'w') { |file| file.write(list) }
-          end
-          JSON.parse(list)
-        rescue Exception => ex
-          flash[:error] = "Unable to retrieve OpenAPI Directory: #{ex.message}"
-          {}
-        end
+      apis = load_apis_specs
       if (id = params[:id]) && (api = apis[id])
         apis = { id => api }
       end
@@ -753,7 +775,7 @@ module RailsAdmin
         apis.select! do |api|
           api['categories'] = api['categories'].collect { |id| categories[id] || { 'id' => id } }
           query.all? do |token|
-            api['categories'].any? { |cat| cat.values.any? { |value| value.to_s[token] } }
+            api['categories'].any? { |cat| cat['id'].to_s[token] }
           end
         end
       else
@@ -770,9 +792,29 @@ module RailsAdmin
       Kaminari.paginate_array(apis).page(params[:page]).per(20)
     end
 
+    def count_apis
+      cat_ids = Set.new
+      apis = load_apis_specs
+      apis = apis.collect do |key, api|
+        api['id'] = key
+        info = api['versions'][api['preferred']]['info'] || {}
+        cat_ids.merge(api['categories'] = info['x-apisguru-categories'] || [])
+        api
+      end
+      categories = {}
+      Setup::Category.where(:id.in => cat_ids.to_a).each { |category| categories[category.id] = category.to_hash }
+      query = nil
+      apis.select! do |api|
+        info = api['versions'][api['preferred']]['info']
+        api['categories'] = api['categories'].collect { |id| categories[id] || { 'id' => id } }
+      end
+
+      { apis: apis, categories: categories }
+    end
+
     def process_context(opts = {})
-      if %w(index new edit).exclude?(@_action_name) || params[:leave_context]
-        session[:context_model] = session[:context_id] = nil
+      if params[:leave_context] || !context_model_scoped?
+        session[:context_model_scope] = session[:context_model] = session[:context_id] = nil
       else
         record = opts[:record]
         context_model =
@@ -783,8 +825,17 @@ module RailsAdmin
         if context_model || context_id
           session[:context_model] = context_model
           session[:context_id] = context_id
+          session[:context_model_scope] = @abstract_model.model_name
         end
       end
+    end
+
+    def context_model_scoped?
+      (cntx_scope = session[:context_model_scope]).nil? ||
+        params[:modal] ||
+        params[:associated_collection] ||
+        params[:contextual_params] ||
+        (@abstract_model && @abstract_model.model_name == cntx_scope)
     end
 
     def get_context_id(context_model = get_context_model)
@@ -792,7 +843,7 @@ module RailsAdmin
     end
 
     def get_context_model
-      @context_model ||= session[:context_model].constantize
+      @context_model ||= (cnxt_model = session[:context_model]) && cnxt_model.constantize
     rescue
       nil
     end

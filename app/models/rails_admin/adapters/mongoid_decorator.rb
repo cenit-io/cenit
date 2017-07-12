@@ -2,11 +2,17 @@ module RailsAdmin
   module Adapters
     Mongoid.module_eval do
 
+      ALIAS_METHODS = proc do
+        alias_method_chain :count, :wrapper
+      end
+
       # avoid use of alias_method in a module_eval
       def self.included(base)
-        base.class_eval do
-          alias_method_chain :count, :wrapper
-        end
+        base.class_eval(&ALIAS_METHODS)
+      end
+
+      def self.extended(base)
+        base.class_eval(&ALIAS_METHODS)
       end
 
       def counts(options = {}, scope = nil)
@@ -94,6 +100,56 @@ module RailsAdmin
           else
             []
           end
+      end
+
+      def query_conditions(query, fields = nil)
+        statements = []
+        if fields.nil? && model.is_a?(Class) && model < Setup::ClassHierarchyAware
+          model.class_hierarchy.each do |model|
+            next if model.abstract_class
+            model_statements = []
+            model_config = RailsAdmin.config(model)
+
+            fields = model_config.fields.select(&:queryable?)
+            fields.each do |field|
+              conditions_per_collection = make_field_conditions(field, query, field.search_operator)
+              model_statements.concat make_condition_for_current_collection(field, conditions_per_collection)
+            end
+
+            [model_config.search_associations].flatten.each do |association_name|
+              next unless (association = model.reflect_on_association(association_name))
+              model_config = RailsAdmin.config(association.klass)
+              associated_selector = model_config.abstract_model.query_conditions(query)
+              if associated_selector.any?
+                associated_ids = association.klass.where(associated_selector).collect(&:id)
+                model_statements << {
+                  association.foreign_key =>
+                    if association.many?
+                      { '$elemMatch' => q = {} }
+                    else
+                      q = {}
+                    end
+                }
+                q['$in'] = associated_ids.uniq
+              end
+            end
+
+            if model_statements.any?
+              statements << { '_type' => model.model_name, '$or' => model_statements }
+            end
+          end
+        else
+          fields ||= config.fields.select(&:queryable?)
+          fields.each do |field|
+            conditions_per_collection = make_field_conditions(field, query, field.search_operator)
+            statements.concat make_condition_for_current_collection(field, conditions_per_collection)
+          end
+        end
+        if statements.any?
+          { '$or' => statements }
+        else
+          {}
+        end
       end
     end
   end

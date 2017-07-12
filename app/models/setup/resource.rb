@@ -22,6 +22,68 @@ module Setup
     def conformed_path(options = {})
       conform_field_value(:path, options)
     end
-    
+
+    def respond_to?(*args)
+      super || Setup::Operation.method_enum.any? do |method|
+        method == args[0] || args[0].to_s == "#{method}!"
+      end
+    end
+
+    def method_missing(symbol, *args, &block)
+      method = Setup::Operation.method_enum.detect do |method|
+        method == symbol || symbol.to_s == "#{method}!"
+      end
+      if method && (operation = operations.where(method: method).first)
+        submit_method = 'submit'
+        if symbol.to_s.ends_with?('!')
+          submit_method = "#{submit_method}!"
+        end
+        operation.resource = self
+        operation.send(submit_method, *args, &block)
+      else
+        super
+      end
+    end
+
+    def upon(connections, options = {})
+      @connections = connections
+      @connection_role_options = options || {}
+      self
+    end
+
+    def with(options)
+      case options
+      when NilClass
+        self
+      when Setup::Connection, Setup::ConnectionRole
+        upon(options)
+        self
+      else
+        super
+      end
+    end
+
+    def connections
+      if @connections_cache
+        @connections_cache
+      else
+        connections =
+          case @connections
+          when Setup::Connection
+            [@connections]
+          when Setup::ConnectionRole
+            @connections.connections
+          else
+            []
+          end
+        if connections.empty? && (connection = Setup::Connection.where(namespace: namespace).first)
+          connections << connection
+        end
+        @connections_cache = connections unless @connection_role_options &&
+          @connection_role_options.key?(:cache) &&
+          !@connection_role_options[:cache]
+        connections
+      end
+    end
   end
 end

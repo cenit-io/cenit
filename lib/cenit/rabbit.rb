@@ -43,7 +43,7 @@ module Cenit
             message = TaskToken.create(data: message.to_json,
                                        task: task,
                                        user: Cenit::MultiTenancy.user_model.current).token
-            if (scheduler && scheduler.activated?) || publish_at
+            if (scheduler && scheduler.activated?) || (publish_at && publish_at > Time.now)
               Setup::DelayedMessage.create(message: message, publish_at: publish_at, scheduler: scheduler)
             else
               unless task.joining?
@@ -82,7 +82,7 @@ module Cenit
         end
         if Cenit::MultiTenancy.tenant_model.current.nil? ||
           (message_token.present? && Cenit::MultiTenancy.tenant_model.current != tenant)
-          Setup::SystemNotification.create(message: "Can not determine tenant for message: #{message}")
+          Setup::SystemReport.create(message: "Can not determine tenant for message: #{message}")
         else
           begin
             rabbit_consumer = nil
@@ -121,7 +121,7 @@ module Cenit
           end
         end
       rescue Exception => ex
-        Setup::SystemNotification.create(message: "Error (#{ex.message}) processing message: #{message}")
+        Setup::SystemReport.create(message: "Error (#{ex.message}) processing message: #{message}")
       end
 
       attr_reader :connection, :channel, :queue

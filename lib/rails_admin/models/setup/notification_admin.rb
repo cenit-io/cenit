@@ -5,19 +5,22 @@ module RailsAdmin
         extend ActiveSupport::Concern
 
         included do
-          rails_admin do |c|
+          rails_admin do
             object_label_method { :label }
-            visible false
+            visible { User.current_super_admin? }
             navigation_label 'Workflows'
             label 'Notification'
             weight 500
 
-            edit do
-              field :name, :string do
-                required true
-              end
+            visible { User.current_super_admin? }
 
-              field :active, :boolean do
+            configure :data_type, :contextual_belongs_to
+
+            edit do
+              field :namespace
+              field :name
+
+              field :active do
                 visible do
                   ctrl = bindings[:controller]
                   model_name = ctrl.instance_variable_get(:@model_name)
@@ -30,9 +33,6 @@ module RailsAdmin
               field :data_type do
                 required true
                 inline_edit false
-                read_only do
-                  bindings[:object].data_type != nil
-                end
                 help do
                   text = ''
                   if bindings[:object].data_type.nil?
@@ -62,7 +62,7 @@ module RailsAdmin
               end
             end
 
-            fields :name, :active, :data_type, :observers, :updated_at
+            fields :namespace, :name, :active, :data_type, :observers, :updated_at
           end
         end
 

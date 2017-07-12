@@ -1,23 +1,43 @@
+![best_user_pictures_3](https://user-images.githubusercontent.com/4213488/27266266-718722d0-5454-11e7-987f-1f951610673d.png)
+
 [![Code Climate](https://codeclimate.com/github/openjaf/cenit/badges/gpa.svg)](https://codeclimate.com/github/openjaf/cenit)
 [![codebeat](https://codebeat.co/badges/1b596784-b6c1-4ce7-b739-c91b873e4b5d)](https://codebeat.co/projects/github-com-cenit-io-cenit)
 [![license](https://img.shields.io/packagist/l/doctrine/orm.svg)]()
 [![Slack Status](http://cenit-slack.herokuapp.com/badge.svg)](http://cenitio.slack.com)
 
+[![OpenAPIs in collection][numApis-image]][apisDir-link]
+[![OpenAPI specs][numSpecs-image]][apisDir-link]
+[![Endpoints][endpoints-image]][apisDir-link]
+
+[![Follow on Twitter][twitterFollow-image]][twitterFollow-link]
+
 * [Cenit IO](https://cenit.io)  [(https://cenit.io)](https://cenit.io)
-* [Join our Slack](https://cenitio.slack.com/shared_invite/MTg0NTgzNDk0NDQ4LTE0OTUxMjc4NzgtNzFkZjA1ZDdkYw)
-[(cenitio.slack.com)](https://cenitio.slack.com/shared_invite/MTg0NTgzNDk0NDQ4LTE0OTUxMjc4NzgtNzFkZjA1ZDdkYw)
+* [Join our Slack][join-slack-link]
+[(cenitio.slack.com)][join-slack-link]
 * [Shared Collections](https://cenit.io/setup~shared_collection)
 * [Cenit IO - 101 Intro](https://cenit-io.github.io/cenit-slides/#cover)
 * [Documentation](https://cenit-io.github.io/docs/)
 * support@cenit.io
 
 
-[Cenit IO](https://cenit.io)  [(https://cenit.io)](https://cenit.io) is an Open Platform for Data and Business Integration (iPaaS). It has been designed to orchestrate data flows that may involve several kind of endpoints (APIs, Datasets, EDI). It makes possible a complete business automation of all operational processes in a company, connecting between organization's on-premises infrastructure and cloud provider services.
+[Cenit IO](https://cenit.io)  [(https://cenit.io)](https://cenit.io) is an Open Platform for Data and Business Integration (iPaaS). It is designed to orchestrate data flows that may involve several kinds of endpoints (APIs, Datasets, EDI). It makes possible a complete business automation of all operational processes in a company, connecting between organization's on-premises infrastructure and cloud provider services.
+
+**Backenless**
+
+When is created a new Data Type using a JSON Schema, is generated on the fly a complete REST API and a CRUD UI to manage the data. It is useful in different use cases, for example as the backend for a mobile application.
+
+[see this video for more details](https://youtu.be/DsFicrI6cDg)
+
+![mwjajn](https://user-images.githubusercontent.com/4213488/27265759-ec78001e-544e-11e7-9265-d6e5cc7559da.gif)
+
+**Data Pipelines between APIs**
 
 It allows the creation of custom data pipelines for process, storage and data movement between APIs. The flows could be trigger by data events or be scheduled.
 
 There are now over 200 pre-built integration collections shared out the box to connect with online internet services,
 fulfilment solutions, accounting, communications, ERP, multi-channels, etc.
+
+[see this video for more details](https://youtu.be/IOEbTtEv8MQ)
 
 An example of integration data flow (Fancy <=> Shipstation):
 
@@ -34,7 +54,7 @@ An example of integration data flow (Fancy <=> Shipstation):
 * After the shipments are updated in Cenit, is trigger a Flow to send the tracking update to Fancy.
 
 
-## Your own server with Heroku
+## Deploy your own server
 
 ### With the Heroku Button
 
@@ -49,6 +69,18 @@ An example of integration data flow (Fancy <=> Shipstation):
 * Deploy it with: `git push heroku master`
 * Open in the browser: `heroku open`
 
+###  With Docker compose.
+
+After [install docker compose](https://docs.docker.com/compose/install)
+
+Then run docker compose:
+
+```batch
+docker-compose build
+docker-compose up
+```
+
+and visit the browser: `localhost:3000`
 
 ## General Features
 
@@ -421,3 +453,11 @@ Thank you for your contributions:
 * [Cesar Lage](https://github.com/kaerdsar)
 * [Aneli Valdés](https://github.com/avaldesa)
 * [José A. Cruz](https://github.com/jalbertcruz)
+
+[numApis-image]: https://api.apis.guru/badges/apis_in_collection.svg
+[numSpecs-image]: https://api.apis.guru/badges/openapi_specs.svg
+[endpoints-image]: https://api.apis.guru/badges/endpoints.svg
+[apisDir-link]: https://github.com/APIs-guru/openapi-directory/tree/master/APIs
+[twitterFollow-image]: https://img.shields.io/twitter/follow/cenit_io.svg?style=social
+[twitterFollow-link]: https://twitter.com/intent/follow?screen_name=cenit_io
+[join-slack-link]: https://join.slack.com/cenitio/shared_invite/MjAwMTg5ODMxMTExLTE0OTc3MDUwNDYtODIwZTgyNjI4Mw

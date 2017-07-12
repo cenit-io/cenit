@@ -11,6 +11,8 @@ module RailsAdmin
             label 'Resource'
             object_label_method { :custom_title }
 
+            configure :namespace, :enum_edit
+
             configure :name, :string do
               help 'Required.'
               html_attributes do
@@ -47,6 +49,9 @@ module RailsAdmin
               field :path
               field :description
               field :operations
+              field :headers
+              field :parameters
+              field :template_parameters
 
               field :_id
               field :created_at

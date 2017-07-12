@@ -97,6 +97,10 @@ module RailsAdmin
       "#{model.data_type.ns_slug}~#{model.data_type.slug}"
     end
 
+    def api_path
+      "#{model.data_type.ns_slug}/#{model.data_type.slug}"
+    end
+
     class << self
 
       def new(m)

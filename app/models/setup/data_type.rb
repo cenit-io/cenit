@@ -34,8 +34,6 @@ module Setup
     has_and_belongs_to_many :records_methods, class_name: Setup::Algorithm.to_s, inverse_of: nil
     has_and_belongs_to_many :data_type_methods, class_name: Setup::Algorithm.to_s, inverse_of: nil
 
-    attr_readonly :name
-
     before_save :validates_configuration
 
     after_destroy do
@@ -123,11 +121,22 @@ module Setup
         nil
     end
 
-    def method_missing(symbol, *args)
+    RECORDS_MODEL_METHODS = %w(where all count).collect(&:to_sym)
+
+    def respond_to?(*args)
+      symbol = args[0]
+      RECORDS_MODEL_METHODS.include?(symbol) ||
+        data_type_methods.any? { |alg| alg.name == symbol.to_s } ||
+        super
+    end
+
+    def method_missing(symbol, *args, &block)
       if (method = data_type_methods.detect { |alg| alg.name == symbol.to_s })
         args.unshift(self)
         method.reload
         method.run(args)
+      elsif RECORDS_MODEL_METHODS.include?(symbol)
+        records_model.send(symbol, *args, &block)
       else
         super
       end
@@ -146,7 +155,10 @@ module Setup
       end
 
       def find_data_type(ref, ns = '')
-        ns = ref['namespace'].to_s if ref.is_a?(Hash)
+        if ref.is_a?(Hash)
+          ns = ref['namespace'].to_s
+          ref = ref['name'].to_s
+        end
         Setup::DataType.where(namespace: ns, name: ref).first
       end
     end

@@ -84,7 +84,7 @@
         ="#{'Updated at'}: "
       =updated_date
     .btn-toolbar.swagger-toolbar
-      =link_to open_api_directory_path(id: @object['id'], download: true), class: 'btn btn-primary pjax' do
+      =link_to open_api_directory_path(id: @object['id'], fetch: true), class: 'btn btn-primary pjax' do
         %i.fa.fa-download
         ="#{'Fetch'}"
     - if (categories = @object['categories']) && categories.count > 0

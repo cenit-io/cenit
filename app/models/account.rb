@@ -3,7 +3,6 @@ require 'cenit/heroku_client'
 class Account
   include Setup::CenitUnscoped
   include Cenit::MultiTenancy
-  include Cenit::Oauth::Tenant
   include CredentialsGenerator
   include FieldsInspection
   include RailsAdmin::Models::AccountAdmin
@@ -45,6 +44,14 @@ class Account
   field :time_zone, type: String, default: "#{Time.zone.name} | #{Time.zone.formatted_offset}"
 
   field :index_max_entries, type: Integer, default: DEFAULT_INDEX_MAX_ENTRIES
+
+  default_scope -> {
+    if User.current && !User.current_super_admin?
+      where(owner: User.current)
+    else
+      all
+    end
+  }
 
   validates_presence_of :name, :notification_level, :time_zone
   validates_uniqueness_of :name, scope: :owner
@@ -157,8 +164,14 @@ class Account
   end
 
   def clean_up
-    super
+    switch do
+      Cenit::ApplicationId.where(:id.in => Cenit::Oauth.app_model.all.collect(&:application_id_id)).delete_all
+    end
     each_cenit_collection(&:drop)
+  end
+
+  def notify(attrs)
+    Setup::SystemNotification.create_with(attrs)
   end
 
   class << self
@@ -199,3 +212,5 @@ class Account
     end
   end
 end
+
+Tenant = Account

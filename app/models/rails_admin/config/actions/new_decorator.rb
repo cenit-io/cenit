@@ -18,9 +18,12 @@ module RailsAdmin
                   hash = JSON.parse(token.data) rescue {}
                   @abstract_model.model.data_type.new_from_json(hash)
                 else
-                  if (model = @abstract_model.model) < Setup::ClassHierarchyAware && model.abstract_class
+                  if (model = @abstract_model.model).is_a?(Class) && model < Setup::ClassHierarchyAware && model.abstract_class
                     @model_config = RailsAdmin::Config.model(Forms::ChildModelSelector)
-                    @form_object = Forms::ChildModelSelector.new(parent_model_name: model.name)
+                    if (child_types = params[:types])
+                      child_types = child_types.to_s.split(',')
+                    end
+                    @form_object = Forms::ChildModelSelector.new(parent_model_name: model.name, child_types: child_types)
                   end
                   @abstract_model.new
                 end
@@ -37,42 +40,60 @@ module RailsAdmin
 
             elsif request.post? || request.patch? # CREATE / COPY
 
-              if (model = @abstract_model.model) < Setup::ClassHierarchyAware && model.abstract_class
+              # Patch
+              if (model = @abstract_model.model).is_a?(Class) && model < Setup::ClassHierarchyAware && model.abstract_class
                 selector_config = RailsAdmin::Config.model(Forms::ChildModelSelector)
                 if (selector_attrs = params[selector_config.abstract_model.param_key]) && (child_model_name = selector_attrs[:child_model_name])
                   child_model =
                     begin
                       child_model_name.constantize
                     rescue
-                      nil
+                      child_model_name = nil
                     end
                   if child_model_name
                     @model_config = RailsAdmin::Config.model(child_model)
                     @abstract_model = @model_config.abstract_model
+                  else
+                    @model_config = RailsAdmin::Config.model(Forms::ChildModelSelector)
+                    if (child_types = selector_attrs[:child_types]).is_a?(String)
+                      child_types =
+                        begin
+                          JSON.parse(child_types).to_a.flatten
+                        rescue
+                          nil
+                        end
+                    else
+                      child_types = nil unless child_types.is_a?(Array)
+                    end
+                    @form_object = Forms::ChildModelSelector.new(parent_model_name: model.name, child_types: child_types)
+                    @form_object.errors.add(:child_model_name, 'is not valid')
                   end
                 end
               end
 
-              @modified_assoc = []
-              @object = @abstract_model.new
-              sanitize_params_for!(request.xhr? ? :modal : :create)
-
-              @object.set_attributes(params[@abstract_model.param_key])
-              @authorization_adapter && @authorization_adapter.attributes_for(:create, @abstract_model).each do |name, value|
-                @object.send("#{name}=", value)
-              end
-
-              #Patch
-              if params[:_next].nil? && @object.save
-                @auditing_adapter && @auditing_adapter.create_object(@object, @abstract_model, _current_user)
-                respond_to do |format|
-                  format.html { redirect_to_on_success }
-                  format.js { render json: { id: @object.id.to_s, label: @model_config.with(object: @object).object_label } }
-                end
+              if @form_object
+                handle_save_error(:form)
               else
-                handle_save_error
-              end
+                @modified_assoc = []
+                @object = @abstract_model.new
+                sanitize_params_for!(request.xhr? ? :modal : :create)
 
+                @object.set_attributes(params[@abstract_model.param_key])
+                @authorization_adapter && @authorization_adapter.attributes_for(:create, @abstract_model).each do |name, value|
+                  @object.send("#{name}=", value)
+                end
+
+                #Patch
+                if params[:_next].nil? && @object.save
+                  @auditing_adapter && @auditing_adapter.create_object(@object, @abstract_model, _current_user)
+                  respond_to do |format|
+                    format.html { redirect_to_on_success }
+                    format.js { render json: { id: @object.id.to_s, label: @model_config.with(object: @object).object_label } }
+                  end
+                else
+                  handle_save_error
+                end
+              end
             end
           end
         end

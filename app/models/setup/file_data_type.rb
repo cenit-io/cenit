@@ -6,21 +6,18 @@ module Setup
 
     validates_presence_of :namespace
 
-    build_in_data_type.referenced_by(:namespace, :name).with(:namespace, :name, :title, :slug, :_type, :validators, :schema_data_type, :events, :before_save_callbacks, :records_methods, :data_type_methods)
-    build_in_data_type.and(
-      properties: {
-        slug: {
-          type: 'string'
-        }
-      }
-    )
+    build_in_data_type.referenced_by(:namespace, :name).with(:namespace, :name, :id_type, :title, :slug, :_type, :validators, :schema_data_type, :events, :before_save_callbacks, :records_methods, :data_type_methods)
 
     allow :new, :import, :pull_import, :bulk_cross, :simple_cross, :bulk_expand, :simple_expand, :download_file, :copy, :switch_navigation, :render_chart
 
     shared_deny :simple_delete_data_type, :bulk_delete_data_type
 
+    field :id_type, type: String, default: -> { self.class.id_type_enum.values.first }
+
     has_and_belongs_to_many :validators, class_name: Setup::Validator.to_s, inverse_of: nil
     belongs_to :schema_data_type, class_name: Setup::JsonDataType.to_s, inverse_of: nil
+
+    validates_inclusion_of :id_type, in: ->(file_data_type) { file_data_type.class.id_type_enum.values + [nil] }
 
     before_save :validate_configuration
 
@@ -50,7 +47,14 @@ module Setup
         errors.add(:schema_data_type, 'is not allowed if no format validator is defined') if schema_data_type.present?
         self.schema_data_type = nil
       end
+      remove_attribute(:id_type) if default_id_type?
       errors.blank?
+    end
+
+    def default_id_type?
+      return true if id_type.blank?
+      id_options = self.class.id_type_enum.values
+      id_type == id_options.first || id_options.exclude?(id_type)
     end
 
     def format_validator
@@ -74,7 +78,15 @@ module Setup
     end
 
     def schema
-      @schema ||= Mongoff::GridFs::FileModel::SCHEMA
+      @schema ||=
+        begin
+          sch = Mongoff::GridFs::FileModel::SCHEMA
+          unless default_id_type?
+            sch = sch.deep_dup
+            sch['properties']['_id'] = { 'type' => id_type }
+          end
+          sch
+        end
     end
 
     def validate_file(file)
@@ -174,6 +186,16 @@ module Setup
         default_contentType: format_validator.try(:content_type) || 'application/octet-stream'
       }
     end
-    
+
+    class << self
+
+      def id_type_enum
+        {
+          Default: 'default',
+          Integer: 'integer',
+          String: 'string'
+        }
+      end
+    end
   end
 end

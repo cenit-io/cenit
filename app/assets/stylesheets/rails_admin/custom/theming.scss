@@ -414,13 +414,17 @@ ul#main-accordion .nav-amount {
   float: right;
   margin-left: 1rem;
   line-height: 1;
-  padding: 1px 4px;
+
   border-radius: 4px;
-  background-color: #d9edf7 !important;
-  border: solid 1px #bce8f1;
+
   color: #31708f !important;
   font-weight: bold;
   font-size: 10.5px;
+  &.active {
+    padding: 1px 4px;
+    background-color: #d9edf7 !important;
+    border: solid 1px #bce8f1;
+  }
 }
 
 ul#main-accordion .nav-caret i {
@@ -1505,12 +1509,12 @@ label {
   background-color: #5cb85c;
   border-color: #4cae4c;
 
-  &:hover{
+  &:hover {
     color: #fff;
     background-color: #c9302c;
     border-color: #ac2925;
 
-    &:after{
+    &:after {
       font-family: FontAwesome;
       content: "\f00d";
       margin-left: 10px;
@@ -1524,4 +1528,18 @@ p.filter.form-search {
 .label-info a{
   color: white;
   text-decoration: none;
+}
+
+.api_guru_logo {
+  span {
+    color: black;
+  }
+  img {
+    height: 39px;
+    margin-left: 5px;
+    cursor: pointer;
+  }
+  a:hover {
+    text-decoration: none;
+  }
 }

@@ -43,6 +43,10 @@ module RailsAdmin
               end
             end
 
+            configure :namespace, :enum_edit
+
+            configure :source_data_type, :contextual_belongs_to
+
             edit do
               field :namespace, :enum_edit, &RailsAdmin::Config::Fields::Base::SHARED_READ_ONLY
               field :name, &RailsAdmin::Config::Fields::Base::SHARED_READ_ONLY

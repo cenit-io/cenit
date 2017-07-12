@@ -36,6 +36,8 @@ module RailsAdmin
               end
             end
 
+            configure :namespace, :enum_edit
+
             configure :segment do
               pretty_value do
                 (bindings[:view].render partial: 'link_to_segment', locals:
@@ -48,7 +50,7 @@ module RailsAdmin
             end
 
             edit do
-              field :namespace, :enum_edit
+              field :namespace
               field :name
               field :data_type do
                 inline_add false

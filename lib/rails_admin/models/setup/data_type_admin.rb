@@ -14,6 +14,8 @@ module RailsAdmin
 
             show_in_dashboard false
 
+            configure :namespace, :enum_edit
+
             configure :_type do
               pretty_value do
                 value.split('::').last.to_title

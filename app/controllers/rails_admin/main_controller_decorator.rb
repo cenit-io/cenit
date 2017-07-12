@@ -26,9 +26,12 @@ module RailsAdmin
           scope = scope.any_in(origin: origins)
         end
 
-        filter_token = Cenit::Token.where(token: session[:filters][@model_name]).first if session[:filters][@model_name]
-        criteria = filter_token.data['criteria'] if filter_token.try(:data)
-        scope = scope.and(criteria) if criteria.is_a?(Hash)
+        # Skip filters in ajax request of associated collection (Ex: Requests to get items of select components)
+        unless request.xhr? && params[:associated_collection].present?
+          filter_token = Cenit::Token.where(token: session[:filters][@model_name]).first if session[:filters][@model_name]
+          criteria = filter_token.data['criteria'] if filter_token.try(:data)
+          scope = scope.and(criteria) if criteria.is_a?(Hash)
+        end
 
       elsif (output = Setup::AlgorithmOutput.where(id: params[:algorithm_output]).first) &&
         output.data_type == model.data_type
@@ -36,10 +39,20 @@ module RailsAdmin
       end
       # Contextual record
       if get_context_record
+        or_criteria = []
         model_config._fields.each do |f|
           next unless f.is_a?(RailsAdmin::Config::Fields::Types::ContextualBelongsTo) && f.association.klass == get_context_model
-          scope = scope.where(f.association.foreign_key => get_context_id)
+          or_criteria <<
+            if f.include_blanks_on_collection_scope
+              [
+                { f.association.foreign_key => { '$exists': false } },
+                { f.association.foreign_key => { '$in': [nil, get_context_id] } }
+              ]
+            else
+              { f.association.foreign_key => get_context_id }
+            end
         end
+        scope = scope.or(or_criteria.flatten) unless or_criteria.empty?
       end
       scope
     end

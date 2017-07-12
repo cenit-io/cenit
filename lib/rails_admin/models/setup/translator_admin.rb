@@ -23,7 +23,13 @@ module RailsAdmin
               end
             end
 
+            configure :namespace, :enum_edit
+
             configure :code, :code
+
+            configure :source_data_type, :contextual_belongs_to do
+              include_blanks_on_collection_scope true
+            end
 
             edit do
               field :namespace, :enum_edit, &RailsAdmin::Config::Fields::Base::SHARED_READ_ONLY
