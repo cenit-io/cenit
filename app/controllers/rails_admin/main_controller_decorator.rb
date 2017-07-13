@@ -1,3 +1,4 @@
+# rails_admin-1.0 ready
 module RailsAdmin
   MainController.class_eval do
     include OverrideActionsHelper
