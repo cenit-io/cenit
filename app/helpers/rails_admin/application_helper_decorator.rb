@@ -523,8 +523,8 @@ module RailsAdmin
       sub_links = ''
       category_count = 0
       apis = load_apis_specs_cat_count
-      categories_list = apis['categories']
-      model_count = apis['total']
+      categories_list = apis[:categories]
+      model_count = apis[:total]
 
       categories_list.each do |cat|
         category_filter_url = open_api_directory_path(query: cat['id'], by_category: true)
@@ -728,9 +728,9 @@ module RailsAdmin
       if File.exists?(file_name)
         list = File.read(file_name)
       else
+        File.delete(APIS_CATEGORIES_COUNT_FILE_NAME) if File.exists?(APIS_CATEGORIES_COUNT_FILE_NAME)
         list = Setup::Connection.get('http://api.apis.guru/v2/list.json').submit!
         File.open(file_name, 'w') { |file| file.write(list) }
-        File.delete(APIS_CATEGORIES_COUNT_FILE_NAME) if File.exists?(APIS_CATEGORIES_COUNT_FILE_NAME)
       end
       begin
         JSON.parse(list)
@@ -782,19 +782,20 @@ module RailsAdmin
     def load_apis_specs_cat_count
       file_name = APIS_CATEGORIES_COUNT_FILE_NAME
       if File.exists?(file_name)
-        list = File.read(file_name)
+        begin
+          JSON.parse(File.read(file_name)).symbolize_keys
+        rescue Exception => ex
+          fail "invalid JSON content on #{file_name} (#{ex.message})"
+        end
       else
-        list = count_apis.to_json
-        File.open(file_name, 'w') { |file| file.write(list) }
-      end
-      begin
-        JSON.parse(list)
-      rescue Exception => ex
-        fail "invalid JSON content on #{file_name} (#{ex.message})"
+        if (list = count_apis)[:total] > 0
+          File.open(file_name, 'w') { |file| file.write(list.to_json) }
+        end
+        list
       end
     rescue Exception => ex
       flash[:error] = "Unable to retrieve OpenAPI Category Count: #{ex.message}"
-      {}
+      { total: 0, categories: [] }
     end
 
     def count_apis
@@ -808,9 +809,7 @@ module RailsAdmin
       end
       categories = {}
       Setup::Category.where(:id.in => cat_ids.to_a).each { |category| categories[category.id] = category.to_hash }
-      query = nil
       apis.select! do |api|
-        info = api['versions'][api['preferred']]['info']
         api['categories'] = api['categories'].collect { |id| categories[id] || { 'id' => id } }
       end
       cat_list = categories.keys
@@ -820,7 +819,7 @@ module RailsAdmin
       end
       categories_count = []
       categories_list.each do |cat|
-        count = (values = apis.select { |c| c['categories'].include?(cat) }).count
+        count = apis.count { |c| c['categories'].include?(cat) }
         if count > 0
           cat['count'] = count
           categories_count << cat
