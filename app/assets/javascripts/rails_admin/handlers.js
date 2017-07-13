@@ -432,5 +432,118 @@ function handlerInit() {
 
     if ($('select.input-sm', '.graphics-controls').length > 0)
         graphicsInit();
+    $('#main-accordion .nav-stacked').on('shown.bs.collapse', updateModelCount);
+}
+function getModelCount($element, model_name, origins, ext) {
+    var model_route = '/api/v2/',
+        origin_list = [],
+        counts = {},
+        host = window.location.origin,
+        get_count = function (model_name, origin, counts) {
+            var update_counts = function ($element, counts) {
+                var keys = Object.keys(counts),
+                    values = [],
+                    title = "and that's all!",
+                    key,
+                    not_cero_keys_count = 0,
+                    not_cero_keys = [],
+                    $amount = $element.find('.nav-amount');
+
+                if (keys.length > 0) {
+                    $amount.text('');
+                    $amount.children().remove();
+                    $amount.removeClass('active');
+                    for (var i = 0; i < keys.length; i++) {
+                        key = keys[i];
+                        if (counts[key] != 0) {
+                            values[not_cero_keys_count] = counts[key];
+                            not_cero_keys[not_cero_keys_count] = key;
+                            not_cero_keys_count++;
+                        }
+                    }
+                    if (not_cero_keys.length == 1) {
+                        $amount.text(values[0]);
+                        $amount.attr('title', title);
+                        $amount.addClass('active');
+                    }
+                    if (not_cero_keys.length > 1) {
+                        $amount.addClass('active');
+                        $amount.text(values[0] + ' +');
+                        var title = '+';
+                        for (var j = 1; j < not_cero_keys.length; j++) {
+                            if (values[j] != 0) {
+                                if (j === 1) {
+                                    title += values[j] + ' ' + not_cero_keys[j];
+                                }
+                                else {
+                                    if (j + 1 === not_cero_keys.length) {
+                                        title += ' and ' + values[j] + ' ' + not_cero_keys[j];
+                                    } else {
+                                        title += ', ' + values[j] + ' ' + not_cero_keys[j];
+                                    }
+                                }
+                            }
+                        }
+                        $amount.attr('title', title);
+                    }
+                }
+                else {
+                    $amount.text('');
+                    $amount.children().remove();
+                    $amount.removeClass('active');
+                    $amount.append($('<i class="fa fa-spinner fa-pulse"></i>'));
+                }
+            };
+            if (origin) {
+                var ajx_url = host + model_route + '/' + model_name + '?limit=1&only=id&origin=' + origin
+                if (model_name === 'renderer') {
+                    model_route = model_route +'setup'
+                    ajx_url = host + model_route + '/' + model_name + '?file_extension=' + ext;
+                }
+                $.ajax({
+                        type: "GET",
+                        url: ajx_url,
+                        beforeSend: function () {
+                            update_counts($element, {});
+                        }
+                    })
+                    .done(function (data) {
+                        counts[origin] = data.count;
+                        update_counts($element, counts);
+                    });
+            }
+            else {
+                $.ajax({
+                        type: "GET",
+                        url: host + model_route + '/' + model_name + '?limit=1&only=id',
+                        beforeSend: function () {
+                            update_counts($element, {});
+                        }
+                    })
+                    .done(function (data) {
+                        counts['no_origins'] = data.count;
+                        update_counts($element, counts);
+                    });
+            }
+        };
+    origins = origins || ''
+    counts = {}
+    if (origins.length > 0) {
+        origin_list = origins.split(',');
+        $.each(origin_list, function (index, origin) {
+            get_count(model_name, origin, counts);
+        })
+    } else {
+        get_count(model_name, null, counts);
+    }
+};
+function updateModelCount(e) {
+    e.stopPropagation();
+    console.log(e);
+    var $children = $(e.currentTarget).children('li[data-model]');
+    $children.each(function (index) {
+        var $this = $(this);
+        getModelCount($this, $this.data('model'), $this.data('origins'), $this.data('ext'));
+    });
 
 }
