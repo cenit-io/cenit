@@ -30,7 +30,7 @@
             =link_to open_api_directory_path(id: object_root['id']), class: 'pjax' do
               = title = object_info['title'].presence || object_root['id'].to_title
           .panel-body
-            .panel-body-logo.text-center{style: "background-color:##{x_logo['backgroundColor'] || 'inherit'}"}
+            .panel-body-logo.text-center{style: "background-color:#{x_logo['backgroundColor'] || '#f5f5f5'}"}
               =link_to open_api_directory_path(id: object_root['id']), class: 'pjax' do
                 =image_tag x_logo['url'] || 'missing.png', class: 'logo', alt: :logo
             .panel-body-description.line-clamp.line-clamp-3
