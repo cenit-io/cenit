@@ -210,7 +210,7 @@ end
   MIME::Application => :new_app,
   MIME::Image => :new_img,
   MIME::DiscreteMedia => :new_media,
-  WickedPdf => :new_wickedpdf
+  Magick::ImageList => :new_list
 }.each do |entity, method|
   entity.class_eval("def self.#{method}(*args)
     new(*args)
@@ -276,5 +276,14 @@ module MIME
         super
       end
     end
+  end
+end
+
+require 'wicked_pdf'
+
+class WickedPdf
+
+  def self.pdf_from_url(url, options = {})
+    new.pdf_from_url(url, options)
   end
 end
