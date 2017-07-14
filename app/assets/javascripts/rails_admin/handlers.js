@@ -160,20 +160,18 @@ function MySchedulerInit($this) {
 
     var date_start_input = top_level.find('#start_date');
     var date_start = date_start_input.val();
-    date_start_input.datetimepicker();
-    date_start_input.datetimepicker("option", "dateFormat", "yy-mm-dd");
+    date_start_input.datetimepicker({format: "YYYY-MM-DD", allowInputToggle: true});
     date_start_input.val(date_start);
 
     var time_start_input = top_level.find('#start_time');
     var time_start = time_start_input.val();
-    time_start_input.datetimepicker();
+    time_start_input.datetimepicker({format: "HH:mm", allowInputToggle: true});
     var t = time_start.split(':');
     time_start_input.val(zp(t[0]) + ':' + zp(t[1]));
 
     var date_end_input = top_level.find('#end_date');
     var date_end = date_end_input.val();
-    date_end_input.datetimepicker();
-    date_end_input.datetimepicker("option", "dateFormat", "yy-mm-dd");
+    date_end_input.datetimepicker({format: "YYYY-MM-DD", allowInputToggle: true});
     date_end_input.val(date_end);
 
     var freq_sel = top_level.find('#frequency');
@@ -435,7 +433,6 @@ function cenitOauthScopeInit() {
     })
 }
 
-
 function graphicsInit() {
     $('select.input-sm', '.graphics-controls').on('change', function (e) {
         graphic_control_change(e);
@@ -652,7 +649,7 @@ function getModelCount($element, model_name, origins, ext) {
                     $amount.removeClass('active');
                     $amount.append($('<i class="fa fa-spinner fa-pulse"></i>'));
                 }
-            };
+            }, $amount = $element.find('.nav-amount');
             if (origin) {
                 var ajx_url = host + model_route + '/' + model_name + '?limit=1&only=id&origin=' + origin
                 if (model_name === 'renderer') {
@@ -669,6 +666,9 @@ function getModelCount($element, model_name, origins, ext) {
                     .done(function (data) {
                         counts[origin] = data.count;
                         update_counts($element, counts);
+                    })
+                    .fail(function () {
+                        $amount.children().remove();
                     });
             }
             else {
@@ -682,6 +682,9 @@ function getModelCount($element, model_name, origins, ext) {
                     .done(function (data) {
                         counts['no_origins'] = data.count;
                         update_counts($element, counts);
+                    })
+                    .fail(function () {
+                        $amount.children().remove();
                     });
             }
         };
@@ -698,7 +701,6 @@ function getModelCount($element, model_name, origins, ext) {
 };
 function updateModelCount(e) {
     e.stopPropagation();
-    console.log(e);
     var $children = $(e.currentTarget).children('li[data-model]');
     $children.each(function (index) {
         var $this = $(this);

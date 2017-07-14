@@ -16,8 +16,11 @@
             = t('admin.scheduler.at')
       #start_1.form-inline.col-sm-10{class: (dd.has_key? 'start_at')? '': 'hidden'}
         - source = (dd.has_key? 'start_at') ? dd['start_at'] : dd['now']
-        %input#start_date.form-control.input-sm.datepicker{type:'text', value: source}
-
+        .form-group
+          .input-group.date
+            %input#start_date.form-control.input-sm.datepicker{type:'text', value: source}
+            %span.input-group-addon
+              %span.fa.fa-calendar
   .label.top
     %label
       = t('admin.scheduler.repeat')
@@ -44,8 +47,11 @@
         - hour = (dd.has_key? 'hours') ? dd['hours'][0] : Time.now.hour
         - min = (dd.has_key? 'minutes') ? dd['minutes'][0] : Time.now.min
         - value = hour.to_s + ':' + min.to_s
-        %input#start_time.form-control.input-sm.timepicker{type: 'text', value: value}
-
+        .form-group
+          .input-group.date
+            %input#start_time.form-control.input-sm.timepicker{type: 'text', value: value}
+              %span.input-group-addon
+                %span.fa.fa-clock-o
   #scheduler_days.scheduler_repeat.visible-2
     .clearfix
       .col-sm-2
@@ -108,8 +114,14 @@
             = t('admin.scheduler.after')
       #end_1.form-inline.col-sm-10{class: (dd.has_key? 'end_at')? '': 'hidden'}
         - source = (dd.has_key? 'end_at') ? dd['end_at'] : dd['now']
-        %input#end_date.form-control.input-sm.datepicker{type:'text', value: source, }
+        .form-group{style: 'margin-right: 25px'}
+          .input-group.date
+            %input#end_date.form-control.input-sm.datepicker{type:'text', value: source, }
+              %span.input-group-addon
+                %span.fa.fa-calendar
         -##end_2.col-sm-10.hidden
-        %input#max_repeat.form-control.text-right{type:'number', name: 'max_repeat', value:1, min:1, max: 999999, size: 2}
-        %span
-          = t('admin.scheduler.repetitions')
+        .form-group.hidden
+          .input-group
+            %input#max_repeat.form-control.input-sm.text-right{type:'number', name: 'max_repeat', value:1, min:1, max: 999999, size: 2}
+              %span.input-group-addon
+                = t('admin.scheduler.repetitions')
