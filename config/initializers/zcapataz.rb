@@ -92,8 +92,12 @@ Capataz.config do
 
   allow_on MIME::DiscreteMediaFactory, [:create_factory]
 
+  allow_on PDFKit, [:new_pdfkit]
+
   allow_on WickedPdf, [:new_wickedpdf]
-  
+
+  allow_on Tempfile, [:new_tempfile]
+
   allow_on Magick::Image, [:read]
 
   allow_for [Mongoff::Model], [:where, :all, :data_type]
