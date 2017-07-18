@@ -40,7 +40,7 @@ module RailsAdmin
                 cenit_api_path = "#{cenit_api_path}/#{id}"
                 fields = "#{fields},data" unless params[:no_details].to_b
                 if pull
-                  fields = "#{fields},authors,email,pull_asynchronous"
+                  fields = "#{fields},authors,email,pull_asynchronous,readme,pull_parameters,label,type,many,required,description,properties_locations,property_name,location"
                 end
               elsif (@query = params[:query].to_s.presence)
                 parameters['$or'] = %w{name title readme summary description}.collect do |field|
