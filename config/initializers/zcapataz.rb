@@ -18,7 +18,7 @@ Capataz.config do
 
   allow_on Setup::SystemNotification, :create_with
 
-  allow_for Setup::CrossSharedCollection, :pull
+  allow_for Setup::CrossSharedCollection, [:pull, :shared?, :to_json, :share_json, :to_xml, :to_edi]
 
   allow_on [Account, Tenant], [:name, :where, :all, :switch, :notify]
 
