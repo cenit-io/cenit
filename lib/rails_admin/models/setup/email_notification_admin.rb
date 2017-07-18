@@ -11,55 +11,58 @@ module RailsAdmin
             visible { User.current_super_admin? }
             weight 500
 
+            visible { User.current_super_admin? }
+
             configure :data_type, :contextual_belongs_to
 
             edit do
               field :namespace
               field :name
-
-              field :active do
-                visible do
-                  ctrl = bindings[:controller]
-                  model_name = ctrl.instance_variable_get(:@model_name)
-                  bindings[:object].data_type ||= ctrl.instance_variable_get(:@data_type_filter)
-                  bindings[:object].data_type ||= ctrl.object if model_name == 'Setup::JsonDataType'
-                  bindings[:object].data_type != nil
-                end
-              end
+              field :active
 
               field :data_type do
                 required true
                 inline_edit false
-                help do
-                  text = ''
-                  if bindings[:object].data_type.nil?
-                    text << "<i class='fa fa-warning'></i> Required.<br/>"
-                    text << "<i class='fa fa-warning'></i> To set observers, you must first use the save and edit action."
-                  end
-                  text.html_safe
-                end
               end
 
               field :observers do
+                required true
                 label 'Events'
                 visible { !bindings[:object].data_type.nil? }
-                help do
-                  text = 'Required.'
-                  if bindings[:controller].instance_variable_get(:@model_name) != 'Setup::ForeignNotificationEmail'
-                    text = "<i class='fa fa-warning'></i> Required.<br/>"
-                    text << "<i class='fa fa-warning'></i> To use a newly created observer in this session or set setting values, you must first use the save and edit action."
+                contextual_params do
+                  if (dt = bindings[:object].data_type)
+                    { data_type_id: dt.id.to_s }
                   end
-                  text.html_safe
                 end
               end
 
               field :transformation do
                 required true
+                label 'Template'
+                visible { !bindings[:object].data_type.nil? }
+                contextual_association_scope do
+                  types = bindings[:object].class.transformation_types.collect(&:to_s)
+                  proc do |scope|
+                    scope.where(:_type.in => types)
+                  end
+                end
+                contextual_params do
+                  h = { target_data_type_id: ::Setup::EmailNotification.email_data_type_id }
+                  if (dt = bindings[:object].data_type)
+                    h[:source_data_type_id] = [nil, dt.id.to_s]
+                  end
+                  h
+                end
+              end
+
+              field :email_channel do
+                required true
+                visible { !bindings[:object].data_type.nil? }
               end
 
             end
 
-            fields :namespace, :name, :active, :data_type, :observers, :updated_at
+            fields :namespace, :name, :active, :data_type, :observers, :email_channel, :updated_at
           end
         end
 

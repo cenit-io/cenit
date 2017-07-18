@@ -16,6 +16,7 @@ module RailsAdmin
                 value.split('::').last.to_title
               end
             end
+
             configure :namespace, :enum_edit
 
             list do

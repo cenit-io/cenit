@@ -14,7 +14,11 @@ module RailsAdmin
                 "<span class=\"label label-#{bindings[:object].status_class}\">#{value.to_s.capitalize}</span>".html_safe
               end
             end
+
+            configure :namespace, :enum_edit
+
             configure :metadata, :json_value
+
             configure :_type do
               pretty_value do
                 value.split('::').last.to_title
@@ -22,7 +26,7 @@ module RailsAdmin
             end
 
             edit do
-              field :namespace, :enum_edit
+              field :namespace
               field :name
               field :metadata
             end

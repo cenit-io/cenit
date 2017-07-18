@@ -6,7 +6,7 @@ GIT
 
 GIT
   remote: https://github.com/cenit-io/cenit-multi_tenancy.git
-  revision: 637b8d89e96196da63a3e2f4d261e89cc1091c8b
+  revision: 7574367275032937472a1864a5187bedb12deff9
   specs:
     cenit-multi_tenancy (0.0.1)
       cenit-config
@@ -15,7 +15,7 @@ GIT
 
 GIT
   remote: https://github.com/cenit-io/cenit-oauth.git
-  revision: 342183d4697eb70de2656d7182b76932b43d1600
+  revision: 7163d08ed52321e1178f51152c21699ccb7333c9
   specs:
     cenit-oauth (0.0.1)
       cenit-token
@@ -46,7 +46,7 @@ GIT
 
 GIT
   remote: https://github.com/macarci/capataz.git
-  revision: 42ed4fe635f55bec5892af8ecb92eef9d0e2a525
+  revision: effde41f2582b421dd6a0bb8bca0569d39095a44
   specs:
     capataz (0.0.1)
       parser
@@ -114,7 +114,7 @@ GEM
       tzinfo (~> 1.1)
     addressable (2.3.8)
     amq-protocol (2.0.0)
-    arel (6.0.3)
+    arel (6.0.4)
     ast (2.3.0)
     astrolabe (1.3.1)
       parser (~> 2.2)
@@ -129,7 +129,7 @@ GEM
       railties (>= 3.0)
     bson (3.2.6)
     bson_ext (1.5.1)
-    builder (3.2.2)
+    builder (3.2.3)
     bunny (2.2.1)
       amq-protocol (>= 2.0.0)
     cancan (1.6.10)
@@ -175,15 +175,16 @@ GEM
     cliver (0.3.2)
     codemirror-rails (5.6)
       railties (>= 3.0, < 5)
-    coffee-rails (4.1.0)
+    coffee-rails (4.1.1)
       coffee-script (>= 2.2.0)
-      railties (>= 4.0.0, < 5.0)
+      railties (>= 4.0.0, < 5.1.x)
     coffee-script (2.4.1)
       coffee-script-source
       execjs
-    coffee-script-source (1.10.0)
+    coffee-script-source (1.12.2)
     colorize (0.7.7)
     commonjs (0.2.7)
+    concurrent-ruby (1.0.5)
     coveralls (0.8.9)
       json (~> 1.8)
       rest-client (>= 1.6.8, < 2)
@@ -218,7 +219,7 @@ GEM
     exception_notification (4.1.4)
       actionmailer (~> 4.0)
       activesupport (~> 4.0)
-    execjs (2.6.0)
+    execjs (2.7.0)
     factory_girl (4.5.0)
       activesupport (>= 3.0.0)
     factory_girl_rails (4.5.0)
@@ -275,7 +276,7 @@ GEM
     httparty (0.13.7)
       json (~> 1.8)
       multi_xml (>= 0.5.2)
-    i18n (0.7.0)
+    i18n (0.8.1)
     identicon (0.0.5)
       chunky_png
     jbuilder (2.3.2)
@@ -296,7 +297,7 @@ GEM
       thor (>= 0.14, < 2.0)
     jquery-ui-rails (5.0.5)
       railties (>= 3.2.16)
-    json (1.8.3)
+    json (1.8.6)
     json-schema (2.5.1)
       addressable (~> 2.3.7)
     jwt (1.5.2)
@@ -314,11 +315,11 @@ GEM
     mail (2.6.3)
       mime-types (>= 1.16, < 3)
     mime (0.4.3)
-    mime-types (2.6.2)
+    mime-types (2.99)
     mimemagic (0.3.0)
     mini_magick (4.3.6)
     mini_portile2 (2.0.0)
-    minitest (5.8.4)
+    minitest (5.10.1)
     mongo (2.1.2)
       bson (~> 3.0)
     mongoid (5.0.1)
@@ -394,7 +395,7 @@ GEM
       prawn (>= 1.3.0, < 3.0.0)
     rabl (0.11.6)
       activesupport (>= 2.3.14)
-    rack (1.6.4)
+    rack (1.6.5)
     rack-pjax (0.8.0)
       nokogiri (~> 1.5)
       rack (~> 1.1)
@@ -422,7 +423,7 @@ GEM
     rails_12factor (0.0.3)
       rails_serve_static_assets
       rails_stdout_logging
-    rails_admin (0.7.0)
+    rails_admin (1.0.0)
       builder (~> 3.1)
       coffee-rails (~> 4.0)
       font-awesome-rails (>= 3.0, < 5)
@@ -431,10 +432,9 @@ GEM
       jquery-ui-rails (~> 5.0)
       kaminari (~> 0.14)
       nested_form (~> 0.3)
-      rack-pjax (~> 0.7)
-      rails (~> 4.0)
-      remotipart (~> 1.0)
-      safe_yaml (~> 1.0)
+      rack-pjax (>= 0.7)
+      rails (>= 4.0, < 6)
+      remotipart (~> 1.3)
       sass-rails (>= 4.0, < 6)
     rails_layout (1.0.28)
     rails_serve_static_assets (0.0.4)
@@ -446,10 +446,12 @@ GEM
       thor (>= 0.18.1, < 2.0)
     rainbow (2.0.0)
     raindrops (0.15.0)
-    rake (11.1.2)
+    rake (12.0.0)
     rdoc (4.2.0)
+    recaptcha (4.3.1)
+      json
     ref (2.0.0)
-    remotipart (1.2.1)
+    remotipart (1.3.1)
     request_store (1.2.0)
     responders (2.1.0)
       railties (>= 4.2.0, < 5)
@@ -496,8 +498,7 @@ GEM
       sexp_processor (~> 4.1)
     rubyzip (1.1.7)
     rufus-scheduler (3.1.9)
-    safe_yaml (1.0.4)
-    sass (3.4.19)
+    sass (3.4.23)
     sass-rails (5.0.4)
       railties (>= 4.0.0, < 5.0)
       sass (~> 3.1)
@@ -523,7 +524,8 @@ GEM
     simplecov-html (0.10.0)
     spreadsheet (1.1.1)
       ruby-ole (>= 1.0)
-    sprockets (3.4.0)
+    sprockets (3.5.2)
+      concurrent-ruby (~> 1.0)
       rack (> 1, < 3)
     sprockets-rails (2.3.3)
       actionpack (>= 3.0)
@@ -542,9 +544,9 @@ GEM
       daemons (~> 1.0, >= 1.0.9)
       eventmachine (~> 1.0, >= 1.0.4)
       rack (~> 1.0)
-    thor (0.19.1)
-    thread_safe (0.3.5)
-    tilt (2.0.1)
+    thor (0.19.4)
+    thread_safe (0.3.6)
+    tilt (2.0.6)
     tins (1.6.0)
     ttfunk (1.4.0)
     turbolinks (2.5.3)
@@ -568,6 +570,8 @@ GEM
     websocket-driver (0.6.3)
       websocket-extensions (>= 0.1.0)
     websocket-extensions (0.1.2)
+    wicked_pdf (1.1.0)
+    wkhtmltopdf-binary (0.12.3.1)
     write_xlsx (0.83.0)
       rubyzip (>= 1.0.0)
       zip-zip
@@ -649,9 +653,10 @@ DEPENDENCIES
   rabl
   rails
   rails_12factor
-  rails_admin (~> 0.7.0)
+  rails_admin (~> 1.0.0)
   rails_admin_dynamic_charts!
   rails_layout
+  recaptcha
   rkelly-remix
   rolify
   rspec-rails
@@ -669,6 +674,8 @@ DEPENDENCIES
   uglifier
   unicorn (= 4.9.0)
   wannabe_bool
+  wicked_pdf
+  wkhtmltopdf-binary
   write_xlsx
   xmldsig
 

@@ -13,12 +13,16 @@ module Setup
     end
 
     def run(message)
-      notification_id = message.delete(:notification_id)
+      notification_id = message[:notification_id]
       notification = Setup::Notification.where(id: notification_id).first
 
-      fail "Notification with id #{notification_id} not found" unless notification
+      fail "Notification with ID #{notification_id} not found" unless notification
 
-      notification.send_message(message[:data])
+      record = notification.data_type.where(id: message[:record_id]).first
+
+      fail "#{notification.data_type.custom_title} record with ID #{message[:record_id]} not found" unless record
+
+      notification.process(record)
     end
 
   end

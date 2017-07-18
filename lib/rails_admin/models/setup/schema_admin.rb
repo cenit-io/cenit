@@ -9,6 +9,8 @@ module RailsAdmin
             weight 101
             object_label_method { :custom_title }
 
+            configure :namespace, :enum_edit
+
             configure :schema, :code do
               code_config do
                 if bindings[:object].schema_type == :json_schema

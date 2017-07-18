@@ -414,13 +414,17 @@ ul#main-accordion .nav-amount {
   float: right;
   margin-left: 1rem;
   line-height: 1;
-  padding: 1px 4px;
+
   border-radius: 4px;
-  background-color: #d9edf7 !important;
-  border: solid 1px #bce8f1;
+
   color: #31708f !important;
   font-weight: bold;
   font-size: 10.5px;
+  &.active {
+    padding: 1px 4px;
+    background-color: #d9edf7 !important;
+    border: solid 1px #bce8f1;
+  }
 }
 
 ul#main-accordion .nav-caret i {
@@ -1505,12 +1509,12 @@ label {
   background-color: #5cb85c;
   border-color: #4cae4c;
 
-  &:hover{
+  &:hover {
     color: #fff;
     background-color: #c9302c;
     border-color: #ac2925;
 
-    &:after{
+    &:after {
       font-family: FontAwesome;
       content: "\f00d";
       margin-left: 10px;
@@ -1521,7 +1525,116 @@ label {
 p.filter.form-search {
   position: relative;
 }
-.label-info a{
+
+.label-info a {
   color: white;
   text-decoration: none;
+}
+
+.api_guru_logo {
+  span {
+    color: black;
+  }
+  img {
+    height: 39px;
+    margin-left: 5px;
+    cursor: pointer;
+  }
+  a:hover {
+    text-decoration: none;
+  }
+}
+
+.scheduler_field {
+  .label {
+    &.top {
+      color: #000;
+      margin-top: 12px;
+      max-width: 100%;
+      position: relative;
+      display: block;
+      text-align: left;
+
+      .right {
+        position: absolute;
+        right: 15px;
+      }
+    }
+  }
+  .inlined {
+    display: inline-block !important;
+    width: auto !important;
+  }
+  #appointed #number {
+    a.btn {
+      width: 56px;
+    }
+    .scheduler-opts {
+      padding-bottom: 6px;
+    }
+  }
+  .scheduler_repeat {
+    margin-top: 12px;
+    margin-bottom: 12px;
+    .clearfix.bottom {
+      padding-top: 6px;
+    }
+  }
+  .scheduler-opts a.btn {
+    transition: all .3s ease-in-out;
+  }
+  #hours_at .btn-group {
+    .btn {
+      width: 36px;
+      text-align: center;
+      &.day_in_month {
+        min-width: 48px;
+        text-align: center;
+      }
+    }
+  }
+  &.selected-0 {
+    .hidden-0,
+    .visible-1,
+    .visible-2,
+    .visible-3,
+    .visible-4,
+    .visible-5 {
+      display: none;
+      visibility: collapse;
+    }
+  }
+  &.selected-1 {
+    .visible-2,
+    .visible-3,
+    .visible-4,
+    .visible-5 {
+      display: none;
+      visibility: collapse;
+    }
+  }
+  &.selected-2 {
+    .visible-1,
+    .visible-3,
+    .visible-4,
+    .visible-5 {
+      display: none;
+      visibility: collapse;
+    }
+  }
+  &.selected-3 {
+    .visible-1,
+    .visible-4,
+    .visible-5 {
+      display: none;
+      visibility: collapse;
+    }
+  }
+  &.selected-4 {
+    .visible-1,
+    .visible-5 {
+      display: none;
+      visibility: collapse;
+    }
+  }
 }

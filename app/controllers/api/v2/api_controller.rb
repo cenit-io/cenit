@@ -3,7 +3,7 @@ module Api::V2
 
     before_action :authorize_account, :save_request_data, except: [:new_user, :cors_check, :auth]
     before_action :authorize_action, except: [:auth, :new_user, :cors_check, :push]
-    before_action :find_item, only: [:update, :show, :destroy, :pull, :run]
+    before_action :find_item, only: [:update, :show, :destroy, :pull, :run, :retry]
 
     rescue_from Exception, :with => :exception_handler
 
@@ -204,6 +204,19 @@ module Api::V2
       end
     end
 
+    def retry
+      if @item.is_a?(Setup::Task)
+        if @item.can_retry?
+          @item.retry
+          render json: { status: :ok }
+        else
+          render json: { status: "Task #{@item.id} is #{task.sattus}" }, status: :not_acceptable
+        end
+      else
+        render json: { status: :not_allowed }, status: :bad_request
+      end
+    end
+
     def auth
       authorize_account
       if Account.current
@@ -360,10 +373,15 @@ module Api::V2
           end
         end
       else
-        key = params.delete('X-User-Access-Key')
-        key = request.headers['X-User-Access-Key'] || key
-        token = params.delete('X-User-Access-Token')
-        token = request.headers['X-User-Access-Token'] || token
+
+        # New key and token params.
+        key = request.headers['X-Tenant-Access-Key'] || params.delete('X-Tenant-Access-Key')
+        token = request.headers['X-Tenant-Access-Token'] || params.delete('X-Tenant-Access-Token')
+
+        # Legacy key and token params.
+        key ||= request.headers['X-User-Access-Key'] || params.delete('X-User-Access-Key')
+        token ||= request.headers['X-User-Access-Token'] || params.delete('X-User-Access-Token')
+
         if key || token
           [
             User,
@@ -401,6 +419,8 @@ module Api::V2
             get_data_type(@model).is_a?(Setup::FileDataType) ? :upload_file : :new
           when 'update'
             :edit
+          when 'retry'
+            :retry_task
           else
             @_action_name.to_sym
           end
@@ -429,7 +449,7 @@ module Api::V2
     def cors_header
       headers['Access-Control-Allow-Origin'] = request.headers['Origin'] || ::Cenit.homepage
       headers['Access-Control-Allow-Credentials'] = false
-      headers['Access-Control-Allow-Headers'] = 'Origin, X-Requested-With, Accept, Content-Type, X-User-Access-Key, X-User-Access-Token'
+      headers['Access-Control-Allow-Headers'] = 'Origin, X-Requested-With, Accept, Content-Type, X-Tenant-Access-Key, X-Tenant-Access-Token, X-User-Access-Key, X-User-Access-Token, Authorization'
       headers['Access-Control-Allow-Methods'] = 'POST, GET, PUT, DELETE, OPTIONS'
       headers['Access-Control-Max-Age'] = '1728000'
     end

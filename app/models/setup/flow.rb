@@ -39,6 +39,8 @@ module Setup
       }
     )
 
+    field :description, type: String
+
     binding_belongs_to :event, class_name: Setup::Event.to_s, inverse_of: nil
 
     belongs_to :translator, class_name: Setup::Translator.to_s, inverse_of: nil
@@ -290,6 +292,15 @@ module Setup
         end
       else
         nil
+      end
+    end
+
+    def sources(message)
+      object_ids = ((obj_id = message[:source_id]) && [obj_id]) || source_ids_from(message)
+      if object_ids
+        data_type.records_model.any_in(id: object_ids)
+      else
+        data_type.records_model.all
       end
     end
 

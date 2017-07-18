@@ -1,3 +1,4 @@
+//rails_admin-1.0 ready
 //=  require 'jquery'
 //=  require 'jquery_ujs'
 //=  require 'jquery.remotipart'

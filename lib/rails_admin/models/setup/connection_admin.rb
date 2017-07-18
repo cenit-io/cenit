@@ -10,6 +10,8 @@ module RailsAdmin
             weight 201
             object_label_method { :custom_title }
 
+            configure :namespace, :enum_edit
+
             group :credentials do
               label 'Credentials'
             end

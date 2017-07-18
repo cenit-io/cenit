@@ -5,10 +5,9 @@ module RailsAdmin
         extend ActiveSupport::Concern
 
         included do
-          rails_admin do |c|
+          rails_admin do
             navigation_label 'Definitions'
             weight 111
-            label 'Object Type'
             object_label_method { :custom_title }
 
             group :behavior do
@@ -16,20 +15,22 @@ module RailsAdmin
               active false
             end
 
-            c.configure :title
+            configure :title
 
-            c.configure :name do
+            configure :namespace, :enum_edit
+
+            configure :name do
               read_only { !bindings[:object].new_record? }
             end
 
-            c.configure :schema, :json_schema
+            configure :schema, :json_schema
 
-            c.configure :schema_code, :json_schema do
+            configure :schema_code, :json_schema do
               label 'Schema'
               help { 'Required' }
             end
 
-            c.configure :storage_size, :decimal do
+            configure :storage_size, :decimal do
               pretty_value do
                 if (objects = bindings[:controller].instance_variable_get(:@objects))
                   unless (max = bindings[:controller].instance_variable_get(:@max_storage_size))
@@ -43,7 +44,7 @@ module RailsAdmin
               read_only true
             end
 
-            c.configure :before_save_callbacks do
+            configure :before_save_callbacks do
               group :behavior
               inline_add false
               associated_collection_scope do
@@ -53,17 +54,17 @@ module RailsAdmin
               end
             end
 
-            c.configure :records_methods do
+            configure :records_methods do
               group :behavior
               inline_add false
             end
 
-            c.configure :data_type_methods do
+            configure :data_type_methods do
               group :behavior
               inline_add false
             end
 
-            c.configure :slug
+            configure :slug
 
             edit do
               field :namespace, :enum_edit, &RailsAdmin::Config::Fields::Base::SHARED_READ_ONLY

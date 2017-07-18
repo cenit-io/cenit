@@ -1,3 +1,4 @@
+# rails_admin-1.0 ready
 module RailsAdmin
   FormBuilder.class_eval do
 

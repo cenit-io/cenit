@@ -1,3 +1,5 @@
+#rails_admin-1.0 ready
+
 require 'cenit/cenit'
 
 Cenit.config do
@@ -79,6 +81,12 @@ Cenit.config do
   #Performs chart rendering asynchronous
   asynchronous_chart_rendering true
 
+  #Performs namespace collection asynchronous
+  asynchronous_namespace_collection true
+
+  #Performs notification execution asynchronous
+  asynchronous_notification_execution true
+
   #oauth2 callback site
   oauth2_callback_site ENV['OAUTH2_CALLBACK_SITE'] || homepage
 
@@ -116,6 +124,8 @@ Cenit.config do
   request_timeout 300
 
   ecommerce_data_types Ecommerce: %w(customer.json product.json inventory.json cart.json order.json shipment.json)
+
+  email_data_type MIME: 'Message'
 
   using_accounts_dbs ENV['USING_ACCOUNTS_DBS']
 

@@ -18,6 +18,12 @@ module Setup
     def label
       "[#{type.to_s.capitalize}] #{message.length > 100 ? message.to(100) + '...' : message}"
     end
-    
+
+    class << self
+      def new(attributes = {})
+        attributes.delete(:skip_notification_level)
+        super
+      end
+    end
   end
 end

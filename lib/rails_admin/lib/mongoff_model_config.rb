@@ -11,6 +11,7 @@ module RailsAdmin
 
       titles = Set.new
       titles.add(nil)
+      groups = {}
       @model.properties.each do |property|
         property = @abstract_model.property_or_association(property)
         type = property.type
@@ -43,13 +44,14 @@ module RailsAdmin
           end
           unless (g = property.group.to_s.gsub(/ +/, '_').underscore.to_sym).blank?
             group g
+            groups[g] = property.group.to_s
           end
           if property.is_a?(RailsAdmin::MongoffAssociation)
             # associated_collection_cache_all true
             pretty_value do
               v = bindings[:view]
               action = v.instance_variable_get(:@action)
-              if action.is_a?(RailsAdmin::Config::Actions::Show) && !v.instance_variable_get(:@showing)
+              if (action.is_a?(RailsAdmin::Config::Actions::Show) || action.is_a?(RailsAdmin::Config::Actions::RemoteSharedCollection)) && !v.instance_variable_get(:@showing)
                 amc = RailsAdmin.config(association.klass)
               else
                 amc = polymorphic? ? RailsAdmin.config(associated) : associated_model_config # perf optimization for non-polymorphic associations
@@ -57,7 +59,7 @@ module RailsAdmin
               am = amc.abstract_model
               if action.is_a?(RailsAdmin::Config::Actions::Show) && !v.instance_variable_get(:@showing)
                 values = [value].flatten.select(&:present?)
-                fields = amc.list.with(controller: self, view: v, object: amc.abstract_model.model.new).visible_fields
+                fields = amc.list.with(controller: bindings[:controller], view: v, object: amc.abstract_model.model.new).visible_fields
                 unless fields.length == 1 && values.length == 1
                   v.instance_variable_set(:@showing, true)
                 end
@@ -115,8 +117,8 @@ module RailsAdmin
         configure :length do
           label 'Size'
           pretty_value do #TODO Factorize these code in custom rails admin field type
-            if objects = bindings[:controller].instance_variable_get(:@objects)
-              unless max = bindings[:controller].instance_variable_get(:@max_length)
+            if (objects = bindings[:controller].instance_variable_get(:@objects))
+              unless (max = bindings[:controller].instance_variable_get(:@max_length))
                 bindings[:controller].instance_variable_set(:@max_length, max = objects.collect { |storage| storage.length }.reject(&:nil?).max)
               end
               (bindings[:view].render partial: 'size_bar', locals: { max: max, value: bindings[:object].length }).html_safe
@@ -126,6 +128,16 @@ module RailsAdmin
           end
         end
         edit do
+          field :_id do
+            visible do
+              (o = bindings[:object]) &&
+                (o = o.class.data_type) &&
+                (o = o.schema) &&
+                (o = o['properties']['_id']) &&
+                o.key?('type')
+            end
+            help 'Required'
+          end
           field :data
           field :metadata
         end
@@ -148,6 +160,14 @@ module RailsAdmin
           field :length
           field :md5
         end
+      else
+        edit do
+          parent.target.properties.each do |property|
+            next if (property == '_id' && !parent.target.property_schema('_id').key?('type')) ||
+              Mongoff::Model[:base_schema]['properties'].key?(property)
+            field property.to_sym
+          end
+        end
       end
 
       navigation_label { target.data_type.namespace }
@@ -161,11 +181,9 @@ module RailsAdmin
           end
       end
 
-      edit do
-        parent.target.properties.each do |property|
-          next if (property == '_id' && !parent.target.property_schema('_id').key?('type')) ||
-            Mongoff::Model[:base_schema]['properties'].key?(property)
-          field property.to_sym
+      groups.each do |key, name|
+        group key do
+          label name
         end
       end
     end

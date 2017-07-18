@@ -149,6 +149,155 @@ function schedulerInit() {
     updateExpression();
 }
 
+function MySchedulerInit($this) {
+    var top_level = $this;
+
+    function zp(num) {
+        if (parseInt(num) > 9)
+            return num;
+        return '0' + num;
+    }
+
+    var date_start_input = top_level.find('#start_date');
+    var date_start = date_start_input.val();
+    date_start_input.datetimepicker({format: "YYYY-MM-DD", allowInputToggle: true});
+    date_start_input.val(date_start);
+
+    var time_start_input = top_level.find('#start_time');
+    var time_start = time_start_input.val();
+    time_start_input.datetimepicker({format: "HH:mm", allowInputToggle: true});
+    var t = time_start.split(':');
+    time_start_input.val(zp(t[0]) + ':' + zp(t[1]));
+
+    var date_end_input = top_level.find('#end_date');
+    var date_end = date_end_input.val();
+    date_end_input.datetimepicker({format: "YYYY-MM-DD", allowInputToggle: true});
+    date_end_input.val(date_end);
+
+    var freq_sel = top_level.find('#frequency');
+    top_level.addClass('selected-' + freq_sel.val());
+
+    top_level.find('.scheduler-opts a.btn').click(function (e) {
+        e.preventDefault();
+        $(this).toggleClass('btn-primary');
+        $(this).toggleClass('btn-default');
+    });
+
+    top_level.parents('form').on('submit', function () {
+        updateExpression();
+    });
+
+    freq_sel.change(function () {
+        var current = $(this).val();
+
+        for (var i = 0; i < 6; i++)
+            top_level.removeClass('selected-' + i);
+        top_level.addClass('selected-' + current);
+    });
+
+    function ensureInRange(val, min, max) {
+        if (!val)
+            return min;
+        var cur = parseInt(val);
+        if (cur < min)
+            return min;
+        else if (cur > max)
+            return max;
+        return cur;
+    }
+
+    var cyclic_num = $('#cyclic_num');
+    var cyclic_unit = $('#cyclic_unit');
+
+    function ensureMins() {
+        var min = 1;
+        var max = 1000;
+
+        if (cyclic_unit.val() == 'm') {
+            min = 20;
+            max = 110;
+        }
+
+        var val = parseInt(cyclic_num.val());
+        val = ensureInRange(val, min, max);
+        cyclic_num.val(val)
+    }
+
+    cyclic_num.on('input', ensureMins);
+    cyclic_unit.on('change', ensureMins);
+
+    $('#days_sl').on('change', function () {
+        $('#days_1').toggleClass('hidden');
+        $('#days_2').toggleClass('hidden');
+    });
+
+    $('#start_sl').on('change', function () {
+        $('#start_1').toggleClass('hidden');
+        $('#start_2').toggleClass('hidden');
+    });
+
+    $('#end_sl').on('change', function () {
+        $('#end_1').toggleClass('hidden');
+        $('#end_2').toggleClass('hidden');
+    });
+
+    function updateExpression() {
+        var res = {};
+
+        switch ($('#start_sl').val()) {
+            case "1":
+                res["start_at"] = date_start_input.val();
+        }
+
+        switch ($('#end_sl').val()) {
+            case "1":
+                res['end_at'] = date_end_input.val();
+                break;
+            case "2":
+                res['max_repeat'] = parseInt($("max_repeat").val());
+                break;
+        }
+
+        var level = parseInt(freq_sel.val());
+
+        if (level == 0) {
+            res["type"] = 'once';
+        } else if (level == 1) {
+            res["type"] = 'cyclic';
+            res["cyclic_expression"] = $('#cyclic_num').val() + ($('#cyclic_unit').val());
+        } else {
+            res["type"] = 'appointed';
+            var start_time = time_start_input.val();
+            res["hours"] = [parseInt(start_time.split(':')[0])];
+            res["minutes"] = [parseInt(start_time.split(':')[1])];
+
+            var dval = $("#days_sl").val();
+            if (dval == "1") {
+                res["weeks_days"] = _.filter(_.range(0, 7), function (e) {
+                    return $("#week_day_" + e).hasClass("btn-primary");
+                });
+
+                res["weeks_month"] = _.filter(_.range(0, 3), function (e) {
+                    return $("#weeks_monthly_at_" + e).hasClass("btn-primary");
+                });
+                res["last_week_in_month"] = $('#last_week_in_month').hasClass("btn-primary");
+            } else {
+                res["months_days"] = _.filter(_.range(0, 31), function (e) {
+                    return $("#months_day_" + e).hasClass("btn-primary");
+                });
+                res["last_day_in_month"] = $('#last_day_in_month').hasClass("btn-primary");
+            }
+
+            res["months"] = _.filter(_.range(1, 13), function (e) {
+                return $("#month_" + e).hasClass("btn-primary");
+            });
+        }
+        $("#setup_scheduler_expression").val(JSON.stringify(res));
+    }
+
+    updateExpression();
+}
+
 function algorithmInit() {
     var output_store = $('#setup_algorithm_store_output');
     var output_datatype_field = $('#setup_algorithm_output_datatype_id_field');
@@ -284,7 +433,6 @@ function cenitOauthScopeInit() {
     })
 }
 
-
 function graphicsInit() {
     $('select.input-sm', '.graphics-controls').on('change', function (e) {
         graphic_control_change(e);
@@ -400,7 +548,14 @@ function handlerInit() {
     console.log("Initializing handlers");
 
     if ($('#setup_scheduler_expression_field').length > 0)
-        schedulerInit();
+    //  schedulerInit();
+
+        if ($('.scheduler_type').length > 0) {
+            $('.scheduler_type').each(function () {
+                MySchedulerInit($(this))
+            })
+        }
+
 
     if ($('#setup_algorithm_store_output').length > 0)
         algorithmInit();
@@ -432,5 +587,124 @@ function handlerInit() {
 
     if ($('select.input-sm', '.graphics-controls').length > 0)
         graphicsInit();
+    $('#main-accordion .nav-stacked').on('shown.bs.collapse', updateModelCount);
+
+}
+function getModelCount($element, model_name, origins, ext) {
+    var model_route = '/api/v2/',
+        origin_list = [],
+        counts = {},
+        host = window.location.origin,
+        get_count = function (model_name, origin, counts) {
+            var update_counts = function ($element, counts) {
+                var keys = Object.keys(counts),
+                    values = [],
+                    title = "and that's all!",
+                    key,
+                    not_cero_keys_count = 0,
+                    not_cero_keys = [],
+                    $amount = $element.find('.nav-amount');
+
+                if (keys.length > 0) {
+                    $amount.text('');
+                    $amount.children().remove();
+                    $amount.removeClass('active');
+                    for (var i = 0; i < keys.length; i++) {
+                        key = keys[i];
+                        if (counts[key] != 0) {
+                            values[not_cero_keys_count] = counts[key];
+                            not_cero_keys[not_cero_keys_count] = key;
+                            not_cero_keys_count++;
+                        }
+                    }
+                    if (not_cero_keys.length == 1) {
+                        $amount.text(values[0]);
+                        $amount.attr('title', title);
+                        $amount.addClass('active');
+                    }
+                    if (not_cero_keys.length > 1) {
+                        $amount.addClass('active');
+                        $amount.text(values[0] + ' +');
+                        var title = '+';
+                        for (var j = 1; j < not_cero_keys.length; j++) {
+                            if (values[j] != 0) {
+                                if (j === 1) {
+                                    title += values[j] + ' ' + not_cero_keys[j];
+                                }
+                                else {
+                                    if (j + 1 === not_cero_keys.length) {
+                                        title += ' and ' + values[j] + ' ' + not_cero_keys[j];
+                                    } else {
+                                        title += ', ' + values[j] + ' ' + not_cero_keys[j];
+                                    }
+                                }
+                            }
+                        }
+                        $amount.attr('title', title);
+                    }
+                }
+                else {
+                    $amount.text('');
+                    $amount.children().remove();
+                    $amount.removeClass('active');
+                    $amount.append($('<i class="fa fa-spinner fa-pulse"></i>'));
+                }
+            }, $amount = $element.find('.nav-amount');
+            if (origin) {
+                var ajx_url = host + model_route + '/' + model_name + '?limit=1&only=id&origin=' + origin
+                if (model_name === 'renderer') {
+                    model_route = model_route + 'setup'
+                    ajx_url = host + model_route + '/' + model_name + '?file_extension=' + ext;
+                }
+                $.ajax({
+                        type: "GET",
+                        url: ajx_url,
+                        beforeSend: function () {
+                            update_counts($element, {});
+                        }
+                    })
+                    .done(function (data) {
+                        counts[origin] = data.count;
+                        update_counts($element, counts);
+                    })
+                    .fail(function () {
+                        $amount.children().remove();
+                    });
+            }
+            else {
+                $.ajax({
+                        type: "GET",
+                        url: host + model_route + '/' + model_name + '?limit=1&only=id',
+                        beforeSend: function () {
+                            update_counts($element, {});
+                        }
+                    })
+                    .done(function (data) {
+                        counts['no_origins'] = data.count;
+                        update_counts($element, counts);
+                    })
+                    .fail(function () {
+                        $amount.children().remove();
+                    });
+            }
+        };
+    origins = origins || ''
+    counts = {}
+    if (origins.length > 0) {
+        origin_list = origins.split(',');
+        $.each(origin_list, function (index, origin) {
+            get_count(model_name, origin, counts);
+        })
+    } else {
+        get_count(model_name, null, counts);
+    }
+};
+function updateModelCount(e) {
+    e.stopPropagation();
+    var $children = $(e.currentTarget).children('li[data-model]');
+    $children.each(function (index) {
+        var $this = $(this);
+        getModelCount($this, $this.data('model'), $this.data('origins'), $this.data('ext'));
+    });
 
 }

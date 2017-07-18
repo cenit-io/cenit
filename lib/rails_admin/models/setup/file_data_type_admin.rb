@@ -12,6 +12,8 @@ module RailsAdmin
             label 'File Type'
             object_label_method { :custom_title }
 
+            configure :namespace, :enum_edit
+
             group :content do
               label 'Content'
             end
@@ -68,9 +70,14 @@ module RailsAdmin
 
             configure :slug
 
+            configure :id_type do
+              label 'ID Type'
+            end
+
             edit do
               field :namespace, :enum_edit, &RailsAdmin::Config::Fields::Base::SHARED_READ_ONLY
               field :name, &RailsAdmin::Config::Fields::Base::SHARED_READ_ONLY
+              field :id_type, &RailsAdmin::Config::Fields::Base::SHARED_READ_ONLY
               field :title, &RailsAdmin::Config::Fields::Base::SHARED_READ_ONLY
               field :slug
               field :validators, &RailsAdmin::Config::Fields::Base::SHARED_READ_ONLY
@@ -93,6 +100,7 @@ module RailsAdmin
             show do
               field :title
               field :name
+              field :id_type
               field :slug
               field :validators
               field :storage_size

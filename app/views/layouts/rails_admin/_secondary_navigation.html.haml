@@ -12,11 +12,6 @@
       %a#take-tour{'href'=> '#'}
         %i.fa.fa-fw.fa-bus{title: t('admin.misc.tour')}
         %span=t('admin.misc.tour')
-    -#- actions(:root).each do |action|
-      %li
-        =link_to url_for(action: action.action_name, class: 'pjax') do
-          %i{class: "#{action.link_icon} fa-fw", title: wording_for(:menu, action)}
-          %span=wording_for(:menu, action)
     %li
       =link_to "#{ENV['API_DOC_URL'] || 'https://cenit-io.github.io'}/openapi/", target: '_blank' do
         %i.fa.fa-fw.fa-send-o{title: t('admin.misc.api')}

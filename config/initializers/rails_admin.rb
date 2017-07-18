@@ -63,7 +63,8 @@ require 'account'
   RailsAdmin::Config::Actions::LinkDataType,
   RailsAdmin::Config::Actions::ImportApiSpec,
   RailsAdmin::Config::Actions::RemoteSharedCollection,
-  RailsAdmin::Config::Actions::OpenApiDirectory
+  RailsAdmin::Config::Actions::OpenApiDirectory,
+  RailsAdmin::Config::Actions::Collect
 ].each { |a| RailsAdmin::Config::Actions.register(a) }
 
 [
@@ -90,6 +91,7 @@ RailsAdmin::Config::Actions.register(:export, RailsAdmin::Config::Actions::BulkE
   RailsAdmin::Config::Fields::Types::MongoffFileUpload,
   RailsAdmin::Config::Fields::Types::Url,
   RailsAdmin::Config::Fields::Types::CenitOauthScope,
+  RailsAdmin::Config::Fields::Types::Scheduler,
   RailsAdmin::Config::Fields::Types::CenitAccessScope,
   RailsAdmin::Config::Fields::Types::ContextualBelongsTo
 ].each { |f| RailsAdmin::Config::Fields::Types.register(f) }
@@ -124,7 +126,7 @@ RailsAdmin.config do |config|
 
   ### More at https://github.com/sferik/rails_admin/wiki/Base-configuration
   config.authenticate_with do
-    warden.authenticate! scope: :user unless %w(dashboard shared_collection_index ecommerce_index index show notebooks_root).include?(action_name)
+    warden.authenticate! scope: :user unless %w(dashboard shared_collection_index ecommerce_index index show notebooks_root open_api_directory).include?(action_name)
   end
   config.current_user_method { current_user }
   config.audit_with :mongoid_audit
@@ -141,6 +143,7 @@ RailsAdmin.config do |config|
     ecommerce_index
     link_data_type
     index # mandatory
+    swagger { only [Setup::ApiSpec] }
     new
     filters
     data_events
@@ -159,7 +162,6 @@ RailsAdmin.config do |config|
     run
     run_script
     edit
-    swagger { only [Setup::ApiSpec] }
     configure
     play
     copy
@@ -193,6 +195,7 @@ RailsAdmin.config do |config|
     reinstall
     simple_delete_data_type
     bulk_delete_data_type
+    collect
     delete
     trash
     notebooks_root if Cenit.jupyter_notebooks
@@ -307,6 +310,8 @@ RailsAdmin.config do |config|
 
   Setup::Oauth2Provider
 
+  Setup::SmtpProvider
+
   Setup::Oauth2Scope
 
   Setup::Authorization
@@ -320,6 +325,8 @@ RailsAdmin.config do |config|
   Setup::AwsAuthorization
 
   Cenit::OauthAccessGrant
+
+  Setup::SmtpAccount
 
   #Compute
 
@@ -368,11 +375,27 @@ RailsAdmin.config do |config|
 
   Setup::Snippet
 
+  #Channels
+
+  config.navigation 'Channels', icon: 'fa fa-exchange'
+
+  Setup::EmailChannel
+
+  Setup::SmtpAccount
+
+  Setup::EmailFlow
+
   #Workflows
 
   config.navigation 'Workflows', icon: 'fa fa-cogs'
 
   Setup::Flow
+
+  Setup::Notification
+
+  Setup::EmailNotification
+
+  Setup::WebHookNotification
 
   Setup::Event
 

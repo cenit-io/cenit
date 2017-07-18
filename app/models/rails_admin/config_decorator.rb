@@ -1,3 +1,4 @@
+# rails_admin-1.0 ready
 module RailsAdmin
   Config.module_eval do
 
@@ -5,7 +6,7 @@ module RailsAdmin
 
       def model(entity, &block)
         key = nil
-        model_class =
+        model_class = #Patch
           if entity.is_a?(Mongoff::Model) || entity.is_a?(Mongoff::Record) || entity.is_a?(RailsAdmin::MongoffAbstractModel)
             RailsAdmin::MongoffModelConfig
           else
@@ -23,16 +24,11 @@ module RailsAdmin
             RailsAdmin::Config::LazyModel
           end
 
-        if block
-          model = model_class.new(entity, &block)
-          @registry[key] = model if key
-        elsif key
-          unless (model = @registry[key])
-            @registry[key] = model = model_class.new(entity)
-          end
-        else
-          model = model_class.new(entity)
-        end
+        #Patch
+        model = model_class.new(entity)
+        model.add_deferred_block(&block) if block && model_class == RailsAdmin::Config::LazyModel
+        @registry[key] = model if key
+
         model
       end
     end

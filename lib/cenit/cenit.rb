@@ -42,7 +42,7 @@ module Cenit
     end
 
     def namespace(name)
-      Setup::Namespace.where(name: name).first
+      Setup::Namespace.find_or_create_by(name: name)
     end
   end
 end

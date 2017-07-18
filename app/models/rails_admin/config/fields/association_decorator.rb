@@ -17,7 +17,7 @@ module RailsAdmin
             amc = RailsAdmin.config(association.klass)
             am = amc.abstract_model
             count = 0
-            fields = amc.list.with(controller: self, view: v, object: am.new).visible_fields
+            fields = amc.list.with(controller: bindings[:controller], view: v, object: am.new).visible_fields
             if (listing = list_fields)
               fields = fields.select { |f| listing.include?(f.name.to_s) }
             end
@@ -133,6 +133,35 @@ module RailsAdmin
             total = 0
           end
           [v, total]
+        end
+
+        register_instance_option :contextual_params do
+          {}
+        end
+
+        register_instance_option :contextual_association_scope do
+          proc { |scope| scope }
+        end
+
+        register_instance_option :associated_collection_scope do
+          limit = (associated_collection_cache_all ? nil : 30)
+          contextual_params = self.contextual_params.merge(bindings[:controller].params[:contextual_params] || {})
+          model_config = associated_model_config
+          contextual_association_scope = self.contextual_association_scope
+          proc do |scope|
+            scope = contextual_association_scope.call(scope) if contextual_association_scope
+            scope.limit(limit)
+            or_criteria = []
+            model_config._fields.each do |f|
+              next unless f.is_a?(RailsAdmin::Config::Fields::Types::BelongsToAssociation) && contextual_params.key?(f.foreign_key)
+              id = contextual_params[f.foreign_key]
+              if id.nil? || (id.is_a?(Array) && id.include?(nil))
+                or_criteria << { f.foreign_key => { '$exists': false } }
+              end
+              or_criteria << { f.foreign_key => id.is_a?(Array) ? { '$in': id } : id }
+            end
+            (or_criteria.empty? && scope) || scope.or(or_criteria.flatten)
+          end
         end
       end
     end

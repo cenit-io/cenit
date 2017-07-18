@@ -7,6 +7,11 @@
           %button.btn.btn-primary{type: 'submit', :'data-disable-with' => "<i class='icon-white icon-refresh'></i> ".html_safe + t('admin.misc.refresh')}
             %i.icon-white.icon-refresh
             = t('admin.misc.refresh')
+      .pull-right.api_guru_logo
+        =link_to 'http://APIs.guru', target: '_blank' do
+          %span
+            =t('admin.misc.powered_api_guru')
+          =image_tag 'guru_logo_horizontal.svg', alt: 'http://APIs.guru'
   #grid-wrapper
     - @objects.each_with_index do |object_root, index|
       - if index%4 == 0
@@ -25,7 +30,7 @@
             =link_to open_api_directory_path(id: object_root['id']), class: 'pjax' do
               = title = object_info['title'].presence || object_root['id'].to_title
           .panel-body
-            .panel-body-logo.text-center{style: "background-color:##{x_logo['backgroundColor'] || 'inherit'}"}
+            .panel-body-logo.text-center{style: "background-color:#{x_logo['backgroundColor'] || '#f5f5f5'}"}
               =link_to open_api_directory_path(id: object_root['id']), class: 'pjax' do
                 =image_tag x_logo['url'] || 'missing.png', class: 'logo', alt: :logo
             .panel-body-description.line-clamp.line-clamp-3

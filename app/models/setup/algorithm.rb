@@ -165,9 +165,23 @@ module Setup
       rc
     end
 
-    def run(input)
+    def run_asynchronous(input = [])
       input = Cenit::Utility.json_value_of(input)
       input = [input] unless input.is_a?(Array)
+      Setup::AlgorithmExecution.process(algorithm_id: id.to_s, input: input)
+    end
+
+    def run(input = [], task = nil)
+      input = Cenit::Utility.json_value_of(input)
+      input = [input] unless input.is_a?(Array)
+      input = input.dup
+      if (index = task_parameter_index) && index <= input.length && input[index].nil?
+        if index < input.length
+          input[index] = task || Setup::Task.current
+        else
+          input << task || Setup::Task.current
+        end
+      end
       rc = Cenit::BundlerInterpreter.run(self, *input)
 
       if rc.present?
@@ -189,6 +203,14 @@ module Setup
       end
 
       rc
+    end
+
+    def task_parameter_index
+      # TODO Force task parameter type when parameters types include cenit data types
+      parameters.each_with_index do |p, i|
+        return i if p.name == 'task'
+      end
+      nil
     end
 
     def link?(call_symbol)
@@ -322,7 +344,7 @@ module Setup
         errors: ['Python parsing not yet supported']
       }
     end
-    
+
   end
 end
 

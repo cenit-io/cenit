@@ -13,8 +13,10 @@ module RailsAdmin
             configure :identifier
             configure :registered, :boolean
 
+            configure :namespace, :enum_edit
+
             edit do
-              field :namespace, :enum_edit
+              field :namespace
               field :name
               field :slug
               field :actions
