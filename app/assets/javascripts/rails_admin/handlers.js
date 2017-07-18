@@ -493,11 +493,11 @@ function getModelCount($element, model_name, origins, ext) {
                     $amount.removeClass('active');
                     $amount.append($('<i class="fa fa-spinner fa-pulse"></i>'));
                 }
-            };
+            }, $amount = $element.find('.nav-amount');
             if (origin) {
                 var ajx_url = host + model_route + '/' + model_name + '?limit=1&only=id&origin=' + origin
                 if (model_name === 'renderer') {
-                    model_route = model_route +'setup'
+                    model_route = model_route + 'setup'
                     ajx_url = host + model_route + '/' + model_name + '?file_extension=' + ext;
                 }
                 $.ajax({
@@ -510,6 +510,9 @@ function getModelCount($element, model_name, origins, ext) {
                     .done(function (data) {
                         counts[origin] = data.count;
                         update_counts($element, counts);
+                    })
+                    .fail(function () {
+                        $amount.children().remove();
                     });
             }
             else {
@@ -523,6 +526,9 @@ function getModelCount($element, model_name, origins, ext) {
                     .done(function (data) {
                         counts['no_origins'] = data.count;
                         update_counts($element, counts);
+                    })
+                    .fail(function () {
+                        $amount.children().remove();
                     });
             }
         };
@@ -539,7 +545,6 @@ function getModelCount($element, model_name, origins, ext) {
 };
 function updateModelCount(e) {
     e.stopPropagation();
-    console.log(e);
     var $children = $(e.currentTarget).children('li[data-model]');
     $children.each(function (index) {
         var $this = $(this);

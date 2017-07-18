@@ -210,7 +210,9 @@ end
   MIME::Application => :new_app,
   MIME::Image => :new_img,
   MIME::DiscreteMedia => :new_media,
-  Magick::ImageList => :new_list
+  WickedPdf => :new_wickedpdf,
+  PDFKit => :new_pdfkit,
+  Tempfile => :new_tempfile,
 }.each do |entity, method|
   entity.class_eval("def self.#{method}(*args)
     new(*args)

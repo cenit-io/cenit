@@ -94,7 +94,7 @@ gem 'captcha'
 gem "recaptcha", require: "recaptcha/rails"
 gem 'httmultiparty'
 
-gem 'oauth2'
+gem 'oauth2', '1.0.0'
 gem "octokit"
 gem 'exception_notification'
 
@@ -122,4 +122,5 @@ gem 'write_xlsx'
 gem 'handlebars'
 gem 'wicked_pdf'
 gem 'wkhtmltopdf-binary'
-#gem 'RMagick'
+# gem 'rmagick'
+gem 'pdfkit', '0.8.2'
