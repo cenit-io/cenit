@@ -2,7 +2,7 @@ class Thread
 
   def clean_keys_prefixed_with(prefix)
     unless (prefix = prefix.to_s).empty?
-      Thread.current.keys.each { |key| Thread.current[key] = nil if key.to_s.start_with?(prefix) }
+      Thread.current.keys.each {|key| Thread.current[key] = nil if key.to_s.start_with?(prefix)}
     end
   end
 
@@ -26,10 +26,10 @@ class Hash
     each_pair do |key, value|
       if yield(self, key, value)
         case value
-        when Hash
-          value.each_deep_pair(&block)
-        when Array
-          value.each { |sub_value| sub_value.each_deep_pair(&block) if sub_value.is_a?(Hash) }
+          when Hash
+            value.each_deep_pair(&block)
+          when Array
+            value.each {|sub_value| sub_value.each_deep_pair(&block) if sub_value.is_a?(Hash)}
         end
       end
     end if block
@@ -67,7 +67,7 @@ class Hash
   end
 
   def array_hash_merge(other)
-    deep_merge(other) { |_, value, other_value| Cenit::Utility.array_hash_merge(value, other_value) }
+    deep_merge(other) {|_, value, other_value| Cenit::Utility.array_hash_merge(value, other_value)}
   end
 
   def reverse_array_hash_merge(other)
@@ -79,12 +79,12 @@ class String
 
   def to_title
     title =
-      gsub(/([A-Z])(\d)/, '\1 \2').
-        gsub(/([a-z])(\d|[A-Z])/, '\1 \2').
-        gsub(/(\d)([a-z]|[A-Z])/, '\1 \2').
-        tr('_', ' ').
-        tr('-', ' ').
-        strip
+        gsub(/([A-Z])(\d)/, '\1 \2').
+            gsub(/([a-z])(\d|[A-Z])/, '\1 \2').
+            gsub(/(\d)([a-z]|[A-Z])/, '\1 \2').
+            tr('_', ' ').
+            tr('-', ' ').
+            strip
     unless title.empty?
       title[0] = title[0].mb_chars.capitalize.to_s
     end
@@ -94,14 +94,14 @@ class String
   def sym2word
     str = self
     {
-      '+' => 'plus',
-      '@' => 'at',
-      '$' => 'dollar',
-      '%' => 'percentage',
-      '?' => 'question',
-      '=' => 'equals',
-      '*' => 'asterisk',
-      '&' => 'and'
+        '+' => 'plus',
+        '@' => 'at',
+        '$' => 'dollar',
+        '%' => 'percentage',
+        '?' => 'question',
+        '=' => 'equals',
+        '*' => 'asterisk',
+        '&' => 'and'
     }.each do |char, word|
       str = str.squeeze(char).gsub(char, word)
     end
@@ -115,8 +115,8 @@ class String
   def to_method_name(taken = nil)
     str = sym2word
     {
-      '-' => 'minus',
-      '.' => 'dot'
+        '-' => 'minus',
+        '.' => 'dot'
     }.each do |char, replacement|
       ch = true
       while ch && (ch = str[0]) =~ /\W/
@@ -142,14 +142,14 @@ class String
       str = "_#{str}" unless str =~ /\A(_|[A-Za-z])/
     end
     taken_method =
-      case taken
-      when Hash
-        :key?
-      when Enumerable
-        :include?
-      else
-        nil
-      end
+        case taken
+          when Hash
+            :key?
+          when Enumerable
+            :include?
+          else
+            nil
+        end
     if taken_method && taken.send(taken_method, str)
       i = 1
       i +=1 while taken.send(taken_method, "#{str}_#{i}")
@@ -194,34 +194,34 @@ module Enumerable
 end
 
 {
-  OpenSSL::Digest => :new_sign,
-  OpenSSL::Digest::SHA1 => :new_sha1,
-  OpenSSL::PKey::RSA => :new_rsa,
-  OpenSSL::X509::Certificate => :new_certificate,
-  Xmldsig::SignedDocument => :new_document,
-  StringIO => :new_io,
-  Spreadsheet::Workbook => :new_workbook,
-  Nokogiri::XML::Builder => :new_builder,
-  MIME::Mail => :new_message,
-  MIME::Message => :new_message,
-  MIME::Text => :new_text,
-  MIME::Multipart::Mixed => :new_message,
-  WriteXLSX => :new_xlsx,
-  MIME::Application => :new_app,
-  MIME::Image => :new_img,
-  MIME::DiscreteMedia => :new_media,
-  WickedPdf => :new_wickedpdf,
-  PDFKit => :new_pdfkit,
-  Tempfile => :new_tempfile,
+    OpenSSL::Digest => :new_sign,
+    OpenSSL::Digest::SHA1 => :new_sha1,
+    OpenSSL::PKey::RSA => :new_rsa,
+    OpenSSL::X509::Certificate => :new_certificate,
+    Xmldsig::SignedDocument => :new_document,
+    StringIO => :new_io,
+    Spreadsheet::Workbook => :new_workbook,
+    Nokogiri::XML::Builder => :new_builder,
+    MIME::Mail => :new_message,
+    MIME::Message => :new_message,
+    MIME::Text => :new_text,
+    MIME::Multipart::Mixed => :new_message,
+    WriteXLSX => :new_xlsx,
+    MIME::Application => :new_app,
+    MIME::Image => :new_img,
+    MIME::DiscreteMedia => :new_media,
+    WickedPdf => :new_wickedpdf,
+    PDFKit => :new_pdfkit,
+    Tempfile => :new_tempfile,
 }.each do |entity, method|
   entity.class_eval("def self.#{method}(*args)
     new(*args)
   end")
 end
 
-{ 
-  MIME::DiscreteMedia => :create_media,
-  MIME::DiscreteMediaFactory => :create_factory
+{
+    MIME::DiscreteMedia => :create_media,
+    MIME::DiscreteMediaFactory => :create_factory
 }.each do |entity, method|
   entity.class_eval("def self.#{method}(*args)
     create(*args)
@@ -262,18 +262,18 @@ module MIME
         if entity.is_a?(Mongoff::GridFs::File)
           category, subtype = entity.contentType.split('/')
           entity =
-            case category
-            when 'audio'
-              MIME::Audio
-            when 'image'
-              MIME::Image
-            when 'text'
-              MIME::Text
-            when 'video'
-              MIME::Video
-            else
-              MIME::Application
-            end.new(entity.data, subtype, { 'Content-Type' => entity.contentType, 'name' => entity.filename })
+              case category
+                when 'audio'
+                  MIME::Audio
+                when 'image'
+                  MIME::Image
+                when 'text'
+                  MIME::Text
+                when 'video'
+                  MIME::Video
+                else
+                  MIME::Application
+              end.new(entity.data, subtype, {'Content-Type' => entity.contentType, 'name' => entity.filename})
         end
         super
       end
