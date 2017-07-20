@@ -2,7 +2,7 @@ class Thread
 
   def clean_keys_prefixed_with(prefix)
     unless (prefix = prefix.to_s).empty?
-      Thread.current.keys.each {|key| Thread.current[key] = nil if key.to_s.start_with?(prefix)}
+      Thread.current.keys.each { |key| Thread.current[key] = nil if key.to_s.start_with?(prefix) }
     end
   end
 
@@ -29,7 +29,7 @@ class Hash
           when Hash
             value.each_deep_pair(&block)
           when Array
-            value.each {|sub_value| sub_value.each_deep_pair(&block) if sub_value.is_a?(Hash)}
+            value.each { |sub_value| sub_value.each_deep_pair(&block) if sub_value.is_a?(Hash) }
         end
       end
     end if block
@@ -67,7 +67,7 @@ class Hash
   end
 
   def array_hash_merge(other)
-    deep_merge(other) {|_, value, other_value| Cenit::Utility.array_hash_merge(value, other_value)}
+    deep_merge(other) { |_, value, other_value| Cenit::Utility.array_hash_merge(value, other_value) }
   end
 
   def reverse_array_hash_merge(other)
@@ -273,7 +273,7 @@ module MIME
                   MIME::Video
                 else
                   MIME::Application
-              end.new(entity.data, subtype, {'Content-Type' => entity.contentType, 'name' => entity.filename})
+              end.new(entity.data, subtype, { 'Content-Type' => entity.contentType, 'name' => entity.filename })
         end
         super
       end
