@@ -219,7 +219,7 @@ end
   end")
 end
 
-{ 
+{
   MIME::DiscreteMedia => :create_media,
   MIME::DiscreteMediaFactory => :create_factory
 }.each do |entity, method|
