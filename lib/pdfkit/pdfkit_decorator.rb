@@ -1,9 +1,10 @@
 require 'pdfkit'
 require 'tempfile'
 require 'cenit/cenit'
+require 'base64'
 
 PDFKit.class_eval do
-  def self.pdf_from_html(url, options = {})
+  def self.pdf_from_html(input_url, options = {})
     header_html = Tempfile.new(%w(header .html))
     if options[:logo]
       image = Cenit.namespace(options[:namespace]).data_type('images').where(:filename => options[:logo]).first
@@ -15,15 +16,16 @@ PDFKit.class_eval do
     else
       header_html.write(Cenit.namespace(options[:namespace]).snippet('header_html.html.erb').code)
     end
-
     header_html.rewind
 
     footer_html = Tempfile.new(%w(footer .html))
     footer_html.write(Cenit.namespace(options[:namespace]).snippet('footer_html.html.erb').code)
     footer_html.rewind
 
+    input_url = options[:url_encoded] ? Base64.decode64(input_url) : input_url
+
     pdf = new(
-        url,
+        input_url,
         :header_html => header_html.path,
         :footer_html => footer_html.path,
         :margin_top => options[:margin_top],
