@@ -1,7 +1,6 @@
 require 'pdfkit'
 require 'tempfile'
 require 'cenit/cenit'
-require 'base64'
 
 PDFKit.class_eval do
   def self.pdf_from_html(input_url, options = {})
@@ -21,8 +20,6 @@ PDFKit.class_eval do
     footer_html = Tempfile.new(%w(footer .html))
     footer_html.write(Cenit.namespace(options[:namespace]).snippet('footer_html.html.erb').code)
     footer_html.rewind
-
-    input_url = options[:url_encoded] ? Base64.decode64(input_url) : input_url
 
     pdf = new(
         input_url,
