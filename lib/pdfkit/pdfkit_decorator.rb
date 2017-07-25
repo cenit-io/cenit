@@ -1,6 +1,5 @@
 require 'pdfkit'
 require 'tempfile'
-require 'cenit/cenit'
 
 PDFKit.class_eval do
   def self.pdf_from_html(input_url, options = {})
