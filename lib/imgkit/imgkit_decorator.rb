@@ -2,9 +2,9 @@ require 'imgkit'
 require 'rmagick'
 
 IMGKit.class_eval do
-  def self.image_from_html(input_url, options = {})
+  def self.image_from_html(url, options = {})
 
-    image = new(input_url)
+    image = new(url)
     image_converted = ''
 
     case options[:format]
