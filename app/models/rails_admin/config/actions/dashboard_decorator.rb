@@ -23,28 +23,6 @@ module RailsAdmin
                   end
                 end
               @most_recent_changes = {}
-              @counts = {}
-              @max = 0
-              #Patch
-              if current_user
-                @abstract_models.each do |t|
-                  scope = @authorization_adapter && @authorization_adapter.query(:index, t)
-                  counts = t.counts({ cache: true }, scope)
-                  count = counts[:default] || counts.values.inject(0, &:+)
-                  @max = count > @max ? count : @max
-                  @counts[t.model.name] = counts
-                  # Patch
-                  # next unless t.properties.detect { |c| c.name == :updated_at }
-                  # @most_recent_changes[t.model.name] = t.first(sort: "#{t.table_name}.updated_at").try(:updated_at)
-                end
-              else
-                @abstract_models.each do |absm|
-                  # TODO: added rescue to avoid exception with button heroku deploy
-                  current_count = absm.model.super_count rescue 0
-                  @max = current_count > @max ? current_count : @max
-                  @counts[absm.model.name] = { default: current_count }
-                end
-              end
             end
             render @action.template_name, status: (flash[:error].present? ? :not_found : 200)
           end

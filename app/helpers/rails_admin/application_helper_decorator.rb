@@ -682,25 +682,12 @@ module RailsAdmin
                 data[:model] = model_path
                 data[:origins] = origins
               end
-=begin
-              counts =
-                if current_user
-                  node.abstract_model.counts({ cache: true }, @authorization_adapter && @authorization_adapter.query(:index, node.abstract_model))
-                else
-                  @counts[node.abstract_model.model_name] || { default: 0 }
-                end
-              model_count = counts[:default] || counts.values.inject(0, &:+)
-              pc = percent(model_count, @max)
-              indicator = get_indicator(pc)
-              anim = animate_width_to(pc)
-=end
               menu = menu_for(:collection, node.abstract_model, nil)
-
               indicator = 'info'
               anim = '2.0%'
               rc += '<td style="overflow:visible">'
               rc += "<div class='progress progress-#{indicator}' style='margin-bottom:0'>"
-              rc += "<div class='animate-width-to progress-bar progress-bar-#{indicator}' data-max='#{@max}' data-model='#{data[:model]}' data-origins='#{data[:origins]}' data-animate-length='#{anim}' data-animate-width-to='#{anim}' style='width:2%'>"
+              rc += "<div class='animate-width-to progress-bar progress-bar-#{indicator}' data-model='#{data[:model]}' data-origins='#{data[:origins]}' data-animate-length='#{anim}' data-animate-width-to='#{anim}' style='width:#{anim}'>"
               rc += "<i class='fa fa-spinner fa-pulse'></i>"
               rc += '</div>'
               rc += '</div>'
