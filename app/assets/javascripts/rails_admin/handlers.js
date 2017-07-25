@@ -432,12 +432,15 @@ function handlerInit() {
 
     if ($('select.input-sm', '.graphics-controls').length > 0)
         graphicsInit();
-    $('#main-accordion .nav-stacked').on('shown.bs.collapse', updateModelCount);
+
+    $('#main-accordion .nav-stacked').on('shown.bs.collapse', updateModelCountOneByOne);
+
+/*    if ($('.dashboard table').length > 0)
+        updateDashboardCount();*/
 }
-function getModelCount($element, model_name, origins, ext) {
+function getModelCountOneByOne($element, model_name, origins, ext) {
     var model_route = '/api/v2/',
-        origin_list = [],
-        counts = {},
+        counts = {}, origin,
         host = window.location.origin,
         get_count = function (model_name, origin, counts) {
             var update_counts = function ($element, counts) {
@@ -510,9 +513,124 @@ function getModelCount($element, model_name, origins, ext) {
                     .done(function (data) {
                         counts[origin] = data.count;
                         update_counts($element, counts);
+                        if (cenit_model_origin_list.length > 0) {
+                            origin = cenit_model_origin_list.shift();
+                            get_count(model_name, origin, counts);
+                        } else {
+                            requestModelCount($cenit_submenu_children);
+                        }
                     })
                     .fail(function () {
                         $amount.children().remove();
+                    });
+            }
+            else {
+                $.ajax({
+                        type: "GET",
+                        url: host + model_route + '/' + model_name + '?limit=1&only=id',
+                        beforeSend: function () {
+                            update_counts($element, {});
+                        }
+                    })
+                    .done(function (data) {
+                        counts['no_origins'] = data.count;
+                        update_counts($element, counts);
+                        requestModelCount($cenit_submenu_children);
+                    })
+                    .fail(function () {
+                        $amount.children().remove();
+                    });
+            }
+        };
+    origins = origins || ''
+    counts = {}
+    if (origins.length > 0) {
+        cenit_model_origin_list = origins.split(',');
+        origin = cenit_model_origin_list.shift();
+        get_count(model_name, origin, counts);
+    } else {
+        get_count(model_name, null, counts);
+    }
+};
+function getModelCountForDashBoard($element, model_name, origins, ext) {
+    var model_route = '/api/v2/',
+        cenit_model_origin_list = [],
+        counts = {},
+        host = window.location.origin,
+        get_count = function (model_name, origin, counts) {
+            var update_counts = function ($element, counts) {
+                    var keys = Object.keys(counts),
+                        values = [],
+                        title = "",
+                        key,
+                        not_cero_keys_count = 0,
+                        not_cero_keys = [],
+                        $amount = $element;
+
+                    if (keys.length > 0) {
+                        $amount.text('');
+                        $amount.children().remove();
+                        $amount.removeClass('active');
+                        for (var i = 0; i < keys.length; i++) {
+                            key = keys[i];
+                            if (counts[key] != 0) {
+                                values[not_cero_keys_count] = counts[key];
+                                not_cero_keys[not_cero_keys_count] = key;
+                                not_cero_keys_count++;
+                            }
+                        }
+                        if (not_cero_keys.length == 1) {
+                            $amount.text(values[0]);
+                            $amount.attr('title', title);
+                            $amount.addClass('active');
+                        }
+                        if (not_cero_keys.length > 1) {
+                            $amount.addClass('active');
+                            $amount.text(values[0] + ' +');
+                            var title = '+';
+                            for (var j = 1; j < not_cero_keys.length; j++) {
+                                if (values[j] != 0) {
+                                    if (j === 1) {
+                                        title += values[j] + ' ' + not_cero_keys[j];
+                                    }
+                                    else {
+                                        if (j + 1 === not_cero_keys.length) {
+                                            title += ' and ' + values[j] + ' ' + not_cero_keys[j];
+                                        } else {
+                                            title += ', ' + values[j] + ' ' + not_cero_keys[j];
+                                        }
+                                    }
+                                }
+                            }
+                            $amount.attr('title', title);
+                        }
+                    }
+                    else {
+                        $amount.text('');
+                        $amount.children().remove();
+                        $amount.append($('<i class="fa fa-spinner fa-pulse"></i>'));
+                    }
+                },
+                $amount = $element;
+            if (origin) {
+                var ajx_url = host + model_route + '/' + model_name + '?limit=1&only=id&origin=' + origin
+                if (model_name === 'renderer') {
+                    model_route = model_route + 'setup'
+                    ajx_url = host + model_route + '/' + model_name + '?file_extension=' + ext;
+                }
+                $.ajax({
+                        type: "GET",
+                        url: ajx_url,
+                        beforeSend: function () {
+                            update_counts($element, {});
+                        }
+                    })
+                    .done(function (data) {
+                        counts[origin] = data.count;
+                        update_counts($element, counts);
+                    })
+                    .fail(function () {
+                        $amount.text(0);
                     });
             }
             else {
@@ -535,20 +653,29 @@ function getModelCount($element, model_name, origins, ext) {
     origins = origins || ''
     counts = {}
     if (origins.length > 0) {
-        origin_list = origins.split(',');
-        $.each(origin_list, function (index, origin) {
-            get_count(model_name, origin, counts);
-        })
+        cenit_model_origin_list = origins.split(',');
+        get_count(model_name, cenit_model_origin_list[0], counts);
     } else {
         get_count(model_name, null, counts);
     }
 };
-function updateModelCount(e) {
+function updateModelCountOneByOne(e) {
     e.stopPropagation();
-    var $children = $(e.currentTarget).children('li[data-model]');
-    $children.each(function (index) {
+    $cenit_submenu_children = $(e.currentTarget).children('li[data-model]');
+    requestModelCount($cenit_submenu_children)
+}
+function requestModelCount() {
+    var array_of_children = $cenit_submenu_children.toArray();
+    if (array_of_children.length > 0) {
+        var $this = $(array_of_children.shift());
+        $cenit_submenu_children = $(array_of_children);
+        getModelCountOneByOne($this, $this.data('model'), $this.data('origins'), $this.data('ext'));
+    }
+}
+function updateDashboardCount() {
+    var $progress_bars = $('.progress-bar');
+    $progress_bars.each(function (index) {
         var $this = $(this);
-        getModelCount($this, $this.data('model'), $this.data('origins'), $this.data('ext'));
+        getModelCountForDashBoard($this, $this.data('model'), $this.data('origins'), $this.data('ext'));
     });
-
 }

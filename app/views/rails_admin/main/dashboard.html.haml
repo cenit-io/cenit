@@ -63,7 +63,7 @@
 #collections.blocks.clearfix
   = collections_at_dashboard
 - if @abstract_models
-  .dashboard
+  .dashboard{'data-model-count': 0}
     = dashboard_main
   -#%table.table.table-condensed.table-striped
     %thead
