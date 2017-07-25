@@ -18,6 +18,18 @@ module Cenit
           )
         end
 
+        def bucket
+          @resource ||= Aws::S3::Resource.new(client: client)
+
+          _bucket = @resource.bucket("cenit-io-tenant-#{Account.current.id.to_s}")
+          _bucket.create unless _bucket.exists?
+          _bucket
+        end
+
+        def object(file, &block)
+          block.call(bucket.object(file.id.to_s))
+        end
+
         def save(file, data, options)
           opts = {
             :content_type => file[:contentType],
@@ -26,23 +38,15 @@ module Cenit
             }
           }
 
-          resource = Aws::S3::Resource.new(client: client)
-          obj = resource.bucket('cenit-io').object(file.id.to_s)
-          data.is_a?(String) ? obj.put(opts.merge(body: data)) : obj.upload_file(data.path, opts)
+          object(file) { |obj| data.is_a?(String) ? obj.put(opts.merge(body: data)) : obj.upload_file(data.path, opts) }
         end
 
         def read(file, *args)
-          obj = client.get_object(bucket: 'cenit-io', key: file.id.to_s)
-          obj.body.read
-        rescue Exception => ex
-          nil
+          object(file) { |obj| obj.get.body.read if obj.exists? }
         end
 
         def destroy(file)
-          obj = client.get_object(bucket: 'cenit-io', key: file.id.to_s)
-          obj.delete
-        rescue Aws::S3::Errors::NoSuchKey => ex
-          # The file no longer exists.
+          object(file) { |obj| obj.delete if obj.exists? }
         end
       end
     end
