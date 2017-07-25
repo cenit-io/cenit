@@ -1,9 +1,8 @@
 require 'pdfkit'
 require 'tempfile'
-require 'cenit/cenit'
 
 PDFKit.class_eval do
-  def self.pdf_from_html(input_url, options = {})
+  def self.pdf_from_html(url, options = {})
     header_html = Tempfile.new(%w(header .html))
     if options[:logo]
       image = Cenit.namespace(options[:namespace]).data_type('images').where(:filename => options[:logo]).first
@@ -22,7 +21,7 @@ PDFKit.class_eval do
     footer_html.rewind
 
     pdf = new(
-        input_url,
+        url,
         :header_html => header_html.path,
         :footer_html => footer_html.path,
         :margin_top => options[:margin_top],
