@@ -33,7 +33,6 @@ IMGKit.class_eval do
       image_temp.rewind
 
       image_list = Magick::ImageList.new
-      #image_list = image_list.from_blob(File.read(image_temp.path), image_converted) {
       image_list = image_list.from_blob(File.read(image_temp.path), content_img.to_blob) {
         self.format = options[:output_format]
         self.quality = 60}
