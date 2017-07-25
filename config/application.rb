@@ -62,6 +62,10 @@ module Cenit
 
       Cenit::OauthAccessGrant.instance_eval do
         include Setup::CenitScoped
+
+        # TODO Include App information field
+        build_in_data_type.with(:scope)
+
         deny :all
         allow :index, :show, :delete, :edit
       end
