@@ -213,10 +213,12 @@ module Setup
       event || translator
     end
 
-    def join_process(message={}, join_task=Task.current)
-      if join_task
+    def join_process(message={})
+      if (task_token = Thread.current[:task_token]) &&
+        (thread_token = ThreadToken.where(token: task_token).first) &&
+        (current_task = Task.where(thread_token: thread_token).first)
         process(message) do |task|
-          task.join(join_task)
+          task.join(current_task)
         end
       else
         process(message)

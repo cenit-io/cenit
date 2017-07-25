@@ -4,9 +4,10 @@ module RailsAdmin
       module Types
         class MongoffFileUpload < RailsAdmin::Config::Fields::Types::FileUpload
 
-          def resource_url
-            '' #TODO Complete when extending file controller
+          register_instance_option :partial do
+            :form_cenit_file_upload
           end
+
         end
       end
     end

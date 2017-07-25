@@ -121,6 +121,14 @@ GEM
     autoprefixer-rails (6.1.0.1)
       execjs
       json
+    aws-sdk (2.10.13)
+      aws-sdk-resources (= 2.10.13)
+    aws-sdk-core (2.10.13)
+      aws-sigv4 (~> 1.0)
+      jmespath (~> 1.0)
+    aws-sdk-resources (2.10.13)
+      aws-sdk-core (= 2.10.13)
+    aws-sigv4 (1.0.1)
     bcrypt (3.1.10)
     bootstrap-sass (3.3.5.1)
       autoprefixer-rails (>= 5.0.0.1)
@@ -278,6 +286,7 @@ GEM
     i18n (0.7.0)
     identicon (0.0.5)
       chunky_png
+    imgkit (1.6.1)
     jbuilder (2.3.2)
       activesupport (>= 3.0.0, < 5)
       multi_json (~> 1.2)
@@ -290,6 +299,7 @@ GEM
       nokogiri (>= 1.5.10)
       rake
       rdoc
+    jmespath (1.3.1)
     jquery-rails (4.0.5)
       rails-dom-testing (~> 1.0)
       railties (>= 4.2.0)
@@ -373,6 +383,7 @@ GEM
     parser (2.3.1.4)
       ast (~> 2.2)
     pdf-core (0.6.0)
+    pdfkit (0.8.2)
     poltergeist (1.7.0)
       capybara (~> 2.1)
       cliver (~> 0.3.1)
@@ -392,6 +403,7 @@ GEM
       rails (>= 3.1.0)
     prawn-table (0.2.2)
       prawn (>= 1.3.0, < 3.0.0)
+    puma (3.9.1)
     rabl (0.11.6)
       activesupport (>= 2.3.14)
     rack (1.6.4)
@@ -586,6 +598,7 @@ PLATFORMS
   ruby
 
 DEPENDENCIES
+  aws-sdk (~> 2.10.13)
   bootstrap-sass
   bootstrap-wysihtml5-rails (> 0.3.1.24)
   bson_ext
@@ -627,6 +640,7 @@ DEPENDENCIES
   httmultiparty
   httparty
   identicon
+  imgkit (= 1.6.1)
   jbuilder
   jeweler
   jquery-rails
@@ -642,14 +656,16 @@ DEPENDENCIES
   mongoid-rspec
   nokogiri
   oauth
-  oauth2
+  oauth2 (= 1.0.0)
   octokit
   omniauth
   omniauth-oauth2 (~> 1.3.1)
   parser
+  pdfkit (= 0.8.2)
   poltergeist
   prawn-qrcode
   prawn-rails
+  puma
   rabl
   rails
   rails_12factor
@@ -683,4 +699,4 @@ RUBY VERSION
    ruby 2.2.1p85
 
 BUNDLED WITH
-   1.14.6
+   1.15.1
