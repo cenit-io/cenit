@@ -503,7 +503,7 @@ module Mongoff
     private
 
     def check_referenced_schema(schema, check_for_array = true)
-      if schema.is_a?(Hash) && (schema = schema.reject { |key, _| %w(group xml unique title description edi format example enum readOnly default visible).include?(key) })
+      if schema.is_a?(Hash) && (schema = schema.reject { |key, _| %w(group xml unique title description edi format example enum readOnly default visible referenced_by).include?(key) })
         property_dt = nil
         ns = data_type.namespace
         if (ref = schema['$ref']).is_a?(Array)
@@ -513,9 +513,9 @@ module Mongoff
           ref = ref['name']
         end
         ((ref.is_a?(String) && (schema.size == 1 || (schema.size == 2 && schema.has_key?('referenced')))) ||
-          (schema['type'] == 'array' && (items=schema['items']) &&
+          (schema['type'] == 'array' && (items = schema['items']) &&
             (schema.size == 2 || (schema.size == 3 && schema.has_key?('referenced'))) &&
-            (items = items.reject { |key, _| %w(title description edi).include?(key) }) &&
+            (items = items.reject { |key, _| %w(title description edi referenced_by).include?(key) }) &&
             items.size == 1 &&
             ((ref = items['$ref']).is_a?(String) ||
               (ref.is_a?(Hash) && (ns = ref['namespace'].to_s) && (ref = ref['name']).is_a?(String))))) &&
