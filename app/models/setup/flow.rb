@@ -213,7 +213,7 @@ module Setup
       event || translator
     end
 
-    def join_process(message={}, join_task=Task.current)
+    def join_process(message = {}, join_task = Task.current)
       if join_task
         process(message) do |task|
           task.join(join_task)

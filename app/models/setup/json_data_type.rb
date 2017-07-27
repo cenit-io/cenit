@@ -51,12 +51,17 @@ module Setup
     end
 
     def schema=(sch)
+      old_schema = schema
       sch = JSON.parse(sch.to_s) unless sch.is_a?(Hash)
       self.code = JSON.pretty_generate(sch)
       @schema = sch
     rescue
       @schema = nil
       self.code = sch
+    ensure
+      unless Cenit::Utility.eql_content?(old_schema, @schema)
+        changed_attributes['schema'] = old_schema
+      end
     end
 
     def code_extension
@@ -91,7 +96,7 @@ module Setup
     end
 
     def schema_changed?
-      changed_attributes.has_key?('schema')
+      changed_attributes.key?('schema')
     end
 
     def validate_model
@@ -99,8 +104,8 @@ module Setup
         if schema_changed?
           begin
             json_schema, _ = validate_schema
-            fail Exception, 'defines invalid property name: _type' if object_schema?(json_schema) &&json_schema['properties']['_type']
-            self.schema = check_properties(JSON.parse(json_schema.to_json))
+            fail Exception, 'defines invalid property name: _type' if object_schema?(json_schema) && json_schema['properties'].key?('_type')
+            self.schema = check_properties(JSON.parse(json_schema.to_json), skip_id: true)
           rescue Exception => ex
             errors.add(:schema, ex.message)
           end
