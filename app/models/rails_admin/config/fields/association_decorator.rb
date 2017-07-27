@@ -1,7 +1,30 @@
+require 'rails_admin/config/fields/association'
+
 module RailsAdmin
   module Config
     module Fields
       Association.class_eval do
+
+        def object_association_handler?
+
+        end
+
+        def association
+          if bindings && (obj = bindings[:object]) && obj.respond_to?(association_method = "association_for_#{@properties.name}")
+            obj.instance_variable_get(:"@_#{association_method}") ||
+              obj.instance_variable_set(:"@_#{association_method}", MongoffAssociation.new(obj.send(association_method), obj.class))
+          else
+            @properties
+          end
+        end
+
+        def associated_model_config
+          if bindings && (obj = bindings[:object]) && obj.respond_to?("association_for_#{@properties.name}")
+            RailsAdmin.config(association.klass)
+          else
+            @associated_model_config ||= RailsAdmin.config(association.klass)
+          end
+        end
 
         register_instance_option :list_fields do
           nil

@@ -47,6 +47,13 @@ module RailsAdmin
 
             configure :namespace, :enum_edit
 
+            extra_associations do
+              association = Mongoff::Association.new(abstract_model.model, :mapping, :embeds_one)
+              [RailsAdmin::MongoffAssociation.new(association, abstract_model.model)]
+            end
+
+            configure :mapping, :has_one_association
+
             edit do
               field :namespace, :enum_edit, &RailsAdmin::Config::Fields::Base::SHARED_READ_ONLY
               field :name, &RailsAdmin::Config::Fields::Base::SHARED_READ_ONLY
@@ -83,7 +90,7 @@ module RailsAdmin
               end
 
               field :code, :code do
-                visible { bindings[:object].style.present? && bindings[:object].style != 'chain' }
+                visible { bindings[:object].style.present? && %w(chain mapping).exclude?(bindings[:object].style) }
                 help { 'Required' }
                 code_config do
                   {
@@ -140,6 +147,10 @@ module RailsAdmin
                 shared_read_only
                 visible { bindings[:object].style == 'chain' && bindings[:object].source_data_type && bindings[:object].target_data_type && bindings[:object].source_exporter }
                 help "Chained records won't be saved if checked"
+              end
+
+              field :mapping do
+                visible { bindings[:object].style.present? && bindings[:object].style == 'mapping' }
               end
             end
 

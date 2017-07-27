@@ -79,6 +79,8 @@ module Setup
             errors.add(:target_importer, "can't be applied to #{target_data_type.title}") unless target_importer.apply_to_target?(target_data_type)
           end
           self.code = "#{source_data_type.title} -> [#{source_exporter.name} : #{target_importer.name}] -> #{target_data_type.title}" if errors.blank?
+        elsif style == 'mapping'
+          self.code = "Mapping #{source_data_type.title} to #{target_data_type.title}" if errors.blank?
         else
           requires(:code)
           rejects(:source_exporter, :target_importer)
@@ -111,7 +113,7 @@ module Setup
 
     STYLES_MAP = {
       'liquid' => { Setup::Transformation::LiquidExportTransform => [:Export],
-                    Setup::Transformation::LiquidConversionTransform => [:Conversion]},
+                    Setup::Transformation::LiquidConversionTransform => [:Conversion] },
       'xslt' => { Setup::Transformation::XsltConversionTransform => [:Conversion],
                   Setup::Transformation::XsltExportTransform => [:Export] },
       # 'json.rabl' => {Setup::Transformation::ActionViewTransform => [:Export]},
@@ -124,7 +126,8 @@ module Setup
       # 'text.erb' => {Setup::Transformation::ActionViewTransform => [:Export]},
       'ruby' => { Setup::Transformation::Ruby => [:Import, :Export, :Update, :Conversion] },
       'pdf.prawn' => { Setup::Transformation::PrawnTransform => [:Export] },
-      'chain' => { Setup::Transformation::ChainTransform => [:Conversion] }
+      'chain' => { Setup::Transformation::ChainTransform => [:Conversion] },
+      'mapping' => { Setup::Transformation::MappingTransform => [:Conversion] }
     }
 
     def code_extension

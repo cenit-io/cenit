@@ -9,14 +9,21 @@ module Setup
       binding_belongs_to :snippet, class_name: Setup::Snippet.to_s, inverse_of: nil
 
       before_save do
-        configure_snippet
-        if snippet_ref.changed? && !snippet_ref.save
-          snippet_ref.errors.full_messages.each do |msg|
-            errors.add(:code, msg)
+        if snippet_required?
+          configure_snippet
+          if snippet_ref.changed? && !snippet_ref.save
+            snippet_ref.errors.full_messages.each do |msg|
+              errors.add(:code, msg)
+            end
           end
         end
         errors.blank?
       end
+    end
+
+    # TODO Remove when refactoring translators and included only on code required models
+    def snippet_required?
+      true
     end
 
     def configure_snippet

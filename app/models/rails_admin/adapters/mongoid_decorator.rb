@@ -1,3 +1,5 @@
+require 'rails_admin/adapters/mongoid'
+
 module RailsAdmin
   module Adapters
     Mongoid.module_eval do
@@ -144,6 +146,13 @@ module RailsAdmin
         else
           {}
         end
+      end
+
+      def properties
+        fields = model.fields.reject { |_name, field| RailsAdmin::Adapters::Mongoid::DISABLED_COLUMN_TYPES.include?(field.type.to_s) }
+        fields.collect do |_name, field|
+          RailsAdmin::Adapters::Mongoid::Property.new(field, model)
+        end + config.extra_associations
       end
     end
   end
