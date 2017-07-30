@@ -1,5 +1,8 @@
 require 'account'
 
+require 'rails_admin/config'
+require 'rails_admin/config_decorator'
+
 [
   RailsAdmin::Config::Actions::DiskUsage,
   RailsAdmin::Config::Actions::SendToFlow,
