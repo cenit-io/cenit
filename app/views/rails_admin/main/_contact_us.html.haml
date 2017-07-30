@@ -13,7 +13,7 @@
             .col-md-12.message
               .modal-body
                 .form-group
-                  = recaptcha_tags
+                  = recaptcha_tags if ENV['RECAPTCHA_SITE_KEY'].present?
                 .form-group
                   = f.label :name, (t('admin.contact_us.from_name') + content_tag(:abbr, '*', :class => 'required')).html_safe
                   = f.text_field :name, id: :name, class: "form-control", required: 'require' , placeholder: t('admin.contact_us.placeholder', field: 'name')
