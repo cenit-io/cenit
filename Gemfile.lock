@@ -663,8 +663,8 @@ DEPENDENCIES
   parser
   pdfkit (= 0.8.2)
   poltergeist
-  prawn-qrcode
-  prawn-rails
+  prawn-qrcode (= 0.2.2.1)
+  prawn-rails (= 0.1.1)
   puma
   rabl
   rails
@@ -674,6 +674,7 @@ DEPENDENCIES
   rails_layout
   recaptcha
   rkelly-remix
+  rmagick (= 2.15.4)
   rolify
   rspec-rails
   rubocop
