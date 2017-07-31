@@ -35,7 +35,9 @@ module Setup
         _id = properties.delete('_id')
         id = properties.delete('id')
         fail Exception, 'Defining both id and _id' if _id && id
+        edi_discard_id = false
         unless _id ||= id
+          edi_discard_id = true
           _id = {}
         end
         naked_id = _id.reject { |k, _| %w(group xml unique title description edi format example enum readOnly default visible).include?(k) }
@@ -46,6 +48,7 @@ module Setup
                                                                           'title' => 'Id',
                                                                           'description' => 'Required',
                                                                           'edi' => { 'segment' => 'id' }) }.merge(properties)
+          properties['_id']['edi']['discard'] = true if edi_discard_id
           unless (required = object_schema['required']).present?
             required = object_schema['required'] = []
           end
