@@ -149,6 +149,155 @@ function schedulerInit() {
     updateExpression();
 }
 
+function MySchedulerInit($this) {
+    var top_level = $this;
+
+    function zp(num) {
+        if (parseInt(num) > 9)
+            return num;
+        return '0' + num;
+    }
+
+    var date_start_input = top_level.find('#start_date');
+    var date_start = date_start_input.val();
+    date_start_input.datetimepicker({format: "YYYY-MM-DD", allowInputToggle: true});
+    date_start_input.val(date_start);
+
+    var time_start_input = top_level.find('#start_time');
+    var time_start = time_start_input.val();
+    time_start_input.datetimepicker({format: "HH:mm", allowInputToggle: true});
+    var t = time_start.split(':');
+    time_start_input.val(zp(t[0]) + ':' + zp(t[1]));
+
+    var date_end_input = top_level.find('#end_date');
+    var date_end = date_end_input.val();
+    date_end_input.datetimepicker({format: "YYYY-MM-DD", allowInputToggle: true});
+    date_end_input.val(date_end);
+
+    var freq_sel = top_level.find('#frequency');
+    top_level.addClass('selected-' + freq_sel.val());
+
+    top_level.find('.scheduler-opts a.btn').click(function (e) {
+        e.preventDefault();
+        $(this).toggleClass('btn-primary');
+        $(this).toggleClass('btn-default');
+    });
+
+    top_level.parents('form').on('submit', function () {
+        updateExpression();
+    });
+
+    freq_sel.change(function () {
+        var current = $(this).val();
+
+        for (var i = 0; i < 6; i++)
+            top_level.removeClass('selected-' + i);
+        top_level.addClass('selected-' + current);
+    });
+
+    function ensureInRange(val, min, max) {
+        if (!val)
+            return min;
+        var cur = parseInt(val);
+        if (cur < min)
+            return min;
+        else if (cur > max)
+            return max;
+        return cur;
+    }
+
+    var cyclic_num = $('#cyclic_num');
+    var cyclic_unit = $('#cyclic_unit');
+
+    function ensureMins() {
+        var min = 1;
+        var max = 1000;
+
+        if (cyclic_unit.val() == 'm') {
+            min = 20;
+            max = 110;
+        }
+
+        var val = parseInt(cyclic_num.val());
+        val = ensureInRange(val, min, max);
+        cyclic_num.val(val)
+    }
+
+    cyclic_num.on('input', ensureMins);
+    cyclic_unit.on('change', ensureMins);
+
+    $('#days_sl').on('change', function () {
+        $('#days_1').toggleClass('hidden');
+        $('#days_2').toggleClass('hidden');
+    });
+
+    $('#start_sl').on('change', function () {
+        $('#start_1').toggleClass('hidden');
+        $('#start_2').toggleClass('hidden');
+    });
+
+    $('#end_sl').on('change', function () {
+        $('#end_1').toggleClass('hidden');
+        $('#end_2').toggleClass('hidden');
+    });
+
+    function updateExpression() {
+        var res = {};
+
+        switch ($('#start_sl').val()) {
+            case "1":
+                res["start_at"] = date_start_input.val();
+        }
+
+        switch ($('#end_sl').val()) {
+            case "1":
+                res['end_at'] = date_end_input.val();
+                break;
+            case "2":
+                res['max_repeat'] = parseInt($("max_repeat").val());
+                break;
+        }
+
+        var level = parseInt(freq_sel.val());
+
+        if (level == 0) {
+            res["type"] = 'once';
+        } else if (level == 1) {
+            res["type"] = 'cyclic';
+            res["cyclic_expression"] = $('#cyclic_num').val() + ($('#cyclic_unit').val());
+        } else {
+            res["type"] = 'appointed';
+            var start_time = time_start_input.val();
+            res["hours"] = [parseInt(start_time.split(':')[0])];
+            res["minutes"] = [parseInt(start_time.split(':')[1])];
+
+            var dval = $("#days_sl").val();
+            if (dval == "1") {
+                res["weeks_days"] = _.filter(_.range(0, 7), function (e) {
+                    return $("#week_day_" + e).hasClass("btn-primary");
+                });
+
+                res["weeks_month"] = _.filter(_.range(0, 3), function (e) {
+                    return $("#weeks_monthly_at_" + e).hasClass("btn-primary");
+                });
+                res["last_week_in_month"] = $('#last_week_in_month').hasClass("btn-primary");
+            } else {
+                res["months_days"] = _.filter(_.range(0, 31), function (e) {
+                    return $("#months_day_" + e).hasClass("btn-primary");
+                });
+                res["last_day_in_month"] = $('#last_day_in_month').hasClass("btn-primary");
+            }
+
+            res["months"] = _.filter(_.range(1, 13), function (e) {
+                return $("#month_" + e).hasClass("btn-primary");
+            });
+        }
+        $("#setup_scheduler_expression").val(JSON.stringify(res));
+    }
+
+    updateExpression();
+}
+
 function algorithmInit() {
     var output_store = $('#setup_algorithm_store_output');
     var output_datatype_field = $('#setup_algorithm_output_datatype_id_field');
@@ -284,7 +433,6 @@ function cenitOauthScopeInit() {
     })
 }
 
-
 function graphicsInit() {
     $('select.input-sm', '.graphics-controls').on('change', function (e) {
         graphic_control_change(e);
@@ -400,7 +548,14 @@ function handlerInit() {
     console.log("Initializing handlers");
 
     if ($('#setup_scheduler_expression_field').length > 0)
-        schedulerInit();
+    //  schedulerInit();
+
+        if ($('.scheduler_type').length > 0) {
+            $('.scheduler_type').each(function () {
+                MySchedulerInit($(this))
+            })
+        }
+
 
     if ($('#setup_algorithm_store_output').length > 0)
         algorithmInit();
@@ -432,74 +587,103 @@ function handlerInit() {
 
     if ($('select.input-sm', '.graphics-controls').length > 0)
         graphicsInit();
-    $('#main-accordion .nav-stacked').on('shown.bs.collapse', updateModelCount);
+
+    $('#main-accordion .nav-stacked').on('shown.bs.collapse', updateModelCountOneByOne);
+
+    if ($('.dashboard table').length > 0)
+        updateDashboardCount();
 }
-function getModelCount($element, model_name, origins, ext) {
-    var model_route = '/api/v2/',
-        origin_list = [],
-        counts = {},
+// Side Menu Bar Update Model Counts Functions
+
+function updateModelCountOneByOne(e) {
+    e.stopPropagation();
+    $cenit_submenu_children = $(e.currentTarget).children('li[data-model]');
+    requestModelCount();
+}
+function requestModelCount() {
+    var array_of_children = $cenit_submenu_children.toArray();
+    if (array_of_children.length > 0) {
+        var $this = $(array_of_children.shift());
+        $cenit_submenu_children = $(array_of_children);
+        getModelCountOneByOne($this, $this.data('model'), $this.data('origins'), $this.data('ext'));
+    }
+}
+function getModelCountOneByOne($element, model_name, origins, ext) {
+    var model_route = '/api/v2',
+        counts = {}, origin,
         host = window.location.origin,
         get_count = function (model_name, origin, counts) {
             var update_counts = function ($element, counts) {
-                var keys = Object.keys(counts),
-                    values = [],
-                    title = "and that's all!",
-                    key,
-                    not_cero_keys_count = 0,
-                    not_cero_keys = [],
-                    $amount = $element.find('.nav-amount');
+                    var keys = Object.keys(counts),
+                        values = [],
+                        title = "and that's all!",
+                        key,
+                        not_cero_keys_count = 0,
+                        not_cero_keys = [],
+                        $amount = $element.find('.nav-amount');
 
-                if (keys.length > 0) {
-                    $amount.text('');
-                    $amount.children().remove();
-                    $amount.removeClass('active');
-                    for (var i = 0; i < keys.length; i++) {
-                        key = keys[i];
-                        if (counts[key] != 0) {
-                            values[not_cero_keys_count] = counts[key];
-                            not_cero_keys[not_cero_keys_count] = key;
-                            not_cero_keys_count++;
+                    if (keys.length > 0) {
+                        $amount.text('');
+                        $amount.children().remove();
+                        $amount.removeClass('active');
+                        for (var i = 0; i < keys.length; i++) {
+                            key = keys[i];
+                            if (counts[key] != 0) {
+                                values[not_cero_keys_count] = counts[key];
+                                not_cero_keys[not_cero_keys_count] = key;
+                                not_cero_keys_count++;
+                            }
                         }
-                    }
-                    if (not_cero_keys.length == 1) {
-                        $amount.text(values[0]);
-                        $amount.attr('title', title);
-                        $amount.addClass('active');
-                    }
-                    if (not_cero_keys.length > 1) {
-                        $amount.addClass('active');
-                        $amount.text(values[0] + ' +');
-                        var title = '+';
-                        for (var j = 1; j < not_cero_keys.length; j++) {
-                            if (values[j] != 0) {
-                                if (j === 1) {
-                                    title += values[j] + ' ' + not_cero_keys[j];
-                                }
-                                else {
-                                    if (j + 1 === not_cero_keys.length) {
-                                        title += ' and ' + values[j] + ' ' + not_cero_keys[j];
-                                    } else {
-                                        title += ', ' + values[j] + ' ' + not_cero_keys[j];
+                        if (not_cero_keys.length == 1) {
+                            $amount.text(values[0]);
+                            $amount.attr('title', title);
+                            $amount.addClass('active');
+                        }
+                        if (not_cero_keys.length > 1) {
+                            $amount.addClass('active');
+                            $amount.text(values[0] + ' +');
+                            var title = '+';
+                            for (var j = 1; j < not_cero_keys.length; j++) {
+                                if (values[j] != 0) {
+                                    if (j === 1) {
+                                        title += values[j] + ' ' + not_cero_keys[j];
+                                    }
+                                    else {
+                                        if (j + 1 === not_cero_keys.length) {
+                                            title += ' and ' + values[j] + ' ' + not_cero_keys[j];
+                                        } else {
+                                            title += ', ' + values[j] + ' ' + not_cero_keys[j];
+                                        }
                                     }
                                 }
                             }
+                            $amount.attr('title', title);
                         }
-                        $amount.attr('title', title);
                     }
-                }
-                else {
-                    $amount.text('');
-                    $amount.children().remove();
-                    $amount.removeClass('active');
-                    $amount.append($('<i class="fa fa-spinner fa-pulse"></i>'));
-                }
-            }, $amount = $element.find('.nav-amount');
+                    else {
+                        $amount.text('');
+                        $amount.children().remove();
+                        $amount.removeClass('active');
+                        $amount.append($('<i class="fa fa-spinner fa-pulse"></i>'));
+                    }
+                },
+                request_origin_count = function (model_name, counts) {
+                    if (cenit_model_origin_list.length > 0) {
+                        origin = cenit_model_origin_list.shift();
+                        get_count(model_name, origin, counts);
+                    } else {
+                        requestModelCount();
+                    }
+                },
+                $amount = $element.find('.nav-amount');
+            var ajx_url = host + model_route + '/' + model_name + '?limit=1&only=id'
+            if (model_name === 'renderer') {
+                model_route = model_route + '/setup';
+                ajx_url = host + model_route + '/' + model_name + '?file_extension=' + ext;
+                origin = null;
+            }
             if (origin) {
-                var ajx_url = host + model_route + '/' + model_name + '?limit=1&only=id&origin=' + origin
-                if (model_name === 'renderer') {
-                    model_route = model_route + 'setup'
-                    ajx_url = host + model_route + '/' + model_name + '?file_extension=' + ext;
-                }
+                ajx_url = ajx_url + '&origin=' + origin;
                 $.ajax({
                         type: "GET",
                         url: ajx_url,
@@ -510,9 +694,148 @@ function getModelCount($element, model_name, origins, ext) {
                     .done(function (data) {
                         counts[origin] = data.count;
                         update_counts($element, counts);
+                        request_origin_count(model_name, counts);
                     })
                     .fail(function () {
                         $amount.children().remove();
+                        request_origin_count(model_name, counts);
+                    });
+            }
+            else {
+                $.ajax({
+                        type: "GET",
+                        url: ajx_url,
+                        beforeSend: function () {
+                            update_counts($element, {});
+                        }
+                    })
+                    .done(function (data) {
+                        counts['no_origins'] = data.count;
+                        update_counts($element, counts);
+                        requestModelCount();
+                    })
+                    .fail(function () {
+                        $amount.children().remove();
+                        requestModelCount();
+                    });
+            }
+        };
+
+    origins = origins || ''
+    if (origins.length > 0) {
+        cenit_model_origin_list = origins.split(',');
+        origin = cenit_model_origin_list.shift();
+        get_count(model_name, origin, counts);
+    } else {
+        get_count(model_name, null, counts);
+    }
+}
+
+// DashBoard Update Model Counts Functions
+
+function updateDashboardCount() {
+    $cenit_dashboard_models = $('.progress-bar');
+    $cenit_dashboard_max_model_count = -1;
+    requestDashBoardModelCount();
+}
+function requestDashBoardModelCount() {
+    var array_of_models = $cenit_dashboard_models.toArray();
+    if (array_of_models.length > 0) {
+        var $this = $(array_of_models.pop());
+        $cenit_dashboard_models = $(array_of_models);
+        getModelCountForDashBoard($this, $this.data('model'), $this.data('origins'), $this.data('ext'));
+    }
+}
+function getModelCountForDashBoard($element, model_name, origins, ext) {
+    var model_route = '/api/v2',
+        origin_list = [],
+        counts = {},
+        host = window.location.origin,
+        get_count = function (model_name, origin, counts) {
+            var update_counts = function ($element, counts) {
+                    var keys = Object.keys(counts),
+                        values = [],
+                        title = "",
+                        key,
+                        not_cero_keys_count = 0,
+                        not_cero_keys = [],
+                        $amount = $element;
+
+                    if (keys.length > 0) {
+                        $amount.text('0');
+                        $amount.children().remove();
+                        $amount.removeClass('active');
+                        for (var i = 0; i < keys.length; i++) {
+                            key = keys[i];
+                            if (counts[key] != 0) {
+                                values[not_cero_keys_count] = counts[key];
+                                not_cero_keys[not_cero_keys_count] = key;
+                                not_cero_keys_count++;
+                            }
+                        }
+                        if (not_cero_keys.length == 1) {
+                            $amount.text(values[0]);
+                            $amount.attr('title', title);
+                            $amount.addClass('active');
+                        }
+                        if (not_cero_keys.length > 1) {
+                            $amount.addClass('active');
+                            $amount.text(values[0] + ' +');
+                            var title = '+';
+                            for (var j = 1; j < not_cero_keys.length; j++) {
+                                if (values[j] != 0) {
+                                    if (j === 1) {
+                                        title += values[j] + ' ' + not_cero_keys[j];
+                                    }
+                                    else {
+                                        if (j + 1 === not_cero_keys.length) {
+                                            title += ' and ' + values[j] + ' ' + not_cero_keys[j];
+                                        } else {
+                                            title += ', ' + values[j] + ' ' + not_cero_keys[j];
+                                        }
+                                    }
+                                }
+                            }
+                            $amount.attr('title', title);
+                        }
+                    }
+                    else {
+                        $amount.text('');
+                        $amount.children().remove();
+                        $amount.append($('<i class="fa fa-spinner fa-pulse"></i>'));
+                    }
+                },
+                update_max_count = function (count) {
+                    if (count > $cenit_dashboard_max_model_count) {
+                        $cenit_dashboard_max_model_count = count
+                    }
+                },
+                request_dashboard_count = function () {
+                    if ($cenit_dashboard_models.length > 0) {
+                        requestDashBoardModelCount();
+                    } else {
+                        update_dashboard_model_percents();
+                    }
+                };
+            if (origin) {
+                var ajx_url = host + model_route + '/' + model_name + '?limit=1&only=id&origin=' + origin
+                $.ajax({
+                        type: "GET",
+                        url: ajx_url,
+                        beforeSend: function () {
+                            update_counts($element, {});
+                        }
+                    })
+                    .done(function (data) {
+                        counts[origin] = data.count;
+                        update_max_count(data.count);
+                        update_counts($element, counts);
+                        request_dashboard_count();
+                    })
+                    .fail(function () {
+                        counts['no_origins'] = 0;
+                        update_counts($element, counts);
+                        request_dashboard_count();
                     });
             }
             else {
@@ -526,29 +849,84 @@ function getModelCount($element, model_name, origins, ext) {
                     .done(function (data) {
                         counts['no_origins'] = data.count;
                         update_counts($element, counts);
+                        update_max_count(data.count);
+                        request_dashboard_count();
                     })
                     .fail(function () {
-                        $amount.children().remove();
+                        counts['no_origins'] = 0;
+                        update_counts($element, counts);
+                        request_dashboard_count();
                     });
             }
         };
-    origins = origins || ''
+    origins = origins || '';
     counts = {}
     if (origins.length > 0) {
         origin_list = origins.split(',');
-        $.each(origin_list, function (index, origin) {
-            get_count(model_name, origin, counts);
-        })
+        // Only the first origin matters
+        get_count(model_name, origin_list[0], counts);
     } else {
         get_count(model_name, null, counts);
     }
-};
-function updateModelCount(e) {
-    e.stopPropagation();
-    var $children = $(e.currentTarget).children('li[data-model]');
-    $children.each(function (index) {
-        var $this = $(this);
-        getModelCount($this, $this.data('model'), $this.data('origins'), $this.data('ext'));
-    });
-
 }
+function update_dashboard_model_percents() {
+    var $progress_bars = $('.progress-bar'),
+        percent_value,
+        $this, text, indicator, anim,
+        max = parseInt($cenit_dashboard_max_model_count),
+        get_indicator = function (percent) {
+            if (percent < 0) {
+                return ''
+            } else {
+                if (percent < 34) {
+                    return 'info'
+                } else {
+                    if (percent < 67) {
+                        return 'success'
+                    } else {
+                        if (percent < 84) {
+                            return 'warning'
+                        } else {
+                            return 'danger'
+                        }
+                    }
+                }
+            }
+        },
+        percent = function (count, max) {
+            var percent;
+            if (count > 0) {
+                if (max <= 1) {
+                    percent = count;
+                }
+                else {
+                    percent = parseInt((Math.log(count + 1) * 100.0) / Math.log(max + 1))
+                }
+                return percent;
+            } else {
+                return -1
+            }
+        },
+        animate_width_to = function (percent) {
+            var max_percent = 2.0;
+            if (percent > max_percent) {
+                max_percent = percent
+            }
+            return parseInt(max_percent) + '%';
+        };
+
+    $progress_bars.each(function () {
+        $this = $(this);
+        text = $this.text();
+        percent_value = percent(parseInt(text), max);
+        indicator = get_indicator(percent_value);
+        anim = animate_width_to(percent_value);
+        $this.attr('data-animate-length', anim);
+        $this.attr('data-animate-width-to', anim);
+        $this.css('width', anim);
+        $this.addClass('progress-bar-' + indicator);
+    });
+}
+
+
+
