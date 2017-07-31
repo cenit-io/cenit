@@ -472,8 +472,8 @@ module Api::V2
     def get_data_type_by_slug(slug)
       if slug
         @data_types[slug] ||=
-          if @ns_slug == 'setup'
-            Setup::BuildInDataType["Setup::#{slug.camelize}"] || Setup::BuildInDataType[slug.camelize]
+          if @ns_slug == 'setup' || @ns_slug == 'cenit'
+            Setup::BuildInDataType["#{@ns_slug.camelize}::#{slug.camelize}"] || Setup::BuildInDataType[slug.camelize]
           else
             if @ns_name.nil?
               ns = Setup::Namespace.where(slug: @ns_slug).first
