@@ -63,34 +63,8 @@
 #collections.blocks.clearfix
   = collections_at_dashboard
 - if @abstract_models
-  .dashboard
+  .dashboard{'data-model-count': 0}
     = dashboard_main
-  -#%table.table.table-condensed.table-striped
-    %thead
-      %tr
-        %th.shrink.model-name= t 'admin.table_headers.model_name'
-        %th.records= t "admin.table_headers.records"
-        %th.shrink.controls
-    %tbody
-      - @abstract_models.each do |abstract_model|
-        - index_path = authorized?( :index, abstract_model) && index_path(model_name: abstract_model.to_param)
-        - row_class = "#{cycle("odd", "even")}#{" link" if index_path} #{abstract_model.param_key}_links"
-        %tr{class: row_class, :"data-link" => index_path}
-          %td
-            - if index_path
-              - last_used = @most_recent_changes[abstract_model.model.name]
-              - active = last_used.try(:today?)
-              %span.show= link_to capitalize_first_letter(abstract_model.config.label_plural), index_path, class: 'pjax'
-            - else
-              %span.show= capitalize_first_letter(abstract_model.config.label_plural)
-          %td
-            - count = @count[abstract_model.model.name]
-            - percent = percent(count, @max)
-            .progress{style: "margin-bottom:0px", class: "progress-#{get_indicator(percent)} #{active && 'active progress-striped'}"  }
-              .progress-bar.animate-width-to{:class => "progress-bar-#{get_indicator(percent)}", :'data-animate-length' => animate_width_to(percent), :'data-animate-width-to' => animate_width_to(percent), style: "width:2%"}
-                = count
-          %td.links
-            %ul.inline.list-inline= menu_for :collection, abstract_model, nil, true
 - if @auditing_adapter && authorized?(:history_index)
   #block-tables.block
     .content
