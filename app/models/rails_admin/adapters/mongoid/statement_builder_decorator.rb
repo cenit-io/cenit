@@ -1,3 +1,4 @@
+# rails_admin-1.0 ready
 require 'rails_admin/adapters/mongoid'
 
 module RailsAdmin
