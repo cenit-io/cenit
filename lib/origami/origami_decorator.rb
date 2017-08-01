@@ -9,17 +9,15 @@ Origami.module_eval do
   end
 
   def self.sign_pdf(input_pdf, options = {})
-    records = Cenit.namespace(options[:namespace]).data_type(options[:data_type]).records_model.all.first
-
-    passphrase = records[:PassPhrase]
-    key4pem = records[:RSAPrivateKey]
+    passphrase = options[:PassPhrase]
+    key4pem = options[:RSAPrivateKey]
 
     key = OpenSSL::PKey::RSA.new key4pem, passphrase
-    cert = OpenSSL::X509::Certificate.new records[:X509Certificate]
+    cert = OpenSSL::X509::Certificate.new options[:X509Certificate]
 
     pdf = self::PDF.read(input_pdf.tempfile.path)
     filename_parts = input_pdf.original_filename.split('.')
-    filename = filename_parts[0]+'_signed.'+filename_parts[1]
+    filename = "#{filename_parts[0]}_signed.#{filename_parts[1]}"
     input_pdf.tempfile.close!
 
     # Add signature annotation (so it becomes visibles in pdf document)
@@ -32,9 +30,9 @@ Origami.module_eval do
     pdf.sign(cert, key,
              :method => 'adbe.pkcs7.sha1',
              :annotation => sigannot,
-             :location => records[:Location],
-             :contact => records[:Contact],
-             :reason => records[:Reason]
+             :location => options[:Location],
+             :contact => options[:Contact],
+             :reason => options[:Reason]
     )
     return pdf.to_blob, filename
   end
