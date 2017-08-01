@@ -153,6 +153,19 @@ module RailsAdmin
           {}
         end
       end
+
+      def get(id)
+        #Patch
+        return nil unless (obj = model.find(id))
+        AbstractObject.new(obj)
+      rescue => e
+        raise e if %w(
+          Mongoid::Errors::DocumentNotFound
+          Mongoid::Errors::InvalidFind
+          Moped::Errors::InvalidObjectId
+          BSON::InvalidObjectId
+        ).exclude?(e.class.to_s)
+      end
     end
   end
 end
