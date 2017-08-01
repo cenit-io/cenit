@@ -157,7 +157,7 @@ module RailsAdmin
       def get(id)
         #Patch
         return nil unless (obj = model.find(id))
-        AbstractObject.new(obj)
+        RailsAdmin::Adapters::Mongoid::AbstractObject.new(obj)
       rescue => e
         raise e if %w(
           Mongoid::Errors::DocumentNotFound
