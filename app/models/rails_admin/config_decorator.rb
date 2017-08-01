@@ -1,13 +1,17 @@
+# rails_admin-1.0 ready
+
+require 'mongoff/model'
+require 'rails_admin/lib/mongoff_abstract_model'
+
 module RailsAdmin
   Config.module_eval do
 
     class << self
 
       def model(entity, &block)
-        key = nil
-        model_class =
+        model = #Patch
           if entity.is_a?(Mongoff::Model) || entity.is_a?(Mongoff::Record) || entity.is_a?(RailsAdmin::MongoffAbstractModel)
-            RailsAdmin::MongoffModelConfig
+            RailsAdmin::MongoffModelConfig.new(entity)
           else
             key =
               case entity
@@ -20,19 +24,10 @@ module RailsAdmin
               else
                 entity.class.name.to_sym
               end
-            RailsAdmin::Config::LazyModel
+            @registry[key] ||= RailsAdmin::Config::LazyModel.new(entity)
           end
 
-        if block
-          model = model_class.new(entity, &block)
-          @registry[key] = model if key
-        elsif key
-          unless (model = @registry[key])
-            @registry[key] = model = model_class.new(entity)
-          end
-        else
-          model = model_class.new(entity)
-        end
+        model.add_deferred_block(&block) if block
         model
       end
     end

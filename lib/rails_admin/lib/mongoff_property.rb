@@ -1,4 +1,5 @@
 require 'rails_admin/lib/mongoff_attribute_common'
+require 'rails_admin/adapters/mongoid/property'
 
 module RailsAdmin
   class MongoffProperty < RailsAdmin::Adapters::Mongoid::Property
