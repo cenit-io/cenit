@@ -1,5 +1,8 @@
 require 'account'
 
+require 'rails_admin/config'
+require 'rails_admin/config_decorator'
+
 [
   RailsAdmin::Config::Actions::DiskUsage,
   RailsAdmin::Config::Actions::SendToFlow,
@@ -91,6 +94,7 @@ RailsAdmin::Config::Actions.register(:export, RailsAdmin::Config::Actions::BulkE
   RailsAdmin::Config::Fields::Types::MongoffFileUpload,
   RailsAdmin::Config::Fields::Types::Url,
   RailsAdmin::Config::Fields::Types::CenitOauthScope,
+  RailsAdmin::Config::Fields::Types::Scheduler,
   RailsAdmin::Config::Fields::Types::CenitAccessScope,
   RailsAdmin::Config::Fields::Types::ContextualBelongsTo
 ].each { |f| RailsAdmin::Config::Fields::Types.register(f) }
@@ -115,6 +119,8 @@ module RailsAdmin
 end
 
 RailsAdmin.config do |config|
+
+  config.parent_controller = '::ApplicationController'
 
   config.total_columns_width = 900
 

@@ -1,9 +1,19 @@
+# rails_admin-1.0 ready
 module RailsAdmin
   ApplicationHelper.module_eval do
+
+    def format_name(name)
+      max_name_length = 30
+      if name.length > max_name_length
+        name = name.to(27) + '...'
+      end
+      name
+    end
 
     # parent => :root, :collection, :member
     def menu_for(parent, abstract_model = nil, object = nil, only_icon = false, limit = 0) # perf matters here (no action view trickery)
       actions = actions(parent, abstract_model, object).select { |a| a.http_methods.include?(:get) }
+      #Patch
       if parent == :root
         limit = 0
       end
@@ -65,9 +75,14 @@ module RailsAdmin
     end
 
     def wording_for(label, action = @action, abstract_model = @abstract_model, object = @object)
-      model_config = abstract_model.try(:config) || action.bindings[:custom_model_config]
       #Patch
-      object = abstract_model && object && object.is_a?(abstract_model.model) ? object : nil rescue nil
+      model_config = abstract_model.try(:config) || action.bindings[:custom_model_config]
+      object =
+        begin
+          abstract_model && object && object.is_a?(abstract_model.model) ? object : nil
+        rescue
+          nil
+        end
       action = RailsAdmin::Config::Actions.find(action.to_sym) if action.is_a?(Symbol) || action.is_a?(String)
 
       capitalize_first_letter I18n.t(
@@ -208,13 +223,12 @@ module RailsAdmin
     end
 
     def filter_by_token
-      filter_token = Cenit::Token.where(token: session[:filters][@model_name]).first if session[:filters][@model_name]
-      message = filter_token.data['message'] if filter_token.try(:data)
-      if message.is_a?(String)
+      if (filter_token = Cenit::Token.where(token: params[:filter_token]).first) &&
+         (message = filter_token.data && filter_token.data['message']).is_a?(String)
         delete_filter_url = @action.bindings[:controller].url_for()
         filter = '<p class="filter form-search filter_by_token">'
         filter += '<span class="label label-info form-label">'
-        filter += "<a href=\"#{delete_filter_url}?all=yes\">"
+        filter += "<a href=\"#{delete_filter_url}\">"
         filter += '<i class="icon-trash icon-white"></i></a>'
         filter += "#{message}</span>"
         filter += '</p>'
@@ -562,7 +576,7 @@ module RailsAdmin
             </div>)
     end
 
-    def dashboard_main()
+    def dashboard_main
       nodes_stack = @model_configs.values.sort_by(&:weight)
       node_model_names =
         if current_user
@@ -671,23 +685,24 @@ module RailsAdmin
                 end
               end
               rc += '</td>'
-
-              counts =
-                if current_user
-                  node.abstract_model.counts({ cache: true }, @authorization_adapter && @authorization_adapter.query(:index, node.abstract_model))
+              origins =
+                if (model=node.abstract_model.model).is_a?(Class) && model < CrossOrigin::Document
+                  model.origins.join(',')
                 else
-                  @counts[node.abstract_model.model_name] || { default: 0 }
+                  ''
                 end
-              model_count = counts[:default] || counts.values.inject(0, &:+)
-              pc = percent(model_count, @max)
-              indicator = get_indicator(pc)
-              anim = animate_width_to(pc)
+              data = {}
+              if model_path = node.abstract_model.api_path
+                data[:model] = model_path
+                data[:origins] = origins
+              end
               menu = menu_for(:collection, node.abstract_model, nil)
-
+              indicator = 'info'
+              anim = '2.0%'
               rc += '<td style="overflow:visible">'
               rc += "<div class='progress progress-#{indicator}' style='margin-bottom:0'>"
-              rc += "<div class='animate-width-to progress-bar progress-bar-#{indicator}' data-animate-length='#{anim}' data-animate-width-to='#{anim}' style='width:2%'>"
-              rc += "#{model_count}"
+              rc += "<div class='animate-width-to progress-bar progress-bar-#{indicator}' data-model='#{data[:model]}' data-origins='#{data[:origins]}' data-animate-length='#{anim}' data-animate-width-to='#{anim}' style='width:#{anim}'>"
+              rc += "<i class='fa fa-spinner fa-pulse'></i>"
               rc += '</div>'
               rc += '</div>'
               rc += '<div id="links" class="options-menu">

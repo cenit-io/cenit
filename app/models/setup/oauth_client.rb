@@ -4,6 +4,9 @@ module Setup
     include CrossOrigin::Document
     include CustomTitle
     include RailsAdmin::Models::Setup::OauthClientAdmin
+    include ClassHierarchyAware
+
+    abstract_class true
 
     origins :app, :default, -> { Cenit::MultiTenancy.tenant_model.current && :owner }, :shared
 
