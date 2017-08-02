@@ -46,6 +46,7 @@ class AppController < ApplicationController
   end
 
   def authorize_account
+    @authentication_method = nil
     user = nil
 
     # New key and token params.
@@ -86,10 +87,15 @@ class AppController < ApplicationController
     elsif (app_id = params[:client_id])
       app_id = Cenit::ApplicationId.where(identifier: app_id).first
     end
-    if app_id
-      Account.current = app_id.tenant
+    if app_id && (Account.current.nil? || Account.current == app_id.tenant)
       @app = app_id.app
-      @authentication_method = :application_id
+      @authentication_method ||=
+        if Account.current
+          @app.authentication_method
+        else
+          :application_id
+        end
+      Account.current ||= app_id.tenant
     end
     User.current = user || (Account.current ? Account.current.owner : nil)
     if Account.current && User.current
