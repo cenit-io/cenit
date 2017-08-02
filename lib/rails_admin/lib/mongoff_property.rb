@@ -26,7 +26,7 @@ module RailsAdmin
       case hash_schema['type']
       when nil
         if name == :_id
-          :string
+          :sort_reverse_string
         else
           :json_value
         end
