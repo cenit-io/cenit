@@ -110,6 +110,42 @@ module RailsAdmin
       def navigation_options
         @nav_options ||= {}
       end
+
+      def dashboard_options
+        @dashboard_options ||= {}
+      end
+
+      def dashboard_group(label, options)
+        dashboard_options[label.to_s] = options
+      end
+
+      def dashboard_groups
+        [{ label: 'Data',
+           icon: 'fa fa-cube',
+           sublinks: ['Definitions', 'Files', 'Objects']
+         },
+         { label: 'Workflows',
+           icon: 'fa fa-cog',
+           sublinks: ['Notifications', Setup::Flow, 'Channels', Setup::Observer, 'Transformations']
+         },
+         { label: 'Gateway',
+           icon: 'fa fa-hdd-o',
+           sublinks: ['API Specs', 'Connectors', 'Security']
+         },
+         { label: 'Compute',
+           icon: 'fa fa-cube',
+           sublinks: [Setup::Algorithm, Setup::Application, Setup::Snippet]
+         },
+         { label: 'Integrations',
+           icon: 'fa fa-puzzle-piece',
+           sublinks: [Setup::Collection, Setup::CrossSharedCollection]
+         },
+         { label: 'Ecommerce',
+           icon: 'fa fa-shopping-cart',
+           sublinks: [Setup::Collection, Setup::CrossSharedCollection]
+         }
+        ]
+      end
     end
   end
 end

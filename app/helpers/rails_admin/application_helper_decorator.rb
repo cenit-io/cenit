@@ -562,6 +562,32 @@ module RailsAdmin
             </div>)
     end
 
+    def dashboard_primary()
+      groups = RailsAdmin::Config.dashboard_groups
+      html = '<div id="primary_dashboard"><div class="row">'
+      groups.each do |g|
+        html += '<div class="col-xs-6 col-sm-4 col-md-3">'
+        models = g[:sublinks]
+        unless models.empty?
+          html += '<ul>'
+          html+= '<li><a href=""><i class="'+ g[:icon] +'"></i><span>'+ g[:label] +'</span></a></li>'
+          models.each do |m|
+            if (abstract_model = (model = RailsAdmin::Config.model m).abstract_model)
+              model_url = rails_admin.index_path(model_name: abstract_model.model_name.to_s.underscore.gsub('/', '~'))
+              html+= '<li><a href="'+ model_url +'"><span>'+model.label_plural+'</span></a></li>'
+            else
+              model_url = "/dashboard/#{m.downcase}"
+              html+= '<li><a href="'+ model_url +'"><span>'+m+'</span></a></li>'
+            end
+          end
+          html += '</ul>'
+        end
+        html += '</div>'
+      end
+      html += '</div></div>'
+      html.html_safe
+    end
+
     def dashboard_main()
       nodes_stack = @model_configs.values.sort_by(&:weight)
       node_model_names =
@@ -880,6 +906,12 @@ module RailsAdmin
         value = value.to(value.index('<li') - 1) +
           "<li class=\"false\"><a class=\"contextual-record pjax\" href=\"#{index_path(model_name: @abstract_model.to_param, leave_context: true)}\" title='#{t('admin.misc.leave_context', label: (label = wording_for(:breadcrumb, :show, context_config.abstract_model, get_context_record)))}'>#{label}</a></li>" +
           value.from(value.index('</li>') + 5)
+      end
+      if @group_dashboard
+        value = value.to(value.index('<li') - 1) +
+          "<li class=\"active\">#{@group_dashboard.capitalize }</li>" +
+          value.from(value.index('</li>') + 5)
+        value = value.to(value.index('</ol>')-1) + '<li class="active">Dashboard</li></ol>'
       end
       value.html_safe
     end

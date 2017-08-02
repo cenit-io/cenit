@@ -1,72 +1,77 @@
-- totals = monitor_totals
-#usage-blocks.blocks.clearfix
-  #tasks-overview.col-sm-4
-    .block
-      .icon
-        %i.icon-tasks
-      .caption
-        %h4
-          -if (total = totals[:tasks][:total]) > 0
-            #{number_to_human(total)}
-          =t('admin.actions.dashboard.monitors.tasks')
-        -if (value = totals[:tasks][:failed]) > 0
-          - value = number_to_human(value)
-          - label = 'failed'
-        -elsif (value = totals[:tasks][:broken]) > 0
-          - value = number_to_human(value)
-          - label = 'broken'
-        -elsif (value = totals[:tasks][:unscheduled]) > 0
-          - value = number_to_human(value)
-          - label = 'unscheduled'
-        -elsif (value = totals[:tasks][:pending]) > 0
-          - value = number_to_human(value)
-          - label = 'pending'
-        -else
-          - value = 'All'
-          - label = 'good'
-        %h6 #{value} #{label}
-  #auths-overview.col-sm-4
-    .block
-      .icon
-        %i.icon-check
-      .caption
-        %h4
-          -if (total = totals[:auths][:total]) > 0
-            #{number_to_human(total)}
-          =t('admin.actions.dashboard.monitors.auths')
-        -if (value = totals[:auths][:unauthorized]) > 0
-          - value = number_to_human(value)
-          - label = 'unauthorized'
-        -else
-          - value = 'All'
-          - label = 'good'
-        %h6 #{value} #{label}
-  #notif-overview.col-sm-4
-    .block
-      .icon
-        %i.icon-bell
-      .caption
-        %h4
-          -if (total = totals[:notif][:total]) > 0
-            #{number_to_human(total)}
-          =t('admin.actions.dashboard.monitors.notif')
-        -if (value = totals[:notif][:error]) > 0
-          - value = number_to_human(value)
-          - label = 'errors'
-        -elsif (value = totals[:notif][:warning]) > 0
-          - value = number_to_human(value)
-          - label = 'warnings'
-        -else
-          - value = 'All'
-          - label = 'good'
-        %h6 #{value} #{label}
-#collections.blocks.clearfix
-  = collections_at_dashboard
-- if @abstract_models
-  .dashboard{'data-model-count': 0}
-    = dashboard_main
-- if @auditing_adapter && authorized?(:history_index)
-  #block-tables.block
-    .content
-      %h2= t("admin.actions.history_index.menu")
-      = render partial: 'rails_admin/main/dashboard_history'
+- unless @group_dashboard
+  - @count ||= {}
+  - query = params[:query]
+  .col-md-12{style: 'margin-bottom: 20px;'}
+    .col-md-8.col-lg-6
+      %h3.label-heading{style: 'margin: 0;'}
+        %small=  t("admin.misc.title_search_shared_collections")
+        %h4{style: "margin-top: 0px;"}= t("admin.misc.sub_title_search_shared_collections", count: Setup::CrossSharedCollection.count)
+        - shared_path = index_path(model_name: "cross_shared_collection", query: query)
+        = form_tag(shared_path, method: :get, class: "pjax-form form-inline") do
+          .input-group.col-xs-12
+            %input.form-control.btb.btn-default{name: "query", type: "search", value: query}
+              %span.input-group-btn
+                %button.btn.btn-primary
+                  %i.fa.fa-search
+      = 'Try'
+      - sample = integration_sample(3)
+      = link_to(sample[0], index_path(model_name: "cross_shared_collection", query: sample[0]))+','
+      = link_to(sample[1], index_path(model_name: "cross_shared_collection", query: sample[1]))+' or'
+      = link_to(sample[2], index_path(model_name: "cross_shared_collection", query: sample[2]))
+    .col-lg-4.visible-lg
+      %h4.text-muted
+        - if current_user
+          = "#{current_user.account.name.split('@')[0]} tenant"
+          - users = tenant_users
+        - else
+          = t('admin.actions.dashboard.recent_users.title')
+          - users = recent_users
+      %ul.list-inline.list-unstyled
+        - users.each do |u|
+          - url = u.picture_url(50)
+          - alt = (u.email.split('@'))[0]
+          - title = u.name.present? ? u.name : alt
+          %li
+            = image_tag url, alt: alt, title: title, class: 'img-circle', height: 50, width: 50
+      - if current_user
+        = pluralize(current_user.account.users.count, 'member')
+      - else
+        %span.text-muted
+          = t('admin.actions.dashboard.recent_users.more', count: (User.all.count/5 * 5))
+          - if (false || ENV['SHOW_SLACK_BADGE'])
+            = link_to 'Be in community', (ENV['SLACK_INVITATION'] || 'https://cenit-slack.herokuapp.com')
+            %iframe{ frameborder: "0", height: "20", src: "https://cenit-slack.herokuapp.com/badge.svg", width: "100", :style => 'margin-left: 5px' }
+          - else
+            Be in community
+            = link_to 'Join our Slack', (ENV['SLACK_INVITATION'] || 'https://cenit-slack.herokuapp.com')
+
+    .col-md-4.col-lg-2.tenants.hidden-xs{style:'padding-left: 30px;'}
+      %h4.text-muted{style:'margin-top: 10px;'}
+        - if current_user
+          = link_to(pluralize(current_user.all_accounts.count, 'tenant'), index_path(model_name: 'account'))
+        - else
+          = pluralize(Account.count, 'tenant')
+      %ul.list-inline.list-unstyled{style: 'margin-left: -11px;'}
+        %li
+          .block
+            .icon
+              %i.fa.fa-fw.fa-home{style: 'font-size: 40px;'}
+            .icon{style: 'margin-left: -20px;'}
+              %i.fa.fa-fw.fa-home{style: 'font-size: 24px;'}
+      %span.text-muted
+        = link_to(t('admin.misc.add_tenant'), new_path(model_name: 'account'))
+-if @group_dashboard
+  - if @abstract_models
+    .dashboard{'data-model-count': 0}
+      = dashboard_main
+  - if @auditing_adapter && authorized?(:history_index)
+    #block-tables.block
+      .content
+        %h2= t("admin.actions.history_index.menu")
+        = render partial: 'rails_admin/main/dashboard_history'
+-else
+  .row
+    .col-md-1
+    .col-md-10
+      = dashboard_primary
+    .col-md-1

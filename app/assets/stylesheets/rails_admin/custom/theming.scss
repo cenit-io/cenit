@@ -1535,3 +1535,33 @@ label {
     text-decoration: none;
   }
 }
+
+#primary_dashboard {
+  float: left;
+  width: 100%;
+  margin: 25px 0;
+  ul {
+    list-style-type: none;
+    li {
+      a {
+        cursor: pointer;
+        color: black;
+        text-decoration: none;
+        line-height: 1.7;
+      }
+      &:first-child {
+        a {
+          font-size: 1.2em;
+          color: #428bca;
+          line-height: 2.2;
+          i {
+            padding-right: 15px;
+            font-size: 1.3em;
+            margin-left: -38px;
+          }
+        }
+      }
+    }
+  }
+
+}
