@@ -115,35 +115,81 @@ module RailsAdmin
         @dashboard_options ||= {}
       end
 
-      def dashboard_group(label, options)
-        dashboard_options[label.to_s] = options
-      end
-
       def dashboard_groups
-        [{ label: 'Data',
-           icon: 'fa fa-cube',
-           sublinks: ['Definitions', 'Files', 'Objects']
-         },
-         { label: 'Workflows',
-           icon: 'fa fa-cog',
-           sublinks: ['Notifications', Setup::Flow, 'Channels', Setup::Observer, 'Transformations']
-         },
-         { label: 'Gateway',
-           icon: 'fa fa-hdd-o',
-           sublinks: ['API Specs', 'Connectors', 'Security']
-         },
-         { label: 'Compute',
-           icon: 'fa fa-cube',
-           sublinks: [Setup::Algorithm, Setup::Application, Setup::Snippet]
-         },
-         { label: 'Integrations',
-           icon: 'fa fa-puzzle-piece',
-           sublinks: [Setup::Collection, Setup::CrossSharedCollection]
-         },
-         { label: 'Ecommerce',
-           icon: 'fa fa-shopping-cart',
-           sublinks: [Setup::Collection, Setup::CrossSharedCollection]
-         }
+        [
+          {
+            param: 'data',
+            label: 'Data',
+            icon: 'fa fa-cube',
+            sublinks: [
+              {
+                param: 'definitions',
+                label: 'Definitions'
+              },
+              {
+                param: 'files',
+                label: 'Files'
+              },
+              {
+                param: 'objects',
+                label: 'Objects'
+              }]
+          },
+          {
+            param: 'workflows',
+            label: 'Workflows',
+            icon: 'fa fa-cog',
+            sublinks: [
+              {
+                param: 'notifications',
+                label: 'Notifications'
+              },
+              'Setup::Flow',
+              {
+                param: 'channels',
+                label: 'Channels'
+              },
+              'Setup::Observer',
+              {
+                param: 'transformations',
+                label: 'Transformations'
+              }
+            ]
+          },
+          {
+            param: 'gateway',
+            label: 'Gateway',
+            icon: 'fa fa-hdd-o',
+            sublinks: [
+              'Setup::ApiSpec',
+              {
+                param: 'connectors',
+                label: 'Connectors'
+              },
+              {
+                param: 'security',
+                label: 'Security'
+              }
+            ]
+          },
+          {
+            param: 'compute',
+            label: 'Compute',
+            icon: 'fa fa-cube',
+            sublinks: %w(Setup::Algorithm Setup::Application Setup::Snippet)
+          },
+          {
+            param: 'integrations',
+            label: 'Integrations',
+            icon: 'fa fa-puzzle-piece',
+            sublinks: %w(Setup::Collection Setup::CrossSharedCollection)
+          },
+          {
+            param: 'ecommerce',
+            label: 'Ecommerce',
+            icon: 'fa fa-shopping-cart',
+            sublinks: %w(Setup::Collection Setup::CrossSharedCollection)
+          }
         ]
       end
     end

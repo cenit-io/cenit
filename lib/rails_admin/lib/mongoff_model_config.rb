@@ -188,6 +188,14 @@ module RailsAdmin
       end
     end
 
+    def dashboard_group_path
+      if target.data_type.is_a?(Setup::JsonDataType)
+        %w(data objects)
+      else
+        %w(data files)
+      end
+    end
+
     def parent
       self
     end

@@ -224,7 +224,7 @@ module RailsAdmin
 
     def main_navigation
       #Patch
-      nodes_stack = RailsAdmin::Config.visible_models(controller: controller) +
+      nodes_stack = RailsAdmin::Config.visible_models(controller: controller) +  # TODO Include mongoff models configs only if needed
         Setup::DataType.where(navigation_link: true).collect { |data_type| RailsAdmin.config(data_type.records_model) }
       node_model_names = nodes_stack.collect { |c| c.abstract_model.model_name }
       if @model_configs
@@ -570,14 +570,14 @@ module RailsAdmin
         models = g[:sublinks]
         unless models.empty?
           html += '<ul>'
-          html+= '<li><a href=""><i class="'+ g[:icon] +'"></i><span>'+ g[:label] +'</span></a></li>'
+          html+= '<li><a href="dashboard/' + g[:param] +'"><i class="'+ g[:icon] +'"></i><span>'+ g[:label] +'</span></a></li>'
           models.each do |m|
-            if (abstract_model = (model = RailsAdmin::Config.model m).abstract_model)
+            if m.is_a?(Hash)
+              model_url = "/dashboard/#{m[:param]}"
+              html+= '<li><a href="'+ model_url +'"><span>'+m[:label]+'</span></a></li>'
+            elsif (abstract_model = (model = RailsAdmin::Config.model(m.to_s)).abstract_model)
               model_url = rails_admin.index_path(model_name: abstract_model.model_name.to_s.underscore.gsub('/', '~'))
               html+= '<li><a href="'+ model_url +'"><span>'+model.label_plural+'</span></a></li>'
-            else
-              model_url = "/dashboard/#{m.downcase}"
-              html+= '<li><a href="'+ model_url +'"><span>'+m+'</span></a></li>'
             end
           end
           html += '</ul>'
@@ -592,7 +592,8 @@ module RailsAdmin
       nodes_stack = @model_configs.values.sort_by(&:weight)
       node_model_names =
         if current_user
-          RailsAdmin::Config.visible_models(controller: controller)
+          RailsAdmin::Config.visible_models(controller: controller) +
+            Setup::DataType.where(navigation_link: true).collect { |data_type| RailsAdmin.config(data_type.records_model) }
         else
           Setup::Models.collect { |m| RailsAdmin::Config.model(m) }.select(&:visible)
         end.collect { |c| c.abstract_model.model_name }
