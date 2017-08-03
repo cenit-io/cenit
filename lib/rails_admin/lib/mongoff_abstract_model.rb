@@ -83,7 +83,11 @@ module RailsAdmin
         model.properties.each do |property|
           p =
             if (a = associations.detect { |a| a.name == property.to_sym })
-              RailsAdmin::MongoffProperty.new(a.association.foreign_key, model, 'type' => 'string', 'visible' => false) unless a.association.nested?
+              if a.association.nested?
+                a
+              else
+                RailsAdmin::MongoffProperty.new(a.association.foreign_key, model, 'type' => 'string', 'visible' => false)
+              end
             else
               RailsAdmin::MongoffProperty.new(property, model)
             end

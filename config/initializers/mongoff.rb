@@ -11,16 +11,14 @@ Mongoff::Model.config do
           format: 'date-time',
           edi: {
             discard: true
-          },
-          visible: false
+          }
         },
         updated_at: {
           type: 'string',
           format: 'date-time',
           edi: {
             discard: true
-          },
-          visible: false
+          }
         },
         _type: {
           type: 'string',
