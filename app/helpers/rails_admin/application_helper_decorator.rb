@@ -352,6 +352,18 @@ module RailsAdmin
             </div>
           </div>)
       end
+      group = params[:group]
+      if group
+        dashboard_link = %(
+           <div id="main-dashoboard-#{group}" class="panel panel-default">
+            <div class='panel-heading'>
+              <a href='/dashboard/#{group}' class='panel-title collapse in collapsed'>
+                <span class='nav-icon'><i class='fa fa-cubes'></i></span>
+                <span class='nav-caption'>#{group.capitalize} Dashboard</span>
+              </a>
+            </div></div>)
+        main_labels.insert(0, dashboard_link)
+      end
       main_labels.join.html_safe
     end
 
@@ -565,8 +577,15 @@ module RailsAdmin
     def dashboard_primary()
       groups = RailsAdmin::Config.dashboard_groups
       html = '<div id="primary_dashboard"><div class="row">'
-      groups.each do |g|
-        html += '<div class="col-xs-6 col-sm-4 col-md-3">'
+      groups.each_with_index do |g, index|
+        if index%4 == 0
+          html += '<div class="clearfix visible-md-block"></div>'
+          html += '<div class="clearfix visible-lg-block"></div>'
+        end
+        if index%3 == 0
+          html += '<div class="clearfix visible-sm-block"></div>'
+        end
+        html += '<div class="col-xs-12 col-sm-4 col-md-3">'
         models = g[:sublinks]
         unless models.empty?
           html += '<ul>'

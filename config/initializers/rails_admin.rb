@@ -138,7 +138,7 @@ module RailsAdmin
           {
             param: 'workflows',
             label: 'Workflows',
-            icon: 'fa fa-cog',
+            icon: 'fa fa-cogs',
             sublinks: [
               {
                 param: 'notifications',
@@ -175,7 +175,7 @@ module RailsAdmin
           {
             param: 'compute',
             label: 'Compute',
-            icon: 'fa fa-cube',
+            icon: 'fa fa-cog',
             sublinks: %w(Setup::Algorithm Setup::Application Setup::Snippet)
           },
           {

@@ -6,7 +6,7 @@ module RailsAdmin
 
         included do
           rails_admin do
-            navigation_label 'Workflows'
+            navigation_label 'Triggers'
             weight 512
             object_label_method { :custom_title }
 
