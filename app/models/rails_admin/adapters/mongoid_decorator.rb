@@ -95,8 +95,7 @@ module RailsAdmin
         model.relations.values.collect do |association|
           RailsAdmin::Adapters::Mongoid::Association.new(association, model)
         end + #Patch
-          case (model_config = config)
-          when RailsAdmin::Config::Model
+          if (model_config = config.ready)
             model_config.extra_associations
           else
             []
