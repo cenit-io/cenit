@@ -8,6 +8,7 @@ module RailsAdmin
           rails_admin do
             navigation_label 'Configuration'
             weight 740
+            visible true
             object_label_method :to_s
 
             configure :model, :model
