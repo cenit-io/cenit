@@ -1,0 +1,21 @@
+.container-fluid
+  .navbar-header
+    %button.navbar-toggle.collapsed{ type: 'button', data: { toggle: 'collapse', target: '#secondary-navigation' } }
+      %span.sr-only= t('admin.toggle_navigation')
+      %span.icon-bar
+      %span.icon-bar
+      %span.icon-bar
+    = link_to dashboard_path, class: "navbar-brand" do
+      %span.cenit-logo
+        =image_tag 'cenit-logo.png'
+      %span.cenit-hub
+        = "Cenit IO"
+    - if (group = params[:group])
+      #subdomain-toggle.a.navbar-brand
+        %span.subdomain_link
+          %span.subdomain
+            = "| #{group.capitalize}"
+        %small
+          %i.fa.fa-chevron-up{style: 'color: white;'}
+  .collapse.navbar-collapse#secondary-navigation
+    = render partial: 'layouts/rails_admin/secondary_navigation'

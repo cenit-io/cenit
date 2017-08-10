@@ -5,7 +5,7 @@ Cenit::Application.routes.draw do
   end
 
   root to: 'rails_admin/main#dashboard'
-  get 'dashboard/:group', to: 'rails_admin/main#dashboard', as: :dashboard_group
+  get ':group/dashboard', to: 'rails_admin/main#dashboard', as: :dashboard_group
   get 'dashboard', to: 'rails_admin/main#dashboard'
 
   get 'explore/:api', to: 'api#explore', as: :explore_api

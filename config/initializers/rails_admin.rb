@@ -116,7 +116,7 @@ module RailsAdmin
       end
 
       def dashboard_groups
-        [
+        g = [
           {
             param: 'data',
             label: 'Data',
@@ -183,14 +183,26 @@ module RailsAdmin
             label: 'Integrations',
             icon: 'fa fa-puzzle-piece',
             sublinks: %w(Setup::Collection Setup::CrossSharedCollection)
-          },
-          {
+          }
+        ]
+        ecommerce_models = []
+        Cenit.ecommerce_data_types.each do |ns, names|
+          names.each do |name|
+            if (data_type = Setup::DataType.where(namespace: ns, name: name).first)
+              ecommerce_models << data_type.records_model
+            end
+          end
+        end
+        if ecommerce_models.present?
+          g<<{
             param: 'ecommerce',
             label: 'Ecommerce',
             icon: 'fa fa-shopping-cart',
-            sublinks: %w(Setup::Collection Setup::CrossSharedCollection)
+            sublinks: ecommerce_models
           }
-        ]
+        end
+
+        g
       end
     end
   end

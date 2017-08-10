@@ -355,11 +355,14 @@ module RailsAdmin
       group = params[:group]
       if group
         dashboard_link = %(
-           <div id="main-dashoboard-#{group}" class="panel panel-default">
-            <div class='panel-heading'>
-              <a href='/dashboard/#{group}' class='panel-title collapse in collapsed'>
+           <div id="main-dashboard-#{group}" class="panel panel-default">
+            <div class='panel-heading dashboard-heading'>
+              <a href='/#{group}/dashboard' class='panel-title in'>
                 <span class='nav-icon'><i class='fa fa-cubes'></i></span>
-                <span class='nav-caption'>#{group.capitalize} Dashboard</span>
+                <span class='nav-caption'>Dashboard</span>
+              </a>
+              <a href='#' class='panel-title in' id="sidebar-toggle">
+                <span class='nav-caret'><i class='fa fa-chevron-left'></i></span>
               </a>
             </div></div>)
         main_labels.insert(0, dashboard_link)
@@ -589,13 +592,13 @@ module RailsAdmin
         models = g[:sublinks]
         unless models.empty?
           html += '<ul>'
-          html+= '<li><a href="dashboard/' + g[:param] +'"><i class="'+ g[:icon] +'"></i><span>'+ g[:label] +'</span></a></li>'
+          html+= '<li><a href="/' + g[:param] +'/dashboard"><i class="'+ g[:icon] +'"></i><span>'+ g[:label] +'</span></a></li>'
           models.each do |m|
             if m.is_a?(Hash)
-              model_url = "/dashboard/#{m[:param]}"
-              html+= '<li><a href="'+ model_url +'"><span>'+m[:label]+'</span></a></li>'
-            elsif (abstract_model = (model = RailsAdmin::Config.model(m.to_s)).abstract_model)
-              model_url = rails_admin.index_path(model_name: abstract_model.model_name.to_s.underscore.gsub('/', '~'))
+              model_url = "#{m[:param]}/dashboard"
+              html+= '<li><a href="/'+ model_url +'"><span>'+m[:label]+'</span></a></li>'
+            elsif (abstract_model = (model = RailsAdmin::Config.model(m)).abstract_model)
+              model_url = url_for(action: :index, controller: 'rails_admin/main', model_name: abstract_model.to_param)
               html+= '<li><a href="'+ model_url +'"><span>'+model.label_plural+'</span></a></li>'
             end
           end

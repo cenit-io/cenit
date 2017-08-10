@@ -46,6 +46,9 @@
           #content-wrapper
             .xyz
               .content{:'data-pjax-container' => true}= render template: 'layouts/rails_admin/pjax'
+      - if (group = params[:group])
+        #subdomain-panel.collapsed
+          = dashboard_primary
     - if TourTrack.show_tour?(request.remote_ip, User.current)
       = '<script>initializeTour();</script>'.html_safe
     = render partial: 'contact_us'

@@ -146,7 +146,7 @@ a#sign-in-link:hover, a#sign-out-link:hover {
 }
 
 #sidebar-toggle.toggled i.fa {
-  transform: rotate(180deg);
+  transform: rotate(0deg);
 }
 
 /* Search form styles */
@@ -321,9 +321,48 @@ ul.drawer li a span {
   }
 }
 
+.navbar-header {
+  .cenit-logo img {
+    max-height: 140%;
+
+  }
+  .cenit-hub {
+    color: white;
+    font-size: 22px;
+  }
+}
+
+span.subdomain_link {
+  color: white;
+  font-size: 22px;
+  padding-right: 5px;
+  line-height: 22px;
+}
+
+div#subdomain-toggle {
+  cursor: pointer;
+  padding-left: 5px;
+
+  i.fa {
+    transition: all 0.5s ease;
+  }
+
+  &.toggled i.fa {
+    transform: rotate(180deg);
+  }
+}
+
+.dashboard-heading {
+  padding: 10px 0 !important;
+}
+
+ul#main-accordion div > .dashboard-heading > a:hover {
+  background-color: #f5f5f5;
+}
+
 @media screen and (min-width: 768px) {
   .navbar-header {
-    width: 250px;
+    width: 350px;
     padding: 0 6px;
   }
 }
@@ -366,10 +405,22 @@ ul#main-accordion > .panel.active > .panel-heading {
   border-color: #bce8f1;
   border-bottom-left-radius: 0;
   border-bottom-right-radius: 0;
+
+  &.dashboard-heading {
+    background-color: #f5f5f5 !important;
+    border-color: rgba(221, 221, 221, 0.87) !important;
+  }
 }
 
-ul#main-accordion > .panel.active > .panel-heading a {
-  color: #31708f !important;
+ul#main-accordion > .panel.active > .panel-heading {
+  a {
+    color: #31708f !important;
+  }
+  &.dashboard-heading {
+    a {
+      color: black !important;
+    }
+  }
 }
 
 ul#main-accordion .panel.active {
@@ -1599,4 +1650,28 @@ label {
 html {
   position: relative;
   min-height: 100%;
+}
+
+div#subdomain-panel {
+  position: absolute;
+  top: 50px;
+  background: white;
+  padding: 0 25px;
+  left: 30px;
+  min-width: 678px;
+  opacity: 1;
+  transition: opacity .3s;
+  border: 1px solid #ccc;
+  border-radius: 0 0 4px 4px;
+  -webkit-box-shadow: 0 6px 12px rgba(0, 0, 0, 0.175);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.175);
+  z-index: 1000;
+
+  &.collapsed {
+    opacity: 0;
+    z-index: -1;
+  }
+  #primary_dashboard {
+    margin: 25px 0 0;
+  }
 }
