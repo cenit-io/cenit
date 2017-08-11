@@ -30,12 +30,6 @@
     - if dashboard_root
       #root-wrapper.container
         .content{:'data-pjax-container' => true}= render template: 'layouts/rails_admin/pjax'
-      %footer.footer
-        .container
-          .text-center.social-footer
-            %span= 'We'
-            %i.fa.fa-heart-o.fa-lg
-            %span= 'Open Source'
     - else
       #wrapper
         - if Cenit.hide_admin_navigation
@@ -46,6 +40,9 @@
           #content-wrapper
             .xyz
               .content{:'data-pjax-container' => true}= render template: 'layouts/rails_admin/pjax'
+      - if (group = params[:group])
+        #subdomain-panel.collapsed
+          = dashboard_primary
     - if TourTrack.show_tour?(request.remote_ip, User.current)
       = '<script>initializeTour();</script>'.html_safe
     = render partial: 'contact_us'

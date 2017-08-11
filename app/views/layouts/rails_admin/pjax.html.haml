@@ -11,9 +11,10 @@
     %a.close{href: '#', :'data-dismiss' => "alert"} &times;
     = value
 
-= breadcrumb
-
-=render :partial => 'rails_admin/rest_api_sdk/menu' if respond_to?(:api_current_paths) && !api_current_paths.empty?
+- dashboard_root =  @action.is_a?(RailsAdmin::Config::Actions::Dashboard) && params[:group].blank?
+- unless dashboard_root
+  = breadcrumb
+  =render :partial => 'rails_admin/rest_api_sdk/menu' if respond_to?(:api_current_paths) && !api_current_paths.empty?
 
 -if @abstract_model
   %ul.nav.nav-tabs
