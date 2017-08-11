@@ -125,6 +125,51 @@ module RailsAdmin
             group :metadata
           end
 
+          groups = {
+            data: {
+              schemas: 'Schemas',
+              custom_validators: 'Validators',
+              data_types: 'Data Types'
+            },
+            api_connectors: {
+              connections: 'Connections',
+              resources: 'Resources',
+              operations: 'Operations',
+              webhooks: 'Webhooks',
+              connection_roles: 'Connection Roles'
+            },
+            workflows: {
+              flows: 'Flows',
+              events: 'Events'
+            },
+            compute: {
+              translators: 'Translators',
+              algorithms: 'Algorithms',
+              applications: 'Applications',
+              snippets: 'Snippets'
+            },
+            security: {
+              authorizations: 'Authorizations',
+              oauth_clients: 'OAuth Clients',
+              oauth_providers: 'OAuth Providers',
+              oauth2_scopes: 'OAuth 2.0 Scopes'
+            },
+            config: {
+              namespaces: 'Namespaces'
+            }
+          }
+
+          if abstract_model.model == ::Setup::CrossSharedCollection
+            groups.each do |group, fields|
+              fields.each do |field, label|
+                configure :"data_#{field}", :has_many_association do
+                  label label
+                  group group
+                end
+              end
+            end
+          end
+
           edit do
             field :name
             field :title
@@ -195,102 +240,13 @@ module RailsAdmin
                 ''
               end
 
-            instance_eval do
-              field "#{prefix}schemas".to_sym do
-                label 'Schemas'
-                group :data
+            groups.each do |_, fields|
+              fields.each do |field, _|
+                field "#{prefix}#{field}".to_sym
               end
-              field "#{prefix}custom_validators".to_sym do
-                label 'Validators'
-                group :data
-              end
-              field "#{prefix}data_types".to_sym do
-                label 'Data Types'
-                group :data
-              end
-
-              field "#{prefix}connections".to_sym do
-                label 'Connections'
-                group :api_connectors
-              end
-
-              field "#{prefix}resources".to_sym do
-                label 'Resources'
-                group :api_connectors
-              end
-
-              field "#{prefix}operations".to_sym do
-                label 'Operations'
-                group :api_connectors
-              end
-
-              field "#{prefix}webhooks".to_sym do
-                label 'Webhooks'
-                group :api_connectors
-              end
-
-              field "#{prefix}connection_roles".to_sym do
-                label 'Connection Roles'
-                group :api_connectors
-              end
-
-              field "#{prefix}flows".to_sym do
-                label 'Flows'
-                group :workflows
-              end
-
-              field "#{prefix}events".to_sym do
-                label 'Events'
-                group :workflows
-              end
-
-              field "#{prefix}translators".to_sym do
-                label 'Translators'
-                group :compute
-              end
-
-              field "#{prefix}algorithms".to_sym do
-                label 'Algorithms'
-                group :compute
-              end
-
-              field "#{prefix}applications".to_sym do
-                label 'Applications'
-                group :compute
-              end
-
-              field "#{prefix}snippets".to_sym do
-                label 'Snippets'
-                group :compute
-              end
-
-              field "#{prefix}authorizations".to_sym do
-                label 'Authorizations'
-                group :security
-              end
-
-              field "#{prefix}oauth_clients".to_sym do
-                label 'OAuth Clients'
-                group :security
-              end
-
-              field "#{prefix}oauth_providers".to_sym do
-                label 'OAuth Providers'
-                group :security
-              end
-
-              field "#{prefix}oauth2_scopes".to_sym do
-                label 'OAuth 2.0 Scopes'
-                group :security
-              end
-
-              field "#{prefix}namespaces".to_sym do
-                label 'Namespaces'
-                group :config
-              end
-
-              field :metadata, :json_value
             end
+
+            field :metadata, :json_value
 
             field :_id
             field :created_at

@@ -29,6 +29,10 @@ module RailsAdmin
           ((g = controller.params[:group]) && dashboard_group_path.include?(g))
       end
 
+      def ready
+        self
+      end
+
       register_instance_option :public_access? do
         Ability::CROSSING_MODELS_WITH_ORIGIN.include?(abstract_model.model) rescue false
       end

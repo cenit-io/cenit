@@ -49,6 +49,7 @@ module RailsAdmin
 
               field :transformation do
                 required true
+                label 'Template'
                 visible { !bindings[:object].data_type.nil? }
                 contextual_association_scope do
                   types = bindings[:object].class.transformation_types.collect(&:to_s)

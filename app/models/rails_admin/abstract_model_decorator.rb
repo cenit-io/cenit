@@ -1,3 +1,4 @@
+# rails_admin-1.0 ready
 module RailsAdmin
   AbstractModel.class_eval do
 
@@ -6,6 +7,7 @@ module RailsAdmin
     end
 
     def to_param
+      #Patch
       @model_name.split('::').last.underscore
     end
 

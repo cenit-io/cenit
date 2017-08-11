@@ -1,9 +1,19 @@
+# rails_admin-1.0 ready
 module RailsAdmin
   ApplicationHelper.module_eval do
+
+    def format_name(name)
+      max_name_length = 30
+      if name.length > max_name_length
+        name = name.to(27) + '...'
+      end
+      name
+    end
 
     # parent => :root, :collection, :member
     def menu_for(parent, abstract_model = nil, object = nil, only_icon = false, limit = 0) # perf matters here (no action view trickery)
       actions = actions(parent, abstract_model, object).select { |a| a.http_methods.include?(:get) }
+      #Patch
       if parent == :root
         limit = 0
       end
@@ -65,9 +75,14 @@ module RailsAdmin
     end
 
     def wording_for(label, action = @action, abstract_model = @abstract_model, object = @object)
-      model_config = abstract_model.try(:config) || action.bindings[:custom_model_config]
       #Patch
-      object = abstract_model && object && object.is_a?(abstract_model.model) ? object : nil rescue nil
+      model_config = abstract_model.try(:config) || action.bindings[:custom_model_config]
+      object =
+        begin
+          abstract_model && object && object.is_a?(abstract_model.model) ? object : nil
+        rescue
+          nil
+        end
       action = RailsAdmin::Config::Actions.find(action.to_sym) if action.is_a?(Symbol) || action.is_a?(String)
 
       capitalize_first_letter I18n.t(
@@ -208,13 +223,12 @@ module RailsAdmin
     end
 
     def filter_by_token
-      filter_token = Cenit::Token.where(token: session[:filters][@model_name]).first if session[:filters][@model_name]
-      message = filter_token.data['message'] if filter_token.try(:data)
-      if message.is_a?(String)
+      if (filter_token = Cenit::Token.where(token: params[:filter_token]).first) &&
+         (message = filter_token.data && filter_token.data['message']).is_a?(String)
         delete_filter_url = @action.bindings[:controller].url_for()
         filter = '<p class="filter form-search filter_by_token">'
         filter += '<span class="label label-info form-label">'
-        filter += "<a href=\"#{delete_filter_url}?all=yes\">"
+        filter += "<a href=\"#{delete_filter_url}\">"
         filter += '<i class="icon-trash icon-white"></i></a>'
         filter += "#{message}</span>"
         filter += '</p>'

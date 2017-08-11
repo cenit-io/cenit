@@ -3,6 +3,10 @@ module RailsAdmin
     module Fields
       Association.class_eval do
 
+        def association
+          @properties ||= abstract_model.associations.detect { |p| name == p.name }
+        end
+
         register_instance_option :list_fields do
           nil
         end

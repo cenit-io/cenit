@@ -18,7 +18,6 @@ config/application.yml
 config/deploy
 *.swp
 *.swo
-Gemfile.lock
 config/mongoid.yml
 public/assets/
 ## Environment normalisation:
@@ -38,5 +37,4 @@ config/deploy.rb
 .ruby-version
 .idea
 .rbenv*
-Gemfile.lock
 

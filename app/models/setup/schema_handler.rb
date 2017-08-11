@@ -19,7 +19,7 @@ module Setup
       sch
     end
 
-    def check_properties(json_schema)
+    def check_properties(json_schema, options = {})
       object_schema =
         case json_schema['type']
         when 'object'
@@ -35,14 +35,20 @@ module Setup
         _id = properties.delete('_id')
         id = properties.delete('id')
         fail Exception, 'Defining both id and _id' if _id && id
-        if _id ||= id
-          naked_id = _id.reject { |k, _| %w(group xml unique title description edi format example enum readOnly default visible).include?(k) }
-          type = naked_id.delete('type')
-          fail Exception, "Invalid id property type #{id}" unless naked_id.empty? && (type.nil? || !%w(object array).include?(type))
+        edi_discard_id = false
+        unless _id ||= id
+          edi_discard_id = true
+          _id = {}
+        end
+        naked_id = _id.reject { |k, _| %w(group xml unique title description edi format example enum readOnly default visible).include?(k) }
+        type = naked_id.delete('type')
+        fail Exception, "Invalid id property type #{id}" unless naked_id.empty? && (type.nil? || !%w(object array).include?(type))
+        unless options[:skip_id]
           object_schema['properties'] = properties = { '_id' => _id.merge('unique' => true,
                                                                           'title' => 'Id',
                                                                           'description' => 'Required',
                                                                           'edi' => { 'segment' => 'id' }) }.merge(properties)
+          properties['_id']['edi']['discard'] = true if edi_discard_id
           unless (required = object_schema['required']).present?
             required = object_schema['required'] = []
           end
@@ -77,7 +83,7 @@ module Setup
         end
 
         # Check recursively
-        properties.each { |_, property_schema| check_properties(property_schema) if property_schema.is_a?(Hash) }
+        properties.each { |_, property_schema| check_properties(property_schema, options) if property_schema.is_a?(Hash) }
       end
       json_schema
     end
