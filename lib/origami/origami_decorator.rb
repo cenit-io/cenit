@@ -83,12 +83,12 @@ Origami.module_eval do
 
     public_key = key.public_key
 
-    c = options[:cert][:country]||'CO'
-    st = options[:cert][:estado]||'Ciudad Habana'
-    l = options[:cert][:locality]||'Habana vieja'
-    o = options[:cert][:organization]||'Edificio Bacardi'
-    ou = options[:cert][:organizational_unit]||'OpenJAF'
-    cn = options[:cert][:cn]||'www.openjaf.com/emailAddress=openjaf@gmail.com'
+    c = options[:cert][:country] || 'CO'
+    st = options[:cert][:estado] || 'Ciudad Habana'
+    l = options[:cert][:locality] || 'Habana vieja'
+    o = options[:cert][:organization] || 'Edificio Bacardi'
+    ou = options[:cert][:organizational_unit] || 'OpenJAF'
+    cn = options[:cert][:cn] || 'www.openjaf.com/emailAddress=openjaf@gmail.com'
     subject = "/C=#{c}/ST=#{st}/L=#{l}/O=#{o}/OU=#{ou}/CN=#{cn}"
 
     cert = OpenSSL::X509::Certificate.new
