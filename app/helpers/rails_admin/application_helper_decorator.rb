@@ -224,7 +224,8 @@ module RailsAdmin
 
     def main_navigation
       #Patch
-      nodes_stack = RailsAdmin::Config.visible_models(controller: controller) +  # TODO Include mongoff models configs only if needed
+      group = params[:group]
+      nodes_stack = RailsAdmin::Config.visible_models(controller: controller) + # TODO Include mongoff models configs only if needed
         Setup::DataType.where(navigation_link: true).collect { |data_type| RailsAdmin.config(data_type.records_model) }
       node_model_names = nodes_stack.collect { |c| c.abstract_model.model_name }
       if @model_configs
@@ -249,8 +250,10 @@ module RailsAdmin
         [
           Setup::FileDataType,
           Setup::JsonDataType,
-          Setup::CrossSharedCollection
         ]
+      if group == 'ecommerce'
+        non_setup_data_type_models.push(Setup::CrossSharedCollection)
+      end
       data_type_models =
         {
           Setup::CenitDataType => main_labels
@@ -266,12 +269,15 @@ module RailsAdmin
         end
       end
       ecommerce_models = ecommerce_models.collect { |model| RailsAdmin.config(model) }
-      nav_groups['eCommerce'] = ecommerce_models
+
+      if group == 'ecommerce'
+        nav_groups['eCommerce'] = ecommerce_models
+      end
       ecoindex = nav_groups.size
       nav_groups.each do |navigation_label, nav_nodes|
         ecoindex -= 1
         nav_nodes.group_by do |node|
-          if ecoindex == 0
+          if ecoindex == 0 && group == 'ecommerce'
             Setup::CrossSharedCollection
           else
             ((data_type = node.abstract_model.model.try(:data_type)) && data_type.class) || Setup::CenitDataType
@@ -324,19 +330,20 @@ module RailsAdmin
       end
       definitions_index ||= main_labels.length - 1
       i = 1
-      non_setup_data_type_models.each do |data_type_model|
-        links = data_type_models[data_type_model]
-        name = data_type_model.to_s.split('::').last.underscore
-        action = name == 'cross_shared_collection' ? :ecommerce_index : :link_data_type
-        link_link = link_to url_for(action: action,
-                                    controller: 'rails_admin/main',
-                                    data_type_model: data_type_model.to_s) do
-          %{<span class="nav-caption">#{t("admin.misc.link_#{name}")}</span>
+      if (group == 'data' || group == 'files' || group == 'objects')
+        non_setup_data_type_models.each do |data_type_model|
+          links = data_type_models[data_type_model]
+          name = data_type_model.to_s.split('::').last.underscore
+          action = name == 'cross_shared_collection' ? :ecommerce_index : :link_data_type
+          link_link = link_to url_for(action: action,
+                                      controller: 'rails_admin/main',
+                                      data_type_model: data_type_model.to_s) do
+            %{<span class="nav-caption">#{t("admin.misc.link_#{name}")}</span>
               <span class="nav-icon" style="margin-left: 30px;"/>
                 <i class="fa fa-plus"></i>
              </span>}.html_safe
-        end
-        main_labels.insert definitions_index + i, %(<div id='main-#{name}' class='panel panel-default'>
+          end
+          main_labels.insert definitions_index + i, %(<div id='main-#{name}' class='panel panel-default'>
             <div class='panel-heading'>
               <a data-toggle='collapse' data-parent='#main-accordion' href='##{name}-collapse' class='panel-title collapse in collapsed'>
                 <span class='nav-caret'><i class='fa fa-caret-down'></i></span>
@@ -351,8 +358,8 @@ module RailsAdmin
               #{links.collect { |link| data_type_model == Setup::CrossSharedCollection ? link : "<div class='panel panel-default'> #{link} </div>" }.join }
             </div>
           </div>)
+        end
       end
-      group = params[:group]
       if group
         dashboard_link = %(
            <div id="main-dashboard-#{group}" class="panel panel-default">

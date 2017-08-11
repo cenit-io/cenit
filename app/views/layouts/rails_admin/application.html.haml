@@ -30,12 +30,6 @@
     - if dashboard_root
       #root-wrapper.container
         .content{:'data-pjax-container' => true}= render template: 'layouts/rails_admin/pjax'
-      %footer.footer
-        .container
-          .text-center.social-footer
-            %span= 'We'
-            %i.fa.fa-heart-o.fa-lg
-            %span= 'Open Source'
     - else
       #wrapper
         - if Cenit.hide_admin_navigation
