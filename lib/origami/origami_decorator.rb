@@ -53,7 +53,7 @@ Origami.module_eval do
       })
 
       # Set the contentstream with (stamp + text) as the contents of the page
-      page.setContents([contents, page.Contents])
+      page.setContents([page.Contents, contents])
 
       # Create the signature annotaion over the content area box
       annotation = Origami::Annotation::Widget::Signature.new
