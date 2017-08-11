@@ -94,7 +94,7 @@ Origami.module_eval do
     cert = OpenSSL::X509::Certificate.new
     cert.subject = cert.issuer = OpenSSL::X509::Name.parse(subject)
     cert.not_before = Time.now
-    validity = options[:cert][:validity]||365 * 24 * 60 * 60 # 1 year
+    validity = options[:cert][:validity] || 1.year
     cert.not_after = Time.now + validity
     cert.public_key = public_key
     cert.serial = 0x0
