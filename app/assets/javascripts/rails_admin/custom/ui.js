@@ -331,6 +331,15 @@ function registerEvents() {
         })
     });
 
+    $('a#get_touch').click(function (e) {
+        e.preventDefault();
+        $('div#contact_us').modal({
+            keyboard: true,
+            backdrop: true,
+            show: true
+        })
+    });
+
     $(".soc-btn").on("click", function (ev) {
         $(this).addClass("selected");
         $(this).siblings().addClass("unused");

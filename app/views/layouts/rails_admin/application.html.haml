@@ -28,8 +28,9 @@
       = render "layouts/rails_admin/navigation"
     - dashboard_root =  @action.is_a?(RailsAdmin::Config::Actions::Dashboard) && params[:group].blank?
     - if dashboard_root
-      #root-wrapper.container
-        .content{:'data-pjax-container' => true}= render template: 'layouts/rails_admin/pjax'
+      .container-fluid
+        .row
+          = yield
     - else
       #wrapper
         - if Cenit.hide_admin_navigation

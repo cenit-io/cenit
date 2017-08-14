@@ -29,7 +29,7 @@ ul#main-accordion {
   }
 }
 
-.container-fluid {
+.navbar-fixed-top .container-fluid {
   background: #3D4046;
 }
 
@@ -1682,6 +1682,74 @@ div#subdomain-panel {
   }
   #primary_dashboard {
     margin: 25px 0 0;
+  }
+}
+
+.none {
+  display: none;
+}
+
+.block {
+  display: block;
+}
+
+.section .pic {
+  display: inline-block;
+  padding: 15px;
+  background: #f5f5f5;
+  box-shadow: 0px 1px 4px 0px rgba(0, 0, 0, 0.45), inset 0px 0px 1px 1px white;
+}
+
+#main-dashboard {
+  section {
+    padding: 35px 0;
+
+    &:nth-child(odd) {
+      background: white;
+    }
+    &:nth-child(even) {
+      background: #f9f9f9;
+    }
+    &:not(:last-child) {
+      border-bottom: solid 1px #ddd;
+    }
+    &#public_apis {
+      .header {
+        text-align: center;
+        p {
+          font-size: 16px;
+          font-weight: 400;
+          color: #888;
+        }
+      }
+      .sections {
+        margin-top: 45px;
+      }
+    }
+    &#features {
+      .row {
+        margin-bottom: 50px;
+      }
+      .feature {
+        img {
+          max-width: 40px;
+        }
+        strong {
+          display: block;
+          font-weight: 400;
+          font-size: 17px;
+          color: #354E75;
+          margin-top: 15px;
+        }
+        p {
+          font-weight: normal;
+          font-size: 14px;
+          color: #797979;
+          margin-top: 10px;
+          line-height: 24px;
+        }
+      }
+    }
   }
 }
 
