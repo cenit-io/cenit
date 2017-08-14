@@ -1612,6 +1612,11 @@ p.filter.form-search {
         &:hover {
           color: $cenit_color;
         }
+        &[target="_blank"]:after {
+          content: '\F08E'; // fa-external-link
+          font-family: FontAwesome;
+          margin-left: 5px;
+        }
       }
       &:first-child {
         a {
@@ -1846,6 +1851,7 @@ div#subdomain-panel {
     }
   }
 }
+
 .try-integrations {
   margin-top: 10px;
 }

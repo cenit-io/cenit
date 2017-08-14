@@ -156,8 +156,8 @@ module RailsAdmin
               },
               'Setup::Observer',
               {
-                param: 'transformations',
-                label: 'Transformations'
+                param: 'transforms',
+                label: 'Transforms'
               }
             ]
           },
@@ -165,8 +165,14 @@ module RailsAdmin
             param: 'gateway',
             label: 'Gateway',
             icon: 'fa fa-hdd-o',
+            externals: ['open_api_directory'],
             sublinks: [
               'Setup::ApiSpec',
+              {
+                param: 'open_api_directory',
+                label: 'OpenAPI Directory',
+                link: { rel: 'open_api_directory' } # use for example {external: 'http://www.jslint.com/'} in case of external url
+              },
               {
                 param: 'connectors',
                 label: 'Connectors'
@@ -181,12 +187,13 @@ module RailsAdmin
             param: 'compute',
             label: 'Compute',
             icon: 'fa fa-cog',
-            sublinks: %w(Setup::Algorithm Setup::Application Setup::Snippet)
+            sublinks: %w(Setup::Algorithm Setup::Application Setup::Snippet Setup::Filter Setup::Notebook)
           },
           {
             param: 'integrations',
             label: 'Integrations',
             icon: 'fa fa-puzzle-piece',
+            externals: ['Setup::CrossSharedCollection'],
             sublinks: %w(Setup::Collection Setup::CrossSharedCollection)
           }
         ]
