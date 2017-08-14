@@ -13,7 +13,7 @@ module Setup
     shared_deny :simple_delete_data_type, :bulk_delete_data_type
 
     field :id_type, type: String, default: -> { self.class.id_type_enum.values.first }
-    field :store_in, :type => Class, :default => :local
+    field :file_store, type: Class, default: Cenit::FileStore::LocalDb
 
     has_and_belongs_to_many :validators, class_name: Setup::Validator.to_s, inverse_of: nil
     belongs_to :schema_data_type, class_name: Setup::JsonDataType.to_s, inverse_of: nil
@@ -198,8 +198,8 @@ module Setup
         }
       end
 
-      def store_in_enum
-        Cenit.file_stores.map { |fs| [fs.label, fs.name] }.to_h
+      def file_store_enum
+        Cenit.file_stores.map { |fs| [fs.label, fs] }.to_h
       end
     end
   end
