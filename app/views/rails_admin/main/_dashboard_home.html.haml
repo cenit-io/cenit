@@ -55,5 +55,6 @@
           = dashboard_primary
   %section#public_apis
     = render "rails_admin/main/public_apis"
-  %section#features
-    = render "rails_admin/main/features"
+  - unless current_user
+    %section#features
+      = render "rails_admin/main/features"
