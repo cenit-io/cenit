@@ -18,7 +18,7 @@ module RailsAdmin
                       (@model_configs[absm.model_name] = absm.config)
                   end
                 else
-                  Setup::Models.collect { |m| RailsAdmin::Config.model(m) }.select(&:visible).collect do |config|
+                  Setup::Models.collect { |m| RailsAdmin::Config.model(m).with(controller: self) }.select(&:visible).collect do |config|
                     absm = config.abstract_model
                     @model_configs[absm.model_name] = config
                     absm
