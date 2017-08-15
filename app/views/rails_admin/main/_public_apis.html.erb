@@ -31,9 +31,9 @@
             <%= collections_at_dashboard %>
           </div>
       <% else %>
-          <div class='col-sm-offset-2'>
+          <div class='ccol-sm-offset-2 col-md-offset-1 col-lg-offset-2'>
             <br/><br/>
-            <table style="width:80%">
+            <table id="integration_list">
               <tr>
                 <td>
                   <div class="section">
@@ -126,8 +126,8 @@
                     </div>
                   </div>
                 </td>
-                <td><%= image_tag 'arrow.png', style: 'height: 60px;margin: 20px;' %></td>
-                <td>
+                <td class="hidden-xs"><%= image_tag 'arrow.png', style: 'height: 60px;margin: 20px;' %></td>
+                <td class="hidden-xs">
                   <div class="section">
                     <div class="pic">
                       <%= link_to dashboard_path, data: { no_turbolink: true } do %>
@@ -136,7 +136,8 @@
                     </div>
                   </div>
                 </td>
-                <td><%= image_tag 'arrow.png', style: 'height: 60px;margin: 20px;' %></td>
+                <td class="visible-xs">&nbsp;&nbsp;</td>
+                <td class="hidden-xs"><%= image_tag 'arrow.png', style: 'height: 60px;margin: 20px;' %></td>
                 <td>
                   <div class="section">
                     <div class="pic" style='height: 100px;'>
@@ -218,145 +219,140 @@
             </table>
           </div>
 
-          <div class="row sections">
-            <div class="col-md-2">
+          <div class="row sections hidden-xs">
+            <div class="col-md-2 col-sm-3">
               <div class="section">
                 <div class="pic">
                   <%= image_tag 'integrations/amazon.png', :class => 'img-responsive', :alt => 'amazon', width: "102", height: "71" %>
                 </div>
               </div>
             </div>
-            <div class="col-md-2">
+            <div class="col-md-2 col-sm-3">
               <div class="section">
                 <div class="pic">
                   <%= image_tag 'integrations/bronto.png', :class => 'img-responsive', :alt => 'bronto', width: "102", height: "71" %>
                 </div>
               </div>
             </div>
-            <div class="col-md-2">
+            <div class="col-md-2 col-sm-3">
               <div class="section">
                 <div class="pic">
                   <%= image_tag 'integrations/desk.png', :class => 'img-responsive', :alt => 'desk', width: "102", height: "71" %>
                 </div>
               </div>
             </div>
-            <div class="col-md-2">
+            <div class="col-md-2 col-sm-3">
               <div class="section">
                 <div class="pic">
                   <%= image_tag 'integrations/quickbooks.png', :class => 'img-responsive', :alt => 'quickbooks', width: "102", height: "71" %>
                 </div>
               </div>
             </div>
-            <div class="col-md-2">
+            <div class="clearfix visible-sm-block"></div>
+            <div class="col-md-2 col-sm-3">
               <div class="section">
                 <div class="pic">
                   <%= image_tag 'integrations/netsuite.png', :class => 'img-responsive', :alt => 'netsuite', width: "102", height: "71" %>
                 </div>
               </div>
             </div>
-            <div class="col-md-2">
+            <div class="col-md-2 col-sm-3">
               <div class="section">
                 <div class="pic">
                   <%= image_tag 'integrations/mailchimp.png', :class => 'img-responsive', :alt => 'mailchimp', width: "102", height: "71" %>
                 </div>
               </div>
             </div>
-          </div>
-
-          <div class="row sections">
-            <div class="col-md-2">
+            <div class="clearfix visible-md-block visible-lg-block"></div>
+            <div class="col-md-2 col-sm-3">
               <div class="section">
                 <div class="pic">
                   <%= image_tag 'integrations/shipstation.png', :class => 'img-responsive', :alt => 'shipstation', width: "102", height: "71" %>
                 </div>
               </div>
             </div>
-            <div class="col-md-2">
+            <div class="col-md-2 col-sm-3">
               <div class="section">
                 <div class="pic">
                   <%= image_tag 'integrations/exact_target.png', :class => 'img-responsive', :alt => 'exact_target', width: "102", height: "71" %>
                 </div>
               </div>
             </div>
-
-            <div class="col-md-2">
+            <div class="clearfix visible-sm-block"></div>
+            <div class="col-md-2 col-sm-3">
               <div class="section">
                 <div class="pic">
                   <%= image_tag 'integrations/jirafe.png', :class => 'img-responsive', :alt => 'jirafe', width: "102", height: "71" %>
                 </div>
               </div>
             </div>
-            <div class="col-md-2">
+            <div class="col-md-2 col-sm-3">
               <div class="section">
                 <div class="pic">
                   <%= image_tag 'integrations/ql.png', :class => 'img-responsive', :alt => 'ql', width: "102", height: "71" %>
                 </div>
               </div>
             </div>
-
-            <div class="col-md-2">
+            <div class="col-md-2 col-sm-3">
               <div class="section">
                 <div class="pic">
                   <%= image_tag 'integrations/mandrill.png', :class => 'img-responsive', :alt => 'mandrill', width: "102", height: "71" %>
                 </div>
               </div>
             </div>
-            <div class="col-md-2">
+            <div class="col-md-2 col-sm-3">
               <div class="section">
                 <div class="pic">
                   <%= image_tag 'integrations/sf.png', :class => 'img-responsive', :alt => 'sf', width: "102", height: "71" %>
                 </div>
               </div>
             </div>
-
-          </div>
-
-          <div class="row sections">
-
-            <div class="col-md-2">
+            <div class="clearfix visible-md-block visible-lg-block"></div>
+            <div class="clearfix visible-sm-block"></div>
+            <div class="col-md-2 col-sm-3">
               <div class="section">
                 <div class="pic">
                   <%= image_tag 'integrations/shipwire.png', :class => 'img-responsive', :alt => 'shipwire', width: "102", height: "71" %>
                 </div>
               </div>
             </div>
-            <div class="col-md-2">
+            <div class="col-md-2 col-sm-3">
               <div class="section">
                 <div class="pic">
                   <%= image_tag 'integrations/zendesk.png', :class => 'img-responsive', :alt => 'zendesk', width: "102", height: "71" %>
                 </div>
               </div>
             </div>
-            <div class="col-md-2">
+            <div class="col-md-2 col-sm-3">
               <div class="section">
                 <div class="pic">
                   <%= image_tag 'integrations/ebay.jpg', :class => 'img-responsive', :alt => 'ebay', width: "102", height: "71" %>
                 </div>
               </div>
             </div>
-            <div class="col-md-2">
+            <div class="col-md-2 col-sm-3">
               <div class="section">
                 <div class="pic">
                   <%= image_tag 'integrations/odoo.png', :class => 'img-responsive', :alt => 'odoo', width: "102", height: "71" %>
                 </div>
               </div>
             </div>
-            <div class="col-md-2">
+            <div class="clearfix visible-sm-block"></div>
+            <div class="col-md-2 col-sm-3">
               <div class="section">
                 <div class="pic">
                   <%= image_tag 'integrations/aftership.png', :class => 'img-responsive', :alt => 'aftership', width: "102", height: "71" %>
                 </div>
               </div>
             </div>
-
-            <div class="col-md-2">
+            <div class="col-md-2 col-sm-3">
               <div class="section">
                 <div class="pic">
                   <%= image_tag 'integrations/square.png', :class => 'img-responsive', :alt => 'square', width: "102", height: "71" %>
                 </div>
               </div>
             </div>
-
+            <div class="clearfix visible-md-block visible-lg-block"></div>
           </div>
       <% end %>
     </div>

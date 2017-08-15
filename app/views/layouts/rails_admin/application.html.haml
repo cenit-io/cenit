@@ -28,7 +28,7 @@
       = render "layouts/rails_admin/navigation"
     - dashboard_root =  @action.is_a?(RailsAdmin::Config::Actions::Dashboard) && params[:group].blank?
     - if dashboard_root
-      .container-fluid
+      .container-fluid#home_content
         .row
           = yield
     - else

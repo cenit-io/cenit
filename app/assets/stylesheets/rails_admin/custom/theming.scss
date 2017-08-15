@@ -1316,7 +1316,10 @@ label {
 }
 
 #collections {
-  padding-left: 35px;
+  padding-left: 0;
+  @media(min-width: 768px) {
+    padding-left: 35px;
+  }
   .collection {
     .pic {
       display: inline-block;
@@ -1710,10 +1713,16 @@ div#subdomain-panel {
     padding: 35px 0;
 
     &:nth-child(odd) {
-      background: white;
+      background: #f9f9f9;;
+      @media(min-width: 768px) {
+        background: white;
+      }
     }
     &:nth-child(even) {
-      background: #f9f9f9;
+      background: white;
+      @media(min-width: 768px) {
+        background: #f9f9f9;
+      }
     }
     &:not(:last-child) {
       border-bottom: solid 1px #ddd;
@@ -1854,4 +1863,36 @@ div#subdomain-panel {
 
 .try-integrations {
   margin-top: 10px;
+}
+
+section#welcome_users {
+  display: none;
+  @media(min-width: 768px) {
+    display: block;
+  }
+}
+
+#integration_list {
+  width: 100%;
+  @media(min-width: 1200px) {
+    width: 80%;
+  }
+}
+
+#home_content {
+  @media(min-width: 768px) {
+    margin-top: 47px;
+  }
+  @media(min-width: 992px) {
+    margin-top: 0;
+  }
+
+}
+#public_apis{
+  .sections{
+    .section{
+      text-align: center;
+      margin-bottom: 20px;
+    }
+  }
 }

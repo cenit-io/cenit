@@ -619,7 +619,10 @@ module RailsAdmin
         if index%3 == 0
           html += '<div class="clearfix visible-sm-block"></div>'
         end
-        html += '<div class="col-xs-12 col-sm-4 col-md-3">'
+        if index%2 == 0
+          html += '<div class="clearfix visible-xs-block"></div>'
+        end
+        html += '<div class="col-xs-6 col-sm-4 col-md-3">'
         models = g[:sublinks]
         unless models.empty?
           html += '<ul>'
