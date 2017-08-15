@@ -4,61 +4,85 @@ module Mongoff
 
       include FileFormatter
 
+      attr_accessor :encoding
+      attr_reader :stash_data, :cursor
+
       def initialize(model, document = nil, new_record = true)
         raise "Illegal file model #{model}" unless model.is_a?(FileModel)
         super
-        @cursor = 0
+        seek(0)
       end
 
       def to_s
         filename
       end
 
-      def chunk_model
-        orm_model.chunk_model
+      def seek(pos)
+        @cursor = pos
       end
 
       def rewind
-        @cursor = 0
-        @new_data.try(:rewind)
+        seek(0)
+        stash_data.try(:rewind)
       end
 
-      # TODO: Move this logic to Cenit::FileStore::LocalDb.
-      def read_from_local_db(*args)
-        len = (args.length > 0 && args[0].to_i) || length || 0
-        if @new_data
-          if @new_data.is_a?(String)
-            return nil if @cursor == @new_data.length
-            start = @cursor
-            if len > @new_data.length - start
-              len = @new_data.length - start
-            end
-            @cursor += len
-            @new_data[start, len]
-          else
-            @new_data.read(len)
-          end
+      def file_store
+        orm_model.data_type.file_store
+      end
+
+      def read(*args)
+        file_store.read(self, *args) unless self.new_record?
+      end
+
+      def save(options = {})
+        if stash_data.nil?
+          errors.add(:data, "can't be nil") if new_record?
         else
-          return nil if @cursor == length
-          current_chunk = @cursor / chunkSize
-          chunk_chunk = chunkSize - (@cursor + 1) % chunkSize
-          chunk_start = chunkSize - chunk_chunk - 1
-          if chunk_chunk > len
-            chunk_chunk = len
-          end
-          chunks_left = ((len - chunk_chunk) / chunkSize.to_f).ceil
-          data = ''
-          chunks.ascending(:n).where(:n.gte => current_chunk,
-                                     :n.lte => current_chunk + chunks_left).each do |chunk|
-            data += chunk.data.data[chunk_start, chunk_chunk]
-            if (chunk_chunk = len - data.length) > chunkSize
-              chunk_chunk = chunkSize
+          self[:metadata] =
+            if options.key?(:metadata)
+              options[:metadata]
+            else
+              self[:metadata] || {}
             end
-            chunk_start = 0
+          self[:encoding] = options[:encoding] || self[:encoding]
+          self[:length] = stash_data.size
+
+          unless @custom_filename
+            self[:filename] = options[:filename] || extract_basename(stash_data) || self[:filename] || options[:default_filename] || 'file'
           end
-          @cursor += data.length
-          data
+
+          unless @custom_content_type
+            self[:contentType] = options[:contentType] || extract_content_type_from_io(stash_data) || extract_content_type(self[:filename]) || options[:default_contentType]
+          end
+
+          self[:uploadDate] ||= Time.now.utc
+
+          run_callbacks_and do
+            file_data_errors =
+              if options[:valid_data]
+                []
+              else
+                orm_model.data_type.validate_file(self)
+              end
+
+            if file_data_errors.present?
+              errors.add(:base, "Invalid file data: #{file_data_errors.to_sentence}")
+            else
+              begin
+                file_store.save(self, stash_data, options)
+              rescue Exception => ex
+                errors.add(:data, ex.message)
+              end
+            end
+          end
         end
+
+        errors.blank? && super
+      end
+
+      def destroy
+        file_store.destroy(self)
+        super
       end
 
       def data
@@ -67,13 +91,11 @@ module Mongoff
       end
 
       def data=(string_or_readable)
-        @cursor = 0
-        if (@new_data = string_or_readable)
-          self.length = @new_data.size
+        seek(0)
+        if (@stash_data = string_or_readable)
+          self.length = stash_data.size
         end
       end
-
-      attr_accessor :encoding
 
       def [](field)
         field = field.to_s.to_sym
@@ -114,143 +136,17 @@ module Mongoff
         end
       end
 
-      # TODO: Move this logic to Cenit::FileStore::LocalDb.
-      def save_to_local_db(options = {})
-        temporary_file = nil
-        new_chunks_ids =
-          if @new_data
-            readable =
-              if @new_data.is_a?(String)
-                ext =
-                  if (content_type = options[:content_type] || self.contentType) &&
-                    (types = MIME::Types[content_type]).present? &&
-                    (type = types.detect { |t| t.extensions.present? })
-                    type.extensions.first
-                  else
-                    ''
-                  end
-                temporary_file = Tempfile.new(['file_', ".#{ext}"])
-                temporary_file.binmode
-                temporary_file.write(decode(@new_data))
-                temporary_file.rewind
-                Cenit::Utility::Proxy.new(temporary_file, original_filename: filename || options[:filename] || options[:default_filename])
-              else
-                @new_data
-              end
-            if !options[:valid_data] && (file_data_errors = orm_model.data_type.validate_file(self)).present?
-              errors.add(:base, "Invalid file data: #{file_data_errors.to_sentence}")
-            else
-              create_temporary_chunks(readable, options)
-            end
-          else
-            errors.add(:data, "can't be nil") if new_record?
-          end
-        temporary_file.close if temporary_file
-        [:filename, :contentType].each { |property| self[property] = options[property] unless self[property].present? }
-        if errors.blank?
-          @cursor = 0
-          if new_chunks_ids
-            chunks.delete_many
-            chunk_model.all.any_in(id: new_chunks_ids).update_many('$set' => { files_id: id })
-          end
-        end
-      end
-
-      # TODO: Move this logic to Cenit::FileStore::LocalDb.
-      def destroy_from_local_db
-        chunks.delete_many
-      end
-
-      private
-
-      def chunks
-        chunk_model.where(files: id)
-      end
-
-      def create_temporary_chunks(readable, options)
-        new_chunks_ids = []
-        temporary_files_id = BSON::ObjectId.new
-        md5 = Digest::MD5.new
-        length = 0
-        n = -1
-
-        reading(readable) do |io|
-
-          unless @custom_filename
-            self[:filename] = options[:filename] || extract_basename(io) || self[:filename] || options[:default_filename] || 'file'
-          end
-          unless @custom_content_type
-            self[:contentType] = options[:contentType] || extract_content_type_from_io(io) || extract_content_type(self[:filename]) || options[:default_contentType]
-          end
-
-          chunking(io, chunkSize) do |buf|
-            md5 << buf
-            length += buf.size
-            chunk = chunk_model.new(temporary_files_id)
-            chunk.n = n = n + 1
-            chunk.data = BSON::Binary.new(buf, :generic)
-            if chunk.save
-              new_chunks_ids << chunk.id
-            else
-              #TODO Handle saving chunk error
-              raise Exception.new('fail saving chunks')
-            end
-          end
-
-          self[:length] = length
-          self[:uploadDate] ||= Time.now.utc
-          self[:md5] = md5.hexdigest
-        end
-
-        new_chunks_ids
-      end
-
-      def reading(arg, &block)
-        if arg.respond_to?(:read)
-          do_rewind(arg) do |io|
-            block.call(io)
-          end
-        else
-          #TODO Open a file...
-          # open(arg.to_s) do |io|
-          #   block.call(io)
-          # end
-        end
-      end
-
-      def do_rewind(io, &block)
-        begin
-          pos = io.pos
-          io.flush
-        rescue
-        end
-
-        begin
-          io.rewind
-        rescue
-        end
-
-        begin
-          block.call(io)
-        ensure
-          begin
-            io.pos = pos
-          rescue
-          end
-        end
-      end
-
       def extract_basename(object)
         m = [
           :original_path, :original_filename, :path, :filename, :pathname, :path, :to_path
         ].detect { |m| object.respond_to?(m) }
-        file_name = object.send(m) if m
-        clean(file_name).squeeze('/') if file_name
+        file_name = m && object.send(m)
+        file_name && clean(file_name).squeeze('/')
       end
 
       def extract_content_type_from_io(object)
         m = [:content_type, :contentType].detect { |m| object.respond_to?(m) }
-        object.send(m) if m
+        m && object.send(m)
       end
 
       def extract_content_type(filename)
@@ -263,26 +159,8 @@ module Mongoff
         CGI.unescape(basename).gsub(%r/[^0-9a-zA-Z_@)(~.-]/, '_').gsub(%r/_+/, '_')
       end
 
-      def chunking(io, chunk_size, &block)
-        if io.method(:read).arity == 0
-          data = io.read
-          i = 0
-          loop do
-            offset = i * chunk_size
-            length = i + chunk_size < data.size ? chunk_size : data.size - offset
+      private :extract_basename, :extract_content_type_from_io, :extract_content_type, :clean
 
-            break if offset >= data.size
-
-            buf = data[offset, length]
-            block.call(buf)
-            i += 1
-          end
-        else
-          while (buf = io.read(chunk_size)) && buf.size > 0
-            block.call(buf)
-          end
-        end
-      end
     end
   end
 end

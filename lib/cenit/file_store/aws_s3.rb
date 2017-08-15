@@ -6,6 +6,7 @@ module Cenit
   module FileStore
     class AwsS3
       class << self
+
         def label
           'AWS-S3'
         end
@@ -40,19 +41,31 @@ module Cenit
         # Save file content.
         def save(file, data, options)
           opts = {
-            :content_type => file[:contentType],
-            :metadata => {
-              :filename => file[:filename],
+            content_type: file[:contentType],
+            metadata: {
+              filename: file[:filename]
             }
           }
 
-          object(file) { |obj| data.is_a?(String) ? obj.put(opts.merge(body: data)) : obj.upload_file(data.path, opts) }
+          object(file) do |obj|
+            if data.is_a?(String)
+              obj.put(opts.merge(body: data))
+            else
+              obj.upload_file(data.path, opts)
+            end
+          end
         end
 
         ###
         # Read file content.
         def read(file, *args)
-          object(file) { |obj| obj.get.body.read if obj.exists? }
+          object(file) do |obj|
+            if obj.exists?
+              obj.get.body.read
+            else
+              nil
+            end
+          end
         end
 
         ###

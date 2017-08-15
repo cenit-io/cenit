@@ -79,7 +79,7 @@ module RailsAdmin
               field :name, &RailsAdmin::Config::Fields::Base::SHARED_READ_ONLY
               field :id_type, &RailsAdmin::Config::Fields::Base::SHARED_READ_ONLY
               field :title, &RailsAdmin::Config::Fields::Base::SHARED_READ_ONLY
-              field :store_in, &RailsAdmin::Config::Fields::Base::SHARED_READ_ONLY
+              field :file_store, &RailsAdmin::Config::Fields::Base::SHARED_READ_ONLY
               field :slug
               field :validators, &RailsAdmin::Config::Fields::Base::SHARED_READ_ONLY
               field :schema_data_type, &RailsAdmin::Config::Fields::Base::SHARED_READ_ONLY
@@ -94,7 +94,7 @@ module RailsAdmin
               field :slug
               field :validators
               field :schema_data_type
-              field :store_in
+              field :file_store
               field :storage_size
               field :updated_at
             end
@@ -105,7 +105,7 @@ module RailsAdmin
               field :id_type
               field :slug
               field :validators
-              field :store_in
+              field :file_store
               field :storage_size
               field :schema_data_type
 
