@@ -87,15 +87,20 @@ class AppController < ApplicationController
     elsif (app_id = params[:client_id])
       app_id = Cenit::ApplicationId.where(identifier: app_id).first
     end
-    if app_id && (Account.current.nil? || Account.current == app_id.tenant)
-      @app = app_id.app
-      @authentication_method ||=
-        if Account.current
-          @app.authentication_method
-        else
-          :application_id
-        end
-      Account.current ||= app_id.tenant
+    if app_id
+      if app_id.registered?
+        Account.current = user = nil unless Account.current == app_id.tenant
+      end
+      if Account.current.nil? || Account.current == app_id.tenant
+        @app = app_id.app
+        @authentication_method ||=
+          if Account.current
+            @app.authentication_method
+          else
+            :application_id
+          end
+        Account.current ||= app_id.tenant
+      end
     end
     User.current = user || (Account.current ? Account.current.owner : nil)
     if Account.current && User.current
