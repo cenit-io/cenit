@@ -44,5 +44,31 @@ module Cenit
     def namespace(name)
       Setup::Namespace.find_or_create_by(name: name)
     end
+
+    def default_file_store(*args)
+      if args.length == 0
+        options[:default_file_store] || file_stores.first
+      else
+        self[:default_file_store] = default_file_store = args[0]
+        if options.key?(:file_stores)
+          file_stores.delete(default_file_store)
+          file_stores.unshift(default_file_store)
+        end
+        default_file_store
+      end
+    end
+
+    def file_stores(*args)
+      if args.length == 0
+        options[:file_stores] || [options.key?(:default_file_store) ? default_file_store : Cenit::FileStore::LocalDb]
+      else
+        args = args.flatten
+        if options.key?(:default_file_store)
+          args.delete(default_file_store)
+          args.unshift(default_file_store)
+        end
+        self[:file_stores] = args
+      end
+    end
   end
 end
