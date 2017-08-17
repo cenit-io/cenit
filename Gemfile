@@ -32,7 +32,6 @@ group :development do
   gem 'capistrano-rails'
   gem 'capistrano-rails-console'
   gem 'capistrano-rvm'
-  gem 'puma'
 end
 
 group :development, :test do
@@ -126,4 +125,4 @@ gem 'wkhtmltopdf-binary'
 gem 'rmagick', '2.15.4'
 gem 'pdfkit', '0.8.2'
 gem 'imgkit', '1.6.1'
-gem 'aws-sdk', '~> 2.10.13'
+gem 'origami', git: 'https://github.com/mobmewireless/origami-pdf.git'
