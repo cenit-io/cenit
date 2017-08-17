@@ -40,8 +40,8 @@ module Mongoff
         else
           return nil if @cursor == length
           current_chunk = @cursor / chunkSize
-          chunk_chunk = chunkSize - (@cursor + 1) % chunkSize
-          chunk_start = chunkSize - chunk_chunk - 1
+          chunk_start = @cursor - current_chunk * chunkSize
+          chunk_chunk = chunkSize - chunk_start
           if chunk_chunk > len
             chunk_chunk = len
           end
