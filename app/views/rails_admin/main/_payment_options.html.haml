@@ -1,0 +1,137 @@
+.container
+  .row
+    .col-md-offset-1.col-md-10
+      #tabs-option
+        .row.header
+          %h3= 'Development Services for Custom Business Integration'
+          %p
+            = 'For some cases that you might also need. '
+            = link_to 'Get in touch', '#contact_us',class: 'item contact-modal',data: { toggle: 'modal', backdrop: 'false' }
+        .row
+          .col-sm-12
+            .tabs
+              .tab.weekly.active
+                %span
+                  ='Pay Weekly'
+              .tab.monthly
+                %span
+                  = 'Pay Monthly'
+                  %small= '20% off'
+            .plans.weekly.clearfix
+              .plan.col-sm-4
+                .header
+                  %span.icon.entypo-user
+                  %span.hidden-monthly='25 hours'
+                  %span.hidden-weekly='100 hours'
+                  .price{data: { weekly: '$ 800/week', monthly: '$2 560/month' }}
+                    %span.hidden-monthly='$800/week'
+                    %span.hidden-weekly='$2 560/month'
+                .specs
+                  .spec
+                    %span.variable='1'
+                    = 'team member'
+                  .spec
+                    %span.variable='Support'
+                    = 'email + chat '
+                  .spec
+                    %span.variable='Configuration'
+                    = 'setting options'
+                  .spec.hidden-weekly
+                    %span.variable='Customization'
+                    = 'forms and fields'
+                  .spec.hidden-weekly
+                    %span.variable='Importation'
+                    = 'form severals sources'
+                  .spec.hidden-weekly
+                    %span.variable='Integration'
+                    = 'with internet services'
+                  .spec.hidden-weekly
+                    %span.variable='Migration'
+                    = 'data of previous versions'
+                  .spec.hidden-weekly
+                    %span.variable='Creation'
+                    = 'of new add-ons'
+              .plan.col-sm-4.middle
+                .header
+                  %span.icon.entypo-user
+                  %span.hidden-monthly='50 hours'
+                  %span.hidden-weekly='200 hours'
+                  .price{data: { weekly: '$ 1 700/week', monthly: '$5 440/month' }}
+                    %span.hidden-monthly='$1 700/week'
+                    %span.hidden-weekly='$5 440/month'
+                .specs
+                  .spec
+                    %span.variable='1'
+                    = 'team member'
+                  .spec
+                    %span.variable='Support'
+                    = 'email + chat '
+                  .spec
+                    %span.variable='Configuration'
+                    = 'setting options'
+                  .spec
+                    %span.variable='Customization'
+                    = 'forms and fields'
+                  .spec
+                    %span.variable='Importation'
+                    = 'form severals sources'
+                  .spec.hidden-weekly
+                    %span.variable='Integration'
+                    = 'with internet services'
+                  .spec.hidden-weekly
+                    %span.variable='Migration'
+                    = 'data of previous versions'
+                  .spec.hidden-weekly
+                    %span.variable='Creation'
+                    = 'of new add-ons'
+              .plan.col-sm-4
+                .header
+                  %span.icon.entypo-user
+                  %span.hidden-monthly='100 hours'
+                  %span.hidden-weekly='400 hours'
+                  .price{data: { weekly: '$3 050/two weeks', monthly: '$9 760/two months' }}
+                    %span.hidden-monthly='$3 050/two weeks'
+                    %span.hidden-weekly='$9 150//two months'
+                .specs
+                  .spec
+                    %span.variable='1'
+                    = 'team member'
+                  .spec
+                    %span.variable='Support'
+                    = 'email + chat '
+                  .spec
+                    %span.variable='Configuration'
+                    = 'setting options'
+                  .spec
+                    %span.variable='Customization'
+                    = 'forms and fields'
+                  .spec
+                    %span.variable='Importation'
+                    = 'form severals sources'
+                  .spec
+                    %span.variable='Integration'
+                    = 'with internet services'
+                  .spec
+                    %span.variable='Migration'
+                    = 'data of previous versions'
+                  .spec
+                    %span.variable='Creation'
+                    = 'of new add-ons'
+%script
+  $(function(){
+  var current = 'weekly';
+
+  $('#payment_options').find('.tabs .tab').click(function() {
+  if (!($(this).hasClass('active'))) {
+  $(this).addClass('active');
+  $('#payment_options').find('.tabs .tab.'+current).removeClass('active');
+  $('#payment_options').find('.plans').removeClass(current);
+  if (current == 'weekly')
+  current = 'monthly';
+  else
+  current = 'weekly';
+  $('#payment_options').find('.plans').addClass(current);
+  }
+  });
+  });
+</script>
