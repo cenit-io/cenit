@@ -459,7 +459,7 @@ RailsAdmin.config do |config|
 
   #Transformations
 
-  config.navigation 'Transformations', icon: 'fa fa-random'
+  config.navigation 'Transforms', icon: 'fa fa-random'
 
   Setup::Translator
 

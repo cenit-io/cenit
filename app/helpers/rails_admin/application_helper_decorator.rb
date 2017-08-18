@@ -236,9 +236,29 @@ module RailsAdmin
       end
     end
 
+    DATA_TYPE_ICONS = {
+      Setup::FileDataType => 'fa fa-file',
+      Setup::JsonDataType => 'fa fa-database',
+      Setup::CrossSharedCollection => 'fa fa-shopping-cart'
+    }
+
+    def show_objects_navigation?
+      %w(data objects).include?(@dashboard_group) || (!show_ecommerce_navigation? &&
+        @abstract_model && @abstract_model.model.try(:data_type).is_a?(Setup::JsonDataType))
+    end
+
+    def show_files_navigation?
+      %w(data files).include?(@dashboard_group) || (@abstract_model && @abstract_model.model.try(:data_type).is_a?(Setup::FileDataType))
+    end
+
+    def show_ecommerce_navigation?
+      %w(ecommerce).include?(@dashboard_group) || ((dt = @abstract_model && @abstract_model.model.try(:data_type)) &&
+        (names = Cenit.ecommerce_data_types[dt.namespace.to_sym]) &&
+        names.include?(dt.name))
+    end
+
     def main_navigation
       #Patch
-      group = params[:group]
       nodes_stack = RailsAdmin::Config.visible_models(controller: controller) + # TODO Include mongoff models configs only if needed
         Setup::DataType.where(navigation_link: true).collect { |data_type| RailsAdmin.config(data_type.records_model) }
       node_model_names = nodes_stack.collect { |c| c.abstract_model.model_name }
@@ -250,48 +270,38 @@ module RailsAdmin
         end
       end
 
+      nav_groups = nodes_stack.group_by(&:navigation_label)
       i = -1
       mongoff_start_index = nil
       definitions_index = nil
       main_labels = []
-      data_type_icons =
-        {
-          Setup::FileDataType => 'fa fa-file',
-          Setup::JsonDataType => 'fa fa-database',
-          Setup::CrossSharedCollection => 'fa fa-shopping-cart'
-        }
-      non_setup_data_type_models =
-        [
-          Setup::FileDataType,
-          Setup::JsonDataType,
-        ]
-      if group == 'ecommerce'
-        non_setup_data_type_models.push(Setup::CrossSharedCollection)
-      end
-      data_type_models =
-        {
-          Setup::CenitDataType => main_labels
-        }
-      non_setup_data_type_models.each { |m| data_type_models[m] = [] }
-      nav_groups = nodes_stack.group_by(&:navigation_label)
-      ecommerce_models = []
-      Cenit.ecommerce_data_types.each do |ns, names|
-        names.each do |name|
-          if (data_type = Setup::DataType.where(namespace: ns, name: name).first)
-            ecommerce_models << data_type.records_model
+      non_setup_data_type_models = []
+      if show_ecommerce_navigation?
+        non_setup_data_type_models << Setup::CrossSharedCollection
+        ecommerce_models = []
+        Cenit.ecommerce_data_types.each do |ns, names|
+          names.each do |name|
+            if (data_type = Setup::DataType.where(namespace: ns, name: name).first)
+              ecommerce_models << data_type.records_model
+            end
           end
         end
-      end
-      ecommerce_models = ecommerce_models.collect { |model| RailsAdmin.config(model) }
-
-      if group == 'ecommerce'
+        ecommerce_models = ecommerce_models.collect { |model| RailsAdmin.config(model) }
         nav_groups['eCommerce'] = ecommerce_models
       end
-      ecoindex = nav_groups.size
+      if show_files_navigation?
+        non_setup_data_type_models << Setup::FileDataType
+      end
+      if show_objects_navigation?
+        non_setup_data_type_models << Setup::JsonDataType
+      end
+      data_type_models = { Setup::CenitDataType => main_labels }
+      non_setup_data_type_models.each { |m| data_type_models[m] = [] }
+      ecoindex = nav_groups.size + (data_type_models.key?(Setup::CrossSharedCollection) ? 0 : 1)
       nav_groups.each do |navigation_label, nav_nodes|
         ecoindex -= 1
         nav_nodes.group_by do |node|
-          if ecoindex == 0 && group == 'ecommerce'
+          if ecoindex == 0
             Setup::CrossSharedCollection
           else
             ((data_type = node.abstract_model.model.try(:data_type)) && data_type.class) || Setup::CenitDataType
@@ -338,30 +348,31 @@ module RailsAdmin
                 li_stack = "<div id='#{html_id}' class='panel panel-default'>#{li_stack}</div>"
               end
             end
-            data_type_models[data_type_model] << li_stack
+            if (labels = data_type_models[data_type_model])
+              labels << li_stack
+            end
           end
         end
       end
-      definitions_index ||= main_labels.length - 1
+      definitions_index ||= -1
       i = 1
-      if (group == 'data' || group == 'files' || group == 'objects')
-        non_setup_data_type_models.each do |data_type_model|
-          links = data_type_models[data_type_model]
-          name = data_type_model.to_s.split('::').last.underscore
-          action = name == 'cross_shared_collection' ? :ecommerce_index : :link_data_type
-          link_link = link_to url_for(action: action,
-                                      controller: 'rails_admin/main',
-                                      data_type_model: data_type_model.to_s) do
-            %{<span class="nav-caption">#{t("admin.misc.link_#{name}")}</span>
+      non_setup_data_type_models.each do |data_type_model|
+        links = data_type_models[data_type_model]
+        name = data_type_model.to_s.split('::').last.underscore
+        action = name == 'cross_shared_collection' ? :ecommerce_index : :link_data_type
+        link_link = link_to url_for(action: action,
+                                    controller: 'rails_admin/main',
+                                    data_type_model: data_type_model.to_s) do
+          %{<span class="nav-caption">#{t("admin.misc.link_#{name}")}</span>
               <span class="nav-icon" style="margin-left: 30px;"/>
                 <i class="fa fa-plus"></i>
              </span>}.html_safe
-          end
-          main_labels.insert definitions_index + i, %(<div id='main-#{name}' class='panel panel-default'>
+        end
+        main_labels.insert definitions_index + i, %(<div id='main-#{name}' class='panel panel-default'>
             <div class='panel-heading'>
               <a data-toggle='collapse' data-parent='#main-accordion' href='##{name}-collapse' class='panel-title collapse in collapsed'>
                 <span class='nav-caret'><i class='fa fa-caret-down'></i></span>
-                <span class='nav-icon'><i class='#{data_type_icons[data_type_model]}'></i></span>
+                <span class='nav-icon'><i class='#{DATA_TYPE_ICONS[data_type_model]}'></i></span>
                 <span class='nav-caption'>#{t("admin.misc.main_navigation.#{name}")}</span>
               </a>
             </div>
@@ -372,13 +383,12 @@ module RailsAdmin
               #{links.collect { |link| data_type_model == Setup::CrossSharedCollection ? link : "<div class='panel panel-default'> #{link} </div>" }.join }
             </div>
           </div>)
-        end
       end
-      if group
+      if @dashboard_group
         dashboard_link = %(
-           <div id="main-dashboard-#{group}" class="panel panel-default">
+           <div id="main-dashboard-#{@dashboard_group}" class="panel panel-default">
             <div class='panel-heading dashboard-heading'>
-              <a href='/#{group}/dashboard' class='panel-title in'>
+              <a href='/#{@dashboard_group}/dashboard' class='panel-title in'>
                 <span class='nav-icon'><i class='fa fa-cubes'></i></span>
                 <span class='nav-caption'>Dashboard</span>
               </a>
@@ -973,9 +983,9 @@ module RailsAdmin
           "<li class=\"false\"><a class=\"contextual-record pjax\" href=\"#{index_path(model_name: @abstract_model.to_param, leave_context: true)}\" title='#{t('admin.misc.leave_context', label: (label = wording_for(:breadcrumb, :show, context_config.abstract_model, get_context_record)))}'>#{label}</a></li>" +
           value.from(value.index('</li>') + 5)
       end
-      if @group_dashboard
+      if @dashboard_group
         value = value.to(value.index('<li') - 1) +
-          "<li class=\"active\">#{@group_dashboard.capitalize }</li>" +
+          "<li class=\"active\">#{@dashboard_group.capitalize }</li>" +
           value.from(value.index('</li>') + 5)
         value = value.to(value.index('</ol>')-1) + '<li class="active">Dashboard</li></ol>'
       end
