@@ -1724,9 +1724,7 @@ div#subdomain-panel {
         background: #f9f9f9;
       }
     }
-    &:not(:last-child) {
-      border-bottom: solid 1px #ddd;
-    }
+
     &#public_apis {
       .header {
         text-align: center;
