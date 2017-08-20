@@ -13,7 +13,6 @@ module Setup
     shared_deny :simple_delete_data_type, :bulk_delete_data_type
 
     field :id_type, type: String, default: -> { self.class.id_type_enum.values.first }
-    field :file_store, type: Class, default: -> { Cenit.default_file_store }
 
     has_and_belongs_to_many :validators, class_name: Setup::Validator.to_s, inverse_of: nil
     belongs_to :schema_data_type, class_name: Setup::JsonDataType.to_s, inverse_of: nil
@@ -188,6 +187,19 @@ module Setup
       }
     end
 
+    def file_store_config
+      @_file_store_config ||=
+        begin
+          if new_record?
+            Setup::FileStoreConfig.new(data_type: self)
+          else
+            Setup::FileStoreConfig.find_or_create_by(data_type: self)
+          end
+        end
+    end
+
+    delegate :file_store, to: :file_store_config
+
     class << self
 
       def id_type_enum
@@ -196,10 +208,6 @@ module Setup
           Integer: 'integer',
           String: 'string'
         }
-      end
-
-      def file_store_enum
-        Cenit.file_stores.map { |fs| [fs.label, fs] }.to_h
       end
     end
   end

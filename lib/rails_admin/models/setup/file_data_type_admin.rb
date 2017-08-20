@@ -5,14 +5,23 @@ module RailsAdmin
         extend ActiveSupport::Concern
 
         included do
-          rails_admin do |c|
+          rails_admin do
 
             navigation_label 'Definitions'
             weight 112
             label 'File Type'
             object_label_method { :custom_title }
 
-            c.configure :namespace, :enum_edit
+            configure :namespace, :enum_edit
+
+            configure :file_store, :enum do
+              enum do
+                ::Cenit.file_stores.map { |fs| [fs.label, fs] }.to_h
+              end
+              visible do
+                ::Cenit.file_stores.count > 1
+              end
+            end
 
             group :content do
               label 'Content'
@@ -23,7 +32,7 @@ module RailsAdmin
               active false
             end
 
-            c.configure :storage_size, :decimal do
+            configure :storage_size, :decimal do
               pretty_value do
                 if objects = bindings[:controller].instance_variable_get(:@objects)
                   unless max = bindings[:controller].instance_variable_get(:@max_storage_size)
@@ -37,18 +46,18 @@ module RailsAdmin
               read_only true
             end
 
-            c.configure :validators do
+            configure :validators do
               group :content
               inline_add false
             end
 
-            c.configure :schema_data_type do
+            configure :schema_data_type do
               group :content
               inline_add false
               inline_edit false
             end
 
-            c.configure :before_save_callbacks do
+            configure :before_save_callbacks do
               group :behavior
               inline_add false
               associated_collection_scope do
@@ -58,19 +67,19 @@ module RailsAdmin
               end
             end
 
-            c.configure :records_methods do
+            configure :records_methods do
               group :behavior
               inline_add false
             end
 
-            c.configure :data_type_methods do
+            configure :data_type_methods do
               group :behavior
               inline_add false
             end
 
-            c.configure :slug
+            configure :slug
 
-            c.configure :id_type do
+            configure :id_type do
               label 'ID Type'
             end
 
@@ -79,7 +88,6 @@ module RailsAdmin
               field :name, &RailsAdmin::Config::Fields::Base::SHARED_READ_ONLY
               field :id_type, &RailsAdmin::Config::Fields::Base::SHARED_READ_ONLY
               field :title, &RailsAdmin::Config::Fields::Base::SHARED_READ_ONLY
-              field :file_store, &RailsAdmin::Config::Fields::Base::SHARED_READ_ONLY
               field :slug
               field :validators, &RailsAdmin::Config::Fields::Base::SHARED_READ_ONLY
               field :schema_data_type, &RailsAdmin::Config::Fields::Base::SHARED_READ_ONLY

@@ -70,5 +70,13 @@ module Cenit
         self[:file_stores] = args
       end
     end
+
+    def file_stores_roles(*args)
+      if args.length == 0
+        options[:file_stores_roles]
+      else
+        self[:file_stores_roles] = args.flatten.collect(&:to_s)
+      end
+    end
   end
 end

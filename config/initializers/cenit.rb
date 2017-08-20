@@ -87,6 +87,9 @@ Cenit.config do
   #Performs notification execution asynchronous
   asynchronous_notification_execution true
 
+  #Performs file store migrations asynchronous
+  asynchronous_file_store_migration true
+
   #oauth2 callback site
   oauth2_callback_site ENV['OAUTH2_CALLBACK_SITE'] || homepage
 
@@ -147,4 +150,6 @@ Cenit.config do
   chart_data_request_interval 3000
 
   file_stores Cenit::FileStore::LocalDb, Cenit::FileStore::AwsS3
+
+  file_stores_roles [:super_admin]
 end
