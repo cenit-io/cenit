@@ -45,7 +45,6 @@ class Ability
 
         can [:simple_cross, :reinstall], Setup::CrossSharedCollection, installed: true
         can :simple_cross, UNCONDITIONAL_ADMIN_CROSSING_MODELS
-        can [:index, :show, :edit], Setup::FileStoreConfig
       else
         root_actions.delete(:remote_shared_collection)
 
@@ -63,8 +62,12 @@ class Ability
 
         can :simple_cross, CROSSING_MODELS_NO_ORIGIN
         can :simple_cross, CROSSING_MODELS_WITH_ORIGIN, :origin.in => [:default, :owner]
+      end
 
-        can [:index, :show], Setup::FileStoreConfig
+      can [:index, :show], Setup::FileStoreConfig
+
+      if user.roles.any? { |role| Cenit.file_stores_roles.include?(role.name) }
+        can :edit, Setup::FileStoreConfig
       end
 
       can root_actions

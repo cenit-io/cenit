@@ -151,5 +151,5 @@ Cenit.config do
 
   file_stores Cenit::FileStore::LocalDb, Cenit::FileStore::AwsS3
 
-  file_stores_roles [:super_admin]
+  file_stores_roles :super_admin
 end
