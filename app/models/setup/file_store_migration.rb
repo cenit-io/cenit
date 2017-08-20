@@ -16,8 +16,7 @@ module Setup
       if (data_type = Setup::FileDataType.where(id: (data_type_id = message[:data_type_id])).first)
         begin
           file_store = message[:file_store].to_s.constantize
-          # TODO Migrate files records
-          sleep(30)
+          data_type.all.each { |file| file_store.save(file, data, {}) }
           config = data_type.file_store_config
           config.file_store = file_store
           config.save(skip_migration: true)

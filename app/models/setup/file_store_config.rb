@@ -20,7 +20,7 @@ module Setup
     end
 
     def start_migration
-      if changed_attributes.key?('file_store')
+      if persisted? && changed_attributes.key?('file_store')
         if Setup::FileStoreMigration.cannot_migrate?(data_type)
           errors.add(:file_store, 'can not be updated')
         else
