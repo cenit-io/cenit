@@ -99,17 +99,18 @@
                           =image_tag "integrations/#{int[:image]}", :alt => "#{int[:alt]}", :class => 'none img-responsive', width: "102", height: "71", style: "background-color: white;"
                         -else
                           =image_tag "integrations/#{int[:image]}", :alt => "#{int[:alt]}", :class => 'none img-responsive', width: "102", height: "71"
-      .row.sections.hidden-xs
-        - integrations1.each_with_index do |int, index|
-          - if index%6 == 0
-            .clearfix.visible-md-block
-            .clearfix.visible-lg-block
-          - if index%4 == 0
-            .clearfix.visible-sm-block
-          .col-md-2.col-sm-3
-            .section
-              .pic
-                =image_tag "integrations/#{int[:image]}", :class => 'img-responsive', :alt =>"#{int[:alt]}", width: "102", height: "71"
+        .row.sections.hidden-xs
+          - integrations1.each_with_index do |int, index|
+            - if index%6 == 0
+              .clearfix.visible-md-block
+              .clearfix.visible-lg-block
+            - if index%4 == 0
+              .clearfix.visible-sm-block
+            .col-md-2.col-sm-3
+              .section
+                .pic
+                  =image_tag "integrations/#{int[:image]}", :class => 'img-responsive', :alt =>"#{int[:alt]}", width: "102", height: "71"
+
 %script
   $(function () {
   get_random_bulb();
