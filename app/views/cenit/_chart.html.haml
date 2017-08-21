@@ -56,8 +56,8 @@
             = select_tag :calculation, options_for_select( calculation_types, @calculation ), class: 'input-sm form-control'
             = select_tag :chart, options_for_select( chart_types, @chart ), class: 'input-sm form-control'
     .new_g.text-center
-%script
-  jQuery(function($) {
-  drawGraphics({host:"#{raw cenit_host}", exec_id:"#{raw execution_id}", graphic_type: "#{raw @chart}", element_id: "#{raw element_id}", request_interval: "#{raw request_interval}"});
-  });
+  %script
+    jQuery(function($) {
+    drawGraphics({host:"#{raw cenit_host}", exec_id:"#{raw execution_id}", graphic_type: "#{raw @chart}", element_id: "#{raw element_id}", request_interval: "#{raw request_interval}"});
+    });
 
