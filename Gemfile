@@ -126,3 +126,5 @@ gem 'rmagick', '2.15.4'
 gem 'pdfkit', '0.8.2'
 gem 'imgkit', '1.6.1'
 gem 'origami', git: 'https://github.com/mobmewireless/origami-pdf.git'
+
+gem 'aws-sdk', '~> 2.10.13'
