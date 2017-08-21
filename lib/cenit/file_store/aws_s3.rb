@@ -15,7 +15,7 @@ module Cenit
         # Returns client connection.
         def client
           @client ||= Aws::S3::Client.new(
-            region: 'us-west-2',
+            region: Cenit.aws_s3_region,
           # access_key_id: ENV['AWS_ACCESS_KEY_ID'],
           # secret_access_key:  ENV['AWS_SECRET_ACCESS_KEY']
           )
@@ -26,7 +26,7 @@ module Cenit
         def bucket
           @resource ||= Aws::S3::Resource.new(client: client)
 
-          _bucket = @resource.bucket("cenit-io-tenant-#{Account.current.id.to_s}")
+          _bucket = @resource.bucket("#{Cenit.aws_s3_bucket_prefix}-tenant-#{Account.current.id.to_s}")
           _bucket.create unless _bucket.exists?
           _bucket
         end

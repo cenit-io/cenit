@@ -152,4 +152,8 @@ Cenit.config do
   file_stores Cenit::FileStore::LocalDb, Cenit::FileStore::AwsS3
 
   file_stores_roles :super_admin
+
+  aws_s3_bucket_prefix ENV['AWS_S3_BUCKET_PREFIX'] || 'cenit'
+
+  aws_s3_region ENV['AWS_S3_REGION'] || 'us-west-2'
 end
