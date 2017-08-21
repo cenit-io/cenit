@@ -153,13 +153,14 @@ module RailsAdmin
               {
                 param: 'channels',
                 label: 'Channels'
-              },
-              'Setup::Observer',
-              {
-                param: 'transforms',
-                label: 'Transforms'
               }
             ]
+          },
+          {
+            param: 'transforms',
+            label: 'Transforms',
+            icon: 'fa fa-refresh',
+            sublinks: %w(Setup::Renderer Setup::Parser Setup::Converter Setup::Updater)
           },
           {
             param: 'gateway',
@@ -458,7 +459,7 @@ RailsAdmin.config do |config|
 
   #Transformations
 
-  config.navigation 'Transformations', icon: 'fa fa-random'
+  config.navigation 'Transforms', icon: 'fa fa-random'
 
   Setup::Translator
 
