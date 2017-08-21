@@ -10,49 +10,81 @@ Origami.module_eval do
 
     def signature_page(page, options={})
       outer_leading = 10
-      optimus_width = 230
-      optimus_height = 20 * 3
+      optimus_width = 180
+      optimus_height = 22 * 3
 
       # Define the attributes of a box where we will put our annotation + mox stamp + description
       box = { x: page.MediaBox[2].to_f - optimus_width - outer_leading, y: outer_leading, width: optimus_width, height: optimus_height }
 
       contents = Origami::ContentStream.new
 
-      # Load stamp and add reference to the page
-      if options[:annot_stamp]
-        stamp_options = {
+      # Load stamp avatar and add reference to the page
+      if options[:annot_stamp][:avatar]
+        stamp_avatar_options = {
           x: box[:x],
-          y: box[:y],
+          y: box[:y] + 2.5,
           width: 60,
           height: 60
         }
 
-        stamp = Origami::Graphics::ImageXObject.from_image_file(options[:annot_stamp].tempfile.path)
-        options[:annot_stamp].tempfile.close!
-        stamp.Width = stamp_options[:width]
-        stamp.Height = stamp_options[:height]
-        stamp.ColorSpace = Origami::Graphics::Color::Space::DEVICE_RGB
-        stamp.BitsPerComponent = 8
-        stamp.Interpolate = true
-        page.add_xobject(:stamp, stamp)
+        stamp_avatar = Origami::Graphics::ImageXObject.from_image_file(options[:annot_stamp][:avatar].tempfile.path)
+        options[:annot_stamp][:avatar].tempfile.close!
+        stamp_avatar.Width = stamp_avatar_options[:width]
+        stamp_avatar.Height = stamp_avatar_options[:height]
+        stamp_avatar.ColorSpace = Origami::Graphics::Color::Space::DEVICE_RGB
+        stamp_avatar.BitsPerComponent = 8
+        stamp_avatar.Interpolate = true
+        page.add_xobject(:stamp_avatar, stamp_avatar)
 
         # Draw the image inside the box area
-        contents.draw_image(:stamp, stamp_options)
+        contents.draw_image(:stamp_avatar, stamp_avatar_options)
       end
 
       # Write the description text inside the box area
+      text = line = ''
+      options[:annot].each_with_index do |value,|
+        value[0] = value[0].capitalize.gsub('_', ' ')
+        value[1] = Date.today.to_formatted_s(:rfc822) if value[1] == 'today'
+        line = "#{value[0]}: #{value[1]}"
+        text += "\n" if text != ''
+        text += line
+      end
       page.add_font(:TimesRoman, Origami::Font::Type1::Standard::TimesRoman.new.pre_build)
-      contents.write("Firmado el: #{Date.today.to_formatted_s(:rfc822)}\nFirmado por: #{options[:annot][:signed_by]}\nCorreo: #{options[:cert][:contact]}", {
-        :x => box[:x] + stamp_options[:width] + 5,
-        :y => box[:y] + 40,
+      write_box = { x: box[:x] + stamp_avatar_options[:width] + 5, y: stamp_avatar_options[:y] + stamp_avatar_options[:height] - 5 }
+      contents.write(text, {
+        :x => write_box[:x],
+        :y => write_box[:y],
         :rendering => Origami::Text::Rendering::FILL,
-        :size => 12,
-        :leading => 15,
+        :size => 8,
+        :leading => 8,
         :font => :TimesRoman,
         :stroke_color => Origami::ContentStream::DEFAULT_STROKE_COLOR
       })
 
+      # Load stamp sign and add reference to the page
+      if options[:annot_stamp][:sign]
+        stamp_sign_options = {
+          :x => write_box[:x],
+          :y => stamp_avatar_options[:y],
+          width: 50,
+          height: 34
+        }
+
+        stamp_sign = Origami::Graphics::ImageXObject.from_image_file(options[:annot_stamp][:sign].tempfile.path)
+        options[:annot_stamp][:sign].tempfile.close!
+        stamp_sign.Width = stamp_sign_options[:width]
+        stamp_sign.Height = stamp_sign_options[:height]
+        stamp_sign.ColorSpace = Origami::Graphics::Color::Space::DEVICE_RGB
+        stamp_sign.BitsPerComponent = 8
+        stamp_sign.Interpolate = true
+        page.add_xobject(:stamp_sign, stamp_sign)
+
+        # Draw the image inside the box area
+        contents.draw_image(:stamp_sign, stamp_sign_options)
+      end
+
       # Set the contentstream with (stamp + text) as the contents of the page
+      contents.draw_rectangle(box[:x], box[:y], box[:width], box[:height])
       page.setContents([page.Contents, contents])
 
       # Create the signature annotaion over the content area box
@@ -132,7 +164,7 @@ Origami.module_eval do
       :method => 'adbe.pkcs7.sha1',
       :annotation => annotation,
       :location => options[:cert][:location],
-      :contact => options[:cert][:contact],
+      :contact => options[:annot][:contact],
       :reason => options[:cert][:reason],
       :issuer => options[:cert][:issuer],
     )
