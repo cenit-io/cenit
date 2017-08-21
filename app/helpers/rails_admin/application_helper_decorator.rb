@@ -236,6 +236,24 @@ module RailsAdmin
       end
     end
 
+    def dashboard_root_group(ref_group = dashboard_group, groups = RailsAdmin::Config.dashboard_groups)
+      if groups && ref_group
+        if (group = groups.detect { |g| g.is_a?(Hash) && g[:param] == ref_group })
+          return group
+        else
+          groups.each do |group|
+            next unless group.is_a?(Hash)
+            return group if dashboard_root_group(ref_group, group[:sublinks])
+          end
+        end
+      end
+      nil
+    end
+
+    def dashboard_group
+      (@model_config && @model_config.dashboard_group_path.first) || @dashboard_group
+    end
+
     DATA_TYPE_ICONS = {
       Setup::FileDataType => 'fa fa-file',
       Setup::JsonDataType => 'fa fa-database',
