@@ -8,7 +8,7 @@ module Cenit
         end
 
         def save(file, data, options)
-          file[:chunkSize] = [[file[:chunkSize], Mongoff::GridFs::FileModel::MINIMUM_CHUNK_SIZE].max, Mongoff::GridFs::FileModel::MAXIMUM_CHUNK_SIZE].min
+          file[:chunkSize] = [[file[:chunkSize] || 0, Mongoff::GridFs::FileModel::MINIMUM_CHUNK_SIZE].max, Mongoff::GridFs::FileModel::MAXIMUM_CHUNK_SIZE].min
           temporary_file = nil
           readable =
             if data.is_a?(String)

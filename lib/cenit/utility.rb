@@ -14,11 +14,11 @@ module Cenit
         @obj.method(sym)
       end
 
-      def method_missing(symbol, *args)
+      def method_missing(symbol, *args, &block)
         if @attributes.has_key?(symbol)
           @attributes[symbol]
         elsif @obj.respond_to?(symbol)
-          @obj.send(symbol)
+          @obj.send(symbol, *args, &block)
         else
           super
         end
