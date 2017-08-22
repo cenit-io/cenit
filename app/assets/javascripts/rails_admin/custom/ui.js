@@ -36,7 +36,7 @@ $(function () {
                 $conten_wraper.css('width', 'calc(100% - 250px)');
             } else {
                 $conten_wraper.css('width', 'calc(100% - 55px)');
-                $("#sidebar-wrapper").trigger("focusout");
+
             }
 
         }
