@@ -49,10 +49,18 @@ module Cenit
       if args.length == 0
         options[:default_file_store] || file_stores.first
       else
-        self[:default_file_store] = default_file_store = args[0]
-        if options.key?(:file_stores)
-          file_stores.delete(default_file_store)
-          file_stores.unshift(default_file_store)
+        default_file_store =
+          begin
+            args[0].to_s.constantize
+          rescue
+            nil
+          end
+        if default_file_store
+          self[:default_file_store] =default_file_store
+          if options.key?(:file_stores)
+            file_stores.delete(default_file_store)
+            file_stores.unshift(default_file_store)
+          end
         end
         default_file_store
       end
