@@ -21,6 +21,8 @@ module Setup
 
     before_save :validate_configuration
 
+    after_save { file_store_config.save }
+
     def validate_configuration
       self.title = self.name if title.blank?
       validators_classes = Hash.new { |h, k| h[k] = [] }
