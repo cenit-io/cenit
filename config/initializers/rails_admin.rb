@@ -138,7 +138,8 @@ module RailsAdmin
               {
                 param: 'objects',
                 label: 'Objects'
-              }]
+              }
+            ]
           },
           {
             param: 'workflows',
