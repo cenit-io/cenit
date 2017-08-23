@@ -449,6 +449,8 @@ RailsAdmin.config do |config|
 
   Setup::Crossing
 
+  Setup::FileStoreMigration
+
   Setup::Storage
 
   #Configuration
@@ -458,6 +460,8 @@ RailsAdmin.config do |config|
   Setup::Namespace
 
   Setup::DataTypeConfig
+
+  Setup::FileStoreConfig
 
   Setup::FlowConfig
 

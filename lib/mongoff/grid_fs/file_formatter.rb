@@ -87,9 +87,13 @@ module Mongoff
         begin
           hash = JSON.parse(data)
         rescue Exception => ex
-          fail "Invalid JSON format: #{ex.message}"
+          begin
+            fail "Invalid JSON format: #{ex.message}"
+          rescue
+            fail 'Invalid JSON format'
+          end
         end
-        hash = {data_type.name.downcase => hash} if options[:include_root]
+        hash = { data_type.name.downcase => hash } if options[:include_root]
         hash
       end
     end
