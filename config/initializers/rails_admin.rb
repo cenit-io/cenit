@@ -160,7 +160,7 @@ module RailsAdmin
           {
             param: 'transforms',
             label: 'Transforms',
-            icon: 'fa fa-refresh',
+            icon: 'fa fa-random',
             sublinks: %w(Setup::Renderer Setup::Parser Setup::Converter Setup::Updater)
           },
           {

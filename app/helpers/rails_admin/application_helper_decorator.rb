@@ -411,7 +411,7 @@ module RailsAdmin
                 <span class='nav-caption'>Dashboard</span>
               </a>
               <a href='#' class='panel-title in' id="sidebar-toggle">
-                <span class='nav-caret'><i class='fa fa-chevron-left'></i></span>
+                <span class='nav-caret'><i class='fa fa-navicon'></i></span>
               </a>
             </div></div>)
         main_labels.insert(0, dashboard_link)
