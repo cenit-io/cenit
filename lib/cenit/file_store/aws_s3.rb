@@ -26,7 +26,8 @@ module Cenit
         def bucket
           @resource ||= Aws::S3::Resource.new(client: client)
 
-          _bucket = @resource.bucket("#{Cenit.aws_s3_bucket_prefix}-tenant-#{Account.current.id.to_s}")
+          tenant_id = Account.current ? Account.current.id.to_s : :default
+          _bucket = @resource.bucket("#{Cenit.aws_s3_bucket_prefix}-tenant-#{tenant_id}")
           _bucket.create unless _bucket.exists?
           _bucket
         end
