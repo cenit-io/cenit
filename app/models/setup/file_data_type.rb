@@ -23,6 +23,8 @@ module Setup
 
     after_save { file_store_config.save }
 
+    after_destroy { file_store_config.destroy }
+
     def validate_configuration
       self.title = self.name if title.blank?
       validators_classes = Hash.new { |h, k| h[k] = [] }
