@@ -28,7 +28,7 @@
       = render "layouts/rails_admin/navigation"
     - dashboard_root =  @action.is_a?(RailsAdmin::Config::Actions::Dashboard) && params[:group].blank?
     - if dashboard_root
-      .container-fluid
+      .container-fluid#home_content
         .row
           = yield
     - else
@@ -41,9 +41,8 @@
           #content-wrapper
             .xyz
               .content{:'data-pjax-container' => true}= render template: 'layouts/rails_admin/pjax'
-      - if (group = params[:group])
-        #subdomain-panel.collapsed
-          = dashboard_primary
+    #subdomain-panel.collapsed
+      = dashboard_primary
     - if TourTrack.show_tour?(request.remote_ip, User.current)
       :javascript
         initializeTour();

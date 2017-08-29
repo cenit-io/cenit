@@ -10,11 +10,11 @@
         =image_tag 'cenit-logo.png'
       %span.cenit-hub
         = "Cenit IO"
-    - if (group = params[:group])
+    - if (group = dashboard_root_group)
       #subdomain-toggle.a.navbar-brand
         %span.subdomain_link
           %span.subdomain
-            = "| #{group.capitalize}"
+            = "| #{group[:label]}"
         %small
           %i.fa.fa-chevron-down{style: 'color: white;'}
   .collapse.navbar-collapse#secondary-navigation

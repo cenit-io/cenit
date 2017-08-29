@@ -11,7 +11,7 @@ module RailsAdmin
             label 'Cenit Type'
             object_label_method { :custom_title }
 
-            visible { Account.current_super_admin? }
+            visible { group_visible && Account.current_super_admin? }
 
             configure :storage_size, :decimal do
               pretty_value do

@@ -8,7 +8,7 @@ module RailsAdmin
           rails_admin do
             object_label_method { :custom_title }
 
-            visible { User.current_super_admin? }
+            visible { group_visible && Account.current_super_admin? }
 
             fields :namespace, :name, :send_flow, :updated_at
           end

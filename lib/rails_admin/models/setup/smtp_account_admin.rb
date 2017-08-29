@@ -9,7 +9,7 @@ module RailsAdmin
             object_label_method { :label }
             label 'SMTP Account'
 
-            visible { User.current_super_admin? }
+            visible { group_visible && Account.current_super_admin? }
 
             configure :from, :string do
               label 'Send email as'

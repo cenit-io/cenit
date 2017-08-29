@@ -28,7 +28,8 @@ $(function () {
         e.preventDefault();
         $("#wrapper").toggleClass("toggled");
         $(this).toggleClass("toggled");
-        var $conten_wraper = $("#content-wrapper");
+        var $conten_wraper = $("#content-wrapper"),
+            $accordion = $('#main-accordion');
         if ($("#sidebar-wrapper").css('width') == "55px") {
 
         } else {
@@ -37,6 +38,8 @@ $(function () {
             } else {
                 $conten_wraper.css('width', 'calc(100% - 55px)');
             }
+            $accordion.find('.panel-default').removeClass('active');
+            $accordion.find('.panel-collapse').removeClass('in')
 
         }
     });
@@ -55,6 +58,13 @@ $(function () {
                 $(this).removeClass('active');
             });
     });
+    $('#main-accordion').find('a[data-toggle="collapse"]').on('click', function () {
+        var $conten_wraper = $("#content-wrapper");
+        if (!$("#wrapper").hasClass("toggled")) {
+            $("#wrapper").addClass("toggled");
+            $conten_wraper.css('width', 'calc(100% - 250px)');
+        }
+    });
 
     $("#nav-drawer-toggle").click(function (e) {
         e.preventDefault();
@@ -66,11 +76,12 @@ $(function () {
 
     $("#sign-in-link").click(function (e) {
         e.preventDefault();
-        $("#sign-drawer").toggleClass('open');
-        // $(this).toggleClass("toggled");
+        openSigInSideBar();
+    });
 
-        $("#nav-drawer").removeClass('open');
-        $("#nav-drawer-toggle").removeClass("toggled");
+    $("#start_free").click(function (e) {
+        e.preventDefault();
+        openSigInSideBar()
     });
 
     $('.user-auth .actions .btn-xs').click(function (e) {
@@ -83,6 +94,13 @@ $(function () {
         $(form).removeClass('active');
         $(sibling).addClass('active');
     });
+    function openSigInSideBar() {
+        $("#sign-drawer").toggleClass('open');
+        // $(this).toggleClass("toggled");
+
+        $("#nav-drawer").removeClass('open');
+        $("#nav-drawer-toggle").removeClass("toggled")
+    }
 
     function getAbsolute() {
         var outer = $("#nav-drawer").height();
@@ -331,7 +349,7 @@ function registerEvents() {
         })
     });
 
-    $('a#get_touch').click(function (e) {
+    $('.contact-modal').click(function (e) {
         e.preventDefault();
         $('div#contact_us').modal({
             keyboard: true,

@@ -4,8 +4,14 @@
   %section#welcome_users
     .container
       .row
+        - page_slug = @page_name.parameterize
+        - flash && flash.each do |key, value|
+          .alert{class: flash_alert_class(key), style: "margin-bottom: #{page_slug=='dashboard' ? '0' : '20px'}"}
+            %a.close{href: '#', :'data-dismiss' => "alert"} &times;
+            = value
+      .row
         .col-md-offset-1.col-md-10
-          .col-lg-6.visible-lg
+          .col-sm-6.hidden-xs
             %h4.text-muted
               - if current_user
                 = "#{current_user.account.name.split('@')[0]} tenant"
@@ -31,7 +37,7 @@
                 - else
                   Be in community
                   = link_to 'Join our Slack', (ENV['SLACK_INVITATION'] || 'https://cenit-slack.herokuapp.com')
-          .col-md-6.col-lg-6.tenants.hidden-xs.text-center
+          .col-sm-6.tenants.hidden-xs.text-center
             %h4.text-muted{style:'margin-top: 10px;'}
               - if current_user
                 = link_to(pluralize(current_user.all_accounts.count, 'tenant'), index_path(model_name: 'account'))
@@ -58,3 +64,7 @@
   - unless current_user
     %section#features
       = render "rails_admin/main/features"
+    %section#prices
+      = render "rails_admin/main/prices"
+    %section#payment_options
+      = render "rails_admin/main/payment_options"

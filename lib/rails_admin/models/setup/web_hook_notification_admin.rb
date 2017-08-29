@@ -6,10 +6,11 @@ module RailsAdmin
 
         included do
           rails_admin do
+            navigation_label 'Workflows'
             object_label_method { :custom_title }
             label 'Web-Hook'
 
-            visible { User.current_super_admin? }
+            visible { group_visible && Account.current_super_admin? }
 
             configure :data_type, :contextual_belongs_to
 

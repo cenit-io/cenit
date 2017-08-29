@@ -5,7 +5,7 @@ module RailsAdmin
         register_instance_option :controller do
           proc do
             @history = @auditing_adapter && @auditing_adapter.latest || []
-            @group_dashboard = params['group'] || nil
+            @dashboard_group = params['group'] || nil
             if @action.statistics?
               #Patch
               @model_configs = {}
@@ -18,7 +18,7 @@ module RailsAdmin
                       (@model_configs[absm.model_name] = absm.config)
                   end
                 else
-                  Setup::Models.collect { |m| RailsAdmin::Config.model(m) }.select(&:visible).collect do |config|
+                  Setup::Models.collect { |m| RailsAdmin::Config.model(m).with(controller: self) }.select(&:visible).collect do |config|
                     absm = config.abstract_model
                     @model_configs[absm.model_name] = config
                     absm
