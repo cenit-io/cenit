@@ -5,6 +5,7 @@ module RailsAdmin
       def dashboard_group_path
         unless @dashboard_group_path
           compute_dashboard_groups(@dashboard_group_path = [])
+          @dashboard_group_path << abstract_model.to_param.to_s.pluralize
         end
         @dashboard_group_path
       end
@@ -23,10 +24,14 @@ module RailsAdmin
         false
       end
 
-      register_instance_option :visible do
+      register_instance_option :group_visible do
         (controller = (bindings && bindings[:controller])).nil? ||
           ((model_config = controller.instance_variable_get(:@model_config)) && model_config.navigation_label == navigation_label) ||
           ((g = controller.params[:group]) && dashboard_group_path.include?(g))
+      end
+
+      register_instance_option :visible do
+        group_visible
       end
 
       def ready

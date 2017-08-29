@@ -150,7 +150,10 @@ module RailsAdmin
                 param: 'notifications',
                 label: 'Notifications'
               },
-              'Setup::Flow',
+              {
+                param: 'flows',
+                label: 'Flows'
+              },
               {
                 param: 'channels',
                 label: 'Channels'
