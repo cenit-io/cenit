@@ -347,7 +347,7 @@ module RailsAdmin
             when Symbol
               render partial: icon.to_s
             when String
-              "<i class='#{icon}'></i>"
+              "<i class='#{icon}' title='#{label}'></i>"
             else
               nil
             end
@@ -390,7 +390,7 @@ module RailsAdmin
             <div class='panel-heading'>
               <a data-toggle='collapse' data-parent='#main-accordion' href='##{name}-collapse' class='panel-title collapse in collapsed'>
                 <span class='nav-caret'><i class='fa fa-caret-down'></i></span>
-                <span class='nav-icon'><i class='#{DATA_TYPE_ICONS[data_type_model]}'></i></span>
+                <span class='nav-icon'><i class='#{DATA_TYPE_ICONS[data_type_model]}' title='#{t("admin.misc.main_navigation.#{name}")}'></i></span>
                 <span class='nav-caption'>#{t("admin.misc.main_navigation.#{name}")}</span>
               </a>
             </div>

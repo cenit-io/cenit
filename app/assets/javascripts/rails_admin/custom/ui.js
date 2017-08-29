@@ -28,7 +28,8 @@ $(function () {
         e.preventDefault();
         $("#wrapper").toggleClass("toggled");
         $(this).toggleClass("toggled");
-        var $conten_wraper = $("#content-wrapper");
+        var $conten_wraper = $("#content-wrapper"),
+            $accordion = $('#main-accordion');
         if ($("#sidebar-wrapper").css('width') == "55px") {
 
         } else {
@@ -36,8 +37,9 @@ $(function () {
                 $conten_wraper.css('width', 'calc(100% - 250px)');
             } else {
                 $conten_wraper.css('width', 'calc(100% - 55px)');
-
             }
+            $accordion.find('.panel-default').removeClass('active');
+            $accordion.find('.panel-collapse').removeClass('in')
 
         }
     });
@@ -55,6 +57,13 @@ $(function () {
             $(parent).siblings().each(function () {
                 $(this).removeClass('active');
             });
+    });
+    $('#main-accordion').find('a[data-toggle="collapse"]').on('click', function () {
+        var $conten_wraper = $("#content-wrapper");
+        if (!$("#wrapper").hasClass("toggled")) {
+            $("#wrapper").addClass("toggled");
+            $conten_wraper.css('width', 'calc(100% - 250px)');
+        }
     });
 
     $("#nav-drawer-toggle").click(function (e) {
