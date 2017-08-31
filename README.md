@@ -24,7 +24,7 @@
 
 **Backenless**
 
-When is created a new Data Type using a JSON Schema, is generated on the fly a complete REST API and a CRUD UI to manage the data. It is useful in different use cases, for example as the backend for a mobile application.
+When it is created a new Data Type using a JSON Schema, is generated on the fly a complete REST API and a CRUD UI to manage the data. It is useful in different use cases, for example as the backend for a mobile application.
 
 [see this video for more details](https://youtu.be/DsFicrI6cDg)
 
@@ -32,10 +32,10 @@ When is created a new Data Type using a JSON Schema, is generated on the fly a c
 
 **Data Pipelines between APIs**
 
-It allows the creation of custom data pipelines for process, storage and data movement between APIs. The flows could be trigger by data events or be scheduled.
+It allows the creation of custom data pipelines to process, storage and move data between APIs. The flows could be trigger by data events or be scheduled.
 
 There are now over 200 pre-built integration collections shared out the box to connect with online internet services,
-fulfilment solutions, accounting, communications, ERP, multi-channels, etc.
+fulfillment solutions, accounting, communications, ERP, multi-channels, etc.
 
 [see this video for more details](https://youtu.be/IOEbTtEv8MQ)
 
@@ -86,9 +86,9 @@ and visit the browser: `localhost:3000`
 
 * 100% Open source integration platform and community friendly.
 * Router Logic for redirecting documents to different endpoints.
-* Powerful design with simple abstractions: Data Types, Webhooks, Flows, Events, Connections, Transforms and Validators.
+* Powerful design with simple abstractions: Data Types, Webhooks, Flows, Events, Connections, Transforms, and Validators.
 * Exchange support for multiple formats XML, JSON, CSV, EDI(X12, EDIFACT, ..), etc.
-* Dynamic load validators: XML Schema, JSON Schema and EDI grammars.
+* Dynamic load validators: XML Schema, JSON Schema, and EDI grammars.
 * Powerful transformation tools to translate and convert several formats into others.
 * Social networking features to share integration settings, we call them *Shared Collections*.
 * Export and import shared collections as a repo on Github and a gem in Rubygems.
@@ -102,11 +102,11 @@ and visit the browser: `localhost:3000`
   + **Data Types** - Include Object Type defined and a Json Schema and File Type
 
 * Connectors
-  + **API Specs** - Allow upload an Open API Spec (Swagger 2.0).
+  + **API Specs** - Allow uploading an Open API Spec (Swagger 2.0).
   + **Connections** - Are representation of endpoints.
   + **Resources** - Element that manages a kind of data and a state and provides processing on this kind
   + **Operations** - An operation is a unit of a REST API that you can call
-  + **Webhooks** - The webhook are the final step in a flow, implemented like a request HTTP to an endpoint, for sent or receive data
+  + **Webhooks** - The webhook is the final step in a flow, implemented like a request HTTP to an endpoint, for sent or receive data
 
 * Compute
   + **Snippets** - Small region of re-usable code
@@ -122,7 +122,7 @@ and visit the browser: `localhost:3000`
 * Workflows
   + **Flows** - Defines how data is processed by the execution of one or more actions.
   + **Data Events** - Creation of new objects or changes in objects will result in events.
-  + **Schedulers** - Are events triggered on a certain moment and can be optionally recurrent.
+  + **Schedulers** - Are events triggered at a certain moment and can be optionally recurrent.
 
 * Security
   + **OAuth Clients**
@@ -170,7 +170,7 @@ $ git clone https://github.com/cenit-io/cenit.git
 $ cd cenit
 ```
 
-Checkout the development branch.
+Move to the development branch.
 
 ```
 $ git checkout -b develop origin/develop
@@ -225,7 +225,7 @@ If RabbitMQ is correctly installed when you run the rails server you should see:
  [*] Waiting for messages. To exit press CTRL+C
 ```
 
-It uses Figaro gem to manage app configuration using ENV. Any of this variable is required to run a local server but maybe you consider some of then to run in production environment
+It uses Figaro gem to manage app configuration using ENV. Any of this variable is required to run a local server but maybe you consider some of them to run in production environment
 
 Then add to `config/application.yml` app configuration:  
 
@@ -402,7 +402,7 @@ rails s -p 3000 -b # The IP address of Ubuntu machine
 
 Once you have Cenit running in local you can start importing collections.
 
-First you need to create one translator that let you import all collections and data. So, go to Transformations/Parser and select New.
+First, you need to create one translator that let you import all collections and data. So, go to Transformations/Parser and select New.
 
 Write a namespace and a name for it. In style select Ruby.
 
@@ -424,7 +424,7 @@ Example: Importing Basic collections
 
 1. Export Basic collection. In Cenit.io search Basic cross collection and select Export option. In translator select JSON Portable Exporter [Shared].
 
-2. Import Basic collection. In your cenit in local, go to Collections/Shared Collections/All and selectImport option. There select the translator you have just created and import the collection. You can see it on Collections/Shared Collections/All.
+2. Import Basic collection. In your local Cenit, go to Collections/Shared Collections/All and select Import option. There select the translator you have just created and import the collection. You can see it on Collections/Shared Collections/All.
 
 
 Contributing
