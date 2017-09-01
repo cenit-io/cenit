@@ -1,7 +1,7 @@
 module Setup
   class CrossSharedCollection
     include CenitUnscoped
-    include CrossOrigin::Document
+    include CrossOrigin::CenitDocument
     include CollectionBehavior
     include Taggable
     include RailsAdmin::Models::Setup::CrossSharedCollectionAdmin

@@ -14,15 +14,14 @@ module RailsAdmin
     def list_entries(model_config = @model_config, auth_scope_key = :index, additional_scope = get_association_scope_from_params, pagination = !(params[:associated_collection] || params[:all] || params[:bulk_ids]))
       scope = rails_admin_list_entries(model_config, auth_scope_key, additional_scope, pagination)
       if (model = model_config.abstract_model.model).is_a?(Class)
-        if model.include?(CrossOrigin::Document)
-          origins = []
-          acc = Account.current
-          model.origins.each do |origin|
-            if (even = (params[origin_param="#{origin}_origin"] || (acc && acc.meta[origin_param])).to_i.even?)
-              origins << origin
+        if model.include?(CrossOrigin::CenitDocument)
+          if (acc = Account.current)
+            CrossOrigin.names.each do |origin|
+              even = params[origin_param = "#{origin}_origin"].to_i.even?
+              acc.meta[origin_param] = (even ? 0 : 1)
             end
-            acc.meta[origin_param] = (even ? 0 : 1) if acc
           end
+          origins = model.origins
           origins << nil if origins.include?(:default)
           scope = scope.any_in(origin: origins)
         end
@@ -54,7 +53,7 @@ module RailsAdmin
       return unless target_params.present?
       #Patch
       fields = model_config.send(action).with(controller: self, view: view_context, object: @object).fields.select do |field|
-        !(field.properties.is_a?(RailsAdmin::Adapters::Mongoid::Property)  && field.properties.property.is_a?(Mongoid::Fields::ForeignKey))
+        !(field.properties.is_a?(RailsAdmin::Adapters::Mongoid::Property) && field.properties.property.is_a?(Mongoid::Fields::ForeignKey))
       end
       allowed_methods = fields.collect(&:allowed_methods).flatten.uniq.collect(&:to_s) << 'id' << '_destroy'
       fields.each { |f| f.parse_input(target_params) }
