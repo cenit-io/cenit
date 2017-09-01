@@ -376,7 +376,7 @@ module RailsAdmin
         i += 1
         stack_id = "#{html_id}-sub#{i}"
         origins =
-          if (model=node.abstract_model.model).is_a?(Class) && model < CrossOrigin::Document
+          if (model=node.abstract_model.model).is_a?(Class) && model < CrossOrigin::CenitDocument
             model.origins.join(',')
           else
             ''
@@ -686,7 +686,7 @@ module RailsAdmin
               end
               rc += '</td>'
               origins =
-                if (model=node.abstract_model.model).is_a?(Class) && model < CrossOrigin::Document
+                if (model=node.abstract_model.model).is_a?(Class) && model < CrossOrigin::CenitDocument
                   model.origins.join(',')
                 else
                   ''
