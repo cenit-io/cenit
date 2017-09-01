@@ -53,7 +53,7 @@ GIT
 
 GIT
   remote: https://github.com/macarci/cross_origin.git
-  revision: d8a9597ad75f159b91e10ffa9655ee6ac06a771b
+  revision: 59ed70143716896e9ad65ab61ad0024eb63e3e9b
   specs:
     cross_origin (0.0.3)
       mongoid (>= 5.0.1)
