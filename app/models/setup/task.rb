@@ -2,7 +2,7 @@ module Setup
   class Task
     include CenitScoped
     include ClassHierarchyAware
-    include CrossOrigin::Document
+    include CrossOrigin::CenitDocument
     include RailsAdmin::Models::Setup::TaskAdmin
 
     origins :default, -> { Account.current_super_admin? ? :admin : nil }
