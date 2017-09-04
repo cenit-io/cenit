@@ -62,6 +62,8 @@ Capataz.config do
 
   allow_for ActionView::Base, [:escape_javascript, :j]
 
+  allow_on Setup::Task, [:current]
+
   allow_on Setup::Task::RUNNING_STATUS, [:include?]
 
   allow_on Setup::Task::NOT_RUNNING_STATUS, [:include?]
@@ -131,7 +133,7 @@ Capataz.config do
         "#{action}_from#{format}"
       end
     end + [:create_from]
-  end + [:name, :slug, :to_json, :share_json, :to_edi, :to_hash, :to_xml, :to_params, :records_model, :namespace, :id, :ns_slug] + Setup::DataType::RECORDS_MODEL_METHODS).flatten
+  end + [:name, :slug, :to_json, :share_json, :to_edi, :to_hash, :to_xml, :to_params, :records_model, :namespace, :id, :ns_slug, :nil?] + Setup::DataType::RECORDS_MODEL_METHODS).flatten
 
   deny_for [Setup::DynamicRecord, Mongoff::Record], ->(instance, method) do
     return false if [:id, :to_json, :share_json, :to_edi, :to_hash, :to_xml, :to_xml_element, :to_params, :from_json, :from_xml, :from_edi, :[], :[]=, :save, :all, :where, :orm_model, :nil?, :==, :errors, :destroy, :new_record?].include?(method)
