@@ -2,7 +2,7 @@ module Setup
   class CenitDataType < DataType
     include RailsAdmin::Models::Setup::CenitDataTypeAdmin
 
-    origins :shared, :cenit, -> { (Thread.current[:cenit_initializing] || Cenit::MultiTenancy.tenant_model.current_super_admin?) ? :tmp : nil }
+    origins :cenit, -> { (Thread.current[:cenit_initializing] || Cenit::MultiTenancy.tenant_model.current_super_admin?) ? :tmp : nil }
 
     default_origin :tmp
 
