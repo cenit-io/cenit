@@ -5,7 +5,8 @@ module RailsAdmin
         register_instance_option :controller do
           proc do
             @history = @auditing_adapter && @auditing_adapter.latest || []
-            @dashboard_group = params['group'] || nil
+            @dashboard_group_ref = params['group'] || nil
+            @dashboard_group = dashboard_group(@dashboard_group_ref)
             if @action.statistics?
               #Patch
               @model_configs = {}
