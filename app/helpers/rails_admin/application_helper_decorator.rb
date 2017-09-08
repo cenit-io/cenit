@@ -402,12 +402,13 @@ module RailsAdmin
         link_link = link_to url_for(action: action,
                                     controller: 'rails_admin/main',
                                     data_type_model: data_type_model.to_s) do
-          %{<span class="nav-caption">#{t("admin.misc.link_#{name}")}</span>
-              <span class="nav-icon" style="margin-left: 30px;"/>
+          %{<span class="nav-icon plus"/>
                 <i class="fa fa-plus"></i>
-             </span>}.html_safe
+             </span>
+              <span class="nav-caption">#{t("admin.misc.link_#{name}")}</span>
+              }.html_safe
         end
-        links = "<li> #{link_link}</li>#{links.collect { |link| data_type_model == Setup::CrossSharedCollection ? link : "<div class='panel panel-default'> #{link} </div>" }.join }"
+        links = "<li class='no-childrens'> #{link_link}</li>#{links.collect { |link| data_type_model == Setup::CrossSharedCollection ? link : "<div class='panel panel-default'> #{link} </div>" }.join }"
         unless @dashboard_group_ref == non_setup_data_types_groups[data_type_model]
           links = %(<div id='main-#{name}' class='panel panel-default'>
             <div class='panel-heading'>
@@ -429,7 +430,7 @@ module RailsAdmin
            <div id="main-dashboard-#{@dashboard_group_ref}" class="panel panel-default">
             <div class='panel-heading dashboard-heading'>
               <a href='/#{@dashboard_group_ref}/dashboard' class='panel-title in'>
-                <span class='nav-icon'><i class='fa fa-cubes'></i></span>
+                <span class='nav-icon'><i class='fa fa-tachometer'></i></span>
                 <span class='nav-caption'>Dashboard</span>
               </a>
               <a href='#' class='panel-title in' id="sidebar-toggle">
@@ -460,7 +461,7 @@ module RailsAdmin
             <div class='panel-heading'>
               <a data-toggle='collapse' data-parent='##{html_id}' href='##{stack_id}' class='panel-title collapse in collapsed'>
                 <span class='nav-caret'><i class='fa fa-caret-down'></i></span>
-                #{(options[:just_li] && (icon = node.navigation_icon)) ? "<i class='#{icon}'></i>" : ''}
+                #{(options[:just_li] && (icon = node.navigation_icon)) ? "<span class='nav-icon'><i class='#{icon}'></i></span>" : '<span class="nav-icon"><i class=" fa fa-folder-open-o" title="'+capitalize_first_letter(node.label_navigation)+'"></i></span>'}
                 <span class='nav-caption'>#{capitalize_first_letter node.label_navigation}</span>
               </a>
             </div>)
@@ -473,14 +474,15 @@ module RailsAdmin
               data[:model] = model_path
               data[:origins] = origins
             end
-            content_tag :li, data: data do
+            content_tag :li, data: data, class: 'no-childrens' do
               link_to url, class: 'pjax' do
                 rc = ''
                 rc += "<span class='nav-amount'></span>"
-                rc += "<span class='nav-caption'>#{capitalize_first_letter node.label_navigation}</span>"
-                if options[:just_li] && (icon = node.navigation_icon)
-                  rc += "<i class='#{icon}'></i>"
+                if options[:just_li] && (icon = node.navigation_icon || 'fa fa-folder-o')
+                  rc += "<span class='with_icon #{icon}'></span>"
                 end
+                rc += "<span class='nav-caption'>#{capitalize_first_letter node.label_navigation}</span>"
+
                 rc.html_safe
               end
             end
@@ -589,10 +591,12 @@ module RailsAdmin
             else
               ''
             end
+          icon = node.navigation_icon || 'fa fa-folder-open-o'
           html = %(<div class='panel panel-default'>
             <div class='panel-heading'>
-              <a data-toggle='collapse' data-parent='#none' href='#renderer-collapse' class='panel-title collapse in collapsed'>
+              <a data-toggle='collapse' data-parent='#none1' href='#renderer-collapse' class='panel-title collapse in collapsed'>
                 <span class='nav-caret'><i class='fa fa-caret-down'></i></span>
+                <span class="nav-icon"><i class=" #{icon}" title="#{node.label_plural}"></i></span>
                 <span class='nav-caption'>#{node.label_plural}</span>
               </a>
             </div>
