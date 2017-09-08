@@ -2529,3 +2529,43 @@ li.no-childrens {
 .nav-icon.plus {
   padding: 0 15px;
 }
+
+.popover.tour-anonymous {
+  border: 1px solid #428bca;
+  &.top > .arrow {
+    border-top-color: #428bca;
+    &:after {
+      border-top-color: white;
+    }
+  }
+  &.right > .arrow {
+    border-right-color: #428bca;
+    &:after {
+      border-right-color: white;
+    }
+  }
+  &.bottom > .arrow {
+    border-bottom-color: #428bca;
+    &:after {
+      border-bottom-color: white;
+    }
+  }
+
+  &.left > .arrow {
+    border-left-color: #428bca;
+    &:after {
+      border-left-color: white;
+    }
+  }
+
+}
+
+.popover-title, .popover {
+  background-color: #ffffff;
+  color: black;
+}
+
+.popover-title {
+  background: #f9f9f9;
+  color: #428bca;
+}
