@@ -45,9 +45,11 @@ $(function () {
     });
 
     $("#subdomain-toggle").click(function (e) {
+        e.stopPropagation();
         e.preventDefault();
         $("#subdomain-panel").toggleClass("collapsed");
         $(this).toggleClass("toggled");
+        return undefined;
     });
 
     $('#main-accordion').find('.panel-heading a.panel-title').click(function () {
@@ -150,13 +152,19 @@ function initializeTour() {
                 {
                     title: "Welcome to cenit.io!",
                     content: "Thanks for visiting us! Click 'Next' to start the tour.",
-                    orphan: true
+                    orphan: true,
+                    onNext: function () {
+                        var $subdomain_panel = $('#subdomain-panel');
+                        if ($subdomain_panel.hasClass('collapsed')) {
+
+                        }
+                    }
                 },
                 {
                     title: "Browse our Collections",
                     content: "Install any available collection in the blink of an eye, and create your own",
-                    element: "#main-collections",
-                    placement: "right",
+                    element: "#g_integrations",
+                    placement: "up",
                     onShow: function () {
                         that = this.element;
                         toggle_collapse(that);
@@ -169,7 +177,7 @@ function initializeTour() {
                 {
                     title: "Define data",
                     content: "Create your schemas and data types",
-                    element: "#main-definitions",
+                    element: "#l_definitions",
                     placement: "right",
                     onShow: function () {
                         that = this.element;
@@ -183,7 +191,7 @@ function initializeTour() {
                 {
                     title: "Store data",
                     content: "Store your objects",
-                    element: "#main-json_data_type",
+                    element: "#l_objects",
                     placement: "right",
                     onShow: function () {
                         that = this.element;
@@ -197,8 +205,8 @@ function initializeTour() {
                 {
                     title: "Setup your endpoints",
                     content: "Register connections and webhooks",
-                    element: "#main-connectors",
-                    placement: "right",
+                    element: "#l_connectors",
+                    placement: "left",
                     onShow: function () {
                         that = this.element;
                         toggle_collapse(that);
@@ -211,7 +219,7 @@ function initializeTour() {
                 {
                     title: "Transform and dispatch",
                     content: "Send your data away or pull it from a remote endpoint or simply translate it from one data type to another",
-                    element: "#main-transformations",
+                    element: "#g_transforms",
                     placement: "right",
                     onShow: function () {
                         that = this.element;
@@ -226,22 +234,8 @@ function initializeTour() {
                 {
                     title: "Safety first",
                     content: "Control who may access your stuff, and define how you access other's",
-                    element: "#main-security",
-                    placement: "right",
-                    onShow: function () {
-                        that = this.element;
-                        toggle_collapse(that);
-                    },
-                    onHide: function () {
-                        that = this.element;
-                        toggle_collapse(that);
-                    }
-                },
-                {
-                    title: "Monitoring",
-                    content: "Consult the status of every action",
-                    element: "#main-monitors",
-                    placement: "right",
+                    element: "#l_security",
+                    placement: "left",
                     onShow: function () {
                         that = this.element;
                         toggle_collapse(that);

@@ -683,7 +683,7 @@ module RailsAdmin
         models = g[:sublinks]
         unless models.empty?
           html += '<ul>'
-          html+= '<li><a href="/' + g[:param] +'/dashboard"><i class="'+ g[:icon] +'"></i><span>'+ g[:label] +'</span></a></li>'
+          html+= '<li><a id="'+ "g_#{g[:label].underscore.gsub(' ','_')}" +'" href="/' + g[:param] +'/dashboard"><i class="'+ g[:icon] +'"></i><span>'+ g[:label] +'</span></a></li>'
           models.each do |m|
             if m.is_a?(Hash)
               if (link = m[:link])
@@ -696,10 +696,10 @@ module RailsAdmin
               else
                 model_url = "/#{m[:param]}/dashboard"
               end
-              html+= '<li><a href="'+ model_url +'" target="'+ open_in_new_tab(g, m[:param])+'"><span>'+m[:label]+'</span></a></li>'
+              html+= '<li><a id="'+ "l_#{m[:label].underscore.gsub(' ','_')}" +'" href="'+ model_url +'" target="'+ open_in_new_tab(g, m[:param])+'"><span>'+m[:label]+'</span></a></li>'
             elsif (abstract_model = (model = RailsAdmin::Config.model(m)).abstract_model)
               model_url = url_for(action: :index, controller: 'rails_admin/main', model_name: abstract_model.to_param)
-              html+= '<li><a href="'+ model_url +'" target="'+ open_in_new_tab(g, m)+'"><span>'+model.label_plural+'</span></a></li>'
+              html+= '<li><a id="'+"l_#{model.label_plural.underscore.gsub(' ','_')}"+'"href="'+ model_url +'" target="'+ open_in_new_tab(g, m)+'"><span>'+model.label_plural+'</span></a></li>'
             end
           end
           html += '</ul>'
