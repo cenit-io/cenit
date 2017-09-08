@@ -2513,9 +2513,16 @@ li.no-childrens {
       .panel-heading {
         .nav-icon {
           display: none !important;
+
         }
       }
     }
+  }
+}
+
+.panel-collapse {
+  .nav-icon.plus {
+    padding: 0 15px 0 0;
   }
 }
 

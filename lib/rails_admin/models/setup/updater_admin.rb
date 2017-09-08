@@ -9,6 +9,7 @@ module RailsAdmin
             weight 414
             configure :code, :code
             navigation_label 'Transforms'
+            navigation_icon 'fa fa-refresh'
 
             wizard_steps do
               steps =
