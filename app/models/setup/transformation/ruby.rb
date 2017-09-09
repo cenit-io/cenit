@@ -5,7 +5,7 @@ module Setup
       class << self
 
         def run(options = {})
-          Cenit::RubyInterpreter.run(options[:code], options, self_linker: options[:translator])
+          Cenit::BundlerInterpreter.run(options[:code], options, self_linker: options[:translator])
         end
 
       end

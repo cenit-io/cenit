@@ -53,6 +53,9 @@ module Cenit
 
     class << self
       def run(algorithm, *args)
+        if algorithm.is_a?(String)
+          algorithm = Setup::Algorithm.new(name: "alg#{algorithm.object_id}", code: algorithm, language: :ruby)
+        end
         new.__run__(algorithm, *args)
       end
     end
@@ -111,7 +114,9 @@ module Cenit
         params_initializer + Capataz.rewrite(algorithm.code,
                                              locals: locals,
                                              self_linker: algorithm.self_linker || algorithm,
-                                             self_send_prefixer: self)
+                                             self_send_prefixer: self,
+                                             iteration_counter_prefix: "@alg#{algorithm.id}_it",
+                                             invoke_counter_prefix: "@alg#{algorithm.id}_invk")
       end
 
       def bundled_javascript_code(algorithm)
