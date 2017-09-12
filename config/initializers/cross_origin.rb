@@ -36,7 +36,7 @@ module CrossOrigin
           acc = ::Account.current
           super.each do |origin|
             origin_param="#{origin}_origin"
-            origins << origin if (acc && acc.meta[origin_param]).to_i.even?
+            origins << origin if (acc && (acc.meta || {})[origin_param]).to_i.even?
           end
           origins
         else
