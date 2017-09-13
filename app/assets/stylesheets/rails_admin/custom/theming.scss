@@ -1707,6 +1707,15 @@ div#subdomain-panel {
   padding: 15px;
   background: #f5f5f5;
   box-shadow: 0px 1px 4px 0px rgba(0, 0, 0, 0.45), inset 0px 0px 1px 1px white;
+  height: 100px;
+  width: 100%;
+  img {
+    margin: auto;
+    max-height: 100%;
+  }
+  [class$='bulb'] {
+    height: 100%;
+  }
 }
 
 #main-dashboard {

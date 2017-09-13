@@ -59,8 +59,9 @@
           .text-center
             %h3#services_title= 'Services'
           = dashboard_primary
-  %section#public_apis
-    = render "rails_admin/main/public_apis"
+  - if (ENV['public_apis'] || false)
+    %section#public_apis
+      = render "rails_admin/main/public_apis"
   - unless current_user
     %section#features
       = render "rails_admin/main/features"

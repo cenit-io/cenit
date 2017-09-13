@@ -750,6 +750,33 @@ module RailsAdmin
       html_.html_safe
     end
 
+    def public_apis
+      limit = 18
+      rand_ids = Setup::CrossSharedCollection.where(:image.exists => true, installed: true).pluck(:_id).shuffle[0...limit]
+      Setup::CrossSharedCollection.where(:_id.in => rand_ids)
+    end
+
+    def api_basic_data c
+      has_image = c.image.present?
+      { image: has_image ? c.image.versions[:thumb] : 'missing.png',
+        alt: c.name }
+    end
+
+    def public_apis_collection_view(c)
+      has_image = c.image.present?
+      css_class = 'img-responsive '+(has_image ? '' : 'no-image')
+      image = image_tag has_image ? c.image.versions[:thumb] : 'missing.png', :class => css_class, :alt => c.name, width: '80%', max_height: '80%', margin: '12px'
+      url_show = rails_admin.show_path(model_name: c.model_name.to_s.underscore.gsub('/', '~'), id: c.name)
+      '<div class="col-md-2 col-sm-3">
+        <a href="'+url_show+'" title="'+ c.name+'">
+          <div class="section">
+            <div class="pic">'+image+'
+            </div>
+          </div>
+        </a>
+      </div>'.html_safe
+    end
+
     def collections_at_dashboard
       html = ''
       limit = 11
