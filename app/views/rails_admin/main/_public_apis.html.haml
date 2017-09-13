@@ -18,10 +18,7 @@
             =text_field_tag "query", @name, placeholder: "Search 900+ APPs", class: "form-control"
           .try-integrations
             ='Try'
-            -sample = integration_sample(3)
-            =link_to(sample[0], index_path(model_name: "cross_shared_collection", query: sample[0]))+','
-            =link_to(sample[1], index_path(model_name: "cross_shared_collection", query: sample[1]))+' or'
-            =link_to(sample[2], index_path(model_name: "cross_shared_collection", query: sample[2]))
+            = integration_sample
       -if current_user
         .blocks.clearfix{ id: 'collections' }
           = collections_at_dashboard
