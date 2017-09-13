@@ -590,10 +590,17 @@ function handlerInit() {
 
     $('#main-accordion .nav-stacked').on('shown.bs.collapse', updateModelCountOneByOne);
 
+    updateModelCountOneByOneNoChild();
+
     if ($('.dashboard table').length > 0)
         updateDashboardCount();
 }
 // Side Menu Bar Update Model Counts Functions
+
+function updateModelCountOneByOneNoChild() {
+    $cenit_submenu_children = $('#main-accordion >li.no-childrens');
+    requestModelCount();
+}
 
 function updateModelCountOneByOne(e) {
     e.stopPropagation();
