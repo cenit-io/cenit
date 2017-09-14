@@ -3,6 +3,7 @@ module Setup
     include CenitScoped
     include ClassHierarchyAware
     include CrossOrigin::CenitDocument
+    include FieldsInspection
     include RailsAdmin::Models::Setup::TaskAdmin
 
     origins :default, -> { Account.current_super_admin? ? :admin : nil }
@@ -45,6 +46,7 @@ module Setup
 
     has_and_belongs_to_many :joining_tasks, class_name: Setup::Task.to_s, inverse_of: nil
 
+    inspect_fields :progress, :description, :state
 
     validates_inclusion_of :status, in: ->(t) { t.status_enum }
     validates_numericality_of :progress, greater_than_or_equal_to: 0, less_than_or_equal_to: 100
@@ -60,6 +62,11 @@ module Setup
     end
 
     before_destroy { NON_ACTIVE_STATUS.include?(status) && (scheduler.nil? || scheduler.deactivated?) }
+
+    def save(options = {})
+      options[:inspect_fields] = thread_token.present? && Thread.current[:task_token] == thread_token.token
+      super
+    end
 
     def _type_enum
       classes = Setup::Task.class_hierarchy
@@ -110,7 +117,6 @@ module Setup
       else
         thread_token.destroy if thread_token.present?
         self.thread_token = ThreadToken.create
-        Thread.current[:task_token] = thread_token.token
         self.retries += 1 if status == :retrying || status == :failed
         self.current_execution = Setup::Execution.find(options[:execution_id])
         time = Time.now
@@ -122,6 +128,7 @@ module Setup
           self.status = :running
           notify(type: :info, message: "Task ##{id} started at #{time}")
         end
+        Thread.current[:task_token] = thread_token.token
         current_execution.start(time: time)
         run(message)
         time = Time.now
