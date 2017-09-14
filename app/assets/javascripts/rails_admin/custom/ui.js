@@ -414,12 +414,9 @@ function registerEvents() {
         }
     });
 
-    $("#subdomain-toggle").click(function (e) {
-        e.stopPropagation();
-        e.preventDefault();
+    $("#subdomain-toggle").off('click').on('click', function (e) {
         $("#subdomain-panel").toggleClass("collapsed");
-        $(this).toggleClass("toggled");
-        return undefined;
+        $(this).toggleClass("toggled");;
     });
 
     $('#main-accordion').find('.panel-heading a.panel-title').click(function () {

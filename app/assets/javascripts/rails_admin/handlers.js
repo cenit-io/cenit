@@ -617,9 +617,11 @@ function updateModelCountOneByOne(e) {
 function requestModelCount() {
     var array_of_children = $cenit_submenu_children.toArray();
     if (array_of_children.length > 0) {
-        var $this = $(array_of_children.shift());
+        var $this = $(array_of_children.shift()), model = $this.data('model');
         $cenit_submenu_children = $(array_of_children);
-        getModelCountOneByOne($this, $this.data('model'), $this.data('origins'), $this.data('ext'));
+        if (model != undefined) {
+            getModelCountOneByOne($this, $this.data('model'), $this.data('origins'), $this.data('ext'));
+        }
     }
 }
 function getModelCountOneByOne($element, model_name, origins, ext) {
