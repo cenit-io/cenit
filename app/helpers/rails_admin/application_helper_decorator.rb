@@ -461,7 +461,7 @@ module RailsAdmin
             <div class='panel-heading'>
               <a data-toggle='collapse' data-parent='##{html_id}' href='##{stack_id}' class='panel-title collapse in collapsed'>
                 <span class='nav-caret'><i class='fa fa-caret-down'></i></span>
-                #{(options[:just_li] && (icon = node.navigation_icon)) ? "<span class='nav-icon'><i class='#{icon}'></i></span>" : '<span class="nav-icon"><i class=" fa fa-folder-open-o" title="'+capitalize_first_letter(node.label_navigation)+'"></i></span>'}
+                <span class='nav-icon'><i class='#{node.navigation_icon || 'fa fa-folder-open-o'}' title="#{capitalize_first_letter(node.label_navigation)}"></i></span>
                 <span class='nav-caption'>#{capitalize_first_letter node.label_navigation}</span>
               </a>
             </div>)
