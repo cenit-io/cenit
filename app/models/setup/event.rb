@@ -3,7 +3,7 @@ module Setup
     include CenitScoped
     include NamespaceNamed
     include ClassHierarchyAware
-    include CrossOrigin::Document
+    include CrossOrigin::CenitDocument
     include RailsAdmin::Models::Setup::EventAdmin
 
     origins :default, -> { Account.current_super_admin? ? :admin : nil }

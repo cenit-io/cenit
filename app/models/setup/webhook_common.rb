@@ -169,11 +169,11 @@ module Setup
                 attachment = nil
               end
               notification_model.create_with(message: JSON.pretty_generate(method: method,
-                                                                                  url: url,
-                                                                                  headers: headers),
-                                                    type: :notice,
-                                                    attachment: attachment,
-                                                    skip_notification_level: options[:skip_notification_level] || options[:notify_request])
+                                                                           url: url,
+                                                                           headers: headers),
+                                             type: :notice,
+                                             attachment: attachment,
+                                             skip_notification_level: options[:skip_notification_level] || options[:notify_request])
 
               headers.each { |key, value| headers[key] = value.to_s }
               msg = { headers: headers }
@@ -210,9 +210,9 @@ module Setup
               last_response = http_response.body
 
               notification_model.create_with(message: { response_code: http_response.code }.to_json,
-                                                    type: (200...299).include?(http_response.code) ? :notice : :error,
-                                                    attachment: attachment_from(http_response),
-                                                    skip_notification_level: options[:skip_notification_level] || options[:notify_response])
+                                             type: (200...299).include?(http_response.code) ? :notice : :error,
+                                             attachment: attachment_from(http_response),
+                                             skip_notification_level: options[:skip_notification_level] || options[:notify_response])
 
               http_response = Setup::Webhook::Response.new(false, http_response) unless http_response.is_a?(Setup::Webhook::Response)
               if block
