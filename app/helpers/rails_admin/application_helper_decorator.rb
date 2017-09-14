@@ -236,7 +236,7 @@ module RailsAdmin
       end
     end
 
-    def dashboard_root_group(ref_group = dashboard_group, groups = RailsAdmin::Config.dashboard_groups)
+    def dashboard_root_group(ref_group = dashboard_group_ref, groups = RailsAdmin::Config.dashboard_groups)
       if groups && ref_group
         if (group = groups.detect { |g| g.is_a?(Hash) && g[:param] == ref_group })
           return group
@@ -250,8 +250,22 @@ module RailsAdmin
       nil
     end
 
-    def dashboard_group
-      (@model_config && @model_config.dashboard_group_path.first) || @dashboard_group
+    def dashboard_group(ref_group = dashboard_group_ref, groups = RailsAdmin::Config.dashboard_groups)
+      if groups && ref_group
+        if (group = groups.detect { |g| g.is_a?(Hash) && g[:param] == ref_group })
+          return group
+        else
+          groups.each do |group|
+            next unless group.is_a?(Hash)
+            return dashboard_root_group(ref_group, group[:sublinks])
+          end
+        end
+      end
+      nil
+    end
+
+    def dashboard_group_ref
+      (@model_config && @model_config.dashboard_group_path.first) || @dashboard_group_ref
     end
 
     DATA_TYPE_ICONS = {
@@ -260,19 +274,35 @@ module RailsAdmin
       Setup::CrossSharedCollection => 'fa fa-shopping-cart'
     }
 
+    def show_mongoff_navigation?
+      show_objects_navigation? || show_files_navigation?
+    end
+
     def show_objects_navigation?
-      %w(data objects).include?(@dashboard_group) || (!show_ecommerce_navigation? &&
+      %w(data objects).include?(@dashboard_group_ref) || (!show_ecommerce_navigation? &&
         @abstract_model && @abstract_model.model.try(:data_type).is_a?(Setup::JsonDataType))
     end
 
     def show_files_navigation?
-      %w(data files).include?(@dashboard_group) || (@abstract_model && @abstract_model.model.try(:data_type).is_a?(Setup::FileDataType))
+      %w(data files).include?(@dashboard_group_ref) || (@abstract_model && @abstract_model.model.try(:data_type).is_a?(Setup::FileDataType))
     end
 
     def show_ecommerce_navigation?
-      %w(ecommerce).include?(@dashboard_group) || ((dt = @abstract_model && @abstract_model.model.try(:data_type)) &&
+      %w(ecommerce).include?(@dashboard_group_ref) || ((dt = @abstract_model && @abstract_model.model.try(:data_type)) &&
         (names = Cenit.ecommerce_data_types[dt.namespace.to_sym]) &&
         names.include?(dt.name))
+    end
+
+    def ecommerce_data_types
+      data_types = []
+      Cenit.ecommerce_data_types.each do |ns, names|
+        names.each do |name|
+          if (data_type = Setup::DataType.where(namespace: ns, name: name).first)
+            data_types << data_type
+          end
+        end
+      end
+      data_types
     end
 
     def main_navigation
@@ -294,17 +324,14 @@ module RailsAdmin
       definitions_index = nil
       main_labels = []
       non_setup_data_type_models = []
+      non_setup_data_types_groups = {
+        Setup::CrossSharedCollection => 'ecommerce',
+        Setup::JsonDataType => 'objects',
+        Setup::FileDataType => 'files'
+      }
       if show_ecommerce_navigation?
         non_setup_data_type_models << Setup::CrossSharedCollection
-        ecommerce_models = []
-        Cenit.ecommerce_data_types.each do |ns, names|
-          names.each do |name|
-            if (data_type = Setup::DataType.where(namespace: ns, name: name).first)
-              ecommerce_models << data_type.records_model
-            end
-          end
-        end
-        ecommerce_models = ecommerce_models.collect { |model| RailsAdmin.config(model) }
+        ecommerce_models = ecommerce_data_types.collect(&:records_model).collect { |model| RailsAdmin.config(model) }
         nav_groups['eCommerce'] = ecommerce_models
       end
       if show_files_navigation?
@@ -332,16 +359,18 @@ module RailsAdmin
             mongoff_start_index ||= i
           end
 
-          nodes = nodes.select { |n| n.parent.nil? || !n.parent.to_s.in?(node_model_names) } if ecoindex > 0
-          li_stack = navigation(nodes_stack, nodes, collapse_id, just_li: ecoindex == 0)
-
           label = navigation_label || t('admin.misc.navigation')
           if label == 'Definitions'
             definitions_index = main_labels.length
           end
+
+          just_li = ecoindex == 0 || (@dashboard_group && @dashboard_group[:label] == label)
+          nodes = nodes.select { |n| n.parent.nil? || !n.parent.to_s.in?(node_model_names) } if ecoindex > 0
+          li_stack = navigation(nodes_stack, nodes, collapse_id, just_li: just_li)
+
           html_id = "main-#{label.underscore.gsub(' ', '-')}"
 
-          icon = mongoff_start_index.nil? && (((opts = RailsAdmin::Config.navigation_options[label]) && opts[:icon]) || 'fa fa-cube')
+          icon = (mongoff_start_index.nil? || non_setup_data_types_groups.value?(@dashboard_group_ref)) && (((opts = RailsAdmin::Config.navigation_options[label]) && opts[:icon]) || 'fa fa-cube')
           icon =
             case icon
             when Symbol
@@ -353,7 +382,7 @@ module RailsAdmin
             end
 
           if li_stack.present?
-            unless ecoindex == 0
+            unless just_li
               li_stack = %(<div class='panel-heading'>
               <a data-toggle='collapse' data-parent='##{mongoff_start_index ? "#{name}-collapse" : 'main-accordion'}' href='##{collapse_id}' class='panel-title collapse in collapsed'>
                 <span class='nav-caret'><i class='fa fa-caret-down'></i></span>) +
@@ -381,12 +410,15 @@ module RailsAdmin
         link_link = link_to url_for(action: action,
                                     controller: 'rails_admin/main',
                                     data_type_model: data_type_model.to_s) do
-          %{<span class="nav-caption">#{t("admin.misc.link_#{name}")}</span>
-              <span class="nav-icon" style="margin-left: 30px;"/>
+          %{<span class="nav-icon plus"/>
                 <i class="fa fa-plus"></i>
-             </span>}.html_safe
+             </span>
+              <span class="nav-caption">#{t("admin.misc.link_#{name}")}</span>
+              }.html_safe
         end
-        main_labels.insert definitions_index + i, %(<div id='main-#{name}' class='panel panel-default'>
+        links = "<li class='no-childrens'> #{link_link}</li>#{links.collect { |link| data_type_model == Setup::CrossSharedCollection ? link : "<div class='panel panel-default'> #{link} </div>" }.join }"
+        unless @dashboard_group_ref == non_setup_data_types_groups[data_type_model]
+          links = %(<div id='main-#{name}' class='panel panel-default'>
             <div class='panel-heading'>
               <a data-toggle='collapse' data-parent='#main-accordion' href='##{name}-collapse' class='panel-title collapse in collapsed'>
                 <span class='nav-caret'><i class='fa fa-caret-down'></i></span>
@@ -395,19 +427,18 @@ module RailsAdmin
               </a>
             </div>
             <div id='#{name}-collapse' class='nav nav-pills nav-stacked panel-collapse collapse'>
-              <li>
-                #{link_link}
-              </li>
-              #{links.collect { |link| data_type_model == Setup::CrossSharedCollection ? link : "<div class='panel panel-default'> #{link} </div>" }.join }
+              #{links}
             </div>
           </div>)
+        end
+        main_labels.insert definitions_index + i, links
       end
-      if @dashboard_group
+      if @dashboard_group_ref
         dashboard_link = %(
-           <div id="main-dashboard-#{@dashboard_group}" class="panel panel-default">
+           <div id="main-dashboard-#{@dashboard_group_ref}" class="panel panel-default">
             <div class='panel-heading dashboard-heading'>
-              <a href='/#{@dashboard_group}/dashboard' class='panel-title in'>
-                <span class='nav-icon'><i class='fa fa-cubes'></i></span>
+              <a href='/#{@dashboard_group_ref}/dashboard' class='panel-title in'>
+                <span class='nav-icon'><i class='fa fa-tachometer'></i></span>
                 <span class='nav-caption'>Dashboard</span>
               </a>
               <a href='#' class='panel-title in' id="sidebar-toggle">
@@ -426,7 +457,7 @@ module RailsAdmin
         i += 1
         stack_id = "#{html_id}-sub#{i}"
         origins =
-          if (model=node.abstract_model.model).is_a?(Class) && model < CrossOrigin::Document
+          if (model=node.abstract_model.model).is_a?(Class) && model < CrossOrigin::CenitDocument
             model.origins.join(',')
           else
             ''
@@ -438,6 +469,7 @@ module RailsAdmin
             <div class='panel-heading'>
               <a data-toggle='collapse' data-parent='##{html_id}' href='##{stack_id}' class='panel-title collapse in collapsed'>
                 <span class='nav-caret'><i class='fa fa-caret-down'></i></span>
+                <span class='nav-icon'><i class='#{node.navigation_icon || 'fa fa-folder-open-o'}' title="#{capitalize_first_letter(node.label_navigation)}"></i></span>
                 <span class='nav-caption'>#{capitalize_first_letter node.label_navigation}</span>
               </a>
             </div>)
@@ -445,17 +477,20 @@ module RailsAdmin
           else
             model_param = node.abstract_model.to_param
             url = url_for(action: :index, controller: 'rails_admin/main', model_name: model_param)
-            nav_icon = node.navigation_icon ? %(<i class="#{node.navigation_icon}"></i>).html_safe : ''
             data = {}
             if model_path = node.abstract_model.api_path
               data[:model] = model_path
               data[:origins] = origins
             end
-            content_tag :li, data: data do
+            content_tag :li, data: data, class: 'no-childrens' do
               link_to url, class: 'pjax' do
                 rc = ''
                 rc += "<span class='nav-amount'></span>"
+                if options[:just_li] && (icon = node.navigation_icon || 'fa fa-folder-o')
+                  rc += "<span class='with_icon #{icon}'></span>"
+                end
                 rc += "<span class='nav-caption'>#{capitalize_first_letter node.label_navigation}</span>"
+
                 rc.html_safe
               end
             end
@@ -564,10 +599,12 @@ module RailsAdmin
             else
               ''
             end
+          icon = node.navigation_icon || 'fa fa-folder-open-o'
           html = %(<div class='panel panel-default'>
             <div class='panel-heading'>
-              <a data-toggle='collapse' data-parent='#none' href='#renderer-collapse' class='panel-title collapse in collapsed'>
+              <a data-toggle='collapse' data-parent='#none1' href='#renderer-collapse' class='panel-title collapse in collapsed'>
                 <span class='nav-caret'><i class='fa fa-caret-down'></i></span>
+                <span class="nav-icon"><i class=" #{icon}" title="#{node.label_plural}"></i></span>
                 <span class='nav-caption'>#{node.label_plural}</span>
               </a>
             </div>
@@ -654,7 +691,7 @@ module RailsAdmin
         models = g[:sublinks]
         unless models.empty?
           html += '<ul>'
-          html+= '<li><a href="/' + g[:param] +'/dashboard"><i class="'+ g[:icon] +'"></i><span>'+ g[:label] +'</span></a></li>'
+          html+= '<li><a id="'+ "g_#{g[:label].underscore.gsub(' ', '_')}" +'" href="/' + g[:param] +'/dashboard"><i class="'+ g[:icon] +'"></i><span>'+ g[:label] +'</span></a></li>'
           models.each do |m|
             if m.is_a?(Hash)
               if (link = m[:link])
@@ -667,10 +704,10 @@ module RailsAdmin
               else
                 model_url = "/#{m[:param]}/dashboard"
               end
-              html+= '<li><a href="'+ model_url +'" target="'+ open_in_new_tab(g, m[:param])+'"><span>'+m[:label]+'</span></a></li>'
+              html+= '<li><a id="'+ "l_#{m[:label].underscore.gsub(' ', '_')}" +'" href="'+ model_url +'" target="'+ open_in_new_tab(g, m[:param])+'"><span>'+m[:label]+'</span></a></li>'
             elsif (abstract_model = (model = RailsAdmin::Config.model(m)).abstract_model)
               model_url = url_for(action: :index, controller: 'rails_admin/main', model_name: abstract_model.to_param)
-              html+= '<li><a href="'+ model_url +'" target="'+ open_in_new_tab(g, m)+'"><span>'+model.label_plural+'</span></a></li>'
+              html+= '<li><a id="'+"l_#{model.label_plural.underscore.gsub(' ', '_')}"+'"href="'+ model_url +'" target="'+ open_in_new_tab(g, m)+'"><span>'+model.label_plural+'</span></a></li>'
             end
           end
           html += '</ul>'
@@ -683,15 +720,9 @@ module RailsAdmin
 
     def dashboard_main()
       nodes_stack = @model_configs.values.sort_by(&:weight)
-      node_model_names =
-        if current_user
-          RailsAdmin::Config.visible_models(controller: controller) +
-            Setup::DataType.where(navigation_link: true).collect { |data_type| RailsAdmin.config(data_type.records_model) }
-        else
-          Setup::Models.collect { |m| RailsAdmin::Config.model(m) }.select(&:visible)
-        end.collect { |c| c.abstract_model.model_name }
+      node_model_names = @model_configs.values.collect { |config| config.abstract_model.model_name }
 
-      html_ = "<table class='table table-condensed table-striped .col-sm-6'>" +
+      html_ = "<table class='table table-condensed table-striped col-sm-6'>" +
         '<thead><tr><th class="shrink"></th><th></th><th class="shrink"></th></tr></thead>' +
         nodes_stack.group_by(&:navigation_label).collect do |navigation_label, nodes|
           nodes = nodes.select { |n| n.parent.nil? || !n.parent.to_s.in?(node_model_names) }
@@ -719,6 +750,33 @@ module RailsAdmin
           end
         end.join + '</tbody></table>'
       html_.html_safe
+    end
+
+    def public_apis
+      limit = 18
+      rand_ids = Setup::CrossSharedCollection.where(:image.exists => true, installed: true).pluck(:_id).shuffle[0...limit]
+      Setup::CrossSharedCollection.where(:_id.in => rand_ids)
+    end
+
+    def api_basic_data c
+      has_image = c.image.present?
+      { image: has_image ? c.image.versions[:thumb] : 'missing.png',
+        alt: c.name }
+    end
+
+    def public_apis_collection_view(c)
+      has_image = c.image.present?
+      css_class = 'img-responsive '+(has_image ? '' : 'no-image')
+      image = image_tag has_image ? c.image.versions[:thumb] : 'missing.png', :class => css_class, :alt => c.name, width: '80%', max_height: '80%', margin: '12px'
+      url_show = rails_admin.show_path(model_name: c.model_name.to_s.underscore.gsub('/', '~'), id: c.name)
+      '<div class="col-md-2 col-sm-3">
+        <a href="'+url_show+'" title="'+ c.name+'">
+          <div class="section">
+            <div class="pic">'+image+'
+            </div>
+          </div>
+        </a>
+      </div>'.html_safe
     end
 
     def collections_at_dashboard
@@ -792,7 +850,7 @@ module RailsAdmin
               end
               rc += '</td>'
               origins =
-                if (model=node.abstract_model.model).is_a?(Class) && model < CrossOrigin::Document
+                if (model=node.abstract_model.model).is_a?(Class) && model < CrossOrigin::CenitDocument
                   model.origins.join(',')
                 else
                   ''
@@ -1001,9 +1059,9 @@ module RailsAdmin
           "<li class=\"false\"><a class=\"contextual-record pjax\" href=\"#{index_path(model_name: @abstract_model.to_param, leave_context: true)}\" title='#{t('admin.misc.leave_context', label: (label = wording_for(:breadcrumb, :show, context_config.abstract_model, get_context_record)))}'>#{label}</a></li>" +
           value.from(value.index('</li>') + 5)
       end
-      if @dashboard_group
+      if @dashboard_group_ref
         value = value.to(value.index('<li') - 1) +
-          "<li class=\"active\">#{@dashboard_group.capitalize }</li>" +
+          "<li class=\"active\">#{@dashboard_group_ref.capitalize }</li>" +
           value.from(value.index('</li>') + 5)
         value = value.to(value.index('</ol>')-1) + '<li class="active">Dashboard</li></ol>'
       end

@@ -4,6 +4,7 @@ module Mongoff
     class FileModel < Mongoff::Model
 
       MINIMUM_CHUNK_SIZE = 2 ** 18
+      MAXIMUM_CHUNK_SIZE = 2 ** 20
 
       SCHEMA = Cenit::Utility.stringfy({
                                          type: :object,
@@ -31,7 +32,11 @@ module Mongoff
                                              chunkSize: {
                                                type: :integer,
                                                minimum: MINIMUM_CHUNK_SIZE,
-                                               default: MINIMUM_CHUNK_SIZE
+                                               maximum: MAXIMUM_CHUNK_SIZE,
+                                               default: MINIMUM_CHUNK_SIZE,
+                                               edi: {
+                                                 discard: true
+                                               }
                                              },
                                              md5: {
                                                type: :string

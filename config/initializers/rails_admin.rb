@@ -191,7 +191,7 @@ module RailsAdmin
           {
             param: 'compute',
             label: 'Compute',
-            icon: 'fa fa-cog',
+            icon: 'fa fa-cogs',
             sublinks: %w(Setup::Algorithm Setup::Application Setup::Snippet Setup::Filter Setup::Notebook)
           },
           {
@@ -555,6 +555,8 @@ RailsAdmin.config do |config|
 
   Setup::Crossing
 
+  Setup::FileStoreMigration
+
   Setup::Storage
 
   #Configuration
@@ -564,6 +566,8 @@ RailsAdmin.config do |config|
   Setup::Namespace
 
   Setup::DataTypeConfig
+
+  Setup::FileStoreConfig
 
   Setup::FlowConfig
 

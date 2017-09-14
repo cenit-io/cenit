@@ -1,43 +1,4 @@
-- integrations = [ {image: 'amazon.png', alt: 'Amazon'},
-                                {image: 'desk.png', alt: 'Desk'},
-                                {image: 'bronto.png', alt: 'bronto'},
-                                {image: 'quickbooks.png', alt: 'quickbooks'},
-                                {image: 'netsuite.png', alt: 'netsuite'},
-                                {image: 'exact_target.png', alt: 'exact_target'},
-                                {image: 'jirafe.png', alt: 'jirafe'},
-                                {image: 'ql.png', alt: 'ql'},
-                                {image: 'sf.png', alt: 'sf'},
-                                {image: 'ebay.jpg', alt: 'ebay'},
-                                {image: 'aftership.png', alt: 'aftership'},
-                                {image: 'zendesk.png', alt: 'zendesk'},
-                                {image: 'square.png', alt: 'square'},
-                                {image: 'odoo.png', alt: 'odoo'},
-                                {image: 'magento.png', alt: 'magento'},
-                                {image: 'sugarcrm.png', alt: 'sugarcrm', whiteback: true},
-                                {image: 'shopify.png', alt: 'shopify', whiteback: true},
-                                {image: 'asana.png', alt: 'asana', whiteback: true},
-                                {image: 'trello.png', alt: 'trello', whiteback: true},
-                                {image: 'woocommerce.png', alt: 'woocommerce', whiteback: true},
-                                {image: 'bigcommerce.jpeg', alt: 'bigcommerce', whiteback: true},
-                                {image: 'oscommerce.png', alt: 'oscommerce', whiteback: true}]
-- integrations1 = [ {image: 'amazon.png', alt: 'Amazon'},
-                              {image: 'bronto.png', alt: 'bronto'},
-                              {image: 'desk.png', alt: 'Desk'},
-                              {image: 'quickbooks.png', alt: 'quickbooks'},
-                              {image: 'netsuite.png', alt: 'netsuite'},
-                              {image: 'mailchimp.png', alt: 'mailchimp'},
-                              {image: 'shipstation.png', alt: 'shipstation'},
-                              {image: 'exact_target.png', alt: 'exact_target'},
-                              {image: 'jirafe.png', alt: 'jirafe'},
-                              {image: 'ql.png', alt: 'ql'},
-                              {image: 'mandrill.png', alt: 'mandrill'},
-                              {image: 'sf.png', alt: 'sf'},
-                              {image: 'shipwire.png', alt: 'shipwire'},
-                              {image: 'zendesk.png', alt: 'zendesk'},
-                              {image: 'ebay.jpg', alt: 'ebay'},
-                              {image: 'odoo.png', alt: 'odoo'},
-                              {image: 'aftership.png', alt: 'aftership'},
-                              {image: 'square.png', alt: 'square'}]
+- integrations = public_apis
 .container
   .row
     .col-md-offset-1.col-md-10
@@ -57,84 +18,46 @@
             =text_field_tag "query", @name, placeholder: "Search 900+ APPs", class: "form-control"
           .try-integrations
             ='Try'
-            -sample = integration_sample(3)
-            =link_to(sample[0], index_path(model_name: "cross_shared_collection", query: sample[0]))+','
-            =link_to(sample[1], index_path(model_name: "cross_shared_collection", query: sample[1]))+' or'
-            =link_to(sample[2], index_path(model_name: "cross_shared_collection", query: sample[2]))
+            = integration_sample
       -if current_user
         .blocks.clearfix{ id: 'collections' }
           = collections_at_dashboard
       -else
         .col-sm-offset-1.col-md-offset-1.col-lg-offset-2
-          %br
-          %br
-          %table#integration_list
-            %tr
-              %td
-                .section
-                  .pic{style: 'height: 100px;'}
-                    - integrations.each_with_index do |int, index|
-                      .lightbulb{id: "bulb#{index}"}
-                        - if int[:whiteback]
-                          =image_tag "integrations/#{int[:image]}", :alt => "#{int[:alt]}", :class => 'none img-responsive', width: "102", height: "71", style: "background-color: white;"
-                        -else
-                          =image_tag "integrations/#{int[:image]}", :alt => "#{int[:alt]}", :class => 'none img-responsive', width: "102", height: "71"
-              %td.hidden-xs
-                = image_tag 'arrow.png', style: 'height: 60px;margin: 20px;'
-              %td.hidden-xs
-                .section
-                  .pic
-                    =link_to dashboard_path, data: { no_turbolink: true } do
-                      = image_tag 'logo_cenitsaas_web.png', style: 'height: 50px;'
-              %td.visible-xs
-                ='&nbsp;&nbsp;'
-              %td.hidden-xs
-                = image_tag 'arrow.png', style: 'height: 60px;margin: 20px;'
-              %td
-                .section
-                  .pic{style: 'height: 100px;'}
-                    - integrations.each_with_index do |int, index|
-                      .rlightbulb{id: "rbulb#{index}"}
-                        - if int[:whiteback]
-                          =image_tag "integrations/#{int[:image]}", :alt => "#{int[:alt]}", :class => 'none img-responsive', width: "102", height: "71", style: "background-color: white;"
-                        -else
-                          =image_tag "integrations/#{int[:image]}", :alt => "#{int[:alt]}", :class => 'none img-responsive', width: "102", height: "71"
-        .row.sections.hidden-xs
-          - integrations1.each_with_index do |int, index|
-            - if index%6 == 0
-              .clearfix.visible-md-block
-              .clearfix.visible-lg-block
-            - if index%4 == 0
-              .clearfix.visible-sm-block
-            .col-md-2.col-sm-3
-              .section
-                .pic
-                  =image_tag "integrations/#{int[:image]}", :class => 'img-responsive', :alt =>"#{int[:alt]}", width: "102", height: "71"
-
-%script
-  $(function () {
-  get_random_bulb();
-
-  function get_random_bulb() {
-  var a = (parseInt(Math.random() * 22));
-  $(".lightbulb img.block").removeClass("block").addClass("none");
-  $(".lightbulb:eq(" + a + ") img").removeClass("none").addClass("block");
-  }
-
-  setInterval(function () {
-  get_random_bulb();
-  }, 1000);
-
-  get_random_rbulb();
-
-  function get_random_rbulb() {
-  var a = (parseInt(Math.random() * 21));
-  $(".rlightbulb img.block").removeClass("block").addClass("none");
-  $(".rlightbulb:eq(" + a + ") img").removeClass("none").addClass("block");
-  }
-
-  setInterval(function () {
-  get_random_rbulb();
-  }, 1000);
-  });
-
+          - if integrations.count >= 2
+            %br
+            %br
+            %table#integration_list
+              %tr
+                %td
+                  .section#left
+                    .pic
+                      - integrations.each_with_index do |int, index|
+                        - data = api_basic_data int
+                        =image_tag data[:image], :alt => "#{data[:alt]}",:id =>"l_#{index}",:class => 'none img-responsive', width: "102", height: "71"
+                %td.hidden-xs
+                  = image_tag 'arrow.png', style: 'height: 60px;margin: 20px;'
+                %td.hidden-xs
+                  .section
+                    .pic
+                      =link_to dashboard_path, data: { no_turbolink: true } do
+                        = image_tag 'logo_cenitsaas_web.png', style: 'height: 50px;'
+                %td.visible-xs
+                  ='&nbsp;&nbsp;'.html_safe
+                %td.hidden-xs
+                  = image_tag 'arrow.png', style: 'height: 60px;margin: 20px;'
+                %td
+                  .section#right
+                    .pic
+                      - integrations.each_with_index do |int, index|
+                        - data = api_basic_data int
+                        =image_tag data[:image], :alt => "#{data[:alt]}",:id =>"r_#{index}", :class => 'none img-responsive', width: "102", height: "71"
+        - if integrations.count > 0
+          .row.sections.hidden-xs
+            - integrations.each_with_index do |int, index|
+              - if index%6 == 0
+                .clearfix.visible-md-block
+                .clearfix.visible-lg-block
+              - if index%4 == 0
+                .clearfix.visible-sm-block
+              = public_apis_collection_view(int).html_safe

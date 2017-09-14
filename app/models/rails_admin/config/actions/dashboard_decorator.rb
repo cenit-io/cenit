@@ -5,14 +5,16 @@ module RailsAdmin
         register_instance_option :controller do
           proc do
             @history = @auditing_adapter && @auditing_adapter.latest || []
-            @dashboard_group = params['group'] || nil
+            @dashboard_group_ref = params['group'] || nil
+            @dashboard_group = dashboard_group(@dashboard_group_ref)
             if @action.statistics?
               #Patch
               @model_configs = {}
               @abstract_models =
                 if current_user
-                  (RailsAdmin::Config.visible_models(controller: self) + # TODO Include mongoff models configs only if needed
-                    Setup::DataType.where(navigation_link: true).collect { |data_type| RailsAdmin.config(data_type.records_model).with(controller: self) }.select(&:visible)).collect(&:abstract_model).select do |absm|
+                  (RailsAdmin::Config.visible_models(controller: self) +
+                    (show_mongoff_navigation? ? Setup::DataType.where(navigation_link: true) : []).collect { |data_type| RailsAdmin.config(data_type.records_model).with(controller: self) }.select(&:visible) +
+                    (show_ecommerce_navigation? ? ecommerce_data_types : []).collect { |data_type| RailsAdmin.config(data_type.records_model).with(controller: self) }).collect(&:abstract_model).select do |absm|
                     ((model = absm.model) rescue nil) &&
                       (model.is_a?(Mongoff::Model) || model.include?(AccountScoped) || [Account].include?(model)) &&
                       (@model_configs[absm.model_name] = absm.config)

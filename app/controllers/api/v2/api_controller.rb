@@ -1,7 +1,8 @@
 module Api::V2
   class ApiController < ApplicationController
 
-    before_action :authorize_account, :save_request_data, except: [:new_user, :cors_check, :auth]
+    before_action :authorize_account, except: [:new_user, :cors_check, :auth]
+    before_action :save_request_data, except: [:cors_check, :auth]
     before_action :authorize_action, except: [:auth, :new_user, :cors_check, :push]
     before_action :find_item, only: [:update, :show, :destroy, :pull, :run, :retry]
 
@@ -228,20 +229,29 @@ module Api::V2
       end
     end
 
+    USER_MODEL_FIELDS = %w(name email password password_confirmation)
+    USER_API_FIELDS = USER_MODEL_FIELDS + %w(token code)
+
     def new_user
-      data = (JSON.parse(@webhook_body) rescue {}).keep_if { |key, _| %w(email password password_confirmation token code).include?(key) }
+      data = (JSON.parse(@webhook_body) rescue {}).keep_if { |key, _| USER_API_FIELDS.include?(key) }
       data = data.with_indifferent_access
       data.reverse_merge!(email: params[:email], password: pwd = params[:password], password_confirmation: params[:password_confirmation] || pwd)
+      data.reject! { |_, value| value.nil? }
       status = :not_acceptable
       response =
         if (token = data[:token] || params[:token])
           if (captcha_token = CaptchaToken.where(token: token).first)
             if (code = data[:code] || params[:code])
               if code == captcha_token.code
-                data.merge!(captcha_token.data || {}) { |_, left, right| left || right }
-                captcha_token.destroy
-                _, status, response = create_user_with(data)
-                response
+                token_data = captcha_token.data || {}
+                if !data.key?(:email) || data[:email] == token_data[:email]
+                  data.merge!(captcha_token.data || {}) { |_, left, right| left || right }
+                  captcha_token.destroy
+                  _, status, response = create_user_with(data)
+                  response
+                else #email mismatch
+                  { email: ['does not match the one previously requested'] }
+                end
               else #invalid code
                 { code: ['is not valid'] }
               end
@@ -277,6 +287,7 @@ module Api::V2
       status = :not_acceptable
       data[:password] ||= Devise.friendly_token
       data[:password_confirmation] ||= data[:password]
+      data.reject! { |key, _| USER_MODEL_FIELDS.exclude?(key) }
       current_account = Account.current
       begin
         Account.current = nil
@@ -289,7 +300,7 @@ module Api::V2
       response=
         if user.errors.blank?
           status = :ok
-          { number: user.number, token: user.authentication_token }
+          { id: user.id.to_s, number: user.number, token: user.authentication_token }
         else
           user.errors.to_json
         end

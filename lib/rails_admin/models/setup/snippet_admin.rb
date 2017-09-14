@@ -7,6 +7,7 @@ module RailsAdmin
         included do
           rails_admin do
             navigation_label 'Compute'
+            navigation_icon 'fa fa-code'
             weight 430
             object_label_method { :custom_title }
 

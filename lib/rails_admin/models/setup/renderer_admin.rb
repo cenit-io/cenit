@@ -7,6 +7,7 @@ module RailsAdmin
         included do
           rails_admin do
             navigation_label 'Transforms'
+            navigation_icon 'fa fa-file-code-o'
             weight 411
             configure :code, :code
             label 'Templates'

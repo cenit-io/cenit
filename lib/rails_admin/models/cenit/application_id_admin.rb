@@ -16,6 +16,16 @@ module RailsAdmin
             configure :name
             configure :registered, :boolean
             configure :redirect_uris, :json_value
+            configure :tenant_id do
+              pretty_value do
+                tenant = bindings[:object].tenant
+                model_config = RailsAdmin.config(tenant)
+                am = model_config.abstract_model
+                wording = tenant.send(model_config.object_label_method)
+                v = bindings[:view]
+                v.link_to(wording, v.url_for(action: :show, model_name: am.to_param, id: tenant.id), class: 'pjax')
+              end
+            end
 
             edit do
               field :slug
@@ -30,12 +40,12 @@ module RailsAdmin
             list do
               field :name
               field :registered
-              field :tenant
+              field :tenant_id
               field :identifier
               field :updated_at
             end
 
-            fields :created_at, :name, :registered, :tenant, :identifier, :created_at, :updated_at
+            fields :created_at, :name, :registered, :tenant_id, :identifier, :created_at, :updated_at
           end
         end
 

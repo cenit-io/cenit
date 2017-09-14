@@ -76,7 +76,7 @@ module Setup
     end
 
     def all_data_type_storage_collections_names
-      if model < CrossOrigin::Document
+      if model < CrossOrigin::CenitDocument
         origins = model.origins.select { |origin| Setup::Crossing.authorized_crossing_origins.include?(origin) }
         origins.collect do |origin|
           if origin == :default

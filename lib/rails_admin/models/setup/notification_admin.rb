@@ -8,6 +8,7 @@ module RailsAdmin
           rails_admin do
             object_label_method { :label }
             navigation_label 'Workflows'
+            navigation_icon 'fa fa-bell-o'
             label 'Notification'
             weight 500
 
