@@ -35,6 +35,7 @@ module Setup
     field :retries, type: Integer, default: 0
     field :state, type: Hash, default: {}
     field :auto_retry, type: Symbol, default: -> { auto_retry_enum.first }
+    field :resumes, type: Integer, default: 0
 
     belongs_to :current_execution, class_name: Setup::Execution.to_s, inverse_of: nil
     has_many :executions, class_name: Setup::Execution.to_s, inverse_of: :task, dependent: :destroy
@@ -121,11 +122,14 @@ module Setup
         self.current_execution = Setup::Execution.find(options[:execution_id])
         time = Time.now
         if running_status?
+          self.resumes += 1
+          fail Broken, "Maximum task resumes exceeded (#{resumes})" if resumes > Cenit.maximum_task_resumes
           notify(message: "Restarting task ##{id} at #{time}", type: :notice)
         else
           self.attempts += 1
           self.progress = 0
           self.status = :running
+          self.resumes = 0
           notify(type: :info, message: "Task ##{id} started at #{time}")
         end
         Thread.current[:task_token] = thread_token.token
@@ -324,6 +328,11 @@ module Setup
 
     private
 
+    def clear_resume
+      @resuming_later = false
+      self.resumes = 0
+    end
+
     def finish(status, message, message_type, time)
       self.status = status
       thread_token.destroy if thread_token.present?
@@ -332,7 +341,10 @@ module Setup
       if status == :completed
         self.succeded += 1
         self.retries = 0
+      elsif status == :broken
+        clear_resume
       elsif status == :failed
+        clear_resume
         if auto_retry == :automatic
           resume_in case retries
                     when 0
