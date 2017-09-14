@@ -59,15 +59,15 @@
           .text-center
             %h3#services_title= 'Services'
           = dashboard_primary
-  - if (ENV['public_apis'] || true)
+  - if (ENV['PUBLIC_APIS'] || true)
     %section#public_apis
       = render "rails_admin/main/public_apis"
   - unless current_user
     %section#features
       = render "rails_admin/main/features"
-    - if (ENV['show_prices'] || false)
+    - if (ENV['SHOW_PRICES'] || false)
       %section#prices
         = render "rails_admin/main/prices"
-    - if (ENV['show_payment_options'] || false)
+    - if (ENV['SHOW_PAYMENT_OPTIONS'] || false)
       %section#payment_options
-        = render "rails_admin/main/payment_options"
+        = render 'rails_admin/main/payment_options'
