@@ -274,6 +274,10 @@ module RailsAdmin
       Setup::CrossSharedCollection => 'fa fa-shopping-cart'
     }
 
+    def show_mongoff_navigation?
+      show_objects_navigation? || show_files_navigation?
+    end
+
     def show_objects_navigation?
       %w(data objects).include?(@dashboard_group_ref) || (!show_ecommerce_navigation? &&
         @abstract_model && @abstract_model.model.try(:data_type).is_a?(Setup::JsonDataType))
@@ -287,6 +291,18 @@ module RailsAdmin
       %w(ecommerce).include?(@dashboard_group_ref) || ((dt = @abstract_model && @abstract_model.model.try(:data_type)) &&
         (names = Cenit.ecommerce_data_types[dt.namespace.to_sym]) &&
         names.include?(dt.name))
+    end
+
+    def ecommerce_data_types
+      data_types = []
+      Cenit.ecommerce_data_types.each do |ns, names|
+        names.each do |name|
+          if (data_type = Setup::DataType.where(namespace: ns, name: name).first)
+            data_types << data_type
+          end
+        end
+      end
+      data_types
     end
 
     def main_navigation
@@ -315,15 +331,7 @@ module RailsAdmin
       }
       if show_ecommerce_navigation?
         non_setup_data_type_models << Setup::CrossSharedCollection
-        ecommerce_models = []
-        Cenit.ecommerce_data_types.each do |ns, names|
-          names.each do |name|
-            if (data_type = Setup::DataType.where(namespace: ns, name: name).first)
-              ecommerce_models << data_type.records_model
-            end
-          end
-        end
-        ecommerce_models = ecommerce_models.collect { |model| RailsAdmin.config(model) }
+        ecommerce_models = ecommerce_data_types.collect(&:records_model).collect { |model| RailsAdmin.config(model) }
         nav_groups['eCommerce'] = ecommerce_models
       end
       if show_files_navigation?
@@ -712,15 +720,9 @@ module RailsAdmin
 
     def dashboard_main()
       nodes_stack = @model_configs.values.sort_by(&:weight)
-      node_model_names =
-        if current_user
-          RailsAdmin::Config.visible_models(controller: controller) +
-            Setup::DataType.where(navigation_link: true).collect { |data_type| RailsAdmin.config(data_type.records_model) }
-        else
-          Setup::Models.collect { |m| RailsAdmin::Config.model(m) }.select(&:visible)
-        end.collect { |c| c.abstract_model.model_name }
+      node_model_names = @model_configs.values.collect { |config| config.abstract_model.model_name }
 
-      html_ = "<table class='table table-condensed table-striped .col-sm-6'>" +
+      html_ = "<table class='table table-condensed table-striped col-sm-6'>" +
         '<thead><tr><th class="shrink"></th><th></th><th class="shrink"></th></tr></thead>' +
         nodes_stack.group_by(&:navigation_label).collect do |navigation_label, nodes|
           nodes = nodes.select { |n| n.parent.nil? || !n.parent.to_s.in?(node_model_names) }
