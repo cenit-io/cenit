@@ -158,4 +158,6 @@ Cenit.config do
   aws_s3_bucket_prefix ENV['AWS_S3_BUCKET_PREFIX'] || 'cenit'
 
   aws_s3_region ENV['AWS_S3_REGION'] || 'us-west-2'
+
+  maximum_task_resumes 500
 end

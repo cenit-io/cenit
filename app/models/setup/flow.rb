@@ -430,7 +430,7 @@ module Setup
         end - (scope_symbol ? 1 : 0)
       translation_options = nil
       connections_present = true
-      0.step(max, limit) do |offset|
+      0.step(by: limit, to: max - 1) do |offset|
         next unless connections_present
         verbose_response =
           webhook.target.with(connection_role).and(authorization).submit ->(template_parameters) {
@@ -506,7 +506,7 @@ module Setup
     def source_ids_from(message)
       if (object_ids = message[:object_ids])
         object_ids
-      elsif scope_symbol == :event_source && id = message[:source_id]
+      elsif scope_symbol == :event_source && (id = message[:source_id])
         [id]
       elsif scope_symbol == :filtered
         data_type.records_model.all.select { |record| field_triggers_apply_to?(:scope_filter, record) }.collect(&:id)
