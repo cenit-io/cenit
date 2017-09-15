@@ -8,6 +8,7 @@ module RailsAdmin
           rails_admin do
             weight 101
             object_label_method { :custom_title }
+            navigation_label 'Definitions'
 
             configure :namespace, :enum_edit
 

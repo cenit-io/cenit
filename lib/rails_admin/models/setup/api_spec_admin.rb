@@ -7,6 +7,7 @@ module RailsAdmin
         included do
           rails_admin do
             navigation_label 'Connectors'
+            navigation_icon 'fa fa-file-code-o'
             weight 200
             label 'API Spec'
 
@@ -25,6 +26,8 @@ module RailsAdmin
             end
 
             fields :title, :url, :specification
+
+            dashboard_group_path %w(gateway connectors api_specs)
           end
         end
 

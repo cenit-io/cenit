@@ -7,6 +7,7 @@ module RailsAdmin
         included do
           rails_admin do
             navigation_label 'Connectors'
+            navigation_icon 'fa fa-users'
             weight 210
             label 'Connection Role'
             object_label_method { :custom_title }

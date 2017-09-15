@@ -590,10 +590,24 @@ function handlerInit() {
 
     $('#main-accordion .nav-stacked').on('shown.bs.collapse', updateModelCountOneByOne);
 
+    updateModelCountOneByOneNoChild();
+
     if ($('.dashboard table').length > 0)
         updateDashboardCount();
+
+    if ($('#integration_list').length > 0) {
+        setInterval(function () {
+            getApiCouple();
+        }, 1000);
+    }
+
 }
 // Side Menu Bar Update Model Counts Functions
+
+function updateModelCountOneByOneNoChild() {
+    $cenit_submenu_children = $('#main-accordion >li.no-childrens');
+    requestModelCount();
+}
 
 function updateModelCountOneByOne(e) {
     e.stopPropagation();
@@ -603,9 +617,11 @@ function updateModelCountOneByOne(e) {
 function requestModelCount() {
     var array_of_children = $cenit_submenu_children.toArray();
     if (array_of_children.length > 0) {
-        var $this = $(array_of_children.shift());
+        var $this = $(array_of_children.shift()), model = $this.data('model');
         $cenit_submenu_children = $(array_of_children);
-        getModelCountOneByOne($this, $this.data('model'), $this.data('origins'), $this.data('ext'));
+        if (model != undefined) {
+            getModelCountOneByOne($this, $this.data('model'), $this.data('origins'), $this.data('ext'));
+        }
     }
 }
 function getModelCountOneByOne($element, model_name, origins, ext) {
@@ -928,5 +944,24 @@ function update_dashboard_model_percents() {
     });
 }
 
+// to show Random Apis couples at Home pages
 
+function getRandomIndex() {
+    var min = 0,
+        max = $('#integration_list #left img').length;
+    return parseInt(Math.random() * (max - min) + min);
+}
+function getApiCouple() {
+    var lIndex = getRandomIndex(),
+        rIndex = getRandomIndex();
+    while (lIndex == rIndex) {
+        rIndex = getRandomIndex();
+    }
+    showApi('left', lIndex);
+    showApi('right', rIndex);
+}
+function showApi(container_class, index) {
+    $('#' + container_class).find("img.block").removeClass("block").addClass("none");
+    $('#' + container_class + '  img:eq(' + index + ')').removeClass("none").addClass("block");
+}
 

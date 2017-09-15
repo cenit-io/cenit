@@ -9,8 +9,16 @@ module RailsAdmin
     end
 
     def integration_sample(index = 3)
-      ['odoo', 'desk', 'mailchimp', 'mandrill', 'shipstation', 'shipwire', 'gmail', 'twilio', 'slack', 'asana', 'houzz', 'fancy', 'trello'].sample(index)
+      # TODO: Use some configuration attribute to select the sample apis
+      sample = public_apis.sample(index)
+      links = []
+      sample.each do |a|
+        url_show = rails_admin.show_path(model_name: a.model_name.to_s.underscore.gsub('/', '~'), id: a.name)
+        links << link_to(a.name, url_show)
+      end
+      links.to_sentence.html_safe
     end
+
 
     def animate_width_to(percent)
       "#{[2.0, percent].max.to_i}%"

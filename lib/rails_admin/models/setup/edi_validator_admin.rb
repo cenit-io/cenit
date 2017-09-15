@@ -8,6 +8,7 @@ module RailsAdmin
           rails_admin do
             weight 103
             parent ::Setup::Validator
+            navigation_label 'Definitions'
             object_label_method { :custom_title }
             label 'EDI Validator'
 

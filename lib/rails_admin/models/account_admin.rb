@@ -10,6 +10,8 @@ module RailsAdmin
           label 'Tenants'
           object_label_method { :label }
 
+          visible { User.current.present? }
+
           configure :_id do
             visible { Account.current_super_admin? }
           end

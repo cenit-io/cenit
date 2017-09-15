@@ -8,6 +8,7 @@ module RailsAdmin
           rails_admin do
             navigation_label 'Configuration'
             label 'Data Type Config'
+            visible true
             weight 710
             configure :data_type do
               read_only true
