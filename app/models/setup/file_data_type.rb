@@ -21,6 +21,10 @@ module Setup
 
     before_save :validate_configuration
 
+    after_save { file_store_config.save }
+
+    after_destroy { file_store_config.destroy }
+
     def validate_configuration
       self.title = self.name if title.blank?
       validators_classes = Hash.new { |h, k| h[k] = [] }
@@ -186,6 +190,19 @@ module Setup
         default_contentType: format_validator.try(:content_type) || 'application/octet-stream'
       }
     end
+
+    def file_store_config
+      @_file_store_config ||=
+        begin
+          if new_record?
+            Setup::FileStoreConfig.new(data_type: self)
+          else
+            Setup::FileStoreConfig.find_or_create_by(data_type: self)
+          end
+        end
+    end
+
+    delegate :file_store, to: :file_store_config
 
     class << self
 

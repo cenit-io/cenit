@@ -7,6 +7,7 @@ module RailsAdmin
         included do
           rails_admin do
             navigation_label 'Security'
+            navigation_icon 'fa fa-wrench'
             weight 310
             object_label_method { :custom_title }
             label 'Provider'

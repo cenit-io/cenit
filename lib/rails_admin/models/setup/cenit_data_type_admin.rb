@@ -11,8 +11,6 @@ module RailsAdmin
             label 'Cenit Type'
             object_label_method { :custom_title }
 
-            visible { group_visible && Account.current_super_admin? }
-
             configure :storage_size, :decimal do
               pretty_value do
                 if (objects = bindings[:controller].instance_variable_get(:@objects))

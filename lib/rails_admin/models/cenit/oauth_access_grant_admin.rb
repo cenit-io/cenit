@@ -7,6 +7,7 @@ module RailsAdmin
         included do
           rails_admin do
             navigation_label 'Security'
+            navigation_icon 'fa fa-key'
             label 'Access Grants'
             weight 340
 

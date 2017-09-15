@@ -8,10 +8,9 @@ module RailsAdmin
           rails_admin do
             object_label_method { :label }
             navigation_label 'Workflows'
+            navigation_icon 'fa fa-bell-o'
             label 'Notification'
             weight 500
-
-            visible { group_visible && Account.current_super_admin? }
 
             configure :data_type, :contextual_belongs_to
 

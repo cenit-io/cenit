@@ -7,6 +7,7 @@ module RailsAdmin
         included do
           rails_admin do
             navigation_label 'Security'
+            navigation_icon 'fa fa-shield'
             weight 330
             object_label_method { :custom_title }
             configure :status do

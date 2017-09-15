@@ -10,7 +10,7 @@ module Cenit
     def cross(origin = :default)
       new_track_ids = []
       criteria.each do |record|
-        next if record.origin == origin
+        next if record.origin == origin || record.class.origins.exclude?(origin)
         record.history_tracks.delete_all
         new_track_ids << record.id
       end

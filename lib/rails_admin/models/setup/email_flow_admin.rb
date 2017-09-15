@@ -6,9 +6,8 @@ module RailsAdmin
 
         included do
           rails_admin do
+            navigation_label 'Workflows'
             object_label_method { :custom_title }
-
-            visible { group_visible && Account.current_super_admin? }
 
             fields :namespace, :name, :send_flow, :updated_at
           end

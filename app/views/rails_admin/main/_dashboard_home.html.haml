@@ -57,14 +57,17 @@
       .row
         .col-md-offset-1.col-md-10
           .text-center
-            %h3= 'Services'
+            %h3#services_title= 'Services'
           = dashboard_primary
-  %section#public_apis
-    = render "rails_admin/main/public_apis"
+  - if (ENV['PUBLIC_APIS'] || true)
+    %section#public_apis
+      = render "rails_admin/main/public_apis"
   - unless current_user
     %section#features
       = render "rails_admin/main/features"
-    %section#prices
-      = render "rails_admin/main/prices"
-    %section#payment_options
-      = render "rails_admin/main/payment_options"
+    - if (ENV['SHOW_PRICES'] || false)
+      %section#prices
+        = render "rails_admin/main/prices"
+    - if (ENV['SHOW_PAYMENT_OPTIONS'] || false)
+      %section#payment_options
+        = render 'rails_admin/main/payment_options'

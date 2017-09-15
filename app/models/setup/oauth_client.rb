@@ -1,7 +1,7 @@
 module Setup
   class OauthClient
     include CenitScoped
-    include CrossOrigin::Document
+    include CrossOrigin::CenitDocument
     include CustomTitle
     include RailsAdmin::Models::Setup::OauthClientAdmin
     include ClassHierarchyAware

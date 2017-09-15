@@ -172,6 +172,8 @@ module RailsAdmin
 
       navigation_label { target.data_type.namespace }
 
+      navigation_icon { target.schema['icon'] }
+
       object_label_method do
         @object_label_method ||=
           if target.labeled?

@@ -171,7 +171,7 @@ class Account
   end
 
   def notify(attrs)
-    switch { Setup::SystemNotification.create_with(attrs) }
+    switch { Setup::SystemNotification.create_with(attrs.merge(skip_notification_level: true)) }
   end
 
   class << self
