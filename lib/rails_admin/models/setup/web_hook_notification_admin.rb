@@ -10,8 +10,6 @@ module RailsAdmin
             object_label_method { :custom_title }
             label 'Web-Hook'
 
-            visible { group_visible && Account.current_super_admin? }
-
             configure :data_type, :contextual_belongs_to
 
             edit do

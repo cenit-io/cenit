@@ -257,7 +257,9 @@ module RailsAdmin
         else
           groups.each do |group|
             next unless group.is_a?(Hash)
-            return dashboard_root_group(ref_group, group[:sublinks])
+            if (group = dashboard_group(ref_group, group[:sublinks]))
+              return group
+            end
           end
         end
       end
@@ -566,7 +568,7 @@ module RailsAdmin
 
         end
         if node.abstract_model.model == Setup::ApiSpec
-          open_api_directory_link = open_api_directory_nav.html_safe
+          open_api_directory_link = open_api_directory_nav(options).html_safe
           html = html + open_api_directory_link
         end
         if node.abstract_model.model == Setup::Renderer &&
@@ -620,7 +622,7 @@ module RailsAdmin
       nav.html_safe
     end
 
-    def open_api_directory_nav
+    def open_api_directory_nav(options)
       sub_links = ''
       category_count = 0
       apis = load_apis_specs_cat_count
@@ -652,12 +654,16 @@ module RailsAdmin
             <div class='panel-heading'>
               <a data-toggle='collapse' data-parent='#none' href='#open-api-collapse' class='panel-title collapse in collapsed'>
                 <span class='nav-caret'><i class='fa fa-caret-down'></i></span>
+                #{
+                  options[:just_li] ?
+                    '<span class="nav-icon"><i class="fa fa-book" title="'+ t('admin.actions.open_api_directory.menu') +'"></i></span>' :
+                    ''
+                }
                 <span class='nav-caption'>#{t('admin.actions.open_api_directory.menu')}</span>
               </a>
             </div>
-             <div id='open-api-collapse' class='nav nav-pills nav-stacked panel-collapse collapse'>
-
-      #{show_all_link}
+            <div id='open-api-collapse' class='nav nav-pills nav-stacked panel-collapse collapse'>
+              #{show_all_link}
       #{sub_links}
             </div>
             </div>)

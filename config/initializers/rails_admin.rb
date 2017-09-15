@@ -121,105 +121,94 @@ module RailsAdmin
       end
 
       def dashboard_groups
-        g = [
-          {
-            param: 'data',
-            label: 'Data',
-            icon: 'fa fa-cube',
-            sublinks: [
-              {
-                param: 'definitions',
-                label: 'Definitions'
-              },
-              {
-                param: 'files',
-                label: 'Files'
-              },
-              {
-                param: 'objects',
-                label: 'Objects'
-              }
-            ]
-          },
-          {
-            param: 'workflows',
-            label: 'Workflows',
-            icon: 'fa fa-cogs',
-            sublinks: [
-              {
-                param: 'notifications',
-                label: 'Notifications'
-              },
-              {
-                param: 'flows',
-                label: 'Flows'
-              },
-              {
-                param: 'channels',
-                label: 'Channels'
-              }
-            ]
-          },
-          {
-            param: 'transforms',
-            label: 'Transforms',
-            icon: 'fa fa-random',
-            sublinks: %w(Setup::Renderer Setup::Parser Setup::Converter Setup::Updater)
-          },
-          {
-            param: 'gateway',
-            label: 'Gateway',
-            icon: 'fa fa-hdd-o',
-            externals: ['open_api_directory'],
-            sublinks: [
-              'Setup::ApiSpec',
-              {
-                param: 'open_api_directory',
-                label: 'OpenAPI Directory',
-                link: { rel: 'open_api_directory' } # use for example {external: 'http://www.jslint.com/'} in case of external url
-              },
-              {
-                param: 'connectors',
-                label: 'Connectors'
-              },
-              {
-                param: 'security',
-                label: 'Security'
-              }
-            ]
-          },
-          {
-            param: 'compute',
-            label: 'Compute',
-            icon: 'fa fa-cogs',
-            sublinks: %w(Setup::Algorithm Setup::Application Setup::Snippet Setup::Filter Setup::Notebook)
-          },
-          {
-            param: 'integrations',
-            label: 'Integrations',
-            icon: 'fa fa-puzzle-piece',
-            externals: ['Setup::CrossSharedCollection'],
-            sublinks: %w(Setup::Collection Setup::CrossSharedCollection)
-          }
-        ]
-        ecommerce_models = []
-        Cenit.ecommerce_data_types.each do |ns, names|
-          names.each do |name|
-            if (data_type = Setup::DataType.where(namespace: ns, name: name).first)
-              ecommerce_models << data_type.records_model
+        unless @dashboard_groups
+          @dashboard_groups = [
+            {
+              param: 'data',
+              label: 'Data',
+              icon: 'fa fa-cube',
+              sublinks: [
+                {
+                  param: 'definitions',
+                  label: 'Definitions'
+                },
+                {
+                  param: 'files',
+                  label: 'Files'
+                },
+                {
+                  param: 'objects',
+                  label: 'Objects'
+                }
+              ]
+            },
+            {
+              param: 'workflows',
+              label: 'Workflows',
+              icon: 'fa fa-cogs',
+              sublinks: %w(Setup::Notification Setup::Flow Setup::EmailChannel)
+            },
+            {
+              param: 'transforms',
+              label: 'Transforms',
+              icon: 'fa fa-random',
+              sublinks: %w(Setup::Renderer Setup::Parser Setup::Converter Setup::Updater)
+            },
+            {
+              param: 'gateway',
+              label: 'Gateway',
+              icon: 'fa fa-hdd-o',
+              externals: ['open_api_directory'],
+              sublinks: [
+                'Setup::ApiSpec',
+                {
+                  param: 'open_api_directory',
+                  label: 'OpenAPI Directory',
+                  link: { rel: 'open_api_directory' } # use for example {external: 'http://www.jslint.com/'} in case of external url
+                },
+                {
+                  param: 'connectors',
+                  label: 'Connectors'
+                },
+                {
+                  param: 'security',
+                  label: 'Security'
+                }
+              ]
+            },
+            {
+              param: 'compute',
+              label: 'Compute',
+              icon: 'fa fa-cogs',
+              sublinks: %w(Setup::Algorithm Setup::Application Setup::Snippet Setup::Filter Setup::Notebook)
+            },
+            {
+              param: 'integrations',
+              label: 'Integrations',
+              icon: 'fa fa-puzzle-piece',
+              externals: ['Setup::CrossSharedCollection'],
+              sublinks: %w(Setup::Collection Setup::CrossSharedCollection)
+            }
+          ]
+          ecommerce_models = []
+          Cenit.ecommerce_data_types.each do |ns, names|
+            names.each do |name|
+              if (data_type = Setup::DataType.where(namespace: ns, name: name).first)
+                ecommerce_models << data_type.records_model
+              end
             end
           end
-        end
-        if ecommerce_models.present?
-          g<<{
-            param: 'ecommerce',
-            label: 'Ecommerce',
-            icon: 'fa fa-shopping-cart',
-            sublinks: ecommerce_models
-          }
+          if ecommerce_models.present?
+            @dashboard_groups<<{
+              param: 'ecommerce',
+              label: 'Ecommerce',
+              icon: 'fa fa-shopping-cart',
+              sublinks: ecommerce_models
+            }
+          end
         end
 
-        g
+        @dashboard_groups
       end
     end
   end

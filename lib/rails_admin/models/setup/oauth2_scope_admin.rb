@@ -7,6 +7,7 @@ module RailsAdmin
         included do
           rails_admin do
             navigation_label 'Security'
+            navigation_icon 'fa fa-users'
             weight 320
             label 'OAuth 2.0 Scope'
             object_label_method { :custom_title }

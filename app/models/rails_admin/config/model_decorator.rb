@@ -2,7 +2,7 @@ module RailsAdmin
   module Config
     Model.class_eval do
 
-      def dashboard_group_path
+      register_instance_option :dashboard_group_path do
         unless @dashboard_group_path
           compute_dashboard_groups(@dashboard_group_path = [])
           @dashboard_group_path << abstract_model.to_param.to_s.pluralize
