@@ -142,11 +142,11 @@ a#sign-in-link:hover, a#sign-out-link:hover {
 
 #drawer-toggle i.fa,
 #sidebar-toggle i.fa {
-  transition: all 0.5s ease;
+  //transition: all 0.5s ease;
 }
 
 #sidebar-toggle.toggled i.fa {
-  transform: rotate(0deg);
+  //transform: rotate(0deg);
 }
 
 /* Search form styles */
@@ -481,11 +481,11 @@ ul#main-accordion .nav-amount {
 }
 
 ul#main-accordion .nav-caret i {
-  transition: transform 0.3s ease-in-out;
+  //transition: transform 0.3s ease-in-out;
 }
 
 ul#main-accordion .panel.active > .panel-heading .nav-caret i {
-  transform: rotate(180deg);
+  //transform: rotate(180deg);
 }
 
 ul#main-accordion .panel-heading .nav-icon {
@@ -2580,4 +2580,13 @@ li.no-childrens {
 .popover-title {
   background: #f9f9f9;
   color: #428bca;
+}
+
+.panel[id^='main-dashboard-'] .nav-icon {
+  opacity: 1;
+  transition: all 0.5s ease;
+  &.no-view {
+    opacity: 0;
+    transition: all 0.3s ease;
+  }
 }

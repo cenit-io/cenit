@@ -396,30 +396,41 @@ function registerEvents() {
 
     $("#sidebar-toggle").click(function (e) {
         e.preventDefault();
-        $("#wrapper").toggleClass("toggled");
-        $(this).toggleClass("toggled");
-        var $conten_wraper = $("#content-wrapper"),
+
+        var $content_wrapper = $("#content-wrapper"),
+            $nav_icon = $(this).siblings().find('.nav-icon'),
+            $wrapper = $("#wrapper"),
             $accordion = $('#main-accordion');
+
+        $wrapper.toggleClass("toggled");
+        $(this).toggleClass("toggled");
+
         if ($("#sidebar-wrapper").css('width') == "55px") {
+            $nav_icon.removeClass('no-view');
 
         } else {
-            if ($("#wrapper").hasClass("toggled")) {
-                $conten_wraper.css('width', 'calc(100% - 250px)');
+            if ($wrapper.hasClass("toggled")) {
+                $nav_icon.removeClass('no-view');
+                $content_wrapper.css('width', 'calc(100% - 250px)');
+
             } else {
-                $conten_wraper.css('width', 'calc(100% - 55px)');
+                $nav_icon.addClass('no-view');
+                $content_wrapper.css('width', 'calc(100% - 55px)');
+
             }
             $accordion.find('.panel-default').removeClass('active');
             $accordion.find('.panel-collapse').removeClass('in')
-
         }
     });
 
     $("#subdomain-toggle").off('click').on('click', function (e) {
         $("#subdomain-panel").toggleClass("collapsed");
-        $(this).toggleClass("toggled");;
+        $(this).toggleClass("toggled");
     });
 
-    $('#main-accordion').find('.panel-heading a.panel-title').click(function () {
+    var $main_accordion = $('#main-accordion');
+
+    $main_accordion.find('.panel-heading a.panel-title').click(function () {
         var parent = $(this).parent().parent();
         $(parent).toggleClass('active');
         if ($(parent).hasClass('active'))
@@ -428,10 +439,11 @@ function registerEvents() {
             });
     });
 
-    $('#main-accordion').find('a[data-toggle="collapse"]').on('click', function () {
-        var $conten_wraper = $("#content-wrapper");
-        if (!$("#wrapper").hasClass("toggled")) {
-            $("#wrapper").addClass("toggled");
+    $main_accordion.find('a[data-toggle="collapse"]').on('click', function () {
+        var $conten_wraper = $("#content-wrapper"),
+            $wrapper = $("#wrapper");
+        if (!$wrapper.hasClass("toggled")) {
+            $wrapper.addClass("toggled");
             $conten_wraper.css('width', 'calc(100% - 250px)');
         }
     });
