@@ -1,0 +1,63 @@
+- integrations = public_apis
+.container
+  .row
+    .col-md-offset-1.col-md-10
+      .row.header
+        %h3
+          = 'Need an easy way to connect your businesswith'
+          = link_to 'Public APIs', '/open_api_directory', data: { no_turbolink: true }
+          ='?'
+        %p
+          ='Cenit is the perfect tool to help you out.'
+          = link_to 'Get in touch', '#contact_us',class: 'item contact-modal',data: { toggle: 'modal', backdrop: 'false' }
+        %br
+        .col-md-offset-2.col-md-8.centered
+          -query = params[:query]
+          -shared_path = index_path(model_name: "cross_shared_collection", query: query)
+          =form_tag(shared_path, method: :get) do
+            =text_field_tag "query", @name, placeholder: "Search 900+ APPs", class: "form-control"
+          .try-integrations
+            ='Try'
+            = integration_sample
+      -if current_user
+        .blocks.clearfix{ id: 'collections' }
+          = collections_at_dashboard
+      -else
+        .col-sm-offset-1.col-md-offset-1.col-lg-offset-2
+          - if integrations.count >= 2
+            %br
+            %br
+            %table#integration_list
+              %tr
+                %td
+                  .section#left
+                    .pic
+                      - integrations.each_with_index do |int, index|
+                        - data = api_basic_data int
+                        =image_tag data[:image], :alt => "#{data[:alt]}",:id =>"l_#{index}",:class => 'none img-responsive', width: "102", height: "71"
+                %td.hidden-xs
+                  = image_tag 'arrow.png', style: 'height: 60px;margin: 20px;'
+                %td.hidden-xs
+                  .section
+                    .pic
+                      =link_to dashboard_path, data: { no_turbolink: true } do
+                        = image_tag 'logo_cenitsaas_web.png', style: 'height: 50px;'
+                %td.visible-xs
+                  ='&nbsp;&nbsp;'.html_safe
+                %td.hidden-xs
+                  = image_tag 'arrow.png', style: 'height: 60px;margin: 20px;'
+                %td
+                  .section#right
+                    .pic
+                      - integrations.each_with_index do |int, index|
+                        - data = api_basic_data int
+                        =image_tag data[:image], :alt => "#{data[:alt]}",:id =>"r_#{index}", :class => 'none img-responsive', width: "102", height: "71"
+        - if integrations.count > 0
+          .row.sections.hidden-xs
+            - integrations.each_with_index do |int, index|
+              - if index%6 == 0
+                .clearfix.visible-md-block
+                .clearfix.visible-lg-block
+              - if index%4 == 0
+                .clearfix.visible-sm-block
+              = public_apis_collection_view(int).html_safe

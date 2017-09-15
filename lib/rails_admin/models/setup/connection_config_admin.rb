@@ -8,6 +8,7 @@ module RailsAdmin
           rails_admin do
             navigation_label 'Configuration'
             label 'Connection Config'
+            visible true
             weight 730
 
             configure :connection do

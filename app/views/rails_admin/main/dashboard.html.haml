@@ -1,73 +1,13 @@
--#rails_admin-1.0 ready
-- totals = monitor_totals
-#usage-blocks.blocks.clearfix
-  #tasks-overview.col-sm-4
-    .block
-      .icon
-        %i.icon-tasks
-      .caption
-        %h4
-          -if (total = totals[:tasks][:total]) > 0
-            #{number_to_human(total)}
-          =t('admin.actions.dashboard.monitors.tasks')
-        -if (value = totals[:tasks][:failed]) > 0
-          - value = number_to_human(value)
-          - label = 'failed'
-        -elsif (value = totals[:tasks][:broken]) > 0
-          - value = number_to_human(value)
-          - label = 'broken'
-        -elsif (value = totals[:tasks][:unscheduled]) > 0
-          - value = number_to_human(value)
-          - label = 'unscheduled'
-        -elsif (value = totals[:tasks][:pending]) > 0
-          - value = number_to_human(value)
-          - label = 'pending'
-        -else
-          - value = 'All'
-          - label = 'good'
-        %h6 #{value} #{label}
-  #auths-overview.col-sm-4
-    .block
-      .icon
-        %i.icon-check
-      .caption
-        %h4
-          -if (total = totals[:auths][:total]) > 0
-            #{number_to_human(total)}
-          =t('admin.actions.dashboard.monitors.auths')
-        -if (value = totals[:auths][:unauthorized]) > 0
-          - value = number_to_human(value)
-          - label = 'unauthorized'
-        -else
-          - value = 'All'
-          - label = 'good'
-        %h6 #{value} #{label}
-  #notif-overview.col-sm-4
-    .block
-      .icon
-        %i.icon-bell
-      .caption
-        %h4
-          -if (total = totals[:notif][:total]) > 0
-            #{number_to_human(total)}
-          =t('admin.actions.dashboard.monitors.notif')
-        -if (value = totals[:notif][:error]) > 0
-          - value = number_to_human(value)
-          - label = 'errors'
-        -elsif (value = totals[:notif][:warning]) > 0
-          - value = number_to_human(value)
-          - label = 'warnings'
-        -else
-          - value = 'All'
-          - label = 'good'
-        %h6 #{value} #{label}
-#collections.blocks.clearfix
-  = collections_at_dashboard
-- if @abstract_models
-  .dashboard{'data-model-count': 0}
-    = dashboard_main
-- if @auditing_adapter && authorized?(:history_index)
-  #block-tables.block
-    .content
-      %h2= t("admin.actions.history_index.menu")
-      = render partial: 'rails_admin/main/dashboard_history'
+-if @dashboard_group_ref
+  - #Group Dashboard or Subdomain Dashboard
+  - if @abstract_models
+    .dashboard{'data-model-count': 0}
+      = dashboard_main
+  - if @auditing_adapter && authorized?(:history_index)
+    #block-tables.block
+      .content
+        %h2= t("admin.actions.history_index.menu")
+        = render partial: 'rails_admin/main/dashboard_history'
+-else
+  -# Home Page or General Dahsboard
+  = render partial: 'rails_admin/main/dashboard_home'

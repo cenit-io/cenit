@@ -8,6 +8,7 @@ module RailsAdmin
           rails_admin do
             navigation_label 'Configuration'
             weight 750
+            visible true
             object_label_method { :label }
 
             configure :binder_model, :model
