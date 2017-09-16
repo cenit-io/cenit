@@ -31,7 +31,7 @@
               %tr
                 %td
                   .section#left
-                    .pic
+                    .pic.integration_image
                       - integrations.each_with_index do |int, index|
                         - data = api_basic_data int
                         =image_tag data[:image], :alt => "#{data[:alt]}",:id =>"l_#{index}",:class => 'none img-responsive', width: "102", height: "71"
@@ -48,7 +48,7 @@
                   = image_tag 'arrow.png', style: 'height: 60px;margin: 20px;'
                 %td
                   .section#right
-                    .pic
+                    .pic.integration_image
                       - integrations.each_with_index do |int, index|
                         - data = api_basic_data int
                         =image_tag data[:image], :alt => "#{data[:alt]}",:id =>"r_#{index}", :class => 'none img-responsive', width: "102", height: "71"
