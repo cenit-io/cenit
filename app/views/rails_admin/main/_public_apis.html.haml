@@ -39,9 +39,8 @@
                   = image_tag 'arrow.png', style: 'height: 60px;margin: 20px;'
                 %td.hidden-xs
                   .section
-                    .pic
-                      =link_to dashboard_path, data: { no_turbolink: true } do
-                        = image_tag 'logo_cenitsaas_web.png', style: 'height: 50px;'
+                    .pic.integration_image
+                      = image_tag 'logo_cenitsaas_web.png', :alt => "Cenit IO", :class => 'none img-responsive', width: "102", height: "71"
                 %td.visible-xs
                   ='&nbsp;&nbsp;'.html_safe
                 %td.hidden-xs
