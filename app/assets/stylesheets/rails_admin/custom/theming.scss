@@ -16,6 +16,12 @@ body.rails_admin {
   padding-top: 55px !important;
 }
 
+h3, .h3 {
+  .nav-caption {
+    font-size: 18px;
+  }
+}
+
 .navbar-brand img {
   max-height: 100%;
   width: auto;
@@ -337,11 +343,17 @@ span.subdomain_link {
   font-size: 22px;
   padding-right: 5px;
   line-height: 22px;
+  i {
+    font-size: 14px;
+    margin-left: 5px;
+  }
 }
 
 div#subdomain-toggle {
   cursor: pointer;
   padding-left: 5px;
+  float: left;
+  padding: 15px 0;
 
   i.fa {
     transition: all 0.5s ease;
@@ -1319,9 +1331,6 @@ label {
 #collections {
   padding-left: 0;
   margin-top: 25px;
-  @media(min-width: 768px) {
-    padding-left: 35px;
-  }
   .collection {
     .pic {
       display: inline-block;
@@ -1393,6 +1402,11 @@ label {
 }
 
 .no-padding-right {
+  padding-right: 0 !important;
+}
+
+.no-padding-vert {
+  padding-left: 0 !important;
   padding-right: 0 !important;
 }
 
@@ -1673,11 +1687,16 @@ html {
 
 div#subdomain-panel {
   position: absolute;
-  top: 50px;
+  top: 100px;
+  @media(min-width: 1200px) {
+    top: 50px;
+  }
   background: white;
   padding: 0 25px;
   left: 30px;
-  min-width: 678px;
+  @media(min-width: 1200px) {
+    min-width: 678px;
+  }
   opacity: 1;
   transition: opacity .3s;
   border: 1px solid #ccc;
@@ -1874,17 +1893,14 @@ div#subdomain-panel {
   margin-top: 10px;
 }
 
+.integration_image {
+  max-width: 80% !important;
+}
+
 section#welcome_users {
   display: none;
   @media(min-width: 768px) {
     display: block;
-  }
-}
-
-#integration_list {
-  width: 100%;
-  @media(min-width: 1200px) {
-    width: 80%;
   }
 }
 
@@ -1974,11 +1990,11 @@ section#welcome_users {
       }
       &.last {
         margin-bottom: 0px !important;
-        left: -12px;
+        right: 0;
       }
       &.first {
         float: right;
-        left: 12px;
+        left: 0;
       }
       &.featured {
         min-height: 350px;
@@ -2589,4 +2605,17 @@ li.no-childrens {
     opacity: 0;
     transition: all 0.3s ease;
   }
+}
+
+.navbar-brand {
+  padding-right: 7px;
+}
+
+.exchange i {
+  font-size: 42px;
+  padding-top: 30px;
+}
+
+#integration_list {
+  margin-top: 25px;
 }
