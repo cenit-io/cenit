@@ -29,7 +29,7 @@ module Cenit
 
     def method_missing(symbol, *args, &block)
       symbol = symbol.to_s
-      if @__options__[:linking_algorithms] && (algorithm = @__algorithms__[symbol])
+      if (algorithm = @__algorithms__[symbol])
         if algorithm.is_a?(Proc)
           define_singleton_method(symbol, algorithm)
         else
@@ -103,9 +103,13 @@ module Cenit
       end
 
       def prefix(method, linker)
-        prefix = interpreter.instance_variable_get(:@__prefixes__)[linker.linker_id][method]
-        algorithms[prefix + method.to_s] = linker.link(method)
-        prefix
+        if options[:linking_algorithms]
+          prefix = interpreter.instance_variable_get(:@__prefixes__)[linker.linker_id][method]
+          algorithms[prefix + method.to_s] = linker.link(method)
+          prefix
+        else
+          ''
+        end
       end
 
       def bundle(symbol, algorithm)
