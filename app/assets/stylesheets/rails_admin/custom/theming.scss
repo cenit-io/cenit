@@ -337,11 +337,17 @@ span.subdomain_link {
   font-size: 22px;
   padding-right: 5px;
   line-height: 22px;
+  i {
+    font-size: 14px;
+    margin-left: 5px;
+  }
 }
 
 div#subdomain-toggle {
   cursor: pointer;
   padding-left: 5px;
+  float: left;
+  padding: 15px 0;
 
   i.fa {
     transition: all 0.5s ease;
@@ -2589,4 +2595,8 @@ li.no-childrens {
     opacity: 0;
     transition: all 0.3s ease;
   }
+}
+
+.navbar-brand {
+  padding-right: 7px;
 }

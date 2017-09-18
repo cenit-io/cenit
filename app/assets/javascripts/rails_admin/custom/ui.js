@@ -424,8 +424,11 @@ function registerEvents() {
     });
 
     $("#subdomain-toggle").off('click').on('click', function (e) {
+        e.stopPropagation();
+        e.stopImmediatePropagation();
         $("#subdomain-panel").toggleClass("collapsed");
-        $(this).toggleClass("toggled");
+        var $subdomain = $(e.target).parents().find('#subdomain-toggle');
+        $subdomain.toggleClass("toggled");
     });
 
     var $main_accordion = $('#main-accordion');
