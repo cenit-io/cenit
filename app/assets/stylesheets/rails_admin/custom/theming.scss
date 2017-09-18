@@ -16,6 +16,12 @@ body.rails_admin {
   padding-top: 55px !important;
 }
 
+h3, .h3 {
+  .nav-caption {
+    font-size: 18px;
+  }
+}
+
 .navbar-brand img {
   max-height: 100%;
   width: auto;
@@ -1872,6 +1878,10 @@ div#subdomain-panel {
 
 .try-integrations {
   margin-top: 10px;
+}
+
+.integration_image {
+  max-width: 80% !important;
 }
 
 section#welcome_users {

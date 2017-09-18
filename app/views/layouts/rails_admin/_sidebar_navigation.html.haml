@@ -5,9 +5,8 @@
     %span= 'We'
     %i.fa.fa-heart-o.fa-lg
     %span= 'Open Source'
-  - unless _current_user.present?
-    %br
-    .div
-      %iframe.col-sm-6{:frameborder => "0", :height => "20px", :scrolling => "0", :src => "https://ghbtns.com/github-btn.html?user=cenit-io&repo=cenit&type=star&count=true", :width => "170px"}
-      %iframe.col-sm-6{:frameborder => "0", :height => "20px", :scrolling => "0", :src => "https://ghbtns.com/github-btn.html?user=cenit-io&repo=cenit&type=fork&count=true", :width => "170px"}
-      %script{:async => "", :defer => "defer", :src => "https://buttons.github.io/buttons.js"}
+  %br
+  .div
+    %iframe.col-sm-6{:frameborder => "0", :height => "20px", :scrolling => "0", :src => "https://ghbtns.com/github-btn.html?user=cenit-io&repo=cenit&type=star&count=true", :width => "170px"}
+    %iframe.col-sm-6{:frameborder => "0", :height => "20px", :scrolling => "0", :src => "https://ghbtns.com/github-btn.html?user=cenit-io&repo=cenit&type=fork&count=true", :width => "170px"}
+    %script{:async => "", :defer => "defer", :src => "https://buttons.github.io/buttons.js"}
