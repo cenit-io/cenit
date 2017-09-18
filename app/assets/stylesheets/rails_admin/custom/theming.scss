@@ -1325,9 +1325,6 @@ label {
 #collections {
   padding-left: 0;
   margin-top: 25px;
-  @media(min-width: 768px) {
-    padding-left: 35px;
-  }
   .collection {
     .pic {
       display: inline-block;
@@ -1399,6 +1396,11 @@ label {
 }
 
 .no-padding-right {
+  padding-right: 0 !important;
+}
+
+.no-padding-vert {
+  padding-left: 0 !important;
   padding-right: 0 !important;
 }
 
@@ -1973,11 +1975,11 @@ section#welcome_users {
       }
       &.last {
         margin-bottom: 0px !important;
-        left: -12px;
+        right: 0;
       }
       &.first {
         float: right;
-        left: 12px;
+        left: 0;
       }
       &.featured {
         min-height: 350px;
