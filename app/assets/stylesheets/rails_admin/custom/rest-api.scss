@@ -34,6 +34,8 @@
     background-color: transparent;
     color: inherit;
     opacity: 0.5;
+    position: absolute;
+    right: 0;
 
     &:hover, &:active {
       opacity: 1;
@@ -41,6 +43,7 @@
   }
 
   .dropdown-menu {
+    top: 25px;
     li {
       a {
         @include request-methods();

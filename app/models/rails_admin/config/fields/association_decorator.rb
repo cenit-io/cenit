@@ -14,7 +14,7 @@ module RailsAdmin
             obj.instance_variable_get(:"@_#{association_method}") ||
               obj.instance_variable_set(:"@_#{association_method}", MongoffAssociation.new(obj.send(association_method), obj.class))
           else
-            @properties
+            @properties ||= abstract_model.associations.detect { |p| name == p.name }
           end
         end
 

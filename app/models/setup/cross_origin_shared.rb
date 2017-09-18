@@ -3,7 +3,7 @@ module Setup
     extend ActiveSupport::Concern
 
     include CenitScoped
-    include CrossOrigin::Document
+    include CrossOrigin::CenitDocument
     include Trackable
 
     included do

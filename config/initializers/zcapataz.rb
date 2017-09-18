@@ -3,6 +3,8 @@ Capataz.config do
 
   disable ENV['CAPATAZ_DISABLE']
 
+  maximum_iterations ENV['CAPATAZ_MAXIMUM_ITERATIONS'] || 3000
+
   deny_declarations_of :module, :class, :yield, :self, :def, :const, :ivar, :cvar, :gvar, :return
 
   deny_invoke_of :require, :new, :create, :class, :eval, :class_eval, :instance_eval, :instance_variable_set, :instance_variable_get, :constants, :const_get, :const_set, :constantize
@@ -14,7 +16,7 @@ Capataz.config do
                     Xmldsig, Xmldsig::SignedDocument, Zip, Zip::OutputStream, Zip::InputStream, StringIO, MIME::Mail, MIME::Text, MIME::Multipart::Mixed,
                     Spreadsheet, Spreadsheet::Workbook, Setup::Authorization, Setup::Connection, Devise, Cenit, JWT, Setup::XsltValidator, Setup::Translator,
                     Setup::Flow, WriteXLSX, MIME::DiscreteMediaFactory, MIME::DiscreteMedia, MIME::DiscreteMedia, MIME::Image, MIME::Application, DateTime,
-                    Tenant, Setup::SystemNotification, WickedPdf, Magick::Image, PDFKit, Tempfile, IMGKit
+                    Tenant, Setup::SystemNotification, WickedPdf, Magick::Image, PDFKit, Tempfile, IMGKit, Origami
 
   allow_on Setup::SystemNotification, :create_with
 
@@ -62,6 +64,8 @@ Capataz.config do
 
   allow_for ActionView::Base, [:escape_javascript, :j]
 
+  allow_on Setup::Task, [:current, :where, :all]
+
   allow_on Setup::Task::RUNNING_STATUS, [:include?]
 
   allow_on Setup::Task::NOT_RUNNING_STATUS, [:include?]
@@ -96,6 +100,8 @@ Capataz.config do
 
   allow_on IMGKit, [:image_from_html]
 
+  allow_on Origami, [:sign_pdf]
+
   allow_on WickedPdf, [:new_wickedpdf]
 
   allow_on Magick::Image, [:read]
@@ -115,7 +121,7 @@ Capataz.config do
 
   allow_for [Mongoid::Criteria, Mongoff::Criteria], Enumerable.instance_methods(false) + Origin::Queryable.instance_methods(false) + [:each, :present?, :blank?, :limit, :skip]
 
-  allow_for Setup::Task, [:status, :scheduler, :state, :resume_in, :run_again, :progress, :progress=, :update, :destroy, :notifications, :notify, :to_json, :share_json, :to_edi, :to_hash, :to_xml, :id, :current_execution, :sources]
+  allow_for Setup::Task, [:status, :scheduler, :state, :resume_in, :run_again, :progress, :progress=, :update, :destroy, :notifications, :notify, :to_json, :share_json, :to_edi, :to_hash, :to_xml, :id, :current_execution, :sources, :description]
 
   allow_for Setup::Scheduler, [:activated?, :name, :to_json, :share_json, :to_edi, :to_hash, :to_xml, :namespace]
 
@@ -129,7 +135,7 @@ Capataz.config do
         "#{action}_from#{format}"
       end
     end + [:create_from]
-  end + [:name, :slug, :to_json, :share_json, :to_edi, :to_hash, :to_xml, :to_params, :records_model, :namespace, :id, :ns_slug] + Setup::DataType::RECORDS_MODEL_METHODS).flatten
+  end + [:name, :slug, :to_json, :share_json, :to_edi, :to_hash, :to_xml, :to_params, :records_model, :namespace, :id, :ns_slug, :nil?, :title] + Setup::DataType::RECORDS_MODEL_METHODS).flatten
 
   deny_for [Setup::DynamicRecord, Mongoff::Record], ->(instance, method) do
     return false if [:id, :to_json, :share_json, :to_edi, :to_hash, :to_xml, :to_xml_element, :to_params, :from_json, :from_xml, :from_edi, :[], :[]=, :save, :all, :where, :orm_model, :nil?, :==, :errors, :destroy, :new_record?].include?(method)

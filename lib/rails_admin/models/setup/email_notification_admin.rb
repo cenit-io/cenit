@@ -7,11 +7,9 @@ module RailsAdmin
         included do
           rails_admin do
             object_label_method { :name }
+            navigation_label 'Workflows'
             label 'Email'
-            visible { User.current_super_admin? }
             weight 500
-
-            visible { User.current_super_admin? }
 
             configure :data_type, :contextual_belongs_to
 

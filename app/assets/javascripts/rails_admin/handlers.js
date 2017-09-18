@@ -149,6 +149,155 @@ function schedulerInit() {
     updateExpression();
 }
 
+function MySchedulerInit($this) {
+    var top_level = $this;
+
+    function zp(num) {
+        if (parseInt(num) > 9)
+            return num;
+        return '0' + num;
+    }
+
+    var date_start_input = top_level.find('#start_date');
+    var date_start = date_start_input.val();
+    date_start_input.datetimepicker({format: "YYYY-MM-DD", allowInputToggle: true});
+    date_start_input.val(date_start);
+
+    var time_start_input = top_level.find('#start_time');
+    var time_start = time_start_input.val();
+    time_start_input.datetimepicker({format: "HH:mm", allowInputToggle: true});
+    var t = time_start.split(':');
+    time_start_input.val(zp(t[0]) + ':' + zp(t[1]));
+
+    var date_end_input = top_level.find('#end_date');
+    var date_end = date_end_input.val();
+    date_end_input.datetimepicker({format: "YYYY-MM-DD", allowInputToggle: true});
+    date_end_input.val(date_end);
+
+    var freq_sel = top_level.find('#frequency');
+    top_level.addClass('selected-' + freq_sel.val());
+
+    top_level.find('.scheduler-opts a.btn').click(function (e) {
+        e.preventDefault();
+        $(this).toggleClass('btn-primary');
+        $(this).toggleClass('btn-default');
+    });
+
+    top_level.parents('form').on('submit', function () {
+        updateExpression();
+    });
+
+    freq_sel.change(function () {
+        var current = $(this).val();
+
+        for (var i = 0; i < 6; i++)
+            top_level.removeClass('selected-' + i);
+        top_level.addClass('selected-' + current);
+    });
+
+    function ensureInRange(val, min, max) {
+        if (!val)
+            return min;
+        var cur = parseInt(val);
+        if (cur < min)
+            return min;
+        else if (cur > max)
+            return max;
+        return cur;
+    }
+
+    var cyclic_num = $('#cyclic_num');
+    var cyclic_unit = $('#cyclic_unit');
+
+    function ensureMins() {
+        var min = 1;
+        var max = 1000;
+
+        if (cyclic_unit.val() == 'm') {
+            min = 20;
+            max = 110;
+        }
+
+        var val = parseInt(cyclic_num.val());
+        val = ensureInRange(val, min, max);
+        cyclic_num.val(val)
+    }
+
+    cyclic_num.on('input', ensureMins);
+    cyclic_unit.on('change', ensureMins);
+
+    $('#days_sl').on('change', function () {
+        $('#days_1').toggleClass('hidden');
+        $('#days_2').toggleClass('hidden');
+    });
+
+    $('#start_sl').on('change', function () {
+        $('#start_1').toggleClass('hidden');
+        $('#start_2').toggleClass('hidden');
+    });
+
+    $('#end_sl').on('change', function () {
+        $('#end_1').toggleClass('hidden');
+        $('#end_2').toggleClass('hidden');
+    });
+
+    function updateExpression() {
+        var res = {};
+
+        switch ($('#start_sl').val()) {
+            case "1":
+                res["start_at"] = date_start_input.val();
+        }
+
+        switch ($('#end_sl').val()) {
+            case "1":
+                res['end_at'] = date_end_input.val();
+                break;
+            case "2":
+                res['max_repeat'] = parseInt($("max_repeat").val());
+                break;
+        }
+
+        var level = parseInt(freq_sel.val());
+
+        if (level == 0) {
+            res["type"] = 'once';
+        } else if (level == 1) {
+            res["type"] = 'cyclic';
+            res["cyclic_expression"] = $('#cyclic_num').val() + ($('#cyclic_unit').val());
+        } else {
+            res["type"] = 'appointed';
+            var start_time = time_start_input.val();
+            res["hours"] = [parseInt(start_time.split(':')[0])];
+            res["minutes"] = [parseInt(start_time.split(':')[1])];
+
+            var dval = $("#days_sl").val();
+            if (dval == "1") {
+                res["weeks_days"] = _.filter(_.range(0, 7), function (e) {
+                    return $("#week_day_" + e).hasClass("btn-primary");
+                });
+
+                res["weeks_month"] = _.filter(_.range(0, 3), function (e) {
+                    return $("#weeks_monthly_at_" + e).hasClass("btn-primary");
+                });
+                res["last_week_in_month"] = $('#last_week_in_month').hasClass("btn-primary");
+            } else {
+                res["months_days"] = _.filter(_.range(0, 31), function (e) {
+                    return $("#months_day_" + e).hasClass("btn-primary");
+                });
+                res["last_day_in_month"] = $('#last_day_in_month').hasClass("btn-primary");
+            }
+
+            res["months"] = _.filter(_.range(1, 13), function (e) {
+                return $("#month_" + e).hasClass("btn-primary");
+            });
+        }
+        $("#setup_scheduler_expression").val(JSON.stringify(res));
+    }
+
+    updateExpression();
+}
+
 function algorithmInit() {
     var output_store = $('#setup_algorithm_store_output');
     var output_datatype_field = $('#setup_algorithm_output_datatype_id_field');
@@ -284,7 +433,6 @@ function cenitOauthScopeInit() {
     })
 }
 
-
 function graphicsInit() {
     $('select.input-sm', '.graphics-controls').on('change', function (e) {
         graphic_control_change(e);
@@ -400,7 +548,14 @@ function handlerInit() {
     console.log("Initializing handlers");
 
     if ($('#setup_scheduler_expression_field').length > 0)
-        schedulerInit();
+    //  schedulerInit();
+
+        if ($('.scheduler_type').length > 0) {
+            $('.scheduler_type').each(function () {
+                MySchedulerInit($(this))
+            })
+        }
+
 
     if ($('#setup_algorithm_store_output').length > 0)
         algorithmInit();
@@ -435,10 +590,24 @@ function handlerInit() {
 
     $('#main-accordion .nav-stacked').on('shown.bs.collapse', updateModelCountOneByOne);
 
+    updateModelCountOneByOneNoChild();
+
     if ($('.dashboard table').length > 0)
         updateDashboardCount();
+
+    if ($('#integration_list').length > 0) {
+        setInterval(function () {
+            getApiCouple();
+        }, 1000);
+    }
+
 }
 // Side Menu Bar Update Model Counts Functions
+
+function updateModelCountOneByOneNoChild() {
+    $cenit_submenu_children = $('#main-accordion >li.no-childrens');
+    requestModelCount();
+}
 
 function updateModelCountOneByOne(e) {
     e.stopPropagation();
@@ -448,9 +617,11 @@ function updateModelCountOneByOne(e) {
 function requestModelCount() {
     var array_of_children = $cenit_submenu_children.toArray();
     if (array_of_children.length > 0) {
-        var $this = $(array_of_children.shift());
+        var $this = $(array_of_children.shift()), model = $this.data('model');
         $cenit_submenu_children = $(array_of_children);
-        getModelCountOneByOne($this, $this.data('model'), $this.data('origins'), $this.data('ext'));
+        if (model != undefined) {
+            getModelCountOneByOne($this, $this.data('model'), $this.data('origins'), $this.data('ext'));
+        }
     }
 }
 function getModelCountOneByOne($element, model_name, origins, ext) {
@@ -773,5 +944,24 @@ function update_dashboard_model_percents() {
     });
 }
 
+// to show Random Apis couples at Home pages
 
+function getRandomIndex() {
+    var min = 0,
+        max = $('#integration_list #left img').length;
+    return parseInt(Math.random() * (max - min) + min);
+}
+function getApiCouple() {
+    var lIndex = getRandomIndex(),
+        rIndex = getRandomIndex();
+    while (lIndex == rIndex) {
+        rIndex = getRandomIndex();
+    }
+    showApi('left', lIndex);
+    showApi('right', rIndex);
+}
+function showApi(container_class, index) {
+    $('#' + container_class).find("img.block").removeClass("block").addClass("none");
+    $('#' + container_class + '  img:eq(' + index + ')').removeClass("none").addClass("block");
+}
 

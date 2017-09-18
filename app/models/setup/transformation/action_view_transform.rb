@@ -59,7 +59,7 @@ module Setup
             rb << match_2.strip.gsub(/\n/, ';').squeeze(';') + " ; #{mark}"
             match_1 + mark + match_3
           end
-          rb_src = rb.join("\r\n")
+          rb_src = rb.join("\n")
           lcls = options.keys.to_a + marks
           rw = Capataz.rewrite(rb_src, locals: lcls)
           rw = rw.split(/\n/)[(lcls.length)..-1]

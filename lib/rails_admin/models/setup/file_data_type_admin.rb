@@ -14,6 +14,15 @@ module RailsAdmin
 
             configure :namespace, :enum_edit
 
+            configure :file_store, :enum do
+              enum do
+                ::Cenit.file_stores.map { |fs| [fs.label, fs] }.to_h
+              end
+              visible do
+                ::Cenit.file_stores.count > 1
+              end
+            end
+
             group :content do
               label 'Content'
             end
@@ -93,6 +102,7 @@ module RailsAdmin
               field :slug
               field :validators
               field :schema_data_type
+              field :file_store
               field :storage_size
               field :updated_at
             end
@@ -103,6 +113,7 @@ module RailsAdmin
               field :id_type
               field :slug
               field :validators
+              field :file_store
               field :storage_size
               field :schema_data_type
 

@@ -64,6 +64,12 @@ class Ability
         can :simple_cross, CROSSING_MODELS_WITH_ORIGIN, :origin.in => [:default, :owner]
       end
 
+      can [:index, :show], Setup::FileStoreConfig
+
+      if user.roles.any? { |role| Cenit.file_stores_roles.include?(role.name) }
+        can :edit, Setup::FileStoreConfig
+      end
+
       can root_actions
 
       can :destroy, Setup::Execution, :status.in => Setup::Task::FINISHED_STATUS
@@ -199,7 +205,8 @@ class Ability
           Setup::FlowConfig,
           Setup::ConnectionConfig,
           Setup::Pin,
-          Setup::Binding
+          Setup::Binding,
+          Setup::Parameter
         ]
     end
   end

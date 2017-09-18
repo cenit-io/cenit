@@ -172,6 +172,8 @@ module RailsAdmin
 
       navigation_label { target.data_type.namespace }
 
+      navigation_icon { target.schema['icon'] }
+
       object_label_method do
         @object_label_method ||=
           if target.labeled?
@@ -185,6 +187,14 @@ module RailsAdmin
         group key do
           label name
         end
+      end
+    end
+
+    def dashboard_group_path
+      if target.data_type.is_a?(Setup::JsonDataType)
+        %w(data objects)
+      else
+        %w(data files)
       end
     end
 

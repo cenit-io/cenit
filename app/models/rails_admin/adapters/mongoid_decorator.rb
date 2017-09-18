@@ -1,3 +1,4 @@
+# rails_admin-1.0 ready
 require 'rails_admin/adapters/mongoid'
 
 module RailsAdmin
@@ -95,10 +96,16 @@ module RailsAdmin
       def associations
         model.relations.values.collect do |association|
           RailsAdmin::Adapters::Mongoid::Association.new(association, model)
-        end + config.extra_associations
+        end + #Patch
+          if (model_config = config.ready)
+            model_config.extra_associations
+          else
+            []
+          end
       end
 
       def query_conditions(query, fields = nil)
+        #Patch
         statements = []
         if fields.nil? && model.is_a?(Class) && model < Setup::ClassHierarchyAware
           model.class_hierarchy.each do |model|
@@ -146,6 +153,19 @@ module RailsAdmin
         else
           {}
         end
+      end
+
+      def get(id)
+        #Patch
+        return nil unless (obj = model.find(id))
+        RailsAdmin::Adapters::Mongoid::AbstractObject.new(obj)
+      rescue => e
+        raise e if %w(
+          Mongoid::Errors::DocumentNotFound
+          Mongoid::Errors::InvalidFind
+          Moped::Errors::InvalidObjectId
+          BSON::InvalidObjectId
+        ).exclude?(e.class.to_s)
       end
 
       def properties

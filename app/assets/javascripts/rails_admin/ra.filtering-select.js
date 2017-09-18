@@ -105,7 +105,7 @@
                     .appendTo(ul);
             };
 
-            var button = this.button = $('<span class="input-group-btn"><button class="btn btn-info dropdown-toggle" data-toggle="dropdown" aria-expanded="false" title="Show All Items" role="button"><span class="caret"></span><span class="ui-button-text">&nbsp;</span></button></span>')
+            var button = this.button = $('<span class="input-group-btn"><label class="btn btn-info dropdown-toggle" data-toggle="dropdown" aria-expanded="false" title="Show All Items" role="button"><span class="caret"></span><span class="ui-button-text">&nbsp;</span></label></span>')
                 .click(function () {
                     if (select.prop('disabled')) return;
                     // close if already visible
