@@ -29,7 +29,7 @@ module Cenit
 
     def method_missing(symbol, *args, &block)
       symbol = symbol.to_s
-      if @__options__[:linking_algorithms] && (algorithm = @__algorithms__[symbol])
+      if (algorithm = @__algorithms__[symbol])
         if algorithm.is_a?(Proc)
           define_singleton_method(symbol, algorithm)
         else
@@ -143,8 +143,8 @@ module Cenit
                                              locals: locals,
                                              self_linker: options[:self_linker] || algorithm.self_linker || algorithm,
                                              self_send_prefixer: self,
-                                             iteration_counter_prefix: "@alg#{algorithm.id}_it",
-                                             invoke_counter_prefix: "@alg#{algorithm.id}_invk")
+                                             iteration_counter_prefix: "alg#{algorithm.id}_it",
+                                             invoke_counter_prefix: "alg#{algorithm.id}_invk")
       end
 
       def bundled_javascript_code(algorithm)

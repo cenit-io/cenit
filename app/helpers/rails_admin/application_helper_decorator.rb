@@ -778,7 +778,7 @@ module RailsAdmin
       '<div class="col-md-2 col-sm-3">
         <a href="'+url_show+'" title="'+ c.name+'">
           <div class="section">
-            <div class="pic">'+image+'
+            <div class="pic integration_image">'+image+'
             </div>
           </div>
         </a>

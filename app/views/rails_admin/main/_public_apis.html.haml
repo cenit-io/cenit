@@ -4,18 +4,18 @@
     .col-md-offset-1.col-md-10
       .row.header
         %h3
-          = 'Need an easy way to connect your businesswith'
-          = link_to 'Public APIs', '/open_api_directory', data: { no_turbolink: true }
+          = 'Need an easy way to connect your business with'
+          = link_to 'Cloud Services', '/open_api_directory', data: { no_turbolink: true }
           ='?'
         %p
-          ='Cenit is the perfect tool to help you out.'
+          ='Cenit IO is the perfect tool to help you out.'
           = link_to 'Get in touch', '#contact_us',class: 'item contact-modal',data: { toggle: 'modal', backdrop: 'false' }
         %br
         .col-md-offset-2.col-md-8.centered
           -query = params[:query]
           -shared_path = index_path(model_name: "cross_shared_collection", query: query)
           =form_tag(shared_path, method: :get) do
-            =text_field_tag "query", @name, placeholder: "Search...", class: "form-control"
+            =text_field_tag "query", @name, placeholder: "Search on more than 275+ Shared Collections", class: "form-control"
           .try-integrations
             ='Try'
             = integration_sample

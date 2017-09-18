@@ -430,7 +430,7 @@ module Setup
         end - (scope_symbol ? 1 : 0)
       translation_options = nil
       connections_present = true
-      0.step(by: limit, to: max - 1) do |offset|
+      0.step(max, limit) do |offset|
         next unless connections_present
         verbose_response =
           webhook.target.with(connection_role).and(authorization).submit ->(template_parameters) {

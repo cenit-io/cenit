@@ -6,6 +6,7 @@ module RailsAdmin
 
         included do
           rails_admin do
+            navigation_label 'Security'
             weight 331
             register_instance_option :label_navigation do
               'Basic'

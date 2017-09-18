@@ -2,7 +2,13 @@
 - query = params[:query]
 #main-dashboard
   %section#welcome_users
-    .container
+    .container.text-center
+      .row
+        .col-md-offset-1.col-md-10
+          .row.header
+            %h3='The most open Platform for Data and Business Integration'
+            %h4='Enables a complete business automation of all operational processes in a company'
+            %br
       .row
         - page_slug = @page_name.parameterize
         - flash && flash.each do |key, value|
