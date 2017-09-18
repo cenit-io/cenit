@@ -656,7 +656,7 @@ module RailsAdmin
                 <span class='nav-caret'><i class='fa fa-caret-down'></i></span>
                 #{
       options[:just_li] ?
-        '<span class="nav-icon"><i class="fa fa-book" title="'+ t('admin.actions.open_api_directory.menu') +'"></i></span>' :
+        '<span class="nav-icon"><i class="fa fa-list" title="'+ t('admin.actions.open_api_directory.menu') +'"></i></span>' :
         ''
       }
                 <span class='nav-caption'>#{t('admin.actions.open_api_directory.menu')}</span>
@@ -693,7 +693,7 @@ module RailsAdmin
         if index%2 == 0
           html += '<div class="clearfix visible-xs-block"></div>'
         end
-        html += '<div class="col-xs-6 col-sm-4 col-md-3">'
+        html += '<div class="col-xs-12 col-sm-4 col-md-3">'
         models = g[:sublinks]
         unless models.empty?
           html += '<ul>'

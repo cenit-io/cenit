@@ -9,6 +9,7 @@ module RailsAdmin
             weight 010
             label 'Shared Collection'
             navigation_label 'Collections'
+            navigation_icon 'fa fa-list'
             object_label_method :versioned_name
 
             public_access true

@@ -1681,11 +1681,16 @@ html {
 
 div#subdomain-panel {
   position: absolute;
-  top: 50px;
+  top: 100px;
+  @media(min-width: 1200px) {
+    top: 50px;
+  }
   background: white;
   padding: 0 25px;
   left: 30px;
-  min-width: 678px;
+  @media(min-width: 1200px) {
+    min-width: 678px;
+  }
   opacity: 1;
   transition: opacity .3s;
   border: 1px solid #ccc;

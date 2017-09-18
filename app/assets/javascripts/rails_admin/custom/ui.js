@@ -365,7 +365,10 @@ function registerEvents() {
             $('#tenant-menu').css('display', 'none');
         }
         if (($target.parents('#subdomain-toggle').length == 0) && ($target.parents('#subdomain-panel').length == 0) && ($target.attr('id') != "subdomain-toggle") && ($target.parents('.popover-navigation').length == 0)) {
-            $('#subdomain-panel').addClass('collapsed');
+            if (!$('#subdomain-panel').hasClass('collapsed')) {
+                $('#subdomain-panel').addClass('collapsed');
+                $('#subdomain-toggle').toggleClass("toggled");
+            }
         }
     });
 
