@@ -6,7 +6,7 @@ module Setup
 
         def run(options = {})
           options[:pdf] = PrawnRails::Document.new
-          Cenit::BundlerInterpreter.run_code("#{options[:code]};pdf.render;", options, self_linker: options[:translator])
+          Cenit::BundlerInterpreter.run_code("#{options[:code]}\npdf.render;", options, self_linker: options[:translator])
         end
 
       end
