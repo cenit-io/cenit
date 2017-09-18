@@ -103,9 +103,13 @@ module Cenit
       end
 
       def prefix(method, linker)
-        prefix = interpreter.instance_variable_get(:@__prefixes__)[linker.linker_id][method]
-        algorithms[prefix + method.to_s] = linker.link(method)
-        prefix
+        if options[:linking_algorithms]
+          prefix = interpreter.instance_variable_get(:@__prefixes__)[linker.linker_id][method]
+          algorithms[prefix + method.to_s] = linker.link(method)
+          prefix
+        else
+          ''
+        end
       end
 
       def bundle(symbol, algorithm)
