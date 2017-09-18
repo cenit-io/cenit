@@ -29,7 +29,7 @@ module Cenit
 
     def method_missing(symbol, *args, &block)
       symbol = symbol.to_s
-      if @__options__[:linking_algorithms] && (algorithm = @__algorithms__[symbol])
+      if (algorithm = @__algorithms__[symbol])
         if algorithm.is_a?(Proc)
           define_singleton_method(symbol, algorithm)
         else
