@@ -373,11 +373,15 @@ RailsAdmin.config do |config|
 
   Setup::CenitDataType
 
+  #Gateway
+
+  config.navigation 'Gateway', icon: 'fa fa-hdd-o'
+
+  Setup::ApiSpec
+
   #Connectors
 
   config.navigation 'Connectors', icon: 'fa fa-plug'
-
-  Setup::ApiSpec
 
   Setup::Connection
 
