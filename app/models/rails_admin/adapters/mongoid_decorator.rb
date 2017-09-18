@@ -172,7 +172,12 @@ module RailsAdmin
         fields = model.fields.reject { |_name, field| RailsAdmin::Adapters::Mongoid::DISABLED_COLUMN_TYPES.include?(field.type.to_s) }
         fields.collect do |_name, field|
           RailsAdmin::Adapters::Mongoid::Property.new(field, model)
-        end + config.extra_associations
+        end +
+          if (model_config = config.ready)
+            model_config.extra_associations
+          else
+            []
+          end
       end
     end
   end
