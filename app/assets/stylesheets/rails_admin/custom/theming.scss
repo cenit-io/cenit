@@ -1887,13 +1887,6 @@ section#welcome_users {
   }
 }
 
-#integration_list {
-  width: 100%;
-  @media(min-width: 1200px) {
-    width: 80%;
-  }
-}
-
 #home_content {
   @media(min-width: 768px) {
     margin-top: 47px;
@@ -2599,4 +2592,13 @@ li.no-childrens {
 
 .navbar-brand {
   padding-right: 7px;
+}
+
+.exchange i {
+  font-size: 42px;
+  padding-top: 30px;
+}
+
+#integration_list {
+  margin-top: 25px;
 }

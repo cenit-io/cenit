@@ -15,7 +15,7 @@
           -query = params[:query]
           -shared_path = index_path(model_name: "cross_shared_collection", query: query)
           =form_tag(shared_path, method: :get) do
-            =text_field_tag "query", @name, placeholder: "Search 900+ APPs", class: "form-control"
+            =text_field_tag "query", @name, placeholder: "Search...", class: "form-control"
           .try-integrations
             ='Try'
             = integration_sample
@@ -23,35 +23,38 @@
         .blocks.clearfix{ id: 'collections' }
           = collections_at_dashboard
       -else
-        .col-sm-offset-1.col-md-offset-1.col-lg-offset-2
-          - if integrations.count >= 2
-            %br
-            %br
-            %table#integration_list
-              %tr
-                %td
-                  .section#left
-                    .pic
-                      - integrations.each_with_index do |int, index|
-                        - data = api_basic_data int
-                        =image_tag data[:image], :alt => "#{data[:alt]}",:id =>"l_#{index}",:class => 'none img-responsive', width: "102", height: "71"
-                %td.hidden-xs
-                  = image_tag 'arrow.png', style: 'height: 60px;margin: 20px;'
-                %td.hidden-xs
-                  .section
-                    .pic
-                      =link_to dashboard_path, data: { no_turbolink: true } do
-                        = image_tag 'logo_cenitsaas_web.png', style: 'height: 50px;'
-                %td.visible-xs
-                  ='&nbsp;&nbsp;'.html_safe
-                %td.hidden-xs
-                  = image_tag 'arrow.png', style: 'height: 60px;margin: 20px;'
-                %td
-                  .section#right
-                    .pic
-                      - integrations.each_with_index do |int, index|
-                        - data = api_basic_data int
-                        =image_tag data[:image], :alt => "#{data[:alt]}",:id =>"r_#{index}", :class => 'none img-responsive', width: "102", height: "71"
+        .row
+          .col-md-12.centered
+            - if integrations.count >= 2
+              %br
+              %br
+              #integration_list
+                .col-sm-3.no-padding-right.col-xs-6
+                  .col-sm-4
+                  .col-sm-8.no-padding-left
+                    .section#left
+                      .pic
+                        - integrations.each_with_index do |int, index|
+                          - data = api_basic_data int
+                          =image_tag data[:image], :alt => "#{data[:alt]}",:id =>"l_#{index}",:class => 'none img-responsive', width: "102", height: "71"
+                .col-sm-6.no-padding-right.no-padding-left.hidden-xs
+                  .col-md-4.col-sm-3.exchange.text-center
+                    = content_tag :i,'', class: 'fa fa-exchange'
+                  .col-md-4.col-sm-6
+                    =link_to dashboard_path, data: { no_turbolink: true } do
+                      .section
+                        .pic
+                          = image_tag 'logo_cenitsaas_web.png',class: 'img-responsive'
+                  .col-md-4.col-sm-3.exchange.text-center
+                    = content_tag :i,'', class: 'fa fa-exchange'
+                .col-sm-3.no-padding-left.col-xs-6
+                  .col-sm-8.no-padding-right
+                    .section#right
+                      .pic
+                        - integrations.each_with_index do |int, index|
+                          - data = api_basic_data int
+                          =image_tag data[:image], :alt => "#{data[:alt]}",:id =>"r_#{index}", :class => 'none img-responsive', width: "102", height: "71"
+                  .col-sm-4
         - if integrations.count > 0
           .row.sections.hidden-xs
             - integrations.each_with_index do |int, index|
