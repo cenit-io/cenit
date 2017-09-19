@@ -12,7 +12,7 @@
       - anonymous = current_user ? 'false' : 'true'
       - dashboard_root =  @action.is_a?(RailsAdmin::Config::Actions::Dashboard) && params[:group].blank?
 
-      %a#take-tour{'href'=> '#', data:{anonymous: anonymous , 'dashboard-root': dashboard_root.to_s}}
+      %a.take-tour{'href'=> '#', data:{anonymous: anonymous , 'dashboard-root': dashboard_root.to_s}}
         %i.fa.fa-fw.fa-bus{title: t('admin.misc.tour')}
         %span=t('admin.misc.tour')
     %li

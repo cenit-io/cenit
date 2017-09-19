@@ -303,7 +303,7 @@ function render_graphic($form, selector) {
 }
 function registerEvents() {
 
-    $('#take-tour').click(function (e) {
+    $('.take-tour').click(function (e) {
         e.preventDefault();
         var $this = $(this),
             anonymous = $this.attr('data-anonymous'),
