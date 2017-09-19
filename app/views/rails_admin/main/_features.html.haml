@@ -2,45 +2,43 @@
   .row
     .col-md-offset-1.col-md-10
       .row.header
-        %h3='Open Source Hub for Data and Business Integrations'
+        %h3='Integration Platform as a Service (iPaaS)'
       .row
+        .col-md-4.col-sm-6.feature
+          = image_tag 'circle-icons/one-color/support.png', :alt => 'locked'
+          %strong
+            = 'Backendless'
+          %p
+            = 'After create a new Data Type using a JSON Schema is generated on the fly a complete REST API and a CRUD UI to manage the data. Useful for mobile backend and API services.'
         .col-md-4.col-sm-6.feature
           = image_tag 'circle-icons/one-color/traffic.png', :alt => 'globe'
           %strong
-            = 'A rich Router logic'
+            = 'Routing and orchestration'
           %p
-            = 'Can upload your documents and make custom Flows to redirect and transform messages from Hub to severals endpoints'
+            = 'Enables to create multistep integration flows by composing atomic integration functionality (such as connection, transformation, data event, schedule, webhook and flow).'
+        .clearfix.visible-sm-block
         .col-md-4.col-sm-6.feature
           = image_tag 'circle-icons/one-color/stack.png', :alt => 'creditcard'
           %strong
-            = 'Support multiple kind of Schemas'
-          %p= 'Does registrations with Json Schema, XML Schema or EDI Grammar: ASC X12, EDIFACT, etc. That allow exchange different kind of documents and validate with schemas.'
-        .clearfix.visible-sm-block
+            = 'Data integration'
+          %p= 'Includes data validation, transformation, mapping, and data quality. Exchange support for multiple data formats (JSON, XML, ASN) and data standards (EDIFACT, X12, UBL).'
+        .clearfix.visible-md-block.visible-lg-block
+        .col-md-4.col-sm-6.feature
+          = image_tag 'circle-icons/one-color/trends.png', :alt => 'support'
+          %strong
+            ='Integration scenarios'
+          %p
+            = 'Cloud Service Integration, for Publication and Management of APIs,  Mobile Application Integration, to support Business to Business, Application and Data Integration needs.'
         .col-md-4.col-sm-6.feature
           = image_tag 'circle-icons/one-color/globe.png', :alt => 'dev'
           %strong
             = 'Third party service integrations'
           %p
-            = 'Connection out of the box with many third party service: ERP / CRM / Fulfilment / Accounting / Customer Services / Payment Processing / Marketing / Communication ... '
-        .clearfix.visible-md-block.visible-lg-block
-        .col-md-4.col-sm-6.feature
-          = image_tag 'circle-icons/one-color/trends.png', :alt => 'support'
-          %strong
-            ='Commerce Data'
-          %p
-            = 'Process objects that are Data representation of real-world commerce information such as Customers, Orders, Shipments, Products, Payments, ...'
-        .clearfix.visible-sm-block
+            = 'Directory for OpenAPI Spec (Swagger) and Shared Collections - social feature to share integration settings - to connect services as ERP / Fulfilment / Marketing / Communication.'
         .col-md-4.col-sm-6.feature
           = image_tag 'circle-icons/one-color/unlocked.png', :alt => 'mail'
           %strong
             ='Free account'
-          %p= 'Tenant without limit in use, complete access to configuration Setup and 5 GB space. Only pay a $0.5 fee by successful commercial transactions.'
-        .col-md-4.col-sm-6.feature
-          = image_tag 'circle-icons/one-color/support.png', :alt => 'locked'
-          %strong
-            = 'Community friendly'
-          %p
-            = "100% Open Source Code. Available on"
-            = link_to('github', 'https://github.com/openjaf/cenit')
-            = 'to grow together in community. Social approach for sharing collections available to any user.'
+          %p= 'A tenant without limit in use, complete features access available. Only pay a $0.5 USD fee by transactions when involve commerce data such as: Order, Purchase, Shipment, Payment.'
+        .clearfix.visible-sm-block
         .clearfix.visible-md-block.visible-lg-block
