@@ -192,7 +192,7 @@ var
         ]
     }),
     anonymous_tour_at_home = new Tour({
-        name: 'anonymous at home',
+        name: 'anonymous_at_home',
         steps: [
             tour_steps.welcome,
             tour_steps.collections,
@@ -254,9 +254,12 @@ function getAbsolute() {
     return outer > inner;
 }
 function openNavigator() {
-    var $subdomain_panel = $('#subdomain-panel');
-    if ($subdomain_panel.hasClass('collapsed')) {
-        $("#subdomain-toggle").trigger('click');
+    var $subdomain_panel;
+    if ($('#main-dashboard').length == 0) {
+        $subdomain_panel = $('#subdomain-panel');
+        if ($subdomain_panel.hasClass('collapsed')) {
+            $("#subdomain-toggle").trigger('click');
+        }
     }
 }
 function toggle_collapse(id) {
