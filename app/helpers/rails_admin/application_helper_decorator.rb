@@ -724,6 +724,42 @@ module RailsAdmin
       html.html_safe
     end
 
+    def dashboard_primary_xs()
+      groups = RailsAdmin::Config.dashboard_groups
+      html = '<ul class="nav navbar-nav movil_links">'
+      groups.each_with_index do |g, index|
+        html += ''
+        models = g[:sublinks]
+        unless models.empty?
+          html+= '<li class="dropdown"><a class="dropdown-toggle" id="'+ "xstg_#{g[:label].underscore.gsub(' ', '_')}" +'" href="#" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false"><i class="'+ g[:icon] +'"></i>'+ g[:label] +'<span class="caret"></span></a>'
+          html+= '<ul class="dropdown-menu">'
+          html+= '<li><a id="'+ "xsg_#{g[:label].underscore.gsub(' ', '_')}" +'" href="/' + g[:param] +'/dashboard"><span>'+ 'Dashboard' +'</span></a><li>'
+          models.each do |m|
+            if m.is_a?(Hash)
+              if (link = m[:link])
+                if (rel_link = link[:rel])
+                  model_url = "/#{rel_link}"
+                end
+                if (ext_link = link[:external])
+                  model_url = "#{ext_link}"
+                end
+              else
+                model_url = "/#{m[:param]}/dashboard"
+              end
+              html+= '<li><a id="'+ "xsl_#{m[:label].underscore.gsub(' ', '_')}" +'" href="'+ model_url +'" target="'+ open_in_new_tab(g, m[:param])+'"><span>'+m[:label]+'</span></a></li>'
+            elsif (abstract_model = (model = RailsAdmin::Config.model(m)).abstract_model)
+              model_url = url_for(action: :index, controller: 'rails_admin/main', model_name: abstract_model.to_param)
+              html+= '<li><a id="'+"l_#{model.label_plural.underscore.gsub(' ', '_')}"+'"href="'+ model_url +'" target="'+ open_in_new_tab(g, m)+'"><span>'+model.label_plural+'</span></a></li>'
+            end
+          end
+          html += '</ul></li>'
+        end
+
+      end
+      html += '</ul>'
+      html.html_safe
+    end
+
     def dashboard_main()
       nodes_stack = @model_configs.values.sort_by(&:weight)
       node_model_names = @model_configs.values.collect { |config| config.abstract_model.model_name }

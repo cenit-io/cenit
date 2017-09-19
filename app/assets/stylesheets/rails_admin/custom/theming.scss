@@ -293,7 +293,10 @@ ul.drawer li a span {
 }
 
 #content-wrapper {
-  width: calc(100% - 250px);
+  width: calc(100% - 50px);
+  @media(min-width: 992px) {
+    width: calc(100% - 250px);
+  }
   background: #fff;
   position: fixed;
   padding: 10px 15px 15px;
@@ -1687,7 +1690,7 @@ html {
 
 div#subdomain-panel {
   position: absolute;
-  top: 100px;
+  top: 50px;
   @media(min-width: 1200px) {
     top: 50px;
   }
@@ -2803,5 +2806,48 @@ footer {
       text-align: center;
       color: #A1AAB6;
     }
+  }
+}
+
+ul.nav.navbar-nav.movil_links {
+  @media(min-width: 768px) {
+    display: none;
+  }
+}
+
+.xs-menu {
+  background: #f8f8f8;
+
+  .navbar-nav {
+    > li > a {
+      i {
+        color: black;
+        margin-right: 18px;
+
+      }
+    }
+    .caret {
+      color: black;
+      float: right;
+      margin-top: 9px;
+      display: inline-block;
+    }
+    .open {
+      .dropdown-menu > li > a {
+        padding: 7px 48px;
+        color: #0E82AF;
+        &:hover {
+          color: black;
+        }
+      }
+    }
+  }
+}
+
+button#model-nav-xs {
+  color: #ddd;
+  line-height: 1;
+  :hover {
+    color: black;
   }
 }

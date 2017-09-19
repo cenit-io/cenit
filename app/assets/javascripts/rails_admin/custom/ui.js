@@ -400,7 +400,7 @@ function registerEvents() {
         $('[name="enable_chart"]').val('true');
     });
 
-    $("#sidebar-toggle").click(function (e) {
+    $("#sidebar-toggle").off('click').on('click', function (e) {
         e.preventDefault();
 
         var $content_wrapper = $("#content-wrapper"),
