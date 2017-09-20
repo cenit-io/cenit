@@ -1744,7 +1744,9 @@ div#subdomain-panel {
 
 #main-dashboard {
   section {
-    padding: 35px 0;
+    @media(min-width: 768px) {
+      padding: 35px 0;
+    }
 
     &:nth-child(odd) {
       background: #f9f9f9;;
@@ -2837,11 +2839,12 @@ ul.nav.navbar-nav.movil_links {
       .dropdown-menu > li > a {
         padding: 7px 48px !important;
         color: #0E82AF;
-        text-transform: capitalize;
         &:hover {
           color: black;
         }
-        i{display: none;}
+        i {
+          display: none;
+        }
       }
     }
   }
