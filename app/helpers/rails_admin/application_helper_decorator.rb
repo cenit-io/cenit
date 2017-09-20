@@ -106,8 +106,8 @@ module RailsAdmin
     def tasks_link
       _, abstract_model, index_action = linking(Setup::Task)
       return nil unless index_action
-      link_to url_for(action: index_action.action_name, model_name: abstract_model.to_param, controller: 'rails_admin/main'), class: 'pjax' do
-        html = '<i class="icon-tasks" title="Tasks" rel="tooltip"/></i>'
+      link_to url_for(action: index_action.action_name, model_name: abstract_model.to_param, controller: 'rails_admin/main'), class: home_page? ? '' : 'pjax' do
+        html = "<i class='icon-tasks' title='#{abstract_model.config.label_plural}' rel='tooltip'/></i>"
         #...
         html.html_safe
       end
@@ -116,8 +116,8 @@ module RailsAdmin
     def storage_link
       _, abstract_model, index_action = linking(Setup::Storage)
       return nil unless index_action
-      link_to url_for(action: index_action.action_name, model_name: abstract_model.to_param, controller: 'rails_admin/main'), class: 'pjax' do
-        html = '<i class="icon-hdd" title="Storages" rel="tooltip"/></i>'
+      link_to url_for(action: index_action.action_name, model_name: abstract_model.to_param, controller: 'rails_admin/main'), class: home_page? ? '' : 'pjax' do
+        html = "<i class='icon-hdd' title='#{abstract_model.config.label_plural}' rel='tooltip'/></i>"
         html.html_safe
       end
     end
@@ -125,8 +125,8 @@ module RailsAdmin
     def authorizations_link
       _, abstract_model, index_action = linking(Setup::Authorization)
       return nil unless index_action
-      link_to url_for(action: index_action.action_name, model_name: abstract_model.to_param, controller: 'rails_admin/main'), class: 'pjax' do
-        html = '<i class="icon-check"  title="Authorizations" rel="tooltip"></i>'
+      link_to url_for(action: index_action.action_name, model_name: abstract_model.to_param, controller: 'rails_admin/main'), class: home_page? ? '' : 'pjax' do
+        html = "<i class='icon-check' title='#{abstract_model.config.label_plural}' rel='tooltip'></i>"
         if (unauthorized_count = Setup::Authorization.where(authorized: false).count) > 0
           label_html = <<-HTML
             <b class="label rounded label-xs success up" style='border-radius: 500px;
@@ -149,8 +149,8 @@ module RailsAdmin
       account, abstract_model, index_action = linking(Setup::SystemNotification)
       return nil unless index_action
       all_links =[]
-      bell_link = link_to url_for(action: index_action.action_name, model_name: abstract_model.to_param, controller: 'rails_admin/main'), class: 'pjax' do
-        '<i class="icon-bell" title="Notification" rel="tooltip"></i>'.html_safe
+      bell_link = link_to url_for(action: index_action.action_name, model_name: abstract_model.to_param, controller: 'rails_admin/main'), class: home_page? ? '' : 'pjax' do
+        "<i class='icon-bell' title='#{abstract_model.config.label_plural}' rel='tooltip'></i>".html_safe
       end
       all_links << bell_link
       counters = Hash.new { |h, k| h[k] = 0 }
@@ -202,7 +202,7 @@ module RailsAdmin
         # current_user = current_account #TODO: review danger assignation
       end
       return nil unless current_user && abstract_model && edit_action
-      link = link_to url_for(action: edit_action.action_name, model_name: abstract_model.to_param, id: current_user.id, controller: 'rails_admin/main'), class: 'pjax' do
+      link = link_to url_for(action: edit_action.action_name, model_name: abstract_model.to_param, id: current_user.id, controller: 'rails_admin/main'), class: home_page? ? '' : 'pjax' do
         html = []
         text = current_user.email
         html << content_tag(:span, text, style: 'padding-right:5px')
@@ -693,7 +693,7 @@ module RailsAdmin
         if index%2 == 0
           html += '<div class="clearfix visible-xs-block"></div>'
         end
-        html += '<div class="col-xs-12 col-sm-4 col-md-3">'
+        html += '<div class="col-xs-6 col-sm-4 col-md-3">'
         models = g[:sublinks]
         unless models.empty?
           html += '<ul>'
@@ -1107,6 +1107,10 @@ module RailsAdmin
         value = value.to(value.index('</ol>')-1) + '<li class="active">Dashboard</li></ol>'
       end
       value.html_safe
+    end
+
+    def home_page?
+      @action.is_a?(RailsAdmin::Config::Actions::Dashboard) && params[:group].blank?
     end
   end
 end
