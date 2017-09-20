@@ -38,7 +38,7 @@ module RailsAdmin
         end
 
         register_instance_option :link_icon do
-          'fa fa-bullhorn'
+          'fa fa-bolt'
         end
       end
     end

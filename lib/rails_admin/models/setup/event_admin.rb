@@ -7,6 +7,7 @@ module RailsAdmin
         included do
           rails_admin do
             navigation_label 'Workflows'
+            navigation_icon 'fa fa-bolt'
             weight 510
             object_label_method { :custom_title }
             visible false

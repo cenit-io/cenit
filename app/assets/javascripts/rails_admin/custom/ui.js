@@ -192,7 +192,7 @@ var
         ]
     }),
     anonymous_tour_at_home = new Tour({
-        name: 'anonymous at home',
+        name: 'anonymous_at_home',
         steps: [
             tour_steps.welcome,
             tour_steps.collections,
@@ -254,9 +254,12 @@ function getAbsolute() {
     return outer > inner;
 }
 function openNavigator() {
-    var $subdomain_panel = $('#subdomain-panel');
-    if ($subdomain_panel.hasClass('collapsed')) {
-        $("#subdomain-toggle").trigger('click');
+    var $subdomain_panel;
+    if ($('#main-dashboard').length == 0) {
+        $subdomain_panel = $('#subdomain-panel');
+        if ($subdomain_panel.hasClass('collapsed')) {
+            $("#subdomain-toggle").trigger('click');
+        }
     }
 }
 function toggle_collapse(id) {
@@ -300,7 +303,7 @@ function render_graphic($form, selector) {
 }
 function registerEvents() {
 
-    $('#take-tour').click(function (e) {
+    $('.take-tour').click(function (e) {
         e.preventDefault();
         var $this = $(this),
             anonymous = $this.attr('data-anonymous'),
@@ -397,7 +400,7 @@ function registerEvents() {
         $('[name="enable_chart"]').val('true');
     });
 
-    $("#sidebar-toggle").click(function (e) {
+    $("#sidebar-toggle").off('click').on('click', function (e) {
         e.preventDefault();
 
         var $content_wrapper = $("#content-wrapper"),
@@ -504,6 +507,19 @@ function registerEvents() {
                 $(parent).removeClass("open");
             }
             $(this).removeClass('toggled');
+        }
+    });
+
+    $('#model-nav-xs').off('click').on('click', function (e) {
+        var $secondary_nav = $('#secondary-navigation-xs');
+        if ($secondary_nav.hasClass('in')) {
+            $secondary_nav.removeClass('in');
+        }
+    });
+    $('#secondary-nav-xs').off('click').on('click', function (e) {
+        var $model_nav = $('#models-navigation-xs');
+        if ($model_nav.hasClass('in')) {
+            $model_nav.removeClass('in');
         }
     });
 }
