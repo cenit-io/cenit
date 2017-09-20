@@ -7,7 +7,7 @@ gem 'uglifier'
 gem 'coffee-rails'
 gem 'jquery-rails'
 gem 'bootstrap-sass'
-gem 'turbolinks'
+#gem 'turbolinks'
 gem 'therubyracer', platforms: :ruby
 gem 'jbuilder'
 gem 'devise'
