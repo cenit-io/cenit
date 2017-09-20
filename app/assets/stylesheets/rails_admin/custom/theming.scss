@@ -2834,11 +2834,13 @@ ul.nav.navbar-nav.movil_links {
     }
     .open {
       .dropdown-menu > li > a {
-        padding: 7px 48px;
+        padding: 7px 48px !important;
         color: #0E82AF;
+        text-transform: capitalize;
         &:hover {
           color: black;
         }
+        i{display: none;}
       }
     }
   }
@@ -2847,7 +2849,10 @@ ul.nav.navbar-nav.movil_links {
 button#model-nav-xs {
   color: #ddd;
   line-height: 1;
-  :hover {
+  &:hover {
+    color: black;
+  }
+  &:focus {
     color: black;
   }
 }

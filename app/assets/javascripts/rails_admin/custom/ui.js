@@ -509,6 +509,19 @@ function registerEvents() {
             $(this).removeClass('toggled');
         }
     });
+
+    $('#model-nav-xs').off('click').on('click', function (e) {
+        var $secondary_nav = $('#secondary-navigation-xs');
+        if ($secondary_nav.hasClass('in')) {
+            $secondary_nav.removeClass('in');
+        }
+    });
+    $('#secondary-nav-xs').off('click').on('click', function (e) {
+        var $model_nav = $('#models-navigation-xs');
+        if ($model_nav.hasClass('in')) {
+            $model_nav.removeClass('in');
+        }
+    });
 }
 function startTour(tour) {
     // Initialize the tour
