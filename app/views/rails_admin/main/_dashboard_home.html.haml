@@ -4,17 +4,17 @@
   %section#welcome_users
     .container.text-center
       .row
-        .col-md-offset-1.col-md-10
-          .row.header
-            %h3='The most open Platform for Data and Business Integration'
-            %h4='Enables a complete business automation of all operational processes in a company'
-            %br
-      .row
         - page_slug = @page_name.parameterize
         - flash && flash.each do |key, value|
           .alert{class: flash_alert_class(key), style: "margin-bottom: #{page_slug=='dashboard' ? '0' : '20px'}"}
             %a.close{href: '#', :'data-dismiss' => "alert"} &times;
             = value
+      .row
+        .col-md-offset-1.col-md-10
+          .row.header
+            %h3='The most open Platform for Data and Business Integration'
+            %h4='Enables a complete business automation of all operational processes in a company'
+            %br
       .row
         .col-md-offset-1.col-md-10.no-padding-vert
           .col-sm-6.hidden-xs
@@ -77,3 +77,5 @@
     - if (ENV['SHOW_PAYMENT_OPTIONS'] || false)
       %section#payment_options
         = render 'rails_admin/main/payment_options'
+
+= render partial: 'rails_admin/main/footer'

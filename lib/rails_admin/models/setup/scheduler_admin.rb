@@ -6,7 +6,8 @@ module RailsAdmin
 
         included do
           rails_admin do
-            navigation_label 'Triggers'
+            navigation_label 'Workflows'
+            navigation_icon 'fa fa-clock-o'
             weight 512
             object_label_method { :custom_title }
 
