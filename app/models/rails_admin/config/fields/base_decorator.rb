@@ -14,6 +14,10 @@ module RailsAdmin
         register_instance_option :index_pretty_value do
           pretty_value
         end
+
+        register_instance_option :filter_type do
+          type
+        end
       end
     end
   end
