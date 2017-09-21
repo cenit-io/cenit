@@ -7,7 +7,8 @@ module RailsAdmin
         included do
           rails_admin do
             weight 000
-            navigation_label 'Collections'
+            navigation_label 'Integrations'
+            navigation_icon 'fa fa-cubes'
             register_instance_option :label_navigation do
               'My Collections'
             end
