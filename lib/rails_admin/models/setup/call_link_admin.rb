@@ -9,9 +9,11 @@ module RailsAdmin
             visible false
             edit do
               field :name do
-                read_only true
                 help { nil }
                 label 'Call name'
+                html_attributes do
+                  { readonly: true }
+                end
               end
               field :link do
                 inline_add false
