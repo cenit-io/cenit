@@ -2,7 +2,7 @@
   .container
     .row
       .col-md-offset-1.col-md-10
-        .col-sm-4.menu
+        .col-sm-3.menu
           %h3
             ='Overview'
           %ul
@@ -21,7 +21,7 @@
             %li
               =link_to "#{ENV['PORTAL_URL'] || 'https://cenit.io'}/blog", target: '_blank' do
                 %span=t('admin.misc.blog')
-        .col-sm-4.menu
+        .col-sm-3.menu
           %h3
             ='Menu'
           %ul
@@ -37,13 +37,10 @@
             %li
               =link_to "#{ENV['PORTAL_URL'] || 'https://cenit.io'}/terms_of_service", target: '_blank' do
                 %span=t('admin.misc.terms')
-        .col-sm-4.menu
+        .col-sm-3.menu
           %h3
             ='Social'
           %ul
-            %li
-              =link_to "#" , id: "contact_us" do
-                %span=t('admin.contact_us.tittle')
             %li
               =link_to 'https://www.linkedin.com/company/cenit-io', target: '_blank' do
                 ='Linkedin'
@@ -53,6 +50,27 @@
             %li
               =link_to 'https://www.twitter.com/cenit_io', target: '_blank' do
                 ='Twitter'
+            %li
+              =link_to 'http://www.youtube.com/channel/UC7JVcEmA3BkiR2SZ_lx5lyA', target: '_blank' do
+                ='Youtube'
+        .col-sm-3.menu
+          %h3
+            ='Support'
+          %ul
+            %li
+              =link_to "#" , id: "contact_us" do
+                %span=t('admin.contact_us.tittle')
+            %li
+              = link_to 'https://github.com/cenit-io/cenit/issues?state=open', target: '_blank' do
+                = t('help.suggest').humanize
+                = t('help.feature')
+            %li
+              = link_to 'https://github.com/cenit-io/cenit/issues?state=open', target: '_blank' do
+                = t('help.report').humanize
+                = t('help.issue')
+            %li
+              = link_to 'https://cenitio.slack.com/messages/support/', target: '_blank' do
+                = t('help.support').humanize
     .row.credits
       .col-md-12
         = ' 2014-2017 Cenit, LLC.'
