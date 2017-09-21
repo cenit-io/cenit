@@ -146,7 +146,7 @@ module RailsAdmin
               param: 'workflows',
               label: 'Workflows',
               icon: 'fa fa-cogs',
-              sublinks: %w(Setup::Notification Setup::Flow Setup::EmailChannel)
+              sublinks: %w(Setup::Notification Setup::Flow Setup::EmailChannel Setup::Observer)
             },
             {
               param: 'transforms',
