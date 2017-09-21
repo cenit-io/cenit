@@ -552,10 +552,12 @@ module RailsAdmin
             else
               ''
             end
+          icon = node.navigation_icon || 'fa fa-folder-open-o'
           html = %(<div class='panel panel-default'>
             <div class='panel-heading'>
               <a data-toggle='collapse' data-parent='#none' href='#shared-collapse' class='panel-title collapse in collapsed'>
                 <span class='nav-caret'><i class='fa fa-caret-down'></i></span>
+                <span class="nav-icon"><i class=" #{icon}" title="#{node.label_plural}"></i></span>
                 <span class='nav-caption'>#{node.label_plural}</span>
               </a>
             </div>
@@ -1100,11 +1102,18 @@ module RailsAdmin
         value = value.to(value.index('<li') - 1) +
           "<li class=\"false\"><a class=\"contextual-record pjax\" href=\"#{index_path(model_name: @abstract_model.to_param, leave_context: true)}\" title='#{t('admin.misc.leave_context', label: (label = wording_for(:breadcrumb, :show, context_config.abstract_model, get_context_record)))}'>#{label}</a></li>" +
           value.from(value.index('</li>') + 5)
-      elsif @model_config && @model_config.dashboard_group_path.length > 1
-        value = value.to(value.index('<li') - 1) +
-          "<li class=\"active\">#{@dashboard_group_ref.capitalize }</li>" +
-          value.from(value.index('</li>') + 5)
-        value = value.to(value.index('</ol>')-1) + '<li class="active">Dashboard</li></ol>'
+      else
+        if @model_config && @model_config.dashboard_group_path.length > 1
+          value = value.to(value.index('<li') - 1) +
+            "<li class=\"active\">#{@dashboard_group_ref.capitalize }</li>" +
+            value.from(value.index('</li>') + 5)
+          value = value.to(value.index('</ol>')-1) + '</ol>'
+        else
+          has_dashboard = value.match(/Dashboard/)
+          if(has_dashboard && @dashboard_group_ref)
+            value.gsub!('Dashboard', "#{@dashboard_group_ref.capitalize} / Dashboard")
+          end
+        end
       end
       value.html_safe
     end
