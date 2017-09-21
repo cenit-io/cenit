@@ -121,11 +121,11 @@
 
             filtering_select.append(input).append(button).insertAfter(select);
 
-            select.on('disabled', function(e){
+            select.on('disabled', function (e) {
                 input.prop('disabled', true);
                 button.find('button').prop('disabled', true);
             });
-            select.on('enabled', function(e){
+            select.on('enabled', function (e) {
                 input.prop('disabled', false);
                 button.find('button').prop('disabled', false);
             });
@@ -179,15 +179,50 @@
                         data: self.options.createQuery(request.term),
                         dataType: "json",
                         autocompleteRequest: ++requestIndex,
+                        select: null,
+                        get_ui_widget: function () {
+                            var ui = null, $label, $icon, $siblings,
+                                id = this.url.match(/source_object_id=(.+)&/)[1];
+                            $('select[data-options]').each(function (index) {
+                                if ($(this).data('options').remote_source.match(id).length > 0) {
+                                    ui = $(this);
+                                }
+                            });
+                            $siblings = ui.siblings();
+                            $label = $siblings.find('label.btn');
+                            $icon = $siblings.find('label.btn span:first');
+                            return {label: $label, icon: $icon};
+                        },
+                        beforeSend: function () {
+                            var select = this.select = this.get_ui_widget();
+                            if (select) {
+                                select.label.removeClass('btn-danger').addClass('btn-info');
+                                select.icon.removeClass().addClass('fa fa-spinner fa-spin');
+                            }
+                            console.log('Before init the request');
+                        },
                         success: function (data, status) {
+                            var select = this.select;
                             if (this.autocompleteRequest === requestIndex) {
                                 response(self._getResultSet(request, data, true));
+
                             }
+                            if (select) {
+                                select.label.removeClass('btn-danger').addClass('btn-info');
+                                select.icon.removeClass().addClass('caret');
+                            }
+                            console.log('Completed the request');
                         },
                         error: function () {
+                            var select = this.select;
                             if (this.autocompleteRequest === requestIndex) {
                                 response([]);
                             }
+                            if (select) {
+                                select.label.removeClass('btn-info').addClass('btn-danger');
+                                select.icon.removeClass().addClass('fa fa-times');
+                            }
+                            console.log('An error happened with the request');
                         }
                     });
                 };
