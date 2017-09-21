@@ -182,10 +182,15 @@
                         select: null,
                         get_ui_widget: function () {
                             var ui = null, $label, $icon, $siblings,
-                                id = this.url.match(/source_object_id=(.+)&/)[1];
+                                id = this.url.match(/source_object_id=(.+)&/)[1],
+                                field = this.url.match(/\/(.+)\?/)[1];
+
                             $('select[data-options]').each(function (index) {
-                                if ($(this).data('options').remote_source.match(id).length > 0) {
-                                    ui = $(this);
+                                if ($(this).data('options').remote_source.match(id)) {
+                                    if ($(this).data('options').remote_source.match(field)) {
+                                        ui = $(this);
+                                        return false;
+                                    }
                                 }
                             });
                             $siblings = ui.siblings();
