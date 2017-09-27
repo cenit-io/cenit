@@ -106,8 +106,8 @@ module RailsAdmin
     def tasks_link
       _, abstract_model, index_action = linking(Setup::Task)
       return nil unless index_action
-      link_to url_for(action: index_action.action_name, model_name: abstract_model.to_param, controller: 'rails_admin/main'), class: 'pjax' do
-        html = '<i class="icon-tasks" title="Tasks" rel="tooltip"/></i>'
+      link_to url_for(action: index_action.action_name, model_name: abstract_model.to_param, controller: 'rails_admin/main'), class: home_page? ? '' : 'pjax' do
+        html = "<i class='icon-tasks' title='#{abstract_model.config.label_plural}' rel='tooltip'/></i>"
         #...
         html.html_safe
       end
@@ -116,8 +116,8 @@ module RailsAdmin
     def storage_link
       _, abstract_model, index_action = linking(Setup::Storage)
       return nil unless index_action
-      link_to url_for(action: index_action.action_name, model_name: abstract_model.to_param, controller: 'rails_admin/main'), class: 'pjax' do
-        html = '<i class="icon-hdd" title="Storages" rel="tooltip"/></i>'
+      link_to url_for(action: index_action.action_name, model_name: abstract_model.to_param, controller: 'rails_admin/main'), class: home_page? ? '' : 'pjax' do
+        html = "<i class='icon-hdd' title='#{abstract_model.config.label_plural}' rel='tooltip'/></i>"
         html.html_safe
       end
     end
@@ -125,8 +125,8 @@ module RailsAdmin
     def authorizations_link
       _, abstract_model, index_action = linking(Setup::Authorization)
       return nil unless index_action
-      link_to url_for(action: index_action.action_name, model_name: abstract_model.to_param, controller: 'rails_admin/main'), class: 'pjax' do
-        html = '<i class="icon-check"  title="Authorizations" rel="tooltip"></i>'
+      link_to url_for(action: index_action.action_name, model_name: abstract_model.to_param, controller: 'rails_admin/main'), class: home_page? ? '' : 'pjax' do
+        html = "<i class='icon-check' title='#{abstract_model.config.label_plural}' rel='tooltip'></i>"
         if (unauthorized_count = Setup::Authorization.where(authorized: false).count) > 0
           label_html = <<-HTML
             <b class="label rounded label-xs success up" style='border-radius: 500px;
@@ -149,8 +149,8 @@ module RailsAdmin
       account, abstract_model, index_action = linking(Setup::SystemNotification)
       return nil unless index_action
       all_links =[]
-      bell_link = link_to url_for(action: index_action.action_name, model_name: abstract_model.to_param, controller: 'rails_admin/main'), class: 'pjax' do
-        '<i class="icon-bell" title="Notification" rel="tooltip"></i>'.html_safe
+      bell_link = link_to url_for(action: index_action.action_name, model_name: abstract_model.to_param, controller: 'rails_admin/main'), class: home_page? ? '' : 'pjax' do
+        "<i class='icon-bell' title='#{abstract_model.config.label_plural}' rel='tooltip'></i>".html_safe
       end
       all_links << bell_link
       counters = Hash.new { |h, k| h[k] = 0 }
@@ -202,7 +202,7 @@ module RailsAdmin
         # current_user = current_account #TODO: review danger assignation
       end
       return nil unless current_user && abstract_model && edit_action
-      link = link_to url_for(action: edit_action.action_name, model_name: abstract_model.to_param, id: current_user.id, controller: 'rails_admin/main'), class: 'pjax' do
+      link = link_to url_for(action: edit_action.action_name, model_name: abstract_model.to_param, id: current_user.id, controller: 'rails_admin/main'), class: home_page? ? '' : 'pjax' do
         html = []
         text = current_user.email
         html << content_tag(:span, text, style: 'padding-right:5px')
@@ -552,10 +552,12 @@ module RailsAdmin
             else
               ''
             end
+          icon = node.navigation_icon || 'fa fa-folder-open-o'
           html = %(<div class='panel panel-default'>
             <div class='panel-heading'>
               <a data-toggle='collapse' data-parent='#none' href='#shared-collapse' class='panel-title collapse in collapsed'>
                 <span class='nav-caret'><i class='fa fa-caret-down'></i></span>
+                <span class="nav-icon"><i class=" #{icon}" title="#{node.label_plural}"></i></span>
                 <span class='nav-caption'>#{node.label_plural}</span>
               </a>
             </div>
@@ -693,7 +695,7 @@ module RailsAdmin
         if index%2 == 0
           html += '<div class="clearfix visible-xs-block"></div>'
         end
-        html += '<div class="col-xs-12 col-sm-4 col-md-3">'
+        html += '<div class="col-xs-6 col-sm-4 col-md-3">'
         models = g[:sublinks]
         unless models.empty?
           html += '<ul>'
@@ -721,6 +723,42 @@ module RailsAdmin
         html += '</div>'
       end
       html += '</div></div>'
+      html.html_safe
+    end
+
+    def dashboard_primary_xs()
+      groups = RailsAdmin::Config.dashboard_groups
+      html = '<ul class="nav navbar-nav movil_links">'
+      groups.each_with_index do |g, index|
+        html += ''
+        models = g[:sublinks]
+        unless models.empty?
+          html+= '<li class="dropdown"><a class="dropdown-toggle" id="'+ "xstg_#{g[:label].underscore.gsub(' ', '_')}" +'" href="#" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false"><i class="'+ g[:icon] +'"></i>'+ g[:label] +'<span class="caret"></span></a>'
+          html+= '<ul class="dropdown-menu">'
+          html+= '<li><a id="'+ "xsg_#{g[:label].underscore.gsub(' ', '_')}" +'" href="/' + g[:param] +'/dashboard"><span>'+ 'Dashboard' +'</span></a><li>'
+          models.each do |m|
+            if m.is_a?(Hash)
+              if (link = m[:link])
+                if (rel_link = link[:rel])
+                  model_url = "/#{rel_link}"
+                end
+                if (ext_link = link[:external])
+                  model_url = "#{ext_link}"
+                end
+              else
+                model_url = "/#{m[:param]}/dashboard"
+              end
+              html+= '<li><a id="'+ "xsl_#{m[:label].underscore.gsub(' ', '_')}" +'" href="'+ model_url +'" target="'+ open_in_new_tab(g, m[:param])+'"><span>'+m[:label]+'</span></a></li>'
+            elsif (abstract_model = (model = RailsAdmin::Config.model(m)).abstract_model)
+              model_url = url_for(action: :index, controller: 'rails_admin/main', model_name: abstract_model.to_param)
+              html+= '<li><a id="'+"l_#{model.label_plural.underscore.gsub(' ', '_')}"+'"href="'+ model_url +'" target="'+ open_in_new_tab(g, m)+'"><span>'+model.label_plural+'</span></a></li>'
+            end
+          end
+          html += '</ul></li>'
+        end
+
+      end
+      html += '</ul>'
       html.html_safe
     end
 
@@ -1064,13 +1102,24 @@ module RailsAdmin
         value = value.to(value.index('<li') - 1) +
           "<li class=\"false\"><a class=\"contextual-record pjax\" href=\"#{index_path(model_name: @abstract_model.to_param, leave_context: true)}\" title='#{t('admin.misc.leave_context', label: (label = wording_for(:breadcrumb, :show, context_config.abstract_model, get_context_record)))}'>#{label}</a></li>" +
           value.from(value.index('</li>') + 5)
-      elsif @model_config && @model_config.dashboard_group_path.length > 1
-        value = value.to(value.index('<li') - 1) +
-          "<li class=\"active\">#{@dashboard_group_ref.capitalize }</li>" +
-          value.from(value.index('</li>') + 5)
-        value = value.to(value.index('</ol>')-1) + '<li class="active">Dashboard</li></ol>'
+      else
+        if @model_config && @model_config.dashboard_group_path.length > 1
+          value = value.to(value.index('<li') - 1) +
+            "<li class=\"active\">#{@dashboard_group_ref.capitalize }</li>" +
+            value.from(value.index('</li>') + 5)
+          value = value.to(value.index('</ol>')-1) + '</ol>'
+        else
+          has_dashboard = value.match(/Dashboard/)
+          if(has_dashboard && @dashboard_group_ref)
+            value.gsub!('Dashboard', "#{@dashboard_group_ref.capitalize} / Dashboard")
+          end
+        end
       end
       value.html_safe
+    end
+
+    def home_page?
+      @action.is_a?(RailsAdmin::Config::Actions::Dashboard) && params[:group].blank?
     end
   end
 end

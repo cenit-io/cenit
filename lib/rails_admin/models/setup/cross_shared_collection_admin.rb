@@ -8,8 +8,8 @@ module RailsAdmin
           rails_admin do
             weight 010
             label 'Shared Collection'
-            navigation_label 'Collections'
-            navigation_icon 'fa fa-list'
+            navigation_label 'Integrations'
+            navigation_icon 'fa fa-puzzle-piece'
             object_label_method :versioned_name
 
             public_access true

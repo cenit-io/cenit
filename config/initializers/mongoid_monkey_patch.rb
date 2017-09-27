@@ -1,6 +1,7 @@
 require 'mongoid/document'
 require 'mongoid/scopable'
 require 'mongoid/factory'
+require 'mongoid/relations/builders/nested_attributes/many'
 
 class NilClass
   def tenant_version
@@ -49,6 +50,38 @@ module Mongoid
 
     def from_db(klass, attributes = nil, selected_fields = nil)
       mongoid_from_db(klass, attributes, selected_fields).tenant_version
+    end
+  end
+
+  module Relations
+    module Builders
+      module NestedAttributes
+        class Many
+
+          def process_attributes(parent, attrs)
+            return if reject?(parent, attrs)
+            doc = not_found = nil
+            if (id = attrs.extract_id)
+              first = existing.first
+              converted = first ? convert_id(first.class, id) : id
+              begin
+                doc = existing.find(converted)
+              rescue Mongoid::Errors::DocumentNotFound => not_found
+              end
+            end
+            if doc
+              if destroyable?(attrs)
+                destroy(parent, existing, doc)
+              else
+                update_document(doc, attrs)
+              end
+            else
+              raise not_found unless not_found.nil? || metadata.embedded?
+              existing.push(Factory.build(metadata.klass, attrs)) unless destroyable?(attrs)
+            end
+          end
+        end
+      end
     end
   end
 end

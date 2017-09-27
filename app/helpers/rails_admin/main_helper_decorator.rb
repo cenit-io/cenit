@@ -20,7 +20,7 @@ module RailsAdmin
         unless (field = filterable_fields.find { |f| f.name == filter_name.to_sym })
           fail "#{filter_name} is not currently filterable; filterable fields are #{filterable_fields.map(&:name).join(', ')}"
         end
-        case field.type
+        case field.filter_type
         when :enum
           #Patch
           options[:select_options] = options_for_select(field.with(object: @abstract_model.model.new).filter_enum, filter_hash['v'])
@@ -29,7 +29,7 @@ module RailsAdmin
         end
         options[:label] = field.label
         options[:name]  = field.name
-        options[:type]  = field.type
+        options[:type]  = field.filter_type
         options[:value] = filter_hash['v']
         options[:label] = field.label
         options[:operator] = filter_hash['o']
