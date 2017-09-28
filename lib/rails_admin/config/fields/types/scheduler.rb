@@ -14,12 +14,13 @@ module RailsAdmin
           end
 
           register_instance_option :index_pretty_value do
-
+            value
           end
 
           register_instance_option :pretty_value do
+            #TODO Implement this to describe the scheduler in natural language
             if value
-
+              value
             end
           end
 
