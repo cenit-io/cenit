@@ -179,6 +179,37 @@ module RailsAdmin
             []
           end
       end
+
+      def filter_conditions(filters, fields = config.fields.select(&:filterable?))
+        statements = []
+
+        filters = JSON.parse(filters).with_indifferent_access if filters.is_a?(String)
+
+        filters.each_pair do |field_name, filters_dump|
+          if field_name.start_with?('$')
+            if filters_dump.is_a?(Array)
+              statements << { field_name => filters_dump.collect { |f| filter_conditions(f, fields) } }
+            else
+              statements << { field_name => filter_conditions(filters_dump, fields) }
+            end
+          else
+            field = fields.detect { |f| f.name.to_s == field_name }
+            next unless field
+            filters_dump.each do |_, filter_dump|
+              value = parse_field_value(field, filter_dump[:v])
+              conditions_per_collection = make_field_conditions(field, value, (filter_dump[:o] || 'default'))
+              field_statements = make_condition_for_current_collection(field, conditions_per_collection)
+              if field_statements.many?
+                statements << { '$or' => field_statements }
+              elsif field_statements.any?
+                statements << field_statements.first
+              end
+            end
+          end
+        end
+
+        statements.any? ? { '$and' => statements } : {}
+      end
     end
   end
 end

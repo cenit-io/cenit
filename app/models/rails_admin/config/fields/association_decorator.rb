@@ -5,8 +5,12 @@ module RailsAdmin
     module Fields
       Association.class_eval do
 
-        def object_association_handler?
+        register_instance_option :filter do
+          {}
+        end
 
+        def parse_value(value)
+          (value = super(value)).is_a?(String) ? value.presence : value
         end
 
         def association

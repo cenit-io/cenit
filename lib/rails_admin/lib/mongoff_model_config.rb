@@ -107,6 +107,9 @@ module RailsAdmin
                 associated_links
               end
             end
+            if (f = property.schema['filter'])
+              filter f
+            end
           end
         end
       end

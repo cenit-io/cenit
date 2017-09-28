@@ -2,6 +2,17 @@
 module RailsAdmin
   AbstractModel.class_eval do
 
+    def parse_field_value(field, value)
+      case value
+      when Hash
+        value.map { |key, v| [key, parse_field_value(field, v)] }.to_h
+      when Array
+        value.map { |v| parse_field_value(field, v) }
+      else
+        field.parse_value(value)
+      end
+    end
+
     def embedded_in?(abstract_model = nil)
       embedded?
     end
