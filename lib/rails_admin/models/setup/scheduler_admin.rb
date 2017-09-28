@@ -13,7 +13,7 @@ module RailsAdmin
 
             configure :namespace, :enum_edit
 
-            configure :expression, :json_value
+            configure :expression, :scheduler
 
             edit do
               field :namespace
@@ -23,7 +23,6 @@ module RailsAdmin
                 visible true
                 label 'Scheduling type'
                 help 'Configure scheduler'
-                partial :scheduler
                 html_attributes do
                   { rows: '1' }
                 end
