@@ -9,6 +9,7 @@ module RailsAdmin
             navigation_label 'Configuration'
             label 'Flow Config'
             weight 720
+            visible true
             configure :flow do
               read_only true
             end

@@ -1,0 +1,78 @@
+.container.text-center
+  .col-md-offset-1.col-md-10.no-padding-vert
+    .row.header
+      .col-md-12
+        %h3= 'Begin and continue free if you want'
+        %p= 'Only pay extra options if you need'
+    .row.charts
+      .col-md-4
+        .chart.first
+          .plan-name
+            ='Free'
+          .specs
+            .spec
+              .variable
+                %span='Unlimited'
+                ='team members'
+            .spec
+              .variable
+                %span='Shared'
+                ='Collections'
+            .spec
+              .variable
+                %span='5 GB'
+                ='in data integrator tool'
+            .spec
+              .variable
+                %span='Unlimited'
+                ='data exchange'
+          = link_to "#", id:'start_free' ,class: 'btn-signup button-clear' do
+            %span= 'Start free'
+      .col-md-4
+        .chart.featured
+          .popular
+            ='Extra options'
+          .plan-name
+            ='Variable'
+          .specs
+            .spec
+              .variable
+                %span='Included'
+                ='free options'
+            .spec
+              .variable
+                %span='$10 x GB'
+                ='over 5 GB in data integrator tool'
+            .spec
+              .variable
+                %span=' $0.5 per'
+                ='commercial transaction'
+            .spec
+              .variable
+                %span='Unlimited'
+                ='data exchange'
+          = link_to '#contact_us',class: 'btn-signup button-clear contact-modal',data: { toggle: 'modal', backdrop: 'false' } do
+            %span= 'Start'
+      .col-md-4
+        .chart.last
+          .plan-name
+            ='Custom Enterprise'
+          .specs
+            .spec
+              .variable
+                %span='Unlimited'
+                ='tenants'
+            .spec
+              .variable
+                %span='SaaS'
+                ='management'
+            .spec
+              .variable
+                %span='Custom'
+                ='integrations'
+            .spec
+              .variable
+                %span='Development'
+                ='services'
+            = link_to '#contact_us',class: 'btn-signup button-clear contact-modal',data: { toggle: 'modal', backdrop: 'false' } do
+              %span= 'Contact Us'

@@ -9,6 +9,7 @@ module RailsAdmin
             navigation_label 'Monitors'
             show_in_dashboard false
             weight 620
+            visible true
             object_label_method { :label }
 
             configure :filename do

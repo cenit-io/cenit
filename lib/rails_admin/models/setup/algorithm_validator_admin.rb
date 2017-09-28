@@ -7,6 +7,7 @@ module RailsAdmin
         included do
           rails_admin do
             parent ::Setup::Validator
+            navigation_label 'Definitions'
             weight 104
             label 'Algorithm Validator'
             object_label_method { :custom_title }

@@ -6,9 +6,9 @@ module Setup
 
     build_in_data_type.with(:namespace, :name, :source_data_type, :target_data_type,
                             :discard_events, :style, :source_handler, :snippet, :source_exporter,
-                            :target_importer, :discard_chained_records, :map_attributes).referenced_by(:namespace, :name)
+                            :target_importer, :discard_chained_records).referenced_by(:namespace, :name)
 
-    build_in_data_type.and(properties: { mapping: { type: {}, edi: { discard: true } } })
+    build_in_data_type.and(properties: { mapping: { type: {} } })
 
     field :map_attributes, type: Hash, default: {}
 
@@ -60,61 +60,18 @@ module Setup
       @mapping ||= map_model.new(attrs)
     end
 
-    def validates_mapping
-      mapping.validate
-      mapping.errors.full_messages
-    end
-
-    def map_schema
-      tdt_id = target_data_type && target_data_type.id.to_s
-      unless @map_schema && @map_schema['target_data_type'] == tdt_id
-        @map_schema =
-          if tdt_id
-            build_map_schema(target_data_type.records_model)
-          else
-            {}
-          end
-        @map_schema['target_data_type'] = tdt_id
-      end
-      @map_schema
-    end
-
-    def build_map_schema(model, models = Set.new)
-      return {} if models.include?(model)
-      data_type = model.data_type
-      schema = { 'type' => 'object', 'properties' => properties = {} }
-      model.properties_schemas.each do |property, property_schema|
-        property_schema = data_type.merge_schema(property_schema)
-        if (property_model = model.property_model(property)).modelable?
-          unless property_schema['referenced']
-            embedded_schema = build_map_schema(property_model, models)
-            if property_schema['type'] == 'array'
-              property_schema['items'] = embedded_schema
-            else
-              property_schema.merge!(embedded_schema)
-            end
-          end
-        else
-          unless property == '_id' && (property_schema['type'] || {}).is_a?(Hash) && property_schema['type'].blank?
-            property_schema.reject! { |key, _| %w(title description edi).exclude?(key) }
-            property_schema['type'] = 'string'
-          end
-        end
-        properties[property] = property_schema
-      end
-      schema
-    end
-
     def map_model
       if target_data_type
-        @mongoff_model ||= Mongoff::Model.for(data_type: target_data_type,
-                                              schema: map_schema,
-                                              name: self.class.map_model_name,
-                                              cache: false)
+        if @mongoff_model && @mongoff_model.data_type != target_data_type
+          @mongoff_model = nil
+        end
+        @mongoff_model ||= MappingModel.for(data_type: target_data_type,
+                                            cache: false,
+                                            source_data_type: source_data_type)
       else
         @mongoff_model = nil
         Mongoff::Model.for(data_type: self.class.data_type,
-                           schema: map_schema,
+                           schema: {},
                            name: "#{self.class.map_model_name}Default",
                            cache: false)
       end
@@ -123,11 +80,7 @@ module Setup
     def validates_configuration
       super
       if style == 'mapping'
-        unless requires(:map_attributes)
-          validates_mapping.each do |error|
-            errors.add(:base, error)
-          end
-        end
+        requires(:map_attributes)
       else
         rejects :map_attributes
       end
@@ -180,6 +133,126 @@ module Setup
       end
     end
 
-    protected :build_map_schema
+    class MappingModel < Mongoff::Model
+
+      def mapping_schema
+        if @parent_map_model
+          @parent_map_model.mapping_schema
+        else
+          @mapping_schema ||=
+            begin
+              sch = {
+                type: 'object',
+                properties: {
+                  source: {
+                    type: 'string'
+                  },
+                  transformation: {
+                    referenced: true,
+                    '$ref': {
+                      namespace: 'Setup',
+                      name: 'Translator'
+                    },
+                    filter: {
+                      '$or':
+                        [
+                          # {
+                          #   type: {
+                          #     a: {
+                          #       v: 'Export'
+                          #     }
+                          #   },
+                          #   source_data_type: {
+                          #     a: {
+                          #       v: '_blank'
+                          #     }
+                          #   }
+                          # },
+                          {
+                            type: {
+                              a: {
+                                v: 'Conversion'
+                              }
+                            },
+                            source_data_type: {
+                              a: {
+                                v: '__source_data_type_id__'
+                              }
+                            },
+                            target_data_type: {
+                              a: {
+                                v: '123'
+                              }
+                            }
+                          }
+                        ]
+                    }
+                  }
+                }
+              }.deep_stringify_keys
+              if source_data_type
+                enum = []
+                source_data_type.records_model.properties.each do |property|
+                  enum << property
+                end
+                sch['properties']['source']['enum'] = enum
+              end
+              sch
+            end
+        end
+      end
+
+      def proto_schema
+        to_map_schema(super)
+      end
+
+      def to_map_schema(sch)
+        if sch['type'] == 'object' && (properties = sch['properties']).is_a?(Hash)
+          new_properties = {}
+          properties.each do |property, property_schema|
+            ref, property_dt = check_referenced_schema(property_schema)
+            if ref && property_dt
+              description = data_type.merge_schema(property_schema)['description']
+              description = "#{description}<br><strong>Define a transformation from #{source_data_type.custom_title} to #{property_dt.custom_title}</strong>"
+              property_schema = mapping_schema.merge('description' => description)
+            else
+              property_schema = data_type.merge_schema(property_schema)
+              unless property == '_id' && (property_schema['type'] || {}).is_a?(Hash) && property_schema['type'].blank?
+                property_schema.reject! { |key, _| %w(title description edi).exclude?(key) }
+                property_schema['type'] = 'string'
+              end
+            end
+            new_properties[property] = property_schema
+          end
+          sch['properties'] = new_properties
+        end
+        sch
+      end
+
+      def data_type_records_model(data_type)
+        if data_type.is_a?(Setup::JsonDataType)
+          self.for(data_type: data_type, cache: false)
+        else
+          super
+        end
+      end
+
+      def source_data_type
+        @source_data_type ||= @parent_map_model && @parent_map_model.source_data_type
+      end
+
+      def for(options)
+        options[:parent_map_model] ||= self
+        super
+      end
+
+      protected
+
+      def initialize(data_type, options = {})
+        @parent_map_model = options.delete(:parent_map_model)
+        @source_data_type = options.delete(:source_data_type)
+        super
+      end
+    end
   end
 end

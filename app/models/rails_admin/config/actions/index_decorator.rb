@@ -82,6 +82,7 @@ module RailsAdmin
                     end
                   end
                 rescue Exception => ex
+                  Setup::SystemReport.create_from(ex)
                   flash[:error] = ex.message
                   redirect_to dashboard_path
                 end

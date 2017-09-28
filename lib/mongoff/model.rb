@@ -84,7 +84,7 @@ module Mongoff
     def property_model(property)
       property = property.to_s
       model = nil
-      if schema.is_a?(Hash) && schema['type'] == 'object' && schema['properties'] && (property_schema = schema['properties'][property])
+      if schema.is_a?(Hash) && schema['type'] == 'object' && schema['properties'].is_a?(Hash) && (property_schema = schema['properties'][property])
         if properties_models.key?(property)
           model = properties_models[property]
         else
@@ -92,7 +92,7 @@ module Mongoff
           model =
             if ref
               if property_dt
-                property_dt.records_model
+                data_type_records_model(property_dt)
               else
                 fail "Data type reference not found: #{ref}"
               end
@@ -418,7 +418,7 @@ module Mongoff
         end
       end
 
-      def for(options = {})
+      def for(options)
         model_name = options[:name]
         cache_model = (cache_models = current_thread_cache)[model_name]
         unless (data_type = (options[:data_type] || (cache_model && cache_model.data_type)))
@@ -467,6 +467,10 @@ module Mongoff
       end
     end
 
+    def for(options)
+      self.class.for(options)
+    end
+
     protected
 
     def initialize(data_type, options = {})
@@ -500,10 +504,12 @@ module Mongoff
       }.stringify_keys
     end
 
-    private
+    def data_type_records_model(data_type)
+      data_type.records_model
+    end
 
     def check_referenced_schema(schema, check_for_array = true)
-      if schema.is_a?(Hash) && (schema = schema.reject { |key, _| %w(group xml unique title description edi format example enum readOnly default visible referenced_by).include?(key) })
+      if schema.is_a?(Hash) && (schema = schema.reject { |key, _| %w(filter group xml unique title description edi format example enum readOnly default visible referenced_by).include?(key) })
         property_dt = nil
         ns = data_type.namespace
         if (ref = schema['$ref']).is_a?(Array)

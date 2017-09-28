@@ -31,12 +31,6 @@ module Setup
       end
     end
 
-    def namespace_enum
-      enum = Setup::Namespace.all.asc(:name).collect(&:name)
-      enum << namespace unless enum.include?(namespace)
-      enum
-    end
-
     def scope_title
       namespace
     end
@@ -56,6 +50,12 @@ module Setup
       @namespace_ns = namespace_ns
       self.namespace = namespace_ns.name if namespace != namespace_ns.name
     end
-    
+
+    module ClassMethods
+
+      def namespace_enum
+        @namespace_enum ||= (Setup::Namespace.all.collect(&:name) + all.distinct(:namespace).flatten).uniq.sort
+      end
+    end
   end
 end

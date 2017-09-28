@@ -8,7 +8,7 @@ module Setup
     def origin_from(message)
       origin = message['origin'].to_s.to_sym
       model = data_type_from(message).records_model
-      if model < CrossOrigin::Document
+      if model < CrossOrigin::CenitDocument
         fail "Invalid origin :#{origin} for model #{model}" unless model.origins.include?(origin)
       end
       fail "Unauthorized crossing origin :#{origin}" unless authorized_crossing_origins.include?(origin)
@@ -19,7 +19,7 @@ module Setup
       origin = origin_from(message)
       criteria = objects_from(message)
       model = data_type.records_model
-      if model < CrossOrigin::Document
+      if model < CrossOrigin::CenitDocument
         criteria = criteria.and(:origin.in => authorized_crossing_origins)
         criteria = criteria.with_tracking if model < Trackable
         criteria.cross(origin) do |_, non_tracked_ids|

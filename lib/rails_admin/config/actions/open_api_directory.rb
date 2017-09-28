@@ -18,6 +18,8 @@ module RailsAdmin
 
         register_instance_option :controller do
           proc do
+            @dashboard_group_ref = 'connectors'
+            @dashboard_group = dashboard_group(@dashboard_group_ref)
             @model_config = RailsAdmin.config(Setup::ApiSpec)
             @objects = list_apis
             if (id = params[:id])

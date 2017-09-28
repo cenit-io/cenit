@@ -8,6 +8,7 @@ module RailsAdmin
           rails_admin do
             weight 102
             parent ::Setup::Validator
+            navigation_label 'Definitions'
             label 'XSLT Validator'
             object_label_method { :custom_title }
 

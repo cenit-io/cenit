@@ -3,14 +3,14 @@ module Cenit
   class BundlerInterpreter
     attr_reader :__wrapper__
 
-    def initialize
+    def initialize(options = {})
       @__prefixes__ = Hash.new do |linkers, linker_id|
         linkers[linker_id] = Hash.new do |methods, method|
           methods[method] = "__#{linker_id}_"
         end
       end
       @__algorithms__ = {}
-      @__options__ = { linking_algorithms: true }
+      @__options__ = { linking_algorithms: true }.merge(options)
       @__js_arguments__ = []
       @__wrapper__ = Wrapper.new(self)
     end
@@ -29,7 +29,7 @@ module Cenit
 
     def method_missing(symbol, *args, &block)
       symbol = symbol.to_s
-      if @__options__[:linking_algorithms] && (algorithm = @__algorithms__[symbol])
+      if (algorithm = @__algorithms__[symbol])
         if algorithm.is_a?(Proc)
           define_singleton_method(symbol, algorithm)
         else
@@ -52,8 +52,35 @@ module Cenit
     end
 
     class << self
+      def run_code(*args)
+        fail "Code expected as first argument but #{code.class} found" unless (code = args.shift).is_a?(String)
+        if (locals = args.shift || {}).is_a?(Hash)
+          locals = locals.symbolize_keys
+        else
+          fail "Locals hash expected as second argument but #{locals.class} found"
+        end
+        if (options = args.shift || {}).is_a?(Hash)
+          options = options.symbolize_keys
+          options[:linking_algorithms] = true unless options.key?(:linking_algorithms)
+        else
+          fail "Options hash expected as third argument but #{options.class} found"
+        end
+        algorithm = Setup::Algorithm.new(name: "alg#{code.object_id}", code: code, language: :ruby)
+        input = []
+        locals.each do |local, value|
+          input << value
+          algorithm.parameters.new(name: local)
+        end
+        do_run(algorithm, input, options)
+      end
+
+      def do_run(algorithm, input, options = {})
+        input = [input] unless input.is_a?(Array)
+        new(options).__run__(algorithm, *input)
+      end
+
       def run(algorithm, *args)
-        new.__run__(algorithm, *args)
+        do_run(algorithm, args)
       end
     end
 
@@ -71,10 +98,18 @@ module Cenit
         interpreter.instance_variable_get(:@__algorithms__)
       end
 
+      def options
+        interpreter.instance_variable_get(:@__options__)
+      end
+
       def prefix(method, linker)
-        prefix = interpreter.instance_variable_get(:@__prefixes__)[linker.linker_id][method]
-        algorithms[prefix + method.to_s] = linker.link(method)
-        prefix
+        if options[:linking_algorithms]
+          prefix = interpreter.instance_variable_get(:@__prefixes__)[linker.linker_id][method]
+          algorithms[prefix + method.to_s] = linker.link(method)
+          prefix
+        else
+          ''
+        end
       end
 
       def bundle(symbol, algorithm)
@@ -110,8 +145,10 @@ module Cenit
         end
         params_initializer + Capataz.rewrite(algorithm.code,
                                              locals: locals,
-                                             self_linker: algorithm.self_linker || algorithm,
-                                             self_send_prefixer: self)
+                                             self_linker: options[:self_linker] || algorithm.self_linker || algorithm,
+                                             self_send_prefixer: self,
+                                             iteration_counter_prefix: "alg#{algorithm.id}_it",
+                                             invoke_counter_prefix: "alg#{algorithm.id}_invk")
       end
 
       def bundled_javascript_code(algorithm)

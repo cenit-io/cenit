@@ -1,3 +1,18 @@
+class Class
+  class << self
+
+    def demongoize(object)
+      object.to_s.constantize
+    rescue
+      nil
+    end
+
+    def mongoize(object)
+      object.to_s
+    end
+  end
+end
+
 class Thread
 
   def clean_keys_prefixed_with(prefix)

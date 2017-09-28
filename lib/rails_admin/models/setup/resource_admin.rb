@@ -7,6 +7,7 @@ module RailsAdmin
         included do
           rails_admin do
             navigation_label 'Connectors'
+            navigation_icon 'fa fa-archive'
             weight 215
             label 'Resource'
             object_label_method { :custom_title }

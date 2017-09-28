@@ -8,6 +8,7 @@ module RailsAdmin
           rails_admin do
             navigation_label 'Configuration'
             weight 760
+            visible true
             object_label_method { :to_s }
             configure :metadata, :json_value
             configure :parent_model, :model do

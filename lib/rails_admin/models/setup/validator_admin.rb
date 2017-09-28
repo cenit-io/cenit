@@ -9,6 +9,7 @@ module RailsAdmin
             weight 100
             navigation_label 'Definitions'
             label 'Validators'
+            navigation_icon 'fa fa-check-square-o'
             fields :namespace, :name
             fields :namespace, :name, :updated_at
             show_in_dashboard false

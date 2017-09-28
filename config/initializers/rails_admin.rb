@@ -1,5 +1,8 @@
 require 'account'
 
+require 'rails_admin/config'
+require 'rails_admin/config_decorator'
+
 [
   RailsAdmin::Config::Actions::DiskUsage,
   RailsAdmin::Config::Actions::SendToFlow,
@@ -91,8 +94,10 @@ RailsAdmin::Config::Actions.register(:export, RailsAdmin::Config::Actions::BulkE
   RailsAdmin::Config::Fields::Types::MongoffFileUpload,
   RailsAdmin::Config::Fields::Types::Url,
   RailsAdmin::Config::Fields::Types::CenitOauthScope,
+  RailsAdmin::Config::Fields::Types::Scheduler,
   RailsAdmin::Config::Fields::Types::CenitAccessScope,
-  RailsAdmin::Config::Fields::Types::ContextualBelongsTo
+  RailsAdmin::Config::Fields::Types::ContextualBelongsTo,
+  RailsAdmin::Config::Fields::Types::SortReverseString
 ].each { |f| RailsAdmin::Config::Fields::Types.register(f) }
 
 require 'rails_admin/config/fields/factories/tag'
@@ -110,11 +115,108 @@ module RailsAdmin
       def navigation_options
         @nav_options ||= {}
       end
+
+      def dashboard_options
+        @dashboard_options ||= {}
+      end
+
+      def dashboard_groups
+        unless @dashboard_groups
+          @dashboard_groups = [
+            {
+              param: 'data',
+              label: 'Data',
+              icon: 'fa fa-cube',
+              sublinks: [
+                {
+                  param: 'definitions',
+                  label: 'Definitions'
+                },
+                {
+                  param: 'files',
+                  label: 'Files'
+                },
+                {
+                  param: 'objects',
+                  label: 'Objects'
+                }
+              ]
+            },
+            {
+              param: 'workflows',
+              label: 'Workflows',
+              icon: 'fa fa-cogs',
+              sublinks: %w(Setup::Notification Setup::Flow Setup::EmailChannel Setup::Observer)
+            },
+            {
+              param: 'transforms',
+              label: 'Transforms',
+              icon: 'fa fa-random',
+              sublinks: %w(Setup::Renderer Setup::Parser Setup::Converter Setup::Updater)
+            },
+            {
+              param: 'gateway',
+              label: 'Gateway',
+              icon: 'fa fa-hdd-o',
+              externals: ['open_api_directory'],
+              sublinks: [
+                'Setup::ApiSpec',
+                {
+                  param: 'open_api_directory',
+                  label: 'OpenAPI Directory',
+                  link: { rel: 'open_api_directory' } # use for example {external: 'http://www.jslint.com/'} in case of external url
+                },
+                {
+                  param: 'connectors',
+                  label: 'Connectors'
+                },
+                {
+                  param: 'security',
+                  label: 'Security'
+                }
+              ]
+            },
+            {
+              param: 'compute',
+              label: 'Compute',
+              icon: 'fa fa-cogs',
+              sublinks: %w(Setup::Algorithm Setup::Application Setup::Snippet Setup::Filter Setup::Notebook)
+            },
+            {
+              param: 'integrations',
+              label: 'Integrations',
+              icon: 'fa fa-puzzle-piece',
+              externals: ['Setup::CrossSharedCollection'],
+              sublinks: %w(Setup::Collection Setup::CrossSharedCollection)
+            }
+          ]
+          ecommerce_models = []
+          Cenit.ecommerce_data_types.each do |ns, names|
+            names.each do |name|
+              if (data_type = Setup::DataType.where(namespace: ns, name: name).first)
+                ecommerce_models << data_type.records_model
+              end
+            end
+          end
+          if ecommerce_models.present?
+            @dashboard_groups<<{
+              param: 'ecommerce',
+              label: 'Ecommerce',
+              icon: 'fa fa-shopping-cart',
+              sublinks: ecommerce_models
+            }
+          end
+        end
+
+        @dashboard_groups
+      end
     end
   end
 end
 
 RailsAdmin.config do |config|
+
+  config.parent_controller = '::ApplicationController'
 
   config.total_columns_width = 900
 
@@ -271,11 +373,15 @@ RailsAdmin.config do |config|
 
   Setup::CenitDataType
 
+  #Gateway
+
+  config.navigation 'Gateway', icon: 'fa fa-hdd-o'
+
+  Setup::ApiSpec
+
   #Connectors
 
   config.navigation 'Connectors', icon: 'fa fa-plug'
-
-  Setup::ApiSpec
 
   Setup::Connection
 
@@ -350,7 +456,7 @@ RailsAdmin.config do |config|
 
   #Transformations
 
-  config.navigation 'Transformations', icon: 'fa fa-random'
+  config.navigation 'Transforms', icon: 'fa fa-random'
 
   Setup::Translator
 
@@ -442,6 +548,8 @@ RailsAdmin.config do |config|
 
   Setup::Crossing
 
+  Setup::FileStoreMigration
+
   Setup::Storage
 
   #Configuration
@@ -451,6 +559,8 @@ RailsAdmin.config do |config|
   Setup::Namespace
 
   Setup::DataTypeConfig
+
+  Setup::FileStoreConfig
 
   Setup::FlowConfig
 

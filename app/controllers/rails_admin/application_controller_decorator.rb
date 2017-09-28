@@ -1,8 +1,10 @@
+# rails_admin-1.0 ready
 module RailsAdmin
   ApplicationController.class_eval do
 
     def to_model_name(param_model_name)
       model_name = param_model_name.split('~').collect(&:camelize).join('::')
+      #Patch
       if (m = [Setup, Cenit, Forms].detect { |m| m.const_defined?(model_name, false) })
         model_name = "#{m}::#{model_name}"
       end
@@ -27,6 +29,10 @@ module RailsAdmin
 
       fail(RailsAdmin::ModelNotFound) if @abstract_model.nil? || (@model_config = @abstract_model.config).excluded?
 
+      group_index = (path = @model_config.dashboard_group_path).length == 1 ? 0 : path.length - 2
+      @dashboard_group_ref = path[group_index]
+      @dashboard_group = dashboard_group(@dashboard_group_ref)
+
       @properties = @abstract_model.properties
     end
 
@@ -46,6 +52,7 @@ module RailsAdmin
       #Patch
       if (@object = @abstract_model.get(params[:id]))
         unless @object.is_a?(Mongoff::Record) || @object.class == @abstract_model.model
+          #Right model context for object
           @model_config = RailsAdmin::Config.model(@object.class)
           @abstract_model = @model_config.abstract_model
         end

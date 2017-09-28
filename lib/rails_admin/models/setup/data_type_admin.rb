@@ -7,10 +7,11 @@ module RailsAdmin
         included do
           rails_admin do
             navigation_label 'Definitions'
+            navigation_icon 'fa fa-cube'
+            dashboard_group_label 'Data'
             weight 110
             label 'Data Type'
             object_label_method { :custom_title }
-            visible true
 
             show_in_dashboard false
 

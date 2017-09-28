@@ -11,6 +11,9 @@ module RailsAdmin
             }
           end
 
+          register_instance_option :filter_type do
+            :enum
+          end
         end
       end
     end

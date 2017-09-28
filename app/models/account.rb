@@ -171,10 +171,14 @@ class Account
   end
 
   def notify(attrs)
-    Setup::SystemNotification.create_with(attrs)
+    switch { Setup::SystemNotification.create_with(attrs.merge(skip_notification_level: true)) }
   end
 
   class << self
+
+    def notify(attrs)
+      current && current.notify(attrs)
+    end
 
     def current_key
       (current && current.number) || 'XXXXXXX'

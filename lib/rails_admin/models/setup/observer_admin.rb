@@ -7,6 +7,7 @@ module RailsAdmin
         included do
           rails_admin do
             navigation_label 'Workflows'
+            navigation_icon 'fa fa-bolt'
             weight 511
             label 'Data Event'
             object_label_method { :custom_title }

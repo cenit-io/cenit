@@ -6,6 +6,7 @@ module RailsAdmin
 
         included do
           rails_admin do
+            navigation_label 'Security'
             parent ::Setup::BaseOauthProvider
             object_label_method { :custom_title }
             weight 331

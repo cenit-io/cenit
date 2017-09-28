@@ -32,20 +32,25 @@ module Setup
       if object_schema && object_schema.is_a?(Hash) && object_schema['type'] == 'object' && (properties = object_schema['properties'])
 
         # Check #id property
-        _id = properties.delete('_id')
-        id = properties.delete('id')
+        _id = properties['_id']
+        id = properties['id']
         fail Exception, 'Defining both id and _id' if _id && id
+        edi_discard_id = false
         unless _id ||= id
+          edi_discard_id = true
           _id = {}
         end
         naked_id = _id.reject { |k, _| %w(group xml unique title description edi format example enum readOnly default visible).include?(k) }
         type = naked_id.delete('type')
         fail Exception, "Invalid id property type #{id}" unless naked_id.empty? && (type.nil? || !%w(object array).include?(type))
         unless options[:skip_id]
+          properties.delete('id')
+          properties.delete('_id')
           object_schema['properties'] = properties = { '_id' => _id.merge('unique' => true,
                                                                           'title' => 'Id',
                                                                           'description' => 'Required',
                                                                           'edi' => { 'segment' => 'id' }) }.merge(properties)
+          properties['_id']['edi']['discard'] = true if edi_discard_id
           unless (required = object_schema['required']).present?
             required = object_schema['required'] = []
           end

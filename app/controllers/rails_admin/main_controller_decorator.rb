@@ -1,3 +1,4 @@
+# rails_admin-1.0 ready
 module RailsAdmin
   MainController.class_eval do
     include OverrideActionsHelper
@@ -5,34 +6,25 @@ module RailsAdmin
     include SwaggerHelper
     include AlgorithmHelper
     include NotebooksHelper
-    include FiltersHelper
+
+    before_action :process_context
 
     alias_method :rails_admin_list_entries, :list_entries
-    before_action :update_filters_session, :get_data_type_filter, :process_context
 
     def list_entries(model_config = @model_config, auth_scope_key = :index, additional_scope = get_association_scope_from_params, pagination = !(params[:associated_collection] || params[:all] || params[:bulk_ids]))
       scope = rails_admin_list_entries(model_config, auth_scope_key, additional_scope, pagination)
       if (model = model_config.abstract_model.model).is_a?(Class)
-        if model.include?(CrossOrigin::Document)
-          origins = []
-          acc = Account.current
-          model.origins.each do |origin|
-            if (even = (params[origin_param="#{origin}_origin"] || (acc && acc.meta[origin_param])).to_i.even?)
-              origins << origin
+        if model.include?(CrossOrigin::CenitDocument)
+          if (acc = Account.current)
+            CrossOrigin.names.each do |origin|
+              even = params[origin_param = "#{origin}_origin"].to_i.even?
+              acc.meta[origin_param] = (even ? 0 : 1)
             end
-            acc.meta[origin_param] = (even ? 0 : 1) if acc
           end
+          origins = model.origins
           origins << nil if origins.include?(:default)
           scope = scope.any_in(origin: origins)
         end
-
-        # Skip filters in ajax request of associated collection (Ex: Requests to get items of select components)
-        unless request.xhr? && params[:associated_collection].present?
-          filter_token = Cenit::Token.where(token: session[:filters][@model_name]).first if session[:filters][@model_name]
-          criteria = filter_token.data['criteria'] if filter_token.try(:data)
-          scope = scope.and(criteria) if criteria.is_a?(Hash)
-        end
-
       elsif (output = Setup::AlgorithmOutput.where(id: params[:algorithm_output]).first) &&
         output.data_type == model.data_type
         scope = scope.any_in(id: output.output_ids)
@@ -76,8 +68,8 @@ module RailsAdmin
     end
 
     def check_for_cancel
-      #Patch
       return unless params[:_continue] || (params[:bulk_action] && !params[:bulk_ids] && !params[:object_ids])
+      #Patch
       if params[:model_name]
         redirect_to(back_or_index, notice: t('admin.flash.noaction'))
       else
@@ -162,7 +154,7 @@ module RailsAdmin
     def get_association_scope_from_params
       return nil unless params[:associated_collection].present?
       #Patch
-      if (source_abstract_model = RailsAdmin::AbstractModel.new(to_model_name(params[:source_abstract_model])))
+      if (source_abstract_model = params[:source_abstract_model]) && (source_abstract_model = RailsAdmin::AbstractModel.new(source_abstract_model))
         source_model_config = source_abstract_model.config #TODO When configuring APPs or other forms rendering use the proper model config
         source_object = source_abstract_model.get(params[:source_object_id])
         action = params[:current_action].in?(%w(create update)) ? params[:current_action] : 'edit'

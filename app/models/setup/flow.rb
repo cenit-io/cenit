@@ -506,7 +506,7 @@ module Setup
     def source_ids_from(message)
       if (object_ids = message[:object_ids])
         object_ids
-      elsif scope_symbol == :event_source && id = message[:source_id]
+      elsif scope_symbol == :event_source && (id = message[:source_id])
         [id]
       elsif scope_symbol == :filtered
         data_type.records_model.all.select { |record| field_triggers_apply_to?(:scope_filter, record) }.collect(&:id)

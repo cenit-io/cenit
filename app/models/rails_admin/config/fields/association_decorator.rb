@@ -5,8 +5,12 @@ module RailsAdmin
     module Fields
       Association.class_eval do
 
-        def object_association_handler?
+        register_instance_option :filter do
+          {}
+        end
 
+        def parse_value(value)
+          (value = super(value)).is_a?(String) ? value.presence : value
         end
 
         def association
@@ -14,7 +18,7 @@ module RailsAdmin
             obj.instance_variable_get(:"@_#{association_method}") ||
               obj.instance_variable_set(:"@_#{association_method}", MongoffAssociation.new(obj.send(association_method), obj.class))
           else
-            @properties
+            @properties ||= abstract_model.associations.detect { |p| name == p.name }
           end
         end
 
