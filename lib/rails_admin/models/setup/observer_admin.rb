@@ -54,9 +54,8 @@ module RailsAdmin
                   obj.data_type.blank? || obj.trigger_evaluator.present? || obj.triggers.nil?
                 end
                 associated_collection_scope do
-                  Proc.new { |scope|
-                    scope.all.or(:parameters.with_size => 1).or(:parameters.with_size => 2)
-                  }
+                  limit = (associated_collection_cache_all ? nil : 30)
+                  Proc.new { |scope| scope.all.or(:parameters.with_size => 1).or(:parameters.with_size => 2).limit(limit) }
                 end
               end
               field :triggers do

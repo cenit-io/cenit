@@ -57,14 +57,15 @@ module RailsAdmin
                 inline_add false
                 inline_edit false
                 associated_collection_scope do
+                  limit = (associated_collection_cache_all ? nil : 30)
                   data_type = bindings[:object].data_type
-                  Proc.new { |scope|
+                  Proc.new do |scope|
                     if data_type
                       scope.where(id: data_type.id)
                     else
                       scope
-                    end
-                  }
+                    end.limit(limit)
+                  end
                 end
                 help 'Required'
               end

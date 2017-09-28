@@ -54,9 +54,8 @@ module RailsAdmin
               group :behavior
               inline_add false
               associated_collection_scope do
-                Proc.new { |scope|
-                  scope.where(:parameters.with_size => 1)
-                }
+                limit = (associated_collection_cache_all ? nil : 30)
+                Proc.new { |scope| scope.where(:parameters.with_size => 1).limit(limit) }
               end
             end
 

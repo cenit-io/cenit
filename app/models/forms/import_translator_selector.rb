@@ -1,7 +1,8 @@
 module Forms
-  class ImportTranslator
+  class ImportTranslatorSelector
     include DataImportCommon
     include TransformationOptions
+    include AccountScoped
 
     belongs_to :data_type, class_name: Setup::DataType.to_s, inverse_of: nil
     belongs_to :translator, class_name: Setup::Translator.to_s, inverse_of: nil
@@ -15,12 +16,10 @@ module Forms
         field :translator do
           inline_edit false
           inline_add false
-          associated_collection_cache_all { true }
           associated_collection_scope do
+            limit = (associated_collection_cache_all ? nil : 30)
             data_type = bindings[:object].try(:data_type)
-            Proc.new { |scope|
-              scope.any_in(target_data_type: [nil, data_type]).and(type: :Import)
-            }
+            Proc.new { |scope| scope.any_in(target_data_type: [nil, data_type]).and(type: :Import).limit(limit) }
           end
         end
 
@@ -36,7 +35,7 @@ module Forms
 
         field :data do
           html_attributes do
-            {cols: '74', rows: '15'}
+            { cols: '74', rows: '15' }
           end
         end
       end
