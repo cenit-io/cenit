@@ -290,7 +290,11 @@ module RailsAdmin
     end
 
     def show_ecommerce_navigation?
-      %w(ecommerce).include?(@dashboard_group_ref) || ((dt = @abstract_model && @abstract_model.model.try(:data_type)) &&
+      %w(ecommerce).include?(@dashboard_group_ref) || ecommerce_model?
+    end
+
+    def ecommerce_model?
+      ((dt = @abstract_model && @abstract_model.model.try(:data_type)) &&
         (names = Cenit.ecommerce_data_types[dt.namespace.to_sym]) &&
         names.include?(dt.name))
     end
