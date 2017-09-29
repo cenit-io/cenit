@@ -12,6 +12,7 @@
 //= require rails_admin/select2.full.min
 
 $(document).on('rails_admin.dom_ready', function () {
+    registerEvents();
     $('pre code').each(function (i, block) {
         hljs.highlightBlock(block);
     });
@@ -23,7 +24,6 @@ $(document).on('rails_admin.dom_ready', function () {
     if (getAbsolute()) {
         $(".social-links").addClass("absolute");
     }
-    registerEvents();
 });
 
 // Vars
@@ -302,7 +302,7 @@ function render_graphic($form, selector) {
     });
 }
 function registerEvents() {
-
+    $('*').off();
     $('.take-tour').click(function (e) {
         e.preventDefault();
         var $this = $(this),
@@ -510,13 +510,13 @@ function registerEvents() {
         }
     });
 
-    $('#model-nav-xs').off('click').on('click', function (e) {
+    $('#model-nav-xs').on('click', function (e) {
         var $secondary_nav = $('#secondary-navigation-xs');
         if ($secondary_nav.hasClass('in')) {
             $secondary_nav.removeClass('in');
         }
     });
-    $('#secondary-nav-xs').off('click').on('click', function (e) {
+    $('#secondary-nav-xs').on('click', function (e) {
         var $model_nav = $('#models-navigation-xs');
         if ($model_nav.hasClass('in')) {
             $model_nav.removeClass('in');
