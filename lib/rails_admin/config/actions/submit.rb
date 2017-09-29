@@ -54,9 +54,8 @@ module RailsAdmin
               @model_config.register_instance_option(:discard_submit_buttons) { true }
               if connection
                 @model_config.configure(:connection).associated_collection_scope do
-                  Proc.new { |scope|
-                    scope.where(id: connection.id)
-                  }
+                  limit = (associated_collection_cache_all ? nil : 30)
+                  Proc.new { |scope| scope.where(id: connection.id).limit(limit) }
                 end
               end unless selecting_connection
               if @form_object.errors.present?

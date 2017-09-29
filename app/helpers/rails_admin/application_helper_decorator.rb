@@ -215,7 +215,7 @@ module RailsAdmin
       end
       if inspecting
         link = [link]
-        link << link_to(url_for(action: inspect_action.action_name, model_name: account_abstract_model.to_param, id: current_account.id, controller: 'rails_admin/main'), class: 'pjax') do
+        link << link_to(url_for(action: inspect_action.action_name, model_name: account_abstract_model.to_param, id: current_account.id, controller: 'rails_admin/main')) do
           '<i class="icon-eye-close" style="color: red"></i>'.html_safe
         end
       end
@@ -290,7 +290,11 @@ module RailsAdmin
     end
 
     def show_ecommerce_navigation?
-      %w(ecommerce).include?(@dashboard_group_ref) || ((dt = @abstract_model && @abstract_model.model.try(:data_type)) &&
+      %w(ecommerce).include?(@dashboard_group_ref) || ecommerce_model?
+    end
+
+    def ecommerce_model?
+      ((dt = @abstract_model && @abstract_model.model.try(:data_type)) &&
         (names = Cenit.ecommerce_data_types[dt.namespace.to_sym]) &&
         names.include?(dt.name))
     end

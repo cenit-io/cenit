@@ -126,7 +126,7 @@ function schedulerInit($this) {
                     return $("#week_day_" + e).hasClass("btn-primary");
                 });
 
-                res["weeks_month"] = _.filter(_.range(0, 3), function (e) {
+                res["weeks_month"] = _.filter(_.range(0, 4), function (e) {
                     return $("#weeks_monthly_at_" + e).hasClass("btn-primary");
                 });
                 res["last_week_in_month"] = $('#last_week_in_month').hasClass("btn-primary");

@@ -189,7 +189,8 @@ module RailsAdmin
                   f.scope_symbol == :evaluation
                 end
                 associated_collection_scope do
-                  Proc.new { |scope| scope.where(:parameters.with_size => 1) }
+                  limit = (associated_collection_cache_all ? nil : 30)
+                  Proc.new { |scope| scope.where(:parameters.with_size => 1).limit(limit) }
                 end
                 help I18n.t('admin.form.required')
               end
@@ -233,7 +234,8 @@ module RailsAdmin
                     ((f.persisted? || f.custom_data_type_selected? || f.data_type) && (t.type == :Import || f.event.blank? || f.data_type.blank? || f.data_type_scope.present?))
                 end
                 associated_collection_scope do
-                  Proc.new { |scope| scope.where('$or': [{ parameters: { '$size': 1 } }, { parameters: { '$size': 2 } }]) }
+                  limit = (associated_collection_cache_all ? nil : 30)
+                  Proc.new { |scope| scope.where('$or': [{ parameters: { '$size': 1 } }, { parameters: { '$size': 2 } }]).limit(limit) }
                 end
               end
               field :response_translator do
@@ -244,9 +246,8 @@ module RailsAdmin
                     f.ready_to_save?
                 end
                 associated_collection_scope do
-                  Proc.new { |scope|
-                    scope.where(type: :Import)
-                  }
+                  limit = (associated_collection_cache_all ? nil : 30)
+                  Proc.new { |scope| scope.where(type: :Import).limit(limit) }
                 end
               end
               field :response_data_type do
@@ -306,9 +307,8 @@ module RailsAdmin
                 end
                 help I18n.t('admin.form.flow.after_process_callbacks')
                 associated_collection_scope do
-                  Proc.new { |scope|
-                    scope.where(:parameters.with_size => 1)
-                  }
+                  limit = (associated_collection_cache_all ? nil : 30)
+                  Proc.new { |scope| scope.where(:parameters.with_size => 1).limit(limit) }
                 end
               end
             end

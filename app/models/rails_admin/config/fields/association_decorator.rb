@@ -154,7 +154,6 @@ module RailsAdmin
           contextual_association_scope = self.contextual_association_scope
           proc do |scope|
             scope = contextual_association_scope.call(scope) if contextual_association_scope
-            scope.limit(limit)
             or_criteria = []
             model_config._fields.each do |f|
               next unless f.is_a?(RailsAdmin::Config::Fields::Types::BelongsToAssociation) && contextual_params.key?(f.foreign_key)
@@ -164,7 +163,7 @@ module RailsAdmin
               end
               or_criteria << { f.foreign_key => id.is_a?(Array) ? { '$in': id } : id }
             end
-            (or_criteria.empty? && scope) || scope.or(or_criteria.flatten)
+            ((or_criteria.empty? && scope) || scope.or(or_criteria.flatten)).limit(limit)
           end
         end
       end

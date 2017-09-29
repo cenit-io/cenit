@@ -46,8 +46,9 @@ module RailsAdmin
                 inline_add false
                 visible { !bindings[:object].data_type.nil? }
                 associated_collection_scope do
+                  limit = (associated_collection_cache_all ? nil : 30)
                   data_type = bindings[:object].data_type || bindings[:controller].object
-                  proc { |scope| scope.where(data_type_id: data_type.id) }
+                  proc { |scope| scope.where(data_type_id: data_type.id).limit(limit) }
                 end
                 help do
                   text = 'Required.'
