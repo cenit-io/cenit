@@ -215,7 +215,7 @@ module RailsAdmin
       end
       if inspecting
         link = [link]
-        link << link_to(url_for(action: inspect_action.action_name, model_name: account_abstract_model.to_param, id: current_account.id, controller: 'rails_admin/main'), class: 'pjax') do
+        link << link_to(url_for(action: inspect_action.action_name, model_name: account_abstract_model.to_param, id: current_account.id, controller: 'rails_admin/main')) do
           '<i class="icon-eye-close" style="color: red"></i>'.html_safe
         end
       end
