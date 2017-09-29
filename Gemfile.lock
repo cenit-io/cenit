@@ -566,8 +566,6 @@ GEM
     tilt (2.0.6)
     tins (1.6.0)
     ttfunk (1.4.0)
-    turbolinks (2.5.3)
-      coffee-rails
     tzinfo (1.2.2)
       thread_safe (~> 0.1)
     uglifier (2.7.2)
@@ -692,7 +690,6 @@ DEPENDENCIES
   spreadsheet
   therubyracer
   thin
-  turbolinks
   uglifier
   unicorn (= 4.9.0)
   wannabe_bool
