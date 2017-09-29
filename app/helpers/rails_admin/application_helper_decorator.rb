@@ -524,7 +524,7 @@ module RailsAdmin
               filter_token = Cenit::Token.where('data.category_id' => cat.id).first || Cenit::Token.create(data: { criteria: values.selector, message: message, category_id: cat.id })
               sub_links += content_tag :li do
                 sub_link_url = index_path(model_name: node.abstract_model.to_param, filter_token: filter_token.token)
-                link_to sub_link_url do
+                link_to sub_link_url, class: 'pjax' do
                   rc = ''
                   if model_count > 0
                     rc += "<span class='nav-amount active'>#{count}</span>"
