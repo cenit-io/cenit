@@ -22,6 +22,7 @@ module RailsAdmin
         register_instance_option :controller do
           proc do
 
+            Forms::SchedulerSelector.collection.drop
             if @object.can_schedule?
               done = false
               form_config = RailsAdmin::Config.model(Forms::SchedulerSelector)
@@ -41,6 +42,7 @@ module RailsAdmin
                 if @object.errors.present?
                   do_flash(:error, "Error scheduling #{@object}", @object.errors.full_messages)
                 end
+                @form_object.save(validate: false)
                 render :form
               end
             else

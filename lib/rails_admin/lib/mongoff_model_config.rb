@@ -47,7 +47,6 @@ module RailsAdmin
             groups[g] = property.group.to_s
           end
           if property.is_a?(RailsAdmin::MongoffAssociation)
-            # associated_collection_cache_all true
             pretty_value do
               v = bindings[:view]
               action = v.instance_variable_get(:@action)

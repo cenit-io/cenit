@@ -25,6 +25,7 @@ module RailsAdmin
         register_instance_option :controller do
           proc do
 
+            Forms::FlowSelector.collection.drop
             model = process_bulk_scope
             selector_config = RailsAdmin::Config.model(Forms::FlowSelector)
             render_form = true
@@ -50,7 +51,7 @@ module RailsAdmin
               if @form_object.errors.present?
                 do_flash_now(:error, 'There are errors selecting the flow', @form_object.errors.full_messages)
               end
-
+              @form_object.save(validate: false)
               render :form, locals: { bulk_alert: true }
             else
               redirect_to back_or_index

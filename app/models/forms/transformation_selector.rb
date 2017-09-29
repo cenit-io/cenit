@@ -1,5 +1,5 @@
 module Forms
-  class Translation
+  class TransformationSelector
     include Mongoid::Document
     include TransformationOptions
     include AccountScoped
@@ -44,10 +44,9 @@ module Forms
       edit do
         field :translator do
           associated_collection_scope do
+            limit = (associated_collection_cache_all ? nil : 30)
             translator_options = bindings[:object].translator_options
-            Proc.new do |scope|
-              scope.where(translator_options)
-            end
+            Proc.new { |scope| scope.where(translator_options).limit(limit) }
           end
         end
         field :options

@@ -2,6 +2,7 @@ module Forms
   class DataTypeSelector
     include Mongoid::Document
     include Setup::HashField
+    include AccountScoped
 
     belongs_to :data_type, class_name: Setup::DataType.to_s, inverse_of: nil
     hash_field :scope
@@ -21,9 +22,8 @@ module Forms
           inline_add false
           associated_collection_scope do
             data_type_scope = bindings[:object].scope
-            Proc.new do |scope|
-              scope.merge(Setup::DataType.where(data_type_scope))
-            end
+            limit = (associated_collection_cache_all ? nil : 30)
+            Proc.new { |scope| scope.merge(Setup::DataType.where(data_type_scope)).limit(limit) }
           end
         end
       end
