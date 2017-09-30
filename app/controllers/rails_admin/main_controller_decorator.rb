@@ -25,6 +25,12 @@ module RailsAdmin
           origins << nil if origins.include?(:default)
           scope = scope.any_in(origin: origins)
         end
+
+        if (filter_token = params[:filter_token]) &&
+           (filter_token = Cenit::Token.where(token: filter_token).first) &&
+           (criteria = filter_token.data && filter_token.data['criteria']).is_a?(Hash)
+          scope = scope.and(criteria)
+        end
       elsif (output = Setup::AlgorithmOutput.where(id: params[:algorithm_output]).first) &&
         output.data_type == model.data_type
         scope = scope.any_in(id: output.output_ids)
