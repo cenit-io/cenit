@@ -524,7 +524,7 @@ module RailsAdmin
               filter_token = Cenit::Token.where('data.category_id' => cat.id).first || Cenit::Token.create(data: { criteria: values.selector, message: message, category_id: cat.id })
               sub_links += content_tag :li do
                 sub_link_url = index_path(model_name: node.abstract_model.to_param, filter_token: filter_token.token)
-                link_to sub_link_url do
+                link_to sub_link_url, class: 'pjax' do
                   rc = ''
                   if model_count > 0
                     rc += "<span class='nav-amount active'>#{count}</span>"
@@ -1106,18 +1106,11 @@ module RailsAdmin
         value = value.to(value.index('<li') - 1) +
           "<li class=\"false\"><a class=\"contextual-record pjax\" href=\"#{index_path(model_name: @abstract_model.to_param, leave_context: true)}\" title='#{t('admin.misc.leave_context', label: (label = wording_for(:breadcrumb, :show, context_config.abstract_model, get_context_record)))}'>#{label}</a></li>" +
           value.from(value.index('</li>') + 5)
-      else
-        if @model_config && @model_config.dashboard_group_path.length > 1
-          value = value.to(value.index('<li') - 1) +
-            "<li class=\"active\">#{@dashboard_group_ref.capitalize }</li>" +
-            value.from(value.index('</li>') + 5)
-          value = value.to(value.index('</ol>')-1) + '</ol>'
-        else
-          has_dashboard = value.match(/Dashboard/)
-          if(has_dashboard && @dashboard_group_ref)
-            value.gsub!('Dashboard', "#{@dashboard_group_ref.capitalize} / Dashboard")
-          end
-        end
+      elsif @model_config && @model_config.dashboard_group_path.length > 1
+        value = value.to(value.index('<li') - 1) +
+          "<li class=\"active\">#{@dashboard_group_ref.capitalize }</li>" +
+          value.from(value.index('</li>') + 5)
+        value = value.to(value.index('</ol>')-1) + '</ol>'
       end
       value.html_safe
     end

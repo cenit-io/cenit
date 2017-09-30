@@ -258,18 +258,22 @@ module RailsAdmin
 
     ###
     # Returns prepared parameters from model properties.
+    # TODO Review the useful of this method
     def api_params_from_model_properties
       exclude = /^(created_at|updated_at|version|origin)$|_ids|_type?$/
-      parameters = @properties.map do |p|
+      parameters = []
+      @properties.each do |p|
+        next if p.is_a?(RailsAdmin::MongoffAssociation)
         name, type = p.is_a?(RailsAdmin::MongoffProperty) ?
           [p.property, p.type.to_s] :
           [p.property.name, p.property.type.name.downcase]
 
-        {
-          in: 'query',
-          name: name == '_id' ? 'id' : name,
-          type: type
-        }
+        parameters <<
+          {
+            in: 'query',
+            name: name == '_id' ? 'id' : name,
+            type: type
+          }
       end
       parameters.select { |p| !p[:name].match(exclude) }
     end
