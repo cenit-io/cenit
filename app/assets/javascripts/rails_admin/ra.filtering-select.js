@@ -18,7 +18,7 @@
     $.widget("ra.filteringSelect", {
         options: {
             createQuery: function (query) {
-                return {query: query};
+                return {filter_query: query};
             },
             minLength: 0,
             searchDelay: 200,
