@@ -102,7 +102,30 @@ module RailsAdmin
           end
       end
 
+      def all(options = {}, scope = nil)
+        scope ||= scoped
+        scope = scope.includes(*options[:include]) if options[:include]
+        scope = scope.limit(options[:limit]) if options[:limit]
+        scope = scope.any_in(_id: options[:bulk_ids]) if options[:bulk_ids]
+        scope = scope.where(query_conditions(options[:query])) if options[:query]
+        scope = scope.where(filter_conditions(options[:filters])) if options[:filters]
+        scope = scope.where(filter_query_conditions(options[:filter_query])) if options[:filter_query]
+        if options[:page] && options[:per]
+          scope = scope.send(Kaminari.config.page_method_name, options[:page]).per(options[:per])
+        end
+        scope = sort_by(options, scope) if options[:sort]
+        scope
+      end
+
+      def filter_query_conditions(query, fields = nil)
+        fields_query_conditions(:filter_fields, query, fields)
+      end
+
       def query_conditions(query, fields = nil)
+        fields_query_conditions(:fields, query, fields)
+      end
+
+      def fields_query_conditions(fields_method, query, fields = nil)
         #Patch
         statements = []
         if fields.nil? && model.is_a?(Class) && model < Setup::ClassHierarchyAware
@@ -111,7 +134,7 @@ module RailsAdmin
             model_statements = []
             model_config = RailsAdmin.config(model)
 
-            fields = model_config.fields.select(&:queryable?)
+            fields = model_config.send(fields_method).select(&:queryable?)
             fields.each do |field|
               conditions_per_collection = make_field_conditions(field, query, field.search_operator)
               model_statements.concat make_condition_for_current_collection(field, conditions_per_collection)
@@ -120,7 +143,7 @@ module RailsAdmin
             [model_config.search_associations].flatten.each do |association_name|
               next unless (association = model.reflect_on_association(association_name))
               model_config = RailsAdmin.config(association.klass)
-              associated_selector = model_config.abstract_model.query_conditions(query)
+              associated_selector = model_config.abstract_model.fields_query_conditions(fields_method, query)
               if associated_selector.any?
                 associated_ids = association.klass.where(associated_selector).collect(&:id)
                 model_statements << {
@@ -140,7 +163,7 @@ module RailsAdmin
             end
           end
         else
-          fields ||= config.fields.select(&:queryable?)
+          fields ||= config.send(fields_method).select(&:queryable?)
           fields.each do |field|
             conditions_per_collection = make_field_conditions(field, query, field.search_operator)
             statements.concat make_condition_for_current_collection(field, conditions_per_collection)
