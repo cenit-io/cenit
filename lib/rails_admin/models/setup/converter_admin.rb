@@ -53,7 +53,9 @@ module RailsAdmin
               [RailsAdmin::MongoffAssociation.new(association, abstract_model.model)]
             end
 
-            configure :mapping, :has_one_association
+            configure :mapping, :has_one_association do
+              nested_form_safe true
+            end
 
             edit do
               field :namespace, :enum_edit, &RailsAdmin::Config::Fields::Base::SHARED_READ_ONLY
