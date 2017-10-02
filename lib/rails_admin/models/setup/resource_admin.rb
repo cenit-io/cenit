@@ -73,6 +73,8 @@ module RailsAdmin
             end
 
             fields :namespace, :name, :path, :description, :operations, :updated_at
+
+            filter_fields :namespace, :name, :path
           end
         end
 

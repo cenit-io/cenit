@@ -2,6 +2,24 @@ module RailsAdmin
   module Config
     Model.class_eval do
 
+      register_instance_option :filter_fields_names do
+        nil
+      end
+
+      def filter_fields(*args)
+        if args.length == 0
+          if (names = filter_fields_names)
+            fields.select { |f| names.include?(f.name) }
+          else
+            fields
+          end
+        else
+          register_instance_option :filter_fields_names do
+            args
+          end
+        end
+      end
+
       register_instance_option :dashboard_group_path do
         unless @dashboard_group_path
           compute_dashboard_groups(@dashboard_group_path = [])
