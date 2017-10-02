@@ -116,15 +116,6 @@ module RailsAdmin
           end
         end
 
-        def value
-          #Patch
-          if (v = bindings[:object].send(association.name)).is_a?(Enumerable)
-            v.to_a
-          else
-            v
-          end
-        end
-
         def show_values(limit = 10)
           if (v = bindings[:object].try(association.name, limit: limit) || bindings[:object].send(association.name))
             if v.is_a?(Enumerable)
