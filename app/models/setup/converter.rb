@@ -12,10 +12,6 @@ module Setup
 
     field :map_attributes, type: Hash, default: {}
 
-    before_save do
-      self.map_attributes = mapping.attributes
-    end
-
     # TODO Remove when refactoring translators in style models
     def snippet_required?
       %w(chain mapping).exclude?(style)
@@ -54,10 +50,17 @@ module Setup
           end
       end
       @mapping = map_model.new_from_json(data)
+      self.map_attributes = @mapping.attributes
     end
 
     def mapping_attributes=(attrs)
-      @mapping ||= map_model.new(attrs)
+      @mapping = map_model.new(attrs)
+      self.map_attributes = @mapping.attributes
+    end
+
+    def validates_mapping
+      mapping.validate
+      mapping.errors.full_messages
     end
 
     def map_model
@@ -80,7 +83,11 @@ module Setup
     def validates_configuration
       super
       if style == 'mapping'
-        requires(:map_attributes)
+        unless requires(:map_attributes)
+          validates_mapping.each do |error|
+            errors.add(:base, error)
+          end
+        end
       else
         rejects :map_attributes
       end
@@ -191,9 +198,11 @@ module Setup
                 }
               }.deep_stringify_keys
               if source_data_type
-                enum = []
-                source_data_type.records_model.properties.each do |property|
-                  enum << property
+                enum = ["Source #{source_data_type.title}"]
+                source_model = source_data_type.records_model
+                source_model.properties.each do |property|
+                  property_dt = source_model.property_model(property).data_type
+                  enum << property unless property_dt == source_data_type
                 end
                 sch['properties']['source']['enum'] = enum
               end
