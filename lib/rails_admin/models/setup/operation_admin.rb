@@ -31,6 +31,8 @@ module RailsAdmin
             configure :metadata, :json_value
 
             fields :resource, :method, :description, :parameters
+
+            filter_fields :none
           end
         end
 

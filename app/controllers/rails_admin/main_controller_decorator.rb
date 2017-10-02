@@ -25,6 +25,12 @@ module RailsAdmin
           origins << nil if origins.include?(:default)
           scope = scope.any_in(origin: origins)
         end
+
+        if (filter_token = params[:filter_token]) &&
+           (filter_token = Cenit::Token.where(token: filter_token).first) &&
+           (criteria = filter_token.data && filter_token.data['criteria']).is_a?(Hash)
+          scope = scope.and(criteria)
+        end
       elsif (output = Setup::AlgorithmOutput.where(id: params[:algorithm_output]).first) &&
         output.data_type == model.data_type
         scope = scope.any_in(id: output.output_ids)
@@ -154,7 +160,7 @@ module RailsAdmin
     def get_association_scope_from_params
       return nil unless params[:associated_collection].present?
       #Patch
-      if (source_abstract_model = params[:source_abstract_model]) && (source_abstract_model = RailsAdmin::AbstractModel.new(source_abstract_model))
+      if (source_abstract_model = params[:source_abstract_model]) && (source_abstract_model = RailsAdmin::AbstractModel.new(to_model_name(source_abstract_model)))
         source_model_config = source_abstract_model.config #TODO When configuring APPs or other forms rendering use the proper model config
         source_object = source_abstract_model.get(params[:source_object_id])
         action = params[:current_action].in?(%w(create update)) ? params[:current_action] : 'edit'
@@ -179,6 +185,20 @@ module RailsAdmin
       end
       params.delete(:query)
       model
+    end
+
+    def get_collection(model_config, scope, pagination)
+      associations = model_config.list.fields.select { |f| f.type == :belongs_to_association && !f.polymorphic? }.collect { |f| f.association.name }
+      options = {}
+      options = options.merge(page: (params[Kaminari.config.param_name] || 1).to_i, per: (params[:per] || model_config.list.items_per_page)) if pagination
+      options = options.merge(include: associations) unless associations.blank?
+      options = options.merge(get_sort_hash(model_config))
+      options = options.merge(query: params[:query]) if params[:query].present?
+      options = options.merge(filters: params[:f]) if params[:f].present?
+      options = options.merge(bulk_ids: params[:bulk_ids]) if params[:bulk_ids]
+      # Patch
+      options = options.merge(filter_query: params[:filter_query]) if params[:filter_query].present?
+      model_config.abstract_model.all(options, scope)
     end
   end
 end

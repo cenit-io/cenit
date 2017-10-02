@@ -59,12 +59,13 @@ module RailsAdmin
                   help 'Required'
                   visible { bindings[:object].record_model == m_data[:model_name] }
                   associated_collection_scope do
+                    limit = (associated_collection_cache_all ? nil : 30)
                     field = "#{m_data[:property]}_id".to_sym
                     excluded_ids = ::Setup::Pin.where(field.exists => true).collect(&field)
                     unless (pin = bindings[:object]).nil? || pin.new_record?
                       excluded_ids.delete(pin[field])
                     end
-                    Proc.new { |scope| scope.where(:origin.ne => :default, :id.nin => excluded_ids) }
+                    Proc.new { |scope| scope.where(:origin.ne => :default, :id.nin => excluded_ids).limit(limit) }
                   end
                 end
               end

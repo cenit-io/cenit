@@ -21,13 +21,14 @@ module RailsAdmin
         end
 
         register_instance_option :http_methods do
-          [:get, :post]
+          [:get, :post, :patch]
         end
 
         register_instance_option :controller do
           proc do
 
-            selector_config = RailsAdmin::Config.model(Forms::ImportTranslator)
+            Forms::ImportTranslatorSelector.collection.drop
+            selector_config = RailsAdmin::Config.model(Forms::ImportTranslatorSelector)
             render_form = true
             model = @abstract_model.model rescue nil
             if model
@@ -35,11 +36,11 @@ module RailsAdmin
               if (data = params[selector_config.abstract_model.param_key])
                 translator = Setup::Translator.where(id: data[:translator_id]).first
                 decompress = data[:decompress_content].to_b
-                if (@form_object = Forms::ImportTranslator.new(translator: translator,
-                                                               data_type: data_type_selector,
-                                                               options: data[:options],
-                                                               file: (file = data[:file]),
-                                                               data: (data = data[:data]))).valid?
+                if (@form_object = Forms::ImportTranslatorSelector.new(translator: translator,
+                                                                       data_type: data_type_selector,
+                                                                       options: data[:options],
+                                                                       file: (file = data[:file]),
+                                                                       data: (data = data[:data]))).valid?
                   begin
                     msg =
                       {
@@ -66,12 +67,12 @@ module RailsAdmin
               flash[:error] = 'Error loading model'
             end
             if render_form
-              @form_object ||= Forms::ImportTranslator.new(data_type: data_type_selector)
+              @form_object ||= Forms::ImportTranslatorSelector.new(data_type: data_type_selector)
               @model_config = selector_config
               if @form_object.errors.present?
                 do_flash(:error, 'There are errors in the import data specification', @form_object.errors.full_messages)
               end
-
+              @form_object.save(validate: false)
               render :form
             else
               redirect_to back_or_index
