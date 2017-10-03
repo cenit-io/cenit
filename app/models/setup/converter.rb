@@ -12,6 +12,20 @@ module Setup
 
     field :map_attributes, type: Hash, default: {}
 
+    def validates_configuration
+      super
+      if style == 'mapping'
+        unless requires(:map_attributes)
+          validates_mapping.each do |error|
+            errors.add(:mapping, error)
+          end
+        end
+      else
+        rejects :map_attributes
+      end
+      errors.blank?
+    end
+
     # TODO Remove when refactoring translators in style models
     def snippet_required?
       %w(chain mapping).exclude?(style)
@@ -60,6 +74,43 @@ module Setup
 
     def validates_mapping
       mapping.validate
+      unless mapping.errors.present?
+        map_model.for_each_association do |a|
+          name = a[:name]
+          schema = map_model.property_schema(name)
+          next unless schema[MappingModel::SCHEMA_FLAG]
+          sub_map = mapping[name]
+          source_dt =
+            if sub_map.source == '$'
+              source_data_type
+            else
+              source_data_type &&
+                (source_model = source_data_type.records_model.property_model(sub_map.source)) &&
+                source_model.data_type
+            end
+          transformation = sub_map.transformation
+          sub_map.errors.add(:source, 'reference is invalid') unless source_dt
+          if transformation
+            sub_map.errors.add(:transformation, 'type is invalid') unless [:Export, :Conversion].include?(transformation.type)
+          else
+            sub_map.errors.add(:transformation, 'reference is invalid')
+          end
+          if sub_map.errors.blank?
+            if (t_data_type = transformation.data_type).nil? || t_data_type == source_dt
+              unless transformation.type == :Export
+                sub_map_target_dt = target_data_type.records_model.property_model(name).data_type
+                t_target_dt = transformation.target_data_type
+                unless t_target_dt == sub_map_target_dt
+                  sub_map.errors.add(:transformation, "target data type (#{t_target_dt ? t_target_dt.custom_title : 'nil'}) is invalid (#{sub_map_target_dt.custom_title} expected)")
+                end
+              end
+            else
+              sub_map.errors.add(:transformation, "data type (#{t_data_type ? t_data_type.custom_title : 'nil'}) and source data type (#{source_dt.custom_title}) mismatch")
+            end
+          end
+          mapping.errors.add(name, 'is invalid') if sub_map.errors.present?
+        end
+      end
       mapping.errors.full_messages
     end
 
@@ -78,20 +129,6 @@ module Setup
                            name: "#{self.class.map_model_name}Default",
                            cache: false)
       end
-    end
-
-    def validates_configuration
-      super
-      if style == 'mapping'
-        unless requires(:map_attributes)
-          validates_mapping.each do |error|
-            errors.add(:base, error)
-          end
-        end
-      else
-        rejects :map_attributes
-      end
-      errors.blank?
     end
 
     def association_for_mapping
@@ -142,6 +179,8 @@ module Setup
 
     class MappingModel < Mongoff::Model
 
+      SCHEMA_FLAG = self.to_s
+
       def mapping_schema
         if @parent_map_model
           @parent_map_model.mapping_schema
@@ -149,6 +188,7 @@ module Setup
           @mapping_schema ||=
             begin
               sch = {
+                SCHEMA_FLAG.to_s => true,
                 type: 'object',
                 properties: {
                   source: {
@@ -163,32 +203,22 @@ module Setup
                     filter: {
                       '$or':
                         [
-                          # {
-                          #   type: {
-                          #     a: {
-                          #       v: 'Export'
-                          #     }
-                          #   },
-                          #   source_data_type: {
-                          #     a: {
-                          #       v: '_blank'
-                          #     }
-                          #   }
-                          # },
                           {
                             type: {
                               a: {
-                                v: 'Conversion'
+                                v: 'Export'
                               }
                             },
                             source_data_type: {
                               a: {
-                                v: '__source_data_type_id__'
+                                v: '_blank'
                               }
-                            },
-                            target_data_type: {
+                            }
+                          },
+                          {
+                            type: {
                               a: {
-                                v: '123'
+                                v: 'Conversion'
                               }
                             }
                           }
@@ -198,13 +228,18 @@ module Setup
                 }
               }.deep_stringify_keys
               if source_data_type
-                enum = ["Source #{source_data_type.title}"]
+                enum = ['$']
+                enumNames = [source_data_type.custom_title]
                 source_model = source_data_type.records_model
                 source_model.properties.each do |property|
                   property_dt = source_model.property_model(property).data_type
-                  enum << property unless property_dt == source_data_type
+                  unless property_dt == source_data_type
+                    enum << property
+                    enumNames << "#{source_data_type.custom_title} | #{(property_dt.schema['title'] || property.to_title)}"
+                  end
                 end
                 sch['properties']['source']['enum'] = enum
+                sch['properties']['source']['enumNames'] = enumNames
               end
               sch
             end
