@@ -21,8 +21,6 @@
     #subdomain-toggle.hidden-xs
       %span.subdomain_link
         - unless group.nil?
-          %span.separator
-            = '|'
           %span.subdomain
             = group[:label]
         %i.fa.fa-chevron-down{style: 'color: white;'}
@@ -32,3 +30,5 @@
     = render partial: 'layouts/rails_admin/secondary_nav_xs'
   .collapse.navbar-collapse#models-navigation-xs.xs-menu
     = dashboard_primary_xs
+  #subdomain-panel.collapsed
+    = dashboard_primary

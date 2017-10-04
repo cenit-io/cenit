@@ -343,7 +343,7 @@ ul.drawer li a span {
 
 span.subdomain_link {
   color: white;
-  font-size: 22px;
+  font-size: 18px;
   padding-right: 5px;
   line-height: 22px;
   i {
@@ -359,7 +359,7 @@ div#subdomain-toggle {
   padding: 15px 0;
 
   i.fa {
-    transition: all 0.5s ease;
+    //transition: all 0.5s ease;
   }
 
   &.toggled i.fa {
@@ -1631,6 +1631,8 @@ p.filter.form-search {
         color: black;
         text-decoration: none;
         line-height: 1.7;
+        text-transform: capitalize;
+
         &:hover {
           color: $cenit_color;
         }
@@ -1691,10 +1693,6 @@ html {
 
 div#subdomain-panel {
   position: absolute;
-  top: 50px;
-  @media(min-width: 1200px) {
-    top: 50px;
-  }
   background: white;
   padding: 0 25px;
   left: 30px;
@@ -1712,6 +1710,7 @@ div#subdomain-panel {
   &.collapsed {
     opacity: 0;
     z-index: -1;
+    display: none;
   }
   #primary_dashboard {
     margin: 25px 0 0;

@@ -815,7 +815,7 @@ module RailsAdmin
     def public_apis_collection_view(c)
       has_image = c.image.present?
       css_class = 'img-responsive '+(has_image ? '' : 'no-image')
-      image = image_tag has_image ? c.image.versions[:thumb] : 'missing.png', :class => css_class, :alt => c.name, width: '80%', max_height: '80%', margin: '12px'
+      image = image_tag has_image ? c.image.versions[:thumb] : 'missing.png', :class => css_class, :alt => c.name, style: 'width: 80%'
       url_show = rails_admin.show_path(model_name: c.model_name.to_s.underscore.gsub('/', '~'), id: c.name)
       '<div class="col-md-2 col-sm-3">
         <a href="'+url_show+'" title="'+ c.name+'">
