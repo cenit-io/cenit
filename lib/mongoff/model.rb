@@ -150,7 +150,7 @@ module Mongoff
 
     def for_each_association(&block)
       properties_schemas.each do |property, schema|
-        block.yield(name: property, embedded: !schema['referenced']) if property_model?(property)
+        block.yield(name: property, embedded: !schema['referenced'], many: schema['type'] == 'array') if property_model?(property)
       end
     end
 
