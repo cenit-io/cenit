@@ -157,6 +157,10 @@ module Mongoff
       orm_model
     end
 
+    def ruby_class
+      method(:class).super_method.call
+    end
+
     def associations
       self.class.associations
     end
