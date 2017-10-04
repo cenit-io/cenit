@@ -1,6 +1,7 @@
 module Setup
   class Converter < Translator
     include RailsAdmin::Models::Setup::ConverterAdmin
+    include Setup::TranslationCommon::ClassMethods
 
     transformation_type :Conversion
 
@@ -44,14 +45,80 @@ module Setup
     end
 
     def do_map(source)
-      locals = {}
-      source_data_type.records_model.properties.each do |property|
-        locals[property] = source.send(property)
+      plain_properties = []
+      map_model.properties_schemas.each do |property, schema|
+        plain_properties << property unless schema[MappingModel::SCHEMA_FLAG]
       end
-      json = mapping.to_json
-      handlebars = Handlebars::Context.new
-      json = handlebars.compile(json).call(locals)
-      target_data_type.records_model.new_from_json(json)
+      json = render_template(mapping.to_hash(only: plain_properties, include_id: false), source_data_type, source)
+      target = target_data_type.records_model.new_from_json(json)
+      map_model.for_each_association do |a|
+        name = a[:name]
+        schema = map_model.property_schema(name)
+        next unless schema[MappingModel::SCHEMA_FLAG]
+        sub_map = mapping[name]
+        sub_map_source =
+          if sub_map.source == '$'
+            source
+          else
+            source.send(sub_map.source)
+          end
+        transformation = sub_map.transformation
+        options = parse_options(sub_map.options)
+        target_association = target_data_type.records_model.associations[name]
+        target_model = target_association.klass
+        run_transformation(transformation, source_data_type.records_model.property_model(sub_map.source).data_type, sub_map_source, options) do |result, opts|
+          unless (target_model.is_a?(Class) && result.is_a?(target_association.klass)) ||
+            (result.is_a?(Mongoff::Record) && result.is_a?(target_model))
+            opts = opts.merge(discard_events: true).with_indifferent_access
+            if transformation.type == :Export && target_model.data_type.is_a?(Setup::FileDataType)
+              opts[:contentType] ||= transformation.mime_type
+              unless (file_extension = transformation.file_extension).nil? || opts[:filename].to_s.ends_with?(".#{file_extension}")
+                opts[:filename] = "#{opts[:filename].to_s.presence || 'file'}.#{file_extension}"
+              end
+            end
+            result = target_model.data_type.new_from(result.to_s, opts)
+          end
+          if target_association.many?
+            target.send(name) << result
+          else
+            target.send("#{name}=", result)
+          end
+        end
+      end
+      target
+    end
+
+    def run_transformation(transformation, source_data_type, source, options)
+      source = [source] unless source.is_a?(Enumerable)
+      if (transformation.type == :Export && transformation.bulk_source) ||
+        (transformation.type == :Conversion && transformation.source_handler)
+        r = transformation.run(objects: source, options: options)
+        yield r, options if block_given?
+      else
+        source.each do |obj|
+          template = Handlebars::Context.new.compile(options.to_json)
+          opts = render_template(template, source_data_type, obj)
+          r = transformation.run(object: obj, options: opts)
+          yield r, opts if block_given?
+        end
+      end
+    end
+
+    def render_template(template, data_type, record)
+      locals = {}
+      data_type.records_model.properties.each do |property|
+        locals[property] = record.send(property)
+      end
+      unless template.is_a?(Handlebars::Template)
+        template =
+          if template.is_a?(Hash)
+            template.to_json
+          else
+            template.to_s
+          end
+        template = Handlebars::Context.new.compile(template)
+      end
+      JSON.parse(template.call(locals))
     end
 
     def mapping=(data)
@@ -80,12 +147,14 @@ module Setup
           schema = map_model.property_schema(name)
           next unless schema[MappingModel::SCHEMA_FLAG]
           sub_map = mapping[name]
+          source_association = nil
           source_dt =
             if sub_map.source == '$'
               source_data_type
             else
               source_data_type &&
-                (source_model = source_data_type.records_model.property_model(sub_map.source)) &&
+                (source_association = source_data_type.records_model.associations[sub_map.source]) &&
+                (source_model = source_association.klass) &&
                 source_model.data_type
             end
           transformation = sub_map.transformation
@@ -96,6 +165,10 @@ module Setup
             sub_map.errors.add(:transformation, 'reference is invalid')
           end
           if sub_map.errors.blank?
+            target_association = target_data_type.records_model.associations[name]
+            if source_association && source_association.many? && !target_association.many? && !transformation.bulk_source
+              sub_map.errors.add(:source, "is a many association and can not be mapped to #{target_data_type.custom_title} | #{schema['title'] || name.to_title} (which is not many) with the non bulk transformation #{transformation.custom_title}")
+            end
             if (t_data_type = transformation.data_type).nil? || t_data_type == source_dt
               unless transformation.type == :Export
                 sub_map_target_dt = target_data_type.records_model.property_model(name).data_type
@@ -107,6 +180,11 @@ module Setup
             else
               sub_map.errors.add(:transformation, "data type (#{t_data_type ? t_data_type.custom_title : 'nil'}) and source data type (#{source_dt.custom_title}) mismatch")
             end
+          end
+          begin
+            parse_options(sub_map.options)
+          rescue Exception => ex
+            sub_map.errors.add(:options, ex.message)
           end
           mapping.errors.add(name, 'is invalid') if sub_map.errors.present?
         end
@@ -159,7 +237,7 @@ module Setup
 
       def for_each_association(&block)
         super
-        block.yield(name: :mapping, embedded: false)
+        block.yield(name: :mapping, embedded: false, many: false)
       end
     end
 
@@ -224,6 +302,9 @@ module Setup
                           }
                         ]
                     }
+                  },
+                  options: {
+                    type: 'string'
                   }
                 }
               }.deep_stringify_keys
