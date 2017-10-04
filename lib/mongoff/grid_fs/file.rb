@@ -52,7 +52,7 @@ module Mongoff
           end
 
           unless @custom_content_type
-            self[:contentType] = options[:contentType] || extract_content_type_from_io(stash_data) || extract_content_type(self[:filename]) || options[:default_contentType]
+            self[:contentType] = options[:contentType] || extract_content_type_from_io(stash_data) || extract_content_type(self[:filename]) || options[:default_contentType] || 'application/octet-stream'
           end
 
           self[:uploadDate] ||= Time.now.utc
