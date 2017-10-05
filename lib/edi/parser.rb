@@ -196,6 +196,7 @@ module Edi
                   property_value = [property_value] unless property_value.is_a?(Array)
                   persist = property_model && property_model.persistable?
                   property_value.each do |sub_value|
+                    next unless sub_value
                     if persist && sub_value['_reference'] && ((sub_value[:id].nil? && sub_value[:_id].nil?) || options[:skip_refs_binding])
                       sub_value = Cenit::Utility.deep_remove(sub_value, '_reference')
                       unless Cenit::Utility.find_record(sub_value, sub_values || [])
