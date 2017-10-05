@@ -116,7 +116,7 @@ module Setup
 
       def for_each_association(&block)
         super
-        block.yield(name: :configuration, embedded: false)
+        block.yield(name: :configuration, embedded: false, many: false)
       end
       
     end

@@ -59,7 +59,14 @@ module RailsAdmin
     end
 
     def enum
-      hash_schema['enum']
+      @enum ||=
+        if (enum = hash_schema['enum']) && (names = hash_schema['enumNames'])
+          hash = {}
+          enum.each_with_index { |value, index| hash[names[index] || value] = value }
+          hash
+        else
+          enum
+        end
     end
 
     def length

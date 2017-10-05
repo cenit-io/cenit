@@ -6,7 +6,7 @@ module RailsAdmin
 
         included do
           rails_admin do
-            object_label_method { :label }
+            object_label_method { :custom_title }
             navigation_label 'Workflows'
             navigation_icon 'fa fa-bullhorn'
             label 'Notification'
