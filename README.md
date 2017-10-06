@@ -84,36 +84,32 @@ and visit the browser: `localhost:3000`
 
 ## General Features
 
-* 100% Open source integration platform and community friendly.
-* Router Logic for redirecting documents to different endpoints.
-* Powerful design with simple abstractions: Data Types, Webhooks, Flows, Events, Connections, Transforms, and Validators.
-* Exchange support for multiple formats XML, JSON, CSV, EDI(X12, EDIFACT, ..), etc.
-* Dynamic load validators: XML Schema, JSON Schema, and EDI grammars.
-* Powerful transformation tools to translate and convert several formats into others.
-* Social networking features to share integration settings, we call them *Shared Collections*.
-* Export and import shared collections as a repo on Github and a gem in Rubygems.
-* Multi-tenancy.
 
+* **Backendless**: After create a new Data Type using a JSON Schema is generated on the fly a complete REST API and a CRUD UI to manage the data. Useful for mobile backend and API services.
+* **Routing and orchestration**: Enables to create multistep integration flows by composing atomic integration functionality (such as connection, transformation, data event, schedule, webhook and flow).
+* **Data integration**: Includes data validation, transformation, mapping, and data quality. Exchange support for multiple data formats (JSON, XML, ASN) and data standards (EDIFACT, X12, UBL).
+* **Integration scenarios**: Cloud Service Integration, for Publication and Management of APIs, Mobile Application Integration, to support Business to Business, Application and Data Integration needs.
+* **Third party service integrations**: Directory for OpenAPI Spec (Swagger) and Shared Collections - social feature to share integration settings - to connect services as ERP / Fulfilment / Marketing / Communication.
+* **Manage multiple Authentication Protocols**: Basic Auth, Digest Auth, OAuth 1.0a, OAuth 2.0
 
 ## Key concepts
 
-* Definitions
+* Data
   + **Schemas & Validators** - XML Schema, EDI Grammars, Regular Expression, etc
   + **Data Types** - Include Object Type defined and a Json Schema and File Type
 
-* Connectors
-  + **API Specs** - Allow uploading an Open API Spec (Swagger 2.0).
+* Gateway
+  + **API Specs** - Allow uploading an OpenAPI Spec (Swagger 2.0) or create manually.
   + **Connections** - Are representation of endpoints.
   + **Resources** - Element that manages a kind of data and a state and provides processing on this kind
   + **Operations** - An operation is a unit of a REST API that you can call
-  + **Webhooks** - The webhook is the final step in a flow, implemented like a request HTTP to an endpoint, for sent or receive data
 
 * Compute
   + **Snippets** - Small region of re-usable code
   + **Algorithms**
   + **Applications** - Associate path with algorithms to process the request and render the response.
 
-* Transformations
+* Transforms
   + **Renderers** - Exporting data outside Cenit.
   + **Parsers** - Importing outside data into Cenit.
   + **Converters** - Converting data already stored in Cenit.
@@ -136,21 +132,6 @@ and visit the browser: `localhost:3000`
   + **Tasks** -  Asynchronous executions of flows.
   + **Storages** - Info about the used space.
 
-## Load Schemas & Data Types on the fly
-
-* XSD, JSON Schemas and EDI grammars
-* Allows adding new Document types to the Database
-* CRUD any data with ease
-* Search and filter
-* Export data to CSV/JSON/XML
-* User action history
-
-## Manage multiple Authentication Protocols
-
-* Basic Auth
-* Digest Auth
-* OAuth 1.0a
-* OAuth 2.0
 
 ## Frameworks and Tools
 
@@ -161,7 +142,7 @@ and visit the browser: `localhost:3000`
 * RabbitMQ for internal pipeline messages.
 
 
-## Create Cenit IO local server.
+## Create your own Cenit IO local server.
 
 Clone the [GitHub cenit-io/cenit repo](https://github.com/cenit-io/cenit) and move to the **cenit** folder.
 
