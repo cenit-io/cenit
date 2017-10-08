@@ -66,7 +66,13 @@ module Setup
         options = parse_options(sub_map.options)
         target_association = target_data_type.records_model.associations[name]
         target_model = target_association.klass
-        run_transformation(transformation, source_data_type.records_model.property_model(sub_map.source).data_type, sub_map_source, options) do |result, opts|
+        sub_map_source_data_type =
+          if sub_map.source == '$'
+            source_data_type
+          else
+            source_data_type.records_model.property_model(sub_map.source).data_type
+          end
+        run_transformation(transformation, sub_map_source_data_type, sub_map_source, options) do |result, opts|
           unless (target_model.is_a?(Class) && result.is_a?(target_association.klass)) ||
             (result.is_a?(Mongoff::Record) && result.is_a?(target_model))
             opts = opts.merge(discard_events: true).with_indifferent_access
