@@ -337,6 +337,19 @@ module Setup
         to_map_schema(super)
       end
 
+      def auto_complete_source
+        if @parent_map_model
+          @parent_map_model.auto_complete_source
+        else
+          @auto_complete_source ||= source_data_type.records_model.properties_schemas.collect do |property, property_schema|
+            {
+              'value' => "{{#{property}}}",
+              'text' => "#{source_data_type.custom_title} | #{property_schema['title'] || property.to_title}"
+            }
+          end
+        end
+      end
+
       def to_map_schema(sch)
         if sch['type'] == 'object' && (properties = sch['properties']).is_a?(Hash)
           new_properties = {}
@@ -351,6 +364,11 @@ module Setup
               unless property == '_id' && (property_schema['type'] || {}).is_a?(Hash) && property_schema['type'].blank?
                 property_schema.reject! { |key, _| %w(title description edi).exclude?(key) }
                 property_schema['type'] = 'string'
+                if (source = auto_complete_source).present?
+                  property_schema['format'] = 'auto-complete'
+                  property_schema['source'] = source
+                  property_schema['anchor'] = '{{'
+                end
               end
             end
             new_properties[property] = property_schema
