@@ -34,6 +34,14 @@ module RailsAdmin
           required { property.required? }
           queryable { property.queryable? }
           valid_length { {} }
+          if type == :auto_complete
+            if (s = property.schema['source'])
+              source s
+            end
+            if (a = property.schema['anchor'])
+              anchor a
+            end
+          end
           if enumeration
             enum { enumeration }
             filter_enum { enumeration }

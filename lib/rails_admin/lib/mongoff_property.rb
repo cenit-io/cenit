@@ -50,6 +50,8 @@ module RailsAdmin
           :cenit_oauth_scope
         when 'cenit-access-scope'
           :cenit_access_scope
+        when 'auto-complete'
+          :auto_complete
         else
           string_field_type
         end

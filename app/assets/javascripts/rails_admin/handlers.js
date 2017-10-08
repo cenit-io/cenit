@@ -450,7 +450,24 @@ function handlerInit() {
         }, 1000);
     }
 
+    $('.auto-complete').each(function () {
+        setupAutoComplete(this);
+    });
 }
+// Setup an auto-complete element
+
+function setupAutoComplete(el) {
+    var $el = $(el);
+    var source = $el.data("auto-complete-source");
+    var anchor = $el.data("auto-complete-anchor");
+    horsey(el, {
+        source: [{ list: source}],
+        getText: 'text',
+        getValue: 'value',
+        anchor: anchor
+    });
+}
+
 // Side Menu Bar Update Model Counts Functions
 
 function updateModelCountOneByOneNoChild() {
