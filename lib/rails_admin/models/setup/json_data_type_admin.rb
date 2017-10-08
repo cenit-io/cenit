@@ -103,6 +103,8 @@ module RailsAdmin
             end
 
             fields :namespace, :name, :slug, :storage_size, :updated_at
+
+            filter_fields :namespace, :name
           end
         end
 
