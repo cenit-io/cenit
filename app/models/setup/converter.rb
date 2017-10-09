@@ -49,13 +49,14 @@ module Setup
       map_model.properties_schemas.each do |property, schema|
         plain_properties << property unless schema[MappingModel::SCHEMA_FLAG]
       end
-      json = render_template(mapping.to_hash(only: plain_properties, include_id: false), source_data_type, source)
+      json = render_template(mapping.to_hash(only: plain_properties), source_data_type, source)
       target = target_data_type.records_model.new_from_json(json)
       map_model.for_each_association do |a|
         name = a[:name]
         schema = map_model.property_schema(name)
         next unless schema[MappingModel::SCHEMA_FLAG]
         sub_map = mapping[name]
+        next unless sub_map
         sub_map_source =
           if sub_map.source == '$'
             source
@@ -98,13 +99,13 @@ module Setup
       source = [source] unless source.is_a?(Enumerable)
       if (transformation.type == :Export && transformation.bulk_source) ||
         (transformation.type == :Conversion && transformation.source_handler)
-        r = transformation.run(objects: source, options: options)
+        r = transformation.run(objects: source, save_result: false, options: options)
         yield r, options if block_given?
       else
         source.each do |obj|
-          template = Handlebars::Context.new.compile(options.to_json)
+          template = Liquid::Template.parse(options.to_json)
           opts = render_template(template, source_data_type, obj)
-          r = transformation.run(object: obj, options: opts)
+          r = transformation.run(object: obj, save_result: false, options: opts)
           yield r, opts if block_given?
         end
       end
@@ -115,16 +116,24 @@ module Setup
       data_type.records_model.properties.each do |property|
         locals[property] = record.send(property)
       end
-      unless template.is_a?(Handlebars::Template)
+      unless template.is_a?(Liquid::Template)
         template =
           if template.is_a?(Hash)
             template.to_json
           else
             template.to_s
           end
-        template = Handlebars::Context.new.compile(template)
+        template = Liquid::Template.parse(template)
       end
-      JSON.parse(template.call(locals))
+      JSON.parse(template.render(locals))
+    end
+
+    def set_relation(name, relation)
+      r = super
+      if @lazy_mapping && source_data_type && target_data_type
+        self.mapping = @lazy_mapping
+      end
+      r
     end
 
     def mapping=(data)
@@ -136,8 +145,13 @@ module Setup
             data.try(:to_json) || {}
           end
       end
-      @mapping = map_model.new_from_json(data)
-      self.map_attributes = @mapping.attributes
+      if source_data_type && target_data_type
+        @mapping = map_model.new_from_json(data)
+        self.map_attributes = @mapping.attributes
+        @lazy_mapping = nil
+      else
+        @lazy_mapping = data
+      end
     end
 
     def mapping_attributes=(attrs)
@@ -153,6 +167,7 @@ module Setup
           schema = map_model.property_schema(name)
           next unless schema[MappingModel::SCHEMA_FLAG]
           sub_map = mapping[name]
+          next unless sub_map
           source_association = nil
           source_dt =
             if sub_map.source == '$'
@@ -225,6 +240,14 @@ module Setup
       else
         super
       end
+    end
+
+    def share_hash(options = {})
+      hash = super
+      if (mapping_id = self.mapping.id).present? && (mapping = hash['mapping'])
+        hash['mapping'] = { 'id' => mapping_id }.merge(mapping)
+      end
+      hash
     end
 
     class << self
@@ -361,19 +384,24 @@ module Setup
               property_schema = mapping_schema.merge('description' => description)
             else
               property_schema = data_type.merge_schema(property_schema)
-              unless property == '_id' && (property_schema['type'] || {}).is_a?(Hash) && property_schema['type'].blank?
-                property_schema.reject! { |key, _| %w(title description edi).exclude?(key) }
-                property_schema['type'] = 'string'
-                if (source = auto_complete_source).present?
-                  property_schema['format'] = 'auto-complete'
-                  property_schema['source'] = source
-                  property_schema['anchor'] = '{{'
-                end
+              property_schema.reject! { |key, _| %w(title description edi).exclude?(key) }
+              property_schema['type'] = 'string'
+              if (source = auto_complete_source).present?
+                property_schema['format'] = 'auto-complete'
+                property_schema['source'] = source
+                property_schema['anchor'] = '{{'
+              end
+              if property == '_id'
+                property_schema['description'] = 'Match an existing ID to update an existing record'
               end
             end
             new_properties[property] = property_schema
           end
           sch['properties'] = new_properties
+        end
+        if (required = sch['required'])
+          required.delete('_id')
+          sch.delete('required') if required.empty?
         end
         sch
       end
