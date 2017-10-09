@@ -3,11 +3,12 @@
     .col-md-offset-1.col-md-10
       #tabs-option
         .row.header
-          %h3= 'Development Services for Custom Business Integration'
-          %p
-            = 'For some cases that you might also need. '
-            = link_to 'Get in touch', '#contact_us',class: 'item contact-modal',data: { toggle: 'modal', backdrop: 'false' }
-        .row
+          .col-xs-12
+            %h3= 'Development Services for Custom Business Integration'
+            %p
+              = 'For some cases that you might also need. '
+              = link_to 'Get in touch', '#contact_us',class: 'item contact-modal',data: { toggle: 'modal', backdrop: 'false' }
+        .row.add-clearfix
           .col-sm-12
             .tabs
               .tab.weekly.active
@@ -18,7 +19,7 @@
                   = 'Pay Monthly'
                   %small= '20% off'
             .plans.weekly.clearfix
-              .plan.col-sm-4
+              .plan.col-sm-4.col-sms-4
                 .header
                   %span.icon.entypo-user
                   %span.hidden-monthly='25 hours'
@@ -51,7 +52,7 @@
                   .spec.hidden-weekly
                     %span.variable='Creation'
                     = 'of new add-ons'
-              .plan.col-sm-4.middle
+              .plan.col-sm-4.middle.col-sms-4
                 .header
                   %span.icon.entypo-user
                   %span.hidden-monthly='50 hours'
@@ -84,7 +85,7 @@
                   .spec.hidden-weekly
                     %span.variable='Creation'
                     = 'of new add-ons'
-              .plan.col-sm-4
+              .plan.col-sm-4.col-sms-4
                 .header
                   %span.icon.entypo-user
                   %span.hidden-monthly='100 hours'

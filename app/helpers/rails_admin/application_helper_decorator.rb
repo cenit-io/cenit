@@ -688,19 +688,9 @@ module RailsAdmin
 
     def dashboard_primary()
       groups = RailsAdmin::Config.dashboard_groups
-      html = '<div id="primary_dashboard"><div class="row">'
+      html = '<div id="primary_dashboard"><div class="row add-clearfix">'
       groups.each_with_index do |g, index|
-        if index%4 == 0
-          html += '<div class="clearfix visible-md-block"></div>'
-          html += '<div class="clearfix visible-lg-block"></div>'
-        end
-        if index%3 == 0
-          html += '<div class="clearfix visible-sm-block"></div>'
-        end
-        if index%2 == 0
-          html += '<div class="clearfix visible-xs-block"></div>'
-        end
-        html += '<div class="col-xs-6 col-sm-4 col-md-3">'
+        html += '<div class="col-xs-6 col-sms-4 col-sm-4 col-md-3">'
         models = g[:sublinks]
         unless models.empty?
           html += '<ul>'
