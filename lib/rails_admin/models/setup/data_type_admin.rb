@@ -101,7 +101,10 @@ module RailsAdmin
               field :updated_at
               #field :updater
             end
+
             fields :namespace, :name, :slug, :_type, :storage_size, :updated_at
+
+            filter_fields :namespace, :name
           end
         end
 
