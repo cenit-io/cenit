@@ -13,6 +13,30 @@ module Setup
 
     field :map_attributes, type: Hash, default: {}
 
+    def write_attribute(name, value)
+      if name.to_s == 'map_attributes'
+        value.delete('_type')
+        value.delete(:_type)
+        value.each do |k, v|
+          if v.present? && map_model.property?(k)
+            if map_model.associations[k]
+              if v.is_a?(Hash)
+                v.delete_if { |sub_k, sub_v| %w(source transformation_id options).exclude?(sub_k.to_s) || !sub_v.is_a?(String) || sub_v.blank? }
+              else
+                value.delete(k)
+              end
+            else
+              value.delete(k) unless v.is_a?(String)
+            end
+          else
+            value.delete(k)
+          end
+          true
+        end
+      end
+      super
+    end
+
     def validates_configuration
       super
       if style == 'mapping'
@@ -333,7 +357,8 @@ module Setup
                     }
                   },
                   options: {
-                    type: 'string'
+                    type: 'string',
+                    default: ''
                   }
                 }
               }.deep_stringify_keys
