@@ -1,11 +1,11 @@
 .container.text-center
   .col-md-offset-1.col-md-10.no-padding-vert
     .row.header
-      .col-md-12
+      .col-xs-12
         %h3= 'Begin and continue free if you want'
         %p= 'Only pay extra options if you need'
-    .row.charts
-      .col-md-4
+    .row.charts.add-clearfix
+      .col-md-4.col-sms-6.col-sm-4
         .chart.first
           .plan-name
             ='Free'
@@ -28,7 +28,7 @@
                 ='data exchange'
           = link_to "#", id:'start_free' ,class: 'btn-signup button-clear' do
             %span= 'Start free'
-      .col-md-4
+      .col-md-4.col-sms-6.col-sm-4
         .chart.featured
           .popular
             ='Extra options'
@@ -53,7 +53,7 @@
                 ='data exchange'
           = link_to '#contact_us',class: 'btn-signup button-clear contact-modal',data: { toggle: 'modal', backdrop: 'false' } do
             %span= 'Start'
-      .col-md-4
+      .col-md-4.col-sms-6.col-sm-4
         .chart.last
           .plan-name
             ='Custom Enterprise'

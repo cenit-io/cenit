@@ -509,7 +509,7 @@ RailsAdmin.config do |config|
 
   #Monitors
 
-  config.navigation 'Monitors', icon: 'fa fa-heartbeat'
+  config.navigation 'Monitors', icon: 'fa fa-heartbeat', break_line: true
 
   Setup::SystemNotification
 
