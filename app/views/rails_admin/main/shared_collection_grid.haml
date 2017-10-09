@@ -76,46 +76,40 @@
           %a{href: index_path(params.merge(scope: scope, page: nil)), class: 'pjax'}= I18n.t("admin.scopes.#{@abstract_model.to_param}.#{scope}", default: I18n.t("admin.scopes.#{scope}", default: scope.to_s.titleize))
 
   #grid-wrapper
-    - @objects.each_with_index do |object, index|
-      - if index%4 == 0
-        .clearfix.visible-md-block
-        .clearfix.visible-lg-block
-      - if index%3 == 0
-        .clearfix.visible-sm-block
-      - if index%2 == 0
-        .clearfix.visible-xs-block
-      .col-xs-6.col-sm-4.col-md-3
-        %div{class: "panel panel-#{object.installed? ? object.origin : 'danger'} text-center"}
-          .options-menu
-            %span.btn.dropdown-toggle{type:'button', 'data-toggle': 'dropdown', 'aria-haspopup': 'true'}
-              %i.fa.fa-ellipsis-v
-              %ul.dropdown-menu= menu_for :member, @abstract_model, object
-          .panel-heading
-            =link_to show_path id: object.id do
-              =object.title.presence || object.name.titleize
-          .panel-body
-            .panel-body-logo.text-center{style: "background-color:##{object.logo_background || 'inherit'}"}
+    .row.add-clearfix
+      - @objects.each_with_index do |object, index|
+        .col-xs-6.col-sm-4.col-md-3
+          %div{class: "panel panel-#{object.installed? ? object.origin : 'danger'} text-center"}
+            .options-menu
+              %span.btn.dropdown-toggle{type:'button', 'data-toggle': 'dropdown', 'aria-haspopup': 'true'}
+                %i.fa.fa-ellipsis-v
+                %ul.dropdown-menu= menu_for :member, @abstract_model, object
+            .panel-heading
               =link_to show_path id: object.id do
-                =image_tag object.image.present? ? object.image : 'missing.png', class: 'logo'
-            .panel-body-description.line-clamp.line-clamp-3
-              %p #{object.summary.html_safe if object.summary.present?}
-          .panel-footer
-            .footer-description
-              %ul
-                #{(categories = object.categories).collect(&:title).count> 0 ? categories_list(categories) : t('admin.actions.dashboard.collections.no_categories')}
-              .versions
-                .col-xs-4.col-xs-offset-4
-                  - if (pull_action = RailsAdmin::Config::Actions.find(:pull, controller: controller, abstract_model: @abstract_model, object: object))
-                    =link_to pull_path id: object.id do
-                      %i{class: pull_action.link_icon}
-                  - else
-                    %i.fa.fa-arrow-down
-                  -if object.pull_count > 0
-                    %span.pull-count
-                      =number_to_human object.pull_count, units: {thousand: 'K', million: 'M', billion: 'G', trillion: 'T'}
-                .col-xs-4.version
-                  %span
-                    = "v #{object.shared_version}"
+                =object.title.presence || object.name.titleize
+            .panel-body
+              .panel-body-logo.text-center{style: "background-color:##{object.logo_background || 'inherit'}"}
+                =link_to show_path id: object.id do
+                  =image_tag object.image.present? ? object.image : 'missing.png', class: 'logo'
+              .panel-body-description.line-clamp.line-clamp-3
+                %p #{object.summary.html_safe if object.summary.present?}
+            .panel-footer
+              .footer-description
+                %ul
+                  #{(categories = object.categories).collect(&:title).count> 0 ? categories_list(categories) : t('admin.actions.dashboard.collections.no_categories')}
+                .versions
+                  .col-xs-4.col-xs-offset-4
+                    - if (pull_action = RailsAdmin::Config::Actions.find(:pull, controller: controller, abstract_model: @abstract_model, object: object))
+                      =link_to pull_path id: object.id do
+                        %i{class: pull_action.link_icon}
+                    - else
+                      %i.fa.fa-arrow-down
+                    -if object.pull_count > 0
+                      %span.pull-count
+                        =number_to_human object.pull_count, units: {thousand: 'K', million: 'M', billion: 'G', trillion: 'T'}
+                  .col-xs-4.version
+                    %span
+                      = "v #{object.shared_version}"
     - if @objects.respond_to?(:total_count)
       - total_count = @objects.total_count.to_i
       .row
