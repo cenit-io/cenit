@@ -2,7 +2,7 @@
   .container
     .row
       .col-md-offset-1.col-md-10
-        .col-sm-3.menu
+        .col-sm-3.col-sms-3.menu
           %h3
             ='Overview'
           %ul
@@ -21,7 +21,7 @@
             %li
               =link_to "#{ENV['PORTAL_URL'] || 'https://cenit.io'}/blog", target: '_blank' do
                 %span=t('admin.misc.blog')
-        .col-sm-3.menu
+        .col-sm-3.col-sms-3.menu
           %h3
             ='Menu'
           %ul
@@ -37,7 +37,7 @@
             %li
               =link_to "#{ENV['PORTAL_URL'] || 'https://cenit.io'}/terms_of_service", target: '_blank' do
                 %span=t('admin.misc.terms')
-        .col-sm-3.menu
+        .col-sm-3.col-sms-3.menu
           %h3
             ='Social'
           %ul
@@ -53,7 +53,7 @@
             %li
               =link_to 'http://www.youtube.com/channel/UC7JVcEmA3BkiR2SZ_lx5lyA', target: '_blank' do
                 ='Youtube'
-        .col-sm-3.menu
+        .col-sm-3.col-sms-3.menu
           %h3
             ='Support'
           %ul
