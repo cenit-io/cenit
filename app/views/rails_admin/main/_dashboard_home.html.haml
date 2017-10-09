@@ -69,6 +69,9 @@
     %section#public_apis
       = render "rails_admin/main/public_apis"
   - unless current_user
+    - if (ENV['SHOW_OPEN_PLAT'] || false)
+      %section#open_platform
+        = render "rails_admin/main/open_integration_platform"
     %section#features
       = render "rails_admin/main/features"
     - if (ENV['SHOW_PRICES'] || false)

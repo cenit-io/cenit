@@ -13,50 +13,44 @@
             =t('admin.misc.powered_api_guru')
           =image_tag 'guru_logo_horizontal.svg', alt: 'http://APIs.guru'
   #grid-wrapper
-    - @objects.each_with_index do |object_root, index|
-      - if index%4 == 0
-        .clearfix.visible-md-block
-        .clearfix.visible-lg-block
-      - if index%3 == 0
-        .clearfix.visible-sm-block
-      - if index%2 == 0
-        .clearfix.visible-xs-block
-      - object = object_root['versions'][object_root['preferred']]
-      - object_info = object['info'] || {}
-      - x_logo = object_info['x-logo'] || {}
-      .col-xs-6.col-sm-4.col-md-3
-        %div{class: 'panel panel-shared text-center'}
-          .panel-heading
-            =link_to open_api_directory_path(id: object_root['id']), class: 'pjax' do
-              = title = object_info['title'].presence || object_root['id'].to_title
-          .panel-body
-            .panel-body-logo.text-center{style: "background-color:#{x_logo['backgroundColor'] || '#f5f5f5'}"}
+    .row.add-clearfix
+      - @objects.each_with_index do |object_root, index|
+        - object = object_root['versions'][object_root['preferred']]
+        - object_info = object['info'] || {}
+        - x_logo = object_info['x-logo'] || {}
+        .col-xs-6.col-sm-4.col-md-3
+          %div{class: 'panel panel-shared text-center'}
+            .panel-heading
               =link_to open_api_directory_path(id: object_root['id']), class: 'pjax' do
-                =image_tag x_logo['url'] || 'missing.png', class: 'logo', alt: :logo
-            .panel-body-description.line-clamp.line-clamp-3
-              %p #{object_info['description'].html_safe if object_info['description'].present?}
-          .panel-footer
-            .footer-description
-              %ul
-                - if (categories = object_root['categories']) && categories.count > 0
-                  - categories.each do |cat|
-                    - title = cat['title'] || cat['id']
-                    %span{ title: cat['description'] || t('admin.misc.no_description')}
-                      = title
-                - else
-                  %span= t('admin.actions.dashboard.collections.no_categories')
-              .versions
-                - if updated = object['updated']
-                  - updated = Date.parse(updated) rescue updated
+                = title = object_info['title'].presence || object_root['id'].to_title
+            .panel-body
+              .panel-body-logo.text-center{style: "background-color:#{x_logo['backgroundColor'] || '#f5f5f5'}"}
+                =link_to open_api_directory_path(id: object_root['id']), class: 'pjax' do
+                  =image_tag x_logo['url'] || 'missing.png', class: 'logo', alt: :logo
+              .panel-body-description.line-clamp.line-clamp-3
+                %p #{object_info['description'].html_safe if object_info['description'].present?}
+            .panel-footer
+              .footer-description
+                %ul
+                  - if (categories = object_root['categories']) && categories.count > 0
+                    - categories.each do |cat|
+                      - title = cat['title'] || cat['id']
+                      %span{ title: cat['description'] || t('admin.misc.no_description')}
+                        = title
+                  - else
+                    %span= t('admin.actions.dashboard.collections.no_categories')
+                .versions
+                  - if updated = object['updated']
+                    - updated = Date.parse(updated) rescue updated
+                    .col-xs-6.version
+                      %span.pull-count
+                        =updated
                   .col-xs-6.version
-                    %span.pull-count
-                      =updated
-                .col-xs-6.version
-                  %span
-                    = "v #{object_root['preferred']}"
-                .col-xs-4.col-xs-offset-4
-                  =link_to open_api_directory_path(id: object_root['id']), class: 'pjax' do
-                    %i.fa.fa-download
+                    %span
+                      = "v #{object_root['preferred']}"
+                  .col-xs-4.col-xs-offset-4
+                    =link_to open_api_directory_path(id: object_root['id']), class: 'pjax' do
+                      %i.fa.fa-download
     .clearfix
     .row
       .col-md-6= paginate(@objects, theme: 'ra-twitter-bootstrap', remote: true)
