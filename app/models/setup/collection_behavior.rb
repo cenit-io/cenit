@@ -151,7 +151,7 @@ module Setup
       collecting_models.each do |model, relation|
         reference_keys = (model.data_type.get_referenced_by || []) - %w(_id)
         send(relation.name).group_by do |record|
-          reference_keys.collect { |key| record.try(key) }.select { |key| key }
+          reference_keys.collect { |key| record.try(key) }.compact
         end.each do |keys, records|
           next unless records.length > 1
           keys_hash = {}

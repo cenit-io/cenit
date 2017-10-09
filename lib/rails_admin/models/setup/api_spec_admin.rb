@@ -26,8 +26,6 @@ module RailsAdmin
             end
 
             fields :title, :url, :specification
-
-            dashboard_group_path %w(gateway connectors api_specs)
           end
         end
 

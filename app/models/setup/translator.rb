@@ -243,6 +243,8 @@ module Setup
               source_key_options[:sources_key] || :sources =>
                 if (object_ids = options[:object_ids])
                   model.any_in(id: (limit ? object_ids[offset, limit] : object_ids.from(offset))).to_enum
+                elsif (objects = options[:objects])
+                  objects
                 else
                   enum = (limit ? model.limit(limit) : model.all).skip(offset).to_enum
                   options[:object_ids] = enum.collect { |obj| obj.id.is_a?(BSON::ObjectId) ? obj.id.to_s : obj.id }

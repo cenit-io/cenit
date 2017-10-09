@@ -6,7 +6,7 @@ module RailsAdmin
 
         included do
           rails_admin do
-            object_label_method { :name }
+            object_label_method { :custom_title }
             navigation_label 'Workflows'
             label 'Email'
             weight 500

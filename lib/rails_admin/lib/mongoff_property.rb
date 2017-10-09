@@ -50,6 +50,8 @@ module RailsAdmin
           :cenit_oauth_scope
         when 'cenit-access-scope'
           :cenit_access_scope
+        when 'auto-complete'
+          :auto_complete
         else
           string_field_type
         end
@@ -59,7 +61,14 @@ module RailsAdmin
     end
 
     def enum
-      hash_schema['enum']
+      @enum ||=
+        if (enum = hash_schema['enum']) && (names = hash_schema['enumNames'])
+          hash = {}
+          enum.each_with_index { |value, index| hash[names[index] || value] = value }
+          hash
+        else
+          enum
+        end
     end
 
     def length

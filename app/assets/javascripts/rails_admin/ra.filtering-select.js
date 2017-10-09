@@ -18,7 +18,7 @@
     $.widget("ra.filteringSelect", {
         options: {
             createQuery: function (query) {
-                return {query: query};
+                return {filter_query: query};
             },
             minLength: 0,
             searchDelay: 200,
@@ -35,7 +35,9 @@
 
             if (this.options.xhr) {
                 this.options.source = this.options.remote_source;
+                this.options.ui_suffix_name = this.options.suffix_name;
             } else {
+                this.options.ui_suffix_name = this.options.suffix_name;
                 this.options.source = select.children("option").map(function () {
                     return {label: $(this).text(), value: this.value};
                 }).toArray();
@@ -49,7 +51,7 @@
                 .autocomplete({
                     delay: this.options.searchDelay,
                     minLength: this.options.minLength,
-                    source: this._getSourceFunction(this.options.source),
+                    source: this._getSourceFunction(this.options.source, this.options.ui_suffix_name),
                     select: function (event, ui) {
                         var option = $('<option></option>').attr('value', ui.item.id).attr('selected', 'selected').text(ui.item.value);
                         select.html(option);
@@ -155,7 +157,7 @@
             });
         },
 
-        _getSourceFunction: function (source) {
+        _getSourceFunction: function (source, ui_suffix_name) {
 
             var self = this,
                 requestIndex = 0;
@@ -180,26 +182,18 @@
                         dataType: "json",
                         autocompleteRequest: ++requestIndex,
                         select: null,
-                        get_ui_widget: function () {
-                            var ui = null, $label, $icon, $siblings,
-                                id = this.url.match(/source_object_id=(.+)&/)[1],
-                                field = this.url.match(/\/(.+)\?/)[1];
+                        get_ui_widget: function (ui_suffix_name) {
+                            var $label, $icon, $siblings,
+                                selector = 'select[id$=' + '\'' + ui_suffix_name + '\']',
+                                $select = $(selector).first();
 
-                            $('select[data-options]').each(function (index) {
-                                if ($(this).data('options').remote_source.match(id)) {
-                                    if ($(this).data('options').remote_source.match(field)) {
-                                        ui = $(this);
-                                        return false;
-                                    }
-                                }
-                            });
-                            $siblings = ui.siblings();
+                            $siblings = $select.siblings();
                             $label = $siblings.find('label.btn');
                             $icon = $siblings.find('label.btn span:first');
                             return {label: $label, icon: $icon};
                         },
                         beforeSend: function () {
-                            var select = this.select = this.get_ui_widget();
+                            var select = this.select = this.get_ui_widget(ui_suffix_name);
                             if (select) {
                                 select.label.removeClass('btn-danger').addClass('btn-info');
                                 select.icon.removeClass().addClass('fa fa-spinner fa-spin');

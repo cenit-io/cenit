@@ -29,8 +29,13 @@ module RailsAdmin
 
       fail(RailsAdmin::ModelNotFound) if @abstract_model.nil? || (@model_config = @abstract_model.config).excluded?
 
-      group_index = (path = @model_config.dashboard_group_path).length == 1 ? 0 : path.length - 2
-      @dashboard_group_ref = path[group_index]
+      @dashboard_group_ref =
+        if ecommerce_model?
+          'ecommerce'
+        else
+          group_index = (path = @model_config.dashboard_group_path).length == 1 ? 0 : path.length - 2
+          path[group_index]
+        end
       @dashboard_group = dashboard_group(@dashboard_group_ref)
 
       @properties = @abstract_model.properties

@@ -97,7 +97,8 @@ RailsAdmin::Config::Actions.register(:export, RailsAdmin::Config::Actions::BulkE
   RailsAdmin::Config::Fields::Types::Scheduler,
   RailsAdmin::Config::Fields::Types::CenitAccessScope,
   RailsAdmin::Config::Fields::Types::ContextualBelongsTo,
-  RailsAdmin::Config::Fields::Types::SortReverseString
+  RailsAdmin::Config::Fields::Types::SortReverseString,
+  RailsAdmin::Config::Fields::Types::AutoComplete
 ].each { |f| RailsAdmin::Config::Fields::Types.register(f) }
 
 require 'rails_admin/config/fields/factories/tag'
@@ -180,6 +181,7 @@ module RailsAdmin
               param: 'compute',
               label: 'Compute',
               icon: 'fa fa-cogs',
+              externals: ['Setup::Notebook'],
               sublinks: %w(Setup::Algorithm Setup::Application Setup::Snippet Setup::Filter Setup::Notebook)
             },
             {
@@ -508,7 +510,7 @@ RailsAdmin.config do |config|
 
   #Monitors
 
-  config.navigation 'Monitors', icon: 'fa fa-heartbeat'
+  config.navigation 'Monitors', icon: 'fa fa-heartbeat', break_line: true
 
   Setup::SystemNotification
 

@@ -54,7 +54,7 @@ module Setup
     module ClassMethods
 
       def namespace_enum
-        @namespace_enum ||= (Setup::Namespace.all.collect(&:name) + all.distinct(:namespace).flatten).uniq.sort
+        (Setup::Namespace.all.collect(&:name) + all.distinct(:namespace).flatten).uniq.sort
       end
     end
   end

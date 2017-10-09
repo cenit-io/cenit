@@ -5,6 +5,14 @@ module RailsAdmin
     module Fields
       Association.class_eval do
 
+        register_instance_option :nested_form_safe? do
+          false
+        end
+
+        register_instance_option :associated_collection_cache_all do
+          false
+        end
+
         register_instance_option :filter do
           {}
         end
@@ -135,15 +143,6 @@ module RailsAdmin
           end
         end
 
-        def value
-          #Patch
-          if (v = bindings[:object].send(association.name)).is_a?(Enumerable)
-            v.to_a
-          else
-            v
-          end
-        end
-
         def show_values(limit = 10)
           if (v = bindings[:object].try(association.name, limit: limit) || bindings[:object].send(association.name))
             if v.is_a?(Enumerable)
@@ -177,7 +176,6 @@ module RailsAdmin
           contextual_association_scope = self.contextual_association_scope
           proc do |scope|
             scope = contextual_association_scope.call(scope) if contextual_association_scope
-            scope.limit(limit)
             or_criteria = []
             model_config._fields.each do |f|
               next unless f.is_a?(RailsAdmin::Config::Fields::Types::BelongsToAssociation) && contextual_params.key?(f.foreign_key)
@@ -187,7 +185,7 @@ module RailsAdmin
               end
               or_criteria << { f.foreign_key => id.is_a?(Array) ? { '$in': id } : id }
             end
-            (or_criteria.empty? && scope) || scope.or(or_criteria.flatten)
+            ((or_criteria.empty? && scope) || scope.or(or_criteria.flatten)).limit(limit)
           end
         end
       end

@@ -53,7 +53,9 @@ module RailsAdmin
               [RailsAdmin::MongoffAssociation.new(association, abstract_model.model)]
             end
 
-            configure :mapping, :has_one_association
+            configure :mapping, :has_one_association do
+              nested_form_safe true
+            end
 
             edit do
               field :namespace, :enum_edit, &RailsAdmin::Config::Fields::Base::SHARED_READ_ONLY
@@ -115,10 +117,9 @@ module RailsAdmin
                 visible { bindings[:object].style == 'chain' && bindings[:object].source_data_type && bindings[:object].target_data_type }
                 help 'Required'
                 associated_collection_scope do
+                  limit = (associated_collection_cache_all ? nil : 30)
                   data_type = bindings[:object].source_data_type
-                  Proc.new { |scope|
-                    scope.all(type: :Conversion, source_data_type: data_type)
-                  }
+                  Proc.new { |scope| scope.all(type: :Conversion, source_data_type: data_type).limit(limit) }
                 end
               end
 
@@ -128,6 +129,7 @@ module RailsAdmin
                 visible { bindings[:object].style == 'chain' && bindings[:object].source_data_type && bindings[:object].target_data_type && bindings[:object].source_exporter }
                 help 'Required'
                 associated_collection_scope do
+                  limit = (associated_collection_cache_all ? nil : 30)
                   translator = bindings[:object]
                   source_data_type =
                     if translator.source_exporter
@@ -136,11 +138,7 @@ module RailsAdmin
                       translator.source_data_type
                     end
                   target_data_type = bindings[:object].target_data_type
-                  Proc.new { |scope|
-                    scope = scope.all(type: :Conversion,
-                                      source_data_type: source_data_type,
-                                      target_data_type: target_data_type)
-                  }
+                  Proc.new { |scope| scope.all(type: :Conversion, source_data_type: source_data_type, target_data_type: target_data_type).limit(limit) }
                 end
               end
 

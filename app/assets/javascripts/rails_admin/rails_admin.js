@@ -23,3 +23,4 @@
 //=  require 'rails_admin/custom/ui'
 //=  require 'rails_admin/clipboard.min'
 //=  require 'rails_admin/disabled-event'
+//=  require 'horsey'

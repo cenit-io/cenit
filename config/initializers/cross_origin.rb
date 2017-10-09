@@ -14,7 +14,7 @@ module CrossOrigin
             else
               origin
             end
-          end.flatten.uniq.reject(&:nil?).collect do |origin|
+          end.flatten.uniq.compact.collect do |origin|
             if origin.is_a?(Symbol)
               origin
             else

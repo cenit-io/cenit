@@ -215,7 +215,7 @@ module RailsAdmin
       end
       if inspecting
         link = [link]
-        link << link_to(url_for(action: inspect_action.action_name, model_name: account_abstract_model.to_param, id: current_account.id, controller: 'rails_admin/main'), class: 'pjax') do
+        link << link_to(url_for(action: inspect_action.action_name, model_name: account_abstract_model.to_param, id: current_account.id, controller: 'rails_admin/main')) do
           '<i class="icon-eye-close" style="color: red"></i>'.html_safe
         end
       end
@@ -290,7 +290,11 @@ module RailsAdmin
     end
 
     def show_ecommerce_navigation?
-      %w(ecommerce).include?(@dashboard_group_ref) || ((dt = @abstract_model && @abstract_model.model.try(:data_type)) &&
+      %w(ecommerce).include?(@dashboard_group_ref) || ecommerce_model?
+    end
+
+    def ecommerce_model?
+      ((dt = @abstract_model && @abstract_model.model.try(:data_type)) &&
         (names = Cenit.ecommerce_data_types[dt.namespace.to_sym]) &&
         names.include?(dt.name))
     end
@@ -372,7 +376,8 @@ module RailsAdmin
 
           html_id = "main-#{label.underscore.gsub(' ', '-')}"
 
-          icon = (mongoff_start_index.nil? || non_setup_data_types_groups.value?(@dashboard_group_ref)) && (((opts = RailsAdmin::Config.navigation_options[label]) && opts[:icon]) || 'fa fa-cube')
+          nav_options = RailsAdmin::Config.navigation_options[label] || {}
+          icon = (mongoff_start_index.nil? || non_setup_data_types_groups.value?(@dashboard_group_ref)) && (nav_options[:icon] || 'fa fa-cube')
           icon =
             case icon
             when Symbol
@@ -388,14 +393,13 @@ module RailsAdmin
               li_stack = %(<div class='panel-heading'>
               <a data-toggle='collapse' data-parent='##{mongoff_start_index ? "#{name}-collapse" : 'main-accordion'}' href='##{collapse_id}' class='panel-title collapse in collapsed'>
                 <span class='nav-caret'><i class='fa fa-caret-down'></i></span>) +
-                (icon ? "<span class='nav-icon'>#{icon}</span>" : '') +
+                (icon ? "<span class='nav-icon' title='#{capitalize_first_letter label}'>#{icon}</span>" : '') +
                 %(<span class='nav-caption'>#{capitalize_first_letter label}</span>
               </a>
             </div>
             #{li_stack})
-              unless mongoff_start_index
-                li_stack = "<div id='#{html_id}' class='panel panel-default'>#{li_stack}</div>"
-              end
+              li_stack = "<div id='#{html_id}' class='panel panel-default'>#{li_stack}</div>" unless mongoff_start_index
+              li_stack = "<div class='menu-separator'></div>#{li_stack}" if nav_options[:break_line]
             end
             if (labels = data_type_models[data_type_model])
               labels << li_stack
@@ -412,7 +416,7 @@ module RailsAdmin
         link_link = link_to url_for(action: action,
                                     controller: 'rails_admin/main',
                                     data_type_model: data_type_model.to_s) do
-          %{<span class="nav-icon plus"/>
+          %{<span class="nav-icon plus" title="Add #{t("admin.misc.link_#{name}")}"/>
                 <i class="fa fa-plus"></i>
              </span>
               <span class="nav-caption">#{t("admin.misc.link_#{name}")}</span>
@@ -440,7 +444,7 @@ module RailsAdmin
            <div id="main-dashboard-#{@dashboard_group_ref}" class="panel panel-default">
             <div class='panel-heading dashboard-heading'>
               <a href='/#{@dashboard_group_ref}/dashboard' class='panel-title in'>
-                <span class='nav-icon'><i class='fa fa-tachometer'></i></span>
+                <span class='nav-icon' title="Dashboard"><i class='fa fa-tachometer'></i></span>
                 <span class='nav-caption'>Dashboard</span>
               </a>
               <a href='#' class='panel-title in' id="sidebar-toggle">
@@ -471,8 +475,8 @@ module RailsAdmin
             <div class='panel-heading'>
               <a data-toggle='collapse' data-parent='##{html_id}' href='##{stack_id}' class='panel-title collapse in collapsed'>
                 <span class='nav-caret'><i class='fa fa-caret-down'></i></span>
-                <span class='nav-icon'><i class='#{node.navigation_icon || 'fa fa-folder-open-o'}' title="#{capitalize_first_letter(node.label_navigation)}"></i></span>
-                <span class='nav-caption'>#{capitalize_first_letter node.label_navigation}</span>
+                <span class='nav-icon'><i class='#{node.navigation_icon || 'fa fa-folder-open-o'}' title="#{node_title = capitalize_first_letter(node.label_navigation)}"></i></span>
+                <span class='nav-caption'>#{node_title}</span>
               </a>
             </div>)
             li + navigation(nodes_stack, children, stack_id) + '</div>'
@@ -488,10 +492,11 @@ module RailsAdmin
               link_to url, class: 'pjax' do
                 rc = ''
                 rc += "<span class='nav-amount'></span>"
+                node_title = capitalize_first_letter(node.label_navigation)
                 if options[:just_li] && (icon = node.navigation_icon || 'fa fa-folder-o')
-                  rc += "<span class='with_icon #{icon}'></span>"
+                  rc += "<span class='with_icon #{icon}' title='#{node_title}'></span>"
                 end
-                rc += "<span class='nav-caption'>#{capitalize_first_letter node.label_navigation}</span>"
+                rc += "<span class='nav-caption'>#{node_title}</span>"
 
                 rc.html_safe
               end
@@ -520,7 +525,7 @@ module RailsAdmin
               filter_token = Cenit::Token.where('data.category_id' => cat.id).first || Cenit::Token.create(data: { criteria: values.selector, message: message, category_id: cat.id })
               sub_links += content_tag :li do
                 sub_link_url = index_path(model_name: node.abstract_model.to_param, filter_token: filter_token.token)
-                link_to sub_link_url do
+                link_to sub_link_url, class: 'pjax' do
                   rc = ''
                   if model_count > 0
                     rc += "<span class='nav-amount active'>#{count}</span>"
@@ -683,19 +688,9 @@ module RailsAdmin
 
     def dashboard_primary()
       groups = RailsAdmin::Config.dashboard_groups
-      html = '<div id="primary_dashboard"><div class="row">'
+      html = '<div id="primary_dashboard"><div class="row add-clearfix">'
       groups.each_with_index do |g, index|
-        if index%4 == 0
-          html += '<div class="clearfix visible-md-block"></div>'
-          html += '<div class="clearfix visible-lg-block"></div>'
-        end
-        if index%3 == 0
-          html += '<div class="clearfix visible-sm-block"></div>'
-        end
-        if index%2 == 0
-          html += '<div class="clearfix visible-xs-block"></div>'
-        end
-        html += '<div class="col-xs-6 col-sm-4 col-md-3">'
+        html += '<div class="col-xs-6 col-sms-4 col-sm-4 col-md-3">'
         models = g[:sublinks]
         unless models.empty?
           html += '<ul>'
@@ -811,7 +806,7 @@ module RailsAdmin
     def public_apis_collection_view(c)
       has_image = c.image.present?
       css_class = 'img-responsive '+(has_image ? '' : 'no-image')
-      image = image_tag has_image ? c.image.versions[:thumb] : 'missing.png', :class => css_class, :alt => c.name, width: '80%', max_height: '80%', margin: '12px'
+      image = image_tag has_image ? c.image.versions[:thumb] : 'missing.png', :class => css_class, :alt => c.name, style: 'width: 80%'
       url_show = rails_admin.show_path(model_name: c.model_name.to_s.underscore.gsub('/', '~'), id: c.name)
       '<div class="col-md-2 col-sm-3">
         <a href="'+url_show+'" title="'+ c.name+'">
@@ -1102,18 +1097,11 @@ module RailsAdmin
         value = value.to(value.index('<li') - 1) +
           "<li class=\"false\"><a class=\"contextual-record pjax\" href=\"#{index_path(model_name: @abstract_model.to_param, leave_context: true)}\" title='#{t('admin.misc.leave_context', label: (label = wording_for(:breadcrumb, :show, context_config.abstract_model, get_context_record)))}'>#{label}</a></li>" +
           value.from(value.index('</li>') + 5)
-      else
-        if @model_config && @model_config.dashboard_group_path.length > 1
-          value = value.to(value.index('<li') - 1) +
-            "<li class=\"active\">#{@dashboard_group_ref.capitalize }</li>" +
-            value.from(value.index('</li>') + 5)
-          value = value.to(value.index('</ol>')-1) + '</ol>'
-        else
-          has_dashboard = value.match(/Dashboard/)
-          if(has_dashboard && @dashboard_group_ref)
-            value.gsub!('Dashboard', "#{@dashboard_group_ref.capitalize} / Dashboard")
-          end
-        end
+      elsif @model_config && @model_config.dashboard_group_path.length > 1
+        value = value.to(value.index('<li') - 1) +
+          "<li class=\"active\">#{@dashboard_group_ref.capitalize }</li>" +
+          value.from(value.index('</li>') + 5)
+        value = value.to(value.index('</ol>')-1) + '</ol>'
       end
       value.html_safe
     end

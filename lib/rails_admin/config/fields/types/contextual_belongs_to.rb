@@ -21,13 +21,13 @@ module RailsAdmin
           register_instance_option :associated_collection_scope do
             limit = (associated_collection_cache_all ? nil : 30)
             associated = (obj = bindings[:object]) && obj.send(association.name)
-            Proc.new { |scope|
+            Proc.new do |scope|
               if associated
                 scope.where(id: associated.id)
               else
                 scope
               end.limit(limit)
-            }
+            end
           end
 
           register_instance_option :partial do

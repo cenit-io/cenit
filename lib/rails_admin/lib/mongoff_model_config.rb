@@ -34,6 +34,14 @@ module RailsAdmin
           required { property.required? }
           queryable { property.queryable? }
           valid_length { {} }
+          if type == :auto_complete
+            if (s = property.schema['source'])
+              source s
+            end
+            if (a = property.schema['anchor'])
+              anchor a
+            end
+          end
           if enumeration
             enum { enumeration }
             filter_enum { enumeration }
@@ -47,7 +55,6 @@ module RailsAdmin
             groups[g] = property.group.to_s
           end
           if property.is_a?(RailsAdmin::MongoffAssociation)
-            # associated_collection_cache_all true
             pretty_value do
               v = bindings[:view]
               action = v.instance_variable_get(:@action)
@@ -122,7 +129,7 @@ module RailsAdmin
           pretty_value do #TODO Factorize these code in custom rails admin field type
             if (objects = bindings[:controller].instance_variable_get(:@objects))
               unless (max = bindings[:controller].instance_variable_get(:@max_length))
-                bindings[:controller].instance_variable_set(:@max_length, max = objects.collect { |storage| storage.length }.reject(&:nil?).max)
+                bindings[:controller].instance_variable_set(:@max_length, max = objects.collect { |storage| storage.length }.compact.max)
               end
               (bindings[:view].render partial: 'size_bar', locals: { max: max, value: bindings[:object].length }).html_safe
             else
