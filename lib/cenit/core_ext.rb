@@ -324,3 +324,13 @@ class V8::Conversion
     end
   end
 end
+
+require 'bson/object_id'
+
+module BSON
+  class ObjectId
+    def to_liquid
+      self
+    end
+  end
+end
