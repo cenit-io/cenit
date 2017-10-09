@@ -376,7 +376,8 @@ module RailsAdmin
 
           html_id = "main-#{label.underscore.gsub(' ', '-')}"
 
-          icon = (mongoff_start_index.nil? || non_setup_data_types_groups.value?(@dashboard_group_ref)) && (((opts = RailsAdmin::Config.navigation_options[label]) && opts[:icon]) || 'fa fa-cube')
+          nav_options = RailsAdmin::Config.navigation_options[label] || {}
+          icon = (mongoff_start_index.nil? || non_setup_data_types_groups.value?(@dashboard_group_ref)) && (nav_options[:icon] || 'fa fa-cube')
           icon =
             case icon
             when Symbol
@@ -392,14 +393,13 @@ module RailsAdmin
               li_stack = %(<div class='panel-heading'>
               <a data-toggle='collapse' data-parent='##{mongoff_start_index ? "#{name}-collapse" : 'main-accordion'}' href='##{collapse_id}' class='panel-title collapse in collapsed'>
                 <span class='nav-caret'><i class='fa fa-caret-down'></i></span>) +
-                (icon ? "<span class='nav-icon'>#{icon}</span>" : '') +
+                (icon ? "<span class='nav-icon' title='#{capitalize_first_letter label}'>#{icon}</span>" : '') +
                 %(<span class='nav-caption'>#{capitalize_first_letter label}</span>
               </a>
             </div>
             #{li_stack})
-              unless mongoff_start_index
-                li_stack = "<div id='#{html_id}' class='panel panel-default'>#{li_stack}</div>"
-              end
+              li_stack = "<div id='#{html_id}' class='panel panel-default'>#{li_stack}</div>" unless mongoff_start_index
+              li_stack = "<div class='menu-separator'></div>#{li_stack}" if nav_options[:break_line]
             end
             if (labels = data_type_models[data_type_model])
               labels << li_stack
@@ -416,7 +416,7 @@ module RailsAdmin
         link_link = link_to url_for(action: action,
                                     controller: 'rails_admin/main',
                                     data_type_model: data_type_model.to_s) do
-          %{<span class="nav-icon plus"/>
+          %{<span class="nav-icon plus" title="Add #{t("admin.misc.link_#{name}")}"/>
                 <i class="fa fa-plus"></i>
              </span>
               <span class="nav-caption">#{t("admin.misc.link_#{name}")}</span>
@@ -444,7 +444,7 @@ module RailsAdmin
            <div id="main-dashboard-#{@dashboard_group_ref}" class="panel panel-default">
             <div class='panel-heading dashboard-heading'>
               <a href='/#{@dashboard_group_ref}/dashboard' class='panel-title in'>
-                <span class='nav-icon'><i class='fa fa-tachometer'></i></span>
+                <span class='nav-icon' title="Dashboard"><i class='fa fa-tachometer'></i></span>
                 <span class='nav-caption'>Dashboard</span>
               </a>
               <a href='#' class='panel-title in' id="sidebar-toggle">
@@ -475,8 +475,8 @@ module RailsAdmin
             <div class='panel-heading'>
               <a data-toggle='collapse' data-parent='##{html_id}' href='##{stack_id}' class='panel-title collapse in collapsed'>
                 <span class='nav-caret'><i class='fa fa-caret-down'></i></span>
-                <span class='nav-icon'><i class='#{node.navigation_icon || 'fa fa-folder-open-o'}' title="#{capitalize_first_letter(node.label_navigation)}"></i></span>
-                <span class='nav-caption'>#{capitalize_first_letter node.label_navigation}</span>
+                <span class='nav-icon'><i class='#{node.navigation_icon || 'fa fa-folder-open-o'}' title="#{node_title = capitalize_first_letter(node.label_navigation)}"></i></span>
+                <span class='nav-caption'>#{node_title}</span>
               </a>
             </div>)
             li + navigation(nodes_stack, children, stack_id) + '</div>'
@@ -492,10 +492,11 @@ module RailsAdmin
               link_to url, class: 'pjax' do
                 rc = ''
                 rc += "<span class='nav-amount'></span>"
+                node_title = capitalize_first_letter(node.label_navigation)
                 if options[:just_li] && (icon = node.navigation_icon || 'fa fa-folder-o')
-                  rc += "<span class='with_icon #{icon}'></span>"
+                  rc += "<span class='with_icon #{icon}' title='#{node_title}'></span>"
                 end
-                rc += "<span class='nav-caption'>#{capitalize_first_letter node.label_navigation}</span>"
+                rc += "<span class='nav-caption'>#{node_title}</span>"
 
                 rc.html_safe
               end
