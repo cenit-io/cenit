@@ -266,9 +266,9 @@ ul.drawer li a span {
 #sidebar-wrapper {
   z-index: 1000;
   position: fixed;
-  top: 50px;
   left: 250px;
   width: 55px;
+  margin-top: -2px;
   height: calc(100% - 50px);
   margin-left: -250px;
   overflow-y: auto;
