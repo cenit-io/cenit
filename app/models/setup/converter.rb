@@ -432,6 +432,7 @@ module Setup
       def to_map_schema(sch)
         if sch['type'] == 'object' && (properties = sch['properties']).is_a?(Hash)
           new_properties = {}
+          id_optional = true
           properties.each do |property, property_schema|
             ref, property_dt = check_referenced_schema(property_schema)
             if ref && property_dt
@@ -440,6 +441,7 @@ module Setup
               property_schema = mapping_schema.merge('description' => description)
             else
               property_schema = data_type.merge_schema(property_schema)
+              id_optional = property_schema['type'].blank? if property == '_id'
               property_schema.reject! { |key, _| %w(title description edi).exclude?(key) }
               property_schema['type'] = 'string'
               if (source = auto_complete_source).present?
@@ -454,10 +456,10 @@ module Setup
             new_properties[property] = property_schema
           end
           sch['properties'] = new_properties
-        end
-        if (required = sch['required'])
-          required.delete('_id')
-          sch.delete('required') if required.empty?
+          if id_optional && (required = sch['required'])
+            required.delete('_id')
+            sch.delete('required') if required.empty?
+          end
         end
         sch
       end
