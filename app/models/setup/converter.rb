@@ -22,6 +22,7 @@ module Setup
             if map_model.associations[k]
               if v.is_a?(Hash)
                 v.delete_if { |sub_k, sub_v| %w(source transformation_id options).exclude?(sub_k.to_s) || !sub_v.is_a?(String) || sub_v.blank? }
+                value.delete(k) if v.empty?
               else
                 value.delete(k)
               end
@@ -31,7 +32,6 @@ module Setup
           else
             value.delete(k)
           end
-          true
         end
       end
       super
@@ -60,7 +60,7 @@ module Setup
       super && (style != 'mapping' || mapping.present?)
     end
 
-    def mapping
+    def mapping(options = {})
       if target_data_type
         @mapping ||= map_model.new(map_attributes)
       else
@@ -298,7 +298,7 @@ module Setup
 
       def for_each_association(&block)
         super
-        block.yield(name: :mapping, embedded: false, many: false)
+        block.yield(name: :mapping, embedded: true, many: false)
       end
     end
 
