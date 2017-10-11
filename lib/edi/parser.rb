@@ -149,7 +149,7 @@ module Edi
               unless model == record.orm_model
                 model = record.orm_model
                 data_type = model.data_type
-                json_schema = data_type.merged_schema
+                json_schema = model.schema
               end
             else
               updating = false
