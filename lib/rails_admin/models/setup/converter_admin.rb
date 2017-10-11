@@ -149,6 +149,7 @@ module RailsAdmin
               end
 
               field :mapping do
+                shared_read_only
                 visible { bindings[:object].style.present? && bindings[:object].style == 'mapping' }
               end
             end
@@ -165,6 +166,7 @@ module RailsAdmin
               field :source_exporter
               field :target_importer
               field :discard_chained_records
+              field :mapping
 
               field :_id
               field :created_at
