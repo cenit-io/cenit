@@ -162,7 +162,7 @@ module Api::V2
         if @item.class.is_a?(Class) && @item.class < FieldsInspection
           save_options[:inspect_fields] = Account.current.nil? || !Account.current_super_admin?
         end
-        if @item.save(save_options)
+        if Cenit::Utility.save(@item, save_options)
           render json: @item.to_hash, status: :ok
         else
           render json: { errors: @item.errors.full_messages }, status: :not_acceptable
@@ -172,8 +172,11 @@ module Api::V2
     end
 
     def destroy
-      @item.destroy
-      render json: { status: :ok }
+      if @item.destroy
+        render json: { status: :ok }
+      else
+        render json: { errors: @item.errors.full_messages }, status: :not_acceptable
+      end
     end
 
     def run
