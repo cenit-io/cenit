@@ -329,8 +329,6 @@ require 'bson/object_id'
 
 module BSON
   class ObjectId
-    def to_liquid
-      self
-    end
+    include ::Cenit::Liquidfier
   end
 end

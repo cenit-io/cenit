@@ -1,14 +1,56 @@
+require 'rails_admin/config/fields/association'
+
 module RailsAdmin
   module Config
     module Fields
       Association.class_eval do
 
+        register_instance_option :nested_form_safe? do
+          false
+        end
+
         register_instance_option :associated_collection_cache_all do
           false
         end
 
+        register_instance_option :filter do
+          {}
+        end
+
+        register_instance_option :data do
+          {}
+        end
+
+        register_instance_option :types do
+          []
+        end
+
+        register_instance_option :html_attributes do
+          {
+            required: required?,
+            data: data.with_indifferent_access
+          }
+        end
+
+        def parse_value(value)
+          (value = super(value)).is_a?(String) ? value.presence : value
+        end
+
         def association
-          @properties ||= abstract_model.associations.detect { |p| name == p.name }
+          if bindings && (obj = bindings[:object]) && obj.respond_to?(association_method = "association_for_#{@properties.name}")
+            obj.instance_variable_get(:"@_#{association_method}") ||
+              obj.instance_variable_set(:"@_#{association_method}", MongoffAssociation.new(obj.send(association_method), obj.class))
+          else
+            @properties ||= abstract_model.associations.detect { |p| name == p.name }
+          end
+        end
+
+        def associated_model_config
+          if bindings && (obj = bindings[:object]) && obj.respond_to?("association_for_#{@properties.name}")
+            RailsAdmin.config(association.klass)
+          else
+            @associated_model_config ||= RailsAdmin.config(association.klass)
+          end
         end
 
         register_instance_option :list_fields do

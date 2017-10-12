@@ -63,6 +63,9 @@ module RailsAdmin
                   end
                   h
                 end
+                types do
+                  bindings[:object].class.transformation_types
+                end
               end
 
               field :template_options do
