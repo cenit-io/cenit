@@ -569,12 +569,6 @@ $merriweather: "Merriweather", Georgia;
 
   }
   #cenit {
-    margin-top: 100px;
-
-    @media(max-width: 991px) {
-      margin-top: 50px;
-    }
-
     .header {
       text-align: center;
       h2 {
@@ -593,7 +587,7 @@ $merriweather: "Merriweather", Georgia;
       }
     }
     .feature {
-      margin-top: 55px;
+      margin-top: 15px;
       -webkit-font-smoothing: antialiased;
 
       @media (min-width: 992px) {
@@ -617,7 +611,7 @@ $merriweather: "Merriweather", Georgia;
       .info {
         h4 {
           color: #3B88B6;
-          font-weight: normal;
+          font-weight: bold;
           font-size: 19px;
           line-height: 25px;
           margin-top: 35px;
@@ -675,38 +669,46 @@ $merriweather: "Merriweather", Georgia;
         margin: 55px 0 35px;
       }
     }
+  }
+  section {
+    padding: 55px 0;
+    &:first-child {
+      padding-bottom: 0;
+    }
+    &:nth-child(odd) {
+      background: rgba(245, 245, 245, 0.61);
+    }
+    &:nth-child(even) {
 
-    margin-top: 65px;
+      background: white;
+    }
+  }
+  .header {
+    text-align: center;
+    margin-bottom: 35px;
+
+    h3 {
+      font-size: 24px;
+      color: #444;
+      line-height: 25px;
+      font-weight: bold;
+      margin-bottom: 15px;
+      margin-top: 0;
+    }
+    p {
+      font-size: 14px;
+      font-weight: 400;
+      color: #444;
+    }
   }
   #services {
     #tabs {
-      margin-top: 40px;
+
       -webkit-font-smoothing: antialiased;
-
-      @media(max-width: 991px) {
-        margin-bottom: 20px;
-      }
-
-      .header {
-        text-align: center;
-        h3 {
-          font-size: 22px;
-          color: #444;
-          line-height: 25px;
-          font-weight: 500;
-          margin-bottom: 7px;
-        }
-        p {
-          font-size: 16px;
-          font-weight: 400;
-          color: #888;
-        }
-      }
       .tabs-wrapper {
-        margin-top: 45px;
         .nav-tabs {
           text-align: center;
-          border-bottom: 2px solid #EDEDED;
+          border-bottom: none;
 
           @media(max-width: 991px) {
             display: none;
@@ -746,43 +748,25 @@ $merriweather: "Merriweather", Georgia;
           }
         }
         .tab-content {
-          margin-top: 60px;
           .tab-pane {
-            height: 325px;
-
             @media(max-width: 991px) {
               display: block !important;
               opacity: 1;
               filter: alpha(opacity=100);
               height: auto;
               text-align: center;
-              margin-bottom: 70px;
             }
-
             .info {
               @media(max-width: 991px) {
                 margin-bottom: 35px;
               }
 
-              h4 {
-                color: #3B88B6;
-                font-weight: normal;
-                font-size: 19px;
-                line-height: 25px;
-                margin-top: 35px;
-              }
               p {
                 color: #6C7279;
                 font-size: 15px;
                 margin-top: 20px;
                 line-height: 24px;
-                width: 83%;
                 font-weight: normal;
-
-                @media(max-width: 991px) {
-                  margin: 0 auto;
-                  width: 95%;
-                }
               }
             }
             .image {
@@ -800,29 +784,6 @@ $merriweather: "Merriweather", Georgia;
     #showcase {
       margin-top: 25px;
       -webkit-font-smoothing: antialiased;
-
-      .header {
-        text-align: left;
-        h3 {
-          font-size: 26px;
-          font-family: $myriad;
-          color: #596166;
-          line-height: 25px;
-          font-weight: 600;
-          margin-bottom: 7px;
-        }
-        p {
-          font-size: 15px;
-          font-weight: 400;
-          color: #666;
-          margin-top: 12px;
-          line-height: 24px;
-          @media(min-width: 992px) {
-            width: 48%;
-          }
-        }
-      }
-
       .filtering {
         margin-top: 35px;
         margin-bottom: 35px;
@@ -876,7 +837,6 @@ $merriweather: "Merriweather", Georgia;
           }
         }
       }
-
       .gallery_container {
         overflow: visible !important;
       }
@@ -956,46 +916,59 @@ $merriweather: "Merriweather", Georgia;
       }
     }
   }
-
-  #features {
-    #grid-second {
-      margin-top: 80px;
+  .features {
+    margin-bottom: 20px;
+    .feature {
 
       @media(max-width: 991px) {
-        margin-top: 50px;
+        text-align: center;
+        margin-bottom: 30px;
       }
 
-      .header {
-        border-top: 1px solid #E6E6E8;
-        padding-top: 55px;
-        margin-bottom: 35px;
+      img {
+        max-width: 40px;
+        position: relative;
+        top: 10px;
 
-        h3 {
-          font-size: 27px;
-          font-family: $myriad;
-          color: #444;
-          line-height: 25px;
-          font-weight: 500;
-          margin-bottom: 7px;
-
-          @media(max-width: 991px) {
-            text-align: center;
+        @media(min-width: 992px) {
+          float: left;
+        }
+      }
+      .info {
+        @media(min-width: 992px) {
+          float: left;
+          width: 80%;
+          margin-left: 20px;
+        }
+        strong {
+          display: block;
+          font-weight: bold;
+          font-size: 16px;
+          color: #579bff;
+          margin-top: 15px;
+          padding-bottom: 7px;
+          border-bottom: solid 1px #61bbfa;
+          i {
+            color: white;
+            font-size: 1.5em;
+            margin-right: 13px;
+            text-shadow: 1px 1px 1px #4a89ff;
           }
         }
         p {
-          font-size: 15px;
-          font-weight: 400;
-          color: #666;
-          width: 50%;
+          font-weight: normal;
+          font-size: 14px;
+          color: #797979;
+          margin-top: 10px;
           line-height: 24px;
-          margin-top: 15px;
-
-          @media(max-width: 991px) {
-            margin: 0 auto;
-            width: 90%;
-            text-align: center;
-          }
         }
+      }
+    }
+  }
+  #features {
+    #grid-second {
+      @media(max-width: 991px) {
+        margin-top: 50px;
       }
       .features {
         margin-bottom: 20px;
@@ -1023,10 +996,12 @@ $merriweather: "Merriweather", Georgia;
             }
             strong {
               display: block;
-              font-weight: 500;
+              font-weight: bold;
               font-size: 16px;
-              color: #444;
+              color: black;
               margin-top: 15px;
+              padding-bottom: 7px;
+              border-bottom: none;
             }
             p {
               font-weight: normal;
@@ -1043,26 +1018,8 @@ $merriweather: "Merriweather", Georgia;
 
   #pricing {
     #first-option {
-      margin-top: 40px;
-      margin-bottom: 130px;
       -webkit-font-smoothing: antialiased;
-      .header {
-        text-align: center;
-        h3 {
-          font-size: 23px;
-          color: #444;
-          line-height: 25px;
-          font-weight: 500;
-          margin-bottom: 7px;
-        }
-        p {
-          font-size: 16px;
-          font-weight: 400;
-          color: #888;
-        }
-      }
       .charts {
-        margin-top: 45px;
         .chart {
           background-color: #fff;
           border: 1px solid #D8D8D8;
@@ -1258,23 +1215,18 @@ $merriweather: "Merriweather", Georgia;
   #clients {
     background: #5E7A9B;
     background: radial-gradient(#36414E, #253241);
-    margin-top: 120px;
-    padding: 65px 0 80px;
-
     text-align: center;
-
     h3 {
       color: #FFF;
       margin-top: 0;
       font-family: $lato;
       font-weight: 300;
-      font-size: 35px;
+      font-size: 24px;
       letter-spacing: .3px;
       text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
     }
-
     p {
-      font-size: 16px;
+      font-size: 14px;
       color: #f8f8f8;
       font-family: $lato;
       margin-top: 17px;
@@ -1282,7 +1234,6 @@ $merriweather: "Merriweather", Georgia;
       line-height: 25px;
       text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
     }
-
     .logos {
       margin-top: 35px;
 
@@ -1294,184 +1245,6 @@ $merriweather: "Merriweather", Georgia;
           display: block;
           margin-bottom: 15px;
         }
-      }
-    }
-  }
-
-  footer {
-
-    padding-top: 0;
-    padding-bottom: 0;
-
-  }
-
-  #footer-white {
-    background: #fff;
-    padding-top: 70px;
-    padding-bottom: 30px;
-    -webkit-font-smoothing: antialiased;
-
-    @media(max-width: 991px) {
-      padding-top: 30px;
-    }
-
-    .menu {
-      @media(max-width: 767px) {
-        text-align: center;
-        margin-top: 40px;
-      }
-
-      h3 {
-        margin-top: 0;
-        color: #888;
-        text-transform: uppercase;
-        letter-spacing: 4px;
-        font-size: 14px;
-        font-weight: 600;
-      }
-
-      ul {
-        list-style-type: none;
-        padding: 0;
-        margin-top: 30px;
-
-        li {
-          display: block;
-          margin-bottom: 9px;
-
-          a {
-            color: #89A1C0;
-            display: inline-block;
-            font-weight: 500;
-            font-size: 13px;
-            @include transition(all 0.2s linear);
-
-            &:hover {
-              color: #000;
-              text-decoration: none;
-            }
-
-            @media(max-width: 991px) {
-              padding: 0;
-            }
-          }
-
-          .hiring {
-            font-family: $lato;
-            font-weight: 700;
-            letter-spacing: .3px;
-            text-transform: uppercase;
-            word-spacing: 1.5px;
-            font-size: 11px;
-            margin-left: 4px;
-            padding: 3px 8px;
-            border-radius: 4px;
-            color: #fff;
-            background: #49B7E2;
-
-            &:hover {
-              color: #fff;
-              background: #0E82AF;
-            }
-          }
-        }
-      }
-    }
-
-    .newsletter {
-      text-align: right;
-
-      @media(max-width: 767px) {
-        text-align: center;
-        margin-top: 40px;
-      }
-
-      .signup {
-        margin-bottom: 40px;
-
-        p {
-          font-size: 13px;
-          color: #666;
-          width: 90%;
-          float: right;
-          text-align: left;
-          line-height: 20px;
-
-          @media(max-width: 767px) {
-            float: none;
-            text-align: center;
-            width: 100%;
-          }
-        }
-
-        form {
-          float: right;
-          width: 90%;
-          position: relative;
-
-          @media(max-width: 767px) {
-            float: none;
-            width: 100%;
-          }
-
-          input[type="text"] {
-            font-size: 13px;
-
-            @include placeholder {
-              font-size: 13px;
-              line-height: 17px;
-            }
-          }
-
-          input[type="submit"] {
-            border: 0;
-            background: #84B0E2;
-            color: #FFF;
-            border-radius: 3px;
-            padding: 6px 10px;
-            position: absolute;
-            top: 5px;
-            text-shadow: 1px 1px rgba(0, 0, 0, 0.28);
-            right: 5px;
-            font-size: 13px;
-
-            @include transition(all .2s linear);
-
-            &:hover {
-              background: #6284AC;
-            }
-          }
-        }
-      }
-
-      a {
-        border: 0;
-        text-decoration: none;
-        opacity: 1;
-        filter: alpha(opacity=100);
-        margin-left: 15px;
-        position: relative;
-        top: -10px;
-        -webkit-transition: all .3s ease;
-        -moz-transition: all .3s ease;
-        -o-transition: all .3s ease;
-        -ms-transition: all .3s ease;
-        transition: all .3s ease;
-        &:hover {
-          opacity: 0.7;
-          filter: alpha(opacity=70);
-        }
-      }
-    }
-
-    .credits {
-      margin-top: 30px;
-
-      .col-md-12 {
-        padding-top: 20px;
-        font-size: 13px;
-        text-align: center;
-        color: #A1AAB6;
       }
     }
   }
