@@ -76,7 +76,7 @@
         <a href="#"></a>
       </nav>
       <div class="slides">
-        <div class="slide first">
+        <div class="slide first active">
           <div class="bg"></div>
           <%= image_tag 'home/spiral.png', class: 'spiral' %>
           <div class="container">
@@ -103,7 +103,7 @@
             </div>
           </div>
         </div>
-        <div class="slide second active ">
+        <div class="slide second">
           <div class="bg"></div>
           <div class="container">
             <h1 class="hero-text">
@@ -590,7 +590,7 @@
     var $prev = $(".slide-nav.prev");
     var $slides = $("#hero .slides .slide");
     var actualIndex = 0;
-    var swiping = true;
+    var swiping = false;
     var interval;
 
     $navDots.click(function (e) {
