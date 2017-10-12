@@ -71,6 +71,15 @@ module RailsAdmin
         end
     end
 
+    def enum_for_select
+      @enum_for_select ||=
+        if enum && (enum_options = hash_schema['enumOptions'].dup)
+          enum.to_a.collect { |e| [e, enum_options.shift].compact.flatten }
+        else
+          enum
+        end
+    end
+
     def length
       (length_validation_lookup || 255) if type == :string
     end

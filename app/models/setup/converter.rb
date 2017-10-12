@@ -320,73 +320,61 @@ module Setup
 
       SCHEMA_FLAG = self.to_s
 
-      def mapping_schema
-        if @parent_map_model
-          @parent_map_model.mapping_schema
-        else
-          @mapping_schema ||=
-            begin
-              sch = {
-                SCHEMA_FLAG.to_s => true,
-                type: 'object',
-                properties: {
-                  source: {
-                    type: 'string'
-                  },
-                  transformation: {
-                    referenced: true,
-                    '$ref': {
-                      namespace: 'Setup',
-                      name: 'Translator'
-                    },
-                    filter: {
-                      '$or':
-                        [
-                          {
-                            type: {
-                              a: {
-                                v: 'Export'
-                              }
-                            },
-                            source_data_type: {
-                              a: {
-                                v: '_blank'
-                              }
-                            }
-                          },
-                          {
-                            type: {
-                              a: {
-                                v: 'Conversion'
-                              }
-                            }
-                          }
-                        ]
-                    }
-                  },
-                  options: {
-                    type: 'string',
-                    default: ''
-                  }
-                }
-              }.deep_stringify_keys
-              if source_data_type
-                enum = ['$']
-                enumNames = [source_data_type.custom_title]
-                source_model = source_data_type.records_model
-                source_model.properties.each do |property|
-                  property_dt = source_model.property_model(property).data_type
-                  unless property_dt == source_data_type
-                    enum << property
-                    enumNames << "#{source_data_type.custom_title} | #{(property_dt.schema['title'] || property.to_title)}"
-                  end
-                end
-                sch['properties']['source']['enum'] = enum
-                sch['properties']['source']['enumNames'] = enumNames
-              end
-              sch
-            end
+      def mapping_schema(target_data_type_id = nil)
+        sch = {
+          SCHEMA_FLAG.to_s => true,
+          type: 'object',
+          properties: {
+            source: {
+              type: 'string',
+              enum: enum = [],
+              enumNames: enum_names = [],
+              enumOptions: enum_options = []
+            },
+            transformation: {
+              referenced: true,
+              '$ref': { namespace: 'Setup', name: 'Translator' },
+              filter: {
+                '$and': [
+                  { '$or': [
+                    { source_data_type: { a: { v: '_blank' } } },
+                    { source_data_type: { b: { v: '__source_data_type_id__' } } }
+                  ] },
+                  { '$or': type_conditions = [
+                    { type: { c: { v: 'Export' } } }
+                  ] }
+                ]
+              },
+              contextual_params: {
+                source_data_type_id: '__source_data_type_id__',
+                target_data_type_id: target_data_type_id
+              },
+              types: types = [Setup::Renderer.to_s],
+              data: { 'template-name': '__source_data_type_id__' }
+            },
+            options: { type: 'string', default: '' }
+          }
+        }
+        if target_data_type_id
+          types << Setup::Converter.to_s
+          type_conditions << { '$and': [{ type: { d: { v: 'Conversion' } } }, { target_data_type: { e: { v: target_data_type_id } } }] }
         end
+        sch
+        if source_data_type
+          enum << '$'
+          enum_names << source_data_type.custom_title
+          enum_options << { data: { 'template-value': source_data_type.id.to_s } }
+          source_model = source_data_type.records_model
+          source_model.properties.each do |property|
+            property_dt = source_model.property_model(property).data_type
+            unless property_dt == source_data_type
+              enum << property
+              enum_names << "#{source_data_type.custom_title} | #{(property_dt.schema['title'] || property.to_title)}"
+              enum_options << { data: { 'template-value': property_dt.id.to_s } }
+            end
+          end
+        end
+        sch.deep_stringify_keys!
       end
 
       def file_mapping_schema
@@ -438,7 +426,7 @@ module Setup
             if ref && property_dt
               description = data_type.merge_schema(property_schema)['description']
               description = "#{description}<br><strong>Define a transformation from #{source_data_type.custom_title} to #{property_dt.custom_title}</strong>"
-              property_schema = mapping_schema.merge('description' => description)
+              property_schema = mapping_schema(property_dt.id.to_s).merge!('description' => description)
             else
               property_schema = data_type.merge_schema(property_schema)
               id_optional = property_schema['type'].blank? if property == '_id'
