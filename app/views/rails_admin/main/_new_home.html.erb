@@ -70,6 +70,7 @@
       <div class="slides">
         <div class="slide first active">
           <div class="bg"></div>
+          <%= image_tag 'home/spiral.png', class: 'spiral' %>
           <div class="container">
             <div class="row">
               <div class="col-sm-6 info">
@@ -89,43 +90,60 @@
                 </div>
               </div>
               <div class="col-sm-6 hidden-xs mobiles">
+                <%= image_tag 'home/laptop.png', class: 'img-responsive' %>
               </div>
             </div>
           </div>
         </div>
-        <div class="slide second">
+        <div class="slide second ">
           <div class="bg"></div>
           <div class="container">
             <h1 class="hero-text">
-              Integrate your cloud applications. Automate marketing, sales and business process
+              Integrate your cloud applications
             </h1>
 
-            <p class="sub-text">
-              Cenit IO offers you this and more.
-            </p>
+            <h2 class="text-center">
+              Automate <span>marketing</span>,<span> sales</span> and <span>business process</span>
+            </h2>
 
-            <div class="cta text-center">
+            <div class="text-center">
+              <%= image_tag 'home/slider-bg.png' %>
               <a href="features.html" class="button-outline">
                 TRY IT FREE
-                <i class="fa fa-chevron-right"></i>
               </a>
             </div>
           </div>
         </div>
-        <div class="slide third">
+        <div class="slide third ">
           <div class="bg"></div>
           <div class="container">
-            <h1 class="hero-text animated fadeInLeft">
-              Need an easy way to connect your business with Cloud Services ?
-            </h1>
+            <div class="row">
+              <div class="col-sm-4 info hidden-xs mobiles">
+                <div class="cloud_services">
+                  <i class="fa fa-cloud" aria-hidden="true"></i>
+                  <i class="fa fa-google" aria-hidden="true"></i>
+                  <i class="fa fa-github" aria-hidden="true"></i>
+                  <i class="fa fa-facebook" aria-hidden="true"></i>
+                  <i class="fa fa-twitter" aria-hidden="true"></i>
+                  <i class="fa fa-amazon" aria-hidden="true"></i>
+                  <i class="fa fa-dropbox" aria-hidden="true"></i>
+                </div>
+              </div>
+              <div class="col-sm-8 ">
+                <h1 class="hero-text animated fadeInLeft">
+                  Need an easy way to connect your business with Cloud Services ?
+                </h1>
 
-            <p class="sub-text animated fadeInLeft">
-              Cenit IO is the perfect tool to help you out.
-            </p>
+                <p class="sub-text animated fadeInLeft">
+                  Cenit IO is the perfect tool to help you out.
+                </p>
 
-            <div class="cta animated fadeInRight">
-              <a href="features.html" class="button-outline">See the tour</a>
-              <a href="signup.html" class="button">Sign up free</a>
+                <div class="cta animated fadeInRight">
+                  <a href="features.html" class="button-outline">See the tour</a>
+                  <a href="signup.html" class="button">Sign up free</a>
+                </div>
+
+              </div>
             </div>
           </div>
         </div>
@@ -149,7 +167,7 @@
           </p>
         </div>
         <div class="col-md-6 image">
-
+          <%= image_tag 'home/slider-bg.png', class: 'img-responsive' %>
         </div>
       </div>
       <div class="row feature backwards">
@@ -167,6 +185,7 @@
           </p>
         </div>
         <div class="col-md-6 image">
+          <%= image_tag 'home/feature2.png', class: 'img-responsive' %>
         </div>
       </div>
       <div class="row feature">
@@ -180,7 +199,7 @@
           </p>
         </div>
         <div class="col-md-6 image">
-
+          <%= image_tag 'home/feature2.png', class: 'img-responsive' %>
         </div>
       </div>
     </div>
@@ -214,7 +233,7 @@
                   </p>
                 </div>
                 <div class="col-md-6 image">
-
+                  <%= image_tag 'home/sliders/slide1.png', class: 'img-responsive' %>
                 </div>
               </div>
               <div class="tab-pane fade" id="profile">
@@ -246,11 +265,12 @@
                   </p>
                 </div>
                 <div class="col-md-6 image">
-
+                  <%= image_tag 'home/sliders/slide2.png', class: 'img-responsive' %>
                 </div>
               </div>
               <div class="tab-pane fade" id="settings">
                 <div class="col-md-6 image">
+                  <%= image_tag 'home/sliders/slide3.png', class: 'img-responsive' %>
                 </div>
                 <div class="col-md-6 info">
                   <h4>You don't need to have any advanced technical</h4>
@@ -280,91 +300,40 @@
             </p>
           </div>
         </div>
-        <div class="row gallery_container">
-          <div class="col-md-2 col-xs-6"><a href="#" class="thumbnail"> <img
-          src="images/integrations/aftership.png">
-          </a></div>
-          <div class="col-md-2 col-xs-6"><a href="#" class="thumbnail"> <img src="images/integrations/amazon.png">
-          </a></div>
-          <div class="col-md-2 col-xs-6"><a href="#" class="thumbnail"> <img src="images/integrations/asana.png">
-
-          </a></div>
-          <div class="col-md-2 col-xs-6"><a href="#" class="thumbnail"> <img src="images/integrations/ebay.jpg">
-
-          </a></div>
-          <div class="col-md-2 col-xs-6"><a href="#" class="thumbnail"> <img
-          src="images/integrations/exact_target.png">
-
-          </a></div>
-          <div class="col-md-2 col-xs-6"><a href="#" class="thumbnail"> <img src="images/integrations/jirafe.png">
-
-          </a></div>
-          <div class="col-md-2 col-xs-6"><a href="#" class="thumbnail"> <img
-          src="images/integrations/magento.png">
-
-          </a></div>
-          <div class="col-md-2 col-xs-6"><a href="#" class="thumbnail"> <img
-          src="images/integrations/mailchimp.png">
-
-          </a></div>
-          <div class="col-md-2 col-xs-6"><a href="#" class="thumbnail"> <img
-          src="images/integrations/mandrill.png">
-
-          </a></div>
-          <div class="col-md-2 col-xs-6"><a href="#" class="thumbnail"> <img
-          src="images/integrations/shipstation.png">
-
-          </a></div>
-          <div class="col-md-2 col-xs-6"><a href="#" class="thumbnail"> <img src="images/integrations/square.png">
-
-          </a></div>
-          <div class="col-md-2 col-xs-6"><a href="#" class="thumbnail"> <img
-          src="images/integrations/sugarcrm.png">
-
-          </a></div>
-          <div class="col-md-2 col-xs-6"><a href="#" class="thumbnail"> <img
-          src="images/integrations/bigcommerce.jpeg">
-
-          </a></div>
-          <div class="col-md-2 col-xs-6"><a href="#" class="thumbnail"> <img src="images/integrations/bronto.png">
-
-          </a></div>
-          <div class="col-md-2 col-xs-6"><a href="#" class="thumbnail"> <img src="images/integrations/desk.png">
-
-          </a></div>
-          <div class="col-md-2 col-xs-6"><a href="#" class="thumbnail"> <img
-          src="images/integrations/netsuite.png">
-
-          </a></div>
-          <div class="col-md-2 col-xs-6"><a href="#" class="thumbnail"> <img src="images/integrations/odoo.png">
-
-          </a></div>
-          <div class="col-md-2 col-xs-6"><a href="#" class="thumbnail"> <img
-          src="images/integrations/oscommerce.png">
-
-          </a></div>
-          <div class="col-md-2 col-xs-6"><a href="#" class="thumbnail"> <img src="images/integrations/trello.png">
-
-          </a></div>
-          <div class="col-md-2 col-xs-6"><a href="#" class="thumbnail"> <img src="images/integrations/ql.png">
-
-          </a></div>
-          <div class="col-md-2 col-xs-6"><a href="#" class="thumbnail"> <img
-          src="images/integrations/quickbooks.png">
-
-          </a></div>
-          <div class="col-md-2 col-xs-6"><a href="#" class="thumbnail"> <img
-          src="images/integrations/woocommerce.png">
-
-          </a></div>
-          <div class="col-md-2 col-xs-6"><a href="#" class="thumbnail"> <img
-          src="images/integrations/zendesk.png">
-
-          </a></div>
-          <div class="col-md-2 col-xs-6"><a href="#" class="thumbnail"> <img
-          src="images/integrations/shipwire.png">
-
-          </a></div>
+        <div class="row gallery_container add-clearfix">
+          <% integrations = [
+              'aftership.png',
+              'amazon.png',
+              'asana.png',
+              'bigcommerce.jpeg',
+              'bronto.png',
+              'desk.png',
+              'ebay.jpg',
+              'exact_target.png',
+              'jirafe.png',
+              'magento.png',
+              'mailchimp.png',
+              'mandrill.png',
+              'netsuite.png',
+              'odoo.png',
+              'oscommerce.png',
+              'ql.png',
+              'quickbooks.png',
+              'sf.png',
+              'shipstation.png',
+              'shipwire.png',
+              'square.png',
+              'trello.png',
+              'woocommerce.png',
+              'zendesk.png'
+          ] %>
+          <% integrations.each do |i| %>
+              <div class="col-md-2 col-xs-6">
+                <a href="#" class="thumbnail">
+                  <%= image_tag "home/integrations/#{i}" %>
+                </a>
+              </div>
+          <% end %>
         </div>
         <div class="col-md-offset-2 col-md-8 text-center">
           <h4>Don’t see your app? Search here</h4>
@@ -394,8 +363,7 @@
         </div>
         <div class="row features">
           <div class="col-md-6 feature">
-            <img src="images/circle-icons/full-color/globe.png" alt="globe"/>
-
+            <%= image_tag 'home/circle-icons/full-color/support.png' %>
             <div class="info">
               <strong>Backendless</strong>
 
@@ -405,7 +373,7 @@
             </div>
           </div>
           <div class="col-md-6 feature">
-            <img src="images/circle-icons/full-color/location.png" alt="location"/>
+            <%= image_tag 'home/circle-icons/full-color/traffic.png' %>
 
             <div class="info">
               <strong>Routing and orchestration</strong>
@@ -418,7 +386,7 @@
         </div>
         <div class="row features">
           <div class="col-md-6 feature">
-            <img src="images/circle-icons/full-color/smartphone.png" alt="smartphone"/>
+            <%= image_tag 'home/circle-icons/full-color/stack.png' %>
 
             <div class="info">
               <strong>Data integration</strong>
@@ -428,7 +396,7 @@
             </div>
           </div>
           <div class="col-md-6 feature">
-            <img src="images/circle-icons/full-color/support.png" alt="support"/>
+            <%= image_tag 'home/circle-icons/full-color/cloud.png' %>
 
             <div class="info">
               <strong>Integration scenarios</strong>
@@ -440,7 +408,7 @@
         </div>
         <div class="row features">
           <div class="col-md-6 feature">
-            <img src="images/circle-icons/full-color/smartphone.png" alt="smartphone"/>
+            <%= image_tag 'home/circle-icons/full-color/globe.png' %>
 
             <div class="info">
               <strong>Third party service integrations</strong>
@@ -451,7 +419,7 @@
             </div>
           </div>
           <div class="col-md-6 feature">
-            <img src="images/circle-icons/full-color/support.png" alt="support"/>
+            <%= image_tag 'home/circle-icons/full-color/unlocked.png' %>
 
             <div class="info">
               <strong>Free account</strong>
@@ -513,8 +481,7 @@
           </div>
           <div class="col-md-4">
             <div class="chart featured">
-              <img src="images/ribbon.png" class="popular" alt="ribbon"/>
-
+              <%= image_tag 'home/ribbon.png', class: 'popular' %>
               <div class="plan-name">Profesional</div>
               <div class="quantity">
                 <span class="dollar">$</span>
@@ -598,15 +565,14 @@
       <div class="row">
         <div class="col-md-12">
           <h3>Our Customers</h3>
+
           <p>
             These are some of our customers who have helped us by using our product.
           </p>
+
           <div class="logos">
             <img src="images/logos/google.png">
             <img src="images/logos/facebook.png">
-            <img src="images/logos/apple.png">
-            <img src="images/logos/stripe.png">
-            <img src="images/logos/yahoo.png">
           </div>
         </div>
       </div>
@@ -688,10 +654,10 @@
               </form>
             </div>
             <a href="#">
-              <img src="images/social/social-tw.png" alt="twitter"/>
+              <%= image_tag 'home/social/fb.png' %>
             </a>
             <a href="#">
-              <img src="images/social/social-dbl.png" alt="dribbble"/>
+              <%= image_tag 'home/social/gp.png' %>
             </a>
           </div>
         </div>

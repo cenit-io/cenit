@@ -276,22 +276,26 @@ $merriweather: "Merriweather", Georgia;
           }
 
           .bg {
-            //background-image: url("http://farm9.staticflickr.com/8482/8203794182_8004f8f636_b.jpg");
+            background-image: image_url("home/bg_sky");
             background-position: center 18%;
 
             &:after {
-              background: rgba(52, 52, 58, 0.6);
+              //background: rgba(52, 52, 58, 0.6);
             }
           }
-
+          img.spiral {
+            position: absolute;
+            top: -122px;
+            z-index: 1;
+            right: -34px;
+          }
           .info {
             h1.hero-text {
-              margin-top: 65px;
+              margin-top: 75px;
               font-family: $lato;
               font-size: 44px;
-              line-height: 42px;
               letter-spacing: 0.7px;
-              font-weight: 300;
+              font-weight: bold;
               color: #fff;
               text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.8);
 
@@ -302,13 +306,11 @@ $merriweather: "Merriweather", Georgia;
             }
 
             p {
-              color: rgba(255, 255, 255, 0.94);
+              color: rgb(61, 64, 70);
               font-family: $lato;
-              letter-spacing: 0.4px;
               margin-top: 15px;
               font-size: 18px;
-              font-weight: 300;
-              line-height: 32px;
+              font-weight: bold;
             }
 
             .cta {
@@ -327,7 +329,7 @@ $merriweather: "Merriweather", Georgia;
                 font-family: $lato;
                 text-transform: uppercase;
                 border: 2px solid rgba(255, 255, 255, 0.8);
-                background: rgba(0, 0, 0, 0.4);
+                background: rgb(83, 150, 255);
 
                 &:hover {
                   color: #252525;
@@ -363,7 +365,7 @@ $merriweather: "Merriweather", Georgia;
             img {
               display: block;
               margin: 0 auto;
-              width: 360px;
+              margin-top: 75px;
               -webkit-animation-duration: 1.2s;
               -moz-animation-duration: 1.2s;
               -o-animation-duration: 1.2s;
@@ -378,26 +380,46 @@ $merriweather: "Merriweather", Georgia;
           }
 
           .bg {
+            background-image: image_url("home/bg_sky");
             /*background-image: url('http://24.media.tumblr.com/899355a7363be380170ecfcbdc9744d7/tumblr_myp93odkni1st5lhmo1_1280.jpg');*/
             //background-image: url('http://farm4.staticflickr.com/3758/9011116378_32e56983e3_b.jpg');
             background-position: center 29%;
 
             &:after {
-              background: rgba(5, 11, 29, 0.55);
+              //background: rgba(5, 11, 29, 0.55);
             }
           }
 
           h1.hero-text {
             text-align: center;
-            font-family: $lato;
+            font-family: $lato, Helvetica, "Helvetica Neue", Arial, sans-serif;
             font-size: 37px;
-            font-weight: 300;
+            font-weight: bold;
             color: #fff;
             text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.65);
-
+            text-transform: uppercase;
             @media (max-width: 767px) {
               font-size: 25px;
             }
+          }
+          h2 {
+            text-shadow: 15px 1px 15px #b5b2a6;
+            color: #222222;
+            span {
+              font-weight: bold;
+            }
+          }
+          img {
+            width: 413px;
+            margin: auto;
+            margin-top: 35px;
+            margin-bottom: 35px;
+          }
+          .button-outline {
+            position: absolute;
+            top: 334px;
+            right: 396px;
+            background: #06223c;
           }
           .sub-text {
             -webkit-font-smoothing: antialiased;
@@ -421,34 +443,7 @@ $merriweather: "Merriweather", Georgia;
               font-size: 15px;
             }
           }
-          .video-wrapper {
-            text-align: center;
-            margin-top: 50px;
 
-            @media(max-width: 767px) {
-              margin-top: 25px;
-            }
-
-            .video {
-              display: inline-block;
-              padding: 6px;
-              background: rgba(255, 255, 255, 0.5);
-              border-radius: 5px;
-              -webkit-animation-duration: 1.2s;
-              -moz-animation-duration: 1.2s;
-              -o-animation-duration: 1.2s;
-              animation-duration: 1.2s;
-
-              img {
-                max-width: 280px;
-                cursor: pointer;
-
-                @media(max-width: 767px) {
-                  max-width: 200px;
-                }
-              }
-            }
-          }
         }
 
         &.third {
@@ -459,11 +454,12 @@ $merriweather: "Merriweather", Georgia;
           }
 
           .bg {
+            background-image: image_url("home/bg_sky");
             //background-image: url('http://farm6.staticflickr.com/5267/5783999789_9d06e5d7df_b.jpg');
             background-position: center 15%;
 
             &:after {
-              background: rgba(3, 9, 27, 0.5);
+              //background: rgba(3, 9, 27, 0.5);
             }
           }
 
@@ -476,9 +472,9 @@ $merriweather: "Merriweather", Georgia;
 
           h1.hero-text {
             text-align: center;
-            font-family: $roboto;
+            font-family: $roboto, Helvetica, "Helvetica Neue", Arial, sans-serif;
             font-size: 38px;
-            font-weight: 300;
+            font-weight: bold;
             color: #fff;
             text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.8);
 
@@ -486,16 +482,64 @@ $merriweather: "Merriweather", Georgia;
               font-size: 28px;
             }
           }
+          .cloud_services {
+            position: relative;
+            i {
+              position: absolute;
+              z-index: 1;
+              &.fa-google {
+                top: 188px;
+                z-index: 1;
+                font-size: 81px;
+                color: #ec5a2c;
+                right: 56px;
+              }
+              &.fa-github {
+                top: 89px;
+                font-size: 93px;
+              }
+              &.fa-facebook {
+                font-size: 76px;
+                top: 35px;
+                left: 240px;
+                color: #3F51B5;
+              }
+              &.fa-twitter {
+                font-size: 100px;
+                top: 35px;
+                left: 120px;
+                color: orange;
+              }
+              &.fa-amazon {
+                font-size: 71px;
+                top: 130px;
+                left: 278px;
+                color: green;
+              }
+              &.fa-dropbox {
+                font-size: 71px;
+                top: 183px;
+                left: 79px;
+                color: brown;
+              }
+            }
+            i.fa-cloud {
+              position: relative;
+              font-size: 329px;
+              color: white;
+              right: 0;
+              top: -33px;
+            }
+          }
           .sub-text {
             -webkit-font-smoothing: antialiased;
             margin: 0 auto;
             margin-top: 25px;
             text-align: center;
-            color: #f7f7f7;
-            font-weight: 400;
-            font-size: 17px;
-            text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.2);
-            width: 50%;
+            color: #222222;
+            font-weight: bold;
+            font-size: 27px;
+            text-shadow: 1px 1px 1px rgb(255, 255, 255);
 
             @media (max-width: 991px) {
               width: 70%;
@@ -899,8 +943,20 @@ $merriweather: "Merriweather", Georgia;
           margin: 0 auto;
         }
       }
+      a.thumbnail {
+        border: none;
+        img {
+          filter: grayscale(100%);
+        }
+        &:hover {
+          img {
+            filter: grayscale(0%);
+          }
+        }
+      }
     }
   }
+
   #features {
     #grid-second {
       margin-top: 80px;
@@ -984,6 +1040,7 @@ $merriweather: "Merriweather", Georgia;
       }
     }
   }
+
   #pricing {
     #first-option {
       margin-top: 40px;
@@ -1197,6 +1254,7 @@ $merriweather: "Merriweather", Georgia;
       }
     }
   }
+
   #clients {
     background: #5E7A9B;
     background: radial-gradient(#36414E, #253241);
@@ -1239,12 +1297,14 @@ $merriweather: "Merriweather", Georgia;
       }
     }
   }
+
   footer {
 
     padding-top: 0;
     padding-bottom: 0;
 
   }
+
   #footer-white {
     background: #fff;
     padding-top: 70px;
@@ -1415,4 +1475,5 @@ $merriweather: "Merriweather", Georgia;
       }
     }
   }
+
 }
