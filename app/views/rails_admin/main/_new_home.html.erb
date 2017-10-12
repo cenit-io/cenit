@@ -17,7 +17,22 @@
     </div>
     <nav class="collapse navbar-collapse bs-navbar-collapse" role="navigation">
       <ul class="nav navbar-nav">
-
+        <li class="dropdown">
+          <a href="#" class="dropdown-toggle" data-toggle="dropdown">
+            Explore
+          </a>
+          <ul class="dropdown-menu">
+            <li><a href="/data/dashboard">Data</a></li>
+            <li><a href="/workflows/dashboard">Workflows</a></li>
+            <li><a href="/transforms/dashboard">Transforms</a></li>
+            <li><a href="/gateway/dashboard">Gateway</a></li>
+            <li><a href="/compute/dashboard">Compute</a></li>
+            <li><a href="/integrations/dashboard">Integrations</a></li>
+            <li><a href="/ecommerce/dashboard">Ecommerce</a></li>
+            <li><a href="/security/dashboard">Security</a></li>
+            <li><a href="/open_api_directoryd">Open Api Directory</a></li>
+          </ul>
+        </li>
         <li class="dropdown">
           <a href="#" class="dropdown-toggle" data-toggle="dropdown">
             Services
@@ -37,13 +52,6 @@
           <a href="#" class="dropdown-toggle" data-toggle="dropdown">
             Pricing
           </a>
-
-        </li>
-        <li class="dropdown">
-          <a href="#" class="dropdown-toggle" data-toggle="dropdown">
-            About us
-          </a>
-
         </li>
       </ul>
       <ul class="nav navbar-nav navbar-right visible-md visible-lg">
@@ -68,7 +76,7 @@
         <a href="#"></a>
       </nav>
       <div class="slides">
-        <div class="slide first active">
+        <div class="slide first">
           <div class="bg"></div>
           <%= image_tag 'home/spiral.png', class: 'spiral' %>
           <div class="container">
@@ -95,7 +103,7 @@
             </div>
           </div>
         </div>
-        <div class="slide second ">
+        <div class="slide second active ">
           <div class="bg"></div>
           <div class="container">
             <h1 class="hero-text">
@@ -107,7 +115,7 @@
             </h2>
 
             <div class="text-center">
-              <%= image_tag 'home/slider-bg.png' %>
+              <%= image_tag 'home/integrations.png' %>
               <a href="features.html" class="button-outline">
                 TRY IT FREE
               </a>
@@ -153,7 +161,7 @@
   <section id="cenit">
     <div class="container">
       <div class="row feature">
-        <div class="col-md-6 info">
+        <div class="col-sm-6 info">
           <h4>Integration Platform as a Service (iPaaS)</h4>
 
           <p>
@@ -166,12 +174,12 @@
             professional.
           </p>
         </div>
-        <div class="col-md-6 image">
-          <%= image_tag 'home/slider-bg.png', class: 'img-responsive' %>
+        <div class="col-sm-6 image">
+          <%= image_tag 'home/ipass.jpg', class: 'img-responsive' %>
         </div>
       </div>
       <div class="row feature backwards">
-        <div class="col-md-6 info">
+        <div class="col-sm-6 info">
           <h4>Open Source and Free, forever</h4>
 
           <p>
@@ -184,12 +192,12 @@
             applications.
           </p>
         </div>
-        <div class="col-md-6 image">
+        <div class="col-sm-6 image">
           <%= image_tag 'home/feature2.png', class: 'img-responsive' %>
         </div>
       </div>
       <div class="row feature">
-        <div class="col-md-6 info">
+        <div class="col-sm-6 info">
           <h4>Hundreds of Integrations</h4>
 
           <p>
@@ -198,8 +206,9 @@
             Open API, and RAML, so you can add your own too.
           </p>
         </div>
-        <div class="col-md-6 image">
-          <%= image_tag 'home/feature2.png', class: 'img-responsive' %>
+        <div class="col-sm-6 image">
+          <%= image_tag 'home/sliders/slide4.png', class: 'img-responsive' %>
+          <%=image_tag 'guru_logo_horizontal.svg', alt: 'http://APIs.guru', class: 'apis_guru'%>
         </div>
       </div>
     </div>
@@ -213,7 +222,7 @@
           <p>Cenit IO can help you with this services and more. Don't wait, <a href="#">contact us</a> now</p>
         </div>
         <div class="row features">
-          <div class="col-md-4">
+          <div class="col-sm-4">
 
             <div class="feature active">
               <div class="info">
@@ -227,7 +236,7 @@
               </div>
             </div>
           </div>
-          <div class="col-md-4">
+          <div class="col-sm-4">
             <div class="feature">
               <div class="info">
                 <strong>
@@ -239,7 +248,7 @@
               </div>
             </div>
           </div>
-          <div class="col-md-4">
+          <div class="col-sm-4">
             <div class="feature">
               <div class="info">
                 <strong><i class="fa fa-life-ring" aria-hidden="true"></i>Support</strong>
@@ -251,7 +260,7 @@
           </div>
         </div>
         <div class="row features">
-          <div class="col-md-4">
+          <div class="col-sm-4">
             <div class="feature active">
               <div class="info">
                 <strong>
@@ -262,7 +271,7 @@
                   Supercharge productivity across teams with automated workflows.                </p></div>
             </div>
           </div>
-          <div class="col-md-4">
+          <div class="col-sm-4">
             <div class="feature">
               <div class="info">
                 <strong>
@@ -274,7 +283,7 @@
               </div>
             </div>
           </div>
-          <div class="col-md-4">
+          <div class="col-sm-4">
             <div class="feature">
               <div class="info">
                 <strong>
@@ -330,7 +339,7 @@
               'zendesk.png'
           ] %>
           <% integrations.each do |i| %>
-              <div class="col-md-2 col-xs-6">
+              <div class="col-md-2 col-sm-3 col-sms-3 col-xs-6">
                 <a href="#" class="thumbnail">
                   <%= image_tag "home/integrations/#{i}" %>
                 </a>
@@ -364,7 +373,7 @@
           </div>
         </div>
         <div class="row features">
-          <div class="col-md-6 feature">
+          <div class="col-sm-6 feature">
             <%= image_tag 'home/circle-icons/full-color/support.png' %>
             <div class="info">
               <strong>Backendless</strong>
@@ -374,7 +383,7 @@
                 a CRUD UI to manage the data. Useful for mobile backend and API services.</p>
             </div>
           </div>
-          <div class="col-md-6 feature">
+          <div class="col-sm-6 feature">
             <%= image_tag 'home/circle-icons/full-color/traffic.png' %>
 
             <div class="info">
@@ -387,7 +396,7 @@
           </div>
         </div>
         <div class="row features">
-          <div class="col-md-6 feature">
+          <div class="col-sm-6 feature">
             <%= image_tag 'home/circle-icons/full-color/stack.png' %>
 
             <div class="info">
@@ -397,7 +406,7 @@
                 multiple data formats (JSON, XML, ASN) and data standards (EDIFACT, X12, UBL).</p>
             </div>
           </div>
-          <div class="col-md-6 feature">
+          <div class="col-sm-6 feature">
             <%= image_tag 'home/circle-icons/full-color/cloud.png' %>
 
             <div class="info">
@@ -409,7 +418,7 @@
           </div>
         </div>
         <div class="row features">
-          <div class="col-md-6 feature">
+          <div class="col-sm-6 feature">
             <%= image_tag 'home/circle-icons/full-color/globe.png' %>
 
             <div class="info">
@@ -420,7 +429,7 @@
                 settings - to connect services as ERP / Fulfilment / Marketing / Communication.</p>
             </div>
           </div>
-          <div class="col-md-6 feature">
+          <div class="col-sm-6 feature">
             <%= image_tag 'home/circle-icons/full-color/unlocked.png' %>
 
             <div class="info">
@@ -581,7 +590,7 @@
     var $prev = $(".slide-nav.prev");
     var $slides = $("#hero .slides .slide");
     var actualIndex = 0;
-    var swiping = false;
+    var swiping = true;
     var interval;
 
     $navDots.click(function (e) {

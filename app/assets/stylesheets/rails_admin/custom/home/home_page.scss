@@ -636,10 +636,18 @@ $merriweather: "Merriweather", Georgia;
         }
       }
       .image {
+        position: relative;
         @media (max-width: 991px) {
           img {
             margin: 0 auto !important;
             margin-top: 20px;
+          }
+        }
+        img {
+          &.apis_guru {
+            position: absolute;
+            top: 61px;
+            left: 47px;
           }
         }
       }
