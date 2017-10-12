@@ -39,7 +39,9 @@
             } else {
                 this.options.ui_suffix_name = this.options.suffix_name;
                 this.options.source = select.children("option").map(function () {
-                    return {label: $(this).text(), value: this.value};
+                    var that = $(this);
+                    var template_value = that.data('template-value');
+                    return {label: that.text(), value: (template_value ? [this.value, template_value] : [this.value])};
                 }).toArray();
             }
             var filtering_select = $('<div class="input-group filtering-select col-sm-2" style="float:left"></div>')
@@ -53,13 +55,22 @@
                     minLength: this.options.minLength,
                     source: this._getSourceFunction(this.options.source, this.options.ui_suffix_name),
                     select: function (event, ui) {
-                        var option = $('<option></option>').attr('value', ui.item.id).attr('selected', 'selected').text(ui.item.value);
+                        var id = ui.item.id;
+                        if (!$.isArray(id)) {
+                            id = [id]
+                        }
+                        var option = $('<option></option>').attr('value', id[0]).attr('selected', 'selected').text(ui.item.value);
                         select.html(option);
-                        select.trigger("change", ui.item.id);
+                        select.trigger("change", id[0]);
                         self._trigger("selected", event, {
                             item: option
                         });
                         $(self.element.parents('.controls')[0]).find('.update').removeClass('disabled');
+                        if (id = id[1]) {
+                            $(self.element.parents('.fields')[0]).find('[data-template-name]').each(function () {
+                                $(this).attr('data-template-value', id);
+                            })
+                        }
                     },
                     change: function (event, ui) {
                         if (!ui.item) {
@@ -95,7 +106,7 @@
                         select.html($('<option value="" selected="selected"></option>'));
                         select.trigger("change");
                     }
-                })
+                });
 
             if (select.attr('placeholder'))
                 input.attr('placeholder', select.attr('placeholder'))
@@ -176,16 +187,22 @@
                         this.xhr.abort();
                     }
 
+                    var $select = $('select[id$=' + '\'' + ui_suffix_name + '\']').first(),
+                        template_name_node = $select[0].attributes['data-template-name'],
+                        template_value_node = $select[0].attributes['data-template-value'],
+                        the_source = source;
+                    if (template_name_node && template_name_node.value && template_value_node) {
+                        the_source = source.replace(template_name_node.value, template_value_node.value);
+                    }
+
                     this.xhr = $.ajax({
-                        url: source,
+                        url: the_source,
                         data: self.options.createQuery(request.term),
                         dataType: "json",
                         autocompleteRequest: ++requestIndex,
                         select: null,
-                        get_ui_widget: function (ui_suffix_name) {
-                            var $label, $icon, $siblings,
-                                selector = 'select[id$=' + '\'' + ui_suffix_name + '\']',
-                                $select = $(selector).first();
+                        get_ui_widget: function () {
+                            var $label, $icon, $siblings;
 
                             $siblings = $select.siblings();
                             $label = $siblings.find('label.btn');
@@ -193,12 +210,11 @@
                             return {label: $label, icon: $icon};
                         },
                         beforeSend: function () {
-                            var select = this.select = this.get_ui_widget(ui_suffix_name);
+                            var select = this.select = this.get_ui_widget();
                             if (select) {
                                 select.label.removeClass('btn-danger').addClass('btn-info');
                                 select.icon.removeClass().addClass('fa fa-spinner fa-spin');
                             }
-                            console.log('Before init the request');
                         },
                         success: function (data, status) {
                             var select = this.select;
@@ -210,7 +226,6 @@
                                 select.label.removeClass('btn-danger').addClass('btn-info');
                                 select.icon.removeClass().addClass('caret');
                             }
-                            console.log('Completed the request');
                         },
                         error: function () {
                             var select = this.select;

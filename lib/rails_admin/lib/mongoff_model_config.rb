@@ -45,6 +45,7 @@ module RailsAdmin
           if enumeration
             enum { enumeration }
             filter_enum { enumeration }
+            enum_for_select { property.enum_for_select }
           end
           if (description = property.description)
             description = "#{property.required? ? 'Required' : 'Optional'}. #{description}".html_safe
@@ -114,8 +115,10 @@ module RailsAdmin
                 associated_links
               end
             end
-            if (f = property.schema['filter'])
-              filter f
+            %w(filter data contextual_params types).each do |option|
+              if (v = property.schema[option])
+                send(option, v)
+              end
             end
           end
         end

@@ -17,6 +17,21 @@ module RailsAdmin
           {}
         end
 
+        register_instance_option :data do
+          {}
+        end
+
+        register_instance_option :types do
+          []
+        end
+
+        register_instance_option :html_attributes do
+          {
+            required: required?,
+            data: data.with_indifferent_access
+          }
+        end
+
         def parse_value(value)
           (value = super(value)).is_a?(String) ? value.presence : value
         end
