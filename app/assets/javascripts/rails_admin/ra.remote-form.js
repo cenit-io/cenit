@@ -25,12 +25,24 @@
             }
 
             dom_widget.find('.create').unbind().bind("click", function (e) {
-                widget._bindModalOpening(e, $(this).data('link'))
+                var template_name = this.attributes['data-template-name'],
+                    template_value = this.attributes['data-template-value'],
+                    link = $(this).data('link');
+                if (template_name && template_name.value && template_value) {
+                    link = link.replace(template_name.value, template_value.value);
+                }
+                widget._bindModalOpening(e, link)
             });
 
             dom_widget.find('.update').unbind().bind("click", function (e) {
                 if (value = dom_widget.find('select').val()) {
-                    widget._bindModalOpening(e, $(this).data('link').replace('__ID__', value))
+                    var template_name = this.attributes['data-template-name'],
+                        template_value = this.attributes['data-template-value'],
+                        link = $(this).data('link').replace('__ID__', value);
+                    if (template_name && template_name.value && template_value) {
+                        link = link.replace(template_name.value, template_value.value);
+                    }
+                    widget._bindModalOpening(e, link)
                 } else {
                     e.preventDefault();
                 }

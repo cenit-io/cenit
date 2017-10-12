@@ -34,9 +34,18 @@ module RailsAdmin
           required { property.required? }
           queryable { property.queryable? }
           valid_length { {} }
+          if type == :auto_complete
+            if (s = property.schema['source'])
+              source s
+            end
+            if (a = property.schema['anchor'])
+              anchor a
+            end
+          end
           if enumeration
             enum { enumeration }
             filter_enum { enumeration }
+            enum_for_select { property.enum_for_select }
           end
           if (description = property.description)
             description = "#{property.required? ? 'Required' : 'Optional'}. #{description}".html_safe
@@ -106,6 +115,11 @@ module RailsAdmin
                 associated_links
               end
             end
+            %w(filter data contextual_params types).each do |option|
+              if (v = property.schema[option])
+                send(option, v)
+              end
+            end
           end
         end
       end
@@ -118,7 +132,7 @@ module RailsAdmin
           pretty_value do #TODO Factorize these code in custom rails admin field type
             if (objects = bindings[:controller].instance_variable_get(:@objects))
               unless (max = bindings[:controller].instance_variable_get(:@max_length))
-                bindings[:controller].instance_variable_set(:@max_length, max = objects.collect { |storage| storage.length }.reject(&:nil?).max)
+                bindings[:controller].instance_variable_set(:@max_length, max = objects.collect { |storage| storage.length }.compact.max)
               end
               (bindings[:view].render partial: 'size_bar', locals: { max: max, value: bindings[:object].length }).html_safe
             else
