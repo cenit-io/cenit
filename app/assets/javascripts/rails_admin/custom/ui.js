@@ -236,8 +236,58 @@ var
             tour_steps.notifications,
             tour_steps.rest_apis
         ]
-    });
+    }),
+    slideshow = {
+        initialize: function () {
+            var $slideshow = $(".slideshow"),
+                $slides = $slideshow.find(".slide"),
+                $btnPrev = $slideshow.find(".btn-nav.prev"),
+                $btnNext = $slideshow.find(".btn-nav.next");
 
+            var index = 0;
+            var interval = setInterval(function () {
+                index++;
+                if (index >= $slides.length) {
+                    index = 0;
+                }
+                updateSlides(index);
+            }, 4500);
+
+            $btnPrev.click(function () {
+                clearInterval(interval);
+                interval = null;
+                index--;
+                if (index < 0) {
+                    index = $slides.length - 1;
+                }
+                updateSlides(index);
+            });
+
+            $btnNext.click(function () {
+                clearInterval(interval);
+                interval = null;
+                index++;
+                if (index >= $slides.length) {
+                    index = 0;
+                }
+                updateSlides(index);
+            });
+
+            $slideshow.hover(function () {
+                $btnPrev.addClass("active");
+                $btnNext.addClass("active");
+            }, function () {
+                $btnPrev.removeClass("active");
+                $btnNext.removeClass("active");
+            });
+
+
+            function updateSlides(index) {
+                $slides.removeClass("active");
+                $slides.eq(index).addClass("active");
+            }
+        }
+    }
 // Functions
 
 function openSigInSideBar() {

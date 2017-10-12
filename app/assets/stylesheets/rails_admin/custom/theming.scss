@@ -7,6 +7,10 @@
 @import "rails_admin/custom/rest-api";
 @import "rails_admin/custom/highlight-dracula";
 @import "rails_admin/custom/foreign-notification";
+@import "rails_admin/custom/flexslider";
+@import "rails_admin/custom/home/home_page";
+
+
 
 /*Theming variables*/
 
@@ -1935,7 +1939,7 @@ section#welcome_users {
     margin-top: 47px;
   }
   @media(min-width: 992px) {
-    margin-top: 0;
+    margin-top: 50px;
   }
 
 }

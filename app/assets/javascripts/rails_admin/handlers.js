@@ -449,6 +449,7 @@ function handlerInit() {
             getApiCouple();
         }, 1000);
     }
+    slideshow.initialize();
 
 }
 // Side Menu Bar Update Model Counts Functions

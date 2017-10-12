@@ -1,0 +1,222 @@
+<header class="navbar  navbar-inverse navbar-fixed-top" role="banner">
+  <div class="container">
+    <div class="navbar-header">
+      <button class="navbar-toggle" type="button" data-toggle="collapse" data-target=".bs-navbar-collapse">
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      <%= link_to dashboard_path, class: "navbar-brand" do %>
+                <span class="cenit-logo">
+                  <%= image_tag 'cenit-logo.png', class: 'img-responsive' %>
+                </span>
+                <span class="cenit-hub">
+                  Cenit IO
+                </span>
+      <% end %>
+    </div>
+    <nav class="collapse navbar-collapse bs-navbar-collapse" role="navigation">
+      <ul class="nav navbar-nav">
+
+        <li class="dropdown">
+          <a href="#" class="dropdown-toggle" data-toggle="dropdown">
+            Services
+          </a>
+        </li>
+        <li class="dropdown">
+          <a href="#" class="dropdown-toggle" data-toggle="dropdown">
+            App Integrations
+          </a>
+        </li>
+        <li class="dropdown">
+          <a href="#" class="dropdown-toggle" data-toggle="dropdown">
+            Features
+          </a>
+        </li>
+        <li class="dropdown">
+          <a href="#" class="dropdown-toggle" data-toggle="dropdown">
+            Pricing
+          </a>
+
+        </li>
+        <li class="dropdown">
+          <a href="#" class="dropdown-toggle" data-toggle="dropdown">
+            About us
+          </a>
+
+        </li>
+      </ul>
+      <ul class="nav navbar-nav navbar-right visible-md visible-lg">
+        <li>
+          <a href="signup.html" class="signup visible-md visible-lg">Login</a>
+        </li>
+        <li>
+          <a href="signup.html" class="button">Sign up free</a>
+        </li>
+      </ul>
+    </nav>
+  </div>
+</header>
+<main id="home_content">
+  <section id="slides">
+    <div id="hero">
+      <a class="slide-nav prev" href="#">Prev</a>
+      <a class="slide-nav next" href="#">Next</a>
+      <nav>
+        <a class="active" href="#"></a>
+        <a href="#"></a>
+        <a href="#"></a>
+      </nav>
+      <div class="slides">
+        <div class="slide first active">
+          <div class="bg"></div>
+          <div class="container">
+            <div class="row">
+              <div class="col-sm-6 info">
+                <h1 class="hero-text">
+                  The most open Platform for Data and Business Integration
+                </h1>
+                <p>
+                  Enables a complete business automation of all operational processes in a company
+                </p>
+                <div class="cta">
+                  <a href="features.html" class="button-outline">
+                    TRY IT FREE
+                    <i class="fa fa-chevron-right"></i>
+                  </a>
+                </div>
+              </div>
+              <div class="col-sm-6 hidden-xs mobiles">
+               </div>
+            </div>
+          </div>
+        </div>
+        <div class="slide second">
+          <div class="bg"></div>
+          <div class="container">
+            <h1 class="hero-text">
+              Integrate your cloud applications. Automate marketing, sales and business process
+            </h1>
+            <p class="sub-text">
+              Cenit IO offers you this and more.
+            </p>
+            <div class="cta text-center">
+              <a href="features.html" class="button-outline">
+                TRY IT FREE
+                <i class="fa fa-chevron-right"></i>
+              </a>
+            </div>
+          </div>
+        </div>
+        <div class="slide third">
+          <div class="bg"></div>
+          <div class="container">
+            <h1 class="hero-text animated fadeInLeft">
+              Need an easy way to connect your business with Cloud Services ?
+            </h1>
+            <p class="sub-text animated fadeInLeft">
+              Cenit IO is the perfect tool to help you out.
+            </p>
+            <div class="cta animated fadeInRight">
+              <a href="features.html" class="button-outline">See the tour</a>
+              <a href="signup.html" class="button">Sign up free</a>
+            </div>
+          </div>
+        </div>
+      </div>
+          </div>
+  </section>
+</main>
+<script type="text/javascript">
+  $(function () {
+    var $navDots = $("#hero nav a")
+    var $next = $(".slide-nav.next");
+    var $prev = $(".slide-nav.prev");
+    var $slides = $("#hero .slides .slide");
+    var actualIndex = 0;
+    var swiping = false;
+    var interval;
+
+    $navDots.click(function (e) {
+      e.preventDefault();
+      if (swiping) {
+        return;
+      }
+      swiping = true;
+
+      actualIndex = $navDots.index(this);
+      updateSlides(actualIndex);
+    });
+
+    $next.click(function (e) {
+      e.preventDefault();
+      if (swiping) {
+        return;
+      }
+      swiping = true;
+
+      clearInterval(interval);
+      interval = null;
+
+      actualIndex++;
+      if (actualIndex >= $slides.length) {
+        actualIndex = 0;
+      }
+
+      updateSlides(actualIndex);
+    });
+
+    $prev.click(function (e) {
+      e.preventDefault();
+      if (swiping) {
+        return;
+      }
+      swiping = true;
+
+      clearInterval(interval);
+      interval = null;
+
+      actualIndex--;
+      if (actualIndex < 0) {
+        actualIndex = $slides.length - 1;
+      }
+
+      updateSlides(actualIndex);
+    });
+
+    function updateSlides(index) {
+      // update nav dots
+      $navDots.removeClass("active");
+      $navDots.eq(index).addClass("active");
+
+      // update slides
+      var $activeSlide = $("#hero .slide.active");
+      var $nextSlide = $slides.eq(index);
+
+      $activeSlide.fadeOut();
+      $nextSlide.addClass("next").fadeIn();
+
+      setTimeout(function () {
+        $slides.removeClass("next").removeClass("active");
+        $nextSlide.addClass("active");
+        $activeSlide.removeAttr('style');
+        swiping = false;
+      }, 1000);
+    }
+
+
+    interval = setInterval(function () {
+      if (swiping) {
+        return;
+      }
+      swiping = true;
+
+      actualIndex++;
+      if (actualIndex >= $slides.length) {
+        actualIndex = 0;
+      }
+
+      updateSlides(actualIndex);
+    }, 5000);
+  });
+</script>
