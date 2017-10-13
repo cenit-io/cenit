@@ -9,6 +9,9 @@ module RailsAdmin
     class << self
 
       def model(entity, &block)
+        if entity.is_a?(String) && entity.start_with?('Dt') && (data_type = Setup::DataType.where(id: entity.from(2)).first)
+          entity = data_type.records_model
+        end
         model = #Patch
           if entity.is_a?(Mongoff::Model) || entity.is_a?(Mongoff::Record) || entity.is_a?(RailsAdmin::MongoffAbstractModel)
             RailsAdmin::MongoffModelConfig.new(entity)
