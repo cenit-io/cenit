@@ -4,17 +4,17 @@ module Setup
     include RailsAdmin::Models::Setup::FlowConfigAdmin
 
     deny :all
-    allow :index, :show, :edit
+    allow :index, :show, :edit, :delete, :delete_all
 
     build_in_data_type
 
     belongs_to :flow, class_name: Setup::Flow.to_s, inverse_of: nil
 
-    field :active, type: Boolean, default: :true
-    field :notify_request, type: Boolean, default: :false
-    field :notify_response, type: Boolean, default: :false
+    field :active, type: Boolean
+    field :notify_request, type: Boolean
+    field :notify_response, type: Boolean
     field :discard_events, type: Boolean
-    field :auto_retry, type: Symbol, default: -> { auto_retry_enum.first }
+    field :auto_retry, type: Symbol
 
     attr_readonly :flow
 
@@ -34,7 +34,7 @@ module Setup
       def config_fields
         %w(active notify_request notify_response discard_events auto_retry)
       end
-      
+
     end
 
   end
