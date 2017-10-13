@@ -73,7 +73,8 @@ module RailsAdmin
 
     def enum_for_select
       @enum_for_select ||=
-        if enum && (enum_options = hash_schema['enumOptions'].dup)
+        if enum && (enum_options = hash_schema['enumOptions'])
+          enum_options = enum_options.dup
           enum.to_a.collect { |e| [e, enum_options.shift].compact.flatten }
         else
           enum
