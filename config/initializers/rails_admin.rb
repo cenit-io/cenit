@@ -196,12 +196,12 @@ module RailsAdmin
           Cenit.ecommerce_data_types.each do |ns, names|
             names.each do |name|
               if (data_type = Setup::DataType.where(namespace: ns, name: name).first)
-                ecommerce_models << data_type.records_model
+                ecommerce_models << data_type.data_type_name
               end
             end
           end
           if ecommerce_models.present?
-            @dashboard_groups<<{
+            @dashboard_groups << {
               param: 'ecommerce',
               label: 'Ecommerce',
               icon: 'fa fa-shopping-cart',
