@@ -1,4 +1,23 @@
-<header class="navbar  navbar-inverse navbar-fixed-top" role="banner">
+<div class="top-bar">
+  <div class="container">
+    <ul>
+      <li><a><i class="fa  fa-envelope-o"></i></a></li>
+      <li><a><i class="fa fa-github"></i></a></li>
+      <li><a><i class="fa fa-facebook"></i></a></li>
+      <li><a><i class="fa fa-twitter"></i></a></li>
+      <li><a><i class="fa fa-google"></i></a></li>
+    </ul>
+    <ul class="pull-right">
+      <li>
+        <a class="top-btn">Login</a>
+      </li>
+      <li>
+        <a class="top-btn blue">Sign up free </a>
+      </li>
+    </ul>
+  </div>
+</div>
+<header class="navbar navbar-inverse" role="banner" id="home_nav_bar">
   <div class="container">
     <div class="navbar-header">
       <button class="navbar-toggle" type="button" data-toggle="collapse" data-target=".bs-navbar-collapse">
@@ -21,7 +40,7 @@
           <a href="#" class="dropdown-toggle" data-toggle="dropdown">
             Explore
           </a>
-          <ul class="dropdown-menu">
+          <ul class="sub-menu">
             <li><a href="/data/dashboard">Data</a></li>
             <li><a href="/workflows/dashboard">Workflows</a></li>
             <li><a href="/transforms/dashboard">Transforms</a></li>
@@ -48,19 +67,6 @@
             Features
           </a>
         </li>
-        <li class="dropdown">
-          <a href="#" class="dropdown-toggle" data-toggle="dropdown">
-            Pricing
-          </a>
-        </li>
-      </ul>
-      <ul class="nav navbar-nav navbar-right visible-md visible-lg">
-        <li>
-          <a href="signup.html" class="signup visible-md visible-lg">Login</a>
-        </li>
-        <li>
-          <a href="signup.html" class="button">Sign up free</a>
-        </li>
       </ul>
     </nav>
   </div>
@@ -75,8 +81,175 @@
         <a href="#"></a>
         <a href="#"></a>
       </nav>
+      <section id="slides">
+        <div id="hero">
+          <a class="slide-nav prev" href="#">Prev</a>
+          <a class="slide-nav next" href="#">Next</a>
+          <nav>
+            <a class="active" href="#"></a>
+            <a href="#"></a>
+            <a href="#"></a>
+          </nav>
+          <div class="slides">
+            <div class="slide first active">
+              <div class="bg"></div>
+              <div class="container">
+                <div class="row">
+                  <div class="col-sm-6 info from-right">
+                    <h1 class="hero-text">
+                      The most open Platform for Data and Business Integration
+                    </h1>
+
+                    <p>
+                      Enables a complete business automation of all operational processes in a company
+                    </p>
+
+                    <div class="cta">
+                      <a href="features.html" class="button-outline">
+                        TRY IT FREE
+                        <i class="fa fa-chevron-right"></i>
+                      </a>
+                    </div>
+                  </div>
+                  <div class="col-sm-6 hidden-xs mobiles">
+                    <%= image_tag 'home/laptop.png', class: 'img-responsive' %>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="slide second ">
+              <div class="bg"></div>
+              <div class="container">
+                <h1 class="hero-text">
+                  Integrate your cloud applications
+                </h1>
+
+                <h2 class="text-center">
+                  Automate <span>marketing</span>,<span> sales</span> and <span>business process</span>
+                </h2>
+
+                <div class="text-center">
+                  <%= image_tag 'home/integrations.png' %>
+                  <a href="features.html" class="button-outline">
+                    TRY IT FREE
+                  </a>
+                </div>
+              </div>
+            </div>
+            <div class="slide third ">
+              <div class="bg"></div>
+              <div class="container">
+                <div class="row">
+                  <div class="col-sm-4 info hidden-xs mobiles">
+                    <div class="cloud_services">
+                      <i class="fa fa-cloud" aria-hidden="true"></i>
+                      <i class="fa fa-google" aria-hidden="true"></i>
+                      <i class="fa fa-github" aria-hidden="true"></i>
+                      <i class="fa fa-facebook" aria-hidden="true"></i>
+                      <i class="fa fa-twitter" aria-hidden="true"></i>
+                      <i class="fa fa-amazon" aria-hidden="true"></i>
+                      <i class="fa fa-dropbox" aria-hidden="true"></i>
+                    </div>
+                  </div>
+                  <div class="col-sm-8 from-bottom">
+                    <h1 class="hero-text animated fadeInLeft">
+                      Need an easy way to connect your business with Cloud Services ?
+                    </h1>
+
+                    <p class="sub-text animated fadeInLeft">
+                      Cenit IO is the perfect tool to help you out.
+                    </p>
+
+                    <div class="cta animated fadeInRight">
+                      <a href="features.html" class="button-outline">See the tour</a>
+                      <a href="signup.html" class="button">Sign up free</a>
+                    </div>
+
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+  </section>
+  <section>
+    <div class="container">
+      <div class="row">
+        <div class="col-sm-4">
+          <div class="text-center"><span class="rounded first ">Free</span></div>
+        </div>
+        <div class="col-sm-4">
+          <div class="text-center"><span class="rounded second active ">iPaaS</span></div>
+        </div>
+        <div class="col-sm-4">
+          <div class="text-center"><span class="rounded third">500+</span></div>
+        </div>
+        <div class="col-sm-12 comment-container first ">
+          <span></span>
+          <i class="fa fa-angle-up"></i>
+
+          <div>
+            <h1>Open Source and Free, forever</h1>
+
+            <p>Cenit IO is open source, so there's no risk of getting locked in. You can download and run your
+              projects anywhere.</p>
+
+            <p>
+              You can shared your integrations and also use pre-built integrations for many populars cloud
+              applications.</p>
+          </div>
+        </div>
+        <div class="col-sm-12 comment-container second active">
+          <span></span>
+          <i class="fa fa-angle-up"></i>
+
+          <div>
+            <h1>Cenit IO is the easiest and most open iPaaS platform</h1>
+
+            <p>
+              Cenit IO is the easiest and most open iPaaS platform to <strong>connect</strong> your applications,
+              <strong>synchronize
+                data</strong>,
+              and <strong>automate</strong> processes. Intuitive wizards and tools make it fast and easy to integrate
+              anything
+              to
+              anything – whether you are an application administrator, business analyst, citizen integrator,
+              or IT
+              professional.</p></div>
+        </div>
+        <div class="col-sm-12 comment-container third ">
+          <span></span>
+          <i class="fa fa-angle-up"></i>
+
+          <div>
+
+            <h1>Hundreds of Integrations</h1>
+
+            <p>
+              Cenit supports over 500 services and counting. Integrations are driven by open standards like
+              RSS,
+              Open API, and RAML, so you can add your own too.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+<main id="home_content" style="display: none">
+
+  <section id="slides">
+    <div id="hero">
+      <a class="slide-nav prev" href="#">Prev</a>
+      <a class="slide-nav next" href="#">Next</a>
+      <nav>
+        <a class="active" href="#"></a>
+        <a href="#"></a>
+        <a href="#"></a>
+      </nav>
       <div class="slides">
-        <div class="slide first">
+        <div class="slide first active">
           <div class="bg"></div>
           <%= image_tag 'home/spiral.png', class: 'spiral' %>
           <div class="container">
@@ -103,7 +276,7 @@
             </div>
           </div>
         </div>
-        <div class="slide second active ">
+        <div class="slide second ">
           <div class="bg"></div>
           <div class="container">
             <h1 class="hero-text">
@@ -208,7 +381,7 @@
         </div>
         <div class="col-sm-6 image">
           <%= image_tag 'home/sliders/slide4.png', class: 'img-responsive' %>
-          <%=image_tag 'guru_logo_horizontal.svg', alt: 'http://APIs.guru', class: 'apis_guru'%>
+          <%= image_tag 'guru_logo_horizontal.svg', alt: 'http://APIs.guru', class: 'apis_guru' %>
         </div>
       </div>
     </div>
@@ -230,6 +403,7 @@
                   <i class="fa fa-shopping-cart"></i>
                   Sales
                 </strong>
+
                 <p>
                   You can work with international customers right out of the box while staying in your country.
                 </p>
@@ -254,7 +428,7 @@
                 <strong><i class="fa fa-life-ring" aria-hidden="true"></i>Support</strong>
 
                 <p>
-                  Enhance support with faster, more efficient ticket resolution and minimize churn.                </p>
+                  Enhance support with faster, more efficient ticket resolution and minimize churn. </p>
               </div>
             </div>
           </div>
@@ -268,7 +442,7 @@
                   Bussiness Operations</strong>
 
                 <p>
-                  Supercharge productivity across teams with automated workflows.                </p></div>
+                  Supercharge productivity across teams with automated workflows. </p></div>
             </div>
           </div>
           <div class="col-sm-4">
@@ -279,7 +453,7 @@
                   Finances</strong>
 
                 <p>
-                  Accelerate order-to-cash, billing and payment processes.                </p>
+                  Accelerate order-to-cash, billing and payment processes. </p>
               </div>
             </div>
           </div>
@@ -291,7 +465,7 @@
                   Human Resources</strong>
 
                 <p>
-                  Streamline your HR processes from hire to retire.                </p>
+                  Streamline your HR processes from hire to retire. </p>
               </div>
             </div>
           </div>

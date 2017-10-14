@@ -18,18 +18,194 @@ $myriad: Myriad Pro, Lato, Helvetica Neue, Arial;
 $sourceSans: Source Sans Pro, Helvetica Neue, Arial;
 $merriweather: "Merriweather", Georgia;
 
+@keyframes submenu-show {
+  from {
+    transform: scale(0.85);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.slide {
+  .from-right {
+    -webkit-transition: all .45s .3s ease-in-out;
+    transition: all .45s .2s ease-in-out;
+    opacity: 0;
+    -webkit-transform: translateX(50px);
+    transform: translateX(50px);
+    backface-visibility: hidden;
+  }
+  &.active {
+    .from-right {
+      -webkit-transform: translateX(0);
+      transform: translateX(0);
+      opacity: 1;
+    }
+  }
+}
+
 #home_page {
+  .rounded {
+    padding: 36px 26px;
+    background: white;
+    color: #5396ff;
+    display: inline-block;
+    font-size: 34px;
+    font-weight: bold;
+    border-radius: 50%;
+    border: solid 19px rgba(83, 150, 255, 0.48);
+    transition: all .3s;
+
+    &.second {
+      padding: 36px 16px;
+    }
+    &.third {
+      padding: 36px 23px;
+    }
+    &:hover {
+      background: #5396ff;
+      color: white;
+      border-color: whitesmoke;
+      cursor: pointer;
+    }
+    &.active {
+      background: #5396ff;
+      color: white;
+      border-color: whitesmoke;
+      cursor: pointer;
+    }
+  }
+  .comment-container {
+    display: none;
+    position: relative;
+    margin-top: 15px;
+    span {
+      width: 15px;
+      border-bottom: solid 2px white;
+      position: absolute;
+      left: 157px;
+      top: -5px;
+      display: inline-block;
+      padding: 5px;
+    }
+    i {
+      position: absolute;
+      font-size: 32px;
+      top: -15px;
+      color: #5396ff;
+      left: 155px;
+    }
+    div {
+      padding: 25px;
+      background: white;
+      border: solid 2.5px #5396ff;
+      margin: 5px;
+      border-radius: 13px;
+      color: gray;
+      text-align: left;
+      line-height: 1.8em;
+      h1 {
+        font-size: 16px;
+        font-weight: bold;
+        color: #5396ff;
+        margin-top: 0;
+        margin-bottom: 15px;
+        text-align: center;
+      }
+    }
+    &.active {
+      display: block;
+    }
+    &.second {
+      span {
+        left: 494px;
+      }
+      i {
+
+        left: 491px;
+      }
+    }
+    &.third {
+      span {
+        left: 830px;
+      }
+      i {
+        left: 826px;
+      }
+    }
+  }
+
+  #home_content {
+    margin-top: 0;
+  }
+
+  .top-bar {
+    background: whitesmoke;
+    ul {
+      padding: 5px 0;
+      margin: 0;
+      display: inline-block;
+      li {
+        list-style-type: none;
+        display: inline-block;
+        a {
+          margin-top: 5px;
+          margin-right: 18px;
+          margin-bottom: 5px;
+          transition: color .3s;
+          color: #606975;
+          font-size: 13px;
+          text-decoration: none;
+          vertical-align: middle;
+          cursor: pointer;
+          &:hover {
+            color: #4c8bff !important;
+          }
+          &:focus {
+            color: #4c8bff !important;
+          }
+          &.top-btn {
+            font-weight: bold;
+            &.blue {
+              color: #4c8bff;
+              &:hover {
+                color: black !important;
+              }
+              &:focus {
+                color: black !important;
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+
+  .navbar-inverse {
+    background-color: rgb(34, 34, 34);
+    border: none;
+    border-radius: 0;
+    margin-bottom: 0;
+  }
+
   @media (min-width: 1200px) {
     .container {
       width: 970px;
     }
   }
+
   .cenit-logo {
     display: inline-block;
+    position: relative;
+    top: -4px;
     img {
       height: 30px;
     }
   }
+
   .cenit-hub {
     color: white;
     font-size: 24px;
@@ -37,13 +213,63 @@ $merriweather: "Merriweather", Georgia;
     margin-bottom: 5px;
     position: relative;
     top: -9px;
+    font-family: "Lato", "Helvetica Neue", Arial, Helvetica, sans-serif;
   }
-  .navbar-inverse .navbar-nav > li > a {
-    color: white;
+
+  .navbar-inverse .navbar-nav > li {
+    .sub-menu {
+      display: none;
+      position: absolute;
+      top: 100%;
+      left: 0;
+      width: 200px;
+      margin-top: -7px !important;
+      padding: 15px !important;
+      border: 1px solid #e1e7ec;
+      border-radius: 5px;
+      background-color: #fff;
+      line-height: 1.5;
+      list-style-type: none;
+      z-index: 1000;
+      li {
+        padding: 8px;
+        line-height: 1;
+        &:first-child {
+          padding-top: 0;
+        }
+        &:hover {
+          a {
+            color: #4c8bff !important;
+          }
+        }
+        a {
+          color: gray;
+          transition: color .3s;
+          text-decoration: none;
+        }
+      }
+
+    }
+    > a {
+      color: white;
+      transition: color .3s;
+      letter-spacing: 1.2px;
+      text-transform: uppercase;
+      &:hover {
+        color: $home_blue;
+
+      }
+
+    }
     &:hover {
-      color: $home_blue;
+      > .sub-menu {
+        display: block;
+        -webkit-animation: submenu-show 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        animation: submenu-show 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+      }
     }
   }
+
   .button {
     -webkit-font-smoothing: antialiased;
     display: inline-block;
@@ -77,6 +303,7 @@ $merriweather: "Merriweather", Georgia;
       font-weight: 500;
     }
   }
+
   .button-outline {
     -webkit-font-smoothing: antialiased;
     display: inline-block;
@@ -99,23 +326,25 @@ $merriweather: "Merriweather", Georgia;
       border-color: #ddd;
     }
   }
+
   .navbar-nav .button {
     padding: 8px 18px;
     font-size: 13px;
     position: relative;
     top: 7px;
   }
+
   #slides {
     background: white;
-    height: 585px;
+    height: 400px;
     position: relative;
 
     @media (max-width: 991px) {
-      padding-top: 100px;
+      padding-top: 0;
     }
 
     @media (max-width: 767px) {
-      height: 550px;
+      height: 400px;
     }
 
     /* prev & next arrows */
@@ -127,16 +356,13 @@ $merriweather: "Merriweather", Georgia;
       z-index: 200;
       text-indent: 100%;
       overflow: hidden;
-      opacity: 0.5;
+      opacity: 0;
       filter: alpha(opacity=50);
-
       @include transition(opacity .2s linear);
-
       &:hover {
         opacity: 1;
         filter: alpha(opacity=100);
       }
-
       &.prev {
         &:after {
           content: "";
@@ -182,7 +408,7 @@ $merriweather: "Merriweather", Georgia;
         display: inline-block;
         width: 10px;
         height: 10px;
-        background: #a2a2a2;
+        background: rgba(162, 162, 162, 0.31);
         border-radius: 50%;
         margin: 0 3px;
 
@@ -210,7 +436,7 @@ $merriweather: "Merriweather", Georgia;
         left: 0;
         height: 100%;
         width: 100%;
-        padding-top: 90px;
+        padding-top: 0;
 
         &.active {
           opacity: 1;
@@ -291,13 +517,14 @@ $merriweather: "Merriweather", Georgia;
           }
           .info {
             h1.hero-text {
-              margin-top: 75px;
-              font-family: $lato;
-              font-size: 44px;
-              letter-spacing: 0.7px;
+              margin-top: 70px;
+              font-family: Arial, Helvetica, sans-serif;
+              font-size: 36px;
+              letter-spacing: 1.2px;
               font-weight: bold;
               color: #fff;
               text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.8);
+              text-align: center;
 
               @media (max-width: 767px) {
                 font-size: 28px;
@@ -306,30 +533,30 @@ $merriweather: "Merriweather", Georgia;
             }
 
             p {
-              color: rgb(61, 64, 70);
-              font-family: $lato;
+              color: #3d4046;
+              font-family: "Lato", "Helvetica Neue", Arial;
               margin-top: 15px;
               font-size: 18px;
-              font-weight: bold;
+              text-align: center;
+              padding: 0 10%;
             }
 
             .cta {
               @include animationDelay(0.6s);
               margin-top: 40px;
-
-              @media (max-width: 767px) {
-                text-align: center;
-              }
+              text-align: center;
 
               a {
                 position: relative;
                 margin: 0px 30px 0 0;
-                padding: 16px 25px;
-                letter-spacing: 0.3px;
-                font-family: $lato;
+                padding: 10px 32px;
+                letter-spacing: 1px;
+                font-family: "Lato", "Helvetica Neue", Arial;
                 text-transform: uppercase;
-                border: 2px solid rgba(255, 255, 255, 0.8);
-                background: rgb(83, 150, 255);
+                border: 1px solid rgba(255, 255, 255, 0.8);
+                background: #5396ff;
+                font-size: 14px;
+                font-weight: bold;
 
                 &:hover {
                   color: #252525;
@@ -346,7 +573,7 @@ $merriweather: "Merriweather", Georgia;
                   font-size: 13px;
                   position: absolute;
                   color: #252525;
-                  top: 21px;
+                  top: 14px;
                   right: 20px;
 
                   @include transition(all 0.15s linear);
@@ -565,9 +792,17 @@ $merriweather: "Merriweather", Georgia;
           }
         }
       }
+
+    }
+
+    &:hover {
+      .slide-nav {
+        opacity: 0.5;
+      }
     }
 
   }
+
   #cenit {
     .header {
       text-align: center;
@@ -678,10 +913,12 @@ $merriweather: "Merriweather", Georgia;
       }
     }
   }
+
   section {
     padding: 55px 0;
     &:first-child {
       padding-bottom: 0;
+      padding-top: 0;
     }
     &:nth-child(odd) {
       background: rgba(245, 245, 245, 0.61);
@@ -691,6 +928,7 @@ $merriweather: "Merriweather", Georgia;
       background: white;
     }
   }
+
   .header {
     text-align: center;
     margin-bottom: 35px;
@@ -709,6 +947,7 @@ $merriweather: "Merriweather", Georgia;
       color: #444;
     }
   }
+
   #services {
     #tabs {
 
@@ -788,6 +1027,7 @@ $merriweather: "Merriweather", Georgia;
       }
     }
   }
+
   #integrations {
     #showcase {
       margin-top: 25px;
@@ -924,6 +1164,7 @@ $merriweather: "Merriweather", Georgia;
       }
     }
   }
+
   .features {
     margin-bottom: 20px;
     .feature {
@@ -973,6 +1214,7 @@ $merriweather: "Merriweather", Georgia;
       }
     }
   }
+
   #features {
     #grid-second {
       @media(max-width: 991px) {
