@@ -4,7 +4,7 @@ module Setup
     include RailsAdmin::Models::Setup::FlowConfigAdmin
 
     deny :all
-    allow :index, :show, :edit, :delete, :delete_all
+    allow :index, :show, :new, :edit, :delete, :delete_all
 
     build_in_data_type
 
@@ -19,6 +19,7 @@ module Setup
     attr_readonly :flow
 
     validates_presence_of :flow
+    validates_uniqueness_of :flow
 
     before_save do
       self.discard_events = nil if (t = flow.translator).nil? || (t.type == :Export && flow.response_translator.blank?)

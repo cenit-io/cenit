@@ -11,7 +11,11 @@ module RailsAdmin
             weight 720
             visible true
             configure :flow do
-              read_only true
+              read_only { !bindings[:object].new_record? }
+              contextual_association_scope do
+                taken_ids = abstract_model.all.collect(&:flow_id)
+                proc { |scope| scope.and(:id.nin => taken_ids) }
+              end
             end
             configure :auto_retry do
               help ''

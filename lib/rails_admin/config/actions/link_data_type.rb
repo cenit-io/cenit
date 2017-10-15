@@ -35,7 +35,7 @@ module RailsAdmin
               end
             end
             if render_form
-              data_type_model =nil
+              data_type_model = nil
               unless @form_object
                 scope = { navigation_link: { '$in': [false, nil] } }
                 data_type_model = params[:data_type_model].to_s.constantize rescue nil

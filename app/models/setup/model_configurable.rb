@@ -56,23 +56,40 @@ module Setup
       end
 
       def where(expression)
-        ids = nil
+        config_criteria = nil
         if expression.is_a?(Hash)
+          nil_configs = false
           config_options = {}
           config_model.config_fields.each do |field|
-            if (key = expression.keys.detect { |k| k.to_s == field.to_s })
-              config_options[field] = expression.delete(key)
+            if expression.key?(key = field.to_s) || expression.key?(key = field.to_sym)
+              nil_configs ||= nil_option?(config_options[field] = expression.delete(key))
             end
           end
           if config_options.present?
-            ids = config_model.where(config_options).collect { |config| config[foreign_key] }
+            config_criteria = { :id.in => config_model.where(config_options).collect { |config| config[foreign_key] } }
+            if nil_configs
+              config_criteria = { '$or' => [config_criteria, { :id.nin => config_model.all.collect(&:"#{foreign_key}") }] }
+            end
           end
         end
         q = super
-        if ids
-          q = q.and(:id.in => ids)
+        if config_criteria
+          q = q.and(config_criteria)
         end
         q
+      end
+
+      def nil_option?(option)
+        case option
+        when nil
+          true
+        when Array
+          option.any?(&:nil?)
+        when Hash
+          %w($in $or).any? { |op| (values = option[op] || option[op.to_sym]).is_a?(Array) && nil_option?(values) }
+        else
+          false
+        end
       end
 
       def clear_config_for(tenant, ids)
