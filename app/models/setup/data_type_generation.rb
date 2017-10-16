@@ -58,8 +58,8 @@ module Setup
           else
             [source]
           end
-        if (c = schemas.count) > ::Cenit.max_handing_schemas
-          fail "Too many schemas to handle: #{c} (> #{::Cenit.max_handing_schemas})"
+        if (c = schemas.count) > ::Cenit.max_handling_schemas
+          fail "Too many schemas to handle: #{c} (> #{::Cenit.max_handling_schemas})"
         end
         schemas = schemas.to_a
         ns_schemas = Hash.new { |h, k| h[k] = [] }
