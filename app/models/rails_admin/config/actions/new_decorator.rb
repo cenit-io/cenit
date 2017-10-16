@@ -85,6 +85,9 @@ module RailsAdmin
 
                 #Patch
                 if params[:_next].nil? && @object.save
+                  if (warnings = @object.try(:warnings)).present?
+                    do_flash(:warning, 'Warning', warnings)
+                  end
                   @auditing_adapter && @auditing_adapter.create_object(@object, @abstract_model, _current_user)
                   respond_to do |format|
                     format.html { redirect_to_on_success }

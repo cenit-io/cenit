@@ -10,9 +10,17 @@ module Setup
       changed_if { config.changed? }
     end
 
+    def warnings
+      @warnings ||= []
+    end
+
     def configure
       super
-      config.save if config.changed?
+      if config.changed?
+        warnings.clear
+        config.save
+        config.errors.full_messages.each { |warn| warnings << warn }
+      end
     end
 
     def config
