@@ -453,7 +453,34 @@ function handlerInit() {
     $('.auto-complete').each(function () {
         setupAutoComplete(this);
     });
+
+    $('.toggle-boolean').each(function() {
+        $('<span></span>').insertBefore(this);
+        setupToggleBoolean(this);
+    });
 }
+
+// Setup a toggle-boolean element
+function setupToggleBoolean(e) {
+    var value = e.attributes['data-value'].value,
+        indicator = '&#x2012;',
+        iclass = 'default',
+        indicatorElement = $(e.previousElementSibling);
+    if (value == 'true') {
+        indicator = '&#x2713;'
+        iclass = 'success';
+    }
+    else {
+        indicator = '&#x2718;'
+        iclass = 'danger';
+    }
+    indicatorElement.removeClass();
+    indicatorElement.addClass('label label-' + iclass);
+    indicatorElement.html(indicator);
+    e.innerHTML = '<i class="fa fa-toggle-' + (value == 'true' ? 'on' : 'off') + '"></i>'
+    e.title = value == 'true' ? 'Set to false' : 'Set to true';
+}
+
 // Setup an auto-complete element
 
 function setupAutoComplete(el) {
