@@ -167,7 +167,7 @@ class Account
     switch do
       Cenit::ApplicationId.where(:id.in => Cenit::Oauth.app_model.all.collect(&:application_id_id)).delete_all
     end
-    each_cenit_collection(&:drop)
+    each_tenant_collection(&:drop)
   end
 
   def notify(attrs)
