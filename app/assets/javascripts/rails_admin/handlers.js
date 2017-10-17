@@ -467,17 +467,17 @@ function setupToggleBoolean(e) {
         iclass = 'default',
         indicatorElement = $(e.previousElementSibling);
     if (value == 'true') {
-        indicator = '&#x2713;'
+        indicator = '&#x2713;';
         iclass = 'success';
     }
-    else {
-        indicator = '&#x2718;'
+    else if (value == 'false') {
+        indicator = '&#x2718;';
         iclass = 'danger';
     }
     indicatorElement.removeClass();
     indicatorElement.addClass('label label-' + iclass);
     indicatorElement.html(indicator);
-    e.innerHTML = '<i class="fa fa-toggle-' + (value == 'true' ? 'on' : 'off') + '"></i>'
+    e.innerHTML = '<i class="fa fa-toggle-' + (value == 'true' ? 'on' : 'off') + '"></i>';
     e.title = value == 'true' ? 'Set to false' : 'Set to true';
 }
 
