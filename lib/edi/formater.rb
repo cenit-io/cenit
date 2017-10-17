@@ -333,12 +333,13 @@ module Edi
           entries = do_store(json, name, value, options, key_properties.include?(property_name))
           max_entries -= entries if max_entries
         else
-          value =
-            begin
-              record.send(property_name) || (protected ? nil : record[property_name])
-            rescue
-              nil
+          begin
+            if (value = record.send(property_name)).nil?
+              value = (protected ? nil : record[property_name])
             end
+          rescue
+            value = nil
+          end
           if value.nil?
             value = property_schema['default']
           end

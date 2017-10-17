@@ -118,11 +118,8 @@ module Api::V2
     end
 
     def new
-      response =
-        {
-          success: success_report = {},
-          errors: broken_report = {}
-        }
+      response = {}
+      %w(success warnings errors).each { |key| response[key.to_sym] = Hash.new { |h, k| h[k] = [] } }
       @payload.each do |root, message|
         if (data_type = @payload.data_type_for(root))
           message = [message] unless message.is_a?(Array)
@@ -136,20 +133,28 @@ module Api::V2
               if (record = data_type.send(@payload.create_method,
                                           @payload.process_item(item, data_type, options),
                                           options)).errors.blank?
-                success_report[root] = record.inspect_json(include_id: true, inspect_scope: options[:create_collector])
+                response[:success][root] << record.inspect_json(include_id: true, inspect_scope: options[:create_collector])
+                if (warnings = record.try(:warnings))
+                  warnings =
+                    begin
+                      warnings.to_json
+                    rescue
+                      nil
+                    end
+                  response[:warnings][root] << { record.id.to_s => JSON.parse(warnings) } if warnings
+                end
               else
-                broken_report[root] = { errors: record.errors.full_messages, item: item }
+                response[:errors][root] << { errors: record.errors.full_messages, item: item }
               end
             rescue Exception => ex
-              broken_report[root] = { errors: ex.message, item: item }
+              response[:errors][root] = { errors: ex.message, item: item }
             end
           end
         else
-          broken_report[root] = 'no model found'
+          response[:errors][root] = 'no model found'
         end
       end
-      response.delete(:success) if success_report.blank?
-      response.delete(:errors) if broken_report.blank?
+      response.reject! { |_, v| v.blank? }
       render json: response
     end
 
@@ -163,6 +168,16 @@ module Api::V2
           save_options[:inspect_fields] = Account.current.nil? || !Account.current_super_admin?
         end
         if Cenit::Utility.save(@item, save_options)
+          if (warnings = @item.try(:warnings))
+            warnings =
+              begin
+                warnings.to_json
+              rescue
+                nil
+              end
+            response.headers['X-Warnings'] = warnings if warnings
+          end
+          find_item
           render json: @item.to_hash, status: :ok
         else
           render json: { errors: @item.errors.full_messages }, status: :not_acceptable

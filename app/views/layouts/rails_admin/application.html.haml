@@ -33,14 +33,11 @@
           = yield
     - else
       #wrapper
-        - if Cenit.hide_admin_navigation
-          .content{:'data-pjax-container' => true}= render template: 'layouts/rails_admin/pjax'
-        - else
-          #sidebar-wrapper
-            = render "layouts/rails_admin/sidebar_navigation"
-          #content-wrapper
-            .xyz
-              .content{:'data-pjax-container' => true}= render template: 'layouts/rails_admin/pjax'
+        #sidebar-wrapper
+          = render "layouts/rails_admin/sidebar_navigation"
+        #content-wrapper
+          .xyz
+            .content{:'data-pjax-container' => true}= render template: 'layouts/rails_admin/pjax'
     - if TourTrack.show_tour?(request.remote_ip, User.current)
       :javascript
         initializeTour();

@@ -26,14 +26,11 @@
     %nav.navbar.navbar-default.navbar-fixed-top
       = render "layouts/rails_admin/navigation"
     #wrapper
-      - if Cenit.hide_admin_navigation
-        .content{:'data-pjax-container' => true}= render template: 'layouts/rails_admin/pjax_notebooks'
-      - else
-        #sidebar-wrapper
-          = render "layouts/rails_admin/sidebar_navigation"
-        #content-wrapper
-          .xyz
-            .content{:'data-pjax-container' => true}= render template: 'layouts/rails_admin/pjax_notebooks'
+      #sidebar-wrapper
+        = render "layouts/rails_admin/sidebar_navigation"
+      #content-wrapper
+        .xyz
+          .content{:'data-pjax-container' => true}= render template: 'layouts/rails_admin/pjax_notebooks'
 
     - if TourTrack.show_tour?(request.remote_ip, User.current)
       = '<script>initializeTour();</script>'.html_safe
