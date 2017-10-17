@@ -452,6 +452,18 @@ function handlerInit() {
     slideshow.initialize();
 
 }
+
+function handlerIn(e) {
+    var content = $(e.target).data('content');
+    $('.comment-container').removeClass('active');
+    $('[data-action="' + content + '"]').addClass('active');
+
+}
+function handlerOut(e) {
+    var content = $(e.target).data('content');
+    $('.comment-container').removeClass('active');
+    $('[data-action="ipass"]').addClass('active');
+}
 // Side Menu Bar Update Model Counts Functions
 
 function updateModelCountOneByOneNoChild() {
