@@ -35,7 +35,12 @@ module RailsAdmin
       when 'number'
         :decimal
       when 'boolean'
-        :boolean
+        case hash_schema['format']
+        when 'toggle'
+          :toggle_boolean
+        else
+          :boolean
+        end
         # when 'BSON::ObjectId', 'Moped::BSON::ObjectId'
         #   :bson_object_id
       when 'integer'
