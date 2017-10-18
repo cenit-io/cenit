@@ -9,12 +9,7 @@ module Cenit
 
       def enqueue(message, &block)
         message = message.with_indifferent_access
-        auto_retry =
-          if message.has_key?(:auto_retry)
-            message[:auto_retry]
-          else
-            Setup::Task.auto_retry_enum.first
-          end
+        auto_retry = message[:auto_retry] || Setup::Task.auto_retry_enum.first
         scheduler = message.delete(:scheduler)
         publish_at = message.delete(:publish_at)
         asynchronous_message = (message.delete(:asynchronous) || scheduler || publish_at).present?

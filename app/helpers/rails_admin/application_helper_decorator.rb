@@ -484,7 +484,7 @@ module RailsAdmin
             model_param = node.abstract_model.to_param
             url = url_for(action: :index, controller: 'rails_admin/main', model_name: model_param)
             data = {}
-            if model_path = node.abstract_model.api_path
+            if (model_path = node.abstract_model.api_path)
               data[:model] = model_path
               data[:origins] = origins
             end
@@ -895,7 +895,7 @@ module RailsAdmin
                   ''
                 end
               data = {}
-              if model_path = node.abstract_model.api_path
+              if (model_path = node.abstract_model.api_path)
                 data[:model] = model_path
                 data[:origins] = origins
               end

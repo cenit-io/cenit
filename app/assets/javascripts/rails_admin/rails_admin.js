@@ -23,5 +23,7 @@
 //=  require 'rails_admin/custom/ui'
 //=  require 'rails_admin/clipboard.min'
 //=  require 'rails_admin/disabled-event'
+//=  require 'horsey'
 //=  require 'rails_admin/jquery.flexslider.min'
+//=  require 'rails_admin/owl.carousel'
 

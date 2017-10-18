@@ -1,4 +1,23 @@
-<header class="navbar  navbar-inverse navbar-fixed-top" role="banner">
+<div class="top-bar">
+  <div class="container">
+    <ul>
+      <li><a><i class="fa  fa-envelope-o"></i></a></li>
+      <li><a><i class="fa fa-github"></i></a></li>
+      <li><a><i class="fa fa-facebook"></i></a></li>
+      <li><a><i class="fa fa-twitter"></i></a></li>
+      <li><a><i class="fa fa-google"></i></a></li>
+    </ul>
+    <ul class="pull-right">
+      <li>
+        <a class="top-btn">Login</a>
+      </li>
+      <li>
+        <a class="top-btn blue">Sign up free </a>
+      </li>
+    </ul>
+  </div>
+</div>
+<header class="navbar navbar-inverse" role="banner" id="home_nav_bar">
   <div class="container">
     <div class="navbar-header">
       <button class="navbar-toggle" type="button" data-toggle="collapse" data-target=".bs-navbar-collapse">
@@ -21,7 +40,7 @@
           <a href="#" class="dropdown-toggle" data-toggle="dropdown">
             Explore
           </a>
-          <ul class="dropdown-menu">
+          <ul class="sub-menu">
             <li><a href="/data/dashboard">Data</a></li>
             <li><a href="/workflows/dashboard">Workflows</a></li>
             <li><a href="/transforms/dashboard">Transforms</a></li>
@@ -48,19 +67,6 @@
             Features
           </a>
         </li>
-        <li class="dropdown">
-          <a href="#" class="dropdown-toggle" data-toggle="dropdown">
-            Pricing
-          </a>
-        </li>
-      </ul>
-      <ul class="nav navbar-nav navbar-right visible-md visible-lg">
-        <li>
-          <a href="signup.html" class="signup visible-md visible-lg">Login</a>
-        </li>
-        <li>
-          <a href="signup.html" class="button">Sign up free</a>
-        </li>
       </ul>
     </nav>
   </div>
@@ -75,8 +81,453 @@
         <a href="#"></a>
         <a href="#"></a>
       </nav>
+      <section id="slides">
+        <div id="hero">
+          <a class="slide-nav prev" href="#">Prev</a>
+          <a class="slide-nav next" href="#">Next</a>
+          <nav>
+            <a class="active" href="#"></a>
+            <a href="#"></a>
+            <a href="#"></a>
+          </nav>
+          <div class="slides">
+            <div class="slide first active">
+              <div class="bg"></div>
+              <div class="container">
+                <div class="row">
+                  <div class="col-sm-6 info from-right">
+                    <h1 class="hero-text">
+                      The most open Platform for Data and Business Integration
+                    </h1>
+
+                    <p>
+                      Enables a complete business automation of all operational processes in a company
+                    </p>
+
+                    <div class="cta">
+                      <a href="features.html" class="button-outline">
+                        TRY IT FREE
+                        <i class="fa fa-chevron-right"></i>
+                      </a>
+                    </div>
+                  </div>
+                  <div class="col-sm-6 hidden-xs mobiles">
+                    <%= image_tag 'home/laptop.png', class: 'img-responsive' %>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="slide second ">
+              <div class="bg"></div>
+              <div class="container">
+                <h1 class="hero-text">
+                  Integrate your cloud applications
+                </h1>
+
+                <h2 class="text-center">
+                  Automate <span>marketing</span>,<span> sales</span> and <span>business process</span>
+                </h2>
+
+                <div class="text-center">
+                  <%= image_tag 'home/integrations.png' %>
+                  <a href="features.html" class="button-outline">
+                    TRY IT FREE
+                  </a>
+                </div>
+              </div>
+            </div>
+            <div class="slide third ">
+              <div class="bg"></div>
+              <div class="container">
+                <div class="row">
+                  <div class="col-sm-4 info hidden-xs mobiles">
+                    <div class="cloud_services">
+                      <i class="fa fa-cloud" aria-hidden="true"></i>
+                      <i class="fa fa-google" aria-hidden="true"></i>
+                      <i class="fa fa-github" aria-hidden="true"></i>
+                      <i class="fa fa-facebook" aria-hidden="true"></i>
+                      <i class="fa fa-twitter" aria-hidden="true"></i>
+                      <i class="fa fa-amazon" aria-hidden="true"></i>
+                      <i class="fa fa-dropbox" aria-hidden="true"></i>
+                    </div>
+                  </div>
+                  <div class="col-sm-8 from-bottom">
+                    <h1 class="hero-text animated fadeInLeft">
+                      Need an easy way to connect your business with Cloud Services ?
+                    </h1>
+
+                    <p class="sub-text animated fadeInLeft">
+                      Cenit IO is the perfect tool to help you out.
+                    </p>
+
+                    <div class="cta animated fadeInRight">
+                      <a href="features.html" class="button-outline">See the tour</a>
+                      <a href="signup.html" class="button">Sign up free</a>
+                    </div>
+
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+  </section>
+  <section>
+    <div class="container">
+      <div class="row">
+        <div class="col-sm-4">
+          <div class="text-center"><span class="rounded first" data-content="free">Free</span></div>
+          <div class="description">
+            <h1>Open Source and Free, forever</h1>
+
+            <p>Cenit IO is open source, so there's no risk of getting locked in. You can download and run your
+              projects anywhere.</p>
+
+            <p>
+              You can shared your integrations and also use pre-built integrations for many populars cloud
+              applications.</p>
+          </div>
+        </div>
+        <div class="col-sm-4">
+          <div class="text-center"><span class="rounded second active" data-content="ipass">iPaaS</span></div>
+          <div class="description">
+            <h1>The easiest iPaaS platform</h1>
+
+            <p>
+              Cenit IO is the easiest and most open iPaaS platform to <strong>connect</strong> your applications,
+              <strong>synchronize
+                data</strong>,
+              and <strong>automate</strong> processes. Intuitive wizards and tools make it fast and easy to integrate
+              anything
+              to
+              anything .</p></div>
+        </div>
+        <div class="col-sm-4">
+          <div class="text-center"><span class="rounded third" data-content="integrations">500+</span></div>
+          <div class="description">
+
+            <h1>Hundreds of Integrations</h1>
+
+            <p>
+              Cenit supports over 500 services and counting. Integrations are driven by open standards like
+              RSS,
+              Open API, and RAML, so you can add your own too.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+  <section id="services">
+    <div class="container">
+      <div class="row header">
+        <h1>Services</h1>
+
+        <p>Cenit IO can help you with this services and more. Don't wait, <a href="#">contact us</a> now</p>
+      </div>
+      <% services = [
+          { name: 'Sales', icon: 'fa fa-shopping-cart', desc: 'You can work with international customers right out of the box while staying in your
+                country' },
+          { name: 'Marketing', icon: 'fa fa-bullhorn', desc: 'Attract, retain, and grow more customers by nurturing the right leads.' },
+          { name: 'Support', icon: 'fa fa-life-ring', desc: 'Enhance support with faster, more efficient ticket resolution and minimize churn.' },
+          { name: 'Finances', icon: 'fa fa-money', desc: 'Accelerate order-to-cash, billing and payment processes.' },
+          { name: 'Bussiness Operations', icon: 'fa fa-sitemap', desc: 'Supercharge productivity across teams with automated workflows.' },
+          { name: 'Human Resources', icon: 'fa fa-users', desc: 'Streamline your HR processes from hire to retire. ' }
+      ] %>
+      <div class="owl-carousel">
+        <% services.each do |s| %>
+            <div>
+              <div class="service">
+                <i class="<%= s[:icon] %>"></i>
+            <span>
+              <h1><%= s[:name] %></h1>
+              <p>
+                <%= s[:desc] %>
+              </p>
+            </span>
+              </div>
+            </div>
+        <% end %>
+      </div>
+    </div>
+  </section>
+  <section id="integrations">
+    <div id="showcase">
+      <div class="container">
+        <div class="row header">
+          <div class="col-md-12 text-center">
+            <h3>App Integrations</h3>
+
+            <p class="text-center">
+              All popular apps for CRM, Marketing, Helpdesk, Payments, Webforms, Collaboration and more
+            </p>
+          </div>
+        </div>
+        <div class="row gallery_container add-clearfix">
+          <% integrations = [
+              'aftership.png',
+              'amazon.png',
+              'asana.png',
+              'bigcommerce.jpeg',
+              'bronto.png',
+              'desk.png',
+              'ebay.jpg',
+              'exact_target.png',
+              'jirafe.png',
+              'magento.png',
+              'mailchimp.png',
+              'mandrill.png',
+              'netsuite.png',
+              'odoo.png',
+              'oscommerce.png',
+              'ql.png',
+              'quickbooks.png',
+              'sf.png',
+              'shipstation.png',
+              'shipwire.png',
+              'square.png',
+              'trello.png',
+              'woocommerce.png',
+              'zendesk.png'
+          ] %>
+          <% integrations.each do |i| %>
+              <div class="col-md-2 col-sm-3 col-sms-3 col-xs-6">
+                <a href="#" class="thumbnail">
+                  <%= image_tag "home/integrations/#{i}" %>
+                </a>
+              </div>
+          <% end %>
+        </div>
+        <div class="row see-all">
+          <a href="#">See all Apps</a>
+        </div>
+      </div>
+    </div>
+  </section>
+  <section id="search-app">
+    <div class="container">
+      <div class="row">
+        <div class="col-md-12 text-center">
+          <i class="fa fa-search" aria-hidden="true"></i>
+          <span>Don’t see your app? Search here</span>
+
+          <form action="/cross_shared_collection" accept-charset="UTF-8" method="get">
+            <input type="text" name="query" id="query" placeholder="Search on more than 275+ Shared Collections"
+                   class="form-control">
+          </form>
+        </div>
+      </div>
+    </div>
+  </section>
+  <section id="features">
+    <div id="grid-second">
+      <div class="container">
+        <div class="row header text-center">
+          <div class="col-md-12">
+            <h3>Features</h3>
+
+            <p>
+              One Platform for all your integration needs.
+            </p>
+          </div>
+        </div>
+        <div class="row features">
+          <% features = [
+              { name: 'Backendless', icon: 'fa-mobile', color: 'orange', desc: 'After create a new Data Type using a JSON Schema is generated on the fly a complete REST API
+                and
+                a CRUD UI to manage the data. Useful for mobile backend and API services.' },
+              { name: 'Routing and orchestration', icon: 'fa-cogs', color: 'blue', desc: 'Enables to create multistep integration flows by composing atomic integration functionality
+                (such
+                as connection, transformation, data event, schedule, webhook and flow).' },
+              { name: 'Data integration', icon: 'fa-files-o', color: 'green', desc: 'Includes data validation, transformation, mapping, and data quality. Exchange support for
+                multiple data formats (JSON, XML, ASN) and data standards (EDIFACT, X12, UBL).' },
+              { name: 'Integration scenarios', icon: 'fa-cloud', color: 'yellow', desc: 'Cloud Service Integration, for Publication and Management of APIs, Mobile Application
+                Integration, to support Business to Business, Application and Data Integration needs.' },
+              { name: 'Third party service integrations', icon: 'fa-share-alt', color: 'purple', desc: 'Directory for OpenAPI Spec (Swagger) and Shared Collections - social feature to share
+                integration
+                settings - to connect services as ERP / Fulfilment / Marketing / Communication.' },
+              { name: 'Free account', icon: 'fa-unlock-alt', color: 'red', desc: 'A tenant without limit in use, complete features access available. Only pay a $0.5 USD fee by
+                transactions when involve commerce data such as: Order, Purchase, Shipment, Payment.' }
+
+          ] %>
+          <% features.each do |f| %>
+              <div class="col-sm-6">
+                <div class="col-xs-12 feature <%= f[:color] %>">
+                  <div class="col-xs-6 col-sm-4 image">
+                    <i class="fa fa-5x <%= f[:icon] %>" aria-hidden="true"></i>
+                  </div>
+                  <div class="col-xs-6 col-sm-8 desc">
+                    <h1><%= f[:name] %></h1>
+
+                    <p><%= f[:desc] %></p>
+
+                    <div class="actions">
+                      <a class="link">Learn More
+                        <i class="fa fa-angle-right"></i>
+                      </a>
+                    </div>
+                  </div>
+                </div>
+              </div>
+          <% end %>
+        </div>
+      </div>
+    </div>
+  </section>
+  <section id="pricing">
+    <div id="first-option">
+      <div class="container">
+        <div class="row header">
+          <div class="col-md-12">
+            <h3>Different plans for everyone</h3>
+
+            <p>Choose the pricing that fits your business needs</p>
+          </div>
+        </div>
+
+        <div class="row charts">
+          <div class="col-md-4">
+            <div class="chart first">
+              <div class="plan-name">Freelance</div>
+              <div class="quantity">
+                <span class="dollar">$</span>
+                <span class="price">29</span>
+                <span class="period">/month</span>
+              </div>
+              <div class="specs">
+                <div class="spec">
+                  <span class="variable">5</span>
+                  team members
+                </div>
+                <div class="spec">
+                  <span class="variable">Digital</span>
+                  recurring billing
+                </div>
+                <div class="spec">
+                  <span class="variable">Virtual</span>
+                  online terminal
+                </div>
+                <div class="spec">
+                  <span class="variable">10</span>
+                  total products
+                </div>
+                <div class="spec">
+                  <span class="variable">1.0%</span>
+                  Transaction fee
+                </div>
+              </div>
+              <a class="btn-signup button-clear" href="signup.html">
+                <span>Start free trial</span>
+              </a>
+            </div>
+          </div>
+          <div class="col-md-4">
+            <div class="chart featured">
+              <%= image_tag 'home/ribbon.png', class: 'popular' %>
+              <div class="plan-name">Profesional</div>
+              <div class="quantity">
+                <span class="dollar">$</span>
+                <span class="price">79</span>
+                <span class="period">/month</span>
+              </div>
+              <div class="specs">
+                <div class="spec">
+                  <span class="variable">15</span>
+                  team members
+                </div>
+                <div class="spec">
+                  <span class="variable">Digital</span>
+                  recurring billing
+                </div>
+                <div class="spec">
+                  <span class="variable">Virtual</span>
+                  online terminal
+                </div>
+                <div class="spec">
+                  <span class="variable">15</span>
+                  total products
+                </div>
+                <div class="spec">
+                  <span class="variable">0.5%</span>
+                  Transaction fee
+                </div>
+              </div>
+              <a class="btn-signup button-clear" href="signup.html">
+                <span>Start free trial</span>
+              </a>
+            </div>
+          </div>
+          <div class="col-md-4">
+            <div class="chart last">
+              <div class="plan-name">Premium</div>
+              <div class="quantity">
+                <span class="dollar">$</span>
+                <span class="price">119</span>
+                <span class="period">/month</span>
+              </div>
+              <div class="specs">
+                <div class="spec">
+                  <span class="variable">Unlimited</span>
+                  team members
+                </div>
+                <div class="spec">
+                  <span class="variable">Digital</span>
+                  recurring billing
+                </div>
+                <div class="spec">
+                  <span class="variable">Virtual</span>
+                  online terminal
+                </div>
+                <div class="spec">
+                  <span class="variable">25</span>
+                  total products
+                </div>
+                <div class="spec">
+                  <span class="variable">No</span>
+                  Transaction fee
+                </div>
+              </div>
+              <a class="btn-signup button-clear" href="signup.html">
+                <span>Start free trial</span>
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+  <section id="clients">
+    <div class="container">
+      <div class="row">
+        <div class="col-md-12">
+          <h3>Our Customers</h3>
+
+          <p>
+            These are some of our customers who have helped us by using our product.
+          </p>
+
+          <div class="logos">
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+  <%= render partial: 'rails_admin/main/footer' %>
+</main>
+<main id="home_content" style="display: none">
+
+  <section id="slides">
+    <div id="hero">
+      <a class="slide-nav prev" href="#">Prev</a>
+      <a class="slide-nav next" href="#">Next</a>
+      <nav>
+        <a class="active" href="#"></a>
+        <a href="#"></a>
+        <a href="#"></a>
+      </nav>
       <div class="slides">
-        <div class="slide first active">
+        <div class="slide first">
           <div class="bg"></div>
           <%= image_tag 'home/spiral.png', class: 'spiral' %>
           <div class="container">
@@ -103,7 +554,7 @@
             </div>
           </div>
         </div>
-        <div class="slide second">
+        <div class="slide second ">
           <div class="bg"></div>
           <div class="container">
             <h1 class="hero-text">
@@ -208,7 +659,7 @@
         </div>
         <div class="col-sm-6 image">
           <%= image_tag 'home/sliders/slide4.png', class: 'img-responsive' %>
-          <%=image_tag 'guru_logo_horizontal.svg', alt: 'http://APIs.guru', class: 'apis_guru'%>
+          <%= image_tag 'guru_logo_horizontal.svg', alt: 'http://APIs.guru', class: 'apis_guru' %>
         </div>
       </div>
     </div>
@@ -230,6 +681,7 @@
                   <i class="fa fa-shopping-cart"></i>
                   Sales
                 </strong>
+
                 <p>
                   You can work with international customers right out of the box while staying in your country.
                 </p>
@@ -254,7 +706,7 @@
                 <strong><i class="fa fa-life-ring" aria-hidden="true"></i>Support</strong>
 
                 <p>
-                  Enhance support with faster, more efficient ticket resolution and minimize churn.                </p>
+                  Enhance support with faster, more efficient ticket resolution and minimize churn. </p>
               </div>
             </div>
           </div>
@@ -268,7 +720,7 @@
                   Bussiness Operations</strong>
 
                 <p>
-                  Supercharge productivity across teams with automated workflows.                </p></div>
+                  Supercharge productivity across teams with automated workflows. </p></div>
             </div>
           </div>
           <div class="col-sm-4">
@@ -279,7 +731,7 @@
                   Finances</strong>
 
                 <p>
-                  Accelerate order-to-cash, billing and payment processes.                </p>
+                  Accelerate order-to-cash, billing and payment processes. </p>
               </div>
             </div>
           </div>
@@ -291,7 +743,7 @@
                   Human Resources</strong>
 
                 <p>
-                  Streamline your HR processes from hire to retire.                </p>
+                  Streamline your HR processes from hire to retire. </p>
               </div>
             </div>
           </div>
@@ -585,6 +1037,7 @@
 </main>
 <script type="text/javascript">
   $(function () {
+    $(".owl-carousel").owlCarousel({items: 3, autoPlay: true, pagination: false});
     var $navDots = $("#hero nav a")
     var $next = $(".slide-nav.next");
     var $prev = $(".slide-nav.prev");

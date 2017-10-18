@@ -8,9 +8,13 @@
 @import "rails_admin/custom/highlight-dracula";
 @import "rails_admin/custom/foreign-notification";
 @import "rails_admin/custom/flexslider";
+@import "rails_admin/custom/owl_carousel/owl.carousel";
+@import "rails_admin/custom/owl_carousel/owl.theme";
+@import "rails_admin/custom/owl_carousel/owl.transitions";
 @import "rails_admin/custom/home/home_page";
 
 
+@import "horsey";
 
 /*Theming variables*/
 
@@ -3306,4 +3310,8 @@ button#model-nav-xs {
   .row.add-clearfix > .col-lg-6:nth-child(2n+1) {
     clear: both;
   }
+}
+.toggle-boolean {
+  margin: 0 7px;
+  cursor: pointer;
 }

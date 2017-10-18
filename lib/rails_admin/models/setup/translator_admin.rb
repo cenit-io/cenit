@@ -176,7 +176,7 @@ module RailsAdmin
               field :updated_at
             end
 
-            fields :namespace, :name, :type, :style, :code, :updated_at
+            fields :namespace, :name, :type, :style, :code, :source_data_type, :target_data_type, :updated_at
           end
         end
 

@@ -5,7 +5,7 @@ module Setup
     include RailsAdmin::Models::Setup::ConnectionConfigAdmin
 
     deny :all
-    allow :index, :show, :edit, :delete
+    allow :index, :show, :new, :edit, :delete, :delete_all
 
     build_in_data_type
 
@@ -14,8 +14,7 @@ module Setup
     attr_readonly :connection
 
     validates_presence_of :connection
-
-    after_initialize :ensure_token
+    validates_uniqueness_of :connection
 
     def read_attribute(name)
       (!(value = super).nil? &&

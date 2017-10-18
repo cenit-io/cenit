@@ -92,6 +92,8 @@ module RailsAdmin
               configure f.to_sym, type
             end
 
+            configure :active, :toggle_boolean
+
             edit do
               field :namespace, :enum_edit, &RailsAdmin::Config::Fields::Base::SHARED_READ_ONLY
               field :name, &RailsAdmin::Config::Fields::Base::SHARED_READ_ONLY
