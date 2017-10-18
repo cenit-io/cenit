@@ -5,7 +5,7 @@ module Setup
     include RailsAdmin::Models::Setup::DataTypeConfigAdmin
 
     deny :all
-    allow :index, :show, :edit
+    allow :index, :show, :new, :edit, :delete, :delete_all
 
     build_in_data_type
 
@@ -16,6 +16,7 @@ module Setup
 
     attr_readonly :data_type
 
+    validates_uniqueness_of :data_type
     validates_presence_of :data_type
 
     def taken?

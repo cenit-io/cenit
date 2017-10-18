@@ -97,7 +97,9 @@ RailsAdmin::Config::Actions.register(:export, RailsAdmin::Config::Actions::BulkE
   RailsAdmin::Config::Fields::Types::Scheduler,
   RailsAdmin::Config::Fields::Types::CenitAccessScope,
   RailsAdmin::Config::Fields::Types::ContextualBelongsTo,
-  RailsAdmin::Config::Fields::Types::SortReverseString
+  RailsAdmin::Config::Fields::Types::SortReverseString,
+  RailsAdmin::Config::Fields::Types::AutoComplete,
+  RailsAdmin::Config::Fields::Types::ToggleBoolean
 ].each { |f| RailsAdmin::Config::Fields::Types.register(f) }
 
 require 'rails_admin/config/fields/factories/tag'
@@ -195,12 +197,12 @@ module RailsAdmin
           Cenit.ecommerce_data_types.each do |ns, names|
             names.each do |name|
               if (data_type = Setup::DataType.where(namespace: ns, name: name).first)
-                ecommerce_models << data_type.records_model
+                ecommerce_models << data_type.data_type_name
               end
             end
           end
           if ecommerce_models.present?
-            @dashboard_groups<<{
+            @dashboard_groups << {
               param: 'ecommerce',
               label: 'Ecommerce',
               icon: 'fa fa-shopping-cart',

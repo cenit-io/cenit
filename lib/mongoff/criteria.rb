@@ -53,7 +53,7 @@ module Mongoff
       query.each do |document|
         m =
           if (type = document['_type'])
-            model.class.for(name: type)
+            model.for(name: type)
           else
             model
           end

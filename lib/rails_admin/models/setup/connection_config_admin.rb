@@ -12,7 +12,11 @@ module RailsAdmin
             weight 730
 
             configure :connection do
-              read_only true
+              read_only { !bindings[:object].new_record? }
+              contextual_association_scope do
+                taken_ids = abstract_model.all.collect(&:connection_id)
+                proc { |scope| scope.and(:id.nin => taken_ids) }
+              end
             end
 
             configure :number do

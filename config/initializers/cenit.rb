@@ -96,9 +96,6 @@ Cenit.config do
   #HTTP Proxy
   http_proxy_address ENV['HTTP-PROXY']
 
-  #Hide navigation admin pane
-  hide_admin_navigation false
-
   #HTTP Proxy Port
   http_proxy_port ENV['HTTP-PROXY-PORT']
 
@@ -141,7 +138,7 @@ Cenit.config do
   #Max nested forms levels generation for new/update actions
   max_nested_forms_levels 10
 
-  max_handing_schemas 500
+  max_handling_schemas 500
 
   jupyter_notebooks (ENV['JUPYTER_NOTEBOOKS'] || 'false').to_b
 

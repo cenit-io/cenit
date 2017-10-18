@@ -8,7 +8,7 @@ module RailsAdmin
           true
         end
 
-        register_instance_option :root do
+        register_instance_option :member do
           true
         end
 
@@ -19,8 +19,8 @@ module RailsAdmin
         register_instance_option :controller do
           proc do
             if params[:delete] # DELETE
-              Account.current.clean_up
-              redirect_to dashboard_path
+              @object.clean_up
+              redirect_to back_or_index
             else
               @object = Setup::Collection.new
               Setup::Collection.reflect_on_all_associations(:has_and_belongs_to_many).each do |relation|

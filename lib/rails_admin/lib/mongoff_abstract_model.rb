@@ -98,11 +98,15 @@ module RailsAdmin
     end
 
     def to_param
-      "#{model.data_type.ns_slug}~#{model.data_type.slug}"
+      if (ns_slug = model.data_type.ns_slug) && (dt_slug = model.data_type.slug)
+        "#{ns_slug}~#{dt_slug}"
+      else
+        super
+      end
     end
 
     def api_path
-      "#{model.data_type.ns_slug}/#{model.data_type.slug}"
+      (ns_slug = model.data_type.ns_slug) && (dt_slug = model.data_type.slug) && "#{ns_slug}/#{dt_slug}"
     end
 
     class << self

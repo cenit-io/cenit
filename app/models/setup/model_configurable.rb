@@ -10,18 +10,38 @@ module Setup
       changed_if { config.changed? }
     end
 
+    def warnings
+      @warnings ||= []
+    end
+
     def configure
       super
-      config.save if config.changed?
+      if config.changed?
+        warnings.clear
+        config.save
+        config.errors.full_messages.each { |warn| warnings << warn }
+      end
+    end
+
+    def config
+      @_config ||=
+        begin
+          if new_record?
+            self.class.config_model.new(self.class.relation_name => self)
+          else
+            self.class.config_model.find_or_initialize_by(self.class.relation_name => self)
+          end
+        end
     end
 
     module ClassMethods
 
-      attr_reader :config_model, :foreign_key
+      attr_reader :config_model, :relation_name, :foreign_key
 
       def inherited(subclass)
         super
         subclass.instance_variable_set(:@config_model, @config_model)
+        subclass.instance_variable_set(:@relation_name, @relation_name)
         subclass.instance_variable_set(:@foreign_key, @foreign_key)
       end
 
@@ -37,47 +57,54 @@ module Setup
 
         fail "Belongs-To association config not found between #{model} and #{self}" unless relation
 
+        @relation_name = relation.name
         @foreign_key = relation.foreign_key.to_sym
-
-        class_eval "def config
-          @_config ||=
-            begin
-              if new_record?
-                #{model}.new(#{relation.name}: self)
-              else
-                #{model}.find_or_create_by(#{relation.name}: self)
-              end
-            end
-        end"
 
         delegate *config_model.config_fields.collect { |p| [p.to_sym, "#{p}=".to_sym] }.flatten, to: :config
       end
 
       def where(expression)
-        ids = nil
+        config_criteria = nil
         if expression.is_a?(Hash)
+          nil_configs = false
           config_options = {}
           config_model.config_fields.each do |field|
-            if (key = expression.keys.detect { |k| k.to_s == field.to_s })
-              config_options[field] = expression.delete(key)
+            if expression.key?(key = field.to_s) || expression.key?(key = field.to_sym)
+              nil_configs ||= nil_option?(config_options[field] = expression.delete(key))
             end
           end
           if config_options.present?
-            ids = config_model.where(config_options).collect { |config| config[foreign_key] }
+            config_criteria = { :id.in => config_model.where(config_options).collect { |config| config[foreign_key] } }
+            if nil_configs
+              config_criteria = { '$or' => [config_criteria, { :id.nin => config_model.all.collect(&:"#{foreign_key}") }] }
+            end
           end
         end
         q = super
-        if ids
-          q = q.and(:id.in => ids)
+        if config_criteria
+          q = q.and(config_criteria)
         end
         q
+      end
+
+      def nil_option?(option)
+        case option
+        when nil
+          true
+        when Array
+          option.any?(&:nil?)
+        when Hash
+          %w($in $or).any? { |op| (values = option[op] || option[op.to_sym]).is_a?(Array) && nil_option?(values) }
+        else
+          false
+        end
       end
 
       def clear_config_for(tenant, ids)
         super
         config_model.with(tenant).where(foreign_key.in => ids).delete_all
       end
-      
+
     end
   end
 end

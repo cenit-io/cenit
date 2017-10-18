@@ -14,6 +14,7 @@
 @import "rails_admin/custom/home/home_page";
 
 
+@import "horsey";
 
 /*Theming variables*/
 
@@ -3309,4 +3310,8 @@ button#model-nav-xs {
   .row.add-clearfix > .col-lg-6:nth-child(2n+1) {
     clear: both;
   }
+}
+.toggle-boolean {
+  margin: 0 7px;
+  cursor: pointer;
 }
