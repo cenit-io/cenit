@@ -527,7 +527,7 @@
         <a href="#"></a>
       </nav>
       <div class="slides">
-        <div class="slide first active">
+        <div class="slide first">
           <div class="bg"></div>
           <%= image_tag 'home/spiral.png', class: 'spiral' %>
           <div class="container">
@@ -751,8 +751,150 @@
       </div>
     </div>
   </section>
+  <section id="integrations">
+    <div id="showcase">
+      <div class="container">
+        <div class="row header">
+          <div class="col-md-12 text-center">
+            <h3>App Integrations</h3>
 
+            <p class="text-center">
+              All popular apps for CRM, Marketing, Helpdesk, Payments, Webforms, Collaboration and more
+            </p>
+          </div>
+        </div>
+        <div class="row gallery_container add-clearfix">
+          <% integrations = [
+              'aftership.png',
+              'amazon.png',
+              'asana.png',
+              'bigcommerce.jpeg',
+              'bronto.png',
+              'desk.png',
+              'ebay.jpg',
+              'exact_target.png',
+              'jirafe.png',
+              'magento.png',
+              'mailchimp.png',
+              'mandrill.png',
+              'netsuite.png',
+              'odoo.png',
+              'oscommerce.png',
+              'ql.png',
+              'quickbooks.png',
+              'sf.png',
+              'shipstation.png',
+              'shipwire.png',
+              'square.png',
+              'trello.png',
+              'woocommerce.png',
+              'zendesk.png'
+          ] %>
+          <% integrations.each do |i| %>
+              <div class="col-md-2 col-sm-3 col-sms-3 col-xs-6">
+                <a href="#" class="thumbnail">
+                  <%= image_tag "home/integrations/#{i}" %>
+                </a>
+              </div>
+          <% end %>
+        </div>
+        <div class="col-md-offset-2 col-md-8 text-center">
+          <h4>Don’t see your app? Search here</h4>
 
+          <form action="/cross_shared_collection" accept-charset="UTF-8" method="get"><input name="utf8"
+                                                                                             type="hidden"
+                                                                                             value="✓">
+            <input type="text" name="query" id="query" placeholder="Search on more than 275+ Shared Collections"
+                   class="form-control">
+          </form>
+
+        </div>
+      </div>
+    </div>
+  </section>
+  <section id="features">
+    <div id="grid-second">
+      <div class="container">
+        <div class="row header text-center">
+          <div class="col-md-12">
+            <h3>Features</h3>
+
+            <p>
+              One Platform for all your integration needs.
+            </p>
+          </div>
+        </div>
+        <div class="row features">
+          <div class="col-sm-6 feature">
+            <%= image_tag 'home/circle-icons/full-color/support.png' %>
+            <div class="info">
+              <strong>Backendless</strong>
+
+              <p>After create a new Data Type using a JSON Schema is generated on the fly a complete REST API
+                and
+                a CRUD UI to manage the data. Useful for mobile backend and API services.</p>
+            </div>
+          </div>
+          <div class="col-sm-6 feature">
+            <%= image_tag 'home/circle-icons/full-color/traffic.png' %>
+
+            <div class="info">
+              <strong>Routing and orchestration</strong>
+
+              <p>Enables to create multistep integration flows by composing atomic integration functionality
+                (such
+                as connection, transformation, data event, schedule, webhook and flow)..</p>
+            </div>
+          </div>
+        </div>
+        <div class="row features">
+          <div class="col-sm-6 feature">
+            <%= image_tag 'home/circle-icons/full-color/stack.png' %>
+
+            <div class="info">
+              <strong>Data integration</strong>
+
+              <p>Includes data validation, transformation, mapping, and data quality. Exchange support for
+                multiple data formats (JSON, XML, ASN) and data standards (EDIFACT, X12, UBL).</p>
+            </div>
+          </div>
+          <div class="col-sm-6 feature">
+            <%= image_tag 'home/circle-icons/full-color/cloud.png' %>
+
+            <div class="info">
+              <strong>Integration scenarios</strong>
+
+              <p>Cloud Service Integration, for Publication and Management of APIs, Mobile Application
+                Integration, to support Business to Business, Application and Data Integration needs.</p>
+            </div>
+          </div>
+        </div>
+        <div class="row features">
+          <div class="col-sm-6 feature">
+            <%= image_tag 'home/circle-icons/full-color/globe.png' %>
+
+            <div class="info">
+              <strong>Third party service integrations</strong>
+
+              <p>Directory for OpenAPI Spec (Swagger) and Shared Collections - social feature to share
+                integration
+                settings - to connect services as ERP / Fulfilment / Marketing / Communication.</p>
+            </div>
+          </div>
+          <div class="col-sm-6 feature">
+            <%= image_tag 'home/circle-icons/full-color/unlocked.png' %>
+
+            <div class="info">
+              <strong>Free account</strong>
+
+              <p>A tenant without limit in use, complete features access available. Only pay a $0.5 USD fee by
+                transactions when involve commerce data such as: Order, Purchase, Shipment, Payment.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
   <section id="pricing">
     <div id="first-option">
       <div class="container">
@@ -901,7 +1043,7 @@
     var $prev = $(".slide-nav.prev");
     var $slides = $("#hero .slides .slide");
     var actualIndex = 0;
-    var swiping = true;
+    var swiping = false;
     var interval;
 
     $navDots.click(function (e) {
