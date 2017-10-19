@@ -61,8 +61,12 @@ module Mongoff
     end
 
     def << item
-      if item.is_a?(Record) || item.class.respond_to?(:data_type) || item.is_a?(BSON::Document)
-        item = Record.new(model, item) if item.is_a?(BSON::Document)
+      if item.is_a?(Record) || item.class.respond_to?(:data_type) || item.is_a?(Hash)
+        if item.is_a?(BSON::Document)
+          item = Record.new(model, item)
+        elsif item.is_a?(Hash)
+          item = model.new_from_json(item)
+        end
         unless @records.include?(item)
           @records << item
           if @referenced
