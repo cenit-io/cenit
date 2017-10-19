@@ -22,6 +22,9 @@ module Cenit
             end
           else
             task = task_class.create(message: message, scheduler: scheduler, auto_retry: auto_retry)
+            unless task.persisted?
+              Setup::SystemReport.create_with(message: "Unable to create a task: #{task.errors.full_messages.to_sentence}")
+            end
           end
           task.update(auto_retry: auto_retry) unless task.auto_retry == auto_retry
           block.call(task) if block
