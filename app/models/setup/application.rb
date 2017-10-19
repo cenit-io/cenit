@@ -77,6 +77,14 @@ module Setup
       Cenit::MultiTenancy.tenant_model.current
     end
 
+    def conformed_request_token_parameters
+      {}
+    end
+
+    def conformed_request_token_headers
+      {}
+    end
+
     class << self
       def share_options
         options = super
@@ -118,7 +126,7 @@ module Setup
         super
         block.yield(name: :configuration, embedded: false, many: false)
       end
-      
+
     end
   end
 end

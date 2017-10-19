@@ -76,7 +76,14 @@ class OauthController < ApplicationController
           authorization.cancel!
         end
       rescue Exception => ex
-        error = ex.message
+        json_params =
+          begin
+            params.to_json
+          rescue
+            params.to_s
+          end
+        report = Setup::SystemReport.create_from(ex, "Error on OAuth Callback controller with params: #{json_params}")
+        error = "An unexpected error occurs (#{ex.message}). Ask for support by supplying this code: #{report.id}"
       end
     else
       error = 'Invalid state data'
