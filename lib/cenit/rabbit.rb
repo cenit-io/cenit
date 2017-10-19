@@ -9,7 +9,7 @@ module Cenit
 
       def enqueue(message, &block)
         message = message.with_indifferent_access
-        auto_retry = message[:auto_retry] || Setup::Task.auto_retry_enum.first
+        auto_retry = message[:auto_retry].presence || Setup::Task.auto_retry_enum.first
         scheduler = message.delete(:scheduler)
         publish_at = message.delete(:publish_at)
         asynchronous_message = (message.delete(:asynchronous) || scheduler || publish_at).present?
@@ -22,9 +22,6 @@ module Cenit
             end
           else
             task = task_class.create(message: message, scheduler: scheduler, auto_retry: auto_retry)
-            unless task.persisted?
-              Setup::SystemReport.create_with(message: "Unable to create a task: #{task.errors.full_messages.to_sentence}")
-            end
           end
           task.update(auto_retry: auto_retry) unless task.auto_retry == auto_retry
           block.call(task) if block
