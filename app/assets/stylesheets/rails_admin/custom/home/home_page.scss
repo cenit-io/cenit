@@ -31,8 +31,8 @@ $merriweather: "Merriweather", Georgia;
 
 .slide {
   .from-right {
-    -webkit-transition: all .45s .3s ease-in-out;
-    transition: all .45s .2s ease-in-out;
+    -webkit-transition: all .3s ease-in-out;
+    transition: all .2s ease-in-out;
     opacity: 0;
     -webkit-transform: translateX(50px);
     transform: translateX(50px);
@@ -48,6 +48,79 @@ $merriweather: "Merriweather", Georgia;
 }
 
 #home_page {
+  div#go-up {
+    position: fixed;
+    color: white;
+    bottom: 25px;
+    right: 25px;
+    background: orange;
+    padding: 8px 12px;
+    border-radius: 50%;
+    z-index: 100;
+  }
+  #subdomains {
+    background-image: image_url('home/connected_circles_up.png');
+    .service-link {
+      text-decoration: none;
+
+      .service-box {
+        padding: 25px;
+        background: white;
+        border: solid 1px whitesmoke;
+        margin-bottom: 30px;
+        text-align: center;
+        -webkit-transition: all .3s ease;
+        transition: all .3s ease;
+        i {
+          font-size: 32px;
+          margin: 15px 0;
+          display: inline-block;
+          color: orange;
+        }
+        h1 {
+          font-size: 18px;
+          margin: 0;
+          padding: 0;
+          font-weight: bold;
+        }
+        p {
+          color: gray;
+          font-size: 12px;
+          height: 34px;
+          overflow: hidden;
+          margin: 0;
+        }
+      }
+      &:hover {
+        .service-box {
+          border: solid 1px orange;
+        }
+      }
+    }
+
+  }
+  #open_ipass {
+    position: relative;
+    .fork-me-ribbon {
+      img {
+        position: absolute;
+        top: 0;
+        right: 0;
+        width: 200px;
+        -webkit-transition: all .3s ease-in-out;
+        transition: all .3s ease-in-out;
+      }
+      &:hover {
+        img {
+          -ms-filter: grayscale(1) sepia(0.4) brightness(160%) hue-rotate(210deg);
+          -webkit-filter: grayscale(1) sepia(0.4) brightness(160%) hue-rotate(210deg);
+          -moz-filter: grayscale(1) sepia(0.4) brightness(160%) hue-rotate(210deg);
+          -o-filter: grayscale(1) sepia(0.4) brightness(160%) hue-rotate(210deg);
+          filter: grayscale(1) sepia(0.4) brightness(160%) hue-rotate(210deg);
+        }
+      }
+    }
+  }
   .description {
     h1 {
       font-size: 18px;
@@ -257,6 +330,15 @@ $merriweather: "Merriweather", Georgia;
       li {
         padding: 8px;
         line-height: 1;
+        a {
+          color: gray;
+          transition: color .5s;
+          text-decoration: none;
+          cursor: pointer;
+        }
+        i {
+          transition: color .5s;
+        }
         &:first-child {
           padding-top: 0;
         }
@@ -265,10 +347,22 @@ $merriweather: "Merriweather", Georgia;
             color: #4c8bff !important;
           }
         }
-        a {
-          color: gray;
-          transition: color .3s;
-          text-decoration: none;
+      }
+      &.explore {
+        li {
+          i {
+            font-size: 18px;
+            margin-right: 7px;
+            color: #3d4046;
+          }
+          &:hover {
+            a {
+              color: #4c8bff !important;
+            }
+            i {
+              color: #4c8bff;
+            }
+          }
         }
       }
 
@@ -949,6 +1043,12 @@ $merriweather: "Merriweather", Georgia;
     &:nth-child(even) {
 
       background: white;
+    }
+    &.white-back {
+      background: white !important;
+    }
+    &.gray {
+      background: rgba(245, 245, 245, 0.61) !important;
     }
   }
 

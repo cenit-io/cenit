@@ -1,0 +1,12 @@
+.top-bar
+  .container-fluid
+    %ul.pull-right
+      - social_networks.each do |sn|
+        %li
+          =link_to sn[:url], target: '_blank' do
+            = content_tag :i, '', class:"fa #{sn[:icon]}", 'aria-hidden': true, title: sn[:name]
+            = content_tag :span, sn[:name], class:'sr-only'
+      %li
+        =link_to '#', class: 'contact-modal' do
+          = content_tag :i, '', class:"fa fa-envelope-o", 'aria-hidden': true, title: 'Contact us'
+          = content_tag :span, 'Contact us', class:'sr-only'

@@ -41,18 +41,10 @@
           %h3
             ='Social'
           %ul
-            %li
-              =link_to 'https://www.linkedin.com/company/cenit-io', target: '_blank' do
-                ='Linkedin'
-            %li
-              =link_to 'https://www.facebook.com/cenit.io', target: '_blank' do
-                ='Facebook'
-            %li
-              =link_to 'https://www.twitter.com/cenit_io', target: '_blank' do
-                ='Twitter'
-            %li
-              =link_to 'http://www.youtube.com/channel/UC7JVcEmA3BkiR2SZ_lx5lyA', target: '_blank' do
-                ='Youtube'
+            - social_networks.each do |sn|
+              %li
+                =link_to sn[:url], target: '_blank' do
+                  = sn[:name]
         .col-sm-3.col-sms-3.menu
           %h3
             ='Support'

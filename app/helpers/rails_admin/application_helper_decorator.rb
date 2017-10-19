@@ -1109,5 +1109,39 @@ module RailsAdmin
     def home_page?
       @action.is_a?(RailsAdmin::Config::Actions::Dashboard) && params[:group].blank?
     end
+
+    def social_networks
+      [
+        { name: 'Linkedin', url: 'https://www.linkedin.com/company/cenit-io', icon: 'fa-linkedin' },
+        { name: 'Facebook', url: 'https://www.facebook.com/cenit.io', icon: 'fa-facebook' },
+        { name: 'Twitter', url: 'https://www.twitter.com/cenit_io', icon: 'fa-twitter' },
+        { name: 'Youtube', url: 'http://www.youtube.com/channel/UC7JVcEmA3BkiR2SZ_lx5lyA', icon: 'fa-youtube' },
+        { name: 'GitHub', url: 'https://github.com/cenit-io/cenit', icon: 'fa-github' },
+        { name: 'Slack', url: 'http://cenit-slack.herokuapp.com', icon: 'fa-slack' }
+
+      ]
+    end
+
+    def home_services_menu
+      [
+        { title: 'Data', url: '/data/dashboard', icon: 'fa fa-cubes', description: 'Definitions - Files - Objects' },
+        { title: 'Workflows', url: '/workflows/dashboard', icon: 'fa fa-cogs', description: 'Notifications - Flows - Email Channels - Data Events' },
+        { title: 'Transforms', url: '/transforms/dashboard', icon: 'fa fa-random', description: 'Templates - Parsers - Converters - Updaters' },
+        { title: 'Gateway', url: '/gateway/dashboard', icon: 'fa fa-hdd-o', description: 'API Specs - OpenAPI Directory - Connectors - Security' },
+        { title: 'Integrations', url: '/integrations/dashboard', icon: 'fa fa-puzzle-piece', description: 'Collections - Shared Collections' },
+        { title: 'Compute', url: '/compute/dashboard', icon: 'fa fa-cogs', description: 'Algorithms - Applications - Snippets - Filters- Notebooks' },
+        { title: 'Ecommerce', url: '/ecommerce/dashboard', icon: 'fa fa-shopping-cart', description: 'Products - Inventories - Carts - Orders - Shipments' },
+        { title: 'Security', url: '/security/dashboard', icon: 'fa fa-shield', description: 'Remote Clients - Providers - OAuth 2.0 - Authorizations' }
+      ]
+    end
+
+    def home_explore_menu
+      [
+        { title: 'Shared Collections', url: '/cross_shared_collection', icon: ' fa fa-puzzle-piece', description: 'Data description' },
+        { title: 'Applications', url: '/application', icon: 'fa fa-laptop', description: 'Data description' },
+        { title: 'Open Api Directory', url: '/open_api_directory', icon: 'fa fa-book', description: 'Data description' },
+        { title: 'Notebooks', url: '/notebook', icon: 'fa fa-list', description: 'Data description' }
+      ]
+    end
   end
 end

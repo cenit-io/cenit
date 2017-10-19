@@ -1,0 +1,33 @@
+%header.navbar.navbar-inverse{role: 'banner', id: 'home_nav_bar'}
+  .container-fluid
+    .navbar-header
+      %button.navbar-toggle{type: 'button','data-toggle': 'collapse', data: {target: '.bs-navbar-collapse'}}
+        = content_tag :span, '', class: 'icon-bar'
+        = content_tag :span, '', class: 'icon-bar'
+        = content_tag :span, '', class: 'icon-bar'
+      = link_to dashboard_path, class: "navbar-brand" do
+        = content_tag :span, class: 'cenit-logo' do
+          = image_tag 'cenit-logo.png', class: 'img-responsive'
+        = content_tag :span,'Cenit IO',class: 'cenit-hub'
+    %nav.collapse.navbar-collapse.bs-navbar-collapse{role: 'navigation'}
+      %ul.nav.navbar-nav
+        %li.dropdown
+          = link_to 'Services', class: 'dropdown-toggle', data: {toggle: 'dropdown'}
+          %ul.sub-menu.explore
+            - home_services_menu.each do |i|
+              %li
+                = link_to i[:url], title: i[:title], target: '_blank' do
+                  = content_tag :i,'', class: i[:icon],'aria-hidden': true
+                  = content_tag :span, i[:title]
+        %li.dropdown
+          = link_to 'Explore', class: 'dropdown-toggle', data: {toggle: 'dropdown'}
+          %ul.sub-menu.explore
+            - home_explore_menu.each do |i|
+              %li
+                = link_to i[:url], title: i[:title], target: '_blank' do
+                  = content_tag :i,'', class: i[:icon],'aria-hidden': true
+                  = content_tag :span, i[:title]
+        %li.dropdown
+          = link_to 'App Integrations', '#' ,class:'scroll', data: {link: 'integrations'}
+        %li.dropdown
+          = link_to 'Features', '#' ,class:'scroll', data: {link: 'features'}
