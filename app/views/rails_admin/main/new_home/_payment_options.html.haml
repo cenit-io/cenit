@@ -1,4 +1,4 @@
-%section#payment_options
+%section#payments
   .container
     .row
       .col-md-offset-1.col-md-10
@@ -123,16 +123,16 @@
   $(function(){
   var current = 'weekly';
 
-  $('#payment_options').find('.tabs .tab').click(function() {
+  $('#payments').find('.tabs .tab').click(function() {
   if (!($(this).hasClass('active'))) {
   $(this).addClass('active');
-  $('#payment_options').find('.tabs .tab.'+current).removeClass('active');
-  $('#payment_options').find('.plans').removeClass(current);
+  $('#payments').find('.tabs .tab.'+current).removeClass('active');
+  $('#payments').find('.plans').removeClass(current);
   if (current == 'weekly')
   current = 'monthly';
   else
   current = 'weekly';
-  $('#payment_options').find('.plans').addClass(current);
+  $('#payments').find('.plans').addClass(current);
   }
   });
   });

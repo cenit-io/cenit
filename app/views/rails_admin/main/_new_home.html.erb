@@ -1,5 +1,3 @@
-<!-- TOP NAVIGATION -->
-<%= render partial: 'rails_admin/main/new_home/top_bar' %>
 <!-- HEADER -->
 <%= render partial: 'rails_admin/main/new_home/header' %>
 <!-- CONTENT -->
@@ -28,13 +26,18 @@
   <%= render partial: 'rails_admin/main/footer' %>
 </main>
 <!-- GO UP ARROW-->
-<a id="go-up" class="from-bottom scroll" data-link="home_page">
+<a id="go-up" class="from-bottom scroll" data-link="top">
   <i class="fa fa-arrow-up"></i>
 </a>
 <!-- HOME SCRIPTS-->
 <script type="text/javascript">
   $(function () {
     initHomeSlide();
+
+    $(".go-sign-in").off().click(function (e) {
+      e.preventDefault();
+      openSigInSideBar();
+    })
 
     $(".owl-carousel").owlCarousel({items: 3, autoPlay: true, pagination: false});
 
@@ -58,7 +61,11 @@
     function scroll_to(event) {
       event.preventDefault();
       var anchor = $(event.currentTarget).attr('data-link');
-      $("html, body").animate({scrollTop: ($('#' + anchor).offset().top)}, 1000);
+      if (anchor == 'top') {
+        $("html, body").animate({scrollTop: 0}, 1000);
+      } else {
+        $("html, body").animate({scrollTop: (($('#' + anchor).offset().top - 78))}, 1000);
+      }
     }
 
     function initHomeSlide() {

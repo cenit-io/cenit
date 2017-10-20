@@ -17,5 +17,7 @@
         %p.sub-text.animated.fadeInLeft
           ='Cenit IO is the perfect tool to help you out.'
         .cta.animated.fadeInRight
-          = link_to 'See the tour', '', class: 'button-outline'
-          = link_to 'Sign up free','',class: 'button'
+          - anonymous = current_user ? 'false' : 'true'
+          - dashboard_root =  @action.is_a?(RailsAdmin::Config::Actions::Dashboard) && params[:group].blank?
+          = link_to 'See the tour','',class: 'take-tour button-outline', data:{anonymous: anonymous , 'dashboard-root': dashboard_root.to_s}
+          = link_to 'Sign up free','',class: 'button go-sign-in'
