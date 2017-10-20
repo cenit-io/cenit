@@ -37,7 +37,7 @@ module Setup
 
     def history_tracker_class
       tracker_class = Mongoid::History.tracker_class
-      tracker_class.with(collection: "#{collection_name.to_s.singularize}_#{tracker_class.collection_name}")
+      tracker_class.with(self.class.mongoid_root_class)
     end
 
     def history_tracks
@@ -53,7 +53,11 @@ module Setup
       if track_history_for_action?(action)
         current_version = (send(history_trackable_options[:version_field]) || 0) + 1
         send("#{history_trackable_options[:version_field]}=", current_version)
-        history_tracker_class.create!(history_tracker_attributes(action.to_sym).merge(version: current_version, action: action.to_s, trackable: self))
+        history_tracker_class.create!(history_tracker_attributes(action.to_sym).merge(
+          version: current_version,
+          action: action.to_s,
+          trackable: self,
+          origin: origin))
       end
       clear_trackable_memoization
     end

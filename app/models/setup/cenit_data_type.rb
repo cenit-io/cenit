@@ -67,6 +67,10 @@ module Setup
       end
     end
 
+    def track_history?
+      false
+    end
+
     class << self
 
       def init!

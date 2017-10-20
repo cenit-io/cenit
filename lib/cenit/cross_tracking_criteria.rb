@@ -8,27 +8,25 @@ module Cenit
     end
 
     def cross(origin = :default)
-      new_tracks = {}
+      cross_tracks = {}
       criteria.each do |record|
         next if record.origin == origin || record.class.origins.exclude?(origin)
-        new_tracks[record.id] = record.history_tracks.view
+        cross_tracks[record.id] = record.history_tracks
       end
-      new_criteria = criteria.any_in(id: new_tracks.keys)
-      new_criteria.cross(origin)
+      cross_criteria = criteria.any_in(id: cross_tracks.keys)
+      cross_criteria.cross(origin)
       tracked_ids = []
       non_tracked_ids = []
-      new_criteria.each do |record|
-        record.history_tracks.delete_all
+      cross_criteria.each do |record|
         if record.track_history?
-          record.history_tracker_class.collection.insert_many(new_tracks[record.id].to_a)
-          new_tracks[record.id].delete_many
+          cross_tracks[record.id].cross(origin)
           record.track_history_for_action!("cross #{origin}".to_sym)
           tracked_ids
         else
           non_tracked_ids
         end << record.id
       end
-      new_criteria.any_in(id: non_tracked_ids).update_all(version: nil)
+      cross_criteria.any_in(id: non_tracked_ids).update_all(version: nil)
       yield(tracked_ids, non_tracked_ids) if block_given?
     end
   end
