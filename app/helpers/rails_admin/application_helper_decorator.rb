@@ -1143,5 +1143,42 @@ module RailsAdmin
         { title: 'Notebooks', url: '/notebook', icon: 'fa fa-list', description: 'Data description' }
       ]
     end
+
+    def home_services
+      [
+        { name: 'Sales', icon: 'fa fa-shopping-cart', desc: 'You can work with international customers right out of the box while staying in your
+        country' },
+        { name: 'Marketing', icon: 'fa fa-bullhorn', desc: 'Attract, retain, and grow more customers by nurturing the right leads.' },
+        { name: 'Support', icon: 'fa fa-life-ring', desc: 'Enhance support with faster, more efficient ticket resolution and minimize churn.' },
+        { name: 'Finances', icon: 'fa fa-money', desc: 'Accelerate order-to-cash, billing and payment processes.' },
+        { name: 'Bussiness Operations', icon: 'fa fa-sitemap', desc: 'Supercharge productivity across teams with automated workflows.' },
+        { name: 'Human Resources', icon: 'fa fa-users', desc: 'Streamline your HR processes from hire to retire. ' }
+      ]
+    end
+
+    def home_integrations_images
+      %w(aftership.png amazon.png asana.png bigcommerce.jpeg bronto.png desk.png ebay.jpg exact_target.png jirafe.png magento.png mailchimp.png mandrill.png netsuite.png odoo.png oscommerce.png ql.png quickbooks.png sf.png shipstation.png shipwire.png square.png trello.png woocommerce.png zendesk.png)
+    end
+
+    def home_features
+      [
+        { name: 'Backendless', icon: 'fa-mobile', color: 'orange', desc: 'After create a new Data Type using a JSON Schema is generated on the fly a complete REST API
+            and
+            a CRUD UI to manage the data. Useful for mobile backend and API services.' },
+        { name: 'Routing and orchestration', icon: 'fa-cogs', color: 'blue', desc: 'Enables to create multistep integration flows by composing atomic integration functionality
+            (such
+            as connection, transformation, data event, schedule, webhook and flow).' },
+        { name: 'Data integration', icon: 'fa-cubes', color: 'green', desc: 'Includes data validation, transformation, mapping, and data quality. Exchange support for
+            multiple data formats (JSON, XML, ASN) and data standards (EDIFACT, X12, UBL).' },
+        { name: 'Integration scenarios', icon: 'fa-cloud', color: 'yellow', desc: 'Cloud Service Integration, for Publication and Management of APIs, Mobile Application
+            Integration, to support Business to Business, Application and Data Integration needs.' },
+        { name: 'Third party service integrations', icon: 'fa-share-alt', color: 'purple', desc: 'Directory for OpenAPI Spec (Swagger) and Shared Collections - social feature to share
+            integration
+            settings - to connect services as ERP / Fulfilment / Marketing / Communication.' },
+        { name: 'Multi-tenants', icon: 'fa-users', color: 'red', desc: 'Logical tenant isolation in a physically shared context.Management and control of security, privacy and compliance.
+Configuration, customization and version control.' }
+
+      ]
+    end
   end
 end

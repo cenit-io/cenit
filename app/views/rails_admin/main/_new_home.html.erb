@@ -6,383 +6,37 @@
 <main id="home_content">
   <!-- SLIDERS -->
   <%= render partial: 'rails_admin/main/new_home/sliders' %>
-  <section id="open_ipass">
-    <a href="https://github.com/cenit-io/cenit" class="fork-me-ribbon">
-      <%= image_tag 'home/fork_me.png' %>
-    </a>
-
-    <div class="container">
-      <div class="row">
-        <div class="col-sm-4">
-          <div class="text-center"><span class="rounded first" data-content="free">Free</span></div>
-          <div class="description">
-            <h1>Open Source and Free, forever</h1>
-
-            <p>Cenit IO is open source, so there's no risk of getting locked in. You can download and run your
-              projects anywhere.</p>
-
-            <p>
-              You can shared your integrations and also use pre-built integrations for many populars cloud
-              applications.</p>
-          </div>
-        </div>
-        <div class="col-sm-4">
-          <div class="text-center"><span class="rounded second active" data-content="ipass">iPaaS</span></div>
-          <div class="description">
-            <h1>The easiest iPaaS platform</h1>
-
-            <p>
-              Cenit IO is the easiest and most open iPaaS platform to <strong>connect</strong> your applications,
-              <strong>synchronize
-                data</strong>,
-              and <strong>automate</strong> processes. Intuitive wizards and tools make it fast and easy to integrate
-              anything
-              to
-              anything .</p></div>
-        </div>
-        <div class="col-sm-4">
-          <div class="text-center"><span class="rounded third" data-content="integrations">500+</span></div>
-          <div class="description">
-
-            <h1>Hundreds of Integrations</h1>
-
-            <p>
-              Cenit supports over 500 services and counting. Integrations are driven by open standards like
-              RSS,
-              Open API, and RAML, so you can add your own too.</p>
-          </div>
-        </div>
-      </div>
-    </div>
-  </section>
-  <section id="subdomains">
-    <div class="container">
-      <div class="row header">
-        <h3>Services</h3>
-
-        <p>Explore our services. It's Free, try it now!</p>
-      </div>
-      <div class="row">
-        <% home_services_menu.each do |i| %>
-            <div class="col-sm-4 col-md-3">
-              <a href="<%= i[:url] %>" class="service-link" target="_blank">
-                <div class="service-box">
-                  <h1><%= i[:title] %></h1>
-                  <i class="<%= i[:icon] %>"></i>
-
-                  <p>
-                    <%= i[:description] %>
-                  </p>
-                </div>
-              </a>
-            </div>
-        <% end %>
-      </div>
-    </div>
-  </section>
-  <section id="services">
-    <div class="container">
-      <div class="row header">
-        <h1>What can Cenit IO do for you?</h1>
-
-        <p>Cenit IO can help you with this scenarios and more. Don't wait, <a href="#">contact us</a> now</p>
-      </div>
-      <% services = [
-          { name: 'Sales', icon: 'fa fa-shopping-cart', desc: 'You can work with international customers right out of the box while staying in your
-                country' },
-          { name: 'Marketing', icon: 'fa fa-bullhorn', desc: 'Attract, retain, and grow more customers by nurturing the right leads.' },
-          { name: 'Support', icon: 'fa fa-life-ring', desc: 'Enhance support with faster, more efficient ticket resolution and minimize churn.' },
-          { name: 'Finances', icon: 'fa fa-money', desc: 'Accelerate order-to-cash, billing and payment processes.' },
-          { name: 'Bussiness Operations', icon: 'fa fa-sitemap', desc: 'Supercharge productivity across teams with automated workflows.' },
-          { name: 'Human Resources', icon: 'fa fa-users', desc: 'Streamline your HR processes from hire to retire. ' }
-      ] %>
-      <div class="owl-carousel">
-        <% services.each do |s| %>
-            <div>
-              <div class="service">
-                <i class="<%= s[:icon] %>"></i>
-            <span>
-              <h1><%= s[:name] %></h1>
-              <p>
-                <%= s[:desc] %>
-              </p>
-            </span>
-              </div>
-            </div>
-        <% end %>
-      </div>
-    </div>
-  </section>
-  <section id="integrations" class="white-back">
-    <div id="showcase">
-      <div class="container">
-        <div class="row header">
-          <div class="col-md-12 text-center">
-            <h3>App Integrations</h3>
-
-            <p class="text-center">
-              All popular apps for CRM, Marketing, Helpdesk, Payments, Webforms, Collaboration and more
-            </p>
-          </div>
-        </div>
-        <div class="row gallery_container add-clearfix">
-          <% integrations = [
-              'aftership.png',
-              'amazon.png',
-              'asana.png',
-              'bigcommerce.jpeg',
-              'bronto.png',
-              'desk.png',
-              'ebay.jpg',
-              'exact_target.png',
-              'jirafe.png',
-              'magento.png',
-              'mailchimp.png',
-              'mandrill.png',
-              'netsuite.png',
-              'odoo.png',
-              'oscommerce.png',
-              'ql.png',
-              'quickbooks.png',
-              'sf.png',
-              'shipstation.png',
-              'shipwire.png',
-              'square.png',
-              'trello.png',
-              'woocommerce.png',
-              'zendesk.png'
-          ] %>
-          <% integrations.each do |i| %>
-              <div class="col-md-2 col-sm-3 col-sms-3 col-xs-6">
-                <a href="#" class="thumbnail">
-                  <%= image_tag "home/integrations/#{i}" %>
-                </a>
-              </div>
-          <% end %>
-        </div>
-        <div class="row see-all">
-          <a href="#">See all Apps</a>
-        </div>
-      </div>
-    </div>
-  </section>
-  <section id="search-app">
-    <div class="container">
-      <div class="row">
-        <div class="col-md-12 text-center">
-          <i class="fa fa-search" aria-hidden="true"></i>
-          <span>Don’t see your app? Search here</span>
-
-          <form action="/cross_shared_collection" accept-charset="UTF-8" method="get">
-            <input type="text" name="query" id="query" placeholder="Search on more than 275+ Shared Collections"
-                   class="form-control">
-          </form>
-        </div>
-      </div>
-    </div>
-  </section>
-  <section id="features" class="white-back">
-    <div id="grid-second">
-      <div class="container">
-        <div class="row header text-center">
-          <div class="col-md-12">
-            <h3>Features</h3>
-
-            <p>
-              One Platform for all your integration needs.
-            </p>
-          </div>
-        </div>
-        <div class="row features">
-          <% features = [
-              { name: 'Backendless', icon: 'fa-mobile', color: 'orange', desc: 'After create a new Data Type using a JSON Schema is generated on the fly a complete REST API
-                and
-                a CRUD UI to manage the data. Useful for mobile backend and API services.' },
-              { name: 'Routing and orchestration', icon: 'fa-cogs', color: 'blue', desc: 'Enables to create multistep integration flows by composing atomic integration functionality
-                (such
-                as connection, transformation, data event, schedule, webhook and flow).' },
-              { name: 'Data integration', icon: 'fa-cubes', color: 'green', desc: 'Includes data validation, transformation, mapping, and data quality. Exchange support for
-                multiple data formats (JSON, XML, ASN) and data standards (EDIFACT, X12, UBL).' },
-              { name: 'Integration scenarios', icon: 'fa-cloud', color: 'yellow', desc: 'Cloud Service Integration, for Publication and Management of APIs, Mobile Application
-                Integration, to support Business to Business, Application and Data Integration needs.' },
-              { name: 'Third party service integrations', icon: 'fa-share-alt', color: 'purple', desc: 'Directory for OpenAPI Spec (Swagger) and Shared Collections - social feature to share
-                integration
-                settings - to connect services as ERP / Fulfilment / Marketing / Communication.' },
-              { name: 'Multi-tenants', icon: 'fa-users', color: 'red', desc: 'Logical tenant isolation in a physically shared context.Management and control of security, privacy and compliance.
-Configuration, customization and version control.' }
-
-          ] %>
-          <% features.each do |f| %>
-              <div class="col-sm-6">
-                <div class="col-xs-12 feature <%= f[:color] %>">
-                  <div class="col-xs-6 col-sm-4 image">
-                    <i class="fa fa-5x <%= f[:icon] %>" aria-hidden="true"></i>
-                  </div>
-                  <div class="col-xs-6 col-sm-8 desc">
-                    <h1><%= f[:name] %></h1>
-
-                    <p><%= f[:desc] %></p>
-
-                    <!--                    <div class="actions">
-                                          <a class="link">Learn More
-                                            <i class="fa fa-angle-right"></i>
-                                          </a>
-                                        </div>-->
-                  </div>
-                </div>
-              </div>
-          <% end %>
-        </div>
-      </div>
-    </div>
-  </section>
-  <section id="pricing" class="gray">
-    <div id="first-option">
-      <div class="container">
-        <div class="row header">
-          <div class="col-md-12">
-            <h3>Different plans for everyone</h3>
-
-            <p>Choose the pricing that fits your business needs</p>
-          </div>
-        </div>
-
-        <div class="row charts">
-          <div class="col-md-4">
-            <div class="chart first">
-              <div class="plan-name">Freelance</div>
-              <div class="quantity">
-                <span class="dollar">$</span>
-                <span class="price">29</span>
-                <span class="period">/month</span>
-              </div>
-              <div class="specs">
-                <div class="spec">
-                  <span class="variable">5</span>
-                  team members
-                </div>
-                <div class="spec">
-                  <span class="variable">Digital</span>
-                  recurring billing
-                </div>
-                <div class="spec">
-                  <span class="variable">Virtual</span>
-                  online terminal
-                </div>
-                <div class="spec">
-                  <span class="variable">10</span>
-                  total products
-                </div>
-                <div class="spec">
-                  <span class="variable">1.0%</span>
-                  Transaction fee
-                </div>
-              </div>
-              <a class="btn-signup button-clear" href="signup.html">
-                <span>Start free trial</span>
-              </a>
-            </div>
-          </div>
-          <div class="col-md-4">
-            <div class="chart featured">
-              <%= image_tag 'home/ribbon.png', class: 'popular' %>
-              <div class="plan-name">Profesional</div>
-              <div class="quantity">
-                <span class="dollar">$</span>
-                <span class="price">79</span>
-                <span class="period">/month</span>
-              </div>
-              <div class="specs">
-                <div class="spec">
-                  <span class="variable">15</span>
-                  team members
-                </div>
-                <div class="spec">
-                  <span class="variable">Digital</span>
-                  recurring billing
-                </div>
-                <div class="spec">
-                  <span class="variable">Virtual</span>
-                  online terminal
-                </div>
-                <div class="spec">
-                  <span class="variable">15</span>
-                  total products
-                </div>
-                <div class="spec">
-                  <span class="variable">0.5%</span>
-                  Transaction fee
-                </div>
-              </div>
-              <a class="btn-signup button-clear" href="signup.html">
-                <span>Start free trial</span>
-              </a>
-            </div>
-          </div>
-          <div class="col-md-4">
-            <div class="chart last">
-              <div class="plan-name">Premium</div>
-              <div class="quantity">
-                <span class="dollar">$</span>
-                <span class="price">119</span>
-                <span class="period">/month</span>
-              </div>
-              <div class="specs">
-                <div class="spec">
-                  <span class="variable">Unlimited</span>
-                  team members
-                </div>
-                <div class="spec">
-                  <span class="variable">Digital</span>
-                  recurring billing
-                </div>
-                <div class="spec">
-                  <span class="variable">Virtual</span>
-                  online terminal
-                </div>
-                <div class="spec">
-                  <span class="variable">25</span>
-                  total products
-                </div>
-                <div class="spec">
-                  <span class="variable">No</span>
-                  Transaction fee
-                </div>
-              </div>
-              <a class="btn-signup button-clear" href="signup.html">
-                <span>Start free trial</span>
-              </a>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </section>
-  <section id="clients">
-    <div class="container">
-      <div class="row">
-        <div class="col-md-12">
-          <h3>Our Customers</h3>
-
-          <p>
-            These are some of our customers who have helped us by using our product.
-          </p>
-
-          <div class="logos">
-          </div>
-        </div>
-      </div>
-    </div>
-  </section>
+  <!-- INTRO -->
+  <%= render partial: 'rails_admin/main/new_home/intro' %>
+  <!-- SUBDOMAINS -->
+  <%= render partial: 'rails_admin/main/new_home/subdomains' %>
+  <!-- SERVICES -->
+  <%= render partial: 'rails_admin/main/new_home/services' %>
+  <!-- APP INETGRATIONS -->
+  <%= render partial: 'rails_admin/main/new_home/app_integrations' %>
+  <!-- SEARCH APPS -->
+  <%= render partial: 'rails_admin/main/new_home/search_apps' %>
+  <!-- FEATURES-->
+  <%= render partial: 'rails_admin/main/new_home/features' %>
+  <!-- PRICING-->
+  <%= render partial: 'rails_admin/main/new_home/pricing' %>
+  <!-- PAYMENT OPTIONS-->
+  <%= render partial: 'rails_admin/main/new_home/payment_options' %>
+  <!-- CLIENTS-->
+  <%= render partial: 'rails_admin/main/new_home/clients' %>
+  <!-- FOOTER-->
   <%= render partial: 'rails_admin/main/footer' %>
 </main>
+<!-- GO UP ARROW-->
 <a id="go-up" class="from-bottom scroll" data-link="home_page">
   <i class="fa fa-arrow-up"></i>
 </a>
+<!-- HOME SCRIPTS-->
 <script type="text/javascript">
   $(function () {
-
     initHomeSlide();
+
+    $(".owl-carousel").owlCarousel({items: 3, autoPlay: true, pagination: false});
 
     $(window).scroll(function () {
       var w = $(window), $go = $('#go-up');
@@ -406,8 +60,6 @@ Configuration, customization and version control.' }
       var anchor = $(event.currentTarget).attr('data-link');
       $("html, body").animate({scrollTop: ($('#' + anchor).offset().top)}, 1000);
     }
-
-    $(".owl-carousel").owlCarousel({items: 3, autoPlay: true, pagination: false});
 
     function initHomeSlide() {
 

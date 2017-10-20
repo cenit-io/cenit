@@ -1,0 +1,11 @@
+%section#search-app
+  .container
+    .row
+      .col-md-12.text-center
+        %i.fa.fa-search{'aria-hidden'=>'true'}
+        %span
+          ='Don\'t see your app? Search here'
+        -query = params[:query]
+        -shared_path = index_path(model_name: "cross_shared_collection", query: query)
+        =form_tag(shared_path, method: :get) do
+          =text_field_tag "query", @name, placeholder: "Search on more than 275+ Shared Collections", class: "form-control"

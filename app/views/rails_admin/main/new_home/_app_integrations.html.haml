@@ -1,0 +1,16 @@
+%section#integrations.white-back
+  #showcase
+    .container
+      .row.header
+        .col-md-12.text-center
+          %h3
+            = 'App Integrations'
+          %p.text-center
+            ='All popular apps for CRM, Marketing, Helpdesk, Payments, Webforms, Collaboration and more'
+      .row.gallery_container.add-clearfix
+        -home_integrations_images.each do |i|
+          .col-md-2.col-sm-3.col-sms-3.col-xs-6
+            = link_to '#', class: 'thumbnail' do
+              = image_tag "home/integrations/#{i}"
+      .row.see-all
+        = link_to 'See all Apps', '#'
