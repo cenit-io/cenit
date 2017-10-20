@@ -1,0 +1,15 @@
+.slide.first.active
+  .bg
+  .container
+    .row
+      .col-sm-6.info
+        %h1.hero-text
+          = 'The most open Platform for Data and Business Integration'
+        %p
+          = 'Enables a complete business automation of all operational processes in a company'
+        .cta
+          = link_to '#', class: 'button-outline' do
+            = 'TRY IT FREE'
+            = content_tag :i, '', class: 'fa fa-chevron-right'
+      .col-sm-6.hidden-xs.mobiles
+        = image_tag 'home/laptop.png', class: 'img-responsive'

@@ -4,108 +4,8 @@
 <%= render partial: 'rails_admin/main/new_home/header' %>
 <!-- CONTENT -->
 <main id="home_content">
-  <section id="slides">
-    <div id="hero">
-      <a class="slide-nav prev" href="#">Prev</a>
-      <a class="slide-nav next" href="#">Next</a>
-      <nav>
-        <a class="active" href="#"></a>
-        <a href="#"></a>
-        <a href="#"></a>
-      </nav>
-      <section id="slides">
-        <div id="hero">
-          <a class="slide-nav prev" href="#">Prev</a>
-          <a class="slide-nav next" href="#">Next</a>
-          <nav>
-            <a class="active" href="#"></a>
-            <a href="#"></a>
-            <a href="#"></a>
-          </nav>
-          <div class="slides">
-            <div class="slide first active">
-              <div class="bg"></div>
-              <div class="container">
-                <div class="row">
-                  <div class="col-sm-6 info from-right">
-                    <h1 class="hero-text">
-                      The most open Platform for Data and Business Integration
-                    </h1>
-
-                    <p>
-                      Enables a complete business automation of all operational processes in a company
-                    </p>
-
-                    <div class="cta">
-                      <a href="features.html" class="button-outline">
-                        TRY IT FREE
-                        <i class="fa fa-chevron-right"></i>
-                      </a>
-                    </div>
-                  </div>
-                  <div class="col-sm-6 hidden-xs mobiles">
-                    <%= image_tag 'home/laptop.png', class: 'img-responsive' %>
-                  </div>
-                </div>
-              </div>
-            </div>
-            <div class="slide second ">
-              <div class="bg"></div>
-              <div class="container">
-                <h1 class="hero-text">
-                  Integrate your cloud applications
-                </h1>
-
-                <h2 class="text-center">
-                  Automate <span>marketing</span>,<span> sales</span> and <span>business process</span>
-                </h2>
-
-                <div class="text-center">
-                  <%= image_tag 'home/integrations.png' %>
-                  <a href="features.html" class="button-outline">
-                    TRY IT FREE
-                  </a>
-                </div>
-              </div>
-            </div>
-            <div class="slide third ">
-              <div class="bg"></div>
-              <div class="container">
-                <div class="row">
-                  <div class="col-sm-4 info hidden-xs mobiles">
-                    <div class="cloud_services">
-                      <i class="fa fa-cloud" aria-hidden="true"></i>
-                      <i class="fa fa-google" aria-hidden="true"></i>
-                      <i class="fa fa-github" aria-hidden="true"></i>
-                      <i class="fa fa-facebook" aria-hidden="true"></i>
-                      <i class="fa fa-twitter" aria-hidden="true"></i>
-                      <i class="fa fa-amazon" aria-hidden="true"></i>
-                      <i class="fa fa-dropbox" aria-hidden="true"></i>
-                    </div>
-                  </div>
-                  <div class="col-sm-8 from-bottom">
-                    <h1 class="hero-text animated fadeInLeft">
-                      Need an easy way to connect your business with Cloud Services ?
-                    </h1>
-
-                    <p class="sub-text animated fadeInLeft">
-                      Cenit IO is the perfect tool to help you out.
-                    </p>
-
-                    <div class="cta animated fadeInRight">
-                      <a href="features.html" class="button-outline">See the tour</a>
-                      <a href="signup.html" class="button">Sign up free</a>
-                    </div>
-
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-    </div>
-  </section>
+  <!-- SLIDERS -->
+  <%= render partial: 'rails_admin/main/new_home/sliders' %>
   <section id="open_ipass">
     <a href="https://github.com/cenit-io/cenit" class="fork-me-ribbon">
       <%= image_tag 'home/fork_me.png' %>
@@ -183,7 +83,7 @@
   <section id="services">
     <div class="container">
       <div class="row header">
-        <h1>What can you do with Cenit IO ?</h1>
+        <h1>What can Cenit IO do for you?</h1>
 
         <p>Cenit IO can help you with this scenarios and more. Don't wait, <a href="#">contact us</a> now</p>
       </div>
@@ -476,112 +376,129 @@ Configuration, customization and version control.' }
   </section>
   <%= render partial: 'rails_admin/main/footer' %>
 </main>
-<div id="go-up">
+<a id="go-up" class="from-bottom scroll" data-link="home_page">
   <i class="fa fa-arrow-up"></i>
-</div>
+</a>
 <script type="text/javascript">
   $(function () {
 
-    $(document).on('click', $(".scroll"), scroll_to);
+    initHomeSlide();
+
     $(window).scroll(function () {
-      console.log($('#subdomains').scrollTop());
+      var w = $(window), $go = $('#go-up');
+
+      if (w.scrollTop() >= 1000) {
+        if (!$go.hasClass('active')) {
+          $go.addClass('active');
+        }
+      }
+      else {
+        if ($go.hasClass('active')) {
+          $go.removeClass('active');
+        }
+      }
     });
+
+    $(document).on('click', ".scroll", scroll_to);
 
     function scroll_to(event) {
       event.preventDefault();
-      var anchor = $(event.target).attr('data-link');
+      var anchor = $(event.currentTarget).attr('data-link');
       $("html, body").animate({scrollTop: ($('#' + anchor).offset().top)}, 1000);
     }
 
     $(".owl-carousel").owlCarousel({items: 3, autoPlay: true, pagination: false});
-    var $navDots = $("#hero nav a")
-    var $next = $(".slide-nav.next");
-    var $prev = $(".slide-nav.prev");
-    var $slides = $("#hero .slides .slide");
-    var actualIndex = 0;
-    var swiping = true;
-    var interval;
 
-    $navDots.click(function (e) {
-      e.preventDefault();
-      if (swiping) {
-        return;
+    function initHomeSlide() {
+
+      var $navDots = $("#hero nav a")
+      var $next = $(".slide-nav.next");
+      var $prev = $(".slide-nav.prev");
+      var $slides = $("#hero .slides .slide");
+      var actualIndex = 0;
+      var swiping = false;
+      var interval;
+
+      $navDots.click(function (e) {
+        e.preventDefault();
+        if (swiping) {
+          return;
+        }
+        swiping = true;
+
+        actualIndex = $navDots.index(this);
+        updateSlides(actualIndex);
+      });
+
+      $next.click(function (e) {
+        e.preventDefault();
+        if (swiping) {
+          return;
+        }
+        swiping = true;
+
+        clearInterval(interval);
+        interval = null;
+
+        actualIndex++;
+        if (actualIndex >= $slides.length) {
+          actualIndex = 0;
+        }
+
+        updateSlides(actualIndex);
+      });
+
+      $prev.click(function (e) {
+        e.preventDefault();
+        if (swiping) {
+          return;
+        }
+        swiping = true;
+
+        clearInterval(interval);
+        interval = null;
+
+        actualIndex--;
+        if (actualIndex < 0) {
+          actualIndex = $slides.length - 1;
+        }
+
+        updateSlides(actualIndex);
+      });
+
+      function updateSlides(index) {
+        // update nav dots
+        $navDots.removeClass("active");
+        $navDots.eq(index).addClass("active");
+
+        // update slides
+        var $activeSlide = $("#hero .slide.active");
+        var $nextSlide = $slides.eq(index);
+
+        $activeSlide.fadeOut();
+        $nextSlide.addClass("next").fadeIn();
+
+        setTimeout(function () {
+          $slides.removeClass("next").removeClass("active");
+          $nextSlide.addClass("active");
+          $activeSlide.removeAttr('style');
+          swiping = false;
+        }, 1000);
       }
-      swiping = true;
 
-      actualIndex = $navDots.index(this);
-      updateSlides(actualIndex);
-    });
+      interval = setInterval(function () {
+        if (swiping) {
+          return;
+        }
+        swiping = true;
 
-    $next.click(function (e) {
-      e.preventDefault();
-      if (swiping) {
-        return;
-      }
-      swiping = true;
+        actualIndex++;
+        if (actualIndex >= $slides.length) {
+          actualIndex = 0;
+        }
 
-      clearInterval(interval);
-      interval = null;
-
-      actualIndex++;
-      if (actualIndex >= $slides.length) {
-        actualIndex = 0;
-      }
-
-      updateSlides(actualIndex);
-    });
-
-    $prev.click(function (e) {
-      e.preventDefault();
-      if (swiping) {
-        return;
-      }
-      swiping = true;
-
-      clearInterval(interval);
-      interval = null;
-
-      actualIndex--;
-      if (actualIndex < 0) {
-        actualIndex = $slides.length - 1;
-      }
-
-      updateSlides(actualIndex);
-    });
-
-    function updateSlides(index) {
-      // update nav dots
-      $navDots.removeClass("active");
-      $navDots.eq(index).addClass("active");
-
-      // update slides
-      var $activeSlide = $("#hero .slide.active");
-      var $nextSlide = $slides.eq(index);
-
-      $activeSlide.fadeOut();
-      $nextSlide.addClass("next").fadeIn();
-
-      setTimeout(function () {
-        $slides.removeClass("next").removeClass("active");
-        $nextSlide.addClass("active");
-        $activeSlide.removeAttr('style');
-        swiping = false;
-      }, 1000);
+        updateSlides(actualIndex);
+      }, 5000);
     }
-
-
-    interval = setInterval(function () {
-      if (swiping) {
-        return;
-      }
-      swiping = true;
-
-      actualIndex++;
-      if (actualIndex >= $slides.length) {
-        actualIndex = 0;
-      }
-
-      updateSlides(actualIndex);
-    }, 5000);
   });
 </script>
