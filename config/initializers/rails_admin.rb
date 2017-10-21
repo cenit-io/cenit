@@ -328,6 +328,7 @@ RailsAdmin.config do |config|
     history_show do
       only do
         [
+          HistoryTracker,
           Setup::Algorithm,
           Setup::Connection,
           Setup::PlainWebhook,
@@ -343,7 +344,7 @@ RailsAdmin.config do |config|
           Setup::Validator.class_hierarchy +
           Setup::BaseOauthProvider.class_hierarchy
       end
-      visible { only.include?((obj = bindings[:object]).class) && obj.try(:track_history?) }
+      visible { only.include?((obj = bindings[:object]).class) && (obj.class == HistoryTracker || obj.try(:track_history?)) }
     end
     algorithm_dependencies do
       only do
@@ -624,4 +625,7 @@ RailsAdmin.config do |config|
   Setup::ScriptExecution
 
   Setup::Category
+
+  # Audit
+  HistoryTracker
 end

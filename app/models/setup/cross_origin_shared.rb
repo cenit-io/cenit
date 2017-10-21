@@ -44,6 +44,14 @@ module Setup
       @history_tracks ||= history_tracker_class.where(scope: related_scope, association_chain: association_hash)
     end
 
+    def history_tracks_scope
+      track_scope = related_scope
+      association_chain = association_hash
+      proc do |scope|
+        scope.where(scope: track_scope, association_chain: association_chain)
+      end
+    end
+
     def track_history_for_action!(action)
       track_history_for_action(action)
       save

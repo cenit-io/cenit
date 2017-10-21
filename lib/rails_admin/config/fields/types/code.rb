@@ -11,9 +11,9 @@ module RailsAdmin
           register_instance_option :pretty_value do
             action = bindings[:view].instance_variable_get(:@action)
             code = JSON.pretty_generate(value) rescue value
-            if code && ((absm = bindings[:view].controller.abstract_model).nil? ||
-               action.is_a?(RailsAdmin::Config::Actions::Index) ||
-               !bindings[:object].is_a?(absm.model))
+            if code && ((absm = bindings[:view].controller.context_abstract_model).nil? ||
+               action.listing? ||
+               !bindings[:object].is_a?(absm.model_class))
               if (code = code.lines).length > 4
                 code = code[0, 4] + ['...']
               end
@@ -37,8 +37,8 @@ module RailsAdmin
             </textarea>
             HTML
 
-            if action.is_a?(RailsAdmin::Config::Actions::Show) || action.is_a?(RailsAdmin::Config::Actions::RemoteSharedCollection)
-              "<form #{(absm.nil? || bindings[:object].is_a?(absm.model)) ? 'id="code_show_view"' : 'id="list"'}>#{code_value}</form>"
+            if action.is_a?(RailsAdmin::Config::Actions::HistoryShow) || action.is_a?(RailsAdmin::Config::Actions::Show) || action.is_a?(RailsAdmin::Config::Actions::RemoteSharedCollection)
+              "<form #{(absm.nil? || bindings[:object].is_a?(absm.model_class)) ? 'id="code_show_view"' : 'id="list"'}>#{code_value}</form>"
             else
               code_value
             end.html_safe
