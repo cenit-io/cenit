@@ -1,11 +1,11 @@
 %section#subdomains
   .container
-    .row.header
+    .header
       %h3='Services'
       %p="Explore our services. It's Free, try it now!"
     .row
       -home_services_menu.each do |i|
-        .col-sm-4.col-md-3
+        .col-xs-12.col-sm-4.col-md-3
           = link_to i[:url], class:'service-link', target: '_blank' do
             .service-box
               %h1

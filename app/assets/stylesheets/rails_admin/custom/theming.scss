@@ -12,8 +12,6 @@
 @import "rails_admin/custom/owl_carousel/owl.theme";
 @import "rails_admin/custom/owl_carousel/owl.transitions";
 @import "rails_admin/custom/home/home_page";
-
-
 @import "horsey";
 
 /*Theming variables*/
@@ -2683,12 +2681,12 @@ footer {
   .menu {
     @media(max-width: 767px) {
       text-align: center;
-      margin-top: 40px;
+      margin-top: 10px;
     }
 
     h3 {
       margin-top: 0;
-      color:  #ea7400;
+      color: #ea7400;
       text-transform: uppercase;
       letter-spacing: 4px;
       font-size: 14px;
@@ -2701,7 +2699,13 @@ footer {
       margin-top: 30px;
 
       li {
-        display: block;
+        display: inline-block;
+        margin-right: 15px;
+
+        @media(min-width: 768px) {
+          display: block;
+          margin-right: 0;
+        }
         margin-bottom: 9px;
 
         a {
@@ -3151,6 +3155,13 @@ button#model-nav-xs {
   }
 }
 
+@media (min-width: 320px) {
+  /* add clearfix in the grid system */
+  .row.add-clearfix > .col-xs-6:nth-child(2n+1) {
+    clear: both;
+  }
+}
+
 @media (min-width: 480px) {
   /* add clearfix in the grid system */
   .row.add-clearfix > .col-sms-2:nth-child(2n+1) {
@@ -3311,6 +3322,7 @@ button#model-nav-xs {
     clear: both;
   }
 }
+
 .toggle-boolean {
   margin: 0 7px;
   cursor: pointer;

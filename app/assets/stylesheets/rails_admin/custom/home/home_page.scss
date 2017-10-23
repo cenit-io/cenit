@@ -48,6 +48,11 @@ $merriweather: "Merriweather", Georgia;
 }
 
 #home_page {
+  #secondary-nav-xs {
+    .icon-bar {
+      background: white;
+    }
+  }
   ul.drawer #sign-links, ul.drawer #nav-links {
     height: calc(100% - 93px);
   }
@@ -122,18 +127,30 @@ $merriweather: "Merriweather", Georgia;
       text-decoration: none;
 
       .service-box {
-        padding: 25px;
+        padding: 15px;
+        margin-bottom: 15px;
         background: white;
         border: solid 1px whitesmoke;
-        margin-bottom: 30px;
-        text-align: center;
+        text-align: left;
         -webkit-transition: all .3s ease;
         transition: all .3s ease;
+        @media (min-width: 768px) {
+          padding: 25px;
+          margin-bottom: 30px;
+          text-align: center;
+        }
         i {
           font-size: 32px;
-          margin: 15px 0;
+          margin: 7px 0;
           display: inline-block;
           color: orange;
+          float: left;
+          margin-right: 15px;
+          @media(min-width: 768px) {
+            float: none;
+            margin-right: 0;
+            margin: 15px 0;
+          }
         }
         h1 {
           font-size: 18px;
@@ -141,6 +158,10 @@ $merriweather: "Merriweather", Georgia;
           padding: 0;
           font-weight: bold;
           letter-spacing: 1.2px;
+          display: inline-block;
+          @media(min-width: 768px) {
+            display: block;
+          }
         }
         p {
           color: gray;
@@ -167,7 +188,10 @@ $merriweather: "Merriweather", Georgia;
         position: absolute;
         top: 0;
         right: 0;
-        width: 200px;
+        width: 135px;
+        @media(min-width: 768px) {
+          width: 200px;
+        }
         -webkit-transition: all .3s ease-in-out;
         transition: all .3s ease-in-out;
       }
@@ -369,7 +393,10 @@ $merriweather: "Merriweather", Georgia;
     margin-left: 10px;
     margin-bottom: 5px;
     position: relative;
-    top: -9px;
+    top: 0;
+    @media(min-width: 768px) {
+      top: -9px;
+    }
     font-family: "Lato", "Helvetica Neue", Arial, Helvetica, sans-serif;
   }
 
@@ -1073,7 +1100,10 @@ $merriweather: "Merriweather", Georgia;
   }
 
   section {
-    padding: 55px 0;
+    padding: 25px 0;
+    @media(min-width: 768px) {
+      padding: 55px 0;
+    }
     &:first-child {
       padding-bottom: 0;
       padding-top: 0;
@@ -1343,23 +1373,41 @@ $merriweather: "Merriweather", Georgia;
     i {
       font-size: 36px;
       margin-top: 5px;
+      margin-bottom: 10px;
+      @media(min-width: 768px) {
+        margin-bottom: 0;
+      }
     }
     span {
+
+      display: block;
+      margin-bottom: 10px;
+      @media(min-width: 768px) {
+        display: inline-block;
+        margin-bottom: 0;
+      }
       font-size: 18px;
       position: relative;
       top: -6px;
       padding: 0 15px;
     }
     form {
-      display: inline-block;
+      @media(min-width: 768px) {
+        display: inline-block;
+      }
       position: relative;
       top: -7px;
       input#query {
-        display: inline-block;
+        display: block;
+        width: 100%;
+        @media(min-width: 768px) {
+          display: inline-block;
+          width: 327px;
+        }
         padding: 3px 15px;
         border: none;
         border-radius: 32px;
-        width: 327px;
+
         font-size: 12px;
         @include placeholder {
           font-size: 12px;
@@ -1374,7 +1422,7 @@ $merriweather: "Merriweather", Georgia;
     .feature {
 
       @media(max-width: 991px) {
-        text-align: center;
+        text-align: left;
         margin-bottom: 30px;
       }
 
@@ -1424,7 +1472,9 @@ $merriweather: "Merriweather", Georgia;
   #features {
     .feature {
       border: solid 1px #f5f5f5;
-      height: 180px;
+      @media(min-width: 992px) {
+        height: 180px;
+      }
       overflow: hidden;
       margin-bottom: 30px;
       padding: 0;
@@ -1440,21 +1490,33 @@ $merriweather: "Merriweather", Georgia;
         }
       }
       .desc {
+        padding-bottom: 15px;
         h1 {
           font-size: 16px;
           font-weight: bold;
           margin: 15px 0 7px 0;
+          i {
+            font-size: 20px;
+            margin-right: 10px;
+            @media (min-width: 768px) {
+              display: none;
+            }
+          }
           &:after {
             content: "";
             display: block;
             height: 1px;
             margin: 10px 0px;
-            width: 50px;
+            width: 100%;
+            @media(min-width: 768px) {
+              width: 50px;
+            }
             background: rgb(212, 212, 212) none repeat scroll 0% 0%;
           }
         }
         p {
           font-size: 12px;
+          margin-bottom: 0;
         }
         .actions {
           font-size: 14px;

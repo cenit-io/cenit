@@ -87,6 +87,9 @@
   .desc {
     h1 {
       color: $color;
+      &:after {
+        background: $color none repeat scroll 0% 0%;
+      }
     }
     .actions {
       .link {
