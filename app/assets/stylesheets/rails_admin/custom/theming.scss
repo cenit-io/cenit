@@ -293,6 +293,7 @@ ul.drawer li a span {
 #wrapper.toggled #sidebar-wrapper .nav-caret,
 #wrapper.toggled #sidebar-wrapper .nav-caption {
   opacity: 1;
+  text-transform: capitalize;
 }
 
 #wrapper #sidebar-wrapper:hover {
@@ -2526,6 +2527,9 @@ section#welcome_users {
   float: left;
   width: 100%;
 
+  .nav-icon i {
+    font-size: 22px;
+  }
 }
 
 .panel-collapse {
@@ -3304,6 +3308,7 @@ button#model-nav-xs {
     clear: both;
   }
 }
+
 .toggle-boolean {
   margin: 0 7px;
   cursor: pointer;
