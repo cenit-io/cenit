@@ -58,7 +58,8 @@
           .actions.clearfix
             %li= link_to(t('admin.misc.current_tenant'), show_path(model_name: acc_am.to_param, id: Account.current_tenant.id))
             %li= link_to(t('admin.misc.add_tenant'), url_for(action: new_action.action_name, model_name: acc_am.to_param))
-
+  %ul#help-nav.nav.navbar-nav.navbar-right
+    = render partial: 'rails_admin/main/help_links'
   %ul.nav.navbar-nav.navbar-right.root_links
     - if (t_link = tasks_link)
       %li#action-tasks= t_link

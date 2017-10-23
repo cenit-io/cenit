@@ -16,18 +16,33 @@ module RailsAdmin
             configure :bind_model, :model
             configure :bind, :record
 
+            ffields = []
+
+            ::Setup::Binding.reflect_on_all_associations(:belongs_to).each do |relation|
+              ffields << relation.name
+              if relation.name.to_s.ends_with?('binder')
+                configure relation.name, :belongs_to_association do
+                  label { "Binder #{RailsAdmin.config(relation.klass).label}" }
+                end
+              else
+                configure relation.name, :belongs_to_association do
+                  label { "#{RailsAdmin.config(relation.klass).label} Bind" }
+                end
+              end
+            end
+
             edit do
               ::Setup::Binding.reflect_on_all_associations(:belongs_to).each do |relation|
                 if relation.name.to_s.ends_with?('binder')
                   field relation.name do
-                    label { relation.klass.to_s.split('::').last.to_title }
+                    label { RailsAdmin.config(relation.klass).label }
                     read_only true
                     visible { value.present? }
                     help ''
                   end
                 else
                   field relation.name do
-                    label { relation.klass.to_s.split('::').last.to_title }
+                    label { RailsAdmin.config(relation.klass).label }
                     inline_edit false
                     inline_add false
                     visible { value.present? }
@@ -37,7 +52,17 @@ module RailsAdmin
               end
             end
 
-            fields :binder_model, :binder, :bind_model, :bind, :updated_at
+            list do
+              field :binder_model
+              field :binder
+              field :bind_model
+              field :bind
+              field :updated_at
+            end
+
+            ffields << :updated_at
+
+            filter_fields *ffields
 
             show_in_dashboard false
           end

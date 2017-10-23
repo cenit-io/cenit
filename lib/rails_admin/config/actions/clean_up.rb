@@ -4,6 +4,10 @@ module RailsAdmin
 
       class CleanUp < RailsAdmin::Config::Actions::Base
 
+        register_instance_option :only do
+          Account
+        end
+
         register_instance_option :pjax? do
           true
         end
