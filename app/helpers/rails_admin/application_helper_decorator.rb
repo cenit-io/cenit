@@ -439,20 +439,6 @@ module RailsAdmin
         end
         main_labels.insert definitions_index + i, links
       end
-      if @dashboard_group_ref
-        dashboard_link = %(
-           <div id="main-dashboard-#{@dashboard_group_ref}" class="panel panel-default">
-            <div class='panel-heading dashboard-heading'>
-              <a href='/#{@dashboard_group_ref}/dashboard' class='panel-title in'>
-                <span class='nav-icon' title="Dashboard"><i class='fa fa-tachometer'></i></span>
-                <span class='nav-caption'>Dashboard</span>
-              </a>
-              <a href='#' class='panel-title in' id="sidebar-toggle">
-                <span class='nav-caret'><i class='fa fa-navicon'></i></span>
-              </a>
-            </div></div>)
-        main_labels.insert(0, dashboard_link)
-      end
       main_labels.join.html_safe
     end
 

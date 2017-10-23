@@ -1,4 +1,14 @@
 %ul#main-accordion.sidebar-nav.nav.nav-pills.nav-stacked.panel-group
+  -if @dashboard_group_ref
+    %div{id: "main-dashboard-#{@dashboard_group_ref}", class: "panel-dashboard"}
+      .dashboard-heading
+        = link_to "/#{@dashboard_group_ref}/dashboard", class: 'panel-title in' do
+          = content_tag :span, class:'nav-icon', title:"Dashboard" do
+            %i.fa.fa-tachometer
+          = content_tag :span,'Dashboard', class:'nav-caption'
+        = link_to "#", class: 'panel-title', id:'sidebar-toggle' do
+          = content_tag :span, class:'nav-caret' do
+            %i.fa.fa-navicon
   = main_navigation
 .social-links
   #os-love
