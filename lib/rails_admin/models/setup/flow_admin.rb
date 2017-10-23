@@ -237,7 +237,7 @@ module RailsAdmin
                 end
                 associated_collection_scope do
                   limit = (associated_collection_cache_all ? nil : 30)
-                  Proc.new { |scope| scope.where('$or': [{ parameters: { '$size': 1 } }, { parameters: { '$size': 2 } }]).limit(limit) }
+                  Proc.new { |scope| scope.and('$or': [{ parameters: { '$size': 1 } }, { parameters: { '$size': 2 } }]).limit(limit) }
                 end
               end
               field :response_translator do
