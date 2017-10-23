@@ -36,5 +36,9 @@ module RailsAdmin
         %{$.filters.append(#{options.to_json});}
       end.join("\n").html_safe if ordered_filters
     end
+
+    def filterable_fields
+      @filterable_fields ||= @model_config.filter_fields
+    end
   end
 end

@@ -120,7 +120,7 @@ module RailsAdmin
       end
 
       def filter_query_conditions(query, fields = nil)
-        fields_query_conditions(:filter_fields, query, fields)
+        fields_query_conditions(:filter_query_fields, query, fields)
       end
 
       def query_conditions(query, fields = nil)
