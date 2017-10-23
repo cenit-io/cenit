@@ -83,6 +83,8 @@ module RailsAdmin
             end
 
             fields :namespace, :name, :description, :language, :parameters, :call_links, :tags
+
+            filter_query_fields :namespace, :name
           end
         end
 

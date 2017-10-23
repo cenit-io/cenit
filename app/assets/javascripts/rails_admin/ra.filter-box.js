@@ -71,7 +71,6 @@
                     break;
                 case 'string':
                 case 'text':
-                case 'belongs_to_association':
                     control = '<select class="switch-additionnal-fieldsets input-sm form-control" value="' + field_operator + '" name="' + operator_name + '">' +
                         '<option data-additional-fieldset="additional-fieldset"'  + (field_operator == "like"        ? 'selected="selected"' : '') + ' value="like">' + RailsAdmin.I18n.t("contains") + '</option>' +
                         '<option data-additional-fieldset="additional-fieldset"'  + (field_operator == "is"          ? 'selected="selected"' : '') + ' value="is">' + RailsAdmin.I18n.t("is_exactly") + '</option>' +
