@@ -264,12 +264,28 @@ ul.drawer li a span {
   }
 }
 
+.panel-dashboard {
+  border: solid 1px rgba(221, 221, 221, 0.87);
+  border-radius: 4px;
+  margin-bottom: 5px !important;
+  .dashboard-heading {
+    padding: 10px 0 !important;
+    border: 0;
+    box-shadow: none;
+    width: 100%;
+    .nav-icon {
+      padding: 0 15px 0 30px;
+    }
+
+  }
+}
+
 #sidebar-wrapper {
   z-index: 1000;
   position: fixed;
   left: 250px;
   width: 55px;
-  margin-top: -2px;
+  margin-top: -4px;
   height: calc(100% - 50px);
   margin-left: -250px;
   overflow-y: auto;
@@ -293,6 +309,7 @@ ul.drawer li a span {
 #wrapper.toggled #sidebar-wrapper .nav-caret,
 #wrapper.toggled #sidebar-wrapper .nav-caption {
   opacity: 1;
+  text-transform: capitalize;
 }
 
 #wrapper #sidebar-wrapper:hover {
@@ -393,6 +410,14 @@ div#subdomain-toggle {
 ul#main-accordion {
   padding: 6px;
   background: #3d4046;
+  > li.no-childrens {
+    a {
+      &.active {
+        background-color: #d9edf7 !important;
+        color: #31708f !important;
+      }
+    }
+  }
 }
 
 .panel-heading {
@@ -2526,6 +2551,9 @@ section#welcome_users {
   float: left;
   width: 100%;
 
+  .nav-icon i {
+    font-size: 22px;
+  }
 }
 
 .panel-collapse {
@@ -2554,6 +2582,7 @@ li.no-childrens {
   a {
     padding-left: 0;
   }
+
   span.with_icon {
     padding: 0 12px;
     width: 48px;
@@ -2582,7 +2611,7 @@ li.no-childrens {
 }
 
 .nav-icon.plus {
-  padding: 0 15px;
+  padding: 0 15px 0 30px
 }
 
 .popover.tour-anonymous {
@@ -2899,7 +2928,7 @@ button#model-nav-xs {
 }
 
 .menu-separator {
-  padding: 1px;
+  padding: 1px 0 0 0;
   background: white;
   margin: 5px -6px;
   border: none;
@@ -3304,6 +3333,7 @@ button#model-nav-xs {
     clear: both;
   }
 }
+
 .toggle-boolean {
   margin: 0 7px;
   cursor: pointer;
