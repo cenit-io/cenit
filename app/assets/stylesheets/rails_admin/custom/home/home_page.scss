@@ -48,6 +48,9 @@ $merriweather: "Merriweather", Georgia;
 }
 
 #home_page {
+  #subdomain-panel {
+    top: 78px;
+  }
   #secondary-nav-xs {
     .icon-bar {
       background: white;
@@ -58,12 +61,20 @@ $merriweather: "Merriweather", Georgia;
   }
   #nav-drawer-toggle {
     padding: 0;
-    font-size: 32px;
     color: white;
     -webkit-transition: all .3s ease-in-out;
     transition: all .2s ease-in-out;
-    &:hover {
-      color: #f89626 !important;
+    width: 30px;
+    margin-top: 15px;
+    margin-left: 10px;
+
+    .line {
+      background: #fff;
+      width: 100%;
+      height: 3px;
+      margin-bottom: 6px;
+      border-radius: 1px;
+      display: block;
     }
   }
   .nav > li > a:hover, .nav > li > a:focus {
@@ -92,6 +103,13 @@ $merriweather: "Merriweather", Georgia;
     margin-top: 6px;
     margin-bottom: 4px;
     display: inline-block;
+
+    a#sign-in-link {
+      padding: 5px 15px;
+      font-size: 20px;
+      line-height: 1;
+      margin-top: 3px;
+    }
   }
   #go-up {
     position: fixed;
@@ -123,9 +141,13 @@ $merriweather: "Merriweather", Georgia;
   }
   #subdomains {
     background-image: image_url('home/connected_circles_up.png');
-    .service-link {
-      text-decoration: none;
-
+    .service-container {
+      .service-link {
+        text-decoration: none;
+        &:hover {
+          cursor: pointer;
+        }
+      }
       .service-box {
         padding: 15px;
         margin-bottom: 15px;
@@ -169,17 +191,31 @@ $merriweather: "Merriweather", Georgia;
           height: 34px;
           overflow: hidden;
           margin: 0;
+          a {
+            color: #658bca;
+            text-decoration: none;
+            &:not(:last-child):after {
+              content: ' - ';
+              color: gray;
+              text-decoration: none;
+              &:hover {
+                color: gray;
+              }
+            }
+            &:hover {
+              color: #ffa500;
+            }
+          }
         }
       }
       &:hover {
         .service-box {
           border: solid 1px orange;
           box-shadow: 1.8px 2.4px 7px rgba(0, 0, 0, 0.35);
-          cursor: pointer;
+
         }
       }
     }
-
   }
   #open_ipass {
     position: relative;
@@ -245,6 +281,11 @@ $merriweather: "Merriweather", Georgia;
       color: white;
       border-color: whitesmoke;
       cursor: pointer;
+      &:hover {
+        border-color: #fca326;
+        color: #e24329;
+        background: white;
+      }
     }
   }
   .comment-container {
@@ -425,6 +466,7 @@ $merriweather: "Merriweather", Georgia;
             transition: color .5s;
             text-decoration: none;
             cursor: pointer;
+            white-space: nowrap;
           }
           i {
             transition: color .5s;
@@ -435,6 +477,7 @@ $merriweather: "Merriweather", Georgia;
           &:hover {
             a {
               color: #4c8bff !important;
+
             }
           }
         }
@@ -444,6 +487,8 @@ $merriweather: "Merriweather", Georgia;
               font-size: 18px;
               margin-right: 7px;
               color: #3d4046;
+              width: 24px;
+              text-align: center;
             }
             &:hover {
               a {
@@ -711,6 +756,8 @@ $merriweather: "Merriweather", Georgia;
           .bg {
             background: #3F51B5;
             background: linear-gradient(180deg, rgb(35, 26, 61) 0%, #3F51B5 100%);
+            background-image: image_url('home/city.jpg');
+            background-position: 50% 30%;
             &:after {
               //background: rgba(52, 52, 58, 0.6);
             }
@@ -723,7 +770,7 @@ $merriweather: "Merriweather", Georgia;
               letter-spacing: 1.2px;
               font-weight: bold;
               color: #fff;
-              text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.8);
+              text-shadow: 1px 0px 5px rgba(0, 0, 0, 1);
               text-align: center;
 
               @media (max-width: 767px) {
@@ -732,7 +779,7 @@ $merriweather: "Merriweather", Georgia;
               }
             }
             p {
-              color: white;
+              color: black;
               font-family: "Lato", "Helvetica Neue", Arial;
               margin-top: 15px;
               font-size: 18px;
@@ -1159,7 +1206,7 @@ $merriweather: "Merriweather", Georgia;
         a {
           cursor: pointer;
           text-decoration: none;
-          color: #5396ff;
+          color: #ea7400;
           font-weight: bold;
           &:hover {
             color: white;

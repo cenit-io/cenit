@@ -181,7 +181,7 @@ module RailsAdmin
             {
               param: 'compute',
               label: 'Compute',
-              icon: 'fa fa-cogs',
+              icon: 'fa fa-cog',
               externals: ['Setup::Notebook'],
               sublinks: %w(Setup::Algorithm Setup::Application Setup::Snippet Setup::Filter Setup::Notebook)
             },
