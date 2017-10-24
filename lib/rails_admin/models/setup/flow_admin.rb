@@ -7,7 +7,7 @@ module RailsAdmin
         included do
           rails_admin do
             navigation_label 'Workflows'
-            navigation_icon 'fa fa-cogs'
+            navigation_icon 'fa fa-map-signs'
             weight 500
             object_label_method { :custom_title }
             register_instance_option(:form_synchronized) do

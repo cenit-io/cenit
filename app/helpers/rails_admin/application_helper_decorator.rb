@@ -439,20 +439,6 @@ module RailsAdmin
         end
         main_labels.insert definitions_index + i, links
       end
-      if @dashboard_group_ref
-        dashboard_link = %(
-           <div id="main-dashboard-#{@dashboard_group_ref}" class="panel panel-default">
-            <div class='panel-heading dashboard-heading'>
-              <a href='/#{@dashboard_group_ref}/dashboard' class='panel-title in'>
-                <span class='nav-icon' title="Dashboard"><i class='fa fa-tachometer'></i></span>
-                <span class='nav-caption'>Dashboard</span>
-              </a>
-              <a href='#' class='panel-title in' id="sidebar-toggle">
-                <span class='nav-caret'><i class='fa fa-navicon'></i></span>
-              </a>
-            </div></div>)
-        main_labels.insert(0, dashboard_link)
-      end
       main_labels.join.html_safe
     end
 
@@ -1099,7 +1085,7 @@ module RailsAdmin
           value.from(value.index('</li>') + 5)
       elsif @model_config && @model_config.dashboard_group_path.length > 1
         value = value.to(value.index('<li') - 1) +
-          "<li class=\"active\">#{@dashboard_group_ref.capitalize }</li>" +
+          "<li class=\"false\"><a class=\"pjax\" href=\"#{@dashboard_group_ref }/dashboard\" title=\"#{@dashboard_group_ref.capitalize } Dashboard\">#{@dashboard_group_ref.capitalize }</a></li>" +
           value.from(value.index('</li>') + 5)
         value = value.to(value.index('</ol>')-1) + '</ol>'
       end
