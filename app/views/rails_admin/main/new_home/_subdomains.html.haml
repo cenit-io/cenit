@@ -2,14 +2,8 @@
   .container
     .header
       %h3='Services'
-      %p="Explore our services. It's Free, try it now!"
+      %p
+        ="Explore our services. It's Free, "
+        = link_to 'try it now!', '#',class: 'go-sign-in'
     .row
-      -home_services_menu.each do |i|
-        .col-xs-12.col-sm-4.col-md-3
-          = link_to i[:url], class:'service-link', target: '_blank' do
-            .service-box
-              %h1
-                = i[:title]
-              %i{class: i[:icon]}
-              %p
-                = i[:description]
+      = subdomains_at_home

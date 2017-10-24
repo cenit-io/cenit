@@ -686,6 +686,55 @@ module RailsAdmin
       target
     end
 
+    def subdomains_at_home()
+      home_groups = RailsAdmin::Config.dashboard_groups
+      home_groups << {
+        param: 'security',
+        label: 'Security',
+        icon: 'fa fa-shield',
+        externals: [],
+        sublinks: %w(Setup::RemoteOauthClient Setup::OauthProvider Setup::Oauth2Provider Setup::SmtpProvider Setup::Oauth2Scope Setup::BasicAuthorization Setup::Notebook)
+      }
+      html = ''
+      home_groups.each_with_index do |g, index|
+        html += ''
+        models = g[:sublinks]
+        unless models.empty?
+          html+='<div class="col-xs-12 col-sm-4 col-md-3">
+                  <div class="service-container">
+                  <div class="service-box" id="'+ "service_#{g[:label].underscore.gsub(' ', '_')}" +'">
+                  <h1>
+                  <a class="service-link" target="_blank" href="/' + g[:param] +'/dashboard">'+ g[:label] +'
+                  </a></h1>
+                  <a class="service-link" target="_blank" href="/' + g[:param] +'/dashboard"><i class="'+ g[:icon] +'"></i>
+                  </a><p>'
+          models.each do |m|
+            if m.is_a?(Hash)
+              if (link = m[:link])
+                if (rel_link = link[:rel])
+                  model_url = "/#{rel_link}"
+                end
+                if (ext_link = link[:external])
+                  model_url = "#{ext_link}"
+                end
+              else
+                model_url = "/#{m[:param]}/dashboard"
+              end
+              html+= '<a id="'+ "xsl_#{m[:label].underscore.gsub(' ', '_')}" +'" href="'+ model_url +'" target="'+ open_in_new_tab(g, m[:param])+'">'+m[:label]+'</a>'
+            elsif (abstract_model = (model = RailsAdmin::Config.model(m)).abstract_model)
+              model_url = url_for(action: :index, controller: 'rails_admin/main', model_name: abstract_model.to_param)
+              html+= '<a id="'+"l_#{model.label_plural.underscore.gsub(' ', '_')}"+'"href="'+ model_url +'" target="'+ open_in_new_tab(g, m)+'">'+model.label_plural+'</a>'
+            end
+          end
+          html += '</p></div>
+                  </div>
+                  </div>'
+        end
+
+      end
+      html.html_safe
+    end
+
     def dashboard_primary()
       groups = RailsAdmin::Config.dashboard_groups
       html = '<div id="primary_dashboard"><div class="row add-clearfix">'
@@ -1129,7 +1178,7 @@ module RailsAdmin
         { title: 'Transforms', url: '/transforms/dashboard', icon: 'fa fa-random', description: 'Templates - Parsers - Converters - Updaters' },
         { title: 'Gateway', url: '/gateway/dashboard', icon: 'fa fa-hdd-o', description: 'API Specs - OpenAPI Directory - Connectors - Security' },
         { title: 'Integrations', url: '/integrations/dashboard', icon: 'fa fa-puzzle-piece', description: 'Collections - Shared Collections' },
-        { title: 'Compute', url: '/compute/dashboard', icon: 'fa fa-cogs', description: 'Algorithms - Applications - Snippets - Filters- Notebooks' },
+        { title: 'Compute', url: '/compute/dashboard', icon: 'fa fa-cog', description: 'Algorithms - Applications - Snippets - Filters- Notebooks' },
         { title: 'Ecommerce', url: '/ecommerce/dashboard', icon: 'fa fa-shopping-cart', description: 'Products - Inventories - Carts - Orders - Shipments' },
         { title: 'Security', url: '/security/dashboard', icon: 'fa fa-shield', description: 'Remote Clients - Providers - OAuth 2.0 - Authorizations' }
       ]
