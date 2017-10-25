@@ -1,6 +1,4 @@
 %section#open_ipass
-  = link_to 'https://github.com/cenit-io/cenit', class: 'fork-me-ribbon' do
-    = image_tag 'home/fork_me.png'
   .container
     .row
       .col-sm-4
@@ -13,10 +11,9 @@
           %p
             = 'Cenit IO is <strong>Open Source</strong> and <strong>Free</strong>,'.html_safe
             = 'and the right place to shared your integrations, launch your own server and also use pre-built integrations for many populars cloud applications.'
-          .extra.hidden-xs
+          .extra
             %h4.text-muted
               - if current_user
-                = "#{current_user.account.name.split('@')[0]} tenant"
                 - users = tenant_users
               - else
                 - users = recent_users
@@ -27,30 +24,27 @@
                 - title = u.name.present? ? u.name : alt
                 %li
                   = image_tag url, alt: alt, title: title, class: 'img-circle', height: 50, width: 50
-            - if current_user
-              = pluralize(current_user.account.users.count, 'member')
-            - else
-              .community-info
-                .count
-                  = t('admin.actions.dashboard.recent_users.more', count: (User.all.count/5 * 5))
-                - if (false || ENV['SHOW_SLACK_BADGE'])
-                  = link_to 'Join us!', (ENV['SLACK_INVITATION'] || 'https://cenit-slack.herokuapp.com')
-                  .frame
-                    %iframe{ frameborder: "0", height: "20", src: "https://cenit-slack.herokuapp.com/badge.svg", width: "100", :style => 'margin-left: 5px' }
-                - else
-                  .thanks
-                    %span
-                      = 'Thank you for'
-                      = link_to (ENV['SLACK_INVITATION'] || 'https://cenit-slack.herokuapp.com') do
-                        %i.fa.fa-slack
-                        =' joining us!'
+            .community-info
+              - if (false || ENV['SHOW_SLACK_BADGE'])
+                = link_to 'Join us!', (ENV['SLACK_INVITATION'] || 'https://cenit-slack.herokuapp.com')
+                .frame
+                  %iframe{ frameborder: "0", height: "20", src: "https://cenit-slack.herokuapp.com/badge.svg", width: "100", :style => 'margin-left: 5px' }
+              - else
+                .thanks
+                  %span
+                    = 'Thank you for'
+                    = link_to (ENV['SLACK_INVITATION'] || 'https://cenit-slack.herokuapp.com') do
+                      %i.fa.fa-slack
+                      =' joining us!'
+                    %sup
+                      = t('admin.actions.dashboard.recent_users.more', count: (User.all.count/5 * 5))
       .col-sm-4
         .text-center
           %span.rounded.second.active
             ='iPaaS'
         .description
           %h1
-            ='The easiest iPaaS platform'
+            ='Integration Platform Services'
           %p
             ='Cenit IO is the easiest and most open iPaaS platform to '
             %strong
@@ -62,7 +56,17 @@
             %strong
               ='automate'
             ='processes. Intuitive wizards and tools make it fast and easy.'
-          .extra.hidden-xs
+          .extra
+            %ul.list-inline.list-unstyled.steps
+              - apps = [{name: 'Data',icon: 'fa-cube'},
+              {name: 'Events',icon: 'fa-bolt'},
+              {name: 'Transformations',icon: 'fa-random'},
+              {name: 'Connections',icon: 'fa-plug'}]
+              - apps.each do |a|
+                - icon = a[:icon]
+                - title = a[:name]
+                %li
+                  %i{class: "fa fa-2x #{icon}", title: title}
             .community-info
               .thanks
                 %span
@@ -71,52 +75,30 @@
       .col-sm-4
         .text-center
           %span.rounded.third
-            ='500+'
+            ='400+'
         .description
           %h1
             ='Hundreds of Integrations'
           %p
-            = 'Cenit supports over 500 services and counting. Integrations are driven by open standards like RSS, Open API, and RAML, so you can add your own too.'
-    .row.hidden
-      .col-md-offset-1.col-md-10.no-padding-vert
-        .col-sm-6.hidden-xs
-          %h4.text-muted
-            - if current_user
-              = "#{current_user.account.name.split('@')[0]} tenant"
-              - users = tenant_users
-            - else
-              = t('admin.actions.dashboard.recent_users.title')
-              - users = recent_users
-          %ul.list-inline.list-unstyled
-            - users.each do |u|
-              - url = u.picture_url(50)
-              - alt = (u.email.split('@'))[0]
-              - title = u.name.present? ? u.name : alt
-              %li
-                = image_tag url, alt: alt, title: title, class: 'img-circle', height: 50, width: 50
-          - if current_user
-            = pluralize(current_user.account.users.count, 'member')
-          - else
-            %span.text-muted
-              = t('admin.actions.dashboard.recent_users.more', count: (User.all.count/5 * 5))
-              - if (false || ENV['SHOW_SLACK_BADGE'])
-                = link_to 'Be in community', (ENV['SLACK_INVITATION'] || 'https://cenit-slack.herokuapp.com')
-                %iframe{ frameborder: "0", height: "20", src: "https://cenit-slack.herokuapp.com/badge.svg", width: "100", :style => 'margin-left: 5px' }
-              - else
-                Be in community
-                = link_to 'Join our Slack', (ENV['SLACK_INVITATION'] || 'https://cenit-slack.herokuapp.com')
-        .col-sm-6.tenants.hidden-xs.text-center
-          %h4.text-muted{style:'margin-top: 10px;'}
-            - if current_user
-              = link_to(pluralize(current_user.all_accounts.count, 'tenant'), index_path(model_name: 'account'))
-            - else
-              = pluralize(Account.count, 'tenant')
-          %ul.list-inline.list-unstyled{style: 'margin-left: -11px;'}
-            %li
-              .block
-                .icon
-                  %i.fa.fa-fw.fa-home{style: 'font-size: 40px;'}
-                .icon{style: 'margin-left: -20px;'}
-                  %i.fa.fa-fw.fa-home{style: 'font-size: 24px;'}
-          %span.text-muted
-            = link_to(t('admin.misc.add_tenant'), new_path(model_name: 'account'))
+            = 'Cenit IO has hundreds of integrations (<strong>shared collections</strong>) created by our community, that covers almost every popular APIs and is a great tool to create your own integration from scratch.'.html_safe
+          .extra
+            %ul.list-inline.list-unstyled
+              - apps = [{name: 'Gmail',src: 'google_gmail.png'},
+              {name: 'Magento',src: 'magento.png'},
+              {name: 'Slack',src: 'slack.png'},
+              {name: 'Trello',src: 'trello.png'}]
+              - apps.each do |a|
+                - url = a[:src]
+                - alt = a[:name]
+                - title = a[:name]
+                %li
+                  = image_tag "home/integrations/examples/#{url}", alt: alt, title: title, height: 50, width: 50
+            .community-info
+              .thanks
+                %span
+                  = link_to '/cross_shared_collection' do
+                    ='Shared Collections'
+                  = ' &amp; '.html_safe
+                  = link_to '/open_api_directory' do
+                    ='Open Api Directory'
+                    %sup{title:'API specs supplied by APIs.guru'}='+ 470'
