@@ -3,7 +3,7 @@ module RailsAdmin
     module Actions
       Base.class_eval do
 
-        #TODO Remove this option when rendering history tracks modified field using other field type than :code
+        #TODO Remove this option when rendering attributes traces field using other field type than :code
         register_instance_option :listing? do
           false
         end

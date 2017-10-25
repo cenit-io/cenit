@@ -67,7 +67,9 @@ require 'rails_admin/config_decorator'
   RailsAdmin::Config::Actions::ImportApiSpec,
   RailsAdmin::Config::Actions::RemoteSharedCollection,
   RailsAdmin::Config::Actions::OpenApiDirectory,
-  RailsAdmin::Config::Actions::Collect
+  RailsAdmin::Config::Actions::Collect,
+  RailsAdmin::Config::Actions::TraceShow,
+  RailsAdmin::Config::Actions::TraceIndex
 ].each { |a| RailsAdmin::Config::Actions.register(a) }
 
 [
@@ -306,7 +308,7 @@ RailsAdmin.config do |config|
     send_to_flow
     delete_all
     data_type
-    history_index do
+    trace_index do
       only do
         [
           Setup::Algorithm,
@@ -325,10 +327,10 @@ RailsAdmin.config do |config|
           Setup::BaseOauthProvider.class_hierarchy
       end
     end
-    history_show do
+    trace_show do
       only do
         [
-          HistoryTracker,
+          Mongoid::Tracer::Trace,
           Setup::Algorithm,
           Setup::Connection,
           Setup::PlainWebhook,
@@ -344,7 +346,7 @@ RailsAdmin.config do |config|
           Setup::Validator.class_hierarchy +
           Setup::BaseOauthProvider.class_hierarchy
       end
-      visible { only.include?((obj = bindings[:object]).class) && (obj.class == HistoryTracker || obj.try(:track_history?)) }
+      visible { only.include?((obj = bindings[:object]).class) && (obj.class == Mongoid::Tracer::Trace || obj.try(:tracing?)) }
     end
     algorithm_dependencies do
       only do
@@ -626,6 +628,6 @@ RailsAdmin.config do |config|
 
   Setup::Category
 
-  # Audit
-  HistoryTracker
+  # Tracing
+  Mongoid::Tracer::Trace
 end

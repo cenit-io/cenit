@@ -4,7 +4,7 @@ module Setup
 
     include CenitScoped
     include CrossOrigin::CenitDocument
-    include Trackable
+    include Mongoid::Tracer
 
     included do
       origins :default, -> { Cenit::MultiTenancy.tenant_model.current && :owner }, :shared
@@ -31,43 +31,12 @@ module Setup
       self.tenant = Account.current if new_record?
     end
 
-    def track_history?
-      (shared? || self.class.data_type.track_default_history) && super
+    def tracing?
+      (shared? || self.class.data_type.trace_by_default) && super
     end
 
-    def history_tracker_class
-      tracker_class = Mongoid::History.tracker_class
-      tracker_class.with(self.class.mongoid_root_class)
-    end
-
-    def history_tracks
-      @history_tracks ||= history_tracker_class.where(scope: related_scope, association_chain: association_hash)
-    end
-
-    def history_tracks_scope
-      track_scope = related_scope
-      association_chain = association_hash
-      proc do |scope|
-        scope.where(scope: track_scope, association_chain: association_chain)
-      end
-    end
-
-    def track_history_for_action!(action)
-      track_history_for_action(action)
-      save
-    end
-
-    def track_history_for_action(action)
-      if track_history_for_action?(action)
-        current_version = (send(history_trackable_options[:version_field]) || 0) + 1
-        send("#{history_trackable_options[:version_field]}=", current_version)
-        history_tracker_class.create!(history_tracker_attributes(action.to_sym).merge(
-          version: current_version,
-          action: action.to_s,
-          trackable: self,
-          origin: origin))
-      end
-      clear_trackable_memoization
+    def trace_model
+      super.with(self.class.mongoid_root_class)
     end
 
     def not_shared?
@@ -79,9 +48,9 @@ module Setup
     end
 
     def tenant_version
-      if version && (pin = Setup::Pin.for(self)) && pin.version < version
-        undo nil, from: pin.version + 1, to: version
-      end
+      # if version && (pin = Setup::Pin.for(self)) && pin.version < version
+      #   undo nil, from: pin.version + 1, to: version
+      # end
       self
     end
 
@@ -117,10 +86,6 @@ module Setup
 
       def clear_pins_for(tenant, ids)
         Setup::Pin.with(tenant).where(model: mongoid_root_class, :record_id.in => ids).delete_all
-      end
-
-      def history_trackable_options
-        @history_trackable_options ||= Mongoid::History.trackable_class_options[with(tenant: nil).collection_name.to_s.singularize.to_sym]
       end
 
       def super_count

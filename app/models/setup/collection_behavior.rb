@@ -1,4 +1,4 @@
-require 'cenit/cross_tracking_criteria'
+require 'cenit/cross_tracing_criteria'
 
 module Setup
   module CollectionBehavior
@@ -178,7 +178,7 @@ module Setup
       COLLECTING_PROPERTIES.each do |property|
         r = reflect_on_association(property)
         next unless (model = r.klass).include?(Setup::CrossOriginShared)
-        model.where(:id.in => send(r.foreign_key)).and(criteria).with_tracking.cross(origin) do |_, non_tracked_ids|
+        model.where(:id.in => send(r.foreign_key)).and(criteria).with_tracing.cross(origin) do |_, non_tracked_ids|
           next unless non_tracked_ids.present?
           Account.each do |account|
             if account == Account.current

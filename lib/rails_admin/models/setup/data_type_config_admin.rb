@@ -18,7 +18,7 @@ module RailsAdmin
               end
             end
 
-            fields :data_type, :slug, :navigation_link, :chart_rendering, :track_default_history, :updated_at
+            fields :data_type, :slug, :navigation_link, :chart_rendering, :trace_by_default, :updated_at
 
             show_in_dashboard false
           end

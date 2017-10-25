@@ -7,7 +7,6 @@ module RailsAdmin
           true
         end
 
-
         register_instance_option :controller do
           proc do
             #Patch

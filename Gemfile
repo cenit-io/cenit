@@ -101,7 +101,7 @@ gem 'exception_notification'
 gem 'mime'
 gem 'deface'
 
-gem 'cross_origin', git: 'https://github.com/macarci/cross_origin.git'
+gem 'cross_origin', path: '../cross_origin'
 
 gem 'lodash-rails'
 gem 'identicon'
@@ -128,3 +128,6 @@ gem 'imgkit', '1.6.1'
 gem 'origami', git: 'https://github.com/mobmewireless/origami-pdf.git'
 
 gem 'aws-sdk', '~> 2.10.13'
+
+gem 'mongoid-tracer', path: '../mongoid-tracer'
+gem 'diffy'

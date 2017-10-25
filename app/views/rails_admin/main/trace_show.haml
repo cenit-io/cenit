@@ -1,0 +1,23 @@
+.form-horizontal.denser
+  .action
+    %label Action
+    %span{class: "alert alert-#{{created: 'success', updated: 'info', destroyed: 'danger'}[@trace.action] || 'info'}" }
+      = @trace.action
+    %label Traced At
+    %span= @trace.created_at
+  .siblings
+    - if (previous = @trace.previous)
+      - url = url_for(@action.url_options(action: @action.action_name, controller: 'rails_admin/main', model: @abstract_model.to_param, id: @object.id, trace_id: previous.id))
+      =link_to  url, class: 'btn btn-default pjax' do
+        %i.fa.fa-chevron-circle-left
+        ='Previous'
+    - if (next_trace = @trace.next)
+      - url = url_for(@action.url_options(action: @action.action_name, controller: 'rails_admin/main', model: @abstract_model.to_param, id: @object.id, trace_id: next_trace.id))
+      =link_to  url, class: 'btn btn-default pjax' do
+        ='Next'
+        %i.fa.fa-chevron-circle-right
+  .changes
+  - if (changes = @trace.changes_set).present?
+    = @action.build_html_diff(@abstract_model, changes)
+  - else
+    .alert.alert-warning= 'No changes'

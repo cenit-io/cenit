@@ -67,7 +67,7 @@ module Setup
       end
     end
 
-    def track_history?
+    def tracing?
       false
     end
 

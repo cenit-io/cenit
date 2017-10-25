@@ -1,5 +1,5 @@
 module Cenit
-  class CrossTrackingCriteria
+  class CrossTracingCriteria
 
     attr_reader :criteria
 
@@ -8,19 +8,19 @@ module Cenit
     end
 
     def cross(origin = :default)
-      cross_tracks = {}
+      cross_traces = {}
       criteria.each do |record|
         next if record.origin == origin || record.class.origins.exclude?(origin)
-        cross_tracks[record.id] = record.history_tracks
+        cross_traces[record.id] = record.traces
       end
-      cross_criteria = criteria.any_in(id: cross_tracks.keys)
+      cross_criteria = criteria.any_in(id: cross_traces.keys)
       cross_criteria.cross(origin)
       tracked_ids = []
       non_tracked_ids = []
       cross_criteria.each do |record|
-        if record.track_history?
-          cross_tracks[record.id].cross(origin)
-          record.track_history_for_action!("cross #{origin}".to_sym)
+        if record.tracing?
+          cross_traces[record.id].cross(origin)
+          record.trace_action(:cross, "Cross to #{origin}")
           tracked_ids
         else
           non_tracked_ids
@@ -35,8 +35,8 @@ end
 module CrossOrigin
   class Criteria
 
-    def with_tracking
-      Cenit::CrossTrackingCriteria.new(self)
+    def with_tracing
+      Cenit::CrossTracingCriteria.new(self)
     end
   end
 end
