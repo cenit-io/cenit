@@ -35,6 +35,12 @@ module Setup
       (shared? || self.class.data_type.trace_by_default) && super
     end
 
+    def trace_action_attributes
+      attrs = super
+      attrs[:origin] = origin
+      attrs
+    end
+
     def trace_model
       super.with(self.class.mongoid_root_class)
     end

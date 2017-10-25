@@ -48,6 +48,16 @@ module Mongoid
           end
         end
 
+        configure :action do
+          pretty_value do
+            if (msg = bindings[:object].message)
+              "#{msg} (#{bindings[:object].action})"
+            else
+              value.to_s.to_title
+            end
+          end
+        end
+
         configure :attributes_trace, :json_value
 
         fields :target, :action, :attributes_trace, :created_at
