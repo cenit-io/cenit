@@ -49,7 +49,7 @@ $merriweather: "Merriweather", Georgia;
 
 #home_page {
   #subdomain-panel {
-    top: 78px;
+    top: 52px;
   }
   #secondary-nav-xs {
     .icon-bar {
@@ -219,6 +219,33 @@ $merriweather: "Merriweather", Georgia;
   }
   #open_ipass {
     position: relative;
+    .extra {
+      text-align: center;
+      margin-top: 25px;
+
+      .community-info {
+        .count {
+          text-align: center;
+          color: grey;
+        }
+        .thanks {
+          margin-top: 25px;
+          span {
+            color: #58b3ff;
+            font-size: 16px;
+            font-weight: bold;
+            a {
+              color: #5396ff;
+              text-decoration: none;
+              cursor: pointer;
+              &.orange {
+                color: #ea7400;
+              }
+            }
+          }
+        }
+      }
+    }
     .fork-me-ribbon {
       img {
         position: absolute;
@@ -361,7 +388,7 @@ $merriweather: "Merriweather", Georgia;
   }
 
   #home_content {
-    margin-top: 78px;
+    margin-top: 52px;
   }
 
   .top-bar {
@@ -754,10 +781,8 @@ $merriweather: "Merriweather", Georgia;
             padding-top: 50px;
           }
           .bg {
-            background: #3F51B5;
-            background: linear-gradient(180deg, rgb(35, 26, 61) 0%, #3F51B5 100%);
-            background-image: image_url('home/city.jpg');
-            background-position: 50% 30%;
+            background-image: image_url('home/c5.jpeg');
+            background-position: center 18%;
             &:after {
               //background: rgba(52, 52, 58, 0.6);
             }

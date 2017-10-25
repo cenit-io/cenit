@@ -9,11 +9,41 @@
             = 'Free'
         .description
           %h1
-            ='Open Source and Free, forever'
+            ='Be in Community'
           %p
-            = 'Cenit IO is open source, so there\'s no risk of getting locked in. You can download and run your projects anywhere.'
-          %p
-            = 'You can shared your integrations and also use pre-built integrations for many populars cloud applications.'
+            = 'Cenit IO is <strong>Open Source</strong> and <strong>Free</strong>,'.html_safe
+            = 'and the right place to shared your integrations, launch your own server and also use pre-built integrations for many populars cloud applications.'
+          .extra.hidden-xs
+            %h4.text-muted
+              - if current_user
+                = "#{current_user.account.name.split('@')[0]} tenant"
+                - users = tenant_users
+              - else
+                - users = recent_users
+            %ul.list-inline.list-unstyled
+              - users.each do |u|
+                - url = u.picture_url(50)
+                - alt = (u.email.split('@'))[0]
+                - title = u.name.present? ? u.name : alt
+                %li
+                  = image_tag url, alt: alt, title: title, class: 'img-circle', height: 50, width: 50
+            - if current_user
+              = pluralize(current_user.account.users.count, 'member')
+            - else
+              .community-info
+                .count
+                  = t('admin.actions.dashboard.recent_users.more', count: (User.all.count/5 * 5))
+                - if (false || ENV['SHOW_SLACK_BADGE'])
+                  = link_to 'Join us!', (ENV['SLACK_INVITATION'] || 'https://cenit-slack.herokuapp.com')
+                  .frame
+                    %iframe{ frameborder: "0", height: "20", src: "https://cenit-slack.herokuapp.com/badge.svg", width: "100", :style => 'margin-left: 5px' }
+                - else
+                  .thanks
+                    %span
+                      = 'Thank you for'
+                      = link_to (ENV['SLACK_INVITATION'] || 'https://cenit-slack.herokuapp.com') do
+                        %i.fa.fa-slack
+                        =' joining us!'
       .col-sm-4
         .text-center
           %span.rounded.second.active
@@ -31,7 +61,13 @@
             ='and'
             %strong
               ='automate'
-            ='processes. Intuitive wizards and tools make it fast and easy to integrate anything to anything'
+            ='processes. Intuitive wizards and tools make it fast and easy.'
+          .extra.hidden-xs
+            .community-info
+              .thanks
+                %span
+                  = link_to '/cross_shared_collection', class: 'orange' do
+                    ='Integrate anything to anything!'
       .col-sm-4
         .text-center
           %span.rounded.third
