@@ -688,13 +688,6 @@ module RailsAdmin
 
     def subdomains_at_home()
       home_groups = RailsAdmin::Config.dashboard_groups
-      home_groups << {
-        param: 'security',
-        label: 'Security',
-        icon: 'fa fa-shield',
-        externals: [],
-        sublinks: %w(Setup::RemoteOauthClient Setup::OauthProvider Setup::Oauth2Provider Setup::SmtpProvider Setup::Oauth2Scope Setup::BasicAuthorization Setup::Notebook)
-      }
       html = ''
       home_groups.each_with_index do |g, index|
         html += ''
@@ -1164,9 +1157,7 @@ module RailsAdmin
         { name: 'Linkedin', url: 'https://www.linkedin.com/company/cenit-io', icon: 'fa-linkedin' },
         { name: 'Facebook', url: 'https://www.facebook.com/cenit.io', icon: 'fa-facebook' },
         { name: 'Twitter', url: 'https://www.twitter.com/cenit_io', icon: 'fa-twitter' },
-        { name: 'Youtube', url: 'http://www.youtube.com/channel/UC7JVcEmA3BkiR2SZ_lx5lyA', icon: 'fa-youtube' },
-        { name: 'GitHub', url: 'https://github.com/cenit-io/cenit', icon: 'fa-github' },
-        { name: 'Slack', url: 'http://cenit-slack.herokuapp.com', icon: 'fa-slack' }
+        { name: 'Youtube', url: 'http://www.youtube.com/channel/UC7JVcEmA3BkiR2SZ_lx5lyA', icon: 'fa-youtube' }
 
       ]
     end

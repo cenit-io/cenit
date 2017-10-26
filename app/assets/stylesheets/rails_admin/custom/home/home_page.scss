@@ -29,27 +29,49 @@ $merriweather: "Merriweather", Georgia;
   }
 }
 
-.slide {
-  .from-right {
-    -webkit-transition: all .3s ease-in-out;
-    transition: all .2s ease-in-out;
-    opacity: 0;
-    -webkit-transform: translateX(50px);
-    transform: translateX(50px);
-    backface-visibility: hidden;
-  }
-  &.active {
+#home_page {
+  .slide {
     .from-right {
-      -webkit-transform: translateX(0);
-      transform: translateX(0);
-      opacity: 1;
+      -webkit-transition: all .3s ease-in-out;
+      transition: all .2s ease-in-out;
+      opacity: 0;
+      -webkit-transform: translateX(50px);
+      transform: translateX(50px);
+      backface-visibility: hidden;
+    }
+    &.active {
+      .from-right {
+        -webkit-transform: translateX(0);
+        transform: translateX(0);
+        opacity: 1;
+      }
     }
   }
-}
 
-#home_page {
+  .fork-me-ribbon {
+    img {
+      position: absolute;
+      top: 52px;
+      right: 0;
+      width: 135px;
+      -webkit-transition: all .3s ease-in-out;
+      transition: all .3s ease-in-out;
+    }
+    &:hover {
+      img {
+        -ms-filter: grayscale(1) sepia(0.4) brightness(160%) hue-rotate(210deg);
+        -webkit-filter: grayscale(1) sepia(0.4) brightness(160%) hue-rotate(210deg);
+        -moz-filter: grayscale(1) sepia(0.4) brightness(160%) hue-rotate(210deg);
+        -o-filter: grayscale(1) sepia(0.4) brightness(160%) hue-rotate(210deg);
+        filter: grayscale(1) sepia(0.4) brightness(160%) hue-rotate(210deg);
+      }
+    }
+  }
+  ul.drawer {
+    z-index: 2;
+  }
   #subdomain-panel {
-    top: 78px;
+    top: 52px;
   }
   #secondary-nav-xs {
     .icon-bar {
@@ -218,26 +240,72 @@ $merriweather: "Merriweather", Georgia;
     }
   }
   #open_ipass {
+    margin-top: 50px;
     position: relative;
-    .fork-me-ribbon {
-      img {
-        position: absolute;
-        top: 0;
-        right: 0;
-        width: 135px;
-        @media(min-width: 768px) {
-          width: 200px;
-        }
-        -webkit-transition: all .3s ease-in-out;
-        transition: all .3s ease-in-out;
+    @media(min-width: 768px) {
+      margin-top: 100px;
+    }
+    @media(min-width: 992px) {
+      margin-top: 0;
+    }
+    .extra {
+      text-align: center;
+      margin-top: 25px;
+      @media(max-width: 767px) {
+        margin-bottom: 25px;
       }
-      &:hover {
-        img {
-          -ms-filter: grayscale(1) sepia(0.4) brightness(160%) hue-rotate(210deg);
-          -webkit-filter: grayscale(1) sepia(0.4) brightness(160%) hue-rotate(210deg);
-          -moz-filter: grayscale(1) sepia(0.4) brightness(160%) hue-rotate(210deg);
-          -o-filter: grayscale(1) sepia(0.4) brightness(160%) hue-rotate(210deg);
-          filter: grayscale(1) sepia(0.4) brightness(160%) hue-rotate(210deg);
+      ul.list-inline {
+        display: none;
+        @media(min-width: 992px) {
+          display: block;
+        }
+      }
+      .steps li {
+        width: 80px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        background: rgba(83, 150, 255, 0.59);
+        padding: 9px 8px;
+        border-radius: 50%;
+        margin: 0 -13px;
+        color: white;
+      }
+      .desc {
+        font-size: 12px;
+        margin-top: 7px;
+        font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+        color: #5396ff;
+        font-weight: bold;
+      }
+      .community-info {
+        margin-top: 25px;
+        &:before {
+          content: '';
+          height: 1px;
+          background: rgb(172, 205, 255);
+          display: block;
+          width: 45%;
+          margin: auto;
+        }
+        .thanks {
+          margin-top: 15px;
+          span {
+            color: gray;
+            font-size: 14px;
+            font-weight: bold;
+            a {
+              color: #5396ff;
+              text-decoration: none;
+              cursor: pointer;
+              &.orange {
+                color: #ea7400;
+              }
+            }
+            sup {
+              font-weight: normal;
+              color: gray;
+            }
+          }
         }
       }
     }
@@ -361,7 +429,7 @@ $merriweather: "Merriweather", Georgia;
   }
 
   #home_content {
-    margin-top: 78px;
+    margin-top: 52px;
   }
 
   .top-bar {
@@ -754,10 +822,8 @@ $merriweather: "Merriweather", Georgia;
             padding-top: 50px;
           }
           .bg {
-            background: #3F51B5;
-            background: linear-gradient(180deg, rgb(35, 26, 61) 0%, #3F51B5 100%);
-            background-image: image_url('home/city.jpg');
-            background-position: 50% 30%;
+            background-image: image_url('home/c5.jpeg');
+            background-position: center 18%;
             &:after {
               //background: rgba(52, 52, 58, 0.6);
             }

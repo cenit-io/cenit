@@ -2668,7 +2668,7 @@ li.no-childrens {
 }
 
 footer {
-  background: black;
+  background: #3d4046;
   padding-top: 70px;
   padding-bottom: 30px;
   -webkit-font-smoothing: antialiased;
@@ -2719,6 +2719,13 @@ footer {
           font-weight: 500;
           font-size: 13px;
           @include transition(all 0.2s linear);
+
+          i {
+            margin-right: 10px;
+            width: 18px;
+            font-size: 18px;
+            text-align: center;
+          }
 
           &:hover {
             color: #1FBEE7;
