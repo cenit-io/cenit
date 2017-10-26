@@ -456,6 +456,7 @@ function registerEvents() {
 
         if ($("#sidebar-wrapper").css('width') == "55px") {
             $nav_icon.removeClass('no-view');
+            $content_wrapper.css('width', 'calc(100% - 250px)');
 
         } else {
             if ($wrapper.hasClass("toggled")) {
@@ -467,8 +468,8 @@ function registerEvents() {
                 $content_wrapper.css('width', 'calc(100% - 55px)');
 
             }
-            $accordion.find('.panel-default').removeClass('active');
-            $accordion.find('.panel-collapse').removeClass('in')
+            //$accordion.find('.panel-default').removeClass('active');
+            //$accordion.find('.panel-collapse').removeClass('in')
         }
     });
     $("#subdomain-toggle").off().on('click', function (e) {
@@ -478,13 +479,22 @@ function registerEvents() {
         var $subdomain = $(e.target).parents().find('#subdomain-toggle');
         $subdomain.toggleClass("toggled");
     });
-    $main_accordion.find('.panel-heading a.panel-title').click(function () {
+    $main_accordion.find('.panel-heading a.panel-title').off().click(function () {
         var parent = $(this).parent().parent();
         $(parent).toggleClass('active');
+        $main_accordion.find('.no-childrens a').removeClass('active');
         if ($(parent).hasClass('active'))
             $(parent).siblings().each(function () {
                 $(this).removeClass('active');
             });
+    });
+    $main_accordion.find('li.no-childrens a').off().click(function () {
+        var parent = $(this).parent().parent();
+        $(parent).find('.no-childrens a').removeClass('active');
+        $(parent).find('.panel-default').removeClass('active');
+        if (!$(this).hasClass('active')) {
+            $(this).addClass('active');
+        }
     });
     $main_accordion.find('a[data-toggle="collapse"]').on('click', function () {
         var $conten_wraper = $("#content-wrapper"),
