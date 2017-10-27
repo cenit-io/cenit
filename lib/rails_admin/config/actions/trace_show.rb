@@ -36,7 +36,7 @@ module RailsAdmin
           end
         end
 
-        def diffstat(additions, deletions)
+        def diffstat(additions, deletions, resume = false)
           blocks = ''
           added, deleted =
             if (total = additions + deletions) > 0
@@ -61,7 +61,15 @@ module RailsAdmin
             blocks += '<span class="block-diff-neutral"></span>'
             neutral = neutral -1
           end
-          html = %(<span class="diffstat tooltipped tooltipped-e" title="#{additions} additions &amp; #{deletions} deletions">
+          title, prefix =
+            if resume
+              additions_resume = additions > 0 ? %(<span class="additions">+ #{additions} </span>) : ''
+              deletions_resume = deletions > 0 ? %(<span class="deletions">- #{deletions} </span>) : ''
+              ["#{additions + deletions} changes", %(#{additions_resume}#{deletions_resume})]
+          else
+            ["#{additions} additions &amp; #{deletions} deletions",additions+deletions]
+          end
+          %(<span class="total-changes">#{prefix}</span><span class="diffstat tooltipped tooltipped-e" title="#{title}">
             #{blocks}
           </span>
           )
@@ -91,10 +99,10 @@ module RailsAdmin
                     content =
                       if item.size == 1
                         if item['_id'][1]
-                          %(#{diffstat(0,0)}<label class="label label-default">Unchanged<label>)
+                          %(#{diffstat(0, 0)}<label class="label label-default">Unchanged<label>)
                         else
                           deletions += 1
-                          %(#{diffstat(0,1)}<label class="label label-danger">Destroyed</label>)
+                          %(#{diffstat(0, 1)}<label class="label label-danger">Destroyed</label>)
                         end
                       else
                         diff = build_diff(related_abstract_model, item.except('_id'), deep, index)
@@ -116,7 +124,7 @@ module RailsAdmin
                 elsif values
                   build_diff(RailsAdmin.config(relation.klass).abstract_model, values, deep)
                 else
-                  { additions: 0, deletions: 1, html: "#{diffstat(0,1)}Destroyed" }
+                  { additions: 0, deletions: 1, html: "#{diffstat(0, 1)}Destroyed" }
                 end
               else
                 additions = 0
@@ -158,7 +166,7 @@ module RailsAdmin
                       <a role="button" data-toggle="collapse" data-parent="#accordion_#{accordion_id}" href="#collapse-#{accordion_id}" aria-expanded="#{open ? 'true' : 'false'}" aria-controls="collapseOne" class="#{open ? '' : 'collapsed'}">
                         <h4 class="panel-title">
                             #{diffstat(diff[:additions], diff[:deletions])}
-            #{label}
+              #{label}
                         </h4>
                       </a>
                   </div>
