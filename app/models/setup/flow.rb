@@ -235,10 +235,10 @@ module Setup
           cycle = cycle.collect { |id| ((flow = Setup::Flow.where(id: id).first) && flow.custom_title) || id }
           Setup::SystemNotification.create_with(message: "Cyclic flow execution: #{cycle.to_a.join(' -> ')}",
                                                 attachment: {
-                                            filename: 'execution_graph.json',
-                                            contentType: 'application/json',
-                                            body: JSON.pretty_generate(execution_graph)
-                                          })
+                                                  filename: 'execution_graph.json',
+                                                  contentType: 'application/json',
+                                                  body: JSON.pretty_generate(execution_graph)
+                                                })
         else
           message = message.merge(flow_id: id.to_s,
                                   tirgger_flow_id: executing_id,
@@ -433,36 +433,43 @@ module Setup
       0.step(max, limit) do |offset|
         next unless connections_present
         verbose_response =
-          webhook.target.with(connection_role).and(authorization).submit ->(template_parameters) {
-            translation_options =
-              {
-                object_ids: object_ids,
-                source_data_type: data_type,
-                offset: offset,
-                limit: limit,
-                discard_events: discard_events,
-                parameters: template_parameters,
-                task: message[:task]
-              }
-            translator.run(translation_options)
-          },
-                                                                         contentType: translator.mime_type,
-                                                                         notify_request: notify_request,
-                                                                         request_attachment: ->(attachment) do
-                                                                           attachment[:filename] = ((data_type && data_type.title) || translator.name).collectionize +
-                                                                             attachment[:filename] +
-                                                                             ((ext = translator.file_extension).present? ? ".#{ext}" : '')
-                                                                           attachment
-                                                                         end,
-                                                                         notify_response: notify_response,
-                                                                         verbose_response: true do |response|
+          webhook.target.with(connection_role).and(authorization).submit(
+            ->(template_parameters) {
+              translation_options =
+                {
+                  object_ids: object_ids,
+                  source_data_type: data_type,
+                  offset: offset,
+                  limit: limit,
+                  discard_events: discard_events,
+                  parameters: template_parameters,
+                  task: message[:task]
+                }
+              translator.run(translation_options)
+            },
+            contentType: translator.mime_type,
+            notify_request: notify_request,
+            request_attachment: ->(attachment) do
+              attachment[:filename] = ((data_type && data_type.title) || translator.name).collectionize +
+                attachment[:filename] +
+                ((ext = translator.file_extension).present? ? ".#{ext}" : '')
+              attachment
+            end,
+            notify_response: notify_response,
+            verbose_response: true,
+            headers: message['headers'] || {},
+            parameters: message['parameters'] || {},
+            template_parameters: message['template_parameters'] || {}
+          ) do |response|
             if response_translator #&& response.code == 200
-              response_translator.run(translation_options.merge(target_data_type: response_translator.data_type || response_data_type,
-                                                                data: response.body,
-                                                                headers: response.headers.to_hash,
-                                                                statusCode: response.code, #TODO Remove after deprecation migration
-                                                                response_code: response.code,
-                                                                requester_response: response.requester_response?))
+              response_translator.run(translation_options.merge(
+                target_data_type: response_translator.data_type || response_data_type,
+                data: response.body,
+                headers: response.headers.to_hash,
+                statusCode: response.code, #TODO Remove after deprecation migration
+                response_code: response.code,
+                requester_response: response.requester_response?)
+              )
             end
             true
           end
