@@ -427,7 +427,7 @@ module Setup
           data_type.count
         else
           0
-        end - (scope_symbol ? 1 : 0)
+        end - 1
       translation_options = nil
       connections_present = true
       0.step(max, limit) do |offset|
