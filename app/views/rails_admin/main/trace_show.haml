@@ -1,23 +1,42 @@
-.form-horizontal.denser
-  .action
-    %label Action
-    %span{class: "alert alert-#{{created: 'success', updated: 'info', destroyed: 'danger'}[@trace.action] || 'info'}" }
-      = @trace.action
-    %label Traced At
-    %span= @trace.created_at
-  .siblings
-    - if (previous = @trace.previous)
-      - url = url_for(@action.url_options(action: @action.action_name, controller: 'rails_admin/main', model: @abstract_model.to_param, id: @object.id, trace_id: previous.id))
-      =link_to  url, class: 'btn btn-default pjax' do
-        %i.fa.fa-chevron-circle-left
-        ='Previous'
-    - if (next_trace = @trace.next)
-      - url = url_for(@action.url_options(action: @action.action_name, controller: 'rails_admin/main', model: @abstract_model.to_param, id: @object.id, trace_id: next_trace.id))
-      =link_to  url, class: 'btn btn-default pjax' do
-        ='Next'
-        %i.fa.fa-chevron-circle-right
+- changes = @trace.changes_set
+-diff = @action.build_diff(@abstract_model, changes)
+.trace
+  .row
+    .col-xs-12
+
+    .col-xs-12
+      .trace-info
+        .trace-header
+          .action.pull-left
+            = @action.diffstat(diff[:additions], diff[:deletions]).html_safe
+            - if current_user
+              = image_tag(current_user.picture_url, alt: '', width: '20px')
+              %label
+                = current_user.email
+            %span
+              = @trace.action
+          .date.pull-right
+            %span= @trace.created_at
+        .trace-desc
+          %span
+            = 'No message'
+          .siblings.pull-right
+            %nav
+              %ul.pager
+                - if (previous = @trace.previous)
+                - url = url_for(@action.url_options(action: @action.action_name, controller: 'rails_admin/main', model: @abstract_model.to_param, id: @object.id, trace_id: previous.id))
+                  %li
+                    =link_to  url, class: 'btn btn-default btn-sm pjax' do
+                      %i.fa.fa-angle-left
+                      ='Previous'
+                - if (next_trace = @trace.next)
+                  %li
+                    - url = url_for(@action.url_options(action: @action.action_name, controller: 'rails_admin/main', model: @abstract_model.to_param, id: @object.id, trace_id: next_trace.id))
+                    =link_to  url, class: 'btn btn-default btn-sm pjax' do
+                      ='Next'
+                      %i.fa.fa-angle-right
   .changes
-  - if (changes = @trace.changes_set).present?
-    = @action.build_html_diff(@abstract_model, changes)
-  - else
-    .alert.alert-warning= 'No changes'
+    - if (changes).present?
+      = diff[:html]
+    - else
+      .alert.alert-warning= 'No changes'
