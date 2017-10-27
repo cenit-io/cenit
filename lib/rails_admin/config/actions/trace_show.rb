@@ -36,19 +36,52 @@ module RailsAdmin
           end
         end
 
-        def build_html_diff(abstract_model, changes_set, deep = 0, sibling_id = nil)
+        def diffstat(additions, deletions)
+          blocks = ''
+          added, deleted =
+            if (total = additions + deletions) > 0
+              if (total <= 5)
+                [additions, deletions]
+              else
+                [(additions*100)/total/20, (deletions*100)/total/20]
+              end
+            else
+              [0, 0]
+            end
+          neutral = 5-(added + deleted)
+          while added > 0
+            blocks += '<span class="block-diff-added"></span>'
+            added = added -1
+          end
+          while deleted > 0
+            blocks += '<span class="block-diff-deleted"></span>'
+            deleted = deleted -1
+          end
+          while neutral > 0
+            blocks += '<span class="block-diff-neutral"></span>'
+            neutral = neutral -1
+          end
+          html = %(<span class="diffstat tooltipped tooltipped-e" title="#{additions} additions &amp; #{deletions} deletions">
+            #{blocks}
+          </span>
+          )
+        end
+
+        def build_diff(abstract_model, changes_set, deep = 0, sibling_id = nil)
           deep += 1
           fields_labels = []
-          fields_html = []
+          fields_diffs = []
           model_config = abstract_model.config
           model = abstract_model.model
           context_bindings = (bindings || {}).merge(abstract_model: abstract_model)
           changes_set.each do |attr, values|
             next unless (field = model_config.fields.detect { |f| f.name.to_s == attr })
             fields_labels << field.with(context_bindings).label
-            fields_html <<
+            fields_diffs <<
               if (relation = model.reflect_on_association(attr))
                 if relation.many?
+                  additions = 0
+                  deletions = 0
                   related_model_config = RailsAdmin.config(relation.klass)
                   related_abstract_model = related_model_config.abstract_model
                   index = -1
@@ -58,12 +91,16 @@ module RailsAdmin
                     content =
                       if item.size == 1
                         if item['_id'][1]
-                          '<label class="label label-default">Unchanged<label>'
+                          %(#{diffstat(0,0)}<label class="label label-default">Unchanged<label>)
                         else
-                          '<label class="label label-danger">Destroyed</label>'
+                          deletions += 1
+                          %(#{diffstat(0,1)}<label class="label label-danger">Destroyed</label>)
                         end
                       else
-                        build_html_diff(related_abstract_model, item.except('_id'), deep, index)
+                        diff = build_diff(related_abstract_model, item.except('_id'), deep, index)
+                        additions += diff[:additions]
+                        deletions += diff[:deletions]
+                        diff[:html]
                       end
                     tab_pane = "<div class='tab-pane#{index == 0 ? ' active' : ''}' id='unique_id_#{id}'>#{content}</div>"
                     tab_pane
@@ -75,13 +112,15 @@ module RailsAdmin
                     first = nil
                     li
                   end.join
-                  %(<ul class="nav nav-tabs"">#{lies}</ul><div class="tab-content">#{tab_contents}</div>)
+                  { additions: additions, deletions: deletions, html: %(<ul class="nav nav-tabs"">#{lies}</ul><div class="tab-content">#{tab_contents}</div>) }
                 elsif values
-                  build_html_diff(RailsAdmin.config(relation.klass).abstract_model, values, deep)
+                  build_diff(RailsAdmin.config(relation.klass).abstract_model, values, deep)
                 else
-                  'Destroyed'
+                  { additions: 0, deletions: 1, html: "#{diffstat(0,1)}Destroyed" }
                 end
               else
+                additions = 0
+                deletions = 0
                 values = values.collect do |value|
                   case value
                   when Array, Hash
@@ -90,12 +129,25 @@ module RailsAdmin
                     value.to_s
                   end
                 end
-                Diffy::Diff.new(values[0], values[1]).to_s(:html)
+                diff = Diffy::Diff.new(values[0], values[1])
+                diff.each do |line|
+                  case line
+                  when /^\+/
+                    additions += 1
+                  when /^-/
+                    deletions += 1
+                  end
+                end
+                { additions: additions, deletions: deletions, html: diff.to_s(:html) }
               end
           end
+          additions = 0
+          deletions = 0
           index = -1
           open_count = 3
-          fields_html.collect do |field_html|
+          fields_diffs = fields_diffs.collect do |diff|
+            additions += diff[:additions]
+            deletions += diff[:deletions]
             index += 1
             label = fields_labels[index]
             accordion_id = "#{deep}_#{sibling_id}_#{index}"
@@ -105,18 +157,20 @@ module RailsAdmin
                   <div class="panel-heading" role="tab" id="headingOne">
                       <a role="button" data-toggle="collapse" data-parent="#accordion_#{accordion_id}" href="#collapse-#{accordion_id}" aria-expanded="#{open ? 'true' : 'false'}" aria-controls="collapseOne" class="#{open ? '' : 'collapsed'}">
                         <h4 class="panel-title">
-                            #{label}
+                            #{diffstat(diff[:additions], diff[:deletions])}
+            #{label}
                         </h4>
                       </a>
                   </div>
                   <div id="collapse-#{accordion_id}" class="panel-collapse collapse #{open ? 'in' : ''}" role="tabpanel" aria-labelledby="headingOne">
                     <div class="panel-body">
-                      #{field_html}
+                      #{diff[:html]}
                     </div>
                   </div>
                 </div>
               </div>)
           end.join.html_safe
+          { additions: additions, deletions: deletions, html: fields_diffs }
         end
 
         register_instance_option :listing? do

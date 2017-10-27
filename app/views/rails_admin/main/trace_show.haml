@@ -1,3 +1,5 @@
+- changes = @trace.changes_set
+-diff = @action.build_diff(@abstract_model, changes)
 .trace
   .row
     .col-xs-12
@@ -6,6 +8,7 @@
       .trace-info
         .trace-header
           .action.pull-left
+            = @action.diffstat(diff[:additions], diff[:deletions]).html_safe
             - if current_user
               = image_tag(current_user.picture_url, alt: '', width: '20px')
               %label
@@ -33,7 +36,7 @@
                       ='Next'
                       %i.fa.fa-angle-right
   .changes
-    - if (changes = @trace.changes_set).present?
-      = @action.build_html_diff(@abstract_model, changes)
+    - if (changes).present?
+      = diff[:html]
     - else
       .alert.alert-warning= 'No changes'

@@ -3490,3 +3490,29 @@ button#model-nav-xs {
   }
 
 }
+.diffstat {
+  font-size: 12px;
+  font-weight: 600;
+  color: #586069;
+  white-space: nowrap;
+  cursor: default;
+  letter-spacing: -4px;
+  margin-right: 5px;
+}
+.block-diff-deleted, .block-diff-added, .block-diff-neutral {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  margin-left: 1px;
+}
+
+.block-diff-added {
+  background-color: #2cbe4e;
+}
+
+.block-diff-deleted {
+  background-color: #cb2431;
+}
+.block-diff-neutral {
+  background-color: #d1d5da;
+}
