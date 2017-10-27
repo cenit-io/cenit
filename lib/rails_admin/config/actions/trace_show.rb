@@ -36,70 +36,87 @@ module RailsAdmin
           end
         end
 
-        def build_html_diff(abstract_model, changes_set)
-          simples = ''
-          simples_c = 0
-          relates = []
+        def build_html_diff(abstract_model, changes_set, deep = 0, sibling_id = nil)
+          deep += 1
+          fields_labels = []
+          fields_html = []
           model_config = abstract_model.config
           model = abstract_model.model
           context_bindings = (bindings || {}).merge(abstract_model: abstract_model)
           changes_set.each do |attr, values|
             next unless (field = model_config.fields.detect { |f| f.name.to_s == attr })
-            label = field.with(context_bindings).label
-            if (relation = model.reflect_on_association(attr))
-              relation_html =
+            fields_labels << field.with(context_bindings).label
+            fields_html <<
+              if (relation = model.reflect_on_association(attr))
                 if relation.many?
                   related_model_config = RailsAdmin.config(relation.klass)
                   related_abstract_model = related_model_config.abstract_model
-                  first = true
+                  index = -1
                   tab_contents = values.collect do |item|
+                    index += 1
                     id = item['_id'][0] || item['_id'][1]
                     content =
                       if item.size == 1
                         if item['_id'][1]
-                          'Unchanged'
+                          '<label class="label label-default">Unchanged<label>'
                         else
-                          'Destroyed'
+                          '<label class="label label-danger">Destroyed</label>'
                         end
                       else
-                        build_html_diff(related_abstract_model, item.except('_id'))
+                        build_html_diff(related_abstract_model, item.except('_id'), deep, index)
                       end
-                    tab_pane = "<div class='tab-pane#{first && ' active'}' id='unique_id_#{id}'>#{content}</div>"
-                    first = nil
+                    tab_pane = "<div class='tab-pane#{index == 0 ? ' active' : ''}' id='unique_id_#{id}'>#{content}</div>"
                     tab_pane
                   end.join
                   first = true
                   lies = values.collect do |item|
                     id = item['_id'][1] || item['_id'][0]
-                    li = %(<li class='#{first && 'active'}'><a data-toggle="tab" href="#unique_id_#{id}">#{related_model_config.label} ##{id}</a></li>)
+                    li = %(<li class='#{first && 'active'}'><a data-toggle="tab" title="#{related_model_config.label} ##{id}" href="#unique_id_#{id}">#{related_model_config.label} ##{id}</a></li>)
                     first = nil
                     li
                   end.join
                   %(<ul class="nav nav-tabs"">#{lies}</ul><div class="tab-content">#{tab_contents}</div>)
                 elsif values
-                  build_html_diff(RailsAdmin.config(relation.klass).abstract_model, values)
+                  build_html_diff(RailsAdmin.config(relation.klass).abstract_model, values, deep)
                 else
                   'Destroyed'
                 end
-              relates << %(#{field.label}</legend><div class="control-group">#{relation_html}</div></fieldset>)
-            else
-              simples_c += 1
-              simples += "<span class=\"label label-info\">#{label}</span>"
-              simples = "#{simples}<div class='clearfix'></div>"
-              values = values.collect do |value|
-                case value
-                when Array, Hash
-                  JSON.pretty_generate(value)
-                else
-                  value.to_s
+              else
+                values = values.collect do |value|
+                  case value
+                  when Array, Hash
+                    JSON.pretty_generate(value)
+                  else
+                    value.to_s
+                  end
                 end
+                Diffy::Diff.new(values[0], values[1]).to_s(:html)
               end
-              simples = "#{simples}<span class='well' style='float:left;width:100%'>#{Diffy::Diff.new(values[0], values[1], include_plus_and_minus_in_html: true).to_s(:html)}</span>"
-            end
           end
-          related_prefix = %(<div class="clearfix"></div><fieldset><legend style=""><i class="icon-chevron-#{simples_c < 3 && relates.length < 3 ? 'down' : 'right'}"></i>)
-          relates = relates.collect { |r| related_prefix + r }.join
-          (simples + relates).html_safe
+          index = -1
+          open_count = 3
+          fields_html.collect do |field_html|
+            index += 1
+            label = fields_labels[index]
+            accordion_id = "#{deep}_#{sibling_id}_#{index}"
+            open = index < open_count
+            %(<div class="panel-group" id="accordion_#{accordion_id}" role="tablist" aria-multiselectable="true">
+                <div class="panel panel-default panel-trace">
+                  <div class="panel-heading" role="tab" id="headingOne">
+                      <a role="button" data-toggle="collapse" data-parent="#accordion_#{accordion_id}" href="#collapse-#{accordion_id}" aria-expanded="#{open ? 'true' : 'false'}" aria-controls="collapseOne" class="#{open ? '' : 'collapsed'}">
+                        <h4 class="panel-title">
+                            #{label}
+                        </h4>
+                      </a>
+                  </div>
+                  <div id="collapse-#{accordion_id}" class="panel-collapse collapse #{open ? 'in' : ''}" role="tabpanel" aria-labelledby="headingOne">
+                    <div class="panel-body">
+                      #{field_html}
+                    </div>
+                  </div>
+                </div>
+              </div>)
+          end.join.html_safe
         end
 
         register_instance_option :listing? do
