@@ -182,6 +182,9 @@ class User
       (current && current.token) || 'XXXXXXXXXXXXXXXX'
     end
 
+    def current_id
+      current && current.id
+    end
   end
 
 end

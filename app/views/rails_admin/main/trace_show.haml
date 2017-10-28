@@ -9,10 +9,10 @@
         .trace-header
           .action.pull-left
             = @action.diffstat(diff[:additions], diff[:deletions]).html_safe
-            - if current_user
-              = image_tag(current_user.picture_url, alt: '', width: '20px')
+            - if (author = User.where(id: @trace.author_id).first)
+              = image_tag(author.picture_url, alt: '', width: '20px')
               %label
-                = current_user.email
+                = author.email
             %span
               = @trace.action
           .date.pull-right
