@@ -4,7 +4,10 @@ module Setup
 
     include CenitScoped
     include CrossOrigin::CenitDocument
+    include Mongoid::Userstamp
     include Mongoid::Tracer
+
+    TRACING_IGNORE_ATTRIBUTES = [:created_at, :updated_at, :creator_id, :updater_id, :tenant_id, :origin]
 
     included do
       origins :default, -> { Cenit::MultiTenancy.tenant_model.current && :owner }, :shared
@@ -12,6 +15,8 @@ module Setup
       build_in_data_type.excluding(:origin, :tenant)
 
       shared_deny :delete
+
+      trace_ignore TRACING_IGNORE_ATTRIBUTES
 
       belongs_to :tenant, class_name: Cenit::MultiTenancy.tenant_model_name, inverse_of: nil
 
