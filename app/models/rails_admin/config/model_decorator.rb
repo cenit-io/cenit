@@ -11,10 +11,28 @@ module RailsAdmin
           if (names = filter_fields_names)
             fields.select { |f| names.include?(f.name) }
           else
+            list.fields
+          end.select(&:filterable?)
+        else
+          register_instance_option :filter_fields_names do
+            args
+          end
+        end
+      end
+
+      register_instance_option :filter_query_fields_names do
+        nil
+      end
+
+      def filter_query_fields(*args)
+        if args.length == 0
+          if (names = filter_query_fields_names)
+            fields.select { |f| names.include?(f.name) }
+          else
             fields
           end
         else
-          register_instance_option :filter_fields_names do
+          register_instance_option :filter_query_fields_names do
             args
           end
         end

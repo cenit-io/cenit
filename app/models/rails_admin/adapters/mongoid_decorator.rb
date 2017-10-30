@@ -120,7 +120,7 @@ module RailsAdmin
       end
 
       def filter_query_conditions(query, fields = nil)
-        fields_query_conditions(:filter_fields, query, fields)
+        fields_query_conditions(:filter_query_fields, query, fields)
       end
 
       def query_conditions(query, fields = nil)
@@ -220,6 +220,10 @@ module RailsAdmin
             next unless field
             filters_dump.each do |_, filter_dump|
               value = parse_field_value(field, filter_dump[:v])
+              if field.is_a?(RailsAdmin::Config::Fields::Types::BelongsToAssociation)
+                associated_am = field.associated_model_config.abstract_model
+                value = { '$in' => associated_am.model.where(associated_am.filter_query_conditions(value)).collect(&:id) }
+              end
               conditions_per_collection = make_field_conditions(field, value, (filter_dump[:o] || 'default'))
               field_statements = make_condition_for_current_collection(field, conditions_per_collection)
               if field_statements.many?

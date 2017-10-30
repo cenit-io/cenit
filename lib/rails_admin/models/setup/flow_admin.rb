@@ -7,7 +7,7 @@ module RailsAdmin
         included do
           rails_admin do
             navigation_label 'Workflows'
-            navigation_icon 'fa fa-cogs'
+            navigation_icon 'fa fa-map-signs'
             weight 500
             object_label_method { :custom_title }
             register_instance_option(:form_synchronized) do
@@ -237,7 +237,7 @@ module RailsAdmin
                 end
                 associated_collection_scope do
                   limit = (associated_collection_cache_all ? nil : 30)
-                  Proc.new { |scope| scope.where('$or': [{ parameters: { '$size': 1 } }, { parameters: { '$size': 2 } }]).limit(limit) }
+                  Proc.new { |scope| scope.and('$or': [{ parameters: { '$size': 1 } }, { parameters: { '$size': 2 } }]).limit(limit) }
                 end
               end
               field :response_translator do

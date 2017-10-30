@@ -64,6 +64,7 @@ module Mongoid
           versions.sort! { |v1, v2| v2.version <=> v1.version }
 
           versions.each do |v|
+            #Patch
             v.root_document = self
             undo_attr = v.undo_attr(modifier)
             if Mongoid::History.mongoid3? # update_attributes! not bypassing rails 3 protected attributes

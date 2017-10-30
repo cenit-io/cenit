@@ -439,20 +439,6 @@ module RailsAdmin
         end
         main_labels.insert definitions_index + i, links
       end
-      if @dashboard_group_ref
-        dashboard_link = %(
-           <div id="main-dashboard-#{@dashboard_group_ref}" class="panel panel-default">
-            <div class='panel-heading dashboard-heading'>
-              <a href='/#{@dashboard_group_ref}/dashboard' class='panel-title in'>
-                <span class='nav-icon' title="Dashboard"><i class='fa fa-tachometer'></i></span>
-                <span class='nav-caption'>Dashboard</span>
-              </a>
-              <a href='#' class='panel-title in' id="sidebar-toggle">
-                <span class='nav-caret'><i class='fa fa-navicon'></i></span>
-              </a>
-            </div></div>)
-        main_labels.insert(0, dashboard_link)
-      end
       main_labels.join.html_safe
     end
 
@@ -1141,7 +1127,7 @@ module RailsAdmin
           value.from(value.index('</li>') + 5)
       elsif @model_config && @model_config.dashboard_group_path.length > 1
         value = value.to(value.index('<li') - 1) +
-          "<li class=\"active\">#{@dashboard_group_ref.capitalize }</li>" +
+          "<li class=\"false\"><a class=\"pjax\" href=\"#{@dashboard_group_ref }/dashboard\" title=\"#{@dashboard_group_ref.capitalize } Dashboard\">#{@dashboard_group_ref.capitalize }</a></li>" +
           value.from(value.index('</li>') + 5)
         value = value.to(value.index('</ol>')-1) + '</ol>'
       end
@@ -1202,20 +1188,20 @@ module RailsAdmin
 
     def home_features
       [
-        { name: 'Backendless', icon: 'fa-mobile', color: 'orange', desc: 'After create a new Data Type using a JSON Schema is generated on the fly a complete REST API
+        { name: 'Backendless', icon: 'fa-mobile', color: 'brown', desc: 'After create a new Data Type using a JSON Schema is generated on the fly a complete REST API
             and
             a CRUD UI to manage the data. Useful for mobile backend and API services.' },
-        { name: 'Routing and orchestration', icon: 'fa-cogs', color: 'blue', desc: 'Enables to create multistep integration flows by composing atomic integration functionality
+        { name: 'Routing and orchestration', icon: 'fa-cogs', color: 'yellow', desc: 'Enables to create multistep integration flows by composing atomic integration functionality
             (such
             as connection, transformation, data event, schedule, webhook and flow).' },
         { name: 'Data integration', icon: 'fa-cubes', color: 'green', desc: 'Includes data validation, transformation, mapping, and data quality. Exchange support for
             multiple data formats (JSON, XML, ASN) and data standards (EDIFACT, X12, UBL).' },
-        { name: 'Integration scenarios', icon: 'fa-cloud', color: 'yellow', desc: 'Cloud Service Integration, for Publication and Management of APIs, Mobile Application
+        { name: 'Integration scenarios', icon: 'fa-cloud', color: 'blue', desc: 'Cloud Service Integration, for Publication and Management of APIs, Mobile Application
             Integration, to support Business to Business, Application and Data Integration needs.' },
         { name: 'Third party service integrations', icon: 'fa-share-alt', color: 'purple', desc: 'Directory for OpenAPI Spec (Swagger) and Shared Collections - social feature to share
             integration
             settings - to connect services as ERP / Fulfilment / Marketing / Communication.' },
-        { name: 'Multi-tenants', icon: 'fa-users', color: 'red', desc: 'Logical tenant isolation in a physically shared context.Management and control of security, privacy and compliance.
+        { name: 'Multi-tenants', icon: 'fa-users', color: 'orange', desc: 'Logical tenant isolation in a physically shared context.Management and control of security, privacy and compliance.
 Configuration, customization and version control.' }
 
       ]

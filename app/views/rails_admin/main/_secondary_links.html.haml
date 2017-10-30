@@ -1,10 +1,6 @@
 %li.first
-  %a{ href: ENV['PORTAL_URL'] || 'http://cenithub.com', target: '_blank' }
-    %i.fa.fa-fw.fa-sticky-note-o{title: t('admin.misc.overview')}
-    %span=t('admin.misc.overview')
-%li
   - anonymous = current_user ? 'false' : 'true'
-  - dashboard_root =  @action.is_a?(RailsAdmin::Config::Actions::Dashboard) && params[:group].blank?
+  - dashboard_root = @action.is_a?(RailsAdmin::Config::Actions::Dashboard) && params[:group].blank?
 
   %a.take-tour{'href'=> '#', data:{anonymous: anonymous , 'dashboard-root': dashboard_root.to_s}}
     %i.fa.fa-fw.fa-bus{title: t('admin.misc.tour')}

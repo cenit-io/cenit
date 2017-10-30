@@ -32,7 +32,7 @@ module Setup
     end
 
     def track_history?
-      shared? && super
+      (shared? || self.class.data_type.track_default_history) && super
     end
 
     def history_tracker_class
@@ -42,6 +42,11 @@ module Setup
 
     def history_tracks
       @history_tracks ||= history_tracker_class.where(scope: related_scope, association_chain: association_hash)
+    end
+
+    def track_history_for_action!(action)
+      track_history_for_action(action)
+      save
     end
 
     def track_history_for_action(action)
@@ -85,7 +90,7 @@ module Setup
     end
 
     module ClassMethods
-      
+
       def shared_deny(*actions)
         Setup::Models.shared_excluded_actions_for self, *actions
       end
