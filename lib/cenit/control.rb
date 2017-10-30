@@ -34,7 +34,7 @@ module Cenit
     def send_data(*args)
       fail 'Double-rendering' if done?
       @render_called = true
-      if args.length == 1 && (res = args[0]).is_a?(Setup::Webhook::Response)
+      if args.length == 1 && (res = args[0]).is_a?(Setup::HttpHook::Response)
         controller.send_data res.body, content_type: res.content_type, status: res.code
       else
         controller.send_data(*args)
@@ -44,7 +44,7 @@ module Cenit
     def render(*args)
       fail 'Re-calling render' if done?
       @render_called = true
-      if args.length == 1 && (res = args[0]).is_a?(Setup::Webhook::Response)
+      if args.length == 1 && (res = args[0]).is_a?(Setup::HttpHook::Response)
         if res.headers['content-transfer-encoding']
           controller.send_data res.body, content_type: res.content_type, status: res.code
         else

@@ -49,7 +49,7 @@ module RailsAdmin
               end
               parameters.merge!(only: fields)
               operation = Setup::Connection.get(cenit_api_path)
-              if (response = operation.submit(parameters: parameters, verbose_response: true)[:http_response])
+              if (response = operation.submit(parameters: parameters, verbose_response: true)[:response])
                 @response = JSON.parse(response.body)
                 if id
                   if response.code == 200

@@ -115,7 +115,7 @@ module Setup
             client_secret: authorization.client.get_secret
           }.to_param,
           verbose_response: true
-        )[:http_response]
+        )[:response]
         body = JSON.parse(http_response.body)
         if http_response.code == 200
           authorization.authorized_at = Time.now

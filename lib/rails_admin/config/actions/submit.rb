@@ -98,11 +98,17 @@ module RailsAdmin
               if connection
                 c = 0
                 property_names =
-                  {
-                    headers: {},
-                    parameters: {},
-                    template_parameters: {}
-                  }
+                  if webhook.is_a?(Setup::FileResource)
+                    {
+                      template_parameters: {}
+                    }
+                  else
+                    {
+                      headers: {},
+                      parameters: {},
+                      template_parameters: {}
+                    }
+                  end
                 webhook.with(connection).params_stack.inject({}) do |hash, entity|
                   entity_hash = property_names.keys.inject({}) do |hash, params|
                     h = entity.send(params).inject({}) do |params_hash, param|
@@ -137,7 +143,7 @@ module RailsAdmin
               else
                 {}
               end
-            if connection && %w(get delete).exclude?(webhook.method)
+            if connection && (webhook.is_a?(Setup::FileResource) || %w(get delete).exclude?(webhook.method))
               body_properties =
                 {
                   'body' => {
