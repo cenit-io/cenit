@@ -25,12 +25,12 @@ module Setup
     module ClassMethods
 
       def parameters_relations_names
-        @parameters_relations_names
+        @parameters_relations_names || (superclass < Parameters && superclass.parameters_relations_names) || []
       end
 
       def parameters(*relation_names)
         relation_names = relation_names.collect(&:to_s)
-        @parameters_relations_names = [@parameters_relations_names, relation_names].flatten.compact
+        @parameters_relations_names = [parameters_relations_names, relation_names].flatten.compact
         relation_names.each do |relation_name|
           inverse_name = "#{relation_name}_#{to_s.split('::').last.underscore}"
           has_many relation_name, class_name: Setup::Parameter.to_s, inverse_of: inverse_name, dependent: :destroy
