@@ -1759,6 +1759,13 @@ div#subdomain-panel {
   }
 }
 
+@media (min-width: 768px) {
+  .navbar-nav > li > a {
+    padding-top: 14px;
+    padding-bottom: 14px;
+  }
+}
+
 .none {
   display: none;
 }
