@@ -56,7 +56,7 @@ class Ability
         can [:edit, :destroy], Setup::CrossSharedCollection, owner_id: user.id
         can :reinstall, Setup::CrossSharedCollection, owner_id: user.id, installed: true
         can :edit, Account, :id.in => user.account_ids
-        can [:index, :show, :edit, :inspect], Account, :id.in => user.account_ids + user.member_accounts.map(&:id)
+        can [:index, :show, :edit, :inspect, :clean_up], Account, :id.in => user.account_ids + user.member_accounts.map(&:id)
         can :destroy, Account, :id.in => user.account_ids - [user.account_id]
         can :new, Account
 
