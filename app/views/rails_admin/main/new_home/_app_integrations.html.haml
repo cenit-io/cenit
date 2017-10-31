@@ -11,7 +11,7 @@
         -home_integrations_images.each do |i|
           - name = /(\w*).(\w*)/.match(i)[1]
           .col-md-2.col-sm-3.col-sms-3.col-xs-6
-            = link_to "/cross_shared_collection?utf8=✓&query=#{name}", class: 'thumbnail' do
+            = link_to "/cross_shared_collection?utf8=✓&query=#{name}", class: 'thumbnail', target: '_blank' do
               = image_tag "home/integrations/#{i}"
       .row.see-all
         = link_to 'See all Apps', '/cross_shared_collection'

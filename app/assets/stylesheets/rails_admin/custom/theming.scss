@@ -29,10 +29,12 @@ h3, .h3 {
   width: auto;
   padding-bottom: 4px;
 }
+
 .navbar-btn {
   margin-top: 6px;
   margin-bottom: 0;
 }
+
 ul#main-accordion {
   z-index: -2;
   .social-links {
@@ -338,12 +340,14 @@ ul.drawer li a span {
   overflow: auto;
   height: calc(100% - 50px);
 }
+
 body.rails_admin .sidebar-nav {
   position: fixed;
   top: 0;
-   bottom: 0;
+  bottom: 0;
   overflow-y: auto;
 }
+
 .xyz {
   min-width: 360px;
 }
@@ -1763,6 +1767,19 @@ div#subdomain-panel {
   .navbar-nav > li > a {
     padding-top: 14px;
     padding-bottom: 14px;
+  }
+}
+
+#nav-drawer-toggle {
+  i {
+    position: relative;
+    top: -2px;
+  }
+  &:hover {
+    i {
+      position: relative;
+      top: -1px;
+    }
   }
 }
 

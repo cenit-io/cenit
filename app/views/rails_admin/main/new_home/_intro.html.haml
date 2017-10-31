@@ -60,7 +60,7 @@
                   - icon = a[:icon]
                   - title = a[:name]
                   %li
-                    = link_to a[:link], title: title do
+                    = link_to a[:link], title: title, target: '_blank' do
                       %i{class: "fa #{icon}"}
       .col-sm-4
         .intro-box
