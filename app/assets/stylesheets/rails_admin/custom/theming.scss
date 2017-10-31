@@ -13,10 +13,6 @@
 
 $link_color: rgb(66, 139, 202);
 
-body.rails_admin {
-  padding-top: 55px !important;
-}
-
 h3, .h3 {
   .nav-caption {
     font-size: 18px;
@@ -28,7 +24,10 @@ h3, .h3 {
   width: auto;
   padding-bottom: 4px;
 }
-
+.navbar-btn {
+  margin-top: 6px;
+  margin-bottom: 0;
+}
 ul#main-accordion {
   z-index: -2;
   .social-links {
@@ -247,6 +246,8 @@ ul.drawer li a span {
   padding-left: 55px;
   transition: all 0.5s ease;
   overflow: hidden;
+  height: 100vh;
+  position: relative;
 }
 
 #wrapper.toggled {
@@ -285,13 +286,13 @@ ul.drawer li a span {
   position: fixed;
   left: 250px;
   width: 55px;
-  margin-top: -2px;
+  top: 51px;
   height: calc(100% - 50px);
   margin-left: -250px;
   overflow-y: auto;
   overflow-x: hidden;
   transition: all 0.5s ease;
-  background: #ffffff !important;
+  background: #3d4046 !important;
   border-right: none;
 }
 
@@ -332,7 +333,12 @@ ul.drawer li a span {
   overflow: auto;
   height: calc(100% - 50px);
 }
-
+body.rails_admin .sidebar-nav {
+  position: fixed;
+  top: 0;
+   bottom: 0;
+  overflow-y: auto;
+}
 .xyz {
   min-width: 360px;
 }
@@ -345,12 +351,11 @@ ul.drawer li a span {
 
 .sidebar-nav {
   position: absolute !important;
-  top: 0 !important;
   width: 250px;
   padding: 0;
   list-style: none;
-  margin: 2px 0 83px;
   overflow-y: auto !important;
+  margin-bottom: 84px;
 }
 
 @media screen and (max-width: 280px) {
@@ -374,7 +379,7 @@ span.subdomain_link {
   color: white;
   font-size: 18px;
   padding-right: 5px;
-  line-height: 22px;
+  line-height: 20px;
   i {
     font-size: 14px;
     margin-left: 5px;
@@ -383,9 +388,8 @@ span.subdomain_link {
 
 div#subdomain-toggle {
   cursor: pointer;
-  padding-left: 5px;
   float: left;
-  padding: 15px 0;
+  padding: 15px 0 14px 5px;
 
   i.fa {
     //transition: all 0.5s ease;
@@ -1748,6 +1752,13 @@ div#subdomain-panel {
   }
   #primary_dashboard {
     margin: 25px 0 0;
+  }
+}
+
+@media (min-width: 768px) {
+  .navbar-nav > li > a {
+    padding-top: 14px;
+    padding-bottom: 14px;
   }
 }
 
