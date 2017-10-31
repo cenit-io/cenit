@@ -113,7 +113,7 @@ module Setup
         super
       else
         options.reverse_merge!(default_attributes)
-        file = records_model.new(options.select { |key, _| %w(filename contentType).include?(key.to_s) })
+        file = records_model.new(options.select { |key, _| %w(filename contentType metadata).include?(key.to_s) })
         file.data = string_or_readable
         file
       end

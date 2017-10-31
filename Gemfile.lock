@@ -366,6 +366,8 @@ GEM
     nested_form (0.3.2)
     net-scp (1.2.1)
       net-ssh (>= 2.6.5)
+    net-sftp (2.1.2)
+      net-ssh (>= 2.6.5)
     net-ssh (3.0.1)
     netrc (0.11.0)
     nokogiri (1.6.7.2)
@@ -657,6 +659,8 @@ DEPENDENCIES
   mongoid-audit
   mongoid-history
   mongoid-rspec
+  net-scp
+  net-sftp
   nokogiri
   oauth
   oauth2 (= 1.0.0)

@@ -22,6 +22,7 @@ module RailsAdmin
 
         register_instance_option :controller do
           proc do
+            @dashboard_group_ref = 'integrations'
             if Cenit.host == Cenit.homepage
               flash[:warning] = t('admin.actions.remote_shared_collection.already_at_host', host: Cenit.host)
               flash[:error] = t('admin.actions.remote_shared_collection.configure_host_option')
@@ -49,7 +50,7 @@ module RailsAdmin
               end
               parameters.merge!(only: fields)
               operation = Setup::Connection.get(cenit_api_path)
-              if (response = operation.submit(parameters: parameters, verbose_response: true)[:http_response])
+              if (response = operation.submit(parameters: parameters, verbose_response: true)[:response])
                 @response = JSON.parse(response.body)
                 if id
                   if response.code == 200
