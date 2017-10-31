@@ -110,10 +110,16 @@ module Setup
       username, password = check(opts[:template_parameters], :username, :password)
       Net::FTP.open(opts[:host], username, password) do |ftp|
         if (body = opts[:body])
-          tempfile = Tempfile.new('ftp')
-          tempfile.write(body)
-          ftp.putbinaryfile(tempfile, opts[:path])
-          tempfile.close
+          begin
+            tempfile = Tempfile.new('ftp')
+            tempfile.write(body)
+            ftp.putbinaryfile(tempfile, opts[:path])
+          ensure
+            begin
+              tempfile.close
+            rescue
+            end
+          end
         else
           result = ftp.getbinaryfile(opts[:path], nil)
         end
