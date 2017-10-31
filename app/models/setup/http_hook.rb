@@ -92,7 +92,7 @@ module Setup
         http_response = Setup::HttpHook::Response.new(false, http_response) unless http_response.is_a?(Setup::HttpHook::Response)
         notification_model.create_with(
           message: { response_code: http_response.code }.to_json,
-          type: reponse.success? ? :notice : :error,
+          type: http_response.success? ? :notice : :error,
           attachment: attachment_from(http_response),
           skip_notification_level: options[:skip_notification_level] || options[:notify_response]
         )
@@ -149,7 +149,7 @@ module Setup
       end
 
       def success?
-        (200...299).include?(response.code)
+        (200...299).include?(code)
       end
 
       def requester_response?
