@@ -19,7 +19,7 @@ module Edi
       prepare_options(options)
       max_entries = options[:max_entries].to_i
       max_entries = nil if max_entries == 0
-      hash = record_to_hash(self, options, false, nil, max_entries)
+      hash = record_to_hash(self, options, options.delete(:reference), nil, max_entries)
       options.delete(:stack)
       hash = { self.orm_model.data_type.slug => hash } if options[:include_root]
       hash
@@ -36,11 +36,12 @@ module Edi
 
     def share_hash(options = {})
       if self.class.respond_to?(:share_options)
-        begin
-          options = options.reverse_merge(self.class.share_options)
-        rescue Exception
-          options
-        end
+        options =
+          begin
+            options.reverse_merge(self.class.share_options)
+          rescue Exception
+            options
+          end
       else
         options = options.reverse_merge(
           ignore: [:id],
