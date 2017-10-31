@@ -1,6 +1,5 @@
 module Setup
   class PlainWebhook < Webhook
-    include HttpHook
     include NamespaceNamed
     include CustomTitle
     include RailsAdmin::Models::Setup::PlainWebhookAdmin

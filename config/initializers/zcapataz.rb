@@ -78,7 +78,7 @@ Capataz.config do
 
   allow_on Nokogiri::XML, [:search]
 
-  allow_on Setup::Connection, Setup::PlainWebhook.method_enum + [:webhook_for, :where]
+  allow_on Setup::Connection, Setup::Webhook.method_enum + [:webhook_for, :where]
 
   allow_on Setup::Webhook, [:where]
 
@@ -117,7 +117,7 @@ Capataz.config do
               :data_type, :id,
               :write_buffer, :put_next_entry, :write,
               :encode64, :decode64, :urlsafe_encode64, :new_io, :get_input_stream, :open, :new_document
-            ] + Setup::PlainWebhook.method_enum
+            ] + Setup::Webhook.method_enum
 
   allow_for [Mongoid::Criteria, Mongoff::Criteria], Enumerable.instance_methods(false) + Origin::Queryable.instance_methods(false) + [:each, :present?, :blank?, :limit, :skip]
 
@@ -125,9 +125,9 @@ Capataz.config do
 
   allow_for Setup::Scheduler, [:activated?, :name, :to_json, :share_json, :to_edi, :to_hash, :to_xml, :namespace]
 
-  allow_for Setup::HttpHook::Response, [:code, :body, :headers, :content_type]
+  allow_for Setup::Webhook::HttpResponse, [:code, :body, :headers, :content_type]
 
-  allow_for Setup::FileResource::Response, [:code, :body, :headers, :content_type]
+  allow_for Setup::Webhook::Response, [:code, :body, :headers, :content_type]
 
   allow_for Setup::DataType, ((%w(_json _xml _edi) + ['']).collect do |format|
     %w(create new create!).collect do |action|
