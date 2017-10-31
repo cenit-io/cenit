@@ -22,6 +22,7 @@ module RailsAdmin
 
         register_instance_option :controller do
           proc do
+            @dashboard_group_ref = 'integrations'
             if Cenit.host == Cenit.homepage
               flash[:warning] = t('admin.actions.remote_shared_collection.already_at_host', host: Cenit.host)
               flash[:error] = t('admin.actions.remote_shared_collection.configure_host_option')
