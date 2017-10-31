@@ -3396,3 +3396,10 @@ button#model-nav-xs {
   margin: 0 7px;
   cursor: pointer;
 }
+
+.xs-menu .navbar-nav > li > a {
+  font-size: 18px;
+  i {
+    color: #f89427;
+  }
+}

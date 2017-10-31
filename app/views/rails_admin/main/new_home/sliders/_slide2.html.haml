@@ -6,6 +6,7 @@
       ='Integrate your cloud applications'
     %h2.text-center
       =text.html_safe
-    .text-center
-      = link_to '#', class: 'button-outline go-sign-in' do
-        ='TRY IT FREE'
+    - unless current_user
+      .text-center
+        = link_to '#', class: 'button-outline go-sign-in' do
+          ='TRY IT FREE'

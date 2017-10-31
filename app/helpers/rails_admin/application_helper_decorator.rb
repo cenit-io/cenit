@@ -1172,9 +1172,8 @@ module RailsAdmin
 
     def home_services
       [
-        { name: 'Sales', icon: 'fa fa-shopping-cart', desc: 'You can work with international customers right out of the box while staying in your
-        country' },
-        { name: 'Marketing', icon: 'fa fa-bullhorn', desc: 'Attract, retain, and grow more customers by nurturing the right leads.' },
+        { name: 'Sales', icon: 'fa fa-shopping-cart', desc: 'Integrate and manage all your sale channels in only one site: Cenit IO' },
+        { name: 'Marketing', icon: 'fa fa-bullhorn', desc: 'Place your products in the most popular ecommerce platforms with a few clicks.' },
         { name: 'Support', icon: 'fa fa-life-ring', desc: 'Enhance support with faster, more efficient ticket resolution and minimize churn.' },
         { name: 'Finances', icon: 'fa fa-money', desc: 'Accelerate order-to-cash, billing and payment processes.' },
         { name: 'Bussiness Operations', icon: 'fa fa-sitemap', desc: 'Supercharge productivity across teams with automated workflows.' },
