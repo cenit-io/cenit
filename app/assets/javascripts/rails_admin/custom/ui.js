@@ -289,7 +289,108 @@ var
         }
     }
 // Functions
+function initHomePage() {
 
+    $(".owl-carousel").owlCarousel({items: 3, autoPlay: true, pagination: false});
+
+    var $navDots = $("#hero nav a")
+    var $next = $(".slide-nav.next");
+    var $prev = $(".slide-nav.prev");
+    var $slides = $("#hero .slides .slide");
+    var actualIndex = 0;
+    var swiping = false;
+    var interval;
+
+    $navDots.click(function (e) {
+        e.preventDefault();
+        if (swiping) {
+            return;
+        }
+        swiping = true;
+
+        actualIndex = $navDots.index(this);
+        updateSlides(actualIndex);
+    });
+
+    $next.click(function (e) {
+        e.preventDefault();
+        if (swiping) {
+            return;
+        }
+        swiping = true;
+
+        clearInterval(interval);
+        interval = null;
+
+        actualIndex++;
+        if (actualIndex >= $slides.length) {
+            actualIndex = 0;
+        }
+
+        updateSlides(actualIndex);
+    });
+
+    $prev.click(function (e) {
+        e.preventDefault();
+        if (swiping) {
+            return;
+        }
+        swiping = true;
+
+        clearInterval(interval);
+        interval = null;
+
+        actualIndex--;
+        if (actualIndex < 0) {
+            actualIndex = $slides.length - 1;
+        }
+
+        updateSlides(actualIndex);
+    });
+
+    function updateSlides(index) {
+        // update nav dots
+        $navDots.removeClass("active");
+        $navDots.eq(index).addClass("active");
+
+        // update slides
+        var $activeSlide = $("#hero .slide.active");
+        var $nextSlide = $slides.eq(index);
+
+        $activeSlide.fadeOut();
+        $nextSlide.addClass("next").fadeIn();
+
+        setTimeout(function () {
+            $slides.removeClass("next").removeClass("active");
+            $nextSlide.addClass("active");
+            $activeSlide.removeAttr('style');
+            swiping = false;
+        }, 1000);
+    }
+
+    interval = setInterval(function () {
+        if (swiping) {
+            return;
+        }
+        swiping = true;
+
+        actualIndex++;
+        if (actualIndex >= $slides.length) {
+            actualIndex = 0;
+        }
+
+        updateSlides(actualIndex);
+    }, 5000);
+}
+function scroll_to(event) {
+    event.preventDefault();
+    var anchor = $(event.currentTarget).attr('data-link');
+    if (anchor == 'top') {
+        $("html, body").animate({scrollTop: 0}, 1000);
+    } else {
+        $("html, body").animate({scrollTop: (($('#' + anchor).offset().top - 78))}, 1000);
+    }
+}
 function openSigInSideBar() {
     $("#sign-drawer").toggleClass('open');
     // $(this).toggleClass("toggled");
@@ -352,6 +453,28 @@ function render_graphic($form, selector) {
     });
 }
 function registerEvents() {
+    $(document).on('click', ".scroll", scroll_to);
+
+    $(window).scroll(function () {
+        var w = $(window), $go = $('#go-up');
+
+        if (w.scrollTop() >= 1000) {
+            if (!$go.hasClass('active')) {
+                $go.addClass('active');
+            }
+        }
+        else {
+            if ($go.hasClass('active')) {
+                $go.removeClass('active');
+            }
+        }
+    });
+
+    $(".go-sign-in").off().click(function (e) {
+        e.preventDefault();
+        openSigInSideBar();
+    })
+
     var $main_accordion = $('#main-accordion');
 
     $('.take-tour').off().click(function (e) {

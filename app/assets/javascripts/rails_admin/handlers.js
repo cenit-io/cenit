@@ -455,10 +455,13 @@ function handlerInit() {
         setupAutoComplete(this);
     });
 
-    $('.toggle-boolean').each(function() {
+    $('.toggle-boolean').each(function () {
         $('<span></span>').insertBefore(this);
         setupToggleBoolean(this);
     });
+    if ($('#home_page').length > 0) {
+        initHomePage();
+    }
 }
 
 // Setup a toggle-boolean element
@@ -489,7 +492,7 @@ function setupAutoComplete(el) {
     var source = $el.data("auto-complete-source");
     var anchor = $el.data("auto-complete-anchor");
     horsey(el, {
-        source: [{ list: source}],
+        source: [{list: source}],
         getText: 'text',
         getValue: 'value',
         anchor: anchor
