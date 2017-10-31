@@ -14,9 +14,13 @@ module Setup
     field :username, type: String
     field :password, type: String
 
-    auth_template_parameters basic_auth: :basic_auth
+    auth_template_parameters username: :username, password: :password, basic_auth: :basic_auth
 
     def build_auth_header(_template_parameters)
+      basic_auth
+    end
+
+    def basic_auth
       'basic ' + ::Base64.encode64("#{username}:#{password}").delete("\n")
     end
 

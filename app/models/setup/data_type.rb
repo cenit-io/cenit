@@ -8,6 +8,7 @@ module Setup
     include Mongoff::DataTypeMethods
     include ClassHierarchyAware
     include ModelConfigurable
+    include BuildIn
     include RailsAdmin::Models::Setup::DataTypeAdmin
 
     origins origins_config, :cenit
