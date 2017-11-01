@@ -408,9 +408,9 @@ module Setup
                          task: message[:task])
         end
       if auto_retry == :automatic
-        if (http_response = verbose_response[:http_response])
-          if (200...299).exclude?(http_response.code)
-            fail unsuccessful_response(http_response, message)
+        if (response = verbose_response[:response])
+          unless response.success?
+            fail unsuccessful_response(response, message)
           end
         else
           fail 'Connection error'
@@ -474,9 +474,9 @@ module Setup
             true
           end
         if auto_retry == :automatic
-          if (http_response = verbose_response[:http_response])
-            if (200...299).exclude?(http_response.code)
-              fail unsuccessful_response(http_response, message)
+          if (response = verbose_response[:response])
+            unless response.success?
+              fail unsuccessful_response(response, message)
             end
           else
             fail 'Connection error'

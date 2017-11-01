@@ -2,6 +2,7 @@ module Setup
   class Oauth2Scope
     include SharedEditable
     include CustomTitle
+    include BuildIn
     include RailsAdmin::Models::Setup::Oauth2ScopeAdmin
 
     origins origins_config, :cenit

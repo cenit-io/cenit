@@ -15,6 +15,7 @@ class AppController < ApplicationController
           render plain: result
         end
       rescue Exception => ex
+        Setup::SystemReport.create_from(ex, "Handling action #{@app.custom_title} -> #{action}")
         render plain: ex.message, status: :internal_server_error
       end
     else
