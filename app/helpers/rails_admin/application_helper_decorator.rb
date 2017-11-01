@@ -1194,7 +1194,7 @@ module RailsAdmin
             (such
             as connection, transformation, data event, schedule, webhook and flow).' },
         { name: 'Data integration', icon: 'fa-cubes', color: 'green', desc: 'Includes data validation, transformation, mapping, and data quality. Exchange support for
-            multiple data formats (JSON, XML, ASN) and data standards (EDIFACT, X12, UBL).' },
+            multiple data formats (JSON, XML, ASN), data standards (EDIFACT, X12, UBL) and communication protocol connectors (HTTP(S), FTP, SFTP, SCP).' },
         { name: 'Integration scenarios', icon: 'fa-cloud', color: 'blue', desc: 'Cloud Service Integration, for Publication and Management of APIs, Mobile Application
             Integration, to support Business to Business, Application and Data Integration needs.' },
         { name: 'Third party service integrations', icon: 'fa-share-alt', color: 'purple', desc: 'Directory for OpenAPI Spec (Swagger) and Shared Collections - social feature to share

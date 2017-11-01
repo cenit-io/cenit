@@ -124,7 +124,7 @@ $merriweather: "Merriweather", Georgia;
     background: linear-gradient(to top, #fca326 0%, #e24329 100%);
     padding: 12px 17px;
     border-radius: 50%;
-    z-index: 100;
+    z-index: 1000;
     cursor: pointer;
     font-size: 20px;
     &.from-bottom {
@@ -225,9 +225,6 @@ $merriweather: "Merriweather", Georgia;
   #open_ipass {
     margin-top: 50px;
     position: relative;
-    @media(min-width: 768px) {
-      margin-top: 100px;
-    }
     @media(min-width: 992px) {
       margin-top: 0;
     }
@@ -489,8 +486,17 @@ $merriweather: "Merriweather", Georgia;
     }
     font-family: "Lato", "Helvetica Neue", Arial, Helvetica, sans-serif;
   }
-
+  .visible-custom {
+    display: block;
+    @media(min-width: 1047px) {
+      display: none;
+    }
+  }
   #home-nav {
+    display: none;
+    @media(min-width: 1047px) {
+      display: block;
+    }
     margin-right: 25px;
     > li {
       .sub-menu {
@@ -710,7 +716,7 @@ $merriweather: "Merriweather", Georgia;
         display: inline-block;
         width: 10px;
         height: 10px;
-        background: rgba(162, 162, 162, 0.31);
+        background: rgba(255, 255, 255, 0.32);
         border-radius: 50%;
         margin: 0 3px;
 
@@ -842,7 +848,6 @@ $merriweather: "Merriweather", Georgia;
                 font-family: "Lato", "Helvetica Neue", Arial;
                 text-transform: uppercase;
                 border: 1px solid rgba(255, 255, 255, 0.8);
-                background: black;
                 font-size: 14px;
                 font-weight: bold;
 
@@ -1216,6 +1221,7 @@ $merriweather: "Merriweather", Georgia;
   .header {
     text-align: center;
     margin-bottom: 35px;
+    overflow: auto;
 
     h3 {
       font-size: 24px;
@@ -1562,9 +1568,7 @@ $merriweather: "Merriweather", Georgia;
   #features {
     .feature {
       border: solid 1px #f5f5f5;
-      @media(min-width: 992px) {
-        height: 180px;
-      }
+
       overflow: hidden;
       margin-bottom: 30px;
       padding: 0;
@@ -1572,19 +1576,29 @@ $merriweather: "Merriweather", Georgia;
       -webkit-transition: all .3s ease-in-out;
       transition: all .3s ease-in-out;
       .image {
-        height: 180px;
-        background: whitesmoke;
+        background: transparent;
         text-align: center;
-        padding-top: 11%;
+        float: left;
+        width: 30%;
         i {
+          margin: 25% 0;
         }
       }
       .desc {
-        padding-bottom: 15px;
+        padding: 15px;
+        float: right;
+        @media(min-width: 768px) {
+          width: 70%;
+          height: 170px;
+        }
+        background: white;
+        @media(min-width: 992px) {
+          height: 180px;
+        }
         h1 {
           font-size: 16px;
           font-weight: bold;
-          margin: 15px 0 7px 0;
+          margin: 0;
           i {
             font-size: 20px;
             margin-right: 10px;

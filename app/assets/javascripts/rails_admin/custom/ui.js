@@ -367,20 +367,21 @@ function initHomePage() {
             swiping = false;
         }, 1000);
     }
+    // Uncomment this for automatic slide changing
+    /*    interval = setInterval(function () {
+            if (swiping) {
+                return;
+            }
+            swiping = true;
 
-    interval = setInterval(function () {
-        if (swiping) {
-            return;
-        }
-        swiping = true;
+            actualIndex++;
+            if (actualIndex >= $slides.length) {
+                actualIndex = 0;
+            }
 
-        actualIndex++;
-        if (actualIndex >= $slides.length) {
-            actualIndex = 0;
-        }
-
-        updateSlides(actualIndex);
-    }, 5000);
+            updateSlides(actualIndex);
+        }, 5000);
+    */
 }
 function scroll_to(event) {
     event.preventDefault();

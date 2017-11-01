@@ -21,4 +21,4 @@
             - anonymous = current_user ? 'false' : 'true'
             - dashboard_root =  @action.is_a?(RailsAdmin::Config::Actions::Dashboard) && params[:group].blank?
             = link_to 'See the tour','',class: 'take-tour button-outline', data:{anonymous: anonymous , 'dashboard-root': dashboard_root.to_s}
-            = link_to 'Sign up free','',class: 'button go-sign-in'
+            = link_to 'Try it free','',class: 'button go-sign-in'
