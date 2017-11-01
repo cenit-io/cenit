@@ -138,7 +138,7 @@ module Setup
 
             uri = URI.parse(url)
 
-            case uri.scheme
+            last_response = case uri.scheme
             when nil, '', 'http', 'https'
               process_http_connection(connection, template_parameters, verbose_response, last_response, options, &block)
             else
