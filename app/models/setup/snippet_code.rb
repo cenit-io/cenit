@@ -8,6 +8,8 @@ module Setup
 
       binding_belongs_to :snippet, class_name: Setup::Snippet.to_s, inverse_of: nil
 
+      trace_include :code
+
       before_save do
         if snippet_required?
           configure_snippet
