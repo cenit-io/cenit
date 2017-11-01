@@ -75,8 +75,12 @@ module RailsAdmin
           model = abstract_model.model
           context_bindings = (bindings || {}).merge(abstract_model: abstract_model)
           changes_set.each do |attr, values|
-            next unless (field = model_config.fields.detect { |f| f.name.to_s == attr })
-            fields_labels << field.with(context_bindings).label
+            fields_labels <<
+              if (field = model_config._fields.detect { |f| f.name.to_s == attr })
+                field.with(context_bindings).label
+              else
+                attr
+              end
             fields_diffs <<
               if (relation = model.reflect_on_association(attr))
                 if relation.many?
@@ -91,10 +95,10 @@ module RailsAdmin
                     content =
                       if item.size == 1
                         if item['_id'][1]
-                          %(#{diffstat(0,0)}<label class="label label-default">Unchanged<label>)
+                          %(#{diffstat(0, 0)}<label class="label label-default">Unchanged<label>)
                         else
                           deletions += 1
-                          %(#{diffstat(0,1)}<label class="label label-danger">Destroyed</label>)
+                          %(#{diffstat(0, 1)}<label class="label label-danger">Destroyed</label>)
                         end
                       else
                         diff = build_diff(related_abstract_model, item.except('_id'), deep, index)
@@ -116,7 +120,7 @@ module RailsAdmin
                 elsif values
                   build_diff(RailsAdmin.config(relation.klass).abstract_model, values, deep)
                 else
-                  { additions: 0, deletions: 1, html: "#{diffstat(0,1)}Destroyed" }
+                  { additions: 0, deletions: 1, html: "#{diffstat(0, 1)}Destroyed" }
                 end
               else
                 additions = 0
