@@ -6,13 +6,13 @@
           %h3='Features'
           %p
             ='One Platform for all your integration needs.'
-      .row.features
+      .row.add-clearfix.features
         -home_features.each do |f|
-          .col-sm-6
+          .col-sms-6.col-sm-6
             %div{class: "col-xs-12 feature #{ f[:color]} "}
-              .col-xs-6.col-sm-4.image.hidden-xs
+              .image.hidden-xs
                 %i{class: "fa fa-5x #{f[:icon]}" ,'aria-hidden'=> 'true'}
-              .col-xs-12.col-sm-8.desc
+              .desc
                 %h1
                   %i{class: "fa #{f[:icon]}" ,'aria-hidden'=> 'true'}
                   = f[:name]

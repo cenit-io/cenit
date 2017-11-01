@@ -1989,9 +1989,6 @@ section#welcome_users {
 }
 
 #home_content {
-  @media(min-width: 768px) {
-    margin-top: 47px;
-  }
   @media(min-width: 992px) {
     margin-top: 50px;
   }
@@ -2729,12 +2726,6 @@ footer {
   padding-top: 70px;
   padding-bottom: 30px;
   -webkit-font-smoothing: antialiased;
-  @media(min-width: 768px) {
-    padding-left: 55px;
-  }
-  @media(min-width: 992px) {
-    padding-left: 60px;
-  }
 
   @media(max-width: 991px) {
     padding-top: 30px;
