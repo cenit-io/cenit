@@ -3403,6 +3403,7 @@ button#model-nav-xs {
         font-weight: 600;
         color: rgb(36, 41, 46);
         white-space: nowrap;
+
         &:after {
           content: '\f106';
           float: right;
@@ -3441,6 +3442,23 @@ button#model-nav-xs {
 }
 
 .trace {
+  .total-changes {
+    margin-right: 7px;
+    font-size: 13px;
+    line-height: 20px;
+    font-weight: 600;
+    color: #24292e;
+    .additions {
+      color: #2cbe4e;
+      font-weight: bold;
+      font-size: 15px;
+    }
+    .deletions{
+      color: #cb2431;
+      font-weight: bold;
+      font-size: 15px;
+    }
+  }
   .trace-info {
     border: 1px solid rgb(200, 225, 255);
     border-radius: 3px 3px 0px 0px;
@@ -3490,6 +3508,7 @@ button#model-nav-xs {
   }
 
 }
+
 .diffstat {
   font-size: 12px;
   font-weight: 600;
@@ -3499,6 +3518,7 @@ button#model-nav-xs {
   letter-spacing: -4px;
   margin-right: 5px;
 }
+
 .block-diff-deleted, .block-diff-added, .block-diff-neutral {
   display: inline-block;
   width: 8px;
@@ -3513,6 +3533,7 @@ button#model-nav-xs {
 .block-diff-deleted {
   background-color: #cb2431;
 }
+
 .block-diff-neutral {
   background-color: #d1d5da;
 }

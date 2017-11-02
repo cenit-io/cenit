@@ -8,7 +8,7 @@
       .trace-info
         .trace-header
           .action.pull-left
-            = @action.diffstat(diff[:additions], diff[:deletions]).html_safe
+            = @action.diffstat(diff[:additions], diff[:deletions], true).html_safe
             - if (author = User.where(id: @trace.author_id).first)
               = image_tag(author.picture_url, alt: '', width: '20px')
               %label
