@@ -66,17 +66,21 @@ module RailsAdmin
               additions_resume = additions > 0 ? %(<span class="additions">+ #{additions} </span>) : ''
               deletions_resume = deletions > 0 ? %(<span class="deletions">- #{deletions} </span>) : ''
               ["#{additions + deletions} changes", %(#{additions_resume}#{deletions_resume})]
-          else
-            ["#{additions} additions &amp; #{deletions} deletions",additions+deletions]
-          end
+            else
+              ["#{additions} additions &amp; #{deletions} deletions", additions+deletions]
+            end
           %(<span class="total-changes">#{prefix}</span><span class="diffstat tooltipped tooltipped-e" title="#{title}">
             #{blocks}
           </span>
           )
         end
 
-        def build_diff(abstract_model, changes_set, deep = 0, sibling_id = nil)
-          deep += 1
+        def build_diff(abstract_model, changes_set)
+          @diff_index = 0
+          incremental_build_diff(abstract_model, changes_set)
+        end
+
+        def incremental_build_diff(abstract_model, changes_set)
           fields_labels = []
           fields_diffs = []
           model_config = abstract_model.config
@@ -109,7 +113,7 @@ module RailsAdmin
                           %(#{diffstat(0, 1)}<label class="label label-danger">Destroyed</label>)
                         end
                       else
-                        diff = build_diff(related_abstract_model, item.except('_id'), deep, index)
+                        diff = incremental_build_diff(related_abstract_model, item.except('_id'))
                         additions += diff[:additions]
                         deletions += diff[:deletions]
                         diff[:html]
@@ -126,7 +130,7 @@ module RailsAdmin
                   end.join
                   { additions: additions, deletions: deletions, html: %(<ul class="nav nav-tabs"">#{lies}</ul><div class="tab-content">#{tab_contents}</div>) }
                 elsif values
-                  build_diff(RailsAdmin.config(relation.klass).abstract_model, values, deep)
+                  incremental_build_diff(RailsAdmin.config(relation.klass).abstract_model, values)
                 else
                   { additions: 0, deletions: 1, html: "#{diffstat(0, 1)}Destroyed" }
                 end
@@ -162,7 +166,7 @@ module RailsAdmin
             deletions += diff[:deletions]
             index += 1
             label = fields_labels[index]
-            accordion_id = "#{deep}_#{sibling_id}_#{index}"
+            accordion_id = (@diff_index += 1).to_s
             open = index < open_count
             %(<div class="panel-group" id="accordion_#{accordion_id}" role="tablist" aria-multiselectable="true">
                 <div class="panel panel-default panel-trace">
@@ -170,7 +174,7 @@ module RailsAdmin
                       <a role="button" data-toggle="collapse" data-parent="#accordion_#{accordion_id}" href="#collapse-#{accordion_id}" aria-expanded="#{open ? 'true' : 'false'}" aria-controls="collapseOne" class="#{open ? '' : 'collapsed'}">
                         <h4 class="panel-title">
                             #{diffstat(diff[:additions], diff[:deletions])}
-              #{label}
+                            #{label}
                         </h4>
                       </a>
                   </div>
